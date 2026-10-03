@@ -377,7 +377,7 @@ p8 GET/SET saturation and p8 p50/p99 at 60%/80% offered load, and contemporary
 nulls. Require no loss beyond the class band; D2's historical wire numbers are
 not a substitute. Then run **`tests/gate.sh iteration`**, verify both modes and
 database configurations, and land only after mainline's merit/gate decision.
-Append results as `MEASURE-RESULT`; they are pending here.
+The subsequent mainline result is recorded in `MEASURE-RESULT` below.
 
 **Offline reproduction and receipts.** The committed machine ledger is
 `tests/wb_rule_completion_evidence.json`. Raw logs/JSON, binary preservation

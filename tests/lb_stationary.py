@@ -45,21 +45,30 @@ def checked_ops(before, after, rounds, clients, shards):
     # at most a few DEBUG/INFO ops. Work conservation uses a fixed absolute
     # observer allowance, not a percentage that can conceal an inactive owner.
     old_shards = {s.sid: s.ops for s in before.shards}
+    if {s.sid for s in after.shards} != set(old_shards):
+        raise AssertionError('stationary LB shard inventory changed')
     expected = rounds * clients
     for shard in after.shards:
         if not expected <= shard.ops - old_shards[shard.sid] <= expected + 16:
             raise AssertionError('stationary LB unequal shard traffic: ' + str(shard.sid))
     old_threads = {t.tid: t for t in before.threads}
+    if {t.tid for t in after.threads} != set(old_threads):
+        raise AssertionError('stationary LB thread inventory changed')
     owners = Counter(s.owner for s in before.shards)
     if len(set(owners.values())) != 1:
         raise AssertionError('stationary LB owner geometry is not balanced')
+    by_role = {}
     for thread in after.threads:
         delta = thread.ops - old_threads[thread.tid].ops
-        wanted = rounds * shards if thread.role == 'io' else expected * owners[thread.tid]
-        if thread.role == 'fused':
-            wanted += rounds * shards  # parsing and owner execution share this signal
-        if not wanted <= delta <= wanted + 16:
-            raise AssertionError(f'stationary LB unequal thread traffic: t{thread.tid} {delta} expected {wanted}..{wanted + 16}')
+        minimum = rounds * shards if thread.role in ('io', 'fused') else expected * owners[thread.tid]
+        if delta < minimum:
+            raise AssertionError(f'stationary LB inactive thread: t{thread.tid} {delta} < {minimum}')
+        by_role.setdefault(thread.role, []).append(delta)
+    # The fused counter combines parsing and owner work; compare like roles
+    # directly instead of assuming an unmeasured fused accounting multiplier.
+    for role, deltas in by_role.items():
+        if max(deltas) - min(deltas) > 16:
+            raise AssertionError(f'stationary LB unequal thread traffic: {role} {deltas}')
 
 
 def attempt(host, port, seconds, number):
@@ -127,6 +136,8 @@ def attempt(host, port, seconds, number):
             if now >= sample_at:
                 after = counters(admin)
                 current = _lib.lbsignals(admin)
+                if baseline is not None:
+                    unmoved(baseline, after)  # a single move fails immediately
                 try:
                     checked_ops(snapshot, current, rounds, len(clients), len(keys))
                 except AssertionError as error:
@@ -135,7 +146,7 @@ def attempt(host, port, seconds, number):
                     return None, str(error)
                 samples.append(dict(elapsed=now - start, counters=after, rounds=rounds))
                 if baseline is not None:
-                    unmoved(baseline, after)  # a single move fails immediately
+                    pass
                 elif any(after[k] != before[k] for k in MOTION):
                     quiet_since = now
                 elif now - quiet_since >= SETTLE_SECONDS:
@@ -157,6 +168,7 @@ def attempt(host, port, seconds, number):
 
 
 def self_test():
+    from types import SimpleNamespace as N
     before = dict(zip((*MOTION, TICKS, GATHERS), (4, 7, 20, 9)))
     unmoved(before, dict(before, **{TICKS: 50, GATHERS: 10}))
     active(before, dict(before, **{TICKS: 50}), 100)
@@ -171,6 +183,22 @@ def self_test():
         except AssertionError as error:
             assert 'window never opened' in str(error)
         else: raise AssertionError('inactive-window negative control passed')
+    before_ops = N(shards=[N(sid=i, owner=i % 2, ops=0) for i in range(16)],
+                   threads=[N(tid=i, role='fused', ops=0) for i in range(2)])
+    after_ops = N(shards=[N(sid=i, owner=i % 2, ops=20) for i in range(16)],
+                  threads=[N(tid=i, role='fused', ops=320) for i in range(2)])
+    checked_ops(before_ops, after_ops, 10, 2, 16)
+    after_ops.threads[1].ops = 0
+    try: checked_ops(before_ops, after_ops, 10, 2, 16)
+    except AssertionError as error:
+        assert 'inactive thread' in str(error)
+    else: raise AssertionError('inactive-owner negative control passed')
+    after_ops.threads[1].ops = 320
+    after_ops.shards[0].ops = 0
+    try: checked_ops(before_ops, after_ops, 10, 2, 16)
+    except AssertionError as error:
+        assert 'unequal shard traffic' in str(error)
+    else: raise AssertionError('inactive-shard negative control passed')
     print('PASS stationary LB move and unentered-window controls')
 
 
