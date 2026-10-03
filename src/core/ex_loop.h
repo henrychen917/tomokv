@@ -1611,6 +1611,7 @@ private:
     }
 
     bool flip_quiesced() const {
+        if (aof_manager_ && aof_manager_->completions_pending(self_->id())) return false;
         if constexpr (Fused) {
             if (read_local_enabled() &&
                 (read_local_impl().lane_count != 0 || !read_local_impl().deferred.empty()))
@@ -1843,14 +1844,22 @@ private:
     }
 
     uint32_t aof_flush_pass() {
-        if (__builtin_expect(aof_manager_ == nullptr || !aof_manager_->recording(), true)) return 0;
+        if (__builtin_expect(aof_manager_ == nullptr, true)) return 0;
+        aof_manager_->debug_ack_window(self_->id(), ring_);
         AofOwnerContext context{self_->id(), &ring_, &self_->sig()};
         uint32_t work = 0;
+        bool all_posted = true;
         for (Shard* shard : self_->shards()) {
             AofProducer& producer = shard->store().aof();
             if (!producer.has_pending()) continue;
-            if (producer.flush(context)) work++;
+            // A full channel is retryable. Retain completion ownership until *all* records
+            // have posted, including plain records staged behind an undecided atomic group.
+            const bool flushed = producer.flush(context);
+            all_posted &= flushed && !producer.has_pending();
+            if (flushed || aof_manager_->recording()) work++;
         }
+        work += aof_manager_->finish_completions(self_->id(), all_posted, this,
+            [](void* p, Client* client) { static_cast<ExLoopT*>(p)->notify_sender(client); });
         return work;
     }
 
@@ -2328,9 +2337,10 @@ private:
                 // to every owner it touches; all but the last return with the op still Issued.
                 // Recording only the owner that published Done means a scatter is attributed to
                 // the slice that actually computed the answer.
-                if (client &&
-                    client->rob().at(batch[i].op_id).state.load(std::memory_order_relaxed) ==
-                        OpState::Done)
+                const OpState completed = client ?
+                    client->rob().at(batch[i].op_id).state.load(std::memory_order_relaxed) :
+                    OpState::Issued;
+                if (completed == OpState::Done || completed == OpState::AofWait)
                     slowlog_record_captured(self_->id(), client->id(), slowlog_state_.capture,
                                             elapsed, now_ms, arm);
                 if (ok) continue;
@@ -2577,6 +2587,8 @@ private:
             }
             if (result == MultiTaskResult::Final) {
                 Op& public_op = t.client->rob().at(t.op_id);
+                if (aof_manager_ &&
+                    aof_manager_->defer_completion(self_->id(), public_op, t.client)) return true;
                 public_op.state.store(OpState::Done, std::memory_order_release);
                 notify_sender(t.client);
             }
@@ -2722,6 +2734,11 @@ private:
             if (op.local_xshard()) xshard_aof_emit_local(sh, op, context);
             else                   aof_record_local_op(sh, op, context);
         }
+
+        // The optional persistence path owns Done until this pass's post and durability
+        // boundary. Merely delaying notify_sender cannot protect an IO already serving.
+        if (__builtin_expect(aof_manager_ != nullptr, false) &&
+            aof_manager_->defer_completion(self_->id(), op, t.client)) return true;
 
         // Release pairs with the IO thread's acquire on Done: everything the handler wrote into
         // op.reply becomes visible through this one store.

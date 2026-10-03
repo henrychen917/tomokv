@@ -1741,9 +1741,9 @@ public:
         uint32_t selected = 0;
         if (target_io < live_io) {
             // LOAD-BEARING exclusions, not tie-breakers: the AOF writer (and, in smt mode, its
-            // sibling) must never be converted io->ex. writer_shutdown() runs only on the io loop's
-            // exit paths; an executor-state ~AofManager closes without an fsync and discard_chunks()
-            // drops buffered records. The unix-listener owner likewise cannot leave the io role
+            // sibling) must never be converted io->ex: only IO services the writer's AofIo CQEs
+            // during normal operation. The physical-worker shutdown guard drains it after every
+            // owner stops posting. The unix-listener owner likewise cannot leave the io role
             // without taking its listener with it.
             const uint32_t aof_writer = aof_.writer_tid();
             for (uint32_t tid : placement_.ifid_threads()) {

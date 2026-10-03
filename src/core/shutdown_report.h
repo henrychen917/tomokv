@@ -143,6 +143,7 @@ private:
     Stuck stuck_{};
     Epoll epoll_{};
     Accept accept_{};
+    AofManager::PersistenceReport persistence_{};
 
     template <class IoLoops>
     friend ShutdownReport collect_shutdown_report(Server&, IoLoops&);
@@ -157,6 +158,7 @@ ShutdownReport collect_shutdown_report(Server& server, IoLoops& io_loops) {
         ? ShutdownReport::Mode::Fused : ShutdownReport::Mode::Split;
     report.thread_count_ = server.nthreads();
     report.epoll_.enabled = server.cfg().net_io == NetIoEngine::Epoll;
+    report.persistence_ = server.aof().persistence_report();
 
     for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
         const LoopSignals& signals = server.thread(tid).sig();
@@ -245,7 +247,8 @@ ShutdownReport collect_shutdown_report(Server& server, IoLoops& io_loops) {
                      id != end; id++) {
                     switch (client->rob().at(id).state.load(std::memory_order_acquire)) {
                         case OpState::Done: report.stuck_.slots_done++; break;
-                        case OpState::Issued: report.stuck_.slots_issued++; break;
+                        case OpState::Issued:
+                        case OpState::AofWait: report.stuck_.slots_issued++; break;
                         default: report.stuck_.slots_free++; break;
                     }
                 }
@@ -277,6 +280,16 @@ inline const char* shutdown_thread_role_json(ShutdownReport::ThreadRole role) {
 }
 
 inline void print_shutdown_report_human(const ShutdownReport& report) {
+    const auto& persistence = report.persistence_;
+    std::printf("persistence: enabled=%u posted=%llu flushed=%llu durable=%llu refused=%llu"
+                " pending_chunks=%llu producers_with_pending=%llu drain_gave_up=%u failed=%u\n",
+                persistence.enabled, static_cast<unsigned long long>(persistence.posted),
+                static_cast<unsigned long long>(persistence.flushed),
+                static_cast<unsigned long long>(persistence.durable),
+                static_cast<unsigned long long>(persistence.refused),
+                static_cast<unsigned long long>(persistence.pending_chunks),
+                static_cast<unsigned long long>(persistence.producers_with_pending),
+                persistence.drain_gave_up, persistence.failed);
     std::printf("\n%-6s %-4s %12s %10s %9s %9s %9s %9s %8s\n",
                 "thread", "role", "ops", "iters", "busy_ms", "idle_ms", "cpu_ms",
                 "wake_tx", "wake_rx");
@@ -492,6 +505,24 @@ inline void print_shutdown_report_json(const ShutdownReport& report) {
                 report.epoll_.enabled ? "true" : "false",
                 static_cast<unsigned long long>(report.epoll_.events),
                 static_cast<unsigned long long>(report.epoll_.recvs));
+    const auto& persistence = report.persistence_;
+    std::printf(",\"persistence\":{\"enabled\":%s,\"recording\":%s,\"failed\":%s,"
+                "\"drain_gave_up\":%s,\"posted\":%llu,\"flushed\":%llu,\"durable\":%llu,"
+                "\"refused\":%llu,\"pending_chunks\":%llu,\"records_written\":%llu,"
+                "\"producers_with_pending\":%llu,\"producers_stopped\":%llu,"
+                "\"producers_expected\":%llu,\"completions_pending\":%llu}",
+                persistence.enabled ? "true" : "false", persistence.recording ? "true" : "false",
+                persistence.failed ? "true" : "false", persistence.drain_gave_up ? "true" : "false",
+                static_cast<unsigned long long>(persistence.posted),
+                static_cast<unsigned long long>(persistence.flushed),
+                static_cast<unsigned long long>(persistence.durable),
+                static_cast<unsigned long long>(persistence.refused),
+                static_cast<unsigned long long>(persistence.pending_chunks),
+                static_cast<unsigned long long>(persistence.records_written),
+                static_cast<unsigned long long>(persistence.producers_with_pending),
+                static_cast<unsigned long long>(persistence.producers_stopped),
+                static_cast<unsigned long long>(persistence.producers_expected),
+                static_cast<unsigned long long>(persistence.completions_pending));
     const ShutdownReport::Accept& accept = report.accept_;
     std::printf(",\"accept\":{\"accepts\":%llu,\"accept_err\":%llu,\"rearm\":%llu,"
                 "\"sqe_starved\":%llu,\"notify_drop\":%llu}}\n",

@@ -87,12 +87,38 @@ def require_io_conservation(report, edges=False):
     return dict(tenures=count, fired=fired, mixed=mixed)
 
 
+def require_persistence(report, enabled=None):
+    evidence = report.get('persistence')
+    if not isinstance(evidence, dict):
+        fail('missing persistence object')
+    for name in ('enabled', 'recording', 'failed', 'drain_gave_up'):
+        if type(evidence.get(name)) is not bool:
+            fail('invalid persistence.' + name)
+    counters = ('posted', 'flushed', 'durable', 'refused', 'pending_chunks', 'records_written',
+                'producers_with_pending', 'producers_stopped', 'producers_expected', 'completions_pending')
+    if any(type(evidence.get(k)) is not int or evidence[k] < 0 for k in counters):
+        fail('invalid persistence counter')
+    if enabled is not None and evidence['enabled'] != enabled:
+        fail('unexpected persistence.enabled')
+    dirty = {k: evidence[k] for k in ('recording', 'failed', 'drain_gave_up', 'refused',
+                                     'pending_chunks', 'producers_with_pending') if evidence[k]}
+    if dirty or evidence['posted'] != evidence['flushed'] or evidence['flushed'] != evidence['durable']:
+        fail('persistence shutdown must drain: %r' % evidence)
+    if evidence['producers_stopped'] != evidence['producers_expected']:
+        fail('persistence producer stop barrier incomplete')
+    if not evidence['enabled'] and any(evidence[k] for k in counters):
+        fail('disabled persistence must have no producer allocation or work')
+
+
 def main():
     if len(sys.argv) < 3:
         fail("usage: LOG present|clean|get PATH|io [--edges]")
     path, action = sys.argv[1:3]
     report = load_report(path)
     if action == "present":
+        return
+    if action == "persistence":
+        require_persistence(report)
         return
     if action in ("clean", "io"):
         require_io_conservation(report, edges="--edges" in sys.argv[3:])

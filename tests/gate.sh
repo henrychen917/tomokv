@@ -276,8 +276,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=461
-EXPECT_FULL=478                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+EXPECT_QUICK=470
+EXPECT_FULL=487                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -999,7 +999,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
+              core_units persistfix_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1271,6 +1271,17 @@ g++ -std=c++20 -O2 -march=native -pthread -I. tests/read_local_write_ring_unit.c
     && $TMPDIR/tomokv-read-local-write-ring-unit >>$TMPDIR/gate-ring-unit.txt 2>&1 \
     && ok "read-local write ring + arming transient unit" \
     || bad "read-local write ring + arming transient unit" "see $TMPDIR/gate-ring-unit.txt"
+}
+
+job_persistfix_units(){
+# PS1/PS2/PS14: one row, collected BEFORE the quick-tier exit. EXPECT stays owner-owned.
+row_begin "AOF publication/shutdown witnesses + negative controls"
+if unit_ready persistfix-units && taskset -c "$CORES" python3 tests/persistfix_checks.py \
+    >"$TMPDIR/persistfix-unit.log" 2>&1; then
+  ok "AOF publication/shutdown witnesses + negative controls"
+else
+  bad "AOF publication/shutdown witnesses + negative controls" "see $TMPDIR/persistfix-unit.log"
+fi
 }
 
 job_core_units(){
@@ -2296,12 +2307,33 @@ settle
 boot "$CANDIDATE_BINARY" --protected-mode no --atomic 1 --appendonly yes --appendfsync always \
     --net-io "$NET_IO" --dir "$AOF_ALWAYS_DIR" \
     || bad "AOF always recovery boot ($NET_IO)"
-row_begin "AOF always acknowledged-prefix recovery"
+row_begin "AOF always recovery after quiescent SIGKILL"
 py tests/aof_fsync.py 127.0.0.1 $PORT verify "$AOF_ALWAYS_STATE" always 512 \
     >>$TMPDIR/gate-aof-always.txt 2>&1 \
-    && ok "AOF always acknowledged-prefix recovery" \
-    || bad "AOF always acknowledged-prefix recovery" "see $TMPDIR/gate-aof-always.txt"
+    && ok "AOF always recovery after quiescent SIGKILL" \
+    || bad "AOF always recovery after quiescent SIGKILL" "see $TMPDIR/gate-aof-always.txt"
 stop
+
+# Four rows per engine, eight total; this job is collected BEFORE the quick exit.
+# stop above reaps the gate-owned server before handing its allocated PORT to the
+# driver. The everysec boot below takes ownership back after all four runs exit.
+# Each script owns fresh data, both boots and its exact child PID. No existing data
+# or server is reused, including by the deliberately broken mainline control arms.
+for PERSIST_MODE in 2s 1s; do
+  for PERSIST_CASE in kill term; do
+    row_begin "AOF in-window $PERSIST_CASE recovery ($PERSIST_MODE, $NET_IO)"
+    quiet_wait
+    if python3 tests/persistfix.py --binary "$CANDIDATE_BINARY" --mode "$PERSIST_MODE" \
+        --case "$PERSIST_CASE" --net-io "$NET_IO" --cores "$CORES" --ratio "$GATE_RATIO" \
+        --port "$PORT" --artifacts "$TMPDIR/persistfix" \
+        >"$TMPDIR/persistfix-$PERSIST_MODE-$PERSIST_CASE.log" 2>&1; then
+      ok "AOF in-window $PERSIST_CASE recovery ($PERSIST_MODE, $NET_IO)"
+    else
+      bad "AOF in-window $PERSIST_CASE recovery ($PERSIST_MODE, $NET_IO)" \
+          "see $TMPDIR/persistfix-$PERSIST_MODE-$PERSIST_CASE.log"
+    fi
+  done
+done
 
 AOF_EVERY_DIR=$(mktemp -d "$TMPDIR/gate-aof-everysec-${NET_IO}.XXXXXX")
 AOF_EVERY_STATE=$AOF_EVERY_DIR/state.json
@@ -2810,11 +2842,10 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
-      build/wb-rule-units build/wbland-units build/rltopo-unit build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit \
-      build/reorder-engagement-unit build/reorder-engagement-unit-db0 >"$TMPDIR/build.log" 2>&1
+      build/wb-rule-units build/wbland-units build/rltopo-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit persistfix-units ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -2876,7 +2907,7 @@ job_dependencies(){
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*) echo 'release production_units';;
-    wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
+    persistfix_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
     rlcache) echo rldbg;;
@@ -2946,6 +2977,8 @@ collect_job flip_unit
 collect_job filter_unit
 
 collect_job ring_unit
+
+collect_job persistfix_units
 
 collect_job core_units
 
