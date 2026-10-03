@@ -1,10 +1,12 @@
 // tls.h — handshake and userspace-fallback TLS engine.
 //
 // A kTLS attempt starts with a non-blocking socket BIO so OpenSSL can install the kernel record
-// layer.  Once both directions engage, the SSL object becomes a cold lifetime holder and ordinary
+// layer. For TLS 1.2, once both directions engage, SSL becomes a cold lifetime holder and ordinary
 // io_uring recv/send owns application data.  Forced fallback uses the original BIO-pair engine;
 // automatic fallback uses it when neither direction engaged and retains the socket BIO when a
 // direction is already irreversible, preserving a valid userspace transport in either case.
+// TLS 1.3 always retains OpenSSL on RX for post-handshake messages and KeyUpdate.
+// OpenSSL 3.0/3.1 TX key updates are installed by the keylog callback (Linux re-key support needed).
 #pragma once
 
 #include <cstddef>
@@ -19,6 +21,10 @@ namespace tomo {
 
 struct Config;
 enum class TlsAuthClients : uint8_t;
+
+// Process-lifetime counters; no per-operation traffic or layout changes to the core structs.
+uint64_t tls_ktls_rx_declined_13();
+uint64_t tls_ktls_tx_rekeys();
 
 enum class TlsOp : int8_t {
     Progress = 1,
@@ -113,7 +119,7 @@ private:
     friend class TlsContext;
     enum class State : uint8_t { Handshaking, MemoryUserspace, SocketUserspace, Ktls, Failed };
     static void keylog_callback(const SSL* ssl, const char* line);
-    bool install_tls13_rx();
+    bool install_tls13_tx(const char* secret_hex);
     bool install_memory_bio(std::string& error);
     void restore_socket_flags();
     TlsOp funnel(int result, const char* operation);
@@ -133,9 +139,10 @@ private:
     bool read_poll_armed_ = false;
     bool write_poll_armed_ = false;
     bool shutdown_started_ = false;
-    bool has_client_traffic_secret_ = false;
+    bool tx_rekey_failed_ = false;
     TlsOp wanted_ = TlsOp::Progress;
-    std::array<unsigned char, 32> client_traffic_secret_{};
+    // Reuse the former RX secret scratch without changing the TLS sidecar allocation size.
+    std::array<unsigned char, 32> traffic_key_{};
     std::string last_error_;
 };
 

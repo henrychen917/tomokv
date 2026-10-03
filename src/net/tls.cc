@@ -1,6 +1,7 @@
 #include "tls.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cctype>
 #include <climits>
 #include <cstring>
@@ -23,6 +24,8 @@ namespace {
 #ifndef SOL_TLS
 #define SOL_TLS 282
 #endif
+
+std::atomic<uint64_t> rx_declined_13{0}, tx_rekeys{0};
 
 bool eq_icase(const std::string& value, const char* wanted) {
     const size_t n = std::strlen(wanted);
@@ -94,8 +97,8 @@ int hex_nibble(char value) {
     return -1;
 }
 
-bool hkdf_expand_label_sha256(const unsigned char* secret, const char* label,
-                              unsigned char* out, size_t out_len) {
+bool hkdf_expand_label(const EVP_MD* md, const unsigned char* secret, int secret_len,
+                       const char* label, unsigned char* out, size_t out_len) {
     static constexpr char prefix[] = "tls13 ";
     const size_t label_len = std::strlen(label);
     if (out_len > UINT16_MAX || sizeof(prefix) - 1 + label_len > UINT8_MAX) return false;
@@ -115,8 +118,8 @@ bool hkdf_expand_label_sha256(const unsigned char* secret, const char* label,
     size_t derived = out_len;
     const bool ok = EVP_PKEY_derive_init(ctx) > 0 &&
                     EVP_PKEY_CTX_set_hkdf_mode(ctx, EVP_PKEY_HKDEF_MODE_EXPAND_ONLY) > 0 &&
-                    EVP_PKEY_CTX_set_hkdf_md(ctx, EVP_sha256()) > 0 &&
-                    EVP_PKEY_CTX_set1_hkdf_key(ctx, secret, 32) > 0 &&
+                    EVP_PKEY_CTX_set_hkdf_md(ctx, md) > 0 &&
+                    EVP_PKEY_CTX_set1_hkdf_key(ctx, secret, secret_len) > 0 &&
                     EVP_PKEY_CTX_add1_hkdf_info(ctx, info, static_cast<int>(pos)) > 0 &&
                     EVP_PKEY_derive(ctx, out, &derived) > 0 && derived == out_len;
     EVP_PKEY_CTX_free(ctx);
@@ -124,7 +127,33 @@ bool hkdf_expand_label_sha256(const unsigned char* secret, const char* label,
     return ok;
 }
 
+// A KeyUpdate starts a new record sequence at zero. OpenSSL invokes the keylog callback after
+// flushing its old-key KeyUpdate and before writing any new-key application data.
+template <class Crypto>
+bool install_tx_key(int fd, uint16_t cipher, const EVP_MD* md,
+                    const unsigned char* secret, int secret_len, unsigned char* key) {
+    Crypto crypto{};
+    unsigned char iv[sizeof(crypto.salt) + sizeof(crypto.iv)];
+    crypto.info.version = TLS_1_3_VERSION;
+    crypto.info.cipher_type = cipher;
+    const bool derived = hkdf_expand_label(md, secret, secret_len, "key", key, sizeof(crypto.key)) &&
+                         hkdf_expand_label(md, secret, secret_len, "iv", iv, sizeof(iv));
+    if (derived) {
+        std::memcpy(crypto.key, key, sizeof(crypto.key));
+        std::memcpy(crypto.salt, iv, sizeof(crypto.salt));
+        std::memcpy(crypto.iv, iv + sizeof(crypto.salt), sizeof(crypto.iv));
+    }
+    const bool installed = derived &&
+        ::setsockopt(fd, SOL_TLS, TLS_TX, &crypto, sizeof(crypto)) == 0;
+    OPENSSL_cleanse(iv, sizeof(iv));
+    OPENSSL_cleanse(&crypto, sizeof(crypto));
+    return installed;
+}
+
 }  // namespace
+
+uint64_t tls_ktls_rx_declined_13() { return rx_declined_13.load(std::memory_order_relaxed); }
+uint64_t tls_ktls_tx_rekeys() { return tx_rekeys.load(std::memory_order_relaxed); }
 
 std::unique_ptr<TlsContext> TlsContext::create(const Config& cfg, std::string& error) {
     error.clear();
@@ -189,56 +218,67 @@ TlsContext::~TlsContext() {
 }
 
 TlsConn::~TlsConn() {
-    OPENSSL_cleanse(client_traffic_secret_.data(), client_traffic_secret_.size());
+    OPENSSL_cleanse(traffic_key_.data(), traffic_key_.size());
     if (ssl_) SSL_free(ssl_);
     if (external_bio_) BIO_free(external_bio_);
 }
 
 void TlsConn::keylog_callback(const SSL* ssl, const char* line) {
+    // OpenSSL 3.2+ owns kTLS re-keying in its record layer. The older record layer changes only
+    // its userspace TX key. RX remains in OpenSSL, but a requested update also changes TX.
+#if OPENSSL_VERSION_NUMBER < 0x30200000L
     auto* self = static_cast<TlsConn*>(SSL_get_app_data(const_cast<SSL*>(ssl)));
-    static constexpr char label[] = "CLIENT_TRAFFIC_SECRET_0 ";
-    if (!self || !line || std::strncmp(line, label, sizeof(label) - 1) != 0) return;
+    static constexpr char label[] = "SERVER_TRAFFIC_SECRET_N ";
+    if (!self || !line || self->tx_rekey_failed_ ||
+        std::strncmp(line, label, sizeof(label) - 1) != 0 ||
+        !BIO_get_ktls_send(SSL_get_wbio(ssl))) return;
     const char* secret = std::strrchr(line, ' ');
-    if (!secret || std::strlen(++secret) != self->client_traffic_secret_.size() * 2) return;
-    for (size_t i = 0; i < self->client_traffic_secret_.size(); i++) {
-        const int hi = hex_nibble(secret[i * 2]);
-        const int lo = hex_nibble(secret[i * 2 + 1]);
-        if (hi < 0 || lo < 0) {
-            OPENSSL_cleanse(self->client_traffic_secret_.data(),
-                            self->client_traffic_secret_.size());
-            return;
-        }
-        self->client_traffic_secret_[i] = static_cast<unsigned char>((hi << 4) | lo);
-    }
-    self->has_client_traffic_secret_ = true;
+    if (!secret || !self->install_tls13_tx(secret + 1)) {
+        // A keylog callback cannot return an SSL error. Shut down the fd BEFORE SSL_write can
+        // send application data under a stale key, then surface the failure through the engine.
+        self->tx_rekey_failed_ = true;
+        self->last_error_ = "TLS 1.3 kTLS TX re-key failed (kernel TLS_TX re-key support required)";
+        self->state_ = State::Failed;
+        (void)::shutdown(self->socket_fd_, SHUT_RDWR);
+    } else tx_rekeys.fetch_add(1, std::memory_order_relaxed);
+#else
+    (void)ssl; (void)line;
+#endif
 }
 
-bool TlsConn::install_tls13_rx() {
-    if (!has_client_traffic_secret_ || SSL_version(ssl_) != TLS1_3_VERSION ||
-        std::strcmp(SSL_CIPHER_get_name(SSL_get_current_cipher(ssl_)),
-                    "TLS_AES_128_GCM_SHA256") != 0) return false;
-
-    unsigned char key[TLS_CIPHER_AES_GCM_128_KEY_SIZE];
-    unsigned char iv[TLS_CIPHER_AES_GCM_128_SALT_SIZE + TLS_CIPHER_AES_GCM_128_IV_SIZE];
-    const bool derived = hkdf_expand_label_sha256(client_traffic_secret_.data(), "key",
-                                                   key, sizeof(key)) &&
-                         hkdf_expand_label_sha256(client_traffic_secret_.data(), "iv",
-                                                   iv, sizeof(iv));
-    tls12_crypto_info_aes_gcm_128 crypto{};
-    crypto.info.version = TLS_1_3_VERSION;
-    crypto.info.cipher_type = TLS_CIPHER_AES_GCM_128;
-    if (derived) {
-        std::memcpy(crypto.salt, iv, sizeof(crypto.salt));
-        std::memcpy(crypto.iv, iv + sizeof(crypto.salt), sizeof(crypto.iv));
-        std::memcpy(crypto.key, key, sizeof(crypto.key));
+bool TlsConn::install_tls13_tx(const char* secret_hex) {
+    if (SSL_version(ssl_) != TLS1_3_VERSION) return false;
+    const SSL_CIPHER* cipher = SSL_get_current_cipher(ssl_);
+    const EVP_MD* md = SSL_CIPHER_get_handshake_digest(cipher);
+    const int secret_len = md ? EVP_MD_get_size(md) : 0;
+    unsigned char secret[EVP_MAX_MD_SIZE]{};
+    if (secret_len <= 0 || secret_len > static_cast<int>(sizeof(secret)) ||
+        std::strlen(secret_hex) != static_cast<size_t>(secret_len) * 2) return false;
+    bool valid = true;
+    for (int i = 0; i < secret_len; ++i) {
+        const int hi = hex_nibble(secret_hex[i * 2]), lo = hex_nibble(secret_hex[i * 2 + 1]);
+        if (hi < 0 || lo < 0) { valid = false; break; }
+        secret[i] = static_cast<unsigned char>((hi << 4) | lo);
     }
-    const bool installed = derived &&
-        ::setsockopt(socket_fd_, SOL_TLS, TLS_RX, &crypto, sizeof(crypto)) == 0;
-    OPENSSL_cleanse(key, sizeof(key));
-    OPENSSL_cleanse(iv, sizeof(iv));
-    OPENSSL_cleanse(&crypto, sizeof(crypto));
-    OPENSSL_cleanse(client_traffic_secret_.data(), client_traffic_secret_.size());
-    has_client_traffic_secret_ = false;
+    bool installed = false;
+    if (valid) {
+        switch (SSL_CIPHER_get_protocol_id(cipher)) {
+        case 0x1301:  // TLS_AES_128_GCM_SHA256
+            installed = install_tx_key<tls12_crypto_info_aes_gcm_128>(socket_fd_,
+                TLS_CIPHER_AES_GCM_128, md, secret, secret_len, traffic_key_.data()); break;
+        case 0x1302:  // TLS_AES_256_GCM_SHA384
+            installed = install_tx_key<tls12_crypto_info_aes_gcm_256>(socket_fd_,
+                TLS_CIPHER_AES_GCM_256, md, secret, secret_len, traffic_key_.data()); break;
+        case 0x1303:  // TLS_CHACHA20_POLY1305_SHA256
+            installed = install_tx_key<tls12_crypto_info_chacha20_poly1305>(socket_fd_,
+                TLS_CIPHER_CHACHA20_POLY1305, md, secret, secret_len, traffic_key_.data()); break;
+        case 0x1304:  // TLS_AES_128_CCM_SHA256 (CCM_8 is not kTLS eligible)
+            installed = install_tx_key<tls12_crypto_info_aes_ccm_128>(socket_fd_,
+                TLS_CIPHER_AES_CCM_128, md, secret, secret_len, traffic_key_.data()); break;
+        }
+    }
+    OPENSSL_cleanse(secret, sizeof(secret));
+    OPENSSL_cleanse(traffic_key_.data(), traffic_key_.size());
     return installed;
 }
 
@@ -344,8 +384,12 @@ TlsOp TlsConn::handshake() {
         BIO* wbio = SSL_get_wbio(ssl_);
         BIO* rbio = SSL_get_rbio(ssl_);
         const bool ktls_send = BIO_get_ktls_send(wbio);
-        const bool ktls_recv = BIO_get_ktls_recv(rbio) || (ktls_send && install_tls13_rx());
-        if (BIO_flush(wbio) == 1 && ktls_send && ktls_recv) {
+        const bool ktls_recv = BIO_get_ktls_recv(rbio);
+        const bool tls13 = SSL_version(ssl_) == TLS1_3_VERSION;
+        // NET2: never install RX from CLIENT_TRAFFIC_SECRET_0 or give TLS 1.3 records to raw
+        // recv. OpenSSL must consume KeyUpdate/control records and keep its RX secrets current.
+        // If a newer OpenSSL installed RX itself, retain its socket BIO and record layer too.
+        if (BIO_flush(wbio) == 1 && !tls13 && ktls_send && ktls_recv) {
             restore_socket_flags();
             wanted_ = TlsOp::Progress;
             ktls_engaged_ = true;
@@ -359,6 +403,7 @@ TlsOp TlsConn::handshake() {
         if (ktls_send || ktls_recv) {
             wanted_ = TlsOp::Progress;
             state_ = State::SocketUserspace;
+            if (tls13) rx_declined_13.fetch_add(1, std::memory_order_relaxed);
             return TlsOp::Progress;
         }
 
@@ -372,15 +417,18 @@ TlsOp TlsConn::handshake() {
         restore_socket_flags();
         wanted_ = TlsOp::Progress;
         state_ = State::MemoryUserspace;
+        if (tls13) rx_declined_13.fetch_add(1, std::memory_order_relaxed);
         return TlsOp::Progress;
     }
     return funnel(result, "TLS handshake");
 }
 
 TlsIoResult TlsConn::read_plain(char* dst, size_t capacity) {
+    if (tx_rekey_failed_) return {TlsOp::Error, 0};
     const int offer = static_cast<int>(std::min(capacity, static_cast<size_t>(INT_MAX)));
     ERR_clear_error();
     const int result = SSL_read(ssl_, dst, offer);
+    if (tx_rekey_failed_) return {TlsOp::Error, 0};
     if (result > 0) {
         wanted_ = TlsOp::Progress;
         return {TlsOp::Progress, static_cast<uint32_t>(result)};
@@ -389,6 +437,7 @@ TlsIoResult TlsConn::read_plain(char* dst, size_t capacity) {
 }
 
 TlsIoResult TlsConn::write_plain(const char* src, size_t length) {
+    if (tx_rekey_failed_) return {TlsOp::Error, 0};
     if (pending_plain_len_) {
         src = pending_plain_ptr_;
         length = pending_plain_len_;
@@ -396,6 +445,7 @@ TlsIoResult TlsConn::write_plain(const char* src, size_t length) {
     const int offer = static_cast<int>(std::min(length, static_cast<size_t>(INT_MAX)));
     ERR_clear_error();
     const int result = SSL_write(ssl_, src, offer);
+    if (tx_rekey_failed_) return {TlsOp::Error, 0};
     if (result > 0) {
         wanted_ = TlsOp::Progress;
         pending_plain_ptr_ = nullptr;

@@ -2315,13 +2315,24 @@ done
 }
 
 job_tls(){
-# ---- TLS memory-BIO transport: independent listener, auth matrix, parser/teardown fences -------
+# ---- TLS: independent listener, auth matrix, KeyUpdate, parser/teardown fences ----------------
 TLS_PORT=$((PORT+1))
 TLS_DIR=$(mktemp -d $TMPDIR/gate-tls.XXXXXX)
 row_begin "TLS ephemeral CA/server/client certificates"
 py tests/tls.py --generate "$TLS_DIR" >$TMPDIR/gate-tls-generate.txt 2>&1 \
     && ok "TLS ephemeral CA/server/client certificates" \
     || bad "TLS certificate generation" "see $TMPDIR/gate-tls-generate.txt"
+
+row_begin "NET2 serverless RX policy and KeyUpdate controls"
+if [ -f "$RUN_DIR/unit-ready/ktls-keyupdate-unit" ] && (
+  for arm in rx-policy tls12 userspace tx-rekey tx-failure; do
+    taskset -c "$CORES" build/ktls-keyupdate-unit "$TLS_DIR" "$arm" || exit 1
+  done
+) >$TMPDIR/gate-ktls-unit.txt 2>&1; then
+  ok "NET2 serverless RX policy and KeyUpdate controls"
+else
+  bad "NET2 serverless RX policy and KeyUpdate controls" "see $TMPDIR/gate-ktls-unit.txt"
+fi
 
 row_begin "reject TLS listener without certificate"
 reject_boot --port 0 --tls-port "$TLS_PORT" --tls-key-file "$TLS_DIR/server.key" \
@@ -2378,15 +2389,16 @@ py tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" optional --plain-port "$PORT" \
     >$TMPDIR/gate-tls-optional.txt 2>&1 \
     && ok "TLS client-auth optional matrix" \
     || bad "TLS client-auth optional matrix" "see $TMPDIR/gate-tls-optional.txt"
-# Live kTLS engagement proof on the default boot: a plain TLS client connects and
+# Live TLS 1.2 kTLS engagement proof on the default boot: a TLS 1.2 client connects and
 # must see itself counted in the active gauge. Client-auth 'optional' permits a cert-less client.
-row_begin "kTLS engaged live (default boot)"
+row_begin "kTLS TLS 1.2 engaged live (default boot)"
 python3 - "$TLS_PORT" "$TLS_DIR" <<'PYEOF' >$TMPDIR/gate-ktls-live.txt 2>&1 \
-    && ok "kTLS engaged live (default boot)" || bad "kTLS engaged live" "see $TMPDIR/gate-ktls-live.txt"
+    && ok "kTLS TLS 1.2 engaged live (default boot)" || bad "kTLS engaged live" "see $TMPDIR/gate-ktls-live.txt"
 import socket, ssl, sys, time
 port, certdir = int(sys.argv[1]), sys.argv[2]
 ctx = ssl.create_default_context(cafile=f"{certdir}/ca.crt")
 ctx.check_hostname = False
+ctx.minimum_version = ctx.maximum_version = ssl.TLSVersion.TLSv1_2
 s = ctx.wrap_socket(socket.create_connection(("127.0.0.1", port), timeout=5))
 s.sendall(b"INFO STATS\r\n"); time.sleep(0.4)
 d = s.recv(1 << 20).decode(errors="replace")
@@ -2395,13 +2407,25 @@ assert line, "no tls_ktls_active in INFO STATS: " + d[:200]
 assert int(line[0].split(":")[1]) >= 1, "kTLS did not engage: " + line[0]
 print("KTLS_LIVE_OK", line[0])
 PYEOF
+row_begin "TLS 1.3 KeyUpdate survives (NET2)"
+[ -f "$RUN_DIR/unit-ready/ktls-keyupdate" ] && \
+  taskset -c "$CORES" build/ktls-keyupdate 127.0.0.1 "$TLS_PORT" tx \
+    >$TMPDIR/gate-ktls-keyupdate.txt 2>&1 \
+    && ok "TLS 1.3 KeyUpdate survives (NET2)" \
+    || bad "TLS 1.3 KeyUpdate survives (NET2)" "see $TMPDIR/gate-ktls-keyupdate.txt"
+row_begin "TLS 1.3 userspace KeyUpdate survives (NET2)"
+[ -f "$RUN_DIR/unit-ready/ktls-keyupdate" ] && \
+  taskset -c "$CORES" build/ktls-keyupdate 127.0.0.1 "$TLS_PORT" userspace \
+    >$TMPDIR/gate-ktls-keyupdate-userspace.txt 2>&1 \
+    && ok "TLS 1.3 userspace KeyUpdate survives (NET2)" \
+    || bad "TLS 1.3 userspace KeyUpdate survives (NET2)" "see $TMPDIR/gate-ktls-keyupdate-userspace.txt"
 stop
 row_begin "TLS optional shutdown invariants"
 shutdown_clean \
     && ok "TLS optional shutdown invariants" || bad "TLS optional shutdown invariants"
 
 # Exercise userspace fallback through the retained cipher grammar. TLS 1.2 uses CBC; TLS 1.3
-# uses AES-256, outside this implementation's AES-128 TLS 1.3 RX installer. Counters must fire.
+# retains OpenSSL RX for every cipher. Counters must fire.
 tlsboot no --tls-protocols "TLSv1.2 TLSv1.3" --tls-ciphers ECDHE-RSA-AES256-SHA384 \
     --tls-ciphersuites TLS_AES_256_GCM_SHA384 --tls-prefer-server-ciphers yes \
     || bad "TLS coexistence purpose boot"
@@ -2688,10 +2712,10 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
-      build/wb-rule-units build/wbland-units build/rltopo-unit build/flushfix-units build/splitlocal-unit >"$TMPDIR/build.log" 2>&1
+      build/wb-rule-units build/wbland-units build/rltopo-unit build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit flushfix-units splitlocal-unit; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -2749,6 +2773,7 @@ job_dependencies(){
       done;;
     release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
     core_units) echo 'production_units core_tsan_build';;
+    tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*) echo 'release production_units';;
     wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
