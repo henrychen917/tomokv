@@ -1,6 +1,6 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "6eeb3ea10df01a37788b386f2372a29951516e9d58ce7d079514807bf1489caa",
+  "source_sha256": "aaf5d258d7d469df1e5238ce8d5dd827d1ba72299620022074bd75cc3bb9f78a",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
@@ -10,6 +10,14 @@
     "flip controller model unit",
     "B+ counting-fingerprint filter unit",
     "read-local write ring + arming transient unit",
+    "climon 128-owner delivery mask",
+    "shutdown policy + signal handoff serverless",
+    "shutdown persistence (1s, command)",
+    "shutdown persistence (1s, sigterm)",
+    "shutdown persistence (1s, sigint)",
+    "shutdown persistence (2s, command)",
+    "shutdown persistence (2s, sigterm)",
+    "shutdown persistence (2s, sigint)",
     "AOF publication/shutdown witnesses + negative controls",
     "core concurrency watch",
     "core concurrency lifetime",
@@ -581,6 +589,21 @@
         "AOF always acknowledged-prefix recovery",
         "AOF always acknowledged-prefix recovery"
       ],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-04 03:23",
+      "added": [
+        "climon 128-owner delivery mask",
+        "shutdown persistence (1s, command)",
+        "shutdown persistence (1s, sigint)",
+        "shutdown persistence (1s, sigterm)",
+        "shutdown persistence (2s, command)",
+        "shutdown persistence (2s, sigint)",
+        "shutdown persistence (2s, sigterm)",
+        "shutdown policy + signal handoff serverless"
+      ],
+      "removed": [],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
     }
   ],
