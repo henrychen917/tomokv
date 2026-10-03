@@ -79,7 +79,7 @@ def category(name):
     if re.search(r'::cmd_(get|set)(?:<|\(|_tls\(|_notify\()',name): return 'commands'
     if any(n in name for n in ['xshard_prepare(', 'xshard_execute(', 'xshard_retire(', 'prepare_captured_local_mget(', 'cmd_xshard_only(']): return 'multi-key commands'
     if 'ExLoopT<' in name and any(n in name for n in [
-        '::drain_tasks<','::drain_tasks_with_filler<','::drain_tasks_read_local_interleaved<',
+        '::drain_tasks<','::drain_tasks_read_local_interleaved<',
         '::exec_batch<','::exec_batch_prefetched<','::execute<','::fused_pass_impl<',
         '::fused_sweep_impl<','::fused_baseline_sweep()',
         '::prefetch_overlap_batch(', '::sweep<','::run()']): return 'scheduler'
@@ -330,6 +330,9 @@ def compare(pre,post,out):
             if other: (out/(row['diff']+'.post')).write_text('\n'.join(a+' | '+b for a,b in zip(other['ins'],other['encodings']))+'\n')
             records.append(row)
     if not records: raise ValueError('no matching PRE scope: refusing an empty proof')
+    missing = [r['name'] for r in records if r['post_address'] is None]
+    if missing:
+        raise ValueError('missing POST symbols (including report-only): ' + ', '.join(missing))
     return records
 
 def self_test():

@@ -177,12 +177,6 @@ public:
         lb_sample_countdown_ = lb_sample_rate_;
         lb_controller_armed_ = srv->key_lb_signals_enabled();
         age_sample_rate_cached_ = srv->effective_age_sample_rate();
-        // O1's outer-loop floor: both fused knob values use the baseline
-        // executor geometry and inboxes; selecting only its loop without these latches would
-        // still leave a different producer transport and retirement cadence behind. O6's
-        // bucket prefetch below uses placement and cfg.overlap independently of these outer latches.
-        pipeline_batches_ = false;
-        iofused_ = false;
         if constexpr (Fused) {
             if (srv->read_local_enabled()) {
                 std::unique_ptr<ReadLocalExImpl> impl(new (std::nothrow) ReadLocalExImpl);
@@ -200,7 +194,6 @@ public:
         }
         if (!ring_.init(1024)) return false;
         if (!srv_->databases().watch_wake(self_->id(), ring_)) return false;
-        fused_handoff_ring_ = &ring_;
         initialized_ = true;
         if (!dormant) activate();
         return true;
@@ -217,14 +210,9 @@ public:
 
     // Fused tenure shares the physical thread with IoLoop. IoLoop remains the published wake
     // endpoint because it owns the only blocking wait; this ring still carries persistence CQEs.
-    void activate_fused(Ring* handoff_ring) {
+    void activate_fused() {
         static_assert(Fused);
         if (!initialized_) std::abort();
-        // Interwoven schedules put executor-originated task/client handoffs on the network ring.
-        // That leaves this private ring with control/persistence SQEs; both iofused-family arms
-        // amortize at their shared N2 boundary. Pipeline 0 retains its existing ring ownership.
-        if (iofused_ && handoff_ring)
-            fused_handoff_ring_ = handoff_ring;
         blocking_bind_executor(srv_, self_, &ring_);
         if (read_local_enabled())
             self_->bind_read_local_retire_sink(*read_local_impl().deferred.sink());
@@ -368,66 +356,18 @@ public:
         if (read_local_enabled()) (void)read_local_impl().deferred.drain_shutdown();
     }
 
-    // One non-blocking executor batch in the coarse fused rotation. The network loop owns park;
-    // this pass is the split executor body without its role loop or independent wait.
-    uint32_t fused_pass() {
-        static_assert(Fused);
-        if (!pipeline_batches_)
-            return fused_pass_impl<kGenthreadExBatchOps, true, false>();
-        return iofused_
-            ? fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true>()
-            : fused_pass_impl<kGenthreadPipelineExBatchOps, true, false>();
-    }
-
     uint32_t fused_baseline_pass() {
         static_assert(Fused);
         if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
         if (read_local_enabled())
-            return fused_pass_impl<kGenthreadExBatchOps, true, false, false, true>();
-        return fused_pass_impl<kGenthreadExBatchOps, true, false>();
+            return fused_pass_impl<kGenthreadExBatchOps, true, false, true>();
+        return fused_pass_impl<kGenthreadExBatchOps, true>();
     }
 
-    // Private-lane whole-batch turn shared by overlap's thin path, idle repair,
-    // and blocking snapshot progress. It has no streams pipeline-state probes.
-    uint32_t fused_coarse_pass() {
-        static_assert(Fused);
-        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true>();
-    }
-
-    // Three-way overlap is the ordinary iofused executor envelope with one piece of independent
-    // CPU work inserted into the first fresh task batch's existing prefetch gap.  The batch remains
-    // the stack-local whole batch used by drain_tasks(); nothing is staged across this call.
-    template <typename Filler>
-    uint32_t fused_three_way_pass(Filler&& filler) {
-        static_assert(Fused);
-        using Fn = std::remove_reference_t<Filler>;
-        return fused_pass_impl<kGenthreadPipelineExBatchOps, true, true, true, false, Fn>(
-            &filler);
-    }
-
-    // Buffered schedules keep control/persistence work in the executor owner but let the fused
-    // loop own task gather/prefetch/execute. This has no internal park and never consumes a Task.
-    uint32_t fused_pipeline_control() {
-        static_assert(Fused);
-        return fused_pass_impl<kGenthreadPipelineExBatchOps, false, false>();
-    }
-
-    template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
-              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false,
-              typename Filler = void>
-    uint32_t fused_pass_impl(Filler* filler = nullptr) {
+    template <uint32_t BatchOps, bool ConsumeTasks,
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
+    uint32_t fused_pass_impl() {
         Server::ClientWorkScope client_work(*srv_, self_->id());
-        constexpr bool HasFiller = !std::is_void_v<Filler>;
-        [[maybe_unused]] bool filler_used = false;
-        auto finish_filler = [&] {
-            if constexpr (HasFiller) {
-                if (!filler) std::abort();
-                if (!filler_used) {
-                    (*filler)();
-                    filler_used = true;
-                }
-            }
-        };
         struct RotationBoundary {
             bool enabled;
             ThreadCtx* self;
@@ -455,19 +395,6 @@ public:
             cached_lru_clock_ = static_cast<uint8_t>(
                 (static_cast<uint64_t>(cached_now_ms_ / 1000) >> kLruClockShift) & 0x1f);
 
-        // The WB batch captured its AOF gate before entering this call. Only a clean fresh-task
-        // turn may put that WB work into an EX prefetch gap: executing older retry/deferred debt
-        // first could make a newly Done prefix eligible for the already-gated batch. Exceptional
-        // control state therefore consumes WB immediately and continues in the ordinary coarse EX
-        // order. The saturated steady path has all five queues empty and reaches the split below.
-        if constexpr (HasFiller) {
-            if (lb_frozen || snapshot_owner_state_ != SnapshotOwnerState::None ||
-                !stale_tasks_.empty() || !multi_retries_.empty() ||
-                !atomic_deferred_.empty() || !xshard_retries_.empty() ||
-                !ordered_deferred_.empty())
-                finish_filler();
-        }
-
         [[maybe_unused]] bool owner_work_remains = false;
         bool fairlane_turn = false;
         if constexpr (InterleaveLocalReads) {
@@ -487,10 +414,7 @@ public:
             // EARLY: reads parsed by the preceding IFID phase get the first execution/reply slots.
             did += drain_local_reads_bounded(kReadLocalDrainChunkOps);
         } else {
-            // Coarse overlap consumes every local capture inside this call. On a clean
-            // three-way turn WB runs later at the owner prefetch seam; on an exceptional turn
-            // it already ran above. Neither WB nor owner mutation runs inside a local chunk,
-            // so no foreign pointer survives into either or across RotationBoundary's tick.
+            // Consume every local capture before owner work or the rotation's QSBR tick.
             did += drain_local_reads();
         }
         if (lb_frozen) {
@@ -504,17 +428,12 @@ public:
                     did += service_ordered_deferred<BatchOps, IofusedPrivateQueue>();
                 if constexpr (ConsumeTasks)
                     if (xshard_retries_.empty() && ordered_deferred_.empty()) {
-                        if constexpr (HasFiller)
-                            did += drain_tasks_with_filler<BatchOps, IofusedPrivateQueue>(
-                                true, *filler, filler_used);
-                        else
-                            did += drain_tasks<BatchOps, IofusedPrivateQueue>(true);
+                        did += drain_tasks<BatchOps, IofusedPrivateQueue>(true);
                     }
                 flush_xshard_commits();
                 did += aof_flush_pass();
                 did += drain_notify_keyless(self_->sig());
             }
-            finish_filler();
             did += ring_.for_each_cqe([&](io_uring_cqe* cqe) { on_cqe(cqe); });
             did += lb_control_pass();
         } else {
@@ -530,22 +449,16 @@ public:
                 if constexpr (ConsumeTasks)
                     if (xshard_retries_.empty() && ordered_deferred_.empty()) {
                         if (snapshot_owner_state_ == SnapshotOwnerState::None) {
-                            if constexpr (HasFiller)
-                                did += drain_tasks_with_filler<BatchOps, IofusedPrivateQueue>(
-                                    false, *filler, filler_used);
-                            else {
-                                if (fairlane_turn)
-                                    did += drain_tasks_read_local_interleaved<
-                                        IofusedPrivateQueue>(false, owner_work_remains);
-                                else
-                                    did += drain_tasks<BatchOps, IofusedPrivateQueue>();
-                            }
+                            if (fairlane_turn)
+                                did += drain_tasks_read_local_interleaved<
+                                    IofusedPrivateQueue>(false, owner_work_remains);
+                            else
+                                did += drain_tasks<BatchOps, IofusedPrivateQueue>();
                         } else {
                             did += drain_tasks_snapshot<BatchOps, IofusedPrivateQueue>();
                         }
                     }
             }
-            finish_filler();
             flush_xshard_commits();
             if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
                 cached_now_ms_ >= blocking_beat_ms_) {
@@ -580,7 +493,7 @@ public:
         }
         if (!lb_frozen) did += owner_control_tail();
         if (did) {
-            fused_submit_boundary<CoalesceSubmit>();
+            ring_.submit_and_reap();
             fused_idle_spins_ = 0;
             return did;
         }
@@ -595,53 +508,23 @@ public:
         } else {
             did = sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
         }
-        if (did) fused_submit_boundary<CoalesceSubmit>();
+        if (did) ring_.submit_and_reap();
         return did;
-    }
-
-    uint32_t fused_sweep(bool consume_tasks = true) {
-        static_assert(Fused);
-        if (!consume_tasks) {
-            if (lb_controller_armed_ && srv_->lb_dispatch_paused())
-                return iofused_
-                    ? fused_pass_impl<kGenthreadPipelineExBatchOps, false, true, true>()
-                    : fused_pass_impl<kGenthreadPipelineExBatchOps, false, false>();
-            if (!pipeline_batches_)
-                return fused_sweep_impl<kGenthreadExBatchOps, false, false>();
-            return iofused_
-                ? fused_sweep_impl<kGenthreadPipelineExBatchOps, false, true, true>()
-                : fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false>();
-        }
-        if (!pipeline_batches_)
-            return fused_sweep_impl<kGenthreadExBatchOps, true, false>();
-        return iofused_
-            ? fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true, true>()
-            : fused_sweep_impl<kGenthreadPipelineExBatchOps, true, false>();
     }
 
     uint32_t fused_baseline_sweep() {
         static_assert(Fused);
         if (srv_->thread_mode() == ThreadMode::Split) return split_read_local_pass();
         if (read_local_enabled())
-            return fused_sweep_impl<kGenthreadExBatchOps, true, false, false, true>();
-        return fused_sweep_impl<kGenthreadExBatchOps, true, false>();
+            return fused_sweep_impl<kGenthreadExBatchOps, true, false, true>();
+        return fused_sweep_impl<kGenthreadExBatchOps, true>();
     }
 
-    uint32_t fused_coarse_sweep() {
-        static_assert(Fused);
-        return fused_sweep_impl<kGenthreadPipelineExBatchOps, true, true, true>();
-    }
-
-    uint32_t fused_pipeline_control_sweep() {
-        static_assert(Fused);
-        return fused_sweep_impl<kGenthreadPipelineExBatchOps, false, false>();
-    }
-
-    template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
+    template <uint32_t BatchOps, bool ConsumeTasks,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t fused_sweep_impl() {
         if (lb_controller_armed_ && srv_->lb_dispatch_paused())
-            return fused_pass_impl<BatchOps, ConsumeTasks, CoalesceSubmit,
+            return fused_pass_impl<BatchOps, ConsumeTasks,
                                    IofusedPrivateQueue>();
         struct RotationBoundary {
             bool enabled;
@@ -673,7 +556,7 @@ public:
                 sweep<BatchOps, ConsumeTasks, IofusedPrivateQueue>();
         }
         if (read_local_enabled()) did += read_local_impl().deferred.drain_ready();
-        if (did) fused_submit_boundary<CoalesceSubmit>();
+        if (did) ring_.submit_and_reap();
         return did;
     }
 
@@ -898,26 +781,7 @@ private:
         }
     }
 
-    template <bool CoalesceSubmit>
-    void fused_submit_boundary() {
-        if constexpr (!CoalesceSubmit) {
-            ring_.submit_and_reap();
-        } else {
-            if (ring_.take_sq_full_submit()) fused_non_submit_rotations_ = 0;
-            if (++fused_non_submit_rotations_ >= kGenthreadIoFusedCoalesceRotations) {
-                ring_.submit_and_reap();
-                fused_non_submit_rotations_ = 0;
-            }
-        }
-    }
-
-    bool pipeline_tasks_allowed() const {
-        if (snapshot_blocks_tasks()) return false;
-        return !(lb_controller_armed_ && srv_->lb_dispatch_paused() &&
-                 srv_->lb_acked(self_->id()));
-    }
-
-    Ring& handoff_ring() { return *fused_handoff_ring_; }
+    Ring& handoff_ring() { return ring_; }
 
     void read_local_clear_reply(Op& op) {
         op.clear_reply();       // bytes AND the reply code
@@ -1990,39 +1854,6 @@ private:
             ? self_->drain_tasks_unmasked<IofusedPrivateQueue>(take)
             : self_->drain_tasks<IofusedPrivateQueue>(take);
         if (held) exec_batch<IofusedPrivateQueue>(batch, held);
-        self_->sig().ops += n;
-        return n;
-    }
-
-    // Identical ready-mask drain and stack batch as the iofused coarse path.  Only the first batch
-    // is split at its existing load-to-use seam; the caller's WB work runs synchronously there and
-    // every later batch remains an ordinary prefetch+execute unit. O6 only preserves the bucket
-    // hints in that whole-batch walk; it adds no execution split or retained task state.
-    template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
-    uint32_t drain_tasks_with_filler(bool unmasked, Filler& filler, bool& filler_used) {
-        Task batch[BatchOps];
-        uint32_t held = 0;
-        auto execute_batch = [&] {
-            if (!held) return;
-            if (!filler_used && xshard_retries_.empty()) {
-                if (overlap_prefetch_enabled(held)) prefetch_overlap_batch(batch, held);
-                else                               prefetch_exec_batch(batch, held);
-                filler();
-                filler_used = true;
-                exec_batch_prefetched<IofusedPrivateQueue>(batch, held);
-            } else {
-                exec_batch<IofusedPrivateQueue>(batch, held);
-            }
-            held = 0;
-        };
-        auto take = [&](const Task& task) {
-            batch[held++] = task;
-            if (held == BatchOps) execute_batch();
-        };
-        const uint32_t n = unmasked
-            ? self_->drain_tasks_unmasked<IofusedPrivateQueue>(take)
-            : self_->drain_tasks<IofusedPrivateQueue>(take);
-        execute_batch();
         self_->sig().ops += n;
         return n;
     }
@@ -3123,14 +2954,9 @@ private:
     SlowlogExState slowlog_state_{};
     // Fused-only state stays at the true tail so every split ExLoop field keeps its offset.
     uint32_t fused_idle_spins_ = 0;
-    uint32_t fused_non_submit_rotations_ = 0;
     void* fused_io_context_ = nullptr;
     FusedCompletionFn fused_completion_ = nullptr;
-    Ring* fused_handoff_ring_ = nullptr;
-    // Both interwoven schedules share the measured 128-task geometry and coalesced N2 boundary.
-    bool pipeline_batches_ = false;
-    bool iofused_ = false;
-    // Consumes the bool padding this class already carried before notify_batch_n_. Ordinary
+    // Ordinary
     // commands pay one predicted-true test at an executor boundary and never touch the TLS
     // commit list.
     bool xshard_commit_pending_ = false;
@@ -3143,8 +2969,7 @@ private:
     // store, and a connection is only guaranteed allocated until the io's second reap prologue
     // after close.
     struct NotifyEntry { uint32_t io; uint32_t slot; };
-    static constexpr uint32_t kNotifyBatchMax =
-        Fused ? kGenthreadPipelineExBatchOps : kGenthreadExBatchOps;
+    static constexpr uint32_t kNotifyBatchMax = kGenthreadExBatchOps;
     bool notify_batch_open_ = false;
     uint32_t notify_batch_n_ = 0;
     NotifyEntry notify_batch_[kNotifyBatchMax] = {};
@@ -3153,27 +2978,22 @@ public:
     // R7 bodies are isolated from the FIFO translation units.
 // BEGIN R7 GENERATED ENVELOPES
     uint32_t r7_fused_baseline_pass();
-    template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
-              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false,
-              typename Filler = void>
-    uint32_t r7_fused_pass_impl(Filler* filler = nullptr);
+    template <uint32_t BatchOps, bool ConsumeTasks,
+              bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
+    uint32_t r7_fused_pass_impl();
     uint32_t r7_fused_baseline_sweep();
-    template <uint32_t BatchOps, bool ConsumeTasks, bool CoalesceSubmit,
+    template <uint32_t BatchOps, bool ConsumeTasks,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t r7_fused_sweep_impl();
     template <uint32_t BatchOps = kGenthreadExBatchOps, bool ConsumeTasks = true,
               bool IofusedPrivateQueue = false, bool InterleaveLocalReads = false>
     uint32_t r7_sweep();
 // END R7 GENERATED ENVELOPES
-    template <uint32_t BatchOps = kGenthreadExBatchOps, bool IofusedPrivateQueue = false,
-              typename Filler = void>
+    template <uint32_t BatchOps = kGenthreadExBatchOps, bool IofusedPrivateQueue = false>
     __attribute__((noinline))
-    uint32_t r7_drain_tasks(bool unmasked = false, Filler* filler = nullptr,
-                            bool* filler_used = nullptr);
-    template <bool Shadow, uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
-    uint32_t r7_drain_tasks_impl(bool unmasked, Filler* filler, bool* filler_used);
-    template <uint32_t BatchOps, bool IofusedPrivateQueue, typename Filler>
-    uint32_t r7_drain_tasks_with_filler(bool unmasked, Filler& filler, bool& filler_used);
+    uint32_t r7_drain_tasks(bool unmasked = false);
+    template <bool Shadow, uint32_t BatchOps, bool IofusedPrivateQueue>
+    uint32_t r7_drain_tasks_impl(bool unmasked);
 
 };
 
@@ -3188,7 +3008,10 @@ using FusedExLoop = ExLoopT<true>;
 // hook -- went into padding the lb bool run already carried and cost nothing. This is a per-
 // EXECUTOR object, one per thread, not a per-op or per-connection footprint: Op, Client,
 // ThreadCtx, Shard and Config are the locks that may not move, and none of them did.
-// VESTCUT: removing the never-serving 256-byte WbEngine reduces 6112 to 5856 bytes.
-static_assert(sizeof(ExLoop) == 5856);
+// VESTCUT: removing the never-serving 256-byte WbEngine reduced 6112 to 5856 bytes.
+// Dead fused handoff state removes 8 bytes; both modes now carry 32 notification entries.
+// Fused adds its 8-byte read-local state pointer: 5848 + 8 = 5856.
+static_assert(sizeof(ExLoop) == 5848);
+static_assert(sizeof(FusedExLoop) == 5856);
 
 }  // namespace tomo

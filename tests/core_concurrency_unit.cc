@@ -95,7 +95,6 @@ struct CoreConcurrencyTest {
                 auto& loop = loops[tid];
                 loop.srv_ = &server;
                 loop.self_ = &thread;
-                loop.fused_handoff_ring_ = &loop.ring_;
                 loop.cached_now_ms_ = 1000;
                 loop.lb_controller_armed_ = true;
                 server.bind_owner_notify_pending(tid, &loop.notify_keyless_pending_);

@@ -9,7 +9,6 @@
         ExLoopT<true> reader;
         reader.srv_ = &f.server;
         reader.self_ = &f.server.thread(f.io_id);
-        reader.fused_handoff_ring_ = &reader.ring_;
         reader.cached_now_ms_ = reader.realtime_ms();
         reader.read_local_.impl = std::make_unique<ReadLocalExImpl>();
         auto& lane = reader.read_local_impl();
@@ -58,7 +57,7 @@
             // Drive the actual DEBUG knob and its production rotation adoption, including reset.
             // Access policy belongs to live DEBUG; the fixture uses the setter that handler calls.
             f.server.set_debug_read_local_lane_cap(phase == 1 ? 8 : 0);
-            reader.template fused_pass_impl<kGenthreadExBatchOps, false, false>();
+            reader.template fused_pass_impl<kGenthreadExBatchOps, false>();
             auto& stats = reader.self_->read_local_stats();
             const auto before = stats;
             for (unsigned i = 0; i < count; ++i) {

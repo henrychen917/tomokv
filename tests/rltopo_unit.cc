@@ -106,7 +106,6 @@ struct CoreConcurrencyTest {
             for (auto* loop : {&reader, &owner}) {
                 loop->srv_ = &server;
                 loop->self_ = &server.thread(loop == &reader ? reader_id : owner_id);
-                loop->fused_handoff_ring_ = &loop->ring_;
                 loop->cached_now_ms_ = 1000;
                 loop->read_local_.impl = std::make_unique<ReadLocalExImpl>();
                 auto& lane = loop->read_local_impl();
