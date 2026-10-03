@@ -126,10 +126,12 @@ build/ktls-keyupdate: tests/ktls_keyupdate.cc Makefile
 	$(CXX) $(CXXFLAGS) -I. $< -o $@ -lssl -lcrypto
 
 build/ktls-keyupdate-unit: tests/ktls_keyupdate_unit.cc src/net/tls.cc src/net/tls.h src/core/config.h Makefile
-	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/ktls_keyupdate_unit.cc src/net/tls.cc -o $@ \
 	  -Wl,--wrap=BIO_ctrl -Wl,--wrap=setsockopt -lssl -lcrypto
-
+build/splitlocal-unit.cc: tests/splitlocal_checks.py tests/r7shadow_sync.py tools/reorder_sync.py src/core/io_loop.h src/core/reorder.cc src/core/genthread_pipeline.h
+	python3 tests/splitlocal_checks.py emit $@
+build/splitlocal-unit: build/splitlocal-unit.cc Makefile
+	$(CXX) $(CXXFLAGS) $< -o $@
 build/config-parser-test: tests/config_parser_test.cc tests/boot_support_checks.inc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/config_parser_test.cc -o $@
