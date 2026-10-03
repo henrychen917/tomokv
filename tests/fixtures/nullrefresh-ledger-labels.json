@@ -1,10 +1,11 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "de62abacf25a09a3e9a3349c5dbe1ac61dedda1b01ee5db4b2d8cf21ad67c201",
+  "source_sha256": "adf4891bff441a67ef47190c697fffa8554426947982f86bceb06b72cb1237d6",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
     "ASAN build",
+    "configuration docs match parser",
     "Redis config quoting + mid-value #",
     "flip controller model unit",
     "B+ counting-fingerprint filter unit",
@@ -485,6 +486,14 @@
       "when": "2026-10-03 18:31",
       "added": [
         "netcmd hexpire-oom regression"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-03 21:05",
+      "added": [
+        "configuration docs match parser"
       ],
       "removed": [],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
