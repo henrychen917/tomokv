@@ -138,8 +138,8 @@ by CONFIG SET even though their table entries lack the immutable flag
 | `maxmemory-policy` | R | `noeviction`, `allkeys-lru`, `allkeys-lfu`, `allkeys-random`, `volatile-lru`, `volatile-lfu`, `volatile-random`, `volatile-ttl` | `noeviction` | Live | — | Eviction policy; `src/core/config.h:875`, `src/store/eviction.h:36`. |
 | `maxmemory-samples` | R | Integer 1..64 | `5` | Live | — | Eviction sample width; `src/core/config.h:882`. |
 
-Recovery uses AOF first when enabled; if it supplies no data, startup tries
-`<dir>/<dbfilename>`. Missing snapshot means empty startup; unreadable or invalid
+Recovery uses AOF first when enabled; when no AOF base or increment recovery
+plan exists, startup tries `<dir>/<dbfilename>`. Missing snapshot means empty startup; unreadable or invalid
 snapshot fails startup (`src/main.cc:236`, `:249`). Choose a fresh directory for
 an empty example. The save schedule describes periodic saves; it alone does not
 establish shutdown durability (see `src/cmd/server_tail.cc:249`, `src/main.cc:65`).
@@ -177,7 +177,8 @@ at u32; a CONFIG update does not eagerly rebuild existing collections.
 | `stream-node-max-bytes` | R | Memory, 0..4294967295; empty/bare unit = 0 | `4096` | Live | — | Stream macro-node byte rollover, 0 disables this axis; `src/core/config.h:503`, `:1031`, `src/store/typeval.h:50`. |
 | `stream-node-max-entries` | R | Canonical decimal 0..4294967295 | `100` | Live | — | Stream macro-node entry rollover, 0 disables this axis; `src/core/config.h:1031`, `src/store/typeval.h:50`. |
 
-Aliases share canonical CONFIG storage (`src/cmd/t_server.cc:428`). Integer sets
+Aliases share canonical CONFIG storage (`src/cmd/t_server.cc:428`). CONFIG GET
+with `*` emits the 68 canonical names plus nine aliases (`:1380`). Integer sets
 retain a separate fixed 128-entry bound (`tomokv.conf:330`); the string-set
 listpack controls do not change it. Use the listed defaults when reproducing
 results, rather than assuming every default equals the Redis reference.

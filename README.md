@@ -141,7 +141,7 @@ not export CLI-only placement overrides (`src/cmd/server_tail.cc:653`, `:681`).
 
 Periodic snapshots are enabled by default. Use `--save ""` to disable the
 schedule; explicit `SAVE` and `BGSAVE` remain available. Startup automatically
-loads `<dir>/<dbfilename>` when AOF recovery supplies no data
+loads `<dir>/<dbfilename>` when no AOF base or increment recovery plan exists
 (`src/main.cc:245`). After a successful save and after stopping the old process,
 recover its 16-shard snapshot with:
 
