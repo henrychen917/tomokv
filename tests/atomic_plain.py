@@ -2,6 +2,9 @@
 """AT1/AT2 lost-update races, against an isolated debug-enabled server.
 
 Usage: atomic_plain.py HOST PORT --atomic 0|1 [--case movers|blocking]
+       atomic_plain.py --self-test  (serverless harness controls)
+Boot with --atomic MODE --enable-debug-command yes --key-lb 0 --client-lb 0 --flip-auto 0.
+These settings are verified with CONFIG GET; the battery never changes configuration.
 The gate row also runs atomic-survivors-unit plain_0/plain_1: that serverless arm drives
 every caller, including LMPOP/ZMPOP's single-owner phase two (which OFF-HOP cannot park).
 
@@ -14,6 +17,7 @@ a lost reply, or a nonzero stale-cut counter is always a failure, never an armin
 import argparse
 import contextlib
 import select
+import sys
 import time
 
 import _lib
@@ -67,6 +71,37 @@ def stale_zero(admin):
            "plain write stale-cut counter is zero")
 
 
+def verify_boot(admin, atomic):
+    for knob, value in (("atomic", atomic), ("key-lb", "0"),
+                        ("client-lb", "0"), ("flip-auto", "0")):
+        reply = admin.must("CONFIG", "GET", knob)
+        require(isinstance(reply, list) and len(reply) == 2 and reply[0] == knob.encode(),
+                "CONFIG GET " + knob)
+        expect(reply[1], value.encode(), f"boot with --{knob} {value}")
+
+
+def reset_hooks(admin):
+    # Attempt every reset and close even if one fails. Preserve the data/arming failure
+    # already in flight; cleanup must not replace it with a second exception.
+    failed = sys.exc_info()[0] is not None
+    errors = []
+    for hook in ("ATOMIC-FANOUT-DEFER", "ATOMIC-OFF-HOP-DELAY", "ATOMIC-COMMIT-DELAY"):
+        try:
+            debug(admin, hook, 0)
+        except Exception as error:
+            errors.append(error)
+    if errors:
+        if not failed:
+            raise errors[0]
+        for error in errors:
+            print(f"DEBUG cleanup failed: {error}", file=sys.stderr)
+
+
+def witnessed(opened, label):
+    if not opened:
+        raise WindowMiss(label)
+
+
 def queued(conn, commands):
     expect(conn.must("MULTI"), b"OK", "MULTI")
     for command in commands:
@@ -111,12 +146,10 @@ class Race:
                      True, "EXEC did not register its read cut")
             # Already-published deadlines remain on the holder; new commands run normally.
             debug(self.admin, "ATOMIC-FANOUT-DEFER", 0)
-            if not pending(holder):
-                raise WindowMiss("EXEC completed before the competing operation")
+            witnessed(pending(holder), "EXEC completed before the competing operation")
             yield holder
         finally:
-            debug(self.admin, "ATOMIC-FANOUT-DEFER", 0)
-            debug(self.admin, "ATOMIC-OFF-HOP-DELAY", 0)
+            reset_hooks(self.admin)
             reply = holder.read()
             require(isinstance(reply, list) and len(reply) == 1 and
                     isinstance(reply[0], list), f"held EXEC reply: {reply!r}")
@@ -152,8 +185,7 @@ class Race:
             require(sorted(members) == [b"base", b"kept", b"move"],
                     f"AT1: {verb} preserves the acknowledged destination write: {members!r}")
             stale_zero(admin)
-            if not opened:
-                raise WindowMiss("destination write did not finish inside both held windows")
+            witnessed(opened, "destination write did not finish inside both held windows")
 
     def blocking(self, verb):
         admin = self.admin
@@ -196,29 +228,42 @@ class Race:
             expect(admin.must("LRANGE" if is_list else "ZRANGE", key, 0, -1), [left],
                    "AT2: unconsumed acknowledged element survives")
             stale_zero(admin)
-            if not opened:
-                raise WindowMiss("wake push did not land inside the reserved commit bracket")
+            witnessed(opened, "wake push did not land inside the reserved commit bracket")
 
 
-def main():
+def run_case(host, port, admin, atomic, method, verb):
+    for attempt in range(1, 5):
+        race = Race(host, port, admin)
+        try:
+            with race.stack:
+                getattr(race, method)(verb)
+            print(f"  PASS {verb} atomic={atomic} window opened attempt={attempt}", flush=True)
+            return
+        except WindowMiss as error:
+            if attempt == 4:
+                raise AssertionError(f"{verb}: window never opened after four fresh attempts: {error}") from error
+            print(f"  re-arm {verb} on fresh state: {error}", flush=True)
+
+
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("host")
-    parser.add_argument("port", type=int)
-    parser.add_argument("--atomic", required=True, choices=("0", "1"))
+    parser.add_argument("host", nargs="?")
+    parser.add_argument("port", nargs="?", type=int)
+    parser.add_argument("--atomic", choices=("0", "1"))
     parser.add_argument("--case", choices=("movers", "blocking"))
-    args = parser.parse_args()
+    parser.add_argument("--self-test", action="store_true")
+    args = parser.parse_args(argv)
+    if args.self_test:
+        if any(value is not None for value in (args.host, args.port, args.atomic, args.case)):
+            parser.error("--self-test takes no live-server arguments")
+        return self_test()
+    if args.host is None or args.port is None or args.atomic is None:
+        parser.error("HOST PORT --atomic 0|1 are required for live checks")
     require(args.atomic == "0" or args.case != "movers", "AT1 non-atomic arm requires --atomic 0")
     admin = _lib.Conn(args.host, args.port, timeout=5)
-    saved = {}
     try:
-        # Stable actual owners, with all settings restored even on a failed assertion.
-        for knob, value in (("atomic", args.atomic), ("key-lb", "0"),
-                            ("client-lb", "0"), ("flip-auto", "0")):
-            reply = admin.must("CONFIG", "GET", knob)
-            require(isinstance(reply, list) and len(reply) == 2, "CONFIG GET " + knob)
-            saved[knob] = reply[1]
-            expect(admin.must("CONFIG", "SET", knob, value), b"OK", "CONFIG SET " + knob)
-            expect(admin.must("CONFIG", "GET", knob)[1], value.encode(), "effective " + knob)
+        verify_boot(admin, args.atomic)
+        reset_hooks(admin)
         stale_zero(admin)
         cases = []
         if args.atomic == "0" and args.case != "blocking":
@@ -227,26 +272,211 @@ def main():
             cases += [("blocking", verb) for verb in
                       ("BLPOP", "BRPOP", "BLMPOP", "BZPOPMIN", "BZPOPMAX", "BZMPOP")]
         for method, verb in cases:
-            for attempt in range(1, 5):
-                race = Race(args.host, args.port, admin)
-                try:
-                    with race.stack:
-                        getattr(race, method)(verb)
-                    print(f"  PASS {verb} atomic={args.atomic} window opened attempt={attempt}", flush=True)
-                    break
-                except WindowMiss as error:
-                    if attempt == 4:
-                        raise AssertionError(f"{verb}: window never opened after four fresh attempts: {error}")
-                    print(f"  re-arm {verb} on fresh state: {error}", flush=True)
+            run_case(args.host, args.port, admin, args.atomic, method, verb)
         stale_zero(admin)
         print(f"ATOMIC PLAIN PASS atomic={args.atomic}: {len(cases)} witnessed races", flush=True)
     finally:
-        for hook in ("ATOMIC-FANOUT-DEFER", "ATOMIC-OFF-HOP-DELAY"):
-            debug(admin, hook, 0)
-        for knob, value in reversed(list(saved.items())):
-            expect(admin.must("CONFIG", "SET", knob, value), b"OK", "restore " + knob)
-        admin.close()
+        try:
+            reset_hooks(admin)
+        finally:
+            admin.close()
+
+
+def self_test():
+    """Exercise the real setup/retry/witness paths with no sockets or workers."""
+    import io
+    import socket
+    import unittest
+    from unittest import mock
+
+    module = sys.modules[__name__]
+
+    class Admin:
+        def __init__(self, atomic="0"):
+            self.config = {"atomic": atomic, "key-lb": "0", "client-lb": "0", "flip-auto": "0"}
+            self.calls = []
+            self.closed = False
+            self.reject_debug = False
+
+        def must(self, *command):
+            self.calls.append(command)
+            if command[:2] == ("CONFIG", "GET"):
+                return [command[2].encode(), self.config[command[2]].encode()]
+            if command[:2] == ("CONFIG", "SET"):
+                raise _lib.RespError("ERR parameter is immutable at runtime")
+            if command == ("DEBUG", "ATOMIC-PLAIN-STALE-CUTS"):
+                return 0
+            if command[0] == "DEBUG" and not self.reject_debug:
+                return b"OK"
+            raise _lib.RespError("injected DEBUG cleanup failure")
+
+        def close(self):
+            self.closed = True
+
+    class HarnessControls(unittest.TestCase):
+        def setUp(self):
+            self.output = io.StringIO()
+            self.enterContext(contextlib.redirect_stdout(self.output))
+            self.enterContext(mock.patch.object(socket, "create_connection",
+                                               side_effect=AssertionError("self-test opened a socket")))
+
+        def test_boot_only_setup_and_cleanup_both_modes(self):
+            for atomic, count in (("0", 9), ("1", 6)):
+                admin = Admin(atomic)
+                with mock.patch.object(_lib, "Conn", return_value=admin), \
+                        mock.patch.object(module, "run_case") as run:
+                    main(["unused", "1", "--atomic", atomic])
+                self.assertEqual(run.call_count, count)
+                self.assertTrue(admin.closed)
+                self.assertFalse(any(c[:2] == ("CONFIG", "SET") for c in admin.calls))
+                self.assertIn(f"{count} witnessed races", self.output.getvalue())
+
+        def test_wrong_boot_is_a_failure_before_any_race(self):
+            for knob in ("atomic", "key-lb", "client-lb", "flip-auto"):
+                admin = Admin()
+                admin.config[knob] = "1"
+                with self.subTest(knob=knob), mock.patch.object(_lib, "Conn", return_value=admin), \
+                        mock.patch.object(module, "run_case") as run:
+                    with self.assertRaisesRegex(AssertionError, "boot with --" + knob):
+                        main(["unused", "1", "--atomic", "0"])
+                    run.assert_not_called()
+                    self.assertTrue(admin.closed)
+
+        def test_cleanup_preserves_the_original_failure(self):
+            admin = Admin()
+
+            def fail(*args):
+                admin.reject_debug = True
+                raise AssertionError("named lost-write assertion")
+
+            with mock.patch.object(_lib, "Conn", return_value=admin), \
+                    mock.patch.object(module, "run_case", side_effect=fail), \
+                    contextlib.redirect_stderr(io.StringIO()) as errors:
+                with self.assertRaisesRegex(AssertionError, "named lost-write assertion"):
+                    main(["unused", "1", "--atomic", "0"])
+            self.assertTrue(admin.closed)
+            self.assertEqual(errors.getvalue().count("DEBUG cleanup failed:"), 3)
+
+        def test_missing_probe_never_arms(self):
+            with mock.patch.object(time, "monotonic", side_effect=(0, 0, 1)), \
+                    mock.patch.object(time, "sleep"):
+                with self.assertRaisesRegex(WindowMiss, "counter never advanced"):
+                    wait_for(lambda: False, True, "counter never advanced")
+
+        def attempts(self, failures):
+            instances = []
+
+            class Attempt:
+                def __init__(self, *args):
+                    instances.append(self)
+                    self.stack = contextlib.ExitStack()
+                    self.closed = False
+                    self.stack.callback(self.close)
+
+                def close(self):
+                    self.closed = True
+
+                def mover(self, verb):
+                    error = next(failures)
+                    if error is not None:
+                        raise error
+
+            return Attempt, instances
+
+        def test_unentered_window_fails_after_four_fresh_attempts(self):
+            attempt, instances = self.attempts(iter([WindowMiss("unentered")] * 4))
+            with mock.patch.object(module, "Race", attempt):
+                with self.assertRaisesRegex(AssertionError, "window never opened after four fresh attempts"):
+                    run_case("unused", 1, None, "0", "mover", "SMOVE")
+            self.assertEqual(len(instances), 4)
+            self.assertEqual(len({id(r) for r in instances}), 4)
+            self.assertTrue(all(r.closed for r in instances))
+            self.assertNotIn("PASS", self.output.getvalue())
+
+        def test_rearm_requires_a_successful_fresh_window(self):
+            attempt, instances = self.attempts(iter([WindowMiss("unentered")] * 3 + [None]))
+            with mock.patch.object(module, "Race", attempt):
+                run_case("unused", 1, None, "0", "mover", "SMOVE")
+            self.assertEqual(len(instances), 4)
+            self.assertTrue(all(r.closed for r in instances))
+            self.assertEqual(self.output.getvalue().count("PASS"), 1)
+            self.assertIn("attempt=4", self.output.getvalue())
+
+        def test_data_reply_and_counter_failures_are_not_retried(self):
+            for error in (AssertionError("lost data"), AssertionError("stale cut"),
+                          TimeoutError("lost reply")):
+                attempt, instances = self.attempts(iter([error]))
+                with self.subTest(error=str(error)), mock.patch.object(module, "Race", attempt):
+                    with self.assertRaises(type(error)) as caught:
+                        run_case("unused", 1, None, "0", "mover", "SMOVE")
+                    self.assertIs(caught.exception, error)
+                self.assertEqual(len(instances), 1)
+                self.assertTrue(instances[0].closed)
+
+        def test_correct_data_without_each_window_witness_still_fails(self):
+            # Drive the actual race bodies. Every data reply is correct; removing any
+            # pending-reply/counter witness must still refuse the round.
+            for method, verbs, missing in (
+                    ("mover", ("SMOVE", "LMOVE", "RPOPLPUSH"), ("operation", "holder")),
+                    ("blocking", ("BLPOP", "BRPOP", "BLMPOP", "BZPOPMIN", "BZPOPMAX", "BZMPOP"),
+                     ("operation", "holder", "commit counter"))):
+                for verb in verbs:
+                    for absent in (None, *missing):
+                        with self.subTest(verb=verb, absent=absent), contextlib.ExitStack() as stack:
+                            race = Race.__new__(Race)
+                            race.admin = mock.Mock()
+                            race.a, race.b, race.owners = 0, 1, (6, 7)
+                            race.key = mock.Mock(side_effect=("source", "target"))
+                            waiter, writer, blocker, holder = (mock.Mock() for _ in range(4))
+                            race.conn = mock.Mock(side_effect=(waiter, writer, blocker))
+
+                            @contextlib.contextmanager
+                            def held(keys):
+                                yield holder
+
+                            race.held_exec = held
+                            writer.must.side_effect = [b"OK", b"QUEUED", [1]] + (
+                                [b"seed", 2] if method == "blocking" else [2])
+                            blocker.must.side_effect = [b"OK", b"QUEUED"]
+                            blocker.read.return_value = [b"OK"]
+                            high = verb in ("BRPOP", "BZPOPMAX")
+                            consumed, left, score = (b"kept", b"wake", b"2") if high else (
+                                b"wake", b"kept", b"1")
+                            waiter.read.return_value = (
+                                1 if verb == "SMOVE" else b"move" if method == "mover" else
+                                [b"source", [consumed]] if verb == "BLMPOP" else
+                                [b"source", [[consumed, score]]] if verb == "BZMPOP" else
+                                [b"source", consumed] if verb in ("BLPOP", "BRPOP") else
+                                [b"source", consumed, score])
+
+                            def answer(*command):
+                                if command[0] == "DEBUG":
+                                    return 0 if command[1] == "ATOMIC-PLAIN-STALE-CUTS" else b"OK"
+                                if command[0] in ("SADD", "RPUSH"):
+                                    return 1
+                                if command[0] in ("SISMEMBER", "LLEN"):
+                                    return 0
+                                return [b"base", b"kept", b"move"] if method == "mover" else [left]
+
+                            race.admin.must.side_effect = answer
+                            stack.enter_context(mock.patch.object(_lib, "shards_of", return_value=[(0, 6), (1, 7)]))
+                            operation = waiter if method == "mover" else blocker
+                            stack.enter_context(mock.patch.object(module, "pending", side_effect=lambda conn:
+                                not (absent == "operation" and conn is operation or
+                                     absent == "holder" and conn is holder)))
+                            stack.enter_context(mock.patch.object(module, "stat", side_effect=(
+                                0, 1, 0, 0 if absent == "commit counter" else 1)))
+                            stack.enter_context(mock.patch.object(time, "sleep"))
+                            if absent is None:
+                                getattr(race, method)(verb)
+                            else:
+                                with self.assertRaises(WindowMiss):
+                                    getattr(race, method)(verb)
+
+    result = unittest.TextTestRunner(verbosity=2).run(
+        unittest.defaultTestLoader.loadTestsFromTestCase(HarnessControls))
+    return 0 if result.wasSuccessful() else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

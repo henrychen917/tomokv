@@ -1633,14 +1633,17 @@ job_debug(){
 # ---- debug-surface batteries: these drive DEBUG subcommands, hence their own armed boot -------
 local AT=${1##*-}
   boot "$CANDIDATE_BINARY" --atomic $AT --enable-debug-command yes \
+      --key-lb 0 --client-lb 0 --flip-auto 0 \
       || bad "debug-surface boot (atomic $AT)"
   # AT1/AT2: exact owner interleavings plus live, witnessed EXEC/hop/wakeup races. Both
-  # debug jobs are collected BEFORE the quick exit: +2 quick, +2 full (448 / 465).
-  # EXPECT_* remains maintainer-owned. The battery explicitly sets and verifies its mode.
+  # debug jobs are collected BEFORE the quick exit: +2 quick, +2 full.
+  # EXPECT_* remains maintainer-owned. Boot-only balancers are disabled here; the
+  # battery verifies its mode with CONFIG GET and never CONFIG SETs an immutable knob.
   row_begin "plain-write lost updates (atomic $AT)"
-  unit_ready atomic-survivors-unit \
+  py tests/atomic_plain.py --self-test >$TMPDIR/gate-atomic-plain-$AT.txt 2>&1 \
+      && unit_ready atomic-survivors-unit \
       && taskset -c "$CORES" ./build/atomic-survivors-unit "plain_$AT" \
-          >$TMPDIR/gate-atomic-plain-$AT.txt 2>&1 \
+          >>$TMPDIR/gate-atomic-plain-$AT.txt 2>&1 \
       && py tests/atomic_plain.py 127.0.0.1 $PORT --atomic "$AT" \
           >>$TMPDIR/gate-atomic-plain-$AT.txt 2>&1 \
       && ok "plain-write lost updates (atomic $AT)" \
