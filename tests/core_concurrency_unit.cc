@@ -1048,6 +1048,52 @@ struct CoreConcurrencyTest {
         require(owner.notify_keyless_pending_ && !old.notify_keyless_pending_,
                 "moved shard hints its new owner before any resumed control pass");
     }
+    template <bool Fused>
+    static void deadfused_notify(bool early_flush = false) {
+        Fixture<Fused> f(false);
+        auto& loop = f.loops[f.source];
+        std::array<std::unique_ptr<Client>, 33> clients;
+        for (auto& client : clients) {
+            client = std::make_unique<Client>(-1);
+            f.client(*client);
+        }
+        auto& ready = f.server.thread(f.io_id).ready();
+        require(!ready.any(), "notification fixture starts empty");
+        {
+            typename ExLoopT<Fused>::NotifyBatchScope scope(&loop);
+            for (unsigned i = 0; i < 32; ++i) {
+                loop.notify_sender(clients[i].get());
+                if (early_flush && i == 15) loop.flush_notify_batch();
+                require(loop.notify_batch_n_ == i + 1 && !ready.any(),
+                        "32 notifications fit without an overflow flush");
+            }
+            // A deliberately oversized batch must exercise the overflow path: no skip,
+            // no out-of-bounds write, and the 33rd record waits for the scope boundary.
+            loop.notify_sender(clients[32].get());
+            require(loop.notify_batch_n_ == 1 && ready.take(0) == UINT32_MAX,
+                    "33rd notification flushes exactly the first 32 records");
+        }
+        require(loop.notify_batch_n_ == 0 && ready.take(0) == (uint64_t{1} << 32) && !ready.any(),
+                "scope exit publishes the remaining notification exactly once");
+        std::printf("PASS deadfused notify %s: 32 held, 33rd flushes, tail published\n",
+                    Fused ? "1s" : "2s");
+    }
+
+    static void deadfused_info_pad() {
+        for (uint32_t databases : {1u, 2u}) {
+            Fixture<true> f(false, 8, 16, databases, 6, true);
+            command_bind_server(&f.server);
+            Op op; op.push_arg(Slice("INFO")); op.push_arg(Slice("STATS"));
+            command_lookup(Slice("INFO"))->handler(f.server.shard(0), op);
+            const std::string body(op.reply.data(), op.reply.size());
+            const std::string row = "read_local_mget_generation_retries:0\r\n";
+            const size_t at = body.find(row);
+            require(at != std::string::npos && body.find(row, at + 1) == std::string::npos,
+                    "PAD-A restores exactly one PRE zero retry INFO row");
+            command_bind_server(nullptr);
+        }
+        std::puts("PASS deadfused PAD-A: PRE INFO row restored for both database counts");
+    }
 };
 } // namespace tomo
 
@@ -1068,6 +1114,11 @@ int main(int argc, char** argv) {
     else if (row == "close-cycle") T::close_cycles();
     else if (row == "drain") T::drain_ack();
     else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); T::flipsettle_all(); T::lanefull_all(); T::flipreport_all(); }
+    else if (row == "deadfused-notify" || row == "deadfused-notify-control") {
+        const bool broken = row == "deadfused-notify-control";
+        T::deadfused_notify<false>(broken); T::deadfused_notify<true>(broken);
+    }
+    else if (row == "deadfused-info-pad") T::deadfused_info_pad();
     else if (row == "lanefull") T::lanefull_all();
     else if (row == "lanefull-info") T::lanefull_info_all();
     else if (row == "lanefull-info-pre") T::lanefull_info_all(true);
