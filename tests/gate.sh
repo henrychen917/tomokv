@@ -2851,6 +2851,9 @@ collect_job filter_unit
 
 collect_job ring_unit
 
+# SV2: collect all seven shutdown rows before the quick-tier exit.
+collect_job climonfix
+
 collect_job core_units
 
 collect_job wb_rule_units

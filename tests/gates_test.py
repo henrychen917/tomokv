@@ -1598,6 +1598,8 @@ python3(){
                     self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                     self.assertEqual(result.stdout.splitlines()[0], str(root / f'build/gate-ledger-{purpose}.txt'))
                     events = (directory / 'events').read_text().splitlines()
+                    self.assertEqual(events.count('COLLECT climonfix'), 1,
+                                     'climonfix shutdown rows must be collected in every correctness tier')
                     self.assertEqual(events.count('TAILGEN'), 1)
                     self.assertLess(events.index('JOIN'), events.index('TAILGEN'))
                     collected = {event.removeprefix('COLLECT ') for event in events if event.startswith('COLLECT ')}
