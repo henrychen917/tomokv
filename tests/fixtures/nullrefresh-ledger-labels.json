@@ -1,10 +1,11 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "de62abacf25a09a3e9a3349c5dbe1ac61dedda1b01ee5db4b2d8cf21ad67c201",
+  "source_sha256": "dcd124650c70135bcf65ae88d13bb931f134798f69ccd6e2425646a380c57622",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
     "ASAN build",
+    "configuration docs match parser",
     "Redis config quoting + mid-value #",
     "flip controller model unit",
     "B+ counting-fingerprint filter unit",
@@ -25,6 +26,7 @@
     "writeback c12 split-overlap witnesses + negative controls",
     "writeback policy clauses witnesses + negative controls",
     "writeback policy paths witnesses + negative controls",
+    "splitlocal template forwarding + old-argument controls",
     "storage unlinked regression",
     "storage randomkey regression",
     "storage rehash regression",
@@ -485,6 +487,22 @@
       "when": "2026-10-03 18:31",
       "added": [
         "netcmd hexpire-oom regression"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-03 21:05",
+      "added": [
+        "configuration docs match parser"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-03 21:18",
+      "added": [
+        "splitlocal template forwarding + old-argument controls"
       ],
       "removed": [],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
