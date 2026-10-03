@@ -60,6 +60,7 @@ public:
 
     void init(Server* server, int32_t id, uint32_t bucket_begin, uint32_t bucket_end, uint32_t zc_min,
               const TypeLimits& type_limits, const StreamLimits& stream_limits) {
+        assert(bucket_begin <= bucket_end && bucket_end <= kNumBuckets);
         server_ = server;
         id_ = id;
         bucket_begin_ = bucket_begin;
@@ -277,7 +278,7 @@ public:
         // the mapping at reservation retirement. WATCH state is cold/heap-owned.
         std::array<uint64_t, 4> dirty_databases{};
     };
-    bool has_watches() const { return !watchers_.empty() || !watch_reservations_.empty(); }
+    bool has_watches() const { return has_watches_; }
     bool watch_add(Slice key, Client* client, uint64_t generation, uint16_t db = 256);
     void watch_database_swap(uint8_t first, uint8_t second);
     bool watch_database_swap(uint8_t first, uint8_t second, uint8_t physical_first,
@@ -312,10 +313,21 @@ public:
     // per op: a per-op store to a line that other threads poll is exactly the shared-line write the
     // design avoids everywhere else. Slightly stale by construction, which is correct for a stat.
     void publish_size() {
-        published_size_.store(store_.size(), std::memory_order_relaxed);
-        published_obj_bytes_.store(store_.object_bytes(), std::memory_order_relaxed);
-        published_expires_.store(store_.expire_count(), std::memory_order_relaxed);
-        published_evicted_.store(stats_.evicted, std::memory_order_relaxed);
+        // Single owner: an unchanged statistic needs no producer store into the
+        // header sampled by INFO/DBSIZE. Keep the all-owned-shards batch walk:
+        // expiry, retries and transaction cleanup can change more than its last shard.
+        const auto size = store_.size();
+        if (published_size_.load(std::memory_order_relaxed) != size)
+            published_size_.store(size, std::memory_order_relaxed);
+        const auto bytes = store_.object_bytes();
+        if (published_obj_bytes_.load(std::memory_order_relaxed) != bytes)
+            published_obj_bytes_.store(bytes, std::memory_order_relaxed);
+        const auto expires = store_.expire_count();
+        if (published_expires_.load(std::memory_order_relaxed) != expires)
+            published_expires_.store(expires, std::memory_order_relaxed);
+        const auto evicted = stats_.evicted;
+        if (published_evicted_.load(std::memory_order_relaxed) != evicted)
+            published_evicted_.store(evicted, std::memory_order_relaxed);
     }
     uint32_t published_size() const { return published_size_.load(std::memory_order_relaxed); }
     uint64_t published_obj_bytes() const {
@@ -473,6 +485,12 @@ public:
     }
 
 private:
+    // Only registry mutations call this, on the shard owner. The bit travels
+    // with the Shard across an ownership transfer; there is no per-owner mirror.
+    void refresh_has_watches() {
+        has_watches_ = !watchers_.empty() || !watch_reservations_.empty();
+    }
+
     void publish_active_expire_reap_lag() {
         const uint32_t value = store_.active_expire_reap_lag_ms_max();
         if (value > published_active_expire_reap_lag_ms_max_.load(std::memory_order_relaxed))
@@ -481,8 +499,13 @@ private:
 
     friend struct ShardLayoutLock;
     int32_t   id_ = -1;
-    uint32_t  bucket_begin_ = 0;
-    uint32_t  bucket_end_   = 0;
+    // Both endpoints include at most kNumBuckets (16384). Packing the route
+    // endpoints leaves the WATCH gate in the hot header without moving zc_min,
+    // the published gauges, FlatStore, Stats, or the cold registry maps.
+    uint16_t  bucket_begin_ = 0;
+    uint16_t  bucket_end_   = 0;
+    bool      has_watches_ = false;
+    uint8_t   reserved_route_[3]{};
     uint32_t  zc_min_       = 0;
     int64_t   now_ms_       = 0;
     uint32_t  home_domain_  = kNoDomain;
@@ -524,12 +547,15 @@ private:
 };
 
 struct ShardLayoutLock {
+    static constexpr size_t watch_offset = offsetof(Shard, has_watches_);
     static constexpr size_t store_offset = offsetof(Shard, store_);
     static constexpr size_t stats_offset = offsetof(Shard, stats_);
 };
 
 // atomic_torn's gate geometry depends on the pre-read-local Shard stride and hot stats position.
 static_assert(sizeof(Shard) == 1440);
+static_assert(kNumBuckets <= UINT16_MAX);
+static_assert(ShardLayoutLock::watch_offset == 8);
 static_assert(ShardLayoutLock::store_offset == 56);
 static_assert(ShardLayoutLock::stats_offset == 1000);
 
