@@ -5675,7 +5675,6 @@ ordinary_shard_ready:
     bool notify_config_armed_ = false;   // keyspace-notification half of notify_armed_
     bool save_config_armed_ = false;
     uint64_t proto_max_bulk_len_ = 512ull * 1024 * 1024;
-    uint64_t client_query_buffer_limit_ = 1024ull * 1024 * 1024;
     // Slow-log arm for connection-local commands. Appended here rather than earlier so no
     // pre-existing IoLoop member offset moves.
     bool slowlog_armed_ = false;
@@ -5772,6 +5771,8 @@ public:
 // END R7 GENERATED ENVELOPES
     void run_fused_reordered();
 
+    // Cold config cache at the tail: established IO members retain their offsets.
+    uint64_t client_query_buffer_limit_ = 1024ull * 1024 * 1024;
 };
 
 }  // namespace tomo

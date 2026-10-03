@@ -3610,7 +3610,6 @@ private:
     std::atomic<uint32_t> live_notify_events_{0};
     std::atomic<bool> live_save_armed_{true};
     std::atomic<uint64_t> live_proto_max_bulk_len_{512ull * 1024 * 1024};
-    std::atomic<uint64_t> live_client_query_buffer_limit_{1024ull * 1024 * 1024};
     // Lane F cold tail. Every field here is read once per io batch (or never, while the armed
     // word is zero); none of them is on a per-operation path.
     std::atomic<uint32_t> climon_armed_{0};
@@ -3748,6 +3747,7 @@ private:
     LiveConfigValues live_config_committed_{}; // serialized CONFIG writer only
     // Cold diagnostics share no existing producer/consumer line and no normal-pass access.
     alignas(64) IoTenureHistory<kMaxThreads> io_accounting_history_;
+    std::atomic<uint64_t> live_client_query_buffer_limit_{1024ull * 1024 * 1024};
 };
 
 }  // namespace tomo

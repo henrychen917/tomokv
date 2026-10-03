@@ -968,7 +968,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             if (!input || !cfg_parse_query_buffer_limit(input, std::strlen(input),
                                                         cfg.client_query_buffer_limit, error)) {
                 std::fprintf(stderr, "--client-query-buffer-limit: %s\n", error);
-                return false;
+                return kConfigError;
             }
         }
         else if (!std::strcmp(a, "--proto-max-bulk-len")) {

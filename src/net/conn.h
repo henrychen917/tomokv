@@ -781,6 +781,7 @@ public:
     static constexpr size_t id_offset();
     static constexpr size_t obuf_bytes_offset();
     static constexpr size_t atomic_groups_io_offset();
+    static constexpr size_t inline_scanned_offset();
 
 #ifdef TOMO_WEDGE_FORENSICS
     // FORENSICS for the stranded-reply class: claims (worker won the CAS), defers (lost it),
@@ -906,6 +907,8 @@ constexpr size_t Client::ifid_thread_offset() { return offsetof(Client, ifid_thr
 constexpr size_t Client::id_offset() { return offsetof(Client, id_); }
 constexpr size_t Client::obuf_bytes_offset() { return offsetof(Client, obuf_bytes_); }
 constexpr size_t Client::atomic_groups_io_offset() { return offsetof(Client, atomic_groups_io_); }
+constexpr size_t Client::inline_scanned_offset() { return offsetof(Client, inline_scanned_); }
+static_assert(Client::inline_scanned_offset() == 76, "Inline cursor must consume IO-only padding");
 static_assert(Client::executor_line_offset() % 64 == 0, "executor-facing line must start a line");
 static_assert(Client::wb_slot_offset() / 64 == Client::executor_line_offset() / 64,
               "wb_slot_ left the executor-facing line");
