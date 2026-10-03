@@ -258,8 +258,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=446
-EXPECT_FULL=463                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+EXPECT_QUICK=449
+EXPECT_FULL=466                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -980,7 +980,7 @@ start_workers(){
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
-              core_units climonfix wb_rule_units wbland_units atomic_units netcmd_units boot_grammar wait_units readonly
+              core_units climonfix wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1195,6 +1195,12 @@ pausable taskset -c "$BUILD_CORES" tests/parbuild.sh $ASAN "$PWD/build/gate-cach
 
 job_config_unit(){
 quiet_wait
+row_begin "configuration docs match parser"
+taskset -c "$CORES" python3 tests/docs_drift.py --self-test >"$TMPDIR/docs-drift.log" 2>&1 \
+    && ok "configuration docs match parser" \
+    || bad "configuration docs match parser" "see $TMPDIR/docs-drift.log"
+# docsregen: +1 quick and +1 full; config_unit is collected before the quick exit.
+# EXPECT_QUICK/EXPECT_FULL remain maintainer-owned.
 row_begin "Redis config quoting + mid-value #"
 g++ -std=c++20 -O2 -I. tests/config_parser_test.cc -o $TMPDIR/tomokv-config-parser-test \
     && taskset -c "$CORES" $TMPDIR/tomokv-config-parser-test \
@@ -1332,6 +1338,17 @@ job_wbland_units(){
   done
 }
 
+job_splitlocal_units(){
+  local label="splitlocal template forwarding + old-argument controls"
+  row_begin "$label"
+  if unit_ready splitlocal-unit && taskset -c "$CORES" python3 tests/splitlocal_checks.py check \
+      --output "$TMPDIR/splitlocal-controls" >"$TMPDIR/splitlocal.log" 2>&1; then
+    ok "$label"
+  else
+    bad "$label" "see $TMPDIR/splitlocal.log and $RUN_DIR/jobs/production_units/build.log"
+  fi
+}
+
 job_storage_units(){
 # Twelve storage regressions, all BEFORE the quick-tier exit. The hash reaper is production code;
 # store-boundary spies make held epochs, capture cursors, eviction and allocation failures exact.
@@ -1410,7 +1427,8 @@ job_netcmd_units(){
 row_begin "netcmd regression build"
 unit_ready netcmd-unit \
     && ok "netcmd regression build" || bad "netcmd regression build" "see $RUN_DIR/jobs/production_units/build.log"
-for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub receive config; do
+# CD1: +1 row before the quick-tier exit; EXPECT counts remain maintainer-owned.
+for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub receive config hexpire-oom; do
   row_begin "netcmd $NETCMD_CASE regression"
   taskset -c "$CORES" ./build/netcmd-unit "$NETCMD_CASE" >$TMPDIR/gate-netcmd-$NETCMD_CASE.txt 2>&1 \
       && ok "netcmd $NETCMD_CASE regression" \
@@ -2646,10 +2664,10 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
-      build/wb-rule-units build/wbland-units build/rltopo-unit build/shutdown-unit >"$TMPDIR/build.log" 2>&1
+      build/wb-rule-units build/wbland-units build/rltopo-unit build/shutdown-unit build/splitlocal-unit >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit shutdown-unit; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit shutdown-unit splitlocal-unit; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -2708,7 +2726,7 @@ job_dependencies(){
     release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
     core_units) echo 'production_units core_tsan_build';;
     wait_units) echo 'production_units waits_tsan_build';;
-    climonfix|wb_rule_units|wbland_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
+    climonfix|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
     rlcache) echo rldbg;;
@@ -2776,6 +2794,8 @@ collect_job wb_rule_units
 # wbland: two rows before the quick exit; maintainer-owned EXPECT counts +2/+2.
 collect_job wbland_units
 
+# WB4/IO5 and IO1: one new row before the quick exit; EXPECT counts stay maintainer-owned.
+collect_job splitlocal_units
 
 collect_job storage_units
 
