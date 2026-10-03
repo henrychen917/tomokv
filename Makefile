@@ -212,6 +212,9 @@ unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flip
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
 DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
+# EX1/EX3/EX6 use production objects without opening a listener or IO ring.
+build/exbatch-unit: build/tests/exbatch_unit.o $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # ST1/ST10 serverless proofs. PRE objects are kept by the lane before editing;
 # the control target substitutes just the two command objects in both images.
 FLUSHFIX_UNIT_OBJ := build/tests/flushfix_unit.o build/db0/tests/flushfix_unit.o

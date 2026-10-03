@@ -6,6 +6,7 @@
 #include "command.h"
 #include "../exec/op.h"
 #include "../net/resp.h"
+#include "../base/exbatch_control.h"
 
 #include <algorithm>
 #include <array>
@@ -75,9 +76,9 @@ constexpr auto kMetadataIndex = [] {
         index[i].length = parent.size();
         for (size_t j = i + 1; j < index.size(); ++j) {
             const std::string_view child(kGeneratedMetadata[j].name);
-            if (!child.starts_with(parent) || child.size() == parent.size() ||
-                child[parent.size()] != '|') break;
-            ++index[i].children;
+            if (!child.starts_with(parent)) break;
+            if (child.size() > parent.size() && child[parent.size()] == '|')
+                ++index[i].children;
         }
     }
     return index;
@@ -208,7 +209,13 @@ void reply_key_spec(Op::Sink& sink, const GeneratedKeySpec& spec, bool resp3) {
 }
 
 uint32_t child_count(const CommandMetadata& parent) {
+    TOMO_EXBATCH_TWIN(legacy, 6);
     return kMetadataIndex[&parent - kGeneratedMetadata].children;
+legacy:
+    uint32_t count = 0;
+    for (const CommandMetadata& metadata : kGeneratedMetadata)
+        if (metadata_has_prefix(metadata, parent)) count++;
+    return count;
 }
 
 void reply_info_row(Op& op, const CommandMetadata& metadata) {
@@ -285,6 +292,8 @@ const CommandMetadata* command_metadata_for(const CommandSpec& spec) {
 }
 
 const CommandMetadata* command_metadata_lookup(Slice name) {
+    TOMO_EXBATCH_TWIN(legacy, 6);
+    {
     if (name.n > kMaxMetadataName) return nullptr;
     size_t begin = 0, end = std::size(kGeneratedMetadata);
     while (begin < end) {
@@ -304,9 +313,16 @@ const CommandMetadata* command_metadata_lookup(Slice name) {
         else begin = mid + 1;
     }
     return nullptr;
+    }
+legacy:
+    for (const CommandMetadata& metadata : kGeneratedMetadata)
+        if (ascii_equal_icase(name, metadata.name)) return &metadata;
+    return nullptr;
 }
 
 const CommandMetadata* command_metadata_resolve(Op& op, uint32_t command_argument) {
+    TOMO_EXBATCH_TWIN(legacy, 6);
+    {
     if (command_argument >= op.argc()) return nullptr;
     const CommandMetadata* parent = command_argument == 0 && op.spec
         ? command_metadata_for(*op.spec) : command_metadata_lookup(op.arg(command_argument));
@@ -327,6 +343,20 @@ const CommandMetadata* command_metadata_resolve(Op& op, uint32_t command_argumen
         // A known container with an unrecognised first argument is not the broad parent for key
         // extraction. Redis reports Invalid command specified for that full command.
         if (parent) return nullptr;
+    }
+    return parent;
+    }
+legacy:
+    if (command_argument >= op.argc()) return nullptr;
+    const CommandMetadata* parent = command_metadata_lookup(op.arg(command_argument));
+    if (command_argument + 1 < op.argc()) {
+        std::string qualified(op.arg(command_argument).p, op.arg(command_argument).n);
+        qualified.push_back('|');
+        qualified.append(op.arg(command_argument + 1).p, op.arg(command_argument + 1).n);
+        if (const CommandMetadata* subcommand = command_metadata_lookup(
+                Slice(qualified.data(), static_cast<uint32_t>(qualified.size()))))
+            return subcommand;
+        if (parent && child_count(*parent)) return nullptr;
     }
     return parent;
 }

@@ -2408,7 +2408,7 @@ bool Shard::watch_add(Slice key, Client* client, uint64_t generation, uint16_t d
         return false;
     }
     client->watch_ref();
-    has_watches_ = true;
+    arm_watches();
     return true;
 }
 
@@ -2520,7 +2520,7 @@ bool Shard::watch_append_reservation(const std::string& key, const WatchReservat
     try {
         std::vector<WatchReservation>& list = watch_reservations_[key];
         list.push_back(reservation);
-        has_watches_ = true;
+        arm_watches();
         if (reservation.mutates) watch_note_database(list.back(), server_, static_cast<uint8_t>(key[0]));
         if (reservation.refs) reservation.refs->fetch_add(1, std::memory_order_release);
     } catch (const std::bad_alloc&) {

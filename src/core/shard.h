@@ -25,6 +25,7 @@
 // home_domain() and store().resident_estimate() exist so it can be priced instead of guessed.
 #pragma once
 #include <atomic>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -32,6 +33,7 @@
 #include <unordered_map>
 #include <vector>
 #include "../base/topology.h"
+#include "../base/exbatch_control.h"
 #include "../store/flatstore.h"
 #include "../cmd/notify.h"
 
@@ -278,7 +280,12 @@ public:
         // the mapping at reservation retirement. WATCH state is cold/heap-owned.
         std::array<uint64_t, 4> dirty_databases{};
     };
-    bool has_watches() const { return has_watches_; }
+    bool has_watches() const {
+        TOMO_EXBATCH_TWIN(legacy, 3);
+        return has_watches_;
+    legacy:
+        return !watchers_.empty() || !watch_reservations_.empty();
+    }
     bool watch_add(Slice key, Client* client, uint64_t generation, uint16_t db = 256);
     void watch_database_swap(uint8_t first, uint8_t second);
     bool watch_database_swap(uint8_t first, uint8_t second, uint8_t physical_first,
@@ -313,6 +320,8 @@ public:
     // per op: a per-op store to a line that other threads poll is exactly the shared-line write the
     // design avoids everywhere else. Slightly stale by construction, which is correct for a stat.
     void publish_size() {
+        TOMO_EXBATCH_TWIN(legacy, 1);
+        {
         // Single owner: an unchanged statistic needs no producer store into the
         // header sampled by INFO/DBSIZE. Keep the all-owned-shards batch walk:
         // expiry, retries and transaction cleanup can change more than its last shard.
@@ -328,6 +337,13 @@ public:
         const auto evicted = stats_.evicted;
         if (published_evicted_.load(std::memory_order_relaxed) != evicted)
             published_evicted_.store(evicted, std::memory_order_relaxed);
+        }
+        return;
+    legacy:
+        published_size_.store(store_.size(), std::memory_order_relaxed);
+        published_obj_bytes_.store(store_.object_bytes(), std::memory_order_relaxed);
+        published_expires_.store(store_.expire_count(), std::memory_order_relaxed);
+        published_evicted_.store(stats_.evicted, std::memory_order_relaxed);
     }
     uint32_t published_size() const { return published_size_.load(std::memory_order_relaxed); }
     uint64_t published_obj_bytes() const {
@@ -488,7 +504,14 @@ private:
     // Only registry mutations call this, on the shard owner. The bit travels
     // with the Shard across an ownership transfer; there is no per-owner mirror.
     void refresh_has_watches() {
+        TOMO_EXBATCH_TWIN(legacy, 30);
         has_watches_ = !watchers_.empty() || !watch_reservations_.empty();
+    legacy:;
+    }
+    void arm_watches() {
+        TOMO_EXBATCH_TWIN(legacy, 30);
+        has_watches_ = true;
+    legacy:;
     }
 
     void publish_active_expire_reap_lag() {
