@@ -1,0 +1,170 @@
+ MEASURE-REQUEST-persistfix.md                      |  183 +
+ MEASURE-REQUEST-persistfix2.md                     |  209 ++
+ MEASURE-REQUEST-rlfence.md                         |  283 ++
+ MEASURE-REQUEST-rlfence2.md                        |  315 ++
+ MEASURE-REQUEST-rlfence3.md                        |  285 ++
+ Makefile                                           |   60 +-
+ docs/lbplanner/4096-cells.txt                      |    8 +
+ docs/lbplanner/POST-functions.tsv.gz               |  Bin 0 -> 151414 bytes
+ docs/lbplanner/POST-layout.log                     |    1 +
+ docs/lbplanner/POST-sections.tsv.gz                |  Bin 0 -> 754 bytes
+ docs/lbplanner/PRE-functions.tsv.gz                |  Bin 0 -> 151701 bytes
+ docs/lbplanner/PRE-layout.log                      |    1 +
+ docs/lbplanner/PRE-sections.tsv.gz                 |  Bin 0 -> 755 bytes
+ docs/lbplanner/SHA256SUMS                          |    6 +
+ docs/lbplanner/generic-cells.txt                   |   14 +
+ docs/lbplanner/handoff-controls.json               |   38 +
+ docs/lbplanner/handoff.log                         |    6 +
+ docs/lbplanner/instructions.json                   | 3604 ++++++++++++++++++++
+ docs/lbplanner/io-audit.json.gz                    |  Bin 0 -> 609657 bytes
+ docs/lbplanner/io-audit.log                        |    2 +
+ docs/lbplanner/io-diffs.txt.gz                     |  Bin 0 -> 3864012 bytes
+ docs/lbplanner/layout.json                         | 1434 ++++++++
+ docs/lbplanner/lbfix-controls.json                 |  114 +
+ docs/lbplanner/lbfix-unit.log                      |    1 +
+ docs/lbplanner/lbplanner-pre-build.log.gz          |  Bin 0 -> 1448 bytes
+ docs/lbplanner/lbplanner-pre-pass-build.log.gz     |  Bin 0 -> 459 bytes
+ docs/lbplanner/lbplanner-verified-build.log.gz     |  Bin 0 -> 1626 bytes
+ docs/lbplanner/lbstall-unit.log                    |    5 +
+ docs/lbplanner/pad-status.json                     |   22 +
+ docs/lbplanner/receipts.log                        |    3 +
+ docs/lbplanner/route-unit.log                      |   34 +
+ docs/lbplanner/source.json                         |   28 +
+ docs/lbplanner/split-cells.txt                     |    4 +
+ docs/rlfence2/SHA256SUMS                           |    5 +
+ docs/rlfence2/alt-h05-proof.json                   |  101 +
+ docs/rlfence2/alt-io-audit.json.gz                 |  Bin 0 -> 469198 bytes
+ docs/rlfence2/alt-io-changes.json                  |   97 +
+ docs/rlfence2/alt-pad/POST-functions.tsv.gz        |  Bin 0 -> 148632 bytes
+ docs/rlfence2/alt-pad/POST-sections.tsv.gz         |  Bin 0 -> 736 bytes
+ docs/rlfence2/alt-pad/closure-proof.json           |   50 +
+ docs/rlfence2/alt-pad/negative-controls.json       |   17 +
+ docs/rlfence2/alt-pad/planned-retargets.json       |  198 ++
+ docs/rlfence2/alt-pad/proof.json                   |   38 +
+ docs/rlfence2/alt-source-receipt.json              |   11 +
+ docs/rlfence2/alt-unit-pad/POST-functions.tsv.gz   |  Bin 0 -> 552 bytes
+ docs/rlfence2/alt-unit-pad/POST-sections.tsv.gz    |  Bin 0 -> 626 bytes
+ docs/rlfence2/alt-unit-pad/negative-controls.json  |   17 +
+ docs/rlfence2/alt-unit-pad/pipeline.log            |    2 +
+ docs/rlfence2/alt-unit-pad/planned-retargets.json  |  241 ++
+ docs/rlfence2/alt-unit-pad/proof.json              |   38 +
+ docs/rlfence2/alt-unit-pad/symmetry.log            |    1 +
+ docs/rlfence2/alt-unit.log                         |    4 +
+ docs/rlfence2/alt-write-ring.log                   |   21 +
+ docs/rlfence2/alt.patch                            |   70 +
+ docs/rlfence2/generic-merit-cells.txt              |   14 +
+ docs/rlfence2/harness-controls.json                |   17 +
+ docs/rlfence2/harness-positive.log                 |    4 +
+ docs/rlfence2/headline-pre-identity.json           |   69 +
+ docs/rlfence2/io-audit.json.gz                     |  Bin 0 -> 486835 bytes
+ docs/rlfence2/io-changes.json                      |  179 +
+ docs/rlfence2/io-diffs/015.diff.gz                 |  Bin 0 -> 52076 bytes
+ docs/rlfence2/io-diffs/025.diff.gz                 |  Bin 0 -> 47996 bytes
+ docs/rlfence2/io-diffs/059.diff.gz                 |  Bin 0 -> 31351 bytes
+ docs/rlfence2/io-diffs/061.diff.gz                 |  Bin 0 -> 38616 bytes
+ docs/rlfence2/io-diffs/151.diff.gz                 |  Bin 0 -> 4564 bytes
+ docs/rlfence2/io-diffs/217.diff.gz                 |  Bin 0 -> 8049 bytes
+ docs/rlfence2/io-diffs/265.diff.gz                 |  Bin 0 -> 3361 bytes
+ docs/rlfence2/io-diffs/275.diff.gz                 |  Bin 0 -> 3298 bytes
+ docs/rlfence2/io-diffs/322.diff.gz                 |  Bin 0 -> 2891 bytes
+ docs/rlfence2/pad-a/POST-functions.tsv.gz          |  Bin 0 -> 148664 bytes
+ docs/rlfence2/pad-a/POST-sections.tsv.gz           |  Bin 0 -> 722 bytes
+ docs/rlfence2/pad-a/closure-proof.json             |   50 +
+ docs/rlfence2/pad-a/negative-controls.json         |   17 +
+ docs/rlfence2/pad-a/planned-retargets.json         |  154 +
+ docs/rlfence2/pad-a/proof.json                     |   38 +
+ docs/rlfence2/post-unit.log                        |    4 +
+ docs/rlfence2/post-write-ring.log                  |   21 +
+ docs/rlfence2/production/SHA256SUMS                |    6 +
+ .../alt-identity/CANDIDATE-functions.tsv.gz        |  Bin 0 -> 150939 bytes
+ .../alt-identity/CANDIDATE-sections.tsv.gz         |  Bin 0 -> 738 bytes
+ .../alt-identity/REFERENCE-functions.tsv.gz        |  Bin 0 -> 148632 bytes
+ .../alt-identity/REFERENCE-sections.tsv.gz         |  Bin 0 -> 736 bytes
+ .../alt-identity/differing-functions.json.gz       |  Bin 0 -> 1004664 bytes
+ .../alt-identity/differing-functions.tsv.gz        |  Bin 0 -> 206115 bytes
+ .../rlfence2/production/alt-identity/identity.json | 2929 ++++++++++++++++
+ docs/rlfence2/production/alt-io-audit.json.gz      |  Bin 0 -> 546530 bytes
+ docs/rlfence2/production/alt-io-changes.json       | 3229 ++++++++++++++++++
+ docs/rlfence2/production/alt-io-diffs.txt.gz       |  Bin 0 -> 2838203 bytes
+ docs/rlfence2/production/closure.json              |   50 +
+ docs/rlfence2/production/default-build.log.gz      |  Bin 0 -> 1409 bytes
+ docs/rlfence2/production/delayed-drain.log         |   10 +
+ .../production/frozen-alt-identity-limit.json      |    5 +
+ docs/rlfence2/production/frozen-h05-proof.json     |  101 +
+ docs/rlfence2/production/harness-and-gate.json     |   79 +
+ .../headline-identity/CANDIDATE-functions.tsv.gz   |  Bin 0 -> 150939 bytes
+ .../headline-identity/CANDIDATE-sections.tsv.gz    |  Bin 0 -> 738 bytes
+ .../headline-identity/REFERENCE-functions.tsv.gz   |  Bin 0 -> 150914 bytes
+ .../headline-identity/REFERENCE-sections.tsv.gz    |  Bin 0 -> 725 bytes
+ .../headline-identity/differing-functions.json.gz  |  Bin 0 -> 554836 bytes
+ .../headline-identity/differing-functions.tsv.gz   |  Bin 0 -> 116944 bytes
+ .../production/headline-identity/identity.json     | 2900 ++++++++++++++++
+ docs/rlfence2/production/headline-io-audit.json.gz |  Bin 0 -> 566183 bytes
+ docs/rlfence2/production/headline-io-changes.json  |  236 ++
+ docs/rlfence2/production/headline-io-diffs.txt.gz  |  Bin 0 -> 51304 bytes
+ docs/rlfence2/production/identity-controls.json    |   13 +
+ docs/rlfence2/production/mainline-verdict.txt      |   13 +
+ docs/rlfence2/production/mget-fence-old.log        |   11 +
+ docs/rlfence2/production/mget-fence-stale.log      |   11 +
+ docs/rlfence2/production/mget-fence-unarmed.log    |   11 +
+ docs/rlfence2/production/mget-fence.log            |    4 +
+ docs/rlfence2/production/negative-pipeline.log     |    2 +
+ docs/rlfence2/production/negative-unit.log         |    1 +
+ docs/rlfence2/production/portable-unit.log         |    4 +
+ .../server-control/PAD-A-functions.tsv.gz          |  Bin 0 -> 150939 bytes
+ .../server-control/PAD-A-sections.tsv.gz           |  Bin 0 -> 738 bytes
+ .../server-control/POST-functions.tsv.gz           |  Bin 0 -> 150939 bytes
+ .../production/server-control/POST-sections.tsv.gz |  Bin 0 -> 738 bytes
+ .../server-control/negative-controls.json          |   17 +
+ .../server-control/planned-retargets.json          |  198 ++
+ docs/rlfence2/production/server-control/proof.json |   38 +
+ docs/rlfence2/production/source-receipt.json       |    9 +
+ docs/rlfence2/production/transient.log             |   10 +
+ docs/rlfence2/production/unit-build.log            |    2 +
+ .../production/unit-control/PAD-A-functions.tsv.gz |  Bin 0 -> 552 bytes
+ .../production/unit-control/PAD-A-sections.tsv.gz  |  Bin 0 -> 628 bytes
+ .../production/unit-control/POST-functions.tsv.gz  |  Bin 0 -> 552 bytes
+ .../production/unit-control/POST-sections.tsv.gz   |  Bin 0 -> 628 bytes
+ .../production/unit-control/negative-controls.json |   17 +
+ .../production/unit-control/planned-retargets.json |  241 ++
+ docs/rlfence2/production/unit-control/proof.json   |   38 +
+ .../production/unit-negative-controls.json         |   12 +
+ docs/rlfence2/production/unit.log                  |    4 +
+ docs/rlfence2/production/write-ring.log            |   21 +
+ src/cmd/blocking.inc                               |    7 +
+ src/cmd/scatter_engine.inc                         |    7 +-
+ src/core/ex_loop.h                                 |   29 +-
+ src/core/genthread.cc                              |    2 +
+ src/core/io_loop.h                                 |   45 +-
+ src/core/lbplanner.cc                              |  349 ++
+ src/core/reorder.cc                                |   20 +-
+ src/core/rl2s.cc                                   |   10 +-
+ src/core/server.h                                  |  309 +-
+ src/core/shutdown_report.h                         |   33 +-
+ src/exec/op.h                                      |    1 +
+ src/main.cc                                        |   15 +-
+ src/net/rob.h                                      |   42 +-
+ src/persist/aof.cc                                 |  280 +-
+ src/persist/aof.h                                  |   57 +-
+ tests/core_concurrency_unit.cc                     |    9 +-
+ tests/fixtures/nullrefresh-ledger-labels.json      |   55 +-
+ tests/gate.sh                                      |   89 +-
+ tests/gate_measurements.json                       |    8 +-
+ tests/gates_test.py                                |  101 +
+ tests/lbplanner_checks.py                          |   25 +
+ tests/lbplanner_unit.cc                            |  174 +
+ tests/persistfix.py                                |  271 ++
+ tests/persistfix_checks.py                         |   53 +
+ tests/persistfix_unit.cc                           |  139 +
+ tests/read_local_lane.py                           |  236 +-
+ tests/rlfence_unit.cc                              |  145 +
+ tests/shutdown_report.py                           |   26 +
+ tools/lbfix_artifacts.py                           |   51 +-
+ tools/lbplanner_controls.py                        |   26 +
+ tools/lbplanner_pre_receipt.py                     |   45 +
+ tools/lbplanner_receipts.py                        |  170 +
+ tools/lbplanner_trace.cc                           |   50 +
+ tools/persistfix_artifacts.py                      |   99 +
+ tools/persistfix_controls.py                       |   52 +
+ tools/rlfence_artifacts.py                         |  490 +++
+ 169 files changed, 21487 insertions(+), 393 deletions(-)
