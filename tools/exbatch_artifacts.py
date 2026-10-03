@@ -10,6 +10,7 @@ import argparse
 from collections import Counter
 import gzip
 import hashlib
+from functools import lru_cache
 import json
 import os
 from pathlib import Path
@@ -22,6 +23,10 @@ from ttlstate_proof import program_headers
 
 GROUPS = {'all': {1, 3, 6, 30}, 'ex1': {1}, 'ex3': {3, 30},
           'ex6': {6}, 'watch-no-update': {30}, 'watch-old-loads': {3}}
+MUTATORS = {'watch-no-add': 'watch_add', 'watch-no-remove': 'watch_remove',
+            'watch-no-prune': 'watch_prune_stale', 'watch-no-finalize': 'watch_finalize_reservation',
+            'watch-no-append': 'watch_append_reservation'}
+GROUPS.update({name: {30} for name in MUTATORS})
 NOP = bytes.fromhex('0f1f440000')
 
 
@@ -37,8 +42,10 @@ def offset(elf, address, size):
     raise AssertionError('control address is outside executable sections')
 
 
-def plan(source, group):
+@lru_cache(maxsize=4)
+def inventory(source, digest):
     elf = Elf(source)
+    assert hashlib.sha256(elf.data).hexdigest() == digest, 'source changed while inventorying'
     section = elf.sections[elf.names.index('.exbatch_pad')]
     assert not section[2] & 2, 'control table must not consume mapped memory'
     raw = elf.section_data(elf.names.index('.exbatch_pad'))
@@ -58,13 +65,26 @@ def plan(source, group):
         assert elf.data[here:here + 5] == NOP
         owners = sorted(s['name'] for s in functions if s['value'] <= at < s['value'] + s['size'])
         assert owners, 'every site must belong to a defined function'
-        if tag in GROUPS[group]:
-            patches.append(dict(address=at, offset=here, target=target, item=tag,
-                                before=NOP.hex(), after=(b'\xe9' + struct.pack('<i', target-at-5)).hex(),
-                                functions=owners))
-    return dict(kind='A: PRE behaviour with exact POST text size and function layout',
-                group=group, source_sha256=hashlib.sha256(elf.data).hexdigest(),
-                inventory=dict(Counter(tag for _, _, tag in records)), patches=patches)
+        patches.append(dict(address=at, offset=here, target=target, item=tag,
+                            before=NOP.hex(), after=(b'\xe9' + struct.pack('<i', target-at-5)).hex(),
+                            functions=owners))
+    return dict(source_sha256=digest, inventory=dict(Counter(tag for _, _, tag in records)), patches=patches)
+
+
+def plan(source, group):
+    # Cache only disassembly of an immutable content hash. Every verification
+    # hashes the source again and derives its selected edges from that inventory,
+    # never from the saved patch manifest or from the candidate ELF.
+    digest = hashlib.sha256(Path(source).read_bytes()).hexdigest()
+    full = inventory(str(source), digest)
+    patches = [p for p in full['patches'] if p['item'] in GROUPS[group] and
+               (group not in MUTATORS or any(MUTATORS[group] in n for n in p['functions']))]
+    assert patches, 'selected control must change at least one instruction'
+    kind = ('A: PRE behaviour for the selected item(s), exact POST text size and function layout'
+            if group in ('all', 'ex1', 'ex3', 'ex6') else
+            'Serverless mechanism control; not a measurement PAD arm')
+    return dict(kind=kind,
+                group=group, source_sha256=digest, inventory=full['inventory'], patches=patches)
 
 
 def verify(source, candidate, group, out=None):

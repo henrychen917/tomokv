@@ -1,0 +1,60 @@
+{
+  "pre_commit": "cd02ecbab1502775f1c170e806971d1f7bbc3ee9",
+  "default_server_equals_POST": true,
+  "artifacts": [
+    {
+      "arm": "PRE",
+      "path": "build/exbatch/PRE/build/tomokv",
+      "sha256": "5c2a0626ed3b3c73f3dae41c39c6beb412df795d42efd8de55b64812c9f62858",
+      "bytes": 178035376
+    },
+    {
+      "arm": "POST",
+      "path": "build/exbatch/POST/tomokv",
+      "sha256": "410da97a4e6f851646773c8b863a867dd6c355ed79222d1ab16c08e4f5c38359",
+      "bytes": 178058312
+    },
+    {
+      "arm": "PAD-A",
+      "path": "build/exbatch/PAD-A/tomokv",
+      "sha256": "1a8411f96fbb3ff40e088a511255fdd506bf17c46825d529647b0b5f7801876b",
+      "bytes": 178058312
+    },
+    {
+      "arm": "EX1-OLD",
+      "path": "build/exbatch/EX1-OLD/tomokv",
+      "sha256": "2068ea2dafa5fa60e0afc89f0e171f0bee9c0d952f0242fa1d0b799c1dec82ff",
+      "bytes": 178058312
+    },
+    {
+      "arm": "EX3-OLD",
+      "path": "build/exbatch/EX3-OLD/tomokv",
+      "sha256": "d9cb457aab8f95f567f279e695e861720f0b34aa549569e05b3938cd57e4df1f",
+      "bytes": 178058312
+    },
+    {
+      "arm": "EX6-OLD",
+      "path": "build/exbatch/EX6-OLD/tomokv",
+      "sha256": "f27303fd5ee265427b1744a51ade195966f58c8a16ff2942307dc11c375c1ac9",
+      "bytes": 178058312
+    },
+    {
+      "arm": "POST-unit",
+      "path": "build/exbatch-unit",
+      "sha256": "394a35300e4a04c5c709294d7555696711c9cc4f5d7a5ea4cf21d54111967470",
+      "bytes": 82578152
+    },
+    {
+      "arm": "POST-db0-unit",
+      "path": "build/exbatch-db0-unit",
+      "sha256": "1cd99bfdba8b6f33cb19b9fa744cc2050d978c14bdefba78353d46b126259918",
+      "bytes": 161462768
+    },
+    {
+      "arm": "PRE-unit",
+      "path": "build/exbatch/PRE/unit",
+      "sha256": "cf7ac7a27c312c0f154829c4692b9d682ef0cb599b8ef939d22f1db8d805e008",
+      "bytes": 82563840
+    }
+  ]
+}

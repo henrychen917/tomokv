@@ -1,0 +1,82 @@
+[
+  {
+    "binary": "build/exbatch-unit",
+    "selection": "metadata",
+    "rc": 0,
+    "expected_failure": null,
+    "stdout": "PASS exbatch metadata: 374 rows; wire=769e8c8f50c4d51f; allocation control=1\nlayouts Op=336 Client=1984 ThreadCtx=1408 Shard=1440 FlatStore=944 Rob=192 AtomicEntry=144 Config=624\n",
+    "stdout_sha256": "21ef12f64f6633e8548cabc17a72b8dcbed4f8486912bcb03f1aaada13ec31bd",
+    "stdout_bytes": 179,
+    "stderr": ""
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-unit/ex6/unit",
+    "selection": "metadata",
+    "rc": 1,
+    "expected_failure": "dispatch metadata resolution must allocate nothing",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: dispatch metadata resolution must allocate nothing\n"
+  },
+  {
+    "binary": "build/exbatch-unit",
+    "selection": "wire",
+    "rc": 0,
+    "expected_failure": null,
+    "stdout": null,
+    "stdout_sha256": "9320b7b869d96171cb37a34be5db7280d16c0e4b16070a48af2f951a389ba4e6",
+    "stdout_bytes": 223557,
+    "stderr": ""
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-unit/all/unit",
+    "selection": "wire",
+    "rc": 0,
+    "expected_failure": null,
+    "stdout": null,
+    "stdout_sha256": "9320b7b869d96171cb37a34be5db7280d16c0e4b16070a48af2f951a389ba4e6",
+    "stdout_bytes": 223557,
+    "stderr": ""
+  },
+  {
+    "binary": "build/exbatch-db0-unit",
+    "selection": "metadata",
+    "rc": 0,
+    "expected_failure": null,
+    "stdout": "PASS exbatch metadata: 374 rows; wire=769e8c8f50c4d51f; allocation control=1\nlayouts Op=336 Client=1984 ThreadCtx=1408 Shard=1440 FlatStore=944 Rob=192 AtomicEntry=144 Config=624\n",
+    "stdout_sha256": "21ef12f64f6633e8548cabc17a72b8dcbed4f8486912bcb03f1aaada13ec31bd",
+    "stdout_bytes": 179,
+    "stderr": ""
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-db0-unit/ex6/unit",
+    "selection": "metadata",
+    "rc": 1,
+    "expected_failure": "dispatch metadata resolution must allocate nothing",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: dispatch metadata resolution must allocate nothing\n"
+  },
+  {
+    "binary": "build/exbatch-db0-unit",
+    "selection": "wire",
+    "rc": 0,
+    "expected_failure": null,
+    "stdout": null,
+    "stdout_sha256": "9320b7b869d96171cb37a34be5db7280d16c0e4b16070a48af2f951a389ba4e6",
+    "stdout_bytes": 223557,
+    "stderr": ""
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-db0-unit/all/unit",
+    "selection": "wire",
+    "rc": 0,
+    "expected_failure": null,
+    "stdout": null,
+    "stdout_sha256": "9320b7b869d96171cb37a34be5db7280d16c0e4b16070a48af2f951a389ba4e6",
+    "stdout_bytes": 223557,
+    "stderr": ""
+  }
+]

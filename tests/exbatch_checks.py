@@ -9,14 +9,16 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
-from exbatch_artifacts import GROUPS, plan, verify
+import exbatch_artifacts
+from exbatch_artifacts import plan, verify
 
 
 def control(source, group):
     out = ROOT / 'build/exbatch/units' / source.name / group
     out.mkdir(parents=True, exist_ok=True)
     candidate = out / 'unit'
-    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    digest = hashlib.sha256(source.read_bytes() + Path(exbatch_artifacts.__file__).read_bytes() +
+                            Path(__file__).read_bytes()).hexdigest()
     receipt = out / 'source.sha256'
     if not candidate.exists() or not receipt.exists() or receipt.read_text() != digest:
         intended = plan(source, group)
@@ -54,6 +56,14 @@ def run(group):
             rows.append(invoke(source, 'watch'))
             rows.append(invoke(source, 'watch-loads'))
             rows.append(invoke(control(source, 'watch-no-update'), 'watch', 'WATCH add arms gate'))
+            for group_name, diagnostic in (
+                ('watch-no-add', 'WATCH add arms gate'),
+                ('watch-no-remove', 'last UNWATCH clears gate'),
+                ('watch-no-prune', 'stale last watcher pruning clears gate'),
+                ('watch-no-finalize', 'commit finalizes last reservation and clears gate'),
+                ('watch-no-append', 'allocation failure preserves WATCH cache truth'),
+            ):
+                rows.append(invoke(control(source, group_name), 'watch', diagnostic))
             rows.append(invoke(control(source, 'watch-old-loads'), 'watch-loads',
                                'unarmed WATCH gate must not read either cold map'))
             rows.append(invoke(control(source, 'ex3'), 'watch'))

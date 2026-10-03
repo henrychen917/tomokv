@@ -1,5 +1,5 @@
 {
-  "group": "all",
+  "group": "ex3",
   "inventory": {
     "1": 2,
     "3": 34,
@@ -8,17 +8,6 @@
   },
   "kind": "A: PRE behaviour for the selected item(s), exact POST text size and function layout",
   "patches": [
-    {
-      "address": 436663,
-      "after": "e954000000",
-      "before": "0f1f440000",
-      "functions": [
-        "_ZN8tomo_db05Shard12publish_sizeEv"
-      ],
-      "item": 1,
-      "offset": 436663,
-      "target": 436752
-    },
     {
       "address": 675921,
       "after": "e93a040000",
@@ -273,50 +262,6 @@
       "target": 3477488
     },
     {
-      "address": 3758574,
-      "after": "e93b000000",
-      "before": "0f1f440000",
-      "functions": [
-        "_ZN8tomo_db012_GLOBAL__N_111child_countERKNS_15CommandMetadataE"
-      ],
-      "item": 6,
-      "offset": 3758574,
-      "target": 3758638
-    },
-    {
-      "address": 3759873,
-      "after": "e9aa000000",
-      "before": "0f1f440000",
-      "functions": [
-        "_ZN8tomo_db023command_metadata_lookupENS_5SliceE"
-      ],
-      "item": 6,
-      "offset": 3759873,
-      "target": 3760048
-    },
-    {
-      "address": 3767399,
-      "after": "e954000000",
-      "before": "0f1f440000",
-      "functions": [
-        "_ZN8tomo_db024command_metadata_resolveERNS_2OpEj"
-      ],
-      "item": 6,
-      "offset": 3767399,
-      "target": 3767488
-    },
-    {
-      "address": 4167735,
-      "after": "e954000000",
-      "before": "0f1f440000",
-      "functions": [
-        "_ZN4tomo5Shard12publish_sizeEv"
-      ],
-      "item": 1,
-      "offset": 4167735,
-      "target": 4167824
-    },
-    {
       "address": 4392737,
       "after": "e93a040000",
       "before": "0f1f440000",
@@ -546,39 +491,6 @@
       "item": 3,
       "offset": 6959953,
       "target": 6961146
-    },
-    {
-      "address": 7530974,
-      "after": "e93b000000",
-      "before": "0f1f440000",
-      "functions": [
-        "_ZN4tomo12_GLOBAL__N_111child_countERKNS_15CommandMetadataE"
-      ],
-      "item": 6,
-      "offset": 7530974,
-      "target": 7531038
-    },
-    {
-      "address": 7532273,
-      "after": "e9aa000000",
-      "before": "0f1f440000",
-      "functions": [
-        "_ZN4tomo23command_metadata_lookupENS_5SliceE"
-      ],
-      "item": 6,
-      "offset": 7532273,
-      "target": 7532448
-    },
-    {
-      "address": 7539815,
-      "after": "e954000000",
-      "before": "0f1f440000",
-      "functions": [
-        "_ZN4tomo24command_metadata_resolveERNS_2OpEj"
-      ],
-      "item": 6,
-      "offset": 7539815,
-      "target": 7539904
     }
   ],
   "source_sha256": "410da97a4e6f851646773c8b863a867dd6c355ed79222d1ab16c08e4f5c38359"

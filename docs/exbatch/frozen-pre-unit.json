@@ -1,0 +1,68 @@
+{
+  "pre_reference": "cd02ecbab1502775f1c170e806971d1f7bbc3ee9",
+  "pre_binary_sha256": "cf7ac7a27c312c0f154829c4692b9d682ef0cb599b8ef939d22f1db8d805e008",
+  "post_binary_sha256": "394a35300e4a04c5c709294d7555696711c9cc4f5d7a5ea4cf21d54111967470",
+  "wire_exactly_equal": true,
+  "rows": [
+    {
+      "binary": "build/exbatch/PRE/unit",
+      "selection": "watch",
+      "rc": 0,
+      "expected_failure": null,
+      "stdout": "PASS exbatch watch: add/remove/reserve/finalize/prune/swap; all reservation counters\nPASS exbatch watch-oom: 6 failed allocations, 10 successful arms\nlayouts Op=336 Client=1984 ThreadCtx=1408 Shard=1440 FlatStore=944 Rob=192 AtomicEntry=144 Config=624\n",
+      "stdout_sha256": "58d5ae904ef03ac092025f8ee375939ff23762f345f0b2be06278a10d5197067",
+      "stdout_bytes": 252,
+      "stderr": ""
+    },
+    {
+      "binary": "build/exbatch/PRE/unit",
+      "selection": "wire",
+      "rc": 0,
+      "expected_failure": null,
+      "stdout": null,
+      "stdout_sha256": "9320b7b869d96171cb37a34be5db7280d16c0e4b16070a48af2f951a389ba4e6",
+      "stdout_bytes": 223557,
+      "stderr": ""
+    },
+    {
+      "binary": "build/exbatch-unit",
+      "selection": "wire",
+      "rc": 0,
+      "expected_failure": null,
+      "stdout": null,
+      "stdout_sha256": "9320b7b869d96171cb37a34be5db7280d16c0e4b16070a48af2f951a389ba4e6",
+      "stdout_bytes": 223557,
+      "stderr": ""
+    },
+    {
+      "binary": "build/exbatch/PRE/unit",
+      "selection": "publication",
+      "rc": 1,
+      "expected_failure": "unchanged publication must issue zero stores",
+      "stdout": "",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr": "FAIL exbatch: unchanged publication must issue zero stores (read-only page)\n"
+    },
+    {
+      "binary": "build/exbatch/PRE/unit",
+      "selection": "watch-loads",
+      "rc": 1,
+      "expected_failure": "unarmed WATCH gate must not read either cold map",
+      "stdout": "",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr": "FAIL exbatch: unarmed WATCH gate must not read either cold map (inaccessible page)\n"
+    },
+    {
+      "binary": "build/exbatch/PRE/unit",
+      "selection": "metadata",
+      "rc": 1,
+      "expected_failure": "dispatch metadata resolution must allocate nothing",
+      "stdout": "",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stderr": "FAIL exbatch: dispatch metadata resolution must allocate nothing\n"
+    }
+  ]
+}

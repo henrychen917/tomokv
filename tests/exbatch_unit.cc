@@ -259,6 +259,8 @@ void metadata(bool allocation_check) {
             Request direct({spelling.substr(0, pipe), spelling.substr(pipe + 1), "key"});
             Request nested({"COMMAND", "GETKEYS", spelling.substr(0, pipe), spelling.substr(pipe + 1), "key"});
             check(command_metadata_resolve(direct.op, 0) == row, "every child including orphan parents");
+            direct.op.spec = nullptr; // Parser arity validation precedes spec assignment.
+            check(command_metadata_resolve(direct.op, 0) == row, "parser resolves before spec assignment");
             check(command_metadata_resolve(nested.op, 2) == row, "nested COMMAND GETKEYS resolver");
         }
         for (bool resp3 : {false, true}) {
