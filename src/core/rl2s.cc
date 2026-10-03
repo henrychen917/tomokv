@@ -301,14 +301,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     // Reached only after every ring, sink and listener is ready and no stop edge was taken.
     print_ready_listeners(cfg, unix_listener.bound());
 
-    if (srv.flipctl_enabled()) {
-        while (!srv.shutting_down().load(std::memory_order_relaxed)) {
-            srv.databases().monitor(srv);
-            (void)srv.flipctl_tick(now_ns() / 1000000ull);
-            if (srv.shutting_down().load(std::memory_order_relaxed)) break;
-            (void)signal_doorbell_wait(srv.flipctl_wait_ms());
-        }
-    }
+    srv.monitor_controllers();
 
     srv.databases().join_workers(srv, pool);
     // The unix socket file is unlinked by its RAII owner in main, for every return path.

@@ -59,6 +59,7 @@ inline constexpr uint32_t kRecvChunk = 16 * 1024;
 
 class IoLoop {
     friend struct CoreConcurrencyTest;
+    friend struct LbPlannerTest;
 #ifdef TOMO_CORE_CONCURRENCY_TEST
     // Fixture observes successful ordinary-owner dispatch, after publication and before retirement.
     // No observer storage, branch or call exists in release builds.
@@ -545,7 +546,6 @@ private:
             const bool client_cron_armed = !srv_->flip_dispatch_paused() &&
                                            srv_->client_cron_armed();
             const bool client_lb_signal_armed = client_lb_signal_armed_;
-            const bool lb_controller_armed = lb_controller_armed_;
             // Placement's dense role vectors are mutated only under FLIP's global dispatch
             // barrier. Do not consult them from an IO pass while that cold transaction is live.
             const bool save_cron_armed = !srv_->flip_dispatch_paused() &&
@@ -572,7 +572,7 @@ private:
                 // reads for pause, cron and WAIT. A pass is microseconds; their public granularity
                 // is milliseconds or seconds.
                 bool pass_time_cached = pause_armed || client_cron_armed || save_cron_armed ||
-                                        client_lb_signal_armed || lb_controller_armed ||
+                                        client_lb_signal_armed || lb_controller_armed_ ||
                                         !deferred_timers_.empty();
                 if (__builtin_expect(pass_time_cached, true)) {
                     cached_now_ms_ = pass_ns / 1000000ull;
@@ -652,14 +652,6 @@ private:
                     lb_client_signal_beat_ms_ = cached_now_ms_ + 1000;
                 }
                 did += lb_control_pass();
-                if (__builtin_expect(lb_controller_armed &&
-                                     cached_now_ms_ >= lb_controller_beat_ms_, false)) {
-                    lb_controller_beat_ms_ = cached_now_ms_ + srv_->lb_tick_ms();
-                    if (srv_->lb_cron_writer(self_->id()) &&
-                        srv_->lb_controller_tick(self_->id(), cached_now_ms_))
-                        lb_schedule_wake_all();
-                    did++;
-                }
                 did += lb_wake_all_pass();
                 if (__builtin_expect(client_cron_armed &&
                                      cached_now_ms_ >= client_cron_beat_ms_, false)) {
@@ -1830,9 +1822,24 @@ private:
             flip_publish_stage(FlipStage::Rollback);
     }
 
+    bool lb_parse_paused(uint64_t id) const {
+        const uint64_t pause = lb_pause_id_;
+        return pause && (pause == UINT64_MAX || pause == id);
+    }
+
     uint32_t lb_control_pass() {
         if (!lb_controller_armed_) return 0;
         const LbStage stage = srv_->lb_stage();
+        // Snapshot for the NEXT parse/post pass. A tail may acknowledge IoDrain only
+        // after this pass has published all old-route work. No per-connection shared load.
+        lb_pause_id_ = (stage == LbStage::IoDrain || stage == LbStage::ExDrain) ? UINT64_MAX : 0;
+        if (stage == LbStage::PlanReady) {
+            if (srv_->lb_consume_plan(self_->id())) {
+                lb_schedule_wake_all();
+                return 1;
+            }
+            return 0;
+        }
         if (stage != LbStage::ClientDrain) lb_client_wake_pending_ = false;
         if (stage == LbStage::Idle || stage == LbStage::ClientMoving) return 0;
         if (srv_->lb_drain_pass_expired(self_->id(), stage)) {
@@ -1874,7 +1881,9 @@ private:
             return 1;
         }
 
-        const LbClientMove move = srv_->lb_client_move();
+        LbClientMove move;
+        if (!srv_->lb_client_move(move)) return 1;
+        if (move.source == self_->id()) lb_pause_id_ = move.id;
         auto wake_source = [&]() {
             Ring* source = srv_->thread(move.source).ring();
             if (source && ring_.msg_to(*source, ur_tag(UrKind::Wake, nullptr))) {
@@ -2962,8 +2971,7 @@ private:
         const bool default_bulk_limit = pass_max_bulk_len == 512ull * 1024 * 1024;
         // IoDrain waits for this whole parse/post pass before opening ExDrain. A task whose
         // owner was sampled here therefore reaches that owner before it can acknowledge.
-        const bool lb_pause_this_pass = lb_controller_armed_ &&
-            srv_->lb_should_pause(self_id, c->id());
+        const bool lb_pause_this_pass = lb_pause_id_ && lb_parse_paused(c->id());
         if (__builtin_expect(lb_pause_this_pass, false)) {
 #ifdef TOMO_LB_STALL_DEBUG
             srv_->lb_debug_park(self_id, pass_rlen - pass_rpos);
@@ -5584,7 +5592,7 @@ ordinary_shard_ready:
     static constexpr uint32_t kClientCronMinVisits = 5;
     uint64_t client_cron_beat_ms_ = 0;
     uint64_t lb_client_signal_beat_ms_ = 0;
-    uint64_t lb_controller_beat_ms_ = 0;
+    uint64_t lb_pause_id_ = 0; // IO-private tail snapshot: 0=open, UINT64_MAX=all, else selected id
     uint64_t save_cron_beat_ms_ = 0;
     size_t   client_cron_cursor_ = 0;
     uint64_t cached_now_ms_ = 0;
