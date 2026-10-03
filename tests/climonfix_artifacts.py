@@ -48,7 +48,6 @@ def controls(args):
             ('hold', 'held owner prevents admission of another snapshot'),
             ('completion', 'successful finalization publishes stop before releasing epoch'),
             ('no-save-signal', 'no-save signal stops without waiting for IO cron'),
-            ('busy-owner', 'saving owner refuses recursive shutdown during BGSAVE'),
             ('busy-bound', 'busy shutdown retry is bounded and preserves the running snapshot'),
             ('owner-bound', 'shutdown snapshot yields on stalled saving owner')):
         directory = ROOT / 'build' / ('climonfix-control-' + defect)
@@ -77,16 +76,9 @@ def controls(args):
         elif defect == 'no-save-signal':
             replace(directory / 'src/core/server.h',
                     '        if (!save_schedule_armed()) return false; // no save: wake/stop even a long-parked owner\n', '')
-        elif defect in ('busy-owner', 'busy-bound'):
+        elif defect == 'busy-bound':
             target = directory / 'src/cmd/server_tail.cc'
-            if defect == 'busy-owner':
-                replace(target, '''        if (snapshot_.in_progress()) {
-            error = "Background save already in progress";
-            return SnapshotManager::StartResult::Busy;
-        }
-''', '')
-            else:
-                replace(target, '''        if (now_ns() < signal_shutdown_deadline_ns_.load(std::memory_order_relaxed))
+            replace(target, '''        if (now_ns() < signal_shutdown_deadline_ns_.load(std::memory_order_relaxed))
             return 0;''', '''        if (true)
             return 0;''')
             obj.remove(build / 'src/cmd/server_tail.o')

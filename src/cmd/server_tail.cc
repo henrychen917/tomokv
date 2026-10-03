@@ -260,11 +260,8 @@ SnapshotManager::StartResult Server::shutdown(ShutdownSave save, ThreadCtx* writ
             error = "shutdown save has no IO owner";
             return SnapshotManager::StartResult::Failed;
         }
-        // Never wait here: this IO owner may be the writer that must advance the old BGSAVE.
-        if (snapshot_.in_progress()) {
-            error = "Background save already in progress";
-            return SnapshotManager::StartResult::Busy;
-        }
+        // start uses nonblocking admission for shutdown: the caller may itself be the IO
+        // writer that must advance an older BGSAVE after this attempt returns Busy.
         const auto result = snapshot_.start(*this, *writer, *ring, true, error,
                                              nullptr, nullptr, nullptr, true);
         if (result != SnapshotManager::StartResult::Started) {

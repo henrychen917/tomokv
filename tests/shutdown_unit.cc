@@ -96,6 +96,7 @@ struct CoreConcurrencyTest {
         f.reset(); server.set_save_schedule(Config{}.save);
         snapshot.phase_.store(SnapshotManager::Phase::Capture);
         snapshot.writer_tid_.store(server.placement().ifid_threads().front());
+        real_save = true; // exercise actual admission; it must refuse before touching a ring
         require(f.command({"SHUTDOWN"}).starts_with("-ERR Errors trying to SHUTDOWN."),
                 "saving owner refuses recursive shutdown during BGSAVE");
         require(saves == 0 && !server.shutting_down() && snapshot.in_progress(),
@@ -112,6 +113,7 @@ struct CoreConcurrencyTest {
         test_clock_ns = 0;
         f.signal(); f.cron();
         snapshot.phase_.store(SnapshotManager::Phase::Idle);
+        real_save = false;
         f.cron();
         require(saves == 1 && server.shutting_down(),
                 "BGSAVE completion requires a fresh final save before stopping");
@@ -135,8 +137,11 @@ struct CoreConcurrencyTest {
             SnapshotManager* snapshot;
             Phase stall_phase;
             unsigned stalled_passes = 0;
+            unsigned passes = 0;
             uint32_t progress() {
-                if (stall_phase != Phase::Idle && snapshot->phase() == stall_phase) {
+                require(++passes <= 4096, "snapshot owner simulation makes bounded progress");
+                if (stall_phase != Phase::Idle && snapshot->phase() == stall_phase &&
+                    (stall_phase != Phase::Capture || snapshot->frame_count_ != 0)) {
                     require(++stalled_passes <= 4,
                             "shutdown snapshot yields on stalled saving owner");
                     test_clock_ns += Server::kShutdownSaveWaitNs;
@@ -189,6 +194,8 @@ struct CoreConcurrencyTest {
                     !server.shutting_down(), "stalled saving owner returns a bounded refusal");
             require(server.snapshot().phase() == SnapshotManager::Phase::Failed,
                     "timed-out epoch remains owned until cancellation is acknowledged");
+            if (stall_phase == Phase::Capture)
+                require(server.snapshot().frame_count_ != 0, "capture timeout occurs after a real frame write");
             driver.stall_phase = Phase::Idle;
             for (unsigned pass = 0; pass < 128 && server.snapshot().in_progress(); ++pass) {
                 driver.progress(); server.snapshot().writer_pass(writer, f->ring, true);

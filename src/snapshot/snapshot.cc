@@ -307,10 +307,13 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
         if (!target || !writer_ring.msg_to(*target, ur_tag(UrKind::SnapshotStart, this))) {
             set_error("could not broadcast snapshot epoch");
             phase_.store(Phase::Failed, std::memory_order_release);
-            // Unnotified owners owe no cancellation acknowledgement. Already-notified owners
-            // still leave this epoch through their normal control pass.
-            if (shutdown)
-                cancelled_owners_.fetch_add(executor_count_ - broadcast_owners, std::memory_order_relaxed);
+            // Epoll enqueues the message BEFORE ringing its eventfd, so even a failed wake
+            // still owes an owner acknowledgement. A missing ring or failed SQE never posted.
+            if (shutdown) {
+                const uint32_t mailed = target && target->wake_fd() >= 0 ? 1 : 0;
+                cancelled_owners_.fetch_add(executor_count_ - broadcast_owners - mailed,
+                                            std::memory_order_relaxed);
+            }
             break;
         }
         ++broadcast_owners;
