@@ -4006,8 +4006,11 @@ void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring,
 
             // Capture `next` above: a fused self-notification may immediately retire the Op and
             // destroy this arena state. The release store remains the one reply-visibility edge.
-            op.state.store(OpState::Done, std::memory_order_release);
-            notify(notify_context, client);
+            if (!server.aof().configured() ||
+                !server.aof().defer_completion(self.id(), op, client)) {
+                op.state.store(OpState::Done, std::memory_order_release);
+                notify(notify_context, client);
+            }
             state = next;
         }
         if (completed != count) std::abort();
