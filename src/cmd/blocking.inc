@@ -374,6 +374,9 @@ void blocking_reply_timeout(Op& op, BlockingKind) {
 
 void blocking_finish_cancelled(BlockingState& state, ThreadCtx* self, Ring* ring) {
     Op& op = state.client->rob().at(state.op_id);
+    // A completed mutation already handed its slot to persistence. Cancellation
+    // must not publish that slot again or let IO recycle a retained receipt.
+    if (op.state.load(std::memory_order_acquire) == OpState::AofWait) return;
     if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done &&
         self && ring)
         blocking_notify_sender(*state.server, *self, *ring, state.client);
@@ -390,6 +393,8 @@ void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
         blocking_finish_cancelled(state, &self, &ring);
     } else if (phase == BlockingPhase::Completed) {
         Op& op = state.client->rob().at(state.op_id);
+        if (state.server->aof().configured() &&
+            state.server->aof().defer_completion(self.id(), op, state.client)) return;
         if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done)
             blocking_notify_sender(*state.server, self, ring, state.client);
     }
@@ -572,6 +577,8 @@ void blocking_publish_completion(BlockingState& state, ThreadCtx& self, Ring& ri
     // Tasks and can publish immediately.
     if (state.active_tasks.load(std::memory_order_acquire) != 0) return;
     Op& op = state.client->rob().at(state.op_id);
+    if (state.server->aof().configured() &&
+        state.server->aof().defer_completion(self.id(), op, state.client)) return;
     if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done)
         blocking_notify_sender(*state.server, self, ring, state.client);
 }
@@ -620,7 +627,7 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
     }
     bool plain_active = false;
     if (shard.store().atomic_needs_version(key.hash, key_slice)) {
-        const uint64_t snapshot = state.server->atomic_snapshot();
+        const uint64_t snapshot = UINT64_MAX;
         const uint64_t cleanup_cutoff = state.server->atomic_snapshot();
         shard.store().atomic_promote_key(
             key.hash, key_slice, state.server->atomic_read_floor(), cleanup_cutoff);

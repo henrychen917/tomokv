@@ -3102,7 +3102,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
                     const WorkError prepared = begin_plain_version(
                         *state.server, shard, op.arg(key.arg), key.hash,
-                        state.atomic_pop ? UINT64_MAX : state.snapshot, state.origin_conn_id);
+                        UINT64_MAX, state.origin_conn_id);
                     if (prepared != WorkError::None) {
                         state.status[pos] = static_cast<uint8_t>(prepared);
                         return ScatterTaskResult::Complete;
@@ -3135,7 +3135,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                 bool plain_active = false;
                 if (shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
                     const WorkError prepared = begin_plain_version(
-                        *state.server, shard, op.arg(key.arg), key.hash, state.snapshot,
+                        *state.server, shard, op.arg(key.arg), key.hash, UINT64_MAX,
                         state.origin_conn_id);
                     if (prepared != WorkError::None) {
                         state.status[pos] = static_cast<uint8_t>(prepared);
@@ -3306,7 +3306,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     bool plain_active = false;
                     if (shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
                         const WorkError prepared = begin_plain_version(
-                            *state.server, shard, op.arg(key.arg), key.hash, state.snapshot,
+                            *state.server, shard, op.arg(key.arg), key.hash, UINT64_MAX,
                             state.origin_conn_id);
                         if (prepared != WorkError::None) {
                             state.status[pos] = static_cast<uint8_t>(prepared);
@@ -3341,7 +3341,7 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
                     bool plain_active = false;
                     if (shard.store().atomic_needs_version(key.hash, op.arg(key.arg))) {
                         const WorkError prepared = begin_plain_version(
-                            *state.server, shard, op.arg(key.arg), key.hash, state.snapshot,
+                            *state.server, shard, op.arg(key.arg), key.hash, UINT64_MAX,
                             state.origin_conn_id);
                         if (prepared != WorkError::None) {
                             group.error = prepared;
@@ -4006,8 +4006,11 @@ void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring,
 
             // Capture `next` above: a fused self-notification may immediately retire the Op and
             // destroy this arena state. The release store remains the one reply-visibility edge.
-            op.state.store(OpState::Done, std::memory_order_release);
-            notify(notify_context, client);
+            if (!server.aof().configured() ||
+                !server.aof().defer_completion(self.id(), op, client)) {
+                op.state.store(OpState::Done, std::memory_order_release);
+                notify(notify_context, client);
+            }
             state = next;
         }
         if (completed != count) std::abort();

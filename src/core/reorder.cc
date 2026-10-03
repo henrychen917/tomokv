@@ -1088,8 +1088,8 @@ void IoLoop::r7_run_loop() {
             epoll_close_now(victim);
         }
     }
-    if (srv_->aof().writer_is(self_->id()))
-        srv_->aof().writer_shutdown(*self_, ring_);
+    // The physical worker's AOF lifetime guard flushes its last owner state. The
+    // writer continues draining until every physical worker has stopped posting.
     // The normal loop deliberately keeps a dead Client for two prologues so stale channel
     // entries cannot race its delete. At process shutdown all producers have observed the
     // shared stop flag and this IO owner is quiescent; finish those two deterministic grace
@@ -3625,6 +3625,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
     for (uint32_t tid = 0; tid < nthreads; tid++)
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             if (cfg.pin_threads) pin_fused_thread(srv.placement().cpu_of_thread(tid));
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());

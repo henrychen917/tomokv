@@ -1387,6 +1387,107 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
         self.assertCountEqual(broken['completion'], [name for name in self.canonical if name != 'asan'])
 
 
+class PersistfixWiring(unittest.TestCase):
+    def test_driver_reuses_stopped_port_but_refuses_live_listener(self):
+        import errno
+        import socket
+        import persistfix
+
+        # No server process: one loopback socket pair recreates the gate's
+        # active-close teardown. The plain-bind control must witness TIME_WAIT.
+        with socket.socket() as listener:
+            listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            listener.bind(('127.0.0.1', 0))
+            listener.listen(1)
+            listener.settimeout(2)
+            port = listener.getsockname()[1]
+            with self.assertRaises(OSError) as busy:
+                persistfix.guard_port(port)
+            self.assertEqual(busy.exception.errno, errno.EADDRINUSE)
+            with socket.create_connection(('127.0.0.1', port), timeout=2) as peer:
+                accepted, _ = listener.accept()
+                accepted.close()
+                self.assertEqual(peer.recv(1), b'')
+        with socket.socket() as plain_guard:
+            with self.assertRaises(OSError) as stale:
+                plain_guard.bind(('127.0.0.1', port))
+            self.assertEqual(stale.exception.errno, errno.EADDRINUSE,
+                             'negative control must enter the TIME_WAIT bind window')
+        try:
+            persistfix.guard_port(port)
+        except OSError as error:
+            self.fail(f'stopped gate port must be reusable after TIME_WAIT: {error}')
+
+    def test_live_rows_receive_reaped_slot_and_private_artifacts(self):
+        root = Path(__file__).resolve().parent.parent
+        gate = (root / 'tests/gate.sh').read_text()
+        body = gate[gate.index('# ---- AOF sync policies,'):
+                    gate.index('\nAOF_EVERY_DIR=')]
+        stub = r'''set -eu
+CORES=112-119; GATE_RATIO=6:2; PORT=19000; CANDIDATE_BINARY=/unused-candidate
+owned=0; SRV=0
+boot(){ [ "$owned" = 0 ]; owned=1; SRV=1; }
+kill(){ [ "$owned" = 1 ]; }
+wait(){ [ "$owned" = 1 ]; owned=0; }
+stop(){ wait "$SRV"; SRV=0; }
+settle(){ :; }
+quiet_wait(){ :; }
+row_begin(){ :; }
+ok(){ :; }
+bad(){ printf '%s\n' "$*" >&2; exit 1; }
+py(){ :; }
+python3(){
+  [ "$owned" = 0 ] && [ "$SRV" = 0 ] || {
+    echo 'persistfix driver requires a stopped, reaped gate server' >&2; exit 1;
+  }
+  printf '%s\n' "$*" >> "$TMPDIR/drivers"
+}
+'''
+        with tempfile.TemporaryDirectory(dir=root / 'build') as temporary:
+            directory = Path(temporary)
+            for engine in ('epoll', 'uring'):
+                result = subprocess.run(['bash', '-c', stub + body], cwd=root,
+                    env=dict(os.environ, TMPDIR=temporary, NET_IO=engine),
+                    text=True, capture_output=True, timeout=5)
+                self.assertEqual(result.returncode, 0, result.stderr)
+            calls = [shlex.split(line) for line in (directory / 'drivers').read_text().splitlines()]
+            expected = [['tests/persistfix.py', '--binary', '/unused-candidate', '--mode', mode,
+                         '--case', case, '--net-io', engine, '--cores', '112-119',
+                         '--ratio', '6:2', '--port', '19000', '--artifacts', temporary + '/persistfix']
+                        for engine in ('epoll', 'uring') for mode in ('2s', '1s')
+                        for case in ('kill', 'term')]
+            self.assertEqual(calls, expected)
+
+    def test_unit_row_requires_build_and_success_in_its_own_job(self):
+        root = Path(__file__).resolve().parent.parent
+        gate = (root / 'tests/gate.sh').read_text()
+        body = gate[gate.index('job_persistfix_units(){'):gate.index('\njob_core_units(){')]
+        dependencies = gate[gate.index('job_dependencies(){'):gate.index('\njob_ready(){')]
+        stub = r'''set -eu
+CORES=112-127
+row_begin(){ :; }
+unit_ready(){ [ "$1" = persistfix-units ] && [ "$READY" = 1 ]; }
+taskset(){
+  [ "$*" = '-c 112-127 python3 tests/persistfix_checks.py' ] || return 99
+  echo checked >> "$TMPDIR/calls"
+  return "$CHECK_RC"
+}
+ok(){ printf 'ok\t%s\n' "$1"; }
+bad(){ printf 'FAIL\t%s\n' "$1"; }
+'''
+        for ready, status in ((1, 0), (0, 0), (1, 1)):
+            with self.subTest(ready=ready, status=status), tempfile.TemporaryDirectory(dir=root / 'build') as temporary:
+                result = subprocess.run(['bash', '-c', stub + body + dependencies +
+                                         '\njob_dependencies persistfix_units\njob_persistfix_units'],
+                    cwd=root, env=dict(os.environ, TMPDIR=temporary, READY=str(ready), CHECK_RC=str(status)),
+                    text=True, capture_output=True, timeout=5)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                verdict = 'ok' if ready and status == 0 else 'FAIL'
+                self.assertEqual(result.stdout.splitlines(), ['production_units',
+                    verdict + '\tAOF publication/shutdown witnesses + negative controls'])
+                self.assertEqual((Path(temporary) / 'calls').exists(), bool(ready))
+
+
 class TSANWiring(unittest.TestCase):
     def run_rows(self, kind='core', failure='', ready=True, topology_failure=''):
         root = Path(__file__).resolve().parent.parent
