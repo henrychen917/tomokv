@@ -1,6 +1,6 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "6eeb3ea10df01a37788b386f2372a29951516e9d58ce7d079514807bf1489caa",
+  "source_sha256": "274950fc8775f2bef6c4bfa7829152073300d387d7f83994b83d780e3d6afe3b",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
@@ -10,6 +10,7 @@
     "flip controller model unit",
     "B+ counting-fingerprint filter unit",
     "read-local write ring + arming transient unit",
+    "read-local MGET fence symmetry unit",
     "AOF publication/shutdown witnesses + negative controls",
     "core concurrency watch",
     "core concurrency lifetime",
@@ -266,6 +267,8 @@
     "eviction lruclock battery (fused+armed, atomic 1)",
     "B+ held-group GET/MGET filter battery",
     "read-local lane admission battery",
+    "read-local MGET fence battery (1s)",
+    "read-local MGET fence battery (2s)",
     "ACL recheck one-reply battery (2s)",
     "ACL recheck one-reply battery (1s)",
     "cross-owner SORT battery (atomic 0)",
@@ -581,6 +584,16 @@
         "AOF always acknowledged-prefix recovery",
         "AOF always acknowledged-prefix recovery"
       ],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-04 03:46",
+      "added": [
+        "read-local MGET fence battery (1s)",
+        "read-local MGET fence battery (2s)",
+        "read-local MGET fence symmetry unit"
+      ],
+      "removed": [],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
     }
   ],
