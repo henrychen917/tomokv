@@ -1236,6 +1236,14 @@ g++ -std=c++20 -O2 -march=native -pthread -I. tests/read_local_write_ring_unit.c
     && $TMPDIR/tomokv-read-local-write-ring-unit >>$TMPDIR/gate-ring-unit.txt 2>&1 \
     && ok "read-local write ring + arming transient unit" \
     || bad "read-local write ring + arming transient unit" "see $TMPDIR/gate-ring-unit.txt"
+# RL1: all three completion paths must release a covered MGET fence before retirement.
+# One new row, collected before the quick exit; EXPECT counts remain maintainer-owned.
+row_begin "read-local MGET fence symmetry unit"
+pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/rlfence-unit \
+    >$TMPDIR/gate-rlfence-unit.txt 2>&1 \
+    && taskset -c "$CORES" ./build/rlfence-unit >>$TMPDIR/gate-rlfence-unit.txt 2>&1 \
+    && ok "read-local MGET fence symmetry unit" \
+    || bad "read-local MGET fence symmetry unit" "see $TMPDIR/gate-rlfence-unit.txt"
 }
 
 job_core_units(){
@@ -1587,6 +1595,22 @@ row_begin "read-local lane admission battery"
 py tests/read_local_lane.py 127.0.0.1 "$PORT" >$TMPDIR/gate-read-local-lane.txt 2>&1 \
     && ok "read-local lane admission battery" \
     || bad "read-local lane admission battery" "see $TMPDIR/gate-read-local-lane.txt"
+# RL1: the held head MSET prevents retirement while INFO must report N local MGETs.
+# These two rows, like the unit above, are collected BEFORE the quick-tier exit.
+row_begin "read-local MGET fence battery (1s)"
+py tests/read_local_lane.py 127.0.0.1 "$PORT" --mget-fence \
+    >$TMPDIR/gate-rlfence-1s.txt 2>&1 \
+    && ok "read-local MGET fence battery (1s)" \
+    || bad "read-local MGET fence battery (1s)" "see $TMPDIR/gate-rlfence-1s.txt"
+stop
+row_begin "read-local MGET fence battery (2s)"
+if boot "$CANDIDATE_BINARY" --atomic 1 --read-local 1 --enable-debug-command yes && \
+    py tests/read_local_lane.py 127.0.0.1 "$PORT" --mget-fence \
+        >$TMPDIR/gate-rlfence-2s.txt 2>&1; then
+    ok "read-local MGET fence battery (2s)"
+else
+    bad "read-local MGET fence battery (2s)" "see $TMPDIR/gate-rlfence-2s.txt and $SRVLOG"
+fi
 stop
 }
 

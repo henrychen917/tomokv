@@ -365,6 +365,7 @@ public:
     void complete_pending_read_local_mask(uint64_t bits) {
         if ((read_local_pending_slots_ & bits) != bits) std::abort();
         read_local_retire_pending_bit(bits);
+        if (bits & read_local_slot_bit(local_mget_fence_id_)) local_mget_fence_id_ = UINT64_MAX;
     }
     // Owner-map emptiness is chunk-stable inside the drain: only this thread's parser and
     // demotion add owner slots and neither runs while a chunk executes.
