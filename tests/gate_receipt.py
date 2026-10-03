@@ -416,14 +416,75 @@ def replay_null(path):
 
 
 def verify_null_holdout(root, args):
+    from abba_standing_null import read_null
     campaign = read_json(args.campaign)
-    report, control = read_json(args.comparison), read_json(args.null_result)
+    report, control = read_json(args.comparison), read_null(args.null_result)
     now = time.time()
-    validate_campaign(root, campaign, control, now=now)
-    validate_campaign(root, campaign, report, now=now)
-    result = validate_holdout(report, control, now=now)
+    historical = bool(getattr(args, "replay", 0))
+    original = None
+    if historical:
+        from abba_holdout import rejudge
+        original = dict(source_sha256=digest(args.comparison.read_bytes()),
+            statistical_verdict=report["statistical_verdict"], verdict=report["verdict"],
+            failed_cells=[row["cell"]["id"] for row in report["cells"] if row["verdict"] == "FAIL"])
+        # Historical time is explicit provenance, never substituted into a live
+        # promotion or gate receipt. Original measured identities stay intact.
+        now = utc_seconds(report["started_utc"]) + report["elapsed_seconds"] + 1
+        for measured in (control, report):
+            require(measured["instrument_fingerprint"] == campaign["instrument"] and
+                    measured["cell_source"]["sha256"] == campaign["inventory"]["sha256"] and
+                    [row["cell"] for row in measured["cells"]] == campaign["inventory"]["cells"],
+                    "historical campaign fingerprint/inventory differs")
+            require(instrument(measured["environment"]) == instrument(campaign["environment"]) and
+                    measured["window_seconds"] == campaign["window_seconds"] and
+                    measured["candidate"]["sha256"] == campaign["binary"]["sha256"] and
+                    campaign["frozen_at"] <= utc_seconds(measured["started_utc"]) + 1,
+                    "historical campaign geometry/binary/window/freeze differs")
+        rejudge(report, control)
+        report["standing_null"] = match_null(report, control, now=now)
+    else:
+        validate_campaign(root, campaign, control, now=now)
+        validate_campaign(root, campaign, report, now=now)
+    result = validate_holdout(report, control, now=now, historical=historical)
+    if historical:
+        result.update(replay=dict(original=original, as_of=now,
+            evaluated_by=instrument_fingerprint(root), measured_by=report["instrument_fingerprint"],
+            note="serverless reinterpretation of saved samples; not a new independent holdout"))
     write_json(args.output, result, exclusive=True)
     return args.output
+
+
+def match_standing_null(root, args):
+    """Serverless gate-path dry run; historical time is prominently reporting-only."""
+    from abba_standing_null import read_null
+    from abba_holdout import rejudge
+    from abba_evidence import match_null_identity
+    report, control = read_json(args.comparison), read_null(args.null_result)
+    match_null_identity(report, control)
+    target = args.worktree.resolve() if args.worktree else root
+    require(instrument_fingerprint(target) == report["instrument_fingerprint"],
+            "dry-run target instrument differs from measured comparison")
+    source = target / "tests/headline_cells.txt"
+    from abbagate import read_cells
+    require(digest(source.read_bytes()) == report["cell_source"]["sha256"] and
+            len(read_cells(source, measurements={"load_floors": {}})) == report["cell_source"]["total_cells"],
+            "dry-run target inventory differs")
+    inputs_match = digest((target / "tests/gate_measurements.json").read_bytes()) == report["environment"]["measurements_sha256"]
+    require(args.replay or inputs_match, "dry-run target measured runtime inputs differ")
+    now = time.time()
+    if args.replay:
+        rejudge(report, control)
+        now = utc_seconds(report["started_utc"]) + report["elapsed_seconds"] + 1
+    matched = match_null(report, control, now=now)
+    result = dict(status="TRUSTED", matched=matched, target=str(target),
+                  historical=bool(args.replay), reporting_only=True, full_gate_receipt=False,
+                  statistical_verdict=report["statistical_verdict"],
+                  current_runtime_inputs_match=inputs_match,
+                  measured_instrument=report["instrument_fingerprint"]["sha256"])
+    if args.output:
+        write_json(args.output, result, exclusive=True)
+    print("headline ABBA standing null TRUSTED" + (" (historical replay; reporting only)" if args.replay else " (dry run)"))
+    print(json.dumps(result, indent=2))
 
 
 def begin(root, args):
@@ -543,11 +604,12 @@ def observations(path, state, actual, finished):
 
 
 def finish(root, args):
+    from abba_standing_null import read_null
     state = load_start(root, args.start)
     require(state.get("baseline") is not None and not state.get("withheld_reason"),
             (state.get("withheld_reason") or "missing trusted baseline") +
             "; completed full-run evidence is retained, but its rows are not automatically trusted")
-    report, control = read_json(args.abba_result), read_json(args.null_result)
+    report, control = read_json(args.abba_result), read_null(args.null_result)
     summary = resolution_summary(report, control)
     print("Receipt ABBA: " + resolution_text(summary))
     require(not summary["unresolved_cells"], "receipt withheld: " + resolution_text(summary))
@@ -1275,8 +1337,10 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
     result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Controls))
     from _nullrefresh_test import self_test as promotion_controls
     promoted = promotion_controls()
+    from nullpublish4_test import self_test as holdout_controls
+    held = holdout_controls()
     refrozen = subprocess.run([sys.executable, str(ROOT / "tests/nullpublish_refreeze_test.py")]).returncode
-    return 0 if result.wasSuccessful() and promoted == 0 and refrozen == 0 else 1
+    return 0 if result.wasSuccessful() and promoted == 0 and held == 0 and refrozen == 0 else 1
 
 
 def main():
@@ -1293,11 +1357,29 @@ def main():
     promotion = sub.add_parser("promote-null", help="explicit local standing-null promotion, never a gate receipt")
     promotion.add_argument("--null-result", type=Path, required=True)
     promotion.add_argument("--campaign", type=Path, required=True)
+    publication = sub.add_parser("publish-standing-null", help="archive promoted bytes, fingerprint and proofs in the repository")
+    publication.add_argument("--null-result", type=Path, required=True)
+    publication.add_argument("--campaign", type=Path, required=True)
+    publication.add_argument("--independent-resolution", choices=("PASS", "PENDING HOLDOUT"),
+                             default="PENDING HOLDOUT")
+    publication.add_argument("--historical", type=int, choices=(0, 1), default=0,
+                             help="1 archives old evidence without certifying the current instrument")
+    publication.add_argument("--comparison", type=Path)
+    publication.add_argument("--holdout-resolution", type=Path)
     sub.add_parser("replay-null", help="historical status table for reporting; never promotion").add_argument("results", type=Path)
     sub.add_parser("resolution-summary", help="name resolving/unresolved cells in a report").add_argument("results", type=Path)
     holdout = sub.add_parser("verify-null-holdout", help="check independent identical arms against frozen errors")
     for name in ("null-result", "comparison", "campaign", "output"):
         holdout.add_argument("--" + name, type=Path, required=True)
+    holdout.add_argument("--replay", type=int, choices=(0, 1), default=0,
+                         help="1 rejudges historical raw samples; writes reporting-only PENDING HOLDOUT evidence")
+    matching = sub.add_parser("match-standing-null", help="serverless gate-path match of saved comparison data")
+    matching.add_argument("--comparison", type=Path, required=True)
+    matching.add_argument("--null-result", type=Path, required=True)
+    matching.add_argument("--worktree", type=Path)
+    matching.add_argument("--output", type=Path)
+    matching.add_argument("--replay", type=int, choices=(0, 1), default=0,
+                          help="1 evaluates historical holdout samples at their recorded time, never a current PASS")
     start = sub.add_parser("begin")
     start.add_argument("--run-id", required=True)
     start.add_argument("--tier", choices=("full", "push", "release", "iteration", "smoke"), required=True)
@@ -1332,7 +1414,16 @@ def main():
     if args.install or args.uninstall:
         require(not (args.install and args.uninstall), "choose install or uninstall")
         install(ROOT, uninstall=args.uninstall)
-    elif args.action in ("begin", "bind", "finish", "coordinator", "freeze-null", "promote-null", "verify-null-holdout"):
+    elif args.action == "verify-null-holdout":
+        path = verify_null_holdout(ROOT, args)
+        print(path)
+        return 0 if read_json(path)["verdict"] == "PASS" else 1
+    elif args.action == "publish-standing-null":
+        from abba_standing_null import publish
+        print(publish(ROOT, args))
+    elif args.action == "match-standing-null":
+        match_standing_null(ROOT, args)
+    elif args.action in ("begin", "bind", "finish", "coordinator", "freeze-null", "promote-null"):
         print(globals()[args.action.replace("-", "_")](ROOT, args))
     elif args.action == "fingerprint":
         print(json.dumps(harness_fingerprint(ROOT) if args.harness else source_fingerprint(ROOT), sort_keys=True))
