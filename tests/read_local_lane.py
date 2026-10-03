@@ -5,6 +5,7 @@ Usage: read_local_lane.py HOST PORT
   RL1: read_local_lane.py HOST PORT --mget-fence (also needs --atomic 1)
   boot: --thread-mode 1s|2s --overlap 0|1 --read-local 1 --enable-debug-command yes
   serverless: read_local_lane.py --self-test [transient|delayed-drain|never-drains|leak-full|leak-quota]
+  RL1 harness: read_local_lane.py --self-test mget-fence[-old|-unarmed|-stale]
 
 The fused thread's local-read lane holds kInboxSlots (1024) entries. A connection may pipeline up
 to kRobWindow (64) ops, so a thread that has accepted more than 16 deep-pipelining connections can
@@ -87,7 +88,7 @@ def counters(conn, names=COUNTERS):
 
 MGET_COUNTERS = ("read_local_mget_local_hits", "read_local_mget_fallbacks",
                  "read_local_mget_fallback_inflight_write",
-                 "read_local_mget_generation_retries", "atomic_pending_entries")
+                 "read_local_mget_generation_retries", "atomic_inflight")
 
 
 def mget_fence():
@@ -143,6 +144,8 @@ def mget_fence():
                     if c.cmd("MGET", *shared) != values:
                         raise AssertionError("arming MGET reply mismatch")
                     base = counters(ctl, MGET_COUNTERS)
+                    if base["atomic_inflight"] != 0:
+                        raise AssertionError("setup atomic groups must drain before the fence arm")
                     if (base["read_local_mget_local_hits"] -
                             before_arm["read_local_mget_local_hits"] != 1):
                         raise AssertionError("arming MGET must complete on the lane")
@@ -165,7 +168,7 @@ def mget_fence():
                         while True:
                             now = counters(ctl, MGET_COUNTERS)
                             hits = now["read_local_mget_local_hits"] - base["read_local_mget_local_hits"]
-                            pending = now["atomic_pending_entries"] > base["atomic_pending_entries"]
+                            pending = now["atomic_inflight"] > 0
                             entered |= pending and hits > 0
                             if select.select([c.sock], [], [], 0)[0]:
                                 raise AssertionError("held MSET must prevent every ROB reply retirement")
@@ -201,6 +204,111 @@ def mget_fence():
     finally:
         ctl.close()
     rep.finish()
+
+
+def mget_fence_self_test(trace):
+    """Exercise the live harness's actual held-window verdict and cleanup without a server.
+
+    The old trace reaches N total hits on release, so checking only final totals would pass it.
+    Production fence logic itself is tested separately by build/rlfence-unit and a reverted copy.
+    """
+    import io
+    from types import SimpleNamespace
+    from unittest.mock import patch
+
+    if trace not in ("mget-fence", "mget-fence-old", "mget-fence-unarmed", "mget-fence-stale"):
+        raise AssertionError("unknown MGET fence trace: %s" % trace)
+    stats = dict.fromkeys(MGET_COUNTERS, 0)
+    data, clients = {}, []
+    state = {"held": False, "late_hits": 0, "clock": 0.0, "bursts": 0}
+    read_resp = _lib.Conn.read
+    read_line = _lib.Conn._line
+
+    class TraceConn:
+        def __init__(self, *args, **kwargs):
+            self.sock = self
+            self.replies = []
+            self.closed = False
+            clients.append(self)
+
+        def cmd(self, *args):
+            if args[:2] == ("CONFIG", "GET"):
+                return [args[2].encode(), b"1"]
+            if args == ("INFO", "server"):
+                return b"read_local:1\r\nread_local_active_threads:6\r\n"
+            if args == ("INFO", "stats"):
+                return "".join("%s:%d\r\n" % item for item in stats.items()).encode()
+            if args[:2] == ("DEBUG", "READ-LOCAL-LANE-CAP"):
+                return b"OK"
+            if args[:2] == ("DEBUG", "ATOMIC-COMMIT-HOLD"):
+                state["held"] = bool(int(args[2]))
+                if not state["held"]:
+                    stats["atomic_inflight"] = 0
+                    stats["read_local_mget_local_hits"] += state["late_hits"]
+                    state["late_hits"] = 0
+                return b"OK"
+            if args[0] == "SET":
+                data[args[1].encode()] = args[2]
+                return b"OK"
+            if args[0] == "MGET":
+                stats["read_local_mget_local_hits"] += 1
+                return [data[key.encode()] for key in args[1:]]
+            raise AssertionError("unexpected MGET fence trace command: %r" % (args,))
+
+        must = cmd
+
+        def sendall(self, payload):
+            assert state["held"]
+            state["bursts"] += 1
+            wire = SimpleNamespace(file=io.BytesIO(payload))
+            wire._line = lambda: read_line(wire)
+            wire.read = lambda: read_resp(wire)
+            commands = []
+            while wire.file.tell() < len(payload):
+                commands.append(wire.read())
+            head, *reads = commands
+            assert head[0] == b"MSET" and all(cmd[0] == b"MGET" for cmd in reads)
+            for key, value in zip(head[1::2], head[2::2]):
+                data[key] = value
+            self.replies = [b"OK"] + [[data[key] for key in cmd[1:]] for cmd in reads]
+            if trace == "mget-fence-stale":
+                self.replies[-1][0] = b"old"
+            depth = len(reads) - 1
+            hits = 1 if trace == "mget-fence-old" else depth
+            stats["read_local_mget_local_hits"] += hits
+            stats["atomic_inflight"] = 0 if trace == "mget-fence-unarmed" else 1
+            state["late_hits"] = depth - hits
+            if hits == depth:
+                stats["read_local_mget_fallbacks"] += 1
+                stats["read_local_mget_fallback_inflight_write"] += 1
+
+        def read(self):
+            assert not state["held"], "live harness must not read replies while the latch is held"
+            return self.replies.pop(0)
+
+        def close(self):
+            self.closed = True
+
+    def sleep(seconds):
+        state["clock"] += seconds
+
+    with patch.object(_lib, "Conn", TraceConn), \
+            patch.object(_lib, "host_port", return_value=("serverless", 0)), \
+            patch.object(_lib, "topology", return_value=None), \
+            patch.object(_lib, "probe_keys", return_value=iter(
+                [("a", 0, 0), ("p", 1, 1), ("b", 2, 0), ("c", 3, 1)])), \
+            patch.object(select, "select", return_value=([], [], [])), \
+            patch.object(time, "monotonic", side_effect=lambda: state["clock"]), \
+            patch.object(time, "sleep", side_effect=sleep):
+        try:
+            mget_fence()
+        except SystemExit as exc:
+            if exc.code != 0:
+                raise
+        finally:
+            assert not state["held"] and all(c.closed for c in clients), "trace cleanup"
+    assert state["bursts"] == 2
+    print("read_local_lane serverless mget-fence PASS (held-window verdict, replies and RYOW)")
 
 
 def burst_round(conns, shared, values, r, mixed=True):
@@ -386,6 +494,8 @@ def self_test(trace):
     pressure on every round. This proves the battery's discrimination, not server scheduling.
     Failure traces deliberately leave main's named assertion/exit 1 visible to the caller.
     """
+    if trace.startswith("mget-fence"):
+        return mget_fence_self_test(trace)
     from unittest.mock import patch
 
     if trace not in ("transient", "delayed-drain", "never-drains", "leak-full", "leak-quota"):

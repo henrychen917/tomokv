@@ -1242,6 +1242,7 @@ row_begin "read-local MGET fence symmetry unit"
 pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/rlfence-unit \
     >$TMPDIR/gate-rlfence-unit.txt 2>&1 \
     && taskset -c "$CORES" ./build/rlfence-unit >>$TMPDIR/gate-rlfence-unit.txt 2>&1 \
+    && py tests/read_local_lane.py --self-test mget-fence >>$TMPDIR/gate-rlfence-unit.txt 2>&1 \
     && ok "read-local MGET fence symmetry unit" \
     || bad "read-local MGET fence symmetry unit" "see $TMPDIR/gate-rlfence-unit.txt"
 }
