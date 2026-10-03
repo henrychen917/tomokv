@@ -158,6 +158,8 @@ class Race:
     def blocking(self, verb):
         admin = self.admin
         key, other = self.key(self.a), self.key(self.b)
+        require(_lib.shards_of(admin, [key, other]) ==
+                [(self.a, self.owners[0]), (self.b, self.owners[1])], "blocking owner geometry")
         waiter, writer, blocker = self.conn(), self.conn(), self.conn()
         is_list = verb in ("BLPOP", "BRPOP", "BLMPOP")
         high = verb in ("BRPOP", "BZPOPMAX")

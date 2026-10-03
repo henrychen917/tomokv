@@ -80,8 +80,8 @@ void plain_scatter_check(Server& server, const std::string& verb) {
                     : verb == "ZMPOP" ? local(server, {"ZADD", b, "2", "kept"}, 888)
                     : blind ? local(server, {"SET", b, "kept"}, 888)
                             : local(server, {"RPUSH", b, "kept"}, 888);
-    require(late == (blind ? "+OK\r\n" : pop ? ":2\r\n" : ":1\r\n") ||
-                (verb == "ZMPOP" && late == ":1\r\n"), "late write acknowledged");
+    require(late == (blind ? "+OK\r\n" : verb == "LMPOP" ? ":2\r\n" : ":1\r\n"),
+            "late write acknowledged");
     require(store.atomic_has_record(hash, slice(b)) &&
                 server.atomic_snapshot() > run.state->snapshot,
             "AT1 armed: acknowledged target version is newer than PREPARE");
