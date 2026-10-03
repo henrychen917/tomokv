@@ -390,21 +390,20 @@ void IoLoop::client_routing_cleanup_pass() {
 
 void IoLoop::client_routing_forward_monitor(const PubSubEvent& event) {
     if (!event.blob || routing_forward_.empty()) return;
-    uint64_t posted = event.route_mask;
+    ClimonIoMask posted = event.route_mask;
     for (const auto& entry : routing_forward_) {
         if (!entry.second.monitor) continue;
         uint32_t live_io = 0;
         if (!command_client_directory_find(entry.first, live_io) || live_io == self_->id())
             continue;
-        const uint64_t bit = 1ull << (live_io & 63);
-        if (posted & bit) continue;
+        if (posted.contains(live_io)) continue;
+        posted.add(live_io);
         PubSubEvent* forward = pubsub_new_event(PubSubEventKind::MonitorFeed);
         forward->target_io = live_io;
         forward->origin_io = self_->id();
-        forward->route_mask = posted | bit;
+        forward->route_mask = posted;
         forward->blob = event.blob;
         pubsub_post(live_io, forward);
-        posted |= bit;
         srv_->monitor_forwarded_stale_added();
     }
 }
@@ -660,16 +659,16 @@ void IoLoop::climon_monitor_feed(Client* client, Op& op) {
 
     // Encode once, share the blob with every owner that actually has a monitor.
     auto blob = std::make_shared<const std::string>(std::move(line));
-    const uint64_t mask = srv_->climon_monitor_io_mask();
+    const ClimonIoMask mask = srv_->climon_monitor_io_mask();
     if (climon_local_monitors_) climon_monitor_deliver(*blob);
     PubSubEvent local;
     local.kind = PubSubEventKind::MonitorFeed;
     local.route_mask = mask;
     local.blob = blob;
-    if ((mask >> (self_->id() & 63)) & 1) client_routing_forward_monitor(local);
+    if (mask.contains(self_->id())) client_routing_forward_monitor(local);
     for (uint32_t io : srv_->placement().ifid_threads()) {
         if (io == self_->id()) continue;
-        if (!((mask >> (io & 63)) & 1)) continue;
+        if (!mask.contains(io)) continue;
         PubSubEvent* event = pubsub_new_event(PubSubEventKind::MonitorFeed);
         event->target_io = io;
         event->origin_io = self_->id();

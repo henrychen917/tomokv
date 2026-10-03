@@ -123,6 +123,14 @@ noreserve:
 build/config-parser-test: tests/config_parser_test.cc tests/boot_support_checks.inc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/config_parser_test.cc -o $@
+build/climon-mask-unit: tests/climon_mask_unit.cc src/core/climon_mask.h Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. $< -o $@
+build/climon-mask-old-unit: tests/climon_mask_unit.cc src/core/climon_mask.h Makefile
+	@mkdir -p build/climon-mask-old/src/core
+	sed 's/return io >> 6;/return 0;/' src/core/climon_mask.h > build/climon-mask-old/src/core/climon_mask.h
+	$(CXX) $(CXXFLAGS) -Ibuild/climon-mask-old -I. $< -o $@
+
 build/flipctl-unit: tests/flipctl_unit.cc tests/signalacct_checks.h src/core/flipctl.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/flipctl_unit.cc src/core/flipctl.cc -o $@

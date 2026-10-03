@@ -39,6 +39,7 @@
 #include "../cmd/command.h"
 #include "../cmd/multidb.h"
 #include "../snapshot/snapshot.h"
+#include "climon_mask.h"
 #include "../persist/aof.h"
 
 #ifdef TOMO_RL_CACHE_DEBUG
@@ -2445,21 +2446,17 @@ public:
     // Which io threads own at least one MONITOR client, and which own at least one tracking
     // client.  Feeds and invalidations post ONLY to the owners in the mask, so a single monitor
     // does not cost one cross-thread message per io thread per command.
-    uint64_t climon_monitor_io_mask() const {
-        return climon_monitor_io_mask_.load(std::memory_order_relaxed);
+    ClimonIoMask climon_monitor_io_mask() const {
+        return ClimonIoMask::load(climon_monitor_io_mask_, climon_monitor_io_mask_high_);
     }
     void climon_set_monitor_io(uint32_t io, bool present) {
-        const uint64_t bit = 1ull << (io & 63);
-        if (present) climon_monitor_io_mask_.fetch_or(bit, std::memory_order_relaxed);
-        else climon_monitor_io_mask_.fetch_and(~bit, std::memory_order_relaxed);
+        ClimonIoMask::set(climon_monitor_io_mask_, climon_monitor_io_mask_high_, io, present);
     }
-    uint64_t climon_tracking_io_mask() const {
-        return climon_tracking_io_mask_.load(std::memory_order_relaxed);
+    ClimonIoMask climon_tracking_io_mask() const {
+        return ClimonIoMask::load(climon_tracking_io_mask_, climon_tracking_io_mask_high_);
     }
     void climon_set_tracking_io(uint32_t io, bool present) {
-        const uint64_t bit = 1ull << (io & 63);
-        if (present) climon_tracking_io_mask_.fetch_or(bit, std::memory_order_relaxed);
-        else climon_tracking_io_mask_.fetch_and(~bit, std::memory_order_relaxed);
+        ClimonIoMask::set(climon_tracking_io_mask_, climon_tracking_io_mask_high_, io, present);
     }
 
     void climon_note_monitor_line() {
@@ -3740,6 +3737,10 @@ private:
     LiveConfigValues live_config_committed_{}; // serialized CONFIG writer only
     // Cold diagnostics share no existing producer/consumer line and no normal-pass access.
     alignas(64) IoTenureHistory<kMaxThreads> io_accounting_history_;
+    // SV1: high halves at the true tail preserve every existing hot field's offset.
+    static_assert(kMaxThreads == ClimonIoMask::kBits);
+    std::atomic<uint64_t> climon_monitor_io_mask_high_{0};
+    std::atomic<uint64_t> climon_tracking_io_mask_high_{0};
 };
 
 }  // namespace tomo

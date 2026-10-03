@@ -5,6 +5,7 @@
 // process-unique id and owning IO; no cross-thread Client pointer is retained.
 #pragma once
 
+#include "climon_mask.h"
 #include <atomic>
 #include <cstdint>
 #include <memory>
@@ -127,7 +128,7 @@ struct PubSubEvent {
     // Snapshot of the IO destinations selected by a MONITOR/tracking broadcast.  A stale owner
     // forwards only when the target's live owner was absent from this mask, which makes the
     // migration backstop lossless without duplicating a delivery already posted to the new owner.
-    uint64_t route_mask = 0;
+    ClimonIoMask route_mask;
     uint32_t acl_user_index = 0;
     const void* acl_permissions = nullptr;  // immutable AclPerm; intentionally transport-opaque
     uint32_t client_filter_mask = 0;

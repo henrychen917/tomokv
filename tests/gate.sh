@@ -1236,6 +1236,13 @@ g++ -std=c++20 -O2 -march=native -pthread -I. tests/read_local_write_ring_unit.c
     && $TMPDIR/tomokv-read-local-write-ring-unit >>$TMPDIR/gate-ring-unit.txt 2>&1 \
     && ok "read-local write ring + arming transient unit" \
     || bad "read-local write ring + arming transient unit" "see $TMPDIR/gate-ring-unit.txt"
+# SV1: logical owners i/i+64 need no 65-CPU allocation in a parallel gate slot.
+row_begin "climon 128-owner delivery mask"
+make build/climon-mask-unit >"$TMPDIR/climon-mask.log" 2>&1 \
+    && taskset -c "$CORES" ./build/climon-mask-unit >>"$TMPDIR/climon-mask.log" 2>&1 \
+    && ok "climon 128-owner delivery mask" \
+    || bad "climon 128-owner delivery mask" "see $TMPDIR/climon-mask.log"
+
 }
 
 job_core_units(){
