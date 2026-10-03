@@ -216,6 +216,7 @@ void hexpire_generic(Shard& shard, Op& op, int64_t unit_ms, bool absolute, const
     bool set_any = false;
     bool deleted_any = false;
     bool key_gone = false;
+    bool out_of_memory = false;
     for (uint32_t i = 0; i < fields.count; i++) {
         const Slice field = op.arg(fields.first + i);
         int64_t current = HashFieldTtl::kNone;
@@ -233,15 +234,17 @@ void hexpire_generic(Shard& shard, Op& op, int64_t unit_ms, bool absolute, const
         if (!slot) { results[i] = 0; continue; }   // embedded and unexternalizable: cannot store
         if (!*slot) {
             *slot = new (std::nothrow) HashFieldTtl;
-            if (!*slot) { reply_err(op.sink(), "ERR out of memory"); return; }
+            if (!*slot) { out_of_memory = true; break; }
         }
         if (!(*slot)->set(field, deadline)) {
-            reply_err(op.sink(), "ERR out of memory");
-            return;
+            out_of_memory = true;
+            break;
         }
         results[i] = 1;
         set_any = true;
     }
+    // A later field's allocation failure does not undo earlier deadlines. Finalize their
+    // accounting and expiry registration before returning the error, just as on success.
     if (slot && *slot && (*slot)->empty()) { delete *slot; *slot = nullptr; }
     if (!key_gone) hash_ttl_note_bytes(object);
     if (set_any) shard.store().note_field_ttl(op.hash);
@@ -254,6 +257,7 @@ void hexpire_generic(Shard& shard, Op& op, int64_t unit_ms, bool absolute, const
         size_tracker.finish();
         shard.store_erase<kNotify>(op.hash, op.key());
     }
+    if (out_of_memory) { reply_err(op.sink(), "ERR out of memory"); return; }
     reply_array_header(op.sink(), fields.count);
     for (uint32_t i = 0; i < fields.count; i++) reply_int(op.sink(), results[i]);
 }
