@@ -1055,6 +1055,10 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_int(op.sink(), FlatStore::foreign_read_filter_index(hash));
         return;
     }
+    if (eq_icase(subcommand, "atomic-plain-stale-cuts") && op.argc() == 2) {
+        reply_int(op.sink(), xshard_plain_stale_cuts());
+        return;
+    }
     // Nonblocking admission witness: unlike COMMIT-DELAY, this latch leaves both executors
     // available for CONFIG. It retains the existing commit queue until explicitly released.
     if (eq_icase(subcommand, "atomic-commit-hold") && op.argc() == 3) {

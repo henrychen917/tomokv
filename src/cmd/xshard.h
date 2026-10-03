@@ -224,6 +224,7 @@ struct PlainForeignReadScope {
 bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_conn_id,
                           PlainForeignReadScope& foreign_scope);
 void xshard_plain_finish(Shard& shard, PlainForeignReadScope& foreign_scope);
+uint64_t xshard_plain_stale_cuts();  // DEBUG bug counter; must remain zero.
 uint32_t xshard_cleanup_shard(Server& server, Shard& shard, uint32_t budget = 8);
 uint32_t xshard_cleanup_shard_at(Shard& shard, uint64_t floor, uint64_t cleanup_cutoff,
                                  uint32_t budget = 8);
