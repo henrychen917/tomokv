@@ -258,8 +258,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=458
-EXPECT_FULL=475                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+EXPECT_QUICK=459
+EXPECT_FULL=476                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -980,7 +980,7 @@ start_workers(){
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
-              core_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units boot_grammar wait_units readonly
+              core_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1368,6 +1368,16 @@ row_begin "storage deadline-sidecar regression"
 }
 
 job_atomic_units(){
+# ST1/ST10: two rows collected here, before the quick-tier exit (+2 quick/full).
+for FLUSHFIX_CASE in flush headers; do
+  row_begin "flushfix $FLUSHFIX_CASE witnesses"
+  if unit_ready flushfix-units && taskset -c "$CORES" python3 tests/flushfix_checks.py check "$FLUSHFIX_CASE" \
+      >"$TMPDIR/flushfix-$FLUSHFIX_CASE.log" 2>&1; then
+    ok "flushfix $FLUSHFIX_CASE witnesses"
+  else
+    bad "flushfix $FLUSHFIX_CASE witnesses" "see $TMPDIR/flushfix-$FLUSHFIX_CASE.log"
+  fi
+done
 row_begin "multidb serverless owners"
 unit_ready multidb-unit && taskset -c "$CORES" ./build/multidb-unit \
     >"$TMPDIR/multidb-unit.log" 2>&1 \
@@ -1413,6 +1423,35 @@ for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub rece
       && ok "netcmd $NETCMD_CASE regression" \
       || bad "netcmd $NETCMD_CASE regression" "see $TMPDIR/gate-netcmd-$NETCMD_CASE.txt"
 done
+row_begin "NET1 serverless bounds + scan + reclamation"
+unit_ready netcap-unit && taskset -c "$CORES" ./build/netcap-unit >"$TMPDIR/gate-netcap-unit.txt" 2>&1 \
+    && ok "NET1 serverless bounds + scan + reclamation" \
+    || bad "NET1 serverless bounds + scan + reclamation" "see $TMPDIR/gate-netcap-unit.txt"
+}
+
+job_netcap(){
+# Four live rows, collected before the quick exit. Same eight-core/16-shard geometry;
+# fixed client ownership makes the second-connection IO-thread claim observable.
+local mode engine label booted
+for mode in 1s 2s; do for engine in uring epoll; do
+  label="NET1 inline + query cap ($mode, $engine)"
+  row_begin "$label"
+  booted=0
+  if [ "$mode" = 1s ]; then
+    boot_fused "$CANDIDATE_BINARY" --net-io "$engine" --enable-debug-command yes \
+        --client-lb 0 --save '' && booted=1
+  else
+    boot "$CANDIDATE_BINARY" --thread-mode 2s --net-io "$engine" --enable-debug-command yes \
+        --client-lb 0 --save '' && booted=1
+  fi
+  if [ "$booted" = 1 ] && py tests/netcap.py 127.0.0.1 "$PORT" \
+      >"$TMPDIR/gate-netcap-$mode-$engine.txt" 2>&1; then
+    ok "$label"
+  else
+    bad "$label" "see $TMPDIR/gate-netcap-$mode-$engine.txt and $SRVLOG"
+  fi
+  stop
+done; done
 }
 
 job_acl_metadata(){
@@ -2289,13 +2328,24 @@ done
 }
 
 job_tls(){
-# ---- TLS memory-BIO transport: independent listener, auth matrix, parser/teardown fences -------
+# ---- TLS: independent listener, auth matrix, KeyUpdate, parser/teardown fences ----------------
 TLS_PORT=$((PORT+1))
 TLS_DIR=$(mktemp -d $TMPDIR/gate-tls.XXXXXX)
 row_begin "TLS ephemeral CA/server/client certificates"
 py tests/tls.py --generate "$TLS_DIR" >$TMPDIR/gate-tls-generate.txt 2>&1 \
     && ok "TLS ephemeral CA/server/client certificates" \
     || bad "TLS certificate generation" "see $TMPDIR/gate-tls-generate.txt"
+
+row_begin "NET2 serverless RX policy and KeyUpdate controls"
+if [ -f "$RUN_DIR/unit-ready/ktls-keyupdate-unit" ] && (
+  for arm in rx-policy tls12 userspace tx-rekey tx-failure; do
+    taskset -c "$CORES" build/ktls-keyupdate-unit "$TLS_DIR" "$arm" || exit 1
+  done
+) >$TMPDIR/gate-ktls-unit.txt 2>&1; then
+  ok "NET2 serverless RX policy and KeyUpdate controls"
+else
+  bad "NET2 serverless RX policy and KeyUpdate controls" "see $TMPDIR/gate-ktls-unit.txt"
+fi
 
 row_begin "reject TLS listener without certificate"
 reject_boot --port 0 --tls-port "$TLS_PORT" --tls-key-file "$TLS_DIR/server.key" \
@@ -2352,15 +2402,16 @@ py tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" optional --plain-port "$PORT" \
     >$TMPDIR/gate-tls-optional.txt 2>&1 \
     && ok "TLS client-auth optional matrix" \
     || bad "TLS client-auth optional matrix" "see $TMPDIR/gate-tls-optional.txt"
-# Live kTLS engagement proof on the default boot: a plain TLS client connects and
+# Live TLS 1.2 kTLS engagement proof on the default boot: a TLS 1.2 client connects and
 # must see itself counted in the active gauge. Client-auth 'optional' permits a cert-less client.
-row_begin "kTLS engaged live (default boot)"
+row_begin "kTLS TLS 1.2 engaged live (default boot)"
 python3 - "$TLS_PORT" "$TLS_DIR" <<'PYEOF' >$TMPDIR/gate-ktls-live.txt 2>&1 \
-    && ok "kTLS engaged live (default boot)" || bad "kTLS engaged live" "see $TMPDIR/gate-ktls-live.txt"
+    && ok "kTLS TLS 1.2 engaged live (default boot)" || bad "kTLS engaged live" "see $TMPDIR/gate-ktls-live.txt"
 import socket, ssl, sys, time
 port, certdir = int(sys.argv[1]), sys.argv[2]
 ctx = ssl.create_default_context(cafile=f"{certdir}/ca.crt")
 ctx.check_hostname = False
+ctx.minimum_version = ctx.maximum_version = ssl.TLSVersion.TLSv1_2
 s = ctx.wrap_socket(socket.create_connection(("127.0.0.1", port), timeout=5))
 s.sendall(b"INFO STATS\r\n"); time.sleep(0.4)
 d = s.recv(1 << 20).decode(errors="replace")
@@ -2369,13 +2420,25 @@ assert line, "no tls_ktls_active in INFO STATS: " + d[:200]
 assert int(line[0].split(":")[1]) >= 1, "kTLS did not engage: " + line[0]
 print("KTLS_LIVE_OK", line[0])
 PYEOF
+row_begin "TLS 1.3 KeyUpdate survives (NET2)"
+[ -f "$RUN_DIR/unit-ready/ktls-keyupdate" ] && \
+  taskset -c "$CORES" build/ktls-keyupdate 127.0.0.1 "$TLS_PORT" tx \
+    >$TMPDIR/gate-ktls-keyupdate.txt 2>&1 \
+    && ok "TLS 1.3 KeyUpdate survives (NET2)" \
+    || bad "TLS 1.3 KeyUpdate survives (NET2)" "see $TMPDIR/gate-ktls-keyupdate.txt"
+row_begin "TLS 1.3 userspace KeyUpdate survives (NET2)"
+[ -f "$RUN_DIR/unit-ready/ktls-keyupdate" ] && \
+  taskset -c "$CORES" build/ktls-keyupdate 127.0.0.1 "$TLS_PORT" userspace \
+    >$TMPDIR/gate-ktls-keyupdate-userspace.txt 2>&1 \
+    && ok "TLS 1.3 userspace KeyUpdate survives (NET2)" \
+    || bad "TLS 1.3 userspace KeyUpdate survives (NET2)" "see $TMPDIR/gate-ktls-keyupdate-userspace.txt"
 stop
 row_begin "TLS optional shutdown invariants"
 shutdown_clean \
     && ok "TLS optional shutdown invariants" || bad "TLS optional shutdown invariants"
 
 # Exercise userspace fallback through the retained cipher grammar. TLS 1.2 uses CBC; TLS 1.3
-# uses AES-256, outside this implementation's AES-128 TLS 1.3 RX installer. Counters must fire.
+# retains OpenSSL RX for every cipher. Counters must fire.
 tlsboot no --tls-protocols "TLSv1.2 TLSv1.3" --tls-ciphers ECDHE-RSA-AES256-SHA384 \
     --tls-ciphersuites TLS_AES_256_GCM_SHA384 --tls-prefer-server-ciphers yes \
     || bad "TLS coexistence purpose boot"
@@ -2660,12 +2723,12 @@ job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
-      build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit \
+      build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
-      build/wb-rule-units build/wbland-units build/rltopo-unit build/persistfix-units build/splitlocal-unit >"$TMPDIR/build.log" 2>&1
+      build/wb-rule-units build/wbland-units build/rltopo-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit persistfix-units splitlocal-unit; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit persistfix-units ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -2723,6 +2786,7 @@ job_dependencies(){
       done;;
     release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
     core_units) echo 'production_units core_tsan_build';;
+    tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
     asan_batteries) echo asan;;
@@ -2800,6 +2864,10 @@ collect_job storage_units
 collect_job atomic_units
 
 collect_job netcmd_units
+
+# NET1 contributes one serverless row above plus four live rows here: +5 quick / +5 full.
+# EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
+collect_job netcap
 
 collect_job acl_metadata
 

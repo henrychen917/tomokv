@@ -302,6 +302,7 @@ public:
         live_latency_ms_.store(cfg.latency_monitor_threshold, std::memory_order_relaxed);
         live_save_armed_.store(!cfg.save.empty(), std::memory_order_relaxed);
         live_proto_max_bulk_len_.store(cfg.proto_max_bulk_len, std::memory_order_relaxed);
+        live_client_query_buffer_limit_.store(cfg.client_query_buffer_limit, std::memory_order_relaxed);
         save_clauses_ = cfg.save;
         atomic_activity_.store(cfg.atomic ? kAtomicEnabledBit : 0,
                                std::memory_order_relaxed);
@@ -2062,6 +2063,11 @@ public:
         live_proto_max_bulk_len_.store(value, std::memory_order_relaxed);
         end_live_config_update(version);
     }
+    void set_client_query_buffer_limit(uint64_t value) {
+        const uint64_t version = begin_live_config_update();
+        live_client_query_buffer_limit_.store(value, std::memory_order_relaxed);
+        end_live_config_update(version);
+    }
     uint32_t save_cron_pass(ThreadCtx& writer, Ring& ring) {
         if (!save_cron_writer(writer.id()) || snapshot_.in_progress()) return 0;
         save_cron_checks_.fetch_add(1, std::memory_order_relaxed);
@@ -3431,6 +3437,7 @@ private:
         snapshot.latency_monitor_threshold = live_latency_ms_.load(std::memory_order_relaxed);
         snapshot.save_armed = live_save_armed_.load(std::memory_order_relaxed);
         snapshot.proto_max_bulk_len = live_proto_max_bulk_len_.load(std::memory_order_relaxed);
+        snapshot.client_query_buffer_limit = live_client_query_buffer_limit_.load(std::memory_order_relaxed);
         snapshot.debug_fanout_defer_us = debug_atomic_fanout_defer_.load(std::memory_order_relaxed);
         auto& clients = values.clients;
         clients.version = version;
@@ -3740,6 +3747,7 @@ private:
     LiveConfigValues live_config_committed_{}; // serialized CONFIG writer only
     // Cold diagnostics share no existing producer/consumer line and no normal-pass access.
     alignas(64) IoTenureHistory<kMaxThreads> io_accounting_history_;
+    std::atomic<uint64_t> live_client_query_buffer_limit_{1024ull * 1024 * 1024};
 };
 
 }  // namespace tomo
