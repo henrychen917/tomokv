@@ -4,3 +4,5 @@ PASS stale-flip FAIL core concurrency: stale topology plan dropped without drain
 PASS stale-lb FAIL core concurrency: stale topology plan dropped without drain
 PASS duplicate FAIL core concurrency: finished plan consumed exactly once
 PASS copy-on-io FAIL core concurrency: IO handoff allocates and frees nothing
+PASS PAD-A PASS PAD-A PRE behavior: IO-hosted key/client search, direct drain, cron, fresh parse gates
+PASS POST-rejects-PRE FAIL core concurrency: PAD monitor never runs LB search

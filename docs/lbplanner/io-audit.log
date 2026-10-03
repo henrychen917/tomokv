@@ -1,2 +1,2 @@
 normalizer self-checks PASS
-IO/GET normalized instruction identity: 148/362; 451 symbol size/inventory changes; see build/lbplanner-final-io-audit/audit.json
+IO/GET normalized instruction identity: 135/362; 622 symbol size/inventory changes; see build/lbplanner-final-audit/audit.json

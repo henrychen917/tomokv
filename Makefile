@@ -564,7 +564,11 @@ build/lbplanner-controls/%/lbplanner.o: build/lbplanner-controls/%/lbplanner.cc 
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -iquote src/core -I. -c $< -o $@
 build/lbplanner-controls/%/unit: build/lbplanner-controls/%/lbplanner.o tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. tests/lbplanner_unit.cc $< $(filter-out build/src/core/lbplanner.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
-build/lbplanner-units: build/lbplanner-unit $(foreach arm,$(LBPLANNER_CONTROLS),build/lbplanner-controls/$(arm)/unit)
+build/lbplanner-unit-pad: build/lbplanner-unit tools/lbplanner_pad.py tools/rlfence_artifacts.py tools/lbstall_artifacts.py
+	python3 tools/lbplanner_pad.py $< $@ build/lbplanner-unit-pad-proof > build/lbplanner-unit-pad.log
+build/tomokv-lbplanner-pad: build/tomokv tools/lbplanner_pad.py tools/rlfence_artifacts.py tools/lbstall_artifacts.py
+	python3 tools/lbplanner_pad.py $< $@ build/lbplanner-pad-proof > build/lbplanner-pad.log
+build/lbplanner-units: build/lbplanner-unit build/lbplanner-unit-pad $(foreach arm,$(LBPLANNER_CONTROLS),build/lbplanner-controls/$(arm)/unit)
 	@touch $@
 .SECONDARY: $(foreach arm,$(LBPLANNER_CONTROLS),build/lbplanner-controls/$(arm)/lbplanner.cc build/lbplanner-controls/$(arm)/lbplanner.o)
 

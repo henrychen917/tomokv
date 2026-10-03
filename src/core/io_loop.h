@@ -1822,11 +1822,28 @@ private:
             flip_publish_stage(FlipStage::Rollback);
     }
 
-    bool lb_parse_paused(uint64_t id) const {
-        const uint64_t pause = lb_pause_id_;
-        return pause && (pause == UINT64_MAX || pause == id);
+    template<class Id>
+    __attribute__((always_inline)) bool lb_parse_paused(Id id) const {
+        uint64_t pause;
+        // POST executes exactly its ordinary private load. A copied PAD-A ELF replaces
+        // that instruction with a jump to the retained PRE gate. Metadata inherits the
+        // enclosing COMDAT group, so discarded inline copies cannot leave stale sites.
+        asm goto("1: movq %[cache], %[pause]\n"
+                 "2:\n"
+                 ".pushsection .lbplanner_gates,\"?\",@progbits\n"
+                 ".quad 1b, 2b, %l[pre]\n"
+                 ".popsection\n"
+                 : [pause] "=r"(pause) : [cache] "m"(lb_pause_id_) : : pre);
+        return pause && (pause == UINT64_MAX || pause == id());
+    pre:
+        return lb_controller_armed_ && srv_->lb_should_pause_pad(self_->id(), id());
     }
 
+    // Retained comparison bodies; the POST call graph never enters either one.
+    uint32_t lb_control_actuate_pad();
+    uint32_t lb_control_pass_pad();
+
+    __attribute__((noinline))
     uint32_t lb_control_pass() {
         if (!lb_controller_armed_) return 0;
         const LbStage stage = srv_->lb_stage();
@@ -2976,7 +2993,7 @@ private:
         const bool default_bulk_limit = pass_max_bulk_len == 512ull * 1024 * 1024;
         // IoDrain waits for this whole parse/post pass before opening ExDrain. A task whose
         // owner was sampled here therefore reaches that owner before it can acknowledge.
-        const bool lb_pause_this_pass = lb_pause_id_ && lb_parse_paused(c->id());
+        const bool lb_pause_this_pass = lb_parse_paused([&] { return c->id(); });
         if (__builtin_expect(lb_pause_this_pass, false)) {
 #ifdef TOMO_LB_STALL_DEBUG
             srv_->lb_debug_park(self_id, pass_rlen - pass_rpos);

@@ -2156,7 +2156,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
     const bool default_bulk_limit = pass_max_bulk_len == 512ull * 1024 * 1024;
     // IoDrain waits for this whole parse/post pass before opening ExDrain. A task whose
     // owner was sampled here therefore reaches that owner before it can acknowledge.
-    const bool lb_pause_this_pass = lb_pause_id_ && lb_parse_paused(c->id());
+    const bool lb_pause_this_pass = lb_parse_paused([&] { return c->id(); });
     if (__builtin_expect(lb_pause_this_pass, false)) {
 #ifdef TOMO_LB_STALL_DEBUG
         srv_->lb_debug_park(self_id, pass_rlen - pass_rpos);

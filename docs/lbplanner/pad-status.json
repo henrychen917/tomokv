@@ -1,22 +1,8 @@
 {
   "required_kind": "A: PRE behaviour with POST text layout",
-  "valid_pad_a_built": false,
-  "inventories": {
-    "PRE": {
-      "path": "build/lbplanner-pre/tomokv",
-      "sha256": "33f07418205817e93d5d759d4cab78480f77c5aa9fa51618dc89aa3e3828f8a2",
-      "text_bytes": 7729345,
-      "table_sha256": "f31f602ef1688b76bae1ce5217fe5281e7876ca6ee50aacb9da67c3e6746e8c0",
-      "functions": 10240
-    },
-    "POST": {
-      "path": "build/tomokv",
-      "sha256": "69afc08653c4ca8caadfab2477c066ba9c99940a382c34a05a006ef2be756e56",
-      "text_bytes": 7763616,
-      "table_sha256": "1dbc7f9ea316cf2db6ca5975d3fb294a678f354ba1080858c702b2c936613c1c",
-      "functions": 10216
-    }
-  },
-  "pre_is_not_a_pad": true,
-  "blocker": "No artifact restores all three PRE mechanisms (IO-hosted search, fresh per-connection stage reads, repeated cap reads) while preserving POST function addresses. Function/section inventories alone do not establish a behaviour twin. Do not accept a size-only pad or the unmodified POST as that twin."
+  "valid_pad_a_built": true,
+  "proof": "pad-a/proof.json",
+  "behavior": "PRE IO-hosted gather/search and cron, live parse stage, repeated cap reads",
+  "layout": "Complete function/section tables equal; every other byte identical.",
+  "performance": "NOT MEASURED: mainline owns the three-regime ABBA and full gate."
 }

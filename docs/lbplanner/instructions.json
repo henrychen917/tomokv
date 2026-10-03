@@ -1244,379 +1244,389 @@
       "negative": false,
       "connections": 1,
       "trace": {
-        "instructions": 71,
-        "executable_instructions": 71,
+        "instructions": 73,
+        "executable_instructions": 73,
         "library_instructions": 0
       },
       "stage_loads": 1,
       "cache_loads": 1,
       "load_sites": [
         {
-          "address": "3ee7a",
+          "address": "3f12a",
           "visits": 1,
           "instruction": "movzbl 0x14150(%rax),%r12d"
         },
         {
-          "address": "2cdd4",
+          "address": "2d014",
           "visits": 1,
           "instruction": "mov    0x558(%rdi),%rdx"
         }
       ],
       "executed": [
         {
-          "address": "2cdd0",
+          "address": "2d010",
           "visits": 1,
           "instruction": "endbr64"
         },
         {
-          "address": "2cdd4",
+          "address": "2d014",
           "visits": 1,
           "instruction": "mov    0x558(%rdi),%rdx"
         },
         {
-          "address": "2cddb",
-          "visits": 1,
-          "instruction": "xor    %eax,%eax"
-        },
-        {
-          "address": "2cddd",
+          "address": "2d01b",
           "visits": 1,
           "instruction": "test   %rdx,%rdx"
         },
         {
-          "address": "2cde0",
+          "address": "2d01e",
           "visits": 1,
-          "instruction": "je     2cdf1 <lbplanner_parse_gate+0x21>"
+          "instruction": "je     2d039 <lbplanner_parse_gate+0x29>"
         },
         {
-          "address": "2cdf1",
+          "address": "2d039",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2d03b",
           "visits": 1,
           "instruction": "ret"
         },
         {
-          "address": "2d130",
+          "address": "2d3d0",
           "visits": 1,
           "instruction": "endbr64"
         },
         {
-          "address": "2d134",
+          "address": "2d3d4",
           "visits": 1,
           "instruction": "push   %rbp"
         },
         {
-          "address": "2d135",
+          "address": "2d3d5",
           "visits": 1,
           "instruction": "push   %rbx"
         },
         {
-          "address": "2d136",
+          "address": "2d3d6",
           "visits": 1,
           "instruction": "mov    %esi,%ebp"
         },
         {
-          "address": "2d138",
+          "address": "2d3d8",
           "visits": 1,
           "instruction": "mov    %rdi,%rbx"
         },
         {
-          "address": "2d13b",
+          "address": "2d3db",
           "visits": 1,
           "instruction": "sub    $0x8,%rsp"
         },
         {
-          "address": "2d13f",
+          "address": "2d3df",
           "visits": 1,
-          "instruction": "call   3ee10 <_ZN4tomo6IoLoop15lb_control_passEv>"
+          "instruction": "call   3f0c0 <_ZN4tomo6IoLoop15lb_control_passEv>"
         },
         {
-          "address": "2d144",
+          "address": "2d3e4",
           "visits": 1,
-          "instruction": "mov    %eax,%r8d"
+          "instruction": "mov    %eax,%r10d"
         },
         {
-          "address": "2d147",
+          "address": "2d3e7",
           "visits": 1,
           "instruction": "test   %ebp,%ebp"
         },
         {
-          "address": "2d149",
+          "address": "2d3e9",
           "visits": 1,
-          "instruction": "je     2d166 <lbplanner_io_pass+0x36>"
+          "instruction": "je     2d419 <lbplanner_io_pass+0x49>"
         },
         {
-          "address": "2d14b",
+          "address": "2d3eb",
           "visits": 1,
-          "instruction": "mov    $0x1,%ecx"
+          "instruction": "mov    $0x1,%r9d"
         },
         {
-          "address": "2d150",
+          "address": "2d3f1",
           "visits": 1,
-          "instruction": "mov    %ecx,%esi"
+          "instruction": "data16 cs nopw 0x0(%rax,%rax,1)"
         },
         {
-          "address": "2d152",
+          "address": "2d3fc",
+          "visits": 1,
+          "instruction": "nopl   0x0(%rax)"
+        },
+        {
+          "address": "2d400",
+          "visits": 1,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2d403",
           "visits": 1,
           "instruction": "mov    %rbx,%rdi"
         },
         {
-          "address": "2d155",
+          "address": "2d406",
           "visits": 1,
-          "instruction": "inc    %ecx"
+          "instruction": "inc    %r9d"
         },
         {
-          "address": "2d157",
+          "address": "2d409",
           "visits": 1,
-          "instruction": "call   2cdd0 <lbplanner_parse_gate>"
+          "instruction": "call   2d010 <lbplanner_parse_gate>"
         },
         {
-          "address": "2d15c",
+          "address": "2d40e",
           "visits": 1,
           "instruction": "movzbl %al,%eax"
         },
         {
-          "address": "2d15f",
+          "address": "2d411",
           "visits": 1,
-          "instruction": "add    %eax,%r8d"
+          "instruction": "add    %eax,%r10d"
         },
         {
-          "address": "2d162",
+          "address": "2d414",
           "visits": 1,
-          "instruction": "cmp    %ecx,%ebp"
+          "instruction": "cmp    %r9d,%ebp"
         },
         {
-          "address": "2d164",
+          "address": "2d417",
           "visits": 1,
-          "instruction": "jae    2d150 <lbplanner_io_pass+0x20>"
+          "instruction": "jae    2d400 <lbplanner_io_pass+0x30>"
         },
         {
-          "address": "2d166",
+          "address": "2d419",
           "visits": 1,
           "instruction": "add    $0x8,%rsp"
         },
         {
-          "address": "2d16a",
+          "address": "2d41d",
           "visits": 1,
-          "instruction": "mov    %r8d,%eax"
+          "instruction": "mov    %r10d,%eax"
         },
         {
-          "address": "2d16d",
+          "address": "2d420",
           "visits": 1,
           "instruction": "pop    %rbx"
         },
         {
-          "address": "2d16e",
+          "address": "2d421",
           "visits": 1,
           "instruction": "pop    %rbp"
         },
         {
-          "address": "2d16f",
+          "address": "2d422",
           "visits": 1,
           "instruction": "ret"
         },
         {
-          "address": "3ee10",
+          "address": "3f0c0",
           "visits": 1,
           "instruction": "endbr64"
         },
         {
-          "address": "3ee14",
+          "address": "3f0c4",
           "visits": 1,
           "instruction": "push   %rbp"
         },
         {
-          "address": "3ee15",
+          "address": "3f0c5",
           "visits": 1,
           "instruction": "mov    %rsp,%rbp"
         },
         {
-          "address": "3ee18",
+          "address": "3f0c8",
           "visits": 1,
           "instruction": "push   %r15"
         },
         {
-          "address": "3ee1a",
+          "address": "3f0ca",
           "visits": 1,
           "instruction": "push   %r14"
         },
         {
-          "address": "3ee1c",
+          "address": "3f0cc",
           "visits": 1,
           "instruction": "push   %r13"
         },
         {
-          "address": "3ee1e",
+          "address": "3f0ce",
           "visits": 1,
           "instruction": "push   %r12"
         },
         {
-          "address": "3ee20",
+          "address": "3f0d0",
           "visits": 1,
           "instruction": "push   %rbx"
         },
         {
-          "address": "3ee21",
+          "address": "3f0d1",
           "visits": 1,
           "instruction": "sub    $0x258,%rsp"
         },
         {
-          "address": "3ee28",
+          "address": "3f0d8",
           "visits": 1,
           "instruction": "mov    %fs:0x28,%rax"
         },
         {
-          "address": "3ee31",
+          "address": "3f0e1",
           "visits": 1,
           "instruction": "mov    %rax,0x248(%rsp)"
         },
         {
-          "address": "3ee39",
+          "address": "3f0e9",
           "visits": 1,
           "instruction": "xor    %eax,%eax"
         },
         {
-          "address": "3ee3b",
+          "address": "3f0eb",
           "visits": 1,
           "instruction": "cmpb   $0x0,0x57e(%rdi)"
         },
         {
-          "address": "3ee42",
+          "address": "3f0f2",
           "visits": 1,
-          "instruction": "jne    3ee70 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+          "instruction": "jne    3f120 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
         },
         {
-          "address": "3ee44",
+          "address": "3f0f4",
           "visits": 1,
           "instruction": "xor    %eax,%eax"
         },
         {
-          "address": "3ee46",
+          "address": "3f0f6",
           "visits": 1,
           "instruction": "mov    0x248(%rsp),%rdx"
         },
         {
-          "address": "3ee4e",
+          "address": "3f0fe",
           "visits": 1,
           "instruction": "sub    %fs:0x28,%rdx"
         },
         {
-          "address": "3ee57",
+          "address": "3f107",
           "visits": 1,
-          "instruction": "jne    3f819 <_ZN4tomo6IoLoop15lb_control_passEv+0xa09>"
+          "instruction": "jne    3fac9 <_ZN4tomo6IoLoop15lb_control_passEv+0xa09>"
         },
         {
-          "address": "3ee5d",
+          "address": "3f10d",
           "visits": 1,
           "instruction": "add    $0x258,%rsp"
         },
         {
-          "address": "3ee64",
+          "address": "3f114",
           "visits": 1,
           "instruction": "pop    %rbx"
         },
         {
-          "address": "3ee65",
+          "address": "3f115",
           "visits": 1,
           "instruction": "pop    %r12"
         },
         {
-          "address": "3ee67",
+          "address": "3f117",
           "visits": 1,
           "instruction": "pop    %r13"
         },
         {
-          "address": "3ee69",
+          "address": "3f119",
           "visits": 1,
           "instruction": "pop    %r14"
         },
         {
-          "address": "3ee6b",
+          "address": "3f11b",
           "visits": 1,
           "instruction": "pop    %r15"
         },
         {
-          "address": "3ee6d",
+          "address": "3f11d",
           "visits": 1,
           "instruction": "pop    %rbp"
         },
         {
-          "address": "3ee6e",
+          "address": "3f11e",
           "visits": 1,
           "instruction": "ret"
         },
         {
-          "address": "3ee70",
+          "address": "3f120",
           "visits": 1,
           "instruction": "mov    0x188(%rdi),%rax"
         },
         {
-          "address": "3ee77",
+          "address": "3f127",
           "visits": 1,
           "instruction": "mov    %rdi,%rbx"
         },
         {
-          "address": "3ee7a",
+          "address": "3f12a",
           "visits": 1,
           "instruction": "movzbl 0x14150(%rax),%r12d"
         },
         {
-          "address": "3ee82",
+          "address": "3f132",
           "visits": 1,
           "instruction": "cmp    $0x4,%r12b"
         },
         {
-          "address": "3ee86",
+          "address": "3f136",
           "visits": 1,
-          "instruction": "je     3eed0 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
+          "instruction": "je     3f180 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
         },
         {
-          "address": "3ee88",
+          "address": "3f138",
           "visits": 1,
           "instruction": "cmp    $0x1,%r12b"
         },
         {
-          "address": "3ee8c",
+          "address": "3f13c",
           "visits": 1,
-          "instruction": "je     3eed0 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
+          "instruction": "je     3f180 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
         },
         {
-          "address": "3ee8e",
+          "address": "3f13e",
           "visits": 1,
           "instruction": "movq   $0x0,0x558(%rdi)"
         },
         {
-          "address": "3ee99",
+          "address": "3f149",
           "visits": 1,
           "instruction": "cmp    $0x5,%r12b"
         },
         {
-          "address": "3ee9d",
+          "address": "3f14d",
           "visits": 1,
-          "instruction": "jne    3efb0 <_ZN4tomo6IoLoop15lb_control_passEv+0x1a0>"
+          "instruction": "jne    3f260 <_ZN4tomo6IoLoop15lb_control_passEv+0x1a0>"
         },
         {
-          "address": "3efb0",
+          "address": "3f260",
           "visits": 1,
           "instruction": "cmp    $0x2,%r12b"
         },
         {
-          "address": "3efb4",
+          "address": "3f264",
           "visits": 1,
-          "instruction": "jne    3f020 <_ZN4tomo6IoLoop15lb_control_passEv+0x210>"
+          "instruction": "jne    3f2d0 <_ZN4tomo6IoLoop15lb_control_passEv+0x210>"
         },
         {
-          "address": "3f020",
+          "address": "3f2d0",
           "visits": 1,
           "instruction": "movb   $0x0,0x57f(%rdi)"
         },
         {
-          "address": "3f027",
+          "address": "3f2d7",
           "visits": 1,
           "instruction": "test   %r12b,%r12b"
         },
         {
-          "address": "3f02a",
+          "address": "3f2da",
           "visits": 1,
-          "instruction": "je     3ee44 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+          "instruction": "je     3f0f4 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
         }
       ]
     },
@@ -1625,379 +1635,389 @@
       "negative": false,
       "connections": 32,
       "trace": {
-        "instructions": 505,
-        "executable_instructions": 505,
+        "instructions": 507,
+        "executable_instructions": 507,
         "library_instructions": 0
       },
       "stage_loads": 1,
       "cache_loads": 32,
       "load_sites": [
         {
-          "address": "3ee7a",
+          "address": "3f12a",
           "visits": 1,
           "instruction": "movzbl 0x14150(%rax),%r12d"
         },
         {
-          "address": "2cdd4",
+          "address": "2d014",
           "visits": 32,
           "instruction": "mov    0x558(%rdi),%rdx"
         }
       ],
       "executed": [
         {
-          "address": "2cdd0",
+          "address": "2d010",
           "visits": 32,
           "instruction": "endbr64"
         },
         {
-          "address": "2cdd4",
+          "address": "2d014",
           "visits": 32,
           "instruction": "mov    0x558(%rdi),%rdx"
         },
         {
-          "address": "2cddb",
-          "visits": 32,
-          "instruction": "xor    %eax,%eax"
-        },
-        {
-          "address": "2cddd",
+          "address": "2d01b",
           "visits": 32,
           "instruction": "test   %rdx,%rdx"
         },
         {
-          "address": "2cde0",
+          "address": "2d01e",
           "visits": 32,
-          "instruction": "je     2cdf1 <lbplanner_parse_gate+0x21>"
+          "instruction": "je     2d039 <lbplanner_parse_gate+0x29>"
         },
         {
-          "address": "2cdf1",
+          "address": "2d039",
+          "visits": 32,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2d03b",
           "visits": 32,
           "instruction": "ret"
         },
         {
-          "address": "2d130",
+          "address": "2d3d0",
           "visits": 1,
           "instruction": "endbr64"
         },
         {
-          "address": "2d134",
+          "address": "2d3d4",
           "visits": 1,
           "instruction": "push   %rbp"
         },
         {
-          "address": "2d135",
+          "address": "2d3d5",
           "visits": 1,
           "instruction": "push   %rbx"
         },
         {
-          "address": "2d136",
+          "address": "2d3d6",
           "visits": 1,
           "instruction": "mov    %esi,%ebp"
         },
         {
-          "address": "2d138",
+          "address": "2d3d8",
           "visits": 1,
           "instruction": "mov    %rdi,%rbx"
         },
         {
-          "address": "2d13b",
+          "address": "2d3db",
           "visits": 1,
           "instruction": "sub    $0x8,%rsp"
         },
         {
-          "address": "2d13f",
+          "address": "2d3df",
           "visits": 1,
-          "instruction": "call   3ee10 <_ZN4tomo6IoLoop15lb_control_passEv>"
+          "instruction": "call   3f0c0 <_ZN4tomo6IoLoop15lb_control_passEv>"
         },
         {
-          "address": "2d144",
+          "address": "2d3e4",
           "visits": 1,
-          "instruction": "mov    %eax,%r8d"
+          "instruction": "mov    %eax,%r10d"
         },
         {
-          "address": "2d147",
+          "address": "2d3e7",
           "visits": 1,
           "instruction": "test   %ebp,%ebp"
         },
         {
-          "address": "2d149",
+          "address": "2d3e9",
           "visits": 1,
-          "instruction": "je     2d166 <lbplanner_io_pass+0x36>"
+          "instruction": "je     2d419 <lbplanner_io_pass+0x49>"
         },
         {
-          "address": "2d14b",
+          "address": "2d3eb",
           "visits": 1,
-          "instruction": "mov    $0x1,%ecx"
+          "instruction": "mov    $0x1,%r9d"
         },
         {
-          "address": "2d150",
+          "address": "2d3f1",
+          "visits": 1,
+          "instruction": "data16 cs nopw 0x0(%rax,%rax,1)"
+        },
+        {
+          "address": "2d3fc",
+          "visits": 1,
+          "instruction": "nopl   0x0(%rax)"
+        },
+        {
+          "address": "2d400",
           "visits": 32,
-          "instruction": "mov    %ecx,%esi"
+          "instruction": "mov    %r9d,%esi"
         },
         {
-          "address": "2d152",
+          "address": "2d403",
           "visits": 32,
           "instruction": "mov    %rbx,%rdi"
         },
         {
-          "address": "2d155",
+          "address": "2d406",
           "visits": 32,
-          "instruction": "inc    %ecx"
+          "instruction": "inc    %r9d"
         },
         {
-          "address": "2d157",
+          "address": "2d409",
           "visits": 32,
-          "instruction": "call   2cdd0 <lbplanner_parse_gate>"
+          "instruction": "call   2d010 <lbplanner_parse_gate>"
         },
         {
-          "address": "2d15c",
+          "address": "2d40e",
           "visits": 32,
           "instruction": "movzbl %al,%eax"
         },
         {
-          "address": "2d15f",
+          "address": "2d411",
           "visits": 32,
-          "instruction": "add    %eax,%r8d"
+          "instruction": "add    %eax,%r10d"
         },
         {
-          "address": "2d162",
+          "address": "2d414",
           "visits": 32,
-          "instruction": "cmp    %ecx,%ebp"
+          "instruction": "cmp    %r9d,%ebp"
         },
         {
-          "address": "2d164",
+          "address": "2d417",
           "visits": 32,
-          "instruction": "jae    2d150 <lbplanner_io_pass+0x20>"
+          "instruction": "jae    2d400 <lbplanner_io_pass+0x30>"
         },
         {
-          "address": "2d166",
+          "address": "2d419",
           "visits": 1,
           "instruction": "add    $0x8,%rsp"
         },
         {
-          "address": "2d16a",
+          "address": "2d41d",
           "visits": 1,
-          "instruction": "mov    %r8d,%eax"
+          "instruction": "mov    %r10d,%eax"
         },
         {
-          "address": "2d16d",
+          "address": "2d420",
           "visits": 1,
           "instruction": "pop    %rbx"
         },
         {
-          "address": "2d16e",
+          "address": "2d421",
           "visits": 1,
           "instruction": "pop    %rbp"
         },
         {
-          "address": "2d16f",
+          "address": "2d422",
           "visits": 1,
           "instruction": "ret"
         },
         {
-          "address": "3ee10",
+          "address": "3f0c0",
           "visits": 1,
           "instruction": "endbr64"
         },
         {
-          "address": "3ee14",
+          "address": "3f0c4",
           "visits": 1,
           "instruction": "push   %rbp"
         },
         {
-          "address": "3ee15",
+          "address": "3f0c5",
           "visits": 1,
           "instruction": "mov    %rsp,%rbp"
         },
         {
-          "address": "3ee18",
+          "address": "3f0c8",
           "visits": 1,
           "instruction": "push   %r15"
         },
         {
-          "address": "3ee1a",
+          "address": "3f0ca",
           "visits": 1,
           "instruction": "push   %r14"
         },
         {
-          "address": "3ee1c",
+          "address": "3f0cc",
           "visits": 1,
           "instruction": "push   %r13"
         },
         {
-          "address": "3ee1e",
+          "address": "3f0ce",
           "visits": 1,
           "instruction": "push   %r12"
         },
         {
-          "address": "3ee20",
+          "address": "3f0d0",
           "visits": 1,
           "instruction": "push   %rbx"
         },
         {
-          "address": "3ee21",
+          "address": "3f0d1",
           "visits": 1,
           "instruction": "sub    $0x258,%rsp"
         },
         {
-          "address": "3ee28",
+          "address": "3f0d8",
           "visits": 1,
           "instruction": "mov    %fs:0x28,%rax"
         },
         {
-          "address": "3ee31",
+          "address": "3f0e1",
           "visits": 1,
           "instruction": "mov    %rax,0x248(%rsp)"
         },
         {
-          "address": "3ee39",
+          "address": "3f0e9",
           "visits": 1,
           "instruction": "xor    %eax,%eax"
         },
         {
-          "address": "3ee3b",
+          "address": "3f0eb",
           "visits": 1,
           "instruction": "cmpb   $0x0,0x57e(%rdi)"
         },
         {
-          "address": "3ee42",
+          "address": "3f0f2",
           "visits": 1,
-          "instruction": "jne    3ee70 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+          "instruction": "jne    3f120 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
         },
         {
-          "address": "3ee44",
+          "address": "3f0f4",
           "visits": 1,
           "instruction": "xor    %eax,%eax"
         },
         {
-          "address": "3ee46",
+          "address": "3f0f6",
           "visits": 1,
           "instruction": "mov    0x248(%rsp),%rdx"
         },
         {
-          "address": "3ee4e",
+          "address": "3f0fe",
           "visits": 1,
           "instruction": "sub    %fs:0x28,%rdx"
         },
         {
-          "address": "3ee57",
+          "address": "3f107",
           "visits": 1,
-          "instruction": "jne    3f819 <_ZN4tomo6IoLoop15lb_control_passEv+0xa09>"
+          "instruction": "jne    3fac9 <_ZN4tomo6IoLoop15lb_control_passEv+0xa09>"
         },
         {
-          "address": "3ee5d",
+          "address": "3f10d",
           "visits": 1,
           "instruction": "add    $0x258,%rsp"
         },
         {
-          "address": "3ee64",
+          "address": "3f114",
           "visits": 1,
           "instruction": "pop    %rbx"
         },
         {
-          "address": "3ee65",
+          "address": "3f115",
           "visits": 1,
           "instruction": "pop    %r12"
         },
         {
-          "address": "3ee67",
+          "address": "3f117",
           "visits": 1,
           "instruction": "pop    %r13"
         },
         {
-          "address": "3ee69",
+          "address": "3f119",
           "visits": 1,
           "instruction": "pop    %r14"
         },
         {
-          "address": "3ee6b",
+          "address": "3f11b",
           "visits": 1,
           "instruction": "pop    %r15"
         },
         {
-          "address": "3ee6d",
+          "address": "3f11d",
           "visits": 1,
           "instruction": "pop    %rbp"
         },
         {
-          "address": "3ee6e",
+          "address": "3f11e",
           "visits": 1,
           "instruction": "ret"
         },
         {
-          "address": "3ee70",
+          "address": "3f120",
           "visits": 1,
           "instruction": "mov    0x188(%rdi),%rax"
         },
         {
-          "address": "3ee77",
+          "address": "3f127",
           "visits": 1,
           "instruction": "mov    %rdi,%rbx"
         },
         {
-          "address": "3ee7a",
+          "address": "3f12a",
           "visits": 1,
           "instruction": "movzbl 0x14150(%rax),%r12d"
         },
         {
-          "address": "3ee82",
+          "address": "3f132",
           "visits": 1,
           "instruction": "cmp    $0x4,%r12b"
         },
         {
-          "address": "3ee86",
+          "address": "3f136",
           "visits": 1,
-          "instruction": "je     3eed0 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
+          "instruction": "je     3f180 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
         },
         {
-          "address": "3ee88",
+          "address": "3f138",
           "visits": 1,
           "instruction": "cmp    $0x1,%r12b"
         },
         {
-          "address": "3ee8c",
+          "address": "3f13c",
           "visits": 1,
-          "instruction": "je     3eed0 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
+          "instruction": "je     3f180 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
         },
         {
-          "address": "3ee8e",
+          "address": "3f13e",
           "visits": 1,
           "instruction": "movq   $0x0,0x558(%rdi)"
         },
         {
-          "address": "3ee99",
+          "address": "3f149",
           "visits": 1,
           "instruction": "cmp    $0x5,%r12b"
         },
         {
-          "address": "3ee9d",
+          "address": "3f14d",
           "visits": 1,
-          "instruction": "jne    3efb0 <_ZN4tomo6IoLoop15lb_control_passEv+0x1a0>"
+          "instruction": "jne    3f260 <_ZN4tomo6IoLoop15lb_control_passEv+0x1a0>"
         },
         {
-          "address": "3efb0",
+          "address": "3f260",
           "visits": 1,
           "instruction": "cmp    $0x2,%r12b"
         },
         {
-          "address": "3efb4",
+          "address": "3f264",
           "visits": 1,
-          "instruction": "jne    3f020 <_ZN4tomo6IoLoop15lb_control_passEv+0x210>"
+          "instruction": "jne    3f2d0 <_ZN4tomo6IoLoop15lb_control_passEv+0x210>"
         },
         {
-          "address": "3f020",
+          "address": "3f2d0",
           "visits": 1,
           "instruction": "movb   $0x0,0x57f(%rdi)"
         },
         {
-          "address": "3f027",
+          "address": "3f2d7",
           "visits": 1,
           "instruction": "test   %r12b,%r12b"
         },
         {
-          "address": "3f02a",
+          "address": "3f2da",
           "visits": 1,
-          "instruction": "je     3ee44 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+          "instruction": "je     3f0f4 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
         }
       ]
     },
@@ -2006,379 +2026,389 @@
       "negative": false,
       "connections": 4096,
       "trace": {
-        "instructions": 57401,
-        "executable_instructions": 57401,
+        "instructions": 57403,
+        "executable_instructions": 57403,
         "library_instructions": 0
       },
       "stage_loads": 1,
       "cache_loads": 4096,
       "load_sites": [
         {
-          "address": "3ee7a",
+          "address": "3f12a",
           "visits": 1,
           "instruction": "movzbl 0x14150(%rax),%r12d"
         },
         {
-          "address": "2cdd4",
+          "address": "2d014",
           "visits": 4096,
           "instruction": "mov    0x558(%rdi),%rdx"
         }
       ],
       "executed": [
         {
-          "address": "2cdd0",
+          "address": "2d010",
           "visits": 4096,
           "instruction": "endbr64"
         },
         {
-          "address": "2cdd4",
+          "address": "2d014",
           "visits": 4096,
           "instruction": "mov    0x558(%rdi),%rdx"
         },
         {
-          "address": "2cddb",
-          "visits": 4096,
-          "instruction": "xor    %eax,%eax"
-        },
-        {
-          "address": "2cddd",
+          "address": "2d01b",
           "visits": 4096,
           "instruction": "test   %rdx,%rdx"
         },
         {
-          "address": "2cde0",
+          "address": "2d01e",
           "visits": 4096,
-          "instruction": "je     2cdf1 <lbplanner_parse_gate+0x21>"
+          "instruction": "je     2d039 <lbplanner_parse_gate+0x29>"
         },
         {
-          "address": "2cdf1",
+          "address": "2d039",
+          "visits": 4096,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2d03b",
           "visits": 4096,
           "instruction": "ret"
         },
         {
-          "address": "2d130",
+          "address": "2d3d0",
           "visits": 1,
           "instruction": "endbr64"
         },
         {
-          "address": "2d134",
+          "address": "2d3d4",
           "visits": 1,
           "instruction": "push   %rbp"
         },
         {
-          "address": "2d135",
+          "address": "2d3d5",
           "visits": 1,
           "instruction": "push   %rbx"
         },
         {
-          "address": "2d136",
+          "address": "2d3d6",
           "visits": 1,
           "instruction": "mov    %esi,%ebp"
         },
         {
-          "address": "2d138",
+          "address": "2d3d8",
           "visits": 1,
           "instruction": "mov    %rdi,%rbx"
         },
         {
-          "address": "2d13b",
+          "address": "2d3db",
           "visits": 1,
           "instruction": "sub    $0x8,%rsp"
         },
         {
-          "address": "2d13f",
+          "address": "2d3df",
           "visits": 1,
-          "instruction": "call   3ee10 <_ZN4tomo6IoLoop15lb_control_passEv>"
+          "instruction": "call   3f0c0 <_ZN4tomo6IoLoop15lb_control_passEv>"
         },
         {
-          "address": "2d144",
+          "address": "2d3e4",
           "visits": 1,
-          "instruction": "mov    %eax,%r8d"
+          "instruction": "mov    %eax,%r10d"
         },
         {
-          "address": "2d147",
+          "address": "2d3e7",
           "visits": 1,
           "instruction": "test   %ebp,%ebp"
         },
         {
-          "address": "2d149",
+          "address": "2d3e9",
           "visits": 1,
-          "instruction": "je     2d166 <lbplanner_io_pass+0x36>"
+          "instruction": "je     2d419 <lbplanner_io_pass+0x49>"
         },
         {
-          "address": "2d14b",
+          "address": "2d3eb",
           "visits": 1,
-          "instruction": "mov    $0x1,%ecx"
+          "instruction": "mov    $0x1,%r9d"
         },
         {
-          "address": "2d150",
+          "address": "2d3f1",
+          "visits": 1,
+          "instruction": "data16 cs nopw 0x0(%rax,%rax,1)"
+        },
+        {
+          "address": "2d3fc",
+          "visits": 1,
+          "instruction": "nopl   0x0(%rax)"
+        },
+        {
+          "address": "2d400",
           "visits": 4096,
-          "instruction": "mov    %ecx,%esi"
+          "instruction": "mov    %r9d,%esi"
         },
         {
-          "address": "2d152",
+          "address": "2d403",
           "visits": 4096,
           "instruction": "mov    %rbx,%rdi"
         },
         {
-          "address": "2d155",
+          "address": "2d406",
           "visits": 4096,
-          "instruction": "inc    %ecx"
+          "instruction": "inc    %r9d"
         },
         {
-          "address": "2d157",
+          "address": "2d409",
           "visits": 4096,
-          "instruction": "call   2cdd0 <lbplanner_parse_gate>"
+          "instruction": "call   2d010 <lbplanner_parse_gate>"
         },
         {
-          "address": "2d15c",
+          "address": "2d40e",
           "visits": 4096,
           "instruction": "movzbl %al,%eax"
         },
         {
-          "address": "2d15f",
+          "address": "2d411",
           "visits": 4096,
-          "instruction": "add    %eax,%r8d"
+          "instruction": "add    %eax,%r10d"
         },
         {
-          "address": "2d162",
+          "address": "2d414",
           "visits": 4096,
-          "instruction": "cmp    %ecx,%ebp"
+          "instruction": "cmp    %r9d,%ebp"
         },
         {
-          "address": "2d164",
+          "address": "2d417",
           "visits": 4096,
-          "instruction": "jae    2d150 <lbplanner_io_pass+0x20>"
+          "instruction": "jae    2d400 <lbplanner_io_pass+0x30>"
         },
         {
-          "address": "2d166",
+          "address": "2d419",
           "visits": 1,
           "instruction": "add    $0x8,%rsp"
         },
         {
-          "address": "2d16a",
+          "address": "2d41d",
           "visits": 1,
-          "instruction": "mov    %r8d,%eax"
+          "instruction": "mov    %r10d,%eax"
         },
         {
-          "address": "2d16d",
+          "address": "2d420",
           "visits": 1,
           "instruction": "pop    %rbx"
         },
         {
-          "address": "2d16e",
+          "address": "2d421",
           "visits": 1,
           "instruction": "pop    %rbp"
         },
         {
-          "address": "2d16f",
+          "address": "2d422",
           "visits": 1,
           "instruction": "ret"
         },
         {
-          "address": "3ee10",
+          "address": "3f0c0",
           "visits": 1,
           "instruction": "endbr64"
         },
         {
-          "address": "3ee14",
+          "address": "3f0c4",
           "visits": 1,
           "instruction": "push   %rbp"
         },
         {
-          "address": "3ee15",
+          "address": "3f0c5",
           "visits": 1,
           "instruction": "mov    %rsp,%rbp"
         },
         {
-          "address": "3ee18",
+          "address": "3f0c8",
           "visits": 1,
           "instruction": "push   %r15"
         },
         {
-          "address": "3ee1a",
+          "address": "3f0ca",
           "visits": 1,
           "instruction": "push   %r14"
         },
         {
-          "address": "3ee1c",
+          "address": "3f0cc",
           "visits": 1,
           "instruction": "push   %r13"
         },
         {
-          "address": "3ee1e",
+          "address": "3f0ce",
           "visits": 1,
           "instruction": "push   %r12"
         },
         {
-          "address": "3ee20",
+          "address": "3f0d0",
           "visits": 1,
           "instruction": "push   %rbx"
         },
         {
-          "address": "3ee21",
+          "address": "3f0d1",
           "visits": 1,
           "instruction": "sub    $0x258,%rsp"
         },
         {
-          "address": "3ee28",
+          "address": "3f0d8",
           "visits": 1,
           "instruction": "mov    %fs:0x28,%rax"
         },
         {
-          "address": "3ee31",
+          "address": "3f0e1",
           "visits": 1,
           "instruction": "mov    %rax,0x248(%rsp)"
         },
         {
-          "address": "3ee39",
+          "address": "3f0e9",
           "visits": 1,
           "instruction": "xor    %eax,%eax"
         },
         {
-          "address": "3ee3b",
+          "address": "3f0eb",
           "visits": 1,
           "instruction": "cmpb   $0x0,0x57e(%rdi)"
         },
         {
-          "address": "3ee42",
+          "address": "3f0f2",
           "visits": 1,
-          "instruction": "jne    3ee70 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+          "instruction": "jne    3f120 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
         },
         {
-          "address": "3ee44",
+          "address": "3f0f4",
           "visits": 1,
           "instruction": "xor    %eax,%eax"
         },
         {
-          "address": "3ee46",
+          "address": "3f0f6",
           "visits": 1,
           "instruction": "mov    0x248(%rsp),%rdx"
         },
         {
-          "address": "3ee4e",
+          "address": "3f0fe",
           "visits": 1,
           "instruction": "sub    %fs:0x28,%rdx"
         },
         {
-          "address": "3ee57",
+          "address": "3f107",
           "visits": 1,
-          "instruction": "jne    3f819 <_ZN4tomo6IoLoop15lb_control_passEv+0xa09>"
+          "instruction": "jne    3fac9 <_ZN4tomo6IoLoop15lb_control_passEv+0xa09>"
         },
         {
-          "address": "3ee5d",
+          "address": "3f10d",
           "visits": 1,
           "instruction": "add    $0x258,%rsp"
         },
         {
-          "address": "3ee64",
+          "address": "3f114",
           "visits": 1,
           "instruction": "pop    %rbx"
         },
         {
-          "address": "3ee65",
+          "address": "3f115",
           "visits": 1,
           "instruction": "pop    %r12"
         },
         {
-          "address": "3ee67",
+          "address": "3f117",
           "visits": 1,
           "instruction": "pop    %r13"
         },
         {
-          "address": "3ee69",
+          "address": "3f119",
           "visits": 1,
           "instruction": "pop    %r14"
         },
         {
-          "address": "3ee6b",
+          "address": "3f11b",
           "visits": 1,
           "instruction": "pop    %r15"
         },
         {
-          "address": "3ee6d",
+          "address": "3f11d",
           "visits": 1,
           "instruction": "pop    %rbp"
         },
         {
-          "address": "3ee6e",
+          "address": "3f11e",
           "visits": 1,
           "instruction": "ret"
         },
         {
-          "address": "3ee70",
+          "address": "3f120",
           "visits": 1,
           "instruction": "mov    0x188(%rdi),%rax"
         },
         {
-          "address": "3ee77",
+          "address": "3f127",
           "visits": 1,
           "instruction": "mov    %rdi,%rbx"
         },
         {
-          "address": "3ee7a",
+          "address": "3f12a",
           "visits": 1,
           "instruction": "movzbl 0x14150(%rax),%r12d"
         },
         {
-          "address": "3ee82",
+          "address": "3f132",
           "visits": 1,
           "instruction": "cmp    $0x4,%r12b"
         },
         {
-          "address": "3ee86",
+          "address": "3f136",
           "visits": 1,
-          "instruction": "je     3eed0 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
+          "instruction": "je     3f180 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
         },
         {
-          "address": "3ee88",
+          "address": "3f138",
           "visits": 1,
           "instruction": "cmp    $0x1,%r12b"
         },
         {
-          "address": "3ee8c",
+          "address": "3f13c",
           "visits": 1,
-          "instruction": "je     3eed0 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
+          "instruction": "je     3f180 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
         },
         {
-          "address": "3ee8e",
+          "address": "3f13e",
           "visits": 1,
           "instruction": "movq   $0x0,0x558(%rdi)"
         },
         {
-          "address": "3ee99",
+          "address": "3f149",
           "visits": 1,
           "instruction": "cmp    $0x5,%r12b"
         },
         {
-          "address": "3ee9d",
+          "address": "3f14d",
           "visits": 1,
-          "instruction": "jne    3efb0 <_ZN4tomo6IoLoop15lb_control_passEv+0x1a0>"
+          "instruction": "jne    3f260 <_ZN4tomo6IoLoop15lb_control_passEv+0x1a0>"
         },
         {
-          "address": "3efb0",
+          "address": "3f260",
           "visits": 1,
           "instruction": "cmp    $0x2,%r12b"
         },
         {
-          "address": "3efb4",
+          "address": "3f264",
           "visits": 1,
-          "instruction": "jne    3f020 <_ZN4tomo6IoLoop15lb_control_passEv+0x210>"
+          "instruction": "jne    3f2d0 <_ZN4tomo6IoLoop15lb_control_passEv+0x210>"
         },
         {
-          "address": "3f020",
+          "address": "3f2d0",
           "visits": 1,
           "instruction": "movb   $0x0,0x57f(%rdi)"
         },
         {
-          "address": "3f027",
+          "address": "3f2d7",
           "visits": 1,
           "instruction": "test   %r12b,%r12b"
         },
         {
-          "address": "3f02a",
+          "address": "3f2da",
           "visits": 1,
-          "instruction": "je     3ee44 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+          "instruction": "je     3f0f4 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
         }
       ]
     },
@@ -2387,404 +2417,414 @@
       "negative": true,
       "connections": 1,
       "trace": {
-        "instructions": 75,
-        "executable_instructions": 75,
+        "instructions": 77,
+        "executable_instructions": 77,
         "library_instructions": 0
       },
       "stage_loads": 2,
       "cache_loads": 1,
       "load_sites": [
         {
-          "address": "2d104",
+          "address": "2d3a5",
           "visits": 1,
           "instruction": "movzbl 0x14150(%rdx),%edx"
         },
         {
-          "address": "3ee7a",
+          "address": "3f12a",
           "visits": 1,
           "instruction": "movzbl 0x14150(%rax),%r12d"
         },
         {
-          "address": "2cdd4",
+          "address": "2d014",
           "visits": 1,
           "instruction": "mov    0x558(%rdi),%rdx"
         }
       ],
       "executed": [
         {
-          "address": "2cdd0",
+          "address": "2d010",
           "visits": 1,
           "instruction": "endbr64"
         },
         {
-          "address": "2cdd4",
+          "address": "2d014",
           "visits": 1,
           "instruction": "mov    0x558(%rdi),%rdx"
         },
         {
-          "address": "2cddb",
-          "visits": 1,
-          "instruction": "xor    %eax,%eax"
-        },
-        {
-          "address": "2cddd",
+          "address": "2d01b",
           "visits": 1,
           "instruction": "test   %rdx,%rdx"
         },
         {
-          "address": "2cde0",
+          "address": "2d01e",
           "visits": 1,
-          "instruction": "je     2cdf1 <lbplanner_parse_gate+0x21>"
+          "instruction": "je     2d039 <lbplanner_parse_gate+0x29>"
         },
         {
-          "address": "2cdf1",
+          "address": "2d039",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2d03b",
           "visits": 1,
           "instruction": "ret"
         },
         {
-          "address": "2d0d0",
+          "address": "2d360",
           "visits": 1,
           "instruction": "endbr64"
         },
         {
-          "address": "2d0d4",
+          "address": "2d364",
           "visits": 1,
           "instruction": "push   %rbp"
         },
         {
-          "address": "2d0d5",
+          "address": "2d365",
           "visits": 1,
           "instruction": "push   %rbx"
         },
         {
-          "address": "2d0d6",
+          "address": "2d366",
           "visits": 1,
           "instruction": "mov    %rdi,%rbp"
         },
         {
-          "address": "2d0d9",
+          "address": "2d369",
           "visits": 1,
           "instruction": "mov    %esi,%ebx"
         },
         {
-          "address": "2d0db",
+          "address": "2d36b",
           "visits": 1,
           "instruction": "sub    $0x8,%rsp"
         },
         {
-          "address": "2d0df",
+          "address": "2d36f",
           "visits": 1,
-          "instruction": "call   3ee10 <_ZN4tomo6IoLoop15lb_control_passEv>"
+          "instruction": "call   3f0c0 <_ZN4tomo6IoLoop15lb_control_passEv>"
         },
         {
-          "address": "2d0e4",
+          "address": "2d374",
           "visits": 1,
-          "instruction": "mov    %eax,%r8d"
+          "instruction": "mov    %eax,%r10d"
         },
         {
-          "address": "2d0e7",
+          "address": "2d377",
           "visits": 1,
           "instruction": "test   %ebx,%ebx"
         },
         {
-          "address": "2d0e9",
+          "address": "2d379",
           "visits": 1,
-          "instruction": "je     2d11a <lbplanner_io_pass_negative+0x4a>"
+          "instruction": "je     2d3bd <lbplanner_io_pass_negative+0x5d>"
         },
         {
-          "address": "2d0eb",
+          "address": "2d37b",
           "visits": 1,
-          "instruction": "mov    $0x1,%ecx"
+          "instruction": "mov    $0x1,%r9d"
         },
         {
-          "address": "2d0f0",
+          "address": "2d381",
           "visits": 1,
-          "instruction": "mov    %ecx,%esi"
+          "instruction": "data16 cs nopw 0x0(%rax,%rax,1)"
         },
         {
-          "address": "2d0f2",
+          "address": "2d38c",
+          "visits": 1,
+          "instruction": "nopl   0x0(%rax)"
+        },
+        {
+          "address": "2d390",
+          "visits": 1,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2d393",
           "visits": 1,
           "instruction": "mov    %rbp,%rdi"
         },
         {
-          "address": "2d0f5",
+          "address": "2d396",
           "visits": 1,
-          "instruction": "call   2cdd0 <lbplanner_parse_gate>"
+          "instruction": "call   2d010 <lbplanner_parse_gate>"
         },
         {
-          "address": "2d0fa",
+          "address": "2d39b",
           "visits": 1,
           "instruction": "mov    0x188(%rbp),%rdx"
         },
         {
-          "address": "2d101",
+          "address": "2d3a2",
           "visits": 1,
           "instruction": "movzbl %al,%eax"
         },
         {
-          "address": "2d104",
+          "address": "2d3a5",
           "visits": 1,
           "instruction": "movzbl 0x14150(%rdx),%edx"
         },
         {
-          "address": "2d10b",
+          "address": "2d3ac",
           "visits": 1,
           "instruction": "cmp    $0x1,%dl"
         },
         {
-          "address": "2d10e",
+          "address": "2d3af",
           "visits": 1,
           "instruction": "sbb    $0xffffffff,%eax"
         },
         {
-          "address": "2d111",
+          "address": "2d3b2",
           "visits": 1,
-          "instruction": "inc    %ecx"
+          "instruction": "inc    %r9d"
         },
         {
-          "address": "2d113",
+          "address": "2d3b5",
           "visits": 1,
-          "instruction": "add    %eax,%r8d"
+          "instruction": "add    %eax,%r10d"
         },
         {
-          "address": "2d116",
+          "address": "2d3b8",
           "visits": 1,
-          "instruction": "cmp    %ecx,%ebx"
+          "instruction": "cmp    %r9d,%ebx"
         },
         {
-          "address": "2d118",
+          "address": "2d3bb",
           "visits": 1,
-          "instruction": "jae    2d0f0 <lbplanner_io_pass_negative+0x20>"
+          "instruction": "jae    2d390 <lbplanner_io_pass_negative+0x30>"
         },
         {
-          "address": "2d11a",
+          "address": "2d3bd",
           "visits": 1,
           "instruction": "add    $0x8,%rsp"
         },
         {
-          "address": "2d11e",
+          "address": "2d3c1",
           "visits": 1,
-          "instruction": "mov    %r8d,%eax"
+          "instruction": "mov    %r10d,%eax"
         },
         {
-          "address": "2d121",
+          "address": "2d3c4",
           "visits": 1,
           "instruction": "pop    %rbx"
         },
         {
-          "address": "2d122",
+          "address": "2d3c5",
           "visits": 1,
           "instruction": "pop    %rbp"
         },
         {
-          "address": "2d123",
+          "address": "2d3c6",
           "visits": 1,
           "instruction": "ret"
         },
         {
-          "address": "3ee10",
+          "address": "3f0c0",
           "visits": 1,
           "instruction": "endbr64"
         },
         {
-          "address": "3ee14",
+          "address": "3f0c4",
           "visits": 1,
           "instruction": "push   %rbp"
         },
         {
-          "address": "3ee15",
+          "address": "3f0c5",
           "visits": 1,
           "instruction": "mov    %rsp,%rbp"
         },
         {
-          "address": "3ee18",
+          "address": "3f0c8",
           "visits": 1,
           "instruction": "push   %r15"
         },
         {
-          "address": "3ee1a",
+          "address": "3f0ca",
           "visits": 1,
           "instruction": "push   %r14"
         },
         {
-          "address": "3ee1c",
+          "address": "3f0cc",
           "visits": 1,
           "instruction": "push   %r13"
         },
         {
-          "address": "3ee1e",
+          "address": "3f0ce",
           "visits": 1,
           "instruction": "push   %r12"
         },
         {
-          "address": "3ee20",
+          "address": "3f0d0",
           "visits": 1,
           "instruction": "push   %rbx"
         },
         {
-          "address": "3ee21",
+          "address": "3f0d1",
           "visits": 1,
           "instruction": "sub    $0x258,%rsp"
         },
         {
-          "address": "3ee28",
+          "address": "3f0d8",
           "visits": 1,
           "instruction": "mov    %fs:0x28,%rax"
         },
         {
-          "address": "3ee31",
+          "address": "3f0e1",
           "visits": 1,
           "instruction": "mov    %rax,0x248(%rsp)"
         },
         {
-          "address": "3ee39",
+          "address": "3f0e9",
           "visits": 1,
           "instruction": "xor    %eax,%eax"
         },
         {
-          "address": "3ee3b",
+          "address": "3f0eb",
           "visits": 1,
           "instruction": "cmpb   $0x0,0x57e(%rdi)"
         },
         {
-          "address": "3ee42",
+          "address": "3f0f2",
           "visits": 1,
-          "instruction": "jne    3ee70 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+          "instruction": "jne    3f120 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
         },
         {
-          "address": "3ee44",
+          "address": "3f0f4",
           "visits": 1,
           "instruction": "xor    %eax,%eax"
         },
         {
-          "address": "3ee46",
+          "address": "3f0f6",
           "visits": 1,
           "instruction": "mov    0x248(%rsp),%rdx"
         },
         {
-          "address": "3ee4e",
+          "address": "3f0fe",
           "visits": 1,
           "instruction": "sub    %fs:0x28,%rdx"
         },
         {
-          "address": "3ee57",
+          "address": "3f107",
           "visits": 1,
-          "instruction": "jne    3f819 <_ZN4tomo6IoLoop15lb_control_passEv+0xa09>"
+          "instruction": "jne    3fac9 <_ZN4tomo6IoLoop15lb_control_passEv+0xa09>"
         },
         {
-          "address": "3ee5d",
+          "address": "3f10d",
           "visits": 1,
           "instruction": "add    $0x258,%rsp"
         },
         {
-          "address": "3ee64",
+          "address": "3f114",
           "visits": 1,
           "instruction": "pop    %rbx"
         },
         {
-          "address": "3ee65",
+          "address": "3f115",
           "visits": 1,
           "instruction": "pop    %r12"
         },
         {
-          "address": "3ee67",
+          "address": "3f117",
           "visits": 1,
           "instruction": "pop    %r13"
         },
         {
-          "address": "3ee69",
+          "address": "3f119",
           "visits": 1,
           "instruction": "pop    %r14"
         },
         {
-          "address": "3ee6b",
+          "address": "3f11b",
           "visits": 1,
           "instruction": "pop    %r15"
         },
         {
-          "address": "3ee6d",
+          "address": "3f11d",
           "visits": 1,
           "instruction": "pop    %rbp"
         },
         {
-          "address": "3ee6e",
+          "address": "3f11e",
           "visits": 1,
           "instruction": "ret"
         },
         {
-          "address": "3ee70",
+          "address": "3f120",
           "visits": 1,
           "instruction": "mov    0x188(%rdi),%rax"
         },
         {
-          "address": "3ee77",
+          "address": "3f127",
           "visits": 1,
           "instruction": "mov    %rdi,%rbx"
         },
         {
-          "address": "3ee7a",
+          "address": "3f12a",
           "visits": 1,
           "instruction": "movzbl 0x14150(%rax),%r12d"
         },
         {
-          "address": "3ee82",
+          "address": "3f132",
           "visits": 1,
           "instruction": "cmp    $0x4,%r12b"
         },
         {
-          "address": "3ee86",
+          "address": "3f136",
           "visits": 1,
-          "instruction": "je     3eed0 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
+          "instruction": "je     3f180 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
         },
         {
-          "address": "3ee88",
+          "address": "3f138",
           "visits": 1,
           "instruction": "cmp    $0x1,%r12b"
         },
         {
-          "address": "3ee8c",
+          "address": "3f13c",
           "visits": 1,
-          "instruction": "je     3eed0 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
+          "instruction": "je     3f180 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
         },
         {
-          "address": "3ee8e",
+          "address": "3f13e",
           "visits": 1,
           "instruction": "movq   $0x0,0x558(%rdi)"
         },
         {
-          "address": "3ee99",
+          "address": "3f149",
           "visits": 1,
           "instruction": "cmp    $0x5,%r12b"
         },
         {
-          "address": "3ee9d",
+          "address": "3f14d",
           "visits": 1,
-          "instruction": "jne    3efb0 <_ZN4tomo6IoLoop15lb_control_passEv+0x1a0>"
+          "instruction": "jne    3f260 <_ZN4tomo6IoLoop15lb_control_passEv+0x1a0>"
         },
         {
-          "address": "3efb0",
+          "address": "3f260",
           "visits": 1,
           "instruction": "cmp    $0x2,%r12b"
         },
         {
-          "address": "3efb4",
+          "address": "3f264",
           "visits": 1,
-          "instruction": "jne    3f020 <_ZN4tomo6IoLoop15lb_control_passEv+0x210>"
+          "instruction": "jne    3f2d0 <_ZN4tomo6IoLoop15lb_control_passEv+0x210>"
         },
         {
-          "address": "3f020",
+          "address": "3f2d0",
           "visits": 1,
           "instruction": "movb   $0x0,0x57f(%rdi)"
         },
         {
-          "address": "3f027",
+          "address": "3f2d7",
           "visits": 1,
           "instruction": "test   %r12b,%r12b"
         },
         {
-          "address": "3f02a",
+          "address": "3f2da",
           "visits": 1,
-          "instruction": "je     3ee44 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+          "instruction": "je     3f0f4 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
         }
       ]
     },
@@ -2793,404 +2833,414 @@
       "negative": true,
       "connections": 32,
       "trace": {
-        "instructions": 633,
-        "executable_instructions": 633,
+        "instructions": 635,
+        "executable_instructions": 635,
         "library_instructions": 0
       },
       "stage_loads": 33,
       "cache_loads": 32,
       "load_sites": [
         {
-          "address": "2d104",
+          "address": "2d3a5",
           "visits": 32,
           "instruction": "movzbl 0x14150(%rdx),%edx"
         },
         {
-          "address": "3ee7a",
+          "address": "3f12a",
           "visits": 1,
           "instruction": "movzbl 0x14150(%rax),%r12d"
         },
         {
-          "address": "2cdd4",
+          "address": "2d014",
           "visits": 32,
           "instruction": "mov    0x558(%rdi),%rdx"
         }
       ],
       "executed": [
         {
-          "address": "2cdd0",
+          "address": "2d010",
           "visits": 32,
           "instruction": "endbr64"
         },
         {
-          "address": "2cdd4",
+          "address": "2d014",
           "visits": 32,
           "instruction": "mov    0x558(%rdi),%rdx"
         },
         {
-          "address": "2cddb",
-          "visits": 32,
-          "instruction": "xor    %eax,%eax"
-        },
-        {
-          "address": "2cddd",
+          "address": "2d01b",
           "visits": 32,
           "instruction": "test   %rdx,%rdx"
         },
         {
-          "address": "2cde0",
+          "address": "2d01e",
           "visits": 32,
-          "instruction": "je     2cdf1 <lbplanner_parse_gate+0x21>"
+          "instruction": "je     2d039 <lbplanner_parse_gate+0x29>"
         },
         {
-          "address": "2cdf1",
+          "address": "2d039",
+          "visits": 32,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2d03b",
           "visits": 32,
           "instruction": "ret"
         },
         {
-          "address": "2d0d0",
+          "address": "2d360",
           "visits": 1,
           "instruction": "endbr64"
         },
         {
-          "address": "2d0d4",
+          "address": "2d364",
           "visits": 1,
           "instruction": "push   %rbp"
         },
         {
-          "address": "2d0d5",
+          "address": "2d365",
           "visits": 1,
           "instruction": "push   %rbx"
         },
         {
-          "address": "2d0d6",
+          "address": "2d366",
           "visits": 1,
           "instruction": "mov    %rdi,%rbp"
         },
         {
-          "address": "2d0d9",
+          "address": "2d369",
           "visits": 1,
           "instruction": "mov    %esi,%ebx"
         },
         {
-          "address": "2d0db",
+          "address": "2d36b",
           "visits": 1,
           "instruction": "sub    $0x8,%rsp"
         },
         {
-          "address": "2d0df",
+          "address": "2d36f",
           "visits": 1,
-          "instruction": "call   3ee10 <_ZN4tomo6IoLoop15lb_control_passEv>"
+          "instruction": "call   3f0c0 <_ZN4tomo6IoLoop15lb_control_passEv>"
         },
         {
-          "address": "2d0e4",
+          "address": "2d374",
           "visits": 1,
-          "instruction": "mov    %eax,%r8d"
+          "instruction": "mov    %eax,%r10d"
         },
         {
-          "address": "2d0e7",
+          "address": "2d377",
           "visits": 1,
           "instruction": "test   %ebx,%ebx"
         },
         {
-          "address": "2d0e9",
+          "address": "2d379",
           "visits": 1,
-          "instruction": "je     2d11a <lbplanner_io_pass_negative+0x4a>"
+          "instruction": "je     2d3bd <lbplanner_io_pass_negative+0x5d>"
         },
         {
-          "address": "2d0eb",
+          "address": "2d37b",
           "visits": 1,
-          "instruction": "mov    $0x1,%ecx"
+          "instruction": "mov    $0x1,%r9d"
         },
         {
-          "address": "2d0f0",
+          "address": "2d381",
+          "visits": 1,
+          "instruction": "data16 cs nopw 0x0(%rax,%rax,1)"
+        },
+        {
+          "address": "2d38c",
+          "visits": 1,
+          "instruction": "nopl   0x0(%rax)"
+        },
+        {
+          "address": "2d390",
           "visits": 32,
-          "instruction": "mov    %ecx,%esi"
+          "instruction": "mov    %r9d,%esi"
         },
         {
-          "address": "2d0f2",
+          "address": "2d393",
           "visits": 32,
           "instruction": "mov    %rbp,%rdi"
         },
         {
-          "address": "2d0f5",
+          "address": "2d396",
           "visits": 32,
-          "instruction": "call   2cdd0 <lbplanner_parse_gate>"
+          "instruction": "call   2d010 <lbplanner_parse_gate>"
         },
         {
-          "address": "2d0fa",
+          "address": "2d39b",
           "visits": 32,
           "instruction": "mov    0x188(%rbp),%rdx"
         },
         {
-          "address": "2d101",
+          "address": "2d3a2",
           "visits": 32,
           "instruction": "movzbl %al,%eax"
         },
         {
-          "address": "2d104",
+          "address": "2d3a5",
           "visits": 32,
           "instruction": "movzbl 0x14150(%rdx),%edx"
         },
         {
-          "address": "2d10b",
+          "address": "2d3ac",
           "visits": 32,
           "instruction": "cmp    $0x1,%dl"
         },
         {
-          "address": "2d10e",
+          "address": "2d3af",
           "visits": 32,
           "instruction": "sbb    $0xffffffff,%eax"
         },
         {
-          "address": "2d111",
+          "address": "2d3b2",
           "visits": 32,
-          "instruction": "inc    %ecx"
+          "instruction": "inc    %r9d"
         },
         {
-          "address": "2d113",
+          "address": "2d3b5",
           "visits": 32,
-          "instruction": "add    %eax,%r8d"
+          "instruction": "add    %eax,%r10d"
         },
         {
-          "address": "2d116",
+          "address": "2d3b8",
           "visits": 32,
-          "instruction": "cmp    %ecx,%ebx"
+          "instruction": "cmp    %r9d,%ebx"
         },
         {
-          "address": "2d118",
+          "address": "2d3bb",
           "visits": 32,
-          "instruction": "jae    2d0f0 <lbplanner_io_pass_negative+0x20>"
+          "instruction": "jae    2d390 <lbplanner_io_pass_negative+0x30>"
         },
         {
-          "address": "2d11a",
+          "address": "2d3bd",
           "visits": 1,
           "instruction": "add    $0x8,%rsp"
         },
         {
-          "address": "2d11e",
+          "address": "2d3c1",
           "visits": 1,
-          "instruction": "mov    %r8d,%eax"
+          "instruction": "mov    %r10d,%eax"
         },
         {
-          "address": "2d121",
+          "address": "2d3c4",
           "visits": 1,
           "instruction": "pop    %rbx"
         },
         {
-          "address": "2d122",
+          "address": "2d3c5",
           "visits": 1,
           "instruction": "pop    %rbp"
         },
         {
-          "address": "2d123",
+          "address": "2d3c6",
           "visits": 1,
           "instruction": "ret"
         },
         {
-          "address": "3ee10",
+          "address": "3f0c0",
           "visits": 1,
           "instruction": "endbr64"
         },
         {
-          "address": "3ee14",
+          "address": "3f0c4",
           "visits": 1,
           "instruction": "push   %rbp"
         },
         {
-          "address": "3ee15",
+          "address": "3f0c5",
           "visits": 1,
           "instruction": "mov    %rsp,%rbp"
         },
         {
-          "address": "3ee18",
+          "address": "3f0c8",
           "visits": 1,
           "instruction": "push   %r15"
         },
         {
-          "address": "3ee1a",
+          "address": "3f0ca",
           "visits": 1,
           "instruction": "push   %r14"
         },
         {
-          "address": "3ee1c",
+          "address": "3f0cc",
           "visits": 1,
           "instruction": "push   %r13"
         },
         {
-          "address": "3ee1e",
+          "address": "3f0ce",
           "visits": 1,
           "instruction": "push   %r12"
         },
         {
-          "address": "3ee20",
+          "address": "3f0d0",
           "visits": 1,
           "instruction": "push   %rbx"
         },
         {
-          "address": "3ee21",
+          "address": "3f0d1",
           "visits": 1,
           "instruction": "sub    $0x258,%rsp"
         },
         {
-          "address": "3ee28",
+          "address": "3f0d8",
           "visits": 1,
           "instruction": "mov    %fs:0x28,%rax"
         },
         {
-          "address": "3ee31",
+          "address": "3f0e1",
           "visits": 1,
           "instruction": "mov    %rax,0x248(%rsp)"
         },
         {
-          "address": "3ee39",
+          "address": "3f0e9",
           "visits": 1,
           "instruction": "xor    %eax,%eax"
         },
         {
-          "address": "3ee3b",
+          "address": "3f0eb",
           "visits": 1,
           "instruction": "cmpb   $0x0,0x57e(%rdi)"
         },
         {
-          "address": "3ee42",
+          "address": "3f0f2",
           "visits": 1,
-          "instruction": "jne    3ee70 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+          "instruction": "jne    3f120 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
         },
         {
-          "address": "3ee44",
+          "address": "3f0f4",
           "visits": 1,
           "instruction": "xor    %eax,%eax"
         },
         {
-          "address": "3ee46",
+          "address": "3f0f6",
           "visits": 1,
           "instruction": "mov    0x248(%rsp),%rdx"
         },
         {
-          "address": "3ee4e",
+          "address": "3f0fe",
           "visits": 1,
           "instruction": "sub    %fs:0x28,%rdx"
         },
         {
-          "address": "3ee57",
+          "address": "3f107",
           "visits": 1,
-          "instruction": "jne    3f819 <_ZN4tomo6IoLoop15lb_control_passEv+0xa09>"
+          "instruction": "jne    3fac9 <_ZN4tomo6IoLoop15lb_control_passEv+0xa09>"
         },
         {
-          "address": "3ee5d",
+          "address": "3f10d",
           "visits": 1,
           "instruction": "add    $0x258,%rsp"
         },
         {
-          "address": "3ee64",
+          "address": "3f114",
           "visits": 1,
           "instruction": "pop    %rbx"
         },
         {
-          "address": "3ee65",
+          "address": "3f115",
           "visits": 1,
           "instruction": "pop    %r12"
         },
         {
-          "address": "3ee67",
+          "address": "3f117",
           "visits": 1,
           "instruction": "pop    %r13"
         },
         {
-          "address": "3ee69",
+          "address": "3f119",
           "visits": 1,
           "instruction": "pop    %r14"
         },
         {
-          "address": "3ee6b",
+          "address": "3f11b",
           "visits": 1,
           "instruction": "pop    %r15"
         },
         {
-          "address": "3ee6d",
+          "address": "3f11d",
           "visits": 1,
           "instruction": "pop    %rbp"
         },
         {
-          "address": "3ee6e",
+          "address": "3f11e",
           "visits": 1,
           "instruction": "ret"
         },
         {
-          "address": "3ee70",
+          "address": "3f120",
           "visits": 1,
           "instruction": "mov    0x188(%rdi),%rax"
         },
         {
-          "address": "3ee77",
+          "address": "3f127",
           "visits": 1,
           "instruction": "mov    %rdi,%rbx"
         },
         {
-          "address": "3ee7a",
+          "address": "3f12a",
           "visits": 1,
           "instruction": "movzbl 0x14150(%rax),%r12d"
         },
         {
-          "address": "3ee82",
+          "address": "3f132",
           "visits": 1,
           "instruction": "cmp    $0x4,%r12b"
         },
         {
-          "address": "3ee86",
+          "address": "3f136",
           "visits": 1,
-          "instruction": "je     3eed0 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
+          "instruction": "je     3f180 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
         },
         {
-          "address": "3ee88",
+          "address": "3f138",
           "visits": 1,
           "instruction": "cmp    $0x1,%r12b"
         },
         {
-          "address": "3ee8c",
+          "address": "3f13c",
           "visits": 1,
-          "instruction": "je     3eed0 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
+          "instruction": "je     3f180 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
         },
         {
-          "address": "3ee8e",
+          "address": "3f13e",
           "visits": 1,
           "instruction": "movq   $0x0,0x558(%rdi)"
         },
         {
-          "address": "3ee99",
+          "address": "3f149",
           "visits": 1,
           "instruction": "cmp    $0x5,%r12b"
         },
         {
-          "address": "3ee9d",
+          "address": "3f14d",
           "visits": 1,
-          "instruction": "jne    3efb0 <_ZN4tomo6IoLoop15lb_control_passEv+0x1a0>"
+          "instruction": "jne    3f260 <_ZN4tomo6IoLoop15lb_control_passEv+0x1a0>"
         },
         {
-          "address": "3efb0",
+          "address": "3f260",
           "visits": 1,
           "instruction": "cmp    $0x2,%r12b"
         },
         {
-          "address": "3efb4",
+          "address": "3f264",
           "visits": 1,
-          "instruction": "jne    3f020 <_ZN4tomo6IoLoop15lb_control_passEv+0x210>"
+          "instruction": "jne    3f2d0 <_ZN4tomo6IoLoop15lb_control_passEv+0x210>"
         },
         {
-          "address": "3f020",
+          "address": "3f2d0",
           "visits": 1,
           "instruction": "movb   $0x0,0x57f(%rdi)"
         },
         {
-          "address": "3f027",
+          "address": "3f2d7",
           "visits": 1,
           "instruction": "test   %r12b,%r12b"
         },
         {
-          "address": "3f02a",
+          "address": "3f2da",
           "visits": 1,
-          "instruction": "je     3ee44 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+          "instruction": "je     3f0f4 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
         }
       ]
     },
@@ -3199,404 +3249,1797 @@
       "negative": true,
       "connections": 4096,
       "trace": {
-        "instructions": 73785,
-        "executable_instructions": 73785,
+        "instructions": 73787,
+        "executable_instructions": 73787,
         "library_instructions": 0
       },
       "stage_loads": 4097,
       "cache_loads": 4096,
       "load_sites": [
         {
-          "address": "2d104",
+          "address": "2d3a5",
           "visits": 4096,
           "instruction": "movzbl 0x14150(%rdx),%edx"
         },
         {
-          "address": "3ee7a",
+          "address": "3f12a",
           "visits": 1,
           "instruction": "movzbl 0x14150(%rax),%r12d"
         },
         {
-          "address": "2cdd4",
+          "address": "2d014",
           "visits": 4096,
           "instruction": "mov    0x558(%rdi),%rdx"
         }
       ],
       "executed": [
         {
-          "address": "2cdd0",
+          "address": "2d010",
           "visits": 4096,
           "instruction": "endbr64"
         },
         {
-          "address": "2cdd4",
+          "address": "2d014",
           "visits": 4096,
           "instruction": "mov    0x558(%rdi),%rdx"
         },
         {
-          "address": "2cddb",
-          "visits": 4096,
-          "instruction": "xor    %eax,%eax"
-        },
-        {
-          "address": "2cddd",
+          "address": "2d01b",
           "visits": 4096,
           "instruction": "test   %rdx,%rdx"
         },
         {
-          "address": "2cde0",
+          "address": "2d01e",
           "visits": 4096,
-          "instruction": "je     2cdf1 <lbplanner_parse_gate+0x21>"
+          "instruction": "je     2d039 <lbplanner_parse_gate+0x29>"
         },
         {
-          "address": "2cdf1",
+          "address": "2d039",
+          "visits": 4096,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2d03b",
           "visits": 4096,
           "instruction": "ret"
         },
         {
-          "address": "2d0d0",
+          "address": "2d360",
           "visits": 1,
           "instruction": "endbr64"
         },
         {
-          "address": "2d0d4",
+          "address": "2d364",
           "visits": 1,
           "instruction": "push   %rbp"
         },
         {
-          "address": "2d0d5",
+          "address": "2d365",
           "visits": 1,
           "instruction": "push   %rbx"
         },
         {
-          "address": "2d0d6",
+          "address": "2d366",
           "visits": 1,
           "instruction": "mov    %rdi,%rbp"
         },
         {
-          "address": "2d0d9",
+          "address": "2d369",
           "visits": 1,
           "instruction": "mov    %esi,%ebx"
         },
         {
-          "address": "2d0db",
+          "address": "2d36b",
           "visits": 1,
           "instruction": "sub    $0x8,%rsp"
         },
         {
-          "address": "2d0df",
+          "address": "2d36f",
           "visits": 1,
-          "instruction": "call   3ee10 <_ZN4tomo6IoLoop15lb_control_passEv>"
+          "instruction": "call   3f0c0 <_ZN4tomo6IoLoop15lb_control_passEv>"
         },
         {
-          "address": "2d0e4",
+          "address": "2d374",
           "visits": 1,
-          "instruction": "mov    %eax,%r8d"
+          "instruction": "mov    %eax,%r10d"
         },
         {
-          "address": "2d0e7",
+          "address": "2d377",
           "visits": 1,
           "instruction": "test   %ebx,%ebx"
         },
         {
-          "address": "2d0e9",
+          "address": "2d379",
           "visits": 1,
-          "instruction": "je     2d11a <lbplanner_io_pass_negative+0x4a>"
+          "instruction": "je     2d3bd <lbplanner_io_pass_negative+0x5d>"
         },
         {
-          "address": "2d0eb",
+          "address": "2d37b",
           "visits": 1,
-          "instruction": "mov    $0x1,%ecx"
+          "instruction": "mov    $0x1,%r9d"
         },
         {
-          "address": "2d0f0",
+          "address": "2d381",
+          "visits": 1,
+          "instruction": "data16 cs nopw 0x0(%rax,%rax,1)"
+        },
+        {
+          "address": "2d38c",
+          "visits": 1,
+          "instruction": "nopl   0x0(%rax)"
+        },
+        {
+          "address": "2d390",
           "visits": 4096,
-          "instruction": "mov    %ecx,%esi"
+          "instruction": "mov    %r9d,%esi"
         },
         {
-          "address": "2d0f2",
+          "address": "2d393",
           "visits": 4096,
           "instruction": "mov    %rbp,%rdi"
         },
         {
-          "address": "2d0f5",
+          "address": "2d396",
           "visits": 4096,
-          "instruction": "call   2cdd0 <lbplanner_parse_gate>"
+          "instruction": "call   2d010 <lbplanner_parse_gate>"
         },
         {
-          "address": "2d0fa",
+          "address": "2d39b",
           "visits": 4096,
           "instruction": "mov    0x188(%rbp),%rdx"
         },
         {
-          "address": "2d101",
+          "address": "2d3a2",
           "visits": 4096,
           "instruction": "movzbl %al,%eax"
         },
         {
-          "address": "2d104",
+          "address": "2d3a5",
           "visits": 4096,
           "instruction": "movzbl 0x14150(%rdx),%edx"
         },
         {
-          "address": "2d10b",
+          "address": "2d3ac",
           "visits": 4096,
           "instruction": "cmp    $0x1,%dl"
         },
         {
-          "address": "2d10e",
+          "address": "2d3af",
           "visits": 4096,
           "instruction": "sbb    $0xffffffff,%eax"
         },
         {
-          "address": "2d111",
+          "address": "2d3b2",
           "visits": 4096,
-          "instruction": "inc    %ecx"
+          "instruction": "inc    %r9d"
         },
         {
-          "address": "2d113",
+          "address": "2d3b5",
           "visits": 4096,
-          "instruction": "add    %eax,%r8d"
+          "instruction": "add    %eax,%r10d"
         },
         {
-          "address": "2d116",
+          "address": "2d3b8",
           "visits": 4096,
-          "instruction": "cmp    %ecx,%ebx"
+          "instruction": "cmp    %r9d,%ebx"
         },
         {
-          "address": "2d118",
+          "address": "2d3bb",
           "visits": 4096,
-          "instruction": "jae    2d0f0 <lbplanner_io_pass_negative+0x20>"
+          "instruction": "jae    2d390 <lbplanner_io_pass_negative+0x30>"
         },
         {
-          "address": "2d11a",
+          "address": "2d3bd",
           "visits": 1,
           "instruction": "add    $0x8,%rsp"
         },
         {
-          "address": "2d11e",
+          "address": "2d3c1",
           "visits": 1,
-          "instruction": "mov    %r8d,%eax"
+          "instruction": "mov    %r10d,%eax"
         },
         {
-          "address": "2d121",
+          "address": "2d3c4",
           "visits": 1,
           "instruction": "pop    %rbx"
         },
         {
-          "address": "2d122",
+          "address": "2d3c5",
           "visits": 1,
           "instruction": "pop    %rbp"
         },
         {
-          "address": "2d123",
+          "address": "2d3c6",
           "visits": 1,
           "instruction": "ret"
         },
         {
-          "address": "3ee10",
+          "address": "3f0c0",
           "visits": 1,
           "instruction": "endbr64"
         },
         {
-          "address": "3ee14",
+          "address": "3f0c4",
           "visits": 1,
           "instruction": "push   %rbp"
         },
         {
-          "address": "3ee15",
+          "address": "3f0c5",
           "visits": 1,
           "instruction": "mov    %rsp,%rbp"
         },
         {
-          "address": "3ee18",
+          "address": "3f0c8",
           "visits": 1,
           "instruction": "push   %r15"
         },
         {
-          "address": "3ee1a",
+          "address": "3f0ca",
           "visits": 1,
           "instruction": "push   %r14"
         },
         {
-          "address": "3ee1c",
+          "address": "3f0cc",
           "visits": 1,
           "instruction": "push   %r13"
         },
         {
-          "address": "3ee1e",
+          "address": "3f0ce",
           "visits": 1,
           "instruction": "push   %r12"
         },
         {
-          "address": "3ee20",
+          "address": "3f0d0",
           "visits": 1,
           "instruction": "push   %rbx"
         },
         {
-          "address": "3ee21",
+          "address": "3f0d1",
           "visits": 1,
           "instruction": "sub    $0x258,%rsp"
         },
         {
-          "address": "3ee28",
+          "address": "3f0d8",
           "visits": 1,
           "instruction": "mov    %fs:0x28,%rax"
         },
         {
-          "address": "3ee31",
+          "address": "3f0e1",
           "visits": 1,
           "instruction": "mov    %rax,0x248(%rsp)"
         },
         {
-          "address": "3ee39",
+          "address": "3f0e9",
           "visits": 1,
           "instruction": "xor    %eax,%eax"
         },
         {
-          "address": "3ee3b",
+          "address": "3f0eb",
           "visits": 1,
           "instruction": "cmpb   $0x0,0x57e(%rdi)"
         },
         {
-          "address": "3ee42",
+          "address": "3f0f2",
           "visits": 1,
-          "instruction": "jne    3ee70 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+          "instruction": "jne    3f120 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
         },
         {
-          "address": "3ee44",
+          "address": "3f0f4",
           "visits": 1,
           "instruction": "xor    %eax,%eax"
         },
         {
-          "address": "3ee46",
+          "address": "3f0f6",
           "visits": 1,
           "instruction": "mov    0x248(%rsp),%rdx"
         },
         {
-          "address": "3ee4e",
+          "address": "3f0fe",
           "visits": 1,
           "instruction": "sub    %fs:0x28,%rdx"
         },
         {
-          "address": "3ee57",
+          "address": "3f107",
           "visits": 1,
-          "instruction": "jne    3f819 <_ZN4tomo6IoLoop15lb_control_passEv+0xa09>"
+          "instruction": "jne    3fac9 <_ZN4tomo6IoLoop15lb_control_passEv+0xa09>"
         },
         {
-          "address": "3ee5d",
+          "address": "3f10d",
           "visits": 1,
           "instruction": "add    $0x258,%rsp"
         },
         {
-          "address": "3ee64",
+          "address": "3f114",
           "visits": 1,
           "instruction": "pop    %rbx"
         },
         {
-          "address": "3ee65",
+          "address": "3f115",
           "visits": 1,
           "instruction": "pop    %r12"
         },
         {
-          "address": "3ee67",
+          "address": "3f117",
           "visits": 1,
           "instruction": "pop    %r13"
         },
         {
-          "address": "3ee69",
+          "address": "3f119",
           "visits": 1,
           "instruction": "pop    %r14"
         },
         {
-          "address": "3ee6b",
+          "address": "3f11b",
           "visits": 1,
           "instruction": "pop    %r15"
         },
         {
-          "address": "3ee6d",
+          "address": "3f11d",
           "visits": 1,
           "instruction": "pop    %rbp"
         },
         {
-          "address": "3ee6e",
+          "address": "3f11e",
           "visits": 1,
           "instruction": "ret"
         },
         {
-          "address": "3ee70",
+          "address": "3f120",
           "visits": 1,
           "instruction": "mov    0x188(%rdi),%rax"
         },
         {
-          "address": "3ee77",
+          "address": "3f127",
           "visits": 1,
           "instruction": "mov    %rdi,%rbx"
         },
         {
-          "address": "3ee7a",
+          "address": "3f12a",
           "visits": 1,
           "instruction": "movzbl 0x14150(%rax),%r12d"
         },
         {
-          "address": "3ee82",
+          "address": "3f132",
           "visits": 1,
           "instruction": "cmp    $0x4,%r12b"
         },
         {
-          "address": "3ee86",
+          "address": "3f136",
           "visits": 1,
-          "instruction": "je     3eed0 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
+          "instruction": "je     3f180 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
         },
         {
-          "address": "3ee88",
+          "address": "3f138",
           "visits": 1,
           "instruction": "cmp    $0x1,%r12b"
         },
         {
-          "address": "3ee8c",
+          "address": "3f13c",
           "visits": 1,
-          "instruction": "je     3eed0 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
+          "instruction": "je     3f180 <_ZN4tomo6IoLoop15lb_control_passEv+0xc0>"
         },
         {
-          "address": "3ee8e",
+          "address": "3f13e",
           "visits": 1,
           "instruction": "movq   $0x0,0x558(%rdi)"
         },
         {
-          "address": "3ee99",
+          "address": "3f149",
           "visits": 1,
           "instruction": "cmp    $0x5,%r12b"
         },
         {
-          "address": "3ee9d",
+          "address": "3f14d",
           "visits": 1,
-          "instruction": "jne    3efb0 <_ZN4tomo6IoLoop15lb_control_passEv+0x1a0>"
+          "instruction": "jne    3f260 <_ZN4tomo6IoLoop15lb_control_passEv+0x1a0>"
         },
         {
-          "address": "3efb0",
+          "address": "3f260",
           "visits": 1,
           "instruction": "cmp    $0x2,%r12b"
         },
         {
-          "address": "3efb4",
+          "address": "3f264",
           "visits": 1,
-          "instruction": "jne    3f020 <_ZN4tomo6IoLoop15lb_control_passEv+0x210>"
+          "instruction": "jne    3f2d0 <_ZN4tomo6IoLoop15lb_control_passEv+0x210>"
         },
         {
-          "address": "3f020",
+          "address": "3f2d0",
           "visits": 1,
           "instruction": "movb   $0x0,0x57f(%rdi)"
         },
         {
-          "address": "3f027",
+          "address": "3f2d7",
           "visits": 1,
           "instruction": "test   %r12b,%r12b"
         },
         {
-          "address": "3f02a",
+          "address": "3f2da",
           "visits": 1,
-          "instruction": "je     3ee44 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+          "instruction": "je     3f0f4 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+        }
+      ]
+    },
+    {
+      "arm": "PAD-A",
+      "negative": false,
+      "connections": 1,
+      "trace": {
+        "instructions": 87,
+        "executable_instructions": 87,
+        "library_instructions": 0
+      },
+      "stage_loads": 2,
+      "cache_loads": 0,
+      "load_sites": [
+        {
+          "address": "2d050",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "348c0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r13d"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2d010",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2d014",
+          "visits": 1,
+          "instruction": "jmp    2d030 <lbplanner_parse_gate+0x20>"
+        },
+        {
+          "address": "2d030",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "2d037",
+          "visits": 1,
+          "instruction": "jne    2d040 <lbplanner_parse_gate+0x30>"
+        },
+        {
+          "address": "2d039",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2d03b",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "2d040",
+          "visits": 1,
+          "instruction": "mov    0x190(%rdi),%rax"
+        },
+        {
+          "address": "2d047",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%r8"
+        },
+        {
+          "address": "2d04e",
+          "visits": 1,
+          "instruction": "mov    (%rax),%edi"
+        },
+        {
+          "address": "2d050",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "2d058",
+          "visits": 1,
+          "instruction": "cmp    $0x4,%dl"
+        },
+        {
+          "address": "2d05b",
+          "visits": 1,
+          "instruction": "sete   %al"
+        },
+        {
+          "address": "2d05e",
+          "visits": 1,
+          "instruction": "cmp    $0x1,%dl"
+        },
+        {
+          "address": "2d061",
+          "visits": 1,
+          "instruction": "sete   %cl"
+        },
+        {
+          "address": "2d064",
+          "visits": 1,
+          "instruction": "or     %cl,%al"
+        },
+        {
+          "address": "2d066",
+          "visits": 1,
+          "instruction": "jne    2d080 <lbplanner_parse_gate+0x70>"
+        },
+        {
+          "address": "2d068",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%dl"
+        },
+        {
+          "address": "2d06b",
+          "visits": 1,
+          "instruction": "jne    2d039 <lbplanner_parse_gate+0x29>"
+        },
+        {
+          "address": "2d3d0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2d3d4",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "2d3d5",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2d3d6",
+          "visits": 1,
+          "instruction": "mov    %esi,%ebp"
+        },
+        {
+          "address": "2d3d8",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "2d3db",
+          "visits": 1,
+          "instruction": "sub    $0x8,%rsp"
+        },
+        {
+          "address": "2d3df",
+          "visits": 1,
+          "instruction": "call   348b90 <_ZN4tomo6IoLoop19lb_control_pass_padEv>"
+        },
+        {
+          "address": "2d3e4",
+          "visits": 1,
+          "instruction": "mov    %eax,%r10d"
+        },
+        {
+          "address": "2d3e7",
+          "visits": 1,
+          "instruction": "test   %ebp,%ebp"
+        },
+        {
+          "address": "2d3e9",
+          "visits": 1,
+          "instruction": "je     2d419 <lbplanner_io_pass+0x49>"
+        },
+        {
+          "address": "2d3eb",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2d3f1",
+          "visits": 1,
+          "instruction": "data16 cs nopw 0x0(%rax,%rax,1)"
+        },
+        {
+          "address": "2d3fc",
+          "visits": 1,
+          "instruction": "nopl   0x0(%rax)"
+        },
+        {
+          "address": "2d400",
+          "visits": 1,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2d403",
+          "visits": 1,
+          "instruction": "mov    %rbx,%rdi"
+        },
+        {
+          "address": "2d406",
+          "visits": 1,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2d409",
+          "visits": 1,
+          "instruction": "call   2d010 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2d40e",
+          "visits": 1,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2d411",
+          "visits": 1,
+          "instruction": "add    %eax,%r10d"
+        },
+        {
+          "address": "2d414",
+          "visits": 1,
+          "instruction": "cmp    %r9d,%ebp"
+        },
+        {
+          "address": "2d417",
+          "visits": 1,
+          "instruction": "jae    2d400 <lbplanner_io_pass+0x30>"
+        },
+        {
+          "address": "2d419",
+          "visits": 1,
+          "instruction": "add    $0x8,%rsp"
+        },
+        {
+          "address": "2d41d",
+          "visits": 1,
+          "instruction": "mov    %r10d,%eax"
+        },
+        {
+          "address": "2d420",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2d421",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "2d422",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "348b90",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "348b94",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "348b95",
+          "visits": 1,
+          "instruction": "mov    %rsp,%rbp"
+        },
+        {
+          "address": "348b98",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "348b9a",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "348b9c",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "348b9e",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "348ba0",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "348ba1",
+          "visits": 1,
+          "instruction": "xor    %r12d,%r12d"
+        },
+        {
+          "address": "348ba4",
+          "visits": 1,
+          "instruction": "sub    $0x278,%rsp"
+        },
+        {
+          "address": "348bab",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "348bb4",
+          "visits": 1,
+          "instruction": "mov    %rax,0x268(%rsp)"
+        },
+        {
+          "address": "348bbc",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "348bbe",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "348bc5",
+          "visits": 1,
+          "instruction": "jne    348c00 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x70>"
+        },
+        {
+          "address": "348bc7",
+          "visits": 1,
+          "instruction": "mov    0x268(%rsp),%rax"
+        },
+        {
+          "address": "348bcf",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rax"
+        },
+        {
+          "address": "348bd8",
+          "visits": 1,
+          "instruction": "jne    349baa <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x101a>"
+        },
+        {
+          "address": "348bde",
+          "visits": 1,
+          "instruction": "add    $0x278,%rsp"
+        },
+        {
+          "address": "348be5",
+          "visits": 1,
+          "instruction": "mov    %r12d,%eax"
+        },
+        {
+          "address": "348be8",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "348be9",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "348beb",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "348bed",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "348bef",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "348bf1",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "348bf2",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "348c00",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "348c07",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "348c0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r13d"
+        },
+        {
+          "address": "348c12",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r13b"
+        },
+        {
+          "address": "348c16",
+          "visits": 1,
+          "instruction": "je     348da0 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x210>"
+        },
+        {
+          "address": "348c1c",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "348c23",
+          "visits": 1,
+          "instruction": "test   %r13b,%r13b"
+        },
+        {
+          "address": "348c26",
+          "visits": 1,
+          "instruction": "je     348d80 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x1f0>"
+        },
+        {
+          "address": "348c9d",
+          "visits": 1,
+          "instruction": "mov    0x570(%rbx),%rax"
+        },
+        {
+          "address": "348ca4",
+          "visits": 1,
+          "instruction": "cmp    0x558(%rbx),%rax"
+        },
+        {
+          "address": "348cab",
+          "visits": 1,
+          "instruction": "jb     348bc7 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x37>"
+        },
+        {
+          "address": "348d80",
+          "visits": 1,
+          "instruction": "movzbl 0x57e(%rbx),%eax"
+        },
+        {
+          "address": "348d87",
+          "visits": 1,
+          "instruction": "xor    %r12d,%r12d"
+        },
+        {
+          "address": "348d8a",
+          "visits": 1,
+          "instruction": "test   %al,%al"
+        },
+        {
+          "address": "348d8c",
+          "visits": 1,
+          "instruction": "je     348bc7 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x37>"
+        },
+        {
+          "address": "348d92",
+          "visits": 1,
+          "instruction": "jmp    348c9d <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x10d>"
+        }
+      ]
+    },
+    {
+      "arm": "PAD-A",
+      "negative": false,
+      "connections": 32,
+      "trace": {
+        "instructions": 893,
+        "executable_instructions": 893,
+        "library_instructions": 0
+      },
+      "stage_loads": 33,
+      "cache_loads": 0,
+      "load_sites": [
+        {
+          "address": "2d050",
+          "visits": 32,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "348c0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r13d"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2d010",
+          "visits": 32,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2d014",
+          "visits": 32,
+          "instruction": "jmp    2d030 <lbplanner_parse_gate+0x20>"
+        },
+        {
+          "address": "2d030",
+          "visits": 32,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "2d037",
+          "visits": 32,
+          "instruction": "jne    2d040 <lbplanner_parse_gate+0x30>"
+        },
+        {
+          "address": "2d039",
+          "visits": 32,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2d03b",
+          "visits": 32,
+          "instruction": "ret"
+        },
+        {
+          "address": "2d040",
+          "visits": 32,
+          "instruction": "mov    0x190(%rdi),%rax"
+        },
+        {
+          "address": "2d047",
+          "visits": 32,
+          "instruction": "mov    0x188(%rdi),%r8"
+        },
+        {
+          "address": "2d04e",
+          "visits": 32,
+          "instruction": "mov    (%rax),%edi"
+        },
+        {
+          "address": "2d050",
+          "visits": 32,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "2d058",
+          "visits": 32,
+          "instruction": "cmp    $0x4,%dl"
+        },
+        {
+          "address": "2d05b",
+          "visits": 32,
+          "instruction": "sete   %al"
+        },
+        {
+          "address": "2d05e",
+          "visits": 32,
+          "instruction": "cmp    $0x1,%dl"
+        },
+        {
+          "address": "2d061",
+          "visits": 32,
+          "instruction": "sete   %cl"
+        },
+        {
+          "address": "2d064",
+          "visits": 32,
+          "instruction": "or     %cl,%al"
+        },
+        {
+          "address": "2d066",
+          "visits": 32,
+          "instruction": "jne    2d080 <lbplanner_parse_gate+0x70>"
+        },
+        {
+          "address": "2d068",
+          "visits": 32,
+          "instruction": "cmp    $0x2,%dl"
+        },
+        {
+          "address": "2d06b",
+          "visits": 32,
+          "instruction": "jne    2d039 <lbplanner_parse_gate+0x29>"
+        },
+        {
+          "address": "2d3d0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2d3d4",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "2d3d5",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2d3d6",
+          "visits": 1,
+          "instruction": "mov    %esi,%ebp"
+        },
+        {
+          "address": "2d3d8",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "2d3db",
+          "visits": 1,
+          "instruction": "sub    $0x8,%rsp"
+        },
+        {
+          "address": "2d3df",
+          "visits": 1,
+          "instruction": "call   348b90 <_ZN4tomo6IoLoop19lb_control_pass_padEv>"
+        },
+        {
+          "address": "2d3e4",
+          "visits": 1,
+          "instruction": "mov    %eax,%r10d"
+        },
+        {
+          "address": "2d3e7",
+          "visits": 1,
+          "instruction": "test   %ebp,%ebp"
+        },
+        {
+          "address": "2d3e9",
+          "visits": 1,
+          "instruction": "je     2d419 <lbplanner_io_pass+0x49>"
+        },
+        {
+          "address": "2d3eb",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2d3f1",
+          "visits": 1,
+          "instruction": "data16 cs nopw 0x0(%rax,%rax,1)"
+        },
+        {
+          "address": "2d3fc",
+          "visits": 1,
+          "instruction": "nopl   0x0(%rax)"
+        },
+        {
+          "address": "2d400",
+          "visits": 32,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2d403",
+          "visits": 32,
+          "instruction": "mov    %rbx,%rdi"
+        },
+        {
+          "address": "2d406",
+          "visits": 32,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2d409",
+          "visits": 32,
+          "instruction": "call   2d010 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2d40e",
+          "visits": 32,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2d411",
+          "visits": 32,
+          "instruction": "add    %eax,%r10d"
+        },
+        {
+          "address": "2d414",
+          "visits": 32,
+          "instruction": "cmp    %r9d,%ebp"
+        },
+        {
+          "address": "2d417",
+          "visits": 32,
+          "instruction": "jae    2d400 <lbplanner_io_pass+0x30>"
+        },
+        {
+          "address": "2d419",
+          "visits": 1,
+          "instruction": "add    $0x8,%rsp"
+        },
+        {
+          "address": "2d41d",
+          "visits": 1,
+          "instruction": "mov    %r10d,%eax"
+        },
+        {
+          "address": "2d420",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2d421",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "2d422",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "348b90",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "348b94",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "348b95",
+          "visits": 1,
+          "instruction": "mov    %rsp,%rbp"
+        },
+        {
+          "address": "348b98",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "348b9a",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "348b9c",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "348b9e",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "348ba0",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "348ba1",
+          "visits": 1,
+          "instruction": "xor    %r12d,%r12d"
+        },
+        {
+          "address": "348ba4",
+          "visits": 1,
+          "instruction": "sub    $0x278,%rsp"
+        },
+        {
+          "address": "348bab",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "348bb4",
+          "visits": 1,
+          "instruction": "mov    %rax,0x268(%rsp)"
+        },
+        {
+          "address": "348bbc",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "348bbe",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "348bc5",
+          "visits": 1,
+          "instruction": "jne    348c00 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x70>"
+        },
+        {
+          "address": "348bc7",
+          "visits": 1,
+          "instruction": "mov    0x268(%rsp),%rax"
+        },
+        {
+          "address": "348bcf",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rax"
+        },
+        {
+          "address": "348bd8",
+          "visits": 1,
+          "instruction": "jne    349baa <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x101a>"
+        },
+        {
+          "address": "348bde",
+          "visits": 1,
+          "instruction": "add    $0x278,%rsp"
+        },
+        {
+          "address": "348be5",
+          "visits": 1,
+          "instruction": "mov    %r12d,%eax"
+        },
+        {
+          "address": "348be8",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "348be9",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "348beb",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "348bed",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "348bef",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "348bf1",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "348bf2",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "348c00",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "348c07",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "348c0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r13d"
+        },
+        {
+          "address": "348c12",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r13b"
+        },
+        {
+          "address": "348c16",
+          "visits": 1,
+          "instruction": "je     348da0 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x210>"
+        },
+        {
+          "address": "348c1c",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "348c23",
+          "visits": 1,
+          "instruction": "test   %r13b,%r13b"
+        },
+        {
+          "address": "348c26",
+          "visits": 1,
+          "instruction": "je     348d80 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x1f0>"
+        },
+        {
+          "address": "348c9d",
+          "visits": 1,
+          "instruction": "mov    0x570(%rbx),%rax"
+        },
+        {
+          "address": "348ca4",
+          "visits": 1,
+          "instruction": "cmp    0x558(%rbx),%rax"
+        },
+        {
+          "address": "348cab",
+          "visits": 1,
+          "instruction": "jb     348bc7 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x37>"
+        },
+        {
+          "address": "348d80",
+          "visits": 1,
+          "instruction": "movzbl 0x57e(%rbx),%eax"
+        },
+        {
+          "address": "348d87",
+          "visits": 1,
+          "instruction": "xor    %r12d,%r12d"
+        },
+        {
+          "address": "348d8a",
+          "visits": 1,
+          "instruction": "test   %al,%al"
+        },
+        {
+          "address": "348d8c",
+          "visits": 1,
+          "instruction": "je     348bc7 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x37>"
+        },
+        {
+          "address": "348d92",
+          "visits": 1,
+          "instruction": "jmp    348c9d <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x10d>"
+        }
+      ]
+    },
+    {
+      "arm": "PAD-A",
+      "negative": false,
+      "connections": 4096,
+      "trace": {
+        "instructions": 106557,
+        "executable_instructions": 106557,
+        "library_instructions": 0
+      },
+      "stage_loads": 4097,
+      "cache_loads": 0,
+      "load_sites": [
+        {
+          "address": "2d050",
+          "visits": 4096,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "348c0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r13d"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2d010",
+          "visits": 4096,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2d014",
+          "visits": 4096,
+          "instruction": "jmp    2d030 <lbplanner_parse_gate+0x20>"
+        },
+        {
+          "address": "2d030",
+          "visits": 4096,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "2d037",
+          "visits": 4096,
+          "instruction": "jne    2d040 <lbplanner_parse_gate+0x30>"
+        },
+        {
+          "address": "2d039",
+          "visits": 4096,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2d03b",
+          "visits": 4096,
+          "instruction": "ret"
+        },
+        {
+          "address": "2d040",
+          "visits": 4096,
+          "instruction": "mov    0x190(%rdi),%rax"
+        },
+        {
+          "address": "2d047",
+          "visits": 4096,
+          "instruction": "mov    0x188(%rdi),%r8"
+        },
+        {
+          "address": "2d04e",
+          "visits": 4096,
+          "instruction": "mov    (%rax),%edi"
+        },
+        {
+          "address": "2d050",
+          "visits": 4096,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "2d058",
+          "visits": 4096,
+          "instruction": "cmp    $0x4,%dl"
+        },
+        {
+          "address": "2d05b",
+          "visits": 4096,
+          "instruction": "sete   %al"
+        },
+        {
+          "address": "2d05e",
+          "visits": 4096,
+          "instruction": "cmp    $0x1,%dl"
+        },
+        {
+          "address": "2d061",
+          "visits": 4096,
+          "instruction": "sete   %cl"
+        },
+        {
+          "address": "2d064",
+          "visits": 4096,
+          "instruction": "or     %cl,%al"
+        },
+        {
+          "address": "2d066",
+          "visits": 4096,
+          "instruction": "jne    2d080 <lbplanner_parse_gate+0x70>"
+        },
+        {
+          "address": "2d068",
+          "visits": 4096,
+          "instruction": "cmp    $0x2,%dl"
+        },
+        {
+          "address": "2d06b",
+          "visits": 4096,
+          "instruction": "jne    2d039 <lbplanner_parse_gate+0x29>"
+        },
+        {
+          "address": "2d3d0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2d3d4",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "2d3d5",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2d3d6",
+          "visits": 1,
+          "instruction": "mov    %esi,%ebp"
+        },
+        {
+          "address": "2d3d8",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "2d3db",
+          "visits": 1,
+          "instruction": "sub    $0x8,%rsp"
+        },
+        {
+          "address": "2d3df",
+          "visits": 1,
+          "instruction": "call   348b90 <_ZN4tomo6IoLoop19lb_control_pass_padEv>"
+        },
+        {
+          "address": "2d3e4",
+          "visits": 1,
+          "instruction": "mov    %eax,%r10d"
+        },
+        {
+          "address": "2d3e7",
+          "visits": 1,
+          "instruction": "test   %ebp,%ebp"
+        },
+        {
+          "address": "2d3e9",
+          "visits": 1,
+          "instruction": "je     2d419 <lbplanner_io_pass+0x49>"
+        },
+        {
+          "address": "2d3eb",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2d3f1",
+          "visits": 1,
+          "instruction": "data16 cs nopw 0x0(%rax,%rax,1)"
+        },
+        {
+          "address": "2d3fc",
+          "visits": 1,
+          "instruction": "nopl   0x0(%rax)"
+        },
+        {
+          "address": "2d400",
+          "visits": 4096,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2d403",
+          "visits": 4096,
+          "instruction": "mov    %rbx,%rdi"
+        },
+        {
+          "address": "2d406",
+          "visits": 4096,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2d409",
+          "visits": 4096,
+          "instruction": "call   2d010 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2d40e",
+          "visits": 4096,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2d411",
+          "visits": 4096,
+          "instruction": "add    %eax,%r10d"
+        },
+        {
+          "address": "2d414",
+          "visits": 4096,
+          "instruction": "cmp    %r9d,%ebp"
+        },
+        {
+          "address": "2d417",
+          "visits": 4096,
+          "instruction": "jae    2d400 <lbplanner_io_pass+0x30>"
+        },
+        {
+          "address": "2d419",
+          "visits": 1,
+          "instruction": "add    $0x8,%rsp"
+        },
+        {
+          "address": "2d41d",
+          "visits": 1,
+          "instruction": "mov    %r10d,%eax"
+        },
+        {
+          "address": "2d420",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2d421",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "2d422",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "348b90",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "348b94",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "348b95",
+          "visits": 1,
+          "instruction": "mov    %rsp,%rbp"
+        },
+        {
+          "address": "348b98",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "348b9a",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "348b9c",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "348b9e",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "348ba0",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "348ba1",
+          "visits": 1,
+          "instruction": "xor    %r12d,%r12d"
+        },
+        {
+          "address": "348ba4",
+          "visits": 1,
+          "instruction": "sub    $0x278,%rsp"
+        },
+        {
+          "address": "348bab",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "348bb4",
+          "visits": 1,
+          "instruction": "mov    %rax,0x268(%rsp)"
+        },
+        {
+          "address": "348bbc",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "348bbe",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "348bc5",
+          "visits": 1,
+          "instruction": "jne    348c00 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x70>"
+        },
+        {
+          "address": "348bc7",
+          "visits": 1,
+          "instruction": "mov    0x268(%rsp),%rax"
+        },
+        {
+          "address": "348bcf",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rax"
+        },
+        {
+          "address": "348bd8",
+          "visits": 1,
+          "instruction": "jne    349baa <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x101a>"
+        },
+        {
+          "address": "348bde",
+          "visits": 1,
+          "instruction": "add    $0x278,%rsp"
+        },
+        {
+          "address": "348be5",
+          "visits": 1,
+          "instruction": "mov    %r12d,%eax"
+        },
+        {
+          "address": "348be8",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "348be9",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "348beb",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "348bed",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "348bef",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "348bf1",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "348bf2",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "348c00",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "348c07",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "348c0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r13d"
+        },
+        {
+          "address": "348c12",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r13b"
+        },
+        {
+          "address": "348c16",
+          "visits": 1,
+          "instruction": "je     348da0 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x210>"
+        },
+        {
+          "address": "348c1c",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "348c23",
+          "visits": 1,
+          "instruction": "test   %r13b,%r13b"
+        },
+        {
+          "address": "348c26",
+          "visits": 1,
+          "instruction": "je     348d80 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x1f0>"
+        },
+        {
+          "address": "348c9d",
+          "visits": 1,
+          "instruction": "mov    0x570(%rbx),%rax"
+        },
+        {
+          "address": "348ca4",
+          "visits": 1,
+          "instruction": "cmp    0x558(%rbx),%rax"
+        },
+        {
+          "address": "348cab",
+          "visits": 1,
+          "instruction": "jb     348bc7 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x37>"
+        },
+        {
+          "address": "348d80",
+          "visits": 1,
+          "instruction": "movzbl 0x57e(%rbx),%eax"
+        },
+        {
+          "address": "348d87",
+          "visits": 1,
+          "instruction": "xor    %r12d,%r12d"
+        },
+        {
+          "address": "348d8a",
+          "visits": 1,
+          "instruction": "test   %al,%al"
+        },
+        {
+          "address": "348d8c",
+          "visits": 1,
+          "instruction": "je     348bc7 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x37>"
+        },
+        {
+          "address": "348d92",
+          "visits": 1,
+          "instruction": "jmp    348c9d <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x10d>"
         }
       ]
     }

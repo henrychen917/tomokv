@@ -1,0 +1,47 @@
+{
+  "all_other_bytes_identical": true,
+  "changed_bytes": 319,
+  "controls": {
+    "missing-io-tail": {
+      "assertion": "PAD planned retarget missing",
+      "rejected": true
+    },
+    "missing-monitor": {
+      "assertion": "PAD planned retarget missing",
+      "rejected": true
+    },
+    "missing-parse-gate": {
+      "assertion": "PAD planned retarget missing",
+      "rejected": true
+    },
+    "moved-symbol": {
+      "assertion": "PAD symbol table moved",
+      "rejected": true
+    },
+    "unrelated-byte": {
+      "assertion": "PAD unplanned byte change",
+      "rejected": true
+    }
+  },
+  "exact_function_and_section_tables": true,
+  "kind": "A: PRE behaviour with POST text layout",
+  "pad": {
+    "binary_sha256": "7eb3d92518d4d726ec5074a49e34aee385b4018d94f8da9626a9bc796e660553",
+    "function_table_sha256": "b316c4daf51f6188514a28b8610579241d31b5a41efe12250e3ca7f432ae5442",
+    "functions": 5235,
+    "section_table_sha256": "76a6672779ff68e453af2f8054b62ab80039abe0bb1329d4ea84ba1bcec12dcc",
+    "text_bytes": 3715328
+  },
+  "patches_by_kind": {
+    "io-tail": 40,
+    "monitor": 4,
+    "parse-gate": 22
+  },
+  "post": {
+    "binary_sha256": "825b74e30300714c44e70712d6c3b8348d0c37c2e0f48af9f45440e3031fe5b7",
+    "function_table_sha256": "b316c4daf51f6188514a28b8610579241d31b5a41efe12250e3ca7f432ae5442",
+    "functions": 5235,
+    "section_table_sha256": "76a6672779ff68e453af2f8054b62ab80039abe0bb1329d4ea84ba1bcec12dcc",
+    "text_bytes": 3715328
+  }
+}

@@ -21,5 +21,14 @@ for name in ['production', *controls]:
             else result.returncode == 1 and 'FAIL core concurrency: ' + controls[name] in output)
     rows.append(dict(arm=name, passed=good, returncode=result.returncode, output=output))
     print(('PASS' if good else 'FAIL'), name, output.strip())
+for name, binary, expected, message in [
+    ('PAD-A', 'build/lbplanner-unit-pad', 0, 'PASS PAD-A PRE behavior'),
+    ('POST-rejects-PRE', 'build/lbplanner-unit', 1, 'PAD monitor never runs LB search'),
+]:
+    result = subprocess.run([str(root / binary), 'pad'], capture_output=True, text=True, timeout=60)
+    output = result.stdout + result.stderr
+    good = result.returncode == expected and message in output
+    rows.append(dict(arm=name, passed=good, returncode=result.returncode, output=output))
+    print(('PASS' if good else 'FAIL'), name, output.strip())
 (root / 'build/lbplanner-checks.json').write_text(json.dumps(rows, indent=2) + '\n')
 assert all(row['passed'] for row in rows), 'hand-off witness or a named negative control failed'

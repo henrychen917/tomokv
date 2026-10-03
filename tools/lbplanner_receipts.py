@@ -68,8 +68,8 @@ def costs(rows):
     stage = rows['POST']['tomo']['fields']['Server']['offsets']['lb_stage_']
     pause = rows['POST']['tomo']['fields']['IoLoop']['offsets']['lb_pause_id_']
     results = []
-    for arm, negative in [('PRE', False), ('POST', False), ('POST', True)]:
-        binary = (ROOT / ('build/lbplanner-pre-pass' if arm == 'PRE' else 'build/lbplanner-unit')).resolve()
+    for arm, negative in [('PRE', False), ('POST', False), ('POST', True), ('PAD-A', False)]:
+        binary = (ROOT / dict(PRE='build/lbplanner-pre-pass', POST='build/lbplanner-unit', **{'PAD-A': 'build/lbplanner-unit-pad'})[arm]).resolve()
         elf = Elf(binary)
         sec = elf.sections[elf.names.index('.text')]
         asm = subprocess.check_output(['objdump', '-dw', str(binary)], text=True)
@@ -81,7 +81,7 @@ def costs(rows):
         symbol = 'lbplanner_io_pass' + ('_negative' if negative else '')
         address = elf.functions()[symbol]['value']
         for count in (1, 32, 4096):
-            command = [str(tracer), str(binary), ('n' if negative else '')+str(count),
+            command = [str(tracer), str(binary), ('n' if negative else 'p' if arm == 'PAD-A' else '')+str(count),
                        f'{address:x}', f'{sec[3]:x}', f'{sec[5]:x}', str(int(elf.kind==3))]
             result = subprocess.run(command, text=True, capture_output=True, timeout=60, check=True)
             lines = result.stdout.splitlines()
@@ -96,7 +96,7 @@ def costs(rows):
                 return [x for x in executed if pat.search(x['instruction'])]
             shared, local = loads(stage), loads(pause)
             nshared = sum(x['visits'] for x in shared)
-            assert nshared == (count+1 if negative or arm == 'PRE' else 1), (symbol,count,nshared,shared)
+            assert nshared == (count+1 if negative or arm in ('PRE', 'PAD-A') else 1), (symbol,count,nshared,shared)
             if arm == "POST":
                 assert sum(x["visits"] for x in local) == count, ("one private gate load per connection",count,local)
             results.append(dict(arm=arm, negative=negative, connections=count, trace=trace,
@@ -111,7 +111,7 @@ def costs(rows):
 
 def source():
     pre = subprocess.check_output(['git','show','cd02ecbab:src/core/server.h'],text=True,cwd=ROOT)
-    post = (ROOT/'src/core/lbplanner.cc').read_text()
+    post = (ROOT/'src/core/lbplanner.cc').read_text().split('// These PRE bodies are comparison material')[0]
     # Exact policy blocks, excluding only indentation and the separately audited hosting/hand-off.
     def block(text,start,end):
         return re.sub(r'\s+', ' ', text[text.index(start):text.index(end,text.index(start))]).strip()
@@ -130,8 +130,8 @@ def source():
     assert 'step < move_cap;' in post and 'step < lb_policy_' not in post
     for file in ('src/core/io_loop.h','src/core/reorder.cc'):
         text = (ROOT/file).read_text()
-        assert 'lb_controller_tick(' not in text and 'lb_should_pause' not in text
-        assert 'lb_pause_id_ && lb_parse_paused(c->id())' in text
+        assert 'lb_controller_tick(' not in text and 'srv_->lb_should_pause(' not in text
+        assert 'lb_parse_paused([&] { return c->id(); })' in text
     for file in ('src/main.cc','src/core/genthread.cc','src/core/rl2s.cc','src/core/reorder.cc'):
         assert 'srv.monitor_controllers();' in (ROOT/file).read_text(), file
     assert 'now_ms >= next_lb_ms' in post and 'flip_now_ms >= next_flip_ms' in post
@@ -144,23 +144,18 @@ def source():
 
 
 def pad_status():
-    inventories = {}
-    for arm, binary in [('PRE', ROOT/'build/lbplanner-pre/tomokv'), ('POST', ROOT/'build/tomokv')]:
-        elf = Elf(binary)
-        table = sorted((x['name'], x['value'], x['size'], elf.names[x['sec']])
-                       for x in elf.symbols if x['info'] & 15 == 2 and 0 < x['sec'] < len(elf.sections))
-        inventories[arm] = dict(path=str(binary.relative_to(ROOT)), sha256=hashlib.sha256(elf.data).hexdigest(),
-            text_bytes=elf.sections[elf.names.index('.text')][5],
-            table_sha256=hashlib.sha256(repr(table).encode()).hexdigest(), functions=len(table))
-    assert inventories['PRE']['table_sha256'] != inventories['POST']['table_sha256']
-    write('pad-status.json', dict(required_kind='A: PRE behaviour with POST text layout',
-        valid_pad_a_built=False, inventories=inventories,
-        pre_is_not_a_pad=True,
-        blocker='No artifact restores all three PRE mechanisms (IO-hosted search, fresh per-connection '
-                'stage reads, repeated cap reads) while preserving POST function addresses. '
-                'Function/section inventories alone do not establish a behaviour twin. '
-                'Do not accept a size-only pad or the unmodified POST as that twin.'))
-    print('UNRESOLVED: mandatory PAD-A behaviour/layout twin is not built; no landing verdict')
+    from lbplanner_pad import plan, verify
+    post, pad = ROOT/'build/tomokv', ROOT/'build/tomokv-lbplanner-pad'
+    expected = plan(post)
+    verify(post, pad, expected, independent=False)
+    proof = json.loads((ROOT/'build/lbplanner-pad-proof/proof.json').read_text())
+    assert proof['post']['binary_sha256'] == hashlib.sha256(post.read_bytes()).hexdigest()
+    assert proof['pad']['binary_sha256'] == hashlib.sha256(pad.read_bytes()).hexdigest()
+    write('pad-status.json', dict(required_kind=expected['kind'], valid_pad_a_built=True,
+        proof='pad-a/proof.json', behavior='PRE IO-hosted gather/search and cron, live parse stage, repeated cap reads',
+        layout='Complete function/section tables equal; every other byte identical.',
+        performance='NOT MEASURED: mainline owns the three-regime ABBA and full gate.'))
+    print('PASS PAD-A identity, source closure and all approved retargets; mainline performance remains unmeasured')
 
 
 if __name__ == '__main__':

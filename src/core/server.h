@@ -1268,6 +1268,24 @@ public:
     bool lb_consume_plan(uint32_t coordinator);
     void monitor_controllers();
 
+    // Offline PAD-A targets only. No production call reaches these retained PRE bodies;
+    // tools/lbplanner_pad.py verifies every retarget and all other executable bytes.
+    bool lb_controller_tick_pad(uint32_t coordinator, uint64_t now_ms);
+    void monitor_controllers_pad();
+    bool lb_cron_writer_pad(uint32_t tid) const {
+        if (!lb_controller_enabled() || flip_dispatch_paused()) return false;
+        for (uint32_t candidate = 0; candidate < nthreads(); candidate++)
+            if (thread(candidate).role() == Role::Ifid) return candidate == tid;
+        return false;
+    }
+    bool lb_should_pause_pad(uint32_t owner, uint64_t id) const {
+        const LbStage stage = lb_stage();
+        return stage == LbStage::IoDrain || stage == LbStage::ExDrain ||
+               (stage == LbStage::ClientDrain && lb_client_move_.source == owner &&
+                lb_client_move_.id == id);
+    }
+    LbClientMove lb_client_move_pad() const { return lb_client_move_; }
+
     bool lb_commit_shard_plan(uint64_t now_ms) {
         std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);
         if (lb_stage() != LbStage::ExDrain || !lb_all_ex_acked()) return false;

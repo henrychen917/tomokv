@@ -107,7 +107,10 @@ def main():
                 shutil.copyfile(path, target)
         source = {n: (dest / 'src/core' / n).read_text()
                   for n in ('weighted_lb.h', 'server.h', 'shard.h', 'lbplanner.cc')}
+        live, marker, pad = source['lbplanner.cc'].partition('// These PRE bodies are comparison material')
+        source['lbplanner.cc'] = live
         mutate(name, source)
+        source['lbplanner.cc'] += marker + pad
         for filename, text in source.items():
             (dest / 'src/core' / filename).write_text(text)
         target = dest.relative_to(ROOT)
