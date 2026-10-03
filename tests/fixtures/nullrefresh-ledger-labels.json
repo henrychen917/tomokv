@@ -1,6 +1,6 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "e5fa82101d18dd142c6269b489e302f8adc84c17c0e39d90e3a3081f3fad989a",
+  "source_sha256": "6eeb3ea10df01a37788b386f2372a29951516e9d58ce7d079514807bf1489caa",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
@@ -10,6 +10,7 @@
     "flip controller model unit",
     "B+ counting-fingerprint filter unit",
     "read-local write ring + arming transient unit",
+    "AOF publication/shutdown witnesses + negative controls",
     "core concurrency watch",
     "core concurrency lifetime",
     "core concurrency drain",
@@ -269,6 +270,7 @@
     "ACL recheck one-reply battery (1s)",
     "cross-owner SORT battery (atomic 0)",
     "cross-owner SORT battery (atomic 1)",
+    "plain-write lost updates (atomic 0)",
     "lbsignals battery (atomic 0)",
     "slowlog battery (atomic 0)",
     "atomfix battery (atomic 0)",
@@ -282,6 +284,7 @@
     "xacct battery (atomic 0)",
     "xmove battery (atomic 0)",
     "xscript battery (atomic 0)",
+    "plain-write lost updates (atomic 1)",
     "lbsignals battery (atomic 1)",
     "slowlog battery (atomic 1)",
     "atomfix battery (atomic 1)",
@@ -358,7 +361,11 @@
     "AOF atomic-group recovery + writer order",
     "AOF group shutdown invariants",
     "AOF always sync + reply gate fired",
-    "AOF always acknowledged-prefix recovery",
+    "AOF always recovery after quiescent SIGKILL",
+    "AOF in-window kill recovery (2s, epoll)",
+    "AOF in-window term recovery (2s, epoll)",
+    "AOF in-window kill recovery (1s, epoll)",
+    "AOF in-window term recovery (1s, epoll)",
     "AOF everysec write gate + idle sync fired",
     "AOF everysec durability window + tail warning",
     "AOF no-sync bypassed sync + reply gate",
@@ -382,7 +389,11 @@
     "AOF atomic-group recovery + writer order",
     "AOF group shutdown invariants",
     "AOF always sync + reply gate fired",
-    "AOF always acknowledged-prefix recovery",
+    "AOF always recovery after quiescent SIGKILL",
+    "AOF in-window kill recovery (2s, uring)",
+    "AOF in-window term recovery (2s, uring)",
+    "AOF in-window kill recovery (1s, uring)",
+    "AOF in-window term recovery (1s, uring)",
     "AOF everysec write gate + idle sync fired",
     "AOF everysec durability window + tail warning",
     "AOF no-sync bypassed sync + reply gate",
@@ -478,9 +489,7 @@
     "read-local ownership invariants",
     "Redis 7.4 differential matrix",
     "Redis 7.4 differential matrix (armed fused + read-local)",
-    "glob/scan grammar parity vs Redis 7.4",
-    "plain-write lost updates (atomic 0)",
-    "plain-write lost updates (atomic 1)"
+    "glob/scan grammar parity vs Redis 7.4"
   ],
   "supplement": {
     "source": "origin/cpp 4329c26f0 tests/gate.sh job_wb_rule_units",
@@ -550,6 +559,27 @@
       ],
       "removed": [
         "kTLS engaged live (default boot)"
+      ],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-04 03:11",
+      "added": [
+        "AOF always recovery after quiescent SIGKILL",
+        "AOF always recovery after quiescent SIGKILL",
+        "AOF in-window kill recovery (1s, epoll)",
+        "AOF in-window kill recovery (1s, uring)",
+        "AOF in-window kill recovery (2s, epoll)",
+        "AOF in-window kill recovery (2s, uring)",
+        "AOF in-window term recovery (1s, epoll)",
+        "AOF in-window term recovery (1s, uring)",
+        "AOF in-window term recovery (2s, epoll)",
+        "AOF in-window term recovery (2s, uring)",
+        "AOF publication/shutdown witnesses + negative controls"
+      ],
+      "removed": [
+        "AOF always acknowledged-prefix recovery",
+        "AOF always acknowledged-prefix recovery"
       ],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
     }
