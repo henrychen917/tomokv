@@ -178,7 +178,7 @@ class Race:
                 lambda: admin.must("LLEN", src))
             wait_for(probe, 0, "mover source did not publish inside the hop window", 0.25)
             opened = pending(mover) and pending(holder)
-            expect(writer.must(add, dst, "kept"), 2, "racing destination write acknowledged")
+            expect(writer.must(add, dst, "kept"), 1 if is_set else 2, "racing destination write acknowledged")
             opened &= pending(mover) and pending(holder)
             expect(mover.read(), 1 if is_set else b"move", "mover reply")
             members = admin.must("SMEMBERS", dst) if is_set else admin.must("LRANGE", dst, 0, -1)
@@ -436,7 +436,7 @@ def self_test():
 
                             race.held_exec = held
                             writer.must.side_effect = [b"OK", b"QUEUED", [1]] + (
-                                [b"seed", 2] if method == "blocking" else [2])
+                                [b"seed", 2] if method == "blocking" else [1 if verb == "SMOVE" else 2])
                             blocker.must.side_effect = [b"OK", b"QUEUED"]
                             blocker.read.return_value = [b"OK"]
                             high = verb in ("BRPOP", "BZPOPMAX")
