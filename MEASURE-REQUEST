@@ -1,3 +1,6 @@
-See MEASURE-REQUEST-lbplanner.md for the CT1/CT2/CT3 implementation, serverless receipts, exact cells, arms and pass conditions.
+Lane lbplanner: CT1 / CT2 / CT3
 
-NOT READY TO LAND: the required PAD-A behaviour twin has not been built. PRE and POST binaries are frozen; all hand-off and existing LB serverless proofs passed. No live measurement or gate was run.
+See MEASURE-REQUEST-lbplanner.md for the complete report and mainline-only cells,
+three regimes, counters, arms and pass conditions. PRE, POST and verified PAD-A
+are built; serverless proofs pass. No server, benchmark, live test or gate was run.
+Mainline measurement and live-gate acceptance remain pending.

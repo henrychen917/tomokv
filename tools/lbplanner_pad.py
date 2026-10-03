@@ -150,10 +150,10 @@ def plan(source):
     assert len({p['address'] for p in patches}) == len(patches), 'PAD duplicate retarget'
     # Independently enumerate actual parser and IO-loop definitions. A missing
     # metadata record or inlined tail must fail even if every listed patch works.
-    parsers = [s for s in functions.values() if re.match(
+    parsers = [s for s in elf.symbols if s['info'] & 15 == 2 and s['size'] and re.match(
         r'_ZN(4tomo|8tomo_db0)6IoLoop(?:18parse_and_dispatch|21r7_parse_and_dispatch)I', s['name'])
         and '.cold' not in s['name']]
-    loops = [s for s in functions.values() if re.match(
+    loops = [s for s in elf.symbols if s['info'] & 15 == 2 and s['size'] and re.match(
         r'_ZN(4tomo|8tomo_db0)6IoLoop(?:8run_loop|11r7_run_loop)I', s['name'])
         and '.cold' not in s['name']]
     coverage = {}

@@ -1,45 +1,68 @@
- Makefile                                       |   19 +
- docs/lbplanner/4096-cells.txt                  |    8 +
- docs/lbplanner/POST-functions.tsv.gz           |  Bin 0 -> 151414 bytes
- docs/lbplanner/POST-layout.log                 |    1 +
- docs/lbplanner/POST-sections.tsv.gz            |  Bin 0 -> 754 bytes
- docs/lbplanner/PRE-functions.tsv.gz            |  Bin 0 -> 151701 bytes
- docs/lbplanner/PRE-layout.log                  |    1 +
- docs/lbplanner/PRE-sections.tsv.gz             |  Bin 0 -> 755 bytes
- docs/lbplanner/SHA256SUMS                      |    6 +
- docs/lbplanner/generic-cells.txt               |   14 +
- docs/lbplanner/handoff-controls.json           |   38 +
- docs/lbplanner/handoff.log                     |    6 +
- docs/lbplanner/instructions.json               | 3604 ++++++++++++++++++++++++
- docs/lbplanner/io-audit.json.gz                |  Bin 0 -> 609657 bytes
- docs/lbplanner/io-audit.log                    |    2 +
- docs/lbplanner/io-diffs.txt.gz                 |  Bin 0 -> 3864012 bytes
- docs/lbplanner/layout.json                     | 1434 ++++++++++
- docs/lbplanner/lbfix-controls.json             |  114 +
- docs/lbplanner/lbfix-unit.log                  |    1 +
- docs/lbplanner/lbplanner-pre-build.log.gz      |  Bin 0 -> 1448 bytes
- docs/lbplanner/lbplanner-pre-pass-build.log.gz |  Bin 0 -> 459 bytes
- docs/lbplanner/lbplanner-verified-build.log.gz |  Bin 0 -> 1626 bytes
- docs/lbplanner/lbstall-unit.log                |    5 +
- docs/lbplanner/pad-status.json                 |   22 +
- docs/lbplanner/receipts.log                    |    3 +
- docs/lbplanner/route-unit.log                  |   34 +
- docs/lbplanner/source.json                     |   28 +
- docs/lbplanner/split-cells.txt                 |    4 +
- src/core/genthread.cc                          |    1 +
- src/core/io_loop.h                             |   41 +-
- src/core/lbplanner.cc                          |  349 +++
- src/core/reorder.cc                            |   15 +-
- src/core/rl2s.cc                               |    9 +-
- src/core/server.h                              |  303 +-
- src/main.cc                                    |   13 +-
- tests/core_concurrency_unit.cc                 |    9 +-
- tests/gate.sh                                  |   20 +-
- tests/lbplanner_checks.py                      |   25 +
- tests/lbplanner_unit.cc                        |  174 ++
- tools/lbfix_artifacts.py                       |   51 +-
- tools/lbplanner_controls.py                    |   26 +
- tools/lbplanner_pre_receipt.py                 |   45 +
- tools/lbplanner_receipts.py                    |  170 ++
- tools/lbplanner_trace.cc                       |   50 +
- 44 files changed, 6295 insertions(+), 350 deletions(-)
+ MEASURE-REQUEST                                  |   23 +-
+ MEASURE-REQUEST-lbplanner.md                     |  315 ++
+ Makefile                                         |   23 +
+ docs/lbplanner/4096-cells.txt                    |    8 +
+ docs/lbplanner/POST-functions.tsv.gz             |  Bin 0 -> 151841 bytes
+ docs/lbplanner/POST-layout.log                   |    1 +
+ docs/lbplanner/POST-sections.tsv.gz              |  Bin 0 -> 772 bytes
+ docs/lbplanner/PRE-functions.tsv.gz              |  Bin 0 -> 151701 bytes
+ docs/lbplanner/PRE-layout.log                    |    1 +
+ docs/lbplanner/PRE-sections.tsv.gz               |  Bin 0 -> 755 bytes
+ docs/lbplanner/SHA256SUMS                        |    8 +
+ docs/lbplanner/diff-launch.stat                  |  193 +
+ docs/lbplanner/diff-synced-base.stat             |   68 +
+ docs/lbplanner/generic-cells.txt                 |   14 +
+ docs/lbplanner/handoff-controls.json             |   50 +
+ docs/lbplanner/handoff.log                       |    8 +
+ docs/lbplanner/instructions.json                 | 5047 ++++++++++++++++++++++
+ docs/lbplanner/io-audit.json.gz                  |  Bin 0 -> 617911 bytes
+ docs/lbplanner/io-audit.log                      |    2 +
+ docs/lbplanner/io-diffs.txt.gz                   |  Bin 0 -> 3854416 bytes
+ docs/lbplanner/layout.json                       | 1434 ++++++
+ docs/lbplanner/lbfix-controls.json               |  114 +
+ docs/lbplanner/lbfix-unit.log                    |    1 +
+ docs/lbplanner/lbplanner-pad-artifacts.log.gz    |  Bin 0 -> 140 bytes
+ docs/lbplanner/lbplanner-pad-final-build2.log.gz |  Bin 0 -> 1673 bytes
+ docs/lbplanner/lbplanner-pre-build.log.gz        |  Bin 0 -> 1448 bytes
+ docs/lbplanner/lbplanner-pre-pass-build.log.gz   |  Bin 0 -> 459 bytes
+ docs/lbplanner/lbplanner-verified-build.log.gz   |  Bin 0 -> 1626 bytes
+ docs/lbplanner/lbstall-unit.log                  |    5 +
+ docs/lbplanner/pad-a-unit/PAD-A-functions.tsv.gz |  Bin 0 -> 81116 bytes
+ docs/lbplanner/pad-a-unit/PAD-A-sections.tsv.gz  |  Bin 0 -> 766 bytes
+ docs/lbplanner/pad-a-unit/POST-functions.tsv.gz  |  Bin 0 -> 81115 bytes
+ docs/lbplanner/pad-a-unit/POST-sections.tsv.gz   |  Bin 0 -> 765 bytes
+ docs/lbplanner/pad-a-unit/closure-proof.json     |   27 +
+ docs/lbplanner/pad-a-unit/negative-controls.json |   22 +
+ docs/lbplanner/pad-a-unit/planned-retargets.json |  763 ++++
+ docs/lbplanner/pad-a-unit/proof.json             |   47 +
+ docs/lbplanner/pad-a/PAD-A-functions.tsv.gz      |  Bin 0 -> 151842 bytes
+ docs/lbplanner/pad-a/PAD-A-sections.tsv.gz       |  Bin 0 -> 773 bytes
+ docs/lbplanner/pad-a/POST-functions.tsv.gz       |  Bin 0 -> 151841 bytes
+ docs/lbplanner/pad-a/POST-sections.tsv.gz        |  Bin 0 -> 772 bytes
+ docs/lbplanner/pad-a/closure-proof.json          |   27 +
+ docs/lbplanner/pad-a/negative-controls.json      |   22 +
+ docs/lbplanner/pad-a/planned-retargets.json      | 1587 +++++++
+ docs/lbplanner/pad-a/proof.json                  |   47 +
+ docs/lbplanner/pad-status.json                   |    8 +
+ docs/lbplanner/receipts.log                      |    3 +
+ docs/lbplanner/route-unit.log                    |   34 +
+ docs/lbplanner/source.json                       |   28 +
+ docs/lbplanner/split-cells.txt                   |    4 +
+ src/core/genthread.cc                            |    1 +
+ src/core/io_loop.h                               |   58 +-
+ src/core/lbplanner.cc                            |  749 ++++
+ src/core/reorder.cc                              |   15 +-
+ src/core/rl2s.cc                                 |    9 +-
+ src/core/server.h                                |  317 +-
+ src/main.cc                                      |   13 +-
+ tests/core_concurrency_unit.cc                   |    9 +-
+ tests/gate.sh                                    |   20 +-
+ tests/lbplanner_checks.py                        |   34 +
+ tests/lbplanner_unit.cc                          |  267 ++
+ tools/lbfix_artifacts.py                         |   54 +-
+ tools/lbplanner_controls.py                      |   26 +
+ tools/lbplanner_pad.py                           |  258 ++
+ tools/lbplanner_pre_receipt.py                   |   45 +
+ tools/lbplanner_receipts.py                      |  165 +
+ tools/lbplanner_trace.cc                         |   50 +
+ 67 files changed, 11658 insertions(+), 366 deletions(-)
