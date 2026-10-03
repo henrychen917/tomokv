@@ -1,0 +1,38 @@
+{
+  "all_other_bytes_identical": true,
+  "changed_bytes": 5,
+  "controls": {
+    "missing-retarget": {
+      "assertion": "PAD planned retarget missing",
+      "rejected": true,
+      "sha256": "7f312aa12ef9515dc3cebfd7b1ecd00adf5ab8e2581a4b1e9037dc0fd3dd3a2b"
+    },
+    "moved-symbol": {
+      "assertion": "PAD symbol table moved",
+      "rejected": true,
+      "sha256": "d0f9b322c525b0b14615579cd0cd5983d4fb664277920b55f91d48794383f651"
+    },
+    "one-byte": {
+      "assertion": "PAD unplanned byte change",
+      "rejected": true,
+      "sha256": "1b668cd9b740b6783b46ccf2efc2d0a58abafd7cd4f8824b10fdfcc6335add30"
+    }
+  },
+  "exact_function_and_section_tables": true,
+  "kind": "A: behaviour twin",
+  "pad": {
+    "binary_sha256": "d477b36649a1a3eb92f1d480f953011bef58932a2b0d804052a68282f66c79af",
+    "function_table_sha256": "0dd83894008e24fb97f977e1c82389b0304ac8a491f731d9508eed68b4ab91e5",
+    "functions": 27,
+    "section_table_sha256": "21eccbfd20b67c2a2afd61e89f288d02da4c00e0e1ff1134638b4e654e04157d",
+    "text_bytes": 10152
+  },
+  "planned_retargets": 5,
+  "post": {
+    "binary_sha256": "b24e4fbd06f5fecbaae56815b2c379049cd0b1faa6b34d2ce41ca95e1d9216d1",
+    "function_table_sha256": "0dd83894008e24fb97f977e1c82389b0304ac8a491f731d9508eed68b4ab91e5",
+    "functions": 27,
+    "section_table_sha256": "21eccbfd20b67c2a2afd61e89f288d02da4c00e0e1ff1134638b4e654e04157d",
+    "text_bytes": 10152
+  }
+}

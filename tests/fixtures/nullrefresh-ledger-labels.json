@@ -1,6 +1,6 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "aaf5d258d7d469df1e5238ce8d5dd827d1ba72299620022074bd75cc3bb9f78a",
+  "source_sha256": "274950fc8775f2bef6c4bfa7829152073300d387d7f83994b83d780e3d6afe3b",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
@@ -10,14 +10,7 @@
     "flip controller model unit",
     "B+ counting-fingerprint filter unit",
     "read-local write ring + arming transient unit",
-    "climon 128-owner delivery mask",
-    "shutdown policy + signal handoff serverless",
-    "shutdown persistence (1s, command)",
-    "shutdown persistence (1s, sigterm)",
-    "shutdown persistence (1s, sigint)",
-    "shutdown persistence (2s, command)",
-    "shutdown persistence (2s, sigterm)",
-    "shutdown persistence (2s, sigint)",
+    "read-local MGET fence symmetry unit",
     "AOF publication/shutdown witnesses + negative controls",
     "core concurrency watch",
     "core concurrency lifetime",
@@ -274,6 +267,8 @@
     "eviction lruclock battery (fused+armed, atomic 1)",
     "B+ held-group GET/MGET filter battery",
     "read-local lane admission battery",
+    "read-local MGET fence battery (1s)",
+    "read-local MGET fence battery (2s)",
     "ACL recheck one-reply battery (2s)",
     "ACL recheck one-reply battery (1s)",
     "cross-owner SORT battery (atomic 0)",
@@ -592,16 +587,11 @@
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
     },
     {
-      "when": "2026-10-04 03:23",
+      "when": "2026-10-04 03:46",
       "added": [
-        "climon 128-owner delivery mask",
-        "shutdown persistence (1s, command)",
-        "shutdown persistence (1s, sigint)",
-        "shutdown persistence (1s, sigterm)",
-        "shutdown persistence (2s, command)",
-        "shutdown persistence (2s, sigint)",
-        "shutdown persistence (2s, sigterm)",
-        "shutdown policy + signal handoff serverless"
+        "read-local MGET fence battery (1s)",
+        "read-local MGET fence battery (2s)",
+        "read-local MGET fence symmetry unit"
       ],
       "removed": [],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"

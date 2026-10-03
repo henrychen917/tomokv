@@ -1,0 +1,101 @@
+{
+  "alt_sha256": "11b43279251f578b7a2c78d0e05c61765823260f3f19123484508dc9a569c018",
+  "caveat": "External call displacements are resolved by target identity. Other TLS/epoll/R7 bodies can differ; see full audit.",
+  "get_handler_comparisons": [
+    {
+      "category": "io",
+      "diff": "283.diff",
+      "equal": true,
+      "instance": 0,
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "post_address": "0x1bbae0",
+      "post_aliases": [
+        "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)"
+      ],
+      "post_instructions": 248,
+      "post_size": 1072,
+      "pre_address": "0x1bbae0",
+      "pre_aliases": [
+        "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)"
+      ],
+      "pre_instructions": 248,
+      "pre_size": 1072
+    },
+    {
+      "category": "io",
+      "diff": "284.diff",
+      "equal": true,
+      "instance": 0,
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "post_address": "0x1c72b0",
+      "post_aliases": [
+        "void tomo_db0::(anonymous namespace)::cmd_get<true, false>(tomo_db0::Shard&, tomo_db0::Op&)"
+      ],
+      "post_instructions": 167,
+      "post_size": 776,
+      "pre_address": "0x1c72b0",
+      "pre_aliases": [
+        "void tomo_db0::(anonymous namespace)::cmd_get<true, false>(tomo_db0::Shard&, tomo_db0::Op&)"
+      ],
+      "pre_instructions": 167,
+      "pre_size": 776
+    },
+    {
+      "category": "io",
+      "diff": "285.diff",
+      "equal": true,
+      "instance": 0,
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "post_address": "0x1c75c0",
+      "post_aliases": [
+        "void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)"
+      ],
+      "post_instructions": 249,
+      "post_size": 1088,
+      "pre_address": "0x1c75c0",
+      "pre_aliases": [
+        "void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)"
+      ],
+      "pre_instructions": 249,
+      "pre_size": 1088
+    },
+    {
+      "address": "0x1bb7d0",
+      "raw_bytes_equal": true,
+      "size": 776,
+      "symbol": "_ZN8tomo_db011cmd_get_tlsERNS_5ShardERNS_2OpE"
+    }
+  ],
+  "hot_functions": [
+    {
+      "address": "0x3241d0",
+      "loop_head": "0x324260",
+      "loop_mod64": 32,
+      "normalized_instructions_equal": true,
+      "raw_bytes_equal": true,
+      "size": 5011,
+      "symbol": "_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb1ELh0ELb0EEEvv"
+    },
+    {
+      "address": "0x3235d0",
+      "loop_head": "0x323640",
+      "loop_mod64": 0,
+      "normalized_instructions_equal": true,
+      "raw_bytes_equal": true,
+      "size": 3062,
+      "symbol": "_ZN8tomo_db06IoLoop11flush_readyILb0ELb0ELb1ELb0ELb1ELb0EEEjv"
+    },
+    {
+      "address": "0x312be0",
+      "loop_head": "0x312d90",
+      "loop_mod64": 16,
+      "normalized_instructions_equal": true,
+      "raw_bytes_equal": true,
+      "size": 19296,
+      "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE"
+    }
+  ],
+  "pre_sha256": "9d1aabd59c9b760695e8119871f7d0de21b2f661529dcc469fa7df867627e08d",
+  "scope": "Default database, TCP/uring, no TLS/Unix, fused FIFO h05 loop/flush/GET parser and GET handlers",
+  "whole_binary_layout_equal": false
+}

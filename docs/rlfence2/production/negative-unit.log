@@ -1,0 +1,1 @@
+FAIL rlfence: all three completion sites clear the covered MGET fence before retirement
