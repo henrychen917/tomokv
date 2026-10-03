@@ -2324,6 +2324,11 @@ assert line, "no tls_ktls_active in INFO STATS: " + d[:200]
 assert int(line[0].split(":")[1]) >= 1, "kTLS did not engage: " + line[0]
 print("KTLS_LIVE_OK", line[0])
 PYEOF
+row_begin "TLS 1.3 KeyUpdate survives (NET2)"
+taskset -c "$CORES" build/ktls-keyupdate 127.0.0.1 "$TLS_PORT" \
+    >$TMPDIR/gate-ktls-keyupdate.txt 2>&1 \
+    && ok "TLS 1.3 KeyUpdate survives (NET2)" \
+    || bad "TLS 1.3 KeyUpdate survives (NET2)" "see $TMPDIR/gate-ktls-keyupdate.txt"
 stop
 row_begin "TLS optional shutdown invariants"
 shutdown_clean \
@@ -2617,7 +2622,7 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
-      build/wb-rule-units build/wbland-units build/rltopo-unit >"$TMPDIR/build.log" 2>&1
+      build/wb-rule-units build/wbland-units build/rltopo-unit build/ktls-keyupdate >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
   for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit; do
@@ -2678,6 +2683,7 @@ job_dependencies(){
       done;;
     release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
     core_units) echo 'production_units core_tsan_build';;
+    tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     wb_rule_units|wbland_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
     asan_batteries) echo asan;;

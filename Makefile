@@ -120,6 +120,11 @@ noreserve:
 
 # Server-less unit binaries: the config parser and the flip controller. `make unit` builds and
 # runs both (neither boots a server). tests/gate.sh's parser row is the same program.
+# Live NET2 witness: connects only to a maintainer/gate-owned TLS listener.
+build/ktls-keyupdate: tests/ktls_keyupdate.cc Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. $< -o $@ -lssl -lcrypto
+
 build/config-parser-test: tests/config_parser_test.cc tests/boot_support_checks.inc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/config_parser_test.cc -o $@
