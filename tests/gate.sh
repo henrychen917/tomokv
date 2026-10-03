@@ -258,8 +258,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=446
-EXPECT_FULL=463                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+EXPECT_QUICK=447
+EXPECT_FULL=464                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1390,7 +1390,8 @@ job_netcmd_units(){
 row_begin "netcmd regression build"
 unit_ready netcmd-unit \
     && ok "netcmd regression build" || bad "netcmd regression build" "see $RUN_DIR/jobs/production_units/build.log"
-for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub receive config; do
+# CD1: +1 row before the quick-tier exit; EXPECT counts remain maintainer-owned.
+for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub receive config hexpire-oom; do
   row_begin "netcmd $NETCMD_CASE regression"
   taskset -c "$CORES" ./build/netcmd-unit "$NETCMD_CASE" >$TMPDIR/gate-netcmd-$NETCMD_CASE.txt 2>&1 \
       && ok "netcmd $NETCMD_CASE regression" \
