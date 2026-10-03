@@ -7,6 +7,10 @@
 namespace tomo {
 namespace {
 
+// A bug counter, not an activity counter: every caller is a writer and must pass the newest
+// cut. Healthy calls perform no RMW and allocate nothing; DEBUG reads the process-wide total.
+std::atomic<uint64_t> g_plain_stale_cuts{0};
+
 // Only an explicit conflict with an already-installed script image reaches this
 // arbitration. A writer that wins aborts the undecided activation; a script that
 // wins has published its ticket, so the writer's newest-version clone sees it.
@@ -27,6 +31,8 @@ void cancel_applied_scripts(FlatStore& store, uint64_t hash, Slice key,
 
 WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t hash,
                               uint64_t snapshot, uint64_t origin_conn_id) {
+    if (__builtin_expect(snapshot != UINT64_MAX, false))
+        g_plain_stale_cuts.fetch_add(1, std::memory_order_relaxed);
     // Cleanup is owner-pass work: every caller has already made the pass's single promotion
     // attempt before asking individual keys whether they still need a version.
     FlatStore& store = shard.store();
@@ -1030,6 +1036,10 @@ void xshard_plain_finish(Shard& shard, PlainForeignReadScope& foreign_scope) {
             });
     }
     foreign_scope.active = false;
+}
+
+uint64_t xshard_plain_stale_cuts() {
+    return g_plain_stale_cuts.load(std::memory_order_relaxed);
 }
 
 uint32_t xshard_cleanup_shard(Server& server, Shard& shard, uint32_t budget) {

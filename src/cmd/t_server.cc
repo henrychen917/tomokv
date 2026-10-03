@@ -27,6 +27,7 @@
 #include "../store/eviction.h"
 #include "../snapshot/snapshot.h"
 #include "multi.h"
+#include "xshard.h"
 
 #include <algorithm>
 #include <arpa/inet.h>
@@ -1060,6 +1061,10 @@ void cmd_debug_impl(Shard& shard, Op& op) {
     if (eq_icase(subcommand, "atomic-filter-cell") && op.argc() == 3) {
         const uint64_t hash = FlatStore::hash_key(op.arg(2));
         reply_int(op.sink(), FlatStore::foreign_read_filter_index(hash));
+        return;
+    }
+    if (eq_icase(subcommand, "atomic-plain-stale-cuts") && op.argc() == 2) {
+        reply_int(op.sink(), xshard_plain_stale_cuts());
         return;
     }
     // Nonblocking admission witness: unlike COMMIT-DELAY, this latch leaves both executors
