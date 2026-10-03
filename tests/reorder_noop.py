@@ -75,7 +75,7 @@ def category(name):
     if 'drain_tasks_reordered' in name or 'ExReorderQueues' in name: return None
     if 'ex_schedule_batch' in name: return None  # Behind the inherited armed branch.
     if 'parse_and_dispatch' in name: return 'dispatch'
-    if any(n in name for n in ['wb_retire_prepare<','collect_retire_work<','WbEngine::prepare_pipeline<']): return 'retire'
+    if any(n in name for n in ['wb_retire_prepare<','collect_retire_work<']): return 'retire'
     if re.search(r'::cmd_(get|set)(?:<|\(|_tls\(|_notify\()',name): return 'commands'
     if any(n in name for n in ['xshard_prepare(', 'xshard_execute(', 'xshard_retire(', 'prepare_captured_local_mget(', 'cmd_xshard_only(']): return 'multi-key commands'
     if 'ExLoopT<' in name and any(n in name for n in [
