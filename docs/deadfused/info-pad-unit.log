@@ -1,0 +1,2 @@
+PASS deadfused PAD-A: PRE INFO row restored for both database counts
+PASS core concurrency deadfused-info-pad (state assertions fired)
