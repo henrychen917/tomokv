@@ -796,8 +796,8 @@ private:
                 epoll_close_now(victim);
             }
         }
-        if (srv_->aof().writer_is(self_->id()))
-            srv_->aof().writer_shutdown(*self_, ring_);
+        // The physical worker's AOF lifetime guard flushes its last owner state. The
+        // writer continues draining until every physical worker has stopped posting.
         // The normal loop deliberately keeps a dead Client for two prologues so stale channel
         // entries cannot race its delete. At process shutdown all producers have observed the
         // shared stop flag and this IO owner is quiescent; finish those two deterministic grace

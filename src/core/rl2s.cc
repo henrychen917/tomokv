@@ -139,6 +139,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     for (uint32_t tid = 0; tid < nthreads; tid++)
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             if (cfg.pin_threads) pin_read_local_thread(srv.placement().cpu_of_thread(tid));
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
