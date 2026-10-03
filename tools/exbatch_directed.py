@@ -51,6 +51,176 @@ REQUIRED_OPTIONS = ("command", "command-ratio", "command-key-pattern", "transact
                     "rate-limiting", "json-out-file", "distinct-client-seed",
                     "pipeline", "test-time", "key-minimum", "key-maximum")
 
+# Stock memtier counts arbitrary replies but does not export integer VALUES.
+# Interpose only the XGROUP generators' receive calls, on their existing CPUs.
+# Connections still go directly to the exact server/port; no proxy, extra client,
+# MONITOR in the timed run, or changed command grammar. A missing hook fails the
+# exact guard/HDR count reconciliation. Per-FD state avoids a shared hot counter.
+# This is compiled by MAINLINE before measurement, never by --self-test/dry-run.
+ZERO_REPLY_GUARD = r'''
+#define _GNU_SOURCE
+#include <arpa/inet.h>
+#include <dlfcn.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <stdatomic.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/uio.h>
+#include <unistd.h>
+
+#define FDS 65536
+struct state { unsigned long long bytes; unsigned phase, active; char pad[48]; };
+static struct state states[FDS];
+static _Atomic unsigned long long closed_bytes, connections;
+static int receipt = -1;
+static int (*next_connect)(int, const struct sockaddr *, socklen_t);
+static int (*next_close)(int);
+static ssize_t (*next_read)(int, void *, size_t);
+static ssize_t (*next_readv)(int, const struct iovec *, int);
+static ssize_t (*next_recv)(int, void *, size_t, int);
+static ssize_t (*next_recvfrom)(int, void *, size_t, int, struct sockaddr *, socklen_t *);
+static ssize_t (*next_recvmsg)(int, struct msghdr *, int);
+
+static void die(const char *why) {
+    static const char prefix[] = "EXBATCH ZERO-REPLY GUARD FAILED: ";
+    (void)!write(2, prefix, sizeof(prefix)-1);
+    (void)!write(2, why, strlen(why));
+    (void)!write(2, "\n", 1);
+    _exit(86);
+}
+static void *resolve(const char *name) {
+    void *p = dlsym(RTLD_NEXT, name);
+    if (!p) die("missing libc receive symbol");
+    return p;
+}
+__attribute__((constructor)) static void init(void) {
+    next_connect = resolve("connect"); next_close = resolve("close");
+    next_read = resolve("read"); next_readv = resolve("readv");
+    next_recv = resolve("recv"); next_recvfrom = resolve("recvfrom");
+    next_recvmsg = resolve("recvmsg");
+    const char *path = getenv("EXBATCH_ZERO_RECEIPT");
+    if (!path) die("missing receipt path");
+    receipt = open(path, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
+    if (receipt < 0) die("cannot create receipt");
+}
+static void retire(int fd) {
+    if (fd < 0 || fd >= FDS || !states[fd].active) return;
+    if (states[fd].phase) die("truncated integer reply at close");
+    atomic_fetch_add_explicit(&closed_bytes, states[fd].bytes, memory_order_relaxed);
+    states[fd].active = 0;
+}
+static void consume(int fd, const void *buffer, ssize_t length) {
+    if (length <= 0 || fd < 0 || fd >= FDS || !states[fd].active) return;
+    const unsigned char *p = buffer;
+    size_t n = (size_t)length;
+    static const unsigned char expected[4] = {':', '0', '\r', '\n'};
+    struct state *s = &states[fd];
+    s->bytes += n;
+    while (n && s->phase) {
+        if (*p++ != expected[s->phase]) die("XGROUP reply was not :0 CR LF");
+        s->phase = (s->phase + 1) & 3; --n;
+    }
+    while (n >= 4) {
+        if (memcmp(p, expected, 4)) die("XGROUP reply was not :0 CR LF");
+        p += 4; n -= 4;
+    }
+    while (n--) {
+        if (*p++ != expected[s->phase]) die("XGROUP reply was not :0 CR LF");
+        s->phase = (s->phase + 1) & 3;
+    }
+}
+int connect(int fd, const struct sockaddr *address, socklen_t length) {
+    if (!next_connect) next_connect = resolve("connect");
+    int target = address && ((address->sa_family == AF_INET && length >= sizeof(struct sockaddr_in) &&
+        ntohs(((const struct sockaddr_in *)address)->sin_port) == 18179) ||
+        (address->sa_family == AF_INET6 && length >= sizeof(struct sockaddr_in6) &&
+        ntohs(((const struct sockaddr_in6 *)address)->sin6_port) == 18179));
+    if (target) {
+        if (fd < 0 || fd >= FDS || states[fd].active) die("unsupported/reused socket FD");
+        states[fd].bytes = 0; states[fd].phase = 0; states[fd].active = 1;
+        atomic_fetch_add_explicit(&connections, 1, memory_order_relaxed);
+    }
+    return next_connect(fd, address, length);
+}
+int close(int fd) {
+    if (!next_close) next_close = resolve("close");
+    retire(fd); return next_close(fd);
+}
+ssize_t read(int fd, void *buffer, size_t n) {
+    if (!next_read) next_read = resolve("read");
+    ssize_t result = next_read(fd, buffer, n); consume(fd, buffer, result); return result;
+}
+ssize_t recv(int fd, void *buffer, size_t n, int flags) {
+    if (!next_recv) next_recv = resolve("recv");
+    ssize_t result = next_recv(fd, buffer, n, flags);
+    if (!(flags & MSG_PEEK)) consume(fd, buffer, result);
+    return result;
+}
+ssize_t recvfrom(int fd, void *buffer, size_t n, int flags, struct sockaddr *a, socklen_t *length) {
+    if (!next_recvfrom) next_recvfrom = resolve("recvfrom");
+    ssize_t result = next_recvfrom(fd, buffer, n, flags, a, length);
+    if (!(flags & MSG_PEEK)) consume(fd, buffer, result);
+    return result;
+}
+static void consume_iov(int fd, const struct iovec *iov, size_t count, ssize_t total) {
+    for (size_t i = 0; total > 0 && i < count; ++i) {
+        ssize_t n = (size_t)total < iov[i].iov_len ? total : (ssize_t)iov[i].iov_len;
+        consume(fd, iov[i].iov_base, n); total -= n;
+    }
+}
+ssize_t readv(int fd, const struct iovec *iov, int count) {
+    if (!next_readv) next_readv = resolve("readv");
+    ssize_t result = next_readv(fd, iov, count); consume_iov(fd, iov, (size_t)count, result); return result;
+}
+ssize_t recvmsg(int fd, struct msghdr *msg, int flags) {
+    if (!next_recvmsg) next_recvmsg = resolve("recvmsg");
+    ssize_t result = next_recvmsg(fd, msg, flags);
+    if (!(flags & MSG_PEEK)) consume_iov(fd, msg->msg_iov, msg->msg_iovlen, result);
+    return result;
+}
+__attribute__((destructor)) static void finish(void) {
+    for (int fd = 0; fd < FDS; ++fd) retire(fd);
+    unsigned long long bytes = atomic_load(&closed_bytes), clients = atomic_load(&connections);
+    if (!clients || !bytes || bytes % 4) die("no verified complete replies");
+    char text[256];
+    int n = snprintf(text, sizeof(text), "{\"connections\":%llu,\"bytes\":%llu,\"zero_replies\":%llu}\n",
+                     clients, bytes, bytes / 4);
+    if (write(receipt, text, (size_t)n) != n) die("receipt write failed");
+    next_close(receipt);
+}
+'''
+
+
+def guard_build_argv(folder):
+    return ["taskset", "-c", "8-23", "cc", "-std=c11", "-O2", "-shared", "-fPIC", "-Wall", "-Wextra", "-Werror",
+            "-o", str(folder / "zero-reply.so"), str(folder / "zero-reply.c"), "-ldl"]
+
+
+def prepare_guard(folder):
+    folder.mkdir()
+    (folder / "zero-reply.c").write_text(ZERO_REPLY_GUARD)
+    with (folder / "build.log").open("wb") as log:
+        subprocess.run(guard_build_argv(folder), check=True, stdout=log, stderr=subprocess.STDOUT)
+    return dict(path=str(folder / "zero-reply.so"), sha256=digest(folder / "zero-reply.so"),
+                source_sha256=digest(folder / "zero-reply.c"), build_argv=guard_build_argv(folder))
+
+
+def guard_environment(guard, folder, label):
+    require(guard is not None, "XGROUP scored replies require the native receive guard")
+    return {"LD_PRELOAD": guard["path"], "EXBATCH_ZERO_RECEIPT": str(folder / f"{label}-zero.json")}
+
+
+def check_zero_receipt(path, completed, connections):
+    receipt = json.loads(Path(path).read_text())
+    require(all(type(value) is int for value in receipt.values()), "non-integer XGROUP guard counter")
+    require(receipt == dict(connections=connections, bytes=4 * completed, zero_replies=completed),
+            "XGROUP zero-reply guard / completed HDR counts differ; missing hook or nonzero reply")
+    return receipt
+
 
 def require(condition, message):
     if not condition:
@@ -149,7 +319,7 @@ def worker_argv(kind, cell, folder, index=None):
 def perf_argv(folder):
     # IPC is instructions / cycles from this group, never a separately sampled metric.
     return ["taskset", "-c", "8", "perf", "stat", "-a", "-A", "-C", "0-7", "-x", ",",
-            "--no-big-num", "-e", "{cycles,instructions}", "--delay=-1",
+            "--no-big-num", "--no-scale", "-e", "{cycles,instructions}", "--delay=-1",
             f"--control=fifo:{folder / 'perf.ctl'},{folder / 'perf.ack'}",
             "--timeout", "40000", "-o", str(folder / "perf.csv")]
 
@@ -333,6 +503,13 @@ def prepare_arms(dry=False):
             text_sha = hashlib.sha256(elf.section_data(elf.names.index(".text"))).hexdigest()
             require(text_sha == "c44b7d6be8b1bdcb941002a569e7bf6f3cf9b0cce1f3c69064ee8d7f5771d9aa",
                     "rebuilt synchronized PRE text differs from report")
+            import gzip
+            functions = sorted((s['name'], s['value'], s['size'], elf.names[s['sec']])
+                               for s in elf.symbols if s['info'] & 15 == 2 and 0 < s['sec'] < len(elf.sections))
+            table = 'symbol\taddress\tsize\tsection\n' + ''.join(
+                f'{n}\t{v:016x}\t{z}\t{s}\n' for n, v, z, s in functions)
+            with gzip.open(ROOT / "docs/exbatch/pre-post-identity/REFERENCE-functions.tsv.gz", "rt") as stream:
+                require(table == stream.read(), "rebuilt PRE function addresses/sizes differ from report")
         identities[arm] = dict(path=str(path), sha256=actual, expected_sha256=expected[arm],
                                kind="A: PRE behaviour at POST layout" if arm == "PAD-A" else
                                     "A: selected old item at POST layout" if arm.endswith("OLD") else "source build")
@@ -487,20 +664,26 @@ class Children:
     def __init__(self):
         self.processes = []
 
-    def start(self, argv, log, cwd):
+    def start(self, argv, log, cwd, extra_env=None):
         with Path(log).open("wb") as output:
             process = subprocess.Popen(argv, stdout=output, stderr=subprocess.STDOUT, cwd=cwd,
-                                       start_new_session=True, env={**os.environ, "LC_ALL": "C"})
+                                       start_new_session=True, env={**os.environ, "LC_ALL": "C", **(extra_env or {})})
         self.processes.append(process)
         return process
 
     def stop(self, process, sig=signal.SIGTERM):
         if process.poll() is None:
-            os.killpg(process.pid, sig)
+            try:
+                os.killpg(process.pid, sig)
+            except ProcessLookupError:
+                pass
             try:
                 process.wait(timeout=10)
             except subprocess.TimeoutExpired:
-                os.killpg(process.pid, signal.SIGKILL)
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
                 process.wait(timeout=5)
 
     def close(self):
@@ -516,7 +699,13 @@ class PerfWindow:
         self.ctl = os.open(folder / "perf.ctl", os.O_RDWR | os.O_NONBLOCK)
         self.ack = os.open(folder / "perf.ack", os.O_RDWR | os.O_NONBLOCK)
         self.process = children.start(perf_argv(folder), folder / "perf.log", folder)
-        self.command("disable")  # ACK proves perf is listening before any timed work.
+        try:
+            self.command("disable")  # ACK proves perf is listening before any timed work.
+            self.identity = dict(path=os.readlink(f"/proc/{self.process.pid}/exe"),
+                                 sha256=digest(f"/proc/{self.process.pid}/exe"))
+        except BaseException:
+            self.close()
+            raise
 
     def command(self, text):
         before = time.monotonic()
@@ -571,10 +760,12 @@ def role_cpus(snapshot, regime, boot):
     return roles
 
 
-def wire_probe(cell, folder, children):
+def wire_probe(cell, folder, children, guard=None):
     with contextlib.closing(Conn("127.0.0.1", 18179, timeout=10)) as monitor:
         check_reply(monitor.must("MONITOR"), b"OK", "MONITOR")
-        proc = children.start(probe_argv(cell, folder), folder / "wire-probe.log", folder)
+        guarded = cell["id"].startswith(BASES[3])
+        env = guard_environment(guard, folder, "wire-probe") if guarded else None
+        proc = children.start(probe_argv(cell, folder), folder / "wire-probe.log", folder, env)
         frames = []
         for _ in range(2 * cell["workload"]["cycle_frames"]):
             raw = monitor.read()
@@ -586,6 +777,8 @@ def wire_probe(cell, folder, children):
     record = validate_wire(cell, frames)
     parsed = parse_memtier(folder / "wire-probe.json", cell, folder / "wire-probe.log")
     record["completed"] = parsed["completed"]
+    if guarded:
+        record["zero_reply_guard"] = check_zero_receipt(folder / "wire-probe-zero.json", parsed["completed"]["XGROUP"], 1)
     save(folder / "wire-witness.json", record)
     return record
 
@@ -597,7 +790,7 @@ def check_mix(cell, counts, bound):
     return dict(rotation=dict(rotation), counts=counts, boundary_frames=bound)
 
 
-def run_sample(cell, arm, identities, folder, q):
+def run_sample(cell, arm, identities, folder, q, guard=None):
     folder.mkdir(parents=True, exist_ok=False)
     record = dict(cell=cell["id"], arm=arm, arm_identity=identities[arm], complete=False,
                   matched=q if q is not None else "plateau", argv={}, artifacts=str(folder),
@@ -640,6 +833,9 @@ def run_sample(cell, arm, identities, folder, q):
         record["boot_info"] = boot
         base, regime = cell["id"].rsplit("_", 1)
         require(boot["read_local"] == ("1" if regime == "f1" else "0"), "effective read-local posture differs")
+        for name, value in {"pin_threads": "1", "net_io": "uring", "atomic": "1",
+                            "key_lb": "1", "client_lb": "1", "flip_auto": "0"}.items():
+            require(boot[name] == value, f"effective boot {name} differs from recipe")
         require(conn.must("DBSIZE") == 0, "server did not boot with fresh empty state")
         if base == BASES[0]:
             watch_proof(folder)
@@ -653,7 +849,10 @@ def run_sample(cell, arm, identities, folder, q):
         require(conn.must("DBSIZE") == cell["workload"]["physical_keys"], "warm physical key count differs")
         record["warm"] = [json.loads((folder / f"warm-{i}.json").read_text()) for i in range(8)]
         record["argv"]["wire_probe"] = probe_argv(cell, folder)
-        record["wire_witness"] = wire_probe(cell, folder, children)
+        if base == BASES[3]:
+            require(guard is not None and digest(guard["path"]) == guard["sha256"], "XGROUP native guard changed")
+            record["zero_reply_guard"] = guard
+        record["wire_witness"] = wire_probe(cell, folder, children, guard)
         deadline = time.monotonic() + 10
         while int(info(conn, "clients")["connected_clients"]) != 1:
             require(time.monotonic() < deadline, "wire probe/monitor connections did not drain")
@@ -674,7 +873,10 @@ def run_sample(cell, arm, identities, folder, q):
         for i in range(8):
             argv = load_argv(cell, i, folder, q)
             record["argv"].setdefault("load", []).append(argv)
-            loads.append(children.start(argv, folder / f"load-{i}.log", folder))
+            env = guard_environment(guard, folder, f"load-{i}") if base == BASES[3] else None
+            if env:
+                record.setdefault("load_env", []).append(env)
+            loads.append(children.start(argv, folder / f"load-{i}.log", folder, env))
         last_launch = time.monotonic()
         time.sleep(WARMUP)
         require(all(p.poll() is None for p in loads), "generator exited before central window")
@@ -709,6 +911,7 @@ def run_sample(cell, arm, identities, folder, q):
                 "PMU/counter endpoint skew exceeds 50ms; reject window")
         record["commandstats_before"], record["commandstats_after"] = before, after
         pmu = perf.finish()
+        pmu["executable"] = perf.identity
         lb1raw = conn.must("DEBUG", "LBSIGNALS")
         (folder / "lb-after.txt").write_bytes(lb1raw)
         lb1 = parse_snapshot(lb1raw)
@@ -755,7 +958,9 @@ def run_sample(cell, arm, identities, folder, q):
         documents = [parse_memtier(folder / f"load-{i}.json", cell, folder / f"load-{i}.log") for i in range(8)]
         completed = Counter()
         hist = Counter()
-        for doc in documents:
+        for i, doc in enumerate(documents):
+            if base == BASES[3]:
+                doc["zero_reply_guard"] = check_zero_receipt(folder / f"load-{i}-zero.json", doc["completed"]["XGROUP"], 64)
             completed.update(doc["completed"])
             hist.update(doc.pop("histogram"))
         require(dict(completed) == full_counts, f"whole-run server/HDR accounting differs: {full_counts} / {dict(completed)}")
@@ -782,8 +987,10 @@ def run_sample(cell, arm, identities, folder, q):
                 require(process.wait(timeout=180) == 0, "XGROUP existing-consumer/cardinality check failed")
             record["xgroup"] = dict(all_keys_verified_before_and_after=True, existing_consumer_reply=0,
                                      streams=65536, groups_per_stream=1, consumers_per_group=1,
-                                     observation="exhaustive direct replies outside scoring; memtier has no per-integer-value counter")
+                                     scored_zero_replies=completed["XGROUP"],
+                                     observation="every scored wire reply checked as :0 CR LF by SHA-bound native receive guard; exact guard/HDR reconciliation")
         quiet_file_guard()
+        monitor.check()
         require(digest(binary) == identities[arm]["sha256"], "arm changed during sample")
         record["complete"] = True
         return record
@@ -850,6 +1057,16 @@ def block_checks(samples, q):
 def dry_run(cells, identities, output, blocks):
     print("# DRY RUN: only memtier --help was executed. No server, load, perf, socket, build or output directory is created.")
     print("# arm SHA256 identities " + json.dumps(identities, sort_keys=True))
+    print(shlex.join([MEMTIER, "--help"]) + " # already checked; SHA-bound grammar receipt")
+    print("git rev-parse HEAD")
+    guard = dict(path=str(output / "guard/zero-reply.so"))
+    if any(c["id"].startswith(BASES[3]) for c in cells):
+        print("# write embedded zero-reply C source; compile and SHA-bind before quiet preflight")
+        print(shlex.join(guard_build_argv(output / "guard")))
+    for arm, identity in identities.items():
+        source = identity["path"]
+        identity["path"] = str(output / "arms" / arm / "tomokv")
+        print(f"# freeze copy {shlex.quote(source)} -> {shlex.quote(identity['path'])}; chmod 0555; verify SHA256")
     for cell in cells:
         base, _ = cell["id"].rsplit("_", 1)
         for phase, q in (("plateau", None), ("matched", "Q_" + cell["id"])):
@@ -869,12 +1086,18 @@ def dry_run(cells, identities, output, blocks):
                         for recipe in cell["workload"]["warm_commands"]:
                             print(f"# warm each n=1..{cell['workload']['keyspace']}: {recipe}; check creation reply and read back every key")
                         print("# RESP MONITOR then read/validate exactly two real memtier rotations; close before scoring")
-                        print(shlex.join(probe_argv(cell, folder)))
+                        def display_load(argv, label):
+                            if base == BASES[3]:
+                                env = guard_environment(guard, folder, label)
+                                print(shlex.join(["env", *[f"{k}={v}" for k, v in env.items()], *argv]))
+                            else:
+                                print(shlex.join(argv))
+                        display_load(probe_argv(cell, folder), "wire-probe")
                         print(shlex.join(perf_argv(folder)))
                         if base == BASES[-1]:
                             print(shlex.join(worker_argv("poll", cell, folder)))
                         for i in range(8):
-                            print(shlex.join(load_argv(cell, i, folder, q)))
+                            display_load(load_argv(cell, i, folder, q), f"load-{i}")
                         print("# warmup 3s; perf FIFO enable/ACK; INFO commandstats; central 20s; INFO commandstats; perf disable/ACK; drain 28s workload; reap owned perf")
                         if base == BASES[3]:
                             for i in range(8):
@@ -897,6 +1120,8 @@ def run(cells, identities, output, blocks, memtier):
                   capacity="Fixed requested 8-instance geometry. Productive occupancy and repeatability checked; higher-generator-capacity plateau proof remains mainline's calibration.")
     started = time.monotonic()
     try:
+        guard = prepare_guard(output / "guard") if any(c["id"].startswith(BASES[3]) for c in cells) else None
+        report["zero_reply_guard"] = guard
         # Frozen copies prevent a concurrent rebuild replacing a measured arm.
         for arm, identity in identities.items():
             target = output / "arms" / arm / "tomokv"
@@ -909,18 +1134,23 @@ def run(cells, identities, output, blocks, memtier):
             entry = report["cells"][cell["id"]] = dict(recipe=cell, passes={})
             q = None
             for phase in ("plateau", "matched"):
-                pass_entry = entry["passes"][phase] = dict(q=q, null=[], comparisons=[])
+                pass_entry = entry["passes"][phase] = dict(q=q, null=[], comparisons=[], blocks=[])
                 for pair_index, (a, b) in enumerate([("PRE", "PRE")] + comparisons(cell)):
                     groups = [[], []]
                     for block in range(blocks):
                         samples = []
+                        block_record = dict(A=a, B=b, index=block, samples=[], accepted=False)
+                        pass_entry["blocks"].append(block_record)
                         for i, arm in enumerate((a, b, b, a)):
                             folder = output / cell["id"] / phase / f"pair{pair_index}-block{block}-{i}-{arm}"
+                            block_record["samples"].append(str(folder))
+                            save(output / "results.json", report)
                             print(f"MEASURING {cell['id']} {phase} {a}->{b} block={block + 1} ABBA={i + 1} arm={arm}", flush=True)
-                            sample = run_sample(cell, arm, identities, folder, q)
+                            sample = run_sample(cell, arm, identities, folder, q, guard)
                             samples.append(sample)
                             groups[0 if i in (0, 3) else 1].append(sample)
                         block_checks(samples, q)
+                        block_record["accepted"] = True
                     left, right = map(aggregate, groups)
                     comparison = dict(A=a, B=b, left=left, right=right,
                                       samples=[[s["artifacts"] for s in g] for g in groups])
@@ -1027,6 +1257,17 @@ def self_test():
                 with self.assertRaisesRegex(RuntimeError, "MISSING"):
                     check_help(text.replace("--" + name + "=VALUE", ""))
 
+        def test_dry_help_probe_accepts_exit_2_but_never_missing_grammar(self):
+            text = " ".join("--" + n + "=VALUE" for n in REQUIRED_OPTIONS) + " individual connection rotation same key"
+            expected = json.loads(INVENTORY.read_text())["memtier"]["sha256"]
+            proc = subprocess.CompletedProcess([MEMTIER, "--help"], 2, stdout=text, stderr="")
+            with mock.patch("subprocess.run", return_value=proc) as invoked, mock.patch.dict(globals(), digest=lambda p: expected):
+                self.assertEqual(memtier_identity()["help_exit_status"], 2)
+                invoked.assert_called_once_with([MEMTIER, "--help"], capture_output=True, text=True, timeout=10)
+                proc.stdout = text.replace("--transaction=VALUE", "")
+                with self.assertRaisesRegex(RuntimeError, "MISSING"):
+                    memtier_identity()
+
         def test_synthetic_memtier_files_for_every_cell(self):
             for cell in self.cells.values():
                 parsed = self.parsed(cell, synthetic(cell))
@@ -1124,6 +1365,161 @@ def self_test():
             with self.assertRaises(RuntimeError):
                 check_reply(good * 2, "consumers", "XINFO CONSUMERS")
 
+        def test_xgroup_scored_wire_receipt_must_match_exact_hdr(self):
+            path = self.folder / "guard.json"
+            save(path, dict(connections=64, bytes=40000, zero_replies=10000))
+            check_zero_receipt(path, 10000, 64)
+            for field in ("connections", "bytes", "zero_replies"):
+                data = dict(connections=64, bytes=40000, zero_replies=10000)
+                data[field] -= 1
+                save(path, data)
+                with self.assertRaises(RuntimeError):
+                    check_zero_receipt(path, 10000, 64)
+
+        def test_missing_partial_arms_rebuild_from_sha_bound_receipts(self):
+            root = self.folder
+            pre, post = b"synthetic PRE", b"prefix" + bytes.fromhex("0f1f440000") + b"suffix"
+            old = post[:6] + bytes.fromhex("e900000000") + post[11:]
+            paths = {a: root / ("build/tomokv" if a == "POST" else
+                               "build/exbatch/PRE/build/tomokv" if a == "PRE" else f"build/exbatch/{a}/tomokv") for a in ARMS}
+            for arm, raw in (("PRE", pre), ("POST", post)):
+                paths[arm].parent.mkdir(parents=True, exist_ok=True)
+                paths[arm].write_bytes(raw)
+            for arm in ("PAD-A", "EX1-OLD", "EX3-OLD", "EX6-OLD"):
+                path = root / "docs/exbatch" / ("pad-a" if arm == "PAD-A" else arm.lower())
+                path.mkdir(parents=True)
+                save(path / "planned-retargets.json", dict(source_sha256=hashlib.sha256(post).hexdigest(),
+                    patches=[dict(offset=6, before="0f1f440000", after="e900000000")]))
+            receipt = root / "binaries.json"
+            save(receipt, dict(pre_commit="unused", artifacts=[dict(arm=a, sha256=hashlib.sha256(
+                pre if a == "PRE" else post if a == "POST" else old).hexdigest()) for a in ARMS]))
+            with mock.patch.dict(globals(), ROOT=root, RECEIPTS=receipt):
+                result = prepare_arms()
+                self.assertTrue(all(result[a]["sha256"] == result[a]["expected_sha256"] for a in ARMS))
+                self.assertEqual(paths["EX6-OLD"].read_bytes(), old)
+                paths["EX1-OLD"].unlink()
+                paths["POST"].write_bytes(b"changed")
+                with self.assertRaisesRegex(RuntimeError, "POST SHA"):
+                    prepare_arms()
+
+        def test_dry_plan_uses_frozen_paths_and_guard_without_launching(self):
+            import io
+            cell = self.cells[BASES[3] + "_s0"]
+            identities = {a: dict(path="/source/" + a, sha256="synthetic") for a in ARMS}
+            stream = io.StringIO()
+            with contextlib.redirect_stdout(stream):
+                dry_run([cell], identities, self.folder, 1)
+            text = stream.getvalue()
+            self.assertEqual(text.count("# warmup 3s;"), 40)
+            self.assertIn("LD_PRELOAD=", text)
+            self.assertIn(str(self.folder / "arms/EX6-OLD/tomokv"), text)
+            self.assertIn("--rate-limiting=Q_" + cell["id"], text)
+            self.assertNotIn("--key-pattern=P:P", text)
+
+        def test_mocked_sample_lifecycle_and_failure_cleanup(self):
+            # Run the real orchestration with in-memory children/counters/clock.
+            # Any unmocked subprocess/socket call is trapped by self_test's outer guards.
+            cell = self.cells[BASES[2] + "_f0"]
+            for q in (None, 1000):
+                folder = self.folder / ("success" if q is None else "rate-failure")
+                now = [1000.]
+                processes, dbsizes, endpoints, lb_calls = [], [0, 1000000, 1000000], [0, 0, 80000, 80000], []
+                boot = dict(process_id="123", read_local="0", pin_threads="1", net_io="uring", atomic="1",
+                            key_lb="1", client_lb="1", flip_auto="0", thread_cpus=",".join(f"{i}:{i}" for i in range(8)))
+
+                class Process:
+                    pid = 123
+                    def __init__(self, load=False):
+                        self.load, self.done = load, False
+                    def poll(self):
+                        return 0 if self.done else None
+                    def wait(self, timeout=None):
+                        self.done = True
+                        return 0
+
+                class Owned:
+                    def start(self, argv, log, cwd, extra_env=None):
+                        load = Path(log).name.startswith("load-")
+                        p = Process(load)
+                        processes.append(p)
+                        Path(log).write_text("")
+                        if load:
+                            save(Path(log).with_suffix(".json"), synthetic(cell))
+                        if "--worker" in argv:
+                            i = argv[argv.index("--instance") + 1]
+                            save(folder / f"warm-{i}.json", dict(complete=True))
+                        return p
+                    def stop(self, p, sig=None):
+                        p.done = True
+                    def close(self):
+                        for p in processes:
+                            p.done = True
+
+                class Client:
+                    def must(self, *args):
+                        if args[0] == "DBSIZE":
+                            return dbsizes.pop(0)
+                        if args == ("DEBUG", "LBSIGNALS"):
+                            after = bool(lb_calls)
+                            lb_calls.append(True)
+                            stamp, cpu = (21000000000, 20000000000) if after else (1000000000, 0)
+                            return f"lbver 1 stamp_ns {stamp}\n".encode() + b"".join(
+                                f"thread {i} fused 0 64 1 {1000000 if after else 0} {cpu} 0 {cpu}\n".encode()
+                                for i in range(8))
+                        raise AssertionError(args)
+                    def close(self):
+                        pass
+
+                def fake_info(conn, section):
+                    if section == "server": return boot
+                    if section == "clients": return {"connected_clients": 1 + 64 * sum(p.load and not p.done for p in processes)}
+                    if section == "stats": return {"keyspace_misses": 0}
+                    if section == "commandstats": return {"cmdstat_object": f"calls={endpoints.pop(0)}"}
+                    raise AssertionError(section)
+
+                class Quiet:
+                    def __init__(self, *args, **kwargs): pass
+                    def start(self): return self
+                    def evidence(self): return dict(complete=True)
+                    def check(self): pass
+                    def close(self): return self.evidence()
+
+                class Perf:
+                    identity = dict(path="/fake/perf", sha256="bound")
+                    def __init__(self, *args): pass
+                    def command(self, command): return dict(before=now[0], after=now[0])
+                    def finish(self):
+                        return parse_perf("".join(f"CPU{i},{n},,{name},20000000000,100.00,,\n"
+                            for i in range(8) for name, n in (("cycles", 200000000), ("instructions", 300000000))))
+                    def close(self): pass
+
+                def fake_digest(path):
+                    return json.loads(INVENTORY.read_text())["memtier"]["sha256"] if str(path) == MEMTIER else "bound"
+
+                class Socket:
+                    def __enter__(self): return self
+                    def __exit__(self, *args): pass
+                    def setsockopt(self, *args): pass
+                    def bind(self, *args): pass
+
+                with mock.patch.dict(globals(), Children=Owned, QuietMonitor=Quiet, Conn=lambda *a, **k: Client(),
+                                     PerfWindow=Perf, info=fake_info, digest=fake_digest, quiet_file_guard=lambda: None,
+                                     wire_probe=lambda *a: dict(complete=True)), \
+                     mock.patch("socket.socket", Socket), \
+                     mock.patch("time.monotonic", lambda: now[0]), \
+                     mock.patch("time.sleep", lambda delay: now.__setitem__(0, now[0] + delay)):
+                    if q is None:
+                        result = run_sample(cell, "PRE", {"PRE": dict(path="/fake/PRE", sha256="bound")}, folder, q)
+                        self.assertEqual(result["frames"], 80000)
+                        self.assertEqual(result["rate"], 4000)
+                        self.assertEqual(len(result["argv"]["load"]), 8)
+                        self.assertTrue(result["complete"])
+                    else:
+                        with self.assertRaisesRegex(RuntimeError, "2%"):
+                            run_sample(cell, "PRE", {"PRE": dict(path="/fake/PRE", sha256="bound")}, folder, q)
+                self.assertTrue(all(p.done for p in processes))
+                self.assertEqual(json.loads((folder / "sample.json").read_text())["complete"], q is None)
+
         def test_role_cpu_map_does_not_confuse_cpu_time_with_placement(self):
             raw = b"lbver 1 stamp_ns 1000000000\n" + b"".join(
                 f"thread {i} {'io' if i < 6 else 'ex'} 0 {1 if i < 6 else 0} 1 1 1000 1000 99999999\n".encode()
@@ -1205,6 +1601,9 @@ def main():
 
 if __name__ == "__main__":
     try:
+        def interrupted(signum, frame):
+            raise InterruptedError(f"received signal {signum}; reaping owned children")
+        signal.signal(signal.SIGTERM, interrupted)
         sys.exit(main())
     except (RuntimeError, KeyError, ValueError, OSError, subprocess.SubprocessError) as error:
         print(f"EXBATCH-DIRECTED FAILED: {error}", file=sys.stderr)
