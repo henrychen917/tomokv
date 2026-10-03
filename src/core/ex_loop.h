@@ -2236,9 +2236,9 @@ private:
                (!slowlog_armed_ || !slowlog_state_.escalate_batches);
     }
 
-    // Consume a bucket-prefetched homogeneous batch. The interwoven schedule calls this
-    // immediately after the prefetch loop; an interleaved schedule reaches it after independent-
-    // stream filler.
+    // Consume a complete prefetched batch in its selected order. Both ordinary drain and
+    // R7 submit whole batches here; completion notification ends before the
+    // per-batch shard-size publication and atomic cleanup below.
     template <bool IofusedPrivateQueue = false>
     void exec_batch_prefetched(const Task* batch, uint32_t n) {
         if (!xshard_retries_.empty()) {
@@ -2977,16 +2977,16 @@ using ExLoop = ExLoopT<false>;
 template <> uint32_t ExLoopT<true>::split_read_local_pass();
 using FusedExLoop = ExLoopT<true>;
 
-// Disabled split executors retain the exact pre-read-local allocation stride plus the 264-byte
-// per-batch notification record: 5848 + 8 + 32 * sizeof(NotifyEntry).
-// 6104 -> 6112: read-local eviction accounting adds exactly ONE word, the per-thread LFU dice
-// (foreign_touch_random_). Its two companions -- the latched policy byte and the fan-out defer
-// hook -- went into padding the lb bool run already carried and cost nothing. This is a per-
-// EXECUTOR object, one per thread, not a per-op or per-connection footprint: Op, Client,
-// ThreadCtx, Shard and Config are the locks that may not move, and none of them did.
-// VESTCUT: removing the never-serving 256-byte WbEngine reduced 6112 to 5856 bytes.
-// Dead fused handoff state removes 8 bytes; both modes now carry 32 notification entries.
-// Fused adds its 8-byte read-local state pointer: 5848 + 8 = 5856.
+// Both modes carry 32 notification entries. Removing the dead handoff-ring pointer
+// reduces the split executor from 5856 to 5848 bytes. Removing the unused 96-entry
+// notification tail also saves 768 bytes in fused mode: 6632 -> 5856.
+// The fused object's only additional state is its 8-byte read-local state pointer.
+
+
+
+
+
+
 static_assert(sizeof(ExLoop) == 5848);
 static_assert(sizeof(FusedExLoop) == 5856);
 

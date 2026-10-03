@@ -69,6 +69,16 @@ def canonical(name):
     # Demangling prints the return type only for templates, not their former ordinary form.
     if name.startswith('void tomo::ExLoopT<') and '::run()' in name:
         name=name.removeprefix('void ')
+    # Deadfused removes only the false coalescing policy and void filler. Match
+    # their surviving signatures; true policies/non-void fillers remain distinct.
+    name = re.sub(r'(::(?:r7_)?fused_pass_impl)<(\d+u), (true|false), false, '
+                  r'(true|false), (true|false), void>\(void\*\)',
+                  r'\1<\2, \3, \4, \5>()', name)
+    name = re.sub(r'(::(?:r7_)?fused_sweep_impl)<(\d+u), (true|false), false, '
+                  r'(true|false), (true|false)>\(\)',
+                  r'\1<\2, \3, \4, \5>()', name)
+    name = re.sub(r'(::r7_drain_tasks)<(\d+u), (true|false), void>\(bool, void\*, bool\*\)',
+                  r'\1<\2, \3>(bool)', name)
     return name
 
 def category(name):
@@ -348,6 +358,12 @@ def self_test():
     b='unsigned int tomo::ExLoopT<true>::fused_pass_impl<128u, true, true, true, false, tomo::IoLoop::genthread_three_way_pass<false, false, false>(X)::{lambda()#1}>(X*)'
     assert canonical(a)==b
     assert canonical(a.replace('(X)', '(X&, bool&)'))==b.replace('(X)', '(X&, bool&)')
+    for ns in ('tomo', 'tomo_db0'):
+        for prefix in ('', 'r7_'):
+            old = f'unsigned int {ns}::ExLoopT<true>::{prefix}fused_pass_impl<32u, true, false, false, true, void>(void*)'
+            new = f'unsigned int {ns}::ExLoopT<true>::{prefix}fused_pass_impl<32u, true, false, true>()'
+            assert canonical(old) == new
+            assert canonical(old.replace('true, false, false', 'true, true, false')) != new
     # Register/field/immediate/extra-branch changes must remain literal inequalities.
     for lhs,rhs in [('mov 0x189(%rax),%edx','mov 0x190(%rax),%edx'),('mov %rax,%rdx','mov %rax,%rcx'),('mov $0x0,%eax','mov $0x1,%eax'),('0000 [ 1] ret','0000 [ 2] jne <+0x4>')]:
         assert normalize_asm(lhs,0,16,{})!=normalize_asm(rhs,0,16,{})
