@@ -56,7 +56,8 @@ public:
 
     StartResult start(Server& server, ThreadCtx& writer, Ring& writer_ring, bool blocking,
                       std::string& error, AofManager* rewrite = nullptr,
-                      const char* target_dir = nullptr, const char* target_filename = nullptr);
+                      const char* target_dir = nullptr, const char* target_filename = nullptr,
+                      bool shutdown = false);
     uint32_t writer_pass(ThreadCtx& writer, Ring& writer_ring, bool drain_all = false);
     void on_io_complete(ThreadCtx& writer, Ring& writer_ring, void* request, int result);
 

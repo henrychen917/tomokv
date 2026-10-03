@@ -61,11 +61,16 @@ static_assert(std::atomic<Server*>::is_always_lock_free);
 static_assert(std::atomic<ThreadCtx*>::is_always_lock_free);
 static_assert(std::atomic<uint32_t>::is_always_lock_free);
 static_assert(std::atomic<bool>::is_always_lock_free);
+static_assert(std::atomic<uint8_t>::is_always_lock_free);
 
 static void on_signal(int) {
     if (!g_signal_armed.load(std::memory_order_acquire)) return;
-    if (Server* server = g_signal_server.load(std::memory_order_acquire))
+    if (Server* server = g_signal_server.load(std::memory_order_acquire)) {
+        // Keep owners alive until the ordinary IO save path has persisted the final cut.
+        // No sticky terminal wake yet: the save cron's existing timer bounds request latency.
+        if (server->request_signal_shutdown()) return;
         server->shutting_down().store(true, std::memory_order_relaxed);
+    }
     const uint32_t count = g_signal_thread_count.load(std::memory_order_acquire);
     for (uint32_t i = 0; i < count; i++) {
         ThreadCtx* thread = g_signal_threads[i].load(std::memory_order_relaxed);

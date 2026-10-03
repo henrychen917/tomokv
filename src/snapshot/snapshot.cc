@@ -183,7 +183,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
                                                      Ring& writer_ring, bool is_blocking,
                                                      std::string& error, AofManager* rewrite,
                                                      const char* target_dir,
-                                                     const char* target_filename) {
+                                                     const char* target_filename, bool shutdown) {
     {
         // Pair this admission edge with Server's FLIP/LB publication. Without the short mutex,
         // two IO owners could both observe the other's atomic state as idle and publish Preparing
@@ -193,12 +193,19 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
             error = "placement transition is in progress";
             return StartResult::Busy;
         }
+        // A failed final save releases its held owners asynchronously. Do not broadcast a new
+        // epoch until each has drained and can accept SnapshotStart again.
+        if (server.shutdown_snapshot_holds()) {
+            error = "previous shutdown snapshot is still draining";
+            return StartResult::Busy;
+        }
         Phase expected = Phase::Idle;
         if (!phase_.compare_exchange_strong(expected, Phase::Preparing,
                                             std::memory_order_acq_rel)) {
             error = "Background save already in progress";
             return StartResult::Busy;
         }
+        server.set_shutdown_snapshot_active(shutdown);
 #if !TOMO_SINGLE_DATABASE
         database_map_ = server.databases().capture();
         database_map_extended_ = false;
@@ -653,6 +660,7 @@ bool SnapshotManager::finish_file_metadata(Ring* ring) {
 bool SnapshotManager::complete_file_success() {
     if (rewrite_ && !rewrite_->rewrite_complete(final_path_, epoch())) return false;
     if (!rewrite_ && server_) server_->snapshot_save_succeeded(save_change_cut_);
+    if (server_ && server_->shutdown_snapshot_active()) server_->finish_shutdown();
     last_save_time_.store(now_realtime_ms() / 1000, std::memory_order_relaxed);
     writer_tid_.store(UINT32_MAX, std::memory_order_relaxed);
     writer_ring_.store(nullptr, std::memory_order_release);

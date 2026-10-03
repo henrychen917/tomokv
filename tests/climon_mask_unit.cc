@@ -25,7 +25,7 @@ int main() {
                 auto load = [&] { return ClimonIoMask::load(words[0], words[1]); };
                 require(!load(), "fresh mask is empty");
                 set(low, true);
-                require(!load().contains(high), "low owner does not arm owner i+64");
+                const auto low_only = load();
                 set(high, true);
                 require(load().contains(low) && load().contains(high), "both owners armed");
                 // Disconnect, TRACKING OFF and migration refresh all use this same clear.
@@ -35,6 +35,7 @@ int main() {
                 require(!load().contains(clear_high ? high : low), "disarmed owner absent");
                 set(clear_high ? low : high, false);
                 require(!load(), "last owner disarms the mask");
+                require(!low_only.contains(high), "low owner does not arm owner i+64");
 
                 ClimonIoMask posted;
                 posted.add(low);

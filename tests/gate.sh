@@ -980,7 +980,7 @@ start_workers(){
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
-              core_units wb_rule_units wbland_units atomic_units netcmd_units boot_grammar wait_units readonly
+              core_units climonfix wb_rule_units wbland_units atomic_units netcmd_units boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1238,11 +1238,33 @@ g++ -std=c++20 -O2 -march=native -pthread -I. tests/read_local_write_ring_unit.c
     || bad "read-local write ring + arming transient unit" "see $TMPDIR/gate-ring-unit.txt"
 # SV1: logical owners i/i+64 need no 65-CPU allocation in a parallel gate slot.
 row_begin "climon 128-owner delivery mask"
-make build/climon-mask-unit >"$TMPDIR/climon-mask.log" 2>&1 \
+pausable taskset -c "$CORES" make -j"$BUILD_JOBS" build/climon-mask-unit build/climon-mask-old-unit \
+    >"$TMPDIR/climon-mask.log" 2>&1 \
     && taskset -c "$CORES" ./build/climon-mask-unit >>"$TMPDIR/climon-mask.log" 2>&1 \
+    && { taskset -c "$CORES" ./build/climon-mask-old-unit >"$TMPDIR/climon-mask-old.log" 2>&1; test "$?" -eq 1; } \
+    && grep -q '^FAIL climon mask: disarm retains the other owner at distance 64$' "$TMPDIR/climon-mask-old.log" \
     && ok "climon 128-owner delivery mask" \
     || bad "climon 128-owner delivery mask" "see $TMPDIR/climon-mask.log"
 
+}
+
+job_climonfix(){
+  row_begin "shutdown policy + signal handoff serverless"
+  unit_ready shutdown-unit && taskset -c "$CORES" ./build/shutdown-unit \
+      >"$TMPDIR/shutdown-unit.log" 2>&1 \
+      && ok "shutdown policy + signal handoff serverless" \
+      || bad "shutdown policy + signal handoff serverless" "see $TMPDIR/shutdown-unit.log"
+  local mode stop_case label
+  for mode in 1s 2s; do
+    for stop_case in command sigterm sigint; do
+      label="shutdown persistence ($mode, $stop_case)"
+      row_begin "$label"
+      py tests/shutdown_persist.py --binary "$CANDIDATE_BINARY" --cores "$CORES" \
+          --port "$PORT" --ratio "$GATE_RATIO" --mode "$mode" --case "$stop_case" \
+          --output "$TMPDIR/shutdown-$mode-$stop_case" >"$TMPDIR/shutdown-$mode-$stop_case.log" 2>&1 \
+          && ok "$label" || bad "$label" "see $TMPDIR/shutdown-$mode-$stop_case.log"
+    done
+  done
 }
 
 job_core_units(){
@@ -2624,10 +2646,10 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
-      build/wb-rule-units build/wbland-units build/rltopo-unit >"$TMPDIR/build.log" 2>&1
+      build/wb-rule-units build/wbland-units build/rltopo-unit build/shutdown-unit >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit shutdown-unit; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -2686,7 +2708,7 @@ job_dependencies(){
     release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
     core_units) echo 'production_units core_tsan_build';;
     wait_units) echo 'production_units waits_tsan_build';;
-    wb_rule_units|wbland_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
+    climonfix|wb_rule_units|wbland_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
     rlcache) echo rldbg;;

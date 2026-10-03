@@ -242,10 +242,57 @@ void cmd_pfselftest(Shard&, Op& op) { reply_ok(op.sink()); }
 // SHUTDOWN. On success redis sends NO reply -- the connection simply closes as the process goes
 // away -- so the only replies here are the refusals.
 //
-// GRACEFUL means: optionally take a snapshot first, then set the process shutdown flag and every
-// loop's stop flag, then poke every parked ring. That last step is what a signal gets for free
-// (io_uring_enter returns EINTR); a command-driven stop has no signal, so a thread already parked
-// waiting for a completion would otherwise sleep until unrelated work arrived.
+} // namespace
+
+// Both command and signal requests land here on an IO owner. A required save must succeed
+// before publishing any stop flags; Busy is a refusal, never permission to discard writes.
+SnapshotManager::StartResult Server::shutdown(ShutdownSave save, ThreadCtx* writer, Ring* ring,
+                                              std::string& error) {
+    std::unique_lock lock(shutdown_mu_, std::try_to_lock);
+    if (!lock.owns_lock()) {
+        error = "shutdown is already in progress";
+        return SnapshotManager::StartResult::Busy;
+    }
+    const bool must_save = save == ShutdownSave::Save ||
+        (save == ShutdownSave::Configured && save_schedule_armed());
+    if (must_save) {
+        if (!writer || !ring) {
+            error = "shutdown save has no IO owner";
+            return SnapshotManager::StartResult::Failed;
+        }
+        const auto result = snapshot_.start(*this, *writer, *ring, true, error,
+                                             nullptr, nullptr, nullptr, true);
+        if (result != SnapshotManager::StartResult::Started) {
+            set_shutdown_snapshot_active(false);
+            return result;
+        }
+        // The snapshot writer publishes stop before releasing the successful epoch, so owners
+        // cannot acknowledge post-cut backlog writes while the final fsync is still outstanding.
+    } else {
+        finish_shutdown();
+    }
+    return SnapshotManager::StartResult::Started;
+}
+
+void Server::finish_shutdown() {
+    shutting_down().store(true, std::memory_order_relaxed);
+    for (uint32_t i = 0; i < nthreads(); ++i)
+        thread(i).stop_flag().store(true, std::memory_order_relaxed);
+    signal_doorbell_notify();
+}
+
+uint32_t Server::shutdown_from_cron(ThreadCtx& writer, Ring& ring) {
+    std::string error;
+    const auto result = shutdown(ShutdownSave::Configured, &writer, &ring, error);
+    if (result == SnapshotManager::StartResult::Busy) return 0; // retry after snapshot/FLIP
+    live_save_armed_.fetch_and(uint8_t(~kSignalShutdown), std::memory_order_relaxed);
+    if (result == SnapshotManager::StartResult::Failed)
+        std::fprintf(stderr, "Errors trying to SHUTDOWN: %s; server remains running\n", error.c_str());
+    return 1;
+}
+
+namespace {
+
 void cmd_shutdown(Shard&, Op& op) {
     bool nosave = false, save = false;
     for (uint32_t i = 1; i < op.argc(); i++) {
@@ -262,33 +309,16 @@ void cmd_shutdown(Shard&, Op& op) {
     Server* server = command_server();
     if (!server) { reply_err(op.sink(), "ERR server is not bound"); return; }
 
-    // Periodic `save` clauses are handled by the designated IO cron owner. SHUTDOWN retains its
-    // explicit SAVE/NOSAVE choice here; an in-progress periodic snapshot is completed by the
-    // ordinary snapshot writer before thread teardown.
-    if (save) {
-        const SnapshotIoContext context = snapshot_io_context();
-        if (context.thread && context.ring) {
-            std::string error;
-            const SnapshotManager::StartResult result = server->snapshot().start(
-                *server, *context.thread, *context.ring, true, error);
-            if (result == SnapshotManager::StartResult::Failed) {
-                std::string message = "ERR Errors trying to SHUTDOWN. Check logs. ";
-                message += error;
-                reply_err(op.sink(), message.c_str());
-                return;
-            }
-        }
+    const SnapshotIoContext context = snapshot_io_context();
+    const auto choice = nosave ? Server::ShutdownSave::NoSave :
+                        save ? Server::ShutdownSave::Save : Server::ShutdownSave::Configured;
+    std::string error;
+    if (server->shutdown(choice, context.thread, context.ring, error) !=
+        SnapshotManager::StartResult::Started) {
+        const std::string message = "ERR Errors trying to SHUTDOWN. Check logs. " + error;
+        reply_err(op.sink(), message.c_str());
+        return;
     }
-
-    server->shutting_down().store(true, std::memory_order_relaxed);
-    for (uint32_t i = 0; i < server->nthreads(); i++)
-        server->thread(i).stop_flag().store(true, std::memory_order_relaxed);
-    // Poke every ring so nothing sleeps through the stop flag it just missed.
-    if (ThreadCtx* self = command_local_thread())
-        if (Ring* ring = self->ring())
-            for (uint32_t i = 0; i < server->nthreads(); i++)
-                server->thread(i).wake_if_parked(*ring, self->sig());
-    signal_doorbell_notify();
     // Deliberately no reply: the client observes a closed connection, exactly like redis.
 }
 
