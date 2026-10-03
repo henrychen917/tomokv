@@ -2350,6 +2350,7 @@ void cmd_info(Shard&, Op& op) {
                       "tls_ciphertext_output_bytes:%llu\r\ntls_plaintext_output_bytes:%llu\r\n"
                       "tls_zc_suppressed:%llu\r\n"
                       "tls_ktls_active:%llu\r\ntls_ktls_fallback:%llu\r\n"
+                      "tls_ktls_rx_declined_13:%llu\r\ntls_ktls_tx_rekeys:%llu\r\n"
                       "blocking_waiters:%llu\r\n"
                       "number_of_cached_scripts:%llu\r\nnumber_of_libraries:%llu\r\n"
                       "number_of_functions:%llu\r\n"
@@ -2493,6 +2494,8 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(tls_zc_suppressed),
                 static_cast<unsigned long long>(tls_ktls_active),
                 static_cast<unsigned long long>(tls_ktls_fallback),
+                static_cast<unsigned long long>(tls_ktls_rx_declined_13()),
+                static_cast<unsigned long long>(tls_ktls_tx_rekeys()),
                 static_cast<unsigned long long>(blocking_waiters),
                 static_cast<unsigned long long>(scripting.cached_scripts),
                 static_cast<unsigned long long>(functions.libraries),
