@@ -2468,40 +2468,6 @@ private:
         }
     }
 
-    // Run mutation-capable reclamation only after every buffered E2 in the pass. In particular, an
-    // A/D sequence must not put cleanup between E1(D) and E2(D), and consecutive modulo chunks use
-    // the same rule. The caller still holds every gathered source prefix unretired here.
-    void finish_buffered_exec_pass(uint32_t executable_count) {
-        flush_xshard_commits();
-        if (xshard_retries_.empty() && srv_->atomic_work_active() && executable_count) {
-            // The legacy entry supplied 256 cleanup records of service for every batch of at most
-            // 128 tasks. Preserve that capacity while paying the owned-shard walk only once.
-            atomic_cleanup_cycle(std::max<uint32_t>(256, executable_count * 2));
-        }
-    }
-
-    // Buffered E2 batches can be much smaller than the shipped coarse drain. Their caller tracks
-    // owner-verified shards while E1 already has the route in hand, then publishes that dense set
-    // once after the complete multi-chunk EX pass. Keep the ordinary coarse/iofused entry above --
-    // including its historical all-owned-shards publication -- unchanged.
-    void exec_batch_prefetched_buffered(const Task* batch, uint32_t n) {
-        if (!xshard_retries_.empty()) {
-            for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
-            return;
-        }
-        NotifyBatchScope notify_batch(this);
-        if (__builtin_expect(slowlog_armed_, false)) {
-            exec_batch_timed(batch, n);
-        } else {
-            for (uint32_t i = 0; i < n; i++) {
-                if (execute(batch[i])) continue;
-                xshard_retries_.push_back(batch[i]);
-                for (uint32_t j = i + 1; j < n; j++) ordered_deferred_.push_back(batch[j]);
-                break;
-            }
-        }
-    }
-
     // Whole-batch prefetch follows the gathered FIFO order.
     template <bool IofusedPrivateQueue = false, size_t BatchOps>
     void exec_batch(Task (&batch)[BatchOps], uint32_t n) {
