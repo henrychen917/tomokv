@@ -18,6 +18,7 @@ struct LiveConfigSnapshot {
     bool save_armed;
     uint64_t proto_max_bulk_len;
     uint32_t debug_fanout_defer_us;
+    uint64_t client_query_buffer_limit;
 };
 
 struct ClientLimitsConfigSnapshot {

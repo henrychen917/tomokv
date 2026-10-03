@@ -21,6 +21,55 @@ namespace tomo {
 
 enum class ParseResult { Ok, Incomplete, Error, Empty };
 
+// Redis 7.4's PROTO_INLINE_MAX_SIZE is a fixed protocol bound, not a CONFIG knob.
+inline constexpr uint32_t kProtoInlineMaxSize = 64 * 1024;
+
+// `scanned` is relative to the unconsumed request, so quiescent buffer compaction and
+// connection migration preserve it. Retain the last byte for a split CRLF. No bytes
+// are copied or changed: argv can still point into the append-only receive buffer.
+inline ParseResult resp_parse_inline(const char* buf, uint32_t len, uint32_t& pos,
+                                      Op& op, const char** err, uint32_t& scanned) {
+    const uint32_t available = len - pos;
+    uint32_t i = scanned;
+    for (; i + 1 < available; ++i) {
+#ifdef TOMO_NETCAP_TEST
+        extern uint64_t netcap_scan_bytes;
+        ++netcap_scan_bytes;
+#endif
+        if (buf[pos + i] == '\r' && buf[pos + i + 1] == '\n') break;
+    }
+    if (i + 1 >= available) {
+        scanned = i;
+        if (available > kProtoInlineMaxSize) {
+            *err = "ERR Protocol error: too big inline request";
+            return ParseResult::Error;
+        }
+        return ParseResult::Incomplete;
+    }
+    const uint32_t eol = pos + i;
+    scanned = 0; // A dispatch refusal may parse this complete frame again.
+    i = pos;
+    while (i < eol) {
+        while (i < eol && (buf[i] == ' ' || buf[i] == '\t')) ++i;
+        const uint32_t begin = i;
+        while (i < eol && buf[i] != ' ' && buf[i] != '\t') ++i;
+        if (i > begin && !op.push_arg(Slice(buf + begin, i - begin))) {
+            *err = "ERR out of memory parsing inline command";
+            return ParseResult::Error;
+        }
+    }
+    pos = eol + 2;
+    return op.argc() ? ParseResult::Ok : ParseResult::Empty;
+}
+
+inline const char* resp_expected_bulk_error(char actual) {
+    // Used immediately by the owning parser; thread-local storage avoids changing Op
+    // or carrying a formatting buffer through every ordinary RESP parse.
+    thread_local char message[] = "ERR Protocol error: expected '$', got '?'";
+    message[sizeof(message) - 3] = actual;
+    return message;
+}
+
 // Read decimal digits terminated by CRLF, advancing `pos` past the CRLF.
 //
 // strtol was doing this, and strtol is a general-purpose parser: it skips leading whitespace,
@@ -72,45 +121,25 @@ inline ParseResult resp_parse_t(const char* buf, uint32_t len, uint32_t& pos, Op
     const uint32_t start = pos;
     if (pos >= len) return ParseResult::Incomplete;
 
-    auto find_crlf = [&](uint32_t from, uint32_t& out) -> bool {
-        for (uint32_t i = from; i + 1 < len; i++)
-            if (buf[i] == '\r' && buf[i + 1] == '\n') { out = i; return true; }
-        return false;
-    };
-
     if (buf[pos] != '*') {
-        // Inline command: whitespace-separated, CRLF-terminated. Kept because every debugging
-        // session uses it through nc/telnet and it costs almost nothing.
-        uint32_t eol;
-        if (!find_crlf(pos, eol)) return ParseResult::Incomplete;
-        uint32_t i = pos;
-        while (i < eol) {
-            while (i < eol && (buf[i] == ' ' || buf[i] == '\t')) i++;
-            uint32_t b = i;
-            while (i < eol && buf[i] != ' ' && buf[i] != '\t') i++;
-            if (i > b && !op.push_arg(Slice(buf + b, i - b))) {
-                *err = "ERR out of memory parsing inline command";
-                return ParseResult::Error;
-            }
-        }
-        pos = eol + 2;
-        return op.argc() ? ParseResult::Ok : ParseResult::Empty;
+        uint32_t scanned = 0; // Stateless callers; IoLoop supplies Client's saved cursor.
+        return resp_parse_inline(buf, len, pos, op, err, scanned);
     }
 
     uint32_t p = pos + 1;                      // past '*'
     uint64_t nargs = 0;
     ParseResult r = parse_len_crlf(buf, len, p, max_multibulk, nargs);
     if (r == ParseResult::Incomplete) return ParseResult::Incomplete;
-    if (r == ParseResult::Error || nargs == 0) { *err = "ERR invalid multibulk length"; return ParseResult::Error; }
+    if (r == ParseResult::Error || nargs == 0) { *err = "ERR Protocol error: invalid multibulk length"; return ParseResult::Error; }
 
     for (uint64_t a = 0; a < nargs; a++) {
         if (p >= len) { pos = start; return ParseResult::Incomplete; }
-        if (buf[p] != '$') { *err = "ERR expected '$'"; return ParseResult::Error; }
+        if (buf[p] != '$') { *err = resp_expected_bulk_error(buf[p]); return ParseResult::Error; }
         p++;
         uint64_t blen = 0;
         r = parse_len_crlf(buf, len, p, max_bulk, blen);
         if (r == ParseResult::Incomplete) { pos = start; return ParseResult::Incomplete; }
-        if (r == ParseResult::Error) { *err = "ERR invalid bulk length"; return ParseResult::Error; }
+        if (r == ParseResult::Error) { *err = "ERR Protocol error: invalid bulk length"; return ParseResult::Error; }
         if (p + blen + 2 > len) { pos = start; return ParseResult::Incomplete; }
         if (!op.push_arg(Slice(buf + p, static_cast<uint32_t>(blen)))) {
             *err = "ERR out of memory parsing command";
