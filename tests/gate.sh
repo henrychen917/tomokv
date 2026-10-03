@@ -1381,7 +1381,8 @@ job_netcmd_units(){
 row_begin "netcmd regression build"
 unit_ready netcmd-unit \
     && ok "netcmd regression build" || bad "netcmd regression build" "see $RUN_DIR/jobs/production_units/build.log"
-for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub receive config; do
+# CD1: +1 row before the quick-tier exit; EXPECT counts remain maintainer-owned.
+for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub receive config hexpire-oom; do
   row_begin "netcmd $NETCMD_CASE regression"
   taskset -c "$CORES" ./build/netcmd-unit "$NETCMD_CASE" >$TMPDIR/gate-netcmd-$NETCMD_CASE.txt 2>&1 \
       && ok "netcmd $NETCMD_CASE regression" \
