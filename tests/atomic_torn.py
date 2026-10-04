@@ -820,7 +820,8 @@ rename_on = None
 if not rename_off[2] and not rename_off[4]:
     held_on = rename_held(1, mover_pair)
     rename_on = rename_hammer("at:rename-on", 1, mover_pair, seconds=2.0)
-    rename_on = (rename_on[0] + held_on[0], rename_on[1] + held_on[1],
+    # Preserve the hammer's own nonempty-read witness; the held read is checked separately.
+    rename_on = (rename_on[0] + held_on[0], rename_on[1],
                  rename_on[2] + held_on[2], rename_on[3] and held_on[3],
                  rename_on[4] or held_on[4])
 note("OFF control exposes torn RENAME",
