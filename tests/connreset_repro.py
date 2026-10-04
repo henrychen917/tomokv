@@ -126,8 +126,12 @@ class Cohort:
         self.stopping = False
 
     async def start(self):
-        self.streams = list(await asyncio.gather(*(
-            asyncio.open_connection("127.0.0.1", self.port) for _ in range(self.count))))
+        opened = await asyncio.gather(*(
+            asyncio.open_connection("127.0.0.1", self.port) for _ in range(self.count)),
+            return_exceptions=True)
+        self.streams = [pair for pair in opened if not isinstance(pair, BaseException)]
+        require(len(self.streams) == self.count, "not all persistent clients connected: " +
+                str([str(pair) for pair in opened if isinstance(pair, BaseException)]))
         self.tasks = [asyncio.create_task(self.run(i, *pair)) for i, pair in enumerate(self.streams)]
         deadline = time.monotonic() + 10
         while not all(self.batches):
@@ -204,10 +208,20 @@ async def transition(args, variant, directory):
     result = {}
     try:
         monitor.start()
+        observed = monitor.before["info"]
+        require(observed["thread_mode"] == mode, "observed thread mode differs from requested mode")
+        if not args.live_port:
+            require((int(observed["io_threads"]), int(observed["ex_threads"])) ==
+                    ((8, 8) if mode == "2s" else (16, 0)), "observed IO/EX counts differ")
+            require(int(observed["shards"]) == (args.shards or (64 if mode == "2s" else 128)),
+                    "observed shard count differs")
         await cohort.start()
         await asyncio.sleep(args.warmup)
         require(monitor.failure is None, "monitor failed before transition: " + str(monitor.failure))
         result["before_transition"] = monitor.samples[-1] if monitor.samples else None
+        require(result["before_transition"] is not None, "monitor never completed a sample")
+        require(int(result["before_transition"]["info"]["connected_clients"]) == count + 1,
+                "before-transition sample did not witness all persistent clients plus monitor")
         result["pipelines_before"] = list(cohort.batches)
         result["transition_t"] = time.monotonic()
         if event in ("both", "close"):
@@ -216,6 +230,10 @@ async def transition(args, variant, directory):
             result["storm"] = await storm(args.port, storm_count, args.storm_concurrency)
         await asyncio.sleep(args.observe)
         result["after_transition"] = monitor.samples[-1] if monitor.samples else None
+        if monitor.failure is None:
+            require(result["after_transition"]["t"] >
+                    (result.get("storm", {}).get("end") or result["transition_t"]),
+                    "monitor never completed a sample after the transition")
         require(not cohort.errors, "persistent load error: " + str(cohort.errors))
         if "storm" in result:
             require(result["storm"]["completed"] == storm_count and not result["storm"]["errors"],
@@ -330,6 +348,9 @@ def main():
     parser.add_argument("--live-port", type=int)
     parser.add_argument("--expect-clean", action="store_true", help="nonzero exit on a retained monitor failure")
     args = parser.parse_args()
+    def interrupted(signum, frame):
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGTERM, interrupted)
     require(args.repeats > 0 and args.pipeline > 0 and args.pipeline % 2 == 0,
             "positive repeats and positive even pipeline required")
     require(args.warmup >= .1 and args.observe >= .1 and args.storm_concurrency > 0,
