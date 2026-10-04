@@ -2028,12 +2028,13 @@ private:
     }
 
     enum class SnapshotOwnerState : uint8_t {
-        None, Preparing, Prepared, Frozen, Marked, Capturing, Draining
+        None, Preparing, Prepared, Frozen, Marked, ShutdownHeld, Capturing, Draining
     };
 
     bool snapshot_blocks_tasks() const {
         if (snapshot_owner_state_ == SnapshotOwnerState::Frozen ||
-            snapshot_owner_state_ == SnapshotOwnerState::Marked) return true;
+            snapshot_owner_state_ == SnapshotOwnerState::Marked ||
+            snapshot_owner_state_ == SnapshotOwnerState::ShutdownHeld) return true;
         return snapshot_owner_state_ == SnapshotOwnerState::Capturing &&
                snapshot_manager_ && snapshot_manager_->blocking();
     }
@@ -2057,6 +2058,18 @@ private:
               bool IofusedPrivateQueue = false>
     uint32_t snapshot_control_pass() {
         if (snapshot_owner_state_ == SnapshotOwnerState::None) return 0;
+        // A shutdown snapshot counts capture completion without executing post-cut backlogs.
+        // Success stops us before releasing this hold; failure releases it and resumes service.
+        if (snapshot_owner_state_ == SnapshotOwnerState::ShutdownHeld) {
+            if (srv_->shutdown_snapshot_active()) return 0;
+            const uint32_t n = service_snapshot_backlogs<IofusedPrivateQueue>(BatchOps, false);
+            if (snapshot_backlogs_empty()) {
+                snapshot_owner_state_ = SnapshotOwnerState::None;
+                snapshot_manager_ = nullptr; // owner_finished was already counted on entry
+                srv_->shutdown_snapshot_release();
+            }
+            return n;
+        }
         SnapshotManager::Phase phase = snapshot_manager_->phase();
         if (phase == SnapshotManager::Phase::Failed &&
             snapshot_owner_state_ != SnapshotOwnerState::Draining) {
@@ -2115,6 +2128,12 @@ private:
             return progress_snapshot_capture();
         }
         if (snapshot_owner_state_ == SnapshotOwnerState::Draining) {
+            if (!snapshot_was_cancelled_ && srv_->shutdown_snapshot_active()) {
+                snapshot_owner_state_ = SnapshotOwnerState::ShutdownHeld;
+                srv_->shutdown_snapshot_hold();
+                snapshot_manager_->owner_finished(snapshot_epoch_);
+                return 1;
+            }
             const uint32_t n = service_snapshot_backlogs<IofusedPrivateQueue>(
                 BatchOps, false);
             if (snapshot_backlogs_empty()) {

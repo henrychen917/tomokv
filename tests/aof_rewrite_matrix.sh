@@ -47,7 +47,7 @@ boot_server() {
   [ -z "$(listener_pid)" ] || { echo "AOF rewrite: port $PORT already listening" >&2; return 1; }
   taskset -c "$CORES" "$BIN" --port "$PORT" --bind 127.0.0.1 \
     --shards 16 --ratio "$RATIO" --protected-mode no --atomic "$atomic" \
-    --net-io "$NET_IO" --appendonly yes --appendfsync everysec \
+    --net-io "$NET_IO" --appendonly yes --appendfsync everysec --save '' \
     --dir "$directory" "${debug_args[@]}" \
     >"$log" 2>&1 &
   boot_pid=$!

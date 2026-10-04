@@ -215,9 +215,10 @@ for field in info_age_fields:
     value = float(lb[field])
     ok("INFO %s is sane" % field, 0 <= value <= SANE_AGE_US, str(value))
 
-# The cold gather counter lets the stationary-load run distinguish a quiet controller from
-# one that still scans all buckets but happens to produce no move. Directed arming/zero-gather
-# assertions live in the existing core concurrency route row (both sanitizers, both modes).
+# This battery checks the gather counter's schema and the disabled arm. Directed
+# arming/zero-gather assertions live in the core concurrency route row. The separate
+# lb_stationary.py battery checks stationary-load moves and reports gather activity;
+# a gather is not an ownership move under the owner's thrash definition.
 gathers_field = "tomokv_keylb_bucket_gathers"
 ok("INFO exports admitted bucket gathers", gathers_field in lb)
 gathers = int(lb[gathers_field])

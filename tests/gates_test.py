@@ -321,7 +321,8 @@ class LedgerWiring(unittest.TestCase):
     instrument_helpers = ('tests/abbagate.py', 'tests/gate_quiet.py', 'tests/gate_measurements.py',
                           'tests/gate_receipt.py', 'tests/abba_instrument.py',
                           'tests/background_environment_test.py', 'tests/gate_history.py',
-                          'tests/gate_process_test.py', 'tests/gates_test.py', 'tests/tailgen_stall.py')
+                          'tests/gate_process_test.py', 'tests/gates_test.py', 'tests/gate_subset_test.py',
+                          'tests/wb_policy.py', 'tests/lb_stationary.py', 'tests/netio.py', 'tests/tailgen_stall.py')
 
     def run_block(self, kind, rc=0, abba_rc=0, abba_helper='', cells=None):
         root = Path(__file__).resolve().parent.parent
@@ -364,7 +365,7 @@ py(){
   # New control helpers must not accidentally inherit the feature-cell verdict.
   case "$1" in
     tests/feature_gate.py) return "$WIRE_RC";;
-    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/tailgen_stall.py)
+    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/gate_subset_test.py|tests/wb_policy.py|tests/lb_stationary.py|tests/netio.py|tests/tailgen_stall.py)
       printf '%s\\n' "$1" >> "$WIRE_CONTROLS"
       if [ -z "$WIRE_ABBA_HELPER" ] || [ "$1" = "$WIRE_ABBA_HELPER" ]; then
         return "$WIRE_ABBA_RC"
@@ -868,7 +869,8 @@ class SchedulerWiring(unittest.TestCase):
         gate = (root / 'tests/gate.sh').read_text()
         quick = gate[gate.index('\nstart_workers\n'):gate.index('\n# One correctness row, before the quick exit.')]
         full = gate[gate.index('\ncollect_job asan_batteries\n'):gate.index('\n# Every worker has reaped')]
-        stub = '''start_workers(){ :; }
+        stub = '''GATE_PARTIAL=0
+start_workers(){ :; }
 collect_job(){
   case "$1" in
     differ-split) printf '%s\\n' differ-split-0 differ-split-1 differ-equivalence;;
@@ -924,16 +926,28 @@ collect_job(){
     def _run_scheduler(self, *, reverse=False, slots=None, failure='', behavior='', ordered=True,
                       delayed_completion=False, dependency_probe=False,
                       remove_atomic_dependency=False, add_asan_dependency=False,
-                      remove_atomic_publication=False, _cpus=None, _gate_path=None):
+                      remove_atomic_publication=False, only_jobs=None, _cpus=None,
+                      _gate_path=None):
         root = Path(__file__).resolve().parent.parent
         gate = (_gate_path or root / 'tests/gate.sh').read_text()
+        canonical, helpers = self.canonical, self.helper_jobs
+        if only_jobs is not None:
+            from gate_subset_test import select
+            selected = select(only_jobs)
+            self.assertEqual(selected.returncode, 0, selected.stderr)
+            jobs = selected.stdout.splitlines()
+            helpers = self.helper_jobs.intersection(jobs)
+            canonical = [job for job in jobs if job not in helpers]
         ledger_functions = gate[gate.index('say(){'):gate.index('\nledger_labels(){')]
         placement = gate[gate.index('set_slot(){'):gate.index('\nset_slot 0')]
         scheduler = gate[gate.index('WORKER_PIDS=()'):gate.index('# ---- 0. preflight:')]
-        order = self.canonical[::-1] if reverse else self.canonical
-        order = [name for name in order if name != 'atomic_batteries'] + ['atomic_batteries']
+        order = canonical[::-1] if reverse else canonical
+        order = [name for name in order if name != 'atomic_batteries'] + (
+            ['atomic_batteries'] if 'atomic_batteries' in canonical else [])
         prelude = '''set -u
 PASS=0; FAIL=0; TIER=full; CORES=0; LOAD_CORES=0; PORT=19000; GATE_RATIO=6:2; ALL_BUILD_CORES=0
+GATE_PARTIAL=${WIRE_PARTIAL:-0}
+source tests/gate_subset.sh
 LEDGER="$RUN_DIR/ledger"; TIMINGS="$RUN_DIR/timings"; ROW_T=$(date +%s.%N)
 : > "$LEDGER"; : > "$TIMINGS"
 mkdir -p "$RUN_DIR/jobs" "$RUN_DIR/started" "$RUN_DIR/completed"
@@ -1111,11 +1125,12 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
         with tempfile.TemporaryDirectory(dir=root / 'build') as tmp:
             directory = Path(tmp)
             env = dict(os.environ, RUN_DIR=tmp, FAILED_JOB=failure, FAILURE_BEHAVIOR=behavior,
+                       WIRE_PARTIAL=str(int(only_jobs is not None)), GATE_ONLY_JOBS=only_jobs or '',
                        FORCE_ORDER=str(int(ordered)), DEPENDENCY_PROBE=str(int(dependency_probe)),
                        REMOVE_ATOMIC_DEPENDENCY=str(int(remove_atomic_dependency)),
                        ADD_ASAN_DEPENDENCY=str(int(add_asan_dependency)),
                        GATE_FEATURE_OUTPUT=str(directory / 'features'))
-            count = slots or len(self.canonical) + 1
+            count = slots or len(canonical) + 1
             # The full-inventory order probes synchronize about 100 real shells. Pinning
             # all of them to one CPU serialized their watchdog/ledger work and exhausted
             # the unchanged 45s deadline under correctness contention. Use up to four
@@ -1126,7 +1141,7 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
             slot_cpus = [fixture_cpus[index % len(fixture_cpus)] for index in range(count)]
             arrays = '\n'.join([
                 f'GATE_SLOTS={count}',
-                'CANONICAL=(' + ' '.join(map(shlex.quote, self.canonical)) + ')',
+                'CANONICAL=(' + ' '.join(map(shlex.quote, canonical)) + ')',
                 'COMPLETION_ORDER=(' + ' '.join(map(shlex.quote, order)) + ')',
                 'SLOT_CORES=(' + ' '.join(slot_cpus) + ')',
                 'SLOT_LOAD_CORES=(' + ' '.join(slot_cpus) + ')',
@@ -1157,10 +1172,10 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
                 # Collector rows enumerate scored jobs. The three build prerequisites do
                 # not emit rows in this fixture, but must still run and finalize cleanly:
                 # inspecting only directories that happen to exist can miss a deleted job.
-                expected_jobs = set(self.canonical) | self.helper_jobs
+                expected_jobs = set(canonical) | helpers
                 self.assertEqual({job.name for job in (directory / 'jobs').iterdir()}, expected_jobs)
                 self.assertEqual({job.name for job in (directory / 'started').iterdir()}, expected_jobs)
-                for helper in self.helper_jobs:
+                for helper in helpers:
                     job = directory / 'jobs' / helper
                     self.assertEqual((job / 'done').read_text(), '0\t0\t0\n', helper)
                     self.assertTrue((job / 'cleaned').exists(), helper)
@@ -1191,9 +1206,9 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
                 self.assertEqual(len(row), 3)
                 self.assertGreaterEqual(float(row[1]), 0)
             counts = tuple(map(int, (directory / 'counts').read_text().split()))
-            expected = ((len(self.canonical), 1) if behavior == 'return' else
-                        (len(self.canonical) - 1, 1) if behavior in ('empty', 'red', 'crash') or remove_atomic_dependency or add_asan_dependency else
-                        (len(self.canonical), 0))
+            expected = ((len(canonical), 1) if behavior == 'return' else
+                        (len(canonical) - 1, 1) if behavior in ('empty', 'red', 'crash') or remove_atomic_dependency or add_asan_dependency else
+                        (len(canonical), 0))
             dependency_reached = (directory / 'dependency-probe-reached').exists()
             dependency_handshake = (directory / 'dependency-handshake').exists()
             dependency_failure = ((directory / 'dependency-failure').read_text()
@@ -1220,6 +1235,14 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
                                  if path.parent.name in self.helper_jobs},
                         cleaned={path.parent.name for path in (directory / 'jobs').glob('*/cleaned')
                                  if path.parent.name not in self.helper_jobs})
+
+    def test_partial_jobs_use_the_real_scheduler_and_finalizers(self):
+        result = self._run_scheduler(slots=2, ordered=False, only_jobs='debug-0 debug-1')
+        self.assertEqual(result['counts'], (3, 0), result['output'])
+        self.assertEqual(set(result['completion']), {'release', 'debug-0', 'debug-1'})
+        self.assertEqual(result['helpers'], {'production_units'})
+        self.assertEqual(result['ledger'], b'ok\tcorrectness family release\n'
+                         b'ok\tcorrectness family debug-0\nok\tcorrectness family debug-1\n')
 
     def test_large_gate_script_avoids_single_argument_limit(self):
         root = Path(__file__).resolve().parents[1]
@@ -1388,6 +1411,43 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
 
 
 class PersistfixWiring(unittest.TestCase):
+    def test_recovery_requires_owned_pid_reply_and_records_the_peer(self):
+        import persistfix
+        from unittest.mock import Mock
+
+        with tempfile.TemporaryDirectory() as temporary:
+            run = persistfix.Run(SimpleNamespace(artifacts=Path(temporary), mode='1s',
+                                                case='kill', port=19000))
+            run.process = SimpleNamespace(pid=12345, poll=lambda: None)
+            run.log_path = run.root / 'server-2.log'
+            run.log_path.touch()  # Reproduce the landing's empty recovery log.
+            peer = Mock()
+            with patch.object(persistfix, 'Resp', return_value=peer):
+                # Connect succeeded; the endpoint has not answered a protocol request.
+                peer.cmd.side_effect = ConnectionResetError('pre-start connection')
+                self.assertFalse(run.ready())
+                peer.close.assert_called_once()
+                peer.reset_mock()
+                peer.cmd.side_effect = None
+                peer.cmd.return_value = b'# Server\r\nprocess_id:12345\r\n'
+                self.assertTrue(run.ready())
+                peer.cmd.assert_called_once_with('INFO', 'Server')
+                peer.close.assert_called_once()
+                for reply in (b'process_id:54321\r\n', b'# Server\r\n'):
+                    peer.cmd.return_value = reply
+                    for action in (run.ready, run.client):
+                        peer.reset_mock()
+                        with self.assertRaisesRegex(AssertionError, 'persistence peer PID mismatch'):
+                            action()
+                        peer.close.assert_called_once()
+                        self.assertEqual(run.clients, [])
+            events = [json.loads(line) for line in (run.root / 'processes.jsonl').read_text().splitlines()]
+            self.assertEqual(events[0]['event'], 'unanswered_peer')
+            self.assertIn('ConnectionResetError', events[0]['error'])
+            self.assertEqual([row['observed_pid'] for row in events[1:]],
+                             ['12345', '54321', '54321', None, None])
+            self.assertTrue(all(row['pid'] == 12345 and row['port'] == 19000 for row in events))
+
     def test_driver_reuses_stopped_port_but_refuses_live_listener(self):
         import errno
         import socket
@@ -1625,7 +1685,7 @@ class CompleteTierDispatch(unittest.TestCase):
         import gateplan
         root = Path(__file__).resolve().parent.parent
         gate = (root / 'tests/gate.sh').read_text()
-        start = gate[gate.index('start_workers(){'):gate.index('\ncollect_job(){')]
+        start = gate[gate.index('plan_jobs(){'):gate.index('\ncollect_job(){')]
         # Keep the real quick exit, collectors and ABBA background/wait dispatch. Replace only
         # the workload boundaries; a premature measurement, lost full job or wrong argv fails.
         coordinator = gate[gate.index('\nstart_workers\n'):
@@ -1639,6 +1699,8 @@ class CompleteTierDispatch(unittest.TestCase):
                      'differ-split', 'differ-armed', 'globcase'}
         stub = r'''
 GATE_SLOTS=0; PASS=0; FAIL=0; EXPECT_QUICK=419; GATE_STARTED=$SECONDS; JOINED=0
+GATE_PARTIAL=0
+source tests/gate_subset.sh
 TMPDIR="$RUN_DIR"; PORT=9999
 mkdir -p "$RUN_DIR/unit-ready"; touch "$RUN_DIR/unit-ready/tailgen"
 LEDGER="$RUN_DIR/ledger"; TIMINGS="$RUN_DIR/timings"; : > "$LEDGER"; : > "$TIMINGS"
@@ -1699,6 +1761,8 @@ python3(){
                     self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                     self.assertEqual(result.stdout.splitlines()[0], str(root / f'build/gate-ledger-{purpose}.txt'))
                     events = (directory / 'events').read_text().splitlines()
+                    self.assertEqual(events.count('COLLECT climonfix'), 1,
+                                     'climonfix shutdown rows must be collected in every correctness tier')
                     self.assertEqual(events.count('TAILGEN'), 1)
                     self.assertLess(events.index('JOIN'), events.index('TAILGEN'))
                     collected = {event.removeprefix('COLLECT ') for event in events if event.startswith('COLLECT ')}
@@ -1781,6 +1845,54 @@ exec(){ printf 'ABBA %s\\n' "$*" >> "$EVENTS"; }
         self.assertEqual(result.returncode, 3)
         self.assertEqual(events, [])
         self.assertIn('candidate build not started', result.stderr)
+
+
+class ShutdownBootWiring(unittest.TestCase):
+    def test_shutdown_live_geometry_and_explicit_save_overrides(self):
+        from shutdown_persist import boot_argv
+        for mode in ('1s', '2s'):
+            args = SimpleNamespace(binary=Path('/unused/tomokv'), cores='112-127', port=17991,
+                                   mode=mode, net_io='epoll', ratio='6:2')
+            argv = boot_argv(args, Path('/unused/data'))
+            self.assertEqual('--ratio' in argv, mode == '2s',
+                             'shutdown proof must omit --ratio in 1s')
+            if mode == '2s': self.assertEqual(argv[argv.index('--ratio') + 1], '6:2')
+            self.assertNotIn('--save', argv, 'shutdown proof must exercise the default save schedule')
+            for save in ('', '3600 1'):
+                self.assertEqual(boot_argv(args, Path('/unused/data'), save)[-2:], ['--save', save])
+
+    def test_generic_boots_disable_save_but_keep_explicit_overrides(self):
+        root = Path(__file__).resolve().parents[1]
+        gate = (root / 'tests/gate.sh').read_text()
+        functions = gate[gate.index('launch(){'):gate.index('boot_log_tail(){')]
+        functions += gate[gate.index('boot(){'):gate.index('stop(){')]
+        # Execute the real launch/boot argv construction. Stub process launch and port checks;
+        # an empty seq suppresses the readiness loop, so there is no listener or socket access.
+        with tempfile.TemporaryDirectory(dir=root / 'build') as directory:
+            for boot in ('boot', 'boot_fused'):
+                for extra in ('', "--save '3600 1'"):
+                    script = '''
+quiet_wait(){ :; }
+guard_port(){ :; }
+boot_log_tail(){ :; }
+seq(){ :; }
+taskset(){ printf '%s\\0' "$@" > "$TMPDIR/argv"; }
+CORES=112-127; PORT=17991; GATE_RATIO=6:2
+''' + functions + f'\n{boot} /bin/true {extra}\nwait "$SRV"\n'
+                    result = subprocess.run(['bash'], input=script, text=True, capture_output=True,
+                                            env=dict(os.environ, TMPDIR=directory), timeout=5)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    argv = (Path(directory) / 'argv').read_bytes().decode().strip('\0').split('\0')
+                    saves = [argv[i + 1] for i, word in enumerate(argv) if word == '--save']
+                    self.assertEqual(saves, ['', '3600 1'] if extra else [''],
+                                     'generic boot disables save before row overrides')
+                    self.assertEqual('--ratio' in argv, boot == 'boot')
+        for name in ('tlsboot', 'zcboot', 'reject_boot'):
+            body = gate[gate.index(name + '(){'):].split('\n}', 1)[0]
+            self.assertIn("--save ''", body, name + ' must also disable shutdown snapshots')
+        for name in ('aof_rewrite_matrix.sh', 'aof_rewrite_trigger_matrix.sh'):
+            body = (root / 'tests' / name).read_text().split('boot_server() {', 1)[1].split('\n}', 1)[0]
+            self.assertIn("--save ''", body, 'AOF recovery proof must disable shutdown snapshots')
 
 
 class EarlyGateDispatch(unittest.TestCase):

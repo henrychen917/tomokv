@@ -37,6 +37,28 @@ import struct
 import sys
 import time
 
+
+def engine_checks(expected, engine, events, recvs):
+    yield engine == expected, 'A1 CONFIG GET net-io', (engine, expected)
+    yield events >= 0 and recvs >= 0, 'A2 epoll counters present in INFO STATS', (events, recvs)
+    if expected == 'epoll':
+        yield events > 0, 'A3 epoll_wait actually delivered events', events
+        yield recvs > 0, 'A3 epoll engine actually issued recv syscalls', recvs
+    else:
+        yield events == 0, 'A3 CONTROL uring boot reports zero epoll events', events
+        yield recvs == 0, 'A3 CONTROL uring boot reports zero epoll recvs', recvs
+
+
+if sys.argv[1:] == ['--self-test']:
+    for expected, engine, events, recvs, failure in (
+            ('epoll', 'epoll', 7, 9, None), ('uring', 'uring', 0, 0, None),
+            ('epoll', 'uring', 7, 9, 'A1'), ('epoll', 'epoll', 0, 0, 'A3'),
+            ('uring', 'uring', 7, 9, 'A3 CONTROL'), ('epoll', 'epoll', -1, -1, 'A2')):
+        failed = [label for okay, label, _ in engine_checks(expected, engine, events, recvs) if not okay]
+        assert not failed if failure is None else any(label.startswith(failure) for label in failed), failed
+    print('PASS netio engine substitution, absent/zero and cross-engine counter controls')
+    raise SystemExit(0)
+
 HOST = sys.argv[1] if len(sys.argv) > 1 else "127.0.0.1"
 PORT = int(sys.argv[2]) if len(sys.argv) > 2 else 6379
 EXPECT = (sys.argv[3] if len(sys.argv) > 3 else "uring").lower()
@@ -126,7 +148,6 @@ admin = Conn()
 # ---- A: engine identity ---------------------------------------------------------------------
 got = admin.cmd("CONFIG", "GET", "net-io")
 engine = got[1].decode() if isinstance(got, list) and len(got) == 2 else None
-check(engine == EXPECT, "A1 CONFIG GET net-io", f"reported {engine!r}, expected {EXPECT!r}")
 
 # Drive some traffic so the readiness counters have something to count, then read them.
 for i in range(200):
@@ -134,15 +155,8 @@ for i in range(200):
 stats = info_stats(admin)
 events = int(stats.get("net_io_epoll_events", -1))
 recvs = int(stats.get("net_io_epoll_recvs", -1))
-check(events >= 0 and recvs >= 0, "A2 epoll counters present in INFO STATS", stats.get("net_io_epoll_events"))
-if EXPECT == "epoll":
-    check(events > 0, "A3 epoll_wait actually delivered events", events)
-    check(recvs > 0, "A3 epoll engine actually issued recv syscalls", recvs)
-else:
-    # THE CONTROL. On io_uring these must be exactly zero; a non-zero reading here would mean the
-    # counter is not measuring what its name says and every epoll assertion above is worthless.
-    check(events == 0, "A3 CONTROL uring boot reports zero epoll events", events)
-    check(recvs == 0, "A3 CONTROL uring boot reports zero epoll recvs", recvs)
+for condition, label, detail in engine_checks(EXPECT, engine, events, recvs):
+    check(condition, label, detail)
 
 # ---- B: the knob is boot-only ------------------------------------------------------------------
 for value in ("epoll", "uring"):
