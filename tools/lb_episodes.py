@@ -463,6 +463,7 @@ def load_command(args, directory, label, low, high, duration=None, populate=Fals
 
 @contextmanager
 def boot(args, arm, mode, directory, seed=None):
+    require(digest(ROOT / ARMS[arm][0]) == ARMS[arm][1], "binary changed before boot")
     directory.mkdir(parents=True, exist_ok=False)
     if seed:
         shutil.copyfile(seed, directory / "seed.tomo")
@@ -672,6 +673,10 @@ def assess(results):
                     reasons.append(f"POST {key} exceeds PRE")
             if post["rate"] < pre["rate"]:
                 reasons.append("POST rate below PRE")
+            # A merged rate/quantile must not hide a loss on the hot or cold cohort.
+            for index, (pre_load, post_load) in enumerate(zip(pre.get("loaders", []), post.get("loaders", []))):
+                if post_load["rate"] < pre_load["rate"] or post_load["p99"] > pre_load["p99"]:
+                    reasons.append(f"POST loader {index} rate/tail loss")
         checks.append({"episode": post["episode"], "mode": post["mode"], "round": post["round"],
                        "status": "FAIL" if reasons else "PASS", "reasons": reasons})
     return {"status": "PASS" if len(checks) == 12 and all(c["status"] == "PASS" for c in checks)
@@ -762,12 +767,13 @@ def main():
     (args.output / "owner-select.c").write_text(SELECTOR_C)
     compile_argv = ["cc", "-shared", "-fPIC", "-O2", "-Wall", "-Wextra", "-Werror", "-o",
                     str(args.output / "owner-select.so"), str(args.output / "owner-select.c"), "-ldl"]
-    subprocess.run(compile_argv, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    with (args.output / "owner-select-build.log").open("wb") as log:
+        subprocess.run(compile_argv, check=True, stdout=log, stderr=subprocess.STDOUT)
     manifest = {"arms": ARMS, "pad_kind": "A: PRE behaviour with POST text size/layout",
                 "config": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
                 "schedule": list(schedule()), "memtier_sha256": digest(args.memtier),
                 "source_sha256": {str(p.relative_to(ROOT)): digest(p) for p in
-                                  (Path(__file__), ROOT / "tests/_lib.py", ROOT / "tests/abba_workloads.py")},
+                                  (Path(__file__).resolve(), ROOT / "tests/_lib.py", ROOT / "tests/abba_workloads.py")},
                 "selector_sha256": digest(args.output / "owner-select.so"),
                 "expected_load_seconds": wall_seconds(args), "started_unix": time.time()}
     save_json(args.output / "manifest.json", manifest)
@@ -784,8 +790,6 @@ def main():
     save_json(args.output / "criteria.json", criteria)
     results = []
     for arm, mode, episode, number in schedule():
-        # Revalidate bytes before EVERY boot; paths alone are not an identity claim.
-        require(digest(ROOT / ARMS[arm][0]) == ARMS[arm][1], "binary changed during campaign")
         results.append(run_episode(args, arm, mode, episode, number, seed, seed_record, criteria[mode]))
         save_json(args.output / "results.json", results)
     report = assess(results)
@@ -834,6 +838,19 @@ class SelfTest(unittest.TestCase):
         self.assertEqual(convergence(trace, 14, 40, self.criterion(), "key-skew", 20, 3)["suffix_moves"], 1)
         self.assertEqual(convergence(trace, 14, 24, self.criterion(), "key-skew", 20, 3)["status"], "FAIL")
 
+    def test_later_excursion_restarts_sustain(self):
+        trace = self.trace()
+        for s in trace:
+            if 25 <= s["t"] < 30:
+                s["info"][SPREADS[0]] = 10
+        result = convergence(trace, 14, 40, self.criterion(), "key-skew", 20, 3)
+        self.assertEqual(result["status"], "PASS")
+        self.assertAlmostEqual(result["t_converge"], 16.9)
+        for s in trace:
+            if s["t"] >= 30:
+                s["info"][STAGE] = 5
+        self.assertEqual(convergence(trace, 14, 40, self.criterion(), "key-skew", 20, 3)["status"], "FAIL")
+
     def test_duplicate_ticks_and_reset(self):
         trace = self.trace()
         self.assertEqual(len(beats(trace)), 40)
@@ -878,6 +895,67 @@ class SelfTest(unittest.TestCase):
         self.assertEqual(len(jobs), 36)
         self.assertEqual([j[0] for j in jobs[:9]], ["PRE", "PAD-A", "POST", "POST", "PAD-A", "PRE", "PRE", "PAD-A", "POST"])
         self.assertTrue(all(len(sha) == 64 for _, sha in ARMS.values()))
+
+    @staticmethod
+    def document(count, upper_us, reported=None):
+        import base64
+        import struct
+        import zlib
+        payload = bytearray()
+        for signed in (-upper_us, count):
+            number = (signed << 1) ^ (signed >> 63)
+            while number >= 128:
+                payload.append((number & 127) | 128)
+                number >>= 7
+            payload.append(number)
+        body = struct.pack(">IIiiQQd", 0x1c849303, len(payload), 0, 3, 1, 1000000, 1.0) + payload
+        compressed = zlib.compress(body)
+        encoded = base64.b64encode(struct.pack(">II", 0x1c849304, len(compressed)) + compressed).decode()
+        count_field = count if reported is None else reported
+        return {"ALL STATS": {
+            "Runtime": {"Interrupted": "false", "Total duration": 3000, "Time unit": "MILLISECONDS"},
+            "Sets": {"Count": count_field, "Percentile Latencies": {"p99.90": upper_us / 1000,
+                      "Histogram log format": {"Compressed Histogram": encoded}}},
+            "Totals": {"Count": count_field, "Ops/sec": 100, "Connection Errors": 0}}}
+
+    def test_merged_hdr_and_exact_server_accounting(self):
+        documents = [self.document(9900, 1000, reported=9901), self.document(100, 2000)]
+        before, after = {"cmdstat_set": "calls=50"}, {"cmdstat_set": "calls=10050"}
+        result = metrics(documents, before, after, 3)
+        self.assertEqual(result["rate"], 200)
+        self.assertEqual(result["p99"], 1)  # never the average of cohort p99s (1.5)
+        with self.assertRaises(RuntimeError):
+            metrics(documents, before, {"cmdstat_set": "calls=10051"}, 3)
+        documents[0]["ALL STATS"]["Totals"]["Connection Errors"] = 1
+        with self.assertRaises(ValueError):
+            metrics(documents, before, after, 3)
+
+    def test_truncated_and_mismatched_metrics_fail(self):
+        docs = [self.document(100, 1000), self.document(100, 1000)]
+        before, after = {"cmdstat_set": "calls=0"}, {"cmdstat_set": "calls=200"}
+        with self.assertRaises(ValueError):
+            metrics(docs, before, after, 30)
+        docs[0]["ALL STATS"]["Sets"]["Count"] += 10000
+        docs[0]["ALL STATS"]["Totals"]["Count"] += 10000
+        with self.assertRaises(RuntimeError):
+            metrics(docs, before, after, 3)
+
+    def test_dry_run_never_starts_processes_or_sockets(self):
+        from contextlib import redirect_stdout
+        import io
+        from unittest.mock import patch
+        args = SimpleNamespace(output=Path("/nonexistent/lb-episodes"), port=7931, hotmax=2000,
+                               memtier="memtier_benchmark", warm=30, baseline=12,
+                               max_converge=180, suffix=30, rate_per_client=0)
+        output = io.StringIO()
+        with patch.object(subprocess, "Popen", side_effect=AssertionError("spawned process")), \
+                patch.object(socket, "socket", side_effect=AssertionError("opened socket")), \
+                patch.object(Path, "mkdir", side_effect=AssertionError("created directory")), \
+                redirect_stdout(output):
+            dry_run(args)
+        self.assertIn("LB_EPISODE_OWNERS=0,1 ", output.getvalue())
+        self.assertIn("--ratio 6:2", output.getvalue())
+        self.assertIn("158.1 minutes", output.getvalue())
 
     def test_comparison_cannot_hide_one_bad_metric(self):
         results = [dict(arm=a, mode=m, episode=e, round=r, status="PASS", t_converge=4,
