@@ -2,8 +2,9 @@
 """Mainline-only EX1/EX3/EX6 directed measurements (never part of the gate).
 
 The inventory is executable input, not a second transcription of the recipes.
---self-test opens no sockets and launches no programs. --dry-run only executes
-memtier --help, as a required grammar check; all workload commands are printed.
+--self-test opens no sockets; when perf is available it checks a local busy loop
+on CPUs 112-127. --dry-run only executes memtier --help, as a required grammar
+check; all workload commands are printed.
 Normal invocation owns/reaps its children, boots fresh state for EVERY sample,
 and retains failed samples. See MEASURE-REQUEST-exbatch-bench.md for scopes.
 """
@@ -734,6 +735,8 @@ class Children:
 
 
 class PerfWindow:
+    ACK_TIMEOUT = 5.0
+
     def __init__(self, folder, children):
         self.folder, self.children = folder, children
         for name in ("perf.ctl", "perf.ack"):
@@ -752,10 +755,38 @@ class PerfWindow:
     def command(self, text):
         before = time.monotonic()
         os.write(self.ctl, (text + "\n").encode())
-        require(select.select([self.ack], [], [], 5)[0], "perf control ACK timeout")
-        reply = os.read(self.ack, 1024)
-        require(reply.strip() == b"ack" and self.process.poll() is None, "invalid perf control ACK")
-        return dict(before=before, after=time.monotonic())
+        deadline = before + self.ACK_TIMEOUT
+        pending, received, acknowledgements = b"", bytearray(), 0
+        while True:
+            status = self.process.poll()
+            require(status is None, f"perf exited ({status}) awaiting {text!r} ACK; see {self.folder / 'perf.log'}")
+            remaining = deadline - time.monotonic()
+            require(remaining > 0, f"perf control ACK timeout for {text!r}; received {bytes(received)!r}")
+            if not select.select([self.ack], [], [], min(.05, remaining))[0]:
+                continue
+            # FIFO reads are stream fragments, not replies. Drain every available
+            # chunk, including coalesced replies, without adding a timed delay.
+            while time.monotonic() < deadline:
+                try:
+                    chunk = os.read(self.ack, 4096)
+                except BlockingIOError:
+                    break
+                if not chunk:
+                    break
+                received.extend(chunk)
+                pending += chunk
+                while b"\n" in pending:
+                    line, pending = pending.split(b"\n", 1)
+                    # perf 7.0.12 writes b"ack\n\x00", including the NUL.
+                    # Its terminator may arrive before the next line or alone.
+                    if line.strip(b"\x00\r") == b"ack":
+                        acknowledgements += 1
+            if acknowledgements:
+                require(self.process.poll() is None, f"perf exited after {text!r} ACK; see {self.folder / 'perf.log'}")
+                # Only one command is outstanding. Surplus drained ACKs must not
+                # satisfy the next command before perf has acted on that command.
+                return dict(before=before, after=time.monotonic(),
+                            ack_hex=received.hex(), ack_lines=acknowledgements)
 
     def finish(self):
         self.children.stop(self.process, signal.SIGINT)
@@ -1380,6 +1411,57 @@ def self_test():
                 with self.assertRaises(RuntimeError):
                     parse_perf(broken)
 
+        def perf_pipe(self):
+            window = PerfWindow.__new__(PerfWindow)
+            window.folder, window.ACK_TIMEOUT = self.folder, .03
+            window.process = mock.Mock()
+            window.process.poll.return_value = None
+            ctl_reader, window.ctl = os.pipe2(os.O_NONBLOCK)
+            window.ack, ack_writer = os.pipe2(os.O_NONBLOCK)
+            for fd in (ctl_reader, window.ctl, window.ack, ack_writer):
+                self.addCleanup(os.close, fd)
+            return window, ctl_reader, ack_writer
+
+        def test_perf_ack_fragmented_nul_and_newline_framing(self):
+            read = os.read
+            for payload in (b"ack\n", b"ack\n\x00", b"\x00ack\r\n\x00", b"ignored\nack\n\x00"):
+                for width in (1, 2, 4096):
+                    with self.subTest(payload=payload, width=width):
+                        window, ctl_reader, ack_writer = self.perf_pipe()
+                        os.write(ack_writer, payload)
+                        with mock.patch("os.read", side_effect=lambda fd, size: read(fd, min(size, width))):
+                            result = window.command("disable")
+                        self.assertEqual(result["ack_lines"], 1)
+                        self.assertEqual(result["ack_hex"], payload.hex())
+                        self.assertEqual(read(ctl_reader, 4096), b"disable\n")
+                        with self.assertRaises(BlockingIOError):
+                            read(window.ack, 4096)
+
+        def test_perf_ack_coalesced_lines_drained_not_reused(self):
+            window, ctl_reader, ack_writer = self.perf_pipe()
+            os.write(ack_writer, b"ack\n\x00ack\n\x00")
+            self.assertEqual(window.command("enable")["ack_lines"], 2)
+            with self.assertRaisesRegex(RuntimeError, "ACK timeout.*disable"):
+                window.command("disable")
+            self.assertEqual(os.read(ctl_reader, 4096), b"enable\ndisable\n")
+
+        def test_perf_ack_missing_or_incomplete_line_times_out(self):
+            for payload in (b"", b"ack", b"nack\n\x00"):
+                with self.subTest(payload=payload):
+                    window, _, ack_writer = self.perf_pipe()
+                    if payload:
+                        os.write(ack_writer, payload)
+                    with self.assertRaisesRegex(RuntimeError, "ACK timeout.*received"):
+                        window.command("enable")
+
+        def test_perf_exit_before_or_after_ack_fails(self):
+            for statuses in ([7], [None, 7]):
+                window, _, ack_writer = self.perf_pipe()
+                window.process.poll.side_effect = statuses
+                os.write(ack_writer, b"ack\n\x00")
+                with self.assertRaisesRegex(RuntimeError, "perf exited"):
+                    window.command("enable")
+
         def test_rate_match_2_percent_and_invalid_values(self):
             rate_check([51200 * .98, 51200 * 1.02], 100)
             for rates in ([51200 * .979], [51200 * 1.021], [float("nan")], [0], []):
@@ -1594,12 +1676,131 @@ def self_test():
             self.assertTrue(row.startswith("EXBATCH-DIRECTED exbatch_watch_w32 f0 PRE->POST rate="))
             self.assertTrue(row.endswith("matched=17"))
 
+    class RealPerfControl(unittest.TestCase):
+        def test_busy_loop_counts_only_inside_enabled_window(self):
+            # Availability is checked WITHOUT control FIFOs: a broken handshake
+            # after a successful PMU probe must fail, never turn into a skip.
+            if not shutil.which("perf") or not shutil.which("taskset"):
+                self.skipTest("perf/taskset unavailable")
+            if not hasattr(os, "sched_getaffinity") or not {112, 120} <= os.sched_getaffinity(0):
+                self.skipTest("perf self-test requires allowed CPUs 112 and 120")
+            probe = subprocess.run(["taskset", "-c", "120", "perf", "stat", "-a", "-A", "-C", "112",
+                                    "-x", ",", "--no-big-num", "--no-scale", "-e", "{cycles,instructions}",
+                                    "--", "sleep", ".05"], capture_output=True, text=True, timeout=10,
+                                   env={**os.environ, "LC_ALL": "C"})
+            if probe.returncode or "<not supported>" in probe.stderr:
+                self.skipTest("perf grouped PMU unavailable: " + (probe.stderr + probe.stdout)[-1000:])
+
+            directory = tempfile.TemporaryDirectory(dir=ROOT / "build", prefix="exbatch-perf-selftest-")
+            self.addCleanup(directory.cleanup)
+            folder = Path(directory.name)
+            children = Children()
+            self.addCleanup(children.close)
+            ready = folder / "busy.ready"
+            busy = children.start(["taskset", "-c", "112", sys.executable, "-c",
+                                   "import pathlib, sys\npathlib.Path(sys.argv[1]).touch()\nwhile True: pass\n",
+                                   str(ready)], folder / "busy.log", folder)
+            wait_for(ready, busy, seconds=5)
+
+            def busy_ticks():
+                self.assertIsNone(busy.poll(), "known busy loop exited")
+                fields = Path(f"/proc/{busy.pid}/stat").read_text().rsplit(")", 1)[1].split()
+                return int(fields[11]) + int(fields[12])  # utime + stime
+
+            production_argv = perf_argv
+
+            def interval_argv(path):
+                argv = production_argv(path)
+                argv[2], argv[argv.index("-C") + 1] = "120", "112"
+                # perf disallows --timeout with -I. Owned-child cleanup bounds
+                # this serverless test; the production argv remains unchanged.
+                at = argv.index("--timeout")
+                argv[at:at + 2] = ["-I", "100"]
+                return argv
+
+            launched = time.monotonic()
+            with mock.patch.dict(globals(), perf_argv=interval_argv):
+                window = PerfWindow(folder, children)
+            self.addCleanup(window.close)
+            listening = time.monotonic()
+            ticks = [busy_ticks()]
+            time.sleep(.55)
+            ticks.append(busy_ticks())
+            enabled = window.command("enable")
+            time.sleep(.55)
+            ticks.append(busy_ticks())
+            disabled = window.command("disable")
+            time.sleep(.55)
+            ticks.append(busy_ticks())
+            children.stop(window.process, signal.SIGINT)
+            self.assertTrue(all(b > a for a, b in zip(ticks, ticks[1:])),
+                            f"busy loop did not run in every phase: {ticks}")
+
+            intervals = {}
+            for line in (folder / "perf.csv").read_text().splitlines():
+                if not line.strip() or line.startswith("#"):
+                    continue
+                fields = [s.strip() for s in line.split(",")]
+                self.assertGreaterEqual(len(fields), 7)
+                stamp, cpu, count, _, event, runtime, percent = fields[:7]
+                self.assertEqual(cpu, "CPU112")
+                event = event.split(":")[0]
+                self.assertIn(event, ("cycles", "instructions"))
+                runtime, percent = float(runtime), float(percent.rstrip("%"))
+                if count == "<not counted>":
+                    self.assertEqual(runtime, 0)
+                    count = 0
+                else:
+                    count = float(count)
+                    self.assertTrue(math.isfinite(count) and count >= 0)
+                self.assertEqual(percent, 100, "multiplexed self-test PMU")
+                row = intervals.setdefault(float(stamp), {})
+                self.assertNotIn(event, row)
+                row[event] = count
+                row[event + "_runtime_ns"] = runtime
+
+            phases = {name: dict(intervals=0, cycles=0, instructions=0)
+                      for name in ("before", "enabled", "after")}
+            previous = 0.
+            for stamp, row in sorted(intervals.items()):
+                self.assertEqual(set(row), {"cycles", "instructions", "cycles_runtime_ns", "instructions_runtime_ns"})
+                self.assertEqual(row["cycles_runtime_ns"], row["instructions_runtime_ns"])
+                # perf's epoch lies between launch and the constructor ACK.
+                # Classify only intervals wholly inside a phase for EVERY epoch
+                # in that bound; boundary-straddling intervals cannot prove it.
+                phase = None
+                if listening + stamp <= enabled["before"]:
+                    phase = "before"
+                elif launched + previous >= enabled["after"] and listening + stamp <= disabled["before"]:
+                    phase = "enabled"
+                elif launched + previous >= disabled["after"]:
+                    phase = "after"
+                if phase:
+                    phases[phase]["intervals"] += 1
+                    for event in ("cycles", "instructions"):
+                        phases[phase][event] += row[event]
+                        if phase == "enabled":
+                            self.assertGreater(row[event], 0, "no counts inside enabled window")
+                        else:
+                            self.assertEqual(row[event], 0, f"counts outside enabled window: {phase}")
+                previous = stamp
+            for name, row in phases.items():
+                self.assertGreaterEqual(row["intervals"], 2, f"missing complete {name} intervals: {phases}")
+            ipc = phases["enabled"]["instructions"] / phases["enabled"]["cycles"]
+            self.assertTrue(.1 < ipc < 6, f"implausible busy-loop IPC: {ipc}")
+            log = (folder / "perf.log").read_text()
+            self.assertEqual(log, "Events disabled\nEvents disabled\nEvents enabled\nEvents disabled\n")
+            print("REAL-PERF SELF-TEST " + json.dumps(dict(phases=phases, ipc=ipc, busy_ticks=ticks,
+                  enabled=enabled, disabled=disabled, perf=window.identity, log=log), sort_keys=True), flush=True)
+
     with mock.patch("subprocess.Popen", side_effect=AssertionError("self-test launched a process")), \
          mock.patch("subprocess.run", side_effect=AssertionError("self-test launched a process")), \
          mock.patch("socket.create_connection", side_effect=AssertionError("self-test opened a socket")):
         suite = unittest.defaultTestLoader.loadTestsFromTestCase(Controls)
         result = unittest.TextTestRunner(verbosity=2).run(suite)
-    return 0 if result.wasSuccessful() else 1
+    with mock.patch("socket.create_connection", side_effect=AssertionError("self-test opened a socket")):
+        live = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(RealPerfControl))
+    return 0 if result.wasSuccessful() and live.wasSuccessful() else 1
 
 
 def main():
