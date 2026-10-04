@@ -276,8 +276,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=481
-EXPECT_FULL=498                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+EXPECT_QUICK=489
+EXPECT_FULL=506                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -716,7 +716,8 @@ launch(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits up to 30
   # through their later --dir argument; a previous battery's SAVE must not become this one's input.
   local boot_dir
   boot_dir=$(mktemp -d "$TMPDIR/gate-data-$tag.XXXXXX") || return 1
-  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --dir "$boot_dir" "$@" > "$SRVLOG" 2>&1 &
+  # Persistence batteries may override this later; cleanup must not replace a tested BGSAVE cut.
+  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --dir "$boot_dir" --save '' "$@" > "$SRVLOG" 2>&1 &
   SRV=$!
   # 30s, not 10s: the AOF replay boot replays its file BEFORE it listens, and on a box shared
   # with other lanes that overran a 10s deadline and turned six AOF rows red with no defect behind
@@ -999,7 +1000,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units persistfix_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
+              core_units climonfix persistfix_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1164,7 +1165,7 @@ reject_boot(){
   if [[ "$1" != --* ]]; then conf=("$1"); shift; fi
   directory=$(mktemp -d "$TMPDIR/reject-boot.XXXXXX") || return 1
   timeout --kill-after=5 10 taskset -c "$CORES" "$CANDIDATE_BINARY" "${conf[@]}" \
-      --port "$PORT" --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --dir "$directory" "$@"
+      --port "$PORT" --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --dir "$directory" --save '' "$@"
 }
 
 store_build(){
@@ -1271,6 +1272,16 @@ g++ -std=c++20 -O2 -march=native -pthread -I. tests/read_local_write_ring_unit.c
     && $TMPDIR/tomokv-read-local-write-ring-unit >>$TMPDIR/gate-ring-unit.txt 2>&1 \
     && ok "read-local write ring + arming transient unit" \
     || bad "read-local write ring + arming transient unit" "see $TMPDIR/gate-ring-unit.txt"
+# SV1: logical owners i/i+64 need no 65-CPU allocation in a parallel gate slot.
+row_begin "climon 128-owner delivery mask"
+pausable taskset -c "$CORES" make -j"$BUILD_JOBS" build/climon-mask-unit build/climon-mask-old-unit \
+    >"$TMPDIR/climon-mask.log" 2>&1 \
+    && taskset -c "$CORES" ./build/climon-mask-unit >>"$TMPDIR/climon-mask.log" 2>&1 \
+    && { taskset -c "$CORES" ./build/climon-mask-old-unit >"$TMPDIR/climon-mask-old.log" 2>&1; test "$?" -eq 1; } \
+    && grep -q '^FAIL climon mask: disarm retains the other owner at distance 64$' "$TMPDIR/climon-mask-old.log" \
+    && ok "climon 128-owner delivery mask" \
+    || bad "climon 128-owner delivery mask" "see $TMPDIR/climon-mask.log"
+
 # RL1: all three completion paths must release a covered MGET fence before retirement.
 # One new row, collected before the quick exit; EXPECT counts remain maintainer-owned.
 row_begin "read-local MGET fence symmetry unit"
@@ -1280,6 +1291,26 @@ pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/rlfence-unit \
     && py tests/read_local_lane.py --self-test mget-fence >>$TMPDIR/gate-rlfence-unit.txt 2>&1 \
     && ok "read-local MGET fence symmetry unit" \
     || bad "read-local MGET fence symmetry unit" "see $TMPDIR/gate-rlfence-unit.txt"
+
+}
+
+job_climonfix(){
+  row_begin "shutdown policy + signal handoff serverless"
+  unit_ready shutdown-unit && taskset -c "$CORES" ./build/shutdown-unit \
+      >"$TMPDIR/shutdown-unit.log" 2>&1 \
+      && ok "shutdown policy + signal handoff serverless" \
+      || bad "shutdown policy + signal handoff serverless" "see $TMPDIR/shutdown-unit.log"
+  local mode stop_case label
+  for mode in 1s 2s; do
+    for stop_case in command sigterm sigint; do
+      label="shutdown persistence ($mode, $stop_case)"
+      row_begin "$label"
+      py tests/shutdown_persist.py --binary "$CANDIDATE_BINARY" --cores "$CORES" \
+          --port "$PORT" --ratio "$GATE_RATIO" --mode "$mode" --case "$stop_case" \
+          --output "$TMPDIR/shutdown-$mode-$stop_case" >"$TMPDIR/shutdown-$mode-$stop_case.log" 2>&1 \
+          && ok "$label" || bad "$label" "see $TMPDIR/shutdown-$mode-$stop_case.log"
+    done
+  done
 }
 
 job_persistfix_units(){
@@ -2508,7 +2539,7 @@ tlsboot(){ # auth-mode [extra TLS knobs]
   guard_port "$TLS_PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-tls-srv.XXXXXX)
   taskset -c $CORES "$CANDIDATE_BINARY" --port "$PORT" --tls-port "$TLS_PORT" \
-      --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --protected-mode no --dir "$TLS_DIR" \
+      --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --protected-mode no --dir "$TLS_DIR" --save '' \
       --tls-cert-file "$TLS_DIR/server.crt" --tls-key-file "$TLS_DIR/server.key" \
       --tls-ca-cert-file "$TLS_DIR/ca.crt" --tls-auth-clients "$auth" "$@" \
       >"$SRVLOG" 2>&1 &
@@ -2708,7 +2739,7 @@ zcboot(){
   guard_port "$PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-srv-zc.XXXXXX)
   taskset -c $CORES "$1" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO \
-      --dir "$(mktemp -d "$TMPDIR/zc-data.XXXXXX")" --zc-min 16384 > "$SRVLOG" 2>&1 &
+      --dir "$(mktemp -d "$TMPDIR/zc-data.XXXXXX")" --save '' --zc-min 16384 > "$SRVLOG" 2>&1 &
   SRV=$!
   for _ in $(seq 50); do
     if ! kill -0 "$SRV" 2>/dev/null; then wait "$SRV" 2>/dev/null; return 1; fi
@@ -2867,10 +2898,10 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
-      build/wb-rule-units build/wbland-units build/rltopo-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 >"$TMPDIR/build.log" 2>&1
+      build/wb-rule-units build/wbland-units build/rltopo-unit build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit persistfix-units ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit shutdown-unit persistfix-units ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -2932,7 +2963,7 @@ job_dependencies(){
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*) echo 'release production_units';;
-    persistfix_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
+    climonfix|persistfix_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
     rlcache) echo rldbg;;
@@ -3003,8 +3034,10 @@ collect_job filter_unit
 
 collect_job ring_unit
 
-collect_job persistfix_units
+# SV2: collect all seven shutdown rows before the quick-tier exit.
+collect_job climonfix
 
+collect_job persistfix_units
 collect_job core_units
 
 collect_job wb_rule_units

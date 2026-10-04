@@ -39,6 +39,7 @@
 #include "../cmd/command.h"
 #include "../cmd/multidb.h"
 #include "../snapshot/snapshot.h"
+#include "climon_mask.h"
 #include "../persist/aof.h"
 
 #ifdef TOMO_RL_CACHE_DEBUG
@@ -2020,11 +2021,46 @@ private:
 
 public:
 
+    enum class ShutdownSave : uint8_t { Configured, Save, NoSave };
+    SnapshotManager::StartResult shutdown(ShutdownSave save, ThreadCtx* writer, Ring* ring,
+                                          std::string& error);
+    void finish_shutdown();
+    uint32_t shutdown_from_cron(ThreadCtx& writer, Ring& ring);
+    bool shutdown_snapshot_active() const {
+        return shutdown_snapshot_active_.load(std::memory_order_acquire);
+    }
+    uint32_t shutdown_snapshot_holds() const {
+        return shutdown_snapshot_holds_.load(std::memory_order_acquire);
+    }
+    void shutdown_snapshot_hold() {
+        shutdown_snapshot_holds_.fetch_add(1, std::memory_order_relaxed);
+    }
+    void shutdown_snapshot_release() {
+        shutdown_snapshot_holds_.fetch_sub(1, std::memory_order_release);
+    }
+    void set_shutdown_snapshot_active(bool active) {
+        shutdown_snapshot_active_.store(active, std::memory_order_release);
+    }
+    // Bound coordination, not filesystem IO: a failed/overdue save must leave the server alive.
+    static constexpr uint64_t kShutdownSaveWaitNs = 10'000'000'000ull;
+    // Signal-safe request. The existing one-second IO save cron owns all allocation and IO.
+    // Keeping request and policy in the same byte prevents CONFIG SET save from losing a stop.
+    bool request_signal_shutdown() {
+        if (loading()) return false; // retain the existing interrupted-boot teardown
+        if (!save_schedule_armed()) return false; // no save: wake/stop even a long-parked owner
+        uint64_t unset = 0;
+        signal_shutdown_deadline_ns_.compare_exchange_strong(
+            unset, now_ns() + kShutdownSaveWaitNs, std::memory_order_relaxed);
+        live_save_armed_.fetch_or(kSignalShutdown, std::memory_order_release);
+        return true;
+    }
+    static constexpr uint8_t kSaveConfigured = 1, kSignalShutdown = 2;
     bool save_schedule_armed() const {
-        return live_save_armed_.load(std::memory_order_relaxed);
+        return live_save_armed_.load(std::memory_order_relaxed) & kSaveConfigured;
     }
     bool save_cron_writer(uint32_t tid) const {
-        return save_schedule_armed() && !placement_.ifid_threads().empty() &&
+        return live_save_armed_.load(std::memory_order_relaxed) != 0 &&
+               !placement_.ifid_threads().empty() &&
                placement_.ifid_threads().front() == tid;
     }
     uint64_t save_change_total() const {
@@ -2055,7 +2091,8 @@ public:
         if (!was_armed && !clauses.empty())
             save_change_baseline_.store(save_change_total(), std::memory_order_relaxed);
         const uint64_t version = begin_live_config_update();
-        live_save_armed_.store(!clauses.empty(), std::memory_order_relaxed);
+        if (clauses.empty()) live_save_armed_.fetch_and(uint8_t(~kSaveConfigured), std::memory_order_relaxed);
+        else live_save_armed_.fetch_or(kSaveConfigured, std::memory_order_relaxed);
         end_live_config_update(version);
     }
     void set_proto_max_bulk_len(uint64_t value) {
@@ -2069,7 +2106,10 @@ public:
         end_live_config_update(version);
     }
     uint32_t save_cron_pass(ThreadCtx& writer, Ring& ring) {
-        if (!save_cron_writer(writer.id()) || snapshot_.in_progress()) return 0;
+        if (!save_cron_writer(writer.id())) return 0;
+        if (live_save_armed_.load(std::memory_order_acquire) & kSignalShutdown)
+            return shutdown_from_cron(writer, ring);
+        if (snapshot_.in_progress()) return 0;
         save_cron_checks_.fetch_add(1, std::memory_order_relaxed);
         const uint64_t changes = save_changes_since_last_save();
         const std::time_t now_time = std::time(nullptr);
@@ -2451,21 +2491,17 @@ public:
     // Which io threads own at least one MONITOR client, and which own at least one tracking
     // client.  Feeds and invalidations post ONLY to the owners in the mask, so a single monitor
     // does not cost one cross-thread message per io thread per command.
-    uint64_t climon_monitor_io_mask() const {
-        return climon_monitor_io_mask_.load(std::memory_order_relaxed);
+    ClimonIoMask climon_monitor_io_mask() const {
+        return ClimonIoMask::load(climon_monitor_io_mask_, climon_monitor_io_mask_high_);
     }
     void climon_set_monitor_io(uint32_t io, bool present) {
-        const uint64_t bit = 1ull << (io & 63);
-        if (present) climon_monitor_io_mask_.fetch_or(bit, std::memory_order_relaxed);
-        else climon_monitor_io_mask_.fetch_and(~bit, std::memory_order_relaxed);
+        ClimonIoMask::set(climon_monitor_io_mask_, climon_monitor_io_mask_high_, io, present);
     }
-    uint64_t climon_tracking_io_mask() const {
-        return climon_tracking_io_mask_.load(std::memory_order_relaxed);
+    ClimonIoMask climon_tracking_io_mask() const {
+        return ClimonIoMask::load(climon_tracking_io_mask_, climon_tracking_io_mask_high_);
     }
     void climon_set_tracking_io(uint32_t io, bool present) {
-        const uint64_t bit = 1ull << (io & 63);
-        if (present) climon_tracking_io_mask_.fetch_or(bit, std::memory_order_relaxed);
-        else climon_tracking_io_mask_.fetch_and(~bit, std::memory_order_relaxed);
+        ClimonIoMask::set(climon_tracking_io_mask_, climon_tracking_io_mask_high_, io, present);
     }
 
     void climon_note_monitor_line() {
@@ -3608,7 +3644,7 @@ private:
     std::atomic<uint64_t> live_obuf_pubsub_soft_{8ull * 1024 * 1024};
     std::atomic<uint32_t> live_obuf_pubsub_seconds_{60};
     std::atomic<uint32_t> live_notify_events_{0};
-    std::atomic<bool> live_save_armed_{true};
+    std::atomic<uint8_t> live_save_armed_{kSaveConfigured};
     std::atomic<uint64_t> live_proto_max_bulk_len_{512ull * 1024 * 1024};
     // Lane F cold tail. Every field here is read once per io batch (or never, while the armed
     // word is zero); none of them is on a per-operation path.
@@ -3747,7 +3783,15 @@ private:
     LiveConfigValues live_config_committed_{}; // serialized CONFIG writer only
     // Cold diagnostics share no existing producer/consumer line and no normal-pass access.
     alignas(64) IoTenureHistory<kMaxThreads> io_accounting_history_;
+    // SV1: high halves at the true tail preserve every existing hot field's offset.
+    static_assert(kMaxThreads == ClimonIoMask::kBits);
+    std::atomic<uint64_t> climon_monitor_io_mask_high_{0};
+    std::atomic<uint64_t> climon_tracking_io_mask_high_{0};
+    std::mutex shutdown_mu_;
+    std::atomic<bool> shutdown_snapshot_active_{false};
+    std::atomic<uint32_t> shutdown_snapshot_holds_{0};
     std::atomic<uint64_t> live_client_query_buffer_limit_{1024ull * 1024 * 1024};
+    std::atomic<uint64_t> signal_shutdown_deadline_ns_{0};
 };
 
 }  // namespace tomo

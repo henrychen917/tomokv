@@ -1761,6 +1761,8 @@ python3(){
                     self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                     self.assertEqual(result.stdout.splitlines()[0], str(root / f'build/gate-ledger-{purpose}.txt'))
                     events = (directory / 'events').read_text().splitlines()
+                    self.assertEqual(events.count('COLLECT climonfix'), 1,
+                                     'climonfix shutdown rows must be collected in every correctness tier')
                     self.assertEqual(events.count('TAILGEN'), 1)
                     self.assertLess(events.index('JOIN'), events.index('TAILGEN'))
                     collected = {event.removeprefix('COLLECT ') for event in events if event.startswith('COLLECT ')}
@@ -1843,6 +1845,54 @@ exec(){ printf 'ABBA %s\\n' "$*" >> "$EVENTS"; }
         self.assertEqual(result.returncode, 3)
         self.assertEqual(events, [])
         self.assertIn('candidate build not started', result.stderr)
+
+
+class ShutdownBootWiring(unittest.TestCase):
+    def test_shutdown_live_geometry_and_explicit_save_overrides(self):
+        from shutdown_persist import boot_argv
+        for mode in ('1s', '2s'):
+            args = SimpleNamespace(binary=Path('/unused/tomokv'), cores='112-127', port=17991,
+                                   mode=mode, net_io='epoll', ratio='6:2')
+            argv = boot_argv(args, Path('/unused/data'))
+            self.assertEqual('--ratio' in argv, mode == '2s',
+                             'shutdown proof must omit --ratio in 1s')
+            if mode == '2s': self.assertEqual(argv[argv.index('--ratio') + 1], '6:2')
+            self.assertNotIn('--save', argv, 'shutdown proof must exercise the default save schedule')
+            for save in ('', '3600 1'):
+                self.assertEqual(boot_argv(args, Path('/unused/data'), save)[-2:], ['--save', save])
+
+    def test_generic_boots_disable_save_but_keep_explicit_overrides(self):
+        root = Path(__file__).resolve().parents[1]
+        gate = (root / 'tests/gate.sh').read_text()
+        functions = gate[gate.index('launch(){'):gate.index('boot_log_tail(){')]
+        functions += gate[gate.index('boot(){'):gate.index('stop(){')]
+        # Execute the real launch/boot argv construction. Stub process launch and port checks;
+        # an empty seq suppresses the readiness loop, so there is no listener or socket access.
+        with tempfile.TemporaryDirectory(dir=root / 'build') as directory:
+            for boot in ('boot', 'boot_fused'):
+                for extra in ('', "--save '3600 1'"):
+                    script = '''
+quiet_wait(){ :; }
+guard_port(){ :; }
+boot_log_tail(){ :; }
+seq(){ :; }
+taskset(){ printf '%s\\0' "$@" > "$TMPDIR/argv"; }
+CORES=112-127; PORT=17991; GATE_RATIO=6:2
+''' + functions + f'\n{boot} /bin/true {extra}\nwait "$SRV"\n'
+                    result = subprocess.run(['bash'], input=script, text=True, capture_output=True,
+                                            env=dict(os.environ, TMPDIR=directory), timeout=5)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    argv = (Path(directory) / 'argv').read_bytes().decode().strip('\0').split('\0')
+                    saves = [argv[i + 1] for i, word in enumerate(argv) if word == '--save']
+                    self.assertEqual(saves, ['', '3600 1'] if extra else [''],
+                                     'generic boot disables save before row overrides')
+                    self.assertEqual('--ratio' in argv, boot == 'boot')
+        for name in ('tlsboot', 'zcboot', 'reject_boot'):
+            body = gate[gate.index(name + '(){'):].split('\n}', 1)[0]
+            self.assertIn("--save ''", body, name + ' must also disable shutdown snapshots')
+        for name in ('aof_rewrite_matrix.sh', 'aof_rewrite_trigger_matrix.sh'):
+            body = (root / 'tests' / name).read_text().split('boot_server() {', 1)[1].split('\n}', 1)[0]
+            self.assertIn("--save ''", body, 'AOF recovery proof must disable shutdown snapshots')
 
 
 class EarlyGateDispatch(unittest.TestCase):

@@ -56,7 +56,8 @@ public:
 
     StartResult start(Server& server, ThreadCtx& writer, Ring& writer_ring, bool blocking,
                       std::string& error, AofManager* rewrite = nullptr,
-                      const char* target_dir = nullptr, const char* target_filename = nullptr);
+                      const char* target_dir = nullptr, const char* target_filename = nullptr,
+                      bool shutdown = false);
     uint32_t writer_pass(ThreadCtx& writer, Ring& writer_ring, bool drain_all = false);
     void on_io_complete(ThreadCtx& writer, Ring& writer_ring, void* request, int result);
 
@@ -94,6 +95,7 @@ public:
     const std::string& dbfilename() const { return dbfilename_; }
 
 private:
+    friend struct CoreConcurrencyTest; // serverless finalization/owner-hold witness
     using ChunkChan = Channel<SnapshotChunk*, 64>;
     bool write_header_normal();
     bool write_frame_normal(const SnapshotChunk& chunk);
@@ -106,7 +108,7 @@ private:
     bool finish_file_metadata(Ring* ring);
     bool complete_file_success();
     uint32_t pump_io_completions(ThreadCtx& writer, Ring& ring);
-    void drain_atomic_groups(Server& server, ThreadCtx& writer);
+    bool drain_atomic_groups(Server& server, ThreadCtx& writer, uint64_t deadline_ns = 0);
     void abort_file();
     void discard_chunks();
     void set_error(const char* text);
