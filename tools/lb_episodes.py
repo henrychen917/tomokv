@@ -377,6 +377,21 @@ def spread_progress(before, after, rows, stimulus, end_t, primary, move, suffix_
                              "positive reduction and a required move in that window"}
 
 
+def suffix_rebound(result, after, level, criterion, primary):
+    width = criterion["upper"][primary] - criterion["lower"][primary]
+    limit = level["info"][primary] + width
+    result.update(post_last_move_level=level["info"][primary], post_last_move_level_t=level["t"],
+                  primary=primary, rebound_limit=limit, pre_envelope_width=width)
+    for row in after:
+        if row["info"][TICKS] < level["info"][TICKS]:
+            continue
+        if row["info"][primary] > limit:
+            return f"post-move rebound: {primary}={row['info'][primary]:g}, limit={limit:g} at t={row['t']:.6f}"
+        if row["info"][STAGE] != 0:
+            return f"stationary suffix {STAGE}={row['info'][STAGE]}, limit=0 at t={row['t']:.6f}"
+    return None
+
+
 def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_seconds,
                 diagnostic=None):
     samples = [s for s in samples if s["t"] <= end]
@@ -445,19 +460,27 @@ def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_
             return dict(result, reason=f"spread stopped falling: thrash_moves={result['thrash_moves']}, limit=0")
     if result["t_converge"] > max_seconds and not (episode == "client-skew" and result["still_converging"]):
         return dict(result, reason=f"t_converge={result['t_converge']:g}, limit<={max_seconds:g}")
+    # Current spreads are refreshed at controller ticks, not at move completion.
+    # Use the first closed beat strictly after the last move's tick; never
+    # hunt for a later favourable spread or skip an active plan to re-arm it.
+    level = next((s for s in rows if s["info"][TICKS] > last_move["info"][TICKS]), None)
     if episode == "client-skew" and result["still_converging"]:
         # Successful balancing need not leave a 30s quiet tail. Retain Idle
         # evidence over the final decision window while reporting the last move.
         for row in decision_window(after)[1:]:
             if row["info"][STAGE] != 0:
                 return dict(result, reason=f"final decision {STAGE}={row['info'][STAGE]}, limit=0")
+        # A last-moment successful move may have no refreshed closed beat yet.
+        # Once that level is observed, subsequent samples retain the PRE-width
+        # rebound check even though the stationary suffix may be incomplete.
+        if level is not None:
+            reason = suffix_rebound(result, [s for s in after if s["t"] >= level["t"]],
+                                    level, criterion, primary)
+            if reason:
+                return dict(result, reason=reason)
         return dict(result, status="PASS", reason="still converging: spread falling at the fixed endpoint")
     if result["suffix_ticks"] < DECISION_TICKS:
         return dict(result, reason=f"suffix_ticks={result['suffix_ticks']}, limit>={DECISION_TICKS}")
-    # Current spreads are refreshed at controller ticks, not at move completion.
-    # Use the first closed beat strictly after the last move's tick; never
-    # hunt for a later favourable spread or skip an active plan to re-arm it.
-    level = next((s for s in rows if s["info"][TICKS] > last_move["info"][TICKS]), None)
     if level is None:
         return dict(result, reason="post-move closed beats=0, limit>=1")
     result.update(suffix_start_t=level["t"], suffix_seconds=final["t"] - level["t"],
@@ -465,17 +488,9 @@ def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_
     if result["suffix_seconds"] < suffix_seconds or result["suffix_ticks"] < DECISION_TICKS:
         return dict(result, reason=f"suffix_seconds={result['suffix_seconds']:g}, limit>={suffix_seconds:g}; "
                     f"suffix_ticks={result['suffix_ticks']}, limit>={DECISION_TICKS}")
-    width = criterion["upper"][primary] - criterion["lower"][primary]
-    limit = level["info"][primary] + width
-    result.update(post_last_move_level=level["info"][primary], post_last_move_level_t=level["t"],
-                  primary=primary, rebound_limit=limit, pre_envelope_width=width)
-    for row in after:
-        if row["info"][TICKS] < level["info"][TICKS]:
-            continue
-        if row["info"][primary] > limit:
-            return dict(result, reason=f"post-move rebound: {primary}={row['info'][primary]:g}, limit={limit:g} at t={row['t']:.6f}")
-        if row["info"][STAGE] != 0:
-            return dict(result, reason=f"stationary suffix {STAGE}={row['info'][STAGE]}, limit=0 at t={row['t']:.6f}")
+    reason = suffix_rebound(result, after, level, criterion, primary)
+    if reason:
+        return dict(result, reason=reason)
     return dict(result, status="PASS", reason="last required move followed by a complete quiescent suffix")
 
 
@@ -1042,9 +1057,9 @@ def assess(results, episodes="both"):
         # Client PRE/PAD may stall on refusals. Their measured end spread is
         # still a control: demanding that it improve would again reject a
         # candidate precisely when it balances better than those controls.
-        return (result["status"] == "PASS" or
-                (result["episode"] == "client-skew" and result["arm"] != "POST" and
-                 result.get("measurement_valid", False)))
+        return (result.get("measurement_valid", result["status"] == "PASS") and
+                (result["status"] == "PASS" or
+                 (result["episode"] == "client-skew" and result["arm"] != "POST")))
     checks = []
     expected = list(schedule(episodes))
     identities = [(r["arm"], r["mode"], r["episode"], r["round"]) for r in results]
@@ -1062,7 +1077,7 @@ def assess(results, episodes="both"):
         pre = paired.get("PRE")
         reasons, mix, spread_comparison = [], {}, None
         if set(paired) != set(ARMS) or any(not admissible(r) for r in paired.values()):
-            reasons.append("PRE, PAD-A or POST episode missing or did not establish its kind's convergence")
+            reasons.append("PRE, PAD-A or POST missing, lacks valid evidence, or failed required convergence checks")
         else:
             if post["episode"] == "client-skew":
                 rounds = pre_spreads.get(post["mode"], {})
@@ -1623,6 +1638,10 @@ class SelfTest(unittest.TestCase):
         self.assertLess(result["spread_tail_slope"], 0)
         self.assertEqual(result["status"], "PASS")
         self.assertTrue(result["still_converging"])
+        trace[-1]["info"][SPREADS[2]] += 20
+        result = convergence(trace, 14, 40, self.criterion(), "client-skew", 20, 10)
+        self.assertEqual(result["status"], "FAIL")
+        self.assertIn("post-move rebound", result["reason"])
 
     def test_spread_windows_and_zero_peak(self):
         trace = self.trace(moving=False, excursion=False)
