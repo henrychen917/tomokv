@@ -585,7 +585,7 @@ build/lbplanner-unit-tsan: tests/lbplanner_unit.cc tests/core_concurrency_unit.c
 
 LBPLANNER_CONTROLS := no-publish stale-flip stale-lb duplicate copy-on-io record-reuse
 LBPLANNER_TIMING_CONTROLS := timing-lock timing-late-pause timing-budget
-build/lbplanner-controls/%/source/src/core/io_loop.h: tools/lbplanner_controls.py src/core/io_loop.h src/core/server.h
+build/lbplanner-controls/%/source/src/core/io_loop.h: tools/lbplanner_controls.py $(SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc)
 	python3 tools/lbplanner_controls.py $* $@
 $(foreach arm,$(LBPLANNER_TIMING_CONTROLS),build/lbplanner-controls/$(arm)/unit): build/lbplanner-controls/%/unit: build/lbplanner-controls/%/source/src/core/io_loop.h tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -Ibuild/lbplanner-controls/$*/source -I. tests/lbplanner_unit.cc $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm $(LBPLANNER_WRAP)
