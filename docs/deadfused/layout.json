@@ -1,0 +1,128 @@
+{
+  "PRE": {
+    "tomo::Op": 336,
+    "tomo::Client": 1984,
+    "tomo::ThreadCtx": 1408,
+    "tomo::Shard": 1440,
+    "tomo::FlatStore": 944,
+    "tomo::Rob<64>": 192,
+    "tomo::AtomicEntry": 144,
+    "tomo::Config": 624,
+    "tomo::Ring": 328,
+    "tomo::IoLoop": 7144,
+    "tomo::ExLoopT<false>": 5856,
+    "tomo::ExLoopT<true>": 6632,
+    "tomo::ReadLocalStats": 328,
+    "tomo::ReadLocalThreadState": 384,
+    "tomo::FlipctlReport": 360,
+    "tomo::FlipController": 1752,
+    "tomo::Server": 108672,
+    "tomo::(anonymous namespace)::StatBaseline": 488,
+    "tomo_db0::Op": 336,
+    "tomo_db0::Client": 1984,
+    "tomo_db0::ThreadCtx": 1408,
+    "tomo_db0::Shard": 1440,
+    "tomo_db0::FlatStore": 944,
+    "tomo_db0::Rob<64>": 192,
+    "tomo_db0::AtomicEntry": 144,
+    "tomo_db0::Config": 624,
+    "tomo_db0::Ring": 328,
+    "tomo_db0::IoLoop": 7144,
+    "tomo_db0::ExLoopT<false>": 5856,
+    "tomo_db0::ExLoopT<true>": 6632,
+    "tomo_db0::ReadLocalStats": 328,
+    "tomo_db0::ReadLocalThreadState": 384,
+    "tomo_db0::FlipctlReport": 360,
+    "tomo_db0::FlipController": 1752,
+    "tomo_db0::Server": 108288,
+    "tomo_db0::(anonymous namespace)::StatBaseline": 488
+  },
+  "POST": {
+    "tomo::Op": 336,
+    "tomo::Client": 1984,
+    "tomo::ThreadCtx": 1408,
+    "tomo::Shard": 1440,
+    "tomo::FlatStore": 944,
+    "tomo::Rob<64>": 192,
+    "tomo::AtomicEntry": 144,
+    "tomo::Config": 624,
+    "tomo::Ring": 328,
+    "tomo::IoLoop": 7144,
+    "tomo::ExLoopT<false>": 5848,
+    "tomo::ExLoopT<true>": 5856,
+    "tomo::ReadLocalStats": 320,
+    "tomo::ReadLocalThreadState": 376,
+    "tomo::FlipctlReport": 352,
+    "tomo::FlipController": 1752,
+    "tomo::Server": 108672,
+    "tomo::(anonymous namespace)::StatBaseline": 480,
+    "tomo_db0::Op": 336,
+    "tomo_db0::Client": 1984,
+    "tomo_db0::ThreadCtx": 1408,
+    "tomo_db0::Shard": 1440,
+    "tomo_db0::FlatStore": 944,
+    "tomo_db0::Rob<64>": 192,
+    "tomo_db0::AtomicEntry": 144,
+    "tomo_db0::Config": 624,
+    "tomo_db0::Ring": 328,
+    "tomo_db0::IoLoop": 7144,
+    "tomo_db0::ExLoopT<false>": 5848,
+    "tomo_db0::ExLoopT<true>": 5856,
+    "tomo_db0::ReadLocalStats": 320,
+    "tomo_db0::ReadLocalThreadState": 376,
+    "tomo_db0::FlipctlReport": 352,
+    "tomo_db0::FlipController": 1752,
+    "tomo_db0::Server": 108288,
+    "tomo_db0::(anonymous namespace)::StatBaseline": 480
+  },
+  "changes": {
+    "tomo::ExLoopT<false>": [
+      5856,
+      5848
+    ],
+    "tomo::ExLoopT<true>": [
+      6632,
+      5856
+    ],
+    "tomo::ReadLocalStats": [
+      328,
+      320
+    ],
+    "tomo::ReadLocalThreadState": [
+      384,
+      376
+    ],
+    "tomo::FlipctlReport": [
+      360,
+      352
+    ],
+    "tomo::(anonymous namespace)::StatBaseline": [
+      488,
+      480
+    ],
+    "tomo_db0::ExLoopT<false>": [
+      5856,
+      5848
+    ],
+    "tomo_db0::ExLoopT<true>": [
+      6632,
+      5856
+    ],
+    "tomo_db0::ReadLocalStats": [
+      328,
+      320
+    ],
+    "tomo_db0::ReadLocalThreadState": [
+      384,
+      376
+    ],
+    "tomo_db0::FlipctlReport": [
+      360,
+      352
+    ],
+    "tomo_db0::(anonymous namespace)::StatBaseline": [
+      488,
+      480
+    ]
+  }
+}

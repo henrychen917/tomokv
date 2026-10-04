@@ -155,7 +155,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
                         return static_cast<IoLoop*>(p)->prepare_client_transfer_capacity(incoming);
                     });
             if (ok) {
-                executors[tid].activate_fused(&ios[tid].ring());
+                executors[tid].activate_fused();
                 ios[tid].bind_fused_executor(&executors[tid]);
                 executors[tid].bind_fused_completion(
                     &ios[tid],

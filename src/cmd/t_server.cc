@@ -1680,7 +1680,6 @@ void add_read_local_stats(ReadLocalStats& total, const ReadLocalStats& local) {
     total.mget_fallback_typed += local.mget_fallback_typed;
     total.mget_fallback_expired += local.mget_fallback_expired;
     total.mget_fallback_seq_churn += local.mget_fallback_seq_churn;
-    total.mget_generation_retries += local.mget_generation_retries;
     total.mget_fallback_generation += local.mget_fallback_generation;
 }
 
@@ -2018,9 +2017,6 @@ void cmd_info(Shard&, Op& op) {
         read_local.mget_fallback_seq_churn = minus_baseline(
             read_local.mget_fallback_seq_churn,
             baseline.read_local.mget_fallback_seq_churn);
-        read_local.mget_generation_retries = minus_baseline(
-            read_local.mget_generation_retries,
-            baseline.read_local.mget_generation_retries);
         read_local.mget_fallback_generation = minus_baseline(
             read_local.mget_fallback_generation,
             baseline.read_local.mget_fallback_generation);
@@ -2635,7 +2631,6 @@ void cmd_info(Shard&, Op& op) {
                 "read_local_mget_fallback_typed:%llu\r\n"
                 "read_local_mget_fallback_expired:%llu\r\n"
                 "read_local_mget_fallback_seq_churn:%llu\r\n"
-                "read_local_mget_generation_retries:%llu\r\n"
                 "read_local_mget_fallback_generation:%llu\r\n",
                 static_cast<unsigned long long>(read_local.mget_local_hits),
                 static_cast<unsigned long long>(read_local.mget_fallbacks()),
@@ -2654,7 +2649,6 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_fallback_typed),
                 static_cast<unsigned long long>(read_local.mget_fallback_expired),
                 static_cast<unsigned long long>(read_local.mget_fallback_seq_churn),
-                static_cast<unsigned long long>(read_local.mget_generation_retries),
                 static_cast<unsigned long long>(read_local.mget_fallback_generation));
     }
     if (info_section(op, "COMMANDSTATS", false)) {

@@ -1,0 +1,14 @@
+{
+  "launch_head": "12fe9f8ad",
+  "pre_cleanup_head": "cd02ecbab1502775f1c170e806971d1f7bbc3ee9",
+  "pre_cleanup_tag": "deadfused-pre-cleanup-cd02ecbab",
+  "production_source_commit": "493bb5b55",
+  "unit_source_commit": "5bd0e1662",
+  "unit_note": "Later source changes were comments only; comment-identity proves literal executable and function table identity.",
+  "guard_source_commit": "5bd0e1662",
+  "guard_patch": "notify-bound.patch",
+  "build_affinity": "112-127",
+  "measurement_status": "NOT RUN",
+  "layout": "layout.json",
+  "script_help_probe": "read_local_lane.py --help was interpreted as a hostname and failed in name resolution, before any connection. No server or load generator was started."
+}

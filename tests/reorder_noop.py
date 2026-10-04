@@ -6,7 +6,7 @@ from pathlib import Path
 
 POLICIES = {
     # Only emitted, surviving interfaces. Values are historical arities with
-    # the extra FALSE policy; the current arity is also accepted below.
+    # the extra FALSE policy; the post-deadfused arities are accepted below too.
     'fused_pass_impl': 7, 'fused_sweep_impl': 6,
     'fused_baseline_sweep': 1, 'run': 1, 'run_loop': 7, 'flush_ready': 6,
 }
@@ -55,7 +55,15 @@ def canonical(name):
         if method == 'collect_retire_work' and len(parts) == 3 and parts[2] == 'false':
             name = name[:match.end()] + ', '.join(parts[:2]) + name[end-1:]
             continue
-        expected=POLICIES.get(method)
+        policy = method.removeprefix('r7_')
+        if policy in ('fused_pass_impl', 'fused_sweep_impl'):
+            # Deadfused leaves BatchOps, ConsumeTasks, IofusedPrivateQueue and
+            # InterleaveLocalReads in both ordinary and generated envelopes.
+            # All four survive; never strip a trailing false here.
+            if len(parts) == 4: continue
+            expected = POLICIES[policy]
+        else:
+            expected=POLICIES.get(method)
         if method == 'sweep': expected=5
         if expected is None: continue
         if len(parts) not in (expected, expected - 1):
@@ -69,17 +77,27 @@ def canonical(name):
     # Demangling prints the return type only for templates, not their former ordinary form.
     if name.startswith('void tomo::ExLoopT<') and '::run()' in name:
         name=name.removeprefix('void ')
+    # Deadfused removes only the false coalescing policy and void filler. Match
+    # their surviving signatures; true policies/non-void fillers remain distinct.
+    name = re.sub(r'(::(?:r7_)?fused_pass_impl)<(\d+u), (true|false), false, '
+                  r'(true|false), (true|false), void>\(void\*\)',
+                  r'\1<\2, \3, \4, \5>()', name)
+    name = re.sub(r'(::(?:r7_)?fused_sweep_impl)<(\d+u), (true|false), false, '
+                  r'(true|false), (true|false)>\(\)',
+                  r'\1<\2, \3, \4, \5>()', name)
+    name = re.sub(r'(::r7_drain_tasks)<(\d+u), (true|false), void>\(bool, void\*, bool\*\)',
+                  r'\1<\2, \3>(bool)', name)
     return name
 
 def category(name):
     if 'drain_tasks_reordered' in name or 'ExReorderQueues' in name: return None
     if 'ex_schedule_batch' in name: return None  # Behind the inherited armed branch.
     if 'parse_and_dispatch' in name: return 'dispatch'
-    if any(n in name for n in ['wb_retire_prepare<','collect_retire_work<','WbEngine::prepare_pipeline<']): return 'retire'
+    if any(n in name for n in ['wb_retire_prepare<','collect_retire_work<']): return 'retire'
     if re.search(r'::cmd_(get|set)(?:<|\(|_tls\(|_notify\()',name): return 'commands'
     if any(n in name for n in ['xshard_prepare(', 'xshard_execute(', 'xshard_retire(', 'prepare_captured_local_mget(', 'cmd_xshard_only(']): return 'multi-key commands'
     if 'ExLoopT<' in name and any(n in name for n in [
-        '::drain_tasks<','::drain_tasks_with_filler<','::drain_tasks_read_local_interleaved<',
+        '::drain_tasks<','::drain_tasks_read_local_interleaved<',
         '::exec_batch<','::exec_batch_prefetched<','::execute<','::fused_pass_impl<',
         '::fused_sweep_impl<','::fused_baseline_sweep()',
         '::prefetch_overlap_batch(', '::sweep<','::run()']): return 'scheduler'
@@ -348,6 +366,9 @@ def compare(pre,post,out):
             if other: (out/(row['diff']+'.post')).write_text('\n'.join(a+' | '+b for a,b in zip(other['ins'],other['encodings']))+'\n')
             records.append(row)
     if not records: raise ValueError('no matching PRE scope: refusing an empty proof')
+    missing = [r['name'] for r in records if r['post_address'] is None]
+    if missing:
+        raise ValueError('missing POST symbols (including report-only): ' + ', '.join(missing))
     return records
 
 def self_test():
@@ -359,10 +380,38 @@ def self_test():
         assert canonical(a.replace('false, true>(X)', 'false, false>(X)')) != b
     assert canonical('void tomo::ExLoopT<true>::run<false>()')=='tomo::ExLoopT<true>::run()'
     assert canonical('void tomo::ExLoopT<true>::run<true>()')=='void tomo::ExLoopT<true>::run<true>()'
-    a='unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false, false, void, false>(void*)'
-    b='unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false, false, void>(void*)'
-    assert canonical(a)==b
-    assert canonical(a.replace('(X)', '(X&, bool&)'))==b.replace('(X)', '(X&, bool&)')
+    for ns in ('tomo', 'tomo_db0'):
+        for prefix in ('', 'r7_'):
+            for local in ('false', 'true'):
+                owner = f'unsigned int {ns}::ExLoopT<true>::{prefix}'
+                old = owner + f'fused_pass_impl<32u, true, false, false, {local}, void>(void*)'
+                new = owner + f'fused_pass_impl<32u, true, false, {local}>()'
+                assert canonical(old) == new
+                assert canonical(old.replace('void>', 'void, false>')) == new
+                assert canonical(new) == new
+                assert canonical(old.replace('void>', 'void, true>')) != new
+                assert canonical(old.replace('true, false, false', 'true, true, false')) != new
+                assert canonical(old.replace('void', 'FixtureFiller')) != new
+                assert canonical(old.replace('(void*)', '(void*, bool*)')) != new
+                sweep = owner + f'fused_sweep_impl<32u, true, false, false, {local}>()'
+                current_sweep = owner + f'fused_sweep_impl<32u, true, false, {local}>()'
+                assert canonical(sweep) == current_sweep
+                assert canonical(sweep.replace('>()', ', false>()')) == current_sweep
+                assert canonical(current_sweep) == current_sweep
+                assert canonical(sweep.replace('>()', ', true>()')) != current_sweep
+                assert canonical(sweep.replace('true, false, false', 'true, true, false')) != current_sweep
+                for current in (new, current_sweep):
+                    for changed in (current.replace('32u', '64u'),
+                                    current.replace('32u, true', '32u, false'),
+                                    current.replace('true, false', 'true, true'),
+                                    current.replace(f'{local}>()', f'{"true" if local == "false" else "false"}>()')):
+                        assert canonical(changed) != current
+                try:
+                    canonical(owner + 'fused_pass_impl<32u, true, false>()')
+                except ValueError as error:
+                    assert 'policy symbol arity changed' in str(error)
+                else:
+                    raise AssertionError('unexpected fused policy arity accepted')
     # Register/field/immediate/extra-branch changes must remain literal inequalities.
     for lhs,rhs in [('mov 0x189(%rax),%edx','mov 0x190(%rax),%edx'),('mov %rax,%rdx','mov %rax,%rcx'),('mov $0x0,%eax','mov $0x1,%eax'),('0000 [ 1] ret','0000 [ 2] jne <+0x4>')]:
         assert normalize_asm(lhs,0,16,{})!=normalize_asm(rhs,0,16,{})

@@ -9,7 +9,6 @@
         ExLoopT<true> reader;
         reader.srv_ = &f.server;
         reader.self_ = &f.server.thread(f.io_id);
-        reader.fused_handoff_ring_ = &reader.ring_;
         reader.cached_now_ms_ = reader.realtime_ms();
         reader.read_local_.impl = std::make_unique<ReadLocalExImpl>();
         auto& lane = reader.read_local_impl();
@@ -58,7 +57,7 @@
             // Drive the actual DEBUG knob and its production rotation adoption, including reset.
             // Access policy belongs to live DEBUG; the fixture uses the setter that handler calls.
             f.server.set_debug_read_local_lane_cap(phase == 1 ? 8 : 0);
-            reader.template fused_pass_impl<kGenthreadExBatchOps, false, false>();
+            reader.template fused_pass_impl<kGenthreadExBatchOps, false>();
             auto& stats = reader.self_->read_local_stats();
             const auto before = stats;
             for (unsigned i = 0; i < count; ++i) {
@@ -127,7 +126,7 @@
                     (unsigned long long)full[2], (unsigned long long)quota[1], 3 * count * depth);
     }
 
-    // Exact offsets frozen from PRE; every surviving counter is checked independently.
+    // Exact offsets after removing the dead retry counter; every surviving counter is checked independently.
     static_assert(offsetof(ReadLocalStats, hits) == 0);
     static_assert(offsetof(ReadLocalStats, keyspace_hits) == 8);
     static_assert(offsetof(ReadLocalStats, keyspace_misses) == 16);
@@ -162,11 +161,10 @@
     static_assert(offsetof(ReadLocalStats, mget_fallback_typed) == 256);
     static_assert(offsetof(ReadLocalStats, mget_fallback_expired) == 264);
     static_assert(offsetof(ReadLocalStats, mget_fallback_seq_churn) == 272);
-    static_assert(offsetof(ReadLocalStats, mget_generation_retries) == 280);
-    static_assert(offsetof(ReadLocalStats, mget_fallback_generation) == 288);
-    static_assert(offsetof(ReadLocalStats, arm.arms) == 304);
-    static_assert(offsetof(ReadLocalStats, arm.sidecars) == 312);
-    static_assert(offsetof(ReadLocalStats, arm.write_ring_records) == 320);
+    static_assert(offsetof(ReadLocalStats, mget_fallback_generation) == 280);
+    static_assert(offsetof(ReadLocalStats, arm.arms) == 296);
+    static_assert(offsetof(ReadLocalStats, arm.sidecars) == 304);
+    static_assert(offsetof(ReadLocalStats, arm.write_ring_records) == 312);
     struct LaneCounter { const char* key; size_t offset; bool fallback, mget_fallback; };
     inline static constexpr LaneCounter lane_counters[] = {
         {"read_local_hits", 0, false, false},
@@ -203,11 +201,10 @@
         {"read_local_mget_fallback_typed", 256, false, true},
         {"read_local_mget_fallback_expired", 264, false, true},
         {"read_local_mget_fallback_seq_churn", 272, false, true},
-        {"read_local_mget_generation_retries", 280, false, false},
-        {"read_local_mget_fallback_generation", 288, false, true},
-        {"read_local_arms", 304, false, false},
-        {"read_local_write_ring_sidecars", 312, false, false},
-        {"read_local_write_ring_records", 320, false, false},
+        {"read_local_mget_fallback_generation", 280, false, true},
+        {"read_local_arms", 296, false, false},
+        {"read_local_write_ring_sidecars", 304, false, false},
+        {"read_local_write_ring_records", 312, false, false},
     };
     static void lanefull_info(uint32_t databases, bool legacy_schema = false) {
         Fixture<true> f(false, 8, 16, databases, 6, true);
@@ -233,6 +230,8 @@
                     require(body.find(std::string(key) + "0\r\n") != std::string::npos,
                             "lanefull INFO: PRE schema must retain both zero rows");
                 else require(body.find(key) == std::string::npos, "lanefull INFO: retired key present");
+            require(body.find("read_local_mget_generation_retries:") == std::string::npos,
+                    "lanefull INFO: retired retry row present");
             uint64_t fallback = 0, mget_fallback = 0;
             const auto exact = [&](const char* key, uint64_t value) {
                 const std::string row = std::string("\r\n") + key + ":" +

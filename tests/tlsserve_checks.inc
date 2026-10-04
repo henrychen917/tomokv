@@ -135,10 +135,11 @@ struct Fixture {
     }
 };
 
-// Call 0/1 = serve (ClassifySend false/true); 2 = prepare with submit_allowed;
-// 3 = prepare_pipeline. Both prepare APIs have Submit=false, ClassifySend=false.
+// Call 0/1 = serve (ClassifySend false/true); 2 = prepare with submit_allowed.
+// The prepare API has Submit=false, ClassifySend=false.
 template <Transport T, bool Ep, bool Coded, unsigned Call>
 bool invoke(Fixture& f) {
+    static_assert(Call <= 2);
     if constexpr (Call < 2) {
         if constexpr (T == Plain) return f.wb.serve<Ep, Call == 1, Coded>(f.c);
         if constexpr (T == Ktls) return f.wb.serve_ktls<Ep, Call == 1, Coded>(f.c);
@@ -147,10 +148,7 @@ bool invoke(Fixture& f) {
         if constexpr (T == Plain) return f.wb.prepare<Ep, Coded>(f.c, f.allowed);
         if constexpr (T == Ktls) return f.wb.prepare_ktls<Ep, Coded>(f.c, f.allowed);
         if constexpr (T == Userspace) return f.wb.prepare_tls<Ep, Coded>(f.c, f.tls, f.allowed);
-    } else {
-        if constexpr (T == Plain) return f.wb.prepare_pipeline<Ep, Coded>(f.c);
-        if constexpr (T == Ktls) return f.wb.prepare_pipeline_ktls<Ep, Coded>(f.c);
-        if constexpr (T == Userspace) return f.wb.prepare_pipeline_tls<Ep, Coded>(f.c, f.tls);
+
     }
 }
 
@@ -296,7 +294,7 @@ void matrix() {
 
 template <Transport T, bool Ep, bool Coded> void calls() {
     matrix<T, Ep, Coded, 0>(); matrix<T, Ep, Coded, 1>();
-    matrix<T, Ep, Coded, 2>(); matrix<T, Ep, Coded, 3>();
+    matrix<T, Ep, Coded, 2>();
 }
 template <Transport T> void transport() {
     calls<T, false, false>(); calls<T, false, true>();
@@ -307,6 +305,6 @@ inline void run() {
     transport<Plain>(); transport<Ktls>(); transport<Userspace>();
     require(cases != 0, "selected-state-entered");
     std::printf("PASS tlsserve: %u deterministic cases (three transports, both tracking states, "
-                "coded/plain, uring/epoll, classified/unclassified serve, both prepare APIs)\n", cases);
+                "coded/plain, uring/epoll, classified/unclassified serve, prepare API)\n", cases);
 }
 } // namespace tlsserve_test

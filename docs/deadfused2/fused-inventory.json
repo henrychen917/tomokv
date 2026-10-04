@@ -1,0 +1,42 @@
+{
+  "arities": {
+    "4": 14,
+    "6": 0,
+    "7": 0
+  },
+  "historical_spellings_absent": true,
+  "symbols": {
+    "FIFO-PAD-A": [
+      "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+      "unsigned int tomo::ExLoopT<true>::fused_sweep_impl<32u, true, false, true>()",
+      "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+      "unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+      "unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()",
+      "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+      "unsigned int tomo_db0::ExLoopT<true>::fused_sweep_impl<32u, true, false, true>()",
+      "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+      "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+      "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()"
+    ],
+    "POST": [
+      "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+      "unsigned int tomo::ExLoopT<true>::fused_sweep_impl<32u, true, false, true>()",
+      "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+      "unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+      "unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()",
+      "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+      "unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()",
+      "unsigned int tomo_db0::ExLoopT<true>::fused_sweep_impl<32u, true, false, true>()",
+      "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()",
+      "unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()",
+      "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()",
+      "unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()"
+    ]
+  }
+}

@@ -62,7 +62,8 @@ ROUND_DEADLINE_S = 20.0
 DRAIN_DEADLINE_S = 2.0
 DRAIN_POLL_S = 0.01
 DRAIN_QUIET_S = 0.05
-REMOVED_KEYS = ("read_local_fallback_lane_full", "read_local_mget_fallback_lane_full")
+REMOVED_KEYS = ("read_local_fallback_lane_full", "read_local_mget_fallback_lane_full",
+                "read_local_mget_generation_retries")
 COUNTERS = ("read_local_hits", "read_local_fallbacks",
             "read_local_defer_lane_full", "read_local_defer_quota")
 DEFERRALS = ("read_local_defer_lane_full", "read_local_defer_quota")
@@ -88,7 +89,7 @@ def counters(conn, names=COUNTERS):
 
 MGET_COUNTERS = ("read_local_mget_local_hits", "read_local_mget_fallbacks",
                  "read_local_mget_fallback_inflight_write",
-                 "read_local_mget_generation_retries", "atomic_inflight")
+                 "atomic_inflight")
 
 
 def mget_fence():
@@ -186,9 +187,6 @@ def mget_fence():
                             if (ryow != 1 or now["read_local_mget_fallbacks"] -
                                     base["read_local_mget_fallbacks"] != 1):
                                 raise AssertionError("only the conflicting trailing MGET must demote for RYOW")
-                            if (now["read_local_mget_generation_retries"] !=
-                                    base["read_local_mget_generation_retries"]):
-                                raise AssertionError("MGET fence proof must not retry readers")
                     got = [c.read() for _ in expected]
                     if got != expected:
                         raise AssertionError("MGET pipeline replies/order/RYOW: got %r want %r"

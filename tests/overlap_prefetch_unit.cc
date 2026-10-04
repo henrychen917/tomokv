@@ -55,7 +55,6 @@ struct CoreConcurrencyTest {
             require(server.nthreads() == 8 && server.nshards() == 16, "gate geometry");
             loop.srv_ = &server;
             loop.self_ = &server.thread(owner);
-            loop.fused_handoff_ring_ = &loop.ring_;
             loop.cached_now_ms_ = 1000;
             loop.read_local_.impl = std::make_unique<ReadLocalExImpl>();
             auto& deferred = loop.read_local_impl().deferred;

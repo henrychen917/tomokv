@@ -185,7 +185,6 @@ struct ReadLocalStats {
     uint64_t mget_fallback_typed = 0;
     uint64_t mget_fallback_expired = 0;
     uint64_t mget_fallback_seq_churn = 0;
-    uint64_t mget_generation_retries = 0; // retained INFO witness: zero in production
     uint64_t mget_fallback_generation = 0;
     std::byte reserved_mget_lane_full[8]{};
 
@@ -284,9 +283,9 @@ struct ReadLocalStats {
 
 static_assert(offsetof(ReadLocalStats, reserved_lane_full) == 144);
 static_assert(offsetof(ReadLocalStats, defer_lane_full) == 152);
-static_assert(offsetof(ReadLocalStats, reserved_mget_lane_full) == 296);
-static_assert(offsetof(ReadLocalStats, arm) == 304);
-static_assert(sizeof(ReadLocalStats) == 328);
+static_assert(offsetof(ReadLocalStats, reserved_mget_lane_full) == 288);
+static_assert(offsetof(ReadLocalStats, arm) == 296);
+static_assert(sizeof(ReadLocalStats) == 320);
 
 // Read-local publication and telemetry are absent from baseline ThreadCtx allocations. The
 // lone owning pointer is placed in ThreadCtx's established tail padding below.
@@ -298,10 +297,10 @@ struct ReadLocalThreadState {
     // an enabled boot knob from a live parser/executor lane. No per-operation publication.
     std::atomic<bool> lane_active{false};
 };
-static_assert(offsetof(ReadLocalThreadState, lane_active) == 376,
+static_assert(offsetof(ReadLocalThreadState, lane_active) == 368,
               "resize retirement adds two cold sink hooks to the optional sidecar");
-static_assert(sizeof(ReadLocalThreadState) == 384,
-              "resize retirement grows only the armed sidecar by 16 bytes, never ThreadCtx");
+static_assert(sizeof(ReadLocalThreadState) == 376,
+              "dead retry counter removed only from the armed sidecar, never ThreadCtx");
 
 class ThreadCtx {
 public:
@@ -683,65 +682,7 @@ public:
         return n;
     }
 
-    // E0 removes a bounded prefix without advancing the retired frontier. Each source lane is
-    // visited at most once, so E2 can publish exactly one retire_n update for that lane after every
-    // removed task has reached Executed, Forwarded, or durable deferral.
-    uint32_t gather_tasks_unretired(Task* tasks, uint32_t* lanes, uint32_t* lane_counts,
-                                    uint32_t& lane_count, uint32_t capacity,
-                                    bool unmasked = false) {
-        uint32_t count = 0;
-        lane_count = 0;
-        auto take_lane = [&](uint32_t producer) {
-            const uint32_t begin = count;
-            Task task;
-            while (count < capacity && task_in_->pop_unretired(producer, task)) {
-                uint64_t age = 0;
-                if (task.enqueue_us_low &&
-                    sig_.observe_queue_delay(task.enqueue_us_low, age))
-                    sig_.observe_oldest_age(age);
-                tasks[count++] = task;
-            }
-            if (count != begin) {
-                lanes[lane_count] = producer;
-                lane_counts[lane_count++] = count - begin;
-            }
-            if (count == capacity) task_notify_.set(producer);
-        };
-
-        if (unmasked) {
-            for (uint32_t producer = 0; producer < nchan_ && count < capacity; producer++)
-                take_lane(producer);
-            return count;
-        }
-        for (uint32_t word = 0; word < NotifyMask::kWords; word++) {
-            uint64_t bits = task_notify_.take(word);
-            while (bits) {
-                const uint32_t bit = static_cast<uint32_t>(__builtin_ctzll(bits));
-                bits &= bits - 1;
-                const uint32_t producer = word * 64 + bit;
-                if (producer >= nchan_) continue;
-                take_lane(producer);
-                if (count == capacity) {
-                    while (bits) {
-                        const uint32_t rest = static_cast<uint32_t>(__builtin_ctzll(bits));
-                        bits &= bits - 1;
-                        const uint32_t queued = word * 64 + rest;
-                        if (queued < nchan_) task_notify_.set(queued);
-                    }
-                    return count;
-                }
-            }
-        }
-        return count;
-    }
-
-    void retire_task_lanes(const uint32_t* lanes, const uint32_t* lane_counts,
-                           uint32_t lane_count) {
-        for (uint32_t i = 0; i < lane_count; i++)
-            task_in_->retire_n(lanes[i], lane_counts[i]);
-    }
-
-    // Optional streams A/D filler hint. Visit only producers whose task-notify bit names actual
+    // Bounded owner-work hint. Visit only producers whose task-notify bit names actual
     // queued work. A producer racing the peek is harmless: the next modulo chunk or the
     // mask-independent idle audit drains it, and this hint alone never controls correctness.
     uint32_t notified_task_depth_capped(uint32_t cap) const {
