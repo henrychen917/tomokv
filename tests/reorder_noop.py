@@ -5,13 +5,10 @@ from collections import defaultdict
 from pathlib import Path
 
 POLICIES = {
-    'fused_pass_impl': 7, 'fused_sweep_impl': 6, 'fused_pass': 1,
-    'fused_baseline_pass': 1, 'fused_coarse_pass': 1, 'fused_three_way_pass': 2,
-    'fused_pipeline_control': 1, 'fused_sweep': 1, 'fused_baseline_sweep': 1,
-    'fused_coarse_sweep': 1, 'fused_pipeline_control_sweep': 1,
-    'run': 1, 'run_loop': 7, 'run_fused_iofused_loop': 5,
-    'genthread_three_way_pass': 4, 'genthread_iofused_pass': 4,
-    'genthread_iofused_sweep': 4, 'flush_ready': 6,
+    # Only emitted, surviving interfaces. Values are historical arities with
+    # the extra FALSE policy; the current arity is also accepted below.
+    'fused_pass_impl': 7, 'fused_sweep_impl': 6,
+    'fused_baseline_sweep': 1, 'run': 1, 'run_loop': 7, 'flush_ready': 6,
 }
 HEADER = re.compile(r'^([0-9a-f]+) <(.+)>:$')
 INSTRUCTION = re.compile(r'^\s*([0-9a-f]+):\s*((?:[0-9a-f]{2} )+)\s*(.*)$')
@@ -60,8 +57,11 @@ def canonical(name):
             continue
         expected=POLICIES.get(method)
         if method == 'sweep': expected=5
+        if expected is None: continue
+        if len(parts) not in (expected, expected - 1):
+            raise ValueError(f'policy symbol arity changed: {method}: {len(parts)}')
         if expected != len(parts): continue
-        index=0 if method=='fused_three_way_pass' else len(parts)-1
+        index=len(parts)-1
         if parts[index] != 'false': continue
         del parts[index]
         replacement = ('<'+', '.join(parts)+'>') if parts else ''
@@ -94,9 +94,22 @@ def category(name):
         '::fused_sweep_impl<','::fused_baseline_sweep()',
         '::prefetch_overlap_batch(', '::sweep<','::run()']): return 'scheduler'
     if 'IoLoop::' in name and any(n in name for n in [
-        '::run_loop<','::run_fused_iofused_loop<','::genthread_three_way_pass<',
-        '::genthread_iofused_sweep<','::flush_ready<','::pipeline_pass<','::wb_prefetch<']): return 'envelope'
+        '::run_loop<','::flush_ready<','::pipeline_pass<','::wb_prefetch<']): return 'envelope'
     return None
+
+
+def require_policies(names):
+    """A stale or missing policy symbol is an invalid audit, never a skip."""
+    names = tuple(names)
+    namespaces = [ns for ns in ('tomo', 'tomo_db0') if any(ns + '::' in n for n in names)]
+    if not namespaces:
+        raise ValueError('missing policy symbols: no production namespace')
+    for ns in namespaces:
+        for method in POLICIES:
+            owner = r'ExLoopT<[^>]+>' if method.startswith('fused_') or method == 'run' else 'IoLoop'
+            pattern = re.compile(re.escape(ns) + r'::' + owner + r'::' + method + r'(?:<|\()')
+            if not any(pattern.search(name) for name in names):
+                raise ValueError(f'missing policy symbol: {ns}::{method}')
 
 def normalize_asm(asm,addr,size,demangle,address_name=None,literal_name=None):
     def ref(m):
@@ -284,6 +297,9 @@ class Binary:
                 names.add(m[2].split('+0x')[0])
         names=sorted(names)
         decoded=run('c++filt',*names).splitlines()
+        # Validate defined symbols, not external references printed by objdump.
+        defined = set(e[2] for e in entries)
+        require_policies(name for symbol, name in zip(names, decoded) if symbol in defined)
         self.demangle={a:canonical(b) for a,b in zip(names,decoded)}
         self.instructions={}; self.headers={}
         for line in obj.splitlines():
@@ -317,6 +333,8 @@ class Binary:
             self.groups[name].append(dict(addr=addr,size=size,ins=ins,encodings=encodings,aliases=sorted(set(self.entry_names[addr]))))
 
 def compare(pre,post,out):
+    require_policies(pre.groups)
+    require_policies(post.groups)
     records=[]
     for name in sorted(pre.groups):
         kind=category(name)
@@ -354,8 +372,8 @@ def self_test():
         assert canonical(a.replace('false, true>(X)', 'false, false>(X)')) != b
     assert canonical('void tomo::ExLoopT<true>::run<false>()')=='tomo::ExLoopT<true>::run()'
     assert canonical('void tomo::ExLoopT<true>::run<true>()')=='void tomo::ExLoopT<true>::run<true>()'
-    a='unsigned int tomo::ExLoopT<true>::fused_pass_impl<128u, true, true, true, false, tomo::IoLoop::genthread_three_way_pass<false, false, false, false>(X)::{lambda()#1}, false>(X*)'
-    b='unsigned int tomo::ExLoopT<true>::fused_pass_impl<128u, true, true, true, false, tomo::IoLoop::genthread_three_way_pass<false, false, false>(X)::{lambda()#1}>(X*)'
+    a='unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false, false, void, false>(void*)'
+    b='unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false, false, void>(void*)'
     assert canonical(a)==b
     assert canonical(a.replace('(X)', '(X&, bool&)'))==b.replace('(X)', '(X&, bool&)')
     for ns in ('tomo', 'tomo_db0'):

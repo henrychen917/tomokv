@@ -29,6 +29,9 @@
 #   for push/release/full; iteration can opt into full, and perf can select either diagnostically.
 #   --candidate-binary bypasses only the release build; instrumented source builds still run.
 #   Such external binaries remain valid perf/iteration diagnostics but cannot earn a source receipt.
+#   GATE_ONLY_JOBS='debug-0 debug-1' selects whole jobs plus build prerequisites.
+#   Commas are accepted too. Output is a separate PARTIAL ledger, never counted
+#   against EXPECT and never eligible for a receipt; ABBA/NIC do not run.
 #   Push/release/full also require a source/binary-bound local receipt. GATE_RECEIPT_BASELINE
 #   selects a trusted full ledger; GATE_RECEIPT_NULL selects a recent full byte-identical ABBA
 #   control. The ledger default comes from a certified receipt; explicit promote-null
@@ -66,8 +69,15 @@ if [ "$GATE_SELF_TEST" = 1 ]; then
   exec python3 tests/gateplan.py "$@"
 fi
 GATE_STARTED=$SECONDS
+GATE_PARTIAL=0
+[ -z "${GATE_ONLY_JOBS:-}" ] || GATE_PARTIAL=1
 PLAN=$(python3 tests/gateplan.py "$@") || exit $?
 eval "$PLAN"
+if [ "${GATE_PARTIAL:-0}" = 1 ] && [ "$TIER" = perf ]; then
+  echo 'GATE_ONLY_JOBS selects correctness jobs; perf has no selectable jobs' >&2
+  exit 2
+fi
+source tests/gate_subset.sh
 ALL_BUILD_CORES=$BUILD_CORES
 mkdir -p "$PWD/build" || exit 2
 RUN_DIR=$(mktemp -d "$PWD/build/gate-run.XXXXXX") || exit 2
@@ -133,14 +143,18 @@ export TOMO_GATE_STRICT=1
 # assembled in source order. Compare identities/verdicts after projecting out duration.
 # The sidecar retains observed labels/counters; families.tsv measures whole worker jobs.
 LEDGER=${GATE_LEDGER:-$PWD/build/gate-ledger-$GATE_PURPOSE.txt}
+if [ "${GATE_PARTIAL:-0}" = 1 ]; then
+  # Even an explicit full-ledger path must not overwrite a complete receipt input.
+  LEDGER="${GATE_LEDGER:-$RUN_DIR/ledger}.partial"
+fi
 TIMINGS="$LEDGER.timings"
 ROW_T=$(date +%s.%N)
 ROW_HISTORY=${GATE_HISTORY:-$PWD/.gate-history/rows}
 ROW_RUN_ID="$GATE_PURPOSE:${RUN_DIR##*/}"
 export GATE_RUN_ID="$ROW_RUN_ID"
 RECEIPT_REQUIRED=0; RECEIPT_START=
-case "$GATE_PURPOSE" in
-  push|release|full)
+case "${GATE_PARTIAL:-0}:$GATE_PURPOSE" in
+  0:push|0:release|0:full)
     RECEIPT_REQUIRED=1
     # A missing baseline must not abort before correctness or silently skip performance. The
     # helper records a withheld bootstrap state; only a reviewed prior full ledger can arm it.
@@ -156,6 +170,10 @@ esac
 [ -f "$LEDGER" ] && mv -f "$LEDGER" "$LEDGER.prev"
 [ ! -f "$TIMINGS" ] || mv -f "$TIMINGS" "$TIMINGS.prev"
 : > "$LEDGER"; : > "$TIMINGS"
+if [ "${GATE_PARTIAL:-0}" = 1 ]; then
+  # Deliberately outside the receipt parser's ok/FAIL grammar, not a counted row.
+  printf 'PARTIAL\t0\tGATE_ONLY_JOBS=%s; NOT A RECEIPT\n' "${GATE_ONLY_JOBS//$'\n'/ }" > "$LEDGER"
+fi
 ROW_PLAN="$RUN_DIR/row-timeouts.json"
 HISTORY_ARGS=()
 [ ! -s "$TIMINGS.prev" ] || HISTORY_ARGS+=(--import-ledger "$TIMINGS.prev")
@@ -258,8 +276,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=473
-EXPECT_FULL=490                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+EXPECT_QUICK=489
+EXPECT_FULL=506                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -698,7 +716,8 @@ launch(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits up to 30
   # through their later --dir argument; a previous battery's SAVE must not become this one's input.
   local boot_dir
   boot_dir=$(mktemp -d "$TMPDIR/gate-data-$tag.XXXXXX") || return 1
-  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --dir "$boot_dir" "$@" > "$SRVLOG" 2>&1 &
+  # Persistence batteries may override this later; cleanup must not replace a tested BGSAVE cut.
+  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --dir "$boot_dir" --save '' "$@" > "$SRVLOG" 2>&1 &
   SRV=$!
   # 30s, not 10s: the AOF replay boot replays its file BEFORE it listens, and on a box shared
   # with other lanes that overran a 10s deadline and turned six AOF rows red with no defect behind
@@ -834,6 +853,8 @@ job_body(){
     aof-*) job_aof "$name";;
     debug-*) job_debug "$name";;
     fused-*) job_fused "$name";;
+    netio-*) job_netio "${name##*-}";;
+    lb-stationary-*) job_lb_stationary "${name##*-}";;
     feature-split-*) feature_split_job "${name##*-}";;
     feature-armed-*) feature_armed_job "${name##*-}";;
     differ-*)
@@ -944,8 +965,7 @@ run_job(){ (
   rc=$?
   exit "$rc"
 ); }
-start_workers(){
-  phase parallel-begin
+plan_jobs(){
   # Serialization is limited to binary publication, shared release-object writes, one job per
   # CPU/three-port slot, and the operations inside a shared boot/recovery chain. All files written
   # by independent batteries are private TMPDIR/mktemp paths; the coordinator alone owns ledgers.
@@ -966,8 +986,6 @@ start_workers(){
     # occupy separate CPU/port/TMPDIR slots; seeds and the accumulated-state MULTI repeats cannot.
     # Plan failure remains loud and makes every required differential fold red, while unrelated
     # correctness jobs still run and retain their evidence.
-    python3 tests/differ_fanout.py plan --run "${ROW_RUN_ID:-$RUN_DIR}" --output "$RUN_DIR/differ-plan.json" \
-        --repeats "${GATE_DIFFER_MULTI_REPEATS:-4}" || true
     JOB_NAMES+=(differ-split-0 differ-split-1 differ-armed-0 differ-armed-1 differ-equivalence)
   fi
   local atomic mode section slot FM FR FO FQ FF
@@ -980,7 +998,9 @@ start_workers(){
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
-              core_units persistfix_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
+              wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
+              reorder_sync reorder_engagement reorder_identity
+              core_units climonfix persistfix_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -991,6 +1011,16 @@ start_workers(){
     done; done; done; done
   done
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
+}
+start_workers(){
+  phase parallel-begin
+  plan_jobs
+  select_jobs || exit $?
+  if [[ " ${JOB_NAMES[*]} " == *' differ-'* ]]; then
+    python3 tests/differ_fanout.py plan --run "${ROW_RUN_ID:-$RUN_DIR}" --output "$RUN_DIR/differ-plan.json" \
+        --repeats "${GATE_DIFFER_MULTI_REPEATS:-4}" || true
+  fi
+  local slot name selected pending queue_fd
   mkdir -p "$RUN_DIR/claimed"
   for ((slot=0; slot<GATE_SLOTS; slot++)); do
     (
@@ -1135,7 +1165,7 @@ reject_boot(){
   if [[ "$1" != --* ]]; then conf=("$1"); shift; fi
   directory=$(mktemp -d "$TMPDIR/reject-boot.XXXXXX") || return 1
   timeout --kill-after=5 10 taskset -c "$CORES" "$CANDIDATE_BINARY" "${conf[@]}" \
-      --port "$PORT" --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --dir "$directory" "$@"
+      --port "$PORT" --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --dir "$directory" --save '' "$@"
 }
 
 store_build(){
@@ -1242,6 +1272,16 @@ g++ -std=c++20 -O2 -march=native -pthread -I. tests/read_local_write_ring_unit.c
     && $TMPDIR/tomokv-read-local-write-ring-unit >>$TMPDIR/gate-ring-unit.txt 2>&1 \
     && ok "read-local write ring + arming transient unit" \
     || bad "read-local write ring + arming transient unit" "see $TMPDIR/gate-ring-unit.txt"
+# SV1: logical owners i/i+64 need no 65-CPU allocation in a parallel gate slot.
+row_begin "climon 128-owner delivery mask"
+pausable taskset -c "$CORES" make -j"$BUILD_JOBS" build/climon-mask-unit build/climon-mask-old-unit \
+    >"$TMPDIR/climon-mask.log" 2>&1 \
+    && taskset -c "$CORES" ./build/climon-mask-unit >>"$TMPDIR/climon-mask.log" 2>&1 \
+    && { taskset -c "$CORES" ./build/climon-mask-old-unit >"$TMPDIR/climon-mask-old.log" 2>&1; test "$?" -eq 1; } \
+    && grep -q '^FAIL climon mask: disarm retains the other owner at distance 64$' "$TMPDIR/climon-mask-old.log" \
+    && ok "climon 128-owner delivery mask" \
+    || bad "climon 128-owner delivery mask" "see $TMPDIR/climon-mask.log"
+
 # RL1: all three completion paths must release a covered MGET fence before retirement.
 # One new row, collected before the quick exit; EXPECT counts remain maintainer-owned.
 row_begin "read-local MGET fence symmetry unit"
@@ -1251,6 +1291,26 @@ pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/rlfence-unit \
     && py tests/read_local_lane.py --self-test mget-fence >>$TMPDIR/gate-rlfence-unit.txt 2>&1 \
     && ok "read-local MGET fence symmetry unit" \
     || bad "read-local MGET fence symmetry unit" "see $TMPDIR/gate-rlfence-unit.txt"
+
+}
+
+job_climonfix(){
+  row_begin "shutdown policy + signal handoff serverless"
+  unit_ready shutdown-unit && taskset -c "$CORES" ./build/shutdown-unit \
+      >"$TMPDIR/shutdown-unit.log" 2>&1 \
+      && ok "shutdown policy + signal handoff serverless" \
+      || bad "shutdown policy + signal handoff serverless" "see $TMPDIR/shutdown-unit.log"
+  local mode stop_case label
+  for mode in 1s 2s; do
+    for stop_case in command sigterm sigint; do
+      label="shutdown persistence ($mode, $stop_case)"
+      row_begin "$label"
+      py tests/shutdown_persist.py --binary "$CANDIDATE_BINARY" --cores "$CORES" \
+          --port "$PORT" --ratio "$GATE_RATIO" --mode "$mode" --case "$stop_case" \
+          --output "$TMPDIR/shutdown-$mode-$stop_case" >"$TMPDIR/shutdown-$mode-$stop_case.log" 2>&1 \
+          && ok "$label" || bad "$label" "see $TMPDIR/shutdown-$mode-$stop_case.log"
+    done
+  done
 }
 
 job_persistfix_units(){
@@ -1327,6 +1387,71 @@ job_wbland_units(){
       bad "$label" "see $TMPDIR/wbland-$group.log and $RUN_DIR/jobs/production_units/build.log"
     fi
   done
+}
+
+job_reorder_sync(){
+  local label='R7 generated envelope parity'
+  row_begin "$label"
+  py tests/r7shadow_sync.py >"$TMPDIR/sync.log" 2>&1 \
+      && py tests/r7shadow_sync_test.py >>"$TMPDIR/sync.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/sync.log"
+}
+job_reorder_engagement(){
+  local label='R7 production engagement (both database runtimes)'
+  row_begin "$label"
+  if unit_ready reorder-engagement-unit && unit_ready reorder-engagement-unit-db0 &&
+      taskset -c "$CORES" python3 tests/reorder_receipt.py build/reorder-engagement-unit "$TMPDIR/multi" \
+          --engagement >"$TMPDIR/engagement.log" 2>&1 &&
+      taskset -c "$CORES" python3 tests/reorder_receipt.py build/reorder-engagement-unit-db0 "$TMPDIR/db0" \
+          --engagement >>"$TMPDIR/engagement.log" 2>&1; then
+    ok "$label"
+  else bad "$label" "see $TMPDIR/engagement.log and production_units/build.log"; fi
+}
+job_reorder_identity(){
+  local label='R7 FIFO twin off-path identity + negative controls'
+  row_begin "$label"
+  py tests/reorder_receipt.py "$CANDIDATE_BINARY" "$TMPDIR/receipt" >"$TMPDIR/receipt.log" 2>&1 \
+      && ok "$label" || bad "$label" "see $TMPDIR/receipt.log"
+}
+job_wb_policy(){
+  local label='writeback policies 0/1: 22 standard fixtures'
+  local mode policy boot_fn rc=0
+  # One scored row owns four boots and compares independent policy lifetimes.
+  row_begin "$label"
+  unit_ready wbland-units && py tests/wb_policy.py --traces >"$TMPDIR/traces.log" 2>&1 || rc=1
+  for mode in 1s 2s; do
+    boot_fn=boot; [ "$mode" != 1s ] || boot_fn=boot_fused
+    for policy in 1 0; do
+      local compare=()
+      [ "$policy" != 0 ] || compare=(--compare "$TMPDIR/$mode-1.json")
+      if "$boot_fn" "$CANDIDATE_BINARY" --wb-policy "$policy" --enable-debug-command yes &&
+          py tests/wb_policy.py --port "$PORT" --policy "$policy" --output "$TMPDIR/$mode-$policy.json" \
+              "${compare[@]}" >"$TMPDIR/$mode-$policy.log" 2>&1; then :; else rc=1; fi
+      stop
+    done
+  done
+  [ "$rc" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/*.log"
+}
+job_netio(){
+  local mode=$1 boot_fn=boot engine rc=0 label="epoll directed correctness ($1)"
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  row_begin "$label"
+  for engine in uring epoll; do
+    if "$boot_fn" "$CANDIDATE_BINARY" --net-io "$engine" &&
+        py tests/netio.py 127.0.0.1 "$PORT" "$engine" >"$TMPDIR/$engine.log" 2>&1; then :; else rc=1; fi
+    stop
+  done
+  [ "$rc" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/{uring,epoll}.log"
+}
+job_lb_stationary(){
+  local mode=$1 boot_fn=boot label="stationary balanced LB holds still ($1)"
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  row_begin "$label"
+  if "$boot_fn" "$CANDIDATE_BINARY" --key-lb 1 --client-lb 1 --flip-auto 0 --enable-debug-command yes &&
+      py tests/lb_stationary.py --port "$PORT" --output "$TMPDIR/hold.json" >"$TMPDIR/hold.log" 2>&1; then
+    ok "$label"
+  else bad "$label" "see $TMPDIR/hold.log and $SRVLOG"; fi
+  stop
 }
 
 job_splitlocal_units(){
@@ -2414,7 +2539,7 @@ tlsboot(){ # auth-mode [extra TLS knobs]
   guard_port "$TLS_PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-tls-srv.XXXXXX)
   taskset -c $CORES "$CANDIDATE_BINARY" --port "$PORT" --tls-port "$TLS_PORT" \
-      --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --protected-mode no --dir "$TLS_DIR" \
+      --bind 127.0.0.1 --shards 16 --ratio "$GATE_RATIO" --protected-mode no --dir "$TLS_DIR" --save '' \
       --tls-cert-file "$TLS_DIR/server.crt" --tls-key-file "$TLS_DIR/server.key" \
       --tls-ca-cert-file "$TLS_DIR/ca.crt" --tls-auth-clients "$auth" "$@" \
       >"$SRVLOG" 2>&1 &
@@ -2545,6 +2670,10 @@ py tests/abbagate.py --self-test > $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/gate_history.py self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/gate_process_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/gates_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
+    && py tests/gate_subset_test.py >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
+    && py tests/wb_policy.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
+    && py tests/lb_stationary.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
+    && py tests/netio.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && ok "ABBA comparison + saturation negative controls" \
     || bad "ABBA comparison + saturation negative controls" "see $TMPDIR/gate-abbagate-unit.txt"
@@ -2610,7 +2739,7 @@ zcboot(){
   guard_port "$PORT"
   SRVLOG=$(mktemp $TMPDIR/gate-srv-zc.XXXXXX)
   taskset -c $CORES "$1" --port $PORT --bind 127.0.0.1 --shards 16 --ratio $GATE_RATIO \
-      --dir "$(mktemp -d "$TMPDIR/zc-data.XXXXXX")" --zc-min 16384 > "$SRVLOG" 2>&1 &
+      --dir "$(mktemp -d "$TMPDIR/zc-data.XXXXXX")" --save '' --zc-min 16384 > "$SRVLOG" 2>&1 &
   SRV=$!
   for _ in $(seq 50); do
     if ! kill -0 "$SRV" 2>/dev/null; then wait "$SRV" 2>/dev/null; return 1; fi
@@ -2769,10 +2898,10 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
-      build/wb-rule-units build/wbland-units build/rltopo-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit >"$TMPDIR/build.log" 2>&1
+      build/wb-rule-units build/wbland-units build/rltopo-unit build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit persistfix-units ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit shutdown-unit persistfix-units ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -2825,15 +2954,16 @@ job_dependencies(){
       # rate assertion. Preserve the entire boot/battery chain and every assertion, but
       # finish all other gate-owned correctness work before this performance check boots.
       # JOB_NAMES is complete before dispatch and no other family depends on this one.
+      if [ "${GATE_PARTIAL:-0}" = 1 ]; then echo release; return; fi
       for dependency in "${JOB_NAMES[@]}"; do
         [ "$dependency" = atomic_batteries ] || printf '%s\n' "$dependency"
       done;;
-    release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest) ;;
+    release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync) ;;
     core_units) echo 'production_units core_tsan_build';;
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*) echo 'release production_units';;
-    persistfix_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*) echo production_units;;
+    climonfix|persistfix_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
     rlcache) echo rldbg;;
@@ -2849,6 +2979,10 @@ job_ready(){
 }
 
 # ---- 0. preflight: tools, oracle tree, intended ports ---------------------------------------
+if [ "${GATE_PARTIAL:-0}" = 1 ]; then
+  plan_jobs
+  select_jobs || exit $?
+fi
 MISSING=
 for tool in g++ make python3 redis-cli memtier_benchmark ss taskset timeout awk setarch flock; do
   command -v "$tool" >/dev/null 2>&1 || MISSING="$MISSING $tool"
@@ -2860,7 +2994,8 @@ ORACLE_MISSING=
 for f in src/server.h src/acl.c src/commands.def; do
   [ -f "$REDIS74_ROOT/$f" ] || ORACLE_MISSING="$ORACLE_MISSING $f"
 done
-if [ "$TIER" = full ]; then
+if [ "$TIER" = full ] && { [ "${GATE_PARTIAL:-0}" = 0 ] ||
+    [[ " ${JOB_NAMES[*]} " == *' differ-'* || " ${JOB_NAMES[*]} " == *' globcase '* ]]; }; then
   for f in src/redis-server src/redis-cli; do
     [ -x "$REDIS74_ROOT/$f" ] || ORACLE_MISSING="$ORACLE_MISSING $f(executable)"
   done
@@ -2871,7 +3006,8 @@ if [ -n "$ORACLE_MISSING" ]; then
   echo "GATE PREFLIGHT: $REDIS74_ROOT is not a built vanilla Redis 7.4 checkout (missing:$ORACLE_MISSING)."
   echo "  Expected: symlink /tmp/claude-1000/redis74 -> <redis 7.4 source tree with src/ built>,"
   echo "  or export REDIS74_ROOT=/path/to/redis-7.4."
-  if [ "$TIER" = full ]; then
+  if [ "$TIER" = full ] && { [ "${GATE_PARTIAL:-0}" = 0 ] ||
+      [[ " ${JOB_NAMES[*]} " == *' differ-'* || " ${JOB_NAMES[*]} " == *' globcase '* ]]; }; then
     echo "  The full tier's differential and globcase rows cannot run against nothing; fix it and re-run."
     exit 2
   fi
@@ -2883,6 +3019,10 @@ done
 
 # ---- 1. builds (the static_asserts on sizeof(Op)/sizeof(Client) gate here) -------------------
 start_workers
+if [ "${GATE_PARTIAL:-0}" = 1 ]; then
+  partial_gate
+  exit $?
+fi
 collect_job release
 
 collect_job asan
@@ -2894,14 +3034,25 @@ collect_job filter_unit
 
 collect_job ring_unit
 
-collect_job persistfix_units
+# SV2: collect all seven shutdown rows before the quick-tier exit.
+collect_job climonfix
 
+collect_job persistfix_units
 collect_job core_units
 
 collect_job wb_rule_units
 
 # wbland: two rows before the quick exit; maintainer-owned EXPECT counts +2/+2.
 collect_job wbland_units
+
+# gaterows: eight independent rows, all ABOVE the quick-tier exit. EXPECT stays
+# maintainer-owned: +8 quick, +8 full. The 32-cell feature product is unchanged.
+collect_job reorder_sync
+collect_job reorder_engagement
+collect_job reorder_identity
+collect_job wb_policy
+for MODE in 1s 2s; do collect_job "lb-stationary-$MODE"; done
+for MODE in 1s 2s; do collect_job "netio-$MODE"; done
 
 # WB4/IO5 and IO1: one new row before the quick exit; EXPECT counts stay maintainer-owned.
 collect_job splitlocal_units

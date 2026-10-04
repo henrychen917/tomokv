@@ -370,7 +370,7 @@ void IoLoop::tracking_invalidate_local(Slice key, uint64_t writer_id) {
 
 void IoLoop::tracking_broadcast_keys(const std::vector<std::string>& keys, uint64_t writer_id) {
     if (keys.empty()) return;
-    const uint64_t mask = srv_->climon_tracking_io_mask();
+    const ClimonIoMask mask = srv_->climon_tracking_io_mask();
     if (!mask) return;
     const bool bcast_active = g_track_bcast_prefixes.load(std::memory_order_relaxed) != 0;
     std::vector<std::string> interesting;
@@ -392,10 +392,10 @@ void IoLoop::tracking_broadcast_keys(const std::vector<std::string>& keys, uint6
     local.items.reserve(interesting.size());
     for (const std::string& key : interesting)
         local.items.push_back(PubSubEventItem{0, false, 0, key});
-    if ((mask >> (self_->id() & 63)) & 1) tracking_handle_event(local);
+    if (mask.contains(self_->id())) tracking_handle_event(local);
     for (uint32_t io : srv_->placement().ifid_threads()) {
         if (io == self_->id()) continue;
-        if (!((mask >> (io & 63)) & 1)) continue;
+        if (!mask.contains(io)) continue;
         PubSubEvent* event = pubsub_new_event(PubSubEventKind::TrackingInvalidate);
         event->target_io = io;
         event->origin_io = self_->id();
@@ -408,15 +408,15 @@ void IoLoop::tracking_broadcast_keys(const std::vector<std::string>& keys, uint6
 
 void IoLoop::tracking_broadcast_flush() {
     track_filter_clear();
-    const uint64_t mask = srv_->climon_tracking_io_mask();
+    const ClimonIoMask mask = srv_->climon_tracking_io_mask();
     if (!mask) return;
     PubSubEvent local;
     local.kind = PubSubEventKind::TrackingFlush;
     local.route_mask = mask;
-    if ((mask >> (self_->id() & 63)) & 1) tracking_handle_event(local);
+    if (mask.contains(self_->id())) tracking_handle_event(local);
     for (uint32_t io : srv_->placement().ifid_threads()) {
         if (io == self_->id()) continue;
-        if (!((mask >> (io & 63)) & 1)) continue;
+        if (!mask.contains(io)) continue;
         PubSubEvent* event = pubsub_new_event(PubSubEventKind::TrackingFlush);
         event->target_io = io;
         event->origin_io = self_->id();
@@ -481,22 +481,21 @@ void IoLoop::tracking_handle_event(PubSubEvent& event) {
 
 void IoLoop::tracking_forward_stale(const PubSubEvent& event) {
     if (routing_forward_.empty()) return;
-    uint64_t posted = event.route_mask;
+    ClimonIoMask posted = event.route_mask;
     for (const auto& entry : routing_forward_) {
         if (!entry.second.tracking) continue;
         uint32_t live_io = 0;
         if (!command_client_directory_find(entry.first, live_io) || live_io == self_->id())
             continue;
-        const uint64_t bit = 1ull << (live_io & 63);
-        if (posted & bit) continue;
+        if (posted.contains(live_io)) continue;
+        posted.add(live_io);
         PubSubEvent* forward = pubsub_new_event(event.kind);
         forward->target_io = live_io;
         forward->origin_io = self_->id();
         forward->caller_id = event.caller_id;
-        forward->route_mask = posted | bit;
+        forward->route_mask = posted;
         forward->items = event.items;
         pubsub_post(live_io, forward);
-        posted |= bit;
         srv_->tracking_forwarded_stale_added(
             event.kind == PubSubEventKind::TrackingFlush ? 1 : event.items.size());
     }

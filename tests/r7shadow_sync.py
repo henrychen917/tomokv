@@ -104,10 +104,8 @@ def envelopes():
             opening = body.index('{') + 1
             body = body[:opening] + '\n    TOMO_R7_PATH();' + body[opening:]
             if method == 'run_loop':
-                # AUTO was retired before signalacct's 3e734cf2e base. Preserve the
-                # one existing 100us sample site and its pass-boundary clock.
-                assert body.count('self_->sample_depth(pass_ns / 1000)') == 1
-                assert 'busy.start_ns()' not in body
+                # Accounting belongs to the ordinary envelope. Copy its current
+                # clock/sample sites too, including later accounting fixes.
                 body = body.replace('DatabaseMapTestHooks::loop_pass(*srv_, *self_, 0);',
                                     'DatabaseMapTestHooks::loop_pass(*srv_, *self_, 1);')
                 # Include the cold armed-role binding in the same IO tenure.

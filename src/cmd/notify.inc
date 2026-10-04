@@ -462,10 +462,9 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
             // Re-sample destinations on every retry: tracking clients and IO roles can move
             // while this record is parked. Repeating a delivered invalidation is conservative;
             // remembering an old destination as complete can miss a newly migrated tracker.
-            const uint64_t io_mask = server.climon_tracking_io_mask();
+            const ClimonIoMask io_mask = server.climon_tracking_io_mask();
             for (uint32_t io : server.placement().ifid_threads()) {
-                const uint64_t bit = uint64_t{1} << (io & 63);
-                if (!(io_mask & bit)) continue;
+                if (!io_mask.contains(io)) continue;
                 std::unique_ptr<PubSubEvent> invalidate;
                 try {
                     invalidate = std::make_unique<PubSubEvent>();
