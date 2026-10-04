@@ -1,8 +1,8 @@
 Lane connreset: see MEASURE-REQUEST-connreset.md (repro table first).
 
-PRE: all 30 x 10 variants completed, zero monitor resets/EOF or incomplete trials,
+PRE: all 30 x 10 variants completed, zero monitor resets/EOF or incomplete trials.
+POST/TRACE: 10 simultaneous-close/storm trials per mode each, also clean.
 CPUs 112-127 only. PRE/POST/TRACE are built; production .text and section layout match.
 Archived resets came from exceptional LB sampler cleanup after rejected baselines.
 The fix and failing negative-control witness are committed. Gate counts: 491/508
 (+1 quick/full; constants untouched). No benchmark or gate was run.
-Focused TRACE/POST checks are in progress.

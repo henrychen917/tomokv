@@ -36,7 +36,20 @@ PRE completed all 30 variants x 10 fresh boots: **0/300 monitor ECONNRESET,
 Both 2s (150 trials) and 1s (150 trials) passed the read-only geometry/window audit.
 Maximum measured spacing between monitor samples was 119.273 ms (target 100 ms).
 These are correctness observations on CPUs 112–127, not performance measurements.
-Focused diagnostic/POST checks are still running and will be added below.
+POST and TRACE each also completed 10 simultaneous-close/storm trials per mode (20 each),
+with zero resets, EOFs, other monitor failures, or incomplete trials. All saved results pass
+the final validator. PRE's campaign began with reproducer commit 0ef1b80f6; later geometry
+and window assertions also accept every saved PRE trial without excluding or rerolling any.
+
+| Arm / simultaneous close + storm | 2s resets / EOF | 1s resets / EOF |
+|---|---|---|
+| POST, default profile | 0/10 / 0/10 | 0/10 / 0/10 |
+| TRACE, default profile | 0/10 / 0/10 | 0/10 / 0/10 |
+
+The complete per-trial JSON is committed as `docs/connreset/{pre,post,trace}-results.jsonl.gz`;
+`docs/connreset/repro-summary.json` binds it to manifests and SHA256 receipts. Detailed monitor
+streams and server logs remain under `build/connreset/{matrix-pre,post-check,trace-check}`.
+The ordinary PRE/POST binaries were checked separately from TRACE; TRACE is diagnostic only.
 
 The reported mainline resets are explained by an exceptional-cleanup defect in
 `tools/lb_episodes.py`, not by evidence of a spontaneous accept/close failure. All seven
@@ -62,7 +75,7 @@ The new serverless witness in `tests/connreset_harness_test.py` passes four case
 throwaway negative control restores the old cleanup edges and fails with the original
 `sampler failed: [Errno 104] Connection reset by peer` masking symptom. The existing
 29 LB episode self-tests pass. `bash -n tests/gate.sh`, Python compilation, and R7 generated
-envelope synchronization pass. The full gate was not run.
+envelope synchronization pass. The full gate and benchmarks were not run. All three builds emitted zero compiler diagnostics.
 
 `tests/gate.sh` adds one serverless row in `job_lbplanner_units`, collected before the
 quick-tier exit. Maintainer change required: EXPECT_QUICK 490 -> 491; EXPECT_FULL 507 -> 508.
@@ -88,6 +101,9 @@ No server-side root cause was established, so no speculative lifetime/ownership 
 
 Every trial retains INFO CLIENTS/ALL, before/after connected_clients, rejects, output-buffer
 disconnects, send errors/peer aborts, process affinity, server logs and monitor samples.
+All 340 trials had zero rejected connections, output-buffer-limit disconnects, and send errors.
+INFO has no evicted_clients field on this server. Peer aborts rose when the load cohorts were
+intentionally closed; their measured totals and maxima are retained in the summary.
 `--validate-results` refuses incomplete matrices, missing pipeline/storm witnesses,
 wrong geometry, client-count mismatches, and a missing post-transition monitor sample.
 Four recorded negative audit controls each fail: zero completed pipelines, an incomplete
@@ -106,6 +122,9 @@ DEBUG CLOSE-STATS exposes counts by close call site; stderr also records first-c
 fd-release client IDs/fds/owners plus EOF/receive errno events. All instrumentation is on
 failure/teardown paths, has no per-command probes, and compiles out entirely in production.
 This is a diagnostic binary, not a PAD arm or a performance comparison.
+Across all 20 TRACE trials, DEBUG CLOSE-STATS returned the counters; no logged owner mismatch
+occurred; every retained monitor's recorded receive-close event was EOF from its intentional
+end-of-test close. `docs/connreset/trace-evidence.json` records the counts and monitor events.
 
 To repeat the exact churn matrix:
 
