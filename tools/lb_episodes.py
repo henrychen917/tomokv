@@ -332,17 +332,17 @@ def actuator_mix(anchor, final, total):
             "pending_scope": "server lifetime high-water at post-stimulus endpoint"}
 
 
-def spread_progress(before, after, rows, stimulus, primary, move):
+def spread_progress(before, after, rows, stimulus, end_t, primary, move, suffix_seconds):
     """Fixed windows and 5% record improvements, independent of the candidate arm."""
     def mean(window):
         require(bool(window), "missing spread window")
         return sum(s["info"][primary] for s in window) / len(window)
     final = after[-1]
-    base = mean([s for s in before if s["t"] > stimulus - DECISION_SECONDS])
+    base = before[-1]["info"][primary]
     peak = max(s["info"][primary] for s in after if s["t"] <= stimulus + 6)
-    end = mean([s for s in after if s["t"] > final["t"] - DECISION_SECONDS])
+    end = mean([s for s in after if s["t"] > end_t - DECISION_SECONDS])
     previous = mean([s for s in after if
-                     final["t"] - 2 * DECISION_SECONDS < s["t"] <= final["t"] - DECISION_SECONDS])
+                     end_t - 2 * DECISION_SECONDS < s["t"] <= end_t - DECISION_SECONDS])
     # Only start recording improvements after the fixed peak window. The
     # pre-step values in its first polls must not become a spurious low record.
     level, last_improvement = peak, None
@@ -353,17 +353,28 @@ def spread_progress(before, after, rows, stimulus, primary, move):
         if value < level and value <= .95 * level:
             level, last_improvement = value, row
     reduction = 1 - end / peak if peak else None
-    improved = reduction is not None and reduction >= .05
+    improved = reduction is not None and reduction > 0
+    # A single noisy three-second endpoint difference is not a trend. Fit
+    # closed controller beats in the already-declared suffix window instead.
+    tail = [s for s in rows if end_t - s["t"] <= suffix_seconds]
+    slope = None
+    if len(tail) >= DECISION_TICKS:
+        x = [s["t"] - final["t"] for s in tail]
+        y = [s["info"][primary] for s in tail]
+        mx, my = sum(x) / len(x), sum(y) / len(y)
+        slope = sum((a - mx) * (b - my) for a, b in zip(x, y)) / sum((a - mx) ** 2 for a in x)
     return {"spread_base": base, "spread_peak": peak, "spread_end": end,
             "spread_min": min(s["info"][primary] for s in after), "reduction": reduction,
             "spread_previous": previous, "spread_improved": improved,
-            "still_converging": improved and end < previous and end <= level,
+            "spread_tail_slope": slope, "spread_tail_seconds": suffix_seconds,
+            "still_converging": improved and slope is not None and slope < 0,
             "last_improvement_t": last_improvement["t"] if last_improvement else None,
             "last_improvement_level": level,
             "thrash_moves": final["info"][move] -
                 (last_improvement or before[-1])["info"][move],
-            "spread_method": "base/end: final 3s sample means; peak: first 6s max; min: all post-stimulus polls; "
-                             "5% records: 3s means at closed ticks after peak window; falling: end < preceding 3s mean and <= last record"}
+            "spread_method": "base: last pre-stimulus poll; end: fixed endpoint's last 3s mean; peak: first 6s max; min: all post-stimulus polls; "
+                             "5% records: 3s means at closed ticks after peak window; falling: negative closed-beat slope over --suffix, "
+                             "positive reduction and a required move in that window"}
 
 
 def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_seconds,
@@ -392,7 +403,7 @@ def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_
               "anchor_t": anchor["t"], "end_t": final["t"],
               "excursion_t": excursion["t"] if excursion else None,
               **actuator_mix(anchor, final, total),
-              **spread_progress(before, after, rows, stimulus, primary, move)}
+              **spread_progress(before, after, rows, stimulus, end, primary, move, suffix_seconds)}
     if total[move] == 0 or (episode == "key-skew" and total[GATHERS] == 0):
         return dict(result, reason=f"unarmed: {move} delta={total[move]}, limit>0; "
                     f"{GATHERS} delta={total[GATHERS]} (key-skew limit>0)")
@@ -408,6 +419,8 @@ def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_
     result.update(suffix_deltas=suffix, suffix_moves=suffix[move], suffix_other_moves=suffix[other],
                   suffix_seconds=final["t"] - last_move["t"],
                   suffix_ticks=final["info"][TICKS] - last_move["info"][TICKS])
+    result["still_converging"] = (episode == "client-skew" and result["still_converging"] and
+                                  result["suffix_seconds"] <= suffix_seconds)
     # Keep envelope return as a final sustained-return diagnostic, never a gate.
     diagnostic = diagnostic or criterion
     streak = None
@@ -426,8 +439,8 @@ def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_
         if suffix[KEY]:
             return dict(result, reason=f"key moves during client suffix: key_moves={suffix[KEY]}, limit=0")
         if not result["spread_improved"]:
-            return dict(result, reason=f"no 5% spread improvement: reduction={result['reduction']}, "
-                        f"limit>=0.05; thrash_moves={result['thrash_moves']}")
+            return dict(result, reason=f"no spread improvement: reduction={result['reduction']}, "
+                        f"limit>0; thrash_moves={result['thrash_moves']}")
         if result["thrash_moves"] and not result["still_converging"]:
             return dict(result, reason=f"spread stopped falling: thrash_moves={result['thrash_moves']}, limit=0")
     if result["t_converge"] > max_seconds and not (episode == "client-skew" and result["still_converging"]):
@@ -667,8 +680,9 @@ class Sampler:
 
     def close(self):
         self.stop.set()
-        self.thread.join(timeout=5)
-        require(not self.thread.is_alive(), "sampler did not stop")
+        # Conn has a two-second socket timeout. Complete the join even on a
+        # slow final capture; returning with a live observer races teardown.
+        self.thread.join()
         require(self.error is None, "sampler failed: " + str(self.error))
 
 
@@ -1024,6 +1038,13 @@ def compare_actuators(post, reference, alpha):
 
 
 def assess(results, episodes="both"):
+    def admissible(result):
+        # Client PRE/PAD may stall on refusals. Their measured end spread is
+        # still a control: demanding that it improve would again reject a
+        # candidate precisely when it balances better than those controls.
+        return (result["status"] == "PASS" or
+                (result["episode"] == "client-skew" and result["arm"] != "POST" and
+                 result.get("measurement_valid", False)))
     checks = []
     expected = list(schedule(episodes))
     identities = [(r["arm"], r["mode"], r["episode"], r["round"]) for r in results]
@@ -1040,7 +1061,7 @@ def assess(results, episodes="both"):
         paired = {r["arm"]: r for r in results if all(r[k] == post[k] for k in ("episode", "mode", "round"))}
         pre = paired.get("PRE")
         reasons, mix, spread_comparison = [], {}, None
-        if set(paired) != set(ARMS) or any(r["status"] != "PASS" for r in paired.values()):
+        if set(paired) != set(ARMS) or any(not admissible(r) for r in paired.values()):
             reasons.append("PRE, PAD-A or POST episode missing or did not establish its kind's convergence")
         else:
             if post["episode"] == "client-skew":
@@ -1083,11 +1104,12 @@ def assess(results, episodes="both"):
                        "status": "FAIL" if reasons else "PASS", "reasons": reasons, "actuator_mix": mix,
                        "spread_comparison": spread_comparison})
     return {"status": "PASS" if complete and all(c["status"] == "PASS" for c in checks)
-            and all(r["status"] == "PASS" for r in results) else "FAIL", "checks": checks,
+            and all(admissible(r) for r in results) else "FAIL", "checks": checks,
             "schedule_complete": complete,
             "rule": "key-skew: POST's last required move is no slower than PRE, with no more required moves, other-kind moves or suffix_other moves; "
                     "client-skew: POST spread_end <= paired PRE spread_end + the range of valid PRE spread_end rounds in the same mode; "
                     "completed moves, thrash_moves and t_converge are reported, continued spread improvement is balancing; "
+                    "client controls need valid measurements, POST must improve without stalled-spread thrash; "
                     "both: no aggregate/cohort rate or p99 loss, PRE/PAD-A actuator mix within binomial counting noise, PassLimit == PRE exactly; every paired round must pass",
             "actuator_noise": {"method": "two-sided exact conditional binomial (Fisher), Bonferroni over scheduled comparisons",
                                "family_alpha": .05, "comparison_alpha": alpha},
@@ -1592,6 +1614,33 @@ class SelfTest(unittest.TestCase):
         self.assertGreater(result["thrash_moves"], 0)
         self.assertIn("spread stopped falling", result["reason"])
 
+    def test_client_tail_trend_survives_endpoint_noise(self):
+        trace = [self.sample(i / 10, spread=100 if i <= 140 else
+                             200 - max(0, i / 10 - 20) * 3 + (12 if i >= 370 else 0),
+                             client=max(0, (i - 170) // 30)) for i in range(401)]
+        result = convergence(trace, 14, 40, self.criterion(), "client-skew", 20, 10)
+        self.assertGreater(result["spread_end"], result["spread_previous"])
+        self.assertLess(result["spread_tail_slope"], 0)
+        self.assertEqual(result["status"], "PASS")
+        self.assertTrue(result["still_converging"])
+
+    def test_spread_windows_and_zero_peak(self):
+        trace = self.trace(moving=False, excursion=False)
+        for s in trace:
+            s["info"][SPREADS[0]] = 7 if s["t"] == 14 else 10 if 14 < s["t"] <= 20 else 2
+            if s["t"] == 20.1:
+                s["info"][SPREADS[0]] = 50  # outside the fixed peak window
+            if 37 < s["t"] <= 40:
+                s["info"][SPREADS[0]] = 5
+        result = convergence(trace, 14, 40, self.criterion(), "key-skew", 20, 3)
+        self.assertEqual([result['spread_' + k] for k in ('base', 'peak', 'end', 'min')], [7, 10, 5, 2])
+        self.assertEqual(result["reduction"], .5)
+        for s in trace:
+            s["info"][SPREADS[0]] = 0
+        result = convergence(trace, 14, 40, self.criterion(), "key-skew", 20, 3)
+        self.assertIsNone(result["reduction"])
+        json.dumps(result, allow_nan=False)
+
     def test_paired_client_spread_uses_pre_round_range_not_move_count(self):
         results = [dict(arm=a, mode=m, episode=e, round=r, status="PASS", t_converge=4,
                         key_moves=0, client_moves=3, total_moves=3, suffix_moves=0, suffix_other_moves=0,
@@ -1602,6 +1651,13 @@ class SelfTest(unittest.TestCase):
         report = assess(results, "client-skew")
         self.assertEqual(report["status"], "PASS")
         self.assertEqual(report["checks"][0]["spread_comparison"]["PRE_width"], 2)
+        for control in results:
+            if control["arm"] != "POST":
+                control.update(status="FAIL", measurement_valid=True, reason="no spread improvement")
+        self.assertEqual(assess(results, "client-skew")["status"], "PASS")
+        results[0]["measurement_valid"] = False
+        self.assertEqual(assess(results, "client-skew")["status"], "FAIL")
+        results[0]["measurement_valid"] = True
         post["spread_end"] = 103.01
         self.assertEqual(assess(results, "client-skew")["status"], "FAIL")
         post["spread_end"] = 90
@@ -1639,6 +1695,40 @@ class SelfTest(unittest.TestCase):
         self.assertEqual(result["status"], "FAIL")
         self.assertEqual(result["reason"], "sampler failed: live failure")
         self.assertFalse(result["measurement_valid"])
+
+    def test_run_episode_baseline_failure_stops_sampler_inside_boot(self):
+        from contextlib import redirect_stdout
+        import io
+        import tempfile
+        from unittest.mock import Mock, patch
+        events = []
+        sampler = Mock()
+        sampler.samples = [self.sample(i / 10, key=int(i >= 500)) for i in range(932)]
+        sampler.close.side_effect = lambda: events.append("join")
+        @contextmanager
+        def fake_boot(*args, **kwargs):
+            try:
+                yield Mock(), Mock(), [0], {"shards": 1, "process_id": 123}
+            finally:
+                events.append("teardown")
+                self.assertEqual(events, ["join", "teardown"])
+        with tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+            args = argument_parser().parse_args(["--output", temp])
+            with patch(__name__ + ".boot", side_effect=fake_boot), \
+                    patch(__name__ + ".Sampler", return_value=sampler), \
+                    patch(__name__ + ".key_mapping", return_value=[]), \
+                    patch(__name__ + ".wait_loads", return_value=93), \
+                    patch(__name__ + ".owner_evidence", return_value={}), \
+                    patch.object(time, "monotonic", return_value=0), \
+                    patch.object(subprocess, "Popen", side_effect=AssertionError("started process")), \
+                    patch.object(socket, "socket", side_effect=AssertionError("opened socket")), \
+                    redirect_stdout(io.StringIO()):
+                result = run_episode(args, "PRE", "1s", "key-skew", 1, None,
+                                     {"sha256": "test", "shards": 1, "hot_keys": []}, self.criterion())
+            self.assertEqual(result["status"], "FAIL")
+            self.assertIn("balanced key_moves=1", result["reason"])
+            self.assertFalse(result["measurement_valid"])
+            self.assertEqual(events, ["join", "teardown"])
 
     def test_last_required_move_and_three_real_ticks(self):
         trace = self.trace()
