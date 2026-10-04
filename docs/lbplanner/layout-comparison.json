@@ -1,0 +1,36 @@
+{
+  "launch_revision": "6c9cb4b85",
+  "launch_post_exact": true,
+  "historical_pre_post_existing_offsets_and_sizes_equal": false,
+  "historical_pre_post_differences": [
+    {
+      "namespace": "tomo",
+      "type": "Server",
+      "member": "sizeof",
+      "before": 108672,
+      "after": 108736
+    },
+    {
+      "namespace": "tomo",
+      "type": "Server",
+      "member": "live_client_query_buffer_limit_",
+      "before": 108608,
+      "after": 108672
+    },
+    {
+      "namespace": "tomo_db0",
+      "type": "Server",
+      "member": "sizeof",
+      "before": 108288,
+      "after": 108352
+    },
+    {
+      "namespace": "tomo_db0",
+      "type": "Server",
+      "member": "live_client_query_buffer_limit_",
+      "before": 108224,
+      "after": 108288
+    }
+  ],
+  "all_eight_locked_sizes_equal": true
+}

@@ -1,0 +1,31 @@
+{
+  "policy_blocks": [
+    {
+      "start": "auto spread =",
+      "end": "std::vector<LbShardMove> shard_plan;",
+      "sha256": "1cef1d81e79e3801ae2b4a149470128b1df383f698eb4e93b0cc0d077d161e45"
+    },
+    {
+      "start": "const double band = lb_policy_->key_jitter.band",
+      "end": "for (uint32_t step",
+      "sha256": "4b961b38e0c1a78deb0abdd43391885e016a6e1f941235d0fc8a2fb7b1c10745"
+    },
+    {
+      "start": "WeightedLbMoveChoice choice;",
+      "end": "shard_after = spread(loads, executors);",
+      "sha256": "0da16cb15875d5e5f7546b2305b034c0f4491d1e959de34bd3c544a0825c170e"
+    },
+    {
+      "start": "LbClientMove client_plan;",
+      "end": "std::lock_guard<std::mutex> transition_lock(shape_transition_mu_);",
+      "sha256": "b7942842cd0c393e57a8831e64fb4d659a1c9010fca939231d7192c3ec5c68b8"
+    }
+  ],
+  "weighted_lb_sha256": "774cd4b88a344b5aa5cb0acbed1e1d5ef5e9232fe4714620aa8af82105d04bdd",
+  "io_has_no_planner_calls": true,
+  "all_four_boot_paths_monitor": true,
+  "move_cap_once": true,
+  "pause_snapshot_before_dispatch": true,
+  "drain_budget_after_readiness": true,
+  "client_record_lifetime": "SC reader scope only in ClientDrain; PlanReady consumer defers reuse without waiting"
+}

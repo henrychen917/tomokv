@@ -771,6 +771,7 @@ void IoLoop::r7_run_loop() {
             continue;
         }
 #endif
+        lb_pass_begin(); // one shared pause snapshot before any connection parsing
         refresh_notify_config();
         // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
         // per-operation hooks their zero-cost-when-off property.
@@ -780,7 +781,6 @@ void IoLoop::r7_run_loop() {
         const bool client_cron_armed = !srv_->flip_dispatch_paused() &&
                                        srv_->client_cron_armed();
         const bool client_lb_signal_armed = client_lb_signal_armed_;
-        const bool lb_controller_armed = lb_controller_armed_;
         // Placement's dense role vectors are mutated only under FLIP's global dispatch
         // barrier. Do not consult them from an IO pass while that cold transaction is live.
         const bool save_cron_armed = !srv_->flip_dispatch_paused() &&
@@ -807,7 +807,7 @@ void IoLoop::r7_run_loop() {
             // reads for pause, cron and WAIT. A pass is microseconds; their public granularity
             // is milliseconds or seconds.
             bool pass_time_cached = pause_armed || client_cron_armed || save_cron_armed ||
-                                    client_lb_signal_armed || lb_controller_armed ||
+                                    client_lb_signal_armed || lb_controller_armed_ ||
                                     !deferred_timers_.empty();
             if (__builtin_expect(pass_time_cached, true)) {
                 cached_now_ms_ = pass_ns / 1000000ull;
@@ -887,14 +887,6 @@ void IoLoop::r7_run_loop() {
                 lb_client_signal_beat_ms_ = cached_now_ms_ + 1000;
             }
             did += lb_control_pass();
-            if (__builtin_expect(lb_controller_armed &&
-                                 cached_now_ms_ >= lb_controller_beat_ms_, false)) {
-                lb_controller_beat_ms_ = cached_now_ms_ + srv_->lb_tick_ms();
-                if (srv_->lb_cron_writer(self_->id()) &&
-                    srv_->lb_controller_tick(self_->id(), cached_now_ms_))
-                    lb_schedule_wake_all();
-                did++;
-            }
             did += lb_wake_all_pass();
             if (__builtin_expect(client_cron_armed &&
                                  cached_now_ms_ >= client_cron_beat_ms_, false)) {
@@ -2108,8 +2100,7 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
     const bool default_bulk_limit = pass_max_bulk_len == 512ull * 1024 * 1024;
     // IoDrain waits for this whole parse/post pass before opening ExDrain. A task whose
     // owner was sampled here therefore reaches that owner before it can acknowledge.
-    const bool lb_pause_this_pass = lb_controller_armed_ &&
-        srv_->lb_should_pause(self_id, c->id());
+    const bool lb_pause_this_pass = lb_parse_paused([&] { return c->id(); });
     if (__builtin_expect(lb_pause_this_pass, false)) {
 #ifdef TOMO_LB_STALL_DEBUG
         srv_->lb_debug_park(self_id, pass_rlen - pass_rpos);
@@ -3710,6 +3701,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
     // Reached only when advance_running() succeeded, i.e. no stop edge was taken; the old
     // `if (!stopping)` guard around these lines is now the gate's own postcondition.
     print_ready_listeners(cfg, unix_listener.bound());
+    srv.monitor_controllers();
 
     srv.databases().join_workers(srv, pool);
     // The unix socket file is unlinked by its RAII owner in main, for every return path.

@@ -1,0 +1,27 @@
+{
+  "base": "cd02ecbab1502775f1c170e806971d1f7bbc3ee9",
+  "cron_and_all_four_monitors_equal": true,
+  "exact_pre_bodies": [
+    {
+      "function": "lb_controller_tick_pad",
+      "sha256": "51c2dc83d744d9a9329db916f0f99e7dd8c5425c72ac106181883ff2385d4f43"
+    },
+    {
+      "function": "lb_control_actuate_pad",
+      "sha256": "f427be29110dae6360156b76e3c1857c451604be835e68fdb78cbf98fbf053fd"
+    },
+    {
+      "function": "lb_cron_writer_pad",
+      "sha256": "aaab7be209cff1b1be8f36a7fe22a1bf66c7039ea46881b43c90d932e06a1fa7"
+    },
+    {
+      "function": "lb_should_pause_pad",
+      "sha256": "c890194d12e09df3db46b9d6644e31b8c30365d99a12449bf113be81cffe384a"
+    },
+    {
+      "function": "lb_client_move_pad",
+      "sha256": "8f6daa4b32ba5b87d4862c32b74bafc42d34f0a3dbdc8765f0a273de632018a1"
+    }
+  ],
+  "repeated_move_cap": "Frozen PRE loop condition is retained literally, including both atomic reads."
+}

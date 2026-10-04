@@ -452,6 +452,9 @@ struct CoreConcurrencyTest {
         f.server.lb_epoch_.store(1);
         f.server.lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs);
         f.server.lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
+        // This fixture begins at the next parse pass, after the preceding IO tail
+        // observed ClientDrain. The real loop caches this ID at that tail.
+        f.io.lb_pause_id_ = client.id();
         if constexpr (DestinationAck) f.server.lb_ack(destination);
         constexpr char request[] = "*1\r\n$4\r\nPING\r\n";
         uint32_t arrivals = 0;
@@ -699,7 +702,8 @@ struct CoreConcurrencyTest {
                 physical.note_lb_sample(physical.bucket_begin(), visits[sid] / 2);
                 physical.note_lb_sample(physical.bucket_begin() + 1, visits[sid] - visits[sid] / 2);
             }
-            return this->server.lb_controller_tick(this->io_id, clock_ms);
+            return this->server.lb_controller_tick(this->io_id, clock_ms) &&
+                   this->server.lb_consume_plan(this->io_id);
         }
         void commit() {
             auto& server = this->server;
@@ -1097,6 +1101,7 @@ struct CoreConcurrencyTest {
 };
 } // namespace tomo
 
+#ifndef TOMO_CORE_CONCURRENCY_EMBED
 int main(int argc, char** argv) {
     using T = tomo::CoreConcurrencyTest;
     T::require(argc == 2, "select one regression row");
@@ -1154,3 +1159,5 @@ int main(int argc, char** argv) {
     #endif
     std::printf("PASS core concurrency %s (state assertions fired)\n", argv[1]);
 }
+
+#endif // TOMO_CORE_CONCURRENCY_EMBED

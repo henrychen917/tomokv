@@ -1,0 +1,120 @@
+{
+  "cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "rows": [
+    {
+      "name": "checks",
+      "command": [
+        "python3",
+        "tests/lbplanner_checks.py"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "tsan-handoff",
+      "command": [
+        "env",
+        "TSAN_OPTIONS=halt_on_error=1:exitcode=66",
+        "setarch",
+        "x86_64",
+        "-R",
+        "build/lbplanner-unit-tsan"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "tsan-timing",
+      "command": [
+        "env",
+        "TSAN_OPTIONS=halt_on_error=1:exitcode=66",
+        "setarch",
+        "x86_64",
+        "-R",
+        "build/lbplanner-unit-tsan",
+        "timing"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "route",
+      "command": [
+        "build/signalacct-core-unit",
+        "route"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "timing-post2",
+      "command": [
+        "build/lbplanner-unit",
+        "timing"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "timing-pad2",
+      "command": [
+        "build/lbplanner-unit-pad",
+        "timing-pad"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "timing-pre",
+      "command": [
+        "build/lbplanner-pre-timing"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "r7-sync",
+      "command": [
+        "python3",
+        "tests/r7shadow_sync.py"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "r7-negative",
+      "command": [
+        "python3",
+        "tests/r7shadow_sync_test.py"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "gate-syntax",
+      "command": [
+        "bash",
+        "-n",
+        "tests/gate.sh"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "returncode": 0
+    }
+  ]
+}

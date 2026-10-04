@@ -1,0 +1,8 @@
+{
+  "required_kind": "A: PRE behaviour with POST text layout",
+  "valid_pad_a_built": true,
+  "proof": "pad-a/proof.json",
+  "behavior": "PRE IO-hosted gather/search and cron, live parse stage, repeated cap reads",
+  "layout": "Complete function/section tables equal; every other byte identical.",
+  "performance": "NOT MEASURED: mainline owns the three-regime ABBA and full gate."
+}

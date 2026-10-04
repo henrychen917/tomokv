@@ -1,0 +1,2 @@
+PASS LB record lifetime: late reader acquires replacement; active reader defers one consumption
+PASS LB monitor handoff: both modes/branches; once; stale epochs; zero IO allocations
