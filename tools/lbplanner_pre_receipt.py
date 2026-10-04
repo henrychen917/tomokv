@@ -20,6 +20,28 @@ s = s.replace('    static void snapshot_forward()', '''    static bool lbplanner
     static uint32_t lbplanner_control(IoLoop& io) { return io.lb_control_pass(); }
     static void snapshot_forward()''', 1)
 p.write_text(s)
+# Compile the same contention/arrival schedule against the frozen PRE actuator.
+# Friend access is test-only; no production expression or fixture expectation changes.
+for name in ('src/core/server.h', 'src/core/io_loop.h'):
+    p = pre / name
+    p.write_text(p.read_text().replace('    friend struct CoreConcurrencyTest;',
+                                     '    friend struct CoreConcurrencyTest;\n    friend struct LbPlannerTest;', 1))
+driver = (root / 'tests/lbplanner_unit.cc').read_text()
+def region(start, end):
+    return driver[driver.index(start):driver.index(end) + len(end)]
+timing = root / 'build/lbplanner-pre-timing.cc'
+timing.write_text('''#define TOMO_CORE_CONCURRENCY_EMBED
+#define TOMO_LBPLANNER_PRE
+#include "tests/core_concurrency_unit.cc"
+#include <latch>
+''' + region('// BEGIN timing wrappers', '// END timing wrappers') + '''
+namespace tomo { struct LbPlannerTest {
+    using Core = CoreConcurrencyTest;
+    static void require(bool yes, const char* why) { Core::require(yes, why); }
+''' + region('    // BEGIN client-drain timing witness', '    // END client-drain timing witness') + '''
+}; }
+int main() { tomo::LbPlannerTest::timing("PRE", true); }
+''')
 unit = root / 'build/lbplanner-pre-pass.cc'
 unit.write_text('''#define TOMO_CORE_CONCURRENCY_EMBED
 #include "tests/core_concurrency_unit.cc"
@@ -41,5 +63,7 @@ int main(int argc, char** argv) {
 LBPLANNER_PRE_OBJ := $(filter-out build/lbplanner-pre/src/main.o,$(wildcard build/lbplanner-pre/src/*/*.o))
 build/lbplanner-pre-pass: build/lbplanner-pre-pass.cc $(LBPLANNER_PRE_OBJ)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -Ibuild/lbplanner-pre-source -I. $< $(LBPLANNER_PRE_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+build/lbplanner-pre-timing: build/lbplanner-pre-timing.cc $(LBPLANNER_PRE_OBJ)
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -Ibuild/lbplanner-pre-source -I. $< $(LBPLANNER_PRE_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=pthread_mutex_trylock -Wl,--wrap=pthread_mutex_lock
 ''')
 print('PRE source frozen at cd02ecbab; extra Makefile emitted')

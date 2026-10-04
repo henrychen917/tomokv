@@ -1,0 +1,7 @@
+TIMING={"arm":"POST","mode":"2s","ready":false,"held_tails":1,"source_try_failures":1,"destination_try_failures":0,"ack_wait_passes":0,"decision_pass":2,"first_parse_bytes":896,"executor":0,"protocol":1,"pass_limit":0,"destination":0,"moves":0}
+TIMING={"arm":"POST","mode":"1s","ready":false,"held_tails":1,"source_try_failures":1,"destination_try_failures":0,"ack_wait_passes":0,"decision_pass":2,"first_parse_bytes":896,"executor":0,"protocol":1,"pass_limit":0,"destination":0,"moves":0}
+TIMING={"arm":"POST","mode":"2s","ready":false,"held_tails":2,"source_try_failures":2,"destination_try_failures":0,"ack_wait_passes":0,"decision_pass":3,"first_parse_bytes":896,"executor":0,"protocol":0,"pass_limit":1,"destination":0,"moves":0}
+TIMING={"arm":"POST","mode":"1s","ready":false,"held_tails":2,"source_try_failures":2,"destination_try_failures":0,"ack_wait_passes":0,"decision_pass":3,"first_parse_bytes":896,"executor":0,"protocol":0,"pass_limit":1,"destination":0,"moves":0}
+TIMING={"arm":"POST","mode":"2s","ready":true,"held_tails":2,"source_try_failures":2,"destination_try_failures":2,"ack_wait_passes":0,"decision_pass":3,"first_parse_bytes":0,"executor":0,"protocol":0,"pass_limit":0,"destination":1,"moves":0}
+TIMING={"arm":"POST","mode":"1s","ready":true,"held_tails":2,"source_try_failures":2,"destination_try_failures":2,"ack_wait_passes":0,"decision_pass":3,"first_parse_bytes":0,"executor":0,"protocol":0,"pass_limit":0,"destination":1,"moves":0}
+PASS LB client-drain timing witness

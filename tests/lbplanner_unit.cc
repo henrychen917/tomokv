@@ -4,6 +4,41 @@
 #undef TOMO_CORE_CONCURRENCY_EMBED
 #include <latch>
 
+// BEGIN timing wrappers: unit-only scheduling; production objects are unchanged.
+struct LbTimingLock {
+    pthread_mutex_t* mutex;
+    std::latch locked{1}, release{1};
+    bool opened = false;
+    unsigned try_failures = 0, decision_locks = 0;
+    std::thread holder;
+    explicit LbTimingLock(std::mutex& shape) : mutex(shape.native_handle()), holder([&] {
+        std::lock_guard lock(shape);
+        locked.count_down();
+        release.wait();
+    }) { locked.wait(); }
+    void open() { if (!opened) { opened = true; release.count_down(); holder.join(); } }
+    ~LbTimingLock() { open(); }
+};
+static thread_local LbTimingLock* lb_timing_lock = nullptr;
+extern "C" int __real_pthread_mutex_trylock(pthread_mutex_t*);
+extern "C" int __real_pthread_mutex_lock(pthread_mutex_t*);
+extern "C" int __wrap_pthread_mutex_trylock(pthread_mutex_t* mutex) {
+    const int result = __real_pthread_mutex_trylock(mutex);
+    if (lb_timing_lock && mutex == lb_timing_lock->mutex && result == EBUSY)
+        ++lb_timing_lock->try_failures;
+    return result;
+}
+extern "C" int __wrap_pthread_mutex_lock(pthread_mutex_t* mutex) {
+    if (lb_timing_lock && mutex == lb_timing_lock->mutex) {
+        ++lb_timing_lock->decision_locks;
+        // PRE and POST2 reach this only after evaluating the readiness/ACK fence.
+        // Release the actual peer lock at that boundary; do not fake try-lock failure.
+        lb_timing_lock->open();
+    }
+    return __real_pthread_mutex_lock(mutex);
+}
+// END timing wrappers
+
 static thread_local bool count_io_allocations = false;
 static thread_local unsigned io_allocations = 0, io_frees = 0;
 void* operator new(std::size_t bytes) {
@@ -26,6 +61,136 @@ namespace tomo {
 struct LbPlannerTest {
     using Core = CoreConcurrencyTest;
     static void require(bool yes, const char* why) { Core::require(yes, why); }
+    // BEGIN client-drain timing witness (also compiled against frozen PRE source).
+    template<class IO>
+    static void timing_begin(IO& io) {
+        // This lets exactly the same witness build before and after the fix.
+        if constexpr (requires { io.lb_pass_begin(); }) io.lb_pass_begin();
+    }
+
+    template<bool Fused>
+    static void timing_case(const char* arm, unsigned held_tails, bool ready, bool strict) {
+        Core::Fixture<Fused> f;
+        Client client(-1);
+        f.client(client);
+        const uint32_t destination = Fused ? 0 : 1;
+        IoLoop target;
+        target.srv_ = &f.server;
+        target.self_ = &f.server.thread(destination);
+        target.lb_controller_armed_ = true;
+        f.server.thread(f.io_id).add_client(&client);
+        command_client_connected(&client, "unit", "unit", false, 1);
+        f.io.climon_track_client(&client);
+        std::optional<Server::ClientWorkScope> unfinished;
+        if (!ready) {
+            client.set_recv_armed(true); // parser never attempts a network receive
+            Op* completed = client.rob().acquire<false>();
+            require(completed != nullptr, "timing witness completion arms on fresh state");
+            client.rob().publish();
+            unfinished.emplace(f.server, f.source);
+            completed->state.store(OpState::Done, std::memory_order_release);
+            require(client.rob().drain([](Op&) {}) == 1, "timing witness retires reply under executor fence");
+            std::string error;
+            require(!f.io.client_transfer_ready(&client, destination, error) &&
+                    lb_stall_reason(error) == LbStallReason::Executor,
+                    "timing witness starts with executor-only busy predicate");
+        } else {
+            std::string error;
+            require(f.io.client_transfer_ready(&client, destination, error), "timing ready candidate arms");
+        }
+#ifndef TOMO_LBPLANNER_PRE
+        if (std::string_view(arm) == "PAD-A") {
+            f.io.lb_pause_id_ = target.lb_pause_id_ = UINT64_MAX; // pin PRE cron off
+        }
+#endif
+        f.server.lb_client_move_ = {client.id(), f.io_id, destination, 1};
+        f.server.lb_coordinator_ = f.io_id;
+        f.server.lb_epoch_.store(1);
+        f.server.lb_deadline_ns_.store(now_ns() + LbAutotune::kMoveTimeoutNs);
+        f.server.lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
+        if (!ready) f.server.lb_ack(destination); // isolate PassLimit from Destination
+        if (!ready) {
+            constexpr char ping[] = "*1\r\n$4\r\nPING\r\n";
+            for (unsigned i = 0; i < 128; ++i) {
+                std::memcpy(client.rbuf() + client.rlen(), ping, sizeof(ping) - 1);
+                client.commit_read(sizeof(ping) - 1);
+            }
+        }
+        LbTimingLock contention(f.server.shape_transition_mu_);
+        require(__real_pthread_mutex_trylock(contention.mutex) == EBUSY,
+                "timing witness must contend with a real peer-held shape lock");
+        lb_timing_lock = &contention;
+        unsigned source_failures = 0, destination_failures = 0, ack_waits = 0, decision = 0;
+        uint32_t first_parsed = 0;
+        for (unsigned pass = 1; pass <= 4 && !decision; ++pass) {
+            timing_begin(f.io);
+            if (!ready) {
+                (void)f.io.template parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(&client);
+                if (pass == 1) first_parsed = client.rpos();
+            }
+            const unsigned failed_before = contention.try_failures;
+            f.io.lb_control_pass();
+            source_failures += contention.try_failures - failed_before;
+            if (f.server.lb_stage() != LbStage::ClientDrain) decision = pass;
+            else if (ready && failed_before == contention.try_failures && !f.server.lb_acked(destination))
+                ++ack_waits;
+            if (ready && !decision) {
+                const unsigned before = contention.try_failures;
+                timing_begin(target);
+                target.lb_control_pass();
+                destination_failures += contention.try_failures - before;
+            }
+            if (pass == held_tails) contention.open();
+        }
+        lb_timing_lock = nullptr;
+        contention.open();
+        auto refused = [&](LbStallReason reason) {
+            return f.server.lb_policy_->stall.refused[static_cast<size_t>(reason)].load();
+        };
+        const uint64_t executor = refused(LbStallReason::Executor), protocol = refused(LbStallReason::Protocol);
+        const uint64_t limit = refused(LbStallReason::PassLimit), dest = refused(LbStallReason::Destination);
+        const uint64_t moves = f.server.lb_client_moves();
+        std::printf("TIMING={\"arm\":\"%s\",\"mode\":\"%s\",\"ready\":%s,\"held_tails\":%u,"
+                    "\"source_try_failures\":%u,\"destination_try_failures\":%u,\"ack_wait_passes\":%u,"
+                    "\"decision_pass\":%u,\"first_parse_bytes\":%u,\"executor\":%lu,\"protocol\":%lu,"
+                    "\"pass_limit\":%lu,\"destination\":%lu,\"moves\":%lu}\n",
+                    arm, Fused ? "1s" : "2s", ready ? "true" : "false", held_tails,
+                    source_failures, destination_failures, ack_waits, decision, first_parsed,
+                    executor, protocol, limit, dest, moves);
+        std::fflush(stdout);
+        require(decision != 0, "timing witness must decide, never skip an unarmed window");
+        if (strict) {
+            require(source_failures == 0 && destination_failures == 0,
+                    "contended shape lock never delays source or destination record reads");
+            require(limit == 0 && dest == 0, "timing witness never substitutes a pass-budget refusal");
+            if (ready) require(decision <= 2 && moves == 1 && ack_waits == 1,
+                               "ready candidate starts by pass two after one ACK wait");
+            else require(decision == 1 && executor == 1 && protocol == 0 && first_parsed == 0,
+                         "busy candidate refuses on pass one with its executor predicate");
+        }
+        unfinished.reset();
+        client.set_recv_armed(false);
+        client.rob().drain([](Op&) {});
+        // A ready case completes the in-memory transfer. Install its catalog without
+        // arm_recv: this fixture never initializes a ring or listener.
+        if (moves) f.server.thread(destination).drain_client_transfers_unmasked([&](const ClientTransfer& transfer) {
+            require(command_client_migration_install(transfer.catalog), "timing transferred catalog installs");
+            require(target.client_routing_install(transfer.routing, &client, transfer.source),
+                    "timing transferred routing installs");
+        });
+        command_client_disconnected(&client);
+        f.server.thread(f.io_id).clients().clear();
+    }
+    static void timing(const char* arm, bool strict) {
+        for (unsigned held : {1u, 2u}) {
+            timing_case<false>(arm, held, false, strict);
+            timing_case<true>(arm, held, false, strict);
+        }
+        timing_case<false>(arm, 2, true, strict);
+        timing_case<true>(arm, 2, true, strict);
+        std::puts("PASS LB client-drain timing witness");
+    }
+    // END client-drain timing witness
     static bool pause(const IoLoop& io, uint64_t id) { return io.lb_parse_paused([&] { return id; }); }
 
     template<bool Fused>
@@ -250,6 +415,12 @@ extern "C" __attribute__((noinline)) uint32_t lbplanner_io_pass_negative(tomo::I
     return tomo::LbPlannerTest::pass(*io, count, true);
 }
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string_view(argv[1]).starts_with("timing")) {
+        const std::string_view mode(argv[1]);
+        tomo::LbPlannerTest::timing(mode == "timing-pad" ? "PAD-A" : "POST",
+                                   mode != "timing-observe");
+        return 0;
+    }
     if (argc == 2 && std::string_view(argv[1]) == "pad") {
         tomo::LbPlannerTest::pad_behavior();
         return 0;

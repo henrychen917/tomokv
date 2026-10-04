@@ -577,8 +577,11 @@ build/netcap-unit: build/tests/netcap_unit.o $(CORE_TEST_OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=free
 
 # CT1-CT3 serverless handoff; the planner object is production code, no live loops.
+LBPLANNER_WRAP := -Wl,--wrap=pthread_mutex_trylock -Wl,--wrap=pthread_mutex_lock
 build/lbplanner-unit: tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
-	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm $(LBPLANNER_WRAP)
+build/lbplanner-unit-tsan: tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(MDBQSBR_TSAN_OBJ) Makefile
+	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=thread $< $(MDBQSBR_TSAN_OBJ) -o $@ $(LDLIBS) -lm $(LBPLANNER_WRAP)
 
 LBPLANNER_CONTROLS := no-publish stale-flip stale-lb duplicate copy-on-io
 build/lbplanner-controls/%/lbplanner.cc: tools/lbplanner_controls.py src/core/lbplanner.cc
@@ -586,7 +589,7 @@ build/lbplanner-controls/%/lbplanner.cc: tools/lbplanner_controls.py src/core/lb
 build/lbplanner-controls/%/lbplanner.o: build/lbplanner-controls/%/lbplanner.cc $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -iquote src/core -I. -c $< -o $@
 build/lbplanner-controls/%/unit: build/lbplanner-controls/%/lbplanner.o tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) Makefile
-	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. tests/lbplanner_unit.cc $< $(filter-out build/src/core/lbplanner.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. tests/lbplanner_unit.cc $< $(filter-out build/src/core/lbplanner.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm $(LBPLANNER_WRAP)
 build/lbplanner-unit-pad: build/lbplanner-unit tools/lbplanner_pad.py tools/rlfence_artifacts.py tools/lbstall_artifacts.py
 	python3 tools/lbplanner_pad.py $< $@ build/lbplanner-unit-pad-proof > build/lbplanner-unit-pad.log
 build/tomokv-lbplanner-pad: build/tomokv tools/lbplanner_pad.py tools/rlfence_artifacts.py tools/lbstall_artifacts.py

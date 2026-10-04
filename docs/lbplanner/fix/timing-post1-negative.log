@@ -1,0 +1,2 @@
+TIMING={"arm":"POST","mode":"2s","ready":false,"held_tails":1,"source_try_failures":1,"destination_try_failures":0,"ack_wait_passes":0,"decision_pass":2,"first_parse_bytes":896,"executor":0,"protocol":1,"pass_limit":0,"destination":0,"moves":0}
+FAIL core concurrency: contended shape lock never delays source or destination record reads
