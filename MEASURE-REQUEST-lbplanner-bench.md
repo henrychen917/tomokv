@@ -1,5 +1,8 @@
 Lane lbplanner-bench — convergence instrument — 2026-10-04
 
+Split topology correction and rerun request:
+[MEASURE-REQUEST-lbplanner-bench2.md](MEASURE-REQUEST-lbplanner-bench2.md).
+
 Delivered `tools/lb_episodes.py` on branch `cx-lbplanner`, in
 `/home/user/Projects/cx-lbplanner`. Mainline owns all live runs. No server,
 memtier workload, benchmark, or gate was run by this lane. Nothing was pushed.
@@ -43,7 +46,7 @@ The matched experiment
 | Property | Setting |
 |---|---|
 | Server geometry | 0–15; 16 shards; key-lb 1; client-lb 1; flip-auto 0; io_uring |
-| Modes | 1s: 16 fused; 2s: `--ratio 6:2`, hence 12 IO + 4 EX on 16 cores |
+| Modes | 1s: 16 fused; 2s: no `--ratio`, matching the stationary driver's default 8 IO + 8 EX on 16 cores; actual IO IDs come from DEBUG LBSIGNALS |
 | Population | Same stationary-driver shape: 500000 keys, 64-byte values, memtier t8/c4, SET, P:P, 15625 requests/client |
 | Episode load | 128 connections, pipeline 128, SET only, R:R, 64-byte values; two t4/c16 cohorts |
 | Balanced prelude | Both cohorts use keys 1–500000, selected evenly across actual IO owners; 30 seconds warm + 12 seconds baseline + 3 seconds teardown guard |
@@ -173,7 +176,7 @@ With 16 shards and 16 fused owners, initial placement has one shard per owner.
 A sustained hot subset generally cannot be equalized by moving whole shards:
 moving a hot shard onto an already occupied owner does not split its demand.
 Also, an ordinary 2000-key numeric subset may hash broadly enough to produce
-no admission. The split mode has four owners and four shards per owner, so its
+no admission. The default split mode has eight executor owners and two shards per owner, so its
 feasible movements differ. A bytes-spread increase can also prevent return to
 the complete balanced envelope even if weight spread improves.
 
