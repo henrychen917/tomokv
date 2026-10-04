@@ -75,13 +75,39 @@ def off_roles(binary):
     return removed
 
 
+def splitlocal_inventory(binary, namespaces):
+    """Require the fourteen extra physical parser bodies per runtime after splitlocal.
+
+    Forwarding SplitLocal in overlap-0 emits two parsers, their eight closures,
+    and four ordinary-parser clones. Keep the historical r7/wbrule inventories
+    usable for their frozen inputs; a current receipt names this larger set.
+    """
+    for namespace in namespaces:
+        for no_borrow in ('false', 'true'):
+            parser = (f'{namespace}::IoLoop::parse_and_dispatch'
+                      f'<{no_borrow}, 32u, false, true>({namespace}::Client*)')
+            direct = f'{namespace}::IoLoop::DispatchResult {parser}'
+            family = {name for name in binary.groups if parser in name and audit.category(name)}
+            conflicts = {name for name in family if name.startswith(
+                f'{namespace}::Rob<64u>::read_local_owner_conflicts_before<')}
+            fillers = {name for name in family if name.startswith(
+                f'auto {parser}::{{lambda(auto:1&&)#1}}::operator()<')}
+            ordinary = (f'{namespace}::IoLoop::DispatchResult {namespace}::IoLoop::'
+                        f'parse_and_dispatch<{no_borrow}, 32u, false, false>({namespace}::Client*)')
+            clones = {ordinary + ' [clone .isra.0]' + suffix for suffix in ('', ' [clone .cold]')}
+            assert (len(conflicts) == 3 and len(fillers) == 1 and
+                    family == {direct} | conflicts | fillers and
+                    all(len(binary.groups.get(name, ())) == 1 for name in family | clones)), \
+                f'missing split-local parser bodies: {namespace}, NoBorrow={no_borrow}'
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('pre')
     parser.add_argument('post')
     parser.add_argument('output')
-    parser.add_argument('--inventory', choices=('r7', 'wbrule'), default='r7',
-                        help='wbrule additionally requires all 32 physical split-local WB bodies')
+    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal'), default='r7',
+                        help='wbrule adds 32 physical split-local WB bodies; splitlocal also adds 28 parser bodies')
     args = parser.parse_args()
     out = Path(args.output)
     out.mkdir(parents=True, exist_ok=True)
@@ -94,7 +120,7 @@ if __name__ == '__main__':
     # reference has 168 bodies per variant; the old single-runtime audit had 169.
     expected = {'tomo': 168, 'tomo_db0': 168} if any(
         'tomo_db0::' in row['name'] for row in rows) else {'tomo': 169}
-    if args.inventory == 'wbrule':
+    if args.inventory in ('wbrule', 'splitlocal'):
         assert set(expected) == {'tomo', 'tomo_db0'}, 'wbrule requires both database runtimes'
         # wbrule carries SplitLocal through flush_ready. These sixteen additional
         # instantiations per runtime keep physical 2s writeback separate from 1s.
@@ -107,6 +133,11 @@ if __name__ == '__main__':
                 found = {name for name in binary.groups if name in added}
                 assert found == added, f'missing physical split-local WB bodies: {added - found}'
             expected[namespace] += len(added)
+    if args.inventory == 'splitlocal':
+        for binary in (pre, post):
+            splitlocal_inventory(binary, expected)
+        for namespace in expected:
+            expected[namespace] += 14
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):

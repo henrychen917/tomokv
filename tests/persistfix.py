@@ -27,8 +27,8 @@ def encode(*args):
 
 
 class Resp:
-    def __init__(self, port):
-        self.sock = socket.create_connection(('127.0.0.1', port), timeout=10)
+    def __init__(self, port, timeout=10):
+        self.sock = socket.create_connection(('127.0.0.1', port), timeout=timeout)
         self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.stream = self.sock.makefile('rb')
 
@@ -91,8 +91,45 @@ class Run:
     def marker(self, suffix):
         return self.window.with_suffix('.' + suffix)
 
+    def record(self, event, **fields):
+        with (self.root / 'processes.jsonl').open('a') as stream:
+            stream.write(json.dumps(dict(event=event, time_ns=time.time_ns(), boot=self.boots,
+                pid=self.process.pid, port=self.args.port, **fields)) + '\n')
+
+    def identify(self, client, event):
+        raw = client.cmd('INFO', 'Server')
+        assert isinstance(raw, bytes), 'persistence peer INFO is not a bulk reply'
+        info = dict(line.split(':', 1) for line in raw.decode().splitlines() if ':' in line)
+        observed = info.get('process_id')
+        self.record(event, observed_pid=observed)
+        assert observed == str(self.process.pid), (
+            f'persistence peer PID mismatch on port {self.args.port}: '
+            f'owned={self.process.pid}, observed={observed}; {self.root / "processes.jsonl"}')
+
+    def ready(self):
+        assert self.process.poll() is None, f'boot failed: {self.log_path}'
+        client = None
+        try:
+            client = Resp(self.args.port, timeout=.1)
+            self.identify(client, 'ready')
+            assert self.process.poll() is None, f'boot exited after INFO: {self.log_path}'
+            return True
+        except (OSError, EOFError) as error:
+            # TCP connect alone can precede any response from the new child.
+            # Require a protocol reply from its PID, including after SIGKILL.
+            if client is not None:
+                self.record('unanswered_peer', error=repr(error))
+            return False
+        finally:
+            if client is not None: client.close()
+
     def client(self):
         client = Resp(self.args.port)
+        try:
+            self.identify(client, 'client')
+        except BaseException:
+            client.close()
+            raise
         self.clients.append(client)
         return client
 
@@ -111,17 +148,12 @@ class Run:
                 '--dir', str(self.root.resolve()), '--net-io', self.args.net_io]
         if self.args.mode == '2s': argv += ['--ratio', self.args.ratio]
         self.process = subprocess.Popen(argv, env=env, stdout=self.log, stderr=subprocess.STDOUT)
-        def ready():
-            assert self.process.poll() is None, f'boot failed: {self.log_path}'
-            try:
-                with socket.create_connection(('127.0.0.1', self.args.port), timeout=.1):
-                    return True
-            except OSError:
-                return False
-        wait_for(ready, 'server did not listen', 30)
+        self.record('spawn', argv=argv, log=str(self.log_path))
+        wait_for(self.ready, f'owned server did not answer INFO: {self.log_path}', 30)
 
     def reap(self, expected):
         status = self.process.wait(timeout=20)
+        self.record('reap', status=status)
         self.log.close()
         assert status == expected, f'exit {status}, wanted {expected}: {self.log_path}'
         for client in self.clients:

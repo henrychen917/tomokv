@@ -448,6 +448,16 @@ build/reorder-engagement-unit-db0: tests/reorder_engagement_unit.cc $(DB0_TEST_O
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< \
 	  $(DB0_TEST_OBJ) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
+# Serverless R7 receipts, also independent gate rows. The FIFO twin is kind A:
+# candidate text size/layout with the cold capability disabled, never a server.
+.PHONY: reorder-checks
+reorder-checks: $(BIN) build/reorder-engagement-unit build/reorder-engagement-unit-db0
+	python3 tests/r7shadow_sync.py
+	python3 tests/r7shadow_sync_test.py
+	python3 tests/reorder_receipt.py build/reorder-engagement-unit build/reorder-checks/multi --engagement
+	python3 tests/reorder_receipt.py build/reorder-engagement-unit-db0 build/reorder-checks/db0 --engagement
+	python3 tests/reorder_receipt.py $(BIN) build/reorder-checks/identity
+
 # Test-only path counters in every R7 envelope plus a complete C++ allocation trace.
 # The release objects/binary have no instrumentation; neither unit starts a server.
 build/r7shadow3/reorder-witness.o: src/core/reorder.cc tests/r7shadow_witness.h $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
