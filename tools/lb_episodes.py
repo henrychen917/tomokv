@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Mainline-only LB convergence episodes; --self-test and --dry-run start nothing.
 
-PRE probes must admit key movement before a key-skew matrix can run. Convergence
-is the last required move followed by quiescence, not a return to quiet-baseline
-maxima. See MEASURE-REQUEST-lbplanner-bench3.md for the frozen comparison rules.
+PRE probes must admit key movement before a key-skew matrix can run. Key episodes
+require a stationary key suffix; client episodes score spread improvement.
+See MEASURE-REQUEST-lbplanner-bench4.md for the comparison and replay rules.
 """
 import argparse
 from collections import Counter
@@ -231,8 +231,17 @@ def spread_maxima(samples):
     return {key: max(s["info"][key] for s in samples) for key in SPREADS} if samples else {}
 
 
-def baseline_stationarity(samples, placement=None):
-    """A run proves its own quiescence; no other run's spreads can veto it."""
+def decision_window(samples):
+    """Include the observation preceding the final three seconds AND ticks."""
+    last = samples[-1]
+    start = next(i for i, s in enumerate(samples) if
+                 last["t"] - s["t"] <= DECISION_SECONDS or
+                 last["info"][TICKS] - s["info"][TICKS] <= DECISION_TICKS)
+    return samples[max(0, start - 1):]
+
+
+def baseline_stationarity(samples, placement=None, episode="key-skew"):
+    """Stationarity belongs to the required controller; placement stays fixed."""
     maxima = spread_maxima(samples)
     summary = "balanced maxima (reported only): " + ", ".join(f"{k}={v:g}" for k, v in maxima.items())
     result = {"status": "FAIL", "spread_maxima": maxima, "summary": summary}
@@ -244,14 +253,20 @@ def baseline_stationarity(samples, placement=None):
         require(duration >= 3 * DECISION_SECONDS,
                 f"balanced seconds={duration:g}, limit>={3 * DECISION_SECONDS:g}")
         movements = delta(samples[0], samples[-1])
-        result["deltas"] = movements
-        require(movements["total_moves"] == 0,
-                f"balanced total_moves={movements['total_moves']}, limit=0 "
-                f"(key={movements[KEY]}, client={movements[CLIENT]})")
+        window = decision_window(samples)
+        final_moves = delta(window[0], window[-1])
+        result.update(deltas=movements, baseline_key_moves=movements[KEY],
+                      baseline_client_moves=movements[CLIENT],
+                      baseline_earlier_client_moves=movements[CLIENT] - final_moves[CLIENT],
+                      decision_client_moves=final_moves[CLIENT], decision_start_t=window[0]["t"])
+        require(movements[KEY] == 0,
+                f"balanced key_moves={movements[KEY]}, limit=0 (placement changed)")
+        if episode == "client-skew":
+            require(final_moves[CLIENT] == 0,
+                    f"balanced final decision client_moves={final_moves[CLIENT]}, limit=0 "
+                    f"(earlier={result['baseline_earlier_client_moves']})")
         last = samples[-1]
-        window = [s for s in samples if last["t"] - s["t"] <= DECISION_SECONDS or
-                  last["info"][TICKS] - s["info"][TICKS] <= DECISION_TICKS]
-        for row in window:
+        for row in window[1:]:  # preceding observation brackets moves; it is outside the window
             require(row["info"][STAGE] == 0,
                     f"balanced {STAGE}={row['info'][STAGE]}, limit=0 at t={row['t']:.6f}")
         if placement is not None:
@@ -260,7 +275,7 @@ def baseline_stationarity(samples, placement=None):
                 require(observed.get(sid) == placement.get(sid),
                         f"balanced shard_owners[{sid}]={observed.get(sid)}, limit={placement.get(sid)} (PRE)")
         result.update(status="PASS", beats=len(rows), seconds=duration)
-        reason = "own baseline quiescent"
+        reason = f"own {episode} baseline stationary; baseline_client_moves={movements[CLIENT]}"
     except ValueError as error:
         reason = str(error)
     return dict(result, reason=reason + "; " + summary)
@@ -273,8 +288,8 @@ def sampling_floor(owners):
     return 200 * math.sqrt(2 / 4096 * (1 + .5 * math.log(pairs)))
 
 
-def envelope(samples):
-    baseline = baseline_stationarity(samples)
+def envelope(samples, episode="key-skew"):
+    baseline = baseline_stationarity(samples, episode=episode)
     require(baseline["status"] == "PASS", "PRE " + baseline["reason"])
     first, last = samples[0], samples[-1]
     for tid, old in first["signals"]["threads"].items():
@@ -317,6 +332,40 @@ def actuator_mix(anchor, final, total):
             "pending_scope": "server lifetime high-water at post-stimulus endpoint"}
 
 
+def spread_progress(before, after, rows, stimulus, primary, move):
+    """Fixed windows and 5% record improvements, independent of the candidate arm."""
+    def mean(window):
+        require(bool(window), "missing spread window")
+        return sum(s["info"][primary] for s in window) / len(window)
+    final = after[-1]
+    base = mean([s for s in before if s["t"] > stimulus - DECISION_SECONDS])
+    peak = max(s["info"][primary] for s in after if s["t"] <= stimulus + 6)
+    end = mean([s for s in after if s["t"] > final["t"] - DECISION_SECONDS])
+    previous = mean([s for s in after if
+                     final["t"] - 2 * DECISION_SECONDS < s["t"] <= final["t"] - DECISION_SECONDS])
+    # Only start recording improvements after the fixed peak window. The
+    # pre-step values in its first polls must not become a spurious low record.
+    level, last_improvement = peak, None
+    for row in [*rows, final]:
+        if row["t"] < stimulus + 6:
+            continue
+        value = mean([s for s in after if row["t"] - DECISION_SECONDS < s["t"] <= row["t"]])
+        if value < level and value <= .95 * level:
+            level, last_improvement = value, row
+    reduction = 1 - end / peak if peak else None
+    improved = reduction is not None and reduction >= .05
+    return {"spread_base": base, "spread_peak": peak, "spread_end": end,
+            "spread_min": min(s["info"][primary] for s in after), "reduction": reduction,
+            "spread_previous": previous, "spread_improved": improved,
+            "still_converging": improved and end < previous and end <= level,
+            "last_improvement_t": last_improvement["t"] if last_improvement else None,
+            "last_improvement_level": level,
+            "thrash_moves": final["info"][move] -
+                (last_improvement or before[-1])["info"][move],
+            "spread_method": "base/end: final 3s sample means; peak: first 6s max; min: all post-stimulus polls; "
+                             "5% records: 3s means at closed ticks after peak window; falling: end < preceding 3s mean and <= last record"}
+
+
 def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_seconds,
                 diagnostic=None):
     samples = [s for s in samples if s["t"] <= end]
@@ -332,16 +381,18 @@ def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_
     rows = [s for s in rows if stimulus < s["t"] <= final["t"]]
     primary = SPREADS[0] if episode == "key-skew" else SPREADS[2]
     move = KEY if episode == "key-skew" else CLIENT
+    other = CLIENT if episode == "key-skew" else KEY
     excursion = next((s for s in after if s["info"][primary] > criterion["upper"][primary]), None)
     total = delta(anchor, final)
     result = {"status": "FAIL", "t_converge": None, "deltas": total,
               "key_moves": total[KEY], "client_moves": total[CLIENT],
               "total_moves": total["total_moves"], "gathers": total[GATHERS],
-              "suffix_moves": None, "suffix_deltas": None,
+              "suffix_moves": None, "suffix_other_moves": None, "suffix_deltas": None,
               "envelope_return_t": None,
               "anchor_t": anchor["t"], "end_t": final["t"],
               "excursion_t": excursion["t"] if excursion else None,
-              **actuator_mix(anchor, final, total)}
+              **actuator_mix(anchor, final, total),
+              **spread_progress(before, after, rows, stimulus, primary, move)}
     if total[move] == 0 or (episode == "key-skew" and total[GATHERS] == 0):
         return dict(result, reason=f"unarmed: {move} delta={total[move]}, limit>0; "
                     f"{GATHERS} delta={total[GATHERS]} (key-skew limit>0)")
@@ -354,7 +405,7 @@ def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_
     result["t_converge"] = last_move["t"] - stimulus
     result["last_move_t"] = last_move["t"]
     suffix = delta(last_move, final)
-    result.update(suffix_deltas=suffix, suffix_moves=suffix["total_moves"],
+    result.update(suffix_deltas=suffix, suffix_moves=suffix[move], suffix_other_moves=suffix[other],
                   suffix_seconds=final["t"] - last_move["t"],
                   suffix_ticks=final["info"][TICKS] - last_move["info"][TICKS])
     # Keep envelope return as a final sustained-return diagnostic, never a gate.
@@ -370,10 +421,24 @@ def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_
         result["envelope_return_t"] = streak["t"] - stimulus
     result["envelope_excess"] = {k: {"value": final["info"][k], "limit": limit}
                                  for k, limit in diagnostic["upper"].items() if final["info"][k] > limit}
-    if suffix["total_moves"]:
-        return dict(result, reason=f"moves during stationary suffix: total_moves={suffix['total_moves']}, limit=0")
-    if result["t_converge"] > max_seconds:
+    if episode == "client-skew":
+        # Key movement changes the placement during a client-only suffix.
+        if suffix[KEY]:
+            return dict(result, reason=f"key moves during client suffix: key_moves={suffix[KEY]}, limit=0")
+        if not result["spread_improved"]:
+            return dict(result, reason=f"no 5% spread improvement: reduction={result['reduction']}, "
+                        f"limit>=0.05; thrash_moves={result['thrash_moves']}")
+        if result["thrash_moves"] and not result["still_converging"]:
+            return dict(result, reason=f"spread stopped falling: thrash_moves={result['thrash_moves']}, limit=0")
+    if result["t_converge"] > max_seconds and not (episode == "client-skew" and result["still_converging"]):
         return dict(result, reason=f"t_converge={result['t_converge']:g}, limit<={max_seconds:g}")
+    if episode == "client-skew" and result["still_converging"]:
+        # Successful balancing need not leave a 30s quiet tail. Retain Idle
+        # evidence over the final decision window while reporting the last move.
+        for row in decision_window(after)[1:]:
+            if row["info"][STAGE] != 0:
+                return dict(result, reason=f"final decision {STAGE}={row['info'][STAGE]}, limit=0")
+        return dict(result, status="PASS", reason="still converging: spread falling at the fixed endpoint")
     if result["suffix_ticks"] < DECISION_TICKS:
         return dict(result, reason=f"suffix_ticks={result['suffix_ticks']}, limit>={DECISION_TICKS}")
     # Current spreads are refreshed at controller ticks, not at move completion.
@@ -607,6 +672,24 @@ class Sampler:
         require(self.error is None, "sampler failed: " + str(self.error))
 
 
+@contextmanager
+def sampled_episode(sampler, result):
+    """Classify the episode and join its observer inside the server lifetime."""
+    try:
+        sampler.thread.start()
+        yield
+    except Exception as error:
+        result.update(status="FAIL", reason=str(error), measurement_valid=False)
+    finally:
+        try:
+            sampler.close()
+        except Exception as error:
+            result["sampler_error"] = str(error)
+            if result["status"] != "FAIL" or not result.get("reason"):
+                result.update(status="FAIL", reason=str(error))
+            result["measurement_valid"] = False
+
+
 def server_command(args, arm, mode, directory):
     # Match calib/lb-stationary.sh: the default split uses all 16 allowed CPUs.
     # --ratio specifies whole-server counts, not a ratio scaled to CPU affinity.
@@ -766,6 +849,14 @@ def episode_row(result):
     stall = result.get("stall") or {}
     row += " stall=" + ",".join(f"{k}:{fmt(stall.get(k))}" for k in STALL if k != "invalid")
     row += f" pending_ms={fmt(result.get('pending_ms'))} attempts={fmt(result.get('attempts'))}"
+    row += f" baseline_client_moves={fmt(result.get('baseline_client_moves'))}"
+    row += f" suffix_other={fmt(result.get('suffix_other_moves'))}"
+    row += " spread=" + ",".join(f"{k}:{fmt(result.get('spread_' + k))}" for k in ("base", "peak", "end", "min"))
+    reduction = result.get("reduction")
+    row += f" reduction={fmt(100 * reduction) + '%' if reduction is not None else 'NA'}"
+    row += f" thrash_moves={fmt(result.get('thrash_moves'))}"
+    if result.get("still_converging"):
+        row += " (still converging)"
     return row
 
 
@@ -791,75 +882,76 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
             require(key_mapping(conn, args.hotmax, identity["shards"]) == seed_record["hot_keys"],
                     "physical key map changed from this mode's SHA-bound seed")
             sampler = Sampler(args.port, directory / "telemetry.jsonl", int(identity["process_id"]))
-            sampler.thread.start()
-            baseline_start = time.monotonic()
-            processes = []
-            for label in ("baseline-a", "baseline-b"):
-                argv = load_command(args, directory, label, 1, KEYS,
-                                    args.warm + args.baseline + 3, owners=owners)
-                result["commands"].append(argv)
-                processes.append(children.start(argv, directory / (label + ".log"), directory))
-            baseline_end = wait_loads(processes, sampler, args.warm + args.baseline + 63)
-            result["baseline"] = {"start": baseline_start, "end": baseline_end,
-                                  "owners": owner_evidence(directory, ("baseline-a", "baseline-b"), [owners, owners])}
-            # Trim both connection setup and generator teardown. The last three seconds are
-            # guard time, not calibration evidence. No candidate run refits PRE limits.
-            balanced = [s for s in sampler.samples if
-                        baseline_start + args.warm <= s["t"] <= baseline_start + args.warm + args.baseline]
-            own_baseline = baseline_stationarity(balanced, None if calibration else criterion["shard_owners"])
-            result["baseline_stationarity"] = own_baseline
-            require(own_baseline["status"] == "PASS", own_baseline["reason"])
-            if calibration:
-                result["criterion"] = envelope(balanced)
-                result["status"] = "PASS"
-            else:
-                result["baseline_in_envelope_fraction"] = sum(inside(s, criterion) for s in balanced) / len(balanced)
-                diagnostic = diagnostic_envelope(criterion, own_baseline["spread_maxima"])
-                result["diagnostic_envelope"] = diagnostic
-                command_before = parse_info(conn.must("INFO", "COMMANDSTATS"), False)
-                stimulus = time.monotonic()
-                result["stimulus_t"] = stimulus
-                result["baseline_to_stimulus_gap"] = stimulus - baseline_end
+            with sampled_episode(sampler, result):
+                baseline_start = time.monotonic()
                 processes = []
-                post_owners = [owners, owners[:2] if episode == "client-skew" else owners]
-                ranges = [(args.hotmax + 1, KEYS), (1, args.hotmax)] if episode == "key-skew" else [(1, KEYS)] * 2
-                duration = args.max_converge + DECISION_SECONDS + args.suffix + 3
-                for label, targets, (low, high) in zip(("cold", "hot"), post_owners, ranges):
-                    argv = load_command(args, directory, label, low, high, int(duration), owners=targets)
+                for label in ("baseline-a", "baseline-b"):
+                    argv = load_command(args, directory, label, 1, KEYS,
+                                        args.warm + args.baseline + 3, owners=owners)
                     result["commands"].append(argv)
                     processes.append(children.start(argv, directory / (label + ".log"), directory))
-                finish = wait_loads(processes, sampler, duration + 60)
-                command_after = parse_info(conn.must("INFO", "COMMANDSTATS"), False)
-                # Fixed common window, ending before either load's requested test-time.
-                end = stimulus + duration - 3
-                result["loads_finished_t"] = finish
-                result["owners"] = owner_evidence(directory, ("cold", "hot"), post_owners)
-                result["stimulus_ready_t"] = max(r["t"] for rows in result["owners"].values() for r in rows)
-                require(result["stimulus_ready_t"] - stimulus < DECISION_SECONDS,
-                        "connection burst took a full decision window; stimulus is not a step")
-                result.update(convergence(sampler.samples, stimulus, end, criterion, episode,
-                                          args.max_converge, args.suffix, diagnostic))
-                result.update(metrics([json.loads((directory / (label + ".json")).read_text())
-                                       for label in ("cold", "hot")], command_before, command_after,
-                                      duration, args.hot_pipeline))
-                result["occupancy"] = occupancy(sampler.samples, stimulus, end, owners[0])
-                result["coord_busy"] = result["occupancy"]["coord_busy"]
-                result["coordinator_latency"] = None
-                result["coordinator_latency_reason"] = "memtier aggregate histograms do not identify connection owners after migration"
-                cpu_rows = [s for s in sampler.samples if stimulus <= s["t"] <= end]
-                result["cpu"] = {key + "_delta": cpu_rows[-1][key] - cpu_rows[0][key]
-                                 for key in ("process_cpu_ticks", "monitor_cpu_ticks")}
-                result["cpu"]["clock_ticks_per_second"] = os.sysconf("SC_CLK_TCK")
-                result["measurement_valid"] = True
-            sampler.close()  # observer must close BEFORE boot() reaps the server
+                baseline_end = wait_loads(processes, sampler, args.warm + args.baseline + 63)
+                result["baseline"] = {"start": baseline_start, "end": baseline_end,
+                                      "owners": owner_evidence(directory, ("baseline-a", "baseline-b"), [owners, owners])}
+                # Trim both connection setup and generator teardown. The last three seconds are
+                # guard time, not calibration evidence. No candidate run refits PRE limits.
+                balanced = [s for s in sampler.samples if
+                            baseline_start + args.warm <= s["t"] <= baseline_start + args.warm + args.baseline]
+                baseline_kind = ("client-skew" if args.episodes == "client-skew" else "key-skew") if calibration else episode
+                own_baseline = baseline_stationarity(balanced, None if calibration else criterion["shard_owners"], baseline_kind)
+                result["baseline_stationarity"] = own_baseline
+                for field in ("baseline_client_moves", "baseline_key_moves", "baseline_earlier_client_moves"):
+                    result[field] = own_baseline.get(field)
+                require(own_baseline["status"] == "PASS", own_baseline["reason"])
+                if calibration:
+                    result["criterion"] = envelope(balanced, baseline_kind)
+                    result["status"] = "PASS"
+                else:
+                    result["baseline_in_envelope_fraction"] = sum(inside(s, criterion) for s in balanced) / len(balanced)
+                    diagnostic = diagnostic_envelope(criterion, own_baseline["spread_maxima"])
+                    result["diagnostic_envelope"] = diagnostic
+                    command_before = parse_info(conn.must("INFO", "COMMANDSTATS"), False)
+                    stimulus = time.monotonic()
+                    result["stimulus_t"] = stimulus
+                    result["baseline_to_stimulus_gap"] = stimulus - baseline_end
+                    processes = []
+                    post_owners = [owners, owners[:2] if episode == "client-skew" else owners]
+                    ranges = [(args.hotmax + 1, KEYS), (1, args.hotmax)] if episode == "key-skew" else [(1, KEYS)] * 2
+                    duration = args.max_converge + DECISION_SECONDS + args.suffix + 3
+                    for label, targets, (low, high) in zip(("cold", "hot"), post_owners, ranges):
+                        argv = load_command(args, directory, label, low, high, int(duration), owners=targets)
+                        result["commands"].append(argv)
+                        processes.append(children.start(argv, directory / (label + ".log"), directory))
+                    finish = wait_loads(processes, sampler, duration + 60)
+                    command_after = parse_info(conn.must("INFO", "COMMANDSTATS"), False)
+                    # Fixed common window, ending before either load's requested test-time.
+                    end = stimulus + duration - 3
+                    result["loads_finished_t"] = finish
+                    result["owners"] = owner_evidence(directory, ("cold", "hot"), post_owners)
+                    result["stimulus_ready_t"] = max(r["t"] for rows in result["owners"].values() for r in rows)
+                    require(result["stimulus_ready_t"] - stimulus < DECISION_SECONDS,
+                            "connection burst took a full decision window; stimulus is not a step")
+                    result.update(convergence(sampler.samples, stimulus, end, criterion, episode,
+                                              args.max_converge, args.suffix, diagnostic))
+                    result.update(metrics([json.loads((directory / (label + ".json")).read_text())
+                                           for label in ("cold", "hot")], command_before, command_after,
+                                          duration, args.hot_pipeline))
+                    result["occupancy"] = occupancy(sampler.samples, stimulus, end, owners[0])
+                    result["coord_busy"] = result["occupancy"]["coord_busy"]
+                    result["coordinator_latency"] = None
+                    result["coordinator_latency_reason"] = "memtier aggregate histograms do not identify connection owners after migration"
+                    cpu_rows = [s for s in sampler.samples if stimulus <= s["t"] <= end]
+                    result["cpu"] = {key + "_delta": cpu_rows[-1][key] - cpu_rows[0][key]
+                                     for key in ("process_cpu_ticks", "monitor_cpu_ticks")}
+                    result["cpu"]["clock_ticks_per_second"] = os.sysconf("SC_CLK_TCK")
+                    result["measurement_valid"] = True
     except Exception as error:
-        result.update(status="FAIL", reason=str(error), measurement_valid=False)
+        if result["status"] == "FAIL" and result.get("reason"):
+            result["teardown_error"] = str(error)
+            result["measurement_valid"] = False
+        else:
+            result.update(status="FAIL", reason=str(error), measurement_valid=False)
     finally:
-        if sampler:
-            try:
-                sampler.close()
-            except Exception as error:
-                result.update(status="FAIL", reason=str(error), measurement_valid=False)
         if probe:
             result["convergence_status"] = result["status"]
             result["convergence_reason"] = result.get("reason")
@@ -939,14 +1031,32 @@ def assess(results, episodes="both"):
     # 95% family confidence over all predeclared arm/reason comparisons. This
     # allowance derives only from attempt counts and schedule size, never an arm.
     alpha = .05 / (len(expected) // 3 * 2 * len(STALL))
+    pre_spreads = {}
+    for pre in results:
+        if (pre["arm"] == "PRE" and pre["episode"] == "client-skew" and
+                pre.get("measurement_valid", True) and pre.get("spread_end") is not None):
+            pre_spreads.setdefault(pre["mode"], {})[pre["round"]] = pre["spread_end"]
     for post in (r for r in results if r["arm"] == "POST"):
         paired = {r["arm"]: r for r in results if all(r[k] == post[k] for k in ("episode", "mode", "round"))}
         pre = paired.get("PRE")
-        reasons, mix = [], {}
+        reasons, mix, spread_comparison = [], {}, None
         if set(paired) != set(ARMS) or any(r["status"] != "PASS" for r in paired.values()):
-            reasons.append("PRE, PAD-A or POST episode missing or did not establish convergence and a stationary suffix")
+            reasons.append("PRE, PAD-A or POST episode missing or did not establish its kind's convergence")
         else:
-            for key in ("t_converge", "key_moves", "client_moves", "total_moves", "suffix_moves", "p99"):
+            if post["episode"] == "client-skew":
+                rounds = pre_spreads.get(post["mode"], {})
+                require(bool(rounds), "missing PRE spread endpoints")
+                width = max(rounds.values()) - min(rounds.values())
+                limit = pre["spread_end"] + width
+                spread_comparison = {"POST": post["spread_end"], "PRE": pre["spread_end"],
+                                     "PRE_rounds": rounds, "PRE_width": width, "limit": limit}
+                if post["spread_end"] > limit:
+                    reasons.append(f"POST spread_end={post['spread_end']}, limit<={limit} "
+                                   f"(paired PRE + PRE round range {width})")
+                compared = ("p99",)  # completed moves and last-move time are evidence, not costs
+            else:
+                compared = ("t_converge", "key_moves", "client_moves", "suffix_moves", "suffix_other_moves", "p99")
+            for key in compared:
                 if post[key] > pre[key]:
                     reasons.append(f"POST {key}={post[key]}, limit<={pre[key]} (PRE)")
             if post["rate"] < pre["rate"]:
@@ -970,11 +1080,15 @@ def assess(results, episodes="both"):
                 failures, mix[control] = compare_actuators(post, paired[control], alpha)
                 reasons.extend(failures)
         checks.append({"episode": post["episode"], "mode": post["mode"], "round": post["round"],
-                       "status": "FAIL" if reasons else "PASS", "reasons": reasons, "actuator_mix": mix})
+                       "status": "FAIL" if reasons else "PASS", "reasons": reasons, "actuator_mix": mix,
+                       "spread_comparison": spread_comparison})
     return {"status": "PASS" if complete and all(c["status"] == "PASS" for c in checks)
             and all(r["status"] == "PASS" for r in results) else "FAIL", "checks": checks,
             "schedule_complete": complete,
-            "rule": "POST converges no slower than PRE, makes no more key/client/total moves, loses no rate or p99, matches PRE/PAD-A actuator mix within binomial counting noise and PRE pass_limit exactly; every paired round must pass",
+            "rule": "key-skew: POST's last required move is no slower than PRE, with no more required moves, other-kind moves or suffix_other moves; "
+                    "client-skew: POST spread_end <= paired PRE spread_end + the range of valid PRE spread_end rounds in the same mode; "
+                    "completed moves, thrash_moves and t_converge are reported, continued spread improvement is balancing; "
+                    "both: no aggregate/cohort rate or p99 loss, PRE/PAD-A actuator mix within binomial counting noise, PassLimit == PRE exactly; every paired round must pass",
             "actuator_noise": {"method": "two-sided exact conditional binomial (Fisher), Bonferroni over scheduled comparisons",
                                "family_alpha": .05, "comparison_alpha": alpha},
             "pad_kind": "A: PRE behaviour with candidate text size/layout; diagnostic control, no placement claim without mainline null",
@@ -1182,13 +1296,24 @@ class SelfTest(unittest.TestCase):
         result = convergence(self.trace(excursion=False), 14, 40, self.criterion(), "key-skew", 20, 3)
         self.assertEqual(result["status"], "PASS")
 
-    def test_suffix_move_and_truncation_fail(self):
+    def test_suffix_other_moves_reported_and_truncation_fails(self):
         trace = self.trace()
         for s in trace:
             if s["t"] >= 30:
                 s["info"][CLIENT] += 1
-        self.assertEqual(convergence(trace, 14, 40, self.criterion(), "key-skew", 20, 3)["suffix_moves"], 1)
+        result = convergence(trace, 14, 40, self.criterion(), "key-skew", 20, 3)
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual((result["suffix_moves"], result["suffix_other_moves"]), (0, 1))
+        self.assertIn(" suffix_other=1", episode_row(dict(result, episode="key-skew", mode="1s", arm="PRE", round=1)))
         self.assertEqual(convergence(trace, 14, 24, self.criterion(), "key-skew", 20, 10)["status"], "FAIL")
+        trace = self.trace()
+        for s in trace:
+            if s["t"] >= 30:
+                s["info"][KEY] += 1
+        result = convergence(trace, 14, 40, self.criterion(), "client-skew", 20, 3)
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["suffix_other_moves"], 1)
+        self.assertIn("key moves during client suffix", result["reason"])
 
     def test_later_rebound_fails_without_restarting_clock(self):
         trace = self.trace()
@@ -1382,7 +1507,8 @@ class SelfTest(unittest.TestCase):
 
     def test_comparison_cannot_hide_one_bad_metric(self):
         results = [dict(arm=a, mode=m, episode=e, round=r, status="PASS", t_converge=4,
-                        key_moves=2, client_moves=3, total_moves=5, suffix_moves=0, rate=100, p99=1,
+                        key_moves=2, client_moves=3, total_moves=5, suffix_moves=0, suffix_other_moves=0,
+                        spread_end=100, rate=100, p99=1,
                         stall={k: 0 for k in STALL}, attempts=3, pass_limit=0)
                    for a, m, e, r in schedule()]
         self.assertEqual(assess(results)["status"], "PASS")
@@ -1413,9 +1539,106 @@ class SelfTest(unittest.TestCase):
         self.assertIn(STAGE + "=5, limit=0", result["reason"])
         samples[112]["info"][STAGE] = 0
         for s in samples[1:]:
-            s["info"][CLIENT] = 1  # movement before the first closed beat still fails
+            s["info"][KEY] = 1  # movement before the first closed beat still fails
         self.assertEqual(baseline_stationarity(samples)["status"], "FAIL")
         self.assertEqual(baseline_stationarity(self.trace()[:130], {"0": 1})["status"], "FAIL")
+
+    def test_baseline_controller_specific_moves(self):
+        for move_t in (1, 10):
+            samples = [self.sample(i / 10, client=int(i / 10 >= move_t)) for i in range(130)]
+            key = baseline_stationarity(samples, episode="key-skew")
+            client = baseline_stationarity(samples, episode="client-skew")
+            self.assertEqual(key["status"], "PASS")
+            self.assertEqual(key["baseline_client_moves"], 1)
+            self.assertEqual(client["status"], "PASS" if move_t == 1 else "FAIL")
+            self.assertEqual(client["baseline_earlier_client_moves"], int(move_t == 1))
+            self.assertEqual(client["decision_client_moves"], int(move_t == 10))
+        # Include a counter change on the first in-window observation.
+        samples = [self.sample(i / 10, client=int(i >= 90)) for i in range(130)]
+        self.assertEqual(baseline_stationarity(samples, episode="client-skew")["status"], "FAIL")
+        samples = [self.sample(i / 10, key=int(i >= 10)) for i in range(130)]
+        for kind in ("key-skew", "client-skew"):
+            result = baseline_stationarity(samples, episode=kind)
+            self.assertEqual(result["status"], "FAIL")
+            self.assertEqual(result["baseline_key_moves"], 1)
+
+    def test_client_spread_falling_with_late_moves_passes_but_flat_thrashes(self):
+        for falling in (True, False):
+            trace = [self.sample(i / 10, spread=100 if i <= 140 else
+                                 (200 - max(0, i / 10 - 20) * 3 if falling else 200),
+                                 client=max(0, (i - 170) // 30)) for i in range(401)]
+            result = convergence(trace, 14, 40, self.criterion(), "client-skew", 20, 3)
+            self.assertGreater(result["t_converge"], 20)
+            self.assertEqual(result["spread_base"], 100)
+            self.assertEqual(result["spread_peak"], 200)
+            self.assertEqual(result["status"], "PASS" if falling else "FAIL")
+            self.assertEqual(result["still_converging"], falling)
+            if falling:
+                self.assertIn("still converging", result["reason"])
+                self.assertLess(result["spread_end"], result["spread_previous"])
+                self.assertGreater(result["reduction"], .05)
+            else:
+                self.assertEqual(result["thrash_moves"], result["client_moves"])
+                self.assertGreater(result["thrash_moves"], 0)
+                self.assertEqual(result["reduction"], 0)
+
+    def test_client_moves_after_spread_plateau_fail(self):
+        trace = [self.sample(i / 10, spread=100 if i <= 140 else
+                             200 - min(10, max(0, i / 10 - 20)) * 5,
+                             client=max(0, (i - 170) // 30)) for i in range(501)]
+        result = convergence(trace, 14, 50, self.criterion(), "client-skew", 40, 3)
+        self.assertEqual(result["status"], "FAIL")
+        self.assertGreater(result["reduction"], .05)
+        self.assertGreater(result["thrash_moves"], 0)
+        self.assertIn("spread stopped falling", result["reason"])
+
+    def test_paired_client_spread_uses_pre_round_range_not_move_count(self):
+        results = [dict(arm=a, mode=m, episode=e, round=r, status="PASS", t_converge=4,
+                        key_moves=0, client_moves=3, total_moves=3, suffix_moves=0, suffix_other_moves=0,
+                        spread_end=100 + r, rate=100, p99=1, stall={k: 0 for k in STALL},
+                        attempts=30, pass_limit=0) for a, m, e, r in schedule("client-skew")]
+        post = results[2]
+        post.update(client_moves=20, total_moves=20, t_converge=210, spread_end=103)
+        report = assess(results, "client-skew")
+        self.assertEqual(report["status"], "PASS")
+        self.assertEqual(report["checks"][0]["spread_comparison"]["PRE_width"], 2)
+        post["spread_end"] = 103.01
+        self.assertEqual(assess(results, "client-skew")["status"], "FAIL")
+        post["spread_end"] = 90
+        post["p99"] = 1.01
+        self.assertEqual(assess(results, "client-skew")["status"], "FAIL")
+
+    def test_sampler_joins_before_teardown_and_preserves_primary_failure(self):
+        from unittest.mock import Mock
+        events = []
+        result = {"status": "FAIL", "measurement_valid": False}
+        sampler = Mock()
+        def close():
+            events.append("join")
+            self.assertEqual(result["reason"], "balanced key_moves=1, limit=0")
+            raise ValueError("sampler failed: Connection reset by peer")
+        sampler.close.side_effect = close
+        @contextmanager
+        def server_lifetime():
+            try:
+                yield
+            finally:
+                events.append("teardown")
+        with server_lifetime():
+            with sampled_episode(sampler, result):
+                raise ValueError("balanced key_moves=1, limit=0")
+        self.assertEqual(events, ["join", "teardown"])
+        self.assertEqual(result["reason"], "balanced key_moves=1, limit=0")
+        self.assertIn("Connection reset", result["sampler_error"])
+        sampler.close.assert_called_once()
+        # A live sampling failure still invalidates an otherwise passing run.
+        result = {"status": "PASS", "measurement_valid": True}
+        sampler.close.side_effect = ValueError("sampler failed: live failure")
+        with sampled_episode(sampler, result):
+            pass
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["reason"], "sampler failed: live failure")
+        self.assertFalse(result["measurement_valid"])
 
     def test_last_required_move_and_three_real_ticks(self):
         trace = self.trace()
