@@ -1,6 +1,6 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "274950fc8775f2bef6c4bfa7829152073300d387d7f83994b83d780e3d6afe3b",
+  "source_sha256": "c990fea13f8f7ed2f5a4463b8825f27734babe4e7bd0ecc8901991155bf8ee78",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
@@ -28,6 +28,14 @@
     "writeback c12 split-overlap witnesses + negative controls",
     "writeback policy clauses witnesses + negative controls",
     "writeback policy paths witnesses + negative controls",
+    "R7 generated envelope parity",
+    "R7 production engagement (both database runtimes)",
+    "R7 FIFO twin off-path identity + negative controls",
+    "writeback policies 0/1: 22 standard fixtures",
+    "stationary balanced LB holds still (1s)",
+    "stationary balanced LB holds still (2s)",
+    "epoll directed correctness (1s)",
+    "epoll directed correctness (2s)",
     "splitlocal template forwarding + old-argument controls",
     "storage unlinked regression",
     "storage randomkey regression",
@@ -592,6 +600,21 @@
         "read-local MGET fence battery (1s)",
         "read-local MGET fence battery (2s)",
         "read-local MGET fence symmetry unit"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-04 08:49",
+      "added": [
+        "R7 FIFO twin off-path identity + negative controls",
+        "R7 generated envelope parity",
+        "R7 production engagement (both database runtimes)",
+        "epoll directed correctness (1s)",
+        "epoll directed correctness (2s)",
+        "stationary balanced LB holds still (1s)",
+        "stationary balanced LB holds still (2s)",
+        "writeback policies 0/1: 22 standard fixtures"
       ],
       "removed": [],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
