@@ -1,4 +1,8 @@
 {
+  "missing-io-begin": {
+    "assertion": "PAD planned retarget missing",
+    "rejected": true
+  },
   "missing-io-tail": {
     "assertion": "PAD planned retarget missing",
     "rejected": true

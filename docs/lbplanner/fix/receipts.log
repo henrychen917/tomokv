@@ -1,0 +1,3 @@
+PASS unchanged admission/search policy blocks, monitor boot wiring and hoisted cap
+PASS pinned IO pass: two shared stage loads at 1/32/4096 connections; extra-load controls detected
+PASS PAD-A identity, source closure and all approved retargets; mainline performance remains unmeasured

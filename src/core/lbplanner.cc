@@ -258,7 +258,8 @@ bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
         plan.client_before = client_before;
         plan.client_after = client_after;
         lb_coordinator_ = coordinator;
-        lb_stage_.store(LbStage::PlanReady, std::memory_order_release);
+        // SC orders late ClientDrain readers against the record-reuse check below.
+        lb_stage_.store(LbStage::PlanReady, std::memory_order_seq_cst);
         return true;
     } catch (const std::bad_alloc&) {
         lb_capacity_refused_.fetch_add(1, std::memory_order_relaxed);
@@ -278,6 +279,10 @@ bool Server::lb_consume_plan(uint32_t coordinator) {
         lb_stage_.store(LbStage::Idle, std::memory_order_release);
         return false;
     }
+    // A cancelled drain may still have a reader in its source/destination tail. Keep
+    // the new plan unconsumed, without pausing traffic, until that immutable read ends.
+    // Never wait while holding the shape mutex: an old reader may need it to refuse.
+    if (plan.client_readers.load(std::memory_order_seq_cst) != 0) return false;
     for (uint32_t tid = 0; tid < nthreads(); tid++)
         lb_ack_[tid].store(0, std::memory_order_relaxed);
     lb_epoch_.fetch_add(1, std::memory_order_acq_rel);
@@ -719,6 +724,10 @@ __attribute__((always_inline)) inline uint32_t IoLoop::lb_control_actuate_pad() 
     }
     return work + 1;
 }
+
+// PRE had no per-pass pause snapshot; its live per-connection gate is restored in PAD.
+// In particular, do not overwrite the same eight bytes that PAD uses as its cron deadline.
+void IoLoop::lb_pass_begin_pad() {}
 
 uint32_t IoLoop::lb_control_pass_pad() {
     uint32_t did = lb_control_actuate_pad();

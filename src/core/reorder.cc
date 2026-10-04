@@ -771,6 +771,7 @@ void IoLoop::r7_run_loop() {
             continue;
         }
 #endif
+        lb_pass_begin(); // one shared pause snapshot before any connection parsing
         refresh_notify_config();
         // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
         // per-operation hooks their zero-cost-when-off property.
