@@ -1,6 +1,7 @@
-Lane lbplanner: CT1 / CT2 / CT3
+Lane connreset: see MEASURE-REQUEST-connreset.md.
 
-See MEASURE-REQUEST-lbplanner.md for the complete report and mainline-only cells,
-three regimes, counters, arms and pass conditions. PRE, POST and verified PAD-A
-are built; serverless proofs pass. No server, benchmark, live test or gate was run.
-Mainline measurement and live-gate acceptance remain pending.
+PRE/POST/TRACE are built in build/connreset/. The production .text is byte-identical.
+The 30 x 10 churn campaign is running only on CPUs 112-127.
+The archived reset evidence identifies exceptional LB sampler cleanup; the fix and
+serverless negative-control witness are committed. Gate counts need +1 quick/full.
+No benchmark or gate was run.

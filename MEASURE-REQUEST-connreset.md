@@ -1,0 +1,102 @@
+| Variant | resets/trials | EOF/trials | other monitor failures | incomplete trials |
+|---|---:|---:|---:|---:|
+| 2s-both-default | 0/10 | 0/10 | 0 | 0 |
+| 2s-close-default | 0/10 | 0/10 | 0 | 0 |
+| 2s-storm-default | 0/10 | 0/10 | 0 | 0 |
+| 2s-both-client-off | 0/10 | 0/10 | 0 | 0 |
+| 2s-close-client-off | 0/10 | 0/10 | 0 | 0 |
+| 2s-storm-client-off | 0/10 | 0/10 | 0 | 0 |
+| 2s-both-key-off | 0/10 | 0/10 | 0 | 0 |
+| 2s-close-key-off | 0/10 | 0/10 | 0 | 0 |
+| 2s-storm-key-off | 0/10 | 0/10 | 0 | 0 |
+| 2s-both-both-off | 0/10 | 0/10 | 0 | 0 |
+| 2s-close-both-off | 0/10 | 0/10 | 0 | 0 |
+| 2s-storm-both-off | 0/10 | 0/10 | 0 | 0 |
+| 2s-both-storm1000 | 0/10 | 0/10 | 0 | 0 |
+| 2s-close-storm1000 | 0/10 | 0/10 | 0 | 0 |
+| 2s-storm-storm1000 | 0/10 | 0/10 | 0 | 0 |
+| 1s-both-default | 0/10 | 0/10 | 0 | 0 |
+| 1s-close-default | 0/10 | 0/10 | 0 | 0 |
+| 1s-storm-default | 0/3 | 0/3 | 0 | 0 |
+
+The 30-variant PRE campaign is still running. Completed cells above are observed counts,
+not extrapolations. The final report will replace this status after every cell completes.
+
+The reported mainline resets are explained by an exceptional-cleanup defect in
+`tools/lb_episodes.py`, not by evidence of a spontaneous accept/close failure. All seven
+saved reset episodes rejected their balanced baseline (one or two client moves), then
+unwound `boot()` while `Sampler` was still polling. `Children.close()` terminated the
+server; the later `Sampler.close()` exception replaced the original baseline error.
+Every affected record has exactly two baseline commands, no `stimulus_t`, and no
+hot/cold files. Server IO shutdown began 6.68–6.91 ms after baseline end.
+
+Moreover, each saved server's accepts equal the sum of the two baseline selectors'
+`attempts` plus exactly two connections (admin and sampler). The selector chooses one
+specific `wanted` owner for each connection, including when all owners are listed;
+it does not accept the first socket belonging to any allowed owner.
+`docs/connreset/harness-evidence.json` records the original paths, SHA256 receipts,
+underlying baseline errors, accept arithmetic, and monotonic timestamps.
+
+The fix enters the sampler as an inner context, so its thread stops and joins before
+server teardown on success or failure. A secondary observer failure is recorded without
+replacing an existing episode failure. Invalid baselines still FAIL; real monitor errors
+still FAIL. No baseline thresholds or measurement verdicts were relaxed.
+
+The new serverless witness in `tests/connreset_harness_test.py` passes four cases. Its
+throwaway negative control restores the old cleanup edges and fails with the original
+`sampler failed: [Errno 104] Connection reset by peer` masking symptom. The existing
+29 LB episode self-tests pass. `bash -n tests/gate.sh`, Python compilation, and R7 generated
+envelope synchronization pass. The full gate was not run.
+
+`tests/gate.sh` adds one serverless row in `job_lbplanner_units`, collected before the
+quick-tier exit. Maintainer change required: EXPECT_QUICK 490 -> 491; EXPECT_FULL 507 -> 508.
+The constants are untouched.
+
+Reproducer geometry: taskset CPUs 112–127, two 8-core L3 domains, io_uring, jemalloc,
+`--flip-auto 0 --enable-debug-command yes --save '' --appendonly no`.
+2s has 8 IO + 8 EX and 64 default shards; 1s has 16 fused threads and 128 default shards.
+All generated load and sampler work also stays on CPUs 112–127. Every trial uses a fresh
+server, one retained monitor polling INFO + DEBUG LBSIGNALS at 100 ms, a 3-second armed
+baseline, pipeline 128 alternating SET/GET with 64-byte values, and two seconds after
+transition. The monitor is never reconnected; post-failure telemetry uses a separately
+identified recovery connection. Storm workers close each socket after one DEBUG IO-THREAD
+reply. Both closes the persistent cohort immediately and launches the storm in the same
+asyncio turn; close and storm isolate the two actions. Default/client-off/key-off/both-off
+use 128 persistent clients and 500 storm sockets, with client/key LB (1,1)/(0,1)/(1,0)/(0,0).
+Storm1000 uses (1,1), 64 persistent clients, and 1,000 storm sockets. Each cell repeats ten times.
+
+Every trial retains INFO CLIENTS/ALL, before/after connected_clients, rejects, output-buffer
+disconnects, send errors/peer aborts, process affinity, server logs and monitor samples.
+`--validate-results` refuses incomplete matrices, missing pipeline/storm witnesses,
+wrong geometry, client-count mismatches, and a missing post-transition monitor sample.
+
+PRE is merged origin/cpp ea177342dd9ce181488f0954fe436d5f25d78fe5, built locally. PRE and POST
+artifacts are `build/connreset/tomokv-PRE` and `build/connreset/tomokv-POST`.
+Their complete 7,796,224-byte ELF .text sections are identical:
+735516f12be5ae478d15a34383615160e59da019c1ce9e9c2edc62b731b6fffe.
+This includes every command and IO hot path. No locked structure changes. No PAD arm is
+needed because the production text size/layout and behavior are identical.
+`docs/connreset/artifacts.json` binds the binaries and text receipts.
+
+`make connreset-trace` builds `build/connreset/trace/tomokv` with TOMO_CONNRESET_TRACE.
+DEBUG CLOSE-STATS exposes counts by close call site; stderr also records first-close and
+fd-release client IDs/fds/owners plus EOF/receive errno events. All instrumentation is on
+failure/teardown paths, has no per-command probes, and compiles out entirely in production.
+This is a diagnostic binary, not a PAD arm or a performance comparison.
+
+To repeat the exact churn matrix:
+
+```sh
+python3 tests/connreset_repro.py --binary build/connreset/tomokv-PRE --output build/connreset/repeat-pre
+python3 tests/connreset_repro.py --validate-results build/connreset/repeat-pre --expect-clean
+```
+
+The synthetic workload differs from the original live harness: short baseline versus
+93 seconds; 128 small private keys and mixed SET/GET versus 500,000 keys and SET-only
+memtier; Python connect timing versus the LD_PRELOAD selector; unselected storm sockets
+versus surviving stimulus clients pinned to chosen owners; immediate transport closes
+versus memtier's process exit; and loader CPU sharing versus dedicated remote cores.
+If a fresh failure survives the cleanup fix, the next witness should retain the original
+selector and 64 clients targeted to two owners, its 93-second baseline and seed, and record
+natural memtier exit separately from an explicit SIGTERM arm. Those are follow-up differences,
+not evidence that the seven archived runs reached the stimulus.
