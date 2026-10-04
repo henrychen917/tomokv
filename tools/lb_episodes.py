@@ -1496,6 +1496,141 @@ class SelfTest(unittest.TestCase):
         result = metrics(docs, before, after, 3, hot_pipeline=4)
         self.assertEqual(result["accounting"]["count_outstanding_bound"], 64 * (128 + 4))
 
+    def test_128_shard_topology_from_saved_server_log(self):
+        # Exact startup excerpt from cx-lbplanner/build/c4kw-build_tomokv/
+        # s4kg/n8-2-B/server.log. Its 32-thread topology is NOT an episode
+        # geometry; its 128-shard map must nevertheless parse without a cap.
+        saved = """tomokv-cpp: 32 threads (16 io + 16 ex), 128 shard(s), thread-mode=2s, overlap=1, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=0 L3=0 shards=0
+  thread t1: role=ifid cpu=1 L3=0 shards=0
+  thread t2: role=ifid cpu=2 L3=0 shards=0
+  thread t3: role=ifid cpu=3 L3=0 shards=0
+  thread t4: role=ex cpu=4 L3=0 shards=8
+  thread t5: role=ex cpu=5 L3=0 shards=8
+  thread t6: role=ex cpu=6 L3=0 shards=8
+  thread t7: role=ex cpu=7 L3=0 shards=8
+  thread t8: role=ifid cpu=8 L3=1 shards=0
+  thread t9: role=ifid cpu=9 L3=1 shards=0
+  thread t10: role=ifid cpu=10 L3=1 shards=0
+  thread t11: role=ifid cpu=11 L3=1 shards=0
+  thread t12: role=ex cpu=12 L3=1 shards=8
+  thread t13: role=ex cpu=13 L3=1 shards=8
+  thread t14: role=ex cpu=14 L3=1 shards=8
+  thread t15: role=ex cpu=15 L3=1 shards=8
+  thread t16: role=ifid cpu=16 L3=2 shards=0
+  thread t17: role=ifid cpu=17 L3=2 shards=0
+  thread t18: role=ifid cpu=18 L3=2 shards=0
+  thread t19: role=ifid cpu=19 L3=2 shards=0
+  thread t20: role=ex cpu=20 L3=2 shards=8
+  thread t21: role=ex cpu=21 L3=2 shards=8
+  thread t22: role=ex cpu=22 L3=2 shards=8
+  thread t23: role=ex cpu=23 L3=2 shards=8
+  thread t24: role=ifid cpu=24 L3=3 shards=0
+  thread t25: role=ifid cpu=25 L3=3 shards=0
+  thread t26: role=ifid cpu=26 L3=3 shards=0
+  thread t27: role=ifid cpu=27 L3=3 shards=0
+  thread t28: role=ex cpu=28 L3=3 shards=8
+  thread t29: role=ex cpu=29 L3=3 shards=8
+  thread t30: role=ex cpu=30 L3=3 shards=8
+  thread t31: role=ex cpu=31 L3=3 shards=8"""
+        header, *lines = saved.splitlines()
+        count = int(header.partition(" shard(s)")[0].rsplit(",", 1)[1])
+        roles = [(int(v[1][1:-1]), "io" if v[2] == "role=ifid" else "ex")
+                 for v in map(str.split, lines)]
+        sample = self.topology_sample(roles, shards=count)
+        self.assertEqual(len(sample["signals"]["shards"]), 128)
+        self.assertEqual(set(sample["signals"]["shards"]), set(range(128)))
+        owners = Counter(row["owner"] for row in sample["signals"]["shards"].values())
+        self.assertTrue(all(owners[int(v[1][1:-1])] == int(v[5].partition("=")[2])
+                            for v in map(str.split, lines)))
+        with self.assertRaisesRegex(ValueError, "observed Counter"):
+            geometry(sample, "2s")
+
+    def test_explicit_arms_receipt_binds_paths_hashes_and_itself(self):
+        import tempfile
+        frozen, identity = bind_arms(None)
+        self.assertEqual(frozen, ARMS)
+        self.assertIsNone(identity["path"])
+        with tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+            directory = Path(temp)
+            entries = {}
+            for arm in ARMS:
+                binary = directory / arm
+                binary.write_text(arm)
+                binary.chmod(0o700)
+                entries[arm] = {"path": arm, "sha256": digest(binary)}
+            receipt = directory / "arms.json"
+            save_json(receipt, entries)
+            args = argument_parser().parse_args([])
+            args.arm_table, args.arms_receipt = bind_arms(receipt)
+            self.assertEqual(args.arms_receipt, {"path": str(receipt), "sha256": digest(receipt), "source": "--arms"})
+            verify_arms(args)
+            self.assertEqual(server_command(args, "POST", "1s", directory)[3], str(directory / "POST"))
+            (directory / "POST").write_text("changed")
+            with self.assertRaisesRegex(ValueError, "POST binary differs from explicit arms receipt"):
+                verify_arms(args)
+            (directory / "POST").write_text("POST")
+            receipt.write_text(receipt.read_text() + "\n")
+            with self.assertRaisesRegex(ValueError, "arms receipt changed"):
+                verify_arms(args)
+            for broken in ({"PRE": entries["PRE"]}, dict(entries, POST={"path": "POST", "sha256": "bad"})):
+                save_json(receipt, broken)
+                with self.assertRaises(ValueError):
+                    bind_arms(receipt)
+            receipt.write_text('{"PRE": {}, "PRE": {}}')
+            with self.assertRaisesRegex(ValueError, "duplicate"):
+                bind_arms(receipt)
+        self.assertEqual(frozen, ARMS)  # replacement never mutates the frozen table
+
+    def test_filtered_dry_run_has_no_unrequested_matrix_or_probes(self):
+        from contextlib import redirect_stdout
+        import io
+        for episode, expected_servers in (("key-skew", 28), ("client-skew", 26)):
+            args = argument_parser().parse_args(["--episodes", episode, "--hot-pipeline", "4"])
+            output = io.StringIO()
+            with redirect_stdout(output):
+                dry_run(args)
+            commands = [shlex.split(s) for s in output.getvalue().splitlines() if not s.startswith("#")]
+            servers = [a for a in commands if "--thread-mode" in a]
+            self.assertEqual(len(servers), expected_servers)
+            paths = [a[a.index("--dir") + 1] for a in servers]
+            other = "client-skew" if episode == "key-skew" else "key-skew"
+            self.assertTrue(all(other not in path for path in paths))
+            self.assertEqual(sum(path.endswith("-probe") for path in paths), 2 if episode == "key-skew" else 0)
+
+    def test_refused_probe_stops_matrix_with_exit_three(self):
+        from contextlib import redirect_stdout
+        import io
+        import tempfile
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+            output = Path(temp) / "campaign"
+            def fake_compile(argv, **kwargs):
+                (output / "owner-select.so").write_bytes(b"not a shared object")
+            def seed(args, mode):
+                return output / ("seed-" + mode), {"shards": 128 if mode == "1s" else 64}
+            jobs = []
+            def episode(args, arm, mode, kind, number, *rest, **kwargs):
+                jobs.append((kind, kwargs.get("probe", False)))
+                return {"status": "REFUSED", "reason": "UNARMED"} if kwargs.get("probe") else {
+                    "status": "PASS", "criterion": {"shards": 128 if mode == "1s" else 64}}
+            with patch(__name__ + ".verify_arms"), patch(__name__ + ".prepare_seed", side_effect=seed), \
+                    patch(__name__ + ".run_episode", side_effect=episode), \
+                    patch.object(shutil, "which", return_value=__file__), \
+                    patch.object(os, "sched_getaffinity", return_value=set(range(112))), \
+                    patch.object(os, "sched_setaffinity"), \
+                    patch.object(subprocess, "run", side_effect=fake_compile), \
+                    patch.object(subprocess, "Popen", side_effect=AssertionError("started process")), \
+                    patch.object(socket, "socket", side_effect=AssertionError("opened socket")), \
+                    redirect_stdout(io.StringIO()):
+                code = main(["--episodes", "key-skew", "--output", str(output)])
+            self.assertEqual(code, 3)
+            self.assertEqual(jobs, [("balanced", False)] * 2 + [("key-skew", True)] * 2)
+            self.assertEqual(json.loads((output / "results.json").read_text()), [])
+            manifest = json.loads((output / "manifest.json").read_text())
+            self.assertEqual(manifest["identity"]["shards"], {"1s": 128, "2s": 64})
+            self.assertEqual(json.loads((output / "report.json").read_text())["status"], "REFUSED")
+
 
 if __name__ == "__main__":
     try:
