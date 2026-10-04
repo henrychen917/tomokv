@@ -45,6 +45,18 @@ def parse_info(raw):
                 if line and not line.startswith("#") and ":" in line)
 
 
+def check_geometry(info, mode, shards):
+    require(info["thread_mode"] == mode, "observed thread mode differs")
+    if mode == "2s":
+        require((int(info["io_threads"]), int(info["ex_threads"])) == (8, 8),
+                "observed IO/EX counts differ from 8/8")
+    else:
+        require(all(int(info[key]) == 16 for key in ("fused_threads", "client_threads", "owner_threads")),
+                "observed fused/client/owner counts differ from 16")
+    require(int(info["shards"]) == (shards or (64 if mode == "2s" else 128)),
+            "observed shard count differs")
+
+
 def classify(error):
     if isinstance(error, ConnectionResetError) or getattr(error, "errno", None) == errno.ECONNRESET:
         return "ECONNRESET"
@@ -211,10 +223,7 @@ async def transition(args, variant, directory):
         observed = monitor.before["info"]
         require(observed["thread_mode"] == mode, "observed thread mode differs from requested mode")
         if not args.live_port:
-            require((int(observed["io_threads"]), int(observed["ex_threads"])) ==
-                    ((8, 8) if mode == "2s" else (16, 0)), "observed IO/EX counts differ")
-            require(int(observed["shards"]) == (args.shards or (64 if mode == "2s" else 128)),
-                    "observed shard count differs")
+            check_geometry(observed, mode, args.shards)
         await cohort.start()
         await asyncio.sleep(args.warmup)
         require(monitor.failure is None, "monitor failed before transition: " + str(monitor.failure))
@@ -329,6 +338,48 @@ def report(rows, args):
     (args.output / "table.md").write_text("\n".join(lines) + "\n")
 
 
+def validate_results(directory):
+    """Audit finished trials without starting anything; incomplete cells fail."""
+    manifest = json.loads((directory / "manifest.json").read_text())
+    rows = [json.loads(line) for line in (directory / "results.jsonl").read_text().splitlines()]
+    expected = {(f"{mode}-{event}-{profile}", repeat)
+                for mode in manifest["modes"] for profile in manifest["profiles"]
+                for event in manifest["events"] for repeat in range(1, manifest["repeats"] + 1)}
+    require(len(rows) == len(expected) and {(r["variant"], r["repeat"]) for r in rows} == expected,
+            "missing/duplicate variant repetitions")
+    counters = Counter()
+    for row in rows:
+        require(not row.get("trial_error"), "incomplete trial: " + str(row.get("trial_error")))
+        require(not row.get("recovery_error"), "post-transition telemetry failed")
+        mode, event, profile = row["variant"].split("-", 2)
+        _, _, clients, sockets = PROFILES[profile]
+        before, after = row["before_transition"], row["after_transition"]
+        info = row["monitor"]["before"]["info"]
+        require(info["thread_mode"] == mode, "wrong observed mode")
+        if not manifest.get("live_port"):
+            check_geometry(info, mode, manifest.get("shards"))
+            require(all(set(cpus) <= CPUS for cpus in row["server"]["affinity"].values()),
+                    "server thread outside CPUs 112-127")
+            require(int(info["process_id"]) == row["server"]["pid"], "wrong server PID")
+        require(int(before["info"]["connected_clients"]) == clients + 1, "unarmed persistent cohort")
+        require(len(row["pipelines_before"]) == clients and min(row["pipelines_before"]) > 0,
+                "not every persistent client completed a pipeline")
+        if event != "close":
+            require(row["storm"]["completed"] == sockets and not row["storm"]["errors"], "unarmed storm")
+        if event != "storm":
+            require(row["close"]["count"] == clients, "not every persistent client closed")
+        failure = row["monitor"]["failure"]
+        counters[(failure or {}).get("kind", "clean")] += 1
+        if failure is None:
+            require(after["t"] > (row.get("storm", {}).get("end") or row["transition_t"]),
+                    "no post-transition monitor sample")
+            require(int(after["info"]["connected_clients"]) == (clients + 1 if event == "storm" else 1),
+                    "wrong number of surviving clients")
+    return {"trials": len(rows), "variants": len(expected) // manifest["repeats"],
+            "monitor": dict(counters), "max_monitor_gap_seconds":
+            max(r["monitor"]["max_sample_gap"] for r in rows)}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--binary", type=Path, default=ROOT / "build/tomokv")
@@ -345,9 +396,14 @@ def main():
     parser.add_argument("--shards", type=int)
     parser.add_argument("--info-only", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--validate-results", type=Path, help="read-only audit of a finished campaign")
     parser.add_argument("--live-port", type=int)
     parser.add_argument("--expect-clean", action="store_true", help="nonzero exit on a retained monitor failure")
     args = parser.parse_args()
+    if args.validate_results:
+        summary = validate_results(args.validate_results)
+        print(json.dumps(summary, indent=2))
+        return int(args.expect_clean and summary["monitor"].get("clean", 0) != summary["trials"])
     def interrupted(signum, frame):
         raise KeyboardInterrupt
     signal.signal(signal.SIGTERM, interrupted)
