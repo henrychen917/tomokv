@@ -1,0 +1,11 @@
+--- a/src/core/ex_loop.h
++++ b/src/core/ex_loop.h
+@@ -2774,7 +2774,7 @@
+             // degrades to exactly the sequence below it.
+             if (__builtin_expect(notify_batch_open_, true)) {
+                 if (__builtin_expect(notify_batch_n_ == kNotifyBatchMax, false))
+-                    flush_notify_batch();
++                    std::abort(); // diagnostic arm: any in-batch overflow is a failed bound
+                 notify_batch_[notify_batch_n_++] = NotifyEntry{target, slot};
+                 return;
+             }

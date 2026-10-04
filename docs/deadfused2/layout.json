@@ -1,0 +1,27 @@
+{
+  "binary": "build/tomokv",
+  "launched": false,
+  "all_size_deltas": 0,
+  "sizes": {
+    "tomo::AtomicEntry": 144,
+    "tomo::Client": 1984,
+    "tomo::Config": 624,
+    "tomo::ExLoopT<false>": 5848,
+    "tomo::ExLoopT<true>": 5856,
+    "tomo::FlatStore": 944,
+    "tomo::Op": 336,
+    "tomo::Rob<64>": 192,
+    "tomo::Shard": 1440,
+    "tomo::ThreadCtx": 1408,
+    "tomo_db0::AtomicEntry": 144,
+    "tomo_db0::Client": 1984,
+    "tomo_db0::Config": 624,
+    "tomo_db0::ExLoopT<false>": 5848,
+    "tomo_db0::ExLoopT<true>": 5856,
+    "tomo_db0::FlatStore": 944,
+    "tomo_db0::Op": 336,
+    "tomo_db0::Rob<64>": 192,
+    "tomo_db0::Shard": 1440,
+    "tomo_db0::ThreadCtx": 1408
+  }
+}

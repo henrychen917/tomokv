@@ -154,7 +154,7 @@ inline bool priority_enabled(uint32_t requested) {
 template <size_t BatchOps>
 class ExReorderQueues {
     static_assert(BatchOps == kGenthreadExBatchOps ||
-                  BatchOps == kGenthreadPipelineExBatchOps);
+                  BatchOps == 128 /* legacy queue unit geometry; no production caller */);
     static constexpr uint32_t Capacity = 2 * BatchOps;
     static_assert((Capacity & (Capacity - 1)) == 0);
     static_assert(std::is_trivially_destructible_v<Task>);
@@ -311,7 +311,7 @@ public:
 template <size_t BatchOps>
 class ShadowReorderQueues {
     static_assert(BatchOps == kGenthreadExBatchOps ||
-                  BatchOps == kGenthreadPipelineExBatchOps);
+                  BatchOps == 128 /* legacy queue unit geometry; no production caller */);
     static constexpr uint32_t Capacity = 2 * BatchOps;
     using Index = uint16_t;
     static constexpr Index None = UINT16_MAX;

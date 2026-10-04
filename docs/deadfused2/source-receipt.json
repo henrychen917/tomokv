@@ -1,0 +1,19 @@
+{
+  "launch_head": "744c86d07590c3b3f584317d288ccecb4812e8fa",
+  "origin_cpp": "aee02e84748f5b5ccd301ba9c206214651cd4189",
+  "branch": "cx-deadfused",
+  "production_source_unchanged": true,
+  "protected_files_unchanged": true,
+  "files": {
+    "tests/reorder_noop.py": "7da3fb082649980764584150af03c7d487bba8f81d4617b1a2056e29c3767da1",
+    "tests/deadfused_checks.py": "318dfbf26a712b92ff1fe0affc44e27ba647c58efdc92a71914668ba4657ce01",
+    "tests/r7shadow_noop.py": "196c612e865c9d350d62a23b7a937d439d5c31e66dda1839ccacd66492f4c365",
+    "tests/reorder_receipt.py": "9787d7e8127ddf391a26aae2b7aa4a2b197f2b4eba9215f8aece0668ca4076f9",
+    "tests/r7shadow_sync.py": "cb42d333a9fa1c2bab1a0b760ee1fe89b8e61f58cbfaf12114f3a0949729268e",
+    "src/core/reorder.cc": "50ed7435bb112a027104f388bf14391c1747ce6a6f9809663eb4de5fe28f6507",
+    "src/core/ex_loop.h": "fcbea94bf49b3e0031e3bb25a7c4038122c08243b6feb560c099dfd9c0bd0bd3",
+    "src/core/io_loop.h": "770cf847b8333e6109a910e3ada3dd80cf0a2e3dc214991e58fb0470c59082f8",
+    "tests/gate.sh": "f7fbc3ef5d5530519279ff90dae5e05c78d5a0e866cd89da8dbd0284076ff2f1",
+    "tests/fixtures/nullrefresh-ledger-labels.json": "9e41a3e176db4695e5bc4e5e5d394e68af12dd4eac3698ad600252f53824b30f"
+  }
+}

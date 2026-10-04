@@ -219,16 +219,6 @@ public:
         return serve_impl<false, false, kEp, false, false, Coded>(c, &submit_allowed);
     }
 
-    // Unified pipeline batches already guard a nullable Client slot before their submit half. Its
-    // bound limit callback tombstones that slot on the rare refusal, avoiding a parallel bool on
-    // every ordinary reply while leaving the established split-pipeline prepare API untouched.
-    template <bool kEp = false, bool Coded = false>
-    bool prepare_pipeline(Client& c) {
-        if (__builtin_expect(limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, false, kEp, false, false, Coded>(c);
-        return serve_impl<false, false, kEp, false, false, Coded>(c);
-    }
-
     // kTLS uses the ordinary plaintext staging and send path. This separate instantiation only
     // enforces/counts the pre-existing TLS no-borrow contract; plaintext clients pay no mode test.
     template <bool kEp = false, bool ClassifySend = false, bool Coded = false>
@@ -246,13 +236,6 @@ public:
         return serve_impl<false, true, kEp, false, false, Coded>(c, &submit_allowed);
     }
 
-    template <bool kEp = false, bool Coded = false>
-    bool prepare_pipeline_ktls(Client& c) {
-        if (__builtin_expect(limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_impl<true, true, kEp, false, false, Coded>(c);
-        return serve_impl<false, true, kEp, false, false, Coded>(c);
-    }
-
     // TLS is a separate write-back variant selected by the IO owner. Plain serve()/pump() above
     // remain untouched and are the only instantiated path when tls-port is zero.
     template <bool kEp = false, bool ClassifySend = false, bool Coded = false>
@@ -268,13 +251,6 @@ public:
         if (__builtin_expect(limit_armed_->load(std::memory_order_relaxed), false))
             return serve_tls_impl<true, kEp, false, false, Coded>(c, tls, &submit_allowed);
         return serve_tls_impl<false, kEp, false, false, Coded>(c, tls, &submit_allowed);
-    }
-
-    template <bool kEp = false, bool Coded = false>
-    bool prepare_pipeline_tls(Client& c, TlsConn& tls) {
-        if (__builtin_expect(limit_armed_->load(std::memory_order_relaxed), false))
-            return serve_tls_impl<true, kEp, false, false, Coded>(c, tls);
-        return serve_tls_impl<false, kEp, false, false, Coded>(c, tls);
     }
 
     // THE ENGINE'S ONE ESCALATION CHANNEL. Under io_uring a fatal send error is reported by

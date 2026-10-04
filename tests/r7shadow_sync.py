@@ -95,7 +95,7 @@ def envelopes():
     for owner, source, methods in (('ExLoopT<Fused>', ex, base.EX), ('IoLoop', io, IO)):
         names = {name: 'r7_' + name for name in methods}
         if owner.startswith('Ex'):
-            names.update(drain_tasks='r7_drain_tasks', drain_tasks_with_filler='r7_drain_tasks_with_filler')
+            names.update(drain_tasks='r7_drain_tasks')
         else:
             names.update({name: 'r7_' + name for name in base.EX if name.startswith('fused_')})
         decls = []

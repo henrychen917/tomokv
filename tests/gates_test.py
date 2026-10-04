@@ -1411,6 +1411,10 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
 
 
 class PersistfixWiring(unittest.TestCase):
+    def test_driver_identity_and_recovery_diagnostics(self):
+        import persistfix
+        self.assertTrue(persistfix.self_test())
+
     def test_recovery_requires_owned_pid_reply_and_records_the_peer(self):
         import persistfix
         from unittest.mock import Mock
@@ -1418,27 +1422,43 @@ class PersistfixWiring(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             run = persistfix.Run(SimpleNamespace(artifacts=Path(temporary), mode='1s',
                                                 case='kill', port=19000))
+            run.boots = 2
             run.process = SimpleNamespace(pid=12345, poll=lambda: None)
+            run.identity = dict(pid=12345, run_id='owned-peer-test', ready=False)
             run.log_path = run.root / 'server-2.log'
             run.log_path.touch()  # Reproduce the landing's empty recovery log.
             peer = Mock()
-            with patch.object(persistfix, 'Resp', return_value=peer):
+            with patch.object(persistfix, 'check_port_owner', return_value=True), \
+                    patch.object(persistfix, 'process_cmdline', return_value='foreign-server'), \
+                    patch.object(persistfix, 'Resp', return_value=peer) as resp:
+                # Even a responding endpoint cannot replace this child's banner.
+                peer.cmd.return_value = b'# Server\r\nprocess_id:12345\r\n'
+                self.assertFalse(run.ready())
+                resp.assert_not_called()
+                run.log_path.write_text('listening on 127.0.0.1:19000\n')
                 # Connect succeeded; the endpoint has not answered a protocol request.
                 peer.cmd.side_effect = ConnectionResetError('pre-start connection')
                 self.assertFalse(run.ready())
                 peer.close.assert_called_once()
                 peer.reset_mock()
-                peer.cmd.side_effect = None
-                peer.cmd.return_value = b'# Server\r\nprocess_id:12345\r\n'
+                peer.cmd.side_effect = [b'# Server\r\nprocess_id:12345\r\n', b'PONG']
                 self.assertTrue(run.ready())
-                peer.cmd.assert_called_once_with('INFO', 'Server')
-                peer.close.assert_called_once()
+                self.assertEqual(peer.cmd.call_args_list, [(('INFO', 'Server'),), (('PING',),)])
+                self.assertIs(run.ready_client, peer)
+                self.assertEqual(run.clients, [peer])
+                peer.close.assert_not_called()
+                identity = json.loads((run.root / 'server-2.json').read_text())
+                self.assertTrue(identity['ready'])
+                self.assertEqual(identity['info']['process_id'], '12345')
+                run.clients.pop().close()
+                peer.cmd.side_effect = None
                 for reply in (b'process_id:54321\r\n', b'# Server\r\n'):
                     peer.cmd.return_value = reply
                     for action in (run.ready, run.client):
                         peer.reset_mock()
                         with self.assertRaisesRegex(AssertionError, 'persistence peer PID mismatch'):
                             action()
+                        peer.cmd.assert_called_once_with('INFO', 'Server')
                         peer.close.assert_called_once()
                         self.assertEqual(run.clients, [])
             events = [json.loads(line) for line in (run.root / 'processes.jsonl').read_text().splitlines()]
@@ -1446,6 +1466,9 @@ class PersistfixWiring(unittest.TestCase):
             self.assertIn('ConnectionResetError', events[0]['error'])
             self.assertEqual([row['observed_pid'] for row in events[1:]],
                              ['12345', '54321', '54321', None, None])
+            self.assertEqual([row['event'] for row in events[1:]],
+                             ['ready', 'ready', 'client', 'ready', 'client'])
+            self.assertTrue(all(row['boot'] == 2 for row in events))
             self.assertTrue(all(row['pid'] == 12345 and row['port'] == 19000 for row in events))
 
     def test_driver_reuses_stopped_port_but_refuses_live_listener(self):

@@ -1,0 +1,26 @@
+{
+  "PRE": {
+    "path": "build/deadfused/PRE",
+    "sha256": "bb7b05bfbf0face9d2c6bdbbe76297048ac9bcbf60b929f488c7819193a8f900"
+  },
+  "POST": {
+    "path": "build/deadfused/POST",
+    "sha256": "78a4c8355a1bccb65cbfdbbf0b46c176583d3556a1beeb5d10607755501f2297"
+  },
+  "PAD-A": {
+    "path": "build/deadfused/PAD-A",
+    "sha256": "742fcc9774a0fb2901948f592810fb1cf356626e0f82e3a5621518f9acb10bed"
+  },
+  "POST-NOTIFY-BOUND": {
+    "path": "build/deadfused/POST-NOTIFY-BOUND",
+    "sha256": "036c4a012fe8e44a9c369c785b49bc14c0fae22a3f7eaa79d195ebc37e80aa64"
+  },
+  "SCHEDULER": {
+    "path": "build/deadfused/SCHEDULER",
+    "sha256": "5ac8d3d0f945f26ed0e16d45cd1c786a40a56a8446c5936f4053a28566d13604"
+  },
+  "INFO-PAD-A-UNIT": {
+    "path": "build/deadfused/INFO-PAD-A-UNIT",
+    "sha256": "24cc0f1162b0ef76480e2ec8dbf80c674fcb2a2e9e716d4485429a8cae01f2f1"
+  }
+}
