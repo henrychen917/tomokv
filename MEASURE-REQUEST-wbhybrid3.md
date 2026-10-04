@@ -1,6 +1,7 @@
 wbhybrid3: production policy 1 is the measured S=16, D=3 bounded completion rule.
-Implementation and offline proofs are complete. Production merit, live boot/gate,
-and landing remain MAINLINE work; no performance verdict is claimed for this build.
+Implementation and offline proofs are complete. The original lane requested
+mainline verification below; the appended MEASURE-RESULT records the subsequent
+2026-10-02 mainline merit decision.
 
 The first read on resume of `/home/user/Projects/WBHYBRID3-CHOSEN-D` returned
 **`3`**, selecting **`hyb16-d3`**. Original launch HEAD was
@@ -376,7 +377,7 @@ p8 GET/SET saturation and p8 p50/p99 at 60%/80% offered load, and contemporary
 nulls. Require no loss beyond the class band; D2's historical wire numbers are
 not a substitute. Then run **`tests/gate.sh iteration`**, verify both modes and
 database configurations, and land only after mainline's merit/gate decision.
-Append results as `MEASURE-RESULT`; they are pending here.
+The subsequent mainline result is recorded in `MEASURE-RESULT` below.
 
 **Offline reproduction and receipts.** The committed machine ledger is
 `tests/wb_rule_completion_evidence.json`. Raw logs/JSON, binary preservation
@@ -501,3 +502,40 @@ change can be reviewed with `git diff 37654babe --stat`.
  tools/wbhybrid_artifacts.py                        |   441 -
  95 files changed, 43938 insertions(+), 3555 deletions(-)
 ```
+
+## MEASURE-RESULT — mainline landing merit, 2026-10-02
+
+Transcribed from `/home/user/Projects/PLAN-SERIAL.md`, entries 11:58–14:27
+(Asia/Taipei), read on 2026-10-03 by lane gaterows. These are the maintainer's
+recorded measurements, not new lane measurements. PRE is headline `11b2cbcff`
+(half rule); POST is the production S=16/D=3 build delivered above. The historical
+selection table earlier in this file remains the study result on its own base.
+
+| Entry / comparison | PRE → POST result | Mainline judgment |
+| --- | --- | --- |
+| 11:58, loopback p8 GET / SET / read-local SET | +6.50% / +10.10% / +8.98% throughput; commands/send +15.5% / +19.9% / +17.9% | Production retains the small-pipe gain |
+| 11:58, loopback p32 GET / SET | +0.75% / −1.88%; read-local +3.20% / +2.19% | Within the 2.5% / read-local 5% class bands; no losing cell among 14 generic cells |
+| 12:26, reorder on | p8 GET / SET +7.23% / +6.51%; p32 GET / SET −0.58% / +0.03%; 9-key p32 −0.68% | p8 gain retained; other cells within spread |
+| 12:26, 4,096 connections, p32 | GET −0.44%; SET −0.53% | Within spread |
+| 12:56, production versus frozen hyb16-d3, 14 cells | Worst p32 GET +1.95%, SET +1.73%; read-local SET p8 +3.24% in its 5% class; p8 GET / SET −0.8% / −1.0% | Same-rule NULL, all cells within band despite −10,928 bytes of `.text` from intervening cleanups |
+| 13:26, floor-0.4 bursts, reorder off, 8/8 samples | Short p50 −10.5%, p99 −1.0%, p99.9 +4.6% | p50 improves; tails within the 5–7% resolution band |
+| 13:26, floor-0.4 bursts, reorder on, pooled 16/16 | Short p50 −8.1%, p99 −1.1%, p99.9 +3.7% | Tails within band; the earlier 8/8 p99.9 +7.7% was superseded by this confirmation |
+| 13:56, 25GbE p8 GET | 15.40 → 17.67 Mops/s (+14.8%); commands/send 6.04 → 7.89 | Gain, medians of 4/4 |
+| 13:56, 25GbE p8 SET | 14.97 → 16.68 Mops/s (+11.4%); commands/send 5.96 → 7.77 | Gain, medians of 4/4 |
+| 13:56, 25GbE p32 GET / SET | 27.28 → 27.36 / 25.52 → 25.43 Mops/s (+0.3% / −0.3%) | Within spread |
+| 14:27, wire GET p8 at 60% / 80% offered load | p50 −11.7% / −15.1%; p99 −10.7% / −12.3% | Consistent improvement |
+| 14:27, wire SET p8 at 60% / 80% | p50 −11.4% / −7.6%; p99 −10.4% / −4.5%; p99.9 −31% / −15% | p50/p99 improved; p99.9 recorded as unresolved |
+| 14:27, wire p32 | GET p50 +1.7% / −2.8%, p99 +6.2% / −3.5%, p99.9 +7.4% / +7.0%; SET all within ±2% | Within resolution |
+
+Mainline's four-versus-four wire resolution was ±4 points for p50, ±10 for
+p99, ±20 for p99.9. At 14:27 it set **GO-WBHYBRID3-LANDING**: the p8 gains
+survived loopback, reorder, and wire checks, the same-rule comparison was null,
+and no cell lost beyond its class band. This is a transcription of that decision,
+not a replacement for the raw samples or a new certification of today's binary.
+
+WB22 ledger clarification: `kGenthreadWbBatchConns` (16) and the old 2s
+`kServeBudget` describe retired serve budgets (deleted by `6fd3abc53`). The
+current `wb_rule::Phase2` visits the whole captured FIFO once; it retains
+deferred entries in FIFO order. The per-connection completion rule uses the
+measured S=16/D=3 constants above. D bounds completion-rule deferrals only;
+the half-rule clause has no time or pass bound on an unfinished head.
