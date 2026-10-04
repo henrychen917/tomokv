@@ -3,7 +3,8 @@
 
 Frozen PRE balanced windows determine ONE envelope per mode before any scored
 arms run. Missing stimulus, motion, telemetry or a complete hold is a failure.
-See MEASURE-REQUEST-lbplanner-bench.md for geometry and interpretation limits.
+See MEASURE-REQUEST-lbplanner-bench.md and MEASURE-REQUEST-lbplanner-bench2.md
+for geometry and interpretation limits.
 """
 import argparse
 from collections import Counter
@@ -127,10 +128,13 @@ def parse_signals(raw):
 
 def geometry(sample, mode):
     snap = sample["signals"]
-    require(snap["derived"]["thread_mode"] == mode, "wrong thread mode")
     roles = Counter(r["role"] for r in snap["threads"].values())
-    require(roles == ({"fused": 16} if mode == "1s" else {"io": 12, "ex": 4}),
-            "expected 16 fused or 12 IO + 4 EX on cores 0-15 (ratio 6:2)")
+    require(snap["derived"]["thread_mode"] == mode,
+            f"expected thread-mode={mode}, observed {snap['derived']['thread_mode']}; observed {roles!r}")
+    valid = (roles == {"fused": 16} if mode == "1s" else
+             len(snap["threads"]) == roles["io"] + roles["ex"] == 16 and roles["io"] >= 2)
+    expected = "16 fused threads" if mode == "1s" else "16 IO + EX threads with at least 2 IO"
+    require(valid, f"expected {expected} on cores 0-15; observed {roles!r}")
     require(set(snap["shards"]) == set(range(16)), "expected exactly 16 shards")
     return sorted(tid for tid, row in snap["threads"].items() if row["role"] in ("io", "fused"))
 
@@ -430,13 +434,13 @@ class Sampler:
 
 
 def server_command(args, arm, mode, directory):
+    # Match calib/lb-stationary.sh: the default split uses all 16 allowed CPUs.
+    # --ratio specifies whole-server counts, not a ratio scaled to CPU affinity.
     argv = ["taskset", "-c", SERVER_CORES, str(ROOT / ARMS[arm][0]),
             "--bind", "127.0.0.1", "--port", str(args.port), "--thread-mode", mode,
             "--shards", "16", "--key-lb", "1", "--client-lb", "1", "--flip-auto", "0",
             "--enable-debug-command", "yes", "--save", "", "--appendonly", "no",
             "--dir", str(directory), "--dbfilename", "seed.tomo"]
-    if mode == "2s":
-        argv += ["--ratio", "6:2"]
     return argv
 
 
@@ -702,20 +706,21 @@ def dry_run(args):
     jobs = [("PRE", mode, "balanced", attempt) for mode in ("1s", "2s") for attempt in range(1, 4)] + list(schedule())
     for arm, mode, episode, number in jobs:
         directory = args.output / f"{episode}-{mode}-{arm}-r{number}"
-        owners = list(range(16 if mode == "1s" else 12))
+        owners = ["<boot-io-owners>"]
         if episode == "balanced" and number > 1:
             print("# CONDITIONAL: only if preceding calibration failed to arm; fresh snapshot/server, bounded to 3")
         print(f"# {directory.name}: copy shared seed; verify hash/key map/actual owner IDs")
         command(server_command(args, arm, mode, directory))
         print("# RESP: INFO SERVER (owned PID); DEBUG SHARDS; INFO LB + DEBUG LBSIGNALS every 100 ms")
         print("# Selector RESP per connection attempt: DEBUG IO-THREAD (<=512 fresh sockets); actual IO IDs come from boot")
+        print("# Owner placeholders expand to comma-separated sorted DEBUG LBSIGNALS IO/fused IDs; EX IDs are excluded")
         for label in ("baseline-a", "baseline-b"):
             command(load_command(args, directory, label, 1, KEYS, args.warm + args.baseline + 3, owners=owners))
         if episode != "balanced":
             print("# RESP: INFO COMMANDSTATS before/after both complete post-stimulus generators")
             ranges = [(args.hotmax + 1, KEYS), (1, args.hotmax)] if episode == "key-skew" else [(1, KEYS)] * 2
             for label, (low, high) in zip(("cold", "hot"), ranges):
-                targets = owners[:2] if episode == "client-skew" and label == "hot" else owners
+                targets = ["<first-two-boot-io-owners>"] if episode == "client-skew" and label == "hot" else owners
                 command(load_command(args, directory, label, low, high,
                                      int(args.max_converge + DECISION_SECONDS + args.suffix + 3), owners=targets))
         print("# stop sampler; SIGTERM owned server process group; wait (SIGKILL only on timeout)")
@@ -890,6 +895,65 @@ class SelfTest(unittest.TestCase):
             parse_signals(raw.replace(b"lbver 1", b"lbver 2"))
         self.assertEqual(occupancy(self.trace(), 1, 10, 0)["coord_busy"], 80)
 
+    @staticmethod
+    def topology_sample(roles, mode="2s"):
+        rows = ["lbver 1 stamp_ns 42"]
+        rows += [f"thread {tid} {role} " + " ".join(["0"] * 20) for tid, role in roles]
+        writers = [tid for tid, role in roles if role in ("ex", "fused")]
+        rows += [f"shard {sid} {writers[sid % len(writers)]} 0 100 0 0 4 256" for sid in range(16)]
+        rows += [f"derived thread_mode {mode} client_threads {sum(r != 'ex' for _, r in roles)}"]
+        return {"signals": parse_signals(("\n".join(rows) + "\n").encode())}
+
+    def test_failed_split_topology_from_saved_server_log(self):
+        # Exact startup rows from build/lbplanner-episodes-mainline-01/
+        # balanced-2s-PRE-r1/server.log. DEBUG LBSIGNALS names ifid's role "io".
+        # Keep the excerpt inline so self-test needs no local measurement files.
+        saved_rows = """  thread t0: role=ifid cpu=0 L3=0 shards=0
+  thread t1: role=ifid cpu=1 L3=0 shards=0
+  thread t2: role=ifid cpu=2 L3=0 shards=0
+  thread t3: role=ex cpu=3 L3=0 shards=8
+  thread t4: role=ifid cpu=8 L3=1 shards=0
+  thread t5: role=ifid cpu=9 L3=1 shards=0
+  thread t6: role=ifid cpu=10 L3=1 shards=0
+  thread t7: role=ex cpu=11 L3=1 shards=8"""
+        roles = [(int(v[1][1:-1]), "io" if v[2] == "role=ifid" else "ex")
+                 for v in map(str.split, saved_rows.splitlines())]
+        sample = self.topology_sample(roles)
+        threads = sample["signals"]["threads"]
+        self.assertEqual([tid for tid, row in threads.items() if row["role"] == "io"],
+                         [0, 1, 2, 4, 5, 6])
+        with self.assertRaises(ValueError) as failure:
+            geometry(sample, "2s")
+        self.assertIn("observed Counter({'io': 6, 'ex': 2})", str(failure.exception))
+
+    def test_split_topology_and_selector_exclude_ex_owners(self):
+        args = SimpleNamespace(output=Path("/unused"), port=7931,
+                               memtier="memtier_benchmark", rate_per_client=0)
+        # Two interleaved domains; accept both the default 8:8 and other valid splits.
+        for expected in ([0, 1, 2, 3, 8, 9, 10, 11], [0, 1, 2, 8, 9, 10], [1, 9]):
+            with self.subTest(io_owners=expected):
+                sample = self.topology_sample([(tid, "io" if tid in expected else "ex")
+                                               for tid in reversed(range(16))])
+                owners = geometry(sample, "2s")
+                self.assertEqual(owners, expected)
+                for targets in (owners, owners[:2]):
+                    argv = load_command(args, args.output, "hot", 1, KEYS, 216, owners=targets)
+                    selected = next(v for v in argv if v.startswith("LB_EPISODE_OWNERS="))
+                    ids = list(map(int, selected.partition("=")[2].split(",")))
+                    self.assertEqual(ids, targets)
+                    self.assertTrue(all(sample["signals"]["threads"][tid]["role"] == "io" for tid in ids))
+
+    def test_geometry_rejects_wrong_counts_or_roles(self):
+        self.assertEqual(geometry(self.topology_sample([(t, "fused") for t in range(16)], "1s"), "1s"),
+                         list(range(16)))
+        for mode, roles in (
+                ("1s", [(t, "fused") for t in range(15)]),
+                ("2s", [(t, "io" if t == 0 else "ex") for t in range(16)]),
+                ("2s", [(t, "io" if t < 8 else "ex") for t in range(17)]),
+                ("2s", [(t, "fused" if t == 0 else "io" if t < 8 else "ex") for t in range(16)])):
+            with self.subTest(mode=mode, roles=roles), self.assertRaisesRegex(ValueError, "observed Counter"):
+                geometry(self.topology_sample(roles, mode), mode)
+
     def test_orders_and_sha_pins(self):
         jobs = list(schedule())
         self.assertEqual(len(jobs), 36)
@@ -953,8 +1017,16 @@ class SelfTest(unittest.TestCase):
                 patch.object(Path, "mkdir", side_effect=AssertionError("created directory")), \
                 redirect_stdout(output):
             dry_run(args)
-        self.assertIn("LB_EPISODE_OWNERS=0,1 ", output.getvalue())
-        self.assertIn("--ratio 6:2", output.getvalue())
+        commands = [shlex.split(line) for line in output.getvalue().splitlines() if not line.startswith("#")]
+        servers = [argv for argv in commands if "--thread-mode" in argv]
+        self.assertEqual(len(servers), 43)  # seed, up to six calibrations, 36 scored runs
+        self.assertEqual({argv[argv.index("--thread-mode") + 1] for argv in servers}, {"1s", "2s"})
+        for argv in servers:
+            self.assertNotIn("--ratio", argv)
+            self.assertEqual(argv[:3], ["taskset", "-c", "0-15"])
+            self.assertEqual(argv[argv.index("--shards") + 1], "16")
+        self.assertIn("LB_EPISODE_OWNERS=<boot-io-owners>", output.getvalue())
+        self.assertIn("LB_EPISODE_OWNERS=<first-two-boot-io-owners>", output.getvalue())
         self.assertIn("158.1 minutes", output.getvalue())
 
     def test_comparison_cannot_hide_one_bad_metric(self):
