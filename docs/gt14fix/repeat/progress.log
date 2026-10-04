@@ -1,0 +1,150 @@
+Starting repetition 01 at 2026-10-04T15:58:57Z
+Repetition 01 exit=0 at 2026-10-04T16:09:26Z
+  row budget: 900s; median=-s; no-history-conservative-default; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.cfrTXs/ledger.partial
+Starting repetition 02 at 2026-10-04T16:09:26Z
+Repetition 02 exit=0 at 2026-10-04T16:11:21Z
+  row budget: 900s; median=0.03s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.E8sPyX/ledger.partial
+Starting repetition 03 at 2026-10-04T16:11:21Z
+Repetition 03 exit=0 at 2026-10-04T16:13:13Z
+  row budget: 900s; median=0.025s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.Vbn6cX/ledger.partial
+Starting repetition 04 at 2026-10-04T16:13:13Z
+Repetition 04 exit=0 at 2026-10-04T16:15:11Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.aCkJKw/ledger.partial
+Starting repetition 05 at 2026-10-04T16:15:11Z
+Repetition 05 exit=0 at 2026-10-04T16:17:30Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.ChHPkj/ledger.partial
+Starting repetition 06 at 2026-10-04T16:17:30Z
+Repetition 06 exit=0 at 2026-10-04T16:19:49Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.jwIS6A/ledger.partial
+Starting repetition 07 at 2026-10-04T16:19:49Z
+Repetition 07 exit=0 at 2026-10-04T16:21:41Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.N5hW2d/ledger.partial
+Starting repetition 08 at 2026-10-04T16:21:41Z
+Repetition 08 exit=0 at 2026-10-04T16:23:32Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.qfAqIA/ledger.partial
+Starting repetition 09 at 2026-10-04T16:23:32Z
+Repetition 09 exit=0 at 2026-10-04T16:25:24Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.cYEVKB/ledger.partial
+Starting repetition 10 at 2026-10-04T16:25:24Z
+Repetition 10 exit=0 at 2026-10-04T16:27:16Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.h5nNMu/ledger.partial
+Starting repetition 11 at 2026-10-04T16:27:16Z
+Repetition 11 exit=0 at 2026-10-04T16:29:06Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.6aY7Y4/ledger.partial
+Starting repetition 12 at 2026-10-04T16:29:06Z
+Repetition 12 exit=0 at 2026-10-04T16:30:56Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.VWjbjx/ledger.partial
+Starting repetition 13 at 2026-10-04T16:30:56Z
+Repetition 13 exit=0 at 2026-10-04T16:33:12Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.WW8D2D/ledger.partial
+Starting repetition 14 at 2026-10-04T16:33:12Z
+Repetition 14 exit=0 at 2026-10-04T16:35:04Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.ulwxKI/ledger.partial
+Starting repetition 15 at 2026-10-04T16:35:04Z
+Repetition 15 exit=0 at 2026-10-04T16:36:54Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.KgaekX/ledger.partial
+Starting repetition 16 at 2026-10-04T16:36:54Z
+Repetition 16 exit=0 at 2026-10-04T16:38:43Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.h3N3NN/ledger.partial
+Starting repetition 17 at 2026-10-04T16:38:43Z
+Repetition 17 exit=0 at 2026-10-04T16:40:33Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.9VWsgY/ledger.partial
+Starting repetition 18 at 2026-10-04T16:40:33Z
+Repetition 18 exit=0 at 2026-10-04T16:42:23Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.yRD8G5/ledger.partial
+Starting repetition 19 at 2026-10-04T16:42:23Z
+Repetition 19 exit=0 at 2026-10-04T16:44:13Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.0XPX4Z/ledger.partial
+Starting repetition 20 at 2026-10-04T16:44:13Z
+Repetition 20 exit=0 at 2026-10-04T16:46:03Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.YdkL9s/ledger.partial
+Starting repetition 21 at 2026-10-04T16:46:03Z
+Repetition 21 exit=0 at 2026-10-04T16:47:52Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.Di1YEl/ledger.partial
+Starting repetition 22 at 2026-10-04T16:47:52Z
+Repetition 22 exit=0 at 2026-10-04T16:49:42Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.uDEvCP/ledger.partial
+Starting repetition 23 at 2026-10-04T16:49:42Z
+Repetition 23 exit=0 at 2026-10-04T16:51:32Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.U1SGpm/ledger.partial
+Starting repetition 24 at 2026-10-04T16:51:32Z
+Repetition 24 exit=0 at 2026-10-04T16:53:22Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.NBGc60/ledger.partial
+Starting repetition 25 at 2026-10-04T16:53:22Z
+Repetition 25 exit=0 at 2026-10-04T16:55:11Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.ro5Ewg/ledger.partial
+Starting repetition 26 at 2026-10-04T16:55:11Z
+Repetition 26 exit=0 at 2026-10-04T16:57:01Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.6QHKIW/ledger.partial
+Starting repetition 27 at 2026-10-04T16:57:01Z
+Repetition 27 exit=0 at 2026-10-04T16:58:51Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.8cf5k4/ledger.partial
+Starting repetition 28 at 2026-10-04T16:58:51Z
+Repetition 28 exit=0 at 2026-10-04T17:00:41Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.WZVezM/ledger.partial
+Starting repetition 29 at 2026-10-04T17:00:41Z
+Repetition 29 exit=0 at 2026-10-04T17:02:31Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.TlY8AV/ledger.partial
+Starting repetition 30 at 2026-10-04T17:02:31Z
+Repetition 30 exit=1 at 2026-10-04T17:04:21Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 18 ok, 1 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.kSVWK6/ledger.partial

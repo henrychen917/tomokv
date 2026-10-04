@@ -81,5 +81,7 @@
   "fixture_tree_unchanged": true,
   "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
   "object_audit_command": "taskset -c 120-127 python3 tools/lbstall_artifacts.py compare build/gt14fix/pre build docs/gt14fix/hot-byte-audit.json",
-  "full_inventory_note": "Existing Elf.canonical with R_X86_64_TPOFF32 (relocation 23) treated as a four-byte relocation; only xshard.o and t_server.o in both namespaces were inventoried for the changed-functions list."
+  "full_inventory_note": "Existing Elf.canonical with R_X86_64_TPOFF32 (relocation 23) treated as a four-byte relocation; only xshard.o and t_server.o in both namespaces were inventoried for the changed-functions list.",
+  "final_code_revision": "7641c85caa0c82f73bf921e036a2cc8b1420b8b8",
+  "server_unchanged_after_campaign": true
 }

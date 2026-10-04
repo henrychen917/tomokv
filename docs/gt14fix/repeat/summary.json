@@ -1,0 +1,834 @@
+{
+  "completed": 30,
+  "target_batteries_passed": 30,
+  "whole_job_passes": {
+    "debug-1": 30,
+    "atomic_batteries": 29
+  },
+  "failed_gate_rows": 1,
+  "passed_gate_rows": 569,
+  "gate_rows_per_run": 19,
+  "server_cpus": "112-119",
+  "client_cpus": "120-127",
+  "shards": 16,
+  "ratio": "6:2",
+  "binary_sha256": "80270fa00716572c421e496c54abd39dbe1e197e8a96212d87998f1105542145",
+  "test_revision": "62266eb95f473e4dd4f50b9a23a5538bb9d9316e",
+  "on_reported_reads_include_held_read": true,
+  "test_sha256": {
+    "atomic_torn.py": "a685fc174a475445b96e27bec1cacfd585bd14d3e079501229a8327943b92798",
+    "xscript.py": "7af2aa6bf4c73f27d72b067c96056ad25951a5410f26772f87541dcde9d147fd"
+  },
+  "runs": [
+    {
+      "run": 1,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.cfrTXs",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 73.266,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.876,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 46226,
+      "on_hammer_reads": 46225,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "e1ad9bb331c62aa3b9b1fadb912064a229257122dd35b056631be7d3e429f6c4",
+      "xscript_sha256": "aa39c7d5b6866f76baea61b4e864ef66371c68a8d620aa84226fa9f3eb44bbb1"
+    },
+    {
+      "run": 2,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.E8sPyX",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 76.017,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.973,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 62165,
+      "on_hammer_reads": 62164,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "0e9a38ae2804e0867b4613a8d72bedc4c7a8f3b7485e6b8db6602ff83d4279b8",
+      "xscript_sha256": "b042dfdf3f8c0a4fc3f21c7db37f7918a85a9beaaa3f648ef07c1ae4f910e410"
+    },
+    {
+      "run": 3,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.Vbn6cX",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 73.341,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 36.36,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 87821,
+      "on_hammer_reads": 87820,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "231d659b105f6eb2f1bc93f629d8854d56cd6b33e6946885a08d64b8a3ecd202",
+      "xscript_sha256": "0ca44fe295984d26e13fd18caa0f91408109ba53aea1f76a177187c24a8ee57f"
+    },
+    {
+      "run": 4,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.aCkJKw",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 72.876,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.961,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 59638,
+      "on_hammer_reads": 59637,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "250d1e15d38cebaa44b9c262ce034d8427616936aaf337646e3d308c816f3b18",
+      "xscript_sha256": "b30cb3ab8d366958b40dcce01b7f1f8680655def93b6f929e2482d2146dfd791"
+    },
+    {
+      "run": 5,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.ChHPkj",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 73.21,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.643,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 139497,
+      "on_hammer_reads": 139496,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "325fa368656c6e6ebea7f05a2d62cf4f42568bf9083d308f707e0ffdadcd093f",
+      "xscript_sha256": "d2ad43bb22fcc88492901fe431dfcea40ce4bc82d0c5389e3b0579b3e069f03d"
+    },
+    {
+      "run": 6,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.jwIS6A",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 73.475,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 36.337,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 91539,
+      "on_hammer_reads": 91538,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "abac00cd98d34f524cce8d8c04a5c9b7cffc25e22d1b7a418df077aa48da2ca6",
+      "xscript_sha256": "8b1d0f9d0d6f8ec389c9676366d8d750fb14112d570929765976f96701c51bb0"
+    },
+    {
+      "run": 7,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.N5hW2d",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 73.282,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.877,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 92014,
+      "on_hammer_reads": 92013,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "58d5ae8a1f1335c4cab33a8962de822a5e5d8a644a665d9814ba2697c9a2c942",
+      "xscript_sha256": "7868d1c420dd4b55879925b4eab62ce3afb32c2920017e677e2686fe2cb2fc7e"
+    },
+    {
+      "run": 8,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.qfAqIA",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 72.288,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 36.317,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 73099,
+      "on_hammer_reads": 73098,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "022a78ed8664fbfdb450ecc2014cb4545b68c7d781bf6ac1b41425717ccb7fbf",
+      "xscript_sha256": "98d4c73b430cc04d5515f76d46f5bd54e7127f97ef1463380c1a1bf93dc63fc8"
+    },
+    {
+      "run": 9,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.cYEVKB",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 74.073,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.837,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 60637,
+      "on_hammer_reads": 60636,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "5e57f479300719975b8468472a94ffc04d5546208a027a550f6d2424b4729f3e",
+      "xscript_sha256": "06309256d1dd81695eae7b5f628f0b4cf435b5881e4fce5a796f446f76ed5c3c"
+    },
+    {
+      "run": 10,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.h5nNMu",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 73.469,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.984,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 76585,
+      "on_hammer_reads": 76584,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "f3504a4fca6909570b03eca3b8dbbfb8ed525622fea7e52a6db712bbb697119f",
+      "xscript_sha256": "d6e56c0f4db4930bc0d4d2e21ea066e89d793567e5fd97ce708f0ed31e56c994"
+    },
+    {
+      "run": 11,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.6aY7Y4",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.974,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.593,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 140545,
+      "on_hammer_reads": 140544,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "8888f2e3abde3f962134d52a3eca2f94f60a1a9d0c36f7af48d62469de383e09",
+      "xscript_sha256": "d3488e0a9949feb06d7b3b17a4a2d8894364418234644351ddab9f4cc6a46caa"
+    },
+    {
+      "run": 12,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.VWjbjx",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.794,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.59,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 140586,
+      "on_hammer_reads": 140585,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "c27de984726c87db18069890ccac0df7047a73ce3241b9223d9f018ef5a9c413",
+      "xscript_sha256": "64ba67a091d0a1066edcd4e688e9cff4d3aa95ee9d79560cc1fcc53df603a673"
+    },
+    {
+      "run": 13,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.WW8D2D",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.939,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.607,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 140239,
+      "on_hammer_reads": 140238,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "22559c64089843976b3adb59469ec9c0984224c4db531212248844097f9d3cbe",
+      "xscript_sha256": "c719e8f99601b8015f39d2e2546dcc618fca3f86e0dbe67e0d0d1e9ccef335cd"
+    },
+    {
+      "run": 14,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.ulwxKI",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.803,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 38.098,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 106051,
+      "on_hammer_reads": 106050,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "a2e5ed6b38ea8a1726161fb59916059bf04c34ac6355508d3e2b19f4f2213ad6",
+      "xscript_sha256": "dcf36381aae90b314cd8361bac5a8fb6ff32b4f1afc95cc1ad787a152b26aa3a"
+    },
+    {
+      "run": 15,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.KgaekX",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.864,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.599,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 140485,
+      "on_hammer_reads": 140484,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "833c0267b911aaed67839bf0ebd1e4ab870dfcd35ea27840f63717ea9790999b",
+      "xscript_sha256": "41e1a1fea0d6ee9127d363e1f13a644ed574ae0afdf4dbfca1500f1882edfc08"
+    },
+    {
+      "run": 16,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.h3N3NN",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.87,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.621,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 139782,
+      "on_hammer_reads": 139781,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "a6a640b03b2746c6d13a15104441df2a2ced1b588357060deb90e0a68f33f71c",
+      "xscript_sha256": "49adcf3c7cf1b30c6ae2ab9fc230097de049c96c440c3dd82fad0297655cf476"
+    },
+    {
+      "run": 17,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.9VWsgY",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.774,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.588,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 140871,
+      "on_hammer_reads": 140870,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "89f63c218d03863d84a4706b8498910e3600d58f125221a8f652b2a99d31cc87",
+      "xscript_sha256": "589d54fe870a125f4429a2c76e9dfae5d5125eaff44b1a8fdbff66ed34e26b28"
+    },
+    {
+      "run": 18,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.yRD8G5",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.94,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.649,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 139151,
+      "on_hammer_reads": 139150,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "e375d333db1d42bfe13326cfe2edeacb5dc80d08e0e35501c86cb3ae3baf3685",
+      "xscript_sha256": "b9c954424a53cf57ed101a1cab884b790bd53a1d2dd6b0d64d910c82eb837921"
+    },
+    {
+      "run": 19,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.0XPX4Z",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.824,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.593,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 110892,
+      "on_hammer_reads": 110891,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "044d8acef6a64a565f75e1cf09e4de687ff997895281486c2440effccf9a48f0",
+      "xscript_sha256": "c7e04f68fff9037701dd2ce10df819b6d1db72232fbb1311b5b644377e834c9d"
+    },
+    {
+      "run": 20,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.YdkL9s",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.816,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.594,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 139410,
+      "on_hammer_reads": 139409,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "eb3fc51e7e5ecc66efcd55cc25691e92a5f85435f82471720b2a40639ee9259e",
+      "xscript_sha256": "c025dbe9651195cf329bdcf6fc2079804c982432639174fe963e1871b20266bc"
+    },
+    {
+      "run": 21,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.Di1YEl",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.827,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.596,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 111396,
+      "on_hammer_reads": 111395,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "1e7b24bacfba3fd7b64f85cd0ada776ab9fc27877f7a8df2c6503aebf974f267",
+      "xscript_sha256": "0449c95f8c64b24a697041e7020a7e5d9835169d41ba8749d5838baaa0c7e3ed"
+    },
+    {
+      "run": 22,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.uDEvCP",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.795,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.617,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 140470,
+      "on_hammer_reads": 140469,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "944a186d826f187979bda31fa10f1789db6cd605657ec7150ba2d727ec179666",
+      "xscript_sha256": "b042dfdf3f8c0a4fc3f21c7db37f7918a85a9beaaa3f648ef07c1ae4f910e410"
+    },
+    {
+      "run": 23,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.U1SGpm",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.838,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.588,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 140546,
+      "on_hammer_reads": 140545,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "df54af7ef3b912106f797eb17cebc31e9ccfccd24d16f8550fea67f8dd539cf8",
+      "xscript_sha256": "ea3e51b986d51543c5bfffafc7585e0af1b538ae2a6e10a37ff0d06d925e3225"
+    },
+    {
+      "run": 24,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.NBGc60",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.778,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.591,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 112028,
+      "on_hammer_reads": 112027,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "a3a1608573bcad6934bd85f2d85936a757af6bd055dbf0b72e26eccecebbc43f",
+      "xscript_sha256": "dd39fd2040186325738bfd7cf208681e56e734de4ef9e27b0e8bc88e2988d802"
+    },
+    {
+      "run": 25,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.ro5Ewg",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.799,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.598,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 140438,
+      "on_hammer_reads": 140437,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "b459200245d7ea85c82cb6db9ff9f8e4d6db2e532fb46f00d3da10c47e6c3368",
+      "xscript_sha256": "78764aef6bf7d2a18646f39e192d05205920d6d730c75f8692abd384c9a5e685"
+    },
+    {
+      "run": 26,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.6QHKIW",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 72.018,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.644,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 140442,
+      "on_hammer_reads": 140441,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "efe7116a922d0c50874025e2f5844edc394e6522b2edc16e0a89f58ab9839cce",
+      "xscript_sha256": "88ee82bc97dea7814a0fb7091eb6746af1aeef10a731d3371b32569c693b0b33"
+    },
+    {
+      "run": 27,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.8cf5k4",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.868,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.591,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 140170,
+      "on_hammer_reads": 140169,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "dfddd62cc685773fc43ced0f80b7c0bd9f06e758755ef18383444c50efc8aa41",
+      "xscript_sha256": "3c21bbcc724a514c27a16469fb2ad1e6dfe659f1ebdd364170e1a0c5d4bc1ad0"
+    },
+    {
+      "run": 28,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.WZVezM",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.848,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.6,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 138737,
+      "on_hammer_reads": 138736,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "4488879ba223eea39f1fa5da13ea53a1a24824090f96e51886bbb1d68da8a378",
+      "xscript_sha256": "63cbb4f268f2a382e0c46cdab72861390507970f11ec8d3112eab27d4cbe4ac3"
+    },
+    {
+      "run": 29,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.TlY8AV",
+      "subset_exit": 0,
+      "passed": 19,
+      "failed": 0,
+      "debug-1_seconds": 71.849,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.588,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 4,
+        "failed": 0
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 141129,
+      "on_hammer_reads": 141128,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "bbb6ecc050c7ff28d70be119bb66fd6896dcc2cbd00152c3c0a379b82666f15b",
+      "xscript_sha256": "4a502070a8e4726b4a99f2e521dcf2f243e746186bb7c365d8094e3eff1ac0ec"
+    },
+    {
+      "run": 30,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.kSVWK6",
+      "subset_exit": 1,
+      "passed": 18,
+      "failed": 1,
+      "debug-1_seconds": 71.893,
+      "debug-1": {
+        "body_exit": 0,
+        "passed": 14,
+        "failed": 0
+      },
+      "atomic_batteries_seconds": 35.65,
+      "atomic_batteries": {
+        "body_exit": 0,
+        "passed": 3,
+        "failed": 1
+      },
+      "off_invalid": 1,
+      "off_reads": 1,
+      "on_invalid": 0,
+      "on_reported_reads": 140742,
+      "on_hammer_reads": 140741,
+      "occ_retries": 1,
+      "atomic_torn_sha256": "272e6b6906efe769d0711c5a3c4a7912c3ca0b99dbbea829742d42ff8ae40f55",
+      "xscript_sha256": "422ec0455a3d493cb450ad11090514bda6188c8b6df0c625fed70608d1c92a94"
+    }
+  ]
+}
