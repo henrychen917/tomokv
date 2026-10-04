@@ -33,9 +33,23 @@ def main():
     scratch = Path(__file__).resolve().parents[1] / 'build' / 'deadfused'
     scratch.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=scratch) as tmp:
-        pre = SimpleNamespace(groups={'tomo::cmd_get(X)': [dict(
-            addr=16, size=1, ins=['ret'], encodings=['c3'], aliases=['tomo::cmd_get(X)'])]})
-        post = SimpleNamespace(groups={})
+        # Supply the required policy inventory so this control reaches the
+        # missing command check instead of failing the earlier policy check.
+        names = (
+            'tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()',
+            'tomo::ExLoopT<true>::fused_sweep_impl<32u, true, false, true>()',
+            'tomo::ExLoopT<true>::fused_baseline_sweep()',
+            'tomo::ExLoopT<true>::run()',
+            'tomo::IoLoop::run_loop<false, false, true, false, false, false>()',
+            'tomo::IoLoop::flush_ready<false, false, true, false, false, true>()',
+            'tomo::cmd_get(X)',
+        )
+        pre = SimpleNamespace(groups={name: [dict(
+            addr=16 * (index + 1), size=1, ins=['ret'], encodings=['c3'], aliases=[name])]
+            for index, name in enumerate(names)})
+        assert all(row['equal'] for row in audit.compare(pre, pre, Path(tmp)))
+        post = SimpleNamespace(groups=dict(pre.groups))
+        del post.groups['tomo::cmd_get(X)']
         try:
             audit.compare(pre, post, Path(tmp))
         except ValueError as error:

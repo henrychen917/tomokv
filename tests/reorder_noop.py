@@ -6,7 +6,7 @@ from pathlib import Path
 
 POLICIES = {
     # Only emitted, surviving interfaces. Values are historical arities with
-    # the extra FALSE policy; the current arity is also accepted below.
+    # the extra FALSE policy; the post-deadfused arities are accepted below too.
     'fused_pass_impl': 7, 'fused_sweep_impl': 6,
     'fused_baseline_sweep': 1, 'run': 1, 'run_loop': 7, 'flush_ready': 6,
 }
@@ -55,7 +55,15 @@ def canonical(name):
         if method == 'collect_retire_work' and len(parts) == 3 and parts[2] == 'false':
             name = name[:match.end()] + ', '.join(parts[:2]) + name[end-1:]
             continue
-        expected=POLICIES.get(method)
+        policy = method.removeprefix('r7_')
+        if policy in ('fused_pass_impl', 'fused_sweep_impl'):
+            # Deadfused leaves BatchOps, ConsumeTasks, IofusedPrivateQueue and
+            # InterleaveLocalReads in both ordinary and generated envelopes.
+            # All four survive; never strip a trailing false here.
+            if len(parts) == 4: continue
+            expected = POLICIES[policy]
+        else:
+            expected=POLICIES.get(method)
         if method == 'sweep': expected=5
         if expected is None: continue
         if len(parts) not in (expected, expected - 1):
@@ -372,16 +380,38 @@ def self_test():
         assert canonical(a.replace('false, true>(X)', 'false, false>(X)')) != b
     assert canonical('void tomo::ExLoopT<true>::run<false>()')=='tomo::ExLoopT<true>::run()'
     assert canonical('void tomo::ExLoopT<true>::run<true>()')=='void tomo::ExLoopT<true>::run<true>()'
-    a='unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false, false, void, false>(void*)'
-    b='unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false, false, void>(void*)'
-    assert canonical(a)==b
-    assert canonical(a.replace('(X)', '(X&, bool&)'))==b.replace('(X)', '(X&, bool&)')
     for ns in ('tomo', 'tomo_db0'):
         for prefix in ('', 'r7_'):
-            old = f'unsigned int {ns}::ExLoopT<true>::{prefix}fused_pass_impl<32u, true, false, false, true, void>(void*)'
-            new = f'unsigned int {ns}::ExLoopT<true>::{prefix}fused_pass_impl<32u, true, false, true>()'
-            assert canonical(old) == new
-            assert canonical(old.replace('true, false, false', 'true, true, false')) != new
+            for local in ('false', 'true'):
+                owner = f'unsigned int {ns}::ExLoopT<true>::{prefix}'
+                old = owner + f'fused_pass_impl<32u, true, false, false, {local}, void>(void*)'
+                new = owner + f'fused_pass_impl<32u, true, false, {local}>()'
+                assert canonical(old) == new
+                assert canonical(old.replace('void>', 'void, false>')) == new
+                assert canonical(new) == new
+                assert canonical(old.replace('void>', 'void, true>')) != new
+                assert canonical(old.replace('true, false, false', 'true, true, false')) != new
+                assert canonical(old.replace('void', 'FixtureFiller')) != new
+                assert canonical(old.replace('(void*)', '(void*, bool*)')) != new
+                sweep = owner + f'fused_sweep_impl<32u, true, false, false, {local}>()'
+                current_sweep = owner + f'fused_sweep_impl<32u, true, false, {local}>()'
+                assert canonical(sweep) == current_sweep
+                assert canonical(sweep.replace('>()', ', false>()')) == current_sweep
+                assert canonical(current_sweep) == current_sweep
+                assert canonical(sweep.replace('>()', ', true>()')) != current_sweep
+                assert canonical(sweep.replace('true, false, false', 'true, true, false')) != current_sweep
+                for current in (new, current_sweep):
+                    for changed in (current.replace('32u', '64u'),
+                                    current.replace('32u, true', '32u, false'),
+                                    current.replace('true, false', 'true, true'),
+                                    current.replace(f'{local}>()', f'{"true" if local == "false" else "false"}>()')):
+                        assert canonical(changed) != current
+                try:
+                    canonical(owner + 'fused_pass_impl<32u, true, false>()')
+                except ValueError as error:
+                    assert 'policy symbol arity changed' in str(error)
+                else:
+                    raise AssertionError('unexpected fused policy arity accepted')
     # Register/field/immediate/extra-branch changes must remain literal inequalities.
     for lhs,rhs in [('mov 0x189(%rax),%edx','mov 0x190(%rax),%edx'),('mov %rax,%rdx','mov %rax,%rcx'),('mov $0x0,%eax','mov $0x1,%eax'),('0000 [ 1] ret','0000 [ 2] jne <+0x4>')]:
         assert normalize_asm(lhs,0,16,{})!=normalize_asm(rhs,0,16,{})
