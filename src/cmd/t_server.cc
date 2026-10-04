@@ -1080,6 +1080,22 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
+    // One-shot RENAME hop latch, in either atomic mode. The status witnesses source completion
+    // while the destination is still parked; expiration is a failed harness, never a window hit.
+    if (eq_icase(subcommand, "atomic-off-hop-hold") && op.argc() == 3) {
+        uint64_t held = 0;
+        if (!parse_u64(op.arg(2), held) || held > 1) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        debug_atomic_off_hop_hold(held != 0);
+        reply_ok(op.sink());
+        return;
+    }
+    if (eq_icase(subcommand, "atomic-off-hop-status") && op.argc() == 2) {
+        reply_int(op.sink(), debug_atomic_off_hop_status());
+        return;
+    }
     // One shared DEBUG delay word, with names for its two mode-specific boundaries. Atomic ON
     // holds a group between ticket draw and publication; atomic OFF parks non-lead mutation
     // owners at the scatter hop. Last writer wins, and zero through either alias disarms both.

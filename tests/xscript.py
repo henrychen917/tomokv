@@ -586,55 +586,100 @@ def contention_and_deadlock():
     keys = distinct[:4]
     source = "for i=1,#KEYS do redis.call('INCR',KEYS[i]) end return 1"
 
-    # The correctness half (no deadlock, exact counts) must hold on EVERY round. The contention
-    # half needs the two OCC windows to actually collide, which is scheduling luck: one round of
-    # 2x40 executions occasionally interleaves cleanly and reports retries=+0 with nothing wrong
-    # (first seen after the multi program-order fix shifted EX timing). Roll up to four rounds
-    # and stop at the first observed restart -- the mechanism assertion stays non-vacuous, it
-    # just gets enough collisions offered to it.
+    # Directed OCC collision. Only the first script captures the existing stage defer. Its
+    # coordinator gather proves the cut is pinned; the reverse script then commits while all
+    # its other gathers remain parked. Exact stage/run counters on BOTH sides of that commit
+    # reject an expired window. With no concurrent certifier, its restart must be validation.
+    admin.cmd("DEL", *keys)
+    admin.cmd("MSET", *sum(([key, "0"] for key in keys), []))
+    runner, rival = Resp(), Resp()
+    observed, directed_errors = [], []
+    thread = None
     retry_delta = 0
-    for _ in range(4):
-        admin.cmd("DEL", *keys)
-        admin.cmd("MSET", *sum(([key, "0"] for key in keys), []))
+    directed_ok = False
+    try:
         before = stats(admin)
-        errors = []
-        successes = [0, 0]
+        required = ("script_stage_owner_tasks", "script_run_attempts", "script_group_occ_retries")
+        if any(name not in before for name in required):
+            raise AssertionError("missing directed collision counters")
+        if admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "10000000") != b"OK":
+            raise AssertionError("could not arm SCRIPT-STAGE-DEFER")
 
-        def worker(slot, ordered):
-            client = Resp()
+        def parked_script():
             try:
-                while successes[slot] < 40:
-                    reply = client.cmd("EVAL", source, str(len(ordered)), *ordered)
-                    if reply == 1:
-                        successes[slot] += 1
-                    elif isinstance(reply, RespError) and reply.message.startswith("TRYAGAIN "):
-                        continue
-                    else:
-                        errors.append((slot, reply))
-                        return
-            finally:
-                client.close()
+                observed.append(runner.cmd("EVAL", source, str(len(keys)), *keys))
+            except Exception as exc:
+                directed_errors.append(str(exc))
 
-        threads = [threading.Thread(target=worker, args=(0, keys)),
-                   threading.Thread(target=worker, args=(1, list(reversed(keys))))]
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join(20)
-        alive = [thread.name for thread in threads if thread.is_alive()]
-        values = admin.cmd("MGET", *keys)
+        thread = threading.Thread(target=parked_script, daemon=True)
+        thread.start()
+        gathered = wait_for(admin, "script_stage_owner_tasks",
+                            before["script_stage_owner_tasks"] + 1)
+        staged = stats(admin)
+        if (gathered != before["script_stage_owner_tasks"] + 1 or
+                staged["script_stage_owner_tasks"] != gathered or
+                staged["script_run_attempts"] != before["script_run_attempts"]):
+            raise AssertionError("first script did not remain in its stage window")
+        # Disarming affects future activations; the first one's captured deadline stays live.
+        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+        raced = rival.cmd("EVAL", source, str(len(keys)), *reversed(keys))
+        committed = stats(admin)
+        if (raced != 1 or observed or
+                committed["script_stage_owner_tasks"] != gathered + len(keys) or
+                committed["script_run_attempts"] != before["script_run_attempts"] + 1 or
+                committed["script_group_occ_retries"] != before["script_group_occ_retries"]):
+            raise AssertionError("opposite-order commit missed the held stage: reply=%r" % raced)
+        thread.join(20)
         after = stats(admin)
-        retry_delta = after.get("script_group_occ_retries", 0) - \
-            before.get("script_group_occ_retries", 0)
-        note("opposite-order overlapping scripts terminate without deadlock",
-             not alive and not errors and successes == [40, 40] and
-             values == [b"80"] * len(keys),
-             "success=%r alive=%r errors=%r values=%r" %
-             (successes, alive, errors[:2], values))
-        if alive or errors or retry_delta > 0:
-            break
-    note("contention detector forced at least one OCC restart", retry_delta > 0,
-         "retries=+%d" % retry_delta)
+        retry_delta = after["script_group_occ_retries"] - before["script_group_occ_retries"]
+        directed_ok = (not thread.is_alive() and not directed_errors and observed == [1] and
+                       admin.cmd("MGET", *keys) == [b"2"] * len(keys) and settle(admin) == 0)
+    except Exception as exc:
+        directed_errors.append(str(exc))
+    finally:
+        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+        if thread is not None:
+            thread.join(20)
+        if thread is None or not thread.is_alive():
+            runner.close()
+        rival.close()
+    note("contention detector forced at least one OCC restart", directed_ok and retry_delta >= 1,
+         "retries=+%d errors=%r" % (retry_delta, directed_errors))
+
+    # Scheduling is unconstrained here. This loop proves liveness and exact increments only;
+    # the directed schedule above owns the non-vacuous existence proof of an OCC restart.
+    admin.cmd("DEL", *keys)
+    admin.cmd("MSET", *sum(([key, "0"] for key in keys), []))
+    errors = []
+    successes = [0, 0]
+
+    def worker(slot, ordered):
+        client = Resp()
+        try:
+            while successes[slot] < 40:
+                reply = client.cmd("EVAL", source, str(len(ordered)), *ordered)
+                if reply == 1:
+                    successes[slot] += 1
+                elif isinstance(reply, RespError) and reply.message.startswith("TRYAGAIN "):
+                    continue
+                else:
+                    errors.append((slot, reply))
+                    return
+        finally:
+            client.close()
+
+    threads = [threading.Thread(target=worker, args=(0, keys)),
+               threading.Thread(target=worker, args=(1, list(reversed(keys))))]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(20)
+    alive = [thread.name for thread in threads if thread.is_alive()]
+    values = admin.cmd("MGET", *keys)
+    note("opposite-order overlapping scripts terminate without deadlock",
+         not alive and not errors and successes == [40, 40] and
+         values == [b"80"] * len(keys),
+         "success=%r alive=%r errors=%r values=%r" % (successes, alive, errors[:2], values))
 
     # The plain multi-key writer is deliberately a second connection. While script intents are
     # live its fragments must be promoted into one atomic group even on an --atomic=0 boot; the
