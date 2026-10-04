@@ -1,0 +1,34 @@
+test_128_shard_topology_from_saved_server_log (__main__.SelfTest.test_128_shard_topology_from_saved_server_log) ... ok
+test_actuator_deltas_and_max_are_not_confused (__main__.SelfTest.test_actuator_deltas_and_max_are_not_confused) ... ok
+test_baseline_raw_samples_and_last_window (__main__.SelfTest.test_baseline_raw_samples_and_last_window) ... ok
+test_binomial_mix_and_exact_pass_limit (__main__.SelfTest.test_binomial_mix_and_exact_pass_limit) ... ok
+test_comparison_cannot_hide_one_bad_metric (__main__.SelfTest.test_comparison_cannot_hide_one_bad_metric) ... ok
+test_converges_and_counts_separately (__main__.SelfTest.test_converges_and_counts_separately) ... ok
+test_dry_run_never_starts_processes_or_sockets (__main__.SelfTest.test_dry_run_never_starts_processes_or_sockets) ... ok
+test_duplicate_ticks_and_reset (__main__.SelfTest.test_duplicate_ticks_and_reset) ... ok
+test_envelope_frozen_and_baseline_motion_refused (__main__.SelfTest.test_envelope_frozen_and_baseline_motion_refused) ... ok
+test_explicit_arms_receipt_binds_paths_hashes_and_itself (__main__.SelfTest.test_explicit_arms_receipt_binds_paths_hashes_and_itself) ... ok
+test_failed_split_topology_from_saved_server_log (__main__.SelfTest.test_failed_split_topology_from_saved_server_log) ... ok
+test_filtered_dry_run_has_no_unrequested_matrix_or_probes (__main__.SelfTest.test_filtered_dry_run_has_no_unrequested_matrix_or_probes) ... ok
+test_geometry_rejects_wrong_counts_or_roles (__main__.SelfTest.test_geometry_rejects_wrong_counts_or_roles) ... ok
+test_hot_pipeline_accounting_uses_its_own_bound (__main__.SelfTest.test_hot_pipeline_accounting_uses_its_own_bound) ... ok
+test_info_parsing (__main__.SelfTest.test_info_parsing) ... ok
+test_last_required_move_and_three_real_ticks (__main__.SelfTest.test_last_required_move_and_three_real_ticks) ... ok
+test_later_rebound_fails_without_restarting_clock (__main__.SelfTest.test_later_rebound_fails_without_restarting_clock) ... ok
+test_merged_hdr_and_exact_server_accounting (__main__.SelfTest.test_merged_hdr_and_exact_server_accounting) ... ok
+test_missing_endpoint_or_first_post_move_plan_cannot_pass (__main__.SelfTest.test_missing_endpoint_or_first_post_move_plan_cannot_pass) ... ok
+test_orders_and_sha_pins (__main__.SelfTest.test_orders_and_sha_pins) ... ok
+test_own_quiet_baseline_above_pre_maxima_passes (__main__.SelfTest.test_own_quiet_baseline_above_pre_maxima_passes) ... ok
+test_refused_probe_stops_matrix_with_exit_three (__main__.SelfTest.test_refused_probe_stops_matrix_with_exit_three) ... ok
+test_shards_schedule_depth_and_wall_time (__main__.SelfTest.test_shards_schedule_depth_and_wall_time) ... ok
+test_signals_parsing_and_coordinator (__main__.SelfTest.test_signals_parsing_and_coordinator) ... ok
+test_split_topology_and_selector_exclude_ex_owners (__main__.SelfTest.test_split_topology_and_selector_exclude_ex_owners) ... ok
+test_suffix_move_and_truncation_fail (__main__.SelfTest.test_suffix_move_and_truncation_fail) ... ok
+test_truncated_and_mismatched_metrics_fail (__main__.SelfTest.test_truncated_and_mismatched_metrics_fail) ... ok
+test_unarmed_and_no_move_fail (__main__.SelfTest.test_unarmed_and_no_move_fail) ... ok
+test_unarmed_probe_refuses_and_receipts_counters (__main__.SelfTest.test_unarmed_probe_refuses_and_receipts_counters) ... ok
+
+----------------------------------------------------------------------
+Ran 29 tests in 0.468s
+
+OK
