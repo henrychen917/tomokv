@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Serverless witness for the real LB episode's exceptional cleanup ordering.
 
---negative-control executes the pre-fix run_episode body with the same witness;
+--negative-control restores the old cleanup edges in a throwaway run_episode;
 the witness MUST fail. No server, socket or load process is started by this test.
 """
 from contextlib import ExitStack, contextmanager, redirect_stdout
@@ -35,7 +35,7 @@ class HarnessCleanup(unittest.TestCase):
                     self.running = True
                     events.append("sampler-start")
 
-                def join(self, timeout):
+                def join(self):
                     self.running = False
                     events.append("sampler-joined")
 
@@ -95,8 +95,8 @@ class HarnessCleanup(unittest.TestCase):
     def test_two_failures_keep_original_and_record_observer_failure(self):
         result, _, _ = self.episode(True, "independent monitor error")
         self.assertIn("balanced total_moves=1", result["reason"])
-        self.assertEqual(result["sampler_error"], "independent monitor error")
-        self.assertEqual(result["sampler_cleanup_error"], "sampler failed: independent monitor error")
+        self.assertEqual(result["sampler_error"], "sampler failed: independent monitor error")
+        self.assertFalse(result["measurement_valid"])
 
     def test_success_joins_once_before_server(self):
         result, events, _ = self.episode(False)
@@ -109,20 +109,28 @@ def install_negative_control():
     """Restore just the two bad cleanup edges in a throwaway function object."""
     import inspect
     source = inspect.getsource(episodes.run_episode)
-    source = source.replace("observers.enter_context(sampler)", "sampler.thread.start()")
+    context = "            with sampled_episode(sampler, result):\n"
+    handler = "    except Exception as error:\n"
+    finalizer = "    finally:\n"
+    for marker in (context, handler, finalizer):
+        if source.count(marker) != 1:
+            raise RuntimeError("negative control cannot identify unique cleanup edge: " + marker.strip())
+    prefix, body = source.split(context)
+    body, suffix = body.split(handler)
+    # Remove only the inner sampled_episode lifetime. Its body still runs under
+    # boot, but now an exception escapes to server teardown before sampler close.
+    body = "".join(line[4:] if line.strip() else line
+                   for line in body.splitlines(keepends=True))
     # The old happy path already closed the sampler inside boot; only its
     # exceptional edge escaped that close and then overwrote the first failure.
-    source = source.replace("    except Exception as error:\n",
-                            "            sampler.close()\n    except Exception as error:\n", 1)
-    marker = '            result["sampler_error"] = sampler.error\n'
-    require_marker = marker in source
-    if not require_marker:
-        raise RuntimeError("negative control cannot find cleanup edge")
-    source = source.replace(marker, '''            try:
+    source = (prefix + "            sampler.thread.start()\n" + body
+              + "            sampler.close()\n" + handler + suffix)
+    source = source.replace(finalizer, finalizer + '''        if sampler:
+            try:
                 sampler.close()
             except Exception as error:
                 result.update(status="FAIL", reason=str(error), measurement_valid=False)
-''' + marker)
+''')
     exec(compile(source, "<connreset-old-cleanup-control>", "exec"), episodes.__dict__)
 
 
