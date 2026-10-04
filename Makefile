@@ -44,6 +44,11 @@ DB0_OBJ  := $(SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 
 all: $(BIN)
 
+# Optional teardown-only diagnostics; no code or storage in normal binaries.
+.PHONY: connreset-trace
+connreset-trace:
+	$(MAKE) BUILD_ROOT=build/connreset/trace CXXFLAGS='$(CXXFLAGS) -DTOMO_CONNRESET_TRACE' all
+
 # PS1/PS2/PS14 schedules call the actual AOF implementation without starting a
 # listener or ring. Controls are throwaway source copies with one fix removed.
 PERSISTFIX_CONTROLS := old-ack old-close no-refusal

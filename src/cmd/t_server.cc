@@ -17,6 +17,7 @@
 #include "../base/alloc.h"
 #include "../core/genthread.h"
 #include "../core/server.h"
+#include "../core/connreset.h"
 #include "../core/lbsignals.h"
 #include "../core/pubsub_event.h"
 #include "../core/thread.h"
@@ -807,6 +808,13 @@ void cmd_reset(Shard&, Op& op) {
 
 void cmd_debug_impl(Shard& shard, Op& op) {
     const Slice subcommand = op.arg(1);
+#ifdef TOMO_CONNRESET_TRACE
+    if (eq_icase(subcommand, "close-stats") && op.argc() == 2) {
+        const std::string out = connreset::dump();
+        reply_verbatim(op.sink(), Slice(out.data(), out.size()), "txt", op.resp3());
+        return;
+    }
+#endif
     // REHASH-STATE is explicitly queued to shard 0 by IoLoop, unlike ordinary ConfigRoute
     // commands (which are IO-local). Reject an unrouted call before touching owner-only state.
     if (eq_icase(subcommand, "rehash-state") && op.argc() == 2) {
