@@ -79,7 +79,8 @@ envelope synchronization pass. The full gate and benchmarks were not run. All th
 
 `tests/gate.sh` adds one serverless row in `job_lbplanner_units`, collected before the
 quick-tier exit. Maintainer change required: EXPECT_QUICK 490 -> 491; EXPECT_FULL 507 -> 508.
-The constants are untouched.
+The row begins at line 1319, its job is collected at line 3060, and the quick-tier exit
+is at line 3212, so the added row belongs to both tiers. The constants are untouched.
 
 Reproducer geometry: taskset CPUs 112–127, two 8-core L3 domains, io_uring, jemalloc,
 `--flip-auto 0 --enable-debug-command yes --save '' --appendonly no`.
