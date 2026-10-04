@@ -69,7 +69,6 @@ struct CoreConcurrencyTest {
                         : loop.self_->init_task_inbox_local(server.placement().ifid_threads(),
                                                            server.placement().ex_threads()),
                     "allocate the production task inbox");
-            loop.fused_handoff_ring_ = &loop.ring_;
             loop.cached_now_ms_ = 1000;
             if constexpr (ReadLocal) {
             loop.read_local_.impl = std::make_unique<ReadLocalExImpl>();

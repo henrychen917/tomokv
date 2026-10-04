@@ -1,0 +1,10 @@
+{
+  "head": "744c86d07590c3b3f584317d288ccecb4812e8fa",
+  "binary": {
+    "functions": 10258,
+    "function_table_sha256": "003e06e92445f2ee562d3fba0cb4768c47fc10f081cbee172a86801415d57ae7",
+    "section_table_sha256": "f3c1e98fdd01416b0e537e42f510b1b1e5497c873cfabc866901a39e0332d45b",
+    "binary_sha256": "be91c12fbc63c6394eeb05ef4938ff493894f7979c21d829c196796f25f75660",
+    "text_bytes": 7734273
+  }
+}

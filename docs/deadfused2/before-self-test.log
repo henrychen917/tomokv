@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "<stdin>", line 17, in <module>
+  File "/home/user/Projects/cx-deadfused/tests/reorder_noop.py", line 377, in self_test
+    assert canonical(a)==b
+           ^^^^^^^^^^^^^^^
+AssertionError

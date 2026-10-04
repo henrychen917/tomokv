@@ -1,0 +1,23 @@
+signalacct passes: busy=122 idle=10 wall=132 outer=134 uncertainty=2
+signalacct roles: IO1=19 EX=500 IO2=29 busy2=14 idle2=15
+PASS signalacct window: seven passes, three publications, exact final flush
+PASS signalacct deterministic accounting
+flipctl unit: existing rows ok
+flipctl rate trace: +/-1/sqrt(N) N=4900 ticks=96 band_initial=0.040406102 band_min=0.040406102 band_max=0.040697846 surge=0 collapse=0
+flipctl rate: PASS stationary +/-1/sqrt(N), 96 ticks
+flipctl rate trace: +/-2/sqrt(N) N=4900 ticks=96 band_initial=0.040406102 band_min=0.040406102 band_max=0.040996003 surge=0 collapse=0
+flipctl rate: PASS stationary +/-2/sqrt(N), 96 ticks
+flipctl rate: PASS reported band >= current window's 1/sqrt(N)
+flipctl rate step: -5% first_trigger_tick=3 confirmations=2
+flipctl rate: PASS 5% collapse confirms within two full readings
+flipctl rate step: +5% first_trigger_tick=3 confirmations=2
+flipctl rate: PASS 5% surge confirms within two full readings
+flipctl rate: PASS 3% tick jitter keeps the existing 6% band and zero triggers
+flipctl rate: PASS stabilization floors an existing narrow anchor band
+flipctl rate: PASS both live streaks use the current count floor before learning
+flipctl rate: PASS counts follow elapsed windows, unequal pairs and movement resets
+flipctl rate: PASS the existing command-rate quantum still wins when larger
+flipctl rate: PASS placement/anchor verification retains sampling, sigma and baseline floors
+flipctl rate: PASS a complete stop still confirms a collapse
+flipctl rate: 12/12 rows passed
+flipctl unit: ok

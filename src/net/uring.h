@@ -152,7 +152,6 @@ public:
         raw_callback_taken_ = false;
         raw_callback_index_ = 0;
         send_pending_ = false;
-        sq_full_submit_ = false;
     }
 
     bool shutdown_complete() const { return !inited_ && wake_fd_ < 0; }
@@ -187,7 +186,6 @@ public:
             // A forced-full flush is a real boundary for the pipeline-1 SEND classifier. Keep
             // this reset on the rare slow arm instead of charging every explicit submit.
             send_pending_ = false;
-            sq_full_submit_ = true;
             s = io_uring_get_sqe(&r_);
         }
         return s;
@@ -199,7 +197,6 @@ public:
         if (io_uring_sq_space_left(&r_) < needed) {
             submit();
             send_pending_ = false;
-            sq_full_submit_ = true;
         }
     }
 
@@ -335,15 +332,6 @@ public:
     }
     bool send_pending() const { return send_pending_; }
 
-    // sqe()/ensure_sq_space() must flush synchronously when the SQ is full. A coalescing owner uses
-    // this edge to restart its rotation budget; consuming it does not describe ordinary explicit
-    // submit boundaries, which already restart that budget at their call site.
-    bool take_sq_full_submit() {
-        if (!sq_full_submit_) return false;
-        sq_full_submit_ = false;
-        return true;
-    }
-
     // Schedule boundaries occasionally need to know whether a later stage prepared real SQEs.
     // Query liburing's own tail/head state there instead of restoring the per-SQE shadow counter
     // removed by the instruction-diet stack.
@@ -399,7 +387,6 @@ private:
     bool     inited_   = false;
     bool     deferred_ = true;
     bool     send_pending_ = false;
-    bool     sq_full_submit_ = false;
     std::vector<io_uring_cqe> deferred_cqes_;
     bool raw_callback_active_ = false;
     bool raw_callback_taken_ = false;

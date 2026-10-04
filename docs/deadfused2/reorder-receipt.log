@@ -1,0 +1,3 @@
+normalizer self-checks PASS
+strict_noop=True: 396/396 identical bodies
+PASS missing policy symbol, missing split-local parser and changed opcode fail strict identity

@@ -1,0 +1,20 @@
+{
+  "kind": "A: PRE FIFO behaviour with POST text size and layout; all reorder disabled",
+  "post": "build/reorder-engagement-unit",
+  "pad": "build/deadfused2/engagement-multi/fifo-twin",
+  "file_bytes": 87371080,
+  "text_bytes": 3777297,
+  "patches": [
+    {
+      "capability_symbol": "_ZN4tomo17reorder_availableEv",
+      "patch_offset": 3638357
+    }
+  ],
+  "capability_symbol": "_ZN4tomo17reorder_availableEv",
+  "patch_offset": 3638357,
+  "original_byte": "01",
+  "pad_byte": "00",
+  "post_sha256": "156e48b049f12a61d823660eb3d47af7031daa23250dc6f2a85ef4de48f751cf",
+  "pad_sha256": "9cc6152c768a73819a857c3540a349148f56c458705f6026acb1ef04a006e495",
+  "all_other_bytes_equal": true
+}

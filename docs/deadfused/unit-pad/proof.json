@@ -1,0 +1,39 @@
+{
+  "all_other_original_bytes_identical": true,
+  "caveat": "No independent data-path treatment: dead behavior is absent in both arms. This twin verifies PRE INFO compatibility at POST addresses; only a null performance verdict is admissible. No speedup attribution from POST/PAD.",
+  "controls": {
+    "missing-retarget": {
+      "assertion": "planned retarget missing",
+      "rejected": true,
+      "sha256": "2681e551c3d9dbde4850c569869ee01ef4fcbd36a2497c254dad55cc0aafe65c"
+    },
+    "moved-symbol": {
+      "assertion": "symbol table moved",
+      "rejected": true,
+      "sha256": "87acd0d53acd696621e64f92d153b223e88afb54bf4b571584226010443de5f3"
+    },
+    "one-byte": {
+      "assertion": "unplanned byte change",
+      "rejected": true,
+      "sha256": "8810bd0084a63c153f8680252d1a4bbdd5696e8e05505159c8b8ca7ab07c7db9"
+    }
+  },
+  "exact_function_and_section_tables": true,
+  "kind": "A: PRE observable behavior at POST function/object layout",
+  "pad": {
+    "binary_sha256": "24cc0f1162b0ef76480e2ec8dbf80c674fcb2a2e9e716d4485429a8cae01f2f1",
+    "function_table_sha256": "0cb8aba4190fe07804f3875e61acf0454ab79b774e44c924bf2f0e3da6fe1d3f",
+    "functions": 6682,
+    "section_table_sha256": "3e4aa356792de455953dcc6653c57e3b0f59f78f290e6dee39c868314d7e5e25",
+    "text_bytes": 27747731
+  },
+  "patches": 2,
+  "post": {
+    "binary_sha256": "a5e08024b7909a4d4bbb2e26ff08acef43907c24b028ea20e4c3b3ed12ddb75d",
+    "function_table_sha256": "0cb8aba4190fe07804f3875e61acf0454ab79b774e44c924bf2f0e3da6fe1d3f",
+    "functions": 6682,
+    "section_table_sha256": "3e4aa356792de455953dcc6653c57e3b0f59f78f290e6dee39c868314d7e5e25",
+    "text_bytes": 27747731
+  },
+  "restored_row": "read_local_mget_generation_retries:0"
+}

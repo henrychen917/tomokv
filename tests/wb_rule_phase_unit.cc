@@ -106,7 +106,6 @@ struct CoreConcurrencyTest {
             }
             ex.srv_ = &server;
             ex.self_ = &server.thread(owner);
-            ex.fused_handoff_ring_ = &ex.ring_;
             ex.cached_now_ms_ = 1000;
             server.bind_owner_notify_pending(owner, &ex.notify_keyless_pending_);
             if constexpr (SplitLocal) {
