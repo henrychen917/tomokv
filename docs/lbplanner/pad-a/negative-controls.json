@@ -1,0 +1,26 @@
+{
+  "missing-io-begin": {
+    "assertion": "PAD planned retarget missing",
+    "rejected": true
+  },
+  "missing-io-tail": {
+    "assertion": "PAD planned retarget missing",
+    "rejected": true
+  },
+  "missing-monitor": {
+    "assertion": "PAD planned retarget missing",
+    "rejected": true
+  },
+  "missing-parse-gate": {
+    "assertion": "PAD planned retarget missing",
+    "rejected": true
+  },
+  "moved-symbol": {
+    "assertion": "PAD symbol table moved",
+    "rejected": true
+  },
+  "unrelated-byte": {
+    "assertion": "PAD unplanned byte change",
+    "rejected": true
+  }
+}

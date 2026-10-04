@@ -1,0 +1,5302 @@
+{
+  "stage": "Idle",
+  "stage_offset": 82256,
+  "pause_offset": 1368,
+  "scope": "Real pass-start snapshot, repeated production inline parse gate, then control tail; no parser/network/command execution.",
+  "positive": "exactly two shared stage loads independent of connection count: pass start and control tail",
+  "negative": "reintroduced per-connection stage load rejected at every count",
+  "rows": [
+    {
+      "arm": "PRE",
+      "negative": false,
+      "connections": 1,
+      "trace": {
+        "instructions": 73,
+        "executable_instructions": 73,
+        "library_instructions": 0
+      },
+      "stage_loads": 2,
+      "cache_loads": 0,
+      "load_sites": [
+        {
+          "address": "2cb50",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "39e3a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r13d"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2cb30",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2cb34",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "2cb3b",
+          "visits": 1,
+          "instruction": "jne    2cb40 <lbplanner_parse_gate+0x10>"
+        },
+        {
+          "address": "2cb3d",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2cb3f",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "2cb40",
+          "visits": 1,
+          "instruction": "mov    0x190(%rdi),%rax"
+        },
+        {
+          "address": "2cb47",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%r8"
+        },
+        {
+          "address": "2cb4e",
+          "visits": 1,
+          "instruction": "mov    (%rax),%edi"
+        },
+        {
+          "address": "2cb50",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "2cb58",
+          "visits": 1,
+          "instruction": "cmp    $0x4,%dl"
+        },
+        {
+          "address": "2cb5b",
+          "visits": 1,
+          "instruction": "sete   %al"
+        },
+        {
+          "address": "2cb5e",
+          "visits": 1,
+          "instruction": "cmp    $0x1,%dl"
+        },
+        {
+          "address": "2cb61",
+          "visits": 1,
+          "instruction": "sete   %cl"
+        },
+        {
+          "address": "2cb64",
+          "visits": 1,
+          "instruction": "or     %cl,%al"
+        },
+        {
+          "address": "2cb66",
+          "visits": 1,
+          "instruction": "jne    2cb80 <lbplanner_parse_gate+0x50>"
+        },
+        {
+          "address": "2cb68",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%dl"
+        },
+        {
+          "address": "2cb6b",
+          "visits": 1,
+          "instruction": "jne    2cb3d <lbplanner_parse_gate+0xd>"
+        },
+        {
+          "address": "2ce60",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2ce64",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2ce65",
+          "visits": 1,
+          "instruction": "mov    %rdi,%r10"
+        },
+        {
+          "address": "2ce68",
+          "visits": 1,
+          "instruction": "test   %esi,%esi"
+        },
+        {
+          "address": "2ce6a",
+          "visits": 1,
+          "instruction": "je     2ceb0 <lbplanner_io_pass+0x50>"
+        },
+        {
+          "address": "2ce6c",
+          "visits": 1,
+          "instruction": "mov    %esi,%r11d"
+        },
+        {
+          "address": "2ce6f",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2ce75",
+          "visits": 1,
+          "instruction": "xor    %ebx,%ebx"
+        },
+        {
+          "address": "2ce77",
+          "visits": 1,
+          "instruction": "nopw   0x0(%rax,%rax,1)"
+        },
+        {
+          "address": "2ce80",
+          "visits": 1,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2ce83",
+          "visits": 1,
+          "instruction": "mov    %r10,%rdi"
+        },
+        {
+          "address": "2ce86",
+          "visits": 1,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2ce89",
+          "visits": 1,
+          "instruction": "call   2cb30 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2ce8e",
+          "visits": 1,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2ce91",
+          "visits": 1,
+          "instruction": "add    %eax,%ebx"
+        },
+        {
+          "address": "2ce93",
+          "visits": 1,
+          "instruction": "cmp    %r9d,%r11d"
+        },
+        {
+          "address": "2ce96",
+          "visits": 1,
+          "instruction": "jae    2ce80 <lbplanner_io_pass+0x20>"
+        },
+        {
+          "address": "2ce98",
+          "visits": 1,
+          "instruction": "mov    %r10,%rdi"
+        },
+        {
+          "address": "2ce9b",
+          "visits": 1,
+          "instruction": "call   39dd0 <_ZN4tomo6IoLoop15lb_control_passEv>"
+        },
+        {
+          "address": "2cea0",
+          "visits": 1,
+          "instruction": "add    %ebx,%eax"
+        },
+        {
+          "address": "2cea2",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2cea3",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "39dd0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "39dd4",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "39dd5",
+          "visits": 1,
+          "instruction": "mov    %rsp,%rbp"
+        },
+        {
+          "address": "39dd8",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "39dda",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "39ddc",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "39dde",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "39de0",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "39de1",
+          "visits": 1,
+          "instruction": "sub    $0x278,%rsp"
+        },
+        {
+          "address": "39de8",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "39df1",
+          "visits": 1,
+          "instruction": "mov    %rax,0x268(%rsp)"
+        },
+        {
+          "address": "39df9",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "39dfb",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "39e02",
+          "visits": 1,
+          "instruction": "jne    39e30 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+        },
+        {
+          "address": "39e04",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "39e06",
+          "visits": 1,
+          "instruction": "mov    0x268(%rsp),%rdx"
+        },
+        {
+          "address": "39e0e",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rdx"
+        },
+        {
+          "address": "39e17",
+          "visits": 1,
+          "instruction": "jne    3ad27 <_ZN4tomo6IoLoop15lb_control_passEv+0xf57>"
+        },
+        {
+          "address": "39e1d",
+          "visits": 1,
+          "instruction": "add    $0x278,%rsp"
+        },
+        {
+          "address": "39e24",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "39e25",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "39e27",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "39e29",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "39e2b",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "39e2d",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "39e2e",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "39e30",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "39e37",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "39e3a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r13d"
+        },
+        {
+          "address": "39e42",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r13b"
+        },
+        {
+          "address": "39e46",
+          "visits": 1,
+          "instruction": "je     39ff0 <_ZN4tomo6IoLoop15lb_control_passEv+0x220>"
+        },
+        {
+          "address": "39e4c",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "39e53",
+          "visits": 1,
+          "instruction": "test   %r13b,%r13b"
+        },
+        {
+          "address": "39e56",
+          "visits": 1,
+          "instruction": "je     39e04 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+        }
+      ]
+    },
+    {
+      "arm": "PRE",
+      "negative": false,
+      "connections": 32,
+      "trace": {
+        "instructions": 848,
+        "executable_instructions": 848,
+        "library_instructions": 0
+      },
+      "stage_loads": 33,
+      "cache_loads": 0,
+      "load_sites": [
+        {
+          "address": "2cb50",
+          "visits": 32,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "39e3a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r13d"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2cb30",
+          "visits": 32,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2cb34",
+          "visits": 32,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "2cb3b",
+          "visits": 32,
+          "instruction": "jne    2cb40 <lbplanner_parse_gate+0x10>"
+        },
+        {
+          "address": "2cb3d",
+          "visits": 32,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2cb3f",
+          "visits": 32,
+          "instruction": "ret"
+        },
+        {
+          "address": "2cb40",
+          "visits": 32,
+          "instruction": "mov    0x190(%rdi),%rax"
+        },
+        {
+          "address": "2cb47",
+          "visits": 32,
+          "instruction": "mov    0x188(%rdi),%r8"
+        },
+        {
+          "address": "2cb4e",
+          "visits": 32,
+          "instruction": "mov    (%rax),%edi"
+        },
+        {
+          "address": "2cb50",
+          "visits": 32,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "2cb58",
+          "visits": 32,
+          "instruction": "cmp    $0x4,%dl"
+        },
+        {
+          "address": "2cb5b",
+          "visits": 32,
+          "instruction": "sete   %al"
+        },
+        {
+          "address": "2cb5e",
+          "visits": 32,
+          "instruction": "cmp    $0x1,%dl"
+        },
+        {
+          "address": "2cb61",
+          "visits": 32,
+          "instruction": "sete   %cl"
+        },
+        {
+          "address": "2cb64",
+          "visits": 32,
+          "instruction": "or     %cl,%al"
+        },
+        {
+          "address": "2cb66",
+          "visits": 32,
+          "instruction": "jne    2cb80 <lbplanner_parse_gate+0x50>"
+        },
+        {
+          "address": "2cb68",
+          "visits": 32,
+          "instruction": "cmp    $0x2,%dl"
+        },
+        {
+          "address": "2cb6b",
+          "visits": 32,
+          "instruction": "jne    2cb3d <lbplanner_parse_gate+0xd>"
+        },
+        {
+          "address": "2ce60",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2ce64",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2ce65",
+          "visits": 1,
+          "instruction": "mov    %rdi,%r10"
+        },
+        {
+          "address": "2ce68",
+          "visits": 1,
+          "instruction": "test   %esi,%esi"
+        },
+        {
+          "address": "2ce6a",
+          "visits": 1,
+          "instruction": "je     2ceb0 <lbplanner_io_pass+0x50>"
+        },
+        {
+          "address": "2ce6c",
+          "visits": 1,
+          "instruction": "mov    %esi,%r11d"
+        },
+        {
+          "address": "2ce6f",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2ce75",
+          "visits": 1,
+          "instruction": "xor    %ebx,%ebx"
+        },
+        {
+          "address": "2ce77",
+          "visits": 1,
+          "instruction": "nopw   0x0(%rax,%rax,1)"
+        },
+        {
+          "address": "2ce80",
+          "visits": 32,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2ce83",
+          "visits": 32,
+          "instruction": "mov    %r10,%rdi"
+        },
+        {
+          "address": "2ce86",
+          "visits": 32,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2ce89",
+          "visits": 32,
+          "instruction": "call   2cb30 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2ce8e",
+          "visits": 32,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2ce91",
+          "visits": 32,
+          "instruction": "add    %eax,%ebx"
+        },
+        {
+          "address": "2ce93",
+          "visits": 32,
+          "instruction": "cmp    %r9d,%r11d"
+        },
+        {
+          "address": "2ce96",
+          "visits": 32,
+          "instruction": "jae    2ce80 <lbplanner_io_pass+0x20>"
+        },
+        {
+          "address": "2ce98",
+          "visits": 1,
+          "instruction": "mov    %r10,%rdi"
+        },
+        {
+          "address": "2ce9b",
+          "visits": 1,
+          "instruction": "call   39dd0 <_ZN4tomo6IoLoop15lb_control_passEv>"
+        },
+        {
+          "address": "2cea0",
+          "visits": 1,
+          "instruction": "add    %ebx,%eax"
+        },
+        {
+          "address": "2cea2",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2cea3",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "39dd0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "39dd4",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "39dd5",
+          "visits": 1,
+          "instruction": "mov    %rsp,%rbp"
+        },
+        {
+          "address": "39dd8",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "39dda",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "39ddc",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "39dde",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "39de0",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "39de1",
+          "visits": 1,
+          "instruction": "sub    $0x278,%rsp"
+        },
+        {
+          "address": "39de8",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "39df1",
+          "visits": 1,
+          "instruction": "mov    %rax,0x268(%rsp)"
+        },
+        {
+          "address": "39df9",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "39dfb",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "39e02",
+          "visits": 1,
+          "instruction": "jne    39e30 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+        },
+        {
+          "address": "39e04",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "39e06",
+          "visits": 1,
+          "instruction": "mov    0x268(%rsp),%rdx"
+        },
+        {
+          "address": "39e0e",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rdx"
+        },
+        {
+          "address": "39e17",
+          "visits": 1,
+          "instruction": "jne    3ad27 <_ZN4tomo6IoLoop15lb_control_passEv+0xf57>"
+        },
+        {
+          "address": "39e1d",
+          "visits": 1,
+          "instruction": "add    $0x278,%rsp"
+        },
+        {
+          "address": "39e24",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "39e25",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "39e27",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "39e29",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "39e2b",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "39e2d",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "39e2e",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "39e30",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "39e37",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "39e3a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r13d"
+        },
+        {
+          "address": "39e42",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r13b"
+        },
+        {
+          "address": "39e46",
+          "visits": 1,
+          "instruction": "je     39ff0 <_ZN4tomo6IoLoop15lb_control_passEv+0x220>"
+        },
+        {
+          "address": "39e4c",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "39e53",
+          "visits": 1,
+          "instruction": "test   %r13b,%r13b"
+        },
+        {
+          "address": "39e56",
+          "visits": 1,
+          "instruction": "je     39e04 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+        }
+      ]
+    },
+    {
+      "arm": "PRE",
+      "negative": false,
+      "connections": 4096,
+      "trace": {
+        "instructions": 102448,
+        "executable_instructions": 102448,
+        "library_instructions": 0
+      },
+      "stage_loads": 4097,
+      "cache_loads": 0,
+      "load_sites": [
+        {
+          "address": "2cb50",
+          "visits": 4096,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "39e3a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r13d"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2cb30",
+          "visits": 4096,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2cb34",
+          "visits": 4096,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "2cb3b",
+          "visits": 4096,
+          "instruction": "jne    2cb40 <lbplanner_parse_gate+0x10>"
+        },
+        {
+          "address": "2cb3d",
+          "visits": 4096,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2cb3f",
+          "visits": 4096,
+          "instruction": "ret"
+        },
+        {
+          "address": "2cb40",
+          "visits": 4096,
+          "instruction": "mov    0x190(%rdi),%rax"
+        },
+        {
+          "address": "2cb47",
+          "visits": 4096,
+          "instruction": "mov    0x188(%rdi),%r8"
+        },
+        {
+          "address": "2cb4e",
+          "visits": 4096,
+          "instruction": "mov    (%rax),%edi"
+        },
+        {
+          "address": "2cb50",
+          "visits": 4096,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "2cb58",
+          "visits": 4096,
+          "instruction": "cmp    $0x4,%dl"
+        },
+        {
+          "address": "2cb5b",
+          "visits": 4096,
+          "instruction": "sete   %al"
+        },
+        {
+          "address": "2cb5e",
+          "visits": 4096,
+          "instruction": "cmp    $0x1,%dl"
+        },
+        {
+          "address": "2cb61",
+          "visits": 4096,
+          "instruction": "sete   %cl"
+        },
+        {
+          "address": "2cb64",
+          "visits": 4096,
+          "instruction": "or     %cl,%al"
+        },
+        {
+          "address": "2cb66",
+          "visits": 4096,
+          "instruction": "jne    2cb80 <lbplanner_parse_gate+0x50>"
+        },
+        {
+          "address": "2cb68",
+          "visits": 4096,
+          "instruction": "cmp    $0x2,%dl"
+        },
+        {
+          "address": "2cb6b",
+          "visits": 4096,
+          "instruction": "jne    2cb3d <lbplanner_parse_gate+0xd>"
+        },
+        {
+          "address": "2ce60",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2ce64",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2ce65",
+          "visits": 1,
+          "instruction": "mov    %rdi,%r10"
+        },
+        {
+          "address": "2ce68",
+          "visits": 1,
+          "instruction": "test   %esi,%esi"
+        },
+        {
+          "address": "2ce6a",
+          "visits": 1,
+          "instruction": "je     2ceb0 <lbplanner_io_pass+0x50>"
+        },
+        {
+          "address": "2ce6c",
+          "visits": 1,
+          "instruction": "mov    %esi,%r11d"
+        },
+        {
+          "address": "2ce6f",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2ce75",
+          "visits": 1,
+          "instruction": "xor    %ebx,%ebx"
+        },
+        {
+          "address": "2ce77",
+          "visits": 1,
+          "instruction": "nopw   0x0(%rax,%rax,1)"
+        },
+        {
+          "address": "2ce80",
+          "visits": 4096,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2ce83",
+          "visits": 4096,
+          "instruction": "mov    %r10,%rdi"
+        },
+        {
+          "address": "2ce86",
+          "visits": 4096,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2ce89",
+          "visits": 4096,
+          "instruction": "call   2cb30 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2ce8e",
+          "visits": 4096,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2ce91",
+          "visits": 4096,
+          "instruction": "add    %eax,%ebx"
+        },
+        {
+          "address": "2ce93",
+          "visits": 4096,
+          "instruction": "cmp    %r9d,%r11d"
+        },
+        {
+          "address": "2ce96",
+          "visits": 4096,
+          "instruction": "jae    2ce80 <lbplanner_io_pass+0x20>"
+        },
+        {
+          "address": "2ce98",
+          "visits": 1,
+          "instruction": "mov    %r10,%rdi"
+        },
+        {
+          "address": "2ce9b",
+          "visits": 1,
+          "instruction": "call   39dd0 <_ZN4tomo6IoLoop15lb_control_passEv>"
+        },
+        {
+          "address": "2cea0",
+          "visits": 1,
+          "instruction": "add    %ebx,%eax"
+        },
+        {
+          "address": "2cea2",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2cea3",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "39dd0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "39dd4",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "39dd5",
+          "visits": 1,
+          "instruction": "mov    %rsp,%rbp"
+        },
+        {
+          "address": "39dd8",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "39dda",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "39ddc",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "39dde",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "39de0",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "39de1",
+          "visits": 1,
+          "instruction": "sub    $0x278,%rsp"
+        },
+        {
+          "address": "39de8",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "39df1",
+          "visits": 1,
+          "instruction": "mov    %rax,0x268(%rsp)"
+        },
+        {
+          "address": "39df9",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "39dfb",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "39e02",
+          "visits": 1,
+          "instruction": "jne    39e30 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+        },
+        {
+          "address": "39e04",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "39e06",
+          "visits": 1,
+          "instruction": "mov    0x268(%rsp),%rdx"
+        },
+        {
+          "address": "39e0e",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rdx"
+        },
+        {
+          "address": "39e17",
+          "visits": 1,
+          "instruction": "jne    3ad27 <_ZN4tomo6IoLoop15lb_control_passEv+0xf57>"
+        },
+        {
+          "address": "39e1d",
+          "visits": 1,
+          "instruction": "add    $0x278,%rsp"
+        },
+        {
+          "address": "39e24",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "39e25",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "39e27",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "39e29",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "39e2b",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "39e2d",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "39e2e",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "39e30",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "39e37",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "39e3a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r13d"
+        },
+        {
+          "address": "39e42",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r13b"
+        },
+        {
+          "address": "39e46",
+          "visits": 1,
+          "instruction": "je     39ff0 <_ZN4tomo6IoLoop15lb_control_passEv+0x220>"
+        },
+        {
+          "address": "39e4c",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "39e53",
+          "visits": 1,
+          "instruction": "test   %r13b,%r13b"
+        },
+        {
+          "address": "39e56",
+          "visits": 1,
+          "instruction": "je     39e04 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+        }
+      ]
+    },
+    {
+      "arm": "POST",
+      "negative": false,
+      "connections": 1,
+      "trace": {
+        "instructions": 82,
+        "executable_instructions": 82,
+        "library_instructions": 0
+      },
+      "stage_loads": 2,
+      "cache_loads": 1,
+      "load_sites": [
+        {
+          "address": "346a7",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%eax"
+        },
+        {
+          "address": "54b0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "2e714",
+          "visits": 1,
+          "instruction": "mov    0x558(%rdi),%rdx"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2e710",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2e714",
+          "visits": 1,
+          "instruction": "mov    0x558(%rdi),%rdx"
+        },
+        {
+          "address": "2e71b",
+          "visits": 1,
+          "instruction": "test   %rdx,%rdx"
+        },
+        {
+          "address": "2e71e",
+          "visits": 1,
+          "instruction": "je     2e739 <lbplanner_parse_gate+0x29>"
+        },
+        {
+          "address": "2e739",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2e73b",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "2ff50",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2ff54",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "2ff56",
+          "visits": 1,
+          "instruction": "mov    %esi,%r12d"
+        },
+        {
+          "address": "2ff59",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "2ff5a",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2ff5b",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbp"
+        },
+        {
+          "address": "2ff5e",
+          "visits": 1,
+          "instruction": "xor    %ebx,%ebx"
+        },
+        {
+          "address": "2ff60",
+          "visits": 1,
+          "instruction": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>"
+        },
+        {
+          "address": "2ff65",
+          "visits": 1,
+          "instruction": "test   %r12d,%r12d"
+        },
+        {
+          "address": "2ff68",
+          "visits": 1,
+          "instruction": "je     2ff88 <lbplanner_io_pass+0x38>"
+        },
+        {
+          "address": "2ff6a",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2ff70",
+          "visits": 1,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2ff73",
+          "visits": 1,
+          "instruction": "mov    %rbp,%rdi"
+        },
+        {
+          "address": "2ff76",
+          "visits": 1,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2ff79",
+          "visits": 1,
+          "instruction": "call   2e710 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2ff7e",
+          "visits": 1,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2ff81",
+          "visits": 1,
+          "instruction": "add    %eax,%ebx"
+        },
+        {
+          "address": "2ff83",
+          "visits": 1,
+          "instruction": "cmp    %r9d,%r12d"
+        },
+        {
+          "address": "2ff86",
+          "visits": 1,
+          "instruction": "jae    2ff70 <lbplanner_io_pass+0x20>"
+        },
+        {
+          "address": "2ff88",
+          "visits": 1,
+          "instruction": "mov    %rbp,%rdi"
+        },
+        {
+          "address": "2ff8b",
+          "visits": 1,
+          "instruction": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>"
+        },
+        {
+          "address": "2ff90",
+          "visits": 1,
+          "instruction": "add    %ebx,%eax"
+        },
+        {
+          "address": "2ff92",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2ff93",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "2ff94",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "2ff96",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "34690",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "34694",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "3469b",
+          "visits": 1,
+          "instruction": "jne    346a0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x10>"
+        },
+        {
+          "address": "346a0",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "346a7",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%eax"
+        },
+        {
+          "address": "346ae",
+          "visits": 1,
+          "instruction": "cmp    $0x4,%al"
+        },
+        {
+          "address": "346b0",
+          "visits": 1,
+          "instruction": "je     346d0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x40>"
+        },
+        {
+          "address": "346b2",
+          "visits": 1,
+          "instruction": "cmp    $0x1,%al"
+        },
+        {
+          "address": "346b4",
+          "visits": 1,
+          "instruction": "je     346d0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x40>"
+        },
+        {
+          "address": "346b6",
+          "visits": 1,
+          "instruction": "xor    %edx,%edx"
+        },
+        {
+          "address": "346b8",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%al"
+        },
+        {
+          "address": "346ba",
+          "visits": 1,
+          "instruction": "je     346e0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x50>"
+        },
+        {
+          "address": "346bc",
+          "visits": 1,
+          "instruction": "mov    %rdx,0x558(%rdi)"
+        },
+        {
+          "address": "346c3",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "54aa0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "54aa4",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "54aa5",
+          "visits": 1,
+          "instruction": "mov    %rsp,%rbp"
+        },
+        {
+          "address": "54aa8",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "54aaa",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "54aac",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "54aae",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "54ab0",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "54ab1",
+          "visits": 1,
+          "instruction": "sub    $0x278,%rsp"
+        },
+        {
+          "address": "54ab8",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "54ac1",
+          "visits": 1,
+          "instruction": "mov    %rax,0x268(%rsp)"
+        },
+        {
+          "address": "54ac9",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "54acb",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "54ad2",
+          "visits": 1,
+          "instruction": "jne    54b00 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+        },
+        {
+          "address": "54ad4",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "54ad6",
+          "visits": 1,
+          "instruction": "mov    0x268(%rsp),%rdx"
+        },
+        {
+          "address": "54ade",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rdx"
+        },
+        {
+          "address": "54ae7",
+          "visits": 1,
+          "instruction": "jne    556c7 <_ZN4tomo6IoLoop15lb_control_passEv+0xc27>"
+        },
+        {
+          "address": "54aed",
+          "visits": 1,
+          "instruction": "add    $0x278,%rsp"
+        },
+        {
+          "address": "54af4",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "54af5",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "54af7",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "54af9",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "54afb",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "54afd",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "54afe",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "54b00",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "54b07",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "54b0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "54b12",
+          "visits": 1,
+          "instruction": "cmp    $0x5,%r12b"
+        },
+        {
+          "address": "54b16",
+          "visits": 1,
+          "instruction": "je     54c90 <_ZN4tomo6IoLoop15lb_control_passEv+0x1f0>"
+        },
+        {
+          "address": "54b1c",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r12b"
+        },
+        {
+          "address": "54b20",
+          "visits": 1,
+          "instruction": "je     54be0 <_ZN4tomo6IoLoop15lb_control_passEv+0x140>"
+        },
+        {
+          "address": "54b26",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "54b2d",
+          "visits": 1,
+          "instruction": "test   %r12b,%r12b"
+        },
+        {
+          "address": "54b30",
+          "visits": 1,
+          "instruction": "je     54ad4 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+        }
+      ]
+    },
+    {
+      "arm": "POST",
+      "negative": false,
+      "connections": 32,
+      "trace": {
+        "instructions": 516,
+        "executable_instructions": 516,
+        "library_instructions": 0
+      },
+      "stage_loads": 2,
+      "cache_loads": 32,
+      "load_sites": [
+        {
+          "address": "346a7",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%eax"
+        },
+        {
+          "address": "54b0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "2e714",
+          "visits": 32,
+          "instruction": "mov    0x558(%rdi),%rdx"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2e710",
+          "visits": 32,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2e714",
+          "visits": 32,
+          "instruction": "mov    0x558(%rdi),%rdx"
+        },
+        {
+          "address": "2e71b",
+          "visits": 32,
+          "instruction": "test   %rdx,%rdx"
+        },
+        {
+          "address": "2e71e",
+          "visits": 32,
+          "instruction": "je     2e739 <lbplanner_parse_gate+0x29>"
+        },
+        {
+          "address": "2e739",
+          "visits": 32,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2e73b",
+          "visits": 32,
+          "instruction": "ret"
+        },
+        {
+          "address": "2ff50",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2ff54",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "2ff56",
+          "visits": 1,
+          "instruction": "mov    %esi,%r12d"
+        },
+        {
+          "address": "2ff59",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "2ff5a",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2ff5b",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbp"
+        },
+        {
+          "address": "2ff5e",
+          "visits": 1,
+          "instruction": "xor    %ebx,%ebx"
+        },
+        {
+          "address": "2ff60",
+          "visits": 1,
+          "instruction": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>"
+        },
+        {
+          "address": "2ff65",
+          "visits": 1,
+          "instruction": "test   %r12d,%r12d"
+        },
+        {
+          "address": "2ff68",
+          "visits": 1,
+          "instruction": "je     2ff88 <lbplanner_io_pass+0x38>"
+        },
+        {
+          "address": "2ff6a",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2ff70",
+          "visits": 32,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2ff73",
+          "visits": 32,
+          "instruction": "mov    %rbp,%rdi"
+        },
+        {
+          "address": "2ff76",
+          "visits": 32,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2ff79",
+          "visits": 32,
+          "instruction": "call   2e710 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2ff7e",
+          "visits": 32,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2ff81",
+          "visits": 32,
+          "instruction": "add    %eax,%ebx"
+        },
+        {
+          "address": "2ff83",
+          "visits": 32,
+          "instruction": "cmp    %r9d,%r12d"
+        },
+        {
+          "address": "2ff86",
+          "visits": 32,
+          "instruction": "jae    2ff70 <lbplanner_io_pass+0x20>"
+        },
+        {
+          "address": "2ff88",
+          "visits": 1,
+          "instruction": "mov    %rbp,%rdi"
+        },
+        {
+          "address": "2ff8b",
+          "visits": 1,
+          "instruction": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>"
+        },
+        {
+          "address": "2ff90",
+          "visits": 1,
+          "instruction": "add    %ebx,%eax"
+        },
+        {
+          "address": "2ff92",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2ff93",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "2ff94",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "2ff96",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "34690",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "34694",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "3469b",
+          "visits": 1,
+          "instruction": "jne    346a0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x10>"
+        },
+        {
+          "address": "346a0",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "346a7",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%eax"
+        },
+        {
+          "address": "346ae",
+          "visits": 1,
+          "instruction": "cmp    $0x4,%al"
+        },
+        {
+          "address": "346b0",
+          "visits": 1,
+          "instruction": "je     346d0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x40>"
+        },
+        {
+          "address": "346b2",
+          "visits": 1,
+          "instruction": "cmp    $0x1,%al"
+        },
+        {
+          "address": "346b4",
+          "visits": 1,
+          "instruction": "je     346d0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x40>"
+        },
+        {
+          "address": "346b6",
+          "visits": 1,
+          "instruction": "xor    %edx,%edx"
+        },
+        {
+          "address": "346b8",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%al"
+        },
+        {
+          "address": "346ba",
+          "visits": 1,
+          "instruction": "je     346e0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x50>"
+        },
+        {
+          "address": "346bc",
+          "visits": 1,
+          "instruction": "mov    %rdx,0x558(%rdi)"
+        },
+        {
+          "address": "346c3",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "54aa0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "54aa4",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "54aa5",
+          "visits": 1,
+          "instruction": "mov    %rsp,%rbp"
+        },
+        {
+          "address": "54aa8",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "54aaa",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "54aac",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "54aae",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "54ab0",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "54ab1",
+          "visits": 1,
+          "instruction": "sub    $0x278,%rsp"
+        },
+        {
+          "address": "54ab8",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "54ac1",
+          "visits": 1,
+          "instruction": "mov    %rax,0x268(%rsp)"
+        },
+        {
+          "address": "54ac9",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "54acb",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "54ad2",
+          "visits": 1,
+          "instruction": "jne    54b00 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+        },
+        {
+          "address": "54ad4",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "54ad6",
+          "visits": 1,
+          "instruction": "mov    0x268(%rsp),%rdx"
+        },
+        {
+          "address": "54ade",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rdx"
+        },
+        {
+          "address": "54ae7",
+          "visits": 1,
+          "instruction": "jne    556c7 <_ZN4tomo6IoLoop15lb_control_passEv+0xc27>"
+        },
+        {
+          "address": "54aed",
+          "visits": 1,
+          "instruction": "add    $0x278,%rsp"
+        },
+        {
+          "address": "54af4",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "54af5",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "54af7",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "54af9",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "54afb",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "54afd",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "54afe",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "54b00",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "54b07",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "54b0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "54b12",
+          "visits": 1,
+          "instruction": "cmp    $0x5,%r12b"
+        },
+        {
+          "address": "54b16",
+          "visits": 1,
+          "instruction": "je     54c90 <_ZN4tomo6IoLoop15lb_control_passEv+0x1f0>"
+        },
+        {
+          "address": "54b1c",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r12b"
+        },
+        {
+          "address": "54b20",
+          "visits": 1,
+          "instruction": "je     54be0 <_ZN4tomo6IoLoop15lb_control_passEv+0x140>"
+        },
+        {
+          "address": "54b26",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "54b2d",
+          "visits": 1,
+          "instruction": "test   %r12b,%r12b"
+        },
+        {
+          "address": "54b30",
+          "visits": 1,
+          "instruction": "je     54ad4 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+        }
+      ]
+    },
+    {
+      "arm": "POST",
+      "negative": false,
+      "connections": 4096,
+      "trace": {
+        "instructions": 57412,
+        "executable_instructions": 57412,
+        "library_instructions": 0
+      },
+      "stage_loads": 2,
+      "cache_loads": 4096,
+      "load_sites": [
+        {
+          "address": "346a7",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%eax"
+        },
+        {
+          "address": "54b0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "2e714",
+          "visits": 4096,
+          "instruction": "mov    0x558(%rdi),%rdx"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2e710",
+          "visits": 4096,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2e714",
+          "visits": 4096,
+          "instruction": "mov    0x558(%rdi),%rdx"
+        },
+        {
+          "address": "2e71b",
+          "visits": 4096,
+          "instruction": "test   %rdx,%rdx"
+        },
+        {
+          "address": "2e71e",
+          "visits": 4096,
+          "instruction": "je     2e739 <lbplanner_parse_gate+0x29>"
+        },
+        {
+          "address": "2e739",
+          "visits": 4096,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2e73b",
+          "visits": 4096,
+          "instruction": "ret"
+        },
+        {
+          "address": "2ff50",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2ff54",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "2ff56",
+          "visits": 1,
+          "instruction": "mov    %esi,%r12d"
+        },
+        {
+          "address": "2ff59",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "2ff5a",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2ff5b",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbp"
+        },
+        {
+          "address": "2ff5e",
+          "visits": 1,
+          "instruction": "xor    %ebx,%ebx"
+        },
+        {
+          "address": "2ff60",
+          "visits": 1,
+          "instruction": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>"
+        },
+        {
+          "address": "2ff65",
+          "visits": 1,
+          "instruction": "test   %r12d,%r12d"
+        },
+        {
+          "address": "2ff68",
+          "visits": 1,
+          "instruction": "je     2ff88 <lbplanner_io_pass+0x38>"
+        },
+        {
+          "address": "2ff6a",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2ff70",
+          "visits": 4096,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2ff73",
+          "visits": 4096,
+          "instruction": "mov    %rbp,%rdi"
+        },
+        {
+          "address": "2ff76",
+          "visits": 4096,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2ff79",
+          "visits": 4096,
+          "instruction": "call   2e710 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2ff7e",
+          "visits": 4096,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2ff81",
+          "visits": 4096,
+          "instruction": "add    %eax,%ebx"
+        },
+        {
+          "address": "2ff83",
+          "visits": 4096,
+          "instruction": "cmp    %r9d,%r12d"
+        },
+        {
+          "address": "2ff86",
+          "visits": 4096,
+          "instruction": "jae    2ff70 <lbplanner_io_pass+0x20>"
+        },
+        {
+          "address": "2ff88",
+          "visits": 1,
+          "instruction": "mov    %rbp,%rdi"
+        },
+        {
+          "address": "2ff8b",
+          "visits": 1,
+          "instruction": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>"
+        },
+        {
+          "address": "2ff90",
+          "visits": 1,
+          "instruction": "add    %ebx,%eax"
+        },
+        {
+          "address": "2ff92",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2ff93",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "2ff94",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "2ff96",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "34690",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "34694",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "3469b",
+          "visits": 1,
+          "instruction": "jne    346a0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x10>"
+        },
+        {
+          "address": "346a0",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "346a7",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%eax"
+        },
+        {
+          "address": "346ae",
+          "visits": 1,
+          "instruction": "cmp    $0x4,%al"
+        },
+        {
+          "address": "346b0",
+          "visits": 1,
+          "instruction": "je     346d0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x40>"
+        },
+        {
+          "address": "346b2",
+          "visits": 1,
+          "instruction": "cmp    $0x1,%al"
+        },
+        {
+          "address": "346b4",
+          "visits": 1,
+          "instruction": "je     346d0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x40>"
+        },
+        {
+          "address": "346b6",
+          "visits": 1,
+          "instruction": "xor    %edx,%edx"
+        },
+        {
+          "address": "346b8",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%al"
+        },
+        {
+          "address": "346ba",
+          "visits": 1,
+          "instruction": "je     346e0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x50>"
+        },
+        {
+          "address": "346bc",
+          "visits": 1,
+          "instruction": "mov    %rdx,0x558(%rdi)"
+        },
+        {
+          "address": "346c3",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "54aa0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "54aa4",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "54aa5",
+          "visits": 1,
+          "instruction": "mov    %rsp,%rbp"
+        },
+        {
+          "address": "54aa8",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "54aaa",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "54aac",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "54aae",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "54ab0",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "54ab1",
+          "visits": 1,
+          "instruction": "sub    $0x278,%rsp"
+        },
+        {
+          "address": "54ab8",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "54ac1",
+          "visits": 1,
+          "instruction": "mov    %rax,0x268(%rsp)"
+        },
+        {
+          "address": "54ac9",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "54acb",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "54ad2",
+          "visits": 1,
+          "instruction": "jne    54b00 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+        },
+        {
+          "address": "54ad4",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "54ad6",
+          "visits": 1,
+          "instruction": "mov    0x268(%rsp),%rdx"
+        },
+        {
+          "address": "54ade",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rdx"
+        },
+        {
+          "address": "54ae7",
+          "visits": 1,
+          "instruction": "jne    556c7 <_ZN4tomo6IoLoop15lb_control_passEv+0xc27>"
+        },
+        {
+          "address": "54aed",
+          "visits": 1,
+          "instruction": "add    $0x278,%rsp"
+        },
+        {
+          "address": "54af4",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "54af5",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "54af7",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "54af9",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "54afb",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "54afd",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "54afe",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "54b00",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "54b07",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "54b0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "54b12",
+          "visits": 1,
+          "instruction": "cmp    $0x5,%r12b"
+        },
+        {
+          "address": "54b16",
+          "visits": 1,
+          "instruction": "je     54c90 <_ZN4tomo6IoLoop15lb_control_passEv+0x1f0>"
+        },
+        {
+          "address": "54b1c",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r12b"
+        },
+        {
+          "address": "54b20",
+          "visits": 1,
+          "instruction": "je     54be0 <_ZN4tomo6IoLoop15lb_control_passEv+0x140>"
+        },
+        {
+          "address": "54b26",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "54b2d",
+          "visits": 1,
+          "instruction": "test   %r12b,%r12b"
+        },
+        {
+          "address": "54b30",
+          "visits": 1,
+          "instruction": "je     54ad4 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+        }
+      ]
+    },
+    {
+      "arm": "POST",
+      "negative": true,
+      "connections": 1,
+      "trace": {
+        "instructions": 87,
+        "executable_instructions": 87,
+        "library_instructions": 0
+      },
+      "stage_loads": 3,
+      "cache_loads": 1,
+      "load_sites": [
+        {
+          "address": "2ff26",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rdx),%edx"
+        },
+        {
+          "address": "346a7",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%eax"
+        },
+        {
+          "address": "54b0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "2e714",
+          "visits": 1,
+          "instruction": "mov    0x558(%rdi),%rdx"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2e710",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2e714",
+          "visits": 1,
+          "instruction": "mov    0x558(%rdi),%rdx"
+        },
+        {
+          "address": "2e71b",
+          "visits": 1,
+          "instruction": "test   %rdx,%rdx"
+        },
+        {
+          "address": "2e71e",
+          "visits": 1,
+          "instruction": "je     2e739 <lbplanner_parse_gate+0x29>"
+        },
+        {
+          "address": "2e739",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2e73b",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "2fef0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2fef4",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "2fef6",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "2fef7",
+          "visits": 1,
+          "instruction": "mov    %esi,%ebp"
+        },
+        {
+          "address": "2fef9",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2fefa",
+          "visits": 1,
+          "instruction": "mov    %rdi,%r12"
+        },
+        {
+          "address": "2fefd",
+          "visits": 1,
+          "instruction": "xor    %ebx,%ebx"
+        },
+        {
+          "address": "2feff",
+          "visits": 1,
+          "instruction": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>"
+        },
+        {
+          "address": "2ff04",
+          "visits": 1,
+          "instruction": "test   %ebp,%ebp"
+        },
+        {
+          "address": "2ff06",
+          "visits": 1,
+          "instruction": "je     2ff3d <lbplanner_io_pass_negative+0x4d>"
+        },
+        {
+          "address": "2ff08",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2ff0e",
+          "visits": 1,
+          "instruction": "xchg   %ax,%ax"
+        },
+        {
+          "address": "2ff10",
+          "visits": 1,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2ff13",
+          "visits": 1,
+          "instruction": "mov    %r12,%rdi"
+        },
+        {
+          "address": "2ff16",
+          "visits": 1,
+          "instruction": "call   2e710 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2ff1b",
+          "visits": 1,
+          "instruction": "mov    0x188(%r12),%rdx"
+        },
+        {
+          "address": "2ff23",
+          "visits": 1,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2ff26",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rdx),%edx"
+        },
+        {
+          "address": "2ff2d",
+          "visits": 1,
+          "instruction": "cmp    $0x1,%dl"
+        },
+        {
+          "address": "2ff30",
+          "visits": 1,
+          "instruction": "sbb    $0xffffffff,%eax"
+        },
+        {
+          "address": "2ff33",
+          "visits": 1,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2ff36",
+          "visits": 1,
+          "instruction": "add    %eax,%ebx"
+        },
+        {
+          "address": "2ff38",
+          "visits": 1,
+          "instruction": "cmp    %r9d,%ebp"
+        },
+        {
+          "address": "2ff3b",
+          "visits": 1,
+          "instruction": "jae    2ff10 <lbplanner_io_pass_negative+0x20>"
+        },
+        {
+          "address": "2ff3d",
+          "visits": 1,
+          "instruction": "mov    %r12,%rdi"
+        },
+        {
+          "address": "2ff40",
+          "visits": 1,
+          "instruction": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>"
+        },
+        {
+          "address": "2ff45",
+          "visits": 1,
+          "instruction": "add    %ebx,%eax"
+        },
+        {
+          "address": "2ff47",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2ff48",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "2ff49",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "2ff4b",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "34690",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "34694",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "3469b",
+          "visits": 1,
+          "instruction": "jne    346a0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x10>"
+        },
+        {
+          "address": "346a0",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "346a7",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%eax"
+        },
+        {
+          "address": "346ae",
+          "visits": 1,
+          "instruction": "cmp    $0x4,%al"
+        },
+        {
+          "address": "346b0",
+          "visits": 1,
+          "instruction": "je     346d0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x40>"
+        },
+        {
+          "address": "346b2",
+          "visits": 1,
+          "instruction": "cmp    $0x1,%al"
+        },
+        {
+          "address": "346b4",
+          "visits": 1,
+          "instruction": "je     346d0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x40>"
+        },
+        {
+          "address": "346b6",
+          "visits": 1,
+          "instruction": "xor    %edx,%edx"
+        },
+        {
+          "address": "346b8",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%al"
+        },
+        {
+          "address": "346ba",
+          "visits": 1,
+          "instruction": "je     346e0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x50>"
+        },
+        {
+          "address": "346bc",
+          "visits": 1,
+          "instruction": "mov    %rdx,0x558(%rdi)"
+        },
+        {
+          "address": "346c3",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "54aa0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "54aa4",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "54aa5",
+          "visits": 1,
+          "instruction": "mov    %rsp,%rbp"
+        },
+        {
+          "address": "54aa8",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "54aaa",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "54aac",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "54aae",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "54ab0",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "54ab1",
+          "visits": 1,
+          "instruction": "sub    $0x278,%rsp"
+        },
+        {
+          "address": "54ab8",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "54ac1",
+          "visits": 1,
+          "instruction": "mov    %rax,0x268(%rsp)"
+        },
+        {
+          "address": "54ac9",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "54acb",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "54ad2",
+          "visits": 1,
+          "instruction": "jne    54b00 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+        },
+        {
+          "address": "54ad4",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "54ad6",
+          "visits": 1,
+          "instruction": "mov    0x268(%rsp),%rdx"
+        },
+        {
+          "address": "54ade",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rdx"
+        },
+        {
+          "address": "54ae7",
+          "visits": 1,
+          "instruction": "jne    556c7 <_ZN4tomo6IoLoop15lb_control_passEv+0xc27>"
+        },
+        {
+          "address": "54aed",
+          "visits": 1,
+          "instruction": "add    $0x278,%rsp"
+        },
+        {
+          "address": "54af4",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "54af5",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "54af7",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "54af9",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "54afb",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "54afd",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "54afe",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "54b00",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "54b07",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "54b0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "54b12",
+          "visits": 1,
+          "instruction": "cmp    $0x5,%r12b"
+        },
+        {
+          "address": "54b16",
+          "visits": 1,
+          "instruction": "je     54c90 <_ZN4tomo6IoLoop15lb_control_passEv+0x1f0>"
+        },
+        {
+          "address": "54b1c",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r12b"
+        },
+        {
+          "address": "54b20",
+          "visits": 1,
+          "instruction": "je     54be0 <_ZN4tomo6IoLoop15lb_control_passEv+0x140>"
+        },
+        {
+          "address": "54b26",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "54b2d",
+          "visits": 1,
+          "instruction": "test   %r12b,%r12b"
+        },
+        {
+          "address": "54b30",
+          "visits": 1,
+          "instruction": "je     54ad4 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+        }
+      ]
+    },
+    {
+      "arm": "POST",
+      "negative": true,
+      "connections": 32,
+      "trace": {
+        "instructions": 645,
+        "executable_instructions": 645,
+        "library_instructions": 0
+      },
+      "stage_loads": 34,
+      "cache_loads": 32,
+      "load_sites": [
+        {
+          "address": "2ff26",
+          "visits": 32,
+          "instruction": "movzbl 0x14150(%rdx),%edx"
+        },
+        {
+          "address": "346a7",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%eax"
+        },
+        {
+          "address": "54b0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "2e714",
+          "visits": 32,
+          "instruction": "mov    0x558(%rdi),%rdx"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2e710",
+          "visits": 32,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2e714",
+          "visits": 32,
+          "instruction": "mov    0x558(%rdi),%rdx"
+        },
+        {
+          "address": "2e71b",
+          "visits": 32,
+          "instruction": "test   %rdx,%rdx"
+        },
+        {
+          "address": "2e71e",
+          "visits": 32,
+          "instruction": "je     2e739 <lbplanner_parse_gate+0x29>"
+        },
+        {
+          "address": "2e739",
+          "visits": 32,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2e73b",
+          "visits": 32,
+          "instruction": "ret"
+        },
+        {
+          "address": "2fef0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2fef4",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "2fef6",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "2fef7",
+          "visits": 1,
+          "instruction": "mov    %esi,%ebp"
+        },
+        {
+          "address": "2fef9",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2fefa",
+          "visits": 1,
+          "instruction": "mov    %rdi,%r12"
+        },
+        {
+          "address": "2fefd",
+          "visits": 1,
+          "instruction": "xor    %ebx,%ebx"
+        },
+        {
+          "address": "2feff",
+          "visits": 1,
+          "instruction": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>"
+        },
+        {
+          "address": "2ff04",
+          "visits": 1,
+          "instruction": "test   %ebp,%ebp"
+        },
+        {
+          "address": "2ff06",
+          "visits": 1,
+          "instruction": "je     2ff3d <lbplanner_io_pass_negative+0x4d>"
+        },
+        {
+          "address": "2ff08",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2ff0e",
+          "visits": 1,
+          "instruction": "xchg   %ax,%ax"
+        },
+        {
+          "address": "2ff10",
+          "visits": 32,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2ff13",
+          "visits": 32,
+          "instruction": "mov    %r12,%rdi"
+        },
+        {
+          "address": "2ff16",
+          "visits": 32,
+          "instruction": "call   2e710 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2ff1b",
+          "visits": 32,
+          "instruction": "mov    0x188(%r12),%rdx"
+        },
+        {
+          "address": "2ff23",
+          "visits": 32,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2ff26",
+          "visits": 32,
+          "instruction": "movzbl 0x14150(%rdx),%edx"
+        },
+        {
+          "address": "2ff2d",
+          "visits": 32,
+          "instruction": "cmp    $0x1,%dl"
+        },
+        {
+          "address": "2ff30",
+          "visits": 32,
+          "instruction": "sbb    $0xffffffff,%eax"
+        },
+        {
+          "address": "2ff33",
+          "visits": 32,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2ff36",
+          "visits": 32,
+          "instruction": "add    %eax,%ebx"
+        },
+        {
+          "address": "2ff38",
+          "visits": 32,
+          "instruction": "cmp    %r9d,%ebp"
+        },
+        {
+          "address": "2ff3b",
+          "visits": 32,
+          "instruction": "jae    2ff10 <lbplanner_io_pass_negative+0x20>"
+        },
+        {
+          "address": "2ff3d",
+          "visits": 1,
+          "instruction": "mov    %r12,%rdi"
+        },
+        {
+          "address": "2ff40",
+          "visits": 1,
+          "instruction": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>"
+        },
+        {
+          "address": "2ff45",
+          "visits": 1,
+          "instruction": "add    %ebx,%eax"
+        },
+        {
+          "address": "2ff47",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2ff48",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "2ff49",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "2ff4b",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "34690",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "34694",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "3469b",
+          "visits": 1,
+          "instruction": "jne    346a0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x10>"
+        },
+        {
+          "address": "346a0",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "346a7",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%eax"
+        },
+        {
+          "address": "346ae",
+          "visits": 1,
+          "instruction": "cmp    $0x4,%al"
+        },
+        {
+          "address": "346b0",
+          "visits": 1,
+          "instruction": "je     346d0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x40>"
+        },
+        {
+          "address": "346b2",
+          "visits": 1,
+          "instruction": "cmp    $0x1,%al"
+        },
+        {
+          "address": "346b4",
+          "visits": 1,
+          "instruction": "je     346d0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x40>"
+        },
+        {
+          "address": "346b6",
+          "visits": 1,
+          "instruction": "xor    %edx,%edx"
+        },
+        {
+          "address": "346b8",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%al"
+        },
+        {
+          "address": "346ba",
+          "visits": 1,
+          "instruction": "je     346e0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x50>"
+        },
+        {
+          "address": "346bc",
+          "visits": 1,
+          "instruction": "mov    %rdx,0x558(%rdi)"
+        },
+        {
+          "address": "346c3",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "54aa0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "54aa4",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "54aa5",
+          "visits": 1,
+          "instruction": "mov    %rsp,%rbp"
+        },
+        {
+          "address": "54aa8",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "54aaa",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "54aac",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "54aae",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "54ab0",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "54ab1",
+          "visits": 1,
+          "instruction": "sub    $0x278,%rsp"
+        },
+        {
+          "address": "54ab8",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "54ac1",
+          "visits": 1,
+          "instruction": "mov    %rax,0x268(%rsp)"
+        },
+        {
+          "address": "54ac9",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "54acb",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "54ad2",
+          "visits": 1,
+          "instruction": "jne    54b00 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+        },
+        {
+          "address": "54ad4",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "54ad6",
+          "visits": 1,
+          "instruction": "mov    0x268(%rsp),%rdx"
+        },
+        {
+          "address": "54ade",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rdx"
+        },
+        {
+          "address": "54ae7",
+          "visits": 1,
+          "instruction": "jne    556c7 <_ZN4tomo6IoLoop15lb_control_passEv+0xc27>"
+        },
+        {
+          "address": "54aed",
+          "visits": 1,
+          "instruction": "add    $0x278,%rsp"
+        },
+        {
+          "address": "54af4",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "54af5",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "54af7",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "54af9",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "54afb",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "54afd",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "54afe",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "54b00",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "54b07",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "54b0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "54b12",
+          "visits": 1,
+          "instruction": "cmp    $0x5,%r12b"
+        },
+        {
+          "address": "54b16",
+          "visits": 1,
+          "instruction": "je     54c90 <_ZN4tomo6IoLoop15lb_control_passEv+0x1f0>"
+        },
+        {
+          "address": "54b1c",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r12b"
+        },
+        {
+          "address": "54b20",
+          "visits": 1,
+          "instruction": "je     54be0 <_ZN4tomo6IoLoop15lb_control_passEv+0x140>"
+        },
+        {
+          "address": "54b26",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "54b2d",
+          "visits": 1,
+          "instruction": "test   %r12b,%r12b"
+        },
+        {
+          "address": "54b30",
+          "visits": 1,
+          "instruction": "je     54ad4 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+        }
+      ]
+    },
+    {
+      "arm": "POST",
+      "negative": true,
+      "connections": 4096,
+      "trace": {
+        "instructions": 73797,
+        "executable_instructions": 73797,
+        "library_instructions": 0
+      },
+      "stage_loads": 4098,
+      "cache_loads": 4096,
+      "load_sites": [
+        {
+          "address": "2ff26",
+          "visits": 4096,
+          "instruction": "movzbl 0x14150(%rdx),%edx"
+        },
+        {
+          "address": "346a7",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%eax"
+        },
+        {
+          "address": "54b0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "2e714",
+          "visits": 4096,
+          "instruction": "mov    0x558(%rdi),%rdx"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2e710",
+          "visits": 4096,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2e714",
+          "visits": 4096,
+          "instruction": "mov    0x558(%rdi),%rdx"
+        },
+        {
+          "address": "2e71b",
+          "visits": 4096,
+          "instruction": "test   %rdx,%rdx"
+        },
+        {
+          "address": "2e71e",
+          "visits": 4096,
+          "instruction": "je     2e739 <lbplanner_parse_gate+0x29>"
+        },
+        {
+          "address": "2e739",
+          "visits": 4096,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2e73b",
+          "visits": 4096,
+          "instruction": "ret"
+        },
+        {
+          "address": "2fef0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2fef4",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "2fef6",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "2fef7",
+          "visits": 1,
+          "instruction": "mov    %esi,%ebp"
+        },
+        {
+          "address": "2fef9",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2fefa",
+          "visits": 1,
+          "instruction": "mov    %rdi,%r12"
+        },
+        {
+          "address": "2fefd",
+          "visits": 1,
+          "instruction": "xor    %ebx,%ebx"
+        },
+        {
+          "address": "2feff",
+          "visits": 1,
+          "instruction": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>"
+        },
+        {
+          "address": "2ff04",
+          "visits": 1,
+          "instruction": "test   %ebp,%ebp"
+        },
+        {
+          "address": "2ff06",
+          "visits": 1,
+          "instruction": "je     2ff3d <lbplanner_io_pass_negative+0x4d>"
+        },
+        {
+          "address": "2ff08",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2ff0e",
+          "visits": 1,
+          "instruction": "xchg   %ax,%ax"
+        },
+        {
+          "address": "2ff10",
+          "visits": 4096,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2ff13",
+          "visits": 4096,
+          "instruction": "mov    %r12,%rdi"
+        },
+        {
+          "address": "2ff16",
+          "visits": 4096,
+          "instruction": "call   2e710 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2ff1b",
+          "visits": 4096,
+          "instruction": "mov    0x188(%r12),%rdx"
+        },
+        {
+          "address": "2ff23",
+          "visits": 4096,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2ff26",
+          "visits": 4096,
+          "instruction": "movzbl 0x14150(%rdx),%edx"
+        },
+        {
+          "address": "2ff2d",
+          "visits": 4096,
+          "instruction": "cmp    $0x1,%dl"
+        },
+        {
+          "address": "2ff30",
+          "visits": 4096,
+          "instruction": "sbb    $0xffffffff,%eax"
+        },
+        {
+          "address": "2ff33",
+          "visits": 4096,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2ff36",
+          "visits": 4096,
+          "instruction": "add    %eax,%ebx"
+        },
+        {
+          "address": "2ff38",
+          "visits": 4096,
+          "instruction": "cmp    %r9d,%ebp"
+        },
+        {
+          "address": "2ff3b",
+          "visits": 4096,
+          "instruction": "jae    2ff10 <lbplanner_io_pass_negative+0x20>"
+        },
+        {
+          "address": "2ff3d",
+          "visits": 1,
+          "instruction": "mov    %r12,%rdi"
+        },
+        {
+          "address": "2ff40",
+          "visits": 1,
+          "instruction": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>"
+        },
+        {
+          "address": "2ff45",
+          "visits": 1,
+          "instruction": "add    %ebx,%eax"
+        },
+        {
+          "address": "2ff47",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2ff48",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "2ff49",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "2ff4b",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "34690",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "34694",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "3469b",
+          "visits": 1,
+          "instruction": "jne    346a0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x10>"
+        },
+        {
+          "address": "346a0",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "346a7",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%eax"
+        },
+        {
+          "address": "346ae",
+          "visits": 1,
+          "instruction": "cmp    $0x4,%al"
+        },
+        {
+          "address": "346b0",
+          "visits": 1,
+          "instruction": "je     346d0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x40>"
+        },
+        {
+          "address": "346b2",
+          "visits": 1,
+          "instruction": "cmp    $0x1,%al"
+        },
+        {
+          "address": "346b4",
+          "visits": 1,
+          "instruction": "je     346d0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x40>"
+        },
+        {
+          "address": "346b6",
+          "visits": 1,
+          "instruction": "xor    %edx,%edx"
+        },
+        {
+          "address": "346b8",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%al"
+        },
+        {
+          "address": "346ba",
+          "visits": 1,
+          "instruction": "je     346e0 <_ZN4tomo6IoLoop13lb_pass_beginEv+0x50>"
+        },
+        {
+          "address": "346bc",
+          "visits": 1,
+          "instruction": "mov    %rdx,0x558(%rdi)"
+        },
+        {
+          "address": "346c3",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "54aa0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "54aa4",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "54aa5",
+          "visits": 1,
+          "instruction": "mov    %rsp,%rbp"
+        },
+        {
+          "address": "54aa8",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "54aaa",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "54aac",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "54aae",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "54ab0",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "54ab1",
+          "visits": 1,
+          "instruction": "sub    $0x278,%rsp"
+        },
+        {
+          "address": "54ab8",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "54ac1",
+          "visits": 1,
+          "instruction": "mov    %rax,0x268(%rsp)"
+        },
+        {
+          "address": "54ac9",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "54acb",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "54ad2",
+          "visits": 1,
+          "instruction": "jne    54b00 <_ZN4tomo6IoLoop15lb_control_passEv+0x60>"
+        },
+        {
+          "address": "54ad4",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "54ad6",
+          "visits": 1,
+          "instruction": "mov    0x268(%rsp),%rdx"
+        },
+        {
+          "address": "54ade",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rdx"
+        },
+        {
+          "address": "54ae7",
+          "visits": 1,
+          "instruction": "jne    556c7 <_ZN4tomo6IoLoop15lb_control_passEv+0xc27>"
+        },
+        {
+          "address": "54aed",
+          "visits": 1,
+          "instruction": "add    $0x278,%rsp"
+        },
+        {
+          "address": "54af4",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "54af5",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "54af7",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "54af9",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "54afb",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "54afd",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "54afe",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "54b00",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "54b07",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "54b0a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "54b12",
+          "visits": 1,
+          "instruction": "cmp    $0x5,%r12b"
+        },
+        {
+          "address": "54b16",
+          "visits": 1,
+          "instruction": "je     54c90 <_ZN4tomo6IoLoop15lb_control_passEv+0x1f0>"
+        },
+        {
+          "address": "54b1c",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r12b"
+        },
+        {
+          "address": "54b20",
+          "visits": 1,
+          "instruction": "je     54be0 <_ZN4tomo6IoLoop15lb_control_passEv+0x140>"
+        },
+        {
+          "address": "54b26",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "54b2d",
+          "visits": 1,
+          "instruction": "test   %r12b,%r12b"
+        },
+        {
+          "address": "54b30",
+          "visits": 1,
+          "instruction": "je     54ad4 <_ZN4tomo6IoLoop15lb_control_passEv+0x34>"
+        }
+      ]
+    },
+    {
+      "arm": "PAD-A",
+      "negative": false,
+      "connections": 1,
+      "trace": {
+        "instructions": 87,
+        "executable_instructions": 87,
+        "library_instructions": 0
+      },
+      "stage_loads": 2,
+      "cache_loads": 0,
+      "load_sites": [
+        {
+          "address": "2e750",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "35665a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2e710",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2e714",
+          "visits": 1,
+          "instruction": "jmp    2e730 <lbplanner_parse_gate+0x20>"
+        },
+        {
+          "address": "2e730",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "2e737",
+          "visits": 1,
+          "instruction": "jne    2e740 <lbplanner_parse_gate+0x30>"
+        },
+        {
+          "address": "2e739",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2e73b",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "2e740",
+          "visits": 1,
+          "instruction": "mov    0x190(%rdi),%rax"
+        },
+        {
+          "address": "2e747",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%r8"
+        },
+        {
+          "address": "2e74e",
+          "visits": 1,
+          "instruction": "mov    (%rax),%edi"
+        },
+        {
+          "address": "2e750",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "2e758",
+          "visits": 1,
+          "instruction": "cmp    $0x4,%dl"
+        },
+        {
+          "address": "2e75b",
+          "visits": 1,
+          "instruction": "sete   %al"
+        },
+        {
+          "address": "2e75e",
+          "visits": 1,
+          "instruction": "cmp    $0x1,%dl"
+        },
+        {
+          "address": "2e761",
+          "visits": 1,
+          "instruction": "sete   %cl"
+        },
+        {
+          "address": "2e764",
+          "visits": 1,
+          "instruction": "or     %cl,%al"
+        },
+        {
+          "address": "2e766",
+          "visits": 1,
+          "instruction": "jne    2e780 <lbplanner_parse_gate+0x70>"
+        },
+        {
+          "address": "2e768",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%dl"
+        },
+        {
+          "address": "2e76b",
+          "visits": 1,
+          "instruction": "jne    2e739 <lbplanner_parse_gate+0x29>"
+        },
+        {
+          "address": "2ff50",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2ff54",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "2ff56",
+          "visits": 1,
+          "instruction": "mov    %esi,%r12d"
+        },
+        {
+          "address": "2ff59",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "2ff5a",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2ff5b",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbp"
+        },
+        {
+          "address": "2ff5e",
+          "visits": 1,
+          "instruction": "xor    %ebx,%ebx"
+        },
+        {
+          "address": "2ff60",
+          "visits": 1,
+          "instruction": "call   352b00 <_ZN4tomo6IoLoop17lb_pass_begin_padEv>"
+        },
+        {
+          "address": "2ff65",
+          "visits": 1,
+          "instruction": "test   %r12d,%r12d"
+        },
+        {
+          "address": "2ff68",
+          "visits": 1,
+          "instruction": "je     2ff88 <lbplanner_io_pass+0x38>"
+        },
+        {
+          "address": "2ff6a",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2ff70",
+          "visits": 1,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2ff73",
+          "visits": 1,
+          "instruction": "mov    %rbp,%rdi"
+        },
+        {
+          "address": "2ff76",
+          "visits": 1,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2ff79",
+          "visits": 1,
+          "instruction": "call   2e710 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2ff7e",
+          "visits": 1,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2ff81",
+          "visits": 1,
+          "instruction": "add    %eax,%ebx"
+        },
+        {
+          "address": "2ff83",
+          "visits": 1,
+          "instruction": "cmp    %r9d,%r12d"
+        },
+        {
+          "address": "2ff86",
+          "visits": 1,
+          "instruction": "jae    2ff70 <lbplanner_io_pass+0x20>"
+        },
+        {
+          "address": "2ff88",
+          "visits": 1,
+          "instruction": "mov    %rbp,%rdi"
+        },
+        {
+          "address": "2ff8b",
+          "visits": 1,
+          "instruction": "call   3565f0 <_ZN4tomo6IoLoop19lb_control_pass_padEv>"
+        },
+        {
+          "address": "2ff90",
+          "visits": 1,
+          "instruction": "add    %ebx,%eax"
+        },
+        {
+          "address": "2ff92",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2ff93",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "2ff94",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "2ff96",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "352b00",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "352b04",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "3565f0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "3565f4",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "3565f6",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "3565f8",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "3565fa",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "3565fc",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "3565fd",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "3565fe",
+          "visits": 1,
+          "instruction": "xor    %r12d,%r12d"
+        },
+        {
+          "address": "356601",
+          "visits": 1,
+          "instruction": "sub    $0x268,%rsp"
+        },
+        {
+          "address": "356608",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "356611",
+          "visits": 1,
+          "instruction": "mov    %rax,0x258(%rsp)"
+        },
+        {
+          "address": "356619",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "35661b",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "356622",
+          "visits": 1,
+          "instruction": "jne    356650 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x60>"
+        },
+        {
+          "address": "356624",
+          "visits": 1,
+          "instruction": "mov    0x258(%rsp),%rax"
+        },
+        {
+          "address": "35662c",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rax"
+        },
+        {
+          "address": "356635",
+          "visits": 1,
+          "instruction": "jne    35749b <_ZN4tomo6IoLoop19lb_control_pass_padEv+0xeab>"
+        },
+        {
+          "address": "35663b",
+          "visits": 1,
+          "instruction": "add    $0x268,%rsp"
+        },
+        {
+          "address": "356642",
+          "visits": 1,
+          "instruction": "mov    %r12d,%eax"
+        },
+        {
+          "address": "356645",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "356646",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "356647",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "356649",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "35664b",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "35664d",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "35664f",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "356650",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "356657",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "35665a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "356662",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r12b"
+        },
+        {
+          "address": "356666",
+          "visits": 1,
+          "instruction": "je     356900 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x310>"
+        },
+        {
+          "address": "35666c",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "356673",
+          "visits": 1,
+          "instruction": "test   %r12b,%r12b"
+        },
+        {
+          "address": "356676",
+          "visits": 1,
+          "instruction": "je     3568d0 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x2e0>"
+        },
+        {
+          "address": "3568d0",
+          "visits": 1,
+          "instruction": "movzbl 0x57e(%rbx),%eax"
+        },
+        {
+          "address": "3568d7",
+          "visits": 1,
+          "instruction": "xor    %r12d,%r12d"
+        },
+        {
+          "address": "3568da",
+          "visits": 1,
+          "instruction": "test   %al,%al"
+        },
+        {
+          "address": "3568dc",
+          "visits": 1,
+          "instruction": "je     356624 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x34>"
+        },
+        {
+          "address": "3568e2",
+          "visits": 1,
+          "instruction": "mov    0x570(%rbx),%rax"
+        },
+        {
+          "address": "3568e9",
+          "visits": 1,
+          "instruction": "cmp    0x558(%rbx),%rax"
+        },
+        {
+          "address": "3568f0",
+          "visits": 1,
+          "instruction": "jb     356624 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x34>"
+        }
+      ]
+    },
+    {
+      "arm": "PAD-A",
+      "negative": false,
+      "connections": 32,
+      "trace": {
+        "instructions": 893,
+        "executable_instructions": 893,
+        "library_instructions": 0
+      },
+      "stage_loads": 33,
+      "cache_loads": 0,
+      "load_sites": [
+        {
+          "address": "2e750",
+          "visits": 32,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "35665a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2e710",
+          "visits": 32,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2e714",
+          "visits": 32,
+          "instruction": "jmp    2e730 <lbplanner_parse_gate+0x20>"
+        },
+        {
+          "address": "2e730",
+          "visits": 32,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "2e737",
+          "visits": 32,
+          "instruction": "jne    2e740 <lbplanner_parse_gate+0x30>"
+        },
+        {
+          "address": "2e739",
+          "visits": 32,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2e73b",
+          "visits": 32,
+          "instruction": "ret"
+        },
+        {
+          "address": "2e740",
+          "visits": 32,
+          "instruction": "mov    0x190(%rdi),%rax"
+        },
+        {
+          "address": "2e747",
+          "visits": 32,
+          "instruction": "mov    0x188(%rdi),%r8"
+        },
+        {
+          "address": "2e74e",
+          "visits": 32,
+          "instruction": "mov    (%rax),%edi"
+        },
+        {
+          "address": "2e750",
+          "visits": 32,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "2e758",
+          "visits": 32,
+          "instruction": "cmp    $0x4,%dl"
+        },
+        {
+          "address": "2e75b",
+          "visits": 32,
+          "instruction": "sete   %al"
+        },
+        {
+          "address": "2e75e",
+          "visits": 32,
+          "instruction": "cmp    $0x1,%dl"
+        },
+        {
+          "address": "2e761",
+          "visits": 32,
+          "instruction": "sete   %cl"
+        },
+        {
+          "address": "2e764",
+          "visits": 32,
+          "instruction": "or     %cl,%al"
+        },
+        {
+          "address": "2e766",
+          "visits": 32,
+          "instruction": "jne    2e780 <lbplanner_parse_gate+0x70>"
+        },
+        {
+          "address": "2e768",
+          "visits": 32,
+          "instruction": "cmp    $0x2,%dl"
+        },
+        {
+          "address": "2e76b",
+          "visits": 32,
+          "instruction": "jne    2e739 <lbplanner_parse_gate+0x29>"
+        },
+        {
+          "address": "2ff50",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2ff54",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "2ff56",
+          "visits": 1,
+          "instruction": "mov    %esi,%r12d"
+        },
+        {
+          "address": "2ff59",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "2ff5a",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2ff5b",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbp"
+        },
+        {
+          "address": "2ff5e",
+          "visits": 1,
+          "instruction": "xor    %ebx,%ebx"
+        },
+        {
+          "address": "2ff60",
+          "visits": 1,
+          "instruction": "call   352b00 <_ZN4tomo6IoLoop17lb_pass_begin_padEv>"
+        },
+        {
+          "address": "2ff65",
+          "visits": 1,
+          "instruction": "test   %r12d,%r12d"
+        },
+        {
+          "address": "2ff68",
+          "visits": 1,
+          "instruction": "je     2ff88 <lbplanner_io_pass+0x38>"
+        },
+        {
+          "address": "2ff6a",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2ff70",
+          "visits": 32,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2ff73",
+          "visits": 32,
+          "instruction": "mov    %rbp,%rdi"
+        },
+        {
+          "address": "2ff76",
+          "visits": 32,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2ff79",
+          "visits": 32,
+          "instruction": "call   2e710 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2ff7e",
+          "visits": 32,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2ff81",
+          "visits": 32,
+          "instruction": "add    %eax,%ebx"
+        },
+        {
+          "address": "2ff83",
+          "visits": 32,
+          "instruction": "cmp    %r9d,%r12d"
+        },
+        {
+          "address": "2ff86",
+          "visits": 32,
+          "instruction": "jae    2ff70 <lbplanner_io_pass+0x20>"
+        },
+        {
+          "address": "2ff88",
+          "visits": 1,
+          "instruction": "mov    %rbp,%rdi"
+        },
+        {
+          "address": "2ff8b",
+          "visits": 1,
+          "instruction": "call   3565f0 <_ZN4tomo6IoLoop19lb_control_pass_padEv>"
+        },
+        {
+          "address": "2ff90",
+          "visits": 1,
+          "instruction": "add    %ebx,%eax"
+        },
+        {
+          "address": "2ff92",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2ff93",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "2ff94",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "2ff96",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "352b00",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "352b04",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "3565f0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "3565f4",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "3565f6",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "3565f8",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "3565fa",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "3565fc",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "3565fd",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "3565fe",
+          "visits": 1,
+          "instruction": "xor    %r12d,%r12d"
+        },
+        {
+          "address": "356601",
+          "visits": 1,
+          "instruction": "sub    $0x268,%rsp"
+        },
+        {
+          "address": "356608",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "356611",
+          "visits": 1,
+          "instruction": "mov    %rax,0x258(%rsp)"
+        },
+        {
+          "address": "356619",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "35661b",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "356622",
+          "visits": 1,
+          "instruction": "jne    356650 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x60>"
+        },
+        {
+          "address": "356624",
+          "visits": 1,
+          "instruction": "mov    0x258(%rsp),%rax"
+        },
+        {
+          "address": "35662c",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rax"
+        },
+        {
+          "address": "356635",
+          "visits": 1,
+          "instruction": "jne    35749b <_ZN4tomo6IoLoop19lb_control_pass_padEv+0xeab>"
+        },
+        {
+          "address": "35663b",
+          "visits": 1,
+          "instruction": "add    $0x268,%rsp"
+        },
+        {
+          "address": "356642",
+          "visits": 1,
+          "instruction": "mov    %r12d,%eax"
+        },
+        {
+          "address": "356645",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "356646",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "356647",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "356649",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "35664b",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "35664d",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "35664f",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "356650",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "356657",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "35665a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "356662",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r12b"
+        },
+        {
+          "address": "356666",
+          "visits": 1,
+          "instruction": "je     356900 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x310>"
+        },
+        {
+          "address": "35666c",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "356673",
+          "visits": 1,
+          "instruction": "test   %r12b,%r12b"
+        },
+        {
+          "address": "356676",
+          "visits": 1,
+          "instruction": "je     3568d0 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x2e0>"
+        },
+        {
+          "address": "3568d0",
+          "visits": 1,
+          "instruction": "movzbl 0x57e(%rbx),%eax"
+        },
+        {
+          "address": "3568d7",
+          "visits": 1,
+          "instruction": "xor    %r12d,%r12d"
+        },
+        {
+          "address": "3568da",
+          "visits": 1,
+          "instruction": "test   %al,%al"
+        },
+        {
+          "address": "3568dc",
+          "visits": 1,
+          "instruction": "je     356624 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x34>"
+        },
+        {
+          "address": "3568e2",
+          "visits": 1,
+          "instruction": "mov    0x570(%rbx),%rax"
+        },
+        {
+          "address": "3568e9",
+          "visits": 1,
+          "instruction": "cmp    0x558(%rbx),%rax"
+        },
+        {
+          "address": "3568f0",
+          "visits": 1,
+          "instruction": "jb     356624 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x34>"
+        }
+      ]
+    },
+    {
+      "arm": "PAD-A",
+      "negative": false,
+      "connections": 4096,
+      "trace": {
+        "instructions": 106557,
+        "executable_instructions": 106557,
+        "library_instructions": 0
+      },
+      "stage_loads": 4097,
+      "cache_loads": 0,
+      "load_sites": [
+        {
+          "address": "2e750",
+          "visits": 4096,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "35665a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        }
+      ],
+      "executed": [
+        {
+          "address": "2e710",
+          "visits": 4096,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2e714",
+          "visits": 4096,
+          "instruction": "jmp    2e730 <lbplanner_parse_gate+0x20>"
+        },
+        {
+          "address": "2e730",
+          "visits": 4096,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "2e737",
+          "visits": 4096,
+          "instruction": "jne    2e740 <lbplanner_parse_gate+0x30>"
+        },
+        {
+          "address": "2e739",
+          "visits": 4096,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "2e73b",
+          "visits": 4096,
+          "instruction": "ret"
+        },
+        {
+          "address": "2e740",
+          "visits": 4096,
+          "instruction": "mov    0x190(%rdi),%rax"
+        },
+        {
+          "address": "2e747",
+          "visits": 4096,
+          "instruction": "mov    0x188(%rdi),%r8"
+        },
+        {
+          "address": "2e74e",
+          "visits": 4096,
+          "instruction": "mov    (%rax),%edi"
+        },
+        {
+          "address": "2e750",
+          "visits": 4096,
+          "instruction": "movzbl 0x14150(%r8),%edx"
+        },
+        {
+          "address": "2e758",
+          "visits": 4096,
+          "instruction": "cmp    $0x4,%dl"
+        },
+        {
+          "address": "2e75b",
+          "visits": 4096,
+          "instruction": "sete   %al"
+        },
+        {
+          "address": "2e75e",
+          "visits": 4096,
+          "instruction": "cmp    $0x1,%dl"
+        },
+        {
+          "address": "2e761",
+          "visits": 4096,
+          "instruction": "sete   %cl"
+        },
+        {
+          "address": "2e764",
+          "visits": 4096,
+          "instruction": "or     %cl,%al"
+        },
+        {
+          "address": "2e766",
+          "visits": 4096,
+          "instruction": "jne    2e780 <lbplanner_parse_gate+0x70>"
+        },
+        {
+          "address": "2e768",
+          "visits": 4096,
+          "instruction": "cmp    $0x2,%dl"
+        },
+        {
+          "address": "2e76b",
+          "visits": 4096,
+          "instruction": "jne    2e739 <lbplanner_parse_gate+0x29>"
+        },
+        {
+          "address": "2ff50",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "2ff54",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "2ff56",
+          "visits": 1,
+          "instruction": "mov    %esi,%r12d"
+        },
+        {
+          "address": "2ff59",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "2ff5a",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "2ff5b",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbp"
+        },
+        {
+          "address": "2ff5e",
+          "visits": 1,
+          "instruction": "xor    %ebx,%ebx"
+        },
+        {
+          "address": "2ff60",
+          "visits": 1,
+          "instruction": "call   352b00 <_ZN4tomo6IoLoop17lb_pass_begin_padEv>"
+        },
+        {
+          "address": "2ff65",
+          "visits": 1,
+          "instruction": "test   %r12d,%r12d"
+        },
+        {
+          "address": "2ff68",
+          "visits": 1,
+          "instruction": "je     2ff88 <lbplanner_io_pass+0x38>"
+        },
+        {
+          "address": "2ff6a",
+          "visits": 1,
+          "instruction": "mov    $0x1,%r9d"
+        },
+        {
+          "address": "2ff70",
+          "visits": 4096,
+          "instruction": "mov    %r9d,%esi"
+        },
+        {
+          "address": "2ff73",
+          "visits": 4096,
+          "instruction": "mov    %rbp,%rdi"
+        },
+        {
+          "address": "2ff76",
+          "visits": 4096,
+          "instruction": "inc    %r9d"
+        },
+        {
+          "address": "2ff79",
+          "visits": 4096,
+          "instruction": "call   2e710 <lbplanner_parse_gate>"
+        },
+        {
+          "address": "2ff7e",
+          "visits": 4096,
+          "instruction": "movzbl %al,%eax"
+        },
+        {
+          "address": "2ff81",
+          "visits": 4096,
+          "instruction": "add    %eax,%ebx"
+        },
+        {
+          "address": "2ff83",
+          "visits": 4096,
+          "instruction": "cmp    %r9d,%r12d"
+        },
+        {
+          "address": "2ff86",
+          "visits": 4096,
+          "instruction": "jae    2ff70 <lbplanner_io_pass+0x20>"
+        },
+        {
+          "address": "2ff88",
+          "visits": 1,
+          "instruction": "mov    %rbp,%rdi"
+        },
+        {
+          "address": "2ff8b",
+          "visits": 1,
+          "instruction": "call   3565f0 <_ZN4tomo6IoLoop19lb_control_pass_padEv>"
+        },
+        {
+          "address": "2ff90",
+          "visits": 1,
+          "instruction": "add    %ebx,%eax"
+        },
+        {
+          "address": "2ff92",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "2ff93",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "2ff94",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "2ff96",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "352b00",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "352b04",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "3565f0",
+          "visits": 1,
+          "instruction": "endbr64"
+        },
+        {
+          "address": "3565f4",
+          "visits": 1,
+          "instruction": "push   %r15"
+        },
+        {
+          "address": "3565f6",
+          "visits": 1,
+          "instruction": "push   %r14"
+        },
+        {
+          "address": "3565f8",
+          "visits": 1,
+          "instruction": "push   %r13"
+        },
+        {
+          "address": "3565fa",
+          "visits": 1,
+          "instruction": "push   %r12"
+        },
+        {
+          "address": "3565fc",
+          "visits": 1,
+          "instruction": "push   %rbp"
+        },
+        {
+          "address": "3565fd",
+          "visits": 1,
+          "instruction": "push   %rbx"
+        },
+        {
+          "address": "3565fe",
+          "visits": 1,
+          "instruction": "xor    %r12d,%r12d"
+        },
+        {
+          "address": "356601",
+          "visits": 1,
+          "instruction": "sub    $0x268,%rsp"
+        },
+        {
+          "address": "356608",
+          "visits": 1,
+          "instruction": "mov    %fs:0x28,%rax"
+        },
+        {
+          "address": "356611",
+          "visits": 1,
+          "instruction": "mov    %rax,0x258(%rsp)"
+        },
+        {
+          "address": "356619",
+          "visits": 1,
+          "instruction": "xor    %eax,%eax"
+        },
+        {
+          "address": "35661b",
+          "visits": 1,
+          "instruction": "cmpb   $0x0,0x57e(%rdi)"
+        },
+        {
+          "address": "356622",
+          "visits": 1,
+          "instruction": "jne    356650 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x60>"
+        },
+        {
+          "address": "356624",
+          "visits": 1,
+          "instruction": "mov    0x258(%rsp),%rax"
+        },
+        {
+          "address": "35662c",
+          "visits": 1,
+          "instruction": "sub    %fs:0x28,%rax"
+        },
+        {
+          "address": "356635",
+          "visits": 1,
+          "instruction": "jne    35749b <_ZN4tomo6IoLoop19lb_control_pass_padEv+0xeab>"
+        },
+        {
+          "address": "35663b",
+          "visits": 1,
+          "instruction": "add    $0x268,%rsp"
+        },
+        {
+          "address": "356642",
+          "visits": 1,
+          "instruction": "mov    %r12d,%eax"
+        },
+        {
+          "address": "356645",
+          "visits": 1,
+          "instruction": "pop    %rbx"
+        },
+        {
+          "address": "356646",
+          "visits": 1,
+          "instruction": "pop    %rbp"
+        },
+        {
+          "address": "356647",
+          "visits": 1,
+          "instruction": "pop    %r12"
+        },
+        {
+          "address": "356649",
+          "visits": 1,
+          "instruction": "pop    %r13"
+        },
+        {
+          "address": "35664b",
+          "visits": 1,
+          "instruction": "pop    %r14"
+        },
+        {
+          "address": "35664d",
+          "visits": 1,
+          "instruction": "pop    %r15"
+        },
+        {
+          "address": "35664f",
+          "visits": 1,
+          "instruction": "ret"
+        },
+        {
+          "address": "356650",
+          "visits": 1,
+          "instruction": "mov    0x188(%rdi),%rax"
+        },
+        {
+          "address": "356657",
+          "visits": 1,
+          "instruction": "mov    %rdi,%rbx"
+        },
+        {
+          "address": "35665a",
+          "visits": 1,
+          "instruction": "movzbl 0x14150(%rax),%r12d"
+        },
+        {
+          "address": "356662",
+          "visits": 1,
+          "instruction": "cmp    $0x2,%r12b"
+        },
+        {
+          "address": "356666",
+          "visits": 1,
+          "instruction": "je     356900 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x310>"
+        },
+        {
+          "address": "35666c",
+          "visits": 1,
+          "instruction": "movb   $0x0,0x57f(%rdi)"
+        },
+        {
+          "address": "356673",
+          "visits": 1,
+          "instruction": "test   %r12b,%r12b"
+        },
+        {
+          "address": "356676",
+          "visits": 1,
+          "instruction": "je     3568d0 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x2e0>"
+        },
+        {
+          "address": "3568d0",
+          "visits": 1,
+          "instruction": "movzbl 0x57e(%rbx),%eax"
+        },
+        {
+          "address": "3568d7",
+          "visits": 1,
+          "instruction": "xor    %r12d,%r12d"
+        },
+        {
+          "address": "3568da",
+          "visits": 1,
+          "instruction": "test   %al,%al"
+        },
+        {
+          "address": "3568dc",
+          "visits": 1,
+          "instruction": "je     356624 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x34>"
+        },
+        {
+          "address": "3568e2",
+          "visits": 1,
+          "instruction": "mov    0x570(%rbx),%rax"
+        },
+        {
+          "address": "3568e9",
+          "visits": 1,
+          "instruction": "cmp    0x558(%rbx),%rax"
+        },
+        {
+          "address": "3568f0",
+          "visits": 1,
+          "instruction": "jb     356624 <_ZN4tomo6IoLoop19lb_control_pass_padEv+0x34>"
+        }
+      ]
+    }
+  ]
+}

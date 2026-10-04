@@ -1,19 +1,6 @@
-wbhybrid2b: D3/D4 extension of frozen S=16/D2. Performance PENDING MAINLINE.
-Read MEASURE-REQUEST-wbhybrid2b.md for SHA-256, byte offsets, proofs, costs and cells.
+Lane lbplanner: CT1 / CT2 / CT3
 
-New arms: build/tomokv-hyb16-d3 and build/tomokv-hyb16-d4.
-PAD A behaviour twins: build/tomokv-hyb16-d3-pad and build/tomokv-hyb16-d4-pad.
-Frozen REF: build/tomokv-wbhybrid2-ref; keep D2 as an in-session comparator.
-Each new arm differs from D2 only in two D immediate bytes; each PAD changes
-exactly two selector bytes. Counter remains Client byte 72 with the same resets.
-Production source matches the merged mainline; build/tomokv stays the half rule.
-
-1. Floor-0.4 bursts, reorder 0/1, eight samples per arm/state, including PADs.
-2. Low-load GET p32@256K and p8@512K, three complete rounds per arm/cell.
-3. The 14 generic ABBA cells in tests/wbhybrid2_cells.txt.
-Judge tails against contemporary same-binary/PAD spread, then compare gain to D2.
-
-LIMITATION: inherited D2 counter path exceeds +/-1 instruction versus REF
-(e.g. 101 vs 92 on n=32, Done=1). D3/D4 preserve D2's equivalent-branch count.
-No server, benchmark, gate or push was run. All offline work used CPUs 112-127.
-Gate row delta: 0 quick / 0 full; EXPECT counts unchanged. Append MEASURE-RESULT.
+See MEASURE-REQUEST-lbplanner.md for the complete report and mainline-only cells,
+three regimes, counters, arms and pass conditions. PRE, POST and verified PAD-A
+are built; serverless proofs pass. No server, benchmark, live test or gate was run.
+Mainline measurement and live-gate acceptance remain pending.

@@ -1,0 +1,50 @@
+[
+  {
+    "arm": "production",
+    "passed": true,
+    "returncode": 0,
+    "output": "PASS LB monitor handoff: both modes/branches; once; stale epochs; zero IO allocations\n"
+  },
+  {
+    "arm": "no-publish",
+    "passed": true,
+    "returncode": 1,
+    "output": "FAIL core concurrency: monitor must produce a finished plan; unarmed witness fails\n"
+  },
+  {
+    "arm": "stale-flip",
+    "passed": true,
+    "returncode": 1,
+    "output": "FAIL core concurrency: stale topology plan dropped without drain\n"
+  },
+  {
+    "arm": "stale-lb",
+    "passed": true,
+    "returncode": 1,
+    "output": "FAIL core concurrency: stale topology plan dropped without drain\n"
+  },
+  {
+    "arm": "duplicate",
+    "passed": true,
+    "returncode": 1,
+    "output": "FAIL core concurrency: finished plan consumed exactly once\n"
+  },
+  {
+    "arm": "copy-on-io",
+    "passed": true,
+    "returncode": 1,
+    "output": "FAIL core concurrency: IO handoff allocates and frees nothing\n"
+  },
+  {
+    "arm": "PAD-A",
+    "passed": true,
+    "returncode": 0,
+    "output": "PASS PAD-A PRE behavior: IO-hosted key/client search, direct drain, cron, fresh parse gates\n"
+  },
+  {
+    "arm": "POST-rejects-PRE",
+    "passed": true,
+    "returncode": 1,
+    "output": "FAIL core concurrency: PAD monitor never runs LB search\n"
+  }
+]

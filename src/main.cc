@@ -585,17 +585,8 @@ int main(int argc, char** argv) {
 
     print_ready_listeners(cfg, unix_listener.bound());
 
-    // The automatic split controller has exactly one writer: this main/monitor thread. Worker
-    // loops only publish owner-local counters and execute the unchanged FLIP stage machine. With
-    // the default --flip-auto 0 this block does not run and allocates/schedules nothing.
-    if (srv.flipctl_enabled()) {
-        while (!srv.shutting_down().load(std::memory_order_relaxed)) {
-            srv.databases().monitor(srv);
-            (void)srv.flipctl_tick(now_ns() / 1000000ull);
-            if (srv.shutting_down().load(std::memory_order_relaxed)) break;
-            (void)signal_doorbell_wait(srv.flipctl_wait_ms());
-        }
-    }
+    // Both controllers use the existing main/monitor thread.
+    srv.monitor_controllers();
 
     srv.databases().join_workers(srv, pool);
     report_graceful_shutdown();

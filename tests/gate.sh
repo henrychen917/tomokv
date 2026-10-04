@@ -276,8 +276,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=489
-EXPECT_FULL=506                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+EXPECT_QUICK=490
+EXPECT_FULL=507                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1000,7 +1000,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units climonfix persistfix_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
+              core_units climonfix persistfix_units lbplanner_units wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1311,6 +1311,17 @@ job_climonfix(){
           && ok "$label" || bad "$label" "see $TMPDIR/shutdown-$mode-$stop_case.log"
     done
   done
+}
+
+job_lbplanner_units(){
+# CT1: one hand-off witness row, collected BEFORE the quick exit (+1 quick/full).
+row_begin "LB monitor plan handoff + negative controls"
+if unit_ready lbplanner-units && taskset -c "$CORES" python3 tests/lbplanner_checks.py \
+    >"$TMPDIR/lbplanner-unit.log" 2>&1; then
+  ok "LB monitor plan handoff + negative controls"
+else
+  bad "LB monitor plan handoff + negative controls" "see $TMPDIR/lbplanner-unit.log"
+fi
 }
 
 job_persistfix_units(){
@@ -2898,10 +2909,10 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
-      build/wb-rule-units build/wbland-units build/rltopo-unit build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 >"$TMPDIR/build.log" 2>&1
+      build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit shutdown-unit persistfix-units ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -2963,7 +2974,7 @@ job_dependencies(){
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*) echo 'release production_units';;
-    climonfix|persistfix_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
+    lbplanner_units|climonfix|persistfix_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
     rlcache) echo rldbg;;
@@ -3036,6 +3047,7 @@ collect_job ring_unit
 
 # SV2: collect all seven shutdown rows before the quick-tier exit.
 collect_job climonfix
+collect_job lbplanner_units
 
 collect_job persistfix_units
 collect_job core_units

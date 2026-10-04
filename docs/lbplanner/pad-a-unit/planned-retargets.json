@@ -1,0 +1,1260 @@
+{
+  "calls": {
+    "_ZN4tomo6IoLoop13lb_pass_beginEv": 39,
+    "_ZN4tomo6IoLoop15lb_control_passEv": 44,
+    "_ZN4tomo6Server19monitor_controllersEv": 4
+  },
+  "exhaustive_body_coverage": {
+    "io-begin": [
+      "_ZN4tomo6IoLoop11r7_run_loopILb0ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop11r7_run_loopILb0ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop11r7_run_loopILb0ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop11r7_run_loopILb0ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop11r7_run_loopILb1ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop11r7_run_loopILb1ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop11r7_run_loopILb1ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop11r7_run_loopILb1ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb0ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb0ELb1ELh1ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb1ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb1ELb1ELh1ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb0ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb0ELb1ELh1ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb1ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb1ELb1ELh1ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb0ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb0ELb1ELh1ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb1ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb1ELb1ELh1ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb0ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb0ELb1ELh1ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb1ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb1ELb1ELh1ELb1EEEvv"
+    ],
+    "io-tail": [
+      "_ZN4tomo6IoLoop11r7_run_loopILb0ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop11r7_run_loopILb0ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop11r7_run_loopILb0ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop11r7_run_loopILb0ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop11r7_run_loopILb1ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop11r7_run_loopILb1ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop11r7_run_loopILb1ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop11r7_run_loopILb1ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb0ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb0ELb1ELh1ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb1ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb1ELb1ELh1ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb0ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb0ELb1ELh1ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb1ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb1ELb1ELh1ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb0ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb0ELb1ELh1ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb1ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb1ELb1ELh1ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb0ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb0ELb1ELh1ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb1ELb1ELh0ELb1EEEvv",
+      "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb1ELb1ELh1ELb1EEEvv"
+    ],
+    "parse-gate": [
+      "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj0ELb1ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+      "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+      "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb1ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+      "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+      "_ZN4tomo6IoLoop21r7_parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "_ZN4tomo6IoLoop21r7_parse_and_dispatchILb1ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE"
+    ]
+  },
+  "gate_owners": {
+    "_ZN4tomo13LbPlannerTest10parse_gateEv": 9,
+    "_ZN4tomo13LbPlannerTest11timing_caseILb0EEEvPKcjbb": 1,
+    "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj0ELb1ELb1EEENS0_14DispatchResultEPNS_6ClientE": 1,
+    "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE": 1,
+    "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0": 2,
+    "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb1EEENS0_14DispatchResultEPNS_6ClientE": 1,
+    "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0": 3,
+    "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb1ELb1EEENS0_14DispatchResultEPNS_6ClientE": 1,
+    "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE": 1,
+    "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0": 1,
+    "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0ELb1EEENS0_14DispatchResultEPNS_6ClientE": 1,
+    "_ZN4tomo6IoLoop21r7_parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE": 1,
+    "_ZN4tomo6IoLoop21r7_parse_and_dispatchILb1ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE": 1,
+    "lbplanner_parse_gate": 1
+  },
+  "kind": "A: PRE behaviour with POST text layout",
+  "patches": [
+    {
+      "address": 148267,
+      "after": "e8e0e73200",
+      "before": "e8c0023300",
+      "category": "monitor",
+      "disassembly": "call   3545f0 <_ZN4tomo6Server19monitor_controllersEv>",
+      "offset": 148267,
+      "symbol": "_ZN4tomo16run_fused_serverERNS_6ServerEPKNS_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS_13AofReplayPlanESt14default_deleteIS7_EESaISA_EES4_PNS_10TlsContextERNS_16LateUnixListenerERNS_23ShutdownReportFinalLineE",
+      "target": 3484432
+    },
+    {
+      "address": 155949,
+      "after": "e8dec93200",
+      "before": "e8bee43200",
+      "category": "monitor",
+      "disassembly": "call   3545f0 <_ZN4tomo6Server19monitor_controllersEv>",
+      "offset": 155949,
+      "symbol": "_ZN4tomo27run_split_read_local_serverERNS_6ServerEPKNS_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS_13AofReplayPlanESt14default_deleteIS7_EESaISA_EES4_PNS_10TlsContextERNS_16LateUnixListenerERNS_23ShutdownReportFinalLineE",
+      "target": 3484432
+    },
+    {
+      "address": 164185,
+      "after": "e8b2a93200",
+      "before": "e892c43200",
+      "category": "monitor",
+      "disassembly": "call   3545f0 <_ZN4tomo6Server19monitor_controllersEv>",
+      "offset": 164185,
+      "symbol": "_ZN4tomoL26run_fused_server_reorderedERNS_6ServerEPKNS_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS_13AofReplayPlanESt14default_deleteIS7_EESaISA_EES4_PNS_10TlsContextERNS_16LateUnixListenerERNS_23ShutdownReportFinalLineE",
+      "target": 3484432
+    },
+    {
+      "address": 190228,
+      "after": "e9170000009090",
+      "before": "488b9758050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%rdi),%rdx",
+      "offset": 190228,
+      "symbol": "lbplanner_parse_gate",
+      "target": 190256
+    },
+    {
+      "address": 196351,
+      "after": "e8fc2b3200",
+      "before": "e88c470000",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 196351,
+      "symbol": "lbplanner_io_pass_negative",
+      "target": 3484416
+    },
+    {
+      "address": 196416,
+      "after": "e8ab663200",
+      "before": "e85b4b0200",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 196416,
+      "symbol": "lbplanner_io_pass_negative",
+      "target": 3499504
+    },
+    {
+      "address": 196448,
+      "after": "e89b2b3200",
+      "before": "e82b470000",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 196448,
+      "symbol": "lbplanner_io_pass",
+      "target": 3484416
+    },
+    {
+      "address": 196491,
+      "after": "e860663200",
+      "before": "e8104b0200",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 196491,
+      "symbol": "lbplanner_io_pass",
+      "target": 3499504
+    },
+    {
+      "address": 398627,
+      "after": "e8c8502f00",
+      "before": "e87835ffff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 398627,
+      "symbol": "_ZN4tomo13LbPlannerTest7handoffILb0EEEvbj",
+      "target": 3499504
+    },
+    {
+      "address": 400001,
+      "after": "e88a102f00",
+      "before": "e86a2b2f00",
+      "category": "monitor",
+      "disassembly": "call   3545f0 <_ZN4tomo6Server19monitor_controllersEv>",
+      "offset": 400001,
+      "symbol": "_ZN4tomo13LbPlannerTest11pad_monitorEv",
+      "target": 3484432
+    },
+    {
+      "address": 401151,
+      "after": "e8ec462f00",
+      "before": "e89c2bffff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 401151,
+      "symbol": "_ZN4tomo13LbPlannerTest8pad_hostILb0EEEvb",
+      "target": 3499504
+    },
+    {
+      "address": 402891,
+      "after": "e9d00000009090",
+      "before": "488b95305ffcff",
+      "category": "parse-gate",
+      "disassembly": "mov    -0x3a0d0(%rbp),%rdx",
+      "offset": 402891,
+      "symbol": "_ZN4tomo13LbPlannerTest10parse_gateEv",
+      "target": 403104
+    },
+    {
+      "address": 402948,
+      "after": "e9170100009090",
+      "before": "488b85305ffcff",
+      "category": "parse-gate",
+      "disassembly": "mov    -0x3a0d0(%rbp),%rax",
+      "offset": 402948,
+      "symbol": "_ZN4tomo13LbPlannerTest10parse_gateEv",
+      "target": 403232
+    },
+    {
+      "address": 402980,
+      "after": "e9470600009090",
+      "before": "488b85305ffcff",
+      "category": "parse-gate",
+      "disassembly": "mov    -0x3a0d0(%rbp),%rax",
+      "offset": 402980,
+      "symbol": "_ZN4tomo13LbPlannerTest10parse_gateEv",
+      "target": 404592
+    },
+    {
+      "address": 403025,
+      "after": "e9fa0000009090",
+      "before": "488b85305ffcff",
+      "category": "parse-gate",
+      "disassembly": "mov    -0x3a0d0(%rbp),%rax",
+      "offset": 403025,
+      "symbol": "_ZN4tomo13LbPlannerTest10parse_gateEv",
+      "target": 403280
+    },
+    {
+      "address": 403360,
+      "after": "e96b0400009090",
+      "before": "488b85305ffcff",
+      "category": "parse-gate",
+      "disassembly": "mov    -0x3a0d0(%rbp),%rax",
+      "offset": 403360,
+      "symbol": "_ZN4tomo13LbPlannerTest10parse_gateEv",
+      "target": 404496
+    },
+    {
+      "address": 403434,
+      "after": "e9110100009090",
+      "before": "488b85305ffcff",
+      "category": "parse-gate",
+      "disassembly": "mov    -0x3a0d0(%rbp),%rax",
+      "offset": 403434,
+      "symbol": "_ZN4tomo13LbPlannerTest10parse_gateEv",
+      "target": 403712
+    },
+    {
+      "address": 403532,
+      "after": "e89f3d2f00",
+      "before": "e84f22ffff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 403532,
+      "symbol": "_ZN4tomo13LbPlannerTest10parse_gateEv",
+      "target": 3499504
+    },
+    {
+      "address": 403545,
+      "after": "e9120100009090",
+      "before": "488b85305ffcff",
+      "category": "parse-gate",
+      "disassembly": "mov    -0x3a0d0(%rbp),%rax",
+      "offset": 403545,
+      "symbol": "_ZN4tomo13LbPlannerTest10parse_gateEv",
+      "target": 403824
+    },
+    {
+      "address": 403637,
+      "after": "e846022f00",
+      "before": "e8d61dfdff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 403637,
+      "symbol": "_ZN4tomo13LbPlannerTest10parse_gateEv",
+      "target": 3484416
+    },
+    {
+      "address": 403642,
+      "after": "e9210100009090",
+      "before": "488b85305ffcff",
+      "category": "parse-gate",
+      "disassembly": "mov    -0x3a0d0(%rbp),%rax",
+      "offset": 403642,
+      "symbol": "_ZN4tomo13LbPlannerTest10parse_gateEv",
+      "target": 403936
+    },
+    {
+      "address": 404245,
+      "after": "e8d63a2f00",
+      "before": "e8861fffff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 404245,
+      "symbol": "_ZN4tomo13LbPlannerTest10parse_gateEv",
+      "target": 3499504
+    },
+    {
+      "address": 404258,
+      "after": "e9790000009090",
+      "before": "488b85f023feff",
+      "category": "parse-gate",
+      "disassembly": "mov    -0x1dc10(%rbp),%rax",
+      "offset": 404258,
+      "symbol": "_ZN4tomo13LbPlannerTest10parse_gateEv",
+      "target": 404384
+    },
+    {
+      "address": 405689,
+      "after": "e832352f00",
+      "before": "e8e219ffff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 405689,
+      "symbol": "_ZN4tomo13LbPlannerTest7handoffILb1EEEvbj",
+      "target": 3499504
+    },
+    {
+      "address": 408031,
+      "after": "e80c2c2f00",
+      "before": "e8bc10ffff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 408031,
+      "symbol": "_ZN4tomo13LbPlannerTest8pad_hostILb1EEEvb",
+      "target": 3499504
+    },
+    {
+      "address": 457854,
+      "after": "e87d2e2e00",
+      "before": "e80d4afcff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 457854,
+      "symbol": "_ZN4tomo13LbPlannerTest11timing_caseILb0EEEvPKcjbb",
+      "target": 3484416
+    },
+    {
+      "address": 457885,
+      "after": "e84e692e00",
+      "before": "e8fe4dfeff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 457885,
+      "symbol": "_ZN4tomo13LbPlannerTest11timing_caseILb0EEEvPKcjbb",
+      "target": 3499504
+    },
+    {
+      "address": 457951,
+      "after": "e81c2e2e00",
+      "before": "e8ac49fcff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 457951,
+      "symbol": "_ZN4tomo13LbPlannerTest11timing_caseILb0EEEvPKcjbb",
+      "target": 3484416
+    },
+    {
+      "address": 457963,
+      "after": "e800692e00",
+      "before": "e8b04dfeff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 457963,
+      "symbol": "_ZN4tomo13LbPlannerTest11timing_caseILb0EEEvPKcjbb",
+      "target": 3499504
+    },
+    {
+      "address": 458824,
+      "after": "e9230b00009090",
+      "before": "488b85b0e6ffff",
+      "category": "parse-gate",
+      "disassembly": "mov    -0x1950(%rbp),%rax",
+      "offset": 458824,
+      "symbol": "_ZN4tomo13LbPlannerTest11timing_caseILb0EEEvPKcjbb",
+      "target": 461680
+    },
+    {
+      "address": 472936,
+      "after": "e933000000909090",
+      "before": "498b842458050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%r12),%rax",
+      "offset": 472936,
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "target": 472992
+    },
+    {
+      "address": 494032,
+      "after": "e82ba12d00",
+      "before": "e8bbbcfbff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 494032,
+      "symbol": "_ZN4tomo13LbPlannerTest11timing_caseILb1EEEvPKcjbb",
+      "target": 3484416
+    },
+    {
+      "address": 494060,
+      "after": "e8ffdb2d00",
+      "before": "e8afc0fdff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 494060,
+      "symbol": "_ZN4tomo13LbPlannerTest11timing_caseILb1EEEvPKcjbb",
+      "target": 3499504
+    },
+    {
+      "address": 494116,
+      "after": "e8d7a02d00",
+      "before": "e867bcfbff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 494116,
+      "symbol": "_ZN4tomo13LbPlannerTest11timing_caseILb1EEEvPKcjbb",
+      "target": 3484416
+    },
+    {
+      "address": 494128,
+      "after": "e8bbdb2d00",
+      "before": "e86bc0fdff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 494128,
+      "symbol": "_ZN4tomo13LbPlannerTest11timing_caseILb1EEEvPKcjbb",
+      "target": 3499504
+    },
+    {
+      "address": 2730187,
+      "after": "e9300000009090",
+      "before": "498b8558050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%r13),%rax",
+      "offset": 2730187,
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "target": 2730240
+    },
+    {
+      "address": 2957320,
+      "after": "e933000000909090",
+      "before": "498b842458050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%r12),%rax",
+      "offset": 2957320,
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "target": 2957376
+    },
+    {
+      "address": 2977608,
+      "after": "e933000000909090",
+      "before": "498b842458050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%r12),%rax",
+      "offset": 2977608,
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "target": 2977664
+    },
+    {
+      "address": 3024852,
+      "after": "e827030700",
+      "before": "e8b71ed5ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3024852,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3026002,
+      "after": "e899390700",
+      "before": "e8491ed7ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3026002,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3032804,
+      "after": "e817e40600",
+      "before": "e8a7ffd4ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3032804,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3033954,
+      "after": "e8891a0700",
+      "before": "e839ffd6ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3033954,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3048661,
+      "after": "e826a60600",
+      "before": "e8b6c1d4ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3048661,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3049593,
+      "after": "e872dd0600",
+      "before": "e822c2d6ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3049593,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3055925,
+      "after": "e8c6890600",
+      "before": "e856a5d4ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3055925,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3056841,
+      "after": "e822c10600",
+      "before": "e8d2a5d6ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3056841,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3073124,
+      "after": "e897460600",
+      "before": "e82762d4ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3073124,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3074284,
+      "after": "e8ff7c0600",
+      "before": "e8af61d6ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3074284,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3081092,
+      "after": "e877270600",
+      "before": "e80743d4ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3081092,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3082252,
+      "after": "e8df5d0600",
+      "before": "e88f42d6ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3082252,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3097045,
+      "after": "e826e90500",
+      "before": "e8b604d4ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3097045,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3098006,
+      "after": "e855200600",
+      "before": "e80505d6ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3098006,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3104421,
+      "after": "e856cc0500",
+      "before": "e8e6e7d3ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3104421,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3105366,
+      "after": "e895030600",
+      "before": "e845e8d5ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3105366,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3149562,
+      "after": "e9310000009090",
+      "before": "498b8558050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%r13),%rax",
+      "offset": 3149562,
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "target": 3149616
+    },
+    {
+      "address": 3162096,
+      "after": "e93b0000009090",
+      "before": "488b8358050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%rbx),%rax",
+      "offset": 3162096,
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "target": 3162160
+    },
+    {
+      "address": 3184304,
+      "after": "e93b0000009090",
+      "before": "488b8358050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%rbx),%rax",
+      "offset": 3184304,
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "target": 3184368
+    },
+    {
+      "address": 3271828,
+      "after": "e9270000009090",
+      "before": "488b8358050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%rbx),%rax",
+      "offset": 3271828,
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+      "target": 3271872
+    },
+    {
+      "address": 3290253,
+      "after": "e92e0000009090",
+      "before": "488b8358050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%rbx),%rax",
+      "offset": 3290253,
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+      "target": 3290304
+    },
+    {
+      "address": 3308991,
+      "after": "e92c0000009090",
+      "before": "498b8758050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%r15),%rax",
+      "offset": 3308991,
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj0ELb1ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+      "target": 3309040
+    },
+    {
+      "address": 3330275,
+      "after": "e9280000009090",
+      "before": "498b8758050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%r15),%rax",
+      "offset": 3330275,
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb1ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+      "target": 3330320
+    },
+    {
+      "address": 3353743,
+      "after": "e86cfe0100",
+      "before": "e8fc19d0ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3353743,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb1ELb1ELh1ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3354733,
+      "after": "e87e350200",
+      "before": "e82e1ad2ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3354733,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb1ELb1ELh1ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3359759,
+      "after": "e8ece60100",
+      "before": "e87c02d0ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3359759,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb1ELb1ELh1ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3360747,
+      "after": "e8001e0200",
+      "before": "e8b002d2ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3360747,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb1ELb1ELh1ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3366127,
+      "after": "e80cce0100",
+      "before": "e89ce9cfff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3366127,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb0ELb1ELh1ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3366895,
+      "after": "e8fc050200",
+      "before": "e8acead1ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3366895,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb0ELb1ELh1ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3371199,
+      "after": "e83cba0100",
+      "before": "e8ccd5cfff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3371199,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb0ELb1ELh1ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3371980,
+      "after": "e81ff20100",
+      "before": "e8cfd6d1ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3371980,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb0ELb1ELh1ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3376223,
+      "after": "e89ca60100",
+      "before": "e82cc2cfff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3376223,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb1ELb1ELh1ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3377221,
+      "after": "e8a6dd0100",
+      "before": "e856c2d1ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3377221,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb1ELb1ELh1ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3382671,
+      "after": "e86c8d0100",
+      "before": "e8fca8cfff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3382671,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb1ELb1ELh1ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3383669,
+      "after": "e876c40100",
+      "before": "e826a9d1ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3383669,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb1ELb1ELh1ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3389040,
+      "after": "e88b740100",
+      "before": "e81b90cfff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3389040,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb0ELb1ELh1ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3389834,
+      "after": "e861ac0100",
+      "before": "e81191d1ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3389834,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb0ELb1ELh1ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3394208,
+      "after": "e85b600100",
+      "before": "e8eb7bcfff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3394208,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb0ELb1ELh1ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3395015,
+      "after": "e824980100",
+      "before": "e8d47cd1ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3395015,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb0ELb1ELh1ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3423156,
+      "after": "e847ef0000",
+      "before": "e8d70acfff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3423156,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb1ELb1ELh0ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3424252,
+      "after": "e8ef250100",
+      "before": "e89f0ad1ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3424252,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb1ELb1ELh0ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3429887,
+      "after": "e8fcd40000",
+      "before": "e88cf0ceff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3429887,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb0ELb1ELh0ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3430809,
+      "after": "e8520c0100",
+      "before": "e802f1d0ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3430809,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb0ELb1ELh0ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3436287,
+      "after": "e8fcbb0000",
+      "before": "e88cd7ceff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3436287,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb0ELb1ELh0ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3437238,
+      "after": "e835f30000",
+      "before": "e8e5d7d0ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3437238,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb0ELb1ELh0ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3442980,
+      "after": "e8d7a10000",
+      "before": "e867bdceff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3442980,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb1ELb1ELh0ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3444076,
+      "after": "e87fd80000",
+      "before": "e82fbdd0ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3444076,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb1ELb1ELh0ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3449988,
+      "after": "e877860000",
+      "before": "e807a2ceff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3449988,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb1ELb1ELh0ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3451074,
+      "after": "e829bd0000",
+      "before": "e8d9a1d0ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3451074,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb1ELb1ELh0ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3457439,
+      "after": "e85c690000",
+      "before": "e8ec84ceff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3457439,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb0ELb1ELh0ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3458377,
+      "after": "e8a2a00000",
+      "before": "e85285d0ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3458377,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb0ELb1ELh0ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3464607,
+      "after": "e85c4d0000",
+      "before": "e8ec68ceff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3464607,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb0ELb1ELh0ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3465558,
+      "after": "e895840000",
+      "before": "e84569d0ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3465558,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb0ELb1ELh0ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3472180,
+      "after": "e8c72f0000",
+      "before": "e8574bceff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3472180,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb1ELb1ELh0ELb1EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3473266,
+      "after": "e879660000",
+      "before": "e8294bd0ff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3473266,
+      "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb1ELb1ELh0ELb1EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3644875,
+      "after": "e9300000009090",
+      "before": "498b8558050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%r13),%rax",
+      "offset": 3644875,
+      "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE.isra.0",
+      "target": 3644928
+    },
+    {
+      "address": 3686609,
+      "after": "e9ba070000909090",
+      "before": "498b842458050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%r12),%rax",
+      "offset": 3686609,
+      "symbol": "_ZN4tomo6IoLoop21r7_parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "target": 3688592
+    },
+    {
+      "address": 3706625,
+      "after": "e99a070000909090",
+      "before": "498b842458050000",
+      "category": "parse-gate",
+      "disassembly": "mov    0x558(%r12),%rax",
+      "offset": 3706625,
+      "symbol": "_ZN4tomo6IoLoop21r7_parse_and_dispatchILb1ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+      "target": 3708576
+    },
+    {
+      "address": 3795184,
+      "after": "e80b42fbff",
+      "before": "e89b5dc9ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3795184,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb1ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3796349,
+      "after": "e86e78fbff",
+      "before": "e81e5dcbff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3796349,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb1ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3802341,
+      "after": "e81626fbff",
+      "before": "e8a641c9ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3802341,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb1ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3803286,
+      "after": "e8555dfbff",
+      "before": "e80542cbff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3803286,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb1ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3809557,
+      "after": "e8e609fbff",
+      "before": "e87625c9ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3809557,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb0ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3810473,
+      "after": "e84241fbff",
+      "before": "e8f225cbff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3810473,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb0ELb0ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3817296,
+      "after": "e8abebfaff",
+      "before": "e83b07c9ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3817296,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb0ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3818450,
+      "after": "e81922fbff",
+      "before": "e8c906cbff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3818450,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb0ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3825008,
+      "after": "e88bcdfaff",
+      "before": "e81be9c8ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3825008,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb1ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3826173,
+      "after": "e8ee03fbff",
+      "before": "e89ee8caff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3826173,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb1ELb0ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3832837,
+      "after": "e8f6aefaff",
+      "before": "e886cac8ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3832837,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb0ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3833769,
+      "after": "e842e6faff",
+      "before": "e8f2cacaff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3833769,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb0ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3840773,
+      "after": "e8f68ffaff",
+      "before": "e886abc8ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3840773,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb1ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3841734,
+      "after": "e825c7faff",
+      "before": "e8d5abcaff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3841734,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb1ELb1ELb0ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    },
+    {
+      "address": 3849376,
+      "after": "e85b6efaff",
+      "before": "e8eb89c8ff",
+      "category": "io-begin",
+      "disassembly": "call   34690 <_ZN4tomo6IoLoop13lb_pass_beginEv>",
+      "offset": 3849376,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb0ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3484416
+    },
+    {
+      "address": 3850530,
+      "after": "e8c9a4faff",
+      "before": "e87989caff",
+      "category": "io-tail",
+      "disassembly": "call   54aa0 <_ZN4tomo6IoLoop15lb_control_passEv>",
+      "offset": 3850530,
+      "symbol": "_ZN4tomo6IoLoop11r7_run_loopILb0ELb1ELb1ELb1ELh0ELb0EEEvv",
+      "target": 3499504
+    }
+  ],
+  "source_proof": {
+    "base": "cd02ecbab1502775f1c170e806971d1f7bbc3ee9",
+    "cron_and_all_four_monitors_equal": true,
+    "exact_pre_bodies": [
+      {
+        "function": "lb_controller_tick_pad",
+        "sha256": "51c2dc83d744d9a9329db916f0f99e7dd8c5425c72ac106181883ff2385d4f43"
+      },
+      {
+        "function": "lb_control_actuate_pad",
+        "sha256": "f427be29110dae6360156b76e3c1857c451604be835e68fdb78cbf98fbf053fd"
+      },
+      {
+        "function": "lb_cron_writer_pad",
+        "sha256": "aaab7be209cff1b1be8f36a7fe22a1bf66c7039ea46881b43c90d932e06a1fa7"
+      },
+      {
+        "function": "lb_should_pause_pad",
+        "sha256": "c890194d12e09df3db46b9d6644e31b8c30365d99a12449bf113be81cffe384a"
+      },
+      {
+        "function": "lb_client_move_pad",
+        "sha256": "8f6daa4b32ba5b87d4862c32b74bafc42d34f0a3dbdc8765f0a273de632018a1"
+      }
+    ],
+    "repeated_move_cap": "Frozen PRE loop condition is retained literally, including both atomic reads."
+  },
+  "source_sha256": "bb1f98cc10e33d19d2e933fbe3b0aebcd68457907e884c3d93888183470c3203"
+}

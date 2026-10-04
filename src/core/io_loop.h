@@ -59,6 +59,7 @@ inline constexpr uint32_t kRecvChunk = 16 * 1024;
 
 class IoLoop {
     friend struct CoreConcurrencyTest;
+    friend struct LbPlannerTest;
 #ifdef TOMO_CORE_CONCURRENCY_TEST
     // Fixture observes successful ordinary-owner dispatch, after publication and before retirement.
     // No observer storage, branch or call exists in release builds.
@@ -536,6 +537,7 @@ private:
                 continue;
             }
 #endif
+            lb_pass_begin(); // one shared pause snapshot before any connection parsing
             refresh_notify_config();
             // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
             // per-operation hooks their zero-cost-when-off property.
@@ -545,7 +547,6 @@ private:
             const bool client_cron_armed = !srv_->flip_dispatch_paused() &&
                                            srv_->client_cron_armed();
             const bool client_lb_signal_armed = client_lb_signal_armed_;
-            const bool lb_controller_armed = lb_controller_armed_;
             // Placement's dense role vectors are mutated only under FLIP's global dispatch
             // barrier. Do not consult them from an IO pass while that cold transaction is live.
             const bool save_cron_armed = !srv_->flip_dispatch_paused() &&
@@ -572,7 +573,7 @@ private:
                 // reads for pause, cron and WAIT. A pass is microseconds; their public granularity
                 // is milliseconds or seconds.
                 bool pass_time_cached = pause_armed || client_cron_armed || save_cron_armed ||
-                                        client_lb_signal_armed || lb_controller_armed ||
+                                        client_lb_signal_armed || lb_controller_armed_ ||
                                         !deferred_timers_.empty();
                 if (__builtin_expect(pass_time_cached, true)) {
                     cached_now_ms_ = pass_ns / 1000000ull;
@@ -652,14 +653,6 @@ private:
                     lb_client_signal_beat_ms_ = cached_now_ms_ + 1000;
                 }
                 did += lb_control_pass();
-                if (__builtin_expect(lb_controller_armed &&
-                                     cached_now_ms_ >= lb_controller_beat_ms_, false)) {
-                    lb_controller_beat_ms_ = cached_now_ms_ + srv_->lb_tick_ms();
-                    if (srv_->lb_cron_writer(self_->id()) &&
-                        srv_->lb_controller_tick(self_->id(), cached_now_ms_))
-                        lb_schedule_wake_all();
-                    did++;
-                }
                 did += lb_wake_all_pass();
                 if (__builtin_expect(client_cron_armed &&
                                      cached_now_ms_ >= client_cron_beat_ms_, false)) {
@@ -1830,15 +1823,59 @@ private:
             flip_publish_stage(FlipStage::Rollback);
     }
 
+    template<class Id>
+    __attribute__((always_inline)) bool lb_parse_paused(Id id) const {
+        uint64_t pause;
+        // POST executes exactly its ordinary private load. A copied PAD-A ELF replaces
+        // that instruction with a jump to the retained PRE gate. Metadata inherits the
+        // enclosing COMDAT group, so discarded inline copies cannot leave stale sites.
+        asm goto("1: movq %[cache], %[pause]\n"
+                 "2:\n"
+                 ".pushsection .lbplanner_gates,\"?\",@progbits\n"
+                 ".quad 1b, 2b, %l[pre]\n"
+                 ".popsection\n"
+                 : [pause] "=r"(pause) : [cache] "m"(lb_pause_id_) : : pre);
+        return pause && (pause == UINT64_MAX || pause == id());
+    pre:
+        return lb_controller_armed_ && srv_->lb_should_pause_pad(self_->id(), id());
+    }
+
+    // Retained comparison bodies; the POST call graph never enters either one.
+    void lb_pass_begin_pad();
+    uint32_t lb_control_actuate_pad();
+    uint32_t lb_control_pass_pad();
+
+    __attribute__((noinline))
+    void lb_pass_begin() {
+        if (!lb_controller_armed_) return;
+        const LbStage stage = srv_->lb_stage();
+        uint64_t pause = 0;
+        if (stage == LbStage::IoDrain || stage == LbStage::ExDrain) pause = UINT64_MAX;
+        else if (stage == LbStage::ClientDrain) {
+            auto record = srv_->lb_client_read();
+            if (record) {
+                const LbClientMove move = srv_->lb_client_move();
+                if (move.source == self_->id()) pause = move.id;
+            }
+        }
+        lb_pause_id_ = pause;
+    }
+
+    __attribute__((noinline))
     uint32_t lb_control_pass() {
         if (!lb_controller_armed_) return 0;
+        // Observe drains published during this pass as well as those seen at its start.
+        // This separate control-tail acquire never enters the per-connection parse gate.
         const LbStage stage = srv_->lb_stage();
+        if (stage == LbStage::PlanReady) {
+            if (srv_->lb_consume_plan(self_->id())) {
+                lb_schedule_wake_all();
+                return 1;
+            }
+            return 0;
+        }
         if (stage != LbStage::ClientDrain) lb_client_wake_pending_ = false;
         if (stage == LbStage::Idle || stage == LbStage::ClientMoving) return 0;
-        if (srv_->lb_drain_pass_expired(self_->id(), stage)) {
-            lb_schedule_wake_all();
-            return 1;
-        }
         if (stage == LbStage::IoDrain) {
             // This control tail is outside dispatch: all owner samples taken by this IO
             // have either been posted (including quiet batches) or abandoned for reparse.
@@ -1874,6 +1911,8 @@ private:
             return 1;
         }
 
+        auto record = srv_->lb_client_read();
+        if (!record) return 1; // this observed drain was withdrawn; no readiness wait
         const LbClientMove move = srv_->lb_client_move();
         auto wake_source = [&]() {
             Ring* source = srv_->thread(move.source).ring();
@@ -1890,6 +1929,7 @@ private:
         if (move.destination == self_->id() && !srv_->lb_acked(self_->id())) {
             if (!prepare_client_transfer_capacity(1)) {
                 srv_->lb_refuse_client_request();
+                lb_pause_id_ = 0;
                 lb_schedule_wake_all();
                 return 1;
             }
@@ -1903,27 +1943,39 @@ private:
                 if (client->id() == move.id) { selected = client; break; }
             if (!selected || selected->ifid_thread() != self_->id()) {
                 srv_->lb_refuse_client_request();
+                lb_pause_id_ = 0;
                 lb_schedule_wake_all();
                 return 1;
             }
             std::string error;
             if (client_transfer_ready(selected, move.destination, error)) {
-                if (!srv_->lb_acked(move.destination)) return 1;
+                if (!srv_->lb_acked(move.destination)) {
+                    // Charge only a real readiness/ACK wait, after consulting the fence.
+                    // Busy clients are refused below on this first tail, with their reason.
+                    if (srv_->lb_drain_pass_expired(self_->id(), stage)) {
+                        lb_pause_id_ = 0;
+                        lb_schedule_wake_all();
+                    }
+                    return 1;
+                }
                 if (!srv_->lb_client_move_started(move.id, cached_now_ms_)) return 1;
                 const bool started = request_client_transfer(selected, move.destination, error);
                 if (!started) srv_->lb_client_move_cancelled(move.id);
+                lb_pause_id_ = 0;
                 lb_schedule_wake_all();
                 return 1;
             }
             // Busy predicates may need more work than our drain budget allows. Decline this candidate
             // immediately; none of the lifetime, ROB, output, or protocol fences may be waived.
             if (srv_->lb_refuse_stalled(srv_->lb_epoch(), lb_stall_reason(error))) {
+                lb_pause_id_ = 0;
                 lb_schedule_wake_all();
                 return 1;
             }
             if (selected->is_tls() || selected->multi_session() != nullptr ||
                 selected->blocked()) {
                 srv_->lb_refuse_client_request();
+                lb_pause_id_ = 0;
                 lb_schedule_wake_all();
                 return 1;
             }
@@ -2962,8 +3014,7 @@ private:
         const bool default_bulk_limit = pass_max_bulk_len == 512ull * 1024 * 1024;
         // IoDrain waits for this whole parse/post pass before opening ExDrain. A task whose
         // owner was sampled here therefore reaches that owner before it can acknowledge.
-        const bool lb_pause_this_pass = lb_controller_armed_ &&
-            srv_->lb_should_pause(self_id, c->id());
+        const bool lb_pause_this_pass = lb_parse_paused([&] { return c->id(); });
         if (__builtin_expect(lb_pause_this_pass, false)) {
 #ifdef TOMO_LB_STALL_DEBUG
             srv_->lb_debug_park(self_id, pass_rlen - pass_rpos);
@@ -5584,7 +5635,7 @@ ordinary_shard_ready:
     static constexpr uint32_t kClientCronMinVisits = 5;
     uint64_t client_cron_beat_ms_ = 0;
     uint64_t lb_client_signal_beat_ms_ = 0;
-    uint64_t lb_controller_beat_ms_ = 0;
+    uint64_t lb_pause_id_ = 0; // IO-private pass-start snapshot: 0=open, UINT64_MAX=all, else selected id
     uint64_t save_cron_beat_ms_ = 0;
     size_t   client_cron_cursor_ = 0;
     uint64_t cached_now_ms_ = 0;
