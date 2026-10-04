@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Mainline-only LB convergence episodes; --self-test and --dry-run start nothing.
 
-Frozen PRE balanced windows determine ONE envelope per mode before any scored
-arms run. Missing stimulus, motion, telemetry or a complete hold is a failure.
-See MEASURE-REQUEST-lbplanner-bench.md and MEASURE-REQUEST-lbplanner-bench2.md
-for geometry and interpretation limits.
+PRE probes must admit key movement before a key-skew matrix can run. Convergence
+is the last required move followed by quiescence, not a return to quiet-baseline
+maxima. See MEASURE-REQUEST-lbplanner-bench3.md for the frozen comparison rules.
 """
 import argparse
 from collections import Counter
@@ -39,9 +38,14 @@ SPREADS = tuple(PREFIX + n + "_spread_current" for n in
 REFUSALS = tuple(PREFIX + n for n in (
     "no_candidate", "hysteresis_refused", "cooldown_refused", "transition_refused",
     "capacity_refused", "client_refused", "hot_bucket_refused"))
+STALL = {short: "tomokv_lbstall_" + name for short, name in (
+    ("exec", "executor"), ("proto", "protocol"), ("passl", "pass_limit"),
+    ("dest", "destination"), ("pipe", "pipeline"), ("defout", "deferred_output"),
+    ("cstate", "client_state"), ("invalid", "invalid_client"))}
+PENDING = "tomokv_lbstall_pending_ns_max"
 COUNTERS = (TICKS, KEY, CLIENT, GATHERS, PREFIX + "bucket_cross_domain_moves",
-            PREFIX + "client_cross_domain_moves", *REFUSALS)
-FIELDS = (STAGE, *COUNTERS, *SPREADS,
+            PREFIX + "client_cross_domain_moves", *REFUSALS, *STALL.values())
+FIELDS = (STAGE, PENDING, *COUNTERS, *SPREADS,
           *(n.replace("current", edge) for n in SPREADS for edge in ("before", "after")))
 ARMS = {
     "PRE": ("build/lbplanner-pre/tomokv", "33f07418205817e93d5d759d4cab78480f77c5aa9fa51618dc89aa3e3828f8a2"),
@@ -67,6 +71,53 @@ def digest(path):
     return h.hexdigest()
 
 
+def bind_arms(receipt):
+    if receipt is None:
+        return dict(ARMS), {"path": None, "sha256": None, "source": "frozen ARMS table"}
+    path = receipt.resolve()
+    raw = path.read_bytes()
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            require(key not in result, f"duplicate arm receipt field: {key}")
+            result[key] = value
+        return result
+    data = json.loads(raw, object_pairs_hook=unique)
+    require(isinstance(data, dict) and set(data) == set(ARMS),
+            "arms receipt must bind exactly PRE, PAD-A and POST")
+    table = {}
+    for arm, entry in data.items():
+        require(isinstance(entry, dict) and set(entry) == {"path", "sha256"},
+                f"{arm} receipt must contain path and sha256")
+        name, sha = entry["path"], entry["sha256"]
+        require(isinstance(name, str) and name and isinstance(sha, str) and len(sha) == 64
+                and all(c in "0123456789abcdef" for c in sha), f"invalid {arm} path/SHA256 receipt")
+        binary = Path(name)
+        table[arm] = (str((path.parent / binary).resolve()), sha)
+    return table, {"path": str(path), "sha256": hashlib.sha256(raw).hexdigest(), "source": "--arms"}
+
+
+def arm_table(args):
+    return getattr(args, "arm_table", ARMS)
+
+
+def arms_receipt(args):
+    return getattr(args, "arms_receipt", {"path": None, "sha256": None, "source": "frozen ARMS table"})
+
+
+def verify_arms(args, only=None):
+    receipt = arms_receipt(args)
+    if receipt["path"]:
+        require(digest(receipt["path"]) == receipt["sha256"], "arms receipt changed after binding")
+    for arm, (relative, expected) in arm_table(args).items():
+        if only is not None and arm != only:
+            continue
+        path = ROOT / relative
+        require(path.is_file() and os.access(path, os.X_OK) and digest(path) == expected,
+                f"{arm} binary differs from " + ("explicit arms" if receipt["path"] else "frozen lbplanner") +
+                " receipt; do not silently rebind SHA")
+
+
 def save_json(path, value):
     path.write_text(json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n")
 
@@ -81,7 +132,8 @@ def parse_info(raw, mandatory=True):
         require(sep and key not in result, "malformed/duplicate INFO field: " + line)
         result[key] = value
     if mandatory:
-        require(all(k in result for k in FIELDS), "INFO LB missing mandatory fields")
+        require(all(k in result for k in FIELDS),
+                "INFO LB missing mandatory fields: " + ", ".join(k for k in FIELDS if k not in result))
         require(result.get(PREFIX + "enabled") == result.get("tomokv_clientlb_enabled") == "1",
                 "both balancers must be enabled")
         for key in FIELDS:
@@ -126,7 +178,7 @@ def parse_signals(raw):
     return result
 
 
-def geometry(sample, mode):
+def geometry(sample, mode, requested_shards=None):
     snap = sample["signals"]
     roles = Counter(r["role"] for r in snap["threads"].values())
     require(snap["derived"]["thread_mode"] == mode,
@@ -135,13 +187,22 @@ def geometry(sample, mode):
              len(snap["threads"]) == roles["io"] + roles["ex"] == 16 and roles["io"] >= 2)
     expected = "16 fused threads" if mode == "1s" else "16 IO + EX threads with at least 2 IO"
     require(valid, f"expected {expected} on cores 0-15; observed {roles!r}")
-    require(set(snap["shards"]) == set(range(16)), "expected exactly 16 shards")
+    count = len(snap["shards"])
+    require(count > 0 and set(snap["shards"]) == set(range(count)),
+            f"shard IDs must cover 0..{count - 1}; observed {sorted(snap['shards'])}")
+    require(requested_shards is None or count == requested_shards,
+            f"shards={count}, requested limit={requested_shards}")
+    require(all(snap["threads"][row["owner"]]["role"] in ("ex", "fused")
+                for row in snap["shards"].values()), "shard owner must be an executor/fused thread")
     return sorted(tid for tid, row in snap["threads"].items() if row["role"] in ("io", "fused"))
 
 
 def delta(before, after):
     result = {key: after["info"][key] - before["info"][key] for key in COUNTERS}
-    require(all(n >= 0 for n in result.values()), "LB counter reset")
+    for key, value in result.items():
+        require(value >= 0, f"LB counter reset: {key} delta={value}, limit>=0")
+    require(after["info"][PENDING] >= before["info"][PENDING],
+            f"{PENDING}={after['info'][PENDING]}, limit>={before['info'][PENDING]} (reset)")
     result["total_moves"] = result[KEY] + result[CLIENT]
     return result
 
@@ -152,31 +213,92 @@ def beats(samples):
     for sample in samples:
         if previous:
             change = sample["info"][TICKS] - previous["info"][TICKS]
-            require(change in (0, 1), "missed controller beat or reset")
+            require(change in (0, 1), f"{TICKS} delta={change}, limit=0 or 1 (missed beat or reset)")
             delta(previous, sample)
-            require(0 < sample["t"] - previous["t"] <= .5, "telemetry gap exceeds 500 ms")
+            gap = sample["t"] - previous["t"]
+            require(0 < gap <= .5, f"telemetry gap={gap:g}s, limit=0<gap<=0.5s")
             if change:
                 result.append(previous)
         previous = sample
     return result
 
 
+def shard_owners(sample):
+    return {str(sid): row["owner"] for sid, row in sample["signals"]["shards"].items()}
+
+
+def spread_maxima(samples):
+    return {key: max(s["info"][key] for s in samples) for key in SPREADS} if samples else {}
+
+
+def baseline_stationarity(samples, placement=None):
+    """A run proves its own quiescence; no other run's spreads can veto it."""
+    maxima = spread_maxima(samples)
+    summary = "balanced maxima (reported only): " + ", ".join(f"{k}={v:g}" for k, v in maxima.items())
+    result = {"status": "FAIL", "spread_maxima": maxima, "summary": summary}
+    try:
+        rows = beats(samples)
+        require(len(rows) >= 3 * DECISION_TICKS,
+                f"balanced closed_beats={len(rows)}, limit>={3 * DECISION_TICKS}")
+        duration = samples[-1]["t"] - samples[0]["t"]
+        require(duration >= 3 * DECISION_SECONDS,
+                f"balanced seconds={duration:g}, limit>={3 * DECISION_SECONDS:g}")
+        movements = delta(samples[0], samples[-1])
+        result["deltas"] = movements
+        require(movements["total_moves"] == 0,
+                f"balanced total_moves={movements['total_moves']}, limit=0 "
+                f"(key={movements[KEY]}, client={movements[CLIENT]})")
+        last = samples[-1]
+        window = [s for s in samples if last["t"] - s["t"] <= DECISION_SECONDS or
+                  last["info"][TICKS] - s["info"][TICKS] <= DECISION_TICKS]
+        for row in window:
+            require(row["info"][STAGE] == 0,
+                    f"balanced {STAGE}={row['info'][STAGE]}, limit=0 at t={row['t']:.6f}")
+        if placement is not None:
+            observed = shard_owners(last)
+            for sid in sorted(set(placement) | set(observed), key=int):
+                require(observed.get(sid) == placement.get(sid),
+                        f"balanced shard_owners[{sid}]={observed.get(sid)}, limit={placement.get(sid)} (PRE)")
+        result.update(status="PASS", beats=len(rows), seconds=duration)
+        reason = "own baseline quiescent"
+    except ValueError as error:
+        reason = str(error)
+    return dict(result, reason=reason + "; " + summary)
+
+
+def sampling_floor(owners):
+    # weighted_lb.h LbAutotune::sampling_floor, in percent, 4096 samples/owner.
+    count = max(owners, 2)
+    pairs = count * (count - 1) / 2
+    return 200 * math.sqrt(2 / 4096 * (1 + .5 * math.log(pairs)))
+
+
 def envelope(samples):
-    rows = beats(samples)
-    require(len(rows) >= 3 * DECISION_TICKS, "PRE baseline needs three complete decision windows")
-    require(rows[-1]["t"] - rows[0]["t"] >= 3 * DECISION_SECONDS,
-            "PRE baseline duration too short")
-    require(delta(rows[0], rows[-1])["total_moves"] == 0,
-            "PRE balanced baseline still moving; no envelope may be fitted")
-    require(all(s["info"][STAGE] == 0 for s in rows), "PRE baseline has an active plan")
-    require(all(rows[-1]["signals"]["threads"][tid]["ops"] > old["ops"]
-                for tid, old in rows[0]["signals"]["threads"].items()),
-            "PRE baseline has an inactive owner")
-    return {"upper": {key: max(s["info"][key] for s in rows) for key in SPREADS},
-            "lower": {key: 0 for key in SPREADS}, "beats": len(rows),
-            "first_tick": rows[0]["info"][TICKS], "last_tick": rows[-1]["info"][TICKS],
+    baseline = baseline_stationarity(samples)
+    require(baseline["status"] == "PASS", "PRE " + baseline["reason"])
+    first, last = samples[0], samples[-1]
+    for tid, old in first["signals"]["threads"].items():
+        count = last["signals"]["threads"][tid]["ops"] - old["ops"]
+        require(count > 0, f"PRE owner[{tid}].ops delta={count}, limit>0")
+    roles = Counter(r["role"] for r in last["signals"]["threads"].values())
+    writers, clients = roles["ex"] + roles["fused"], roles["io"] + roles["fused"]
+    return {"upper": baseline["spread_maxima"], "lower": {key: 0 for key in SPREADS},
+            "beats": baseline["beats"], "shard_owners": shard_owners(last),
+            "shards": len(last["signals"]["shards"]),
+            "first_tick": first["info"][TICKS], "last_tick": last["info"][TICKS],
+            "release_band": {k: .8 * sampling_floor(clients if k == SPREADS[2] else writers) / 100
+                             for k in SPREADS},
+            "release_band_source": "0.8 * sampling_floor: minimum Schmitt release band; learned jitter is not exported",
             "sustain_seconds": DECISION_SECONDS, "sustain_ticks": DECISION_TICKS,
-            "source": "PRE balanced baseline; observed maxima; never widened using an arm"}
+            "source": "PRE balanced baseline; all 100 ms sample maxima; never widened using an arm"}
+
+
+def diagnostic_envelope(criterion, own_maxima):
+    # This run-local margin is ONLY a diagnostic. It cannot widen the frozen
+    # PRE width used to reject a post-move rebound, or fit any comparison rule.
+    return {"upper": {k: max(criterion["upper"][k] * (1 + criterion["release_band"][k]),
+                             own_maxima[k]) for k in SPREADS},
+            "source": "max(PRE maximum * (1 + minimum release band), own baseline maximum); diagnostic only"}
 
 
 def inside(sample, criterion):
@@ -184,7 +306,20 @@ def inside(sample, criterion):
             all(sample["info"][k] <= limit for k, limit in criterion["upper"].items()))
 
 
-def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_seconds):
+def actuator_mix(anchor, final, total):
+    return {"stall": {short: total[key] for short, key in STALL.items()},
+            "pass_limit": total[STALL["passl"]],
+            "attempts": total[PREFIX + "client_refused"] + total[CLIENT],
+            # A high-water mark is not additive: subtracting two maxima would
+            # mislabel a difference as a duration. Retain both endpoints.
+            "pending_ms": final["info"][PENDING] / 1e6,
+            "pending_ms_before": anchor["info"][PENDING] / 1e6,
+            "pending_scope": "server lifetime high-water at post-stimulus endpoint"}
+
+
+def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_seconds,
+                diagnostic=None):
+    samples = [s for s in samples if s["t"] <= end]
     rows = beats(samples)
     before = [s for s in samples if s["t"] <= stimulus]
     after = [s for s in samples if stimulus < s["t"] <= end]
@@ -193,40 +328,73 @@ def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_
     rows = [s for s in rows if stimulus < s["t"] <= final["t"]]
     primary = SPREADS[0] if episode == "key-skew" else SPREADS[2]
     move = KEY if episode == "key-skew" else CLIENT
-    excursion = next((s for s in rows if s["info"][primary] > criterion["upper"][primary]), None)
+    excursion = next((s for s in after if s["info"][primary] > criterion["upper"][primary]), None)
     total = delta(anchor, final)
     result = {"status": "FAIL", "t_converge": None, "deltas": total,
               "key_moves": total[KEY], "client_moves": total[CLIENT],
               "total_moves": total["total_moves"], "gathers": total[GATHERS],
               "suffix_moves": None, "suffix_deltas": None,
+              "envelope_return_t": None,
               "anchor_t": anchor["t"], "end_t": final["t"],
-              "excursion_t": excursion["t"] if excursion else None}
-    if excursion is None:
-        return dict(result, reason="required spread never left the PRE envelope; stimulus unarmed")
+              "excursion_t": excursion["t"] if excursion else None,
+              **actuator_mix(anchor, final, total)}
     if total[move] == 0 or (episode == "key-skew" and total[GATHERS] == 0):
-        return dict(result, reason="no required controller move/admission; cannot prove convergence")
-    # Use the FINAL uninterrupted return: a later excursion invalidates an earlier apparent
-    # convergence. All moves from stimulus through the full fixed observation remain charged.
+        return dict(result, reason=f"unarmed: {move} delta={total[move]}, limit>0; "
+                    f"{GATHERS} delta={total[GATHERS]} (key-skew limit>0)")
+    previous, last_move = anchor, None
+    for row in after:
+        if row["info"][move] > previous["info"][move]:
+            last_move = row
+            result["last_move_interval"] = [previous["t"], row["t"]]
+        previous = row
+    result["t_converge"] = last_move["t"] - stimulus
+    result["last_move_t"] = last_move["t"]
+    suffix = delta(last_move, final)
+    result.update(suffix_deltas=suffix, suffix_moves=suffix["total_moves"],
+                  suffix_seconds=final["t"] - last_move["t"],
+                  suffix_ticks=final["info"][TICKS] - last_move["info"][TICKS])
+    # Keep envelope return as a final sustained-return diagnostic, never a gate.
+    diagnostic = diagnostic or criterion
     streak = None
-    for row in rows:
-        if row["t"] <= excursion["t"] or not inside(row, criterion):
+    for row in after:
+        if row["t"] < last_move["t"] or not inside(row, diagnostic):
             streak = None
-        elif streak is None and delta(anchor, row)[move] > 0:
+        elif streak is None:
             streak = row
-    if streak is None:
-        return dict(result, reason="did not return to the fixed PRE envelope")
-    confirmed = next((row for row in rows if row["t"] - streak["t"] >= DECISION_SECONDS and
-                      row["info"][TICKS] - streak["info"][TICKS] >= DECISION_TICKS), None)
-    if (confirmed is None or streak["t"] - stimulus > max_seconds or
-            final["t"] - confirmed["t"] < suffix_seconds or
-            final["info"][TICKS] - confirmed["info"][TICKS] < DECISION_TICKS):
-        return dict(result, reason="return lacks sustained decision window or complete stationary suffix")
-    suffix = delta(confirmed, final)
-    return dict(result, status="PASS" if suffix["total_moves"] == 0 else "FAIL",
-                reason="complete" if suffix["total_moves"] == 0 else "moves during stationary suffix",
-                t_converge=streak["t"] - stimulus, confirmed_t=confirmed["t"],
-                suffix_seconds=final["t"] - confirmed["t"], suffix_deltas=suffix,
-                suffix_moves=suffix["total_moves"])
+    if (streak and final["t"] - streak["t"] >= DECISION_SECONDS and
+            final["info"][TICKS] - streak["info"][TICKS] >= DECISION_TICKS):
+        result["envelope_return_t"] = streak["t"] - stimulus
+    result["envelope_excess"] = {k: {"value": final["info"][k], "limit": limit}
+                                 for k, limit in diagnostic["upper"].items() if final["info"][k] > limit}
+    if suffix["total_moves"]:
+        return dict(result, reason=f"moves during stationary suffix: total_moves={suffix['total_moves']}, limit=0")
+    if result["t_converge"] > max_seconds:
+        return dict(result, reason=f"t_converge={result['t_converge']:g}, limit<={max_seconds:g}")
+    if result["suffix_ticks"] < DECISION_TICKS:
+        return dict(result, reason=f"suffix_ticks={result['suffix_ticks']}, limit>={DECISION_TICKS}")
+    # Current spreads are refreshed at controller ticks, not at move completion.
+    # Use the first closed, idle beat strictly after the last move's tick.
+    level = next((s for s in rows if s["info"][TICKS] > last_move["info"][TICKS]
+                  and s["info"][STAGE] == 0), None)
+    if level is None:
+        return dict(result, reason=f"post-move idle beats=0, limit>=1; {STAGE}={final['info'][STAGE]}, limit=0")
+    result.update(suffix_start_t=level["t"], suffix_seconds=final["t"] - level["t"],
+                  suffix_ticks=final["info"][TICKS] - level["info"][TICKS])
+    if result["suffix_seconds"] < suffix_seconds or result["suffix_ticks"] < DECISION_TICKS:
+        return dict(result, reason=f"suffix_seconds={result['suffix_seconds']:g}, limit>={suffix_seconds:g}; "
+                    f"suffix_ticks={result['suffix_ticks']}, limit>={DECISION_TICKS}")
+    width = criterion["upper"][primary] - criterion["lower"][primary]
+    limit = level["info"][primary] + width
+    result.update(post_last_move_level=level["info"][primary], post_last_move_level_t=level["t"],
+                  primary=primary, rebound_limit=limit, pre_envelope_width=width)
+    for row in after:
+        if row["info"][TICKS] < level["info"][TICKS]:
+            continue
+        if row["info"][primary] > limit:
+            return dict(result, reason=f"post-move rebound: {primary}={row['info'][primary]:g}, limit={limit:g} at t={row['t']:.6f}")
+        if row["info"][STAGE] != 0:
+            return dict(result, reason=f"stationary suffix {STAGE}={row['info'][STAGE]}, limit=0 at t={row['t']:.6f}")
+    return dict(result, status="PASS", reason="last required move followed by a complete quiescent suffix")
 
 
 def occupancy(samples, start, end, coordinator):
@@ -244,10 +412,12 @@ def occupancy(samples, start, end, coordinator):
     return {"threads": result, "coordinator": coordinator, "coord_busy": result[coordinator]["busy_pct"]}
 
 
-def metrics(documents, before, after, expected_seconds):
+def metrics(documents, before, after, expected_seconds, hot_pipeline=PIPELINE):
+    require(len(documents) == 2, f"loader documents={len(documents)}, limit=2")
     hist, rate, per_loader, accounting = Counter(), 0, [], []
     cell = SimpleNamespace(op="SET", depth=PIPELINE, conns=CONNECTIONS)
-    for document in documents:
+    for document, depth in zip(documents, (PIPELINE, hot_pipeline)):
+        cohort = SimpleNamespace(op="SET", depth=depth, conns=CONNECTIONS // 2)
         stats = document["ALL STATS"]
         total = stats["Totals"]
         require("Connection Errors" in total, "memtier lacks connection-error evidence")
@@ -262,15 +432,15 @@ def metrics(documents, before, after, expected_seconds):
         require(runtime["Time unit"] == "MILLISECONDS" and
                 float(runtime["Total duration"]) >= (expected_seconds - 1) * 1000,
                 "memtier ended before the requested fixed episode duration")
-        # The gate's audited finite Count/HDR bound is 64 connections * 128 outstanding
+        # The gate's audited finite Count/HDR bound is 64 connections * cohort depth
         # replies. It is legal ONLY alongside exact server SET calls == drained HDR counts.
-        evidence = memtier_workload_counts(cell, document, CONNECTIONS // 2)
+        evidence = memtier_workload_counts(cohort, document, CONNECTIONS // 2)
         bins = command_histogram(document, "SET", count_bound=evidence["outstanding_bound"])
         accounting.append(evidence)
         hist.update(bins)
         rate += value
         per_loader.append({"rate": value, "p99": percentile(bins, 99), "count": sum(bins.values()),
-                           "runtime": runtime})
+                           "runtime": runtime, "pipeline": depth})
     return {"rate": rate, "p99": percentile(hist, 99), "loaders": per_loader,
             "accounting": require_workload_accounting(cell, before, after, accounting),
             "p99_method": "merged SET HDR counts; microseconds converted to milliseconds"}
@@ -436,11 +606,13 @@ class Sampler:
 def server_command(args, arm, mode, directory):
     # Match calib/lb-stationary.sh: the default split uses all 16 allowed CPUs.
     # --ratio specifies whole-server counts, not a ratio scaled to CPU affinity.
-    argv = ["taskset", "-c", SERVER_CORES, str(ROOT / ARMS[arm][0]),
+    argv = ["taskset", "-c", SERVER_CORES, str(ROOT / arm_table(args)[arm][0]),
             "--bind", "127.0.0.1", "--port", str(args.port), "--thread-mode", mode,
-            "--shards", "16", "--key-lb", "1", "--client-lb", "1", "--flip-auto", "0",
+            "--key-lb", "1", "--client-lb", "1", "--flip-auto", "0",
             "--enable-debug-command", "yes", "--save", "", "--appendonly", "no",
             "--dir", str(directory), "--dbfilename", "seed.tomo"]
+    if args.shards is not None:
+        argv += ["--shards", str(args.shards)]
     return argv
 
 
@@ -454,7 +626,8 @@ def load_command(args, directory, label, low, high, duration=None, populate=Fals
     if populate:
         argv += ["-n", str(KEYS // 32)]
     else:
-        argv += [f"--pipeline={PIPELINE}", "--test-time=" + str(duration)]
+        depth = getattr(args, "hot_pipeline", PIPELINE) if label == "hot" else PIPELINE
+        argv += [f"--pipeline={depth}", "--test-time=" + str(duration)]
         if args.rate_per_client:
             argv += [f"--rate-limiting={args.rate_per_client}"]
     if owners is not None:
@@ -467,7 +640,7 @@ def load_command(args, directory, label, low, high, duration=None, populate=Fals
 
 @contextmanager
 def boot(args, arm, mode, directory, seed=None):
-    require(digest(ROOT / ARMS[arm][0]) == ARMS[arm][1], "binary changed before boot")
+    verify_arms(args, arm)
     directory.mkdir(parents=True, exist_ok=False)
     if seed:
         shutil.copyfile(seed, directory / "seed.tomo")
@@ -494,7 +667,11 @@ def boot(args, arm, mode, directory, seed=None):
                 time.sleep(.1)
         require(conn is not None, "server boot timeout")
         sample = {"signals": parse_signals(conn.must("DEBUG", "LBSIGNALS"))}
-        owners = geometry(sample, mode)
+        owners = geometry(sample, mode, args.shards)
+        observed = len(sample["signals"]["shards"])
+        require(int(identity["shards"]) == observed,
+                f"INFO shards={identity['shards']}, DEBUG LBSIGNALS limit={observed}")
+        identity["shards"] = observed
         parse_info(conn.must("INFO", "LB"))
         yield conn, children, owners, identity
     finally:
@@ -515,28 +692,33 @@ def wait_loads(processes, sampler=None, timeout=600):
     return time.monotonic()
 
 
-def key_mapping(conn, hotmax):
+def key_mapping(conn, hotmax, shards):
     result = []
     for start in range(1, hotmax + 1, 128):
         keys = ["memtier-" + str(i) for i in range(start, min(hotmax + 1, start + 128))]
         rows = conn.must("DEBUG", "SHARDS", *keys)
         require(isinstance(rows, list) and len(rows) == len(keys), "bad physical key map")
         result.extend([key, int(row[0])] for key, row in zip(keys, rows))
+    require(all(0 <= sid < shards for _, sid in result),
+            f"DEBUG SHARDS hot-key ID outside limit=[0,{shards})")
     return result
 
 
-def prepare_seed(args):
-    directory = args.output / "seed"
-    with boot(args, "PRE", "1s", directory) as (conn, children, owners, identity):
+def prepare_seed(args, mode):
+    # Default shard counts differ by mode. A snapshot and its physical key map
+    # are shared across every arm/probe/round *within* the observed geometry.
+    directory = args.output / ("seed-" + mode)
+    with boot(args, "PRE", mode, directory) as (conn, children, owners, identity):
         argv = load_command(args, directory, "populate", 1, KEYS, populate=True)
         proc = children.start(argv, directory / "populate.log", directory)
         wait_loads([proc])
         require(conn.must("DBSIZE") == KEYS, "population did not produce exactly 500000 keys")
-        mapping = key_mapping(conn, args.hotmax)
+        mapping = key_mapping(conn, args.hotmax, identity["shards"])
         require(conn.must("SAVE") == b"OK", "seed SAVE failed")
     path = directory / "seed.tomo"
     record = {"sha256": digest(path), "path": str(path), "hot_keys": mapping,
-              "population_command": argv, "identity": identity}
+              "population_command": argv, "identity": identity, "mode": mode,
+              "shards": identity["shards"], "arms_receipt": arms_receipt(args)}
     save_json(directory / "manifest.json", record)
     return path, record
 
@@ -553,19 +735,57 @@ def owner_evidence(directory, labels, expected):
     return result
 
 
-def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion=None):
+def probe_verdict(result):
+    if not result.get("measurement_valid"):
+        return "FAIL", result.get("reason", "probe lacks valid telemetry/accounting")
+    count = result["deltas"][KEY]
+    if count == 0:
+        return "REFUSED", f"UNARMED: {KEY} delta={count}, limit>0; key-skew matrix refused"
+    return "PASS", f"ARMED: {KEY} delta={count}, limit>0; convergence scored separately in the matrix"
+
+
+def episode_row(result):
+    def fmt(value):
+        return "NA" if value is None else f"{value:.6f}" if isinstance(value, float) else str(value)
+    episode, mode, arm = (result[k] for k in ("episode", "mode", "arm"))
+    if result.get("probe"):
+        state = "UNARMED" if result["status"] == "REFUSED" else "ARMED" if result["status"] == "PASS" else "FAIL"
+        row = f"LBPLANNER-EPISODE {episode} {mode} {arm} probe {state} "
+        row += f"hotmax={fmt(result.get('hotmax'))} shards={fmt(result.get('shards'))} "
+        row += " ".join(f"{k}={fmt(result.get('deltas', {}).get(PREFIX + k))}" for k in
+                        ("hysteresis_refused", "no_candidate", "hot_bucket_refused"))
+    else:
+        row = f"LBPLANNER-EPISODE {episode} {mode} {arm} r{result['round']} "
+        row += " ".join(f"{k}={fmt(result.get(k))}" for k in (
+            "t_converge", "key_moves", "client_moves", "gathers", "suffix_moves", "rate", "p99",
+            "coord_busy", "shards", "hotmax", "envelope_return_t"))
+    stall = result.get("stall") or {}
+    row += " stall=" + ",".join(f"{k}:{fmt(stall.get(k))}" for k in STALL if k != "invalid")
+    row += f" pending_ms={fmt(result.get('pending_ms'))} attempts={fmt(result.get('attempts'))}"
+    return row
+
+
+def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion=None, probe=False):
     calibration = episode == "balanced"
-    name = f"{episode}-{mode}-{arm}-r{round_no}"
+    name = f"{episode}-{mode}-{arm}-" + ("probe" if probe else f"r{round_no}")
     directory = args.output / name
     result = {"name": name, "arm": arm, "mode": mode, "episode": episode, "round": round_no,
-              "binary": str(ROOT / ARMS[arm][0]), "sha256": ARMS[arm][1],
+              "binary": str(ROOT / arm_table(args)[arm][0]), "sha256": arm_table(args)[arm][1],
+              "arms_receipt": arms_receipt(args), "shards": None, "hotmax": args.hotmax,
+              "requested_shards": args.shards, "hot_pipeline": args.hot_pipeline,
+              "probe": probe, "measurement_valid": False,
+              "stall": None, "pending_ms": None, "attempts": None, "pass_limit": None,
               "seed_sha256": seed_record["sha256"], "criterion": criterion,
               "status": "FAIL", "sampling_interval": INTERVAL, "commands": []}
     sampler = None
     try:
         with boot(args, arm, mode, directory, seed) as (conn, children, owners, identity):
             result["identity"] = identity
-            require(key_mapping(conn, args.hotmax) == seed_record["hot_keys"], "physical key map changed")
+            result["shards"] = identity["shards"]
+            require(identity["shards"] == seed_record["shards"],
+                    f"shards={identity['shards']}, seed limit={seed_record['shards']}")
+            require(key_mapping(conn, args.hotmax, identity["shards"]) == seed_record["hot_keys"],
+                    "physical key map changed from this mode's SHA-bound seed")
             sampler = Sampler(args.port, directory / "telemetry.jsonl", int(identity["process_id"]))
             sampler.thread.start()
             baseline_start = time.monotonic()
@@ -579,23 +799,19 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
             result["baseline"] = {"start": baseline_start, "end": baseline_end,
                                   "owners": owner_evidence(directory, ("baseline-a", "baseline-b"), [owners, owners])}
             # Trim both connection setup and generator teardown. The last three seconds are
-            # guard time, not calibration evidence. No candidate run refits these limits.
+            # guard time, not calibration evidence. No candidate run refits PRE limits.
             balanced = [s for s in sampler.samples if
                         baseline_start + args.warm <= s["t"] <= baseline_start + args.warm + args.baseline]
+            own_baseline = baseline_stationarity(balanced, None if calibration else criterion["shard_owners"])
+            result["baseline_stationarity"] = own_baseline
+            require(own_baseline["status"] == "PASS", own_baseline["reason"])
             if calibration:
                 result["criterion"] = envelope(balanced)
-                result["criterion"]["shard_owners"] = {
-                    str(sid): row["owner"] for sid, row in balanced[-1]["signals"]["shards"].items()}
                 result["status"] = "PASS"
             else:
-                baseline_beats = beats(balanced)
-                require(len(baseline_beats) >= 3 * DECISION_TICKS, "run baseline lacks beats")
                 result["baseline_in_envelope_fraction"] = sum(inside(s, criterion) for s in balanced) / len(balanced)
-                require(all(inside(s, criterion) for s in baseline_beats[-(DECISION_TICKS + 1):]) and
-                        delta(baseline_beats[0], baseline_beats[-1])["total_moves"] == 0,
-                        "pre-stimulus baseline not stationary inside the PRE envelope")
-                require({str(sid): row["owner"] for sid, row in balanced[-1]["signals"]["shards"].items()}
-                        == criterion["shard_owners"], "pre-stimulus shard placement differs from PRE")
+                diagnostic = diagnostic_envelope(criterion, own_baseline["spread_maxima"])
+                result["diagnostic_envelope"] = diagnostic
                 command_before = parse_info(conn.must("INFO", "COMMANDSTATS"), False)
                 stimulus = time.monotonic()
                 result["stimulus_t"] = stimulus
@@ -618,9 +834,10 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
                 require(result["stimulus_ready_t"] - stimulus < DECISION_SECONDS,
                         "connection burst took a full decision window; stimulus is not a step")
                 result.update(convergence(sampler.samples, stimulus, end, criterion, episode,
-                                          args.max_converge, args.suffix))
+                                          args.max_converge, args.suffix, diagnostic))
                 result.update(metrics([json.loads((directory / (label + ".json")).read_text())
-                                       for label in ("cold", "hot")], command_before, command_after, duration))
+                                       for label in ("cold", "hot")], command_before, command_after,
+                                      duration, args.hot_pipeline))
                 result["occupancy"] = occupancy(sampler.samples, stimulus, end, owners[0])
                 result["coord_busy"] = result["occupancy"]["coord_busy"]
                 result["coordinator_latency"] = None
@@ -629,24 +846,27 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
                 result["cpu"] = {key + "_delta": cpu_rows[-1][key] - cpu_rows[0][key]
                                  for key in ("process_cpu_ticks", "monitor_cpu_ticks")}
                 result["cpu"]["clock_ticks_per_second"] = os.sysconf("SC_CLK_TCK")
+                result["measurement_valid"] = True
             sampler.close()  # observer must close BEFORE boot() reaps the server
     except Exception as error:
-        result.update(status="FAIL", reason=str(error))
+        result.update(status="FAIL", reason=str(error), measurement_valid=False)
     finally:
         if sampler:
             try:
                 sampler.close()
             except Exception as error:
-                result.update(status="FAIL", reason=str(error))
+                result.update(status="FAIL", reason=str(error), measurement_valid=False)
+        if probe:
+            result["convergence_status"] = result["status"]
+            result["convergence_reason"] = result.get("reason")
+            result["status"], result["reason"] = probe_verdict(result)
+        summary = result.get("baseline_stationarity", {}).get("summary", "")
+        if summary and summary not in result.get("reason", ""):
+            result["reason"] = result.get("reason", "complete") + "; " + summary
         directory.mkdir(parents=True, exist_ok=True)
         save_json(directory / "run.json", result)
     if not calibration:
-        def fmt(key):
-            value = result.get(key)
-            return "NA" if value is None else f"{value:.6f}" if isinstance(value, float) else str(value)
-        row = f"LBPLANNER-EPISODE {episode} {mode} {arm} r{round_no} " + " ".join(
-            f"{key}={fmt(key)}" for key in ("t_converge", "key_moves", "client_moves", "gathers",
-                                          "suffix_moves", "rate", "p99", "coord_busy"))
+        row = episode_row(result)
         print(row, flush=True)
         print(f"{name}: {result['status']} {result.get('reason', '')}", flush=True)
         with (args.output / "rows.txt").open("a") as stream:
@@ -654,8 +874,8 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
     return result
 
 
-def schedule():
-    for episode in ("key-skew", "client-skew"):
+def schedule(episodes="both"):
+    for episode in (("key-skew", "client-skew") if episodes == "both" else (episodes,)):
         for mode in ("1s", "2s"):
             for number in range(1, 4):
                 order = ("PRE", "PAD-A", "POST") if number % 2 else ("POST", "PAD-A", "PRE")
@@ -663,29 +883,88 @@ def schedule():
                     yield arm, mode, episode, number
 
 
-def assess(results):
+def binomial_mix_pvalue(x, n, y, m):
+    """Exact equality test for two binomial proportions, conditional on x+y.
+
+    This is the two-sided Fisher test, including probabilities no greater than
+    the observed table. No Gaussian approximation at rare/zero refusals.
+    """
+    require(0 <= x <= n and 0 <= y <= m,
+            f"stall counts={x}/{n},{y}/{m}, limit=0<=count<=attempts")
+    if n == m == 0:
+        return 1.0
+    if n == 0 or m == 0:
+        return None  # no evidence about one of the actuator distributions
+    def choose(a, b):
+        return math.lgamma(a + 1) - math.lgamma(b + 1) - math.lgamma(a - b + 1)
+    successes = x + y
+    common = choose(n + m, successes)
+    def log_probability(k):
+        return choose(n, k) + choose(m, successes - k) - common
+    observed = log_probability(x)
+    return min(1.0, sum(math.exp(p) for k in range(max(0, successes - m), min(n, successes) + 1)
+                        if (p := log_probability(k)) <= observed + 1e-10))
+
+
+def compare_actuators(post, reference, alpha):
+    reasons, evidence = [], {}
+    label = reference["arm"]
+    for short in STALL:
+        x, y = post["stall"][short], reference["stall"][short]
+        n, m = post["attempts"], reference["attempts"]
+        try:
+            probability = binomial_mix_pvalue(x, n, y, m)
+        except ValueError as error:
+            reasons.append(str(error))
+            probability = None
+        evidence[short] = {"POST": x, label: y, "POST_attempts": n, "reference_attempts": m,
+                           "pvalue": probability, "alpha": alpha}
+        if probability is None or probability < alpha:
+            reasons.append(f"POST stall.{short}={x}/{n}, {label}={y}/{m}, "
+                           f"binomial p={probability}, limit>={alpha:g}")
+    if label == "PRE" and post["pass_limit"] != reference["pass_limit"]:
+        reasons.append(f"POST pass_limit={post['pass_limit']}, limit={reference['pass_limit']} (PRE exact)")
+    return reasons, evidence
+
+
+def assess(results, episodes="both"):
     checks = []
+    expected = list(schedule(episodes))
+    identities = [(r["arm"], r["mode"], r["episode"], r["round"]) for r in results]
+    complete = Counter(identities) == Counter(expected)
+    # 95% family confidence over all predeclared arm/reason comparisons. This
+    # allowance derives only from attempt counts and schedule size, never an arm.
+    alpha = .05 / (len(expected) // 3 * 2 * len(STALL))
     for post in (r for r in results if r["arm"] == "POST"):
-        pre = next(r for r in results if r["arm"] == "PRE" and
-                   all(r[k] == post[k] for k in ("episode", "mode", "round")))
-        reasons = []
-        if pre["status"] != "PASS" or post["status"] != "PASS":
-            reasons.append("PRE or POST episode did not establish convergence and a stationary suffix")
+        paired = {r["arm"]: r for r in results if all(r[k] == post[k] for k in ("episode", "mode", "round"))}
+        pre = paired.get("PRE")
+        reasons, mix = [], {}
+        if set(paired) != set(ARMS) or any(r["status"] != "PASS" for r in paired.values()):
+            reasons.append("PRE, PAD-A or POST episode missing or did not establish convergence and a stationary suffix")
         else:
             for key in ("t_converge", "key_moves", "client_moves", "total_moves", "suffix_moves", "p99"):
                 if post[key] > pre[key]:
-                    reasons.append(f"POST {key} exceeds PRE")
+                    reasons.append(f"POST {key}={post[key]}, limit<={pre[key]} (PRE)")
             if post["rate"] < pre["rate"]:
-                reasons.append("POST rate below PRE")
+                reasons.append(f"POST rate={post['rate']}, limit>={pre['rate']} (PRE)")
             # A merged rate/quantile must not hide a loss on the hot or cold cohort.
             for index, (pre_load, post_load) in enumerate(zip(pre.get("loaders", []), post.get("loaders", []))):
-                if post_load["rate"] < pre_load["rate"] or post_load["p99"] > pre_load["p99"]:
-                    reasons.append(f"POST loader {index} rate/tail loss")
+                for key, valid in (("rate", post_load["rate"] >= pre_load["rate"]),
+                                   ("p99", post_load["p99"] <= pre_load["p99"])):
+                    if not valid:
+                        reasons.append(f"POST loader[{index}].{key}={post_load[key]}, "
+                                       f"limit{'>' if key == 'rate' else '<'}={pre_load[key]} (PRE)")
+            for control in ("PRE", "PAD-A"):
+                failures, mix[control] = compare_actuators(post, paired[control], alpha)
+                reasons.extend(failures)
         checks.append({"episode": post["episode"], "mode": post["mode"], "round": post["round"],
-                       "status": "FAIL" if reasons else "PASS", "reasons": reasons})
-    return {"status": "PASS" if len(checks) == 12 and all(c["status"] == "PASS" for c in checks)
+                       "status": "FAIL" if reasons else "PASS", "reasons": reasons, "actuator_mix": mix})
+    return {"status": "PASS" if complete and all(c["status"] == "PASS" for c in checks)
             and all(r["status"] == "PASS" for r in results) else "FAIL", "checks": checks,
-            "rule": "POST converges no slower than PRE, makes no more key/client/total moves, and loses no rate or p99; every paired round must pass",
+            "schedule_complete": complete,
+            "rule": "POST converges no slower than PRE, makes no more key/client/total moves, loses no rate or p99, matches PRE/PAD-A actuator mix within binomial counting noise and PRE pass_limit exactly; every paired round must pass",
+            "actuator_noise": {"method": "two-sided exact conditional binomial (Fisher), Bonferroni over scheduled comparisons",
+                               "family_alpha": .05, "comparison_alpha": alpha},
             "pad_kind": "A: PRE behaviour with candidate text size/layout; diagnostic control, no placement claim without mainline null",
             "rate_tail_tolerance": "none; no arm-dependent or invented noise allowance"}
 
@@ -694,22 +973,18 @@ def dry_run(args):
     def command(argv):
         print(shlex.join(argv))
     print("# DRY RUN: no processes, sockets or output files are created")
-    for arm, (path, sha) in ARMS.items():
+    for arm, (path, sha) in arm_table(args).items():
         print(f"# SHA256 REQUIRED {arm} {sha} {ROOT / path}")
-    command(["cc", "-shared", "-fPIC", "-O2", "-Wall", "-Wextra", "-Werror", "-o",
-             str(args.output / "owner-select.so"), str(args.output / "owner-select.c"), "-ldl"])
-    seed = args.output / "seed"
-    command(server_command(args, "PRE", "1s", seed))
-    command(load_command(args, seed, "populate", 1, KEYS, populate=True))
-    print(f"# RESP 127.0.0.1:{args.port}: INFO SERVER, INFO LB, DEBUG LBSIGNALS, DBSIZE;")
-    print(f"# DEBUG SHARDS memtier-1 ... memtier-{args.hotmax} in batches of 128; SAVE")
-    jobs = [("PRE", mode, "balanced", attempt) for mode in ("1s", "2s") for attempt in range(1, 4)] + list(schedule())
-    for arm, mode, episode, number in jobs:
-        directory = args.output / f"{episode}-{mode}-{arm}-r{number}"
+    print("# ARMS RECEIPT " + json.dumps(arms_receipt(args), sort_keys=True))
+    jobs = list(schedule(args.episodes))
+    modes = sorted({mode for _, mode, _, _ in jobs})
+    probes = args.episodes in ("key-skew", "both")
+    def job(arm, mode, episode, number, probe=False):
+        directory = args.output / (f"{episode}-{mode}-{arm}-" + ("probe" if probe else f"r{number}"))
         owners = ["<boot-io-owners>"]
         if episode == "balanced" and number > 1:
             print("# CONDITIONAL: only if preceding calibration failed to arm; fresh snapshot/server, bounded to 3")
-        print(f"# {directory.name}: copy shared seed; verify hash/key map/actual owner IDs")
+        print(f"# {directory.name}: copy seed-{mode}; verify SHA/key map/shards/actual owner IDs")
         command(server_command(args, arm, mode, directory))
         print("# RESP: INFO SERVER (owned PID); DEBUG SHARDS; INFO LB + DEBUG LBSIGNALS every 100 ms")
         print("# Selector RESP per connection attempt: DEBUG IO-THREAD (<=512 fresh sockets); actual IO IDs come from boot")
@@ -724,14 +999,38 @@ def dry_run(args):
                 command(load_command(args, directory, label, low, high,
                                      int(args.max_converge + DECISION_SECONDS + args.suffix + 3), owners=targets))
         print("# stop sampler; SIGTERM owned server process group; wait (SIGKILL only on timeout)")
+    if probes:
+        print("# ADMISSIBILITY PROBES FIRST (preview): live prerequisites are the seed/calibration commands below")
+        for mode in modes:
+            job("PRE", mode, "key-skew", 0, probe=True)
+        print("# Any valid probe with bucket_moves delta=0: receipt UNARMED, verdict REFUSED, exit 3 BEFORE the matrix")
+    print("# PREREQUISITES: compile selector, prepare each mode's seed, calibrate PRE")
+    command(["cc", "-shared", "-fPIC", "-O2", "-Wall", "-Wextra", "-Werror", "-o",
+             str(args.output / "owner-select.so"), str(args.output / "owner-select.c"), "-ldl"])
+    for mode in modes:
+        seed = args.output / ("seed-" + mode)
+        command(server_command(args, "PRE", mode, seed))
+        command(load_command(args, seed, "populate", 1, KEYS, populate=True))
+        print(f"# RESP 127.0.0.1:{args.port}: INFO SERVER, INFO LB, DEBUG LBSIGNALS, DBSIZE;")
+        print(f"# DEBUG SHARDS memtier-1 ... memtier-{args.hotmax} in batches of 128; SAVE")
+        for attempt in range(1, 4):
+            job("PRE", mode, "balanced", attempt)
+    print("# SCORED MATRIX (only after every requested key probe is ARMED)")
+    for arm, mode, episode, number in jobs:
+        job(arm, mode, episode, number)
     print(f"# nominal load time {wall_seconds(args) / 60:.1f} minutes + population/boot/SAVE/connection setup")
 
 
 def wall_seconds(args):
-    return 38 * (args.warm + args.baseline + 3) + 36 * (args.max_converge + DECISION_SECONDS + args.suffix + 3)
+    jobs = list(schedule(args.episodes))
+    modes = len({mode for _, mode, _, _ in jobs})
+    probes = modes if args.episodes in ("key-skew", "both") else 0
+    observations = len(jobs) + probes
+    return ((modes + observations) * (args.warm + args.baseline + 3) +
+            observations * (args.max_converge + DECISION_SECONDS + args.suffix + 3))
 
 
-def main():
+def argument_parser():
     parser = argparse.ArgumentParser(description=__doc__)
     action = parser.add_mutually_exclusive_group()
     action.add_argument("--self-test", action="store_true")
@@ -740,13 +1039,23 @@ def main():
     parser.add_argument("--memtier", default="memtier_benchmark")
     parser.add_argument("--port", type=int, default=7931)
     parser.add_argument("--hotmax", type=int, default=int(os.environ.get("HOTMAX", "2000")))
+    parser.add_argument("--hot-pipeline", type=int, default=PIPELINE,
+                        help="hot stimulus cohort depth; cold and balanced cohorts stay at 128")
+    parser.add_argument("--shards", type=int, default=None,
+                        help="omit by default: use and record the server's observed default shard count")
+    parser.add_argument("--episodes", choices=("key-skew", "client-skew", "both"), default="both")
+    parser.add_argument("--arms", type=Path, help="explicit PRE/PAD-A/POST path+sha256 JSON receipt")
     parser.add_argument("--warm", type=int, default=30)
-    parser.add_argument("--baseline", type=int, default=12)
+    parser.add_argument("--baseline", type=int, default=60)
     parser.add_argument("--max-converge", type=int, default=180)
     parser.add_argument("--suffix", type=int, default=30)
     parser.add_argument("--rate-per-client", type=int, default=0,
                         help="0: stationary driver's closed loop; positive: same fixed memtier cap for every arm")
-    args = parser.parse_args()
+    return parser
+
+
+def main(argv=None):
+    args = argument_parser().parse_args(argv)
     if args.self_test:
         return 0 if unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(SelfTest)).wasSuccessful() else 1
     args.output = args.output.resolve()
@@ -754,15 +1063,15 @@ def main():
     require(args.max_converge >= DECISION_SECONDS and args.suffix >= DECISION_SECONDS,
             "convergence and suffix must each cover a decision window")
     require(1 <= args.hotmax < KEYS and 0 < args.port < 65536 and args.rate_per_client >= 0, "invalid workload argument")
+    require(args.shards is None or args.shards > 0, "--shards must be positive or omitted")
+    require(args.hot_pipeline > 0, "--hot-pipeline must be positive")
+    args.arm_table, args.arms_receipt = bind_arms(args.arms)
     if args.dry_run:
         dry_run(args)
         return 0
     require(not args.output.exists(), "output must be new; never overwrite or cherry-pick prior trials")
     require("LD_PRELOAD" not in os.environ, "unset inherited LD_PRELOAD before a matched measurement")
-    for arm, (relative, expected) in ARMS.items():
-        path = ROOT / relative
-        require(path.is_file() and os.access(path, os.X_OK) and digest(path) == expected,
-                f"{arm} binary differs from frozen lbplanner receipt; do not silently rebind SHA")
+    verify_arms(args)
     memtier = shutil.which(args.memtier)
     require(memtier is not None, "memtier executable missing")
     args.memtier = str(Path(memtier).resolve())
@@ -774,17 +1083,25 @@ def main():
                     str(args.output / "owner-select.so"), str(args.output / "owner-select.c"), "-ldl"]
     with (args.output / "owner-select-build.log").open("wb") as log:
         subprocess.run(compile_argv, check=True, stdout=log, stderr=subprocess.STDOUT)
-    manifest = {"arms": ARMS, "pad_kind": "A: PRE behaviour with POST text size/layout",
+    jobs = list(schedule(args.episodes))
+    modes = sorted({mode for _, mode, _, _ in jobs})
+    manifest = {"arms": arm_table(args), "arms_receipt": arms_receipt(args),
+                "identity": {"shards": {}, "arms_receipt": arms_receipt(args)},
+                "pad_kind": "A: PRE behaviour with POST text size/layout",
                 "config": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
-                "schedule": list(schedule()), "memtier_sha256": digest(args.memtier),
+                "schedule": jobs, "memtier_sha256": digest(args.memtier),
                 "source_sha256": {str(p.relative_to(ROOT)): digest(p) for p in
                                   (Path(__file__).resolve(), ROOT / "tests/_lib.py", ROOT / "tests/abba_workloads.py")},
                 "selector_sha256": digest(args.output / "owner-select.so"),
                 "expected_load_seconds": wall_seconds(args), "started_unix": time.time()}
     save_json(args.output / "manifest.json", manifest)
-    seed, seed_record = prepare_seed(args)
-    criteria = {}
-    for mode in ("1s", "2s"):
+    seeds, criteria = {}, {}
+    for mode in modes:
+        seed, seed_record = prepare_seed(args, mode)
+        seeds[mode] = (seed, seed_record)
+        manifest["identity"]["shards"][mode] = seed_record["shards"]
+        manifest.setdefault("seeds", {})[mode] = seed_record
+        save_json(args.output / "manifest.json", manifest)
         for attempt in range(1, 4):
             calibration = run_episode(args, "PRE", mode, "balanced", attempt, seed, seed_record)
             if calibration["status"] == "PASS":
@@ -793,11 +1110,27 @@ def main():
         require(calibration["status"] == "PASS", f"PRE balanced {mode} never armed after 3 fresh-state attempts: {calibration.get('reason')}")
         criteria[mode] = calibration["criterion"]
     save_json(args.output / "criteria.json", criteria)
+    probes = []
+    if args.episodes in ("key-skew", "both"):
+        for mode in modes:
+            seed, seed_record = seeds[mode]
+            probes.append(run_episode(args, "PRE", mode, "key-skew", 0, seed, seed_record,
+                                      criteria[mode], probe=True))
+            save_json(args.output / "probes.json", probes)
+        if any(r["status"] != "PASS" for r in probes):
+            refused = any(r["status"] == "REFUSED" for r in probes)
+            report = {"status": "REFUSED" if refused else "FAIL", "probes": probes,
+                      "rule": "every requested PRE key-skew probe must admit a key move; no automatic stimulus changes"}
+            save_json(args.output / "report.json", report)
+            save_json(args.output / "results.json", [])
+            print("LBPLANNER-VERDICT " + report["status"] + ": " + report["rule"])
+            return 3 if refused else 1
     results = []
-    for arm, mode, episode, number in schedule():
+    for arm, mode, episode, number in jobs:
+        seed, seed_record = seeds[mode]
         results.append(run_episode(args, arm, mode, episode, number, seed, seed_record, criteria[mode]))
         save_json(args.output / "results.json", results)
-    report = assess(results)
+    report = assess(results, args.episodes)
     save_json(args.output / "report.json", report)
     print("LBPLANNER-VERDICT " + report["status"] + ": " + report["rule"])
     return 0 if report["status"] == "PASS" else 1
@@ -809,12 +1142,12 @@ class SelfTest(unittest.TestCase):
         info = {name: 0 for name in FIELDS}
         info.update({TICKS: int(t), KEY: key, CLIENT: client, GATHERS: gathers,
                      **{k: spread for k in SPREADS}})
-        return {"t": t, "info": info, "signals": {"threads": {0: {
+        return {"t": t, "info": info, "signals": {"shards": {0: {"owner": 0}}, "threads": {0: {
             "role": "fused", "busy_ns": int(t * 800), "idle_ns": int(t * 200),
             "cpu_ns": int(t * 900), "ops": int(t * 100)}}}}
 
     def trace(self, end=40, moving=True, excursion=True):
-        return [self.sample(i / 10, 10 if excursion and 150 <= i < 200 else 1,
+        return [self.sample(i / 10, 10 if excursion and 150 <= i < 180 else 1,
                             int(moving and i >= 180), int(moving and i >= 180),
                             int(moving and i >= 170)) for i in range(end * 10 + 1)]
 
@@ -825,15 +1158,17 @@ class SelfTest(unittest.TestCase):
         for episode in ("key-skew", "client-skew"):
             result = convergence(self.trace(), 14, 40, self.criterion(), episode, 20, 3)
             self.assertEqual(result["status"], "PASS")
-            self.assertAlmostEqual(result["t_converge"], 6.9)
+            self.assertAlmostEqual(result["t_converge"], 4)
             self.assertEqual((result["key_moves"], result["client_moves"], result["total_moves"]), (1, 1, 2))
             self.assertEqual(result["suffix_moves"], 0)
 
     def test_unarmed_and_no_move_fail(self):
-        for kwargs in ({"moving": False}, {"excursion": False}):
-            result = convergence(self.trace(**kwargs), 14, 40, self.criterion(), "key-skew", 20, 3)
-            self.assertEqual(result["status"], "FAIL")
-            self.assertIsNone(result["t_converge"])
+        result = convergence(self.trace(moving=False), 14, 40, self.criterion(), "key-skew", 20, 3)
+        self.assertEqual(result["status"], "FAIL")
+        self.assertIsNone(result["t_converge"])
+        # The move itself witnesses engagement; a baseline-max excursion is no gate.
+        result = convergence(self.trace(excursion=False), 14, 40, self.criterion(), "key-skew", 20, 3)
+        self.assertEqual(result["status"], "PASS")
 
     def test_suffix_move_and_truncation_fail(self):
         trace = self.trace()
@@ -841,16 +1176,18 @@ class SelfTest(unittest.TestCase):
             if s["t"] >= 30:
                 s["info"][CLIENT] += 1
         self.assertEqual(convergence(trace, 14, 40, self.criterion(), "key-skew", 20, 3)["suffix_moves"], 1)
-        self.assertEqual(convergence(trace, 14, 24, self.criterion(), "key-skew", 20, 3)["status"], "FAIL")
+        self.assertEqual(convergence(trace, 14, 24, self.criterion(), "key-skew", 20, 10)["status"], "FAIL")
 
-    def test_later_excursion_restarts_sustain(self):
+    def test_later_rebound_fails_without_restarting_clock(self):
         trace = self.trace()
         for s in trace:
             if 25 <= s["t"] < 30:
                 s["info"][SPREADS[0]] = 10
         result = convergence(trace, 14, 40, self.criterion(), "key-skew", 20, 3)
-        self.assertEqual(result["status"], "PASS")
-        self.assertAlmostEqual(result["t_converge"], 16.9)
+        self.assertEqual(result["status"], "FAIL")
+        self.assertIn(SPREADS[0] + "=10, limit=2", result["reason"])
+        self.assertAlmostEqual(result["t_converge"], 4)
+        trace = self.trace()
         for s in trace:
             if s["t"] >= 30:
                 s["info"][STAGE] = 5
@@ -871,9 +1208,12 @@ class SelfTest(unittest.TestCase):
         criterion = self.criterion()
         trace = self.trace()
         for s in trace:
-            if s["t"] >= 20:
+            if s["t"] >= 18:
                 s["info"][SPREADS[0]] = 2
-        self.assertEqual(convergence(trace, 14, 40, criterion, "key-skew", 20, 3)["status"], "FAIL")
+        result = convergence(trace, 14, 40, criterion, "key-skew", 20, 3)
+        self.assertEqual(result["status"], "PASS")
+        self.assertIsNone(result["envelope_return_t"])
+        self.assertIn("envelope_return_t=NA", episode_row(dict(result, episode="key-skew", mode="1s", arm="PRE", round=1)))
         self.assertEqual(criterion["upper"][SPREADS[0]], 1)
         with self.assertRaises(ValueError):
             envelope(self.trace()[150:300])
@@ -896,11 +1236,11 @@ class SelfTest(unittest.TestCase):
         self.assertEqual(occupancy(self.trace(), 1, 10, 0)["coord_busy"], 80)
 
     @staticmethod
-    def topology_sample(roles, mode="2s"):
+    def topology_sample(roles, mode="2s", shards=16):
         rows = ["lbver 1 stamp_ns 42"]
         rows += [f"thread {tid} {role} " + " ".join(["0"] * 20) for tid, role in roles]
         writers = [tid for tid, role in roles if role in ("ex", "fused")]
-        rows += [f"shard {sid} {writers[sid % len(writers)]} 0 100 0 0 4 256" for sid in range(16)]
+        rows += [f"shard {sid} {writers[sid % len(writers)]} 0 100 0 0 4 256" for sid in range(shards)]
         rows += [f"derived thread_mode {mode} client_threads {sum(r != 'ex' for _, r in roles)}"]
         return {"signals": parse_signals(("\n".join(rows) + "\n").encode())}
 
@@ -1008,9 +1348,7 @@ class SelfTest(unittest.TestCase):
         from contextlib import redirect_stdout
         import io
         from unittest.mock import patch
-        args = SimpleNamespace(output=Path("/nonexistent/lb-episodes"), port=7931, hotmax=2000,
-                               memtier="memtier_benchmark", warm=30, baseline=12,
-                               max_converge=180, suffix=30, rate_per_client=0)
+        args = argument_parser().parse_args(["--output", "/nonexistent/lb-episodes"])
         output = io.StringIO()
         with patch.object(subprocess, "Popen", side_effect=AssertionError("spawned process")), \
                 patch.object(socket, "socket", side_effect=AssertionError("opened socket")), \
@@ -1019,24 +1357,144 @@ class SelfTest(unittest.TestCase):
             dry_run(args)
         commands = [shlex.split(line) for line in output.getvalue().splitlines() if not line.startswith("#")]
         servers = [argv for argv in commands if "--thread-mode" in argv]
-        self.assertEqual(len(servers), 43)  # seed, up to six calibrations, 36 scored runs
+        self.assertEqual(len(servers), 46)  # two probes, two seeds, up to six calibrations, 36 scored
+        self.assertTrue(all("probe" in argv[argv.index("--dir") + 1] for argv in servers[:2]))
         self.assertEqual({argv[argv.index("--thread-mode") + 1] for argv in servers}, {"1s", "2s"})
         for argv in servers:
             self.assertNotIn("--ratio", argv)
             self.assertEqual(argv[:3], ["taskset", "-c", "0-15"])
-            self.assertEqual(argv[argv.index("--shards") + 1], "16")
+            self.assertNotIn("--shards", argv)
         self.assertIn("LB_EPISODE_OWNERS=<boot-io-owners>", output.getvalue())
         self.assertIn("LB_EPISODE_OWNERS=<first-two-boot-io-owners>", output.getvalue())
-        self.assertIn("158.1 minutes", output.getvalue())
+        self.assertIn("198.8 minutes", output.getvalue())
 
     def test_comparison_cannot_hide_one_bad_metric(self):
         results = [dict(arm=a, mode=m, episode=e, round=r, status="PASS", t_converge=4,
-                        key_moves=2, client_moves=3, total_moves=5, suffix_moves=0, rate=100, p99=1)
+                        key_moves=2, client_moves=3, total_moves=5, suffix_moves=0, rate=100, p99=1,
+                        stall={k: 0 for k in STALL}, attempts=3, pass_limit=0)
                    for a, m, e, r in schedule()]
         self.assertEqual(assess(results)["status"], "PASS")
         results[2]["client_moves"] += 1
         results[2]["key_moves"] -= 1
         self.assertEqual(assess(results)["status"], "FAIL")
+
+    def test_own_quiet_baseline_above_pre_maxima_passes(self):
+        criterion = self.criterion()
+        samples = [self.sample(i / 10, spread=1.2) for i in range(130)]
+        baseline = baseline_stationarity(samples, criterion["shard_owners"])
+        self.assertEqual(baseline["status"], "PASS")
+        self.assertTrue(all(v == 1.2 for v in baseline["spread_maxima"].values()))
+        diagnostic = diagnostic_envelope(criterion, baseline["spread_maxima"])
+        self.assertEqual(diagnostic["upper"][SPREADS[0]], 1.2)
+        self.assertEqual(criterion["upper"][SPREADS[0]], 1)
+        self.assertIn(SPREADS[0] + "=1.2", baseline["reason"])
+
+    def test_baseline_raw_samples_and_last_window(self):
+        samples = [self.sample(i / 10) for i in range(130)]
+        samples[112]["info"][SPREADS[2]] = 1.5  # not a closed-beat endpoint
+        criterion = envelope(samples)
+        self.assertEqual(criterion["upper"][SPREADS[2]], 1.5)
+        self.assertTrue(all(inside(s, criterion) for s in samples))
+        samples[112]["info"][STAGE] = 5
+        result = baseline_stationarity(samples)
+        self.assertEqual(result["status"], "FAIL")
+        self.assertIn(STAGE + "=5, limit=0", result["reason"])
+        samples[112]["info"][STAGE] = 0
+        for s in samples[1:]:
+            s["info"][CLIENT] = 1  # movement before the first closed beat still fails
+        self.assertEqual(baseline_stationarity(samples)["status"], "FAIL")
+        self.assertEqual(baseline_stationarity(self.trace()[:130], {"0": 1})["status"], "FAIL")
+
+    def test_last_required_move_and_three_real_ticks(self):
+        trace = self.trace()
+        for s in trace:
+            if s["t"] >= 35:
+                s["info"][KEY] += 1
+        result = convergence(trace, 14, 40, self.criterion(), "key-skew", 30, 3)
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["t_converge"], 21)
+        self.assertEqual(convergence(trace, 14, 40, self.criterion(), "key-skew", 20, 3)["status"], "FAIL")
+        self.assertEqual(convergence(trace, 14, 40, self.criterion(), "key-skew", 30, 6)["status"], "FAIL")
+        for s in trace:
+            if s["t"] >= 35:
+                s["info"][TICKS] = 35  # many raw polls cannot supply three decision ticks
+        result = convergence(trace, 14, 40, self.criterion(), "key-skew", 30, 3)
+        self.assertIn("suffix_ticks=0, limit>=3", result["reason"])
+
+    def test_unarmed_probe_refuses_and_receipts_counters(self):
+        result = convergence(self.trace(moving=False), 14, 40, self.criterion(), "key-skew", 20, 3)
+        result.update(measurement_valid=True, probe=True, episode="key-skew", mode="1s", arm="PRE",
+                      hotmax=2000, shards=128)
+        result["status"], result["reason"] = probe_verdict(result)
+        self.assertEqual(result["status"], "REFUSED")
+        self.assertTrue(episode_row(result).startswith(
+            "LBPLANNER-EPISODE key-skew 1s PRE probe UNARMED hotmax=2000 shards=128 "
+            "hysteresis_refused=0 no_candidate=0 hot_bucket_refused=0"))
+        result["measurement_valid"] = False
+        self.assertEqual(probe_verdict(result)[0], "FAIL")
+        result.update(measurement_valid=True, deltas={KEY: 1})
+        self.assertEqual(probe_verdict(result)[0], "PASS")
+
+    def test_shards_schedule_depth_and_wall_time(self):
+        args = argument_parser().parse_args(["--episodes", "key-skew", "--shards", "128", "--hot-pipeline", "4"])
+        self.assertEqual(args.baseline, 60)
+        self.assertEqual(len(list(schedule(args.episodes))), 18)
+        self.assertEqual(wall_seconds(args), 6366)
+        args.episodes = "client-skew"
+        self.assertEqual(wall_seconds(args), 5748)
+        self.assertEqual(server_command(args, "PRE", "1s", args.output)[-2:], ["--shards", "128"])
+        for label in ("hot", "cold", "baseline-a", "baseline-b"):
+            argv = load_command(args, args.output, label, 1, KEYS, 216)
+            self.assertIn("--pipeline=" + ("4" if label == "hot" else "128"), argv)
+        sample = self.topology_sample([(t, "fused") for t in range(16)], "1s", shards=128)
+        self.assertEqual(geometry(sample, "1s"), list(range(16)))
+        with self.assertRaisesRegex(ValueError, "shards=128, requested limit=16"):
+            geometry(sample, "1s", 16)
+        del sample["signals"]["shards"][30]
+        with self.assertRaisesRegex(ValueError, "shard IDs"):
+            geometry(sample, "1s")
+
+    def test_actuator_deltas_and_max_are_not_confused(self):
+        first, last = self.sample(0), self.sample(4, client=2)
+        for i, field in enumerate(STALL.values()):
+            first["info"][field], last["info"][field] = 10, 10 + i
+        first["info"][PENDING], last["info"][PENDING] = 1000000, 2500000
+        last["info"][PREFIX + "client_refused"] = 30
+        mix = actuator_mix(first, last, delta(first, last))
+        self.assertEqual(mix["pending_ms"], 2.5)
+        self.assertEqual(mix["pending_ms_before"], 1)
+        self.assertEqual(mix["attempts"], 32)
+        self.assertEqual(mix["pass_limit"], 2)
+        self.assertEqual(mix["stall"]["exec"], 0)
+
+    def test_binomial_mix_and_exact_pass_limit(self):
+        pre = {"arm": "PRE", "stall": {k: 0 for k in STALL}, "attempts": 71, "pass_limit": 0}
+        post = {"arm": "POST", "stall": dict(pre["stall"]), "attempts": 71, "pass_limit": 0}
+        pre["stall"].update(exec=39, proto=30)
+        post["stall"].update(exec=38, proto=31)
+        self.assertEqual(compare_actuators(post, pre, .0005)[0], [])
+        post["stall"].update(exec=2, proto=56, passl=13)
+        post["pass_limit"] = 13
+        failures, _ = compare_actuators(post, pre, .0005)
+        self.assertTrue(any("stall.exec" in s for s in failures))
+        self.assertTrue(any("pass_limit=13, limit=0" in s for s in failures))
+        post["stall"] = dict(pre["stall"], passl=1)
+        post["pass_limit"] = 1
+        self.assertTrue(any("pass_limit=1, limit=0" in s for s in compare_actuators(post, pre, .0005)[0]))
+        self.assertAlmostEqual(binomial_mix_pvalue(1, 10, 11, 14), .0027594561852200836)
+        self.assertEqual(binomial_mix_pvalue(0, 0, 0, 0), 1)
+        self.assertIsNone(binomial_mix_pvalue(0, 0, 0, 2))
+        with self.assertRaises(ValueError):
+            binomial_mix_pvalue(3, 2, 0, 2)
+
+    def test_hot_pipeline_accounting_uses_its_own_bound(self):
+        docs = [self.document(10000, 1000), self.document(10000, 1000, reported=10000 + 257)]
+        before, after = {"cmdstat_set": "calls=0"}, {"cmdstat_set": "calls=20000"}
+        with self.assertRaises(RuntimeError):
+            metrics(docs, before, after, 3, hot_pipeline=4)
+        docs[1] = self.document(10000, 1000, reported=10000 + 256)
+        result = metrics(docs, before, after, 3, hot_pipeline=4)
+        self.assertEqual(result["accounting"]["count_outstanding_bound"], 64 * (128 + 4))
 
 
 if __name__ == "__main__":
