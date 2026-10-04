@@ -1,7 +1,8 @@
-Lane connreset: see MEASURE-REQUEST-connreset.md.
+Lane connreset: see MEASURE-REQUEST-connreset.md (repro table first).
 
-PRE/POST/TRACE are built in build/connreset/. The production .text is byte-identical.
-The 30 x 10 churn campaign is running only on CPUs 112-127.
-The archived reset evidence identifies exceptional LB sampler cleanup; the fix and
-serverless negative-control witness are committed. Gate counts need +1 quick/full.
-No benchmark or gate was run.
+PRE: all 30 x 10 variants completed, zero monitor resets/EOF or incomplete trials,
+CPUs 112-127 only. PRE/POST/TRACE are built; production .text and section layout match.
+Archived resets came from exceptional LB sampler cleanup after rejected baselines.
+The fix and failing negative-control witness are committed. Gate counts: 491/508
+(+1 quick/full; constants untouched). No benchmark or gate was run.
+Focused TRACE/POST checks are in progress.

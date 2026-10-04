@@ -1,0 +1,8 @@
+{
+  "trials": 300,
+  "variants": 30,
+  "monitor": {
+    "clean": 300
+  },
+  "max_monitor_gap_seconds": 0.11927231820300221
+}

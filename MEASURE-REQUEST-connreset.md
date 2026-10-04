@@ -17,10 +17,26 @@
 | 2s-storm-storm1000 | 0/10 | 0/10 | 0 | 0 |
 | 1s-both-default | 0/10 | 0/10 | 0 | 0 |
 | 1s-close-default | 0/10 | 0/10 | 0 | 0 |
-| 1s-storm-default | 0/3 | 0/3 | 0 | 0 |
+| 1s-storm-default | 0/10 | 0/10 | 0 | 0 |
+| 1s-both-client-off | 0/10 | 0/10 | 0 | 0 |
+| 1s-close-client-off | 0/10 | 0/10 | 0 | 0 |
+| 1s-storm-client-off | 0/10 | 0/10 | 0 | 0 |
+| 1s-both-key-off | 0/10 | 0/10 | 0 | 0 |
+| 1s-close-key-off | 0/10 | 0/10 | 0 | 0 |
+| 1s-storm-key-off | 0/10 | 0/10 | 0 | 0 |
+| 1s-both-both-off | 0/10 | 0/10 | 0 | 0 |
+| 1s-close-both-off | 0/10 | 0/10 | 0 | 0 |
+| 1s-storm-both-off | 0/10 | 0/10 | 0 | 0 |
+| 1s-both-storm1000 | 0/10 | 0/10 | 0 | 0 |
+| 1s-close-storm1000 | 0/10 | 0/10 | 0 | 0 |
+| 1s-storm-storm1000 | 0/10 | 0/10 | 0 | 0 |
 
-The 30-variant PRE campaign is still running. Completed cells above are observed counts,
-not extrapolations. The final report will replace this status after every cell completes.
+PRE completed all 30 variants x 10 fresh boots: **0/300 monitor ECONNRESET,
+0/300 monitor EOF, zero other monitor failures, and zero incomplete trials**.
+Both 2s (150 trials) and 1s (150 trials) passed the read-only geometry/window audit.
+Maximum measured spacing between monitor samples was 119.273 ms (target 100 ms).
+These are correctness observations on CPUs 112–127, not performance measurements.
+Focused diagnostic/POST checks are still running and will be added below.
 
 The reported mainline resets are explained by an exceptional-cleanup defect in
 `tools/lb_episodes.py`, not by evidence of a spontaneous accept/close failure. All seven
@@ -65,10 +81,17 @@ asyncio turn; close and storm isolate the two actions. Default/client-off/key-of
 use 128 persistent clients and 500 storm sockets, with client/key LB (1,1)/(0,1)/(1,0)/(0,0).
 Storm1000 uses (1,1), 64 persistent clients, and 1,000 storm sockets. Each cell repeats ten times.
 
+The inspected server candidates included monotonic client IDs, raw io_uring file descriptors
+(no fixed-file slot table in this path), teardown's ROB/kernel/EX lifetime fences,
+source-ring receive completion before IO migration, and per-owner SO_REUSEPORT listeners.
+No server-side root cause was established, so no speculative lifetime/ownership fix was made.
+
 Every trial retains INFO CLIENTS/ALL, before/after connected_clients, rejects, output-buffer
 disconnects, send errors/peer aborts, process affinity, server logs and monitor samples.
 `--validate-results` refuses incomplete matrices, missing pipeline/storm witnesses,
 wrong geometry, client-count mismatches, and a missing post-transition monitor sample.
+Four recorded negative audit controls each fail: zero completed pipelines, an incomplete
+storm, no post-transition sample, and a 6:8 split presented as 8:8.
 
 PRE is merged origin/cpp ea177342dd9ce181488f0954fe436d5f25d78fe5, built locally. PRE and POST
 artifacts are `build/connreset/tomokv-PRE` and `build/connreset/tomokv-POST`.
