@@ -11,6 +11,14 @@ pre.mkdir(parents=True, exist_ok=True)
 archive = subprocess.check_output(['git', 'archive', 'cd02ecbab', 'src', 'tests', 'third_party', 'Makefile'], cwd=root)
 with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
     tar.extractall(pre, filter='data')
+# The historical measurement PRE predates later merged mainline fields. Freeze the
+# fix's actual launch source separately so its layout check does not forgive drift.
+launch = root / 'build/lbplanner-launch-source'
+launch.mkdir(parents=True, exist_ok=True)
+archive = subprocess.check_output(['git', 'archive', '6c9cb4b85', 'src', 'third_party'], cwd=root)
+with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
+    tar.extractall(launch, filter='data')
+(root / 'build/lbplanner-launch-layout.cc').write_text('#include "src/core/io_loop.h"\n')
 p = pre / 'tests/core_concurrency_unit.cc'
 s = p.read_text().replace('int main(int argc, char** argv) {', '#ifndef TOMO_CORE_CONCURRENCY_EMBED\nint main(int argc, char** argv) {', 1)
 s += '\n#endif\n'
@@ -49,9 +57,9 @@ extern "C" __attribute__((noinline)) bool lbplanner_parse_gate(const tomo::IoLoo
     return tomo::CoreConcurrencyTest::lbplanner_parse_gate(*io, id);
 }
 extern "C" __attribute__((noinline)) uint32_t lbplanner_io_pass(tomo::IoLoop* io, uint32_t count) {
-    uint32_t result = tomo::CoreConcurrencyTest::lbplanner_control(*io);
+    uint32_t result = 0;
     for(uint32_t id=1; id<=count; ++id) result += lbplanner_parse_gate(io,id);
-    return result;
+    return result + tomo::CoreConcurrencyTest::lbplanner_control(*io);
 }
 int main(int argc, char** argv) {
     if(argc!=2) return 2;
@@ -65,5 +73,9 @@ build/lbplanner-pre-pass: build/lbplanner-pre-pass.cc $(LBPLANNER_PRE_OBJ)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -Ibuild/lbplanner-pre-source -I. $< $(LBPLANNER_PRE_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/lbplanner-pre-timing: build/lbplanner-pre-timing.cc $(LBPLANNER_PRE_OBJ)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -Ibuild/lbplanner-pre-source -I. $< $(LBPLANNER_PRE_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=pthread_mutex_trylock -Wl,--wrap=pthread_mutex_lock
+build/lbplanner-launch-layout.o: build/lbplanner-launch-layout.cc
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -fno-eliminate-unused-debug-types -Ibuild/lbplanner-launch-source -I. -c $< -o $@
+build/lbplanner-launch-layout-db0.o: build/lbplanner-launch-layout.cc
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -fno-eliminate-unused-debug-types -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -Ibuild/lbplanner-launch-source -I. -c $< -o $@
 ''')
 print('PRE source frozen at cd02ecbab; extra Makefile emitted')

@@ -150,12 +150,13 @@ struct LbPlannerTest {
         const uint64_t executor = refused(LbStallReason::Executor), protocol = refused(LbStallReason::Protocol);
         const uint64_t limit = refused(LbStallReason::PassLimit), dest = refused(LbStallReason::Destination);
         const uint64_t moves = f.server.lb_client_moves();
+        const uint32_t charged = f.server.lb_policy_->stall.owners[f.io_id].passes;
         std::printf("TIMING={\"arm\":\"%s\",\"mode\":\"%s\",\"ready\":%s,\"held_tails\":%u,"
                     "\"source_try_failures\":%u,\"destination_try_failures\":%u,\"ack_wait_passes\":%u,"
-                    "\"decision_pass\":%u,\"first_parse_bytes\":%u,\"executor\":%lu,\"protocol\":%lu,"
+                    "\"decision_pass\":%u,\"charged_passes\":%u,\"first_parse_bytes\":%u,\"executor\":%lu,\"protocol\":%lu,"
                     "\"pass_limit\":%lu,\"destination\":%lu,\"moves\":%lu}\n",
                     arm, Fused ? "1s" : "2s", ready ? "true" : "false", held_tails,
-                    source_failures, destination_failures, ack_waits, decision, first_parsed,
+                    source_failures, destination_failures, ack_waits, decision, charged, first_parsed,
                     executor, protocol, limit, dest, moves);
         std::fflush(stdout);
         require(decision != 0, "timing witness must decide, never skip an unarmed window");
@@ -167,6 +168,8 @@ struct LbPlannerTest {
                                "ready candidate starts by pass two after one ACK wait");
             else require(decision == 1 && executor == 1 && protocol == 0 && first_parsed == 0,
                          "busy candidate refuses on pass one with its executor predicate");
+            if (std::string_view(arm) == "POST")
+                require(charged == ack_waits, "drain budget charges only actual ACK waits");
         }
         unfinished.reset();
         client.set_recv_armed(false);
@@ -282,8 +285,10 @@ struct LbPlannerTest {
         f.server.lb_epoch_.store(1);
         f.server.lb_stage_.store(LbStage::IoDrain, std::memory_order_release);
         require(!pause(f.io, 1) && !f.server.lb_acked(f.io_id), "new drain awaits publication tail");
-        require(f.io.lb_control_pass() && pause(f.io, 1) && f.server.lb_acked(f.io_id),
-                "tail acknowledges only while caching pause for next pass");
+        require(f.io.lb_control_pass() && !pause(f.io, 1) && f.server.lb_acked(f.io_id),
+                "publication tail acknowledges after old-route work, without changing this pass snapshot");
+        f.io.lb_pass_begin();
+        require(pause(f.io, 1), "next pass snapshots the drain before any parsing");
         require(!f.server.lb_begin_ex_drain(), "one IO tail cannot release other producers");
         Core::LbFixture<false> changed_role;
         const uint64_t fold = changed_role.server.lb_policy_->last_fold_ns;
@@ -298,13 +303,14 @@ struct LbPlannerTest {
     }
 
     static uint32_t pass(IoLoop& io, uint32_t count, bool duplicate_load) {
-        uint32_t result = io.lb_control_pass();
+        io.lb_pass_begin();
+        uint32_t result = 0;
         for (uint32_t id = 1; id <= count; ++id) {
             // The actual inline parse gate, including its gated client-id operand.
             result += lbplanner_parse_gate(&io, id);
             if (duplicate_load) result += io.srv_->lb_stage() != LbStage::Idle;
         }
-        return result;
+        return result + io.lb_control_pass();
     }
     static void pin_pad_receipt(IoLoop& io) { io.lb_pause_id_ = UINT64_MAX; }
 
@@ -393,7 +399,65 @@ struct LbPlannerTest {
         std::puts("PASS PAD-A PRE behavior: IO-hosted key/client search, direct drain, cron, fresh parse gates");
     }
 
+    static void record_republication() {
+        for (bool active_reader : {false, true}) {
+            Core::Fixture<false> f;
+            f.server.lb_client_move_ = {1, 1, 2, 1};
+            f.server.lb_coordinator_ = f.io_id;
+            f.server.lb_epoch_.store(1);
+            f.server.lb_stage_.store(LbStage::ClientDrain, std::memory_order_release);
+            std::atomic<bool> sampled{false}, resume{false};
+            auto wait_for_writer = [&] {
+                sampled.store(true, std::memory_order_relaxed);
+                while (!resume.load(std::memory_order_relaxed)) std::this_thread::yield();
+            };
+            std::thread reader([&] {
+                require(f.server.lb_stage() == LbStage::ClientDrain,
+                        "record reader acquires the first drain before cancellation");
+                if (active_reader) {
+                    auto record = f.server.lb_client_read();
+                    require(bool(record), "record reader arms before cancellation");
+                    wait_for_writer();
+                    require(f.server.lb_client_move().id == 1,
+                            "cancelled drain record stays immutable throughout an active read");
+                    require(f.server.lb_coordinator() == f.io_id,
+                            "old drain tail may observe the next plan's coordinator safely");
+                } else {
+                    wait_for_writer();
+                    auto record = f.server.lb_client_read();
+                    require(bool(record) && f.server.lb_client_move().id == 2,
+                            "late reader acquires the replacement drain before copying its record");
+                }
+            });
+            while (!sampled.load(std::memory_order_relaxed)) std::this_thread::yield();
+            f.server.lb_stage_timed_out();
+            auto& plan = *f.server.lb_plan_;
+            plan.flip_epoch = f.server.flip_epoch();
+            plan.lb_epoch = f.server.lb_epoch();
+            plan.choose_client = true;
+            plan.client = {2, 1, 3, 1};
+            f.server.lb_coordinator_ = f.io_id; // the monitor publishes this before PlanReady
+            // Substitute an admitted slot, then use the actual IO consumer. The
+            // relaxed scheduling relay must not publish either record to the reader.
+            f.server.lb_stage_.store(LbStage::PlanReady, std::memory_order_seq_cst);
+            const bool consumed = f.server.lb_consume_plan(f.io_id);
+            require(consumed == !active_reader,
+                    "record reuse waits for the cancelled drain reader, without blocking IO");
+            if (active_reader)
+                require(f.server.lb_stage() == LbStage::PlanReady && !f.server.lb_dispatch_paused(),
+                        "deferred record reuse keeps the finished plan open to traffic");
+            resume.store(true, std::memory_order_relaxed);
+            reader.join();
+            if (active_reader)
+                require(f.server.lb_consume_plan(f.io_id), "record reuse proceeds after its last reader exits");
+            require(f.server.lb_epoch() == 2 && f.server.lb_client_move_.id == 2 &&
+                    plan.client_readers.load() == 0, "one replacement drain, no leaked reader");
+        }
+        std::puts("PASS LB record lifetime: late reader acquires replacement; active reader defers one consumption");
+    }
+
     static void all() {
+        record_republication();
         parse_gate();
         for (bool client : {false, true}) for (unsigned stale : {0u, 1u, 2u}) {
             handoff<false>(client, stale);

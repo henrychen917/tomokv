@@ -24,5 +24,8 @@
   "weighted_lb_sha256": "774cd4b88a344b5aa5cb0acbed1e1d5ef5e9232fe4714620aa8af82105d04bdd",
   "io_has_no_planner_calls": true,
   "all_four_boot_paths_monitor": true,
-  "move_cap_once": true
+  "move_cap_once": true,
+  "pause_snapshot_before_dispatch": true,
+  "drain_budget_after_readiness": true,
+  "client_record_lifetime": "SC reader scope only in ClientDrain; PlanReady consumer defers reuse without waiting"
 }

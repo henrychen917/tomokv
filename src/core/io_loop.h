@@ -537,6 +537,7 @@ private:
                 continue;
             }
 #endif
+            lb_pass_begin(); // one shared pause snapshot before any connection parsing
             refresh_notify_config();
             // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
             // per-operation hooks their zero-cost-when-off property.
@@ -1840,16 +1841,32 @@ private:
     }
 
     // Retained comparison bodies; the POST call graph never enters either one.
+    void lb_pass_begin_pad();
     uint32_t lb_control_actuate_pad();
     uint32_t lb_control_pass_pad();
 
     __attribute__((noinline))
+    void lb_pass_begin() {
+        if (!lb_controller_armed_) return;
+        const LbStage stage = srv_->lb_stage();
+        uint64_t pause = 0;
+        if (stage == LbStage::IoDrain || stage == LbStage::ExDrain) pause = UINT64_MAX;
+        else if (stage == LbStage::ClientDrain) {
+            auto record = srv_->lb_client_read();
+            if (record) {
+                const LbClientMove move = srv_->lb_client_move();
+                if (move.source == self_->id()) pause = move.id;
+            }
+        }
+        lb_pause_id_ = pause;
+    }
+
+    __attribute__((noinline))
     uint32_t lb_control_pass() {
         if (!lb_controller_armed_) return 0;
+        // Observe drains published during this pass as well as those seen at its start.
+        // This separate control-tail acquire never enters the per-connection parse gate.
         const LbStage stage = srv_->lb_stage();
-        // Snapshot for the NEXT parse/post pass. A tail may acknowledge IoDrain only
-        // after this pass has published all old-route work. No per-connection shared load.
-        lb_pause_id_ = (stage == LbStage::IoDrain || stage == LbStage::ExDrain) ? UINT64_MAX : 0;
         if (stage == LbStage::PlanReady) {
             if (srv_->lb_consume_plan(self_->id())) {
                 lb_schedule_wake_all();
@@ -1859,10 +1876,6 @@ private:
         }
         if (stage != LbStage::ClientDrain) lb_client_wake_pending_ = false;
         if (stage == LbStage::Idle || stage == LbStage::ClientMoving) return 0;
-        if (srv_->lb_drain_pass_expired(self_->id(), stage)) {
-            lb_schedule_wake_all();
-            return 1;
-        }
         if (stage == LbStage::IoDrain) {
             // This control tail is outside dispatch: all owner samples taken by this IO
             // have either been posted (including quiet batches) or abandoned for reparse.
@@ -1898,9 +1911,9 @@ private:
             return 1;
         }
 
-        LbClientMove move;
-        if (!srv_->lb_client_move(move)) return 1;
-        if (move.source == self_->id()) lb_pause_id_ = move.id;
+        auto record = srv_->lb_client_read();
+        if (!record) return 1; // this observed drain was withdrawn; no readiness wait
+        const LbClientMove move = srv_->lb_client_move();
         auto wake_source = [&]() {
             Ring* source = srv_->thread(move.source).ring();
             if (source && ring_.msg_to(*source, ur_tag(UrKind::Wake, nullptr))) {
@@ -1936,7 +1949,15 @@ private:
             }
             std::string error;
             if (client_transfer_ready(selected, move.destination, error)) {
-                if (!srv_->lb_acked(move.destination)) return 1;
+                if (!srv_->lb_acked(move.destination)) {
+                    // Charge only a real readiness/ACK wait, after consulting the fence.
+                    // Busy clients are refused below on this first tail, with their reason.
+                    if (srv_->lb_drain_pass_expired(self_->id(), stage)) {
+                        lb_pause_id_ = 0;
+                        lb_schedule_wake_all();
+                    }
+                    return 1;
+                }
                 if (!srv_->lb_client_move_started(move.id, cached_now_ms_)) return 1;
                 const bool started = request_client_transfer(selected, move.destination, error);
                 if (!started) srv_->lb_client_move_cancelled(move.id);
@@ -5614,7 +5635,7 @@ ordinary_shard_ready:
     static constexpr uint32_t kClientCronMinVisits = 5;
     uint64_t client_cron_beat_ms_ = 0;
     uint64_t lb_client_signal_beat_ms_ = 0;
-    uint64_t lb_pause_id_ = 0; // IO-private tail snapshot: 0=open, UINT64_MAX=all, else selected id
+    uint64_t lb_pause_id_ = 0; // IO-private pass-start snapshot: 0=open, UINT64_MAX=all, else selected id
     uint64_t save_cron_beat_ms_ = 0;
     size_t   client_cron_cursor_ = 0;
     uint64_t cached_now_ms_ = 0;

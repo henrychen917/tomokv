@@ -14,7 +14,9 @@ enum class LbStallReason : uint8_t {
 LbStallReason lb_stall_reason(const std::string& error);
 
 struct LbStallState {
-    // A ready client's source gives its destination three IO tails to acknowledge.
+    // A ready client's source gives its destination three unsuccessful IO tails to acknowledge.
+    // Charge only an actual readiness/ACK wait, never a deferred control-record lookup;
+    // busy clients must be refused with their predicate on the first visible tail.
     // This epoch budget applies only to ClientDrain, never shard publication/executor drains.
     static constexpr uint32_t kPassLimit = 3;
     // Draining IOs update independent lines; the budget must not serialize them on one line.

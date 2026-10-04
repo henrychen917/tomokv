@@ -822,16 +822,33 @@ public:
     bool placement_transition_active() const {
         return flip_dispatch_paused() || lb_stage() != LbStage::Idle;
     }
-    uint32_t lb_coordinator() const { return lb_coordinator_; }
+    uint32_t lb_coordinator() const { return lb_coordinator_.load(std::memory_order_relaxed); }
     // The io thread that owns the unix listener (UINT32_MAX without --unixsocket). Latched once
     // in init(); both boot paths and the FLIP candidate filter read this one value.
     uint32_t unix_owner_tid() const { return unix_owner_tid_; }
-    bool lb_client_move(LbClientMove& move) {
-        std::unique_lock lock(shape_transition_mu_, std::try_to_lock);
-        if (!lock || lb_stage() != LbStage::ClientDrain) return false;
-        move = lb_client_move_;
-        return true;
-    }
+    // A stage acquire publishes this drain's record, but does not protect a delayed
+    // reader across cancellation and publication of another drain. This cold read scope
+    // lets such readers finish before the coordinator reuses the record. No mutex, wait,
+    // retry, or per-connection access: only ClientDrain pass starts/tails enter it.
+    class LbClientRead {
+        std::atomic<uint32_t>& readers_;
+        bool active_;
+    public:
+        explicit LbClientRead(Server& server) : readers_(server.lb_plan_->client_readers) {
+            static_assert(std::atomic<uint32_t>::is_always_lock_free);
+            readers_.fetch_add(1, std::memory_order_seq_cst);
+            // Paired with PlanReady publication and the consumer's reader check. A
+            // late entrant sees PlanReady (and reads no record), or the new ClientDrain.
+            active_ = server.lb_stage_.load(std::memory_order_seq_cst) == LbStage::ClientDrain;
+        }
+        LbClientRead(const LbClientRead&) = delete;
+        ~LbClientRead() { readers_.fetch_sub(1, std::memory_order_seq_cst); }
+        explicit operator bool() const { return active_; }
+    };
+    LbClientRead lb_client_read() { return LbClientRead(*this); }
+    // Caller holds LbClientRead after acquiring ClientDrain. The published record stays
+    // immutable until the read scope ends, even if FLIP/timeout withdraws the drain.
+    LbClientMove lb_client_move() const { return lb_client_move_; }
     uint64_t lb_deadline_ns() const { return lb_deadline_ns_.load(std::memory_order_acquire); }
     void lb_ack(uint32_t tid) {
         lb_ack_[tid].store((lb_epoch() << 8) | static_cast<uint8_t>(lb_stage()),
@@ -3321,7 +3338,8 @@ private:
     std::atomic<uint64_t> lb_epoch_{0};
     std::atomic<uint64_t> lb_deadline_ns_{0};
     std::atomic<uint64_t> lb_ack_[kMaxThreads] = {};
-    uint32_t lb_coordinator_ = UINT32_MAX;
+    // The monitor can publish the next PlanReady while a withdrawn drain tail finishes.
+    std::atomic<uint32_t> lb_coordinator_{UINT32_MAX};
     std::vector<LbShardMove> lb_shard_moves_;
     LbClientMove lb_client_move_;
     std::atomic<uint64_t> lb_client_inflight_id_{0};
@@ -3549,6 +3567,7 @@ private:
         std::vector<LbShardMove> shards;
         double shard_before = 0, shard_after = 0, bytes_before = 0, bytes_after = 0;
         double client_before = 0, client_after = 0;
+        std::atomic<uint32_t> client_readers{0}; // cold record lifetime; absent when LB=0
     };
     std::unique_ptr<LbPlan> lb_plan_; // absent with both balancers off
 

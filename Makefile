@@ -583,7 +583,12 @@ build/lbplanner-unit: tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(C
 build/lbplanner-unit-tsan: tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(MDBQSBR_TSAN_OBJ) Makefile
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=thread $< $(MDBQSBR_TSAN_OBJ) -o $@ $(LDLIBS) -lm $(LBPLANNER_WRAP)
 
-LBPLANNER_CONTROLS := no-publish stale-flip stale-lb duplicate copy-on-io
+LBPLANNER_CONTROLS := no-publish stale-flip stale-lb duplicate copy-on-io record-reuse
+LBPLANNER_TIMING_CONTROLS := timing-lock timing-late-pause timing-budget
+build/lbplanner-controls/%/source/src/core/io_loop.h: tools/lbplanner_controls.py src/core/io_loop.h src/core/server.h
+	python3 tools/lbplanner_controls.py $* $@
+$(foreach arm,$(LBPLANNER_TIMING_CONTROLS),build/lbplanner-controls/$(arm)/unit): build/lbplanner-controls/%/unit: build/lbplanner-controls/%/source/src/core/io_loop.h tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -Ibuild/lbplanner-controls/$*/source -I. tests/lbplanner_unit.cc $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm $(LBPLANNER_WRAP)
 build/lbplanner-controls/%/lbplanner.cc: tools/lbplanner_controls.py src/core/lbplanner.cc
 	python3 tools/lbplanner_controls.py $* $@
 build/lbplanner-controls/%/lbplanner.o: build/lbplanner-controls/%/lbplanner.cc $(wildcard src/*/*.h) Makefile
@@ -594,7 +599,7 @@ build/lbplanner-unit-pad: build/lbplanner-unit tools/lbplanner_pad.py tools/rlfe
 	python3 tools/lbplanner_pad.py $< $@ build/lbplanner-unit-pad-proof > build/lbplanner-unit-pad.log
 build/tomokv-lbplanner-pad: build/tomokv tools/lbplanner_pad.py tools/rlfence_artifacts.py tools/lbstall_artifacts.py
 	python3 tools/lbplanner_pad.py $< $@ build/lbplanner-pad-proof > build/lbplanner-pad.log
-build/lbplanner-units: build/lbplanner-unit build/lbplanner-unit-pad $(foreach arm,$(LBPLANNER_CONTROLS),build/lbplanner-controls/$(arm)/unit)
+build/lbplanner-units: build/lbplanner-unit build/lbplanner-unit-pad $(foreach arm,$(LBPLANNER_CONTROLS) $(LBPLANNER_TIMING_CONTROLS),build/lbplanner-controls/$(arm)/unit)
 	@touch $@
 .SECONDARY: $(foreach arm,$(LBPLANNER_CONTROLS),build/lbplanner-controls/$(arm)/lbplanner.cc build/lbplanner-controls/$(arm)/lbplanner.o)
 

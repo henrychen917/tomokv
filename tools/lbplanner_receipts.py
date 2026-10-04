@@ -46,14 +46,36 @@ end
         (OUT / f'{arm}-layout.log').write_text(result.stdout + result.stderr)
         rows[arm] = json.loads(next(line[7:] for line in result.stdout.splitlines() if line.startswith('LAYOUT=')))
         tables(Elf(binary), OUT, arm)
+    launch_script = ROOT / 'build/lbplanner-launch-layout.gdb'
+    rows['LAUNCH'] = {}
+    for ns, suffix in [('tomo', ''), ('tomo_db0', '-db0')]:
+        launch_script.write_text(script.read_text().replace("for ns in ('tomo','tomo_db0'):",
+                                                          f"for ns in ({ns!r},):"))
+        result = subprocess.run(['gdb', '-nx', '-q', '-batch',
+                                 str(ROOT / f'build/lbplanner-launch-layout{suffix}.o'), '-x', str(launch_script)],
+                                capture_output=True, text=True, check=True)
+        (OUT / f'LAUNCH-{ns}-layout.log').write_text(result.stdout + result.stderr)
+        data = json.loads(next(line[7:] for line in result.stdout.splitlines() if line.startswith('LAYOUT=')))
+        rows['LAUNCH'][ns] = data[ns]
+        # Exact equality: the fix introduces no member, size, or offset change.
+        assert data[ns] == rows['POST'][ns], ('launch/POST layout changed', ns)
+    differences = []
     for ns in rows['PRE']:
         before, after = rows['PRE'][ns], rows['POST'][ns]
         assert before['locked'] == after['locked']
         for kind in ('Server', 'IoLoop'):
+            if before['fields'][kind]['size'] != after['fields'][kind]['size']:
+                differences.append(dict(namespace=ns, type=kind, member='sizeof',
+                    before=before['fields'][kind]['size'], after=after['fields'][kind]['size']))
             for name, offset in before['fields'][kind]['offsets'].items():
                 new_name = 'lb_pause_id_' if name == 'lb_controller_beat_ms_' else name
-                assert after['fields'][kind]['offsets'][new_name] == offset, (ns,kind,name)
+                actual = after['fields'][kind]['offsets'].get(new_name)
+                if actual != offset:
+                    differences.append(dict(namespace=ns, type=kind, member=name, before=offset, after=actual))
     write('layout.json', rows)
+    write('layout-comparison.json', dict(launch_revision='6c9cb4b85', launch_post_exact=True,
+          historical_pre_post_existing_offsets_and_sizes_equal=not differences,
+          historical_pre_post_differences=differences, all_eight_locked_sizes_equal=True))
     for arm in ('PRE', 'POST'):
         for kind in ('functions', 'sections'):
             path = OUT / f'{arm}-{kind}.tsv'
@@ -96,17 +118,18 @@ def costs(rows):
                 return [x for x in executed if pat.search(x['instruction'])]
             shared, local = loads(stage), loads(pause)
             nshared = sum(x['visits'] for x in shared)
-            assert nshared == (count+1 if negative or arm in ('PRE', 'PAD-A') else 1), (symbol,count,nshared,shared)
+            expected_shared = count + 1 if arm in ('PRE', 'PAD-A') else count + 2 if negative else 2
+            assert nshared == expected_shared, (symbol,count,nshared,shared)
             if arm == "POST":
                 assert sum(x["visits"] for x in local) == count, ("one private gate load per connection",count,local)
             results.append(dict(arm=arm, negative=negative, connections=count, trace=trace,
                                 stage_loads=nshared, cache_loads=sum(x['visits'] for x in local),
                                 load_sites=shared+local, executed=executed))
     write('instructions.json', dict(stage='Idle', stage_offset=stage, pause_offset=pause,
-        scope='Real IO control tail plus repeated production inline parse gate; no parser/network/command execution.',
-        positive='exactly one shared stage load independent of connection count',
+        scope='Real pass-start snapshot, repeated production inline parse gate, then control tail; no parser/network/command execution.',
+        positive='exactly two shared stage loads independent of connection count: pass start and control tail',
         negative='reintroduced per-connection stage load rejected at every count', rows=results))
-    print('PASS pinned IO pass: one shared stage load at 1/32/4096 connections; extra-load controls detected')
+    print('PASS pinned IO pass: two shared stage loads at 1/32/4096 connections; extra-load controls detected')
 
 
 def source():
@@ -132,14 +155,28 @@ def source():
         text = (ROOT/file).read_text()
         assert 'lb_controller_tick(' not in text and 'srv_->lb_should_pause(' not in text
         assert 'lb_parse_paused([&] { return c->id(); })' in text
+        assert text.count('lb_pass_begin(); // one shared pause snapshot before any connection parsing') == 1
+        assert text.index('lb_pass_begin(); // one shared pause snapshot') < text.index('on_cqe<', text.index('lb_pass_begin(); //'))
     for file in ('src/main.cc','src/core/genthread.cc','src/core/rl2s.cc','src/core/reorder.cc'):
         assert 'srv.monitor_controllers();' in (ROOT/file).read_text(), file
     assert 'now_ms >= next_lb_ms' in post and 'flip_now_ms >= next_flip_ms' in post
     assert 'next_flip_ms = now_ns() / 1000000 + flipctl_wait_ms();' in post
     weighted = (ROOT/'src/core/weighted_lb.h').read_bytes()
     assert weighted == subprocess.check_output(['git','show','cd02ecbab:src/core/weighted_lb.h'],cwd=ROOT)
+    from lbplanner_pad import body
+    io = (ROOT/'src/core/io_loop.h').read_text()
+    begin, tail = body(io, 'lb_pass_begin'), body(io, 'lb_control_pass')
+    for block in (begin, tail):
+        assert block.index('lb_client_read()') < block.index('lb_client_move()')
+    assert tail.count('lb_drain_pass_expired(') == 1
+    assert tail.index('client_transfer_ready(') < tail.index('lb_drain_pass_expired(')
+    consume = body(post, 'lb_consume_plan')
+    assert consume.index('plan.client_readers.load(std::memory_order_seq_cst)') < consume.index('lb_client_move_ =')
+    assert 'lb_stage_.store(LbStage::PlanReady, std::memory_order_seq_cst);' in post
     write('source.json', dict(policy_blocks=proofs, weighted_lb_sha256=hashlib.sha256(weighted).hexdigest(),
-        io_has_no_planner_calls=True, all_four_boot_paths_monitor=True, move_cap_once=True))
+        io_has_no_planner_calls=True, all_four_boot_paths_monitor=True, move_cap_once=True,
+        pause_snapshot_before_dispatch=True, drain_budget_after_readiness=True,
+        client_record_lifetime='SC reader scope only in ClientDrain; PlanReady consumer defers reuse without waiting'))
     print('PASS unchanged admission/search policy blocks, monitor boot wiring and hoisted cap')
 
 

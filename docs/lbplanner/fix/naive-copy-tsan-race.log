@@ -1,0 +1,32 @@
+==================
+WARNING: ThreadSanitizer: data race (pid=3193489)
+  Read of size 8 at 0x7fffffff57c8 by thread T1:
+    #0 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::LbPlannerTest::republish_probe()::{lambda()#1}> > >::_M_run() <null> (lbplanner-republish-probe+0x40b16b) (BuildId: eaf4d69589e20ad1650a6e2fcfc8740fabdf7729)
+    #1 <null> <null> (libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+
+  Previous write of size 8 at 0x7fffffff57c8 by main thread (mutexes: write M0):
+    #0 tomo::Server::lb_consume_plan(unsigned int) src/core/lbplanner.cc:287 (lbplanner-republish-probe+0x8d868f) (BuildId: eaf4d69589e20ad1650a6e2fcfc8740fabdf7729)
+    #1 tomo::LbPlannerTest::republish_probe() <null> (lbplanner-republish-probe+0x437f16) (BuildId: eaf4d69589e20ad1650a6e2fcfc8740fabdf7729)
+    #2 main build/lbplanner-republish-probe.cc:450 (lbplanner-republish-probe+0x40ae3d) (BuildId: eaf4d69589e20ad1650a6e2fcfc8740fabdf7729)
+
+  Location is stack of main thread.
+
+  Location is global '<null>' at 0x000000000000 ([stack]+0x187c8)
+
+  Mutex M0 (0x7fffffff27f8) created at:
+    #0 pthread_mutex_lock ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1341 (libtsan.so.2+0x59a13) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 __wrap_pthread_mutex_lock build/lbplanner-republish-probe.cc:38 (lbplanner-republish-probe+0x40aa3c) (BuildId: eaf4d69589e20ad1650a6e2fcfc8740fabdf7729)
+    #2 __gthread_mutex_lock /usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:749 (lbplanner-republish-probe+0x41756a) (BuildId: eaf4d69589e20ad1650a6e2fcfc8740fabdf7729)
+    #3 std::mutex::lock() /usr/include/c++/13/bits/std_mutex.h:113 (lbplanner-republish-probe+0x41756a)
+    #4 std::lock_guard<std::mutex>::lock_guard(std::mutex&) /usr/include/c++/13/bits/std_mutex.h:249 (lbplanner-republish-probe+0x41756a)
+    #5 tomo::Server::lb_stage_timed_out() src/core/server.h:1386 (lbplanner-republish-probe+0x41756a)
+    #6 tomo::LbPlannerTest::republish_probe() <null> (lbplanner-republish-probe+0x437e0d) (BuildId: eaf4d69589e20ad1650a6e2fcfc8740fabdf7729)
+    #7 main build/lbplanner-republish-probe.cc:450 (lbplanner-republish-probe+0x40ae3d) (BuildId: eaf4d69589e20ad1650a6e2fcfc8740fabdf7729)
+
+  Thread T1 (tid=3193505, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) <null> (libstdc++.so.6+0xeceb0) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #2 main build/lbplanner-republish-probe.cc:450 (lbplanner-republish-probe+0x40ae3d) (BuildId: eaf4d69589e20ad1650a6e2fcfc8740fabdf7729)
+
+SUMMARY: ThreadSanitizer: data race (/home/user/Projects/cx-lbplanner/build/lbplanner-republish-probe+0x40b16b) (BuildId: eaf4d69589e20ad1650a6e2fcfc8740fabdf7729) in std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::LbPlannerTest::republish_probe()::{lambda()#1}> > >::_M_run()
+==================

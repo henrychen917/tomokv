@@ -67,6 +67,7 @@ def source_proof():
     cron = cron.replace('lb_controller_beat_ms_', 'lb_pause_id_')
     cron = cron.replace('lb_cron_writer(', 'lb_cron_writer_pad(').replace('lb_controller_tick(', 'lb_controller_tick_pad(')
     wrapper = body(planner, 'lb_control_pass_pad')
+    assert normalized(body(planner, 'lb_pass_begin_pad')) == '{}', 'PAD pass start must preserve PRE cron bytes'
     assert normalized(cron) in normalized(wrapper), 'PAD PRE cron changed'
     assert wrapper.index('lb_control_actuate_pad()') < wrapper.index('cached_now_ms_'), 'PAD tail ordering'
     # Every boot used this same monitor body on PRE. Compare the complete block.
@@ -95,11 +96,13 @@ def plan(source):
     patches = []
     targets = {}
     for name in functions:
-        if re.fullmatch(r'_ZN(4tomo|8tomo_db0)6IoLoop15lb_control_passEv', name):
+        if re.fullmatch(r'_ZN(4tomo|8tomo_db0)6IoLoop13lb_pass_beginEv', name):
+            targets[name] = (name.replace('13lb_pass_begin', '17lb_pass_begin_pad'), 'io-begin')
+        elif re.fullmatch(r'_ZN(4tomo|8tomo_db0)6IoLoop15lb_control_passEv', name):
             targets[name] = (name.replace('15lb_control_pass', '19lb_control_pass_pad'), 'io-tail')
         elif re.fullmatch(r'_ZN(4tomo|8tomo_db0)6Server19monitor_controllersEv', name):
             targets[name] = (name.replace('19monitor_controllers', '23monitor_controllers_pad'), 'monitor')
-    assert len(targets) in (2, 4), ('PAD complete namespace targets', targets)
+    assert len(targets) in (3, 6), ('PAD complete namespace targets', targets)
     assert all(new in functions for new, _ in targets.values()), 'PAD retained PRE entry missing'
 
     def offset(address, length):
@@ -157,14 +160,14 @@ def plan(source):
         r'_ZN(4tomo|8tomo_db0)6IoLoop(?:8run_loop|11r7_run_loop)I', s['name'])
         and '.cold' not in s['name']]
     coverage = {}
-    for category, definitions in [('parse-gate', parsers), ('io-tail', loops)]:
+    for category, definitions in [('parse-gate', parsers), ('io-begin', loops), ('io-tail', loops)]:
         sites = [p['address'] for p in patches if p['category'] == category]
         for definition in definitions:
             count = sum(definition['value'] <= at < definition['value'] + definition['size'] for at in sites)
             assert count == 1, ('PAD incomplete body coverage', category, definition['name'], count)
         coverage[category] = sorted(s['name'] for s in definitions)
     if source.name == 'tomokv' or source.name.startswith('tomokv-'):
-        assert len(targets) == 4 and len(gate_owners) >= 16, 'PAD production namespace/parser breadth'
+        assert len(targets) == 6 and len(gate_owners) >= 16, 'PAD production namespace/parser breadth'
         for ns in ('4tomo', '8tomo_db0'):
             assert any(ns in owner and 'r7_' in owner for owner in gate_owners), 'PAD missing R7 namespace'
             assert call_counts[f'_ZN{ns}6Server19monitor_controllersEv'] == 4, 'PAD four boot hosts per namespace'
@@ -209,7 +212,7 @@ def make_pad(source, output, receipt):
     assert a['section_table_sha256'] == b['section_table_sha256']
     controls = []
     broken_path = output.parent / (output.name + '.NEVER-RUN')
-    for category in ('io-tail', 'monitor', 'parse-gate'):
+    for category in ('io-begin', 'io-tail', 'monitor', 'parse-gate'):
         first = next(p for p in expected['patches'] if p['category'] == category)
         broken = bytearray(changed)
         at = first['offset']
@@ -246,7 +249,7 @@ def make_pad(source, output, receipt):
         with gzip.GzipFile(filename=str(path) + '.gz', mode='wb', mtime=0) as stream:
             stream.write(path.read_bytes())
         path.unlink()
-    print('PASS PAD-A: exact function/section tables; PRE source closure;', len(expected['patches']), 'retargets; five negative controls')
+    print('PASS PAD-A: exact function/section tables; PRE source closure;', len(expected['patches']), 'retargets; six negative controls')
 
 
 if __name__ == '__main__':
