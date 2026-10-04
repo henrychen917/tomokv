@@ -222,13 +222,16 @@ async def transition(args, variant, directory):
         monitor.start()
         observed = monitor.before["info"]
         require(observed["thread_mode"] == mode, "observed thread mode differs from requested mode")
-        if not args.live_port:
-            check_geometry(observed, mode, args.shards)
         await cohort.start()
         await asyncio.sleep(args.warmup)
         require(monitor.failure is None, "monitor failed before transition: " + str(monitor.failure))
         result["before_transition"] = monitor.samples[-1] if monitor.samples else None
         require(result["before_transition"] is not None, "monitor never completed a sample")
+        # The first listener can answer PING before all IO owners publish their
+        # roles. The armed transition, after every load client has replied, is
+        # the geometry we must witness; an early startup count is not that window.
+        if not args.live_port:
+            check_geometry(result["before_transition"]["info"], mode, args.shards)
         require(int(result["before_transition"]["info"]["connected_clients"]) == count + 1,
                 "before-transition sample did not witness all persistent clients plus monitor")
         result["pipelines_before"] = list(cohort.batches)
@@ -357,7 +360,7 @@ def validate_results(directory):
         info = row["monitor"]["before"]["info"]
         require(info["thread_mode"] == mode, "wrong observed mode")
         if not manifest.get("live_port"):
-            check_geometry(info, mode, manifest.get("shards"))
+            check_geometry(before["info"], mode, manifest.get("shards"))
             require(all(set(cpus) <= CPUS for cpus in row["server"]["affinity"].values()),
                     "server thread outside CPUs 112-127")
             require(int(info["process_id"]) == row["server"]["pid"], "wrong server PID")
@@ -371,6 +374,8 @@ def validate_results(directory):
         failure = row["monitor"]["failure"]
         counters[(failure or {}).get("kind", "clean")] += 1
         if failure is None:
+            if not manifest.get("live_port"):
+                check_geometry(after["info"], mode, manifest.get("shards"))
             require(after["t"] > (row.get("storm", {}).get("end") or row["transition_t"]),
                     "no post-transition monitor sample")
             require(int(after["info"]["connected_clients"]) == (clients + 1 if event == "storm" else 1),
