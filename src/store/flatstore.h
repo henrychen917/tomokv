@@ -85,17 +85,7 @@
 #include "../snapshot/format.h"
 #include "../persist/aof.h"
 
-#ifndef TOMO_READ_LOCAL_RECLAIM_PREFETCHW
-#define TOMO_READ_LOCAL_RECLAIM_PREFETCHW 0
-#endif
-
 namespace tomo {
-
-static_assert(TOMO_READ_LOCAL_RECLAIM_PREFETCHW == 0 ||
-              TOMO_READ_LOCAL_RECLAIM_PREFETCHW == 1,
-              "TOMO_READ_LOCAL_RECLAIM_PREFETCHW must be 0 (off) or 1 (on)");
-inline constexpr bool kReadLocalReclaimPrefetchw =
-    TOMO_READ_LOCAL_RECLAIM_PREFETCHW != 0;
 
 // Fault injection for the cold table-allocation paths. It is compiled in whenever NDEBUG is not
 // defined -- which is every build the Makefile produces, release included -- and costs one relaxed
@@ -3457,24 +3447,8 @@ private:
 
     bool is_borrowed(const char* ptr) const { return borrow_find(ptr) != kNoBorrow; }
 
-    // The experiment targets the physical cache lines jemalloc may return from its LIFO tcache to
-    // the next SET. Bound hints to the KvObj allocation itself (kvobj_size may include an external
-    // value allocation), and issue them only at the point where ownership really passes to free.
-    // `capacity` is kvobj_capacity(object), decoded by whoever retired it; the sized free needs it.
+    // `capacity` is the allocation size captured when the owner retired the object.
     void free_retired_obj_now(KvObj* object, size_t capacity) {
-        if constexpr (kReadLocalReclaimPrefetchw) {
-            if (read_local_enabled_) {
-                constexpr size_t kLineBytes = 64;
-                constexpr uint32_t kMaxLines = 3;
-                const char* const base = reinterpret_cast<const char*>(object);
-                __builtin_prefetch(base, 1, 3);
-                size_t offset = kLineBytes -
-                    (reinterpret_cast<uintptr_t>(base) & (kLineBytes - 1));
-                for (uint32_t line = 1; line < kMaxLines && offset < capacity;
-                     line++, offset += kLineBytes)
-                    __builtin_prefetch(base + offset, 1, 3);
-            }
-        }
         kvobj_free_with_capacity(object, capacity);
     }
 

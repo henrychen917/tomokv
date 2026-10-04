@@ -137,7 +137,6 @@ REQUIRED_STATS = (
     "read_local_keyspace_hits",
     "read_local_fallback_atomic_pending",
     "read_local_mget_local_hits",
-    "read_local_mget_generation_retries",
     "read_local_mget_fallback_atomic_pending",
     "read_local_mget_fallback_generation",
 )
@@ -145,6 +144,8 @@ REQUIRED_STATS = (
 
 def require_stats(connection):
     current = stats(connection)
+    if "read_local_mget_generation_retries" in current:
+        raise AssertionError("retired read-local retry INFO row is present")
     missing = [name for name in REQUIRED_STATS if name not in current]
     if missing:
         raise AssertionError(
@@ -484,9 +485,6 @@ def mget_case(control, witnesses, unrelated, touched, geometry):
         if after_unrelated["read_local_mget_fallback_atomic_pending"] != \
                 opened["read_local_mget_fallback_atomic_pending"]:
             raise AssertionError("unrelated MGET retained the old touched-shard pending gate")
-        if after_unrelated["read_local_mget_generation_retries"] != \
-                opened["read_local_mget_generation_retries"]:
-            raise AssertionError("stable held-group MGET retried its publication generation")
         if writer.readable(0) or time.monotonic() >= deadline:
             raise AssertionError("unrelated MGET was not proved local during the hold")
 

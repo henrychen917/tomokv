@@ -1,0 +1,17 @@
+{
+  "missing-retarget": {
+    "assertion": "planned retarget missing",
+    "rejected": true,
+    "sha256": "2681e551c3d9dbde4850c569869ee01ef4fcbd36a2497c254dad55cc0aafe65c"
+  },
+  "moved-symbol": {
+    "assertion": "symbol table moved",
+    "rejected": true,
+    "sha256": "87acd0d53acd696621e64f92d153b223e88afb54bf4b571584226010443de5f3"
+  },
+  "one-byte": {
+    "assertion": "unplanned byte change",
+    "rejected": true,
+    "sha256": "8810bd0084a63c153f8680252d1a4bbdd5696e8e05505159c8b8ca7ab07c7db9"
+  }
+}

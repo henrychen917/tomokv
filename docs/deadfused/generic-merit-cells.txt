@@ -1,0 +1,14 @@
+h05 | 1s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+h06 | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+p8g | 1s | rl=0 | ov=1 | ro=0 | GET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+p8s | 1s | rl=0 | ov=1 | ro=0 | SET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+d1g_l0 | 1s | rl=0 | ov=1 | ro=0 | GET | p1 | 512 | - | - | 4 | atomic=1 | score=latency | mix=- | smoke=0
+d1s_l0 | 1s | rl=0 | ov=1 | ro=0 | SET | p1 | 512 | - | - | 4 | atomic=1 | score=latency | mix=- | smoke=0
+m8g_l0 | 1s | rl=0 | ov=1 | ro=0 | MGET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+v1g_l0 | 1s | rl=0 | ov=1 | ro=0 | GET:1024 | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+d128g_l0 | 1s | rl=0 | ov=1 | ro=0 | GET | p128 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+d32g_l1 | 1s | rl=1 | ov=1 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+d8s_l1 | 1s | rl=1 | ov=1 | ro=0 | SET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+d32s_l1 | 1s | rl=1 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+x9_32_l1 | 1s | rl=1 | ov=1 | ro=0 | MIX | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=9:1 | smoke=0
+x9_32_l0 | 1s | rl=0 | ov=1 | ro=0 | MIX | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=9:1 | smoke=0

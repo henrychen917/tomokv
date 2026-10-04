@@ -1,0 +1,93 @@
+[
+  {
+    "check": "build",
+    "command": "taskset -c 112-127 make -j16",
+    "exit_code": 0,
+    "log": "build.log",
+    "log_sha256": "68c5f548009ee20966e380682cc0b78f39bea9c8895af0403577a7204fef2e99",
+    "result": "up to date; no C++ source diff"
+  },
+  {
+    "check": "r7-regeneration",
+    "command": "taskset -c 112-127 python3 tests/r7shadow_sync.py --write",
+    "exit_code": 0,
+    "log": "r7-regenerate.log",
+    "log_sha256": "ada2594e40b9bb953be5f8cbfecbf5b8c62f6c048927b3e422ffffd45458f94c",
+    "result": "current; no source change"
+  },
+  {
+    "check": "r7-sync-controls",
+    "command": "taskset -c 112-127 python3 tests/r7shadow_sync.py && taskset -c 112-127 python3 tests/r7shadow_sync_test.py",
+    "exit_code": 0,
+    "log": "r7-sync.log",
+    "log_sha256": "aa38dc54fb4089b77e65473c91f1b1e7576df726607c3e54788b431e5160fe61",
+    "result": "current and stale envelope rejected"
+  },
+  {
+    "check": "reorder-identity",
+    "command": "taskset -c 112-127 python3 tests/reorder_receipt.py build/tomokv build/reorder-receipt-check",
+    "exit_code": 0,
+    "log": "reorder-receipt.log",
+    "log_sha256": "621b251aa0f03f0a302b8e638a001682ba88f238f6de49044821c09fb3d426b2",
+    "result": "396/396 plus negative controls"
+  },
+  {
+    "check": "wbland",
+    "command": "taskset -c 112-127 python3 tests/wbland_checks.py check clauses",
+    "exit_code": 0,
+    "log": "wbland-clauses.log.gz",
+    "log_sha256": "f5e5563f8296a2a20b9116a0e3453cd9514d3b6803b08ba89461f70a5b30d9d0",
+    "result": "72/72 strict outcomes",
+    "uncompressed_log_sha256": "0f6b52d14a8aea48e0d0b6e6d8e111949f2e0cb1c840fb5ca2c3846798b9e129"
+  },
+  {
+    "check": "gates",
+    "command": "taskset -c 112-127 python3 tests/gates_test.py",
+    "exit_code": 0,
+    "log": "gates-test.log",
+    "log_sha256": "f6295ffe4577c2dbb9e71fee0de669e49189f773211a366b60a676c8673e90aa",
+    "result": "65 tests pass"
+  },
+  {
+    "check": "receipt-chain",
+    "command": "taskset -c 112-127 python3 tests/gate_receipt.py --self-test",
+    "exit_code": 0,
+    "log": "receipt-chain.log.gz",
+    "log_sha256": "fe82370125e649caae6336049b9b9fa2bb1c67115f60b0ff0d029bbfb77143a5",
+    "result": "10+18+27+10+1 tests pass",
+    "uncompressed_log_sha256": "e5ec6e5f4e9989e4dd113bd459d68bc8a269c27d49499b82110fdd30077365c2"
+  },
+  {
+    "check": "fixture",
+    "command": "taskset -c 112-127 python3 tests/gate_ledger_fixture.py",
+    "exit_code": 0,
+    "log": "ledger-fixture.log",
+    "log_sha256": "b5ec9b20f882204ba1bdbebd1bbb7a4801aa01d04947ed951817b87b7a49b4ce",
+    "result": "506 labels match; check only"
+  },
+  {
+    "check": "deadfused",
+    "command": "taskset -c 112-127 python3 tests/deadfused_checks.py",
+    "exit_code": 0,
+    "log": "deadfused-checks.log.gz",
+    "log_sha256": "eb9eed9eaf64ea1c0023eae895a322a3b14ee4991b7d386089dcc7e86c7e2ff0",
+    "result": "lane replays and missing-command rejection pass",
+    "uncompressed_log_sha256": "e66b9187e0f10fe68e1f1c2fc51ac92ffcbabfccd735c3904e2397a56b9e61f0"
+  },
+  {
+    "check": "engagement-multi",
+    "command": "taskset -c 112-127 python3 tests/reorder_receipt.py build/reorder-engagement-unit build/deadfused2/engagement-multi --engagement",
+    "exit_code": 0,
+    "log": "engagement-multi.log",
+    "log_sha256": "539ad0e113d2ad6c246b9ac20b8687aa7219d0ad8184ce76978d9784230119bf",
+    "result": "production, FIFO and negative capability pass"
+  },
+  {
+    "check": "engagement-db0",
+    "command": "taskset -c 112-127 python3 tests/reorder_receipt.py build/reorder-engagement-unit-db0 build/deadfused2/engagement-db0 --engagement",
+    "exit_code": 0,
+    "log": "engagement-db0.log",
+    "log_sha256": "65f2791b7d304ac6a6f52f86d084492fa73d2c3bf62a3e94caeb4fe9d294553e",
+    "result": "production, FIFO and negative capability pass"
+  }
+]

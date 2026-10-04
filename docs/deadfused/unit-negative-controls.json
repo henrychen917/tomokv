@@ -1,0 +1,10 @@
+{
+  "deadfused-notify-control": {
+    "returncode": 1,
+    "diagnostic": "FAIL core concurrency: 32 notifications fit without an overflow flush"
+  },
+  "deadfused-info-pad": {
+    "returncode": 1,
+    "diagnostic": "FAIL core concurrency: PAD-A restores exactly one PRE zero retry INFO row"
+  }
+}

@@ -434,7 +434,6 @@ struct CoreConcurrencyTest {
                         require(!store.budget_admit(slice(key)), "pre-handler OOM window actually armed");
                         ExLoopT<true> executor;
                         executor.srv_ = &f.server; executor.self_ = &owner;
-                        executor.fused_handoff_ring_ = &executor.ring_;
                         require(executor.execute(task) && op.state.load(std::memory_order_acquire) ==
                                     OpState::Done && !op.zc_ptr,
                                 "owner admission denial frees prebuilt value before Done");
