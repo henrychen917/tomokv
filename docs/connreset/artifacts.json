@@ -1,0 +1,20 @@
+{
+  "PRE": {
+    "path": "build/connreset/tomokv-PRE",
+    "sha256": "1e0a2f80220f2f9490730efc27c364846d10587ff7b4483cf13b5ba9d89acbb8",
+    "text_bytes": 7796224,
+    "text_sha256": "735516f12be5ae478d15a34383615160e59da019c1ce9e9c2edc62b731b6fffe"
+  },
+  "POST": {
+    "path": "build/connreset/tomokv-POST",
+    "sha256": "123bd6553f1da8574e835f2102fe7fcc8efebf2dacdfaa7174380c1472491bea",
+    "text_bytes": 7796224,
+    "text_sha256": "735516f12be5ae478d15a34383615160e59da019c1ce9e9c2edc62b731b6fffe"
+  },
+  "TRACE": {
+    "path": "build/connreset/trace/tomokv",
+    "sha256": "70e714a4cf311e1a2971880a624ffebd200c23fa6c6259e3f987bedd3519a969"
+  },
+  "baseline": "ea177342dd9ce181488f0954fe436d5f25d78fe5",
+  "comparison": "Entire ELF .text: identical bytes, including all hot paths. TRACE is a diagnostic build, not a PAD arm."
+}

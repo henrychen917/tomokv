@@ -21,7 +21,10 @@
       "sqe_starved": 0,
       "notify_drop": 0
     },
-    "all_ios_stopped": true
+    "all_ios_stopped": true,
+    "baseline_selected_connections": 128,
+    "baseline_selector_attempts": 959,
+    "accepts_minus_baseline_attempts": 2
   },
   {
     "path": "/home/user/Projects/cx-lbplanner-bench3/build/lbplanner-episodes-mainline-05/client-skew-2s-PAD-A-r2/run.json",
@@ -45,7 +48,10 @@
       "sqe_starved": 0,
       "notify_drop": 0
     },
-    "all_ios_stopped": true
+    "all_ios_stopped": true,
+    "baseline_selected_connections": 128,
+    "baseline_selector_attempts": 976,
+    "accepts_minus_baseline_attempts": 2
   },
   {
     "path": "/home/user/Projects/cx-lbplanner-bench3/build/lbplanner-episodes-mainline-05/client-skew-2s-PAD-A-r3/run.json",
@@ -69,7 +75,10 @@
       "sqe_starved": 0,
       "notify_drop": 0
     },
-    "all_ios_stopped": true
+    "all_ios_stopped": true,
+    "baseline_selected_connections": 128,
+    "baseline_selector_attempts": 949,
+    "accepts_minus_baseline_attempts": 2
   },
   {
     "path": "/home/user/Projects/cx-lbplanner-bench3/build/lbplanner-episodes-mainline-05/client-skew-2s-POST-r1/run.json",
@@ -93,7 +102,10 @@
       "sqe_starved": 0,
       "notify_drop": 0
     },
-    "all_ios_stopped": true
+    "all_ios_stopped": true,
+    "baseline_selected_connections": 128,
+    "baseline_selector_attempts": 1013,
+    "accepts_minus_baseline_attempts": 2
   },
   {
     "path": "/home/user/Projects/cx-lbplanner-bench3/build/lbplanner-episodes-mainline-05/client-skew-2s-POST-r2/run.json",
@@ -117,7 +129,10 @@
       "sqe_starved": 0,
       "notify_drop": 0
     },
-    "all_ios_stopped": true
+    "all_ios_stopped": true,
+    "baseline_selected_connections": 128,
+    "baseline_selector_attempts": 932,
+    "accepts_minus_baseline_attempts": 2
   },
   {
     "path": "/home/user/Projects/cx-lbplanner-bench3/build/lbplanner-episodes-mainline-05/client-skew-2s-PRE-r3/run.json",
@@ -141,7 +156,10 @@
       "sqe_starved": 0,
       "notify_drop": 0
     },
-    "all_ios_stopped": true
+    "all_ios_stopped": true,
+    "baseline_selected_connections": 128,
+    "baseline_selector_attempts": 937,
+    "accepts_minus_baseline_attempts": 2
   },
   {
     "path": "/home/user/Projects/cx-lbplanner-bench3/build/lbplanner-episodes-mainline-04/key-skew-2s-PRE-r3/run.json",
@@ -165,6 +183,9 @@
       "sqe_starved": 0,
       "notify_drop": 0
     },
-    "all_ios_stopped": true
+    "all_ios_stopped": true,
+    "baseline_selected_connections": 128,
+    "baseline_selector_attempts": 1078,
+    "accepts_minus_baseline_attempts": 2
   }
 ]
