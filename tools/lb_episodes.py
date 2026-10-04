@@ -325,6 +325,10 @@ def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_
     after = [s for s in samples if stimulus < s["t"] <= end]
     require(before and after, "episode has no bracketing samples")
     anchor, final = before[-1], after[-1]
+    require(stimulus - anchor["t"] <= .5,
+            f"stimulus telemetry gap={stimulus - anchor['t']:g}s, limit<=0.5s")
+    require(end - final["t"] <= .5,
+            f"endpoint telemetry gap={end - final['t']:g}s, limit<=0.5s")
     rows = [s for s in rows if stimulus < s["t"] <= final["t"]]
     primary = SPREADS[0] if episode == "key-skew" else SPREADS[2]
     move = KEY if episode == "key-skew" else CLIENT
@@ -373,11 +377,11 @@ def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_
     if result["suffix_ticks"] < DECISION_TICKS:
         return dict(result, reason=f"suffix_ticks={result['suffix_ticks']}, limit>={DECISION_TICKS}")
     # Current spreads are refreshed at controller ticks, not at move completion.
-    # Use the first closed, idle beat strictly after the last move's tick.
-    level = next((s for s in rows if s["info"][TICKS] > last_move["info"][TICKS]
-                  and s["info"][STAGE] == 0), None)
+    # Use the first closed beat strictly after the last move's tick; never
+    # hunt for a later favourable spread or skip an active plan to re-arm it.
+    level = next((s for s in rows if s["info"][TICKS] > last_move["info"][TICKS]), None)
     if level is None:
-        return dict(result, reason=f"post-move idle beats=0, limit>=1; {STAGE}={final['info'][STAGE]}, limit=0")
+        return dict(result, reason="post-move closed beats=0, limit>=1")
     result.update(suffix_start_t=level["t"], suffix_seconds=final["t"] - level["t"],
                   suffix_ticks=final["info"][TICKS] - level["info"][TICKS])
     if result["suffix_seconds"] < suffix_seconds or result["suffix_ticks"] < DECISION_TICKS:
@@ -954,7 +958,15 @@ def assess(results, episodes="both"):
                     if not valid:
                         reasons.append(f"POST loader[{index}].{key}={post_load[key]}, "
                                        f"limit{'>' if key == 'rate' else '<'}={pre_load[key]} (PRE)")
+        # Retain comparisons even when convergence failed, provided the endpoint
+        # counters exist. This keeps the actuator failure visible in report.json.
+        missing_mix = [arm for arm in ARMS if arm in paired and paired[arm].get("stall") is None]
+        if missing_mix:
+            reasons.append("actuator evidence missing for " + ", ".join(missing_mix) + "; limit=all arms")
+        if post.get("stall") is not None:
             for control in ("PRE", "PAD-A"):
+                if control not in paired or paired[control].get("stall") is None:
+                    continue
                 failures, mix[control] = compare_actuators(post, paired[control], alpha)
                 reasons.extend(failures)
         checks.append({"episode": post["episode"], "mode": post["mode"], "round": post["round"],
@@ -1420,6 +1432,17 @@ class SelfTest(unittest.TestCase):
                 s["info"][TICKS] = 35  # many raw polls cannot supply three decision ticks
         result = convergence(trace, 14, 40, self.criterion(), "key-skew", 30, 3)
         self.assertIn("suffix_ticks=0, limit>=3", result["reason"])
+
+    def test_missing_endpoint_or_first_post_move_plan_cannot_pass(self):
+        with self.assertRaisesRegex(ValueError, "endpoint telemetry gap=10s, limit<=0.5s"):
+            convergence(self.trace(), 14, 50, self.criterion(), "key-skew", 20, 3)
+        trace = self.trace()
+        for s in trace:
+            if 19 <= s["t"] < 20:
+                s["info"][STAGE] = 5
+        result = convergence(trace, 14, 40, self.criterion(), "key-skew", 20, 3)
+        self.assertEqual(result["status"], "FAIL")
+        self.assertIn(STAGE + "=5, limit=0", result["reason"])
 
     def test_unarmed_probe_refuses_and_receipts_counters(self):
         result = convergence(self.trace(moving=False), 14, 40, self.criterion(), "key-skew", 20, 3)
