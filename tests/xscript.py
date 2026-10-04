@@ -602,7 +602,7 @@ def contention_and_deadlock():
         required = ("script_stage_owner_tasks", "script_run_attempts", "script_group_occ_retries")
         if any(name not in before for name in required):
             raise AssertionError("missing directed collision counters")
-        if admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "10000000") != b"OK":
+        if admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "1000000") != b"OK":
             raise AssertionError("could not arm SCRIPT-STAGE-DEFER")
 
         def parked_script():
