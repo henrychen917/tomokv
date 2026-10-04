@@ -20,12 +20,12 @@ The script detector uses the existing `DEBUG SCRIPT-STAGE-DEFER 1000000`: one sc
 
 ## Sites and ordinary-command audit
 
-* `src/cmd/t_server.cc`: `cmd_debug` parses HOLD and STATUS behind existing DEBUG permission checks.
+* `src/cmd/t_server.cc:1085`: `cmd_debug_impl` parses HOLD and STATUS behind existing DEBUG permission checks.
 * `src/cmd/debug.h`: declarations only.
-* `src/cmd/scatter_engine.inc`: `arm_debug_off_hop_delay` arms the one-shot latch; new `debug_hop_pending`, `debug_atomic_off_hop_hold`, and `debug_atomic_off_hop_status` implement it.
-* `src/cmd/atomics_glue.inc`: the existing nonzero debug-hop branch in `xshard_task_should_defer` calls the cold latch/deadline helper.
-* `tests/atomic_torn.py`: new directed helper and replacement of the OFF discovery loop; ON additionally exercises the held hop.
-* `tests/xscript.py`: only `contention_and_deadlock` changes.
+* `src/cmd/scatter_engine.inc:1140–1183`: `arm_debug_off_hop_delay` arms the one-shot latch; new `debug_hop_pending`, `debug_atomic_off_hop_hold`, and `debug_atomic_off_hop_status` implement it.
+* `src/cmd/atomics_glue.inc:611`: the existing nonzero debug-hop branch in `xshard_task_should_defer` calls the cold latch/deadline helper.
+* `tests/atomic_torn.py:405`: new directed helper and replacement of the OFF discovery loop; ON additionally exercises the held hop.
+* `tests/xscript.py:583`: only `contention_and_deadlock` changes.
 
 PRE/POST objects were built with the same default Makefile flags and compiler, on cores 112–127. Existing `tools/lbstall_artifacts.py compare` reports **1,482/1,482 selected ordinary hot bodies raw-byte identical and relocation-target identical**, in both linked database variants. This is an object-code statement, not a claim that linked addresses are unchanged. Full function and section tables use `tools/rlfence_artifacts.py`'s `tables` helper. A broader inventory also records compiler-generated differences outside that selected hot set (including INFO, RANDOMKEY, cross-shard/transaction helpers, notification/configuration helpers, and a read-local poison helper); full ordinary-command byte identity is therefore **not** established by the selected-hot audit. All differences are enumerated in `docs/gt14fix/changed-functions.json`.
 
@@ -49,7 +49,7 @@ GATE_ONLY_JOBS='atomic_batteries debug-1' taskset -c 112-127 bash tests/gate.sh 
   --candidate-binary "$PWD/build/tomokv"
 ```
 
-Results: first complete repetition passed (19/19 rows); 30-run campaign pending. Per-run logs: `docs/gt14fix/repeat/`. The subset is diagnostic, not a full gate receipt.
+Results: 30-run campaign pending; completed repetitions are recorded in the per-run logs. Per-run logs: `docs/gt14fix/repeat/`. The subset is diagnostic, not a full gate receipt.
 
 ## Scope and remaining nondeterminism
 
@@ -58,3 +58,7 @@ Gate delta **0 quick / 0 full**. `tests/gate.sh`, `tests/gate_subset.sh`, EXPECT
 OS scheduling, connection progress, and watchdog deadlines still bound liveness. The directed windows fail loudly if the debugger cannot establish or retain them; they do not rely on two independent operations happening to collide. Existing unrelated hammers, conditional/store controls, live-flip checks, and latency budgets retain their original nondeterminism and intent. The script defer still has its existing timer-based release, but counter witnesses require the competing commit to occur entirely inside the captured stage window.
 
 The first prerequisite build took nine minutes. Measured job durations in repetition 1: debug-1 73.266 s, atomic_batteries 35.876 s. Thirty unmodified complete repetitions cannot fit inside the original 60-minute lane target including setup/builds; that conflict was reported while validation continued.
+
+Additional full batteries were run serially between subset repetitions, on server CPUs 112–119 and client CPUs 120–127. `tests/xscript.py` passed in 1s mode. The full 1s `tests/atomic_torn.py` passed both new RENAME arms but failed its unchanged `atomic reconfiguration preserves derived bound and reclaims leases` check: `CONFIG exceeded the lease hold's arm budget` (`arm_s=5.007`, limit 256, groups 641, peak 256). A fresh 1s boot of PRE, running the original PRE test file, passed that full battery. A subsequent fresh candidate 1s boot also passed the complete current atomic battery (`full-atomic-fused-repeat.log`). These runs do **not** establish that the earlier fused failure predates the change; it is retained as an unresolved intermittent result outside the two directed controls. Both logs are retained, and no timing threshold or other check was edited.
+
+The throwaway `build/gt14fix/tomokv-no-hold` patches only the two DEBUG HOLD setters to return immediately. The directed RENAME runner exits 1 with `source-complete hold not witnessed: status=0 replies=[b'OK']`, proving that a missing hold cannot pass. Patch offsets, original/replacement bytes, and binary hashes are in `docs/gt14fix/no-hold-control.json`. This is a fault-control binary, not a PAD or performance arm.

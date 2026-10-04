@@ -40,7 +40,9 @@
       "added_functions": [
         "rename_held"
       ],
-      "labels_unchanged": true
+      "labels_unchanged": true,
+      "unrelated_top_level_prefix_unchanged": true,
+      "unrelated_top_level_suffix_byte_identical": true
     },
     "tests/xscript.py": {
       "unchanged_existing_functions": [
@@ -64,7 +66,8 @@
         "contention_and_deadlock"
       ],
       "added_functions": [],
-      "labels_unchanged": true
+      "labels_unchanged": true,
+      "other_contention_function_checks_byte_identical": true
     },
     "tests/gate.sh": {
       "byte_identical": true,
@@ -74,5 +77,9 @@
       "byte_identical": true,
       "sha256": "88406335af97b13e383b31f4d25ce04cb625e1b105b3c2686cbadff46d5887d6"
     }
-  }
+  },
+  "fixture_tree_unchanged": true,
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "object_audit_command": "taskset -c 120-127 python3 tools/lbstall_artifacts.py compare build/gt14fix/pre build docs/gt14fix/hot-byte-audit.json",
+  "full_inventory_note": "Existing Elf.canonical with R_X86_64_TPOFF32 (relocation 23) treated as a four-byte relocation; only xshard.o and t_server.o in both namespaces were inventoried for the changed-functions list."
 }
