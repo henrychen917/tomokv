@@ -1314,6 +1314,16 @@ job_climonfix(){
 }
 
 job_lbplanner_units(){
+# Connreset: the observer must join before server teardown on rejected baselines.
+# One new serverless row BEFORE the quick exit (+1 quick/full); counts are owner-owned.
+row_begin "LB sampler exceptional cleanup + negative control"
+if py tests/connreset_harness_test.py >"$TMPDIR/connreset-harness.log" 2>&1 \
+    && { py tests/connreset_harness_test.py --negative-control >"$TMPDIR/connreset-negative.log" 2>&1; test "$?" -eq 1; } \
+    && grep -q 'FAIL: test_baseline_failure_joins_monitor_before_server_and_preserves_cause' "$TMPDIR/connreset-negative.log"; then
+  ok "LB sampler exceptional cleanup + negative control"
+else
+  bad "LB sampler exceptional cleanup + negative control" "see $TMPDIR/connreset-harness.log and $TMPDIR/connreset-negative.log"
+fi
 # CT1: one hand-off witness row, collected BEFORE the quick exit (+1 quick/full).
 row_begin "LB monitor plan handoff + negative controls"
 if unit_ready lbplanner-units && taskset -c "$CORES" python3 tests/lbplanner_checks.py \

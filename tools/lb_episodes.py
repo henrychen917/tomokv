@@ -7,7 +7,7 @@ maxima. See MEASURE-REQUEST-lbplanner-bench3.md for the frozen comparison rules.
 """
 import argparse
 from collections import Counter
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 import hashlib
 import json
 import math
@@ -573,8 +573,24 @@ class Sampler:
     def __init__(self, port, path, pid):
         self.port, self.path, self.pid = port, path, pid
         self.samples, self.error = [], None
+        self.cleanup_error = None
         self.stop = threading.Event()
         self.thread = threading.Thread(target=self.run, daemon=True)
+
+    def __enter__(self):
+        self.thread.start()
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        try:
+            self.close()
+        except Exception as error:
+            self.cleanup_error = str(error)
+            # Preserve the episode's first failure. A real sampler failure is
+            # still retained separately, and fails a previously successful body.
+            if exc_type is None:
+                raise
+        return False
 
     def run(self):
         conn = None
@@ -783,7 +799,11 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
               "status": "FAIL", "sampling_interval": INTERVAL, "commands": []}
     sampler = None
     try:
-        with boot(args, arm, mode, directory, seed) as (conn, children, owners, identity):
+        # Reverse context exit order is load-bearing: stop/join the observer on
+        # EVERY exit before boot() sends SIGTERM to its server. In particular a
+        # rejected baseline must not manufacture a sampler ECONNRESET at +93 s.
+        with boot(args, arm, mode, directory, seed) as (conn, children, owners, identity), \
+                ExitStack() as observers:
             result["identity"] = identity
             result["shards"] = identity["shards"]
             require(identity["shards"] == seed_record["shards"],
@@ -791,7 +811,7 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
             require(key_mapping(conn, args.hotmax, identity["shards"]) == seed_record["hot_keys"],
                     "physical key map changed from this mode's SHA-bound seed")
             sampler = Sampler(args.port, directory / "telemetry.jsonl", int(identity["process_id"]))
-            sampler.thread.start()
+            observers.enter_context(sampler)
             baseline_start = time.monotonic()
             processes = []
             for label in ("baseline-a", "baseline-b"):
@@ -851,15 +871,14 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
                                  for key in ("process_cpu_ticks", "monitor_cpu_ticks")}
                 result["cpu"]["clock_ticks_per_second"] = os.sysconf("SC_CLK_TCK")
                 result["measurement_valid"] = True
-            sampler.close()  # observer must close BEFORE boot() reaps the server
     except Exception as error:
         result.update(status="FAIL", reason=str(error), measurement_valid=False)
     finally:
         if sampler:
-            try:
-                sampler.close()
-            except Exception as error:
-                result.update(status="FAIL", reason=str(error), measurement_valid=False)
+            # The observer has already joined inside the boot context. Secondary
+            # diagnostics must never overwrite the baseline/accounting failure.
+            result["sampler_error"] = sampler.error
+            result["sampler_cleanup_error"] = sampler.cleanup_error
         if probe:
             result["convergence_status"] = result["status"]
             result["convergence_reason"] = result.get("reason")
