@@ -110,6 +110,10 @@ def install_negative_control():
     import inspect
     source = inspect.getsource(episodes.run_episode)
     source = source.replace("observers.enter_context(sampler)", "sampler.thread.start()")
+    # The old happy path already closed the sampler inside boot; only its
+    # exceptional edge escaped that close and then overwrote the first failure.
+    source = source.replace("    except Exception as error:\n",
+                            "            sampler.close()\n    except Exception as error:\n", 1)
     marker = '            result["sampler_error"] = sampler.error\n'
     require_marker = marker in source
     if not require_marker:
