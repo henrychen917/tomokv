@@ -64,16 +64,20 @@ try:
         conn.must("CONFIG", "SET", query_name, values[query_name.encode()])
     for name, expected in (("thread-mode", "2s"), ("net-io", engine), ("read-local", "0"),
                            ("atomic", atomic), ("key-lb", "1"), ("client-lb", "1"),
-                           ("flip-auto", "0"), ("overlap", "0"), ("reorder", "0")):
+                           ("flip-auto", "0"), ("overlap", "0"), ("reorder", "0"),
+                           ("wb-policy", "1")):
         if values.get(name.encode()) != expected.encode():
             raise AssertionError("CONFIG %s differs: %r" % (name, values.get(name.encode())))
-    for name in ("read-local", "key-lb", "client-lb", "flip-auto", "net-io", "overlap", "reorder",
+    for name in ("read-local", "key-lb", "client-lb", "flip-auto", "net-io", "overlap", "reorder", "wb-policy",
                  "hll-sparse-max-bytes", "aof-load-truncated", "unixsocketperm", "port", "bind", "unixsocket"):
         result = conn.cmd("CONFIG", "SET", name, values[name.encode()])
         if not isinstance(result, _lib.RespError) or "immutable" not in str(result):
             raise AssertionError("boot-only knob was mutable: " + name)
         if conn.must("CONFIG", "GET", name) != [name.encode(), values[name.encode()]]:
             raise AssertionError("rejected boot-only SET changed its GET value: " + name)
+    writeback = _lib.info(conn, "WRITEBACK")
+    if writeback.get("wb_policy") != "1":
+        raise AssertionError("INFO WRITEBACK wb_policy differs: %r" % writeback)
     server = _lib.info(conn, "server")
     for name, expected in (("thread_mode", "2s"), ("shards", "16"),
                            ("read_local", "0"), ("atomic", atomic), ("overlap", "0"), ("reorder", "0"),

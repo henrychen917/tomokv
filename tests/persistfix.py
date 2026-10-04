@@ -164,8 +164,36 @@ class Run:
     def marker(self, suffix):
         return self.window.with_suffix('.' + suffix)
 
+    def record(self, event, **fields):
+        with (self.root / 'processes.jsonl').open('a') as stream:
+            stream.write(json.dumps(dict(event=event, time_ns=time.time_ns(), boot=self.boots,
+                pid=self.process.pid, port=self.args.port, **fields)) + '\n')
+
+    def identify(self, client, event):
+        raw = client.cmd('INFO', 'Server')
+        assert isinstance(raw, bytes), 'persistence peer INFO is not a bulk reply'
+        info = dict(line.split(':', 1) for line in raw.decode().splitlines() if ':' in line)
+        observed = info.get('process_id')
+        self.record(event, observed_pid=observed)
+        if event == 'ready':
+            self.identity['info'] = info
+            self.save_identity()
+        if observed != str(self.process.pid):
+            command = process_cmdline(observed) if observed and observed.isdecimal() else '<unknown>'
+            raise AssertionError(
+                f'persistence peer PID mismatch on port {self.args.port}: '
+                f'owned={self.process.pid}, observed={observed!r} cmdline={command!r}; '
+                f'{self.root / "processes.jsonl"}')
+        return info
+
     def client(self):
+        check_port_owner(self.args.port, self.process.pid)
         client = Resp(self.args.port)
+        try:
+            self.identify(client, 'client')
+        except BaseException:
+            client.close()
+            raise
         self.clients.append(client)
         return client
 
@@ -184,17 +212,7 @@ class Run:
         client = None
         try:
             client = Resp(self.args.port, timeout=.25)
-            info = client.cmd('INFO', 'Server')
-            assert isinstance(info, bytes), f'invalid INFO Server: {info!r}'
-            fields = dict(line.split(':', 1) for line in info.decode().splitlines() if ':' in line)
-            peer_pid = fields.get('process_id')
-            self.identity['info'] = fields
-            self.save_identity()
-            if peer_pid != str(self.process.pid):
-                command = process_cmdline(peer_pid) if peer_pid and peer_pid.isdecimal() else '<unknown>'
-                raise PortOwnershipError(errno.EADDRINUSE,
-                    f'foreign INFO identity on port {self.args.port}: pid={peer_pid!r} '
-                    f'cmdline={command!r}; expected pid={self.process.pid}')
+            fields = self.identify(client, 'ready')
             assert client.cmd('PING') == b'PONG', 'identity connection did not answer PING'
             assert check_port_owner(self.args.port, self.process.pid), 'owned listener disappeared'
             assert self.process.poll() is None, 'server exited during identity handshake'
@@ -210,6 +228,8 @@ class Run:
             raise  # Never retry into a foreign process, even if it speaks RESP.
         except (OSError, EOFError) as error:
             self.last_probe = repr(error)
+            if client is not None:
+                self.record('unanswered_peer', error=repr(error))
             check_port_owner(self.args.port, self.process.pid)
             assert self.process.poll() is None, 'server exited during identity handshake'
             return False
@@ -242,6 +262,7 @@ class Run:
         self.process = subprocess.Popen(argv, env=env, stdout=self.log, stderr=subprocess.STDOUT)
         self.identity.update(pid=self.process.pid, argv=argv)
         self.save_identity()
+        self.record('spawn', argv=argv, log=str(self.log_path))
         wait_for(self.ready, 'server did not establish listening/INFO/PING identity', 30)
         return self.ready_client
 
@@ -275,6 +296,7 @@ class Run:
         self.exit_status = status
         self.identity['exit_status'] = status
         self.save_identity()
+        self.record('reap', status=status)
         self.log.close()
         assert status == expected, f'exit {status}, wanted {expected}: {self.log_path}'
         for client in self.clients:
@@ -495,7 +517,7 @@ def self_test():
             with patch.object(module, 'check_port_owner', return_value=True), \
                     patch.object(module, 'process_cmdline', return_value='foreign-server'), \
                     patch.object(module, 'Resp', return_value=client) as resp:
-                with self.assertRaisesRegex(PortOwnershipError, "pid='99'.*foreign-server"):
+                with self.assertRaisesRegex(AssertionError, "persistence peer PID mismatch.*observed='99'.*foreign-server"):
                     self.run.ready()
             self.assertEqual(resp.call_count, 1)
             client.cmd.assert_called_once_with('INFO', 'Server')
@@ -503,7 +525,7 @@ def self_test():
 
         def test_missing_identity_and_bad_ping_fail(self):
             self.banner()
-            for replies, message in (([b'# Server\r\n', b'PONG'], 'foreign INFO identity'),
+            for replies, message in (([b'# Server\r\n', b'PONG'], 'persistence peer PID mismatch'),
                                      ([b'process_id:4321\r\n', b'NO'], 'did not answer PING')):
                 client = Mock()
                 client.cmd.side_effect = replies
@@ -571,6 +593,16 @@ def self_test():
                 self.assertNotEqual(records[0]['run_id'], records[1]['run_id'])
                 self.assertEqual([r['pid'] for r in records], [4321, 4322])
                 self.assertTrue(all(r['ready'] and r['exit_status'] == 0 for r in records))
+                events = [json.loads(line) for line in (run.root / 'processes.jsonl').read_text().splitlines()]
+                self.assertEqual([row['event'] for row in events], ['spawn', 'ready', 'reap'] * 2)
+                self.assertEqual([row['pid'] for row in events], [4321] * 3 + [4322] * 3)
+                self.assertEqual([row['boot'] for row in events], [1] * 3 + [2] * 3)
+                self.assertTrue(all(row['port'] == self.args.port for row in events))
+                self.assertEqual([row['observed_pid'] for row in events if row['event'] == 'ready'],
+                                 ['4321', '4322'])
+                self.assertEqual([row['status'] for row in events if row['event'] == 'reap'], [0, 0])
+                for record, event in zip(records, events[::3]):
+                    self.assertEqual((event['argv'], event['log']), (record['argv'], record['log']))
             finally:
                 run.cleanup()
 
