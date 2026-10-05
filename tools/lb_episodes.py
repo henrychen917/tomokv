@@ -3,7 +3,7 @@
 
 PRE probes must admit key movement before a key-skew matrix can run. Key episodes
 require a stationary key suffix; client episodes score spread improvement.
-See MEASURE-REQUEST-lbplanner-bench4.md for the comparison and replay rules.
+See MEASURE-REQUEST-bench5.md for the comparison and read-only --replay rules.
 """
 import argparse
 from collections import Counter
@@ -38,6 +38,9 @@ SPREADS = tuple(PREFIX + n + "_spread_current" for n in
 REFUSALS = tuple(PREFIX + n for n in (
     "no_candidate", "hysteresis_refused", "cooldown_refused", "transition_refused",
     "capacity_refused", "client_refused", "hot_bucket_refused"))
+HISTORY_COUNTERS = tuple(PREFIX + n for n in (
+    "reversal_refused", "recent_move_refused", "owner_pair_refused", "history_escapes"))
+OWNER_METRICS = ("shard_moves", "returns", "exchanges", "distinct_shards")
 STALL = {short: "tomokv_lbstall_" + name for short, name in (
     ("exec", "executor"), ("proto", "protocol"), ("passl", "pass_limit"),
     ("dest", "destination"), ("pipe", "pipeline"), ("defout", "deferred_output"),
@@ -136,7 +139,7 @@ def parse_info(raw, mandatory=True):
                 "INFO LB missing mandatory fields: " + ", ".join(k for k in FIELDS if k not in result))
         require(result.get(PREFIX + "enabled") == result.get("tomokv_clientlb_enabled") == "1",
                 "both balancers must be enabled")
-        for key in FIELDS:
+        for key in (*FIELDS, *(k for k in HISTORY_COUNTERS if k in result)):
             value = float(result[key]) if "spread" in key else int(result[key])
             require(math.isfinite(value) and value >= 0, "invalid INFO value: " + key)
             result[key] = value
@@ -227,6 +230,56 @@ def shard_owners(sample):
     return {str(sid): row["owner"] for sid, row in sample["signals"]["shards"].items()}
 
 
+def owner_tracking(samples):
+    """Observed transitions over the whole capture, including warmup/guards.
+
+    A return includes any previously visited owner, not just the last source.
+    One exchange is one unordered owner pair with both directions in one poll
+    interval, irrespective of how many shards travelled in either direction.
+    Moves between polls are unobservable; never infer them from INFO counters.
+    """
+    require(bool(samples), "owner tracking: missing telemetry")
+    previous = shard_owners(samples[0])
+    require(bool(previous), "owner tracking: empty shard map")
+    seen = {sid: {owner} for sid, owner in previous.items()}
+    touched, moves, returns, exchanges = set(), 0, 0, 0
+    for old, sample in zip(samples, samples[1:]):
+        gap = sample["t"] - old["t"]
+        require(0 < gap <= .5, f"owner tracking: telemetry gap={gap:g}s, limit=0<gap<=0.5s")
+        current = shard_owners(sample)
+        require(current.keys() == previous.keys(), "owner tracking: shard map changed or is incomplete")
+        edges = set()
+        for sid, owner in current.items():
+            if owner == previous[sid]:
+                continue
+            moves += 1
+            returns += owner in seen[sid]
+            seen[sid].add(owner)
+            touched.add(sid)
+            edges.add((previous[sid], owner))
+        exchanges += sum(a < b and (b, a) in edges for a, b in edges)
+        previous = current
+    return {"shard_moves": moves, "returns": returns, "exchanges": exchanges,
+            "distinct_shards": len(touched),
+            "owner_tracking": {"start_t": samples[0]["t"], "end_t": samples[-1]["t"],
+                               "samples": len(samples), "shard_ids": sorted(touched, key=int),
+                               "scope": "entire captured episode, including warmup and guards; observed transitions only"}}
+
+
+def history_deltas(samples):
+    """Optional lbosc2 counters: absence is NA, never zero or a summed refusal."""
+    result = {}
+    for key in HISTORY_COUNTERS:
+        values = [int(s["info"][key]) for s in samples if key in s["info"]]
+        require(all(v >= 0 for v in values), f"invalid INFO value: {key}")
+        require(all(b >= a for a, b in zip(values, values[1:])), f"LB counter reset: {key}")
+        result[key] = values[-1] - values[0] if values and len(values) == len(samples) else None
+    # reversal_refused is the aggregate admission refusal, not the sum of the
+    # potentially overlapping recent-move and owner-pair reason counters.
+    return {"history_counters": result, "refused": result[HISTORY_COUNTERS[0]],
+            "escapes": result[HISTORY_COUNTERS[-1]]}
+
+
 def spread_maxima(samples):
     return {key: max(s["info"][key] for s in samples) for key in SPREADS} if samples else {}
 
@@ -258,13 +311,23 @@ def baseline_stationarity(samples, placement=None, episode="key-skew"):
         result.update(deltas=movements, baseline_key_moves=movements[KEY],
                       baseline_client_moves=movements[CLIENT],
                       baseline_earlier_client_moves=movements[CLIENT] - final_moves[CLIENT],
-                      decision_client_moves=final_moves[CLIENT], decision_start_t=window[0]["t"])
+                      decision_client_moves=final_moves[CLIENT],
+                      baseline_decision_client_moves=final_moves[CLIENT], decision_start_t=window[0]["t"])
         require(movements[KEY] == 0,
                 f"balanced key_moves={movements[KEY]}, limit=0 (placement changed)")
         if episode == "client-skew":
-            require(final_moves[CLIENT] == 0,
-                    f"balanced final decision client_moves={final_moves[CLIENT]}, limit=0 "
+            require(final_moves[CLIENT] <= 1,
+                    f"balanced final decision client_moves={final_moves[CLIENT]}, limit<=1 "
                     f"(earlier={result['baseline_earlier_client_moves']})")
+            if final_moves[CLIENT]:
+                # A nominal 60s sample window spans 59.9s at 100ms polling.
+                # Keep the same 500ms maximum endpoint gap as convergence.
+                require(duration >= 60 - .5,
+                        f"one-move baseline seconds={duration:g}, limit>=59.5 (60s window)")
+                for row in samples:
+                    if samples[-1]["info"][TICKS] - row["info"][TICKS] < 3 * DECISION_TICKS:
+                        require(row["info"][STAGE] == 0,
+                                f"balanced last 9 ticks {STAGE}={row['info'][STAGE]}, limit=0 at t={row['t']:.6f}")
         last = samples[-1]
         for row in window[1:]:  # preceding observation brackets moves; it is outside the window
             require(row["info"][STAGE] == 0,
@@ -275,10 +338,11 @@ def baseline_stationarity(samples, placement=None, episode="key-skew"):
                 require(observed.get(sid) == placement.get(sid),
                         f"balanced shard_owners[{sid}]={observed.get(sid)}, limit={placement.get(sid)} (PRE)")
         result.update(status="PASS", beats=len(rows), seconds=duration)
-        reason = f"own {episode} baseline stationary; baseline_client_moves={movements[CLIENT]}"
+        reason = (f"own {episode} baseline stationary; baseline_client_moves={movements[CLIENT]}; "
+                  f"baseline_decision_client_moves={final_moves[CLIENT]}")
     except ValueError as error:
         reason = str(error)
-    return dict(result, reason=reason + "; " + summary)
+    return dict(result, reason=reason)
 
 
 def sampling_floor(owners):
@@ -352,6 +416,29 @@ def spread_progress(before, after, rows, stimulus, end_t, primary, move, suffix_
         value = mean([s for s in after if row["t"] - DECISION_SECONDS < s["t"] <= row["t"]])
         if value < level and value <= .95 * level:
             level, last_improvement = value, row
+    # Disjoint three-second decision windows charge each move exactly once.
+    # Compare their trailing 3s means with the running best, and accumulate
+    # non-improving moves: a later record can never forgive an earlier window.
+    # The first two windows use the fixed peak reference without lowering it
+    # during the rising edge; subsequent windows update the best even for a
+    # sub-5% improvement. Retain the old last-milestone quantity separately.
+    best, previous_poll, thrash = peak, before[-1], 0
+    windows = []
+    for number in range(1, math.ceil((end_t - stimulus) / DECISION_SECONDS) + 1):
+        stop = min(stimulus + number * DECISION_SECONDS, end_t)
+        window = [s for s in after if stop - DECISION_SECONDS < s["t"] <= stop]
+        value = mean(window)
+        current = window[-1]
+        count = current["info"][move] - previous_poll["info"][move]
+        improved_window = value < best and value <= .95 * best
+        if not improved_window:
+            thrash += count
+        windows.append({"end_t": stop, "mean": value, "best_before": best,
+                        "required_moves": count, "improved": improved_window,
+                        "thrash_moves": 0 if improved_window else count})
+        if stop >= stimulus + 6:
+            best = min(best, value)
+        previous_poll = current
     reduction = 1 - end / peak if peak else None
     improved = reduction is not None and reduction > 0
     # A single noisy three-second endpoint difference is not a trend. Fit
@@ -370,10 +457,13 @@ def spread_progress(before, after, rows, stimulus, end_t, primary, move, suffix_
             "still_converging": improved and slope is not None and slope < 0,
             "last_improvement_t": last_improvement["t"] if last_improvement else None,
             "last_improvement_level": level,
-            "thrash_moves": final["info"][move] -
+            "thrash_moves": thrash, "thrash_windows": windows,
+            "milestone_moves": final["info"][move] -
                 (last_improvement or before[-1])["info"][move],
             "spread_method": "base: last pre-stimulus poll; end: fixed endpoint's last 3s mean; peak: first 6s max; min: all post-stimulus polls; "
-                             "5% records: 3s means at closed ticks after peak window; falling: negative closed-beat slope over --suffix, "
+                             "thrash: cumulative moves in disjoint 3s windows whose trailing mean is not >=5% below the running best; "
+                             "first 6s use the peak reference, then best=min(best,mean); partial final window uses a trailing 3s mean; "
+                             "milestone_moves: moves after last 5% closed-tick record; falling: negative closed-beat slope over --suffix, "
                              "positive reduction and a required move in that window"}
 
 
@@ -418,6 +508,7 @@ def convergence(samples, stimulus, end, criterion, episode, max_seconds, suffix_
               "anchor_t": anchor["t"], "end_t": final["t"],
               "excursion_t": excursion["t"] if excursion else None,
               **actuator_mix(anchor, final, total),
+              **history_deltas([anchor, *after]),
               **spread_progress(before, after, rows, stimulus, end, primary, move, suffix_seconds)}
     if total[move] == 0 or (episode == "key-skew" and total[GATHERS] == 0):
         return dict(result, reason=f"unarmed: {move} delta={total[move]}, limit>0; "
@@ -701,6 +792,16 @@ class Sampler:
         require(self.error is None, "sampler failed: " + str(self.error))
 
 
+def episode_failure(result, error, source):
+    """Keep the first failure exact; later failures are structured diagnostics."""
+    message = str(error)
+    if result["status"] == "FAIL" and result.get("reason"):
+        result.setdefault("diagnostics", []).append({"source": source, "message": message})
+    else:
+        result["reason"] = message
+    result.update(status="FAIL", measurement_valid=False)
+
+
 @contextmanager
 def sampled_episode(sampler, result):
     """Classify the episode and join its observer inside the server lifetime."""
@@ -708,15 +809,13 @@ def sampled_episode(sampler, result):
         sampler.thread.start()
         yield
     except Exception as error:
-        result.update(status="FAIL", reason=str(error), measurement_valid=False)
+        episode_failure(result, error, "episode")
     finally:
         try:
             sampler.close()
         except Exception as error:
             result["sampler_error"] = str(error)
-            if result["status"] != "FAIL" or not result.get("reason"):
-                result.update(status="FAIL", reason=str(error))
-            result["measurement_valid"] = False
+            episode_failure(result, error, "sampler")
 
 
 def server_command(args, arm, mode, directory):
@@ -851,6 +950,16 @@ def owner_evidence(directory, labels, expected):
     return result
 
 
+def cohort_owners(owners, episode):
+    """Explicit connection-index -> owner plans, independent of boot accept order."""
+    owners = sorted(owners)
+    require(owners and len(owners) == len(set(owners)), "invalid boot IO owner list")
+    balanced = [owners[i % len(owners)] for i in range(CONNECTIONS // 2)]
+    hot = owners[:2] if episode == "client-skew" else owners
+    return {"baseline-a": list(balanced), "baseline-b": list(balanced),
+            "cold": list(balanced), "hot": [hot[i % len(hot)] for i in range(CONNECTIONS // 2)]}
+
+
 def probe_verdict(result):
     if not result.get("measurement_valid"):
         return "FAIL", result.get("reason", "probe lacks valid telemetry/accounting")
@@ -867,18 +976,19 @@ def episode_row(result):
     if result.get("probe"):
         state = "UNARMED" if result["status"] == "REFUSED" else "ARMED" if result["status"] == "PASS" else "FAIL"
         row = f"LBPLANNER-EPISODE {episode} {mode} {arm} probe {state} "
-        row += f"hotmax={fmt(result.get('hotmax'))} shards={fmt(result.get('shards'))} "
+        row += f"hotmax={fmt(result.get('hotmax'))} shard_count={fmt(result.get('shards'))} "
         row += " ".join(f"{k}={fmt(result.get('deltas', {}).get(PREFIX + k))}" for k in
                         ("hysteresis_refused", "no_candidate", "hot_bucket_refused"))
     else:
         row = f"LBPLANNER-EPISODE {episode} {mode} {arm} r{result['round']} "
-        row += " ".join(f"{k}={fmt(result.get(k))}" for k in (
+        row += " ".join(f"{'shard_count' if k == 'shards' else k}={fmt(result.get(k))}" for k in (
             "t_converge", "key_moves", "client_moves", "gathers", "suffix_moves", "rate", "p99",
             "coord_busy", "shards", "hotmax", "envelope_return_t"))
     stall = result.get("stall") or {}
     row += " stall=" + ",".join(f"{k}:{fmt(stall.get(k))}" for k in STALL if k != "invalid")
     row += f" pending_ms={fmt(result.get('pending_ms'))} attempts={fmt(result.get('attempts'))}"
     row += f" baseline_client_moves={fmt(result.get('baseline_client_moves'))}"
+    row += f" baseline_decision_client_moves={fmt(result.get('baseline_decision_client_moves'))}"
     row += f" suffix_other={fmt(result.get('suffix_other_moves'))}"
     row += " spread=" + ",".join(f"{k}:{fmt(result.get('spread_' + k))}" for k in ("base", "peak", "end", "min"))
     reduction = result.get("reduction")
@@ -886,6 +996,10 @@ def episode_row(result):
     row += f" thrash_moves={fmt(result.get('thrash_moves'))}"
     if result.get("still_converging"):
         row += " (still converging)"
+    row += " " + " ".join(f"{label}={fmt(result.get(key))}" for label, key in
+                            zip(("moves", "returns", "exchanges", "shards"), OWNER_METRICS))
+    if episode == "key-skew":
+        row += f" refused={fmt(result.get('refused'))} escapes={fmt(result.get('escapes'))}"
     return row
 
 
@@ -900,12 +1014,15 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
               "probe": probe, "measurement_valid": False,
               "stall": None, "pending_ms": None, "attempts": None, "pass_limit": None,
               "seed_sha256": seed_record["sha256"], "criterion": criterion,
-              "status": "FAIL", "sampling_interval": INTERVAL, "commands": []}
+              "status": "FAIL", "sampling_interval": INTERVAL, "commands": [], "diagnostics": []}
     sampler = None
     try:
         with boot(args, arm, mode, directory, seed) as (conn, children, owners, identity):
             result["identity"] = identity
             result["shards"] = identity["shards"]
+            placement = cohort_owners(owners, episode)
+            result["cohort_owners"] = placement
+            result["cohort_owners_method"] = "requested connection index -> sorted boot IO owners, round robin; actual placements in baseline.owners and owners"
             require(identity["shards"] == seed_record["shards"],
                     f"shards={identity['shards']}, seed limit={seed_record['shards']}")
             require(key_mapping(conn, args.hotmax, identity["shards"]) == seed_record["hot_keys"],
@@ -916,12 +1033,13 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
                 processes = []
                 for label in ("baseline-a", "baseline-b"):
                     argv = load_command(args, directory, label, 1, KEYS,
-                                        args.warm + args.baseline + 3, owners=owners)
+                                        args.warm + args.baseline + 3, owners=placement[label])
                     result["commands"].append(argv)
                     processes.append(children.start(argv, directory / (label + ".log"), directory))
                 baseline_end = wait_loads(processes, sampler, args.warm + args.baseline + 63)
                 result["baseline"] = {"start": baseline_start, "end": baseline_end,
-                                      "owners": owner_evidence(directory, ("baseline-a", "baseline-b"), [owners, owners])}
+                                      "owners": owner_evidence(directory, ("baseline-a", "baseline-b"),
+                                                               [placement[k] for k in ("baseline-a", "baseline-b")])}
                 # Trim both connection setup and generator teardown. The last three seconds are
                 # guard time, not calibration evidence. No candidate run refits PRE limits.
                 balanced = [s for s in sampler.samples if
@@ -929,12 +1047,13 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
                 baseline_kind = ("client-skew" if args.episodes == "client-skew" else "key-skew") if calibration else episode
                 own_baseline = baseline_stationarity(balanced, None if calibration else criterion["shard_owners"], baseline_kind)
                 result["baseline_stationarity"] = own_baseline
-                for field in ("baseline_client_moves", "baseline_key_moves", "baseline_earlier_client_moves"):
+                for field in ("baseline_client_moves", "baseline_key_moves", "baseline_earlier_client_moves",
+                              "baseline_decision_client_moves"):
                     result[field] = own_baseline.get(field)
                 require(own_baseline["status"] == "PASS", own_baseline["reason"])
                 if calibration:
                     result["criterion"] = envelope(balanced, baseline_kind)
-                    result["status"] = "PASS"
+                    result.update(status="PASS", reason=own_baseline["reason"])
                 else:
                     result["baseline_in_envelope_fraction"] = sum(inside(s, criterion) for s in balanced) / len(balanced)
                     diagnostic = diagnostic_envelope(criterion, own_baseline["spread_maxima"])
@@ -944,7 +1063,7 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
                     result["stimulus_t"] = stimulus
                     result["baseline_to_stimulus_gap"] = stimulus - baseline_end
                     processes = []
-                    post_owners = [owners, owners[:2] if episode == "client-skew" else owners]
+                    post_owners = [placement[k] for k in ("cold", "hot")]
                     ranges = [(args.hotmax + 1, KEYS), (1, args.hotmax)] if episode == "key-skew" else [(1, KEYS)] * 2
                     duration = args.max_converge + DECISION_SECONDS + args.suffix + 3
                     for label, targets, (low, high) in zip(("cold", "hot"), post_owners, ranges):
@@ -977,17 +1096,24 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
     except Exception as error:
         if result["status"] == "FAIL" and result.get("reason"):
             result["teardown_error"] = str(error)
-            result["measurement_valid"] = False
-        else:
-            result.update(status="FAIL", reason=str(error), measurement_valid=False)
+        episode_failure(result, error, "teardown")
     finally:
+        # A rejected baseline never starts the stimulus. Missing owner evidence
+        # there is not a second finding, nor may it alter the baseline's cause.
+        if sampler is not None and result.get("baseline_stationarity", {}).get("status") == "PASS":
+            try:
+                result.update(owner_tracking(sampler.samples))
+            except ValueError as error:
+                result["owner_tracking_error"] = str(error)
+                result["owner_tracking"] = {"status": "FAIL", "reason": str(error)}
+                episode_failure(result, error, "owner_tracking")
         if probe:
             result["convergence_status"] = result["status"]
             result["convergence_reason"] = result.get("reason")
             result["status"], result["reason"] = probe_verdict(result)
         summary = result.get("baseline_stationarity", {}).get("summary", "")
-        if summary and summary not in result.get("reason", ""):
-            result["reason"] = result.get("reason", "complete") + "; " + summary
+        if summary:
+            result["diagnostics"].append({"source": "baseline_stationarity", "message": summary})
         directory.mkdir(parents=True, exist_ok=True)
         save_json(directory / "run.json", result)
     if not calibration:
@@ -1075,7 +1201,7 @@ def assess(results, episodes="both"):
     for post in (r for r in results if r["arm"] == "POST"):
         paired = {r["arm"]: r for r in results if all(r[k] == post[k] for k in ("episode", "mode", "round"))}
         pre = paired.get("PRE")
-        reasons, mix, spread_comparison = [], {}, None
+        reasons, mix, spread_comparison, owner_comparison = [], {}, None, {}
         if set(paired) != set(ARMS) or any(not admissible(r) for r in paired.values()):
             reasons.append("PRE, PAD-A or POST missing, lacks valid evidence, or failed required convergence checks")
         else:
@@ -1115,9 +1241,22 @@ def assess(results, episodes="both"):
                     continue
                 failures, mix[control] = compare_actuators(post, paired[control], alpha)
                 reasons.extend(failures)
+        # Cycles can be the cause of a convergence failure. Preserve their
+        # paired evidence even on failed traces, just as for actuator counters.
+        for control in ("PRE", "PAD-A"):
+            if control not in paired:
+                continue
+            owner_comparison[control] = {}
+            for key in OWNER_METRICS:
+                value, limit = post.get(key), paired[control].get(key)
+                owner_comparison[control][key] = {"POST": value, control: limit}
+                if value is None or limit is None:
+                    reasons.append(f"owner evidence missing: {key} POST={value}, {control}={limit}")
+                elif value > limit:
+                    reasons.append(f"POST {key}={value}, limit<={limit} ({control})")
         checks.append({"episode": post["episode"], "mode": post["mode"], "round": post["round"],
                        "status": "FAIL" if reasons else "PASS", "reasons": reasons, "actuator_mix": mix,
-                       "spread_comparison": spread_comparison})
+                       "spread_comparison": spread_comparison, "owner_comparison": owner_comparison})
     return {"status": "PASS" if complete and all(c["status"] == "PASS" for c in checks)
             and all(admissible(r) for r in results) else "FAIL", "checks": checks,
             "schedule_complete": complete,
@@ -1125,11 +1264,149 @@ def assess(results, episodes="both"):
                     "client-skew: POST spread_end <= paired PRE spread_end + the range of valid PRE spread_end rounds in the same mode; "
                     "completed moves, thrash_moves and t_converge are reported, continued spread improvement is balancing; "
                     "client controls need valid measurements, POST must improve without stalled-spread thrash; "
-                    "both: no aggregate/cohort rate or p99 loss, PRE/PAD-A actuator mix within binomial counting noise, PassLimit == PRE exactly; every paired round must pass",
+                    "both: POST observed shard_moves, returns, exchanges and distinct_shards <= PRE and <= PAD-A; "
+                    "no aggregate/cohort rate or p99 loss, PRE/PAD-A actuator mix within binomial counting noise, PassLimit == PRE exactly; every paired round must pass",
             "actuator_noise": {"method": "two-sided exact conditional binomial (Fisher), Bonferroni over scheduled comparisons",
                                "family_alpha": .05, "comparison_alpha": alpha},
             "pad_kind": "A: PRE behaviour with candidate text size/layout; diagnostic control, no placement claim without mainline null",
             "rate_tail_tolerance": "none; no arm-dependent or invented noise allowance"}
+
+
+def replay_episode(path, config, criteria):
+    """Recompute from saved telemetry without refitting PRE or trusting old scores."""
+    saved = json.loads(path.read_text())
+    # Copy only identity, placement receipts and workload measurements. In
+    # particular, missing telemetry must never print yesterday's thrash count
+    # as though it had been recomputed under today's rules.
+    fields = ("name", "episode", "mode", "arm", "round", "probe", "hotmax", "shards",
+              "hot_pipeline", "binary", "sha256", "arms_receipt", "seed_sha256",
+              "requested_shards", "baseline", "stimulus_t", "owners", "cohort_owners",
+              "rate", "p99", "loaders", "accounting", "p99_method", "coord_busy")
+    result = {k: saved[k] for k in fields if k in saved}
+    result.update(status="NA", measurement_valid=False, diagnostics=[],
+                  replay={"saved_status": saved.get("status"), "saved_reason": saved.get("reason"),
+                          "saved_measurement_valid": saved.get("measurement_valid", False),
+                          "measurement_source": "saved run.json rate/HDR/accounting; no new measurement",
+                          "missing": []})
+    if result["episode"] != "balanced" and result.get("stimulus_t") is None:
+        result["replay"]["missing"].append("post-stimulus evidence (no saved stimulus_t)")
+    telemetry = path.with_name("telemetry.jsonl")
+    if not telemetry.is_file():
+        result["replay"]["missing"].append(str(telemetry))
+        return dict(result, reason="missing telemetry.jsonl; current rules cannot be scored")
+    errors = []
+    try:
+        with telemetry.open() as stream:
+            samples = [json.loads(line) for line in stream]
+        result.update(owner_tracking(samples))
+    except (ValueError, KeyError, TypeError, OSError) as error:
+        return dict(result, status="FAIL", reason="invalid telemetry: " + str(error))
+    calibration = result["episode"] == "balanced"
+    kind = ("client-skew" if config.get("episodes") == "client-skew" else "key-skew") if calibration else result["episode"]
+    criterion = saved.get("criterion") or criteria.get(result["mode"])
+    result["criterion"] = criterion  # never re-fit a newly admissible calibration
+    needed = ("warm", "baseline") if calibration or result.get("stimulus_t") is None else (
+        "warm", "baseline", "max_converge", "suffix")
+    missing_config = [k for k in needed if k not in config]
+    if missing_config:
+        result["replay"]["missing"].append("manifest.json config: " + ", ".join(missing_config))
+        return dict(result, reason="missing saved configuration: " + ", ".join(missing_config))
+    if not calibration and criterion is None:
+        result["replay"]["missing"].append("frozen PRE criterion (run.json or criteria.json)")
+        return dict(result, reason="missing frozen PRE criterion; refusing to refit from another baseline")
+    try:
+        start = saved["baseline"]["start"] + config["warm"]
+        stop = start + config["baseline"]
+        balanced = [s for s in samples if start <= s["t"] <= stop]
+        require(balanced and balanced[0]["t"] - start <= .5 and stop - balanced[-1]["t"] <= .5,
+                "missing baseline endpoint coverage (limit<=0.5s)")
+        baseline = baseline_stationarity(balanced, None if calibration else criterion["shard_owners"], kind)
+        result["baseline_stationarity"] = baseline
+        for key in ("baseline_client_moves", "baseline_key_moves", "baseline_earlier_client_moves",
+                    "baseline_decision_client_moves"):
+            result[key] = baseline.get(key)
+        if baseline["status"] != "PASS":
+            errors.append(baseline["reason"])
+        if calibration:
+            return dict(result, status=baseline["status"], reason=baseline["reason"])
+        if result.get("stimulus_t") is None:
+            message = "no saved stimulus; baseline=" + baseline["status"]
+            if errors:
+                result["diagnostics"].append({"source": "replay", "message": message})
+            return dict(result, status="FAIL" if errors else "NA",
+                        reason=errors[0] if errors else message)
+        stimulus = result["stimulus_t"]
+        end = stimulus + config["max_converge"] + DECISION_SECONDS + config["suffix"]
+        diagnostic = diagnostic_envelope(criterion, baseline["spread_maxima"])
+        result["diagnostic_envelope"] = diagnostic
+        result.update(convergence(samples, stimulus, end, criterion, kind,
+                                  config["max_converge"], config["suffix"], diagnostic))
+        # Old convergence FAIL with valid accounting can be rescored. An old
+        # telemetry/accounting/teardown failure cannot silently become valid.
+        if not saved.get("measurement_valid") or any(saved.get(k) is None for k in
+                                                      ("accounting", "rate", "p99", "loaders")):
+            errors.append("saved workload measurement lacks valid accounting/telemetry evidence")
+        result["measurement_valid"] = not errors
+        if errors:
+            result["diagnostics"].extend({"source": "replay", "message": message}
+                                         for message in [*errors[1:], result["reason"]])
+            result.update(status="FAIL", reason=errors[0])
+    except (ValueError, KeyError, TypeError) as error:
+        if errors:
+            result.update(status="FAIL", reason=errors[0])
+        episode_failure(result, "replay scoring failed: " + str(error), "replay")
+    if result.get("probe"):
+        result["convergence_status"], result["convergence_reason"] = result["status"], result["reason"]
+        result["status"], result["reason"] = probe_verdict(result)
+    return result
+
+
+def replay(directory):
+    """Read-only campaign, episode, or archive collection replay; never boots."""
+    directory = directory.resolve()
+    require(directory.is_dir(), "replay directory missing: " + str(directory))
+    paths = sorted(directory.rglob("run.json"))
+    require(bool(paths), "replay has no run.json files: " + str(directory))
+    campaigns = {}
+    for path in paths:
+        campaign = path.parent.parent
+        if campaign not in campaigns:
+            metadata = {}
+            for name in ("manifest", "criteria"):
+                source = campaign / (name + ".json")
+                metadata[name] = json.loads(source.read_text()) if source.is_file() else {}
+            campaigns[campaign] = dict(metadata, results=[])
+        data = campaigns[campaign]
+        result = replay_episode(path, data["manifest"].get("config", {}), data["criteria"])
+        data["results"].append(result)
+        if result["episode"] != "balanced":
+            print(episode_row(result))
+        baseline = result.get("baseline_stationarity", {}).get("status", "NA")
+        print(f"LBPLANNER-REPLAY {path.parent.name} {result['status']} baseline={baseline} "
+              f"saved={result['replay']['saved_status']}: {result['reason']}")
+        for missing in result["replay"]["missing"]:
+            print(f"LBPLANNER-REPLAY-MISSING {path.parent.name}: {missing}")
+    reports = []
+    for campaign, data in campaigns.items():
+        results = [r for r in data["results"] if r["episode"] != "balanced" and not r.get("probe")]
+        kinds = {r["episode"] for r in results}
+        episodes = data["manifest"].get("config", {}).get("episodes") or (
+            next(iter(kinds)) if len(kinds) == 1 else "both")
+        present = {(r["arm"], r["mode"], r["episode"], r["round"]) for r in results}
+        missing = [f"{e}-{m}-{a}-r{n}/run.json" for a, m, e, n in schedule(episodes)
+                   if (a, m, e, n) not in present]
+        for name in missing:
+            print(f"LBPLANNER-REPLAY-MISSING {campaign / name}")
+        report = assess(results, episodes)
+        for check in report["checks"]:
+            print(f"LBPLANNER-REPLAY-PAIR {check['episode']} {check['mode']} r{check['round']} "
+                  f"{check['status']}: " + ("; ".join(check["reasons"]) or "all paired rules passed"))
+        print(f"LBPLANNER-REPLAY-VERDICT {campaign} {report['status']} "
+              f"schedule_complete={report['schedule_complete']}; saved rate/HDR, current telemetry rules")
+        reports.append({"directory": str(campaign), "results": data["results"], "report": report,
+                        "missing_runs": missing})
+    return {"status": "PASS" if all(r["report"]["status"] == "PASS" for r in reports) else "FAIL",
+            "campaigns": reports}
 
 
 def dry_run(args):
@@ -1151,7 +1428,7 @@ def dry_run(args):
         command(server_command(args, arm, mode, directory))
         print("# RESP: INFO SERVER (owned PID); DEBUG SHARDS; INFO LB + DEBUG LBSIGNALS every 100 ms")
         print("# Selector RESP per connection attempt: DEBUG IO-THREAD (<=512 fresh sockets); actual IO IDs come from boot")
-        print("# Owner placeholders expand to comma-separated sorted DEBUG LBSIGNALS IO/fused IDs; EX IDs are excluded")
+        print("# Owner placeholders expand to 64 round-robin slots over sorted DEBUG LBSIGNALS IO/fused IDs; EX IDs are excluded")
         for label in ("baseline-a", "baseline-b"):
             command(load_command(args, directory, label, 1, KEYS, args.warm + args.baseline + 3, owners=owners))
         if episode != "balanced":
@@ -1198,6 +1475,8 @@ def argument_parser():
     action = parser.add_mutually_exclusive_group()
     action.add_argument("--self-test", action="store_true")
     action.add_argument("--dry-run", action="store_true")
+    action.add_argument("--replay", type=Path, metavar="RUNDIR",
+                        help="read-only rescore of saved run.json/telemetry.jsonl; uses saved configuration and frozen PRE criteria")
     parser.add_argument("--output", type=Path, default=ROOT / "build/lbplanner-episodes")
     parser.add_argument("--memtier", default="memtier_benchmark")
     parser.add_argument("--port", type=int, default=7931)
@@ -1221,6 +1500,8 @@ def main(argv=None):
     args = argument_parser().parse_args(argv)
     if args.self_test:
         return 0 if unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(SelfTest)).wasSuccessful() else 1
+    if args.replay is not None:
+        return 0 if replay(args.replay)["status"] == "PASS" else 1
     args.output = args.output.resolve()
     require(args.warm >= 30 and args.baseline >= 12, "keep warm >=30 s and baseline >=12 s")
     require(args.max_converge >= DECISION_SECONDS and args.suffix >= DECISION_SECONDS,
@@ -1545,6 +1826,7 @@ class SelfTest(unittest.TestCase):
     def test_comparison_cannot_hide_one_bad_metric(self):
         results = [dict(arm=a, mode=m, episode=e, round=r, status="PASS", t_converge=4,
                         key_moves=2, client_moves=3, total_moves=5, suffix_moves=0, suffix_other_moves=0,
+                        shard_moves=2, returns=0, exchanges=0, distinct_shards=2,
                         spread_end=100, rate=100, p99=1,
                         stall={k: 0 for k in STALL}, attempts=3, pass_limit=0)
                    for a, m, e, r in schedule()]
@@ -1562,7 +1844,8 @@ class SelfTest(unittest.TestCase):
         diagnostic = diagnostic_envelope(criterion, baseline["spread_maxima"])
         self.assertEqual(diagnostic["upper"][SPREADS[0]], 1.2)
         self.assertEqual(criterion["upper"][SPREADS[0]], 1)
-        self.assertIn(SPREADS[0] + "=1.2", baseline["reason"])
+        self.assertIn(SPREADS[0] + "=1.2", baseline["summary"])
+        self.assertNotIn("balanced maxima", baseline["reason"])
 
     def test_baseline_raw_samples_and_last_window(self):
         samples = [self.sample(i / 10) for i in range(130)]
@@ -1660,9 +1943,282 @@ class SelfTest(unittest.TestCase):
         self.assertIsNone(result["reduction"])
         json.dumps(result, allow_nan=False)
 
+    def test_cumulative_thrash_survives_late_drop(self):
+        trace = [self.sample(i / 10, spread=10 if i <= 140 else 200 if i < 440 else 80,
+                             key=sum(i >= t for t in (180, 240, 270, 330, 420)), gathers=int(i >= 170))
+                 for i in range(601)]
+        result = convergence(trace, 14, 60, self.criterion(), "key-skew", 40, 3)
+        self.assertEqual(result["milestone_moves"], 0)  # old definition erased all five moves
+        self.assertEqual(result["thrash_moves"], 5)
+        self.assertEqual(sum(w["required_moves"] for w in result["thrash_windows"]), result["key_moves"])
+        early = convergence(trace, 14, 44, self.criterion(), "key-skew", 40, 3)
+        self.assertEqual(early["thrash_moves"], result["thrash_moves"])
+        for sample in trace:
+            sample["info"][CLIENT], sample["info"][KEY] = sample["info"][KEY], 0
+        client = convergence(trace, 14, 60, self.criterion(), "client-skew", 40, 3)
+        self.assertEqual(client["thrash_moves"], 5)
+        self.assertEqual(client["status"], "FAIL")
+        self.assertIn("spread stopped falling", client["reason"])
+
+    def test_thrash_uses_running_best_and_counts_windows_once(self):
+        trace = [self.sample(i / 10, spread=100 if i <= 140 else
+                             200 if i <= 200 else 190 if i <= 230 else 185,
+                             key=int(i >= 220) + int(i >= 250), gathers=int(i >= 170))
+                 for i in range(261)]
+        result = convergence(trace, 14, 26, self.criterion(), "key-skew", 40, 3)
+        self.assertEqual(result["thrash_moves"], 1)  # 200 -> 190 passes exactly 5%; 190 -> 185 does not
+        self.assertEqual(sum(w["required_moves"] for w in result["thrash_windows"]), 2)
+        trace.extend(self.sample(i / 10, spread=185, key=3, gathers=1) for i in range(261, 271))
+        result = convergence(trace, 14, 27, self.criterion(), "key-skew", 40, 3)
+        self.assertEqual(result["thrash_moves"], 2)  # partial final window is charged, once
+
+    def test_owner_tracking_three_cycle_and_exchange(self):
+        samples = [self.sample(i / 10) for i in range(5)]
+        for sample, owner in zip(samples, (0, 1, 2, 0, 1)):
+            sample["signals"]["shards"][0]["owner"] = owner
+        result = owner_tracking(samples)
+        self.assertEqual([result[k] for k in OWNER_METRICS], [4, 2, 0, 1])
+        # Two shards in each direction count as one exchange of this owner pair.
+        samples = [self.sample(i / 10) for i in range(3)]
+        for sample, owners in zip(samples, ((0, 0, 1, 1), (1, 1, 0, 0), (0, 0, 1, 1))):
+            sample["signals"]["shards"] = {str(i): {"owner": owner} for i, owner in enumerate(owners)}
+        result = owner_tracking(samples)
+        self.assertEqual([result[k] for k in OWNER_METRICS], [8, 4, 2, 4])
+        samples[-1]["signals"]["shards"].pop("0")
+        with self.assertRaisesRegex(ValueError, "shard map"):
+            owner_tracking(samples)
+
+    def test_owner_tracking_requires_same_sample_window_for_exchange(self):
+        samples = [self.sample(i / 10) for i in range(3)]
+        for sample, owners in zip(samples, ((0, 1), (1, 1), (1, 0))):
+            sample["signals"]["shards"] = {i: {"owner": owner} for i, owner in enumerate(owners)}
+        self.assertEqual(owner_tracking(samples)["exchanges"], 0)
+        samples[-1]["t"] = 2
+        with self.assertRaisesRegex(ValueError, "telemetry gap"):
+            owner_tracking(samples)
+        with self.assertRaisesRegex(ValueError, "missing telemetry"):
+            owner_tracking([])
+
+    def test_client_baseline_one_final_move_requires_full_idle_window(self):
+        samples = [self.sample(i / 10, client=int(i >= 570)) for i in range(601)]
+        result = baseline_stationarity(samples, episode="client-skew")
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["baseline_decision_client_moves"], 1)
+        self.assertEqual(result["baseline_earlier_client_moves"], 0)
+        row = episode_row(dict(result, episode="client-skew", mode="2s", arm="POST", round=1))
+        self.assertIn(" baseline_decision_client_moves=1 ", row)
+        # An active plan outside the final 3s but inside the last nine ticks fails.
+        samples[540]["info"][STAGE] = 1
+        self.assertEqual(baseline_stationarity(samples, episode="client-skew")["status"], "FAIL")
+        samples[540]["info"][STAGE] = 0
+        samples[-1]["info"][CLIENT] = 2
+        self.assertEqual(baseline_stationarity(samples, episode="client-skew")["status"], "FAIL")
+        samples[-1]["info"][CLIENT] = 1
+        samples[-1]["info"][KEY] = 1
+        self.assertEqual(baseline_stationarity(samples, episode="client-skew")["status"], "FAIL")
+        samples[-1]["info"][KEY] = 0
+        self.assertEqual(baseline_stationarity(samples[100:], episode="client-skew")["status"], "FAIL")
+
+    def test_optional_history_counters_absence_deltas_and_reset(self):
+        samples = self.trace()
+        self.assertEqual(history_deltas(samples)["refused"], None)
+        for s in samples:
+            for index, key in enumerate(HISTORY_COUNTERS):
+                s["info"][key] = str(10 + index * int(s["t"]))  # old samplers saved optional fields as strings
+        result = convergence(samples, 14, 40, self.criterion(), "key-skew", 20, 3)
+        self.assertEqual(list(result["history_counters"].values()), [0, 26, 52, 78])
+        self.assertEqual((result["refused"], result["escapes"]), (0, 78))
+        row = episode_row(dict(result, episode="key-skew", mode="1s", arm="POST", round=1))
+        self.assertTrue(row.endswith(" refused=0 escapes=78"))
+        del samples[200]["info"][HISTORY_COUNTERS[1]]
+        self.assertIsNone(history_deltas(samples)["history_counters"][HISTORY_COUNTERS[1]])
+        samples[-1]["info"][HISTORY_COUNTERS[0]] = 0
+        with self.assertRaisesRegex(ValueError, "counter reset"):
+            history_deltas(samples)
+        raw = b"tomokv_keylb_enabled:1\ntomokv_clientlb_enabled:1\n" + b"".join(
+            f"{k}:1\n".encode() for k in (*FIELDS, *HISTORY_COUNTERS))
+        self.assertEqual(parse_info(raw)[HISTORY_COUNTERS[0]], 1)
+        with self.assertRaises(ValueError):
+            parse_info(raw.replace((HISTORY_COUNTERS[0] + ":1").encode(), (HISTORY_COUNTERS[0] + ":-1").encode()))
+
+    def test_balanced_cohort_placement_is_explicit_and_verified(self):
+        import tempfile
+        owners = [0, 1, 2, 3, 8, 9, 10, 11]
+        plan = cohort_owners(list(reversed(owners)), "client-skew")
+        self.assertEqual(plan["baseline-a"], owners * 8)
+        self.assertEqual(plan["baseline-b"], plan["cold"])
+        self.assertEqual(plan["hot"], [0, 1] * 32)
+        with tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+            directory = Path(temp)
+            args = argument_parser().parse_args(["--output", temp])
+            for label, targets in plan.items():
+                argv = load_command(args, directory, label, 1, KEYS, 93, owners=targets)
+                self.assertIn("LB_EPISODE_OWNERS=" + ",".join(map(str, targets)), argv)
+                self.assertIn("LD_PRELOAD=" + str(directory / "owner-select.so"), argv)
+                path = directory / (label + ".owners.jsonl")
+                path.write_text("".join(json.dumps({"index": i, "owner": owner}) + "\n"
+                                        for i, owner in reversed(list(enumerate(targets)))))
+            self.assertEqual(set(owner_evidence(directory, plan, list(plan.values()))), set(plan))
+            path.write_text(path.read_text().replace('"owner": 0', '"owner": 8', 1))
+            with self.assertRaisesRegex(ValueError, "requested owners"):
+                owner_evidence(directory, plan, list(plan.values()))
+
+    def test_owner_comparison_requires_both_controls_and_every_metric(self):
+        results = [dict(arm=a, mode=m, episode=e, round=r, status="PASS", t_converge=4,
+                        key_moves=2, client_moves=3, suffix_moves=0, suffix_other_moves=0,
+                        shard_moves=2, returns=1, exchanges=1, distinct_shards=2,
+                        spread_end=100, rate=100, p99=1, stall={k: 0 for k in STALL},
+                        attempts=3, pass_limit=0) for a, m, e, r in schedule()]
+        self.assertEqual(assess(results)["status"], "PASS")
+        for control in (results[0], results[1], results[18], results[19]):
+            for metric in OWNER_METRICS:
+                with self.subTest(control=control["arm"], metric=metric):
+                    control[metric] -= 1
+                    report = assess(results)
+                    self.assertEqual(report["status"], "FAIL")
+                    check = next(c for c in report["checks"] if all(c[k] == control[k]
+                                 for k in ("episode", "mode", "round")))
+                    self.assertTrue(any(metric in reason and control["arm"] in reason
+                                        for reason in check["reasons"]))
+                    control[metric] += 1
+        del results[0]["returns"]
+        self.assertEqual(assess(results)["status"], "FAIL")
+
+    def replay_fixture(self, directory):
+        config = {"episodes": "key-skew", "warm": 0, "baseline": 12, "max_converge": 20, "suffix": 3}
+        criterion = self.criterion()
+        save_json(directory / "manifest.json", {"config": config})
+        save_json(directory / "criteria.json", {m: criterion for m in ("1s", "2s")})
+        samples = self.trace(end=42)
+        for s in samples:
+            s["signals"]["shards"][0]["owner"] = int(18 <= s["t"] < 41)
+        saved = {"status": "FAIL", "reason": "old scoring", "measurement_valid": True,
+                 "baseline": {"start": 0, "end": 13}, "stimulus_t": 14,
+                 "criterion": criterion, "thrash_moves": 999, "shards": 1,
+                 "rate": 200, "p99": 1, "coord_busy": 80,
+                 "loaders": [{"rate": 100, "p99": 1}] * 2,
+                 "accounting": {"commands": {"SET": {"server_calls": 200, "completed_hdr_count": 200,
+                                                       "memtier_count": 200}}}}
+        telemetry = "".join(json.dumps(s) + "\n" for s in samples)
+        for arm, mode, episode, number in schedule("key-skew"):
+            name = f"{episode}-{mode}-{arm}-r{number}"
+            run = directory / name
+            run.mkdir()
+            save_json(run / "run.json", dict(saved, name=name, arm=arm, mode=mode, episode=episode, round=number))
+            (run / "telemetry.jsonl").write_text(telemetry)
+        return config, criterion
+
+    def test_replay_is_read_only_and_needs_no_live_tools(self):
+        from contextlib import redirect_stdout
+        import io
+        import tempfile
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+            directory = Path(temp)
+            self.replay_fixture(directory)
+            before = {str(p): (digest(p), p.stat().st_mtime_ns) for p in directory.rglob("*") if p.is_file()}
+            output = io.StringIO()
+            with patch.object(subprocess, "Popen", side_effect=AssertionError("spawned process")), \
+                    patch.object(subprocess, "run", side_effect=AssertionError("ran process")), \
+                    patch.object(socket, "socket", side_effect=AssertionError("opened socket")), \
+                    patch.object(Path, "write_text", side_effect=AssertionError("wrote file")), \
+                    patch.object(Path, "write_bytes", side_effect=AssertionError("wrote file")), \
+                    patch.object(Path, "mkdir", side_effect=AssertionError("created directory")), \
+                    patch(__name__ + ".bind_arms", side_effect=AssertionError("bound live arms")), \
+                    patch(__name__ + ".save_json", side_effect=AssertionError("saved output")), \
+                    patch.object(os, "sched_setaffinity", side_effect=AssertionError("changed affinity")), \
+                    redirect_stdout(output):
+                code = main(["--replay", str(directory), "--arms", "/missing/arms.json", "--output", "/unused"])
+            self.assertEqual(code, 0)
+            self.assertEqual(before, {str(p): (digest(p), p.stat().st_mtime_ns)
+                                      for p in directory.rglob("*") if p.is_file()})
+            rows = [r for r in output.getvalue().splitlines() if r.startswith("LBPLANNER-EPISODE ")]
+            self.assertEqual(len(rows), 18)
+            self.assertTrue(all("thrash_moves=0 " in r and " moves=2 returns=1 exchanges=0 shards=1" in r for r in rows))
+            self.assertTrue(all(" refused=NA escapes=NA" in r for r in rows))
+
+    def test_replay_missing_telemetry_clears_old_scores_and_reports_missing_runs(self):
+        from contextlib import redirect_stdout
+        import io
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+            directory = Path(temp)
+            config, criterion = self.replay_fixture(directory)
+            run = directory / "key-skew-1s-POST-r1"
+            (run / "telemetry.jsonl").unlink()
+            result = replay_episode(run / "run.json", config, {"1s": criterion})
+            self.assertEqual(result["status"], "NA")
+            self.assertFalse(result["measurement_valid"])
+            self.assertNotIn("thrash_moves", result)
+            self.assertIn("thrash_moves=NA", episode_row(result))
+            output = io.StringIO()
+            with redirect_stdout(output):
+                report = replay(run)  # a single episode also works, without inventing its missing pairs
+            self.assertEqual(report["status"], "FAIL")
+            self.assertIn("missing telemetry.jsonl", output.getvalue())
+            self.assertIn("key-skew-1s-PRE-r1/run.json", output.getvalue())
+
+    def test_replay_uses_saved_frozen_criterion_and_valid_accounting(self):
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+            directory = Path(temp)
+            config, criterion = self.replay_fixture(directory)
+            path = directory / "key-skew-1s-POST-r1" / "run.json"
+            saved = json.loads(path.read_text())
+            saved["measurement_valid"] = False
+            save_json(path, saved)
+            result = replay_episode(path, config, {})
+            self.assertEqual(result["status"], "FAIL")
+            self.assertEqual(result["reason"], "saved workload measurement lacks valid accounting/telemetry evidence")
+            self.assertEqual(result["diagnostics"], [{"source": "replay", "message":
+                "last required move followed by a complete quiescent suffix"}])
+            saved["measurement_valid"] = True
+            save_json(path, saved)
+            samples = [json.loads(s) for s in path.with_name("telemetry.jsonl").read_text().splitlines()]
+            samples[390]["info"][SPREADS[0]] = 5
+            path.with_name("telemetry.jsonl").write_text("".join(json.dumps(s) + "\n" for s in samples))
+            wide = dict(criterion, upper={k: 1000 for k in SPREADS})
+            result = replay_episode(path, config, {"1s": wide})
+            self.assertEqual(result["status"], "FAIL")
+            self.assertIn("post-move rebound", result["reason"])
+            self.assertEqual(result["criterion"]["upper"][SPREADS[0]], 1)
+            result = replay_episode(path, {}, {})
+            self.assertEqual(result["status"], "NA")
+            self.assertIn("missing saved configuration", result["reason"])
+            self.assertEqual(result["shard_moves"], 2)  # owner evidence survives missing scoring metadata
+            saved["measurement_valid"] = False
+            save_json(path, saved)
+            result = replay_episode(path, config, {})
+            self.assertEqual(result["reason"], "saved workload measurement lacks valid accounting/telemetry evidence")
+            self.assertIn("post-move rebound", result["diagnostics"][0]["message"])
+
+    def test_replay_newly_admissible_baseline_cannot_invent_stimulus(self):
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+            directory = Path(temp)
+            path = directory / "run.json"
+            samples = [self.sample(i / 10, client=int(i >= 570)) for i in range(601)]
+            save_json(path, {"episode": "client-skew", "mode": "2s", "arm": "POST", "round": 1,
+                             "status": "FAIL", "baseline": {"start": 0}, "criterion": self.criterion()})
+            path.with_name("telemetry.jsonl").write_text("".join(json.dumps(s) + "\n" for s in samples))
+            result = replay_episode(path, {"episodes": "client-skew", "warm": 0, "baseline": 60}, {})
+            self.assertEqual(result["status"], "NA")
+            self.assertEqual(result["baseline_stationarity"]["status"], "PASS")
+            self.assertEqual(result["baseline_decision_client_moves"], 1)
+            self.assertIn("no saved stimulus", result["reason"])
+            self.assertNotIn("t_converge", result)
+            self.assertFalse(result["measurement_valid"])
+            for sample in samples[500:]:
+                sample["info"][KEY] = 1
+            path.with_name("telemetry.jsonl").write_text("".join(json.dumps(s) + "\n" for s in samples))
+            result = replay_episode(path, {"episodes": "client-skew", "warm": 0, "baseline": 60}, {})
+            self.assertEqual(result["reason"], "balanced key_moves=1, limit=0 (placement changed)")
+            self.assertEqual(result["diagnostics"], [{"source": "replay", "message": "no saved stimulus; baseline=FAIL"}])
+
     def test_paired_client_spread_uses_pre_round_range_not_move_count(self):
         results = [dict(arm=a, mode=m, episode=e, round=r, status="PASS", t_converge=4,
                         key_moves=0, client_moves=3, total_moves=3, suffix_moves=0, suffix_other_moves=0,
+                        shard_moves=0, returns=0, exchanges=0, distinct_shards=0,
                         spread_end=100 + r, rate=100, p99=1, stall={k: 0 for k in STALL},
                         attempts=30, pass_limit=0) for a, m, e, r in schedule("client-skew")]
         post = results[2]
@@ -1705,6 +2261,8 @@ class SelfTest(unittest.TestCase):
         self.assertEqual(events, ["join", "teardown"])
         self.assertEqual(result["reason"], "balanced key_moves=1, limit=0")
         self.assertIn("Connection reset", result["sampler_error"])
+        self.assertEqual(result["diagnostics"], [{"source": "sampler", "message":
+            "sampler failed: Connection reset by peer"}])
         sampler.close.assert_called_once()
         # A live sampling failure still invalidates an otherwise passing run.
         result = {"status": "PASS", "measurement_valid": True}
@@ -1714,6 +2272,77 @@ class SelfTest(unittest.TestCase):
         self.assertEqual(result["status"], "FAIL")
         self.assertEqual(result["reason"], "sampler failed: live failure")
         self.assertFalse(result["measurement_valid"])
+        # A workload/accounting error after a convergence rejection is also
+        # secondary, even when closing the sampler fails independently.
+        result = {"status": "FAIL", "reason": "convergence rejected", "measurement_valid": True}
+        with sampled_episode(sampler, result):
+            raise ValueError("accounting failed")
+        self.assertEqual(result["reason"], "convergence rejected")
+        self.assertEqual(result["diagnostics"], [
+            {"source": "episode", "message": "accounting failed"},
+            {"source": "sampler", "message": "sampler failed: live failure"}])
+        self.assertFalse(result["measurement_valid"])
+
+    def test_run_episode_missing_owners_preserves_primary_failure(self):
+        from contextlib import redirect_stdout
+        import io
+        import tempfile
+        from unittest.mock import Mock, patch
+        cases = ((False, None, None), (False, "monitor failed", "teardown failed"),
+                 (True, None, None), (True, "monitor failed", "teardown failed"))
+        for baseline_pass, monitor_error, teardown_error in cases:
+            with self.subTest(baseline_pass=baseline_pass, monitor_error=monitor_error), \
+                    tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+                sampler = Mock(samples=[])
+                if monitor_error:
+                    sampler.close.side_effect = ValueError(monitor_error)
+                @contextmanager
+                def fake_boot(*args):
+                    yield Mock(), Mock(), [0], {"shards": 1, "process_id": 123}
+                    if teardown_error:
+                        raise ValueError(teardown_error)
+                baseline = {"status": "PASS" if baseline_pass else "FAIL",
+                            "reason": "baseline stationary" if baseline_pass else
+                                      "balanced total_moves=1, limit=0 (key=0, client=1)",
+                            "summary": "balanced maxima (reported only): test summary"}
+                args = argument_parser().parse_args(["--output", temp])
+                with patch(__name__ + ".boot", side_effect=fake_boot), \
+                        patch(__name__ + ".Sampler", return_value=sampler), \
+                        patch(__name__ + ".key_mapping", return_value=[]), \
+                        patch(__name__ + ".wait_loads", return_value=1), \
+                        patch(__name__ + ".owner_evidence", return_value={}), \
+                        patch(__name__ + ".baseline_stationarity", return_value=baseline), \
+                        patch(__name__ + ".envelope", return_value={}), \
+                        patch(__name__ + ".owner_tracking", wraps=owner_tracking) as tracking, \
+                        patch.object(subprocess, "Popen", side_effect=AssertionError("started process")), \
+                        patch.object(socket, "socket", side_effect=AssertionError("opened socket")), \
+                        redirect_stdout(io.StringIO()):
+                    result = run_episode(args, "PRE", "2s", "balanced", 1, None,
+                                         {"sha256": "test", "shards": 1, "hot_keys": []})
+                missing = "owner tracking: missing telemetry"
+                primary = baseline["reason"] if not baseline_pass else monitor_error or missing
+                self.assertEqual(result["status"], "FAIL")
+                self.assertEqual(result["reason"], primary)
+                self.assertFalse(result["measurement_valid"])
+                diagnostics = []
+                if monitor_error and not baseline_pass:
+                    diagnostics.append({"source": "sampler", "message": monitor_error})
+                if teardown_error:
+                    diagnostics.append({"source": "teardown", "message": teardown_error})
+                if baseline_pass:
+                    tracking.assert_called_once_with([])
+                    self.assertEqual(result["owner_tracking"], {"status": "FAIL", "reason": missing})
+                    if monitor_error:
+                        diagnostics.append({"source": "owner_tracking", "message": missing})
+                else:
+                    tracking.assert_not_called()
+                    self.assertNotIn("owner_tracking", result)
+                    self.assertNotIn("owner_tracking_error", result)
+                diagnostics.append({"source": "baseline_stationarity", "message": baseline["summary"]})
+                self.assertEqual(result["diagnostics"], diagnostics)
+                saved = json.loads((args.output / result["name"] / "run.json").read_text())
+                self.assertEqual(saved["reason"], primary)
+                self.assertEqual(saved["diagnostics"], diagnostics)
 
     def test_run_episode_baseline_failure_stops_sampler_inside_boot(self):
         from contextlib import redirect_stdout
@@ -1745,9 +2374,17 @@ class SelfTest(unittest.TestCase):
                 result = run_episode(args, "PRE", "1s", "key-skew", 1, None,
                                      {"sha256": "test", "shards": 1, "hot_keys": []}, self.criterion())
             self.assertEqual(result["status"], "FAIL")
-            self.assertIn("balanced key_moves=1", result["reason"])
+            self.assertEqual(result["reason"], "balanced key_moves=1, limit=0 (placement changed)")
+            self.assertNotIn("owner_tracking", result)
+            self.assertEqual(result["diagnostics"], [{"source": "baseline_stationarity", "message":
+                result["baseline_stationarity"]["summary"]}])
             self.assertFalse(result["measurement_valid"])
             self.assertEqual(events, ["join", "teardown"])
+            saved = json.loads((args.output / result["name"] / "run.json").read_text())
+            self.assertEqual(saved["cohort_owners"]["baseline-a"], [0] * 64)
+            self.assertEqual(saved["cohort_owners"]["baseline-b"], [0] * 64)
+            self.assertTrue(all("LB_EPISODE_OWNERS=" + ",".join(["0"] * 64) in argv
+                                for argv in saved["commands"]))
 
     def test_last_required_move_and_three_real_ticks(self):
         trace = self.trace()
@@ -1783,7 +2420,7 @@ class SelfTest(unittest.TestCase):
         result["status"], result["reason"] = probe_verdict(result)
         self.assertEqual(result["status"], "REFUSED")
         self.assertTrue(episode_row(result).startswith(
-            "LBPLANNER-EPISODE key-skew 1s PRE probe UNARMED hotmax=2000 shards=128 "
+            "LBPLANNER-EPISODE key-skew 1s PRE probe UNARMED hotmax=2000 shard_count=128 "
             "hysteresis_refused=0 no_candidate=0 hot_bucket_refused=0"))
         result["measurement_valid"] = False
         self.assertEqual(probe_verdict(result)[0], "FAIL")
