@@ -1030,6 +1030,13 @@ public:
     }
     Client* wb_slot_client(uint32_t s) { return s < slots_.size() ? slots_[s] : nullptr; }
 
+    // Exact sender-private high-water word. Assignment alone grows slots_; reserve changes
+    // capacity, and release/reuse never shrink the high water. Thus even a late notification
+    // for a released slot is drained, while no producer can name a word above this bound.
+    uint32_t wb_slot_words() const {
+        return static_cast<uint32_t>((slots_.size() + 63) / 64);
+    }
+
     ReadyMask& ready() { return ready_; }
 
     // Producer side of the park protocol: called by whoever performed the empty->flagged transition

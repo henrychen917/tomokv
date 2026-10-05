@@ -26,6 +26,8 @@ The executable-only column excludes shared-library instructions (allocator and l
 | IO3 (executable only) | 284 → 286 | 37445 → 37255 | 1545 → 1540 | 7751 → 7732 |
 | IO4 (all instructions) | 286 → 285 | 73296 → 73295 | 11921 → 11920 | 29887 → 29886 |
 | IO4 (executable only) | 286 → 285 | 37255 → 37254 | 1540 → 1539 | 7732 → 7731 |
+| IO6 (all instructions) | 285 → 146 | 73295 → 73178 | 11920 → 11803 | 29886 → 29769 |
+| IO6 (executable only) | 285 → 146 | 37254 → 37137 | 1539 → 1422 | 7731 → 7614 |
 
 Receipts include exact PCs and visit counts in `docs/iopass/*.sites.json.gz`, with
 totals and decoded shared-load sites in the corresponding JSON. Correctness cases
@@ -116,6 +118,27 @@ an active snapshot binding, and clearing AOF binding on deactivation.
 Risk: any future snapshot-start bypass must arm the same private binding. The
 existing common start is the sole selection point; live BGSAVE/AOF gate coverage
 remains required on mainline.
+
+## IO6: assigned-slot high water
+
+`wb_slot_words()` derives `ceil(slots_.size()/64)` from the sender-private table.
+Assignment is the only operation that grows that size. Reserve changes capacity,
+and release/reuse preserve the high water. This is an exact bound maintained by
+the existing assignment path, with no second counter that could get out of sync.
+The completion drain computes it **after** inbound adoption, so a just-assigned
+slot is included. The maximum and channel fallback are unchanged.
+
+Zero assigned slots: 16 → 0 ready-word loads, removing both 64-byte ready-mask
+lines. 1–64 assigned slots (including GET32): 16 → 1 loads, removing one of the
+two lines. At 1024 assigned slots the scan is unchanged. A thread that once reached
+that high water continues scanning all words after churn; it never hides a late
+notification by shrinking the bound. `ReadyMask::any`, queue-depth park rechecks,
+and mask-independent completion sweeps remain intact.
+
+`IO6-checks.log` covers zero allocation/slots, reserve without assignment, every
+assignment through 1024 including each 64-bit boundary, full-table channel fallback,
+release, a late bit for a released slot, reuse, and the unmasked sweep. No new field
+or layout change. Mainline's 2048-connection cell must confirm the full-bound regime.
 
 ## Artifacts and requested mainline measurement
 

@@ -50,6 +50,8 @@ static void run_iopass(const std::string& which) {
         flip_fences(fresh);
         Fixture writer(false);
         writer_fences(writer);
+        Fixture slots(false);
+        slot_bounds(slots);
         return;
     }
 #endif
@@ -226,5 +228,46 @@ template<class F> static void writer_fences(F& f) {
                     io.self_->snapshot_writer_bound(), "a later epoch rearms the writer");
         require(!io.snapshot_writer_bound(), "failed-before-broadcast epoch can disarm at Idle");
         std::puts("PASS IO4 disabled/AOF election/sticky role binding/standalone snapshot/cancellation/rearm");
+    }
+}
+
+template<class F> static void slot_bounds(F& f) {
+    if constexpr (requires { f.io.self_->wb_slot_words(); }) {
+        auto& io = f.io;
+        auto& thread = *io.self_;
+        Client marker(-1);
+        require(thread.wb_slot_words() == 0, "no slots means no ready-mask words");
+        require(thread.reserve_wb_slots(ReadyMask::kSlots) && thread.wb_slot_words() == 0,
+                "reservation alone never raises assigned high water");
+        for (uint32_t slot = 0; slot < ReadyMask::kSlots; ++slot) {
+            require(thread.assign_wb_slot(&marker) == slot, "monotonic fresh slot assignment");
+            require(thread.wb_slot_words() == (slot + 64) / 64,
+                    "word high water is exact at every assignment including 63/64");
+            if (slot == 0 || (slot & 63) == 63 || (slot & 63) == 0) {
+                thread.ready().set(slot);
+                require(io.template collect_retire_work<false, false>() == 1 && !thread.ready().any(),
+                        "new high-word completion is drained on the next pass");
+            }
+        }
+        require(thread.assign_wb_slot(&marker) == ThreadCtx::kNoWbSlot,
+                "full table retains channel fallback sentinel");
+        Client overflow(-1);
+        overflow.retire_queued().store(true);
+        require(thread.post_client(f.source, &overflow, io.ring_, thread.sig()),
+                "full-table fallback actually posts a retirement message");
+        require(io.template collect_retire_work<false, false>(true) == 1 &&
+                    !overflow.retire_queued().load(),
+                "unmasked channel fallback still drains at maximum slot high water");
+        for (uint32_t slot = 0; slot < ReadyMask::kSlots; ++slot) thread.release_wb_slot(slot);
+        require(thread.wb_slot_words() == ReadyMask::kWords, "release never shrinks notification high water");
+        thread.ready().set(ReadyMask::kSlots - 1);
+        require(io.template collect_retire_work<false, false>() == 0 && !thread.ready().any(),
+                "late bit for a released high slot is consumed without naming a client");
+        require(thread.assign_wb_slot(&marker) == ReadyMask::kSlots - 1 &&
+                    thread.wb_slot_words() == ReadyMask::kWords, "reuse preserves exact high water");
+        thread.ready().set(ReadyMask::kSlots - 1);
+        require(io.template collect_retire_work<false, false>(true) == 1 && !thread.ready().any(),
+                "mask-independent park sweep also visits reused high slots");
+        std::puts("PASS IO6 zero/reserve/1024 assignments/word boundaries/full fallback/release/reuse/unmasked sweep");
     }
 }

@@ -4613,7 +4613,8 @@ ordinary_shard_ready:
         // every active conn every pass measured 93% EMPTY serves at 8 nodes -- 526M drain-checks
         // that each pulled a remote worker's cache line to learn there was nothing to do. Targeted
         // serving turns the poll into a response.
-        for (uint32_t w = 0; w < ReadyMask::kWords; w++) {
+        const uint32_t words = self_->wb_slot_words();
+        for (uint32_t w = 0; w < words; w++) {
             uint64_t bits = self_->ready().take(w);
             while (bits) {
                 const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
