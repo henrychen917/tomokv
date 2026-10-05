@@ -491,6 +491,9 @@ def rename_held_attempt(atomic, keys):
         if not alive:
             writer.close()
     timing = "hold_s=%.6f witness_s=%s ceiling_ms=%d" % (hold_s, witness_s, ceiling_ms)
+    # A completed routing miss must still preserve RENAME's exact final value and reply.
+    # Only a preflight miss has no writer/final-state obligation yet.
+    moved = moved and (thread is None or final_good)
     return (invalid, reads, errors, final_good, alive, timing), moved
 
 
