@@ -1,0 +1,202 @@
+[
+  {
+    "binary": "build/exbatch-unit",
+    "selection": "watch",
+    "rc": 0,
+    "expected_failure": null,
+    "stdout": "PASS exbatch watch: add/remove/reserve/finalize/prune/swap; all reservation counters\nPASS exbatch watch-oom: 6 failed allocations, 10 successful arms\nlayouts Op=336 Client=1984 ThreadCtx=1408 Shard=1440 FlatStore=944 Rob=192 AtomicEntry=144 Config=624\n",
+    "stdout_sha256": "58d5ae904ef03ac092025f8ee375939ff23762f345f0b2be06278a10d5197067",
+    "stdout_bytes": 252,
+    "stderr": ""
+  },
+  {
+    "binary": "build/exbatch-unit",
+    "selection": "watch-loads",
+    "rc": 0,
+    "expected_failure": null,
+    "stdout": "PASS exbatch watch-loads: cold map page inaccessible\nlayouts Op=336 Client=1984 ThreadCtx=1408 Shard=1440 FlatStore=944 Rob=192 AtomicEntry=144 Config=624\n",
+    "stdout_sha256": "7cf16cbcf4b1ad35fd606add1aa51ab35ae9a9c9f87d337a8f00295230c9096a",
+    "stdout_bytes": 155,
+    "stderr": ""
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-unit/watch-no-update/unit",
+    "selection": "watch",
+    "rc": 1,
+    "expected_failure": "WATCH add arms gate",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: WATCH add arms gate\n"
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-unit/watch-no-add/unit",
+    "selection": "watch",
+    "rc": 1,
+    "expected_failure": "WATCH add arms gate",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: WATCH add arms gate\n"
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-unit/watch-no-remove/unit",
+    "selection": "watch",
+    "rc": 1,
+    "expected_failure": "last UNWATCH clears gate",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: last UNWATCH clears gate\n"
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-unit/watch-no-prune/unit",
+    "selection": "watch",
+    "rc": 1,
+    "expected_failure": "stale last watcher pruning clears gate",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: stale last watcher pruning clears gate\n"
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-unit/watch-no-finalize/unit",
+    "selection": "watch",
+    "rc": 1,
+    "expected_failure": "commit finalizes last reservation and clears gate",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: commit finalizes last reservation and clears gate\n"
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-unit/watch-no-append/unit",
+    "selection": "watch",
+    "rc": 1,
+    "expected_failure": "allocation failure preserves WATCH cache truth",
+    "stdout": "PASS exbatch watch: add/remove/reserve/finalize/prune/swap; all reservation counters\n",
+    "stdout_sha256": "b703d3827c7b6931d3956614cadffd8507505598bd83c82a5094ea72de5168a7",
+    "stdout_bytes": 85,
+    "stderr": "FAIL exbatch: allocation failure preserves WATCH cache truth\n"
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-unit/watch-old-loads/unit",
+    "selection": "watch-loads",
+    "rc": 1,
+    "expected_failure": "unarmed WATCH gate must not read either cold map",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: unarmed WATCH gate must not read either cold map (inaccessible page)\n"
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-unit/ex3/unit",
+    "selection": "watch",
+    "rc": 0,
+    "expected_failure": null,
+    "stdout": "PASS exbatch watch: add/remove/reserve/finalize/prune/swap; all reservation counters\nPASS exbatch watch-oom: 6 failed allocations, 10 successful arms\nlayouts Op=336 Client=1984 ThreadCtx=1408 Shard=1440 FlatStore=944 Rob=192 AtomicEntry=144 Config=624\n",
+    "stdout_sha256": "58d5ae904ef03ac092025f8ee375939ff23762f345f0b2be06278a10d5197067",
+    "stdout_bytes": 252,
+    "stderr": ""
+  },
+  {
+    "binary": "build/exbatch-db0-unit",
+    "selection": "watch",
+    "rc": 0,
+    "expected_failure": null,
+    "stdout": "PASS exbatch watch: add/remove/reserve/finalize/prune/swap; all reservation counters\nPASS exbatch watch-oom: 6 failed allocations, 10 successful arms\nlayouts Op=336 Client=1984 ThreadCtx=1408 Shard=1440 FlatStore=944 Rob=192 AtomicEntry=144 Config=624\n",
+    "stdout_sha256": "58d5ae904ef03ac092025f8ee375939ff23762f345f0b2be06278a10d5197067",
+    "stdout_bytes": 252,
+    "stderr": ""
+  },
+  {
+    "binary": "build/exbatch-db0-unit",
+    "selection": "watch-loads",
+    "rc": 0,
+    "expected_failure": null,
+    "stdout": "PASS exbatch watch-loads: cold map page inaccessible\nlayouts Op=336 Client=1984 ThreadCtx=1408 Shard=1440 FlatStore=944 Rob=192 AtomicEntry=144 Config=624\n",
+    "stdout_sha256": "7cf16cbcf4b1ad35fd606add1aa51ab35ae9a9c9f87d337a8f00295230c9096a",
+    "stdout_bytes": 155,
+    "stderr": ""
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-db0-unit/watch-no-update/unit",
+    "selection": "watch",
+    "rc": 1,
+    "expected_failure": "WATCH add arms gate",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: WATCH add arms gate\n"
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-db0-unit/watch-no-add/unit",
+    "selection": "watch",
+    "rc": 1,
+    "expected_failure": "WATCH add arms gate",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: WATCH add arms gate\n"
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-db0-unit/watch-no-remove/unit",
+    "selection": "watch",
+    "rc": 1,
+    "expected_failure": "last UNWATCH clears gate",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: last UNWATCH clears gate\n"
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-db0-unit/watch-no-prune/unit",
+    "selection": "watch",
+    "rc": 1,
+    "expected_failure": "stale last watcher pruning clears gate",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: stale last watcher pruning clears gate\n"
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-db0-unit/watch-no-finalize/unit",
+    "selection": "watch",
+    "rc": 1,
+    "expected_failure": "commit finalizes last reservation and clears gate",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: commit finalizes last reservation and clears gate\n"
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-db0-unit/watch-no-append/unit",
+    "selection": "watch",
+    "rc": 1,
+    "expected_failure": "allocation failure preserves WATCH cache truth",
+    "stdout": "PASS exbatch watch: add/remove/reserve/finalize/prune/swap; all reservation counters\n",
+    "stdout_sha256": "b703d3827c7b6931d3956614cadffd8507505598bd83c82a5094ea72de5168a7",
+    "stdout_bytes": 85,
+    "stderr": "FAIL exbatch: allocation failure preserves WATCH cache truth\n"
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-db0-unit/watch-old-loads/unit",
+    "selection": "watch-loads",
+    "rc": 1,
+    "expected_failure": "unarmed WATCH gate must not read either cold map",
+    "stdout": "",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_bytes": 0,
+    "stderr": "FAIL exbatch: unarmed WATCH gate must not read either cold map (inaccessible page)\n"
+  },
+  {
+    "binary": "build/exbatch/units/exbatch-db0-unit/ex3/unit",
+    "selection": "watch",
+    "rc": 0,
+    "expected_failure": null,
+    "stdout": "PASS exbatch watch: add/remove/reserve/finalize/prune/swap; all reservation counters\nPASS exbatch watch-oom: 6 failed allocations, 10 successful arms\nlayouts Op=336 Client=1984 ThreadCtx=1408 Shard=1440 FlatStore=944 Rob=192 AtomicEntry=144 Config=624\n",
+    "stdout_sha256": "58d5ae904ef03ac092025f8ee375939ff23762f345f0b2be06278a10d5197067",
+    "stdout_bytes": 252,
+    "stderr": ""
+  }
+]

@@ -1,0 +1,40 @@
+{
+  "kind": "static algorithm counts, not retired instructions or measured cycles",
+  "rows": [
+    {
+      "command": "object|encoding",
+      "PRE_parent_rows": 217,
+      "PRE_child_rows": 218,
+      "POST_parent_probes_before_op_spec": 8,
+      "POST_parent_probes_after_op_spec": 0,
+      "POST_child_probes": 6,
+      "qualified_bytes": 15,
+      "PRE_heap_allocation": "none for <=15 bytes with this libstdc++; otherwise observed 1",
+      "POST_heap_allocations": 0
+    },
+    {
+      "command": "xgroup|createconsumer",
+      "PRE_parent_rows": 323,
+      "PRE_child_rows": 325,
+      "POST_parent_probes_before_op_spec": 8,
+      "POST_parent_probes_after_op_spec": 0,
+      "POST_child_probes": 9,
+      "qualified_bytes": 21,
+      "PRE_heap_allocation": "none for <=15 bytes with this libstdc++; otherwise observed 1",
+      "POST_heap_allocations": 0
+    },
+    {
+      "command": "xinfo|stream",
+      "PRE_parent_rows": 330,
+      "PRE_child_rows": 334,
+      "POST_parent_probes_before_op_spec": 9,
+      "POST_parent_probes_after_op_spec": 0,
+      "POST_child_probes": 8,
+      "qualified_bytes": 12,
+      "PRE_heap_allocation": "none for <=15 bytes with this libstdc++; otherwise observed 1",
+      "POST_heap_allocations": 0
+    }
+  ],
+  "metadata_rows": 374,
+  "max_name_bytes": 29
+}

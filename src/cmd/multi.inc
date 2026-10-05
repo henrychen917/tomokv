@@ -2365,7 +2365,10 @@ bool Shard::watch_finalize_reservation(const std::string& key) {
                     entry.client->set_watch_dirty();
         }
     }
-    if (list.empty()) watch_reservations_.erase(found);
+    if (list.empty()) {
+        watch_reservations_.erase(found);
+        refresh_has_watches();
+    }
     return !blocked;
 }
 
@@ -2382,7 +2385,10 @@ void Shard::watch_prune_stale(const std::string& key) {
         }
     }
     entries.resize(keep);
-    if (entries.empty()) watchers_.erase(found);
+    if (entries.empty()) {
+        watchers_.erase(found);
+        refresh_has_watches();
+    }
 }
 
 bool Shard::watch_add(Slice key, Client* client, uint64_t generation, uint16_t db) {
@@ -2402,6 +2408,7 @@ bool Shard::watch_add(Slice key, Client* client, uint64_t generation, uint16_t d
         return false;
     }
     client->watch_ref();
+    arm_watches();
     return true;
 }
 
@@ -2416,7 +2423,10 @@ void Shard::watch_remove(Slice key, Client* client, uint64_t generation) {
         else entries[keep++] = entry;
     }
     entries.resize(keep);
-    if (entries.empty()) watchers_.erase(found);
+    if (entries.empty()) {
+        watchers_.erase(found);
+        refresh_has_watches();
+    }
 }
 
 bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t generation,
@@ -2510,6 +2520,7 @@ bool Shard::watch_append_reservation(const std::string& key, const WatchReservat
     try {
         std::vector<WatchReservation>& list = watch_reservations_[key];
         list.push_back(reservation);
+        arm_watches();
         if (reservation.mutates) watch_note_database(list.back(), server_, static_cast<uint8_t>(key[0]));
         if (reservation.refs) reservation.refs->fetch_add(1, std::memory_order_release);
     } catch (const std::bad_alloc&) {

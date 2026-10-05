@@ -1,0 +1,92 @@
+[
+  {
+    "address": 184816,
+    "arm": "PRE",
+    "bytes": 27,
+    "disassembly": "PRE-_ZN12_GLOBAL__N_17watchesERKN4tomo5ShardE.asm.gz",
+    "note": "Static function inventory, including retained control blocks; not retired instr/op.",
+    "static_instructions": 6,
+    "symbol": "_ZN12_GLOBAL__N_17watchesERKN4tomo5ShardE"
+  },
+  {
+    "address": 184848,
+    "arm": "PRE",
+    "bytes": 57,
+    "disassembly": "PRE-_ZN12_GLOBAL__N_17publishERN4tomo5ShardE.asm.gz",
+    "note": "Static function inventory, including retained control blocks; not retired instr/op.",
+    "static_instructions": 12,
+    "symbol": "_ZN12_GLOBAL__N_17publishERN4tomo5ShardE"
+  },
+  {
+    "address": 3402288,
+    "arm": "PRE",
+    "bytes": 104,
+    "disassembly": "PRE-_ZN4tomo23command_metadata_lookupENS_5SliceE.asm.gz",
+    "note": "Static function inventory, including retained control blocks; not retired instr/op.",
+    "static_instructions": 37,
+    "symbol": "_ZN4tomo23command_metadata_lookupENS_5SliceE"
+  },
+  {
+    "address": 2569120,
+    "arm": "PRE",
+    "bytes": 61,
+    "disassembly": "PRE-_ZN4tomo5Shard12publish_sizeEv.asm.gz",
+    "note": "Static function inventory, including retained control blocks; not retired instr/op.",
+    "static_instructions": 13,
+    "symbol": "_ZN4tomo5Shard12publish_sizeEv"
+  },
+  {
+    "address": 3409040,
+    "arm": "PRE",
+    "bytes": 1195,
+    "disassembly": "PRE-_ZN4tomo24command_metadata_resolveERNS_2OpEj.asm.gz",
+    "note": "Static function inventory, including retained control blocks; not retired instr/op.",
+    "static_instructions": 282,
+    "symbol": "_ZN4tomo24command_metadata_resolveERNS_2OpEj"
+  },
+  {
+    "address": 185072,
+    "arm": "POST",
+    "bytes": 44,
+    "disassembly": "POST-_ZN12_GLOBAL__N_17watchesERKN4tomo5ShardE.asm.gz",
+    "note": "Static function inventory, including retained control blocks; not retired instr/op.",
+    "static_instructions": 11,
+    "symbol": "_ZN12_GLOBAL__N_17watchesERKN4tomo5ShardE"
+  },
+  {
+    "address": 189424,
+    "arm": "POST",
+    "bytes": 5,
+    "disassembly": "POST-_ZN12_GLOBAL__N_17publishERN4tomo5ShardE.asm.gz",
+    "note": "Static function inventory, including retained control blocks; not retired instr/op.",
+    "static_instructions": 1,
+    "symbol": "_ZN12_GLOBAL__N_17publishERN4tomo5ShardE"
+  },
+  {
+    "address": 3401552,
+    "arm": "POST",
+    "bytes": 344,
+    "disassembly": "POST-_ZN4tomo23command_metadata_lookupENS_5SliceE.asm.gz",
+    "note": "Static function inventory, including retained control blocks; not retired instr/op.",
+    "static_instructions": 103,
+    "symbol": "_ZN4tomo23command_metadata_lookupENS_5SliceE"
+  },
+  {
+    "address": 235040,
+    "arm": "POST",
+    "bytes": 216,
+    "disassembly": "POST-_ZN4tomo5Shard12publish_sizeEv.asm.gz",
+    "note": "Static function inventory, including retained control blocks; not retired instr/op.",
+    "static_instructions": 49,
+    "symbol": "_ZN4tomo5Shard12publish_sizeEv"
+  },
+  {
+    "address": 3409072,
+    "arm": "POST",
+    "bytes": 1678,
+    "disassembly": "POST-_ZN4tomo24command_metadata_resolveERNS_2OpEj.asm.gz",
+    "note": "Static function inventory, including retained control blocks; not retired instr/op.",
+    "static_instructions": 389,
+    "symbol": "_ZN4tomo24command_metadata_resolveERNS_2OpEj"
+  }
+]

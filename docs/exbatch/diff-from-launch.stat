@@ -1,0 +1,269 @@
+ MEASURE-REQUEST                                    |   23 +-
+ MEASURE-REQUEST-exbatch.md                         |  200 +
+ MEASURE-REQUEST-persistfix.md                      |  183 +
+ MEASURE-REQUEST-persistfix2.md                     |  209 +
+ MEASURE-REQUEST-rlfence.md                         |  283 +
+ MEASURE-REQUEST-rlfence2.md                        |  315 ++
+ MEASURE-REQUEST-rlfence3.md                        |  285 +
+ Makefile                                           |   52 +-
+ docs/exbatch/PRE-mainline-identity.json            |   16 +
+ docs/exbatch/binaries.json                         |   60 +
+ docs/exbatch/build-and-checks.json                 |   38 +
+ docs/exbatch/diff-from-launch.stat                 |  269 +
+ docs/exbatch/diff-from-pre.stat                    |  138 +
+ docs/exbatch/ex1-old/PAD-A-functions.tsv.gz        |  Bin 0 -> 151709 bytes
+ docs/exbatch/ex1-old/PAD-A-sections.tsv.gz         |  Bin 0 -> 776 bytes
+ docs/exbatch/ex1-old/POST-functions.tsv.gz         |  Bin 0 -> 151708 bytes
+ docs/exbatch/ex1-old/POST-sections.tsv.gz          |  Bin 0 -> 775 bytes
+ docs/exbatch/ex1-old/negative-controls.json        |   20 +
+ docs/exbatch/ex1-old/planned-retargets.json        |   35 +
+ docs/exbatch/ex1-old/proof.json                    |   22 +
+ docs/exbatch/ex3-old/PAD-A-functions.tsv.gz        |  Bin 0 -> 151709 bytes
+ docs/exbatch/ex3-old/PAD-A-sections.tsv.gz         |  Bin 0 -> 776 bytes
+ docs/exbatch/ex3-old/POST-functions.tsv.gz         |  Bin 0 -> 151708 bytes
+ docs/exbatch/ex3-old/POST-sections.tsv.gz          |  Bin 0 -> 775 bytes
+ docs/exbatch/ex3-old/negative-controls.json        |   20 +
+ docs/exbatch/ex3-old/planned-retargets.json        |  497 ++
+ docs/exbatch/ex3-old/proof.json                    |   22 +
+ docs/exbatch/ex6-old/PAD-A-functions.tsv.gz        |  Bin 0 -> 151709 bytes
+ docs/exbatch/ex6-old/PAD-A-sections.tsv.gz         |  Bin 0 -> 776 bytes
+ docs/exbatch/ex6-old/POST-functions.tsv.gz         |  Bin 0 -> 151708 bytes
+ docs/exbatch/ex6-old/POST-sections.tsv.gz          |  Bin 0 -> 775 bytes
+ docs/exbatch/ex6-old/negative-controls.json        |   20 +
+ docs/exbatch/ex6-old/planned-retargets.json        |   79 +
+ docs/exbatch/ex6-old/proof.json                    |   22 +
+ docs/exbatch/execute-watch-sites.json              |   43 +
+ docs/exbatch/final-build.log.gz                    |  Bin 0 -> 1746 bytes
+ docs/exbatch/frozen-pre-unit.json                  |   68 +
+ docs/exbatch/generic-plus-cells.txt                |   23 +
+ docs/exbatch/measurement-cells.json                | 5429 ++++++++++++++++++++
+ docs/exbatch/metadata-probes.json                  |   40 +
+ docs/exbatch/metadata-unit.json                    |   82 +
+ docs/exbatch/pad-a/PAD-A-functions.tsv.gz          |  Bin 0 -> 151709 bytes
+ docs/exbatch/pad-a/PAD-A-sections.tsv.gz           |  Bin 0 -> 776 bytes
+ docs/exbatch/pad-a/POST-functions.tsv.gz           |  Bin 0 -> 151708 bytes
+ docs/exbatch/pad-a/POST-sections.tsv.gz            |  Bin 0 -> 775 bytes
+ docs/exbatch/pad-a/negative-controls.json          |   20 +
+ docs/exbatch/pad-a/planned-retargets.json          |  585 +++
+ docs/exbatch/pad-a/proof.json                      |   22 +
+ docs/exbatch/post-unit-elf.json                    |    7 +
+ docs/exbatch/pre-build.log.gz                      |  Bin 0 -> 1527 bytes
+ .../pre-post-identity/CANDIDATE-functions.tsv.gz   |  Bin 0 -> 151713 bytes
+ .../pre-post-identity/CANDIDATE-sections.tsv.gz    |  Bin 0 -> 780 bytes
+ .../pre-post-identity/REFERENCE-functions.tsv.gz   |  Bin 0 -> 151707 bytes
+ .../pre-post-identity/REFERENCE-sections.tsv.gz    |  Bin 0 -> 762 bytes
+ .../pre-post-identity/differing-functions.json.gz  |  Bin 0 -> 996772 bytes
+ docs/exbatch/pre-post-identity/identity.json       | 2893 +++++++++++
+ docs/exbatch/pre-unit-elf.json                     |    7 +
+ docs/exbatch/publication-unit.json                 |   42 +
+ docs/exbatch/source-negative.json                  |    7 +
+ docs/exbatch/source-proof.json                     |   43 +
+ docs/exbatch/static-functions.json                 |   92 +
+ ..._ZN12_GLOBAL__N_17publishERN4tomo5ShardE.asm.gz |  Bin 0 -> 276 bytes
+ ...ZN12_GLOBAL__N_17watchesERKN4tomo5ShardE.asm.gz |  Bin 0 -> 435 bytes
+ ...tomo23command_metadata_lookupENS_5SliceE.asm.gz |  Bin 0 -> 1730 bytes
+ ...tomo24command_metadata_resolveERNS_2OpEj.asm.gz |  Bin 0 -> 5000 bytes
+ .../POST-_ZN4tomo5Shard12publish_sizeEv.asm.gz     |  Bin 0 -> 857 bytes
+ ...opTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE.asm.gz |  Bin 0 -> 9345 bytes
+ ...opTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE.asm.gz |  Bin 0 -> 9657 bytes
+ ...opTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE.asm.gz |  Bin 0 -> 9372 bytes
+ docs/exbatch/static/POST-functions.tsv.gz          |  Bin 0 -> 80280 bytes
+ docs/exbatch/static/POST-sections.tsv.gz           |  Bin 0 -> 760 bytes
+ ..._ZN12_GLOBAL__N_17publishERN4tomo5ShardE.asm.gz |  Bin 0 -> 431 bytes
+ ...ZN12_GLOBAL__N_17watchesERKN4tomo5ShardE.asm.gz |  Bin 0 -> 372 bytes
+ ...tomo23command_metadata_lookupENS_5SliceE.asm.gz |  Bin 0 -> 826 bytes
+ ...tomo24command_metadata_resolveERNS_2OpEj.asm.gz |  Bin 0 -> 3873 bytes
+ .../PRE-_ZN4tomo5Shard12publish_sizeEv.asm.gz      |  Bin 0 -> 429 bytes
+ docs/exbatch/static/PRE-functions.tsv.gz           |  Bin 0 -> 80214 bytes
+ docs/exbatch/static/PRE-sections.tsv.gz            |  Bin 0 -> 748 bytes
+ .../exbatch-db0-unit/all/PAD-A-functions.tsv.gz    |  Bin 0 -> 145358 bytes
+ .../exbatch-db0-unit/all/PAD-A-sections.tsv.gz     |  Bin 0 -> 775 bytes
+ .../exbatch-db0-unit/all/POST-functions.tsv.gz     |  Bin 0 -> 145357 bytes
+ .../exbatch-db0-unit/all/POST-sections.tsv.gz      |  Bin 0 -> 774 bytes
+ .../exbatch-db0-unit/all/planned-retargets.json    |  552 ++
+ .../unit-controls/exbatch-db0-unit/all/proof.json  |   22 +
+ .../exbatch-db0-unit/ex1/planned-retargets.json    |   35 +
+ .../unit-controls/exbatch-db0-unit/ex1/proof.json  |   22 +
+ .../exbatch-db0-unit/ex3/planned-retargets.json    |  464 ++
+ .../unit-controls/exbatch-db0-unit/ex3/proof.json  |   22 +
+ .../exbatch-db0-unit/ex6/planned-retargets.json    |   79 +
+ .../unit-controls/exbatch-db0-unit/ex6/proof.json  |   22 +
+ .../watch-no-add/planned-retargets.json            |   35 +
+ .../exbatch-db0-unit/watch-no-add/proof.json       |   22 +
+ .../watch-no-append/planned-retargets.json         |   35 +
+ .../exbatch-db0-unit/watch-no-append/proof.json    |   22 +
+ .../watch-no-finalize/planned-retargets.json       |   35 +
+ .../exbatch-db0-unit/watch-no-finalize/proof.json  |   22 +
+ .../watch-no-prune/planned-retargets.json          |   35 +
+ .../exbatch-db0-unit/watch-no-prune/proof.json     |   22 +
+ .../watch-no-remove/planned-retargets.json         |   35 +
+ .../exbatch-db0-unit/watch-no-remove/proof.json    |   22 +
+ .../watch-no-update/planned-retargets.json         |  123 +
+ .../exbatch-db0-unit/watch-no-update/proof.json    |   22 +
+ .../watch-old-loads/planned-retargets.json         |  354 ++
+ .../exbatch-db0-unit/watch-old-loads/proof.json    |   22 +
+ .../exbatch-unit/all/PAD-A-functions.tsv.gz        |  Bin 0 -> 80281 bytes
+ .../exbatch-unit/all/PAD-A-sections.tsv.gz         |  Bin 0 -> 761 bytes
+ .../exbatch-unit/all/POST-functions.tsv.gz         |  Bin 0 -> 80280 bytes
+ .../exbatch-unit/all/POST-sections.tsv.gz          |  Bin 0 -> 760 bytes
+ .../exbatch-unit/all/planned-retargets.json        |  277 +
+ .../unit-controls/exbatch-unit/all/proof.json      |   22 +
+ .../exbatch-unit/ex1/planned-retargets.json        |   24 +
+ .../unit-controls/exbatch-unit/ex1/proof.json      |   22 +
+ .../exbatch-unit/ex3/planned-retargets.json        |  233 +
+ .../unit-controls/exbatch-unit/ex3/proof.json      |   22 +
+ .../exbatch-unit/ex6/planned-retargets.json        |   46 +
+ .../unit-controls/exbatch-unit/ex6/proof.json      |   22 +
+ .../watch-no-add/planned-retargets.json            |   24 +
+ .../exbatch-unit/watch-no-add/proof.json           |   22 +
+ .../watch-no-append/planned-retargets.json         |   24 +
+ .../exbatch-unit/watch-no-append/proof.json        |   22 +
+ .../watch-no-finalize/planned-retargets.json       |   24 +
+ .../exbatch-unit/watch-no-finalize/proof.json      |   22 +
+ .../watch-no-prune/planned-retargets.json          |   24 +
+ .../exbatch-unit/watch-no-prune/proof.json         |   22 +
+ .../watch-no-remove/planned-retargets.json         |   24 +
+ .../exbatch-unit/watch-no-remove/proof.json        |   22 +
+ .../watch-no-update/planned-retargets.json         |   68 +
+ .../exbatch-unit/watch-no-update/proof.json        |   22 +
+ .../watch-old-loads/planned-retargets.json         |  178 +
+ .../exbatch-unit/watch-old-loads/proof.json        |   22 +
+ docs/exbatch/unit-final-build.log.gz               |  Bin 0 -> 850 bytes
+ docs/exbatch/watch-unit.json                       |  202 +
+ docs/rlfence2/SHA256SUMS                           |    5 +
+ docs/rlfence2/alt-h05-proof.json                   |  101 +
+ docs/rlfence2/alt-io-audit.json.gz                 |  Bin 0 -> 469198 bytes
+ docs/rlfence2/alt-io-changes.json                  |   97 +
+ docs/rlfence2/alt-pad/POST-functions.tsv.gz        |  Bin 0 -> 148632 bytes
+ docs/rlfence2/alt-pad/POST-sections.tsv.gz         |  Bin 0 -> 736 bytes
+ docs/rlfence2/alt-pad/closure-proof.json           |   50 +
+ docs/rlfence2/alt-pad/negative-controls.json       |   17 +
+ docs/rlfence2/alt-pad/planned-retargets.json       |  198 +
+ docs/rlfence2/alt-pad/proof.json                   |   38 +
+ docs/rlfence2/alt-source-receipt.json              |   11 +
+ docs/rlfence2/alt-unit-pad/POST-functions.tsv.gz   |  Bin 0 -> 552 bytes
+ docs/rlfence2/alt-unit-pad/POST-sections.tsv.gz    |  Bin 0 -> 626 bytes
+ docs/rlfence2/alt-unit-pad/negative-controls.json  |   17 +
+ docs/rlfence2/alt-unit-pad/pipeline.log            |    2 +
+ docs/rlfence2/alt-unit-pad/planned-retargets.json  |  241 +
+ docs/rlfence2/alt-unit-pad/proof.json              |   38 +
+ docs/rlfence2/alt-unit-pad/symmetry.log            |    1 +
+ docs/rlfence2/alt-unit.log                         |    4 +
+ docs/rlfence2/alt-write-ring.log                   |   21 +
+ docs/rlfence2/alt.patch                            |   70 +
+ docs/rlfence2/generic-merit-cells.txt              |   14 +
+ docs/rlfence2/harness-controls.json                |   17 +
+ docs/rlfence2/harness-positive.log                 |    4 +
+ docs/rlfence2/headline-pre-identity.json           |   69 +
+ docs/rlfence2/io-audit.json.gz                     |  Bin 0 -> 486835 bytes
+ docs/rlfence2/io-changes.json                      |  179 +
+ docs/rlfence2/io-diffs/015.diff.gz                 |  Bin 0 -> 52076 bytes
+ docs/rlfence2/io-diffs/025.diff.gz                 |  Bin 0 -> 47996 bytes
+ docs/rlfence2/io-diffs/059.diff.gz                 |  Bin 0 -> 31351 bytes
+ docs/rlfence2/io-diffs/061.diff.gz                 |  Bin 0 -> 38616 bytes
+ docs/rlfence2/io-diffs/151.diff.gz                 |  Bin 0 -> 4564 bytes
+ docs/rlfence2/io-diffs/217.diff.gz                 |  Bin 0 -> 8049 bytes
+ docs/rlfence2/io-diffs/265.diff.gz                 |  Bin 0 -> 3361 bytes
+ docs/rlfence2/io-diffs/275.diff.gz                 |  Bin 0 -> 3298 bytes
+ docs/rlfence2/io-diffs/322.diff.gz                 |  Bin 0 -> 2891 bytes
+ docs/rlfence2/pad-a/POST-functions.tsv.gz          |  Bin 0 -> 148664 bytes
+ docs/rlfence2/pad-a/POST-sections.tsv.gz           |  Bin 0 -> 722 bytes
+ docs/rlfence2/pad-a/closure-proof.json             |   50 +
+ docs/rlfence2/pad-a/negative-controls.json         |   17 +
+ docs/rlfence2/pad-a/planned-retargets.json         |  154 +
+ docs/rlfence2/pad-a/proof.json                     |   38 +
+ docs/rlfence2/post-unit.log                        |    4 +
+ docs/rlfence2/post-write-ring.log                  |   21 +
+ docs/rlfence2/production/SHA256SUMS                |    6 +
+ .../alt-identity/CANDIDATE-functions.tsv.gz        |  Bin 0 -> 150939 bytes
+ .../alt-identity/CANDIDATE-sections.tsv.gz         |  Bin 0 -> 738 bytes
+ .../alt-identity/REFERENCE-functions.tsv.gz        |  Bin 0 -> 148632 bytes
+ .../alt-identity/REFERENCE-sections.tsv.gz         |  Bin 0 -> 736 bytes
+ .../alt-identity/differing-functions.json.gz       |  Bin 0 -> 1004664 bytes
+ .../alt-identity/differing-functions.tsv.gz        |  Bin 0 -> 206115 bytes
+ .../rlfence2/production/alt-identity/identity.json | 2929 +++++++++++
+ docs/rlfence2/production/alt-io-audit.json.gz      |  Bin 0 -> 546530 bytes
+ docs/rlfence2/production/alt-io-changes.json       | 3229 ++++++++++++
+ docs/rlfence2/production/alt-io-diffs.txt.gz       |  Bin 0 -> 2838203 bytes
+ docs/rlfence2/production/closure.json              |   50 +
+ docs/rlfence2/production/default-build.log.gz      |  Bin 0 -> 1409 bytes
+ docs/rlfence2/production/delayed-drain.log         |   10 +
+ .../production/frozen-alt-identity-limit.json      |    5 +
+ docs/rlfence2/production/frozen-h05-proof.json     |  101 +
+ docs/rlfence2/production/harness-and-gate.json     |   79 +
+ .../headline-identity/CANDIDATE-functions.tsv.gz   |  Bin 0 -> 150939 bytes
+ .../headline-identity/CANDIDATE-sections.tsv.gz    |  Bin 0 -> 738 bytes
+ .../headline-identity/REFERENCE-functions.tsv.gz   |  Bin 0 -> 150914 bytes
+ .../headline-identity/REFERENCE-sections.tsv.gz    |  Bin 0 -> 725 bytes
+ .../headline-identity/differing-functions.json.gz  |  Bin 0 -> 554836 bytes
+ .../headline-identity/differing-functions.tsv.gz   |  Bin 0 -> 116944 bytes
+ .../production/headline-identity/identity.json     | 2900 +++++++++++
+ docs/rlfence2/production/headline-io-audit.json.gz |  Bin 0 -> 566183 bytes
+ docs/rlfence2/production/headline-io-changes.json  |  236 +
+ docs/rlfence2/production/headline-io-diffs.txt.gz  |  Bin 0 -> 51304 bytes
+ docs/rlfence2/production/identity-controls.json    |   13 +
+ docs/rlfence2/production/mainline-verdict.txt      |   13 +
+ docs/rlfence2/production/mget-fence-old.log        |   11 +
+ docs/rlfence2/production/mget-fence-stale.log      |   11 +
+ docs/rlfence2/production/mget-fence-unarmed.log    |   11 +
+ docs/rlfence2/production/mget-fence.log            |    4 +
+ docs/rlfence2/production/negative-pipeline.log     |    2 +
+ docs/rlfence2/production/negative-unit.log         |    1 +
+ docs/rlfence2/production/portable-unit.log         |    4 +
+ .../server-control/PAD-A-functions.tsv.gz          |  Bin 0 -> 150939 bytes
+ .../server-control/PAD-A-sections.tsv.gz           |  Bin 0 -> 738 bytes
+ .../server-control/POST-functions.tsv.gz           |  Bin 0 -> 150939 bytes
+ .../production/server-control/POST-sections.tsv.gz |  Bin 0 -> 738 bytes
+ .../server-control/negative-controls.json          |   17 +
+ .../server-control/planned-retargets.json          |  198 +
+ docs/rlfence2/production/server-control/proof.json |   38 +
+ docs/rlfence2/production/source-receipt.json       |    9 +
+ docs/rlfence2/production/transient.log             |   10 +
+ docs/rlfence2/production/unit-build.log            |    2 +
+ .../production/unit-control/PAD-A-functions.tsv.gz |  Bin 0 -> 552 bytes
+ .../production/unit-control/PAD-A-sections.tsv.gz  |  Bin 0 -> 628 bytes
+ .../production/unit-control/POST-functions.tsv.gz  |  Bin 0 -> 552 bytes
+ .../production/unit-control/POST-sections.tsv.gz   |  Bin 0 -> 628 bytes
+ .../production/unit-control/negative-controls.json |   17 +
+ .../production/unit-control/planned-retargets.json |  241 +
+ docs/rlfence2/production/unit-control/proof.json   |   38 +
+ .../production/unit-negative-controls.json         |   12 +
+ docs/rlfence2/production/unit.log                  |    4 +
+ docs/rlfence2/production/write-ring.log            |   21 +
+ src/base/exbatch_control.h                         |   15 +
+ src/cmd/blocking.inc                               |    7 +
+ src/cmd/cmdmeta.cc                                 |   87 +-
+ src/cmd/multi.inc                                  |   17 +-
+ src/cmd/scatter_engine.inc                         |    7 +-
+ src/core/ex_loop.h                                 |   29 +-
+ src/core/genthread.cc                              |    1 +
+ src/core/io_loop.h                                 |    4 +-
+ src/core/reorder.cc                                |    5 +-
+ src/core/rl2s.cc                                   |    1 +
+ src/core/server.h                                  |    6 +-
+ src/core/shard.h                                   |   59 +-
+ src/core/shutdown_report.h                         |   33 +-
+ src/exec/op.h                                      |    1 +
+ src/main.cc                                        |    2 +
+ src/net/rob.h                                      |   42 +-
+ src/persist/aof.cc                                 |  280 +-
+ src/persist/aof.h                                  |   57 +-
+ tests/exbatch.py                                   |   79 +
+ tests/exbatch_checks.py                            |   89 +
+ tests/exbatch_unit.cc                              |  313 ++
+ tests/fixtures/nullrefresh-ledger-labels.json      |   55 +-
+ tests/gate.sh                                      |  116 +-
+ tests/gate_measurements.json                       |    8 +-
+ tests/gates_test.py                                |  101 +
+ tests/persistfix.py                                |  271 +
+ tests/persistfix_checks.py                         |   53 +
+ tests/persistfix_unit.cc                           |  139 +
+ tests/read_local_lane.py                           |  236 +-
+ tests/rlfence_unit.cc                              |  145 +
+ tests/shutdown_report.py                           |   26 +
+ tools/exbatch_artifacts.py                         |  173 +
+ tools/exbatch_source_proof.py                      |  124 +
+ tools/persistfix_artifacts.py                      |   99 +
+ tools/persistfix_controls.py                       |   52 +
+ tools/rlfence_artifacts.py                         |  490 ++
+ 268 files changed, 30474 insertions(+), 73 deletions(-)
