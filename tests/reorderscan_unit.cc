@@ -29,11 +29,13 @@ constexpr auto slow = spec("BITCOUNT", CommandLengthClass::Long);
 constexpr auto barrier = spec("EXEC", CommandLengthClass::Long, CmdFlags::Transaction);
 uint64_t append(Client& client, const CommandSpec& command) {
     auto& rob = client.rob();
+    if (rob.dispatch_id() == 0) ShadowLongIndex::initialize(client);
     Op* op = rob.acquire();
     require(op, "fixture must open the requested ROB window");
     op->spec = &command;
     op->state.store(OpState::Issued, std::memory_order_release);
     const auto id = rob.dispatch_id();
+    ShadowLongIndex::record(client, *op);
     rob.publish();
     return id;
 }
@@ -100,9 +102,72 @@ void mixed(uint64_t seed, uint32_t offset) {
     }
     require(post_visits <= selected.size() + 64, "repeated completion pruning is not linear");
 }
+void lazy_passes() {
+    Client client(-1);
+    ShadowLongIndex::initialize(client);
+    for (uint32_t i = 0; i < 32; ++i) append(client, point);
+    constructions = visits = 0;
+    for (uint32_t pass = 0; pass < 20; ++pass) {
+        LazyShadowDispatch dispatch(client.rob().dispatch_id());
+        // Empty, incomplete, full and backpressured passes have no consumer.
+    }
+    require(constructions == 0 && visits == 0, "non-dispatch passes did shadow work");
+    for (uint32_t i = 32; i < 64; ++i) {
+        LazyShadowDispatch dispatch(client.rob().dispatch_id());
+        const auto id = append(client, point);
+        Task task(&client, id, -1, nullptr);
+        dispatch.stamp(task);
+        require(!shadow_bit(task), "pure-short pass fabricated a Long");
+    }
+    require(constructions == 0 && visits == 0, "no-Long passes constructed/scanned ShadowDispatch");
+    std::puts("PASS RO2 no Long: POST 0 constructions, 0 slot visits across 52 passes");
+    for (uint64_t id = 0; id < 64; ++id) client.rob().at(id).state.store(OpState::Done);
+    require(client.rob().drain([](Op&) {}) == 64, "retire pure-short window");
+    const auto older = append(client, slow);
+    const auto newer = append(client, slow);
+    LazyShadowDispatch dispatch(client.rob().dispatch_id());
+    client.rob().at(newer).state.store(OpState::Done);
+    const auto id = append(client, point);
+    Task task(&client, id, -1, nullptr);
+    dispatch.stamp(task);
+    require(constructions == 1 && shadow_bit(task) && shadow_id(task) == older,
+            "lazy pass did not find the older pending Long");
+    client.rob().at(older).state.store(OpState::Done);
+    constructions = visits = 0;
+    LazyShadowDispatch completed(client.rob().dispatch_id());
+    Task next(&client, append(client, point), -1, nullptr);
+    completed.stamp(next);
+    require(constructions == 0 && !shadow_bit(next), "Done without retire constructed a dispatcher");
+    // A refused Long must not shadow a short that reuses the unpublished id.
+    const auto refused = append(client, slow);
+    client.rob().unpublish();
+    ShadowLongIndex::unpublish(client);
+    require(append(client, point) == refused, "reparse reused id");
+    require(ShadowLongIndex::pending_before(client, client.rob().dispatch_id()) == UINT64_MAX,
+            "refused publication left a ghost Long");
+    // Longs published by scatter bypass the ordinary stamp site but are indexed.
+    const auto scattered = append(client, slow);
+    LazyShadowDispatch after_scatter(client.rob().dispatch_id());
+    Task follower(&client, append(client, point), -1, nullptr);
+    after_scatter.stamp(follower);
+    require(shadow_bit(follower) && shadow_id(follower) == scattered, "scatter Long was not indexed");
+    Client same_pass(-1);
+    ShadowLongIndex::initialize(same_pass);
+    LazyShadowDispatch immediate(0);
+    Task long_task(&same_pass, append(same_pass, slow), -1, nullptr);
+    immediate.stamp(long_task);
+    same_pass.rob().at(long_task.op_id).state.store(OpState::Done);
+    Task short_task(&same_pass, append(same_pass, point), -1, nullptr);
+    constructions = 0;
+    immediate.stamp(short_task);
+    require(constructions == 0 && !shadow_bit(short_task),
+            "Long completed within the pass still constructed a dispatcher");
+    std::puts("PASS RO2 Done, older Long, refused publish/reparse, scatter and recycled ROB");
+}
 }
 int main() {
     for (const uint32_t count : {8u, 32u, 64u}) pure_short(count);
     for (uint64_t seed = 1; seed <= 1000; ++seed) mixed(seed, seed % 129);
     std::puts("PASS RO1 1000 mixed commits: exact tasks/order/shadows, Done and ROB wrap");
+    lazy_passes();
 }

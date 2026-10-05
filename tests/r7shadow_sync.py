@@ -138,11 +138,25 @@ def envelopes():
     // PAD A delegates to the inherited parser before any shadow scratch or scan.
     if (!r7::shadow_available())
         return parse_and_dispatch<NoBorrow, BatchOps, IoPipe, SplitLocal>(c);
-    r7::ShadowDispatch shadow_dispatch(*c);
+    // Only R7 touches the otherwise uninitialized Client padding. The first
+    // parser entry precedes every publication; migration retains Client + ROB.
+    if (c->rob().dispatch_id() == 0) r7::ShadowLongIndex::initialize(*c);
+    r7::LazyShadowDispatch shadow_dispatch(c->rob().dispatch_id());
 ''' + body[opening:]
                 needle = 'Task t{c, rob.dispatch_id(), -1, nullptr};'
                 assert body.count(needle) == 1
-                body = body.replace(needle, needle + '\n            shadow_dispatch.stamp(t);')
+                body = body.replace(needle, needle + '\n        shadow_dispatch.stamp(t);')
+                # Include scatter publications: a Long can precede an ordinary
+                # task without itself passing the ordinary stamp site. Locally
+                # completed Longs are harmless; pending_before prunes Done.
+                assert body.count('rob.publish();') == 12
+                body = re.sub(r'^( *)rob.publish\(\);',
+                              r'\1r7::ShadowLongIndex::record(*c, *op);\n\1rob.publish();',
+                              body, flags=re.M)
+                assert body.count('rob.unpublish();') == 1
+                body = re.sub(r'^( *)rob.unpublish\(\);([^\n]*)',
+                              r'\1rob.unpublish();\2\n\1r7::ShadowLongIndex::unpublish(*c);',
+                              body, flags=re.M)
                 body = body.replace('Fused, ReadLocalDemotionPlan,', 'Fused, r7_ReadLocalDemotionPlan,')
             signature, rest = body.split('{', 1)
             decls.append(signature.rstrip() + ';')
