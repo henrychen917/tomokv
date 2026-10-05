@@ -405,6 +405,19 @@ def rename_hammer(prefix, atomic, keys, seconds=2.0, readers=6, deadline=None):
 def rename_held(atomic, keys):
     """Read one explicitly held hop; a missing/expired hold is always a failure."""
     config("atomic", atomic)
+    rerolls = []
+    for attempt in range(4):
+        result, moved = rename_held_attempt(atomic, keys)
+        timing = result[5] + " attempt=%d/4 rerolls=%r" % (attempt + 1, rerolls)
+        if not moved or attempt == 3 or result[4]:
+            return result[:5] + (timing,)
+        # Earlier hammers can move both shards onto one owner. Only a witnessed routing miss
+        # may re-arm: an expired/absent hold, wrong image, or read failure remains a failure.
+        rerolls.append(result[2])
+        keys = gate_geometry()["mover_pair"]
+
+
+def rename_held_attempt(atomic, keys):
     admin, writer = Resp(), Resp()
     replies, errors = [], []
     reads = invalid = 0
@@ -414,7 +427,13 @@ def rename_held(atomic, keys):
     hold_started = None
     witness_s = None
     hold_s = 0.0
+    moved = False
     try:
+        routes = admin.cmd("DEBUG", "SHARDS", *keys)
+        if routes[0][1] == routes[1][1]:
+            moved = True
+            raise AssertionError("hold needs two current owners: keys=%r routes=%r" %
+                                 (keys, routes))
         admin.cmd("DEL", *keys)
         admin.cmd("SET", keys[0], "rename-value")
         hold_started = time.monotonic()
@@ -436,8 +455,14 @@ def rename_held(atomic, keys):
                 break
             time.sleep(0.001)
         if status != 2 or replies or errors:
-            raise AssertionError("source-complete hold not witnessed: status=%r replies=%r" %
-                                 (status, replies))
+            # Re-read after completion: a stale status 1 must not disguise an expired hold.
+            status = admin.cmd("DEBUG", "ATOMIC-OFF-HOP-STATUS")
+            current_routes = admin.cmd("DEBUG", "SHARDS", *keys)
+            moved = (status == 1 and replies == [b"OK"] and not errors and
+                     current_routes[0][1] == current_routes[1][1])
+            raise AssertionError("source-complete hold not witnessed: status=%r replies=%r "
+                                 "keys=%r routes=%r current_routes=%r" %
+                                 (status, replies, keys, routes, current_routes))
         witness_s = time.monotonic() - hold_started
         values = admin.cmd("MGET", *keys)
         reads = 1
@@ -466,7 +491,7 @@ def rename_held(atomic, keys):
         if not alive:
             writer.close()
     timing = "hold_s=%.6f witness_s=%s ceiling_ms=%d" % (hold_s, witness_s, ceiling_ms)
-    return invalid, reads, errors, final_good, alive, timing
+    return (invalid, reads, errors, final_good, alive, timing), moved
 
 
 def sinterstore_hammer(prefix, atomic, sources, seconds=2.0):
