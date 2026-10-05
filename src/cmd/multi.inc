@@ -7,6 +7,8 @@
 
 namespace tomo {
 
+void multi_database_stats(Shard&, DatabaseStatsTable&, uint64_t cut, uint64_t origin_conn_id);
+
 struct MultiQueuedCommand {
     const CommandSpec* spec = nullptr;
     std::vector<std::string> argv;
@@ -1459,6 +1461,24 @@ void assemble_ownerless_replies(MultiExecState& state) {
     }
 }
 
+// INFO's bare physical census cannot see transaction-private inserts/deletes or TTL changes.
+// Use the same physical/side-key split as DBSIZE, resolving pending images at EXEC's read cut.
+// Stable expired physical keys remain counted, as Redis INFO does; this walk never reaps them.
+__attribute__((noinline)) void multi_collect_database_stats(
+        MultiExecState& state, MultiCommand& command, Shard& shard) {
+    auto& group = *group_for(*command.scatter, shard.id());
+    try {
+        if (!group.aux) group.aux = new GroupAux;
+        if (!group.aux->database_stats)
+            group.aux->database_stats = std::make_unique<DatabaseStatsTable>();
+    } catch (const std::bad_alloc&) {
+        group.error = WorkError::Oom;
+        return;
+    }
+    multi_database_stats(shard, *group.aux->database_stats,
+                         command.scatter->snapshot, state.origin_conn_id);
+}
+
 // A transaction is one commit ticket but not one runtime-error bit. Each xshard child keeps its
 // own abort word so a normal command failure can hide that child's partially installed candidates
 // while the other queued commands still commit, as Redis EXEC semantics require. The Server helper
@@ -1829,8 +1849,6 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     // A pending EXEC may survive queue or snapshot-window backpressure while shard ownership
     // migrates. Derive owner sentinels only on the final, no-failure path immediately before the
     // first task can become visible, so their slots match the routes used by this publication.
-    initialize_multi_owner_record_refs(*dispatch);
-
     Rob<kRobWindow>& rob = client.rob();
     op.attach_multi_state(dispatch);
     client.atomic_group_started();
@@ -1978,6 +1996,7 @@ int32_t multi_dispatch_shard(const MultiExecState* state, uint32_t index) {
 
 void multi_dispatch_started(Client& client, MultiExecState* state) {
     if (!state) return;
+    initialize_multi_owner_record_refs(*state);
     state->published = true;
     MultiSession* session = client.multi_session();
     if (session && session->pending == state) session->pending = nullptr;
@@ -2137,9 +2156,12 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     execute_child = false;
                 }
             }
-            const ScatterTaskResult executed = execute_child
-                ? xshard_execute(child_task, shard, *command.op, owner_thread_id)
-                : ScatterTaskResult::Complete;
+            ScatterTaskResult executed = ScatterTaskResult::Complete;
+            if (execute_child) {
+                if (command.scatter->kind == Kind::DatabaseInfo)
+                    multi_collect_database_stats(state, command, shard);
+                else executed = xshard_execute(child_task, shard, *command.op, owner_thread_id);
+            }
             xshard_watch_finish(child_task, shard, *command.op, executed);
             if (executed != ScatterTaskResult::Complete) return MultiTaskResult::Retry;
             done = static_cast<uint8_t>(stage + 1);
@@ -2157,8 +2179,33 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
             } else if (finished == MultiChildFinish::Final) {
                 if (notify)
                     notify_xshard_finished(shard, *command.op, *command.scatter);
-                assemble_final(*state.client, *command.op, *command.scatter,
-                               nullptr, nullptr, nullptr);
+                if (!kSingleDatabase && command.scatter->kind == Kind::DatabaseInfo && command.watch_map) {
+                    // SWAPDB publishes the live map only at the transaction's final decision.
+                    // INFO must label this command's physical counts using the map at its own
+                    // position in EXEC, including earlier swaps but excluding later ones.
+                    WorkError error;
+                    if (first_error(*command.scatter, error)) {
+                        reply_work_error(*command.op, error);
+                    } else {
+                        DatabaseStatsTable physical{}, visible{};
+                        for (uint32_t i = 0; i < command.scatter->nsub; ++i) {
+                            const auto* aux = command.scatter->groups[i].aux;
+                            if (!aux || !aux->database_stats) continue;
+                            for (unsigned db = 0; db < physical.size(); ++db) {
+                                const auto& row = (*aux->database_stats)[db];
+                                physical[db].keys += row.keys;
+                                physical[db].expires += row.expires;
+                                physical[db].ttl += row.ttl;
+                            }
+                        }
+                        for (uint32_t db = 0; db < server.cfg().databases; ++db)
+                            visible[state.database_map[db]] = physical[(*command.watch_map)[db]];
+                        command_info_with_databases(server, *command.op, visible);
+                    }
+                } else {
+                    assemble_final(*state.client, *command.op, *command.scatter,
+                                   nullptr, nullptr, nullptr);
+                }
                 command.finished.store(true, std::memory_order_release);
             }
             continue;

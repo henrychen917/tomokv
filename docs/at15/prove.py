@@ -19,7 +19,7 @@ with Path('docs/at15/pre-post-witness.log').open('w') as log:
     for arm, directory in [('PRE', pre), ('POST', Path('build'))]:
         for variant in ('unit', 'db0-unit'):
             for mode in ('1s', '2s'):
-                for case in ('info', 'sleep', 'controls', 'config'):
+                for case in ('info', 'sleep', 'controls', 'config', 'metadata'):
                     command = ['taskset', '-c', '112-127', str(directory / ('at15-' + variant)), mode, case]
                     result = subprocess.run(command, stdout=subprocess.PIPE,
                                             stderr=subprocess.STDOUT, text=True, timeout=15)
@@ -29,7 +29,8 @@ with Path('docs/at15/pre-post-witness.log').open('w') as log:
                     assert result.returncode == expected, (command, result.stdout)
                     if expected:
                         message = {'info': 'INFO must be one bulk/verbatim element inside EXEC',
-                                   'sleep': 'DEBUG SLEEP 0 EXEC element', 'config': 'queued reply'}[case]
+                                   'sleep': 'DEBUG SLEEP 0 EXEC element', 'config': 'queued reply',
+                                   'metadata': 'SHUTDOWN refused by generated metadata'}[case]
                         assert message in result.stdout, result.stdout
                     count += 1
-print(f'{count} runs: PRE fails INFO/SLEEP/CONFIG; POST passes; controls pass both arms')
+print(f'{count} runs: PRE fails INFO/SLEEP/CONFIG/metadata; POST passes; controls pass both arms')

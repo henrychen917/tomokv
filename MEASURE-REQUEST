@@ -16,3 +16,9 @@ See MEASURE-REQUEST-lbplanner.md for the complete report and mainline-only cells
 three regimes, counters, arms and pass conditions. PRE, POST and verified PAD-A
 are built; serverless proofs pass. No server, benchmark, live test or gate was run.
 Mainline measurement and live-gate acceptance remain pending.
+
+Lane at15: MULTI admin replies
+
+See MEASURE-REQUEST-at15.md for PRE/POST hashes, serverless falsification, body
+identity, the +1/+1 row count, and explicit Redis-table/group-5 policy differences.
+Live verification and the gate remain maintainer work; no push.

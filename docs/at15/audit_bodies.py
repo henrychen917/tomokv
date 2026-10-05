@@ -48,6 +48,19 @@ if __name__ == '__main__':
                 row['object'] = str(rel)
                 rows.append(row)
                 print(json.dumps(row), flush=True)
+        for path in sorted(list(Path('build/src').rglob('*.o')) + list(Path('build/db0/src').rglob('*.o'))):
+            rel = path.relative_to('build')
+            if (pre / rel).exists():
+                continue
+            objects.append(str(rel))
+            functions = audit.Elf(path).functions()
+            names = sorted(functions)
+            labels = subprocess.check_output(['c++filt'], input='\n'.join(names) + '\n', text=True).splitlines()
+            for name, label in zip(names, labels):
+                rows.append(dict(object=str(rel), symbol=name, name=label, pre_size=0,
+                                 post_size=functions[name]['size'], added_object=True))
         Path('docs/at15/changed-objects.json').write_text(json.dumps(objects, indent=2) + '\n')
         Path('docs/at15/changed-bodies.json').write_text(json.dumps(rows, indent=2) + '\n')
         print(len(objects), 'changed objects;', len(rows), 'changed function bodies')
+        assert not any('xshard_plain_prepare' in r['name'] and not r.get('added_object') for r in rows), \
+            'ordinary write-preparation body changed'

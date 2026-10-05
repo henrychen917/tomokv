@@ -66,14 +66,14 @@ struct Fixture {
         require(acl_initialize(server, cfg, error), "default ACL");
     }
     unsigned retries = 0;
-    std::string multi(std::vector<std::string> args) {
+    std::string multi(std::vector<std::string> args, const CommandSpec* override_spec = nullptr) {
         Request request(std::move(args));
+        if (override_spec) request.op.spec = override_spec;
         MultiExecState* state = nullptr;
         const auto action = multi_handle_io(server, client, request.op, io, state);
         if (action == MultiIoAction::LocalDone) return request.reply();
         require(action == MultiIoAction::Dispatch && state, "transaction dispatch");
-        // These read/admin children never install key records, so no owner record sentinel
-        // is needed. Real production objects drive every queue, owner phase and retirement.
+        // Real production objects drive queueing, owner-reference admission and retirement.
         request.op.attach_multi_state(state);
         client.rob().at(0).spec = request.op.spec;
         client.atomic_group_started();
@@ -97,8 +97,10 @@ struct Fixture {
         command_set_local_context(&client, &server.thread(io));
         multi_retire(client, request.op, deferred);
         command_set_local_context(nullptr, nullptr);
+        for (uint32_t sid = 0; sid < server.nshards(); ++sid)
+            xshard_cleanup_shard(server, server.shard(sid), 32);
         multi_reap_deferred(deferred);
-        require(deferred.empty(), "read/admin EXEC releases all state");
+        require(deferred.empty(), "EXEC releases all state");
         return request.reply();
     }
 };
@@ -143,11 +145,23 @@ void check(Fixture& f, bool resp3, const std::string& only) {
                         "INFO server section selection");
             if (std::string(section) == "keyspace") require(body == "# Keyspace\r\n", "empty keyspace");
             if (std::string(section) == "no-such-section") require(body.empty(), "unknown INFO section");
+            if (*section && std::string(section) != "no-such-section")
+                require(body.starts_with("# "), "requested INFO section is present");
         }
         begin(f); queue(f, {"INFO", "server", "keyspace"});
         const auto body = exec_bulk(f.multi({"EXEC"}), resp3);
         require(body.find("# Server\r\n") != std::string::npos && body.find("# Keyspace\r\n") != std::string::npos,
                 "multiple INFO sections");
+    }
+    if (only.empty() || only == "keyspace") {
+        begin(f);
+        queue(f, {"SET", "at15:private", "value"});
+        queue(f, {"INFO", "keyspace"});
+        queue(f, {"DEL", "at15:private"});
+        queue(f, {"INFO", "keyspace"});
+        require(f.multi({"EXEC"}) == "*4\r\n+OK\r\n" +
+                bulk("# Keyspace\r\ndb0:keys=1,expires=0,avg_ttl=0\r\n", resp3) +
+                ":1\r\n" + bulk("# Keyspace\r\n", resp3), "INFO observes own inserts and deletes");
     }
     if (only.empty() || only == "sleep") {
         begin(f); queue(f, {"DEBUG", "SLEEP", "0"});
@@ -174,6 +188,21 @@ void check(Fixture& f, bool resp3, const std::string& only) {
                     "refusal dirties EXEC");
         }
     }
+    if (only.empty() || only == "metadata") {
+        Request shutdown({"SHUTDOWN", "NOSAVE"});
+        require(!(shutdown.op.spec->flags & CmdFlags::NoMulti), "SHUTDOWN has no dispatch NoMulti bit");
+        begin(f);
+        require(f.multi(shutdown.args) == "-ERR Command not allowed inside a transaction\r\n",
+                "SHUTDOWN refused by generated metadata");
+        require(f.multi({"EXEC"}) == "-EXECABORT Transaction discarded because of previous errors.\r\n",
+                "metadata refusal dirties EXEC");
+        Request info({"INFO", "server"});
+        CommandSpec route = *info.op.spec;
+        route.flags |= CmdFlags::NoMulti;
+        begin(f);
+        require(f.multi(info.args, &route) == "+QUEUED\r\n", "route NoMulti bit does not override Redis metadata");
+        require(exec_bulk(f.multi({"EXEC"}), resp3).starts_with("# Server\r\n"), "metadata-admitted INFO executes");
+    }
     if (only.empty() || only == "config") {
         begin(f);
         queue(f, {"CONFIG", "GET", "maxmemory"});
@@ -190,7 +219,7 @@ void check(Fixture& f, bool resp3, const std::string& only) {
 }
 }
 int main(int argc, char** argv) {
-    require(argc >= 2 && argc <= 3, "usage: at15-unit 1s|2s [info|sleep|controls|config]");
+    require(argc >= 2 && argc <= 3, "usage: at15-unit 1s|2s [info|sleep|controls|config|keyspace|metadata]");
     const std::string mode = argv[1], only = argc == 3 ? argv[2] : "";
     require(mode == "1s" || mode == "2s", "thread mode");
     require(command_registry_init(false), "registry");
