@@ -26,15 +26,16 @@ def instrument(source, output):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 3 and sys.argv[1] == 'check':
+    if len(sys.argv) == 3 and sys.argv[1] in ('check', 'check-all'):
         sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
         from storesize_artifacts import pad
         unit = Path(sys.argv[2]).resolve()
-        subprocess.run([str(unit), '--db0-only'], check=True)
+        positive_args = [] if sys.argv[1] == 'check-all' else ['--db0-only']
+        subprocess.run([str(unit), *positive_args], check=True)
         control = unit.with_name(unit.name + '-pad')
         print(pad(unit, control), flush=True)
         subprocess.run([str(control), '--legacy'], check=True)
-        rejected = subprocess.run([str(control), '--db0-only'], capture_output=True, text=True)
+        rejected = subprocess.run([str(control), *positive_args], capture_output=True, text=True)
         assert rejected.returncode == 1 and 'FAIL storesize: monitor route' in rejected.stderr, rejected
         print('PASS negative control: restored census route fails the exact monitor-route assertion')
         sys.exit(0)

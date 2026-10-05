@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 from pathlib import Path
 from lbstall_artifacts import Elf
@@ -63,15 +64,44 @@ def pre_unit(root):
                     '-ljemalloc', '-luring', '-lssl', '-lcrypto', '-lm'], check=True)
 
 
+def handlers(before, after, output):
+    """Supplement the requested hot-body audit with every emitted cmd_* body."""
+    selected = re.compile(r'cmd_[a-z]|command_config_routes_all_shards|Shard::publish_size')
+    rows = []
+    for path in sorted(Path(before).rglob('*.o')):
+        post = Path(after) / path.relative_to(before)
+        a, b = Elf(path), Elf(post)
+        old, new = a.functions(), b.functions()
+        names = list(old)
+        readable = subprocess.check_output(['c++filt'], input=('\n'.join(names) + '\n').encode()).decode().splitlines()
+        for name, title in zip(names, readable):
+            if not selected.search(title):
+                continue
+            symbol = new.get(name)
+            rows.append(dict(object=str(path.relative_to(before)), name=title,
+                             pre_size=old[name]['size'], post_size=symbol['size'] if symbol else 0,
+                             relocation_equal=bool(symbol) and a.canonical(old[name]) == b.canonical(symbol)))
+    assert rows
+    Path(output).write_text(json.dumps(rows, indent=2) + '\n')
+    print('Handler/publication bodies:', len(rows), 'unchanged:', sum(row['relocation_equal'] for row in rows))
+    for row in rows:
+        if not row['relocation_equal']:
+            print('DIFF', row['object'], row['pre_size'], row['post_size'], row['name'])
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='action', required=True)
     pre = sub.add_parser('pre-unit')
     pre.add_argument('root')
+    audit = sub.add_parser('handlers')
+    audit.add_argument('before'); audit.add_argument('after'); audit.add_argument('output')
     twin = sub.add_parser('pad')
     twin.add_argument('source'); twin.add_argument('output')
     args = parser.parse_args()
     if args.action == 'pre-unit':
         pre_unit(args.root)
+    elif args.action == 'handlers':
+        handlers(args.before, args.after, args.output)
     else:
         print(json.dumps(pad(args.source, args.output), indent=2))
