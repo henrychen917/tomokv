@@ -336,6 +336,7 @@ public:
             published_expires_.store(expires, std::memory_order_relaxed);
         if constexpr (kSingleDatabase)
             if (expires) store_.publish_keyspace_sample();
+        if constexpr (!kSingleDatabase) store_.publish_database_counts();
         const auto evicted = stats_.evicted;
         if (published_evicted_.load(std::memory_order_relaxed) != evicted)
             published_evicted_.store(evicted, std::memory_order_relaxed);
@@ -347,6 +348,7 @@ public:
         published_expires_.store(store_.expire_count(), std::memory_order_relaxed);
         if constexpr (kSingleDatabase)
             if (store_.expire_count()) store_.publish_keyspace_sample();
+        if constexpr (!kSingleDatabase) store_.publish_database_counts();
         published_evicted_.store(stats_.evicted, std::memory_order_relaxed);
     }
     uint32_t published_size() const { return published_size_.load(std::memory_order_relaxed); }

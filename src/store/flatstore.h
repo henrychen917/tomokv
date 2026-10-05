@@ -1043,7 +1043,9 @@ public:
         if (count) storesize_->avg_deadline.store(sum / count, std::memory_order_relaxed);
     }
 
-    uint64_t published_avg_deadline() const;
+    uint64_t published_avg_deadline(uint8_t physical = 0) const;
+    uint64_t published_database_counts(uint8_t physical) const;
+    void publish_database_counts() const;
     // Hashes in this shard carrying at least one field deadline. THE gate for the whole hash-field
     // TTL feature: a shard that has never seen HEXPIRE reads zero here and every hash command pays
     // one predicted-false test, with all field-TTL machinery out of line behind it.
@@ -1531,6 +1533,7 @@ public:
         KvObj* old = find(h, key);
         if (!old) return TtlResult::Missing;
         if (old->has_ttl_slot()) {
+            if constexpr (!kSingleDatabase) storesize_deadline(old, expire_at_ms);
             old->set_expire_at_ms(expire_at_ms);
             (void)track_expire(h, old);
             return TtlResult::Updated;
@@ -1545,6 +1548,7 @@ public:
         KvObj* old = find_notify(h, key, sink);
         if (!old) return TtlResult::Missing;
         if (old->has_ttl_slot()) {
+            if constexpr (!kSingleDatabase) storesize_deadline(old, expire_at_ms);
             old->set_expire_at_ms(expire_at_ms);
             (void)track_expire(h, old);
             return TtlResult::Updated;
@@ -1558,6 +1562,7 @@ public:
         if (deadline(h, old) < 0) return TtlResult::NoChange;
         if (__builtin_expect(read_local_enabled_, false))
             return rewrite_expire_read_local(h, old, kNoTtlDeadline);
+        if constexpr (!kSingleDatabase) storesize_deadline(old, kNoTtlDeadline);
         old->set_expire_at_ms(kNoTtlDeadline);
         untrack_expire(h);
         return TtlResult::Updated;
@@ -1569,6 +1574,7 @@ public:
         if (deadline(h, old) < 0) return TtlResult::NoChange;
         if (__builtin_expect(read_local_enabled_, false))
             return rewrite_expire_read_local(h, old, kNoTtlDeadline);
+        if constexpr (!kSingleDatabase) storesize_deadline(old, kNoTtlDeadline);
         old->set_expire_at_ms(kNoTtlDeadline);
         untrack_expire(h);
         return TtlResult::Updated;
@@ -1793,6 +1799,7 @@ public:
     // FLUSH is intentionally proportional to the table capacity it discards. Borrowed string
     // values move to the existing retirement list, so a send already in flight remains valid.
     void clear() {
+        if constexpr (!kSingleDatabase) storesize_clear();
         if (__builtin_expect(read_local_enabled_, false)) {
             clear_read_local();
             return;
@@ -1827,6 +1834,7 @@ public:
     // allocations and their slot numbering until the capture walker releases its cursor; turn all
     // live entries into ordinary tombstones instead of freeing the tables as clear() does.
     void clear_during_snapshot() {
+        if constexpr (!kSingleDatabase) storesize_clear();
         if (__builtin_expect(read_local_enabled_, false)) {
             clear_during_snapshot_read_local();
             return;
@@ -1975,6 +1983,9 @@ private:
         std::memcpy(&state, reader_owner_gap_ + 4, sizeof(state));
         return state;
     }
+    void storesize_replace(const KvObj* before, const KvObj* after);
+    void storesize_deadline(const KvObj* object, int64_t deadline);
+    void storesize_clear();
     void refresh_field_ttl_gate() {
         // Once registration was lost, the count is no longer exact until FLUSH. Preserve a
         // positive gate without reporting an artificial UINT32_MAX population through INFO.
@@ -2674,6 +2685,7 @@ private:
                 else                 { tab_[t][i] = make_word(tag, o); }
                 live_[t]++;
                 if (fresh) {
+                    if constexpr (!kSingleDatabase) storesize_replace(nullptr, o);
                     obj_bytes_ += kvobj_size(o);
                     (void)this->track_expire(h, o);
                 }
@@ -2690,7 +2702,10 @@ private:
             else if (tag_of_word(w) == tag && cur->key().key_mem_eq(key)) {
                 if (fresh && deadline_elapsed(h, cur, cached_now_ms_) && expired_counter_)
                     (*expired_counter_)++;
-                if (fresh) (void)this->track_expire(h, o);
+                if (fresh) {
+                    if constexpr (!kSingleDatabase) storesize_replace(cur, o);
+                    (void)this->track_expire(h, o);
+                }
                 retire_obj(cur);                            // replace in place; live_ unchanged
                 tab_[t][i] = make_word(tag, o);
                 if (fresh) obj_bytes_ += kvobj_size(o);
@@ -2721,6 +2736,7 @@ private:
                 if (was_expired) {
                     *was_expired = deadline_elapsed(h, o, cached_now_ms_);
                 }
+                if constexpr (!kSingleDatabase) storesize_replace(o, nullptr);
                 untrack_expire(h);
                 retire_obj(o);
                 tab_[t][i] = kTombBit;                      // DEAD: non-zero, ptr == 0
@@ -3124,6 +3140,7 @@ private:
                 const size_t added_bytes = kvobj_capacity(o) + read_local_external_bytes(o);
                 obj_bytes_ += added_bytes;
                 if (track_expire) {
+                    if constexpr (!kSingleDatabase) storesize_replace(nullptr, o);
                     (void)this->track_expire(h, o);
                     if (o->expire_at_ms() < 0) {
                     }
@@ -3138,7 +3155,10 @@ private:
                     (*expired_counter_)++;
                 // An acquiring reader that starts after the retirement stamp must no longer be
                 // able to acquire the displaced pointer.
-                if (track_expire) (void)this->track_expire(h, o);
+                if (track_expire) {
+                    if constexpr (!kSingleDatabase) storesize_replace(cur, o);
+                    (void)this->track_expire(h, o);
+                }
                 read_local_slot_store(&tab_[t][i], make_word(tag, o));
                 retire_obj_read_local(cur);
                 const size_t added_bytes = kvobj_capacity(o) + read_local_external_bytes(o);
@@ -3164,6 +3184,7 @@ private:
                 if (was_expired) {
                     *was_expired = deadline_elapsed(h, o, cached_now_ms_);
                 }
+                if constexpr (!kSingleDatabase) storesize_replace(o, nullptr);
                 untrack_expire(h);
                 read_local_slot_store(&tab_[t][i], kTombBit);
                 retire_obj_read_local(o);

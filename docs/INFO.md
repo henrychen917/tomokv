@@ -15,16 +15,19 @@ Counters are independently sampled across shards; INFO is not a global MVCC
 snapshot. The bound is an owner progress boundary, not a millisecond deadline.
 `DBSIZE NOW` retains the exact owner scatter when callers need a census.
 
-The published path is enabled for `databases 1`; `databases > 1` still uses
-the exact all-shard census and has no published per-database counters.
-The separate multi-DB proposal indexes counters by **physical namespace** within each
-shard. DBSIZE uses the operation's stamped namespace; INFO captures one immutable
-logical-to-physical map, so SWAPDB relabels counts without walking or moving keys.
-MOVE changes the source and destination owner counters; FLUSHDB clears only its
-namespace, and FLUSHALL clears all namespaces. These producer counters become
-observer-visible only at publication. That proposal is not applied; its
-write-path changes and test/audit receipts are in
-[the ST2 report](../MEASURE-REQUEST-storesize.md).
+The published path is enabled in both database images. Multi-DB counters are
+indexed by **physical namespace** within each shard. DBSIZE uses the operation's
+stamped namespace; INFO captures one immutable logical-to-physical map, so SWAPDB
+relabels counts without walking or moving keys. MOVE accounts for both source and
+destination; FLUSHDB changes only its namespace, and FLUSHALL clears every row.
+
+Single-DB keeps its bounded TTL sampler. Multi-DB keeps owner-private key/expiry
+counts and deadline sums; publication visits only dirty database rows, at most
+256 per shard, and stores the key/expiry pair atomically once per boundary.
+Its TTL estimate ages the mean deadline from that boundary and clamps at zero;
+it does not compute an exact mean of individually clamped remaining TTLs.
+Observer-visible state is separate from owner-private counters and follows the
+store on shard migration. See [the ST2 completion report](../MEASURE-REQUEST-storesize2.md).
 
 | Section | Owner scatter needed by its implementation? | Data read |
 | --- | --- | --- |
@@ -37,7 +40,7 @@ write-path changes and test/audit receipts are in
 | FLIPCTL | No | Controller report |
 | WRITEBACK | No | Writeback policy report |
 | LB | No | Load-balancing signal snapshots |
-| KEYSPACE | No with publication; the current multi-DB implementation still scatters | Published counters in db0; legacy exact walk in multi-DB |
+| KEYSPACE | No | Published counters, mapped to logical database names |
 
 No INFO section requests a mutating owner operation. This change does not alter
 the pre-existing sampling/synchronization of other INFO gauges.

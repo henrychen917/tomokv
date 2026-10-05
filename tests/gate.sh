@@ -1583,12 +1583,12 @@ unit_ready multidb-boundary-unit && taskset -c "$CORES" ./build/multidb-boundary
     && ok "multidb global namespace boundary" \
     || bad "multidb global namespace boundary" "see $TMPDIR/multidb-boundary-unit.log"
 # ST2: one serverless row before the quick-tier exit. The owner changes EXPECT.
-# Multi-DB publication is a separate, unapplied proposal pending its hot-path exception.
-row_begin "storesize db0 published monitoring"
-unit_ready storesize-unit && taskset -c "$CORES" python3 tests/storesize_checks.py check build/storesize-unit \
+# Both database images share this equality and bounded-work witness.
+row_begin "storesize published monitoring"
+unit_ready storesize-unit && taskset -c "$CORES" python3 tests/storesize_checks.py check-all build/storesize-unit \
     >"$TMPDIR/storesize-unit.log" 2>&1 \
-    && ok "storesize db0 published monitoring" \
-    || bad "storesize db0 published monitoring" "see $TMPDIR/storesize-unit.log"
+    && ok "storesize published monitoring" \
+    || bad "storesize published monitoring" "see $TMPDIR/storesize-unit.log"
 # One serverless EXECABORT/WATCH row, collected BEFORE the quick exit (+1/+1).
 # EXPECT_* and the ledger-label fixture remain maintainer-owned.
 row_begin "EXECABORT releases WATCH reservation"

@@ -175,7 +175,7 @@ establish shutdown durability (see `src/cmd/server_tail.cc:249`, `src/main.cc:65
 
 ### DBSIZE and INFO keyspace publication
 
-With the default `databases 1`, plain `DBSIZE` and INFO's keyspace section read
+In both database images, plain `DBSIZE` and INFO's keyspace section read
 per-shard published counters. Each owner publishes at an executor batch boundary:
 the count can lag its owner's mutations by **one batch boundary**, with no fixed
 wall-clock bound while an owner is busy. A pipeline can observe the preceding
@@ -183,9 +183,9 @@ batch's count. `DBSIZE NOW` is TomoKV's exact-on-demand extension; it scatters t
 all owners and counts the selected logical database after earlier dispatched
 work. Neither mode reaps expired-but-resident keys merely to count them.
 
-INFO emits `db0:keys=K,expires=E,avg_ttl=T` for a nonempty database. `keys` and
+INFO emits `dbN:keys=K,expires=E,avg_ttl=T` for each nonempty logical database. `keys` and
 `expires` have the same one-boundary publication lag. `avg_ttl` is a nonnegative
-millisecond estimate: at publication the owner samples at most 16 expiry-index
+millisecond estimate: with `databases 1`, at publication the owner samples at most 16 expiry-index
 slots, using a cursor separate from active expiry, then INFO subtracts the current
 wall clock from that sample's mean deadline. It is zero when no keys have an
 expiry or no sample has been recorded; an empty sample retains the preceding
@@ -193,11 +193,15 @@ estimate. It is an estimate, not an exact average
 over every deadline; polling INFO visits no objects. All existing structure-size
 locks remain unchanged; each store has a 16-byte cold sampling sidecar.
 
-With `databases > 1`, plain DBSIZE and INFO KEYSPACE still use the exact
-all-shard census, proportional to total store capacity. Published counters
-are currently aggregate, not indexed by database. The separate, unapplied
-per-database accounting patch and the remaining hot-body audit failures are
-documented in [the ST2 report](../MEASURE-REQUEST-storesize.md).
+With `databases > 1`, each shard has 256 owner-private physical-namespace rows
+and separate published key/expiry pairs and mean deadlines. Key and deadline
+mutations update only owner-private rows; the batch boundary publishes dirty
+rows. DBSIZE sums the selected physical row over the shards. INFO reads the
+configured logical-to-physical map once, then the corresponding published rows.
+This costs O(shards × configured databases), independent of the key population.
+The multi-DB TTL estimate subtracts wall time from the published mean deadline,
+clamping at zero. SWAPDB relabels the same physical counters; MOVE and FLUSHDB
+account only for their affected namespaces. See [the ST2 completion report](../MEASURE-REQUEST-storesize2.md).
 
 The INFO field definitions and section routing are in [INFO.md](INFO.md).
 
