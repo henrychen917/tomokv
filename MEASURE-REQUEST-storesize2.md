@@ -229,8 +229,10 @@ including insert/erase, TTL updates and physical atomic replacement. Those
 changes also affect callers via GCC inlining. The multi audit reports all
 115 selected differences and 117 handler/publication differences, including
 unwanted execute/parser/writeback/TLS-loop changes; it does not label them all
-as expected. Standalone GET/SET/MGET/MSET command bodies remain identical in
-the handler audit, but that does not prove their entire called paths identical.
+as expected. All three emitted GET handler copies and both SET handler copies
+remain identical in each image's handler audit. This audit contains no standalone
+MGET/MSET handler bodies, so it cannot establish their complete scatter paths.
+Unchanged GET/SET handlers also do not prove their entire called paths identical.
 No zero-regression claim is made for the new multi-DB producer work.
 
 Compiler-boundary trials were confined to ignored build copies. They included
