@@ -110,15 +110,9 @@ def live(args):
             process = subprocess.Popen(command, cwd=ROOT, stdout=log, stderr=log)
             connection = None
             try:
-                for _ in range(1000):
-                    assert process.poll() is None, "server exited before readiness"
-                    try:
-                        connection = Conn("127.0.0.1", args.port, timeout=60)
-                        assert connection.must("PING") == b"PONG"
-                        break
-                    except OSError:
-                        time.sleep(.02)
-                assert connection is not None, "server never became ready"
+                from _lib import wait_ready
+                connection = wait_ready("127.0.0.1", args.port, timeout=60,
+                                        process=process, log_path=path / "server.log")
                 info = fields(connection.must("INFO", "SERVER"))
                 assert int(info["process_id"]) == process.pid, "connected to an unrelated server"
                 resource.prlimit(process.pid, resource.RLIMIT_CORE, (0, 0))

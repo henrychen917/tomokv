@@ -2,7 +2,8 @@
 """Shared client, geometry and reporting helpers for tests/*.py.
 
 `import _lib` works from any battery because python3 puts the script's own directory (tests/)
-first on sys.path. Nothing here opens a server; every helper takes a live connection.
+first on sys.path. Nothing here starts a server. Readiness takes an endpoint and,
+optionally, the already launched child; command helpers take a live connection.
 
 House rules this module encodes (they are rules, not preferences -- see AUDIT-TESTS.md):
 
@@ -26,6 +27,7 @@ House rules this module encodes (they are rules, not preferences -- see AUDIT-TE
 """
 
 import contextlib
+import errno
 import os
 import socket
 import sys
@@ -81,6 +83,8 @@ class Conn:
     attributes (`|`) are consumed and discarded, and errors as RespError instances.
     """
 
+    _read_deadline = None
+
     def __init__(self, host, port, timeout=30.0, nodelay=True, rcvbuf=None, buffering=1 << 20):
         self.host, self.port = host, int(port)
         self.sock = socket.create_connection((host, int(port)), timeout=timeout)
@@ -92,6 +96,7 @@ class Conn:
             if hasattr(socket, "TCP_WINDOW_CLAMP"):
                 self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_WINDOW_CLAMP, rcvbuf)
         self.file = self.sock.makefile("rb", buffering=buffering)
+        self._read_deadline = None
 
     # -- transport ----------------------------------------------------------------------------
     def raw(self, payload):
@@ -114,8 +119,34 @@ class Conn:
         self.sock = None
 
     # -- reader ---------------------------------------------------------------------------------
+    def _read(self, size):
+        if self._read_deadline is None:
+            return self.file.read(size)
+        # BufferedReader.read() can perform many recv calls. Bound each one by
+        # the SAME readiness deadline, even if a peer drips an incomplete reply.
+        result = bytearray()
+        while len(result) < size:
+            left = self._read_deadline - time.monotonic()
+            if left <= 0:
+                raise TimeoutError("readiness deadline expired during reply")
+            self.sock.settimeout(min(.5, left))
+            data = self.file.read1(size - len(result))
+            if not data:
+                raise EOFError("server closed the connection during readiness")
+            result.extend(data)
+        return bytes(result)
+
     def _line(self):
-        line = self.file.readline()
+        if self._read_deadline is None:
+            line = self.file.readline()
+        else:
+            line = bytearray()
+            while not line.endswith(b"\n"):
+                byte = self._read(1)
+                if not byte:
+                    raise EOFError("server closed the connection")
+                line.extend(byte)
+            line = bytes(line)
         if not line:
             raise EOFError("server closed the connection")
         if not line.endswith(b"\r\n"):
@@ -124,7 +155,7 @@ class Conn:
 
     def read(self):
         while True:
-            head = self.file.read(1)
+            head = self._read(1)
             if not head:
                 raise EOFError("server closed the connection")
             body = self._line()
@@ -138,8 +169,8 @@ class Conn:
                 size = int(body)
                 if size < 0:
                     return None
-                data = self.file.read(size)
-                if len(data) != size or self.file.read(2) != b"\r\n":
+                data = self._read(size)
+                if len(data) != size or self._read(2) != b"\r\n":
                     raise AssertionError("bad bulk trailer for %d-byte reply" % size)
                 return data
             if head in (b"*", b"~", b">"):
@@ -171,6 +202,96 @@ class Conn:
         if isinstance(reply, RespError):
             raise reply
         return reply
+
+
+LOADING_REPLY = b"LOADING Redis is loading the dataset in memory"
+
+
+def wait_ready(host, port, *, timeout=30.0, process=None, log_path=None, pid=None):
+    """Return a PING-verified connection, bounded by one monotonic deadline.
+
+    A supplied fresh child log must contain its exact ready banner before the
+    first connect. Callers create/truncate that log before spawning the child.
+    Mainline loads before listening; exact LOADING is accepted only as a retry
+    for compatible peers, never as readiness. No application command is retried.
+    An owned child must identify itself. Shell callers may supply their $! as pid.
+    """
+    from pathlib import Path
+    deadline = time.monotonic() + timeout
+    owned_pid = process.pid if process is not None else pid
+    if owned_pid is not None and (not isinstance(owned_pid, int) or owned_pid <= 0):
+        raise ValueError("readiness requires a positive child PID")
+    if process is not None and pid is not None and pid != process.pid:
+        raise ValueError("conflicting readiness child PIDs")
+
+    def check_process():
+        if process is not None:
+            status = process.poll()
+            if status is not None:
+                raise RuntimeError("server exited during boot (status %s)" % status)
+        elif owned_pid is not None:
+            try:
+                os.kill(owned_pid, 0)
+            except ProcessLookupError as error:
+                raise RuntimeError("server exited during boot (pid %s)" % owned_pid) from error
+
+    def remaining():
+        left = deadline - time.monotonic()
+        if left <= 0:
+            raise TimeoutError("readiness deadline expired during handshake")
+        return min(.5, left)
+
+    last = "no connection"
+    banner = "listening on %s:%d" % (host, int(port))
+    while time.monotonic() < deadline:
+        check_process()
+        if log_path is not None:
+            try:
+                announced = banner + "\n" in Path(log_path).read_text(
+                    errors="replace").splitlines(keepends=True)
+            except FileNotFoundError:
+                announced = False
+            if not announced:
+                last = "ready banner absent"
+                time.sleep(min(.02, max(0, deadline - time.monotonic())))
+                continue
+        conn = None
+        try:
+            conn = Conn(host, port, timeout=remaining())
+            conn._read_deadline = deadline
+            conn.sock.settimeout(remaining())
+            answer = conn.cmd("PING")
+            if isinstance(answer, RespError) and answer.message == LOADING_REPLY:
+                last = str(answer)
+            elif answer != b"PONG":
+                raise AssertionError("readiness PING returned %r" % (answer,))
+            else:
+                if owned_pid is not None:
+                    conn.sock.settimeout(remaining())
+                    actual = info(conn, "SERVER")
+                    if actual.get("process_id") != str(owned_pid):
+                        raise AssertionError("readiness peer PID mismatch: expected %s, got %r" %
+                                             (owned_pid, actual.get("process_id")))
+                check_process()
+                if time.monotonic() >= deadline:
+                    raise TimeoutError("readiness deadline expired during handshake")
+                conn._read_deadline = None
+                conn.sock.settimeout(timeout)
+                ready, conn = conn, None
+                return ready
+        except (OSError, EOFError) as error:
+            if isinstance(error, OSError) and not isinstance(error, (
+                    ConnectionRefusedError, ConnectionResetError, ConnectionAbortedError,
+                    BrokenPipeError, TimeoutError)) and error.errno not in (
+                        errno.ECONNREFUSED, errno.ECONNRESET, errno.ECONNABORTED,
+                        errno.EPIPE, errno.ETIMEDOUT, errno.ENETUNREACH, errno.EHOSTUNREACH):
+                raise
+            last = repr(error)
+        finally:
+            if conn is not None:
+                conn.close()
+        time.sleep(min(.02, max(0, deadline - time.monotonic())))
+    raise TimeoutError("server readiness timed out after %.3fs: %s" % (timeout, last))
 
 
 def host_port(argv=None, default_port=6379):

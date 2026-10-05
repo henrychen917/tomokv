@@ -1,3 +1,10 @@
+Lane gt13split: independent EXECABORT/WATCH and test readiness extractions
+
+See MEASURE-REQUEST-gt13split.md for the 64 serverless PRE/POST outcomes,
+1,482/1,482 hot-body byte matches, three changed MULTI bodies, readiness tests,
+frozen release hashes, and pending live batteries/performance null. One new
+EXECABORT gate row (+1 quick/+1 full); readiness adds zero. No server or gate run.
+
 Lane gt15fix: snapshot loads during FLIP/key-LB
 
 See MEASURE-REQUEST-gt15fix.md for the race audit, helper, 13 serverless witnesses,
