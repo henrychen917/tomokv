@@ -1,0 +1,2 @@
+no-hold result: (0, 0, ["controller:source-complete hold not witnessed: status=0 replies=[b'OK']"], True, False, 'hold_s=0.001426 witness_s=None ceiling_ms=30000')
+PASS absent hold is rejected

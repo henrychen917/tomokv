@@ -1,0 +1,307 @@
+{
+  "completed": 10,
+  "atomic_torn_passes": 10,
+  "clean_shutdowns": 0,
+  "runs": [
+    {
+      "run": 1,
+      "tests": {
+        "torture": {},
+        "ryow": {},
+        "atomic_torn": {
+          "target_pass": true
+        },
+        "atomic_ryow": {}
+      },
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001412,
+          "witness_s": 0.0013405662029981613,
+          "ceiling_ms": 30000
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001349,
+          "witness_s": 0.0012797759845852852,
+          "ceiling_ms": 30000
+        }
+      ],
+      "leak_bytes": 345296,
+      "leak_allocations": 64,
+      "asan_error": false,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 2,
+      "tests": {
+        "torture": {},
+        "ryow": {},
+        "atomic_torn": {
+          "target_pass": true
+        },
+        "atomic_ryow": {}
+      },
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001381,
+          "witness_s": 0.0013019358739256859,
+          "ceiling_ms": 30000
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001366,
+          "witness_s": 0.0012923162430524826,
+          "ceiling_ms": 30000
+        }
+      ],
+      "leak_bytes": 279760,
+      "leak_allocations": 64,
+      "asan_error": false,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 3,
+      "tests": {
+        "torture": {},
+        "ryow": {},
+        "atomic_torn": {
+          "target_pass": true
+        },
+        "atomic_ryow": {}
+      },
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001459,
+          "witness_s": 0.0013921856880187988,
+          "ceiling_ms": 30000
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001326,
+          "witness_s": 0.0012582759372889996,
+          "ceiling_ms": 30000
+        }
+      ],
+      "leak_bytes": 263376,
+      "leak_allocations": 64,
+      "asan_error": false,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 4,
+      "tests": {
+        "torture": {},
+        "ryow": {},
+        "atomic_torn": {
+          "target_pass": true
+        },
+        "atomic_ryow": {}
+      },
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001367,
+          "witness_s": 0.0013071559369564056,
+          "ceiling_ms": 30000
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001449,
+          "witness_s": 0.0013921461068093777,
+          "ceiling_ms": 30000
+        }
+      ],
+      "leak_bytes": 279760,
+      "leak_allocations": 64,
+      "asan_error": false,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 5,
+      "tests": {
+        "torture": {},
+        "ryow": {},
+        "atomic_torn": {
+          "target_pass": true
+        },
+        "atomic_ryow": {}
+      },
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001429,
+          "witness_s": 0.001370925921946764,
+          "ceiling_ms": 30000
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001451,
+          "witness_s": 0.0013873358257114887,
+          "ceiling_ms": 30000
+        }
+      ],
+      "leak_bytes": 312528,
+      "leak_allocations": 64,
+      "asan_error": false,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 6,
+      "tests": {
+        "torture": {},
+        "ryow": {},
+        "atomic_torn": {
+          "target_pass": true
+        },
+        "atomic_ryow": {}
+      },
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001404,
+          "witness_s": 0.0013534058816730976,
+          "ceiling_ms": 30000
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001322,
+          "witness_s": 0.0012621749192476273,
+          "ceiling_ms": 30000
+        }
+      ],
+      "leak_bytes": 263376,
+      "leak_allocations": 64,
+      "asan_error": false,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 7,
+      "tests": {
+        "torture": {},
+        "ryow": {},
+        "atomic_torn": {
+          "target_pass": true
+        },
+        "atomic_ryow": {}
+      },
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001387,
+          "witness_s": 0.0013191057369112968,
+          "ceiling_ms": 30000
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001404,
+          "witness_s": 0.0013393759727478027,
+          "ceiling_ms": 30000
+        }
+      ],
+      "leak_bytes": 263376,
+      "leak_allocations": 64,
+      "asan_error": false,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 8,
+      "tests": {
+        "torture": {},
+        "ryow": {},
+        "atomic_torn": {
+          "target_pass": true
+        },
+        "atomic_ryow": {}
+      },
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001397,
+          "witness_s": 0.0013181059621274471,
+          "ceiling_ms": 30000
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001399,
+          "witness_s": 0.0013323449529707432,
+          "ceiling_ms": 30000
+        }
+      ],
+      "leak_bytes": 312528,
+      "leak_allocations": 64,
+      "asan_error": false,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 9,
+      "tests": {
+        "torture": {},
+        "ryow": {},
+        "atomic_torn": {
+          "target_pass": true
+        },
+        "atomic_ryow": {}
+      },
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001401,
+          "witness_s": 0.0013358350843191147,
+          "ceiling_ms": 30000
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001367,
+          "witness_s": 0.0012949449010193348,
+          "ceiling_ms": 30000
+        }
+      ],
+      "leak_bytes": 263376,
+      "leak_allocations": 64,
+      "asan_error": false,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 10,
+      "tests": {
+        "torture": {},
+        "ryow": {},
+        "atomic_torn": {
+          "target_pass": true
+        },
+        "atomic_ryow": {}
+      },
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001478,
+          "witness_s": 0.0014077560044825077,
+          "ceiling_ms": 30000
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.00037,
+          "witness_s": 0.00030741235241293907,
+          "ceiling_ms": 30000
+        }
+      ],
+      "leak_bytes": 312528,
+      "leak_allocations": 64,
+      "asan_error": false,
+      "shutdown_last_line": false
+    }
+  ],
+  "OFF": {
+    "min_s": 0.001367,
+    "median_s": 0.0014025,
+    "max_s": 0.001478
+  },
+  "ON": {
+    "min_s": 0.00037,
+    "median_s": 0.0013665,
+    "max_s": 0.001451
+  }
+}

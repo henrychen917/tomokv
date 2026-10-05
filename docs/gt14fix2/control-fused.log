@@ -1,0 +1,4 @@
+PASS {'atomic': 0, 'budget_ms': 30000, 'elapsed_s': 1.2025967319495976, 'status': 2}
+PASS {'atomic': 1, 'budget_ms': 30000, 'elapsed_s': 1.2025119997560978, 'status': 2}
+PASS {'atomic': 0, 'budget_ms': 100, 'elapsed_s': 0.2025166810490191, 'status': 3}
+PASS hold controls
