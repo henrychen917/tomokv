@@ -1,3 +1,9 @@
+Lane reorderscan2: merged iopass + RO1 / RO2
+
+See MEASURE-REQUEST-reorderscan2.md for merge/regeneration commits, serverless
+proofs against b38916d88, frozen PRE2/POST2/PAD-A2 digests, and the headline-null
+requeue. Zero gate rows added; no server, benchmark, gate run, or push.
+
 Lane gt15fix: snapshot loads during FLIP/key-LB
 
 See MEASURE-REQUEST-gt15fix.md for the race audit, helper, 13 serverless witnesses,

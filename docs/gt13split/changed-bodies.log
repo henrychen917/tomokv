@@ -1,0 +1,5 @@
+{"object": "db0/src/cmd/xshard.o", "symbol": "_ZN8tomo_db018multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextE", "name": "tomo_db0::multi_execute_task(tomo_db0::Server&, tomo_db0::Task const&, tomo_db0::Shard&, unsigned int, unsigned int, tomo_db0::AofOwnerContext*)", "pre_size": 11737, "post_size": 11737}
+db0/src/cmd/xshard.o 854 functions audited
+{"object": "src/cmd/xshard.o", "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE", "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)", "pre_size": 3356, "post_size": 3329}
+{"object": "src/cmd/xshard.o", "symbol": "_ZN4tomo18multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextE", "name": "tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*)", "pre_size": 11880, "post_size": 11880}
+src/cmd/xshard.o 859 functions audited

@@ -89,6 +89,10 @@ $(BIN): $(OBJ) $(DB0_OBJ)
 # decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
 $(BUILD_ROOT)/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10600
 $(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10600
+# The parent EXECABORT store adds four IPA instructions. Keep PRE's namespaced
+# xshard inlining decisions outside MULTI; docs/gt13split/audit_bodies.py checks
+# every function, including ordinary xshard_plain_prepare and cold clones.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127577
 # The isolated prebuild TU reuses the string parser text without emitting its public handlers.
 $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
@@ -239,6 +243,11 @@ build/storesize/multidb.o: build/storesize/multidb.cc $(wildcard src/*/*.h) $(wi
 build/storesize/db0-multidb.o: build/storesize/multidb.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -Isrc/cmd -I. -c $< -o $@
 build/storesize-unit: build/tests/storesize_unit.o build/db0/tests/storesize_unit.o build/storesize/multidb.o build/storesize/db0-multidb.o $(STORESIZE_CORE_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
+# EXECABORT/WATCH: same serverless witness linked against real production bodies.
+build/execabort-watch-unit: build/tests/execabort_watch_unit.o $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
+build/execabort-watch-db0-unit: build/db0/tests/execabort_watch_unit.o $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # EX1/EX3/EX6 use production objects without opening a listener or IO ring.
 build/exbatch-unit: build/tests/exbatch_unit.o $(CORE_TEST_OBJ)
@@ -468,6 +477,16 @@ build/netcmd-unit-db0: $(NETCMD_DB0_TEST_OBJ) $(patsubst build/%,build/db0/%,$(N
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mkstemp -Wl,--wrap=fopen
 
 # R7 uses real Clients/ROB slots, without a listener or worker loop.
+# The 128-task queue cases retain their historical name after the unused
+# production pipeline preset was removed. Keep that alias confined to tests.
+build/reorder-unit build/reorder-unit-asan build/r7shadow-unit build/r7shadow-unit-asan: override CXXFLAGS += -DkGenthreadPipelineExBatchOps=128
+build/reorderscan-unit: tests/reorderscan_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. $< -o $@
+build/reorderscan-unit-asan: tests/reorderscan_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@
+
 build/reorder-unit: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
 build/reorder-unit-asan: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile

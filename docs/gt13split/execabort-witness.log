@@ -1,0 +1,136 @@
+PRE unit 1s atomic=0 armed: exit=1
+FAIL execabort-watch: later SET still blocked after 1024 dispatch attempts
+FAIL execabort-watch db=namespaced mode=1s atomic=0 control=armed watch_armed=1 exec_reply=EXECABORT later_set=blocked denied=1024 waits_before=1 waits_after=1025 deferred=1
+PRE unit 1s atomic=0 no-watch: exit=0
+PASS execabort-watch db=namespaced mode=1s atomic=0 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE unit 1s atomic=0 no-error: exit=0
+PASS execabort-watch db=namespaced mode=1s atomic=0 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE unit 1s atomic=0 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+PRE unit 1s atomic=1 armed: exit=1
+FAIL execabort-watch: later SET still blocked after 1024 dispatch attempts
+FAIL execabort-watch db=namespaced mode=1s atomic=1 control=armed watch_armed=1 exec_reply=EXECABORT later_set=blocked denied=1024 waits_before=1 waits_after=1025 deferred=1
+PRE unit 1s atomic=1 no-watch: exit=0
+PASS execabort-watch db=namespaced mode=1s atomic=1 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE unit 1s atomic=1 no-error: exit=0
+PASS execabort-watch db=namespaced mode=1s atomic=1 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE unit 1s atomic=1 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+PRE unit 2s atomic=0 armed: exit=1
+FAIL execabort-watch: later SET still blocked after 1024 dispatch attempts
+FAIL execabort-watch db=namespaced mode=2s atomic=0 control=armed watch_armed=1 exec_reply=EXECABORT later_set=blocked denied=1024 waits_before=1 waits_after=1025 deferred=1
+PRE unit 2s atomic=0 no-watch: exit=0
+PASS execabort-watch db=namespaced mode=2s atomic=0 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE unit 2s atomic=0 no-error: exit=0
+PASS execabort-watch db=namespaced mode=2s atomic=0 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE unit 2s atomic=0 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+PRE unit 2s atomic=1 armed: exit=1
+FAIL execabort-watch: later SET still blocked after 1024 dispatch attempts
+FAIL execabort-watch db=namespaced mode=2s atomic=1 control=armed watch_armed=1 exec_reply=EXECABORT later_set=blocked denied=1024 waits_before=1 waits_after=1025 deferred=1
+PRE unit 2s atomic=1 no-watch: exit=0
+PASS execabort-watch db=namespaced mode=2s atomic=1 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE unit 2s atomic=1 no-error: exit=0
+PASS execabort-watch db=namespaced mode=2s atomic=1 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE unit 2s atomic=1 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+PRE db0-unit 1s atomic=0 armed: exit=1
+FAIL execabort-watch: later SET still blocked after 1024 dispatch attempts
+FAIL execabort-watch db=db0 mode=1s atomic=0 control=armed watch_armed=1 exec_reply=EXECABORT later_set=blocked denied=1024 waits_before=1 waits_after=1025 deferred=1
+PRE db0-unit 1s atomic=0 no-watch: exit=0
+PASS execabort-watch db=db0 mode=1s atomic=0 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE db0-unit 1s atomic=0 no-error: exit=0
+PASS execabort-watch db=db0 mode=1s atomic=0 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE db0-unit 1s atomic=0 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+PRE db0-unit 1s atomic=1 armed: exit=1
+FAIL execabort-watch: later SET still blocked after 1024 dispatch attempts
+FAIL execabort-watch db=db0 mode=1s atomic=1 control=armed watch_armed=1 exec_reply=EXECABORT later_set=blocked denied=1024 waits_before=1 waits_after=1025 deferred=1
+PRE db0-unit 1s atomic=1 no-watch: exit=0
+PASS execabort-watch db=db0 mode=1s atomic=1 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE db0-unit 1s atomic=1 no-error: exit=0
+PASS execabort-watch db=db0 mode=1s atomic=1 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE db0-unit 1s atomic=1 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+PRE db0-unit 2s atomic=0 armed: exit=1
+FAIL execabort-watch: later SET still blocked after 1024 dispatch attempts
+FAIL execabort-watch db=db0 mode=2s atomic=0 control=armed watch_armed=1 exec_reply=EXECABORT later_set=blocked denied=1024 waits_before=1 waits_after=1025 deferred=1
+PRE db0-unit 2s atomic=0 no-watch: exit=0
+PASS execabort-watch db=db0 mode=2s atomic=0 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE db0-unit 2s atomic=0 no-error: exit=0
+PASS execabort-watch db=db0 mode=2s atomic=0 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE db0-unit 2s atomic=0 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+PRE db0-unit 2s atomic=1 armed: exit=1
+FAIL execabort-watch: later SET still blocked after 1024 dispatch attempts
+FAIL execabort-watch db=db0 mode=2s atomic=1 control=armed watch_armed=1 exec_reply=EXECABORT later_set=blocked denied=1024 waits_before=1 waits_after=1025 deferred=1
+PRE db0-unit 2s atomic=1 no-watch: exit=0
+PASS execabort-watch db=db0 mode=2s atomic=1 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE db0-unit 2s atomic=1 no-error: exit=0
+PASS execabort-watch db=db0 mode=2s atomic=1 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PRE db0-unit 2s atomic=1 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+POST unit 1s atomic=0 armed: exit=0
+PASS execabort-watch db=namespaced mode=1s atomic=0 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST unit 1s atomic=0 no-watch: exit=0
+PASS execabort-watch db=namespaced mode=1s atomic=0 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST unit 1s atomic=0 no-error: exit=0
+PASS execabort-watch db=namespaced mode=1s atomic=0 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST unit 1s atomic=0 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+POST unit 1s atomic=1 armed: exit=0
+PASS execabort-watch db=namespaced mode=1s atomic=1 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST unit 1s atomic=1 no-watch: exit=0
+PASS execabort-watch db=namespaced mode=1s atomic=1 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST unit 1s atomic=1 no-error: exit=0
+PASS execabort-watch db=namespaced mode=1s atomic=1 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST unit 1s atomic=1 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+POST unit 2s atomic=0 armed: exit=0
+PASS execabort-watch db=namespaced mode=2s atomic=0 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST unit 2s atomic=0 no-watch: exit=0
+PASS execabort-watch db=namespaced mode=2s atomic=0 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST unit 2s atomic=0 no-error: exit=0
+PASS execabort-watch db=namespaced mode=2s atomic=0 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST unit 2s atomic=0 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+POST unit 2s atomic=1 armed: exit=0
+PASS execabort-watch db=namespaced mode=2s atomic=1 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST unit 2s atomic=1 no-watch: exit=0
+PASS execabort-watch db=namespaced mode=2s atomic=1 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST unit 2s atomic=1 no-error: exit=0
+PASS execabort-watch db=namespaced mode=2s atomic=1 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST unit 2s atomic=1 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+POST db0-unit 1s atomic=0 armed: exit=0
+PASS execabort-watch db=db0 mode=1s atomic=0 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST db0-unit 1s atomic=0 no-watch: exit=0
+PASS execabort-watch db=db0 mode=1s atomic=0 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST db0-unit 1s atomic=0 no-error: exit=0
+PASS execabort-watch db=db0 mode=1s atomic=0 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST db0-unit 1s atomic=0 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+POST db0-unit 1s atomic=1 armed: exit=0
+PASS execabort-watch db=db0 mode=1s atomic=1 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST db0-unit 1s atomic=1 no-watch: exit=0
+PASS execabort-watch db=db0 mode=1s atomic=1 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST db0-unit 1s atomic=1 no-error: exit=0
+PASS execabort-watch db=db0 mode=1s atomic=1 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST db0-unit 1s atomic=1 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+POST db0-unit 2s atomic=0 armed: exit=0
+PASS execabort-watch db=db0 mode=2s atomic=0 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST db0-unit 2s atomic=0 no-watch: exit=0
+PASS execabort-watch db=db0 mode=2s atomic=0 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST db0-unit 2s atomic=0 no-error: exit=0
+PASS execabort-watch db=db0 mode=2s atomic=0 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST db0-unit 2s atomic=0 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed
+POST db0-unit 2s atomic=1 armed: exit=0
+PASS execabort-watch db=db0 mode=2s atomic=1 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST db0-unit 2s atomic=1 no-watch: exit=0
+PASS execabort-watch db=db0 mode=2s atomic=1 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST db0-unit 2s atomic=1 no-error: exit=0
+PASS execabort-watch db=db0 mode=2s atomic=1 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+POST db0-unit 2s atomic=1 no-arm: exit=1
+FAIL execabort-watch: WATCH window never armed

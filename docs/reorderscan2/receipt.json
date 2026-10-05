@@ -1,0 +1,176 @@
+{
+  "base_commit": "b38916d8884e3d620a9cda85e0a2fec4363173bf",
+  "merge_commit": "94d4303b785e482e72e6ca58d9ce1e344c662fb1",
+  "post_source_commit": "4470031225963f49b50d3ff09cb08423f3925a21",
+  "generated_by": "python3 tests/r7shadow_sync.py --write",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "cpu_affinity": "112-127",
+  "artifacts": {
+    "kind": "A: PRE behaviour with POST aggregate .text size",
+    "limitation": "Internal R7 addresses are not matched; this is a size control.",
+    "pre": "/home/user/Projects/cx-reorderscan/build/reorderscan-pre2/tomokv",
+    "post": "/home/user/Projects/cx-reorderscan/build/tomokv",
+    "pad": "build/reorderscan-padA2/tomokv",
+    "pre_text": 7781132,
+    "post_text": 7783004,
+    "pad_text": 7783004,
+    "nop_bytes": 1872,
+    "sha256": {
+      "pre": "7cc26e0e6d85f897604a7b30c65c26d9ea086c723ec584438c3783ff16cb899d",
+      "post": "62796fe469e5fe822fd5181f666aa084f81a63db6db8bfe0906bddff9b004277",
+      "pad": "1817ea2d5f6c1aba63a60023218a922555d04f229bb23e4ca2f8b9f71b6b6cdd"
+    }
+  },
+  "non_r7_translation_units": 84,
+  "non_r7_executable_sections": 7580,
+  "non_r7_executable_bytes": 10765734,
+  "non_r7_raw_and_relocation_equal_hot_bodies": 1221,
+  "pre_post_off_path_identical_bodies": 396,
+  "pre_pad_all_identical_audit_bodies": 424,
+  "new_gate_rows": 0,
+  "expected_quick": 496,
+  "expected_full": 513,
+  "gate_collection_lines": [
+    3110,
+    3111,
+    3112
+  ],
+  "quick_exit_line": 3250,
+  "default_path": "No R7 operation-path entry/allocation in witnesses; unchanged cold reorder_available() boot calls still enter the TU.",
+  "server_benchmark_gate_runs": 0,
+  "pushed": false,
+  "reproduction_commands": [
+    "taskset -c 112-127 build/reorderscan-unit",
+    "ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 taskset -c 112-127 build/reorderscan-unit-asan",
+    "taskset -c 112-127 build/reorder-unit",
+    "taskset -c 112-127 build/r7shadow-unit",
+    "taskset -c 112-127 python3 tests/r7shadow_sync.py",
+    "taskset -c 112-127 python3 tests/r7shadow_sync_test.py",
+    "taskset -c 112-127 python3 tests/reorder_receipt.py build/reorder-engagement-unit build/reorderscan2-evidence/engagement-multi --engagement",
+    "taskset -c 112-127 python3 tests/reorder_receipt.py build/reorder-engagement-unit-db0 build/reorderscan2-evidence/engagement-db0 --engagement",
+    "taskset -c 112-127 python3 tests/reorder_receipt.py build/tomokv build/reorderscan2-evidence/reorder-identity",
+    "taskset -c 112-127 python3 tests/r7shadow_noop.py build/reorderscan-pre2/tomokv build/tomokv build/reorderscan2-evidence/off-path --inventory splitlocal",
+    "taskset -c 112-127 python3 tests/reorder_noop.py build/reorderscan-pre2/tomokv build/reorderscan-padA2/tomokv build/reorderscan2-evidence/padA2-identity --literal-pools --expected-functions 424",
+    "taskset -c 112-127 python3 docs/reorderscan2/object_identity.py",
+    "taskset -c 112-127 python3 docs/reorderscan2/reproduce_witnesses.py",
+    "taskset -c 112-127 python3 docs/reorderscan2/pre_witness.py"
+  ],
+  "evidence": {
+    "build/reorderscan2-evidence/reorderscan-unit.log": {
+      "sha256": "be95ea556303f21166f5e0408bc5f62541af381f563b40897219238b30b8c0af",
+      "bytes": 379
+    },
+    "build/reorderscan2-evidence/reorderscan-unit-asan.log": {
+      "sha256": "be95ea556303f21166f5e0408bc5f62541af381f563b40897219238b30b8c0af",
+      "bytes": 379
+    },
+    "build/reorderscan2-evidence/reorder-unit.log": {
+      "sha256": "4638e47d70ba651385dcdba2f7661c550b203de56d2fb21dee600df1ca073fcb",
+      "bytes": 1123
+    },
+    "build/reorderscan2-evidence/r7shadow-unit.log": {
+      "sha256": "473ed6ac12b7ee9c8b25912ba942e530bbcaff1515a4a8f99f6a836445bceb01",
+      "bytes": 882
+    },
+    "build/reorderscan2-evidence/reorder-sync.log": {
+      "sha256": "aa38dc54fb4089b77e65473c91f1b1e7576df726607c3e54788b431e5160fe61",
+      "bytes": 115
+    },
+    "build/reorderscan2-evidence/engagement-multi.log": {
+      "sha256": "539ad0e113d2ad6c246b9ac20b8687aa7219d0ad8184ce76978d9784230119bf",
+      "bytes": 98
+    },
+    "build/reorderscan2-evidence/engagement-db0.log": {
+      "sha256": "65f2791b7d304ac6a6f52f86d084492fa73d2c3bf62a3e94caeb4fe9d294553e",
+      "bytes": 102
+    },
+    "build/reorderscan2-evidence/reorder-identity.log": {
+      "sha256": "621b251aa0f03f0a302b8e638a001682ba88f238f6de49044821c09fb3d426b2",
+      "bytes": 166
+    },
+    "build/reorderscan2-evidence/off-path.log": {
+      "sha256": "d44404e588d9e26f648922c6bd7b76f0ece242aa35c957654ab8af9b51da5c50",
+      "bytes": 71
+    },
+    "build/reorderscan2-evidence/reorder-noop.log": {
+      "sha256": "d1dd45fd8a1f316eef31956936c93181b4210795b710f2db3f590dd996a12f9f",
+      "bytes": 328
+    },
+    "build/reorderscan2-evidence/object-identity.log": {
+      "sha256": "182a54f916ce6da77171d1be8b0ab9cb0f7f19a1a47c72b6df883ac5745d8ec5",
+      "bytes": 232
+    },
+    "build/reorderscan2-evidence/witnesses/paths.log": {
+      "sha256": "59536632fb0107541fe1efe2de46e64d3af49ebff64d223ae858560aec741fbf",
+      "bytes": 542
+    },
+    "build/reorderscan2-evidence/witnesses/default.log": {
+      "sha256": "9c69c7aaa2e08ae2e2d6227e7cbb4ad4a6aa2331cde30f51dd2e18e2576300d2",
+      "bytes": 1752
+    },
+    "build/reorderscan2-evidence/witnesses/default-negative.log": {
+      "sha256": "8ca48ff5aa8d379ac4d69074f28de8ede6878f7b878331ed62bdc09a9ebf9057",
+      "bytes": 49
+    },
+    "build/reorderscan2-evidence/witnesses/iopass.log": {
+      "sha256": "195eb59dd7591d3bcea2a53cedb340b1f9c8382465966fd7a8eca95f6359e8ca",
+      "bytes": 530
+    },
+    "build/reorderscan2-evidence/witnesses/iopass-armed.log": {
+      "sha256": "9b95ab0370be6ab67e4290e4cfebbed06bd92b6b59f49b55ca462a685a78a247",
+      "bytes": 759
+    },
+    "build/reorderscan2-evidence/witnesses/atomic-rollback-negative.log": {
+      "sha256": "30f01fa2faf0b0599026bcad88d82aa160731e75d12036851a17e75a0c669bdf",
+      "bytes": 64
+    },
+    "build/reorderscan2-evidence/ro1-negative.log": {
+      "sha256": "410933dde493fa5e196c459423433120b0dd6d84dc25b4618a1128cabc60ceaa",
+      "bytes": 66
+    },
+    "build/reorderscan2-evidence/pre-witness/pre.log": {
+      "sha256": "f2f9f41a1037f951d680bb04a5742657772a14c15469e81eb1b9d6917123020f",
+      "bytes": 542
+    },
+    "build/reorderscan2-evidence/pre-witness/post.log": {
+      "sha256": "3d076396efc1c0747250ea7be5d68b7993442da4f77bdf1c1ecb3bc194bf7863",
+      "bytes": 62
+    },
+    "build/reorderscan2-evidence/iopass-final.log": {
+      "sha256": "e1a9e0234bfaf9aeb104c4f0b2912dba3ab38faf7a5eef9e1f01fad624ae3c89",
+      "bytes": 318
+    },
+    "build/reorderscan2-evidence/pre2-build.log": {
+      "sha256": "4346f713eb23e7a772661cd3b1e5d06b3397f9d2c4d8830bb575cefbf955df53",
+      "bytes": 24959
+    },
+    "build/reorderscan2-evidence/post2-build.log": {
+      "sha256": "a90eafb63c85a9b74511aad37b693a80fa2d39d2ce66cf28fc60e171c41f0537",
+      "bytes": 20244
+    },
+    "build/reorderscan2-evidence/padA2.log": {
+      "sha256": "e9be971c127dd24e447e061648d287ff96136fd59af21d871d25d58fc45ddf40",
+      "bytes": 674
+    },
+    "build/reorderscan2-evidence/non-r7-sections.json": {
+      "sha256": "a812b7f2addc24a63111319a936172d9ee752d18d5ecad562b22bebca10219e6",
+      "bytes": 10031
+    },
+    "build/reorderscan2-evidence/non-r7-hot.json": {
+      "sha256": "769da3ae27798ee9fe3c462183ad3180e57405cb2b4d331f213ab38435dbb868",
+      "bytes": 516157
+    },
+    "docs/reorderscan2/object_identity.py": {
+      "sha256": "e0b6ba8a0f6d9cd803ce163329dff33dcee36a02bb9352fa1e1c2de28e41d704",
+      "bytes": 1695
+    },
+    "docs/reorderscan2/reproduce_witnesses.py": {
+      "sha256": "c7f15d51bae75a833f768e761c319287003e86d55cf6d2ce62fd8fb565d261a1",
+      "bytes": 7997
+    },
+    "docs/reorderscan2/pre_witness.py": {
+      "sha256": "716bc657af70f0b572a633ab03a4900cccd213a3e588eec53b53561626a79070",
+      "bytes": 1898
+    }
+  }
+}

@@ -314,6 +314,8 @@ public:
     void commit_reads() {
         if (!loop_) return;
         Rob<kRobWindow>& rob = client_->rob();
+        r7::ShadowDemotionDispatch shadow_dispatch(
+            *client_, count_ ? storage_->ids[count_ - 1] : rob.flush_id());
         bool completed_locally = false;
         for (uint32_t i = 0; i < count_; i++) {
             Op& op = rob.at(storage_->ids[i]);
@@ -346,7 +348,7 @@ public:
                 const uint32_t worker = loop_->srv_->worker_of_shard(op.shard);
                 loop_->srv_->thread(worker).post_task_reserved_quiet(
                     loop_->self_->id(),
-                    r7::shadow_demoted_task(client_, storage_->ids[i]),
+                    shadow_dispatch.task(client_, storage_->ids[i]),
                     loop_->self_->sig());
                 consume(worker);
                 loop_->touch_worker(worker);
@@ -2068,7 +2070,10 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
     // PAD A delegates to the inherited parser before any shadow scratch or scan.
     if (!r7::shadow_available())
         return parse_and_dispatch<NoBorrow, BatchOps, IoPipe, SplitLocal>(c);
-    r7::ShadowDispatch shadow_dispatch(*c);
+    // Only R7 touches the otherwise uninitialized Client padding. The first
+    // parser entry precedes every publication; migration retains Client + ROB.
+    if (c->rob().dispatch_id() == 0) r7::ShadowLongIndex::initialize(*c);
+    r7::LazyShadowDispatch shadow_dispatch(c->rob().dispatch_id());
 
     TOMO_R7_PATH();
     // Split readers and fused overlap need the same ROB hazards, MGET fence,
@@ -2869,6 +2874,7 @@ subscriber_checks_done:
                     if (started) reply_ok(op->sink());
                     else reply_err(op->sink(), error.c_str());
                     op->state.store(OpState::Done, std::memory_order_release);
+                    r7::ShadowLongIndex::record(*c, *op);
                     rob.publish();
                     enqueue_serve(c);
                     mark_active(c);
@@ -2877,6 +2883,7 @@ subscriber_checks_done:
                 flip_client_ = c;
                 flip_op_id_ = rob.dispatch_id();
                 flip_epoch_local_ = srv_->flip_epoch();
+                r7::ShadowLongIndex::record(*c, *op);
                 rob.publish();              // sole unfinished op on the coordinator connection
                 mark_active(c);
                 break;
@@ -2907,6 +2914,7 @@ subscriber_checks_done:
                         conn.advance_parse(consumed);
                         self_->note_command(spec->id);
                         flip_fingerprint_note(*spec, *op);
+                        r7::ShadowLongIndex::record(*c, *op);
                         rob.publish();
                         c->set_blocked(true);
                         // As with WAIT, retirement releases the barrier only after the timer's
@@ -2929,6 +2937,7 @@ subscriber_checks_done:
                     self_->note_command(spec->id);
                     flip_fingerprint_note(*spec, *op);
                     op->state.store(OpState::Done, std::memory_order_release);
+                    r7::ShadowLongIndex::record(*c, *op);
                     rob.publish();
                     enqueue_serve(c);
                     mark_active(c);
@@ -2951,6 +2960,7 @@ subscriber_checks_done:
                         conn.advance_parse(consumed);
                         self_->note_command(spec->id);
                         flip_fingerprint_note(*spec, *op);
+                        r7::ShadowLongIndex::record(*c, *op);
                         rob.publish();
                         c->set_blocked(true);
                         // Released by the quiescence backstop, not here: a parked WAIT's own
@@ -2971,6 +2981,7 @@ subscriber_checks_done:
                 self_->note_command(spec->id);
                 flip_fingerprint_note(*spec, *op);
                 op->state.store(OpState::Done, std::memory_order_release);
+                r7::ShadowLongIndex::record(*c, *op);
                 rob.publish();
                 enqueue_serve(c);
                 mark_active(c);
@@ -3005,6 +3016,7 @@ subscriber_checks_done:
             snapshot_bind_io(nullptr, nullptr);
             command_set_local_context(nullptr, nullptr);
             op->state.store(OpState::Done, std::memory_order_release);
+            r7::ShadowLongIndex::record(*c, *op);
             rob.publish();
             enqueue_serve(c);
             mark_active(c);
@@ -3076,6 +3088,7 @@ subscriber_checks_done:
             const uint64_t op_id = rob.dispatch_id();
             op->attach_blocking_state(dispatch.state);
             blocking_start(dispatch.state, dispatch.nshards);
+            r7::ShadowLongIndex::record(*c, *op);
             rob.publish();
             for (uint32_t i = 0; i < dispatch.nshards; i++) {
                 const int32_t sid = blocking_dispatch_shard(dispatch, i);
@@ -3202,6 +3215,7 @@ nonblocking_dispatch:
                 }
                 const uint64_t op_id = rob.dispatch_id();
                 op->attach_scatter_state(scatter_dispatch.state);
+                r7::ShadowLongIndex::record(*c, *op);
                 rob.publish();
                 for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
                     const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
@@ -3229,7 +3243,11 @@ nonblocking_dispatch:
                 continue;
             }
 
-            if (!dispatch_atomic_scatter(c, *op, scatter_dispatch)) break;
+            r7::ShadowLongIndex::record(*c, *op);
+            if (!dispatch_atomic_scatter(c, *op, scatter_dispatch)) {
+                r7::ShadowLongIndex::unpublish(*c);
+                break;
+            }
             self_->note_command(spec->id); // one public command, not one count per shard task
             flip_fingerprint_note(*spec, *op);
             conn.advance_parse(consumed);
@@ -3305,6 +3323,7 @@ ordinary_shard_ready:
                         rob.mark_current_read_local_hash(op_id, op->hash);
                     if (read_local_mget_candidate)
                         rob.arm_current_local_mget_fence();
+                    r7::ShadowLongIndex::record(*c, *op);
                     rob.publish();
                     // Room was proved by local_read_lane_has_room(read_local_lane_demand)
                     // above for this very op (run extension at the top of the frame, run head
@@ -3359,7 +3378,8 @@ ordinary_shard_ready:
             }
         }
         Task t{c, rob.dispatch_id(), -1, nullptr};
-            shadow_dispatch.stamp(t);
+        shadow_dispatch.stamp(t);
+        r7::ShadowLongIndex::record(*c, *op);
         rob.publish();
         bool posted = false;
         if constexpr (Fused) {
@@ -3370,6 +3390,7 @@ ordinary_shard_ready:
         }
         if (!posted && !post_task_quiet(worker, t)) {
             rob.unpublish();          // a refused push must leave NO trace -- including in the ROB
+            r7::ShadowLongIndex::unpublish(*c);
             if constexpr (Fused && !SplitLocal) l4prebuild_discard_set(*op);
             // A REFUSED PUSH MUST LEAVE NO TRACE. Advancing the parse cursor before this point
             // consumed the command's bytes while publishing no op, so the client waited forever
