@@ -59,16 +59,25 @@ HOT_SHARE = 4                                    # 3 of every 4 ops land in the 
 
 
 # THE LOAD BALANCER MUST HAVE SOMETHING TO BALANCE. A uniform key distribution over one small key
-# space keeps every shard at the same op rate, the imbalance never crosses the learned band, and no
-# shard ever changes owner -- which is the precondition for the defect this battery exists for
-# (measured: 7.8M ops, 0 migrations). A hot window that ROTATES makes a few shards hot, then makes
-# different ones hot, so the balancer moves shards continuously and in both directions, which is
-# exactly the traffic under which the crash was first seen.
-def hot_key(keyspace, i, salt):
+# space keeps every shard at the same op rate. Rotating arbitrary keys every .5s also averages
+# away the imbalance across the controller's three sustained one-second ticks. Heat distinct
+# shards on ONE observed owner, and hold that demand until a move actually completes. Then arm
+# a fresh owner group from current placement. The unchanged deadline still fails if none move.
+def arm_hot_keys(conn, keyspace):
+    by_owner = {}
+    for key, (shard, owner) in zip(keyspace, _lib.shards_of(conn, keyspace)):
+        by_owner.setdefault(owner, {}).setdefault(shard, key)
+    shards = max(by_owner.values(), key=len)
+    if len(shards) < 2:
+        raise AssertionError("churn needs multiple movable shards on one owner")
+    return tuple(list(shards.values())[:HOT])
+
+
+def hot_key(keyspace, hot, i, salt):
     n = len(keyspace)
     if i % HOT_SHARE:
-        base = int(time.time() * 2) * 13
-        return keyspace[(base + (i + salt) % HOT) % n]
+        keys = hot[0]  # immutable tuple; the observer replaces it only after a completed move
+        return keys[(i + salt) % len(keys)]
     return keyspace[(i * 7 + salt) % n]
 
 
@@ -78,7 +87,7 @@ def hot_key(keyspace, i, salt):
 # READ -- the reader holding a pointer into an object the owner is concurrently retiring -- almost
 # unexercised (measured: 210 local hits across 6M GETs). Readers and writers are split onto
 # separate connections over ONE key space so that both halves run at full rate against each other.
-def reader(host, port, wid, keyspace, stop, errors, counts):
+def reader(host, port, wid, keyspace, stop, errors, counts, hot):
     try:
         conn = _lib.Conn(host, port)
         n = len(keyspace)
@@ -90,7 +99,7 @@ def reader(host, port, wid, keyspace, stop, errors, counts):
             expect = 0
             base = (rnd * 7 + wid) % n
             for i in range(BURST):
-                frame.append(_lib.encode("GET", hot_key(keyspace, i, wid)))
+                frame.append(_lib.encode("GET", hot_key(keyspace, hot, i, wid)))
                 expect += 1
             # MGET takes the multi-key local-read path, which holds several foreign pointers at once.
             frame.append(_lib.encode("MGET", keyspace[base % n], keyspace[(base + 1) % n],
@@ -106,7 +115,7 @@ def reader(host, port, wid, keyspace, stop, errors, counts):
         errors.append("reader %d: %r" % (wid, exc))
 
 
-def writer(host, port, wid, keyspace, stop, errors, counts):
+def writer(host, port, wid, keyspace, stop, errors, counts, hot):
     try:
         conn = _lib.Conn(host, port)
         n = len(keyspace)
@@ -121,7 +130,7 @@ def writer(host, port, wid, keyspace, stop, errors, counts):
             expect = 0
             base = (rnd * 5 + wid * 3) % n
             for i in range(BURST):
-                k = hot_key(keyspace, i, wid)
+                k = hot_key(keyspace, hot, i, wid)
                 j = keyspace.index(k)
                 frame.append(_lib.encode("SET", k, vals[j]))
                 expect += 1
@@ -182,6 +191,8 @@ def main():
     counts = [0] * workers
     # One shared key space: every reader can be serving a key some writer is retiring.
     keyspace = ["ch:%d" % i for i in range(KEYSPACE)]
+    hot = [arm_hot_keys(ctl, keyspace)]
+    hot_moves = before_moves
     for i in range(0, KEYSPACE, 64):
         ctl.raw(b"".join(_lib.encode("SET", keyspace[j], "seed")
                          for j in range(i, min(i + 64, KEYSPACE))))
@@ -191,7 +202,7 @@ def main():
     for w in range(workers):
         fn = reader if (DO_READ and w % 2 == 0) else writer
         threads.append(threading.Thread(target=fn,
-                                        args=(host, port, w, keyspace, stop, errors, counts)))
+                                        args=(host, port, w, keyspace, stop, errors, counts, hot)))
     for t in threads:
         t.start()
 
@@ -200,8 +211,16 @@ def main():
     while time.time() < deadline and not errors:
         time.sleep(0.25)
         try:
-            peak_cache = max(peak_cache, _lib.info_int(ctl, "all", "mem_block_cache"))
-        except Exception:                                        # noqa: BLE001
+            row = _lib.info(ctl, "all")
+            peak_cache = max(peak_cache, int(row["mem_block_cache"]))
+            moves = int(row["tomokv_keylb_bucket_moves"])
+            if moves > hot_moves:
+                hot[0] = arm_hot_keys(ctl, keyspace)
+                hot_moves = moves
+                print("  rearmed churn after shard moves: delta=%d" %
+                      (moves - before_moves), flush=True)
+        except Exception as exc:                                # noqa: BLE001
+            errors.append("churn observer: %r" % (exc,))
             break
         # release_all() on a live cache, interleaved with the workers' take()/put().
         if DO_FLUSH and int((deadline - time.time()) * 4) % 20 == 0:
