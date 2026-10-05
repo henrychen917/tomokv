@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-gt13split/tests/read_local_lane.py", line 597, in <module>
+    self_test(sys.argv[2] if len(sys.argv) > 2 else "transient")
+  File "/home/user/Projects/cx-gt13split/tests/read_local_lane.py", line 496, in self_test
+    return mget_fence_self_test(trace)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-gt13split/tests/read_local_lane.py", line 302, in mget_fence_self_test
+    mget_fence()
+  File "/home/user/Projects/cx-gt13split/tests/read_local_lane.py", line 201, in mget_fence
+    raise AssertionError("MGET fence window never opened after 3 fresh arms (p%d)" % depth)
+AssertionError: MGET fence window never opened after 3 fresh arms (p8)

@@ -390,24 +390,14 @@ def boot(port, extra=(), conf=None, wait=6.0):
         proc = subprocess.Popen(args, stdout=output, stderr=subprocess.STDOUT, env=env)
     OWNED.append(proc)
     record("spawned", argv=args, pid=proc.pid)
-    deadline = time.time() + wait
-    while time.time() < deadline:
-        try:
-            probe = Conn(port, timeout=1)
-            actual = probe.cmd("INFO", "SERVER")
-            probe.close()
-            if proc.poll() is not None or "process_id:%d\r\n" % proc.pid not in actual:
-                if proc.poll() is None:
-                    proc.terminate()
-                    proc.wait(timeout=8)
-                return failed("INFO identity mismatch or exited process", pid=proc.pid,
-                              returncode=proc.poll(), actual=repr(actual))
-            record("ready")
-            return proc
-        except OSError:
-            if proc.poll() is not None:
-                return failed("server exited before accepting", returncode=proc.returncode)
-            time.sleep(0.05)
+    try:
+        from _lib import wait_ready
+        probe = wait_ready(HOST, port, timeout=wait, process=proc, log_path=logfile)
+        probe.close()
+        record("ready")
+        return proc
+    except (OSError, EOFError, RuntimeError, AssertionError) as error:
+        record("readiness failed", error=repr(error), returncode=proc.poll())
     proc.kill()
     proc.wait()
     return failed("server boot timed out", returncode=proc.returncode, wait_seconds=wait)

@@ -1,8 +1,9 @@
-Lane reorderscan2: merged iopass + RO1 / RO2
+Lane gt13split: independent EXECABORT/WATCH and test readiness extractions
 
-See MEASURE-REQUEST-reorderscan2.md for merge/regeneration commits, serverless
-proofs against b38916d88, frozen PRE2/POST2/PAD-A2 digests, and the headline-null
-requeue. Zero gate rows added; no server, benchmark, gate run, or push.
+See MEASURE-REQUEST-gt13split.md for the 64 serverless PRE/POST outcomes,
+1,482/1,482 hot-body byte matches, three changed MULTI bodies, readiness tests,
+frozen release hashes, and pending live batteries/performance null. One new
+EXECABORT gate row (+1 quick/+1 full); readiness adds zero. No server or gate run.
 
 Lane gt15fix: snapshot loads during FLIP/key-LB
 

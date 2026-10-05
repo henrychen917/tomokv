@@ -15,7 +15,7 @@ import subprocess
 import sys
 import time
 
-from _lib import Conn, RespError, encode
+from _lib import Conn, RespError, encode, wait_ready
 from mdbqsbr_live import wait_parked, no_core_dump
 from shutdown_report import load_report, require_io_conservation
 
@@ -135,20 +135,10 @@ def attempt(args, index):
         events = []
         phase = 'boot'
         try:
-            deadline = time.monotonic() + 15
-            while time.monotonic() < deadline:
-                if proc.poll() is not None:
-                    raise AssertionError('boot failed: ' + log_path.read_text()[-3000:])
-                try:
-                    control = Conn('127.0.0.1', args.port, timeout=1)
-                    assert control.cmd('PING') == b'PONG'
-                    break
-                except (OSError, EOFError):
-                    if control is not None:
-                        control.close(); control = None
-                    time.sleep(0.025)
-            assert control is not None, 'boot readiness never fired'
-            control.sock.settimeout(15)
+            if proc.poll() is not None:
+                raise AssertionError('boot failed: ' + log_path.read_text()[-3000:])
+            control = wait_ready('127.0.0.1', args.port, timeout=15,
+                                 process=proc, log_path=log_path)
             phase = 'productive-0'
             productive('127.0.0.1', args.port, 0)
             phase = 'park-before-flip'

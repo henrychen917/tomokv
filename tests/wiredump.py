@@ -212,20 +212,11 @@ def read_full(client, kind, key):
     raise AssertionError("unknown kind %r" % kind)
 
 
-def wait_ready(host, port, process, label):
-    deadline = time.monotonic() + 10
-    while time.monotonic() < deadline:
-        if process.poll() is not None:
-            raise RuntimeError("%s terminated during boot (status %s)" % (label, process.returncode))
-        try:
-            probe = Resp(host, port, timeout=0.2)
-            answer = probe.cmd("PING")
-            probe.close()
-            if answer == b"PONG":
-                return
-        except (OSError, EOFError):
-            time.sleep(0.03)
-    raise RuntimeError("%s did not listen on %s:%d" % (label, host, port))
+def wait_ready(host, port, process, label, log_path=None):
+    from _lib import wait_ready as shared_wait_ready
+    probe = shared_wait_ready(host, port, timeout=10, process=process,
+                              log_path=log_path if label == "target" else None)
+    probe.close()
 
 
 def ensure_port_free(host, port):
@@ -258,7 +249,7 @@ def boot_pair(args):
             process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)
             processes.append(process)
             wait_ready(args.host, args.target_port if label == "target" else args.oracle_port,
-                       process, label)
+                       process, label, log.name)
         return processes, logs
     except Exception:
         stop_pair(processes, logs)

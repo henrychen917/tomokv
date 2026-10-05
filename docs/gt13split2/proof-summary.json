@@ -1,0 +1,83 @@
+[
+  {
+    "attempt": 1,
+    "run": "/home/user/Projects/cx-gt13split/build/gate-run.m6ncQC",
+    "feature": "build/gate-feature.qpdcRs",
+    "passed": 49,
+    "failed": 0,
+    "shard_moves": 11,
+    "read_local_hits": 3676795,
+    "peak_cache": 514848,
+    "job_counts": {
+      "ring_unit": [
+        "0",
+        "3",
+        "0"
+      ],
+      "feature-split-1": [
+        "0",
+        "34",
+        "0"
+      ],
+      "rlcache": [
+        "0",
+        "2",
+        "0"
+      ]
+    }
+  },
+  {
+    "attempt": 2,
+    "run": "/home/user/Projects/cx-gt13split/build/gate-run.3dA5hn",
+    "feature": "build/gate-feature.mbHXuI",
+    "passed": 49,
+    "failed": 0,
+    "shard_moves": 62,
+    "read_local_hits": 3947675,
+    "peak_cache": 337216,
+    "job_counts": {
+      "ring_unit": [
+        "0",
+        "3",
+        "0"
+      ],
+      "feature-split-1": [
+        "0",
+        "34",
+        "0"
+      ],
+      "rlcache": [
+        "0",
+        "2",
+        "0"
+      ]
+    }
+  },
+  {
+    "attempt": 3,
+    "run": "/home/user/Projects/cx-gt13split/build/gate-run.BW0mFA",
+    "feature": "build/gate-feature.wUndMJ",
+    "passed": 49,
+    "failed": 0,
+    "shard_moves": 69,
+    "read_local_hits": 3837832,
+    "peak_cache": 342080,
+    "job_counts": {
+      "ring_unit": [
+        "0",
+        "3",
+        "0"
+      ],
+      "feature-split-1": [
+        "0",
+        "34",
+        "0"
+      ],
+      "rlcache": [
+        "0",
+        "2",
+        "0"
+      ]
+    }
+  }
+]
