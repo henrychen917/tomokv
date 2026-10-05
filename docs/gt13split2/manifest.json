@@ -1,0 +1,17 @@
+{
+  "code_revision": "75ec84195759ce5e8cc4408b1175c65dd629d620",
+  "gate_start_revision": "f9dfa3a030479c01d8eebdb62bb8f2f94d2423c0",
+  "files": {
+    "build/tomokv": "aadcff162b77d1baff321701aac27020b495e05db5018008f19e72a8eb87f7a5",
+    "build/gate-cache/tomokv-rlcachedbg": "356c875be88dd897bbcf548f12d978119d1b266cfc9bfcacd25aab722023461e",
+    "tests/_lib.py": "8d9abeec8b229816a08fb9de07eb3801f38361bd44207aa6518d6ce5d21b3195",
+    "tests/_gate_process.py": "dfa043827c3d13c57cf81b17b487fd915b047906545a1fd130cef924a391da5b",
+    "tests/read_local_lane.py": "6f4ee572729f0c199beb8a4481144b67ca2415fd5b47c1eec90a2be58843ea46",
+    "tests/feature_gate.py": "48ab703e1bc200eb48fc993a1ec5a796e4ddcbaf0f7341654947510e2960d77f",
+    "tests/rlcache_churn.py": "adc52571fac5649ad1fe252cc0d0cc2bdf3f32234fae60f0f59ce7aea11ab58f",
+    "tests/gate.sh": "4871714adf6fbdf6556206e1706503e3f00c02bbf260a525f5882957846dc3c1",
+    "tests/gateplan.py": "6edcd5eb95df0656a37d9110a1651368e65de99a35240f804041e6bff7cc0ea2"
+  },
+  "planner_runtime_unchanged_since_gate_start": true,
+  "production_gate_expect_fixture_diff_from_entry": "empty"
+}
