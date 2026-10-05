@@ -852,9 +852,9 @@ void IoLoop::r7_run_loop() {
             did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
             if constexpr (HasUnix) did += flush_handoffs();
             did += multi_owner_pass_entry(*this);
-            if (srv_->aof().writer_is(self_->id()))
+            if (aof_writer_bound())
                 did += srv_->aof().writer_pass(*self_, ring_);
-            if (srv_->snapshot().writer_is(self_->id()))
+            if (snapshot_writer_bound())
                 did += srv_->snapshot().writer_pass(*self_, ring_);
             if (__builtin_expect(!deferred_timers_.empty(), false)) {
                 // CQ processing above may have created the first timer after the prologue.
@@ -1050,9 +1050,9 @@ uint32_t IoLoop::r7_sweep() {
     }
     if (__builtin_expect(!routing_forward_.empty(), false))
         client_routing_cleanup_pass();
-    if (srv_->snapshot().writer_is(self_->id()))
+    if (snapshot_writer_bound())
         work += srv_->snapshot().writer_pass(*self_, ring_, true);
-    if (srv_->aof().writer_is(self_->id()))
+    if (aof_writer_bound())
         work += srv_->aof().writer_pass(*self_, ring_, true);
     return work;
 }

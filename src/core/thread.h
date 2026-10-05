@@ -411,6 +411,10 @@ public:
     void begin_fused_snapshot(SnapshotManager* manager) {
         if (snapshot_start_) snapshot_start_(fused_executor_context_, manager);
     }
+    // Set by SnapshotManager::start on this physical IO owner, cleared only by its IO pass.
+    // A writer can be selected with appendonly/save both disabled (explicit BGSAVE).
+    bool snapshot_writer_bound() const { return snapshot_writer_bound_; }
+    void set_snapshot_writer_bound(bool bound) { snapshot_writer_bound_ = bound; }
 
     // Where this thread actually runs. Latched once the thread is pinned and running, because
     // sched_getcpu() before that answers about the wrong cpu. A worker passes domain() to
@@ -1086,6 +1090,7 @@ private:
     std::atomic<Role> role_{Role::Idle};
     std::atomic<Role> ready_role_{Role::Idle};
     std::atomic<bool> stop_{false};
+    bool snapshot_writer_bound_ = false; // owner-private; occupies existing alignment padding
     std::atomic<Ring*> ring_{nullptr};
     void* io_role_context_ = nullptr;
     RolePrepareFn io_role_prepare_ = nullptr;

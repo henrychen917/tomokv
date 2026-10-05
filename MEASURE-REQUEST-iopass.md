@@ -24,6 +24,8 @@ The executable-only column excludes shared-library instructions (allocator and l
 | IO2 (executable only) | 294 → 284 | 37455 → 37445 | 1555 → 1545 | 7761 → 7751 |
 | IO3 (all instructions) | 284 → 286 | 73486 → 73296 | 11926 → 11921 | 29933 → 29887 |
 | IO3 (executable only) | 284 → 286 | 37445 → 37255 | 1545 → 1540 | 7751 → 7732 |
+| IO4 (all instructions) | 286 → 285 | 73296 → 73295 | 11921 → 11920 | 29887 → 29886 |
+| IO4 (executable only) | 286 → 285 | 37255 → 37254 | 1540 → 1539 | 7732 → 7731 |
 
 Receipts include exact PCs and visit counts in `docs/iopass/*.sites.json.gz`, with
 totals and decoded shared-load sites in the corresponding JSON. Correctness cases
@@ -82,6 +84,38 @@ stage, and cached coordinator gate. These are compiled source mutations under
 
 Risk: snapshots trade up to one pass of control latency for fewer loads. Mainline
 must exercise both FLIP directions and SWAPDB under the requested loaded geometry.
+
+## IO4: bound writer probes
+
+All three writer-probe pairs (ordinary pass, sweep, pipeline sweep) use the same
+predicates. AOF is exactly `aof_bound_ && aof().writer_is(id)`. Binding is only set
+after successful `bind_writer` under `configured()`, and remains sticky through
+deactivation/reactivation. It is not a writer-election bit: configured non-writers
+still check the elected ID. Neither stickiness nor reply durability gating changes.
+
+Snapshot is `self_->snapshot_writer_bound() && snapshot().writer_is(id)`, with a
+false writer check retiring the private binding. Every entry into the common
+`SnapshotManager::start` arms the actual writer before any operation can leave a
+snapshot needing writer progress, including failed/cancelled starts. No reliance on
+`SnapshotStart` CQEs: those notify executor owners and may never arrive at a split
+IO writer. SAVE/BGSAVE, scheduled save, rewrite, and shutdown all use that entry.
+The byte occupies existing ThreadCtx padding; it is written only on the chosen
+physical IO thread. No new allocation or per-operation branch is introduced.
+
+Default/off savings: two manager cache lines per probe pair, including the park
+backstop. When bound, the original writer-ID/phase predicates and writer passes
+remain, including the unmasked sweep. A zero-work writer pass does not clear a live
+epoch; only a later false `writer_is` retires its binding.
+
+`IO4-checks.log` exercises real common-start binding via deterministic file-open
+failure (no snapshot file), standalone snapshot progress, a held cancellation ACK,
+rearm, AOF election, and sticky role binding. Four negative controls fail exactly:
+missing start binding, incorrectly requiring AOF for snapshot progress, clearing
+an active snapshot binding, and clearing AOF binding on deactivation.
+
+Risk: any future snapshot-start bypass must arm the same private binding. The
+existing common start is the sole selection point; live BGSAVE/AOF gate coverage
+remains required on mainline.
 
 ## Artifacts and requested mainline measurement
 

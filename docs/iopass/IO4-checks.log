@@ -1,0 +1,3 @@
+PASS IO2 boot/config/signal/role election
+PASS IO3 delayed ACK, post-ACK dispatch, epoch rollover, coordinator, database fences
+PASS IO4 disabled/AOF election/sticky role binding/standalone snapshot/cancellation/rearm

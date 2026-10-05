@@ -620,9 +620,9 @@ private:
                 did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
                 if constexpr (HasUnix) did += flush_handoffs();
                 did += multi_owner_pass_entry(*this);
-                if (srv_->aof().writer_is(self_->id()))
+                if (aof_writer_bound())
                     did += srv_->aof().writer_pass(*self_, ring_);
-                if (srv_->snapshot().writer_is(self_->id()))
+                if (snapshot_writer_bound())
                     did += srv_->snapshot().writer_pass(*self_, ring_);
                 if (__builtin_expect(!deferred_timers_.empty(), false)) {
                     // CQ processing above may have created the first timer after the prologue.
@@ -4538,9 +4538,9 @@ ordinary_shard_ready:
         }
         if (__builtin_expect(!routing_forward_.empty(), false))
             client_routing_cleanup_pass();
-        if (srv_->snapshot().writer_is(self_->id()))
+        if (snapshot_writer_bound())
             work += srv_->snapshot().writer_pass(*self_, ring_, true);
-        if (srv_->aof().writer_is(self_->id()))
+        if (aof_writer_bound())
             work += srv_->aof().writer_pass(*self_, ring_, true);
         return work;
     }
@@ -4563,9 +4563,9 @@ ordinary_shard_ready:
                 true, natural_order, submitted, cursor);
         if (__builtin_expect(!routing_forward_.empty(), false))
             client_routing_cleanup_pass();
-        if (srv_->snapshot().writer_is(self_->id()))
+        if (snapshot_writer_bound())
             work += srv_->snapshot().writer_pass(*self_, ring_, true);
-        if (srv_->aof().writer_is(self_->id()))
+        if (aof_writer_bound())
             work += srv_->aof().writer_pass(*self_, ring_, true);
         return work;
     }
@@ -5478,6 +5478,21 @@ ordinary_shard_ready:
         }
         srv_->lb_publish_client_observations(self_->id(), lb_client_observations_);
         return static_cast<uint32_t>(lb_client_observations_.size());
+    }
+
+    bool aof_writer_bound() const {
+        // bind_writer succeeds on every configured IO, but only the elected one writes.
+        // aof_bound_ stays sticky across IO->EX->IO: ring lifetime/binding is unchanged.
+        return aof_bound_ && srv_->aof().writer_is(self_->id());
+    }
+
+    bool snapshot_writer_bound() {
+        if (!self_->snapshot_writer_bound()) return false;
+        if (srv_->snapshot().writer_is(self_->id())) return true;
+        // Only this IO can start a new snapshot using its writer identity. A peer may select
+        // itself after Idle, but cannot race a new epoch onto this private latch.
+        self_->set_snapshot_writer_bound(false);
+        return false;
     }
 
     void flip_pass_begin() { flip_stage_snapshot_ = srv_->flip_stage(); }

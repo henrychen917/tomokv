@@ -28,6 +28,14 @@ def emit(source, destination):
     core = (ROOT / 'tests/core_concurrency_unit.cc').read_text()
     # Reuse the existing fixture verbatim; do not change its setup or assertions.
     fixture = core[:core.index('    static void watch_disconnect()')]
+    fixture = fixture.replace('namespace tomo {\n', '''namespace tomo {
+struct PersistFixTest {
+    static void iopass_writer(AofManager& manager, uint32_t tid, bool configured) {
+        manager.configured_ = configured;
+        manager.writer_tid_ = tid;
+    }
+};
+''', 1)
     io = (source / 'src/core/io_loop.h').read_text()
     cron = re.search(r'const bool client_cron_armed = ([\s\S]*?);', io)[1]
     save = re.search(r'const bool save_cron_armed = ([\s\S]*?);', io)[1]
@@ -36,17 +44,17 @@ def emit(source, destination):
     if aof:
         writers = f'if ({aof[1]}) did += srv_->aof().writer_pass(*self_, ring_);\n'
     else:
-        assert 'did += aof_writer_pass();' in io
-        writers = 'did += aof_writer_pass();\n'
+        assert 'if (aof_writer_bound())' in io
+        writers = 'if (aof_writer_bound()) did += srv_->aof().writer_pass(*self_, ring_);\n'
     snap = re.search(r'if \(([^\n]*writer_is\(self_->id\(\)\)[^\n]*)\)\n\s*did \+= srv_->snapshot\(\).writer_pass', io)
     if snap:
         writers += f'if ({snap[1]}) did += srv_->snapshot().writer_pass(*self_, ring_);\n'
     else:
-        assert 'did += snapshot_writer_pass();' in io
-        writers += 'did += snapshot_writer_pass();\n'
+        assert 'if (snapshot_writer_bound())' in io
+        writers += 'if (snapshot_writer_bound()) did += srv_->snapshot().writer_pass(*self_, ring_);\n'
     # Qualify the exact production expressions inside the friend test wrapper.
     def qualify(text):
-        return re.sub(r'(?<!->)\b(srv_|self_|ring_|save_cron_writer_|flip_dispatch_paused|aof_writer_pass|snapshot_writer_pass|aof_bound_)\b', r'io.\1', text)
+        return re.sub(r'(?<!->)\b(srv_|self_|ring_|save_cron_writer_|flip_dispatch_paused|aof_writer_bound|snapshot_writer_bound|aof_bound_)\b', r'io.\1', text)
     fixture += '''
     template<bool Fused>
     static uint32_t receipt_pass(Fixture<Fused>& f, Client** clients, uint32_t count) {

@@ -48,6 +48,8 @@ static void run_iopass(const std::string& which) {
         save_election(f.io, f.server);
         Fixture fresh(false);
         flip_fences(fresh);
+        Fixture writer(false);
+        writer_fences(writer);
         return;
     }
 #endif
@@ -168,5 +170,61 @@ template<class F> static void flip_fences(F& f) {
         }
         server.flip_stage_.store(FlipStage::Idle);
         std::puts("PASS IO3 delayed ACK, post-ACK dispatch, epoch rollover, coordinator, database fences");
+    }
+}
+
+template<class F> static void writer_fences(F& f) {
+    if constexpr (requires { f.io.snapshot_writer_bound(); }) {
+        auto& io = f.io;
+        auto& server = f.server;
+        auto& snapshot = server.snapshot();
+        require(!io.aof_writer_bound() && !io.snapshot_writer_bound(),
+                "disabled and never-bound writers are dark");
+        // AOF binding is sticky, and still selects only its elected physical writer.
+        PersistFixTest::iopass_writer(server.aof(), f.io_id, true);
+        io.aof_bound_ = true;
+        require(io.aof_writer_bound(), "bound elected AOF writer cannot be gated out");
+        PersistFixTest::iopass_writer(server.aof(), f.io_id + 1, true);
+        require(!io.aof_writer_bound(), "bound non-writer does not run AOF writer work");
+        PersistFixTest::iopass_writer(server.aof(), f.io_id, true);
+        io.initialized_ = io.prepared_role_ = io.active_role_ = true;
+        io.deactivate();
+        require(io.aof_bound_, "AOF binding survives IO-to-EX deactivation");
+        require(io.activate() && io.aof_bound_ && io.aof_writer_bound(),
+                "IO reactivation preserves the original AOF binding");
+        PersistFixTest::iopass_writer(server.aof(), UINT32_MAX, false);
+
+        // Real common start, with a deterministic pre-broadcast open failure: Makefile is a
+        // regular file, never a directory. No listener, ring, executor loop or snapshot file.
+        std::string error;
+        auto result = snapshot.start(server, *io.self_, io.ring_, false, error,
+                                     nullptr, "Makefile", "iopass");
+        require(result == SnapshotManager::StartResult::Failed &&
+                error == "could not create snapshot temporary file",
+                "snapshot start reaches the actual writer-binding edge");
+        require(io.self_->snapshot_writer_bound(),
+                "common snapshot start arms the writer with AOF and save disabled");
+        // Hold a cancellation ACK on the real writer state machine. A zero-work pass must
+        // not discard the binding while owner cancellation is still outstanding.
+        snapshot.writer_tid_.store(f.io_id);
+        snapshot.phase_.store(SnapshotManager::Phase::Failed);
+        snapshot.executor_count_ = 1;
+        snapshot.cancelled_owners_.store(0);
+        snapshot.finished_owners_.store(0);
+        require(io.snapshot_writer_bound(), "standalone snapshot writer is eligible");
+        snapshot.writer_pass(*io.self_, io.ring_);
+        require(io.snapshot_writer_bound() && snapshot.in_progress(),
+                "zero-work writer pass retains binding while cancellation is held");
+        snapshot.cancelled_owners_.store(1);
+        snapshot.writer_pass(*io.self_, io.ring_, true);
+        require(!snapshot.in_progress() && !io.snapshot_writer_bound() &&
+                    !io.self_->snapshot_writer_bound(),
+                "completed cancellation retires the writer binding");
+        result = snapshot.start(server, *io.self_, io.ring_, false, error,
+                                nullptr, "Makefile", "iopass");
+        require(result == SnapshotManager::StartResult::Failed &&
+                    io.self_->snapshot_writer_bound(), "a later epoch rearms the writer");
+        require(!io.snapshot_writer_bound(), "failed-before-broadcast epoch can disarm at Idle");
+        std::puts("PASS IO4 disabled/AOF election/sticky role binding/standalone snapshot/cancellation/rearm");
     }
 }
