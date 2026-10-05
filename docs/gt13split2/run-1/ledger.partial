@@ -1,0 +1,50 @@
+PARTIAL	0	GATE_ONLY_JOBS=feature-split-1 ring_unit rlcache feature-cell-1s-0-0-0-1 feature-cell-1s-0-0-1-1 feature-cell-1s-0-1-0-1 feature-cell-1s-0-1-1-1 feature-cell-1s-1-0-0-1 feature-cell-1s-1-0-1-1 feature-cell-1s-1-1-0-1 feature-cell-1s-1-1-1-1; NOT A RECEIPT
+ok	0.050000	release build (+footprint locks)
+ok	1.220000	read-local ownership-invariant build
+ok	1.680000	read-local write ring + arming transient unit
+ok	0.040000	climon 128-owner delivery mask
+ok	0.190000	read-local MGET fence symmetry unit
+ok	14.330000	s6 battery (atomic 1)
+ok	2.120000	multi_exec battery (atomic 1)
+ok	1.530000	blocking battery (atomic 1)
+ok	0.490000	blockmulti battery (atomic 1)
+ok	0.490000	stream battery (atomic 1)
+ok	0.060000	streamgroups battery (atomic 1)
+ok	0.910000	pubsub battery (atomic 1)
+ok	0.030000	lua_scripting battery (atomic 1)
+ok	0.050000	scriptsurf battery (atomic 1)
+ok	14.790000	limits battery (atomic 1)
+ok	0.030000	resp3 battery (atomic 1)
+ok	0.030000	bitfield battery (atomic 1)
+ok	0.060000	dumprestore battery (atomic 1)
+ok	0.040000	zsetops battery (atomic 1)
+ok	0.030000	geo battery (atomic 1)
+ok	1.130000	climon battery (atomic 1)
+ok	3.930000	climon2 battery (atomic 1)
+ok	14.110000	tracking battery (atomic 1)
+ok	3.690000	hexpire battery (atomic 1)
+ok	2.610000	servertail battery (atomic 1)
+ok	0.150000	lcs battery (atomic 1)
+ok	1.940000	concur battery (atomic 1)
+ok	0.580000	edgeproto battery (atomic 1)
+ok	0.310000	edgeenc battery (atomic 1)
+ok	3.950000	edgetime battery (atomic 1)
+ok	0.020000	arity battery (atomic 1)
+ok	0.030000	contarity battery (atomic 1)
+ok	0.020000	cmdgap battery (atomic 1)
+ok	0.030000	aclsel battery (atomic 1)
+ok	48.180000	expwide battery (atomic 1)
+ok	0.150000	infofix battery (atomic 1)
+ok	2.940000	pushtear battery (atomic 1)
+ok	0.030000	netcmd battery (atomic 1)
+ok	0.030000	feature shutdown invariants (atomic 1)
+ok	25.250000	armed block-cache churn battery
+ok	0.020000	read-local ownership invariants
+ok	0.120000	feature 1s-0-0-0-1
+ok	0.120000	feature 1s-0-0-1-1
+ok	0.110000	feature 1s-0-1-0-1
+ok	0.110000	feature 1s-0-1-1-1
+ok	0.110000	feature 1s-1-0-0-1
+ok	0.110000	feature 1s-1-0-1-1
+ok	0.110000	feature 1s-1-1-0-1
+ok	0.100000	feature 1s-1-1-1-1

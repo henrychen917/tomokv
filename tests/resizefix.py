@@ -207,17 +207,9 @@ def main():
                 with log.open('w') as out:
                     srv = subprocess.Popen(cmd, cwd=ROOT, stdout=out, stderr=subprocess.STDOUT)
                 print('BOOT', tag, 'pid', srv.pid, 'port', port, flush=True)
-                deadline = time.monotonic() + 30
-                while True:
-                    if srv.poll() is not None:
-                        raise RuntimeError('server exited: ' + log.read_text()[-3000:])
-                    try:
-                        with socket.create_connection(('127.0.0.1', port), timeout=.1):
-                            break
-                    except OSError:
-                        if time.monotonic() >= deadline:
-                            raise
-                        time.sleep(.1)
+                from _lib import wait_ready
+                ready = wait_ready('127.0.0.1', port, timeout=30, process=srv, log_path=log)
+                ready.close()
                 battery_log = output / ('battery-' + tag + '.log')
                 if args.idle:
                     rc = 0

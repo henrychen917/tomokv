@@ -12,7 +12,7 @@ import socket
 import subprocess
 import time
 
-from _lib import Conn, encode
+from _lib import Conn, encode, wait_ready
 
 
 def require(condition, message):
@@ -172,22 +172,9 @@ def server(binary, server_cpus, port, directory, args):
         process = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT)
         (directory / 'pid').write_text(str(process.pid) + '\n')
         try:
-            deadline = time.monotonic() + 20
-            while time.monotonic() < deadline:
-                require(process.poll() is None,
-                        'server exited before boot: ' + (directory / 'server.log').read_text()[-2000:])
-                try:
-                    conn = Conn('127.0.0.1', port, timeout=5)
-                    actual = info(conn, 'SERVER')
-                    require(number(actual, 'process_id') == process.pid,
-                            'port answered by a different PID; refusing traffic')
-                    break
-                except (ConnectionRefusedError, ConnectionResetError):
-                    if conn:
-                        conn.close()
-                        conn = None
-                    time.sleep(.025)
-            require(conn is not None, f'boot timeout on port {port}')
+            conn = wait_ready('127.0.0.1', port, timeout=20, process=process,
+                              log_path=directory / 'server.log')
+            conn.sock.settimeout(5)
             yield conn, process
             quiescence = quiesce_connections(conn, process)
             (directory / 'quiescence.json').write_text(json.dumps(quiescence, indent=2) + '\n')

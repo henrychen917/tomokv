@@ -22,7 +22,7 @@ import sys
 import threading
 import time
 
-from _lib import Conn, info, lbsignals
+from _lib import Conn, info, lbsignals, wait_ready
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKERS = 8
@@ -122,24 +122,18 @@ def boot_failure(proc, log_path, error):
     except OSError as exc:
         tail = f'(cannot read log: {exc})'
     state = 'not started' if proc is None else f'pid={proc.pid}, exit={proc.poll()}'
-    return BootFailure(f'server boot failed ({state}): {error}\n'
+    summary = str(error)
+    if summary.startswith('server exited during boot '):
+        summary = summary.split('\n', 1)[0]  # this wrapper owns the bounded log tail below
+    return BootFailure(f'server boot failed ({state}): {summary}\n'
                        f'last 25 lines of {log_path} (stdout/stderr):\n{tail}')
 
 
-def connect_ready(proc, port):
-    deadline = time.monotonic() + WORKERS * SHUTDOWN
-    while time.monotonic() < deadline:
-        require(proc.poll() is None, 'server exited before readiness')
-        conn = None
-        try:
-            conn = Conn('127.0.0.1', port, timeout=GRACE)
-            require(conn.cmd('PING') == b'PONG', 'owned server PING failed')
-            return conn
-        except (ConnectionError, OSError, EOFError):
-            if conn:
-                conn.close()
-            time.sleep(TICK)
-    raise AssertionError('boot deadline expired')
+def connect_ready(proc, port, log_path=None):
+    conn = wait_ready('127.0.0.1', port, timeout=WORKERS * SHUTDOWN, process=proc,
+                      log_path=log_path)
+    conn.sock.settimeout(GRACE)
+    return conn
 
 
 def stop(proc):
@@ -197,7 +191,7 @@ def run_case(binary, args, case, arm, attempt):
     try:
         with (directory / 'server.log').open('wb') as log:
             proc = boot(binary, args, directory, log)
-        admin = connect_ready(proc, args.port)
+        admin = connect_ready(proc, args.port, directory / 'server.log')
         conns.append(admin)
         server_info = info(admin, 'server')
         require(int(server_info['process_id']) == proc.pid, 'connection reached a different server PID')

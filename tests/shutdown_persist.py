@@ -10,7 +10,7 @@ import socket
 import subprocess
 import time
 
-from _lib import Conn, RespError
+from _lib import Conn, RespError, wait_ready
 from _gate_process import info, require
 
 
@@ -36,21 +36,11 @@ def boot(args, directory, label, save=None):
         process = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT)
         conn = None
         try:
-            deadline = time.monotonic() + 25
-            while time.monotonic() < deadline:
-                require(process.poll() is None, f'{label}: boot exited; see {log_path}')
-                try:
-                    conn = Conn('127.0.0.1', args.port, timeout=10)
-                    row = info(conn, 'SERVER')
-                    require(int(row['process_id']) == process.pid, 'port belongs to another process')
-                    require(row['thread_mode'] == args.mode, 'booted requested thread mode')
-                    break
-                except (ConnectionRefusedError, ConnectionResetError):
-                    if conn:
-                        conn.close()
-                    conn = None
-                    time.sleep(.025)
-            require(conn is not None, f'{label}: boot timeout; see {log_path}')
+            conn = wait_ready('127.0.0.1', args.port, timeout=25, process=process,
+                              log_path=log_path)
+            conn.sock.settimeout(10)
+            row = info(conn, 'SERVER')
+            require(row['thread_mode'] == args.mode, 'booted requested thread mode')
             yield conn, process
         finally:
             if conn:

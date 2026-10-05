@@ -153,7 +153,7 @@ class ConnectionQuiescence(unittest.TestCase):
 
             with self.clock(), patch.object(gate.subprocess, 'check_output', return_value=''), \
                     patch.object(gate.subprocess, 'Popen', side_effect=launch), \
-                    patch.object(gate, 'Conn', return_value=conn):
+                    patch.object(gate, 'wait_ready', return_value=conn):
                 yield directory
 
     def test_context_records_fence_then_reaps_child(self):

@@ -95,18 +95,11 @@ class Harness:
             child = subprocess.Popen(args, stdout=log, stderr=subprocess.STDOUT)
             client = None
             try:
-                deadline = time.monotonic() + 20
-                while child.poll() is None and time.monotonic() < deadline:
-                    try:
-                        client = Resp(self.port)
-                        assert client.command('PING') == 'PONG'
-                        break
-                    except (OSError, EOFError):
-                        if client:
-                            client.close()
-                        client = None
-                        time.sleep(.05)
-                assert client is not None, log_path.read_text()
+                from _lib import wait_ready
+                ready = wait_ready('127.0.0.1', self.port, timeout=20, process=child,
+                                   log_path=log_path)
+                ready.close()
+                client = Resp(self.port)
                 # Inspect every actual worker mask, including threads pinned by the server.
                 for task in Path('/proc/%d/task' % child.pid).iterdir():
                     assert os.sched_getaffinity(int(task.name)) <= set(range(68, 80))
