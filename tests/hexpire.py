@@ -17,6 +17,8 @@ import socket
 import sys
 import time
 
+from _lib import debug_load, wait_flip_idle
+
 HOST = sys.argv[1]
 PORT = int(sys.argv[2])
 MODE = sys.argv[3] if len(sys.argv) > 3 else "all"
@@ -484,6 +486,24 @@ def test_representations(c):
 # ---------------------------------------------------------------------------------------------
 # 9. deadlines travel with the value: COPY / RENAME / DUMP+RESTORE, then a snapshot round-trip
 # ---------------------------------------------------------------------------------------------
+def arm_snapshot_expiry(c):
+    # A FLIP/key-LB wait can consume the 500 ms TTL. Re-arm on fresh state, bounded, and
+    # require the successful save/load to finish BEFORE expiry. Never count an expired setup
+    # as a persistence witness or inflate CHECKS with retries.
+    for _ in range(3):
+        wait_flip_idle(c)
+        c.cmd("FLUSHALL")
+        past = int(time.time() * 1000) + 500
+        c.cmd("HSET", "mix", "gone", "1", "stays", "2")
+        c.cmd("HPEXPIREAT", "mix", str(past), "FIELDS", "1", "gone")
+        c.cmd("HSET", "allgone", "x", "1")
+        c.cmd("HPEXPIREAT", "allgone", str(past), "FIELDS", "1", "x")
+        debug_load(c)
+        if int(time.time() * 1000) < past:
+            return
+    raise AssertionError("snapshot expiry window never armed in 3 fresh attempts")
+
+
 def test_value_transport(c):
     c.cmd("FLUSHALL")
     far = int(time.time() * 1000) + 3600 * 1000
@@ -516,9 +536,10 @@ def test_value_transport(c):
                                                     c.cmd("HGET", "rest", "a")],
           ["OK", c.cmd("HGET", "cp", "a")])
 
-    reload_reply = c.cmd("DEBUG", "RELOAD")
-    if isinstance(reload_reply, RuntimeError):
-        FAILURES.append("DEBUG RELOAD required for snapshot round-trip: %s" % reload_reply)
+    try:
+        debug_load(c)
+    except AssertionError as error:
+        FAILURES.append(str(error))
         return
     check("snapshot round-trip keeps the deadline",
           c.cmd("HPEXPIRETIME", "ren", "FIELDS", "2", "a", "b"), [far, -1])
@@ -528,15 +549,13 @@ def test_value_transport(c):
                "a reloaded field deadline left hash_field_expires at 0")
 
     # a field whose deadline is already past must not come back from the snapshot
-    c.cmd("FLUSHALL")
-    past = int(time.time() * 1000) + 500
-    c.cmd("HSET", "mix", "gone", "1", "stays", "2")
-    c.cmd("HPEXPIREAT", "mix", str(past), "FIELDS", "1", "gone")
-    c.cmd("HSET", "allgone", "x", "1")
-    c.cmd("HPEXPIREAT", "allgone", str(past), "FIELDS", "1", "x")
-    c.cmd("DEBUG", "RELOAD")            # snapshot written while both deadlines are still ahead
-    time.sleep(0.8)
-    c.cmd("DEBUG", "RELOAD")            # ... and read back after they have passed
+    try:
+        arm_snapshot_expiry(c)
+        time.sleep(0.8)
+        debug_load(c)
+    except AssertionError as error:
+        FAILURES.append(str(error))
+        return
     check("lapsed field dropped on load", sorted(c.cmd("HGETALL", "mix")), [b"2", b"stays"])
     check("wholly lapsed hash absent after load", c.cmd("EXISTS", "allgone"), 0)
 
@@ -614,4 +633,5 @@ def main():
     print("hexpire: %s, 0 failures -> PASS" % count_text)
 
 
-main()
+if __name__ == "__main__":
+    main()

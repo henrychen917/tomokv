@@ -31,6 +31,8 @@ Deliberate deviations from vanilla redis that this battery encodes rather than f
 import socket
 import sys
 
+from _lib import debug_load
+
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 
 FAILURES = []
@@ -661,7 +663,7 @@ else:
         k = "reload:%s:%d:%d" % (kind, entries, vlen)
         build(kind, k, entries, vlen)
         expected[(kind, k)] = (snapshot(kind, k), c.cmd("OBJECT", "ENCODING", k))
-    check("DEBUG RELOAD", c.cmd("DEBUG", "RELOAD"), b"OK")
+    check("DEBUG RELOAD", debug_load(c), b"OK")
     for (kind, k), (want, want_enc) in expected.items():
         check("RELOAD round-trips %s" % k, snapshot(kind, k), want)
         check("RELOAD round-trips the encoding of %s" % k, c.cmd("OBJECT", "ENCODING", k),

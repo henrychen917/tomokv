@@ -195,9 +195,9 @@ def call(conn, *args):
     return fn(*args)
 
 
-def info(conn, section=None):
-    """INFO [section] as {field: str}. Section headers are dropped."""
-    raw = call(conn, "INFO", section) if section else call(conn, "INFO")
+def info(conn, section=None, *sections):
+    """INFO [section ...] as {field: str}. Section headers are dropped."""
+    raw = call(conn, "INFO", section, *sections) if section else call(conn, "INFO")
     if not isinstance(raw, bytes):
         raise AssertionError("INFO %s returned %r" % (section or "", raw))
     out = {}
@@ -383,6 +383,69 @@ def same_shard_pair(conn, prefix, limit=8000, topo=None):
 # ------------------------------------------------------------------------------------------------
 # timing helpers
 # ------------------------------------------------------------------------------------------------
+
+
+def wait_flip_idle(conn, timeout=30.0):
+    """Wait for the runtime-load admission guard, without disabling FLIP or either balancer.
+
+    INFO SERVER's flip_in_progress reads the actual FlipStage, unlike the controller's learning
+    phase. loading_begin() also refuses a non-idle LbStage with the SAME error text, including
+    with flip-auto=0 and in fused mode. Require both witnesses; missing fields cannot mean idle.
+    """
+    deadline = time.monotonic() + timeout
+    original_timeout = conn.sock.gettimeout()
+    last = {}
+
+    def remaining():
+        left = deadline - time.monotonic()
+        if left <= 0:
+            raise AssertionError("FLIP/key-LB did not become idle within %.3fs: %r" %
+                                 (timeout, last))
+        return left
+
+    try:
+        while True:
+            left = remaining()
+            conn.sock.settimeout(left if original_timeout is None else min(left, original_timeout))
+            fields = info(conn, "SERVER", "LB")
+            last = {key: fields.get(key) for key in
+                    ("thread_mode", "flip_available", "flip_in_progress", "tomokv_keylb_stage")}
+            mode, moving, lb_stage = (last[key] for key in
+                                     ("thread_mode", "flip_in_progress", "tomokv_keylb_stage"))
+            if mode == "1s" and last["flip_available"] == "0":
+                moving = "0"  # Fused has no FLIP transaction, but key-LB can still be moving.
+            elif mode != "2s" or moving not in ("0", "1"):
+                raise AssertionError("INFO cannot establish FLIP state: %r" % last)
+            if lb_stage is None or not lb_stage.isdecimal():
+                raise AssertionError("INFO cannot establish key-LB state: %r" % last)
+            left = remaining()
+            if moving == "0" and lb_stage == "0":
+                return
+            time.sleep(min(0.05, left))
+    finally:
+        conn.sock.settimeout(original_timeout)
+
+
+def debug_load(conn, subcommand="RELOAD", timeout=30.0):
+    """Require DEBUG RELOAD/LOADAOF to succeed; retry one exact placement-race refusal once.
+
+    Both idle waits share one deadline. The observation is not an admission lock: a transition
+    can start before DEBUG reaches loading_begin(). A second refusal, every other error, and any
+    non-OK reply fail the battery. Accept the str/bytes OK forms of the existing battery clients.
+    """
+    if subcommand not in ("RELOAD", "LOADAOF"):
+        raise ValueError("debug_load only accepts RELOAD or LOADAOF")
+    deadline = time.monotonic() + timeout
+    for attempt in range(2):
+        wait_flip_idle(conn, max(0.0, deadline - time.monotonic()))
+        reply = call(conn, "DEBUG", subcommand)
+        if (attempt == 0 and isinstance(reply, Exception) and
+                str(reply) == "ERR loading is not allowed while FLIP is in progress"):
+            continue
+        if reply not in (b"OK", "OK"):
+            raise AssertionError("DEBUG %s required for persistence round-trip: %r" %
+                                 (subcommand, reply))
+        return reply
 
 
 def wait_until(predicate, timeout, interval=0.02):
