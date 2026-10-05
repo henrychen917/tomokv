@@ -1,0 +1,31 @@
+{
+  "scope": "Serverless IO-pass instruction receipts, using the existing ptrace tracer.\n\nThe measured boundary is the production cron predicates, writer probes, completion\ndrain, full parser(s), and FLIP tail. It excludes network/clock/executor work.\nNo perf events, load generator, listener, or server loop is started.\n",
+  "sha256": "66effa9544aa86392b3a5c2342d0cc94ddeee2d6b2e69065e4a2238982c08485",
+  "rows": [
+    {
+      "case": "quiet",
+      "instructions": 284,
+      "executable_instructions": 284,
+      "library_instructions": 0
+    },
+    {
+      "case": "get32",
+      "instructions": 73582,
+      "executable_instructions": 37541,
+      "library_instructions": 36041
+    },
+    {
+      "case": "set",
+      "instructions": 11928,
+      "executable_instructions": 1547,
+      "library_instructions": 10381
+    },
+    {
+      "case": "atomic",
+      "instructions": 29889,
+      "executable_instructions": 7734,
+      "library_instructions": 22155
+    }
+  ],
+  "sites": "IO2.sites.json.gz"
+}

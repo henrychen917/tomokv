@@ -781,10 +781,10 @@ void IoLoop::r7_run_loop() {
         const bool client_cron_armed = !srv_->flip_dispatch_paused() &&
                                        srv_->client_cron_armed();
         const bool client_lb_signal_armed = client_lb_signal_armed_;
-        // Placement's dense role vectors are mutated only under FLIP's global dispatch
-        // barrier. Do not consult them from an IO pass while that cold transaction is live.
+        // The elected IO alone checks live save/shutdown policy on the one-second beat.
+        // Election is private: never read Placement's mutable vectors on a hot pass.
         const bool save_cron_armed = !srv_->flip_dispatch_paused() &&
-                                     srv_->save_cron_writer(self_->id());
+                                     save_cron_writer_;
         const bool client_cron_newly_armed = client_cron_armed && !client_cron_was_armed_;
         if (!client_cron_armed && __builtin_expect(client_cron_was_armed_, false)) {
             // Turning the last client cron consumer off also retires output accounting once.

@@ -201,6 +201,7 @@ public:
 
     bool activate() {
         if (!initialized_) return false;
+        refresh_save_cron_writer();
         if (active_role_) {
             self_->set_ring(&ring_);
             self_->set_wb_engine(&wb_);
@@ -548,10 +549,10 @@ private:
             const bool client_cron_armed = !srv_->flip_dispatch_paused() &&
                                            srv_->client_cron_armed();
             const bool client_lb_signal_armed = client_lb_signal_armed_;
-            // Placement's dense role vectors are mutated only under FLIP's global dispatch
-            // barrier. Do not consult them from an IO pass while that cold transaction is live.
+            // The elected IO alone checks live save/shutdown policy on the one-second beat.
+            // Election is private: never read Placement's mutable vectors on a hot pass.
             const bool save_cron_armed = !srv_->flip_dispatch_paused() &&
-                                         srv_->save_cron_writer(self_->id());
+                                         save_cron_writer_;
             const bool client_cron_newly_armed = client_cron_armed && !client_cron_was_armed_;
             if (!client_cron_armed && __builtin_expect(client_cron_was_armed_, false)) {
                 // Turning the last client cron consumer off also retires output accounting once.
@@ -2157,6 +2158,7 @@ private:
                 srv_->flip_ack(self_->id(), stage);
         } else if (stage == FlipStage::RoleReady &&
                    !srv_->flip_acked(self_->id(), stage)) {
+            refresh_save_cron_writer();
             if (flip_pubsub_rehome_epoch_ != srv_->flip_epoch()) {
                 flip_pubsub_rehome_epoch_ = srv_->flip_epoch();
                 pubsub_rehome_local(flip_pubsub_rehome_epoch_);
@@ -5462,12 +5464,26 @@ ordinary_shard_ready:
         return static_cast<uint32_t>(lb_client_observations_.size());
     }
 
+    void refresh_save_cron_writer() {
+        // Boot/CONFIG and the RoleReady acquire are the only election readers. Role stores
+        // precede RoleReady, and another conversion cannot begin before this IO acknowledges.
+        // activate() can run between individual role stores: do not inspect Placement then.
+        const auto stage = srv_->flip_stage();
+        if (stage != FlipStage::Idle && stage != FlipStage::RoleReady) return;
+        const auto& owners = srv_->placement().ifid_threads();
+        save_cron_writer_ = !owners.empty() && owners.front() == self_->id();
+        // Keep the elected looker even with save "". A signal can set kSignalShutdown after
+        // CONFIG captured its mailbox, without changing the config version. save_cron_pass()
+        // rechecks the live policy on its cold beat, including that signal/CONFIG race.
+    }
+
     void refresh_notify_config() {
         LiveConfigSnapshot snapshot;
         if (!srv_->live_config_snapshot_if_changed(
                 self_->id(), notify_config_version_, snapshot)) return;
         notify_config_armed_ = snapshot.notify_events != 0;
         save_config_armed_ = snapshot.save_armed;
+        refresh_save_cron_writer();
         notify_armed_ = notify_config_armed_ || save_config_armed_ ||
                         climon_armed_cached_ != 0;
         proto_max_bulk_len_ = snapshot.proto_max_bulk_len;
@@ -5662,6 +5678,7 @@ ordinary_shard_ready:
     bool     lb_controller_armed_ = false;
     bool     lb_client_wake_pending_ = false;
     bool     age_signals_armed_ = false;
+    bool     save_cron_writer_ = false; // elected owner, independent of live save/shutdown policy
     uint32_t age_sample_rate_cached_ = 0;
     uint32_t lb_wake_cursor_ = UINT32_MAX;
     std::vector<LbClientObservation> lb_client_observations_;
