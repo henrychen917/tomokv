@@ -410,10 +410,15 @@ def rename_held(atomic, keys):
     reads = invalid = 0
     final_good = False
     thread = None
+    ceiling_ms = min(30000, int(max(5.0, MECHANISM_TIMEOUT) * 1000))
+    hold_started = None
+    witness_s = None
+    hold_s = 0.0
     try:
         admin.cmd("DEL", *keys)
         admin.cmd("SET", keys[0], "rename-value")
-        debug("ATOMIC-OFF-HOP-HOLD", 1)
+        hold_started = time.monotonic()
+        debug("ATOMIC-OFF-HOP-HOLD", ceiling_ms)
 
         def rename():
             try:
@@ -423,7 +428,7 @@ def rename_held(atomic, keys):
 
         thread = threading.Thread(target=rename, daemon=True)
         thread.start()
-        deadline = time.monotonic() + 2.0
+        deadline = hold_started + ceiling_ms / 1000.0
         status = 0
         while time.monotonic() < deadline:
             status = admin.cmd("DEBUG", "ATOMIC-OFF-HOP-STATUS")
@@ -433,6 +438,7 @@ def rename_held(atomic, keys):
         if status != 2 or replies or errors:
             raise AssertionError("source-complete hold not witnessed: status=%r replies=%r" %
                                  (status, replies))
+        witness_s = time.monotonic() - hold_started
         values = admin.cmd("MGET", *keys)
         reads = 1
         invalid = values not in ([b"rename-value", None], [None, b"rename-value"])
@@ -445,6 +451,8 @@ def rename_held(atomic, keys):
     except Exception as exc:
         errors.append("controller:%s" % exc)
     finally:
+        if hold_started is not None:
+            hold_s = time.monotonic() - hold_started
         debug("ATOMIC-OFF-HOP-HOLD", 0)
         if thread is not None:
             thread.join(timeout=10)
@@ -457,7 +465,8 @@ def rename_held(atomic, keys):
         admin.close()
         if not alive:
             writer.close()
-    return invalid, reads, errors, final_good, alive
+    timing = "hold_s=%.6f witness_s=%s ceiling_ms=%d" % (hold_s, witness_s, ceiling_ms)
+    return invalid, reads, errors, final_good, alive, timing
 
 
 def sinterstore_hammer(prefix, atomic, sources, seconds=2.0):
@@ -827,16 +836,16 @@ if not rename_off[2] and not rename_off[4]:
 note("OFF control exposes torn RENAME",
      rename_off[0] > 0 and rename_off[1] > 0 and not rename_off[2] and
      rename_off[3] and not rename_off[4],
-     "invalid=%d reads=%d errors=%r threads_still_alive=%r" %
-     (rename_off[0], rename_off[1], rename_off[2], rename_off[4]))
+     "invalid=%d reads=%d errors=%r threads_still_alive=%r %s" %
+     (rename_off[0], rename_off[1], rename_off[2], rename_off[4], rename_off[5]))
 if rename_on is None:
     skip("ON RENAME/MGET has exactly one live image", "OFF discovery did not complete cleanly")
 else:
     note("ON RENAME/MGET has exactly one live image",
          rename_on[0] == 0 and rename_on[1] > 0 and not rename_on[2] and
          rename_on[3] and not rename_on[4],
-         "invalid=%d reads=%d final=%r errors=%r threads_still_alive=%r" %
-         (rename_on[0], rename_on[1], rename_on[3], rename_on[2], rename_on[4]))
+         "invalid=%d reads=%d final=%r errors=%r threads_still_alive=%r %s" %
+         (rename_on[0], rename_on[1], rename_on[3], rename_on[2], rename_on[4], held_on[5]))
 
 # Store-family cut consistency. The member moves atomically between two sources, so every valid
 # cut has intersection {base}; observing "moving" in the stored result proves a mixed source cut.

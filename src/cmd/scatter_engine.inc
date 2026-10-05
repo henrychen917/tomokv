@@ -1140,7 +1140,9 @@ uint32_t initialize_owner_completion(ScatterState& state) {
 // No arena/Server layout change or lifetime-bearing pointer: the absolute deadline is also the
 // one-shot generation. Releasing/rearming cannot hold an old task. Only the DEBUG parser arms it.
 constexpr uint64_t kDebugHopHold = uint64_t{1} << 63;
-std::atomic<uint64_t> debug_hop_hold{0};       // 0=off, 1=armed, otherwise claimed deadline
+// Before claim, the tag carries the test's millisecond budget in the same atomic word.
+// After claim, the untagged absolute deadline is the generation token as before.
+std::atomic<uint64_t> debug_hop_hold{0};       // 0=off, tagged=armed, otherwise claimed deadline
 std::atomic<uint64_t> debug_hop_observed{0};   // source completed while destination was held
 
 [[gnu::cold, gnu::noinline]] bool debug_hop_pending(const ScatterState& state) {
@@ -1164,13 +1166,14 @@ void arm_debug_off_hop_delay(ScatterState& state, const Op& op) {
     // Forced children inside EXEC are atomic_group too: they must reach the parent's one-ticket
     // atomic_commit_group boundary, where the same Server word supplies the ON delay.
     if (!xshard_owner_mutation_phase(state, op) || state.nsub < 2) return;
-    if (state.kind == Kind::Rename && debug_hop_hold.load(std::memory_order_acquire) == 1) {
+    uint64_t armed;
+    if (state.kind == Kind::Rename &&
+        ((armed = debug_hop_hold.load(std::memory_order_acquire)) & kDebugHopHold)) {
         const uint32_t source = state.server->worker_of_shard(state.keys[0].shard);
         if (source != state.server->worker_of_shard(state.keys[1].shard)) {
-            // Same one-second safety ceiling as ATOMIC-OFF-HOP-DELAY. Status remains expired
-            // until explicit release, so a slow/missing observer cannot claim a successful hold.
-            const uint64_t deadline = now_ns() + 1000000000ull;
-            uint64_t armed = 1;
+            // The test supplies its own budget, capped at 30 seconds by DEBUG. Status remains
+            // expired until explicit release; timeout is never a successful observation.
+            const uint64_t deadline = now_ns() + (armed & ~kDebugHopHold) * 1000000ull;
             if (debug_hop_hold.compare_exchange_strong(armed, deadline,
                                                        std::memory_order_acq_rel)) {
                 state.debug_hop_lead_owner = source;
@@ -2671,13 +2674,16 @@ bool xshard_owner_mutation_phase(const ScatterState& state, const Op& op) {
 
 }  // namespace
 
-void debug_atomic_off_hop_hold(bool held) {
-    debug_hop_hold.store(held ? 1 : 0, std::memory_order_release);
+void debug_atomic_off_hop_hold(uint64_t ceiling_ms) {
+    const uint64_t bounded_ms = std::min(ceiling_ms, uint64_t{30000});
+    debug_hop_hold.store(bounded_ms ? kDebugHopHold | bounded_ms : 0,
+                         std::memory_order_release);
 }
 
 int debug_atomic_off_hop_status() {
     const uint64_t deadline = debug_hop_hold.load(std::memory_order_acquire);
-    if (deadline <= 1) return static_cast<int>(deadline);
+    if (deadline == 0) return 0;
+    if (deadline & kDebugHopHold) return 1;
     if (now_ns() >= deadline) return 3;
     return debug_hop_observed.load(std::memory_order_acquire) == deadline ? 2 : 1;
 }

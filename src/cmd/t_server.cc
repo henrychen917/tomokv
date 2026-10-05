@@ -1083,12 +1083,12 @@ void cmd_debug_impl(Shard& shard, Op& op) {
     // One-shot RENAME hop latch, in either atomic mode. The status witnesses source completion
     // while the destination is still parked; expiration is a failed harness, never a window hit.
     if (eq_icase(subcommand, "atomic-off-hop-hold") && op.argc() == 3) {
-        uint64_t held = 0;
-        if (!parse_u64(op.arg(2), held) || held > 1) {
+        uint64_t ceiling_ms = 0;
+        if (!parse_u64(op.arg(2), ceiling_ms)) {
             reply_err(op.sink(), "ERR value is not an integer or out of range");
             return;
         }
-        debug_atomic_off_hop_hold(held != 0);
+        debug_atomic_off_hop_hold(ceiling_ms);
         reply_ok(op.sink());
         return;
     }
