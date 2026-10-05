@@ -342,7 +342,7 @@ def baseline_stationarity(samples, placement=None, episode="key-skew"):
                   f"baseline_decision_client_moves={final_moves[CLIENT]}")
     except ValueError as error:
         reason = str(error)
-    return dict(result, reason=reason + "; " + summary)
+    return dict(result, reason=reason)
 
 
 def sampling_floor(owners):
@@ -792,6 +792,16 @@ class Sampler:
         require(self.error is None, "sampler failed: " + str(self.error))
 
 
+def episode_failure(result, error, source):
+    """Keep the first failure exact; later failures are structured diagnostics."""
+    message = str(error)
+    if result["status"] == "FAIL" and result.get("reason"):
+        result.setdefault("diagnostics", []).append({"source": source, "message": message})
+    else:
+        result["reason"] = message
+    result.update(status="FAIL", measurement_valid=False)
+
+
 @contextmanager
 def sampled_episode(sampler, result):
     """Classify the episode and join its observer inside the server lifetime."""
@@ -799,15 +809,13 @@ def sampled_episode(sampler, result):
         sampler.thread.start()
         yield
     except Exception as error:
-        result.update(status="FAIL", reason=str(error), measurement_valid=False)
+        episode_failure(result, error, "episode")
     finally:
         try:
             sampler.close()
         except Exception as error:
             result["sampler_error"] = str(error)
-            if result["status"] != "FAIL" or not result.get("reason"):
-                result.update(status="FAIL", reason=str(error))
-            result["measurement_valid"] = False
+            episode_failure(result, error, "sampler")
 
 
 def server_command(args, arm, mode, directory):
@@ -1006,7 +1014,7 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
               "probe": probe, "measurement_valid": False,
               "stall": None, "pending_ms": None, "attempts": None, "pass_limit": None,
               "seed_sha256": seed_record["sha256"], "criterion": criterion,
-              "status": "FAIL", "sampling_interval": INTERVAL, "commands": []}
+              "status": "FAIL", "sampling_interval": INTERVAL, "commands": [], "diagnostics": []}
     sampler = None
     try:
         with boot(args, arm, mode, directory, seed) as (conn, children, owners, identity):
@@ -1045,7 +1053,7 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
                 require(own_baseline["status"] == "PASS", own_baseline["reason"])
                 if calibration:
                     result["criterion"] = envelope(balanced, baseline_kind)
-                    result["status"] = "PASS"
+                    result.update(status="PASS", reason=own_baseline["reason"])
                 else:
                     result["baseline_in_envelope_fraction"] = sum(inside(s, criterion) for s in balanced) / len(balanced)
                     diagnostic = diagnostic_envelope(criterion, own_baseline["spread_maxima"])
@@ -1088,24 +1096,24 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
     except Exception as error:
         if result["status"] == "FAIL" and result.get("reason"):
             result["teardown_error"] = str(error)
-            result["measurement_valid"] = False
-        else:
-            result.update(status="FAIL", reason=str(error), measurement_valid=False)
+        episode_failure(result, error, "teardown")
     finally:
-        if sampler is not None:
+        # A rejected baseline never starts the stimulus. Missing owner evidence
+        # there is not a second finding, nor may it alter the baseline's cause.
+        if sampler is not None and result.get("baseline_stationarity", {}).get("status") == "PASS":
             try:
                 result.update(owner_tracking(sampler.samples))
             except ValueError as error:
                 result["owner_tracking_error"] = str(error)
-                result.update(status="FAIL", measurement_valid=False,
-                              reason=result.get("reason", "") + "; " + str(error))
+                result["owner_tracking"] = {"status": "FAIL", "reason": str(error)}
+                episode_failure(result, error, "owner_tracking")
         if probe:
             result["convergence_status"] = result["status"]
             result["convergence_reason"] = result.get("reason")
             result["status"], result["reason"] = probe_verdict(result)
         summary = result.get("baseline_stationarity", {}).get("summary", "")
-        if summary and summary not in result.get("reason", ""):
-            result["reason"] = result.get("reason", "complete") + "; " + summary
+        if summary:
+            result["diagnostics"].append({"source": "baseline_stationarity", "message": summary})
         directory.mkdir(parents=True, exist_ok=True)
         save_json(directory / "run.json", result)
     if not calibration:
@@ -1275,7 +1283,7 @@ def replay_episode(path, config, criteria):
               "requested_shards", "baseline", "stimulus_t", "owners", "cohort_owners",
               "rate", "p99", "loaders", "accounting", "p99_method", "coord_busy")
     result = {k: saved[k] for k in fields if k in saved}
-    result.update(status="NA", measurement_valid=False,
+    result.update(status="NA", measurement_valid=False, diagnostics=[],
                   replay={"saved_status": saved.get("status"), "saved_reason": saved.get("reason"),
                           "saved_measurement_valid": saved.get("measurement_valid", False),
                           "measurement_source": "saved run.json rate/HDR/accounting; no new measurement",
@@ -1322,8 +1330,11 @@ def replay_episode(path, config, criteria):
         if calibration:
             return dict(result, status=baseline["status"], reason=baseline["reason"])
         if result.get("stimulus_t") is None:
+            message = "no saved stimulus; baseline=" + baseline["status"]
+            if errors:
+                result["diagnostics"].append({"source": "replay", "message": message})
             return dict(result, status="FAIL" if errors else "NA",
-                        reason="; ".join([*errors, "no saved stimulus; baseline=" + baseline["status"]]))
+                        reason=errors[0] if errors else message)
         stimulus = result["stimulus_t"]
         end = stimulus + config["max_converge"] + DECISION_SECONDS + config["suffix"]
         diagnostic = diagnostic_envelope(criterion, baseline["spread_maxima"])
@@ -1337,9 +1348,13 @@ def replay_episode(path, config, criteria):
             errors.append("saved workload measurement lacks valid accounting/telemetry evidence")
         result["measurement_valid"] = not errors
         if errors:
-            result.update(status="FAIL", reason="; ".join([*errors, result["reason"]]))
+            result["diagnostics"].extend({"source": "replay", "message": message}
+                                         for message in [*errors[1:], result["reason"]])
+            result.update(status="FAIL", reason=errors[0])
     except (ValueError, KeyError, TypeError) as error:
-        result.update(status="FAIL", reason="replay scoring failed: " + str(error), measurement_valid=False)
+        if errors:
+            result.update(status="FAIL", reason=errors[0])
+        episode_failure(result, "replay scoring failed: " + str(error), "replay")
     if result.get("probe"):
         result["convergence_status"], result["convergence_reason"] = result["status"], result["reason"]
         result["status"], result["reason"] = probe_verdict(result)
@@ -1829,7 +1844,8 @@ class SelfTest(unittest.TestCase):
         diagnostic = diagnostic_envelope(criterion, baseline["spread_maxima"])
         self.assertEqual(diagnostic["upper"][SPREADS[0]], 1.2)
         self.assertEqual(criterion["upper"][SPREADS[0]], 1)
-        self.assertIn(SPREADS[0] + "=1.2", baseline["reason"])
+        self.assertIn(SPREADS[0] + "=1.2", baseline["summary"])
+        self.assertNotIn("balanced maxima", baseline["reason"])
 
     def test_baseline_raw_samples_and_last_window(self):
         samples = [self.sample(i / 10) for i in range(130)]
@@ -2153,7 +2169,9 @@ class SelfTest(unittest.TestCase):
             save_json(path, saved)
             result = replay_episode(path, config, {})
             self.assertEqual(result["status"], "FAIL")
-            self.assertIn("lacks valid accounting", result["reason"])
+            self.assertEqual(result["reason"], "saved workload measurement lacks valid accounting/telemetry evidence")
+            self.assertEqual(result["diagnostics"], [{"source": "replay", "message":
+                "last required move followed by a complete quiescent suffix"}])
             saved["measurement_valid"] = True
             save_json(path, saved)
             samples = [json.loads(s) for s in path.with_name("telemetry.jsonl").read_text().splitlines()]
@@ -2168,6 +2186,11 @@ class SelfTest(unittest.TestCase):
             self.assertEqual(result["status"], "NA")
             self.assertIn("missing saved configuration", result["reason"])
             self.assertEqual(result["shard_moves"], 2)  # owner evidence survives missing scoring metadata
+            saved["measurement_valid"] = False
+            save_json(path, saved)
+            result = replay_episode(path, config, {})
+            self.assertEqual(result["reason"], "saved workload measurement lacks valid accounting/telemetry evidence")
+            self.assertIn("post-move rebound", result["diagnostics"][0]["message"])
 
     def test_replay_newly_admissible_baseline_cannot_invent_stimulus(self):
         import tempfile
@@ -2185,6 +2208,12 @@ class SelfTest(unittest.TestCase):
             self.assertIn("no saved stimulus", result["reason"])
             self.assertNotIn("t_converge", result)
             self.assertFalse(result["measurement_valid"])
+            for sample in samples[500:]:
+                sample["info"][KEY] = 1
+            path.with_name("telemetry.jsonl").write_text("".join(json.dumps(s) + "\n" for s in samples))
+            result = replay_episode(path, {"episodes": "client-skew", "warm": 0, "baseline": 60}, {})
+            self.assertEqual(result["reason"], "balanced key_moves=1, limit=0 (placement changed)")
+            self.assertEqual(result["diagnostics"], [{"source": "replay", "message": "no saved stimulus; baseline=FAIL"}])
 
     def test_paired_client_spread_uses_pre_round_range_not_move_count(self):
         results = [dict(arm=a, mode=m, episode=e, round=r, status="PASS", t_converge=4,
@@ -2232,6 +2261,8 @@ class SelfTest(unittest.TestCase):
         self.assertEqual(events, ["join", "teardown"])
         self.assertEqual(result["reason"], "balanced key_moves=1, limit=0")
         self.assertIn("Connection reset", result["sampler_error"])
+        self.assertEqual(result["diagnostics"], [{"source": "sampler", "message":
+            "sampler failed: Connection reset by peer"}])
         sampler.close.assert_called_once()
         # A live sampling failure still invalidates an otherwise passing run.
         result = {"status": "PASS", "measurement_valid": True}
@@ -2241,6 +2272,77 @@ class SelfTest(unittest.TestCase):
         self.assertEqual(result["status"], "FAIL")
         self.assertEqual(result["reason"], "sampler failed: live failure")
         self.assertFalse(result["measurement_valid"])
+        # A workload/accounting error after a convergence rejection is also
+        # secondary, even when closing the sampler fails independently.
+        result = {"status": "FAIL", "reason": "convergence rejected", "measurement_valid": True}
+        with sampled_episode(sampler, result):
+            raise ValueError("accounting failed")
+        self.assertEqual(result["reason"], "convergence rejected")
+        self.assertEqual(result["diagnostics"], [
+            {"source": "episode", "message": "accounting failed"},
+            {"source": "sampler", "message": "sampler failed: live failure"}])
+        self.assertFalse(result["measurement_valid"])
+
+    def test_run_episode_missing_owners_preserves_primary_failure(self):
+        from contextlib import redirect_stdout
+        import io
+        import tempfile
+        from unittest.mock import Mock, patch
+        cases = ((False, None, None), (False, "monitor failed", "teardown failed"),
+                 (True, None, None), (True, "monitor failed", "teardown failed"))
+        for baseline_pass, monitor_error, teardown_error in cases:
+            with self.subTest(baseline_pass=baseline_pass, monitor_error=monitor_error), \
+                    tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+                sampler = Mock(samples=[])
+                if monitor_error:
+                    sampler.close.side_effect = ValueError(monitor_error)
+                @contextmanager
+                def fake_boot(*args):
+                    yield Mock(), Mock(), [0], {"shards": 1, "process_id": 123}
+                    if teardown_error:
+                        raise ValueError(teardown_error)
+                baseline = {"status": "PASS" if baseline_pass else "FAIL",
+                            "reason": "baseline stationary" if baseline_pass else
+                                      "balanced total_moves=1, limit=0 (key=0, client=1)",
+                            "summary": "balanced maxima (reported only): test summary"}
+                args = argument_parser().parse_args(["--output", temp])
+                with patch(__name__ + ".boot", side_effect=fake_boot), \
+                        patch(__name__ + ".Sampler", return_value=sampler), \
+                        patch(__name__ + ".key_mapping", return_value=[]), \
+                        patch(__name__ + ".wait_loads", return_value=1), \
+                        patch(__name__ + ".owner_evidence", return_value={}), \
+                        patch(__name__ + ".baseline_stationarity", return_value=baseline), \
+                        patch(__name__ + ".envelope", return_value={}), \
+                        patch(__name__ + ".owner_tracking", wraps=owner_tracking) as tracking, \
+                        patch.object(subprocess, "Popen", side_effect=AssertionError("started process")), \
+                        patch.object(socket, "socket", side_effect=AssertionError("opened socket")), \
+                        redirect_stdout(io.StringIO()):
+                    result = run_episode(args, "PRE", "2s", "balanced", 1, None,
+                                         {"sha256": "test", "shards": 1, "hot_keys": []})
+                missing = "owner tracking: missing telemetry"
+                primary = baseline["reason"] if not baseline_pass else monitor_error or missing
+                self.assertEqual(result["status"], "FAIL")
+                self.assertEqual(result["reason"], primary)
+                self.assertFalse(result["measurement_valid"])
+                diagnostics = []
+                if monitor_error and not baseline_pass:
+                    diagnostics.append({"source": "sampler", "message": monitor_error})
+                if teardown_error:
+                    diagnostics.append({"source": "teardown", "message": teardown_error})
+                if baseline_pass:
+                    tracking.assert_called_once_with([])
+                    self.assertEqual(result["owner_tracking"], {"status": "FAIL", "reason": missing})
+                    if monitor_error:
+                        diagnostics.append({"source": "owner_tracking", "message": missing})
+                else:
+                    tracking.assert_not_called()
+                    self.assertNotIn("owner_tracking", result)
+                    self.assertNotIn("owner_tracking_error", result)
+                diagnostics.append({"source": "baseline_stationarity", "message": baseline["summary"]})
+                self.assertEqual(result["diagnostics"], diagnostics)
+                saved = json.loads((args.output / result["name"] / "run.json").read_text())
+                self.assertEqual(saved["reason"], primary)
+                self.assertEqual(saved["diagnostics"], diagnostics)
 
     def test_run_episode_baseline_failure_stops_sampler_inside_boot(self):
         from contextlib import redirect_stdout
@@ -2272,7 +2374,10 @@ class SelfTest(unittest.TestCase):
                 result = run_episode(args, "PRE", "1s", "key-skew", 1, None,
                                      {"sha256": "test", "shards": 1, "hot_keys": []}, self.criterion())
             self.assertEqual(result["status"], "FAIL")
-            self.assertIn("balanced key_moves=1", result["reason"])
+            self.assertEqual(result["reason"], "balanced key_moves=1, limit=0 (placement changed)")
+            self.assertNotIn("owner_tracking", result)
+            self.assertEqual(result["diagnostics"], [{"source": "baseline_stationarity", "message":
+                result["baseline_stationarity"]["summary"]}])
             self.assertFalse(result["measurement_valid"])
             self.assertEqual(events, ["join", "teardown"])
             saved = json.loads((args.output / result["name"] / "run.json").read_text())
