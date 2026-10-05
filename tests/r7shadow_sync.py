@@ -90,7 +90,12 @@ def envelopes():
     demotion = demotion.replace('class r7_ReadLocalDemotionPlan {', 'class IoLoop::r7_ReadLocalDemotionPlan {')
     needle = 'Task{client_, storage_->ids[i], -1, nullptr}'
     assert demotion.count(needle) == 1
-    demotion = demotion.replace(needle, 'r7::shadow_demoted_task(client_, storage_->ids[i])')
+    demotion = demotion.replace(needle, 'shadow_dispatch.task(client_, storage_->ids[i])')
+    needle = '        bool completed_locally = false;'
+    assert demotion.count(needle) == 1
+    demotion = demotion.replace(needle, '''        r7::ShadowDemotionDispatch shadow_dispatch(
+            *client_, count_ ? storage_->ids[count_ - 1] : rob.flush_id());
+''' + needle)
     bodies, declarations = [demotion], {}
     for owner, source, methods in (('ExLoopT<Fused>', ex, base.EX), ('IoLoop', io, IO)):
         names = {name: 'r7_' + name for name in methods}

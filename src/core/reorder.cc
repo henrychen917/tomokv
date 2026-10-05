@@ -314,6 +314,8 @@ public:
     void commit_reads() {
         if (!loop_) return;
         Rob<kRobWindow>& rob = client_->rob();
+        r7::ShadowDemotionDispatch shadow_dispatch(
+            *client_, count_ ? storage_->ids[count_ - 1] : rob.flush_id());
         bool completed_locally = false;
         for (uint32_t i = 0; i < count_; i++) {
             Op& op = rob.at(storage_->ids[i]);
@@ -346,7 +348,7 @@ public:
                 const uint32_t worker = loop_->srv_->worker_of_shard(op.shard);
                 loop_->srv_->thread(worker).post_task_reserved_quiet(
                     loop_->self_->id(),
-                    r7::shadow_demoted_task(client_, storage_->ids[i]),
+                    shadow_dispatch.task(client_, storage_->ids[i]),
                     loop_->self_->sig());
                 consume(worker);
                 loop_->touch_worker(worker);

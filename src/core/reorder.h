@@ -12,6 +12,11 @@
 #include "../net/conn.h"
 #include "../cmd/command.h"
 
+#ifndef TOMO_R7_SCAN_VISIT
+#define TOMO_R7_SCAN_VISIT() ((void)0)
+#define TOMO_R7_SCAN_CONSTRUCT() ((void)0)
+#endif
+
 namespace tomo::r7 {
 
 inline constexpr uint32_t kExSchedClasses =
@@ -77,6 +82,7 @@ inline bool shadow_pending(const Task& task) {
 // Client sidecar and automatically follows client migration. The per-op stamp captures
 // its OWN preceding long: a later long cannot unshadow already dispatched operations.
 class ShadowDispatch {
+    friend class ShadowDemotionDispatch;
     uint64_t newest_ = UINT64_MAX;
     static bool length(const Op& op, uint8_t& result) {
         // Only parser-published immutable metadata may be read while another
@@ -91,9 +97,11 @@ class ShadowDispatch {
 public:
     explicit ShadowDispatch(Client& client, uint64_t before = UINT64_MAX) {
         TOMO_R7_PATH();
+        TOMO_R7_SCAN_CONSTRUCT();
         auto& rob = client.rob();
         const uint64_t first = rob.flush_id();
         for (uint64_t end = std::min(before, rob.dispatch_id()); end > first;) {
+            TOMO_R7_SCAN_VISIT();
             const uint64_t id = --end;
             const Op& op = rob.at(id);
             if (op.state.load(std::memory_order_acquire) == OpState::Done) continue;
@@ -120,15 +128,45 @@ public:
     }
 };
 
-// A pending local read can be lowered AFTER a later ordinary op was dispatched.
-// Reconstruct only its older prefix on its IO owner, never use a younger Long.
-inline Task shadow_demoted_task(Client* client, uint64_t id) {
-    TOMO_R7_PATH();
-    Task task(client, id, -1, nullptr);
-    ShadowDispatch dispatch(*client, id);
-    dispatch.stamp(task);
-    return task;
-}
+// One index per demotion commit, owned by IO just like ROB recycling. The selected
+// ids are in ROB order; index only the prefix older than the last selected read.
+// Masking at each query keeps a younger Long from shadowing an older demotion.
+// Completion is monotone within this commit: prune Done Longs once, but recheck
+// the newest surviving predecessor at each query, as the old back-scan did.
+// At most window-1 index visits + count successful probes + window failed probes.
+class ShadowDemotionDispatch {
+    uint64_t first_;
+    uint64_t longs_ = 0;
+public:
+    explicit ShadowDemotionDispatch(Client& client, uint64_t before)
+        : first_(client.rob().flush_id()) {
+        auto& rob = client.rob();
+        for (uint64_t id = first_; id < std::min(before, rob.dispatch_id()); ++id) {
+            TOMO_R7_SCAN_VISIT();
+            uint8_t kind;
+            if (ShadowDispatch::length(rob.at(id), kind) &&
+                kind == static_cast<uint8_t>(CommandLengthClass::Long))
+                longs_ |= uint64_t{1} << (id - first_);
+        }
+    }
+    Task task(Client* client, uint64_t id) {
+        Task result(client, id, -1, nullptr);
+        const uint64_t distance = id - first_;
+        uint64_t older = longs_ & (distance < 64 ? (uint64_t{1} << distance) - 1 : UINT64_MAX);
+        while (older) {
+            const uint32_t bit = 63 - __builtin_clzll(older);
+            const uint64_t predecessor = first_ + bit;
+            TOMO_R7_SCAN_VISIT();
+            if (client->rob().at(predecessor).state.load(std::memory_order_acquire) != OpState::Done) {
+                result.shard = ~static_cast<int32_t>(((id - predecessor) << 1) | kShadow);
+                break;
+            }
+            longs_ &= ~(uint64_t{1} << bit);
+            older &= ~(uint64_t{1} << bit);
+        }
+        return result;
+    }
+};
 
 inline bool priority_enabled(uint32_t requested) {
     TOMO_R7_PATH();
