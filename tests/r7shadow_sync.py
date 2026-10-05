@@ -56,7 +56,8 @@ def removal_inventory(root):
 def function(source, name, member=True):
     if not member:
         return base.function(source, name, False)
-    match = re.search(r'^    (?:uint32_t|void|bool|DispatchResult) ' + re.escape(name) + r'\(', source, re.M)
+    match = re.search(r'^    (?:__attribute__\(\(noinline\)\) )?'
+                      r'(?:uint32_t|void|bool|DispatchResult) ' + re.escape(name) + r'\(', source, re.M)
     if not match:
         raise ValueError('missing source method ' + name)
     start = match.start()
@@ -90,7 +91,12 @@ def envelopes():
     demotion = demotion.replace('class r7_ReadLocalDemotionPlan {', 'class IoLoop::r7_ReadLocalDemotionPlan {')
     needle = 'Task{client_, storage_->ids[i], -1, nullptr}'
     assert demotion.count(needle) == 1
-    demotion = demotion.replace(needle, 'r7::shadow_demoted_task(client_, storage_->ids[i])')
+    demotion = demotion.replace(needle, 'shadow_dispatch.task(client_, storage_->ids[i])')
+    needle = '        bool completed_locally = false;'
+    assert demotion.count(needle) == 1
+    demotion = demotion.replace(needle, '''        r7::ShadowDemotionDispatch shadow_dispatch(
+            *client_, count_ ? storage_->ids[count_ - 1] : rob.flush_id());
+''' + needle)
     bodies, declarations = [demotion], {}
     for owner, source, methods in (('ExLoopT<Fused>', ex, base.EX), ('IoLoop', io, IO)):
         names = {name: 'r7_' + name for name in methods}
@@ -133,11 +139,37 @@ def envelopes():
     // PAD A delegates to the inherited parser before any shadow scratch or scan.
     if (!r7::shadow_available())
         return parse_and_dispatch<NoBorrow, BatchOps, IoPipe, SplitLocal>(c);
-    r7::ShadowDispatch shadow_dispatch(*c);
+    // Only R7 touches the otherwise uninitialized Client padding. The first
+    // parser entry precedes every publication; migration retains Client + ROB.
+    if (c->rob().dispatch_id() == 0) r7::ShadowLongIndex::initialize(*c);
+    r7::LazyShadowDispatch shadow_dispatch(c->rob().dispatch_id());
 ''' + body[opening:]
                 needle = 'Task t{c, rob.dispatch_id(), -1, nullptr};'
                 assert body.count(needle) == 1
-                body = body.replace(needle, needle + '\n            shadow_dispatch.stamp(t);')
+                body = body.replace(needle, needle + '\n        shadow_dispatch.stamp(t);')
+                # Include scatter publications: a Long can precede an ordinary
+                # task without itself passing the ordinary stamp site. Locally
+                # completed Longs are harmless; pending_before prunes Done.
+                # IO7 moved atomic scatter's publication into the shared helper.
+                # Keep its index entry IO-private before delegation, and remove
+                # it on refusal (the helper leaves dispatch_id unchanged).
+                atomic = function(io, 'dispatch_atomic_scatter')
+                assert atomic.count('c->rob().publish();') == 1
+                needle = 'if (!dispatch_atomic_scatter(c, *op, scatter_dispatch)) break;'
+                assert body.count(needle) == 1
+                assert body.count('rob.publish();') == 11
+                body = re.sub(r'^( *)rob.publish\(\);',
+                              r'\1r7::ShadowLongIndex::record(*c, *op);\n\1rob.publish();',
+                              body, flags=re.M)
+                body = body.replace(needle, '''r7::ShadowLongIndex::record(*c, *op);
+            if (!dispatch_atomic_scatter(c, *op, scatter_dispatch)) {
+                r7::ShadowLongIndex::unpublish(*c);
+                break;
+            }''')
+                assert body.count('rob.unpublish();') == 1
+                body = re.sub(r'^( *)rob.unpublish\(\);([^\n]*)',
+                              r'\1rob.unpublish();\2\n\1r7::ShadowLongIndex::unpublish(*c);',
+                              body, flags=re.M)
                 body = body.replace('Fused, ReadLocalDemotionPlan,', 'Fused, r7_ReadLocalDemotionPlan,')
             signature, rest = body.split('{', 1)
             decls.append(signature.rstrip() + ';')
