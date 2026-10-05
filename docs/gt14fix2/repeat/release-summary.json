@@ -1,10 +1,10 @@
 {
-  "completed": 3,
+  "completed": 5,
   "requested": 20,
-  "remaining": 17,
-  "passed_rows": 57,
+  "remaining": 15,
+  "passed_rows": 95,
   "failed_rows": 0,
-  "successful_subsets": 3,
+  "successful_subsets": 5,
   "test_revision": "adb9d1659",
   "binary_sha256": "79f3688f51ee0a0bd09777716d001b67ff4efa622f5ef1961b274ec7591a3b61",
   "runs": [
@@ -112,16 +112,86 @@
         "rerolls": "[]",
         "hammer_reads": 64819
       }
+    },
+    {
+      "run": 4,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.rKQUvr",
+      "passed": 19,
+      "failed": 0,
+      "exit": 0,
+      "exit_source": "campaign",
+      "jobs": {
+        "debug-1": {
+          "exit": 0,
+          "passed": 14,
+          "failed": 0,
+          "seconds": 72.226293
+        },
+        "atomic_batteries": {
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "seconds": 35.587568
+        }
+      },
+      "OFF": {
+        "hold_s": 0.001301,
+        "witness_s": 0.0012546340003609657,
+        "attempt": 1,
+        "rerolls": "[]"
+      },
+      "ON": {
+        "hold_s": 0.001277,
+        "witness_s": 0.0012301751412451267,
+        "attempt": 1,
+        "rerolls": "[]",
+        "hammer_reads": 140577
+      }
+    },
+    {
+      "run": 5,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.lfjzjo",
+      "passed": 19,
+      "failed": 0,
+      "exit": 0,
+      "exit_source": "owned gate zombie wait status captured before stopping the repetition controller",
+      "jobs": {
+        "debug-1": {
+          "exit": 0,
+          "passed": 14,
+          "failed": 0,
+          "seconds": 72.014047
+        },
+        "atomic_batteries": {
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "seconds": 35.634616
+        }
+      },
+      "OFF": {
+        "hold_s": 0.001304,
+        "witness_s": 0.0012599639594554901,
+        "attempt": 1,
+        "rerolls": "[]"
+      },
+      "ON": {
+        "hold_s": 0.001298,
+        "witness_s": 0.0012515638954937458,
+        "attempt": 1,
+        "rerolls": "[]",
+        "hammer_reads": 138181
+      }
     }
   ],
   "OFF": {
-    "min_s": 0.001314,
-    "median_s": 0.001321,
+    "min_s": 0.001301,
+    "median_s": 0.001314,
     "max_s": 0.001349
   },
   "ON": {
     "min_s": 0.000186,
-    "median_s": 0.00024,
+    "median_s": 0.001277,
     "max_s": 0.001313
   }
 }

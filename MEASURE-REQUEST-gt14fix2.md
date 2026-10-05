@@ -108,7 +108,27 @@ forcing every selected pair onto one owner fails after attempt 4 with zero reads
 and an actually expired 100 ms hold fails with status 3 on attempt 1. A disabled
 hold setter likewise fails on attempt 1. No missing window is counted as a pass.
 
-Release evidence is being collected; no pending repetition is counted as a pass.
+Release: **5/20 requested repetitions completed**, all five **19/19 PASS**
+(**95 PASS / 0 FAIL**). Both complete target batteries passed all five runs, as
+did both containing jobs and shutdown checks. **15 repetitions remain unrun**
+to honor the 40-minute limit. This is not a claim of twenty clean release runs.
+The first invocation rebuilt the gate's unchanged production-unit prerequisites;
+its controller/build processes were paused while the final ASAN campaign ran,
+then resumed before any release server boot. No test was interrupted.
+
+The fifth gate exited normally with status 0. Its repetition controller was
+paused while that gate finished, then terminated before repetition six could
+start. `boundary-stop.json` records the owned gate PID/start identity and its
+zombie wait status 0; the collector uses that exit evidence for run five.
+
+Full gate logs, ledgers, target-test logs, job durations, hashes, and per-arm hold
+times are in `docs/gt14fix2/repeat/release-summary.json` and adjacent files.
+Continue the remaining campaign on the maintainer's scheduled box with:
+
+```bash
+bash docs/gt14fix2/release-repeat.sh 6 20 >>build/gt14fix2/release-progress.log 2>&1
+python3 docs/gt14fix2/collect.py
+```
 The release request is 20 serial repetitions of the unchanged complete subset:
 
 ```bash
@@ -141,6 +161,13 @@ baseline control is preserved in `docs/gt14fix2/baseline-never-hold-*.log.gz`.
 This distinguishes the pre-existing shutdown problem from the directed hold
 change; it does not turn any failed clean-shutdown check into a pass.
 
+Client hold timing for the routing-aware campaign (milliseconds, descriptive):
+
+| Tier | OFF min / median / max | ON min / median / max | Ceiling |
+| --- | --- | --- | --- |
+| ASAN, 10 target runs | 1.364 / 1.435 / 5.124 | 0.346 / 1.356 / 5.140 | 30,000 ms |
+| Release, 5 gate subsets | 1.301 / 1.314 / 1.349 | 0.186 / 1.277 / 1.313 | 30,000 ms |
+
 No TSAN `atomic_torn.py` row or TSAN server target exists in this gate revision;
 its TSAN jobs build and run separate units. Therefore the conditional TSAN request
 has no corresponding row to run.
@@ -152,3 +179,11 @@ helper except `rename_held`; `rename_held_attempt` is its new single-attempt hel
 The requested repetitions exceed the 40-minute budget: existing complete release
 subsets took roughly 110 seconds each (~37 minutes for twenty), before builds and
 ASAN. The timing conflict was raised while work continued.
+
+Final source/binary checks passed: Python compilation, `git diff --check`, no
+diff to `tests/gate.sh`, `tests/gate_subset.sh`, `tests/gate_measurements.json`, or
+`tests/xscript.py`, and equality of both exercised binaries to the audited POST
+copies. Both thread modes booted in the directed controls. All owned servers,
+load generators, build processes, and the repetition controller were stopped or
+finished before handoff. Work ran from 02:21 UTC to approximately 03:01 UTC on
+2026-10-05, within the requested 40 minutes. No push.

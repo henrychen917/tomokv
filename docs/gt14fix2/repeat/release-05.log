@@ -2,3 +2,42 @@ GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load),
   artifacts: /home/user/Projects/cx-gt14fix/build/gate-run.lfjzjo
 PARTIAL jobs (including prerequisites): release production_units debug-1 atomic_batteries
 PARTIAL jobs (including prerequisites): release production_units debug-1 atomic_batteries
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=6.16s; correctness-plan-fallback; plain-write lost updates (atomic 1)
+  plain-write lost updates (atomic 1)                  ok
+  row budget: 900s; median=0.16s; correctness-plan-fallback; lbsignals battery (atomic 1)
+  lbsignals battery (atomic 1)                         ok
+  row budget: 900s; median=1.49s; correctness-plan-fallback; slowlog battery (atomic 1)
+  slowlog battery (atomic 1)                           ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; atomfix battery (atomic 1)
+  atomfix battery (atomic 1)                           ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; scriptatomic battery (atomic 1)
+  scriptatomic battery (atomic 1)                      ok
+  row budget: 900s; median=14.46s; correctness-plan-fallback; execatomic battery (atomic 1)
+  execatomic battery (atomic 1)                        ok
+  row budget: 900s; median=11.85s; correctness-plan-fallback; execiso battery (atomic 1)
+  execiso battery (atomic 1)                           ok
+  row budget: 900s; median=0.43s; correctness-plan-fallback; execfix battery (atomic 1)
+  execfix battery (atomic 1)                           ok
+  row budget: 900s; median=0.08s; correctness-plan-fallback; multires battery (atomic 1)
+  multires battery (atomic 1)                          ok
+  row budget: 900s; median=0.64s; correctness-plan-fallback; multirace battery (atomic 1)
+  multirace battery (atomic 1)                         ok
+  row budget: 900s; median=30.48s; correctness-plan-fallback; session_monotonic battery (atomic 1)
+  session_monotonic battery (atomic 1)                 ok
+  row budget: 900s; median=0.3s; correctness-plan-fallback; xacct battery (atomic 1)
+  xacct battery (atomic 1)                             ok
+  row budget: 900s; median=0.27s; correctness-plan-fallback; xmove battery (atomic 1)
+  xmove battery (atomic 1)                             ok
+  row budget: 900s; median=1.87s; correctness-plan-fallback; xscript battery (atomic 1)
+  xscript battery (atomic 1)                           ok
+  row budget: 900s; median=25.03s; correctness-plan-fallback; atomic torn/window battery
+  atomic torn/window battery                           ok
+  row budget: 900s; median=4.06s; correctness-plan-fallback; atomic RYOW/mixed-write battery
+  atomic RYOW/mixed-write battery                      ok
+  row budget: 900s; median=4.24s; correctness-plan-fallback; atomic owner-local hazard battery
+  atomic owner-local hazard battery                    ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.lfjzjo/ledger.partial

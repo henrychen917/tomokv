@@ -1,0 +1,12 @@
+{
+  "run": 5,
+  "controller": 638530,
+  "controller_start": "282403473",
+  "gate_pid": 1076719,
+  "gate_start": "282516861",
+  "paused_at_unix": 1791169092.9191616,
+  "reason": "40-minute task limit; pause only the repetition controller while the fifth unchanged gate finishes",
+  "state": "Z",
+  "wait_status": 0,
+  "completed_at_unix": 1791169201.0559628
+}

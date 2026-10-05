@@ -14,3 +14,8 @@ DONE tier=release run=03 exit=0 utc=2026-10-05T02:55:45Z
   atomic shutdown invariants                           ok
 GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.QNSFfQ/ledger.partial
 START tier=release run=04 utc=2026-10-05T02:55:45Z
+DONE tier=release run=04 exit=0 utc=2026-10-05T02:57:36Z
+  row budget: 900s; median=0.02s; correctness-plan-fallback; atomic shutdown invariants
+  atomic shutdown invariants                           ok
+GATE(PARTIAL): 19 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt14fix/build/gate-run.rKQUvr/ledger.partial
+START tier=release run=05 utc=2026-10-05T02:57:36Z
