@@ -82,6 +82,14 @@ int main() {
     for (const char* input : {"ECHO \"a\n", "ECHO 'a\r\n", "ECHO \"a\"x\n", "ECHO 'a'x\n",
                               "ECHO \"a\\\"\n", "ECHO 'a\\'\n"})
         parse(input, ParseResult::Error, quotes);
+    // Valid balancing must not turn into a protocol error. Successful quote
+    // decoding remains outside this error-only lane; do not assert decoded argv.
+    for (const char* input : {"ECHO \"a b\"\n", "ECHO 'a b'\n", "ECHO \"a\\\"b\"\n",
+                              "ECHO 'a\\'b'\n", "ECHO \"\\x00\"\n", "ECHO prefix\"suffix\"\n"}) {
+        tomo::Op valid; uint32_t cursor = 0; const char* error = nullptr;
+        check(tomo::resp_parse(input, std::strlen(input), cursor, valid, &error) == ParseResult::Ok,
+              "balanced inline quotes are not protocol errors");
+    }
     parse(std::string(65536, 'x'), ParseResult::Incomplete);
     parse(std::string(65537, 'x'), ParseResult::Error, "ERR Protocol error: too big inline request");
     parse("PING\0\n"s, ParseResult::Incomplete);
