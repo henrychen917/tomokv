@@ -87,7 +87,13 @@
 
 namespace tomo {
 
-struct StoreSizeState;
+// Cold monitor-only state. The definition is visible so GCC can prove that
+// publication does not modify any executor/parser state; the sampler stays out
+// of line. Per-operation storage/command bodies remain independently auditable.
+struct StoreSizeState {
+    uint64_t sample_cursor = 0;
+    std::atomic<uint64_t> avg_deadline{0};
+};
 
 // Fault injection for the cold table-allocation paths. It is compiled in whenever NDEBUG is not
 // defined -- which is every build the Makefile produces, release included -- and costs one relaxed
@@ -1018,7 +1024,25 @@ public:
     uint32_t expire_count() const { return expires_.size(); }
     // Cold batch-boundary publication. No key/TTL mutation publishes counters.
     bool init_storesize();
-    void publish_keyspace_sample();
+    __attribute__((noinline)) void publish_keyspace_sample() const {
+        auto* storesize_ = storesize_state();
+        unsigned __int128 sum = 0;
+        uint32_t count = 0;
+        // Two migration steps cover the index's initial 16 slots. Work remains
+        // bounded even at millions of volatile keys; this is an estimate, as in Redis.
+        expires_.sample_readonly(storesize_->sample_cursor, 2 * kRehashSlotsPerOp,
+            [&](uint64_t hash) {
+                const KvObj* object = find_hash_in(0, hash);
+                if (!object && rehashing()) object = find_hash_in(1, hash);
+                if (!object) return;
+                const int64_t at = deadline(hash, object);
+                if (at <= cached_now_ms_) return;
+                sum += static_cast<uint64_t>(at);
+                ++count;
+            });
+        if (count) storesize_->avg_deadline.store(sum / count, std::memory_order_relaxed);
+    }
+
     uint64_t published_avg_deadline() const;
     // Hashes in this shard carrying at least one field deadline. THE gate for the whole hash-field
     // TTL feature: a shard that has never seen HEXPIRE reads zero here and every hash command pays
@@ -1946,6 +1970,11 @@ public:
 
 private:
     void destroy_storesize();
+    StoreSizeState* storesize_state() const {
+        StoreSizeState* state;
+        std::memcpy(&state, reader_owner_gap_ + 4, sizeof(state));
+        return state;
+    }
     void refresh_field_ttl_gate() {
         // Once registration was lost, the count is no longer exact until FLUSH. Preserve a
         // positive gate without reporting an artificial UINT32_MAX population through INFO.
@@ -3680,11 +3709,10 @@ private:
     // that make the guarantee base-independent, and this is that balance — it is also why the
     // object still measures 944 bytes instead of 916. Repurposing it is fine only for a field that
     // is never written on the key path, and only if FlatStoreLayoutLock still passes.
-    char      reader_owner_gap_[4] = {};
-    // Boot/batch-initialized pointer, never changed by an ordinary operation.
-    // Reuses eight separator bytes; all existing member offsets stay fixed.
-    StoreSizeState* storesize_ = nullptr;
-    char      storesize_gap_[16] = {};
+    // The storesize sidecar pointer occupies bytes 4..11, initialized at boot
+    // and recovered with memcpy (no pointer aliasing/alignment assumptions).
+    // Preserve the declared padding and every existing member offset.
+    char      reader_owner_gap_[28] = {};
 
     // ---- OWNER BLOCK. Written by the single owner on the ordinary insert/DEL path. The first
     // eight fields are 48 bytes, so the whole per-operation counter set is one line for the owner
@@ -3758,8 +3786,7 @@ struct FlatStoreLayoutLock {
     // First word of the bind-once separator that buys the distance below it.
     static constexpr size_t atomic_separator_first = offsetof(FlatStore, atomic_ticket_fn_);
     static constexpr size_t line         = 64;
-    static constexpr size_t gap_bytes    = sizeof(FlatStore::reader_owner_gap_) +
-        sizeof(FlatStore::storesize_) + sizeof(FlatStore::storesize_gap_);
+    static constexpr size_t gap_bytes    = sizeof(FlatStore::reader_owner_gap_);
 };
 
 // THE INVARIANT, STATED TWICE BECAUSE THE READER BLOCK HAS OWNER WRITES ON BOTH SIDES OF IT: no

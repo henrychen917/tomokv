@@ -216,4 +216,5 @@ struct DatabaseStats { uint64_t keys = 0, expires = 0, ttl = 0; };
 using DatabaseStatsTable = std::array<DatabaseStats, 256>;
 void multidb_stats(Shard& shard, DatabaseStatsTable& stats);
 void command_info_with_databases(Server& server, Op& op, const DatabaseStatsTable& stats);
+bool storesize_published_route();
 } // namespace tomo

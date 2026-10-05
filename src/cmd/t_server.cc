@@ -3286,8 +3286,10 @@ bool command_config_routes_all_shards(Op& op) {
     // is the exact-on-demand variant -- each owner counts its own store at execution time, so the
     // reply reflects everything already dispatched ahead of it on every shard, with none of the
     // batch-boundary publication lag the plain DBSIZE reads.
-    if (op.cmd_name().eq_icase("info")) return !kSingleDatabase && info_section(op, "KEYSPACE", true);
-    if (op.cmd_name().eq_icase("dbsize")) return (!kSingleDatabase && op.argc() == 1) ||
+    if (op.cmd_name().eq_icase("info"))
+        return (!kSingleDatabase || !storesize_published_route()) && info_section(op, "KEYSPACE", true);
+    if (op.cmd_name().eq_icase("dbsize")) return
+        (op.argc() == 1 && (!kSingleDatabase || !storesize_published_route())) ||
         (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
     if (op.cmd_name().eq_icase("debug"))
         return op.argc() == 2 &&

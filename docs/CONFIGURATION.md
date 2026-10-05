@@ -173,6 +173,32 @@ snapshot fails startup (`src/main.cc:236`, `:249`). Choose a fresh directory for
 an empty example. The save schedule describes periodic saves; it alone does not
 establish shutdown durability (see `src/cmd/server_tail.cc:249`, `src/main.cc:65`).
 
+### DBSIZE and INFO keyspace publication
+
+With the default `databases 1`, plain `DBSIZE` and INFO's keyspace section read
+per-shard published counters. Each owner publishes at an executor batch boundary:
+the count can lag its owner's mutations by **one batch boundary**, with no fixed
+wall-clock bound while an owner is busy. A pipeline can observe the preceding
+batch's count. `DBSIZE NOW` is TomoKV's exact-on-demand extension; it scatters to
+all owners and counts the selected logical database after earlier dispatched
+work. Neither mode reaps expired-but-resident keys merely to count them.
+
+INFO emits `db0:keys=K,expires=E,avg_ttl=T` for a nonempty database. `keys` and
+`expires` have the same one-boundary publication lag. `avg_ttl` is a nonnegative
+millisecond estimate: at publication the owner samples at most 16 expiry-index
+slots, using a cursor separate from active expiry, then INFO subtracts the current
+wall clock from that sample's mean deadline. It is zero when no keys have an
+expiry or no live sample is available. It is an estimate, not an exact average
+over every deadline; polling INFO visits no objects. All existing structure-size
+locks remain unchanged; each store has a 16-byte cold sampling sidecar.
+
+This lane's intermediate implementation retains the exact scatter when
+`databases > 1`. Per-database published counters require owner-private mutation
+accounting absent from the baseline; the separate multi-DB proposal and its
+byte-identity exception are documented in `MEASURE-REQUEST-storesize.md`.
+
+The INFO field definitions and section routing are in [INFO.md](INFO.md).
+
 ## Collection encodings
 
 The seven canonical rows and nine aliases come directly from

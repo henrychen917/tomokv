@@ -1582,6 +1582,13 @@ unit_ready multidb-boundary-unit && taskset -c "$CORES" ./build/multidb-boundary
     && python3 tests/multidb_serial.py --self-test >>"$TMPDIR/multidb-boundary-unit.log" 2>&1 \
     && ok "multidb global namespace boundary" \
     || bad "multidb global namespace boundary" "see $TMPDIR/multidb-boundary-unit.log"
+# ST2: one serverless row before the quick-tier exit. The owner changes EXPECT.
+# Multi-DB publication is a separate, unapplied proposal pending its hot-path exception.
+row_begin "storesize db0 published monitoring"
+unit_ready storesize-unit && taskset -c "$CORES" python3 tests/storesize_checks.py check build/storesize-unit \
+    >"$TMPDIR/storesize-unit.log" 2>&1 \
+    && ok "storesize db0 published monitoring" \
+    || bad "storesize db0 published monitoring" "see $TMPDIR/storesize-unit.log"
 # SURVIVING.md's atomic lane, plus the post-APPLY diagnostic: one build and sixteen
 # named defect rows. This collection site remains above the quick-tier exit.
 row_begin "atomic survivors unit build"
@@ -2951,11 +2958,11 @@ job_production_units(){
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
-      build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
+      build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit \
       build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
+  for target in core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \

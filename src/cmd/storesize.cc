@@ -4,37 +4,20 @@
 
 namespace tomo {
 
-struct StoreSizeState {
-    uint64_t sample_cursor = 0;
-    std::atomic<uint64_t> avg_deadline{0};
-};
+// Cold routing only. A kind-A copied-ELF control returns false here to restore
+// PRE's census routes with exactly the candidate's text size and addresses.
+__attribute__((noipa)) bool storesize_published_route() { return true; }
 
-void FlatStore::destroy_storesize() { delete storesize_; }
+void FlatStore::destroy_storesize() { delete storesize_state(); }
 
 bool FlatStore::init_storesize() {
-    storesize_ = new (std::nothrow) StoreSizeState;
-    return storesize_ != nullptr;
-}
-
-void FlatStore::publish_keyspace_sample() {
-    unsigned __int128 sum = 0;
-    uint32_t count = 0;
-    // Two migration steps cover the index's initial 16 slots. Work remains
-    // bounded even at millions of volatile keys; this is an estimate, as in Redis.
-    expires_.sample_readonly(storesize_->sample_cursor, 2 * kRehashSlotsPerOp,
-        [&](uint64_t hash) {
-            const KvObj* object = find_hash_in(0, hash);
-            if (!object && rehashing()) object = find_hash_in(1, hash);
-            if (!object) return;
-            const int64_t at = deadline(hash, object);
-            if (at <= cached_now_ms_) return;
-            sum += static_cast<uint64_t>(at);
-            ++count;
-        });
-    if (count) storesize_->avg_deadline.store(sum / count, std::memory_order_relaxed);
+    auto* state = new (std::nothrow) StoreSizeState;
+    std::memcpy(reader_owner_gap_ + 4, &state, sizeof(state));
+    return state != nullptr;
 }
 
 uint64_t FlatStore::published_avg_deadline() const {
+    const auto* storesize_ = storesize_state();
     return storesize_ ? storesize_->avg_deadline.load(std::memory_order_relaxed) : 0;
 }
 

@@ -152,6 +152,9 @@ void witness(Server& server, bool legacy, unsigned n) {
     census(server, 0, n);
 }
 void checks(bool legacy) {
+    static_assert(sizeof(Op) == 336 && sizeof(Client) == 1984 && sizeof(ThreadCtx) == 1408);
+    static_assert(sizeof(Shard) == 1440 && sizeof(FlatStore) == 944 && sizeof(Rob<64>) == 192);
+    static_assert(sizeof(AtomicEntry) == 144 && sizeof(Config) == 624);
     Config cfg; cfg.databases = kSingleDatabase ? 1 : 16;
     cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
     cfg.key_lb = cfg.client_lb = cfg.flip_auto = cfg.protected_mode = 0;

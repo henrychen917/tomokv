@@ -1,0 +1,50 @@
+WALK arm=POST image=db0 keys=128 capacity=16384 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=DBSIZE NOW slots=16384 objects=128 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=DBSIZE NOW slots=16384 objects=4096 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=DBSIZE NOW slots=32768 objects=16384 shards=16
+PASS storesize image=db0 arm=POST
+{'kind': 'A: behaviour twin', 'behavior': 'PRE monitoring census routes; POST text sizes, symbol addresses and counter-maintenance code', 'changed_bytes': 2, 'source': '/home/user/Projects/cx-storesize/build/storesize-unit', 'output': '/home/user/Projects/cx-storesize/build/storesize-unit-pad', 'source_sha256': '1e861dd7e9349b44ec136e84341b59b05a97618d0661b4f3f20dd55607789c5f', 'sha256': '1dab25099ef195ae4a19d14d1449f94c97ef8ab3c383bffb1207fea239837eb8'}
+WALK arm=PRE image=db0 keys=128 capacity=16384 command=DBSIZE slots=16384 objects=128 shards=16
+WALK arm=PRE image=db0 keys=128 capacity=16384 command=INFO slots=16384 objects=128 shards=16
+WALK arm=PRE image=db0 keys=128 capacity=16384 command=INFO KEYSPACE slots=16384 objects=128 shards=16
+WALK arm=PRE image=db0 keys=128 capacity=16384 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=PRE image=db0 keys=128 capacity=16384 command=DBSIZE NOW slots=16384 objects=128 shards=16
+WALK arm=PRE image=db0 keys=4096 capacity=16384 command=DBSIZE slots=16384 objects=4096 shards=16
+WALK arm=PRE image=db0 keys=4096 capacity=16384 command=INFO slots=16384 objects=4096 shards=16
+WALK arm=PRE image=db0 keys=4096 capacity=16384 command=INFO KEYSPACE slots=16384 objects=4096 shards=16
+WALK arm=PRE image=db0 keys=4096 capacity=16384 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=PRE image=db0 keys=4096 capacity=16384 command=DBSIZE NOW slots=16384 objects=4096 shards=16
+WALK arm=PRE image=db0 keys=16384 capacity=32768 command=DBSIZE slots=32768 objects=16384 shards=16
+WALK arm=PRE image=db0 keys=16384 capacity=32768 command=INFO slots=32768 objects=16384 shards=16
+WALK arm=PRE image=db0 keys=16384 capacity=32768 command=INFO KEYSPACE slots=32768 objects=16384 shards=16
+WALK arm=PRE image=db0 keys=16384 capacity=32768 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=PRE image=db0 keys=16384 capacity=32768 command=DBSIZE NOW slots=32768 objects=16384 shards=16
+PASS storesize image=db0 arm=PRE
+WALK arm=PRE image=multi keys=128 capacity=16384 command=DBSIZE slots=16384 objects=128 shards=16
+WALK arm=PRE image=multi keys=128 capacity=16384 command=INFO slots=16384 objects=128 shards=16
+WALK arm=PRE image=multi keys=128 capacity=16384 command=INFO KEYSPACE slots=16384 objects=128 shards=16
+WALK arm=PRE image=multi keys=128 capacity=16384 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=PRE image=multi keys=128 capacity=16384 command=DBSIZE NOW slots=16384 objects=128 shards=16
+WALK arm=PRE image=multi keys=4096 capacity=16384 command=DBSIZE slots=16384 objects=4096 shards=16
+WALK arm=PRE image=multi keys=4096 capacity=16384 command=INFO slots=16384 objects=4096 shards=16
+WALK arm=PRE image=multi keys=4096 capacity=16384 command=INFO KEYSPACE slots=16384 objects=4096 shards=16
+WALK arm=PRE image=multi keys=4096 capacity=16384 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=PRE image=multi keys=4096 capacity=16384 command=DBSIZE NOW slots=16384 objects=4096 shards=16
+WALK arm=PRE image=multi keys=16384 capacity=32768 command=DBSIZE slots=32768 objects=16384 shards=16
+WALK arm=PRE image=multi keys=16384 capacity=32768 command=INFO slots=32768 objects=16384 shards=16
+WALK arm=PRE image=multi keys=16384 capacity=32768 command=INFO KEYSPACE slots=32768 objects=16384 shards=16
+WALK arm=PRE image=multi keys=16384 capacity=32768 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=PRE image=multi keys=16384 capacity=32768 command=DBSIZE NOW slots=32768 objects=16384 shards=16
+PASS storesize image=multi arm=PRE
+PASS negative control: restored census route fails the exact monitor-route assertion
