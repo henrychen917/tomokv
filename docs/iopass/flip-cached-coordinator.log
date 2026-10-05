@@ -1,0 +1,1 @@
+PASS negative control flip-cached-coordinator rejected: FAIL core concurrency: coordinator uses immediate live fence after same-pass FLIP start

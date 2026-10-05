@@ -1,31 +1,185 @@
 {
   "scope": "Serverless IO-pass instruction receipts, using the existing ptrace tracer.\n\nThe measured boundary is the production cron predicates, writer probes, completion\ndrain, full parser(s), and FLIP tail. It excludes network/clock/executor work.\nNo perf events, load generator, listener, or server loop is started.\n",
-  "sha256": "66effa9544aa86392b3a5c2342d0cc94ddeee2d6b2e69065e4a2238982c08485",
+  "sha256": "42ab473685b38689e5db7345d79c6b83532c292937135e1a98ffe50124d08e23",
+  "offsets": {
+    "flip_stage_": 71136,
+    "live_save_armed_": 85000,
+    "placement_": 816
+  },
+  "sites": "IO2.sites.json.gz",
   "rows": [
     {
       "case": "quiet",
       "instructions": 284,
       "executable_instructions": 284,
-      "library_instructions": 0
+      "library_instructions": 0,
+      "shared_reads": {
+        "flip_stage_": {
+          "visits": 3,
+          "sites": [
+            {
+              "pc": "60230",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%r12d"
+            },
+            {
+              "pc": "74e09",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "74e22",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            }
+          ]
+        },
+        "live_save_armed_": {
+          "visits": 0,
+          "sites": []
+        }
+      }
     },
     {
       "case": "get32",
-      "instructions": 73582,
-      "executable_instructions": 37541,
-      "library_instructions": 36041
+      "instructions": 73486,
+      "executable_instructions": 37445,
+      "library_instructions": 36041,
+      "shared_reads": {
+        "flip_stage_": {
+          "visits": 131,
+          "sites": [
+            {
+              "pc": "60230",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%r12d"
+            },
+            {
+              "pc": "703f7",
+              "visits": 64,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "70935",
+              "visits": 32,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "718b9",
+              "visits": 32,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "74e09",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "74e22",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            }
+          ]
+        },
+        "live_save_armed_": {
+          "visits": 0,
+          "sites": []
+        }
+      }
     },
     {
       "case": "set",
-      "instructions": 11928,
-      "executable_instructions": 1547,
-      "library_instructions": 10381
+      "instructions": 11926,
+      "executable_instructions": 1545,
+      "library_instructions": 10381,
+      "shared_reads": {
+        "flip_stage_": {
+          "visits": 7,
+          "sites": [
+            {
+              "pc": "60230",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%r12d"
+            },
+            {
+              "pc": "703f7",
+              "visits": 2,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "70935",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "718b9",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "74e09",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "74e22",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            }
+          ]
+        },
+        "live_save_armed_": {
+          "visits": 0,
+          "sites": []
+        }
+      }
     },
     {
       "case": "atomic",
-      "instructions": 29889,
-      "executable_instructions": 7734,
-      "library_instructions": 22155
+      "instructions": 29933,
+      "executable_instructions": 7751,
+      "library_instructions": 22182,
+      "shared_reads": {
+        "flip_stage_": {
+          "visits": 7,
+          "sites": [
+            {
+              "pc": "60230",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%r12d"
+            },
+            {
+              "pc": "703f7",
+              "visits": 2,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "70935",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "718b9",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "74e09",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "74e22",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            }
+          ]
+        },
+        "live_save_armed_": {
+          "visits": 0,
+          "sites": []
+        }
+      }
     }
-  ],
-  "sites": "IO2.sites.json.gz"
+  ]
 }

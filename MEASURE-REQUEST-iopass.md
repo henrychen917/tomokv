@@ -20,11 +20,17 @@ The executable-only column excludes shared-library instructions (allocator and l
 
 | Item | Quiet PRE → POST | GET32 PRE → POST | SET PRE → POST | Atomic PRE → POST |
 |---|---:|---:|---:|---:|
-| IO2 (all instructions) | 294 → 284 | 73496 → 73582 | 11936 → 11928 | 29915 → 29889 |
-| IO2 (executable only) | 294 → 284 | 37455 → 37541 | 1555 → 1547 | 7760 → 7734 |
+| IO2 (all instructions) | 294 → 284 | 73496 → 73486 | 11936 → 11926 | 29916 → 29933 |
+| IO2 (executable only) | 294 → 284 | 37455 → 37445 | 1555 → 1545 | 7761 → 7751 |
+| IO3 (all instructions) | 284 → 286 | 73486 → 73296 | 11926 → 11921 | 29933 → 29887 |
+| IO3 (executable only) | 284 → 286 | 37445 → 37255 | 1545 → 1540 | 7751 → 7732 |
 
-Receipts include exact PCs and visit counts in `docs/iopass/PRE.json` and `IO2.json`.
-The GET count increase is recorded, not treated as a performance improvement.
+Receipts include exact PCs and visit counts in `docs/iopass/*.sites.json.gz`, with
+totals and decoded shared-load sites in the corresponding JSON. Correctness cases
+compile separately from the receipt driver, so adding a witness cannot perturb its
+code generation. PRE/IO2 were regenerated with that separation. Library paths in
+the atomic case vary by 27 instructions; use executable counts for attribution.
+IO3's two-instruction quiet-path increase is recorded, not called a performance win.
 
 ## IO2: elected save-cron owner
 
@@ -44,6 +50,38 @@ the live policy on its existing one-second beat. With save disabled, this adds o
 no-work policy check per second on the elected IO; the other IO threads remain dark.
 `IO2-checks.log` covers boot, CONFIG enable/disable, pending signal, blocked role-vector
 access during conversion, and election transfer at RoleReady.
+
+## IO3: pass-start FLIP snapshot
+
+The normal idle pass acquires stage once before any parser or cron. That decision
+is reused by the cron gates, per-frame map stamping, read-local demotion gate,
+ordinary dispatch, and the two backpressure-resume paths. An Idle sample permits
+work until this IO acknowledges a drain; the control tail **does not ACK** a drain
+that started after an Idle sample. The next pass samples the drain, fences every
+parser (including later sweep/park callbacks), and can then ACK. A stale paused
+sample delays ordinary work for at most that pass. Accept/role-management cold
+paths retain their live stage reads.
+
+Two live fences deliberately remain: (1) the coordinator's private `c == flip_client_`
+test precedes its shared read, since a manual FLIP can begin after the sample; (2)
+an armed control tail reacquires stage before checking the current epoch's ACKs and
+updates the pass snapshot before any later parsing. The database control path also
+retains its existing live read and `multidb_dispatch_allowed` exception. Without the
+tail reacquire, an already-ACKed old stage can be applied to a newly opened epoch.
+Standalone callers without a pass retain the original live fence via an unset byte.
+
+Actual traced stage reads, IO2 → IO3: quiet 3 → 1; GET32 131 → 1; SET 7 → 1;
+atomic group 7 → 1. No unique shared line disappears (the stage line is still read
+once); redundant reads disappear. No new knob or changed ownership/RYOW protocol.
+
+`IO3-checks.log` proves delayed ACK, post-ACK rejection, epoch rollover, immediate
+coordinator fencing, conservative database stamping, and resume. Four throwaway
+controls each fail the named assertion: no pass sample, open parser, stale tail
+stage, and cached coordinator gate. These are compiled source mutations under
+`build/`, never production switches. All four `flip-*.log` receipts record rejection.
+
+Risk: snapshots trade up to one pass of control latency for fewer loads. Mainline
+must exercise both FLIP directions and SWAPDB under the requested loaded geometry.
 
 ## Artifacts and requested mainline measurement
 

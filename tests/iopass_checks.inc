@@ -43,10 +43,14 @@ template<class IO> static void save_election(IO& io, Server& server) {
 
 static void run_iopass(const std::string& which) {
     Fixture f(false);
+#ifdef TOMO_IOPASS_CHECKS
     if (which == "checks") {
         save_election(f.io, f.server);
+        Fixture fresh(false);
+        flip_fences(fresh);
         return;
     }
+#endif
     // Non-elected IO, save armed: the audit's default quiet-pass case.
     f.io_id = 1;
     f.io.self_ = &f.server.thread(f.io_id);
@@ -97,4 +101,72 @@ static void run_iopass(const std::string& which) {
                         static_cast<IoLoop*>(p)->queue_borrow_release(shard, value);
                     }, [](void*) {});
         });
+}
+
+template<class F> static void flip_fences(F& f) {
+    if constexpr (requires { f.io.flip_pass_begin(); }) {
+        auto& io = f.io;
+        auto& server = f.server;
+        server.flip_coordinator_ = 1; // test IO is a non-coordinator
+        Client first(-1), blocked(-1), coordinator(-1), database(-1);
+        for (Client* client : {&first, &blocked, &coordinator, &database}) f.client(*client);
+        const auto request = wire({"GET", f.key(f.sid())});
+        io.flip_pass_begin(); // Idle, then a peer opens the drain
+        server.flip_epoch_.store(1);
+        server.flip_set_stage(FlipStage::IoDrain);
+        io.template flip_control_pass<false>();
+        require(!server.flip_acked(f.io_id, FlipStage::IoDrain),
+                "Idle snapshot never ACKs a drain before its later sweep parsing");
+        input(first, request);
+        io.template parse_and_dispatch<false, 0>(&first);
+        require(first.rob().in_flight() == 1, "pre-ACK work can still publish with Idle snapshot");
+        require(f.loops[f.source].drain_tasks(true) == 1, "old-route GET drains before acknowledgement");
+        require(first.rob().drain([](Op&) {}) == 1, "GET completes before drain ACK");
+        // The witness retired the reply directly; consume its completion notification too.
+        require(io.self_->ready().take(first.wb_slot() / 64) != 0,
+                "old-route completion actually notified the IO owner");
+        io.flip_pass_begin();
+        io.template flip_control_pass<false>();
+        require(server.flip_acked(f.io_id, FlipStage::IoDrain), "next pass ACKs the armed drain");
+        input(blocked, request);
+        io.template parse_and_dispatch<false, 0>(&blocked);
+        require(blocked.rpos() == 0 && blocked.rob().in_flight() == 0,
+                "post-ACK sweep/parser cannot publish through the snapshot fence");
+
+        // Already-ACKed stage may end and a new epoch may start before this pass's tail.
+        server.flip_epoch_.store(2);
+        server.flip_set_stage(FlipStage::Planning);
+        io.template flip_control_pass<false>();
+        require(!server.flip_acked(f.io_id, FlipStage::IoDrain),
+                "armed control tail does not ACK an old sampled stage in a new epoch");
+
+        server.flip_stage_.store(FlipStage::Idle);
+        io.flip_pass_begin();
+        server.flip_set_stage(FlipStage::IoDrain);
+        io.flip_client_ = &coordinator; // manual FLIP started after pass-start sample
+        input(coordinator, request);
+        io.template parse_and_dispatch<false, 0>(&coordinator);
+        require(coordinator.rpos() == 0 && coordinator.rob().in_flight() == 0,
+                "coordinator uses immediate live fence after same-pass FLIP start");
+        io.flip_client_ = nullptr;
+
+        if constexpr (!kSingleDatabase) {
+            server.flip_set_stage(FlipStage::DatabaseIoDrain);
+            io.flip_pass_begin();
+            server.flip_stage_.store(FlipStage::Idle);
+            input(database, request);
+            io.template parse_and_dispatch<false, 0>(&database);
+            require(database.rpos() == 0 && database.rob().in_flight() == 0,
+                    "paused snapshot cannot stamp old map then dispatch through new Idle");
+            io.flip_pass_begin();
+            require(!io.flip_dispatch_paused(), "new pass observes completion before clearing backpressure");
+            database.set_flip_backpressure(false); // flush_ready's resume gate
+            io.template parse_and_dispatch<false, 0>(&database);
+            require(database.rob().in_flight() == 1, "fresh Idle resumes map stamping/dispatch");
+            require(f.loops[f.source].drain_tasks(true) == 1, "resumed GET completes");
+            database.rob().drain([](Op&) {});
+        }
+        server.flip_stage_.store(FlipStage::Idle);
+        std::puts("PASS IO3 delayed ACK, post-ACK dispatch, epoch rollover, coordinator, database fences");
+    }
 }

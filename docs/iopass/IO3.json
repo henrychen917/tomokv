@@ -1,0 +1,100 @@
+{
+  "scope": "Serverless IO-pass instruction receipts, using the existing ptrace tracer.\n\nThe measured boundary is the production cron predicates, writer probes, completion\ndrain, full parser(s), and FLIP tail. It excludes network/clock/executor work.\nNo perf events, load generator, listener, or server loop is started.\n",
+  "sha256": "a00363f3fc229d031e9d6b0b1f31057691b1224c4ddefe7d83e7cc73cbe2d7f2",
+  "offsets": {
+    "flip_stage_": 71136,
+    "live_save_armed_": 85000,
+    "placement_": 816
+  },
+  "sites": "IO3.sites.json.gz",
+  "rows": [
+    {
+      "case": "quiet",
+      "instructions": 286,
+      "executable_instructions": 286,
+      "library_instructions": 0,
+      "shared_reads": {
+        "flip_stage_": {
+          "visits": 1,
+          "sites": [
+            {
+              "pc": "74be9",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            }
+          ]
+        },
+        "live_save_armed_": {
+          "visits": 0,
+          "sites": []
+        }
+      }
+    },
+    {
+      "case": "get32",
+      "instructions": 73296,
+      "executable_instructions": 37255,
+      "library_instructions": 36041,
+      "shared_reads": {
+        "flip_stage_": {
+          "visits": 1,
+          "sites": [
+            {
+              "pc": "74be9",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            }
+          ]
+        },
+        "live_save_armed_": {
+          "visits": 0,
+          "sites": []
+        }
+      }
+    },
+    {
+      "case": "set",
+      "instructions": 11921,
+      "executable_instructions": 1540,
+      "library_instructions": 10381,
+      "shared_reads": {
+        "flip_stage_": {
+          "visits": 1,
+          "sites": [
+            {
+              "pc": "74be9",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            }
+          ]
+        },
+        "live_save_armed_": {
+          "visits": 0,
+          "sites": []
+        }
+      }
+    },
+    {
+      "case": "atomic",
+      "instructions": 29887,
+      "executable_instructions": 7732,
+      "library_instructions": 22155,
+      "shared_reads": {
+        "flip_stage_": {
+          "visits": 1,
+          "sites": [
+            {
+              "pc": "74be9",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            }
+          ]
+        },
+        "live_save_armed_": {
+          "visits": 0,
+          "sites": []
+        }
+      }
+    }
+  ]
+}

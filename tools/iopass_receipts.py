@@ -84,8 +84,8 @@ int main(int argc, char** argv) {
     destination.write_text(fixture)
 
 
-def build(label, source):
-    out = ROOT / 'build/iopass-receipts' / label
+def build(label, source, checks=False):
+    out = ROOT / 'build/iopass-receipts' / (label + ('-checks' if checks else ''))
     out.mkdir(parents=True, exist_ok=True)
     emit(source, out / 'unit.cc')
     objects = sorted((ROOT / 'build/iopass-pre/src').rglob('*.o'))
@@ -95,6 +95,8 @@ def build(label, source):
     flags = ['g++', '-std=c++20', '-O2', '-g', '-Wall', '-Wextra', '-march=native', '-pthread',
              '-DTOMO_JEMALLOC', '-DTOMO_CORE_CONCURRENCY_TEST', '-ffunction-sections',
              '-fdata-sections', '-I' + str(source), '-I' + str(ROOT)]
+    if checks:
+        flags.append('-DTOMO_IOPASS_CHECKS')
     with (out / 'build.log').open('w') as log:
         # Snapshot start may acquire an IO-private bound byte in IO4. Compile that
         # implementation from the same source as the witness for every arm.
@@ -113,6 +115,17 @@ def trace(label, binary):
     elf = Elf(binary)
     sec = elf.sections[elf.names.index('.text')]
     address = elf.functions()['iopass_boundary']['value']
+    offsets = run(['gdb', '-nx', '-q', '-batch', str(binary), '-ex',
+        'python import gdb,json; print("OFFSETS="+json.dumps({n:int(next(f for f in '
+        'gdb.lookup_type("tomo::Server").fields() if f.name==n).bitpos)//8 '
+        'for n in ("flip_stage_","live_save_armed_","placement_")}))'], capture_output=True)
+    offsets = json.loads(next(s[8:] for s in offsets.stdout.splitlines() if s.startswith('OFFSETS=')))
+    asm = run(['objdump', '-dw', str(binary)], capture_output=True).stdout
+    decoded = {}
+    for line in asm.splitlines():
+        match = re.match(r'\s*([0-9a-f]+):\s+(?:[0-9a-f]{2} )+\s*(.*)', line)
+        if match:
+            decoded[match[1]] = match[2]
     rows = []
     for case in ('quiet', 'get32', 'set', 'atomic'):
         result = run(['taskset', '-c', '112-127', str(tracer), str(binary), case,
@@ -121,7 +134,19 @@ def trace(label, binary):
         lines = result.stdout.splitlines()
         data = json.loads(next(x[6:] for x in lines if x.startswith('TRACE=')))
         sites = json.loads(next(x[6:] for x in lines if x.startswith('SITES=')))
-        rows.append(dict(case=case, **data, sites=sites))
+        loads = {}
+        for field in ('flip_stage_', 'live_save_armed_'):
+            selected = []
+            for pc, visits in sites.items():
+                instruction = decoded.get(pc, '')
+                if f'0x{offsets[field]:x}(' not in instruction:
+                    continue
+                # MOV memory destinations are stores, not shared reads.
+                if instruction.startswith('mov') and f'0x{offsets[field]:x}(' in instruction.split(',')[-1]:
+                    continue
+                selected.append(dict(pc=pc, visits=visits, instruction=instruction))
+            loads[field] = dict(visits=sum(s['visits'] for s in selected), sites=selected)
+        rows.append(dict(case=case, **data, shared_reads=loads, sites=sites))
         print(label, case, data, flush=True)
     out = ROOT / 'docs/iopass'
     out.mkdir(parents=True, exist_ok=True)
@@ -130,7 +155,7 @@ def trace(label, binary):
         file.write(json.dumps(sites, sort_keys=True).encode())
     (out / (label + '.json')).write_text(json.dumps(dict(
         scope=__doc__, sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
-        sites=label + '.sites.json.gz', rows=rows), indent=2) + '\n')
+        offsets=offsets, sites=label + '.sites.json.gz', rows=rows), indent=2) + '\n')
 
 
 if __name__ == '__main__':
@@ -138,11 +163,15 @@ if __name__ == '__main__':
     parser.add_argument('label')
     parser.add_argument('--source', type=Path)
     parser.add_argument('--trace-only', action='store_true')
+    parser.add_argument('--checks', action='store_true')
     args = parser.parse_args()
     source = args.source or ROOT / 'build/iopass-receipts' / args.label / 'source'
     if not source.exists():
         shutil.copytree(ROOT / 'src', source / 'src')
     binary = ROOT / 'build/iopass-receipts' / args.label / 'unit'
     if not args.trace_only:
-        binary = build(args.label, source)
-    trace(args.label, binary)
+        binary = build(args.label, source, args.checks)
+    if args.checks:
+        run(['taskset', '-c', '112-127', str(binary), 'checks'])
+    else:
+        trace(args.label, binary)

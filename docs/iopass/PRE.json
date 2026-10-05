@@ -1,31 +1,209 @@
 {
   "scope": "Serverless IO-pass instruction receipts, using the existing ptrace tracer.\n\nThe measured boundary is the production cron predicates, writer probes, completion\ndrain, full parser(s), and FLIP tail. It excludes network/clock/executor work.\nNo perf events, load generator, listener, or server loop is started.\n",
-  "sha256": "97631833ed499c50e8a2571460c8557229ae57c16c8b3b7617690f9ee0f5617b",
+  "sha256": "8399c1baaa51ec3eda9cb87867768459a04800a94a164b612871a6c8eda5b195",
+  "offsets": {
+    "flip_stage_": 71136,
+    "live_save_armed_": 85000,
+    "placement_": 816
+  },
+  "sites": "PRE.sites.json.gz",
   "rows": [
     {
       "case": "quiet",
       "instructions": 294,
       "executable_instructions": 294,
-      "library_instructions": 0
+      "library_instructions": 0,
+      "shared_reads": {
+        "flip_stage_": {
+          "visits": 3,
+          "sites": [
+            {
+              "pc": "60170",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%r12d"
+            },
+            {
+              "pc": "74cf9",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "74d12",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rdi),%eax"
+            }
+          ]
+        },
+        "live_save_armed_": {
+          "visits": 1,
+          "sites": [
+            {
+              "pc": "74db2",
+              "visits": 1,
+              "instruction": "movzbl 0x14c08(%rdi),%eax"
+            }
+          ]
+        }
+      }
     },
     {
       "case": "get32",
       "instructions": 73496,
       "executable_instructions": 37455,
-      "library_instructions": 36041
+      "library_instructions": 36041,
+      "shared_reads": {
+        "flip_stage_": {
+          "visits": 131,
+          "sites": [
+            {
+              "pc": "60170",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%r12d"
+            },
+            {
+              "pc": "702e7",
+              "visits": 64,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "70825",
+              "visits": 32,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "717a9",
+              "visits": 32,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "74cf9",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "74d12",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rdi),%eax"
+            }
+          ]
+        },
+        "live_save_armed_": {
+          "visits": 1,
+          "sites": [
+            {
+              "pc": "74db2",
+              "visits": 1,
+              "instruction": "movzbl 0x14c08(%rdi),%eax"
+            }
+          ]
+        }
+      }
     },
     {
       "case": "set",
       "instructions": 11936,
       "executable_instructions": 1555,
-      "library_instructions": 10381
+      "library_instructions": 10381,
+      "shared_reads": {
+        "flip_stage_": {
+          "visits": 7,
+          "sites": [
+            {
+              "pc": "60170",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%r12d"
+            },
+            {
+              "pc": "702e7",
+              "visits": 2,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "70825",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "717a9",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "74cf9",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "74d12",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rdi),%eax"
+            }
+          ]
+        },
+        "live_save_armed_": {
+          "visits": 1,
+          "sites": [
+            {
+              "pc": "74db2",
+              "visits": 1,
+              "instruction": "movzbl 0x14c08(%rdi),%eax"
+            }
+          ]
+        }
+      }
     },
     {
       "case": "atomic",
-      "instructions": 29915,
-      "executable_instructions": 7760,
-      "library_instructions": 22155
+      "instructions": 29916,
+      "executable_instructions": 7761,
+      "library_instructions": 22155,
+      "shared_reads": {
+        "flip_stage_": {
+          "visits": 7,
+          "sites": [
+            {
+              "pc": "60170",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%r12d"
+            },
+            {
+              "pc": "702e7",
+              "visits": 2,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "70825",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "717a9",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "74cf9",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rax),%eax"
+            },
+            {
+              "pc": "74d12",
+              "visits": 1,
+              "instruction": "movzbl 0x115e0(%rdi),%eax"
+            }
+          ]
+        },
+        "live_save_armed_": {
+          "visits": 1,
+          "sites": [
+            {
+              "pc": "74db2",
+              "visits": 1,
+              "instruction": "movzbl 0x14c08(%rdi),%eax"
+            }
+          ]
+        }
+      }
     }
-  ],
-  "sites": "PRE.sites.json.gz"
+  ]
 }
