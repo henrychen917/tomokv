@@ -2094,9 +2094,6 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
     auto post_task_quiet = [&](ThreadCtx& owner, const Task& task) {
         return owner.post_task_quiet(self_id, task, sig);
     };
-    auto post_tasks_quiet = [&](ThreadCtx& owner, const Task* tasks, uint32_t count) {
-        return owner.post_tasks_quiet(self_id, tasks, count, sig);
-    };
     DispatchResult result = DispatchResult::Progress;
     bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
     const uint8_t security_flags = srv_->security_flags();
@@ -3232,59 +3229,7 @@ nonblocking_dispatch:
                 continue;
             }
 
-            uint32_t needed[kMaxThreads] = {};
-            uint32_t participants[kMaxThreads];
-            uint16_t routed_owner[256];
-            int32_t routed_shard[256];
-            uint32_t nparticipants = 0;
-            for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
-                const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
-                const uint32_t tid = srv_->worker_of_shard(sid);
-                routed_shard[i] = sid;
-                routed_owner[i] = static_cast<uint16_t>(tid);
-                if (needed[tid]++ == 0) participants[nparticipants++] = tid;
-            }
-            bool room = true;
-            for (uint32_t p = 0; p < nparticipants; p++) {
-                const uint32_t tid = participants[p];
-                if (task_free_slots(srv_->thread(tid)) < needed[tid]) {
-                    room = false; break;
-                }
-            }
-            if (!room) {
-                xshard_abandon_unpublished(scatter_dispatch.state, scatter_pool_, self_id);
-                break;
-            }
-            const uint64_t op_id = rob.dispatch_id();
-            op->attach_scatter_state(scatter_dispatch.state);
-            c->atomic_group_started();
-            rob.publish();
-            Task posts[256];
-            uint16_t participant_begin[kMaxThreads];
-            uint32_t cursor = 0;
-            for (uint32_t p = 0; p < nparticipants; p++) {
-                const uint32_t tid = participants[p];
-                participant_begin[p] = static_cast<uint16_t>(cursor);
-                cursor += needed[tid];
-                needed[tid] = participant_begin[p]; // reuse as the fill cursor
-            }
-            for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
-                const uint32_t tid = routed_owner[i];
-                posts[needed[tid]++] = Task{
-                    c, op_id, routed_shard[i], scatter_dispatch.state};
-            }
-            if (cursor != scatter_dispatch.nshards) std::abort();
-            for (uint32_t p = 0; p < nparticipants; p++) {
-                const uint32_t tid = participants[p];
-                const uint32_t begin = participant_begin[p];
-                const uint32_t end = p + 1 < nparticipants
-                    ? participant_begin[p + 1] : scatter_dispatch.nshards;
-                ThreadCtx& owner = srv_->thread(tid);
-                // Capacity was checked before any push. Publish all of this group's tasks for
-                // one executor with one queue-tail store; the parse-pass notify remains folded.
-                if (!post_tasks_quiet(owner, posts + begin, end - begin)) std::abort();
-                if (!touched_[tid]) { touched_[tid] = true; touched_list_[ntouched_++] = tid; }
-            }
+            if (!dispatch_atomic_scatter(c, *op, scatter_dispatch)) break;
             self_->note_command(spec->id); // one public command, not one count per shard task
             flip_fingerprint_note(*spec, *op);
             conn.advance_parse(consumed);

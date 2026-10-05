@@ -1,0 +1,1 @@
+PASS negative control atomic-refusal-dirty rejected: FAIL core concurrency: every atomic/plain dispatch exit restores all demand/cursor entries

@@ -13,6 +13,8 @@
       "instructions": 284,
       "executable_instructions": 284,
       "library_instructions": 0,
+      "ptrace_steps": 284,
+      "rep_iteration_steps": 0,
       "shared_reads": {
         "flip_stage_": {
           "visits": 3,
@@ -42,9 +44,11 @@
     },
     {
       "case": "get32",
-      "instructions": 73486,
+      "instructions": 73336,
       "executable_instructions": 37445,
-      "library_instructions": 36041,
+      "library_instructions": 35891,
+      "ptrace_steps": 73486,
+      "rep_iteration_steps": 150,
       "shared_reads": {
         "flip_stage_": {
           "visits": 131,
@@ -89,9 +93,11 @@
     },
     {
       "case": "set",
-      "instructions": 11926,
+      "instructions": 11881,
       "executable_instructions": 1545,
-      "library_instructions": 10381,
+      "library_instructions": 10336,
+      "ptrace_steps": 11926,
+      "rep_iteration_steps": 45,
       "shared_reads": {
         "flip_stage_": {
           "visits": 7,
@@ -136,9 +142,11 @@
     },
     {
       "case": "atomic",
-      "instructions": 29933,
+      "instructions": 21670,
       "executable_instructions": 7751,
-      "library_instructions": 22182,
+      "library_instructions": 13919,
+      "ptrace_steps": 29906,
+      "rep_iteration_steps": 8236,
       "shared_reads": {
         "flip_stage_": {
           "visits": 7,

@@ -2991,6 +2991,73 @@ private:
         touched_list_[ntouched_++] = worker;
     }
 
+    __attribute__((noinline)) bool dispatch_atomic_scatter(
+            Client* c, Op& op, const ScatterDispatch& dispatch) {
+        // Only atomic writes enter this frame. Ordinary GET/SET and the plain scatter arm keep
+        // their own scratch; no capacity-sized Task default construction lives on their frame.
+        // Stack storage scales with this group's shards/participants and allocates no heap.
+        const uint32_t nshards = dispatch.nshards;
+        const uint32_t self_id = self_->id();
+        struct Route { uint32_t owner; int32_t shard; };
+        auto* routes = static_cast<Route*>(__builtin_alloca(sizeof(Route) * nshards));
+        auto* participants = static_cast<uint32_t*>(__builtin_alloca(
+            sizeof(uint32_t) * std::min(nshards, kMaxThreads)));
+        uint32_t* const needed = dispatch_needed_;
+        uint32_t nparticipants = 0;
+        for (uint32_t i = 0; i < nshards; ++i) {
+            const int32_t sid = xshard_dispatch_shard(dispatch, i);
+            const uint32_t tid = srv_->worker_of_shard(sid);
+            std::construct_at(routes + i, Route{tid, sid});
+            if (needed[tid]++ == 0) participants[nparticipants++] = tid;
+        }
+        for (uint32_t p = 0; p < nparticipants; ++p) {
+            const uint32_t tid = participants[p];
+            if (srv_->thread(tid).task_free_slots(self_id) < needed[tid]) {
+                // The only retry exit: no ROB publication or group count yet. Clear every
+                // touched owner before abandoning, including those after the refusing owner.
+                for (uint32_t q = 0; q < nparticipants; ++q) needed[participants[q]] = 0;
+                xshard_abandon_unpublished(dispatch.state, scatter_pool_, self_id);
+                return false;
+            }
+        }
+        // Allocate the bundle only after capacity succeeds. Construct each used Task exactly
+        // once (including its zero enqueue stamp), instead of default-constructing 256 Tasks
+        // and overwriting the live prefix. Destruction is trivial after the queues copy them.
+        static_assert(std::is_trivially_destructible_v<Task>);
+        auto* posts = static_cast<Task*>(__builtin_alloca(sizeof(Task) * nshards));
+        auto* participant_begin = static_cast<uint32_t*>(__builtin_alloca(
+            sizeof(uint32_t) * nparticipants));
+        const uint64_t op_id = c->rob().dispatch_id();
+        op.attach_scatter_state(dispatch.state);
+        c->atomic_group_started();
+        c->rob().publish();
+        uint32_t cursor = 0;
+        for (uint32_t p = 0; p < nparticipants; ++p) {
+            const uint32_t tid = participants[p];
+            participant_begin[p] = cursor;
+            cursor += needed[tid];
+            needed[tid] = participant_begin[p]; // demand becomes this owner's fill cursor
+        }
+        for (uint32_t i = 0; i < nshards; ++i) {
+            const auto route = routes[i];
+            std::construct_at(posts + needed[route.owner]++, c, op_id, route.shard, dispatch.state);
+        }
+        // Restore zero-on-entry before every remaining exit, including invariant aborts.
+        for (uint32_t p = 0; p < nparticipants; ++p) needed[participants[p]] = 0;
+        if (cursor != nshards) std::abort();
+        for (uint32_t p = 0; p < nparticipants; ++p) {
+            const uint32_t tid = participants[p];
+            const uint32_t begin = participant_begin[p];
+            const uint32_t end = p + 1 < nparticipants ? participant_begin[p + 1] : nshards;
+            // Capacity precedes publication; each owner still receives one ordered bundle
+            // with one queue-tail store. The parse pass folds notification exactly as before.
+            if (!srv_->thread(tid).post_tasks_quiet(self_id, posts + begin, end - begin, self_->sig()))
+                std::abort();
+            touch_worker(tid);
+        }
+        return true;
+    }
+
     // ---- parse -> route -> publish -----------------------------------------------------------------
     template <bool NoBorrow, uint32_t BatchOps = 0, bool IoPipe = false,
               bool SplitLocal = false>
@@ -3017,9 +3084,6 @@ private:
         };
         auto post_task_quiet = [&](ThreadCtx& owner, const Task& task) {
             return owner.post_task_quiet(self_id, task, sig);
-        };
-        auto post_tasks_quiet = [&](ThreadCtx& owner, const Task* tasks, uint32_t count) {
-            return owner.post_tasks_quiet(self_id, tasks, count, sig);
         };
         DispatchResult result = DispatchResult::Progress;
         bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
@@ -4156,59 +4220,7 @@ nonblocking_dispatch:
                     continue;
                 }
 
-                uint32_t needed[kMaxThreads] = {};
-                uint32_t participants[kMaxThreads];
-                uint16_t routed_owner[256];
-                int32_t routed_shard[256];
-                uint32_t nparticipants = 0;
-                for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
-                    const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
-                    const uint32_t tid = srv_->worker_of_shard(sid);
-                    routed_shard[i] = sid;
-                    routed_owner[i] = static_cast<uint16_t>(tid);
-                    if (needed[tid]++ == 0) participants[nparticipants++] = tid;
-                }
-                bool room = true;
-                for (uint32_t p = 0; p < nparticipants; p++) {
-                    const uint32_t tid = participants[p];
-                    if (task_free_slots(srv_->thread(tid)) < needed[tid]) {
-                        room = false; break;
-                    }
-                }
-                if (!room) {
-                    xshard_abandon_unpublished(scatter_dispatch.state, scatter_pool_, self_id);
-                    break;
-                }
-                const uint64_t op_id = rob.dispatch_id();
-                op->attach_scatter_state(scatter_dispatch.state);
-                c->atomic_group_started();
-                rob.publish();
-                Task posts[256];
-                uint16_t participant_begin[kMaxThreads];
-                uint32_t cursor = 0;
-                for (uint32_t p = 0; p < nparticipants; p++) {
-                    const uint32_t tid = participants[p];
-                    participant_begin[p] = static_cast<uint16_t>(cursor);
-                    cursor += needed[tid];
-                    needed[tid] = participant_begin[p]; // reuse as the fill cursor
-                }
-                for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
-                    const uint32_t tid = routed_owner[i];
-                    posts[needed[tid]++] = Task{
-                        c, op_id, routed_shard[i], scatter_dispatch.state};
-                }
-                if (cursor != scatter_dispatch.nshards) std::abort();
-                for (uint32_t p = 0; p < nparticipants; p++) {
-                    const uint32_t tid = participants[p];
-                    const uint32_t begin = participant_begin[p];
-                    const uint32_t end = p + 1 < nparticipants
-                        ? participant_begin[p + 1] : scatter_dispatch.nshards;
-                    ThreadCtx& owner = srv_->thread(tid);
-                    // Capacity was checked before any push. Publish all of this group's tasks for
-                    // one executor with one queue-tail store; the parse-pass notify remains folded.
-                    if (!post_tasks_quiet(owner, posts + begin, end - begin)) std::abort();
-                    if (!touched_[tid]) { touched_[tid] = true; touched_list_[ntouched_++] = tid; }
-                }
+                if (!dispatch_atomic_scatter(c, *op, scatter_dispatch)) break;
                 self_->note_command(spec->id); // one public command, not one count per shard task
                 flip_fingerprint_note(*spec, *op);
                 conn.advance_parse(consumed);
@@ -5736,8 +5748,9 @@ ordinary_shard_ready:
     bool touched_[kMaxThreads] = {};      // dedupe flags for the current parse pass
     uint32_t touched_list_[kMaxThreads] = {}; // the workers actually fed, dense
     uint32_t ntouched_ = 0;
-    // Per-owner task demand for the plain scatter dispatch. INVARIANT: every entry is zero on
-    // entry to and on exit from the dispatch arm, so the arm never zeroes the whole array and
+    // Per-owner task demand for plain AND atomic scatter dispatch. INVARIANT: every entry is zero
+    // on entry to and on exit from either arm (atomic also restores its temporary fill cursors),
+    // so neither arm zeroes the whole array and
     // never walks it. Cost becomes proportional to the shards this op actually touches instead
     // of to the configured thread count.
     uint32_t dispatch_needed_[kMaxThreads] = {};

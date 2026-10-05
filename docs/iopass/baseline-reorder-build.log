@@ -1,0 +1,53 @@
+tests/reorder_unit.cc: In function ‘void {anonymous}::fifo_controls()’:
+tests/reorder_unit.cc:196:16: error: ‘kGenthreadPipelineExBatchOps’ was not declared in this scope
+  196 |     Task tasks[kGenthreadPipelineExBatchOps];
+      |                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tests/reorder_unit.cc:197:12: error: ‘tasks’ was not declared in this scope
+  197 |     verify(tasks, {}, false);
+      |            ^~~~~
+tests/reorder_unit.cc: In function ‘int main()’:
+tests/reorder_unit.cc:408:49: error: ‘kGenthreadPipelineExBatchOps’ was not declared in this scope
+  408 |     static_assert(kGenthreadExBatchOps == 32 && kGenthreadPipelineExBatchOps == 128);
+      |                                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tests/reorder_unit.cc:411:40: error: no matching function for call to ‘heads<kGenthreadPipelineExBatchOps>()’
+  411 |     heads<kGenthreadPipelineExBatchOps>();
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+tests/reorder_unit.cc:101:6: note: candidate: ‘template<long unsigned int Capacity> void {anonymous}::heads()’
+  101 | void heads() {
+      |      ^~~~~
+tests/reorder_unit.cc:101:6: note:   template argument deduction/substitution failed:
+tests/reorder_unit.cc:413:44: error: no matching function for call to ‘pipelines<kGenthreadPipelineExBatchOps>()’
+  413 |     pipelines<kGenthreadPipelineExBatchOps>();
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+tests/reorder_unit.cc:124:6: note: candidate: ‘template<long unsigned int Capacity> void {anonymous}::pipelines()’
+  124 | void pipelines() {
+      |      ^~~~~~~~~
+tests/reorder_unit.cc:124:6: note:   template argument deduction/substitution failed:
+tests/reorder_unit.cc:415:43: error: no matching function for call to ‘barriers<kGenthreadPipelineExBatchOps>()’
+  415 |     barriers<kGenthreadPipelineExBatchOps>();
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+tests/reorder_unit.cc:148:6: note: candidate: ‘template<long unsigned int Capacity> void {anonymous}::barriers()’
+  148 | void barriers() {
+      |      ^~~~~~~~
+tests/reorder_unit.cc:148:6: note:   template argument deduction/substitution failed:
+tests/reorder_unit.cc:420:45: error: no matching function for call to ‘continuous<kGenthreadPipelineExBatchOps>()’
+  420 |     continuous<kGenthreadPipelineExBatchOps>();
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+tests/reorder_unit.cc:274:6: note: candidate: ‘template<long unsigned int Capacity> void {anonymous}::continuous()’
+  274 | void continuous() {
+      |      ^~~~~~~~~~
+tests/reorder_unit.cc:274:6: note:   template argument deduction/substitution failed:
+tests/reorder_unit.cc:422:52: error: no matching function for call to ‘sustained_service<kGenthreadPipelineExBatchOps>()’
+  422 |     sustained_service<kGenthreadPipelineExBatchOps>();
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+tests/reorder_unit.cc:325:6: note: candidate: ‘template<long unsigned int Capacity> void {anonymous}::sustained_service()’
+  325 | void sustained_service() {
+      |      ^~~~~~~~~~~~~~~~~
+tests/reorder_unit.cc:325:6: note:   template argument deduction/substitution failed:
+tests/reorder_unit.cc:424:52: error: no matching function for call to ‘connection_stream<kGenthreadPipelineExBatchOps>()’
+  424 |     connection_stream<kGenthreadPipelineExBatchOps>();
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+tests/reorder_unit.cc:360:6: note: candidate: ‘template<long unsigned int Capacity> void {anonymous}::connection_stream()’
+  360 | void connection_stream() {
+      |      ^~~~~~~~~~~~~~~~~
+tests/reorder_unit.cc:360:6: note:   template argument deduction/substitution failed:

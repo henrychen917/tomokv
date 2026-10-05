@@ -116,10 +116,45 @@ def build(label, source, checks=False):
     return out / 'unit'
 
 
+def instruction_tracer():
+    # x86 single-step traps after EACH REP iteration. Count the instruction once,
+    # retain raw steps separately, and never collapse a self-branch or a SIMD F3 prefix.
+    original = (ROOT / 'tools/lbplanner_trace.cc').read_text()
+    source = original.replace(
+        'unsigned long count=0,local=0; std::map<unsigned long,unsigned long> sites;',
+        'unsigned long count=0,local=0,steps=0,rep_steps=0,last_rip=~0ul; '
+        'bool last_rep=false; std::map<unsigned long,unsigned long> sites;')
+    before = '''check(count<5000000,"instruction bound");++count; ++sites[regs.rip-base];
+            if(regs.rip>=base+text_start && regs.rip<base+text_start+text_size)++local;'''
+    after = '''check(++steps<5000000,"instruction bound");
+            if(regs.rip==last_rip && last_rep) ++rep_steps;
+            else { ++count; ++sites[regs.rip-base];
+                if(regs.rip>=base+text_start && regs.rip<base+text_start+text_size)++local; }
+            last_rip=regs.rip;
+            unsigned long encoding=static_cast<unsigned long>(peek(child,regs.rip));
+            bool rep=false; unsigned byte=0;
+            for(unsigned i=0;i<sizeof(encoding);++i) {
+                byte=(encoding>>(8*i))&255;
+                if(byte==0xf2 || byte==0xf3) {rep=true;continue;}
+                if((byte>=0x40 && byte<=0x4f) || byte==0x66 || byte==0x67 ||
+                   byte==0x26 || byte==0x2e || byte==0x36 || byte==0x3e || byte==0x64 || byte==0x65) continue;
+                break;
+            }
+            last_rep=rep && ((byte>=0xa4 && byte<=0xa7) || (byte>=0xaa && byte<=0xaf));'''
+    assert source.count(before) == 1
+    source = source.replace(before, after)
+    source = source.replace('std::printf("SITES={");',
+        'std::printf("STEPS={\\"ptrace_steps\\":%lu,\\"rep_iteration_steps\\":%lu}\\n",steps,rep_steps); '
+        'std::printf("SITES={");')
+    path, tracer = ROOT / 'build/iopass-trace.cc', ROOT / 'build/iopass-trace'
+    if not path.exists() or path.read_text() != source or not tracer.exists():
+        path.write_text(source)
+        run(['g++', '-std=c++20', '-O2', str(path), '-o', str(tracer)])
+    return tracer
+
+
 def trace(label, binary):
-    tracer = ROOT / 'build/lbplanner-trace'
-    if not tracer.exists():
-        run(['g++', '-std=c++20', '-O2', str(ROOT / 'tools/lbplanner_trace.cc'), '-o', str(tracer)])
+    tracer = instruction_tracer()
     elf = Elf(binary)
     sec = elf.sections[elf.names.index('.text')]
     address = elf.functions()['iopass_boundary']['value']
@@ -141,6 +176,7 @@ def trace(label, binary):
                      capture_output=True, timeout=120)
         lines = result.stdout.splitlines()
         data = json.loads(next(x[6:] for x in lines if x.startswith('TRACE=')))
+        data.update(json.loads(next(x[6:] for x in lines if x.startswith('STEPS='))))
         sites = json.loads(next(x[6:] for x in lines if x.startswith('SITES=')))
         loads = {}
         for field in ('flip_stage_', 'live_save_armed_'):
@@ -166,13 +202,121 @@ def trace(label, binary):
         offsets=offsets, sites=label + '.sites.json.gz', rows=rows), indent=2) + '\n')
 
 
+def tracer_test():
+    source = ROOT / 'build/iopass-trace-fixture.cc'
+    source.write_text(r'''
+#include <cstdlib>
+extern "C" void iopass_boundary(char*, unsigned long);
+asm(".text\n.globl iopass_boundary\n.type iopass_boundary,@function\n"
+    "iopass_boundary:\nmov %rsi,%rcx\nmov $7,%eax\nrep stosb\nret\n"
+    ".size iopass_boundary,.-iopass_boundary\n");
+int main(int argc,char** argv) {
+    if(argc!=2) return 1;
+    unsigned n=std::atoi(argv[1]);
+    if(n>128) return 1;
+    char data[128];
+    iopass_boundary(data,n);
+    for(unsigned i=0;i<n;++i) if(data[i]!=7) return 1;
+}
+''')
+    binary = source.with_suffix('')
+    run(['g++', '-O2', str(source), '-o', str(binary)])
+    elf = Elf(binary)
+    sec = elf.sections[elf.names.index('.text')]
+    symbol = elf.functions()['iopass_boundary']['value']
+    for count in (0, 1, 64, 128):
+        result = run(['taskset', '-c', '112-127', str(instruction_tracer()), str(binary), str(count),
+                      f'{symbol:x}', f'{sec[3]:x}', f'{sec[5]:x}', str(int(elf.kind == 3))], capture_output=True)
+        trace_row = json.loads(next(s[6:] for s in result.stdout.splitlines() if s.startswith('TRACE=')))
+        steps = json.loads(next(s[6:] for s in result.stdout.splitlines() if s.startswith('STEPS=')))
+        assert trace_row['instructions'] == trace_row['executable_instructions'] == 4, (count, trace_row)
+        assert steps['rep_iteration_steps'] == max(0, count - 1), (count, steps)
+        assert steps['ptrace_steps'] == 4 + max(0, count - 1), (count, steps)
+        print('PASS tracer REP length', count, 'four instructions;', steps)
+
+
+def layout():
+    script = ROOT / 'build/iopass-layout.gdb'
+    script.write_text('''set pagination off
+python
+import gdb,json
+expected=dict(Op=336,Client=1984,ThreadCtx=1408,Shard=1440,FlatStore=944,AtomicEntry=144,Config=624)
+expected['Rob<64>']=192
+rows={}
+for ns in ('tomo','tomo_db0'):
+    sizes={name:int(gdb.lookup_type(ns+'::'+name).sizeof) for name in expected}
+    assert sizes==expected,(ns,sizes)
+    fields={}
+    for name in ('IoLoop','ThreadCtx','Server'):
+        t=gdb.lookup_type(ns+'::'+name)
+        fields[name]=dict(size=int(t.sizeof),offsets={f.name:int(f.bitpos)//8 for f in t.fields() if hasattr(f,'bitpos')})
+    rows[ns]=dict(locked=sizes,fields=fields)
+print('LAYOUT='+json.dumps(rows))
+end
+''')
+    rows = {}
+    for arm, binary in [('PRE', ROOT / 'build/iopass-pre/tomokv'), ('POST', ROOT / 'build/tomokv')]:
+        output = run(['gdb', '-nx', '-q', '-batch', str(binary), '-x', str(script)], capture_output=True).stdout
+        fields = json.loads(next(s[7:] for s in output.splitlines() if s.startswith('LAYOUT=')))
+        elf = Elf(binary)
+        text = elf.sections[elf.names.index('.text')]
+        parsers = []
+        for name, symbol in elf.functions().items():
+            if not re.match(r'^_ZN(?:4tomo|8tomo_db0)6IoLoop18parse_and_dispatchILb0ELj(?:0|32)ELb0ELb0EE', name) or name.endswith('.cold'):
+                continue
+            asm = run(['objdump', '-dw', '--disassemble=' + name, str(binary)], capture_output=True).stdout
+            body = asm.split('<' + name + '>:\n', 1)[1]
+            # Stack-clash protection splits PRE's fixed frame across several page-sized
+            # SUBs. The first SUB alone is not its frame size. These parser entries have
+            # straight-line prologues; stop before the first call/branch into their body.
+            prologue = []
+            for line in body.splitlines():
+                if re.search(r'\s(?:call\S*|j\S+|ret\S*)\s', line):
+                    break
+                prologue.append(line)
+            fixed = re.findall(r'sub\s+\$0x([0-9a-f]+),%rsp', '\n'.join(prologue))
+            assert fixed, (arm, name, 'fixed stack subtraction missing')
+            parsers.append(dict(symbol=name, bytes=symbol['size'],
+                                fixed_stack_bytes=sum(int(part, 16) for part in fixed)))
+        rows[arm] = dict(sha256=hashlib.sha256(binary.read_bytes()).hexdigest(), text_bytes=text[5],
+                         layout=fields, parsers=parsers)
+    for ns in rows['PRE']['layout']:
+        for name, before in rows['PRE']['layout'][ns]['fields'].items():
+            after = rows['POST']['layout'][ns]['fields'][name]
+            assert before['size'] == after['size'], (ns, name, 'size moved')
+            for field, offset in before['offsets'].items():
+                assert after['offsets'][field] == offset, (ns, name, field, 'old field moved')
+    old = (ROOT / 'build/iopass-receipts/IO6/source/src/core/io_loop.h').read_text()
+    new = (ROOT / 'src/core/io_loop.h').read_text()
+    def plain(source):
+        start = source.index('                if (!scatter_dispatch.atomic_write) {')
+        stop = source.index('\n                }\n\n', start) + len('\n                }')
+        return source[start:stop]
+    assert plain(old) == plain(new), 'plain scatter arm changed'
+    rows['plain_scatter_body_sha256'] = hashlib.sha256(plain(new).encode()).hexdigest()
+    rows['all_existing_offsets_and_sizes_equal'] = True
+    (ROOT / 'docs/iopass/layout.json').write_text(json.dumps(rows, indent=2) + '\n')
+    print('PASS all eight locks, both namespaces; every existing IoLoop/ThreadCtx/Server offset and size unchanged; plain scatter source identical')
+    for arm in ('PRE', 'POST'):
+        print(arm, 'sha256', rows[arm]['sha256'], 'text', rows[arm]['text_bytes'], 'parsers', rows[arm]['parsers'])
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('label')
+    parser.add_argument('label', nargs='?')
     parser.add_argument('--source', type=Path)
     parser.add_argument('--trace-only', action='store_true')
     parser.add_argument('--checks', action='store_true')
+    parser.add_argument('--tracer-test', action='store_true')
+    parser.add_argument('--layout', action='store_true')
     args = parser.parse_args()
+    if args.tracer_test:
+        tracer_test()
+        sys.exit(0)
+    if args.layout:
+        layout()
+        sys.exit(0)
+    assert args.label, 'select a receipt label'
     source = args.source or ROOT / 'build/iopass-receipts' / args.label / 'source'
     if not source.exists():
         shutil.copytree(ROOT / 'src', source / 'src')

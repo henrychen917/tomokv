@@ -52,6 +52,9 @@ static void run_iopass(const std::string& which) {
         writer_fences(writer);
         Fixture slots(false);
         slot_bounds(slots);
+        atomic_scatter_cases<false>();
+        atomic_scatter_cases<true>();
+        atomic_scatter_cases<false>(256);
         return;
     }
 #endif
@@ -88,6 +91,9 @@ static void run_iopass(const std::string& which) {
     // The out-of-line boundary is visible to the existing instruction tracer.
     (void)call_iopass_boundary(f, clients.data(), count);
     require(f.io.self_->sig().ops == count, "every input frame was published");
+    if (which == "atomic")
+        require(clients.front()->has_atomic_group_io() && clients.front()->rob().at(0).has_scatter_state(),
+                "instruction witness reached the atomic bundle arm");
     for (auto* client : clients)
         require(client->rpos() == client->rlen() && client->rob().in_flight() == 1,
                 "one published op per connection");
@@ -270,4 +276,94 @@ template<class F> static void slot_bounds(F& f) {
                 "mask-independent park sweep also visits reused high slots");
         std::puts("PASS IO6 zero/reserve/1024 assignments/word boundaries/full fallback/release/reuse/unmasked sweep");
     }
+}
+
+template<bool Fused> static void atomic_scatter_cases(uint32_t shards = 16) {
+    Fixture<Fused> f(false, 8, shards);
+    if constexpr (Fused) {
+        f.io.bind_fused_executor(&f.loops[f.io_id]);
+        f.loops[f.io_id].bind_fused_completion(&f.io, [](void* context, Client* client) {
+            static_cast<IoLoop*>(context)->fused_executor_completion(client);
+        });
+    }
+    f.server.set_atomic_enabled(true);
+    f.io.refresh_notify_config();
+    f.io.lb_controller_armed_ = false;
+    Client client(-1);
+    f.client(client);
+    const uint32_t keys = shards == 256 ? 256 : 8;
+    auto request = [&](const char* command, bool values) {
+        std::string result = "*" + std::to_string(1 + keys * (values ? 2 : 1)) + "\r\n";
+        result += "$" + std::to_string(std::strlen(command)) + "\r\n" + command + "\r\n";
+        for (uint32_t sid = 0; sid < keys; ++sid) {
+            const auto key = f.key(sid);
+            result += "$" + std::to_string(key.size()) + "\r\n" + key + "\r\n";
+            if (values) result += "$1\r\nv\r\n";
+        }
+        return result;
+    };
+    auto clean = [&] {
+        for (auto demand : f.io.dispatch_needed_)
+            require(demand == 0, "every atomic/plain dispatch exit restores all demand/cursor entries");
+    };
+    auto parse = [&] {
+        iopass_begin(f.io);
+        f.io.template parse_and_dispatch<false, Fused ? kGenthreadIfidBatchOps : 0>(&client);
+    };
+    input(client, request("MSET", true));
+    // Force refusal at both an early and a later participant, on fresh queue capacity each time.
+    for (uint32_t sid : {0u, 1u}) {
+        auto& owner = f.server.thread(f.server.worker_of_shard(sid));
+        const uint32_t capacity = owner.task_free_slots(f.io_id);
+        require(capacity != 0, "capacity witness arms on an empty producer lane");
+        for (uint32_t i = 0; i < capacity; ++i)
+            require(owner.post_task_quiet(f.io_id, Task{}, f.io.self_->sig()), "fill actual owner lane");
+        require(owner.task_free_slots(f.io_id) == 0, "capacity refusal window is open");
+        parse();
+        require(client.rpos() == 0 && client.rob().in_flight() == 0 && !client.has_atomic_group_io() &&
+                    !f.server.atomic_work_active(), "refusal leaves no consumed frame/ROB/group/admission");
+        clean();
+        require(owner.drain_tasks_unmasked([](Task task) {
+            require(task.client == nullptr, "only deliberately filled tasks were queued on refusal");
+        }) == capacity, "restore capacity before retry");
+    }
+    auto finish = [&](bool atomic, const std::string& expected) {
+        parse();
+        require(client.rpos() == client.rlen() && client.rob().in_flight() == 1,
+                "group publishes one full frame on retry");
+        require(client.has_atomic_group_io() == atomic, "correct atomic/plain scatter arm fired");
+        clean();
+        for (unsigned pass = 0; pass < 32; ++pass)
+            for (uint32_t tid : f.server.placement().ex_threads()) f.loops[tid].drain_tasks(true);
+        std::string reply;
+        require(client.rob().drain([&](Op& op) {
+            if (op.has_scatter_state())
+                xshard_retire(f.server, *f.io.self_, f.io.ring_, client, op, f.io.scatter_pool_, f.io_id,
+                    &f.io, [](void* p, int32_t sid, const char* value) {
+                        static_cast<IoLoop*>(p)->queue_borrow_release(sid, value);
+                    }, [](void*) {});
+            op_materialise_code(op);
+            reply.assign(op.reply.data(), op.reply.size());
+        }) == 1, "group completes and retires once");
+        if (reply != expected || client.has_atomic_group_io() || f.server.atomic_inflight())
+            std::fprintf(stderr, "IO7 detail mode=%s keys=%u reply=[%s] expected=[%s] group=%u active=%llu\n",
+                Fused ? "1s" : "2s", keys, reply.c_str(), expected.c_str(),
+                client.has_atomic_group_io(), static_cast<unsigned long long>(f.server.atomic_mode_state()));
+        // atomic_activity also counts committed records awaiting owner reclamation. Admission
+        // credits and the connection's group lifetime, unlike those records, end at retirement.
+        require(reply == expected && !client.has_atomic_group_io() && f.server.atomic_inflight() == 0 &&
+                    f.server.atomic_apply_inflight() == 0,
+                "group result and admission/lifetime bookkeeping are exact");
+        client.reset_rbuf_at_quiescence();
+        clean();
+    };
+    finish(true, "+OK\r\n");
+    input(client, request("EXISTS", false));
+    finish(false, ":" + std::to_string(keys) + "\r\n");
+    input(client, request("DEL", false));
+    finish(true, ":" + std::to_string(keys) + "\r\n");
+    input(client, request("EXISTS", false));
+    finish(false, ":0\r\n");
+    std::printf("PASS IO7 %s shards=%u refusal/retry/MSET/plain-EXISTS/DEL/zero scratch\n",
+                Fused ? "1s" : "2s", shards);
 }

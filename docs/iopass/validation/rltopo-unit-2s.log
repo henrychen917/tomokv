@@ -1,0 +1,92 @@
+PASS readreply GET/raw db=1
+PASS readreply GET/integer db=1
+PASS readreply GET/external db=1
+PASS readreply GET/empty db=1
+PASS readreply GET/typed db=1
+PASS readreply GET/encoding db=1
+PASS readreply GET/ttl-live db=1
+PASS readreply GET/expired db=1
+PASS readreply GET/persisted db=1
+PASS readreply GET/missing db=1
+PASS readreply GET/pending db=1
+PASS readreply GET/churn db=1
+PASS readreply GET/invalid db=1
+PASS readreply GET/tail-pending db=1
+PASS readreply GET/churn-pending db=1
+PASS readreply MGET/raw db=1
+PASS readreply MGET/integer db=1
+PASS readreply MGET/external db=1
+PASS readreply MGET/empty db=1
+PASS readreply MGET/typed db=1
+PASS readreply MGET/encoding db=1
+PASS readreply MGET/ttl-live db=1
+PASS readreply MGET/expired db=1
+PASS readreply MGET/persisted db=1
+PASS readreply MGET/missing db=1
+PASS readreply MGET/pending db=1
+PASS readreply MGET/churn db=1
+PASS readreply MGET/invalid db=1
+PASS readreply MGET/tail-pending db=1
+PASS readreply MGET/churn-pending db=1
+PASS readreply GET/raw db=4
+PASS readreply GET/integer db=4
+PASS readreply GET/external db=4
+PASS readreply GET/empty db=4
+PASS readreply GET/typed db=4
+PASS readreply GET/encoding db=4
+PASS readreply GET/ttl-live db=4
+PASS readreply GET/expired db=4
+PASS readreply GET/persisted db=4
+PASS readreply GET/missing db=4
+PASS readreply GET/pending db=4
+PASS readreply GET/churn db=4
+PASS readreply GET/invalid db=4
+PASS readreply GET/tail-pending db=4
+PASS readreply GET/churn-pending db=4
+PASS readreply MGET/raw db=4
+PASS readreply MGET/integer db=4
+PASS readreply MGET/external db=4
+PASS readreply MGET/empty db=4
+PASS readreply MGET/typed db=4
+PASS readreply MGET/encoding db=4
+PASS readreply MGET/ttl-live db=4
+PASS readreply MGET/expired db=4
+PASS readreply MGET/persisted db=4
+PASS readreply MGET/missing db=4
+PASS readreply MGET/pending db=4
+PASS readreply MGET/churn db=4
+PASS readreply MGET/invalid db=4
+PASS readreply MGET/tail-pending db=4
+PASS readreply MGET/churn-pending db=4
+rltopo keys=0 window=0 open=0 captures=1 demotions=1
+rltopo keys=0 window=1 open=0 captures=0 demotions=1
+rltopo keys=1 window=0 open=0 captures=1 demotions=1
+rltopo keys=129 window=1 open=0 captures=0 demotions=1
+rltopo keys=0 window=0 open=1 captures=1 demotions=1
+rltopo keys=0 window=1 open=1 captures=0 demotions=1
+rltopo keys=1 window=0 open=1 captures=1 demotions=1
+rltopo keys=129 window=1 open=1 captures=0 demotions=1
+rltopo keys=0 window=2 open=1 captures=0 demotions=1
+rltopo keys=1 window=2 open=1 captures=0 demotions=1
+CONTROL caught: forced topology window fired exactly once
+rltopo keys=1 window=0 open=0 captures=2 demotions=0
+CONTROL caught: zero Churn/SeqChurn retries
+rltopo keys=1 window=0 open=0 captures=1 demotions=0
+CONTROL caught: exactly one topology demotion
+CONTROL caught: private reply cleared before demotion
+rltopo keys=1 window=0 open=0 captures=1 demotions=1
+CONTROL caught: exactly one owner hop and completion
+rltopo keys=1 window=0 open=0 captures=1 demotions=1
+CONTROL caught: owner reply intact
+rltopo keys=1 window=0 open=0 captures=1 demotions=1
+CONTROL caught: single ROB retirement
+rltopo keys=1 window=0 open=0 captures=1 demotions=1
+CONTROL caught: next stable read stays local without another demotion
+CONTROL caught: sidecar allocation refusal fired
+CONTROL caught: accepted transient attributed to arm counter
+CONTROL caught: disjoint read is fenced during accepted transient
+CONTROL caught: arm transient ends at ROB retirement
+CONTROL caught: accepted transient attributed to arm counter
+CONTROL caught: disjoint read is fenced during accepted transient
+CONTROL caught: arm transient ends at ROB retirement
+PASS rltopo 2s (demotions, zero retries, negative controls, arm transients)

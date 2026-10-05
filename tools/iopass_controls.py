@@ -8,6 +8,21 @@ import sys
 import iopass_receipts as receipts
 
 CONTROLS = {
+    'atomic-refusal-dirty': (
+        'src/core/io_loop.h',
+        'for (uint32_t q = 0; q < nparticipants; ++q) needed[participants[q]] = 0;',
+        '// missing demand reset on refusal',
+        'every atomic/plain dispatch exit restores all demand/cursor entries'),
+    'atomic-success-dirty': (
+        'src/core/io_loop.h',
+        'for (uint32_t p = 0; p < nparticipants; ++p) needed[participants[p]] = 0;',
+        '// missing fill-cursor reset on success',
+        'every atomic/plain dispatch exit restores all demand/cursor entries'),
+    'slots-first-word': (
+        'src/core/io_loop.h',
+        'const uint32_t words = self_->wb_slot_words();',
+        'const uint32_t words = std::min(1u, self_->wb_slot_words());',
+        'new high-word completion is drained on the next pass'),
     'snapshot-no-bind': (
         'src/snapshot/snapshot.cc',
         'writer.set_snapshot_writer_bound(true);',
