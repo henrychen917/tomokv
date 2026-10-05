@@ -193,10 +193,11 @@ estimate. It is an estimate, not an exact average
 over every deadline; polling INFO visits no objects. All existing structure-size
 locks remain unchanged; each store has a 16-byte cold sampling sidecar.
 
-This lane's intermediate implementation retains the exact scatter when
-`databases > 1`. Per-database published counters require owner-private mutation
-accounting absent from the baseline; the separate multi-DB proposal and its
-byte-identity exception are documented in `MEASURE-REQUEST-storesize.md`.
+With `databases > 1`, plain DBSIZE and INFO KEYSPACE still use the exact
+all-shard census, proportional to total store capacity. Published counters
+are currently aggregate, not indexed by database. The separate, unapplied
+per-database accounting patch and the remaining hot-body audit failures are
+documented in [the ST2 report](../MEASURE-REQUEST-storesize.md).
 
 The INFO field definitions and section routing are in [INFO.md](INFO.md).
 

@@ -15,13 +15,16 @@ Counters are independently sampled across shards; INFO is not a global MVCC
 snapshot. The bound is an owner progress boundary, not a millisecond deadline.
 `DBSIZE NOW` retains the exact owner scatter when callers need a census.
 
-At this intermediate commit the published path is enabled for `databases 1`.
-The multi-DB proposal indexes counters by **physical namespace** within each
+The published path is enabled for `databases 1`; `databases > 1` still uses
+the exact all-shard census and has no published per-database counters.
+The separate multi-DB proposal indexes counters by **physical namespace** within each
 shard. DBSIZE uses the operation's stamped namespace; INFO captures one immutable
 logical-to-physical map, so SWAPDB relabels counts without walking or moving keys.
 MOVE changes the source and destination owner counters; FLUSHDB clears only its
 namespace, and FLUSHALL clears all namespaces. These producer counters become
-observer-visible only at publication. That proposal is not yet applied.
+observer-visible only at publication. That proposal is not applied; its
+write-path changes and test/audit receipts are in
+[the ST2 report](../MEASURE-REQUEST-storesize.md).
 
 | Section | Owner scatter needed by its implementation? | Data read |
 | --- | --- | --- |
@@ -34,7 +37,7 @@ observer-visible only at publication. That proposal is not yet applied.
 | FLIPCTL | No | Controller report |
 | WRITEBACK | No | Writeback policy report |
 | LB | No | Load-balancing signal snapshots |
-| KEYSPACE | No with publication; legacy multi-DB still scatters in this intermediate commit | Published counters in db0; legacy exact walk in multi-DB |
+| KEYSPACE | No with publication; the current multi-DB implementation still scatters | Published counters in db0; legacy exact walk in multi-DB |
 
 No INFO section requests a mutating owner operation. This change does not alter
 the pre-existing sampling/synchronization of other INFO gauges.
