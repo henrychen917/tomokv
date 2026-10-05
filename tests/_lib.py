@@ -137,7 +137,7 @@ class Conn:
         return bytes(result)
 
     def _line(self):
-        if self._read_deadline is None:
+        if getattr(self, "_read_deadline", None) is None:
             line = self.file.readline()
         else:
             line = bytearray()
@@ -154,8 +154,11 @@ class Conn:
         return line[:-2]
 
     def read(self):
+        # Serverless wire fakes implement the public reader without inheriting
+        # Conn's private readiness transport.
+        read = getattr(self, "_read", self.file.read)
         while True:
-            head = self._read(1)
+            head = read(1)
             if not head:
                 raise EOFError("server closed the connection")
             body = self._line()
@@ -169,8 +172,8 @@ class Conn:
                 size = int(body)
                 if size < 0:
                     return None
-                data = self._read(size)
-                if len(data) != size or self._read(2) != b"\r\n":
+                data = read(size)
+                if len(data) != size or read(2) != b"\r\n":
                     raise AssertionError("bad bulk trailer for %d-byte reply" % size)
                 return data
             if head in (b"*", b"~", b">"):
@@ -224,16 +227,26 @@ def wait_ready(host, port, *, timeout=30.0, process=None, log_path=None, pid=Non
     if process is not None and pid is not None and pid != process.pid:
         raise ValueError("conflicting readiness child PIDs")
 
+    def exited(message):
+        # Refusal tests require the child's actual diagnostic, not merely its
+        # exit status. Keep it attached to the failure of this owned boot.
+        if log_path is not None:
+            try:
+                message += "\n" + Path(log_path).read_text(errors="replace")[-2000:]
+            except OSError:
+                pass
+        return RuntimeError(message)
+
     def check_process():
         if process is not None:
             status = process.poll()
             if status is not None:
-                raise RuntimeError("server exited during boot (status %s)" % status)
+                raise exited("server exited during boot (status %s)" % status)
         elif owned_pid is not None:
             try:
                 os.kill(owned_pid, 0)
             except ProcessLookupError as error:
-                raise RuntimeError("server exited during boot (pid %s)" % owned_pid) from error
+                raise exited("server exited during boot (pid %s)" % owned_pid) from error
 
     def remaining():
         left = deadline - time.monotonic()

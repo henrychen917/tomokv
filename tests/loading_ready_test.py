@@ -93,6 +93,30 @@ class Readiness(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'status 7'):
                 _lib.wait_ready('127.0.0.1', 1, process=proc)
 
+    def test_dead_child_preserves_owned_log_diagnostic(self):
+        from feature_gate import FUSED_FLIP_REFUSAL
+        proc = Mock(pid=123)
+        proc.poll.return_value = 1
+        with tempfile.TemporaryDirectory() as tmp:
+            log = Path(tmp) / 'server.log'
+            for diagnostic in (FUSED_FLIP_REFUSAL, 'unrelated boot failure'):
+                log.write_text(diagnostic + '\n')
+                with patch.object(_lib, 'Conn') as connect:
+                    with self.assertRaises(RuntimeError) as caught:
+                        _lib.wait_ready('127.0.0.1', 1, process=proc, log_path=log)
+                self.assertIn('status 1', str(caught.exception))
+                self.assertIn(diagnostic, str(caught.exception))
+                self.assertEqual(FUSED_FLIP_REFUSAL in str(caught.exception),
+                                 diagnostic == FUSED_FLIP_REFUSAL)
+                connect.assert_not_called()
+
+    def test_public_reader_accepts_wire_fake_without_private_transport(self):
+        from types import SimpleNamespace
+        wire = SimpleNamespace(file=io.BytesIO(b'*2\r\n$3\r\nGET\r\n$3\r\nkey\r\n'))
+        wire._line = lambda: _lib.Conn._line(wire)
+        wire.read = lambda: _lib.Conn.read(wire)
+        self.assertEqual(wire.read(), [b'GET', b'key'])
+
 
 class DeadlineAndIdentity(unittest.TestCase):
     conn = Readiness.conn
