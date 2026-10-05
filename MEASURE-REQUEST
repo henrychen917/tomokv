@@ -17,12 +17,12 @@ three regimes, counters, arms and pass conditions. PRE, POST and verified PAD-A
 are built; serverless proofs pass. No server, benchmark, live test or gate was run.
 Mainline measurement and live-gate acceptance remain pending.
 
-Lane storesize: ST2
+Lane storesize2: ST2 — routing complete, body-identity WIP
 
-See MEASURE-REQUEST-storesize.md for resumed witnesses, routing, publication
-semantics, changed hot bodies, frozen PRE/POST/PAD-A hashes, and the requested
-14-cell null plus 1 Hz INFO interference cell. Serverless checks were rerun on
-CPUs 112-127. Full ST2 acceptance is not met: committed POST still scatters
-in multi-DB, and default-image hot-body identity fails. A tested multi-DB
-accounting proposal is recorded separately and remains unapplied. One gate
-row was added before the quick-tier exit; mainline owns the +1/+1 EXPECT change.
+See MEASURE-REQUEST-storesize2.md for both-image published routes, full passing
+serverless positive/negative controls, the nine-body compiler diagnosis,
+final PRE/POST/PAD-A hashes and measurement cells. PRE fully rebuilt to the
+unchanged 47b0c843d59a digest. Ordinary-body identity is still not met; the
+report identifies the original nine and additional merged-tree differences.
+One gate row remains, +1/+1 (maintainer-owned counts 498/515). No server,
+benchmark, gate or push was run; all builds/checks used CPUs 112-127.

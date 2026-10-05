@@ -2713,7 +2713,8 @@ void cmd_info(Shard&, Op& op) {
             appendf(body, "db0:keys=%llu,expires=%llu,avg_ttl=%llu\r\n",
                     static_cast<unsigned long long>(keys),
                     static_cast<unsigned long long>(expires),
-                    static_cast<unsigned long long>(expires ? ttl_sum / expires : 0));        } else if (g_server) {
+                    static_cast<unsigned long long>(expires ? ttl_sum / expires : 0));
+        } else if (!kSingleDatabase && g_server) {
             const uint64_t now = now_realtime_ms();
             DatabaseMap::Read map(g_server->databases());
             for (uint32_t db = 0; db < g_server->cfg().databases; ++db) {

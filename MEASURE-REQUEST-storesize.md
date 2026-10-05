@@ -1,3 +1,5 @@
+Historical report. Current storesize2 state and frozen arms: [MEASURE-REQUEST-storesize2.md](MEASURE-REQUEST-storesize2.md).
+
 ST2 — storesize resume receipts and measurement handoff
 
 **Resume verification is complete; full ST2 acceptance is not met.** Committed

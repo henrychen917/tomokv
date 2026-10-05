@@ -1,3 +1,10 @@
-Relinked unchanged frozen PRE objects with the original link command.
-SHA-256 47b0c843d59a275a7aaa515c733d3fdcee3db8bf9a5525684ac2f7209394e9bc
+Full PRE recompile from the unchanged frozen source archive: PASS
+Source: build/storesize-pre/source
+Build: build/storesize2/pre-rebuild
+Log: build/storesize2/pre-full-rebuild.log
+Command, executed in the frozen source archive:
+  taskset -c 112-127 make -j8 BUILD_ROOT=/home/user/Projects/cx-storesize/build/storesize2/pre-rebuild CXX="g++ -fdebug-prefix-map=/home/user/Projects/cx-storesize/build/storesize-pre/source=/home/user/Projects/cx-storesize" all
+Original and rebuilt SHA-256: 47b0c843d59a275a7aaa515c733d3fdcee3db8bf9a5525684ac2f7209394e9bc
 Exact-byte identity: PASS
+The path remap reproduces original DWARF paths; no PRE source or code-generation flags were changed.
+A preceding relink of original objects also reproduced this SHA.
