@@ -1,0 +1,179 @@
+
+reorderscan-unit.log (expected exit 0)
+PASS RO1 count=8 PRE=28 POST=7 slot visits/commit
+PASS RO1 count=32 PRE=496 POST=31 slot visits/commit
+PASS RO1 count=64 PRE=2016 POST=63 slot visits/commit
+PASS RO1 1000 mixed commits: exact tasks/order/shadows, Done and ROB wrap
+PASS RO2 no Long: POST 0 constructions, 0 slot visits across 52 passes
+PASS RO2 Done, older Long, refused publish/reparse, scatter and recycled ROB
+
+reorderscan-unit-asan.log (expected exit 0)
+PASS RO1 count=8 PRE=28 POST=7 slot visits/commit
+PASS RO1 count=32 PRE=496 POST=31 slot visits/commit
+PASS RO1 count=64 PRE=2016 POST=63 slot visits/commit
+PASS RO1 1000 mixed commits: exact tasks/order/shadows, Done and ROB wrap
+PASS RO2 no Long: POST 0 constructions, 0 slot visits across 52 passes
+PASS RO2 Done, older Long, refused publish/reparse, scatter and recycled ROB
+
+reorder-unit.log (expected exit 0)
+  heads: n=2..32, exact 4:1 short/long turns
+  heads: n=2..128, exact 4:1 short/long turns
+  pipelines: 32 tasks, head promotion and FIFO across ROB wraps
+  pipelines: 128 tasks, head promotion and FIFO across ROB wraps
+  barriers: capacity 32, all special flags and complete suffix
+  barriers: capacity 128, all special flags and complete suffix
+  controls: empty/single task, one full client, homogeneous and already ordered FIFO
+  predecessor controls: missing head, in-run gap and atomic hazard
+  dependency: due ratio turn waits for the fifth short predecessor
+  continuous: cross-gather promotion, bounded debt, barrier and immediate destruction
+  continuous: cross-gather promotion, bounded debt, barrier and immediate destruction
+  sustained: bounded long service across 12 gathers and ring wraps
+  sustained: bounded long service across 12 gathers and ring wraps
+  connection stream: 1024 tasks, advancing heads, hazards and fixed barrier scopes
+  connection stream: 1024 tasks, advancing heads, hazards and fixed barrier scopes
+reorder battery: PASS, 205 batch permutations plus continuous service, max batch 128
+
+r7shadow-unit.log (expected exit 0)
+PASS pending Long-only scope: FIFO and zero permutations are correct
+PASS three pipes B=32: six unshadowed shorts, three longs, seven shadowed shorts
+PASS three pipes B=128: six unshadowed shorts, three longs, seven shadowed shorts
+PASS newest-long stamps, Done without retire, and real ROB recycling
+PASS completion probe when a hidden follower becomes eligible
+PASS L s L dependencies and barrier B=32
+PASS L s L dependencies and barrier B=128
+PASS queued foreign completion B=32: Done clears without ROB retirement
+PASS queued foreign completion B=128: Done clears without ROB retirement
+PASS all thirteen special barriers and inherited atomic hazard classification
+PASS numeric off/on resolution and 2s no-op
+PASS bounded service B=32: 1536 picks, max wait 64 <= K=352; immediate destruction
+PASS bounded service B=128: 6144 picks, max wait 256 <= K=1408; immediate destruction
+
+reorder-sync.log (expected exit 0)
+R7 shadow production envelopes: current
+PASS stale R7 envelope rejected; updated accounting regenerates and checks
+
+engagement-multi.log (expected exit 0)
+PASS build/reorder-engagement-unit: production shadow, FIFO control, disabled capability rejected
+
+engagement-db0.log (expected exit 0)
+PASS build/reorder-engagement-unit-db0: production shadow, FIFO control, disabled capability rejected
+
+reorder-identity.log (expected exit 0)
+normalizer self-checks PASS
+strict_noop=True: 396/396 identical bodies
+PASS missing policy symbol, missing split-local parser and changed opcode fail strict identity
+
+off-path.log (expected exit 0)
+normalizer self-checks PASS
+strict_noop=True: 396/396 identical bodies
+
+reorder-noop.log (expected exit 0)
+normalizer self-checks PASS
+scheduler 68 identical 68 different/missing 0
+envelope 184 identical 184 different/missing 0
+dispatch 108 identical 108 different/missing 0
+retire 16 identical 16 different/missing 0
+commands 16 identical 16 different/missing 0
+multi-key commands 32 identical 32 different/missing 0
+strict_noop True
+
+object-identity.log (expected exit 0)
+PASS 84/84 non-R7 TUs: 7580 executable sections, 10765734 bytes identical
+Hot bodies: 1221; raw byte equal: 1221; bytes + resolved relocation targets equal: 1221
+PASS 1221/1221 hot bodies: raw bytes and relocation targets identical
+
+witnesses/paths.log (expected exit 0)
+PASS iotemplates membership 1s rl=0 ov=0 ro=1
+PASS iotemplates membership 1s rl=1 ov=0 ro=1
+PASS iotemplates membership 1s rl=0 ov=1 ro=1
+PASS iotemplates membership 1s rl=1 ov=1 ro=1
+PASS RO2 production: 8 no-Long passes, 0 constructions, 0 visits
+PASS production shadow across parser passes and executor owners; shadow=1
+PASS RO2 production Long control: 1 constructions, 2 visits
+PASS production read-local demotion 1s: older blocker stamp, late owner order, shadow=1
+PASS RO1 production demotion fixture: 2 slot visits (including parser)
+
+witnesses/default.log (expected exit 0)
+PASS R7 production drain 1s read-local=1 overlap=0 requested=0 effective=0: 64 handlers, FIFO, empty carry
+PASS production parser + three pipes 1s read-local=1 overlap=0 reorder=0 shadow=0
+PASS iotemplates membership 1s rl=1 ov=0 ro=0
+PASS iotemplates membership 1s rl=0 ov=0 ro=0
+PASS production parser + three pipes 1s read-local=0 overlap=0 reorder=0 shadow=0
+PASS R7 production drain 1s read-local=1 overlap=1 requested=0 effective=0: 64 handlers, FIFO, empty carry
+PASS production parser + three pipes 1s read-local=1 overlap=1 reorder=0 shadow=0
+PASS iotemplates membership 1s rl=1 ov=1 ro=0
+PASS iotemplates membership 1s rl=0 ov=1 ro=0
+PASS production parser + three pipes 1s read-local=0 overlap=1 reorder=0 shadow=0
+PASS R7 production drain 2s read-local=1 overlap=0 requested=0 effective=0: 64 handlers, FIFO, empty carry
+PASS production parser + three pipes 2s read-local=1 overlap=0 reorder=0 shadow=0
+PASS iotemplates membership 2s rl=1 ov=0 ro=0
+PASS iotemplates membership 2s rl=0 ov=0 ro=0
+PASS production parser + three pipes 2s read-local=0 overlap=0 reorder=0 shadow=0
+PASS R7 production drain 2s read-local=1 overlap=1 requested=0 effective=0: 64 handlers, FIFO, empty carry
+PASS production parser + three pipes 2s read-local=1 overlap=1 reorder=0 shadow=0
+PASS iotemplates membership 2s rl=1 ov=1 ro=0
+PASS iotemplates membership 2s rl=0 ov=1 ro=0
+PASS production parser + three pipes 2s read-local=0 overlap=1 reorder=0 shadow=0
+PASS reorder database parser multidb requested=0: SELECT, boundary, stamp, shadow, replies
+PASS reorder 0: both modes/overlap/read-local/database paths; zero R7 entries and allocations
+PASS production shadow across parser passes and executor owners; shadow=1
+PASS R7 path/allocation positive control
+
+witnesses/default-negative.log (expected exit 1)
+FAIL R7 engagement: deliberate R7 entry rejected
+
+witnesses/iopass.log (expected exit 0)
+PASS IO2 boot/config/signal/role election
+PASS IO3 delayed ACK, post-ACK dispatch, epoch rollover, coordinator, database fences
+PASS IO4 disabled/AOF election/sticky role binding/standalone snapshot/cancellation/rearm
+PASS IO6 zero/reserve/1024 assignments/word boundaries/full fallback/release/reuse/unmasked sweep
+PASS IO7 2s shards=16 refusal/retry/MSET/plain-EXISTS/DEL/zero scratch
+PASS IO7 1s shards=16 refusal/retry/MSET/plain-EXISTS/DEL/zero scratch
+PASS IO7 2s shards=256 refusal/retry/MSET/plain-EXISTS/DEL/zero scratch
+
+witnesses/iopass-armed.log (expected exit 0)
+PASS IO2 boot/config/signal/role election
+PASS IO3 delayed ACK, post-ACK dispatch, epoch rollover, coordinator, database fences
+PASS IO4 disabled/AOF election/sticky role binding/standalone snapshot/cancellation/rearm
+PASS IO6 zero/reserve/1024 assignments/word boundaries/full fallback/release/reuse/unmasked sweep
+PASS IO7 2s shards=16 refusal/retry/MSET/plain-EXISTS/DEL/zero scratch
+PASS IO7 1s shards=16 refusal/retry/MSET/plain-EXISTS/DEL/zero scratch
+PASS IO7 2s shards=256 refusal/retry/MSET/plain-EXISTS/DEL/zero scratch
+PASS IO3 delayed ACK, post-ACK dispatch, epoch rollover, coordinator, database fences
+PASS IO7 1s shards=16 refusal/retry/MSET/plain-EXISTS/DEL/zero scratch
+PASS IO7 1s shards=256 refusal/retry/MSET/plain-EXISTS/DEL/zero scratch
+
+witnesses/atomic-rollback-negative.log (expected exit 1)
+FAIL core concurrency: refused atomic scatter left a ghost Long
+
+ro1-negative.log (expected exit 1)
+FAIL reorderscan: POST must visit the prefix only once per commit
+
+pre-witness/pre.log (expected exit 0)
+PASS iotemplates membership 1s rl=0 ov=0 ro=1
+PASS iotemplates membership 1s rl=1 ov=0 ro=1
+PASS iotemplates membership 1s rl=0 ov=1 ro=1
+PASS iotemplates membership 1s rl=1 ov=1 ro=1
+PASS RO2 production: 8 no-Long passes, 8 constructions, 0 visits
+PASS production shadow across parser passes and executor owners; shadow=1
+PASS RO2 production Long control: 3 constructions, 3 visits
+PASS production read-local demotion 1s: older blocker stamp, late owner order, shadow=1
+PASS RO1 production demotion fixture: 1 slot visits (including parser)
+
+pre-witness/post.log (expected exit 1)
+FAIL R7 engagement: RO2 no-Long production construction count
+
+iopass-final.log (expected exit 0)
+RUN iopass-build
+PASS iopass-build
+RUN iopass
+PASS iopass
+RUN iopass-armed-build
+PASS iopass-armed-build
+RUN iopass-armed
+PASS iopass-armed
+RUN atomic-rollback-negative-build
+PASS atomic-rollback-negative-build
+RUN atomic-rollback-negative-link
+PASS atomic-rollback-negative-link
+PASS atomic rollback negative control

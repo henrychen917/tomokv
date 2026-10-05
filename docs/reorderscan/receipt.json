@@ -1,0 +1,120 @@
+{
+  "base_commit": "f769efcdd764e5d93286f19f8998bfa616c1fab5",
+  "ro1_commit": "cb510e87718ba6d3ccb0df5efc4d829cdcbbc3cd",
+  "ro2_commit": "60a1dcab11f0f65c86f3d86e9e703f38b979ccf0",
+  "artifacts": {
+    "kind": "A: PRE behaviour with POST aggregate .text size",
+    "limitation": "Internal R7 addresses are not matched; this is a size control.",
+    "pre": "build/reorderscan-pre/tomokv",
+    "post": "build/tomokv",
+    "pad": "build/reorderscan-padA/tomokv",
+    "pre_text": 7800640,
+    "post_text": 7803216,
+    "pad_text": 7803216,
+    "nop_bytes": 2576,
+    "sha256": {
+      "pre": "b4400a927387580462cb8c4c55f6dfc653710c47a95dfaee2a44b666438b6643",
+      "post": "eabe54591859a4a47e5a4597326536799dad919e1165e87e754bfe223548a37c",
+      "pad": "140827c9edefcd8334a1ecf7f17df94b4dc24d41c4cc54c4afe59d532fba0dc4"
+    }
+  },
+  "non_r7_translation_units": 84,
+  "non_r7_executable_sections": 7553,
+  "non_r7_executable_bytes": 10773024,
+  "non_r7_raw_and_relocation_equal_hot_bodies": 1221,
+  "pre_post_off_path_identical_bodies": 396,
+  "pre_pad_all_identical_audit_bodies": 424,
+  "checks": "All builds and executable checks serverless; no server/benchmark/gate run.",
+  "new_gate_rows": 0,
+  "evidence": {
+    "build/reorderscan-evidence/pre-build.log": {
+      "sha256": "1f1ec9357a512f12af24fffb148e8b10a7dbcb4031ef7a4f724dce2a200daeb1",
+      "bytes": 18731
+    },
+    "build/reorderscan-evidence/post-build.log": {
+      "sha256": "ec06505bf01067d174732862c56266b9943ff2342dcbec84fac2626570366cb8",
+      "bytes": 15963
+    },
+    "build/reorderscan-evidence/ro1-unit.log": {
+      "sha256": "031910dfc01e5fe449d103b231674e06543a7c8761d01f5d989be23e171bd419",
+      "bytes": 231
+    },
+    "build/reorderscan-evidence/unit-asan.log": {
+      "sha256": "be95ea556303f21166f5e0408bc5f62541af381f563b40897219238b30b8c0af",
+      "bytes": 379
+    },
+    "build/reorderscan-evidence/ro1-negative.log": {
+      "sha256": "410933dde493fa5e196c459423433120b0dd6d84dc25b4618a1128cabc60ceaa",
+      "bytes": 66
+    },
+    "build/reorderscan-evidence/reorder-unit.log": {
+      "sha256": "4638e47d70ba651385dcdba2f7661c550b203de56d2fb21dee600df1ca073fcb",
+      "bytes": 1123
+    },
+    "build/reorderscan-evidence/r7shadow-unit.log": {
+      "sha256": "473ed6ac12b7ee9c8b25912ba942e530bbcaff1515a4a8f99f6a836445bceb01",
+      "bytes": 882
+    },
+    "build/reorderscan-evidence/pre-paths-pre.log": {
+      "sha256": "f2f9f41a1037f951d680bb04a5742657772a14c15469e81eb1b9d6917123020f",
+      "bytes": 542
+    },
+    "build/reorderscan-evidence/pre-paths-post.log": {
+      "sha256": "3d076396efc1c0747250ea7be5d68b7993442da4f77bdf1c1ecb3bc194bf7863",
+      "bytes": 62
+    },
+    "build/reorderscan-evidence/post-paths.log": {
+      "sha256": "59536632fb0107541fe1efe2de46e64d3af49ebff64d223ae858560aec741fbf",
+      "bytes": 542
+    },
+    "build/reorderscan-evidence/reorder-sync.log": {
+      "sha256": "aa38dc54fb4089b77e65473c91f1b1e7576df726607c3e54788b431e5160fe61",
+      "bytes": 115
+    },
+    "build/reorderscan-evidence/engagement-multi.log": {
+      "sha256": "539ad0e113d2ad6c246b9ac20b8687aa7219d0ad8184ce76978d9784230119bf",
+      "bytes": 98
+    },
+    "build/reorderscan-evidence/engagement-db0.log": {
+      "sha256": "65f2791b7d304ac6a6f52f86d084492fa73d2c3bf62a3e94caeb4fe9d294553e",
+      "bytes": 102
+    },
+    "build/reorderscan-evidence/reorder-identity.log": {
+      "sha256": "621b251aa0f03f0a302b8e638a001682ba88f238f6de49044821c09fb3d426b2",
+      "bytes": 166
+    },
+    "build/reorderscan-evidence/off-path.log": {
+      "sha256": "d44404e588d9e26f648922c6bd7b76f0ece242aa35c957654ab8af9b51da5c50",
+      "bytes": 71
+    },
+    "build/reorderscan-evidence/reorder-noop.log": {
+      "sha256": "d1dd45fd8a1f316eef31956936c93181b4210795b710f2db3f590dd996a12f9f",
+      "bytes": 328
+    },
+    "build/reorderscan-evidence/non-r7-sections.json": {
+      "sha256": "595f95571ff3c624967e734604346d68ddadcf78054140541f566e50131ba89b",
+      "bytes": 10031
+    },
+    "build/reorderscan-evidence/non-r7-hot.json": {
+      "sha256": "058faf9fcd88cb6063e7e159cad9efc999c2a05d9b42f978160f80a1e2d57401",
+      "bytes": 516208
+    },
+    "build/reorderscan-evidence/post-build-final.log": {
+      "sha256": "d2b666633fe77c25ad5c9555a5ebe83694b918455b9a4961d2525f1941121fce",
+      "bytes": 2762
+    },
+    "build/reorderscan-evidence/unit-final.log": {
+      "sha256": "be95ea556303f21166f5e0408bc5f62541af381f563b40897219238b30b8c0af",
+      "bytes": 379
+    },
+    "build/reorderscan-evidence/final-unit-build.log": {
+      "sha256": "e827d86681bbbcb53216e58fb71632283a3a7e1bb4a62f116c2dfab674b6cac7",
+      "bytes": 578
+    },
+    "build/reorderscan-evidence/production-build-plan.log": {
+      "sha256": "13f4fcba2dc0c710b1882e6c273fd483a8bb7a5b91ece2e615b45d5a25192c29",
+      "bytes": 18221
+    }
+  },
+  "legacy_unit_build": "Normal Makefile targets; test-only legacy geometry alias; production flags unchanged."
+}

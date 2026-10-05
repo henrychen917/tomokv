@@ -463,6 +463,16 @@ build/netcmd-unit-db0: $(NETCMD_DB0_TEST_OBJ) $(patsubst build/%,build/db0/%,$(N
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mkstemp -Wl,--wrap=fopen
 
 # R7 uses real Clients/ROB slots, without a listener or worker loop.
+# The 128-task queue cases retain their historical name after the unused
+# production pipeline preset was removed. Keep that alias confined to tests.
+build/reorder-unit build/reorder-unit-asan build/r7shadow-unit build/r7shadow-unit-asan: override CXXFLAGS += -DkGenthreadPipelineExBatchOps=128
+build/reorderscan-unit: tests/reorderscan_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -I. $< -o $@
+build/reorderscan-unit-asan: tests/reorderscan_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p build
+	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@
+
 build/reorder-unit: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
 build/reorder-unit-asan: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
