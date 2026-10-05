@@ -1,0 +1,35 @@
+{
+  "kind": "Serverless mechanism control; not a measurement PAD arm",
+  "group": "watch-no-prune",
+  "source_sha256": "1cd99bfdba8b6f33cb19b9fa744cc2050d978c14bdefba78353d46b126259918",
+  "inventory": {
+    "3": 31,
+    "1": 2,
+    "30": 10,
+    "6": 6
+  },
+  "patches": [
+    {
+      "address": 699446,
+      "offset": 699446,
+      "target": 699339,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e990ffffff",
+      "functions": [
+        "_ZN8tomo_db05Shard17watch_prune_staleERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 4058310,
+      "offset": 4058310,
+      "target": 4058203,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e990ffffff",
+      "functions": [
+        "_ZN4tomo5Shard17watch_prune_staleERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    }
+  ]
+}

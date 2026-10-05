@@ -44,6 +44,11 @@ DB0_OBJ  := $(SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 
 all: $(BIN)
 
+# Optional teardown-only diagnostics; no code or storage in normal binaries.
+.PHONY: connreset-trace
+connreset-trace:
+	$(MAKE) BUILD_ROOT=build/connreset/trace CXXFLAGS='$(CXXFLAGS) -DTOMO_CONNRESET_TRACE' all
+
 # PS1/PS2/PS14 schedules call the actual AOF implementation without starting a
 # listener or ring. Controls are throwaway source copies with one fix removed.
 PERSISTFIX_CONTROLS := old-ack old-close no-refusal
@@ -221,6 +226,17 @@ unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flip
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
 DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
+# EX1/EX3/EX6 use production objects without opening a listener or IO ring.
+build/exbatch-unit: build/tests/exbatch_unit.o $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
+build/exbatch-db0-unit: build/db0/tests/exbatch_unit.o $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
+# Lane-only frozen baseline fixture; PRE/source and PRE/build come from cd02ecbab.
+# The ordinary gate never depends on this artifact.
+build/exbatch/PRE/unit.o: tests/exbatch_unit.cc Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Wno-mismatched-new-delete -Ibuild/exbatch/PRE/source -I. -c $< -o $@
+build/exbatch/PRE/unit: build/exbatch/PRE/unit.o $(patsubst build/%,build/exbatch/PRE/build/%,$(CORE_TEST_OBJ))
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # ST1/ST10 serverless proofs. PRE objects are kept by the lane before editing;
 # the control target substitutes just the two command objects in both images.
 FLUSHFIX_UNIT_OBJ := build/tests/flushfix_unit.o build/db0/tests/flushfix_unit.o

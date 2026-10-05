@@ -17,6 +17,7 @@
 #include "../base/alloc.h"
 #include "../core/genthread.h"
 #include "../core/server.h"
+#include "../core/connreset.h"
 #include "../core/lbsignals.h"
 #include "../core/pubsub_event.h"
 #include "../core/thread.h"
@@ -807,6 +808,13 @@ void cmd_reset(Shard&, Op& op) {
 
 void cmd_debug_impl(Shard& shard, Op& op) {
     const Slice subcommand = op.arg(1);
+#ifdef TOMO_CONNRESET_TRACE
+    if (eq_icase(subcommand, "close-stats") && op.argc() == 2) {
+        const std::string out = connreset::dump();
+        reply_verbatim(op.sink(), Slice(out.data(), out.size()), "txt", op.resp3());
+        return;
+    }
+#endif
     // REHASH-STATE is explicitly queued to shard 0 by IoLoop, unlike ordinary ConfigRoute
     // commands (which are IO-local). Reject an unrouted call before touching owner-only state.
     if (eq_icase(subcommand, "rehash-state") && op.argc() == 2) {
@@ -1078,6 +1086,22 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
         g_server->set_debug_atomic_commit_hold(held != 0);
         reply_ok(op.sink());
+        return;
+    }
+    // One-shot RENAME hop latch, in either atomic mode. The status witnesses source completion
+    // while the destination is still parked; expiration is a failed harness, never a window hit.
+    if (eq_icase(subcommand, "atomic-off-hop-hold") && op.argc() == 3) {
+        uint64_t ceiling_ms = 0;
+        if (!parse_u64(op.arg(2), ceiling_ms)) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        debug_atomic_off_hop_hold(ceiling_ms);
+        reply_ok(op.sink());
+        return;
+    }
+    if (eq_icase(subcommand, "atomic-off-hop-status") && op.argc() == 2) {
+        reply_int(op.sink(), debug_atomic_off_hop_status());
         return;
     }
     // One shared DEBUG delay word, with names for its two mode-specific boundaries. Atomic ON

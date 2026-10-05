@@ -1,0 +1,35 @@
+  ok   WATCH ignores script ARGV on the same owner owner=7 reply=[None]
+  ok   WATCH detector fires for the script's declared key owner=7 reply=None
+  ok   zero control: uncontended activation reserves both keys and retries nothing reply=[b'pre', b'pre'] armed=+2 forced=+0 retries=+0 live=0
+  ok   counterexample harness ran (park armed, racing writes accepted) armed=True alive=False raced=[b'OK', b'OK'] gathered=3
+  ok   plain write into the reservation window is forced through MVCC forced=+2
+  ok   that write is DETECTED by read-set validation retries=+1 giveups=+0
+  ok   the activation observed a cut, not one key from each side of the write [b'post', b'post']
+  ok   the racing writes survive and the activation composes on top of them [b'post/post', b'post']
+  ok   every reservation was released armed=4 released=4
+  ok   reservation released after: script raised a runtime error fired=True live=0 armed=+2 (want +2)
+  ok   reservation released after: script hit the instruction limit fired=True live=0 armed=+2 (want +2)
+  ok   reservation released after: script touched an undeclared key fired=True live=0 armed=+2 (want +2)
+  ok   reservation released after: script failed to compile (refused before dispatch) fired=True live=0 armed=+0 (want +0)
+  ok   reservation released after: client vanished mid-activation fired=True live=0 armed=+2 (want +2)
+  ok   armed == released across every exit path armed=12 released=12
+  ok   a released key stops arming later plain writes forced=+0
+  ok   eight-key same-owner control stays local cross_delta=0
+  ok   2-key cross-owner write/read owners=[0, 1]
+  ok   4-key cross-owner write/read owners=[0, 1, 2, 3]
+  ok   8-key cross-owner write/read owners=[0, 1, 2, 3, 4, 6, 7, 8]
+  ok   STAGE/RUN/VALIDATE/APPLY counters all fired {'script_stage_owner_tasks': 14, 'script_run_attempts': 3, 'script_validate_owner_tasks': 14, 'script_apply_owner_tasks': 14, 'script_crossshard_activations': 3, 'script_group_commits': 3, 'script_staged_bytes_total': 923}
+  ok   cross script reads its own writes [b'new-b', b'new-a']
+  ok   failed cross script keeps its prefix effects error=RespError('ERR user_script:1: after write script: 8637e600d61c9db2bb8f6277616d15c9f6314f87, on @user_script:1.') values=[b'kept', b'old-b']
+  ok   undeclared key remains an explicit refusal RespError('ERR Script attempted to access an undeclared key script: 2932c47b37b911cfbcb9bb1a43a41b6eb1aa9e58, on @user_script:1.')
+  ok   EVALSHA and FCALL cross-owner write forms evalsha=[b'sha-left', b'sha-right'] fcall=[b'fn-left', b'fn-right']
+  ok   EVAL_RO, EVALSHA_RO, and FCALL_RO cross-owner forms eval=[b'fn-left', b'fn-right'] evalsha=[b'fn-left', b'fn-right'] fcall=[b'fn-left', b'fn-right']
+  ok   read-only cross scripts allocate no group ticket or APPLY wave activation=+3 commits=+0 apply=+0 validate=+0
+  ok   Stage-1 cross script inside MULTI is explicitly refused [RespError("CROSSSLOT Keys in request don't hash to the same slot")]
+  ok   contention detector forced at least one OCC restart retries=+1 errors=[]
+  ok   opposite-order overlapping scripts terminate without deadlock success=[40, 40] alive=[] errors=[] values=[b'80', b'80', b'80', b'80']
+  ok   cross script and plain MSET serialize without a torn generation alive=[] errors=[] values=[b'S', b'S', b'S', b'S']
+  ok   maxmemory negative control commits below pressure reply=1 commits=+1
+  ok   noeviction pressure detector reaches exact OOM owner=0 filled=15 reply=RespError("OOM command not allowed when used memory > 'maxmemory'.")
+  ok   cross-script APPLY OOM aborts atomically and preserves predecessors reply=RespError("OOM command not allowed when used memory > 'maxmemory'.") value_lengths=[5, 5] aborts=+1
+XSCRIPT all directed battery passed

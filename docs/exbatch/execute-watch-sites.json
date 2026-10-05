@@ -1,0 +1,43 @@
+[
+  {
+    "symbol": "_ZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
+    "demangled": "bool tomo::ExLoopT<false>::execute<false, false>(tomo::Task const&)",
+    "disassembly": "POST-_ZN4tomo7ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE.asm.gz",
+    "watch_sites": [
+      {
+        "address": 4392737,
+        "item": 3,
+        "target": 4393824
+      },
+      {
+        "address": 4393782,
+        "item": 3,
+        "target": 4394096
+      }
+    ]
+  },
+  {
+    "symbol": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE",
+    "demangled": "bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)",
+    "disassembly": "POST-_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE.asm.gz",
+    "watch_sites": [
+      {
+        "address": 6959953,
+        "item": 3,
+        "target": 6961146
+      }
+    ]
+  },
+  {
+    "symbol": "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE",
+    "demangled": "bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)",
+    "disassembly": "POST-_ZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE.asm.gz",
+    "watch_sites": [
+      {
+        "address": 6956529,
+        "item": 3,
+        "target": 6957706
+      }
+    ]
+  }
+]

@@ -1,0 +1,138 @@
+ MEASURE-REQUEST                                    |   23 +-
+ MEASURE-REQUEST-exbatch.md                         |  200 +
+ Makefile                                           |   11 +
+ docs/exbatch/PRE-mainline-identity.json            |   16 +
+ docs/exbatch/binaries.json                         |   60 +
+ docs/exbatch/build-and-checks.json                 |   38 +
+ docs/exbatch/diff-from-launch.stat                 |  269 +
+ docs/exbatch/diff-from-pre.stat                    |  138 +
+ docs/exbatch/ex1-old/PAD-A-functions.tsv.gz        |  Bin 0 -> 151709 bytes
+ docs/exbatch/ex1-old/PAD-A-sections.tsv.gz         |  Bin 0 -> 776 bytes
+ docs/exbatch/ex1-old/POST-functions.tsv.gz         |  Bin 0 -> 151708 bytes
+ docs/exbatch/ex1-old/POST-sections.tsv.gz          |  Bin 0 -> 775 bytes
+ docs/exbatch/ex1-old/negative-controls.json        |   20 +
+ docs/exbatch/ex1-old/planned-retargets.json        |   35 +
+ docs/exbatch/ex1-old/proof.json                    |   22 +
+ docs/exbatch/ex3-old/PAD-A-functions.tsv.gz        |  Bin 0 -> 151709 bytes
+ docs/exbatch/ex3-old/PAD-A-sections.tsv.gz         |  Bin 0 -> 776 bytes
+ docs/exbatch/ex3-old/POST-functions.tsv.gz         |  Bin 0 -> 151708 bytes
+ docs/exbatch/ex3-old/POST-sections.tsv.gz          |  Bin 0 -> 775 bytes
+ docs/exbatch/ex3-old/negative-controls.json        |   20 +
+ docs/exbatch/ex3-old/planned-retargets.json        |  497 ++
+ docs/exbatch/ex3-old/proof.json                    |   22 +
+ docs/exbatch/ex6-old/PAD-A-functions.tsv.gz        |  Bin 0 -> 151709 bytes
+ docs/exbatch/ex6-old/PAD-A-sections.tsv.gz         |  Bin 0 -> 776 bytes
+ docs/exbatch/ex6-old/POST-functions.tsv.gz         |  Bin 0 -> 151708 bytes
+ docs/exbatch/ex6-old/POST-sections.tsv.gz          |  Bin 0 -> 775 bytes
+ docs/exbatch/ex6-old/negative-controls.json        |   20 +
+ docs/exbatch/ex6-old/planned-retargets.json        |   79 +
+ docs/exbatch/ex6-old/proof.json                    |   22 +
+ docs/exbatch/execute-watch-sites.json              |   43 +
+ docs/exbatch/final-build.log.gz                    |  Bin 0 -> 1746 bytes
+ docs/exbatch/frozen-pre-unit.json                  |   68 +
+ docs/exbatch/generic-plus-cells.txt                |   23 +
+ docs/exbatch/measurement-cells.json                | 5429 ++++++++++++++++++++
+ docs/exbatch/metadata-probes.json                  |   40 +
+ docs/exbatch/metadata-unit.json                    |   82 +
+ docs/exbatch/pad-a/PAD-A-functions.tsv.gz          |  Bin 0 -> 151709 bytes
+ docs/exbatch/pad-a/PAD-A-sections.tsv.gz           |  Bin 0 -> 776 bytes
+ docs/exbatch/pad-a/POST-functions.tsv.gz           |  Bin 0 -> 151708 bytes
+ docs/exbatch/pad-a/POST-sections.tsv.gz            |  Bin 0 -> 775 bytes
+ docs/exbatch/pad-a/negative-controls.json          |   20 +
+ docs/exbatch/pad-a/planned-retargets.json          |  585 +++
+ docs/exbatch/pad-a/proof.json                      |   22 +
+ docs/exbatch/post-unit-elf.json                    |    7 +
+ docs/exbatch/pre-build.log.gz                      |  Bin 0 -> 1527 bytes
+ .../pre-post-identity/CANDIDATE-functions.tsv.gz   |  Bin 0 -> 151713 bytes
+ .../pre-post-identity/CANDIDATE-sections.tsv.gz    |  Bin 0 -> 780 bytes
+ .../pre-post-identity/REFERENCE-functions.tsv.gz   |  Bin 0 -> 151707 bytes
+ .../pre-post-identity/REFERENCE-sections.tsv.gz    |  Bin 0 -> 762 bytes
+ .../pre-post-identity/differing-functions.json.gz  |  Bin 0 -> 996772 bytes
+ docs/exbatch/pre-post-identity/identity.json       | 2893 +++++++++++
+ docs/exbatch/pre-unit-elf.json                     |    7 +
+ docs/exbatch/publication-unit.json                 |   42 +
+ docs/exbatch/source-negative.json                  |    7 +
+ docs/exbatch/source-proof.json                     |   43 +
+ docs/exbatch/static-functions.json                 |   92 +
+ ..._ZN12_GLOBAL__N_17publishERN4tomo5ShardE.asm.gz |  Bin 0 -> 276 bytes
+ ...ZN12_GLOBAL__N_17watchesERKN4tomo5ShardE.asm.gz |  Bin 0 -> 435 bytes
+ ...tomo23command_metadata_lookupENS_5SliceE.asm.gz |  Bin 0 -> 1730 bytes
+ ...tomo24command_metadata_resolveERNS_2OpEj.asm.gz |  Bin 0 -> 5000 bytes
+ .../POST-_ZN4tomo5Shard12publish_sizeEv.asm.gz     |  Bin 0 -> 857 bytes
+ ...opTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE.asm.gz |  Bin 0 -> 9345 bytes
+ ...opTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE.asm.gz |  Bin 0 -> 9657 bytes
+ ...opTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE.asm.gz |  Bin 0 -> 9372 bytes
+ docs/exbatch/static/POST-functions.tsv.gz          |  Bin 0 -> 80280 bytes
+ docs/exbatch/static/POST-sections.tsv.gz           |  Bin 0 -> 760 bytes
+ ..._ZN12_GLOBAL__N_17publishERN4tomo5ShardE.asm.gz |  Bin 0 -> 431 bytes
+ ...ZN12_GLOBAL__N_17watchesERKN4tomo5ShardE.asm.gz |  Bin 0 -> 372 bytes
+ ...tomo23command_metadata_lookupENS_5SliceE.asm.gz |  Bin 0 -> 826 bytes
+ ...tomo24command_metadata_resolveERNS_2OpEj.asm.gz |  Bin 0 -> 3873 bytes
+ .../PRE-_ZN4tomo5Shard12publish_sizeEv.asm.gz      |  Bin 0 -> 429 bytes
+ docs/exbatch/static/PRE-functions.tsv.gz           |  Bin 0 -> 80214 bytes
+ docs/exbatch/static/PRE-sections.tsv.gz            |  Bin 0 -> 748 bytes
+ .../exbatch-db0-unit/all/PAD-A-functions.tsv.gz    |  Bin 0 -> 145358 bytes
+ .../exbatch-db0-unit/all/PAD-A-sections.tsv.gz     |  Bin 0 -> 775 bytes
+ .../exbatch-db0-unit/all/POST-functions.tsv.gz     |  Bin 0 -> 145357 bytes
+ .../exbatch-db0-unit/all/POST-sections.tsv.gz      |  Bin 0 -> 774 bytes
+ .../exbatch-db0-unit/all/planned-retargets.json    |  552 ++
+ .../unit-controls/exbatch-db0-unit/all/proof.json  |   22 +
+ .../exbatch-db0-unit/ex1/planned-retargets.json    |   35 +
+ .../unit-controls/exbatch-db0-unit/ex1/proof.json  |   22 +
+ .../exbatch-db0-unit/ex3/planned-retargets.json    |  464 ++
+ .../unit-controls/exbatch-db0-unit/ex3/proof.json  |   22 +
+ .../exbatch-db0-unit/ex6/planned-retargets.json    |   79 +
+ .../unit-controls/exbatch-db0-unit/ex6/proof.json  |   22 +
+ .../watch-no-add/planned-retargets.json            |   35 +
+ .../exbatch-db0-unit/watch-no-add/proof.json       |   22 +
+ .../watch-no-append/planned-retargets.json         |   35 +
+ .../exbatch-db0-unit/watch-no-append/proof.json    |   22 +
+ .../watch-no-finalize/planned-retargets.json       |   35 +
+ .../exbatch-db0-unit/watch-no-finalize/proof.json  |   22 +
+ .../watch-no-prune/planned-retargets.json          |   35 +
+ .../exbatch-db0-unit/watch-no-prune/proof.json     |   22 +
+ .../watch-no-remove/planned-retargets.json         |   35 +
+ .../exbatch-db0-unit/watch-no-remove/proof.json    |   22 +
+ .../watch-no-update/planned-retargets.json         |  123 +
+ .../exbatch-db0-unit/watch-no-update/proof.json    |   22 +
+ .../watch-old-loads/planned-retargets.json         |  354 ++
+ .../exbatch-db0-unit/watch-old-loads/proof.json    |   22 +
+ .../exbatch-unit/all/PAD-A-functions.tsv.gz        |  Bin 0 -> 80281 bytes
+ .../exbatch-unit/all/PAD-A-sections.tsv.gz         |  Bin 0 -> 761 bytes
+ .../exbatch-unit/all/POST-functions.tsv.gz         |  Bin 0 -> 80280 bytes
+ .../exbatch-unit/all/POST-sections.tsv.gz          |  Bin 0 -> 760 bytes
+ .../exbatch-unit/all/planned-retargets.json        |  277 +
+ .../unit-controls/exbatch-unit/all/proof.json      |   22 +
+ .../exbatch-unit/ex1/planned-retargets.json        |   24 +
+ .../unit-controls/exbatch-unit/ex1/proof.json      |   22 +
+ .../exbatch-unit/ex3/planned-retargets.json        |  233 +
+ .../unit-controls/exbatch-unit/ex3/proof.json      |   22 +
+ .../exbatch-unit/ex6/planned-retargets.json        |   46 +
+ .../unit-controls/exbatch-unit/ex6/proof.json      |   22 +
+ .../watch-no-add/planned-retargets.json            |   24 +
+ .../exbatch-unit/watch-no-add/proof.json           |   22 +
+ .../watch-no-append/planned-retargets.json         |   24 +
+ .../exbatch-unit/watch-no-append/proof.json        |   22 +
+ .../watch-no-finalize/planned-retargets.json       |   24 +
+ .../exbatch-unit/watch-no-finalize/proof.json      |   22 +
+ .../watch-no-prune/planned-retargets.json          |   24 +
+ .../exbatch-unit/watch-no-prune/proof.json         |   22 +
+ .../watch-no-remove/planned-retargets.json         |   24 +
+ .../exbatch-unit/watch-no-remove/proof.json        |   22 +
+ .../watch-no-update/planned-retargets.json         |   68 +
+ .../exbatch-unit/watch-no-update/proof.json        |   22 +
+ .../watch-old-loads/planned-retargets.json         |  178 +
+ .../exbatch-unit/watch-old-loads/proof.json        |   22 +
+ docs/exbatch/unit-final-build.log.gz               |  Bin 0 -> 850 bytes
+ docs/exbatch/watch-unit.json                       |  202 +
+ src/base/exbatch_control.h                         |   15 +
+ src/cmd/cmdmeta.cc                                 |   87 +-
+ src/cmd/multi.inc                                  |   17 +-
+ src/core/shard.h                                   |   59 +-
+ tests/exbatch.py                                   |   79 +
+ tests/exbatch_checks.py                            |   89 +
+ tests/exbatch_unit.cc                              |  313 ++
+ tests/gate.sh                                      |   45 +-
+ tools/exbatch_artifacts.py                         |  173 +
+ tools/exbatch_source_proof.py                      |  124 +
+ 137 files changed, 15281 insertions(+), 29 deletions(-)

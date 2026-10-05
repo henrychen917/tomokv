@@ -1,0 +1,256 @@
+{
+  "PRE": {
+    "manifest": {
+      "binary": "build/connreset/tomokv-PRE",
+      "output": "build/connreset/matrix-pre",
+      "port": 19079,
+      "modes": [
+        "2s",
+        "1s"
+      ],
+      "events": [
+        "both",
+        "close",
+        "storm"
+      ],
+      "profiles": [
+        "default",
+        "client-off",
+        "key-off",
+        "both-off",
+        "storm1000"
+      ],
+      "repeats": 10,
+      "warmup": 3,
+      "observe": 2,
+      "pipeline": 128,
+      "storm_concurrency": 32,
+      "shards": null,
+      "info_only": false,
+      "dry_run": false,
+      "live_port": null,
+      "expect_clean": false,
+      "binary_sha256": "1e0a2f80220f2f9490730efc27c364846d10587ff7b4483cf13b5ba9d89acbb8"
+    },
+    "results_path": "build/connreset/matrix-pre/results.jsonl",
+    "archive": "docs/connreset/pre-results.jsonl.gz",
+    "results_sha256": "932e2f0f362524ec5a668c7c6253241a985b57d11152beca935e4da96c2d3ca4",
+    "archive_sha256": "b442a58fe1cc3d8f7ea3ec6a232d1ef738021dda5f0fab5aa3d16b77be883e28",
+    "trials": 300,
+    "by_variant": {
+      "2s-both-default": 10,
+      "2s-close-default": 10,
+      "2s-storm-default": 10,
+      "2s-both-client-off": 10,
+      "2s-close-client-off": 10,
+      "2s-storm-client-off": 10,
+      "2s-both-key-off": 10,
+      "2s-close-key-off": 10,
+      "2s-storm-key-off": 10,
+      "2s-both-both-off": 10,
+      "2s-close-both-off": 10,
+      "2s-storm-both-off": 10,
+      "2s-both-storm1000": 10,
+      "2s-close-storm1000": 10,
+      "2s-storm-storm1000": 10,
+      "1s-both-default": 10,
+      "1s-close-default": 10,
+      "1s-storm-default": 10,
+      "1s-both-client-off": 10,
+      "1s-close-client-off": 10,
+      "1s-storm-client-off": 10,
+      "1s-both-key-off": 10,
+      "1s-close-key-off": 10,
+      "1s-storm-key-off": 10,
+      "1s-both-both-off": 10,
+      "1s-close-both-off": 10,
+      "1s-storm-both-off": 10,
+      "1s-both-storm1000": 10,
+      "1s-close-storm1000": 10,
+      "1s-storm-storm1000": 10
+    },
+    "monitor_failures": [],
+    "incomplete_trials": 0,
+    "counter_deltas": {
+      "rejected_connections": {
+        "available": true,
+        "sum_delta": 0,
+        "max_trial_delta": 0
+      },
+      "client_output_buffer_limit_disconnections": {
+        "available": true,
+        "sum_delta": 0,
+        "max_trial_delta": 0
+      },
+      "evicted_clients": {
+        "available": false,
+        "sum_delta": 0,
+        "max_trial_delta": null
+      },
+      "send_errors": {
+        "available": true,
+        "sum_delta": 0,
+        "max_trial_delta": 0
+      },
+      "peer_aborts": {
+        "available": true,
+        "sum_delta": 4200,
+        "max_trial_delta": 161
+      }
+    },
+    "max_close_burst_ms": 5.601549055427313,
+    "storm_duration_seconds": {
+      "min": 0.048879086039960384,
+      "max": 0.7226717099547386
+    },
+    "max_monitor_gap_seconds": 0.11927231820300221,
+    "reproducer_source_commit": "0ef1b80f6",
+    "audit_note": "Campaign began before later geometry/window assertions were added. All 300 saved trials pass the final read-only validator without exclusion."
+  },
+  "POST": {
+    "manifest": {
+      "binary": "build/connreset/tomokv-POST",
+      "output": "build/connreset/post-check",
+      "port": 19079,
+      "modes": [
+        "2s",
+        "1s"
+      ],
+      "events": [
+        "both"
+      ],
+      "profiles": [
+        "default"
+      ],
+      "repeats": 10,
+      "warmup": 3,
+      "observe": 2,
+      "pipeline": 128,
+      "storm_concurrency": 32,
+      "shards": null,
+      "info_only": false,
+      "dry_run": false,
+      "validate_results": null,
+      "live_port": null,
+      "expect_clean": false,
+      "binary_sha256": "123bd6553f1da8574e835f2102fe7fcc8efebf2dacdfaa7174380c1472491bea"
+    },
+    "results_path": "build/connreset/post-check/results.jsonl",
+    "archive": "docs/connreset/post-results.jsonl.gz",
+    "results_sha256": "fcf45f9511d597f1050e63351c712f56fb172af8952617e51e606f7bab44acd4",
+    "archive_sha256": "ed55f820ec5a76ec80f8d2c50f7fd39e7c8aca6605a18e7280350f964d7bb276",
+    "trials": 20,
+    "by_variant": {
+      "2s-both-default": 10,
+      "1s-both-default": 10
+    },
+    "monitor_failures": [],
+    "incomplete_trials": 0,
+    "counter_deltas": {
+      "rejected_connections": {
+        "available": true,
+        "sum_delta": 0,
+        "max_trial_delta": 0
+      },
+      "client_output_buffer_limit_disconnections": {
+        "available": true,
+        "sum_delta": 0,
+        "max_trial_delta": 0
+      },
+      "evicted_clients": {
+        "available": false,
+        "sum_delta": 0,
+        "max_trial_delta": null
+      },
+      "send_errors": {
+        "available": true,
+        "sum_delta": 0,
+        "max_trial_delta": 0
+      },
+      "peer_aborts": {
+        "available": true,
+        "sum_delta": 76,
+        "max_trial_delta": 30
+      }
+    },
+    "max_close_burst_ms": 1.2011840008199215,
+    "storm_duration_seconds": {
+      "min": 0.04801268596202135,
+      "max": 0.09224923979490995
+    },
+    "max_monitor_gap_seconds": 0.10299175372347236
+  },
+  "TRACE": {
+    "manifest": {
+      "binary": "build/connreset/trace/tomokv",
+      "output": "build/connreset/trace-check",
+      "port": 19079,
+      "modes": [
+        "2s",
+        "1s"
+      ],
+      "events": [
+        "both"
+      ],
+      "profiles": [
+        "default"
+      ],
+      "repeats": 10,
+      "warmup": 3,
+      "observe": 2,
+      "pipeline": 128,
+      "storm_concurrency": 32,
+      "shards": null,
+      "info_only": false,
+      "dry_run": false,
+      "validate_results": null,
+      "live_port": null,
+      "expect_clean": false,
+      "binary_sha256": "70e714a4cf311e1a2971880a624ffebd200c23fa6c6259e3f987bedd3519a969"
+    },
+    "results_path": "build/connreset/trace-check/results.jsonl",
+    "archive": "docs/connreset/trace-results.jsonl.gz",
+    "results_sha256": "4a62111c3e48d4ec1ebca6313dcb84ce88cd77545d8a59d35e6b0795b99503df",
+    "archive_sha256": "b490c917499b11f1a11dc5e0e78de14dddbad1eccc7b4ebcf61aa50638c4357e",
+    "trials": 20,
+    "by_variant": {
+      "2s-both-default": 10,
+      "1s-both-default": 10
+    },
+    "monitor_failures": [],
+    "incomplete_trials": 0,
+    "counter_deltas": {
+      "rejected_connections": {
+        "available": true,
+        "sum_delta": 0,
+        "max_trial_delta": 0
+      },
+      "client_output_buffer_limit_disconnections": {
+        "available": true,
+        "sum_delta": 0,
+        "max_trial_delta": 0
+      },
+      "evicted_clients": {
+        "available": false,
+        "sum_delta": 0,
+        "max_trial_delta": null
+      },
+      "send_errors": {
+        "available": true,
+        "sum_delta": 0,
+        "max_trial_delta": 0
+      },
+      "peer_aborts": {
+        "available": true,
+        "sum_delta": 53,
+        "max_trial_delta": 16
+      }
+    },
+    "max_close_burst_ms": 0.6634020246565342,
+    "storm_duration_seconds": {
+      "min": 0.049744902178645134,
+      "max": 0.07312941690906882
+    },
+    "max_monitor_gap_seconds": 0.10309455310925841
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "affinity": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "commands": [
+    "taskset -c 112-127 make -j16 -C build/exbatch/PRE/source BUILD_ROOT=/home/user/Projects/cx-exbatch/build/exbatch/PRE/build",
+    "taskset -c 112-127 make -j16 all build/exbatch-unit build/exbatch-db0-unit build/exbatch/PRE/unit",
+    "taskset -c 112-127 python3 tests/exbatch_checks.py {publication,watch,metadata} (separate invocations)",
+    "taskset -c 112-127 python3 tools/exbatch_source_proof.py --pre-unit build/exbatch/PRE/unit --post-unit build/exbatch-unit"
+  ],
+  "no_server_benchmark_gate_or_perf_executed": true,
+  "layout_bytes": {
+    "Op": 336,
+    "Client": 1984,
+    "ThreadCtx": 1408,
+    "Shard": 1440,
+    "FlatStore": 944,
+    "Rob64": 192,
+    "AtomicEntry": 144,
+    "Config": 624
+  }
+}

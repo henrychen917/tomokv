@@ -1,0 +1,44 @@
+src/cmd/xshard.o 611 -> 611 tomo::(anonymous namespace)::WorkError tomo::(anonymous namespace)::apply_image<false>(tomo::Shard&, tomo::Slice, unsigned long, tomo::(anonymous namespace)::ObjectImage const&, bool) [clone .isra.0]
+src/cmd/xshard.o 947 -> 945 tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)
+src/cmd/xshard.o 0 -> 83 tomo::(anonymous namespace)::debug_hop_pending(tomo::ScatterState const&)
+src/cmd/xshard.o 1072 -> 1072 tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)
+src/cmd/xshard.o 331 -> 507 tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]
+src/cmd/xshard.o 1330 -> 1374 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]
+src/cmd/xshard.o 118 -> 129 tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]
+src/cmd/xshard.o 11880 -> 11848 tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*)
+src/cmd/xshard.o 256 -> 256 tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*) [clone .cold]
+src/cmd/xshard.o 3710 -> 3694 tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)
+src/cmd/xshard.o 5 -> 31 tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&) [clone .cold]
+src/cmd/xshard.o 0 -> 16 tomo::debug_atomic_off_hop_hold(bool)
+src/cmd/xshard.o 0 -> 121 tomo::debug_atomic_off_hop_status()
+src/cmd/xshard.o 769 -> 873 tomo::FlatStore::foreign_read_poison_open()
+src/cmd/xshard.o 3715 -> 3635 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0]
+src/cmd/xshard.o 162 -> 162 tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0] [clone .cold]
+src/cmd/t_server.o 7897 -> 7945 tomo::(anonymous namespace)::init_config(tomo::Config const&)
+src/cmd/t_server.o 6319 -> 6500 tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)
+src/cmd/t_server.o 16464 -> 16215 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+src/cmd/t_server.o 378 -> 353 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+src/cmd/t_server.o 5256 -> 5263 tomo::cfg_client_output_buffer_limit_string[abi:cxx11](tomo::ClientOutputBufferLimits const&)
+src/cmd/t_server.o 673 -> 462 void tomo::reply_int<tomo::Op::Sink>(tomo::Op::Sink&&, long long)
+src/cmd/t_server.o 0 -> 29 std::mutex::lock()
+src/cmd/t_server.o 849 -> 1118 std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&)
+db0/src/cmd/xshard.o 351 -> 383 tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]
+db0/src/cmd/xshard.o 945 -> 947 tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)
+db0/src/cmd/xshard.o 0 -> 83 tomo_db0::(anonymous namespace)::debug_hop_pending(tomo_db0::ScatterState const&)
+db0/src/cmd/xshard.o 1072 -> 1072 tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)
+db0/src/cmd/xshard.o 331 -> 507 tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]
+db0/src/cmd/xshard.o 1297 -> 1230 tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::ImageRangeOptions const&, tomo_db0::(anonymous namespace)::ImageRangeSpec&) [clone .isra.0]
+db0/src/cmd/xshard.o 90 -> 86 tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::ImageRangeOptions const&, tomo_db0::(anonymous namespace)::ImageRangeSpec&) [clone .isra.0] [clone .cold]
+db0/src/cmd/xshard.o 1304 -> 1404 tomo_db0::(anonymous namespace)::execute_atomic_direct_rename(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)
+db0/src/cmd/xshard.o 3630 -> 3614 tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)
+db0/src/cmd/xshard.o 5 -> 31 tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&) [clone .cold]
+db0/src/cmd/xshard.o 0 -> 16 tomo_db0::debug_atomic_off_hop_hold(bool)
+db0/src/cmd/xshard.o 0 -> 121 tomo_db0::debug_atomic_off_hop_status()
+db0/src/cmd/xshard.o 6796 -> 6780 tomo_db0::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)
+db0/src/cmd/xshard.o 352 -> 371 unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&) [clone .isra.0]
+db0/src/cmd/xshard.o 5840 -> 5851 void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, __gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter) [clone .isra.0]
+db0/src/cmd/t_server.o 653 -> 663 tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)
+db0/src/cmd/t_server.o 6295 -> 6500 tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&)
+db0/src/cmd/t_server.o 1447 -> 1463 tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)
+db0/src/cmd/t_server.o 608 -> 624 tomo_db0::command_client_migration_extract(tomo_db0::Client*)
+db0/src/cmd/t_server.o 614 -> 813 void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)

@@ -1,0 +1,11 @@
+PASS {'atomic': 0, 'budget_ms': 30000, 'elapsed_s': 1.2027350720018148, 'status': 2}
+PASS {'atomic': 1, 'budget_ms': 30000, 'elapsed_s': 1.2024746197275817, 'status': 2}
+PASS {'atomic': 0, 'budget_ms': 100, 'elapsed_s': 0.20253607770428061, 'status': 3}
+PASS {'atomic': 0, 'budget_ms': 18446744073709551615, 'elapsed_s': 30.102586780674756, 'status': 3}
+PASS hold controls
+PASS {'atomic': 0, 'budget_ms': 30000, 'elapsed_s': 1.2025967319495976, 'status': 2}
+PASS {'atomic': 1, 'budget_ms': 30000, 'elapsed_s': 1.2025119997560978, 'status': 2}
+PASS {'atomic': 0, 'budget_ms': 100, 'elapsed_s': 0.2025166810490191, 'status': 3}
+PASS hold controls
+no-hold result: (0, 0, ["controller:source-complete hold not witnessed: status=0 replies=[b'OK']"], True, False, 'hold_s=0.001426 witness_s=None ceiling_ms=30000')
+PASS absent hold is rejected

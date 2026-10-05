@@ -1,0 +1,20 @@
+PARTIAL	0	GATE_ONLY_JOBS=atomic_batteries debug-1; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	6.150000	plain-write lost updates (atomic 1)
+ok	0.170000	lbsignals battery (atomic 1)
+ok	1.490000	slowlog battery (atomic 1)
+ok	0.070000	atomfix battery (atomic 1)
+ok	0.070000	scriptatomic battery (atomic 1)
+ok	14.480000	execatomic battery (atomic 1)
+ok	11.880000	execiso battery (atomic 1)
+ok	0.280000	execfix battery (atomic 1)
+ok	0.080000	multires battery (atomic 1)
+ok	0.880000	multirace battery (atomic 1)
+ok	30.700000	session_monotonic battery (atomic 1)
+ok	0.420000	xacct battery (atomic 1)
+ok	0.450000	xmove battery (atomic 1)
+ok	1.890000	xscript battery (atomic 1)
+ok	25.090000	atomic torn/window battery
+ok	4.060000	atomic RYOW/mixed-write battery
+ok	4.860000	atomic owner-local hazard battery
+ok	0.020000	atomic shutdown invariants

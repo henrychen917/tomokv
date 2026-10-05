@@ -1,0 +1,19 @@
+{
+  "description": "Throwaway negative control: both database variants ignore HOLD arm/release",
+  "source_sha256": "80270fa00716572c421e496c54abd39dbe1e197e8a96212d87998f1105542145",
+  "control_sha256": "5c62359853dfd644d8599f5b02db2331780f60adbd3d765dc2d036b4367888a7",
+  "patches": [
+    {
+      "symbol": "_ZN8tomo_db025debug_atomic_off_hop_holdEb",
+      "offset": 1145828,
+      "original": "40",
+      "replacement": "c3"
+    },
+    {
+      "symbol": "_ZN4tomo25debug_atomic_off_hop_holdEb",
+      "offset": 4891700,
+      "original": "40",
+      "replacement": "c3"
+    }
+  ]
+}

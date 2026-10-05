@@ -1,0 +1,110 @@
+START tier=asan run=01 utc=2026-10-05T02:28:22Z
+TEST tier=asan run=01 test=torture exit=0 utc=2026-10-05T02:28:30Z
+TEST tier=asan run=01 test=ryow exit=0 utc=2026-10-05T02:28:31Z
+TEST tier=asan run=01 test=atomic_torn exit=0 utc=2026-10-05T02:28:56Z
+TEST tier=asan run=01 test=atomic_ryow exit=0 utc=2026-10-05T02:29:00Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 345296 byte(s) leaked in 64 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001412 witness_s=0.0013405662029981613 ceiling_ms=30000
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=133456 final=True errors=[] threads_still_alive=False hold_s=0.001349 witness_s=0.0012797759845852852 ceiling_ms=30000
+  SKIP OFF control exposes RENAMENX losing race clean run, losing race never manifested (kernel-timing geometry)
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=01 exit=1 utc=2026-10-05T02:29:00Z
+START tier=asan run=02 utc=2026-10-05T02:30:32Z
+TEST tier=asan run=02 test=torture exit=0 utc=2026-10-05T02:30:39Z
+TEST tier=asan run=02 test=ryow exit=0 utc=2026-10-05T02:30:40Z
+TEST tier=asan run=02 test=atomic_torn exit=0 utc=2026-10-05T02:31:05Z
+TEST tier=asan run=02 test=atomic_ryow exit=0 utc=2026-10-05T02:31:10Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 279760 byte(s) leaked in 64 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001381 witness_s=0.0013019358739256859 ceiling_ms=30000
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=119105 final=True errors=[] threads_still_alive=False hold_s=0.001366 witness_s=0.0012923162430524826 ceiling_ms=30000
+  ok   OFF control exposes RENAMENX losing race anomalies=26 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=02 exit=1 utc=2026-10-05T02:31:10Z
+START tier=asan run=03 utc=2026-10-05T02:31:10Z
+TEST tier=asan run=03 test=torture exit=0 utc=2026-10-05T02:31:18Z
+TEST tier=asan run=03 test=ryow exit=0 utc=2026-10-05T02:31:19Z
+TEST tier=asan run=03 test=atomic_torn exit=0 utc=2026-10-05T02:31:44Z
+TEST tier=asan run=03 test=atomic_ryow exit=0 utc=2026-10-05T02:31:48Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 263376 byte(s) leaked in 64 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001459 witness_s=0.0013921856880187988 ceiling_ms=30000
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=133372 final=True errors=[] threads_still_alive=False hold_s=0.001326 witness_s=0.0012582759372889996 ceiling_ms=30000
+  ok   OFF control exposes RENAMENX losing race anomalies=30 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=03 exit=1 utc=2026-10-05T02:31:48Z
+START tier=asan run=04 utc=2026-10-05T02:31:48Z
+TEST tier=asan run=04 test=torture exit=0 utc=2026-10-05T02:31:56Z
+TEST tier=asan run=04 test=ryow exit=0 utc=2026-10-05T02:31:57Z
+TEST tier=asan run=04 test=atomic_torn exit=0 utc=2026-10-05T02:32:22Z
+TEST tier=asan run=04 test=atomic_ryow exit=0 utc=2026-10-05T02:32:26Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 279760 byte(s) leaked in 64 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001367 witness_s=0.0013071559369564056 ceiling_ms=30000
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=100069 final=True errors=[] threads_still_alive=False hold_s=0.001449 witness_s=0.0013921461068093777 ceiling_ms=30000
+  ok   OFF control exposes RENAMENX losing race anomalies=10 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=04 exit=1 utc=2026-10-05T02:32:27Z
+START tier=asan run=05 utc=2026-10-05T02:32:27Z
+TEST tier=asan run=05 test=torture exit=0 utc=2026-10-05T02:32:34Z
+TEST tier=asan run=05 test=ryow exit=0 utc=2026-10-05T02:32:35Z
+TEST tier=asan run=05 test=atomic_torn exit=0 utc=2026-10-05T02:33:01Z
+TEST tier=asan run=05 test=atomic_ryow exit=0 utc=2026-10-05T02:33:05Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 312528 byte(s) leaked in 64 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001429 witness_s=0.001370925921946764 ceiling_ms=30000
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=100523 final=True errors=[] threads_still_alive=False hold_s=0.001451 witness_s=0.0013873358257114887 ceiling_ms=30000
+  ok   OFF control exposes RENAMENX losing race anomalies=44 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=05 exit=1 utc=2026-10-05T02:33:05Z
+START tier=asan run=06 utc=2026-10-05T02:33:05Z
+TEST tier=asan run=06 test=torture exit=0 utc=2026-10-05T02:33:13Z
+TEST tier=asan run=06 test=ryow exit=0 utc=2026-10-05T02:33:14Z
+TEST tier=asan run=06 test=atomic_torn exit=0 utc=2026-10-05T02:33:39Z
+TEST tier=asan run=06 test=atomic_ryow exit=0 utc=2026-10-05T02:33:43Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 263376 byte(s) leaked in 64 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001404 witness_s=0.0013534058816730976 ceiling_ms=30000
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=128329 final=True errors=[] threads_still_alive=False hold_s=0.001322 witness_s=0.0012621749192476273 ceiling_ms=30000
+  ok   OFF control exposes RENAMENX losing race anomalies=29 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=06 exit=1 utc=2026-10-05T02:33:43Z
+START tier=asan run=07 utc=2026-10-05T02:33:43Z
+TEST tier=asan run=07 test=torture exit=0 utc=2026-10-05T02:33:51Z
+TEST tier=asan run=07 test=ryow exit=0 utc=2026-10-05T02:33:52Z
+TEST tier=asan run=07 test=atomic_torn exit=0 utc=2026-10-05T02:34:17Z
+TEST tier=asan run=07 test=atomic_ryow exit=0 utc=2026-10-05T02:34:21Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 263376 byte(s) leaked in 64 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001387 witness_s=0.0013191057369112968 ceiling_ms=30000
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=139375 final=True errors=[] threads_still_alive=False hold_s=0.001404 witness_s=0.0013393759727478027 ceiling_ms=30000
+  ok   OFF control exposes RENAMENX losing race anomalies=30 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=07 exit=1 utc=2026-10-05T02:34:22Z
+START tier=asan run=08 utc=2026-10-05T02:34:22Z
+TEST tier=asan run=08 test=torture exit=0 utc=2026-10-05T02:34:30Z
+TEST tier=asan run=08 test=ryow exit=0 utc=2026-10-05T02:34:31Z
+TEST tier=asan run=08 test=atomic_torn exit=0 utc=2026-10-05T02:34:56Z
+TEST tier=asan run=08 test=atomic_ryow exit=0 utc=2026-10-05T02:35:00Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 312528 byte(s) leaked in 64 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001397 witness_s=0.0013181059621274471 ceiling_ms=30000
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=136949 final=True errors=[] threads_still_alive=False hold_s=0.001399 witness_s=0.0013323449529707432 ceiling_ms=30000
+  ok   OFF control exposes RENAMENX losing race anomalies=40 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=08 exit=1 utc=2026-10-05T02:35:00Z
+START tier=asan run=09 utc=2026-10-05T02:35:00Z
+TEST tier=asan run=09 test=torture exit=0 utc=2026-10-05T02:35:08Z
+TEST tier=asan run=09 test=ryow exit=0 utc=2026-10-05T02:35:09Z
+TEST tier=asan run=09 test=atomic_torn exit=0 utc=2026-10-05T02:35:34Z
+TEST tier=asan run=09 test=atomic_ryow exit=0 utc=2026-10-05T02:35:38Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 263376 byte(s) leaked in 64 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001401 witness_s=0.0013358350843191147 ceiling_ms=30000
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=103277 final=True errors=[] threads_still_alive=False hold_s=0.001367 witness_s=0.0012949449010193348 ceiling_ms=30000
+  SKIP OFF control exposes RENAMENX losing race clean run, losing race never manifested (kernel-timing geometry)
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=09 exit=1 utc=2026-10-05T02:35:38Z
+START tier=asan run=10 utc=2026-10-05T02:35:38Z
+TEST tier=asan run=10 test=torture exit=0 utc=2026-10-05T02:35:46Z
+TEST tier=asan run=10 test=ryow exit=0 utc=2026-10-05T02:35:47Z
+TEST tier=asan run=10 test=atomic_torn exit=0 utc=2026-10-05T02:36:12Z
+TEST tier=asan run=10 test=atomic_ryow exit=0 utc=2026-10-05T02:36:16Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 312528 byte(s) leaked in 64 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001478 witness_s=0.0014077560044825077 ceiling_ms=30000
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=99095 final=True errors=[] threads_still_alive=False hold_s=0.000370 witness_s=0.00030741235241293907 ceiling_ms=30000
+  SKIP OFF control exposes RENAMENX losing race clean run, losing race never manifested (kernel-timing geometry)
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=10 exit=1 utc=2026-10-05T02:36:17Z

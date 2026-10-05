@@ -1,0 +1,35 @@
+{
+  "group": "ex1",
+  "inventory": {
+    "1": 2,
+    "3": 34,
+    "6": 6,
+    "30": 10
+  },
+  "kind": "A: PRE behaviour for the selected item(s), exact POST text size and function layout",
+  "patches": [
+    {
+      "address": 436663,
+      "after": "e954000000",
+      "before": "0f1f440000",
+      "functions": [
+        "_ZN8tomo_db05Shard12publish_sizeEv"
+      ],
+      "item": 1,
+      "offset": 436663,
+      "target": 436752
+    },
+    {
+      "address": 4167735,
+      "after": "e954000000",
+      "before": "0f1f440000",
+      "functions": [
+        "_ZN4tomo5Shard12publish_sizeEv"
+      ],
+      "item": 1,
+      "offset": 4167735,
+      "target": 4167824
+    }
+  ],
+  "source_sha256": "410da97a4e6f851646773c8b863a867dd6c355ed79222d1ab16c08e4f5c38359"
+}

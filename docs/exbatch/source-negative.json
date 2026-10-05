@@ -1,0 +1,7 @@
+[
+  {
+    "mutation": "remove real PRE size publication store",
+    "reason": "('PRE control body differs', 'void publish_size()')",
+    "rejected": true
+  }
+]

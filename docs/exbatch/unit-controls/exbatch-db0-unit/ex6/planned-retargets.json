@@ -1,0 +1,79 @@
+{
+  "kind": "A: PRE behaviour for the selected item(s), exact POST text size and function layout",
+  "group": "ex6",
+  "source_sha256": "1cd99bfdba8b6f33cb19b9fa744cc2050d978c14bdefba78353d46b126259918",
+  "inventory": {
+    "3": 31,
+    "1": 2,
+    "30": 10,
+    "6": 6
+  },
+  "patches": [
+    {
+      "address": 3435582,
+      "offset": 3435582,
+      "target": 3435646,
+      "item": 6,
+      "before": "0f1f440000",
+      "after": "e93b000000",
+      "functions": [
+        "_ZN8tomo_db012_GLOBAL__N_111child_countERKNS_15CommandMetadataE"
+      ]
+    },
+    {
+      "address": 3436881,
+      "offset": 3436881,
+      "target": 3437056,
+      "item": 6,
+      "before": "0f1f440000",
+      "after": "e9aa000000",
+      "functions": [
+        "_ZN8tomo_db023command_metadata_lookupENS_5SliceE"
+      ]
+    },
+    {
+      "address": 3444407,
+      "offset": 3444407,
+      "target": 3444496,
+      "item": 6,
+      "before": "0f1f440000",
+      "after": "e954000000",
+      "functions": [
+        "_ZN8tomo_db024command_metadata_resolveERNS_2OpEj"
+      ]
+    },
+    {
+      "address": 6879486,
+      "offset": 6879486,
+      "target": 6879550,
+      "item": 6,
+      "before": "0f1f440000",
+      "after": "e93b000000",
+      "functions": [
+        "_ZN4tomo12_GLOBAL__N_111child_countERKNS_15CommandMetadataE"
+      ]
+    },
+    {
+      "address": 6880785,
+      "offset": 6880785,
+      "target": 6880960,
+      "item": 6,
+      "before": "0f1f440000",
+      "after": "e9aa000000",
+      "functions": [
+        "_ZN4tomo23command_metadata_lookupENS_5SliceE"
+      ]
+    },
+    {
+      "address": 6888327,
+      "offset": 6888327,
+      "target": 6888416,
+      "item": 6,
+      "before": "0f1f440000",
+      "after": "e954000000",
+      "functions": [
+        "_ZN4tomo24command_metadata_resolveERNS_2OpEj"
+      ]
+    }
+  ]
+}
