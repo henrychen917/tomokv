@@ -1,0 +1,43 @@
+{
+  "EX2": "unchanged",
+  "cache_mutators": {
+    "arm": 2,
+    "erase_refresh": 3
+  },
+  "executor_byte_identical": true,
+  "generated_metadata_byte_identical": true,
+  "legacy_bodies": [
+    {
+      "exact_PRE_tokens": true,
+      "file": "src/core/shard.h",
+      "function": "void publish_size()",
+      "tokens": 62
+    },
+    {
+      "exact_PRE_tokens": true,
+      "file": "src/core/shard.h",
+      "function": "bool has_watches() const",
+      "tokens": 16
+    },
+    {
+      "exact_PRE_tokens": true,
+      "file": "src/cmd/cmdmeta.cc",
+      "function": "uint32_t child_count(",
+      "tokens": 30
+    },
+    {
+      "exact_PRE_tokens": true,
+      "file": "src/cmd/cmdmeta.cc",
+      "function": "const CommandMetadata* command_metadata_lookup(",
+      "tokens": 27
+    },
+    {
+      "exact_PRE_tokens": true,
+      "file": "src/cmd/cmdmeta.cc",
+      "function": "const CommandMetadata* command_metadata_resolve(",
+      "tokens": 155
+    }
+  ],
+  "note": "The cached bit stays on its physical Shard across migration; no per-owner sidecar.",
+  "reference": "cd02ecbab1502775f1c170e806971d1f7bbc3ee9"
+}

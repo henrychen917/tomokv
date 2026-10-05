@@ -1,0 +1,68 @@
+{
+  "kind": "Serverless mechanism control; not a measurement PAD arm",
+  "group": "watch-no-update",
+  "source_sha256": "394a35300e4a04c5c709294d7555696711c9cc4f5d7a5ea4cf21d54111967470",
+  "inventory": {
+    "3": 15,
+    "1": 1,
+    "30": 5,
+    "6": 3
+  },
+  "patches": [
+    {
+      "address": 554091,
+      "offset": 554091,
+      "target": 553946,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e96affffff",
+      "functions": [
+        "_ZN4tomo5Shard26watch_finalize_reservationERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 556326,
+      "offset": 556326,
+      "target": 556219,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e990ffffff",
+      "functions": [
+        "_ZN4tomo5Shard17watch_prune_staleERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 558311,
+      "offset": 558311,
+      "target": 558064,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e904ffffff",
+      "functions": [
+        "_ZN4tomo5Shard12watch_removeENS_5SliceEPNS_6ClientEm"
+      ]
+    },
+    {
+      "address": 558979,
+      "offset": 558979,
+      "target": 558768,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e928ffffff",
+      "functions": [
+        "_ZN4tomo5Shard9watch_addENS_5SliceEPNS_6ClientEmt"
+      ]
+    },
+    {
+      "address": 559818,
+      "offset": 559818,
+      "target": 559828,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e905000000",
+      "functions": [
+        "_ZN4tomo5Shard24watch_append_reservationERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNS0_16WatchReservationE"
+      ]
+    }
+  ]
+}

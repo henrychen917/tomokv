@@ -1,0 +1,277 @@
+{
+  "kind": "A: PRE behaviour for the selected item(s), exact POST text size and function layout",
+  "group": "all",
+  "source_sha256": "394a35300e4a04c5c709294d7555696711c9cc4f5d7a5ea4cf21d54111967470",
+  "inventory": {
+    "3": 15,
+    "1": 1,
+    "30": 5,
+    "6": 3
+  },
+  "patches": [
+    {
+      "address": 185072,
+      "offset": 185072,
+      "target": 185088,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90b000000",
+      "functions": [
+        "_ZN12_GLOBAL__N_17watchesERKN4tomo5ShardE"
+      ]
+    },
+    {
+      "address": 235047,
+      "offset": 235047,
+      "target": 235136,
+      "item": 1,
+      "before": "0f1f440000",
+      "after": "e954000000",
+      "functions": [
+        "_ZN4tomo5Shard12publish_sizeEv"
+      ]
+    },
+    {
+      "address": 396656,
+      "offset": 396656,
+      "target": 396720,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e93b000000",
+      "functions": [
+        "_ZN4tomo5Shard19watch_database_swapEhhhhPSt6vectorISt4pairIPNS_6ClientEmESaIS5_EE"
+      ]
+    },
+    {
+      "address": 398180,
+      "offset": 398180,
+      "target": 398192,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e907000000",
+      "functions": [
+        "_ZN4tomo5Shard19watch_database_swapEhh"
+      ]
+    },
+    {
+      "address": 554091,
+      "offset": 554091,
+      "target": 553946,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e96affffff",
+      "functions": [
+        "_ZN4tomo5Shard26watch_finalize_reservationERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 554214,
+      "offset": 554214,
+      "target": 554272,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e935000000",
+      "functions": [
+        "_ZN4tomo5Shard17watch_write_readyENS_5SliceEPKv"
+      ]
+    },
+    {
+      "address": 554678,
+      "offset": 554678,
+      "target": 554736,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e935000000",
+      "functions": [
+        "_ZN4tomo23multi_plain_write_readyERNS_5ShardERNS_2OpE"
+      ]
+    },
+    {
+      "address": 555125,
+      "offset": 555125,
+      "target": 555184,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e936000000",
+      "functions": [
+        "_ZN4tomo5Shard21watch_all_write_readyEv"
+      ]
+    },
+    {
+      "address": 555709,
+      "offset": 555709,
+      "target": 555728,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90e000000",
+      "functions": [
+        "_ZN4tomo5Shard25watch_all_write_committedEi"
+      ]
+    },
+    {
+      "address": 556326,
+      "offset": 556326,
+      "target": 556219,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e990ffffff",
+      "functions": [
+        "_ZN4tomo5Shard17watch_prune_staleERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 556442,
+      "offset": 556442,
+      "target": 556496,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e931000000",
+      "functions": [
+        "_ZN4tomo5Shard21watch_write_committedENS_5SliceEPNS_6ClientEm"
+      ]
+    },
+    {
+      "address": 556932,
+      "offset": 556932,
+      "target": 556976,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e927000000",
+      "functions": [
+        "_ZN4tomo27multi_plain_write_committedERNS_5ShardERNS_2OpE"
+      ]
+    },
+    {
+      "address": 557357,
+      "offset": 557357,
+      "target": 557408,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e92e000000",
+      "functions": [
+        "_ZN4tomo19xshard_watch_finishERKNS_4TaskERNS_5ShardERNS_2OpENS_17ScatterTaskResultE"
+      ]
+    },
+    {
+      "address": 558311,
+      "offset": 558311,
+      "target": 558064,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e904ffffff",
+      "functions": [
+        "_ZN4tomo5Shard12watch_removeENS_5SliceEPNS_6ClientEm"
+      ]
+    },
+    {
+      "address": 558979,
+      "offset": 558979,
+      "target": 558768,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e928ffffff",
+      "functions": [
+        "_ZN4tomo5Shard9watch_addENS_5SliceEPNS_6ClientEmt"
+      ]
+    },
+    {
+      "address": 559818,
+      "offset": 559818,
+      "target": 559828,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e905000000",
+      "functions": [
+        "_ZN4tomo5Shard24watch_append_reservationERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNS0_16WatchReservationE"
+      ]
+    },
+    {
+      "address": 561500,
+      "offset": 561500,
+      "target": 561552,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e92f000000",
+      "functions": [
+        "_ZN4tomo5Shard19watch_reserve_writeENS_5SliceEPNS_6ClientEmPKvPSt6atomicImEPS6_IbEPS6_IjE"
+      ]
+    },
+    {
+      "address": 565456,
+      "offset": 565456,
+      "target": 566064,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e95b020000",
+      "functions": [
+        "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj"
+      ]
+    },
+    {
+      "address": 2569028,
+      "offset": 2569028,
+      "target": 2569040,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e907000000",
+      "functions": [
+        "_ZNK4tomo5Shard11has_watchesEv"
+      ]
+    },
+    {
+      "address": 2719073,
+      "offset": 2719073,
+      "target": 2720250,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e994040000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 2722497,
+      "offset": 2722497,
+      "target": 2723690,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9a4040000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3400270,
+      "offset": 3400270,
+      "target": 3400334,
+      "item": 6,
+      "before": "0f1f440000",
+      "after": "e93b000000",
+      "functions": [
+        "_ZN4tomo12_GLOBAL__N_111child_countERKNS_15CommandMetadataE"
+      ]
+    },
+    {
+      "address": 3401569,
+      "offset": 3401569,
+      "target": 3401744,
+      "item": 6,
+      "before": "0f1f440000",
+      "after": "e9aa000000",
+      "functions": [
+        "_ZN4tomo23command_metadata_lookupENS_5SliceE"
+      ]
+    },
+    {
+      "address": 3409111,
+      "offset": 3409111,
+      "target": 3409200,
+      "item": 6,
+      "before": "0f1f440000",
+      "after": "e954000000",
+      "functions": [
+        "_ZN4tomo24command_metadata_resolveERNS_2OpEj"
+      ]
+    }
+  ]
+}

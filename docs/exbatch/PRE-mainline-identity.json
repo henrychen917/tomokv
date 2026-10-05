@@ -1,0 +1,16 @@
+{
+  "paths": [
+    "/home/user/Projects/cx-exbatch/build/exbatch/PRE/build/tomokv",
+    "/home/user/Projects/bench-bins/tomokv-headline-cd02ecbab"
+  ],
+  "text_equal": true,
+  "text_bytes": [
+    7729345,
+    7729345
+  ],
+  "text_sha256": [
+    "c44b7d6be8b1bdcb941002a569e7bf6f3cf9b0cce1f3c69064ee8d7f5771d9aa",
+    "c44b7d6be8b1bdcb941002a569e7bf6f3cf9b0cce1f3c69064ee8d7f5771d9aa"
+  ],
+  "functions_equal": true
+}

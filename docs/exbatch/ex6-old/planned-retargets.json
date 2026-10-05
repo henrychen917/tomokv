@@ -1,0 +1,79 @@
+{
+  "group": "ex6",
+  "inventory": {
+    "1": 2,
+    "3": 34,
+    "6": 6,
+    "30": 10
+  },
+  "kind": "A: PRE behaviour for the selected item(s), exact POST text size and function layout",
+  "patches": [
+    {
+      "address": 3758574,
+      "after": "e93b000000",
+      "before": "0f1f440000",
+      "functions": [
+        "_ZN8tomo_db012_GLOBAL__N_111child_countERKNS_15CommandMetadataE"
+      ],
+      "item": 6,
+      "offset": 3758574,
+      "target": 3758638
+    },
+    {
+      "address": 3759873,
+      "after": "e9aa000000",
+      "before": "0f1f440000",
+      "functions": [
+        "_ZN8tomo_db023command_metadata_lookupENS_5SliceE"
+      ],
+      "item": 6,
+      "offset": 3759873,
+      "target": 3760048
+    },
+    {
+      "address": 3767399,
+      "after": "e954000000",
+      "before": "0f1f440000",
+      "functions": [
+        "_ZN8tomo_db024command_metadata_resolveERNS_2OpEj"
+      ],
+      "item": 6,
+      "offset": 3767399,
+      "target": 3767488
+    },
+    {
+      "address": 7530974,
+      "after": "e93b000000",
+      "before": "0f1f440000",
+      "functions": [
+        "_ZN4tomo12_GLOBAL__N_111child_countERKNS_15CommandMetadataE"
+      ],
+      "item": 6,
+      "offset": 7530974,
+      "target": 7531038
+    },
+    {
+      "address": 7532273,
+      "after": "e9aa000000",
+      "before": "0f1f440000",
+      "functions": [
+        "_ZN4tomo23command_metadata_lookupENS_5SliceE"
+      ],
+      "item": 6,
+      "offset": 7532273,
+      "target": 7532448
+    },
+    {
+      "address": 7539815,
+      "after": "e954000000",
+      "before": "0f1f440000",
+      "functions": [
+        "_ZN4tomo24command_metadata_resolveERNS_2OpEj"
+      ],
+      "item": 6,
+      "offset": 7539815,
+      "target": 7539904
+    }
+  ],
+  "source_sha256": "410da97a4e6f851646773c8b863a867dd6c355ed79222d1ab16c08e4f5c38359"
+}
