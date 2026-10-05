@@ -14,6 +14,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from lbstall_artifacts import Elf
+from rlfence_artifacts import island_plan
 
 
 def text_size(path):
@@ -63,9 +64,31 @@ def main():
     assert old.keys() == new.keys(), "padding changed the function inventory"
     assert all((old[name]['value'], old[name]['size']) == (new[name]['value'], new[name]['size'])
                for name in old if before.names[old[name]['sec']] == '.text'), "text function placement moved"
+    # The existing read-local retirement islands follow .text. Relinking moves
+    # their four entry/return pairs; the ordinary-body audit does not cover them.
+    # Independently validate every island with the established instruction tool,
+    # then require ALL remaining .text bytes to be identical, not just hot names.
+    pre_plan = island_plan(args.post, before)['patches']
+    pad_plan = island_plan(args.output, after)['patches']
+    assert len(pre_plan) == len(pad_plan) == 4
+    text_index = before.names.index('.text')
+    text_base = before.sections[text_index][3]
+    pre_text = before.section_data(text_index)
+    pad_text = after.section_data(after.names.index('.text'))
+    restored = bytearray(pad_text[:len(pre_text)])
+    for old_island, new_island in zip(pre_plan, pad_plan):
+        assert (old_island['entry'], old_island['continuation']) == (new_island['entry'], new_island['continuation'])
+        assert [i['bytes'] for i in old_island['disassembly'][:5]] == [i['bytes'] for i in new_island['disassembly'][:5]]
+        entry = old_island['entry'] - text_base
+        assert pre_text[entry] == restored[entry] == 0xe9
+        restored[entry + 1:entry + 5] = pre_text[entry + 1:entry + 5]
+    assert restored == pre_text, 'unexpected executable change outside the four island relocations'
+    assert pad_text[len(pre_text):] == b'\x90' * padding, 'padding is not inert NOP bytes'
     receipt = dict(kind="B: inverse control", behaviour="POST", padding_bytes=padding,
                    pre_text=wanted, post_text=current, pad_text=text_size(args.output),
                    text_function_addresses_and_sizes_unchanged=True,
+                   four_island_entry_return_pairs_verified=True,
+                   other_text_bytes_identical=True,
                    sha256=hashlib.sha256(args.output.read_bytes()).hexdigest())
     (args.output.parent / "receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
     print(json.dumps(receipt, indent=2))

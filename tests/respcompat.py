@@ -100,8 +100,12 @@ def run_case(endpoint, case):
                 raise AssertionError(f"expected {expected!r}, got {actual!r}")
         if case.closes:
             sock.settimeout(3)
-            # Require graceful EOF after the entire error, not a reset or timeout.
-            trailing = sock.recv(1)
+            # Exact error bytes were already consumed. A reset can accompany
+            # close when pipelined input remains unread; a timeout is not close.
+            try:
+                trailing = sock.recv(1)
+            except ConnectionResetError:
+                return
             if trailing != b"":
                 raise AssertionError(f"expected close after error; extra bytes {trailing!r}")
         else:

@@ -16,3 +16,11 @@ See MEASURE-REQUEST-lbplanner.md for the complete report and mainline-only cells
 three regimes, counters, arms and pass conditions. PRE, POST and verified PAD-A
 are built; serverless proofs pass. No server, benchmark, live test or gate was run.
 Mainline measurement and live-gate acceptance remain pending.
+
+Lane respcompat: NET13 / NET14 / NET15 / NET16 / NET19
+
+See MEASURE-REQUEST-respcompat.md for exact wire behavior, 311 raw-socket cases,
+serverless results, the complete changed-body audit, and PRE/POST/PAD-B digests.
+PAD-B is a B inverse control: POST behavior plus padding restoring PRE text size.
+Mainline owns the 14-cell null and live Redis/gate runs. One row before quick exit:
+owner count update 497/514 -> 498/515; no EXPECT or fixture edits in this lane.

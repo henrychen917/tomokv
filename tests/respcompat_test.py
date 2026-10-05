@@ -60,6 +60,13 @@ class WireOracleTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             self.run_script([self.error[:-1], b""])
 
+    def test_reset_after_complete_error_passes(self):
+        self.run_script([self.error, ConnectionResetError()])
+
+    def test_reset_before_complete_error_fails(self):
+        with self.assertRaises(ConnectionResetError):
+            self.run_script([self.error[:-1], ConnectionResetError()])
+
     def test_reply_after_error_fails(self):
         with self.assertRaises(AssertionError):
             self.run_script([self.error + wire.PONG, b""])
