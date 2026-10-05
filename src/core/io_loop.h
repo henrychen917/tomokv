@@ -201,6 +201,7 @@ public:
 
     bool activate() {
         if (!initialized_) return false;
+        refresh_save_cron_writer();
         if (active_role_) {
             self_->set_ring(&ring_);
             self_->set_wb_engine(&wb_);
@@ -539,19 +540,20 @@ private:
             }
 #endif
             lb_pass_begin(); // one shared pause snapshot before any connection parsing
+            flip_pass_begin(); // one acquire before any parser or cron in this IO pass
             refresh_notify_config();
             // ONE relaxed load per io batch. Per-batch checks are free; this is what buys the
             // per-operation hooks their zero-cost-when-off property.
             if (__builtin_expect(srv_->climon_armed() != climon_armed_cached_, false))
                 climon_refresh_armed();
             const bool pause_armed = climon_pause_armed();
-            const bool client_cron_armed = !srv_->flip_dispatch_paused() &&
+            const bool client_cron_armed = !flip_dispatch_paused() &&
                                            srv_->client_cron_armed();
             const bool client_lb_signal_armed = client_lb_signal_armed_;
-            // Placement's dense role vectors are mutated only under FLIP's global dispatch
-            // barrier. Do not consult them from an IO pass while that cold transaction is live.
-            const bool save_cron_armed = !srv_->flip_dispatch_paused() &&
-                                         srv_->save_cron_writer(self_->id());
+            // The elected IO alone checks live save/shutdown policy on the one-second beat.
+            // Election is private: never read Placement's mutable vectors on a hot pass.
+            const bool save_cron_armed = !flip_dispatch_paused() &&
+                                         save_cron_writer_;
             const bool client_cron_newly_armed = client_cron_armed && !client_cron_was_armed_;
             if (!client_cron_armed && __builtin_expect(client_cron_was_armed_, false)) {
                 // Turning the last client cron consumer off also retires output accounting once.
@@ -618,9 +620,9 @@ private:
                 did += scatter_pool_.refresh_snapshot_floor(*srv_, self_->id());
                 if constexpr (HasUnix) did += flush_handoffs();
                 did += multi_owner_pass_entry(*this);
-                if (srv_->aof().writer_is(self_->id()))
+                if (aof_writer_bound())
                     did += srv_->aof().writer_pass(*self_, ring_);
-                if (srv_->snapshot().writer_is(self_->id()))
+                if (snapshot_writer_bound())
                     did += srv_->snapshot().writer_pass(*self_, ring_);
                 if (__builtin_expect(!deferred_timers_.empty(), false)) {
                     // CQ processing above may have created the first timer after the prologue.
@@ -2067,7 +2069,14 @@ private:
 
     template <bool kEp>
     uint32_t flip_control_pass() {
+        // An Idle pass may finish publishing work before acknowledging a newly opened drain.
+        // Defer that acknowledgement to the next pass: sweep/epoll can still parse after this
+        // tail, and they must never dispatch through an Idle snapshot AFTER a drain ACK.
+        if (__builtin_expect(flip_stage_snapshot_ == FlipStage::Idle, true)) return 0;
+        // Keep the live acquire on the armed control path. A previous stage may have finished
+        // and a new epoch started during this pass; its stage/ACK must not use the old sample.
         const FlipStage stage = srv_->flip_stage();
+        if (flip_stage_snapshot_ != kNoFlipSnapshot) flip_stage_snapshot_ = stage;
         if (stage == FlipStage::Idle) return 0;
         if constexpr (!kSingleDatabase)
             if (stage <= FlipStage::DatabaseRun) return database_control_pass();
@@ -2157,6 +2166,7 @@ private:
                 srv_->flip_ack(self_->id(), stage);
         } else if (stage == FlipStage::RoleReady &&
                    !srv_->flip_acked(self_->id(), stage)) {
+            refresh_save_cron_writer();
             if (flip_pubsub_rehome_epoch_ != srv_->flip_epoch()) {
                 flip_pubsub_rehome_epoch_ = srv_->flip_epoch();
                 pubsub_rehome_local(flip_pubsub_rehome_epoch_);
@@ -2981,6 +2991,73 @@ private:
         touched_list_[ntouched_++] = worker;
     }
 
+    __attribute__((noinline)) bool dispatch_atomic_scatter(
+            Client* c, Op& op, const ScatterDispatch& dispatch) {
+        // Only atomic writes enter this frame. Ordinary GET/SET and the plain scatter arm keep
+        // their own scratch; no capacity-sized Task default construction lives on their frame.
+        // Stack storage scales with this group's shards/participants and allocates no heap.
+        const uint32_t nshards = dispatch.nshards;
+        const uint32_t self_id = self_->id();
+        struct Route { uint32_t owner; int32_t shard; };
+        auto* routes = static_cast<Route*>(__builtin_alloca(sizeof(Route) * nshards));
+        auto* participants = static_cast<uint32_t*>(__builtin_alloca(
+            sizeof(uint32_t) * std::min(nshards, kMaxThreads)));
+        uint32_t* const needed = dispatch_needed_;
+        uint32_t nparticipants = 0;
+        for (uint32_t i = 0; i < nshards; ++i) {
+            const int32_t sid = xshard_dispatch_shard(dispatch, i);
+            const uint32_t tid = srv_->worker_of_shard(sid);
+            std::construct_at(routes + i, Route{tid, sid});
+            if (needed[tid]++ == 0) participants[nparticipants++] = tid;
+        }
+        for (uint32_t p = 0; p < nparticipants; ++p) {
+            const uint32_t tid = participants[p];
+            if (srv_->thread(tid).task_free_slots(self_id) < needed[tid]) {
+                // The only retry exit: no ROB publication or group count yet. Clear every
+                // touched owner before abandoning, including those after the refusing owner.
+                for (uint32_t q = 0; q < nparticipants; ++q) needed[participants[q]] = 0;
+                xshard_abandon_unpublished(dispatch.state, scatter_pool_, self_id);
+                return false;
+            }
+        }
+        // Allocate the bundle only after capacity succeeds. Construct each used Task exactly
+        // once (including its zero enqueue stamp), instead of default-constructing 256 Tasks
+        // and overwriting the live prefix. Destruction is trivial after the queues copy them.
+        static_assert(std::is_trivially_destructible_v<Task>);
+        auto* posts = static_cast<Task*>(__builtin_alloca(sizeof(Task) * nshards));
+        auto* participant_begin = static_cast<uint32_t*>(__builtin_alloca(
+            sizeof(uint32_t) * nparticipants));
+        const uint64_t op_id = c->rob().dispatch_id();
+        op.attach_scatter_state(dispatch.state);
+        c->atomic_group_started();
+        c->rob().publish();
+        uint32_t cursor = 0;
+        for (uint32_t p = 0; p < nparticipants; ++p) {
+            const uint32_t tid = participants[p];
+            participant_begin[p] = cursor;
+            cursor += needed[tid];
+            needed[tid] = participant_begin[p]; // demand becomes this owner's fill cursor
+        }
+        for (uint32_t i = 0; i < nshards; ++i) {
+            const auto route = routes[i];
+            std::construct_at(posts + needed[route.owner]++, c, op_id, route.shard, dispatch.state);
+        }
+        // Restore zero-on-entry before every remaining exit, including invariant aborts.
+        for (uint32_t p = 0; p < nparticipants; ++p) needed[participants[p]] = 0;
+        if (cursor != nshards) std::abort();
+        for (uint32_t p = 0; p < nparticipants; ++p) {
+            const uint32_t tid = participants[p];
+            const uint32_t begin = participant_begin[p];
+            const uint32_t end = p + 1 < nparticipants ? participant_begin[p + 1] : nshards;
+            // Capacity precedes publication; each owner still receives one ordered bundle
+            // with one queue-tail store. The parse pass folds notification exactly as before.
+            if (!srv_->thread(tid).post_tasks_quiet(self_id, posts + begin, end - begin, self_->sig()))
+                std::abort();
+            touch_worker(tid);
+        }
+        return true;
+    }
+
     // ---- parse -> route -> publish -----------------------------------------------------------------
     template <bool NoBorrow, uint32_t BatchOps = 0, bool IoPipe = false,
               bool SplitLocal = false>
@@ -3008,9 +3085,6 @@ private:
         auto post_task_quiet = [&](ThreadCtx& owner, const Task& task) {
             return owner.post_task_quiet(self_id, task, sig);
         };
-        auto post_tasks_quiet = [&](ThreadCtx& owner, const Task* tasks, uint32_t count) {
-            return owner.post_tasks_quiet(self_id, tasks, count, sig);
-        };
         DispatchResult result = DispatchResult::Progress;
         bool head_candidate = true;   // only the pass's FIRST dispatch can be the direct head
         const uint8_t security_flags = srv_->security_flags();
@@ -3029,6 +3103,11 @@ private:
             flip_fingerprint_finish_pass();
             return result;
         }
+        // Idle can become a drain while parsing, but that drain cannot commit until this IO's
+        // later ACK. A paused sample remains conservative through completion. All per-frame
+        // map stamping, demotion and dispatch gates use this same decision; no mixed-stage
+        // stamp can escape. The coordinator connection below retains its immediate live gate.
+        const bool flip_pause_this_pass = flip_dispatch_paused();
         // ONE epoch for the whole parse pass, not one per op. Monotonicity needs the stamps to be
         // non-decreasing along the connection, not distinct: every op this pass parses may share
         // the pass's cut, and the next pass's cut is >= this one because the sequence only moves
@@ -3065,7 +3144,10 @@ private:
             // The coordinator's own connection already holds the unfinished FLIP head. Do not
             // parse behind it. Other connections may still parse the FLIP report/control command
             // below so live-vs-target remains observable while the dispatch barrier is active.
-            if (__builtin_expect(srv_->flip_dispatch_paused() && c == flip_client_, false)) break;
+            // A FLIP command can start on this IO after the outer pass sampled Idle. Its own
+            // unfinished head must still stop reparsing immediately. Test the private pointer
+            // first: all other connections avoid this shared load entirely.
+            if (__builtin_expect(c == flip_client_ && srv_->flip_dispatch_paused(), false)) break;
             if (c->scatter_barrier() || c->parse_backpressure()) break;
             if constexpr (Fused)
                 if (read_local_enabled && rob.local_mget_fence_pending()) break;
@@ -3256,7 +3338,7 @@ private:
                 // check, letting an old physical stamp through the new Idle stage.
                 // Starting from Idle is safe: a new boundary needs this pass's
                 // tail acknowledgement before it can publish its map.
-                if (srv_->flip_dispatch_paused() && !(spec->flags & CmdFlags::FlipAsync) &&
+                if (flip_pause_this_pass && !(spec->flags & CmdFlags::FlipAsync) &&
                     !multidb_dispatch_allowed(*srv_, *c)) {
                     c->set_flip_backpressure(true);
                     break;
@@ -3621,7 +3703,7 @@ private:
             if constexpr (Fused) {
                 if (read_local_enabled && read_local_demotion.active() &&
                     read_local_demotion.partial()) {
-                    if (__builtin_expect(srv_->flip_dispatch_paused(), false) &&
+                    if (__builtin_expect(flip_pause_this_pass, false) &&
                         !(spec->flags & CmdFlags::FlipAsync) &&
                         !(!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))) {
                         c->set_flip_backpressure(true);
@@ -3639,7 +3721,7 @@ private:
                 __builtin_expect(climon_armed_gate(c, *op), false)) break;
             if (__builtin_expect(security_check, false) &&
                 acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
-            if (__builtin_expect(srv_->flip_dispatch_paused(), false) &&
+            if (__builtin_expect(flip_pause_this_pass, false) &&
                 !(spec->flags & CmdFlags::FlipAsync) &&
                 !(!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))) {
                 // No ordinary request may create IO-local fanout or executor work after the first
@@ -4138,59 +4220,7 @@ nonblocking_dispatch:
                     continue;
                 }
 
-                uint32_t needed[kMaxThreads] = {};
-                uint32_t participants[kMaxThreads];
-                uint16_t routed_owner[256];
-                int32_t routed_shard[256];
-                uint32_t nparticipants = 0;
-                for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
-                    const int32_t sid = xshard_dispatch_shard(scatter_dispatch, i);
-                    const uint32_t tid = srv_->worker_of_shard(sid);
-                    routed_shard[i] = sid;
-                    routed_owner[i] = static_cast<uint16_t>(tid);
-                    if (needed[tid]++ == 0) participants[nparticipants++] = tid;
-                }
-                bool room = true;
-                for (uint32_t p = 0; p < nparticipants; p++) {
-                    const uint32_t tid = participants[p];
-                    if (task_free_slots(srv_->thread(tid)) < needed[tid]) {
-                        room = false; break;
-                    }
-                }
-                if (!room) {
-                    xshard_abandon_unpublished(scatter_dispatch.state, scatter_pool_, self_id);
-                    break;
-                }
-                const uint64_t op_id = rob.dispatch_id();
-                op->attach_scatter_state(scatter_dispatch.state);
-                c->atomic_group_started();
-                rob.publish();
-                Task posts[256];
-                uint16_t participant_begin[kMaxThreads];
-                uint32_t cursor = 0;
-                for (uint32_t p = 0; p < nparticipants; p++) {
-                    const uint32_t tid = participants[p];
-                    participant_begin[p] = static_cast<uint16_t>(cursor);
-                    cursor += needed[tid];
-                    needed[tid] = participant_begin[p]; // reuse as the fill cursor
-                }
-                for (uint32_t i = 0; i < scatter_dispatch.nshards; i++) {
-                    const uint32_t tid = routed_owner[i];
-                    posts[needed[tid]++] = Task{
-                        c, op_id, routed_shard[i], scatter_dispatch.state};
-                }
-                if (cursor != scatter_dispatch.nshards) std::abort();
-                for (uint32_t p = 0; p < nparticipants; p++) {
-                    const uint32_t tid = participants[p];
-                    const uint32_t begin = participant_begin[p];
-                    const uint32_t end = p + 1 < nparticipants
-                        ? participant_begin[p + 1] : scatter_dispatch.nshards;
-                    ThreadCtx& owner = srv_->thread(tid);
-                    // Capacity was checked before any push. Publish all of this group's tasks for
-                    // one executor with one queue-tail store; the parse-pass notify remains folded.
-                    if (!post_tasks_quiet(owner, posts + begin, end - begin)) std::abort();
-                    if (!touched_[tid]) { touched_[tid] = true; touched_list_[ntouched_++] = tid; }
-                }
+                if (!dispatch_atomic_scatter(c, *op, scatter_dispatch)) break;
                 self_->note_command(spec->id); // one public command, not one count per shard task
                 flip_fingerprint_note(*spec, *op);
                 conn.advance_parse(consumed);
@@ -4520,9 +4550,9 @@ ordinary_shard_ready:
         }
         if (__builtin_expect(!routing_forward_.empty(), false))
             client_routing_cleanup_pass();
-        if (srv_->snapshot().writer_is(self_->id()))
+        if (snapshot_writer_bound())
             work += srv_->snapshot().writer_pass(*self_, ring_, true);
-        if (srv_->aof().writer_is(self_->id()))
+        if (aof_writer_bound())
             work += srv_->aof().writer_pass(*self_, ring_, true);
         return work;
     }
@@ -4545,9 +4575,9 @@ ordinary_shard_ready:
                 true, natural_order, submitted, cursor);
         if (__builtin_expect(!routing_forward_.empty(), false))
             client_routing_cleanup_pass();
-        if (srv_->snapshot().writer_is(self_->id()))
+        if (snapshot_writer_bound())
             work += srv_->snapshot().writer_pass(*self_, ring_, true);
-        if (srv_->aof().writer_is(self_->id()))
+        if (aof_writer_bound())
             work += srv_->aof().writer_pass(*self_, ring_, true);
         return work;
     }
@@ -4595,7 +4625,8 @@ ordinary_shard_ready:
         // every active conn every pass measured 93% EMPTY serves at 8 nodes -- 526M drain-checks
         // that each pulled a remote worker's cache line to learn there was nothing to do. Targeted
         // serving turns the poll into a response.
-        for (uint32_t w = 0; w < ReadyMask::kWords; w++) {
+        const uint32_t words = self_->wb_slot_words();
+        for (uint32_t w = 0; w < words; w++) {
             uint64_t bits = self_->ready().take(w);
             while (bits) {
                 const uint32_t b = static_cast<uint32_t>(__builtin_ctzll(bits));
@@ -4760,7 +4791,7 @@ ordinary_shard_ready:
             if (c->atomic_backpressure() && srv_->atomic_can_admit(self_->id()) &&
                 scatter_pool_.can_register_snapshot())
                 c->set_atomic_backpressure(false);
-            if (c->flip_backpressure() && (!srv_->flip_dispatch_paused() ||
+            if (c->flip_backpressure() && (!flip_dispatch_paused() ||
                 (!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))))
                 c->set_flip_backpressure(false);
             if (c->rob().quiesced() && (kEp || !conn.recv_armed()))
@@ -5088,7 +5119,7 @@ ordinary_shard_ready:
             // Success, pre-commit rollback, and synchronous validation refusal all end by publishing
             // Idle. The flag travels with a migrated Client, so this runs on whichever IO owns it
             // after the FLIP and retries the still-unconsumed frame in the re-parse below.
-            if (c->flip_backpressure() && (!srv_->flip_dispatch_paused() ||
+            if (c->flip_backpressure() && (!flip_dispatch_paused() ||
                 (!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))))
                 c->set_flip_backpressure(false);
             // Under epoll the second half of this guard is vacuous and would be actively
@@ -5462,12 +5493,50 @@ ordinary_shard_ready:
         return static_cast<uint32_t>(lb_client_observations_.size());
     }
 
+    bool aof_writer_bound() const {
+        // bind_writer succeeds on every configured IO, but only the elected one writes.
+        // aof_bound_ stays sticky across IO->EX->IO: ring lifetime/binding is unchanged.
+        return aof_bound_ && srv_->aof().writer_is(self_->id());
+    }
+
+    bool snapshot_writer_bound() {
+        if (!self_->snapshot_writer_bound()) return false;
+        if (srv_->snapshot().writer_is(self_->id())) return true;
+        // Only this IO can start a new snapshot using its writer identity. A peer may select
+        // itself after Idle, but cannot race a new epoch onto this private latch.
+        self_->set_snapshot_writer_bound(false);
+        return false;
+    }
+
+    void flip_pass_begin() { flip_stage_snapshot_ = srv_->flip_stage(); }
+
+    bool flip_dispatch_paused() const {
+        // Standalone/cold callers outside run_loop have no pass snapshot. Keep their existing
+        // live fence (including serverless witnesses); every production pass sets this byte.
+        return (flip_stage_snapshot_ == kNoFlipSnapshot ? srv_->flip_stage()
+                                                       : flip_stage_snapshot_) != FlipStage::Idle;
+    }
+
+    void refresh_save_cron_writer() {
+        // Boot/CONFIG and the RoleReady acquire are the only election readers. Role stores
+        // precede RoleReady, and another conversion cannot begin before this IO acknowledges.
+        // activate() can run between individual role stores: do not inspect Placement then.
+        const auto stage = srv_->flip_stage();
+        if (stage != FlipStage::Idle && stage != FlipStage::RoleReady) return;
+        const auto& owners = srv_->placement().ifid_threads();
+        save_cron_writer_ = !owners.empty() && owners.front() == self_->id();
+        // Keep the elected looker even with save "". A signal can set kSignalShutdown after
+        // CONFIG captured its mailbox, without changing the config version. save_cron_pass()
+        // rechecks the live policy on its cold beat, including that signal/CONFIG race.
+    }
+
     void refresh_notify_config() {
         LiveConfigSnapshot snapshot;
         if (!srv_->live_config_snapshot_if_changed(
                 self_->id(), notify_config_version_, snapshot)) return;
         notify_config_armed_ = snapshot.notify_events != 0;
         save_config_armed_ = snapshot.save_armed;
+        refresh_save_cron_writer();
         notify_armed_ = notify_config_armed_ || save_config_armed_ ||
                         climon_armed_cached_ != 0;
         proto_max_bulk_len_ = snapshot.proto_max_bulk_len;
@@ -5662,6 +5731,9 @@ ordinary_shard_ready:
     bool     lb_controller_armed_ = false;
     bool     lb_client_wake_pending_ = false;
     bool     age_signals_armed_ = false;
+    bool     save_cron_writer_ = false; // elected owner, independent of live save/shutdown policy
+    static constexpr FlipStage kNoFlipSnapshot = static_cast<FlipStage>(UINT8_MAX);
+    FlipStage flip_stage_snapshot_ = kNoFlipSnapshot;
     uint32_t age_sample_rate_cached_ = 0;
     uint32_t lb_wake_cursor_ = UINT32_MAX;
     std::vector<LbClientObservation> lb_client_observations_;
@@ -5676,8 +5748,9 @@ ordinary_shard_ready:
     bool touched_[kMaxThreads] = {};      // dedupe flags for the current parse pass
     uint32_t touched_list_[kMaxThreads] = {}; // the workers actually fed, dense
     uint32_t ntouched_ = 0;
-    // Per-owner task demand for the plain scatter dispatch. INVARIANT: every entry is zero on
-    // entry to and on exit from the dispatch arm, so the arm never zeroes the whole array and
+    // Per-owner task demand for plain AND atomic scatter dispatch. INVARIANT: every entry is zero
+    // on entry to and on exit from either arm (atomic also restores its temporary fill cursors),
+    // so neither arm zeroes the whole array and
     // never walks it. Cost becomes proportional to the shards this op actually touches instead
     // of to the configured thread count.
     uint32_t dispatch_needed_[kMaxThreads] = {};

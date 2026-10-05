@@ -1,0 +1,28 @@
+PASS probeadapter states db=0: disabled Hit Missing AtomicPending Churn real-resize
+ARMED blocking-control ring=4096 reclaims=0 stale_tick=1 old_capacity=0 cursor=0 old_live=0
+DEADLINE: armed operation did not return within 1.000s
+PASS blocking-control proves pinned retirement blocks (status=10752)
+ARMED find ring=4096 reclaims=0 stale_tick=1 old_capacity=64 cursor=56 old_live=6
+RETURNED find ring=4096 reclaims=0 stale_tick_unchanged=1
+PASS find read must not wait for quiescence (status=0)
+ARMED no-touch ring=4096 reclaims=0 stale_tick=1 old_capacity=64 cursor=56 old_live=6
+RETURNED no-touch ring=4096 reclaims=0 stale_tick_unchanged=1
+PASS no-touch read must not wait for quiescence (status=0)
+ARMED notify ring=4096 reclaims=0 stale_tick=1 old_capacity=64 cursor=56 old_live=6
+RETURNED notify ring=4096 reclaims=0 stale_tick_unchanged=1
+PASS notify read must not wait for quiescence (status=0)
+ARMED resident ring=4096 reclaims=0 stale_tick=1 old_capacity=64 cursor=56 old_live=6
+RETURNED resident ring=4096 reclaims=0 stale_tick_unchanged=1
+PASS resident read must not wait for quiescence (status=0)
+ARMED tracked ring=4096 reclaims=0 stale_tick=1 old_capacity=64 cursor=56 old_live=6
+RETURNED tracked ring=4096 reclaims=0 stale_tick_unchanged=1
+PASS tracked read must not wait for quiescence (status=0)
+ARMED resolve ring=4096 reclaims=0 stale_tick=1 old_capacity=64 cursor=56 old_live=6
+RETURNED resolve ring=4096 reclaims=0 stale_tick_unchanged=1
+PASS resolve read must not wait for quiescence (status=0)
+ARMED foreign ring=4096 reclaims=0 stale_tick=1 old_capacity=64 cursor=56 old_live=6
+RETURNED foreign ring=4096 reclaims=0 stale_tick_unchanged=1
+PASS foreign read must not wait for quiescence (status=0)
+ARMED expiry ring=4096 reclaims=0 stale_tick=1 old_capacity=0 cursor=0 old_live=0
+RETURNED expiry ring=4096 reclaims=0 stale_tick_unchanged=1
+PASS expiry read must not wait for quiescence (status=0)

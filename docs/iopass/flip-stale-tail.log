@@ -1,0 +1,1 @@
+PASS negative control flip-stale-tail rejected: FAIL core concurrency: armed control tail does not ACK an old sampled stage in a new epoch

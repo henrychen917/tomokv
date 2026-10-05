@@ -1,0 +1,18 @@
+PASS flushfix expiry: db0
+PASS flushfix semantics: db0 armed=0 snapshot=0
+PASS flushfix semantics: db0 armed=0 snapshot=1
+PASS flushfix semantics: db0 armed=1 snapshot=0
+PASS flushfix semantics: db0 armed=1 snapshot=1
+PASS flushfix expiry: multi
+PASS flushfix semantics: multi armed=0 snapshot=0
+PASS flushfix semantics: multi armed=0 snapshot=1
+PASS flushfix semantics: multi armed=1 snapshot=0
+PASS flushfix semantics: multi armed=1 snapshot=1
+PASS receipt flushfix-unit semantics exit=0
+PASS flushfix memory: db0 FLUSHDB keys=65536 key-bytes=2048 headroom=2097152 cap=206225408 peak-rss-kib=178312->178312
+PASS receipt flushfix-unit memory-db0 exit=0
+PASS flushfix memory: multi FLUSHDB keys=65536 key-bytes=2048 headroom=2097152 cap=206225408 peak-rss-kib=178312->178312
+PASS receipt flushfix-unit memory-multi exit=0
+PASS flushfix memory: db0 FLUSHALL keys=65536 key-bytes=2048 headroom=2097152 cap=212516864 peak-rss-kib=179856->179856
+PASS receipt flushfix-unit memory-all exit=0
+PASS flushfix flush: 4/4 strict outcomes

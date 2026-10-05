@@ -1,0 +1,31 @@
+RUN python3 tests/atomic_plain.py --self-test
+test_boot_only_setup_and_cleanup_both_modes (__main__.self_test.<locals>.HarnessControls.test_boot_only_setup_and_cleanup_both_modes) ... ok
+test_cleanup_preserves_the_original_failure (__main__.self_test.<locals>.HarnessControls.test_cleanup_preserves_the_original_failure) ... ok
+test_correct_data_without_each_window_witness_still_fails (__main__.self_test.<locals>.HarnessControls.test_correct_data_without_each_window_witness_still_fails) ... ok
+test_data_reply_and_counter_failures_are_not_retried (__main__.self_test.<locals>.HarnessControls.test_data_reply_and_counter_failures_are_not_retried) ... ok
+test_missing_probe_never_arms (__main__.self_test.<locals>.HarnessControls.test_missing_probe_never_arms) ... ok
+test_rearm_requires_a_successful_fresh_window (__main__.self_test.<locals>.HarnessControls.test_rearm_requires_a_successful_fresh_window) ... ok
+test_unentered_window_fails_after_four_fresh_attempts (__main__.self_test.<locals>.HarnessControls.test_unentered_window_fails_after_four_fresh_attempts) ... ok
+test_wrong_boot_is_a_failure_before_any_race (__main__.self_test.<locals>.HarnessControls.test_wrong_boot_is_a_failure_before_any_race) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.037s
+
+OK
+PASS python3 tests/atomic_plain.py --self-test
+RUN build/atomic-survivors-unit plain_0
+  PASS AT2 six blocking pop kinds, atomic=0
+  PASS AT1 SMOVE
+  PASS AT1 LMOVE
+  PASS AT1 RPOPLPUSH
+  PASS AT1 LMPOP
+  PASS AT1 ZMPOP
+  PASS AT1 MSET
+  PASS AT1 DEL
+  PASS AT1 UNLINK
+PASS plain_0
+PASS build/atomic-survivors-unit plain_0
+RUN build/atomic-survivors-unit plain_1
+  PASS AT2 six blocking pop kinds, atomic=1
+PASS plain_1
+PASS build/atomic-survivors-unit plain_1

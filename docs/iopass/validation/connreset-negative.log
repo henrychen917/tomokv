@@ -1,0 +1,32 @@
+F.FF
+======================================================================
+FAIL: test_baseline_failure_joins_monitor_before_server_and_preserves_cause (__main__.HarnessCleanup.test_baseline_failure_joins_monitor_before_server_and_preserves_cause)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-iopass/tests/connreset_harness_test.py", line 83, in test_baseline_failure_joins_monitor_before_server_and_preserves_cause
+    self.assertEqual(result["reason"], "balanced total_moves=1, limit=0 (key=0, client=1)")
+AssertionError: 'sampler failed: [Errno 104] Connection reset by peer' != 'balanced total_moves=1, limit=0 (key=0, client=1)'
+- sampler failed: [Errno 104] Connection reset by peer
++ balanced total_moves=1, limit=0 (key=0, client=1)
+
+
+======================================================================
+FAIL: test_success_joins_once_before_server (__main__.HarnessCleanup.test_success_joins_once_before_server)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-iopass/tests/connreset_harness_test.py", line 104, in test_success_joins_once_before_server
+    self.assertEqual(events.count("sampler-joined"), 1)
+AssertionError: 2 != 1
+
+======================================================================
+FAIL: test_two_failures_keep_original_and_record_observer_failure (__main__.HarnessCleanup.test_two_failures_keep_original_and_record_observer_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-iopass/tests/connreset_harness_test.py", line 97, in test_two_failures_keep_original_and_record_observer_failure
+    self.assertIn("balanced total_moves=1", result["reason"])
+AssertionError: 'balanced total_moves=1' not found in 'sampler failed: [Errno 104] Connection reset by peer'
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.004s
+
+FAILED (failures=3)

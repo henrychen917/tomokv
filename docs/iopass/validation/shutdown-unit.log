@@ -1,0 +1,15 @@
+Errors trying to SHUTDOWN: injected snapshot refusal; server remains running
+Errors trying to SHUTDOWN: shutdown timed out waiting for snapshot/placement; retry SHUTDOWN; server remains running
+shutdown saving owner 2s phase=0 completion: PASS
+shutdown saving owner 1s phase=0 completion: PASS
+shutdown saving owner 2s phase=1 timeout/retry: PASS
+shutdown saving owner 1s phase=1 timeout/retry: PASS
+shutdown saving owner 2s phase=2 timeout/retry: PASS
+shutdown saving owner 1s phase=2 timeout/retry: PASS
+shutdown saving owner 2s phase=3 timeout/retry: PASS
+shutdown saving owner 1s phase=3 timeout/retry: PASS
+shutdown saving owner 2s phase=4 timeout/retry: PASS
+shutdown saving owner 1s phase=4 timeout/retry: PASS
+shutdown saving owner 2s phase=0 BGSAVE/signal: PASS
+shutdown saving owner 1s phase=0 BGSAVE/signal: PASS
+shutdown policy, signal handoff, failure and owner hold: PASS

@@ -56,7 +56,8 @@ def removal_inventory(root):
 def function(source, name, member=True):
     if not member:
         return base.function(source, name, False)
-    match = re.search(r'^    (?:uint32_t|void|bool|DispatchResult) ' + re.escape(name) + r'\(', source, re.M)
+    match = re.search(r'^    (?:__attribute__\(\(noinline\)\) )?'
+                      r'(?:uint32_t|void|bool|DispatchResult) ' + re.escape(name) + r'\(', source, re.M)
     if not match:
         raise ValueError('missing source method ' + name)
     start = match.start()
@@ -149,10 +150,22 @@ def envelopes():
                 # Include scatter publications: a Long can precede an ordinary
                 # task without itself passing the ordinary stamp site. Locally
                 # completed Longs are harmless; pending_before prunes Done.
-                assert body.count('rob.publish();') == 12
+                # IO7 moved atomic scatter's publication into the shared helper.
+                # Keep its index entry IO-private before delegation, and remove
+                # it on refusal (the helper leaves dispatch_id unchanged).
+                atomic = function(io, 'dispatch_atomic_scatter')
+                assert atomic.count('c->rob().publish();') == 1
+                needle = 'if (!dispatch_atomic_scatter(c, *op, scatter_dispatch)) break;'
+                assert body.count(needle) == 1
+                assert body.count('rob.publish();') == 11
                 body = re.sub(r'^( *)rob.publish\(\);',
                               r'\1r7::ShadowLongIndex::record(*c, *op);\n\1rob.publish();',
                               body, flags=re.M)
+                body = body.replace(needle, '''r7::ShadowLongIndex::record(*c, *op);
+            if (!dispatch_atomic_scatter(c, *op, scatter_dispatch)) {
+                r7::ShadowLongIndex::unpublish(*c);
+                break;
+            }''')
                 assert body.count('rob.unpublish();') == 1
                 body = re.sub(r'^( *)rob.unpublish\(\);([^\n]*)',
                               r'\1rob.unpublish();\2\n\1r7::ShadowLongIndex::unpublish(*c);',
