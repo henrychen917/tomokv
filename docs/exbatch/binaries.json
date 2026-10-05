@@ -56,5 +56,22 @@
       "sha256": "cf7ac7a27c312c0f154829c4692b9d682ef0cb599b8ef939d22f1db8d805e008",
       "bytes": 82563840
     }
-  ]
+  ],
+  "post_commit": "d1687d34d2a94b53ae490abd3cac66022dc1daa4",
+  "post_commit_evidence": "First commit containing these receipts; src/, third_party/ and Makefile are unchanged from dd832b807878c89c69066681ac6f3eddfa144080. Original receipts did not record POST HEAD.",
+  "build": {
+    "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "cxxflags": "-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread",
+    "ldlibs": "-luring -pthread",
+    "je": 1,
+    "jobs": 16,
+    "cpus": "112-127",
+    "post_directory": "/home/user/Projects/cx-exbatch",
+    "pre_directory": "/home/user/Projects/cx-exbatch/build/exbatch/PRE/source",
+    "evidence": [
+      "docs/exbatch/final-build.log.gz",
+      "docs/exbatch/pre-build.log.gz",
+      "docs/exbatch/build-and-checks.json"
+    ]
+  }
 }

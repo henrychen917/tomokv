@@ -8,6 +8,9 @@ is available, checks a local busy loop on CPUs 112-127.
 check; all workload commands are printed.
 Normal invocation owns/reaps its children, boots fresh state for EVERY sample,
 and retains failed samples. See MEASURE-REQUEST-exbatch-bench.md for scopes.
+--arms replaces the frozen table with a path+SHA256 receipt; PRE and POST are
+required, while absent controls are reported as not available. See
+MEASURE-REQUEST-exbatch-bench4.md for lane versus landed-mainline framing.
 """
 from __future__ import annotations
 
@@ -40,6 +43,7 @@ from gate_quiet import QuietMonitor
 
 INVENTORY = ROOT / "docs/exbatch/measurement-cells.json"
 RECEIPTS = ROOT / "docs/exbatch/binaries.json"
+MAINLINE_RECEIPT = ROOT / "docs/exbatch/mainline-arms.json"
 MEMTIER = "/usr/bin/memtier_benchmark"
 ARMS = ("PRE", "PAD-A", "POST", "EX1-OLD", "EX3-OLD", "EX6-OLD")
 BASES = ("exbatch_watch_w32", "exbatch_hz32", "exbatch_object32",
@@ -551,7 +555,57 @@ def arm_paths():
             for a in ARMS}
 
 
-def prepare_arms(dry=False):
+def bind_arms(receipt=None):
+    """Bind a replacement table once; relative binaries are receipt-relative."""
+    path = (receipt if receipt is not None else RECEIPTS).resolve()
+    raw = path.read_bytes()
+    identity = dict(path=str(path), sha256=hashlib.sha256(raw).hexdigest(),
+                    source="--arms" if receipt is not None else "frozen lane receipts")
+    if receipt is None:
+        return None, identity
+
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            require(key not in result, f"duplicate arm receipt field: {key}")
+            result[key] = value
+        return result
+
+    data = json.loads(raw, object_pairs_hook=unique)
+    require(isinstance(data, dict) and {"PRE", "POST"} <= set(data) <= set(ARMS),
+            "arms receipt requires PRE and POST; optional arms: PAD-A, EX1-OLD, EX3-OLD, EX6-OLD")
+    table = {}
+    for arm, entry in data.items():
+        require(isinstance(entry, dict) and set(entry) == {"path", "sha256"},
+                f"{arm} receipt must contain exactly path and sha256")
+        name, sha = entry["path"], entry["sha256"]
+        require(isinstance(name, str) and name and isinstance(sha, str) and
+                re.fullmatch(r"[0-9a-f]{64}", sha), f"invalid {arm} path/SHA256 receipt")
+        table[arm] = dict(path=str((path.parent / name).resolve()), sha256=sha)
+    return table, identity
+
+
+def verify_receipt(receipt):
+    require(digest(receipt["path"]) == receipt["sha256"], "arms receipt changed after binding")
+
+
+def arm_kind(arm):
+    return ("A: PRE behaviour at POST layout" if arm == "PAD-A" else
+            "A: selected old item at POST layout" if arm.endswith("OLD") else "source build")
+
+
+def prepare_arms(dry=False, table=None):
+    if table is not None:
+        identities = {}
+        for arm, entry in table.items():
+            path = Path(entry["path"])
+            require(path.is_file() and os.access(path, os.X_OK),
+                    f"{arm} binary missing/not executable in explicit arms receipt: {path}")
+            actual = digest(path)
+            require(actual == entry["sha256"], f"{arm} SHA differs from explicit arms receipt: {path}")
+            identities[arm] = dict(path=str(path), sha256=actual, expected_sha256=entry["sha256"],
+                                   kind=arm_kind(arm))
+        return identities
     manifest = json.loads(RECEIPTS.read_text())
     paths = arm_paths()
     expected = {r["arm"]: r["sha256"] for r in manifest["artifacts"]}
@@ -607,10 +661,41 @@ def prepare_arms(dry=False):
                 f'{n}\t{v:016x}\t{z}\t{s}\n' for n, v, z, s in functions)
             with gzip.open(ROOT / "docs/exbatch/pre-post-identity/REFERENCE-functions.tsv.gz", "rt") as stream:
                 require(table == stream.read(), "rebuilt PRE function addresses/sizes differ from report")
-        identities[arm] = dict(path=str(path), sha256=actual, expected_sha256=expected[arm],
-                               kind="A: PRE behaviour at POST layout" if arm == "PAD-A" else
-                                    "A: selected old item at POST layout" if arm.endswith("OLD") else "source build")
+        identities[arm] = dict(path=str(path), sha256=actual, expected_sha256=expected[arm], kind=arm_kind(arm))
     return identities
+
+
+def measurement_framing(identities, receipt):
+    headline = json.loads(MAINLINE_RECEIPT.read_text())
+    if set(identities) == set(headline) and all(identities[a]["sha256"] == headline[a]["sha256"] for a in headline):
+        return dict(name="mainline", description="headline 07023fd6e -> 1055409c2; includes every landing between them "
+                    "(only exbatch); no PAD/EX-OLD controls")
+    frozen = json.loads(RECEIPTS.read_text())
+    expected = {r["arm"]: r["sha256"] for r in frozen["artifacts"] if r["arm"] in ARMS}
+    if receipt["source"] == "frozen lane receipts" or (set(identities) == set(ARMS) and all(
+            identities[a]["sha256"] == expected[a] for a in ARMS)):
+        return dict(name="lane", description="original EX1/EX3/EX6 lane; PAD-A kind A is PRE behaviour at POST layout; "
+                    "EX*-OLD are kind-A selected-item controls")
+    return dict(name="explicit", description="supplied receipt binaries; attribution limited to the available controls")
+
+
+def unavailable_comparison(a, b, identities):
+    missing = [arm for arm in (a, b) if arm not in identities]
+    if missing:
+        return dict(A=a, B=b, status="not available", missing_arms=missing,
+                    reason="arms absent from receipt: " + ", ".join(missing))
+    return None
+
+
+def primary_plateaus(comps, identities):
+    rates = {a: [] for a in ("PRE", "PAD-A", "POST") if a in identities}
+    for comp in comps:
+        if comp.get("status") == "not available" or not {comp["A"], comp["B"]} <= rates.keys():
+            continue
+        rates[comp["A"]].append(comp["left"]["rate"])
+        rates[comp["B"]].append(comp["right"]["rate"])
+    require(all(rates.values()), "missing primary arm plateau")
+    return {a: statistics.mean(v) for a, v in rates.items()}
 
 
 def info(conn, section):
@@ -1220,7 +1305,18 @@ def aggregate(samples):
                 repeat_spread_pct=100 * (max(s["rate"] for s in samples) / min(s["rate"] for s in samples) - 1))
 
 
-def endgame(cell, a, b, left, right, q):
+def framing_suffix(framing):
+    return f"; framing={framing['name']}: {framing['description']}" if framing else ""
+
+
+def unavailable_row(cell, comparison, q, framing):
+    base, regime = cell["id"].rsplit("_", 1)
+    return (f"EXBATCH-DIRECTED {base} {regime} {comparison['A']}->{comparison['B']} "
+            f"not available; {comparison['reason']}; matched={q if q is not None else 'plateau'}" +
+            framing_suffix(framing))
+
+
+def endgame(cell, a, b, left, right, q, framing=None):
     base, regime = cell["id"].rsplit("_", 1)
     delta = lambda key: 100 * (right[key] / left[key] - 1)
     return (f"EXBATCH-DIRECTED {base} {regime} {a}->{b} "
@@ -1228,7 +1324,8 @@ def endgame(cell, a, b, left, right, q):
             f"p50={left['p50']:.3f}/{right['p50']:.3f} p99={left['p99']:.3f}/{right['p99']:.3f} "
             f"cyc/op={left['cycles_per_op']:.3f}/{right['cycles_per_op']:.3f} ({delta('cycles_per_op'):+.2f}%) "
             f"instr/op={left['instr_per_op']:.3f}/{right['instr_per_op']:.3f} "
-            f"ipc={left['ipc']:.4f}/{right['ipc']:.4f} matched={q if q is not None else 'plateau'}")
+            f"ipc={left['ipc']:.4f}/{right['ipc']:.4f} matched={q if q is not None else 'plateau'}" +
+            framing_suffix(framing))
 
 
 def block_checks(samples, q):
@@ -1255,9 +1352,12 @@ def block_checks(samples, q):
                 min(s["observer"]["central_successful"] for s in samples) <= 2, "poll cadence differs across arms")
 
 
-def dry_run(cells, identities, output, blocks):
+def dry_run(cells, identities, output, blocks, receipt=None, framing=None):
+    identities = {a: dict(entry) for a, entry in identities.items()}
     print("# DRY RUN: only memtier --help was executed. No server, load, perf, socket, build or output directory is created.")
     print("# arm SHA256 identities " + json.dumps(identities, sort_keys=True))
+    print("# arms receipt " + json.dumps(receipt, sort_keys=True))
+    print("# measurement framing " + json.dumps(framing, sort_keys=True))
     print(shlex.join([MEMTIER, "--help"]) + " # already checked; SHA-bound grammar receipt")
     print("git rev-parse HEAD")
     guard = dict(path=str(output / "guard/zero-reply.so"))
@@ -1276,9 +1376,14 @@ def dry_run(cells, identities, output, blocks):
         base, _ = cell["id"].rsplit("_", 1)
         for phase, q in (("plateau", None), ("matched", "Q_" + cell["id"])):
             if q:
-                print(f"# {q}=floor(0.8*min(mean PRE/PAD-A/POST primary plateau frames/s)/512)")
+                primary = "/".join(a for a in ("PRE", "PAD-A", "POST") if a in identities)
+                print(f"# {q}=floor(0.8*min(mean {primary} primary plateau frames/s)/512)")
             pairs = [("PRE", "PRE")] + comparisons(cell)
             for pair_index, (a, b) in enumerate(pairs):
+                unavailable = unavailable_comparison(a, b, identities)
+                if unavailable:
+                    print("# " + unavailable_row(cell, unavailable, q, framing))
+                    continue
                 for block in range(blocks):
                     for index, arm in enumerate((a, b, b, a)):
                         folder = output / cell["id"] / phase / f"pair{pair_index}-block{block}-{index}-{arm}"
@@ -1310,14 +1415,19 @@ def dry_run(cells, identities, output, blocks):
                         print("# verify exact whole-run server/HDR counts, replies/mix/state, rate target, PMU coverage; terminate/reap owned server")
 
 
-def run(cells, identities, output, blocks, memtier):
+def run(cells, identities, output, blocks, memtier, receipt=None, framing=None):
     require(not output.exists(), "output already exists; never overwrite/reuse prior samples")
+    receipt = receipt or bind_arms()[1]
+    verify_receipt(receipt)
+    framing = framing or measurement_framing(identities, receipt)
     require(set(range(112)) <= os.sched_getaffinity(0), "mainline launch must permit CPUs 0-111")
     os.sched_setaffinity(0, {8})
     output.mkdir(parents=True)
-    instrument_files = [Path(__file__).resolve(), INVENTORY, RECEIPTS,
+    instrument_files = [Path(__file__).resolve(), INVENTORY, RECEIPTS, MAINLINE_RECEIPT,
                         *[ROOT / "tests" / n for n in ("_lib.py", "abba_workloads.py", "abba_saturation.py", "gate_quiet.py", "gateplan.py")]]
-    report = dict(schema=1, complete=False, arms=identities, memtier=memtier,
+    report = dict(schema=2, complete=False, arms=identities, arms_receipt=receipt, framing=framing,
+                  unavailable_arms={a: "not available: absent from receipt" for a in ARMS if a not in identities},
+                  memtier=memtier,
                   instrument={str(p.relative_to(ROOT)): digest(p) for p in instrument_files},
                   git_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                   regimes=sorted({c["id"].rsplit("_", 1)[1] for c in cells}), cells={}, rows=[],
@@ -1341,6 +1451,14 @@ def run(cells, identities, output, blocks, memtier):
             for phase in ("plateau", "matched"):
                 pass_entry = entry["passes"][phase] = dict(q=q, null=[], comparisons=[], blocks=[])
                 for pair_index, (a, b) in enumerate([("PRE", "PRE")] + comparisons(cell)):
+                    unavailable = unavailable_comparison(a, b, identities)
+                    if unavailable:
+                        pass_entry["comparisons"].append(unavailable)
+                        row = unavailable_row(cell, unavailable, q, framing)
+                        report["rows"].append(row)
+                        print(row, flush=True)
+                        save(output / "results.json", report)
+                        continue
                     groups = [[], []]
                     for block in range(blocks):
                         samples = []
@@ -1357,7 +1475,7 @@ def run(cells, identities, output, blocks, memtier):
                         block_checks(samples, q)
                         block_record["accepted"] = True
                     left, right = map(aggregate, groups)
-                    comparison = dict(A=a, B=b, left=left, right=right,
+                    comparison = dict(A=a, B=b, status="measured", left=left, right=right,
                                       samples=[[s["artifacts"] for s in g] for g in groups])
                     if pair_index == 0:
                         pass_entry["null"] = comparison
@@ -1365,16 +1483,12 @@ def run(cells, identities, output, blocks, memtier):
                         save(output / "results.json", report)
                     else:
                         pass_entry["comparisons"].append(comparison)
-                        row = endgame(cell, a, b, left, right, q)
+                        row = endgame(cell, a, b, left, right, q, framing)
                         report["rows"].append(row)
                         print(row, flush=True)
                     save(output / "results.json", report)
                 if phase == "plateau":
-                    rates = {a: [] for a in ("PRE", "PAD-A", "POST")}
-                    for comp in pass_entry["comparisons"][:3]:
-                        rates[comp["A"]].append(comp["left"]["rate"])
-                        rates[comp["B"]].append(comp["right"]["rate"])
-                    plateaus = {a: statistics.mean(v) for a, v in rates.items()}
+                    plateaus = primary_plateaus(pass_entry["comparisons"], identities)
                     q = math.floor(.8 * min(plateaus.values()) / CONNECTIONS)
                     require(q > 0, "plateau too low for a positive common q")
                     entry["plateau_frames_per_second"], entry["matched_q"] = plateaus, q
@@ -1771,6 +1885,148 @@ def self_test():
                 with self.assertRaisesRegex(RuntimeError, "POST SHA"):
                     prepare_arms()
 
+        def arms_fixture(self, arms=("PRE", "POST")):
+            entries = {}
+            for arm in arms:
+                binary = self.folder / arm
+                binary.write_text("synthetic " + arm)
+                binary.chmod(0o700)
+                entries[arm] = dict(path=arm, sha256=digest(binary))
+            receipt = self.folder / "arms.json"
+            save(receipt, entries)
+            return receipt, entries
+
+        def test_explicit_receipt_binds_relative_paths_and_itself(self):
+            receipt, entries = self.arms_fixture(("PRE", "POST", "EX6-OLD"))
+            table, identity = bind_arms(receipt)
+            self.assertEqual(identity, dict(path=str(receipt), sha256=digest(receipt), source="--arms"))
+            self.assertEqual(set(table), set(entries))
+            # A replacement must work even if the frozen binaries/receipts are gone.
+            with mock.patch.dict(globals(), RECEIPTS=self.folder / "absent-frozen.json"), \
+                 mock.patch.dict(globals(), arm_paths=mock.Mock(side_effect=AssertionError("frozen fallback"))):
+                bound = prepare_arms(table=table)
+            for arm in entries:
+                self.assertEqual(bound[arm]["path"], str(self.folder / arm))
+                self.assertEqual(bound[arm]["sha256"], entries[arm]["sha256"])
+            self.assertNotIn("PAD-A", bound)
+            verify_receipt(identity)
+            receipt.write_text(receipt.read_text() + "\n")
+            with self.assertRaisesRegex(RuntimeError, "receipt changed"):
+                verify_receipt(identity)
+
+        def test_explicit_sha_mismatch_refuses_real_and_dry_runs(self):
+            receipt, _ = self.arms_fixture()
+            table, _ = bind_arms(receipt)
+            (self.folder / "POST").write_text("wrong binary")
+            for dry in (False, True):
+                with self.assertRaisesRegex(RuntimeError, "POST SHA differs from explicit"):
+                    prepare_arms(dry=dry, table=table)
+
+        def test_explicit_missing_or_nonexecutable_arm_never_falls_back(self):
+            receipt, _ = self.arms_fixture()
+            table, _ = bind_arms(receipt)
+            (self.folder / "POST").chmod(0o600)
+            with self.assertRaisesRegex(RuntimeError, "POST binary missing/not executable"):
+                prepare_arms(table=table)
+            (self.folder / "POST").unlink()
+            with self.assertRaisesRegex(RuntimeError, "POST binary missing/not executable"):
+                prepare_arms(dry=True, table=table)
+
+        def test_explicit_receipt_rejects_bad_schema_and_duplicate_fields(self):
+            receipt, entries = self.arms_fixture()
+            bad = [[], {}, {"PRE": entries["PRE"]}, dict(entries, TYPO=entries["POST"]),
+                   dict(entries, POST={"path": "POST", "sha256": "bad"}),
+                   dict(entries, POST={"path": "", "sha256": entries["POST"]["sha256"]}),
+                   dict(entries, POST=dict(entries["POST"], extra=1))]
+            for document in bad:
+                save(receipt, document)
+                with self.assertRaises(RuntimeError):
+                    bind_arms(receipt)
+            for raw in ('{"PRE": {}, "PRE": {}}', '{"PRE": {"path": "x", "path": "y"}}'):
+                receipt.write_text(raw)
+                with self.assertRaisesRegex(RuntimeError, "duplicate"):
+                    bind_arms(receipt)
+
+        def test_explicit_dry_cli_skips_unavailable_controls_without_creating_output(self):
+            import io
+            receipt, _ = self.arms_fixture()
+            output = self.folder / "dry-output"
+            stream = io.StringIO()
+            with mock.patch.dict(globals(), memtier_identity=mock.Mock(return_value={})), \
+                 contextlib.redirect_stdout(stream):
+                code = main(["--dry-run", "--arms", str(receipt), "--cell", BASES[3],
+                             "--regime", "f0", "--output", str(output)])
+            self.assertEqual(code, 0)
+            self.assertFalse(output.exists())
+            text = stream.getvalue()
+            self.assertIn(digest(receipt), text)
+            self.assertIn(str(receipt), text)
+            self.assertEqual(text.count("# warmup 3s;"), 16)
+            self.assertEqual(text.count("not available;"), 6)
+            self.assertIn("mean PRE/POST primary plateau", text)
+            self.assertNotIn(str(output / "arms/PAD-A"), text)
+            self.assertNotIn(str(output / "arms/EX6-OLD"), text)
+
+        def test_explicit_run_records_skips_and_uses_only_available_primary_plateaus(self):
+            import io
+            cell = self.cells[BASES[3] + "_s0"]
+            for optional in ((), ("PAD-A",), ("EX6-OLD",), ("PAD-A", "EX1-OLD", "EX3-OLD", "EX6-OLD")):
+                receipt_path, _ = self.arms_fixture(("PRE", "POST") + optional)
+                table, receipt = bind_arms(receipt_path)
+                identities = prepare_arms(table=table)
+                output = self.folder / ("run-" + "-".join(optional))
+                calls = []
+                def sample(cell, arm, identities, folder, q, guard):
+                    calls.append((arm, q))
+                    self.assertEqual(digest(identities[arm]["path"]), table[arm]["sha256"])
+                    # Partial controls cannot lower the common matched-load target.
+                    rate = (1000 if arm.endswith("OLD") else 512000) if q is None else q * CONNECTIONS
+                    return dict(arm=arm, complete=True, rate=rate, frames=100, cycles=400, instructions=800,
+                                histogram={1: 100}, saturation=dict(score_pct=100), artifacts=str(folder))
+                with mock.patch.dict(globals(), run_sample=sample, prepare_guard=mock.Mock(return_value=None)), \
+                     mock.patch.object(os, "sched_getaffinity", return_value=set(range(112))), \
+                     mock.patch.object(os, "sched_setaffinity"), \
+                     mock.patch.object(subprocess, "check_output", return_value="synthetic-commit\n"), \
+                     contextlib.redirect_stdout(io.StringIO()):
+                    run([cell], identities, output, 1, {}, receipt)
+                result = json.loads((output / "results.json").read_text())
+                self.assertTrue(result["complete"])
+                self.assertEqual(result["arms_receipt"], receipt)
+                self.assertEqual(set(result["unavailable_arms"]), set(ARMS) - set(table))
+                entry = result["cells"][cell["id"]]
+                self.assertEqual(entry["matched_q"], 800)
+                self.assertEqual(set(entry["plateau_frames_per_second"]), {"PRE", "POST"} | (set(optional) & {"PAD-A"}))
+                skipped = 0
+                for phase in entry["passes"].values():
+                    self.assertEqual(len(phase["comparisons"]), 4)
+                    for comp in phase["comparisons"]:
+                        missing = {comp["A"], comp["B"]} - set(table)
+                        if missing:
+                            skipped += 1
+                            self.assertEqual(comp["status"], "not available")
+                            self.assertEqual(set(comp["missing_arms"]), missing)
+                            self.assertNotIn("left", comp)
+                        else:
+                            self.assertEqual(comp["status"], "measured")
+                self.assertEqual(len(calls), (10 - skipped) * 4)
+                self.assertTrue(all(a in table for a, _ in calls))
+                self.assertEqual(len(result["rows"]), 8)
+                self.assertEqual(sum("not available;" in row for row in result["rows"]), skipped)
+                self.assertEqual((output / "endgame.txt").read_text().splitlines(), result["rows"])
+
+        def test_mainline_framing_is_sha_bound_and_explains_landing_scope_in_rows(self):
+            headline = json.loads(MAINLINE_RECEIPT.read_text())
+            framing = measurement_framing(headline, dict(source="--arms"))
+            self.assertEqual(framing["name"], "mainline")
+            cell = self.cells[BASES[3] + "_f0"]
+            side = dict(rate=1, p50=1, p99=1, cycles_per_op=1, instr_per_op=1, ipc=1)
+            row = endgame(cell, "PRE", "POST", side, side, None, framing)
+            self.assertIn("includes every landing between them (only exbatch)", row)
+            skipped = unavailable_comparison("PRE", "PAD-A", headline)
+            self.assertIn("framing=mainline", unavailable_row(cell, skipped, 1, framing))
+            headline["POST"]["sha256"] = "0" * 64
+            self.assertEqual(measurement_framing(headline, dict(source="--arms"))["name"], "explicit")
+
         def test_dry_plan_uses_frozen_paths_and_guard_without_launching(self):
             import io
             cell = self.cells[BASES[3] + "_s0"]
@@ -2100,7 +2356,7 @@ int main(int argc, char **argv) {
     return 0 if result.wasSuccessful() and live.wasSuccessful() else 1
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--self-test", action="store_true")
@@ -2110,8 +2366,9 @@ def main():
     parser.add_argument("--cell", action="append", help="base ID or full cell ID; default all directed cells")
     parser.add_argument("--blocks", type=int, default=1, help="ABBA blocks per comparison/pass (default 1), including same-binary null")
     parser.add_argument("--output", type=Path, help="fresh run directory; contains results.json, endgame.txt and raw samples")
+    parser.add_argument("--arms", type=Path, help="replace frozen arms with PRE/POST path+sha256 JSON; optional PAD-A/EX*-OLD")
     parser.add_argument("--instance", type=int, help=argparse.SUPPRESS)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if args.self_test:
         return self_test()
     require(args.output is not None, "--output is required")
@@ -2134,14 +2391,18 @@ def main():
                 (not args.regime or cell["id"].rsplit("_", 1)[1] in args.regime) and
                 (not args.cell or cell["id"] in args.cell or cell["id"].rsplit("_", 1)[0] in args.cell)]
     require(selected, "no directed cells selected")
-    memtier = memtier_identity()
+    table, receipt = bind_arms(args.arms)
+    verify_receipt(receipt)
     if not args.dry_run:
         quiet_file_guard()
-    identities = prepare_arms(dry=args.dry_run)
+    identities = prepare_arms(dry=args.dry_run, table=table)
+    verify_receipt(receipt)
+    framing = measurement_framing(identities, receipt)
+    memtier = memtier_identity()
     if args.dry_run:
-        dry_run(selected, identities, output, args.blocks)
+        dry_run(selected, identities, output, args.blocks, receipt, framing)
     else:
-        run(selected, identities, output, args.blocks, memtier)
+        run(selected, identities, output, args.blocks, memtier, receipt, framing)
     return 0
 
 

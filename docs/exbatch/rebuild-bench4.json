@@ -1,0 +1,97 @@
+{
+  "arms_receipt": {
+    "path": "/home/user/Projects/cx-exbatch3/build/exbatch-bench4-lane/arms.json",
+    "sha256": "f6cd299b5eb4c5453705c09819770556498d4bdd60f712ddf4bd43b4b798e279"
+  },
+  "builds": {
+    "POST": {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-j16",
+        "CXX=g++",
+        "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -fdebug-prefix-map=/home/user/Projects/cx-exbatch3/build/exbatch-bench4-lane/POST/source=/home/user/Projects/cx-exbatch",
+        "JE=1",
+        "BUILD_ROOT=build",
+        "all"
+      ],
+      "commit": "d1687d34d2a94b53ae490abd3cac66022dc1daa4",
+      "cwd": "/home/user/Projects/cx-exbatch3/build/exbatch-bench4-lane/POST/source",
+      "expected_sha256": "410da97a4e6f851646773c8b863a867dd6c355ed79222d1ab16c08e4f5c38359",
+      "log": "/home/user/Projects/cx-exbatch3/build/exbatch-bench4-lane/POST-build.log",
+      "original_directory": "/home/user/Projects/cx-exbatch",
+      "sha256": "410da97a4e6f851646773c8b863a867dd6c355ed79222d1ab16c08e4f5c38359",
+      "sha256_reproduced": true
+    },
+    "PRE": {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-j16",
+        "CXX=g++",
+        "CXXFLAGS=-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -fdebug-prefix-map=/home/user/Projects/cx-exbatch3/build/exbatch-bench4-lane/PRE/source=/home/user/Projects/cx-exbatch/build/exbatch/PRE/source",
+        "JE=1",
+        "BUILD_ROOT=build",
+        "all"
+      ],
+      "commit": "cd02ecbab1502775f1c170e806971d1f7bbc3ee9",
+      "cwd": "/home/user/Projects/cx-exbatch3/build/exbatch-bench4-lane/PRE/source",
+      "expected_sha256": "5c2a0626ed3b3c73f3dae41c39c6beb412df795d42efd8de55b64812c9f62858",
+      "log": "/home/user/Projects/cx-exbatch3/build/exbatch-bench4-lane/PRE-build.log",
+      "original_directory": "/home/user/Projects/cx-exbatch/build/exbatch/PRE/source",
+      "sha256": "5c2a0626ed3b3c73f3dae41c39c6beb412df795d42efd8de55b64812c9f62858",
+      "sha256_reproduced": true
+    }
+  },
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "complete": true,
+  "controls": {
+    "EX1-OLD": {
+      "kind": "A: PRE behaviour for selected items at POST layout",
+      "plan_sha256": "51551a5af7b53199d06ec708e4794734710602f92a1dd564e476ffc8d8499d3e",
+      "sha256": "2068ea2dafa5fa60e0afc89f0e171f0bee9c0d952f0242fa1d0b799c1dec82ff"
+    },
+    "EX3-OLD": {
+      "kind": "A: PRE behaviour for selected items at POST layout",
+      "plan_sha256": "7080b4addf10d5d5c1eeb73a57827da9e743761ec64b59d6b7091e37154ee322",
+      "sha256": "d9cb457aab8f95f567f279e695e861720f0b34aa549569e05b3938cd57e4df1f"
+    },
+    "EX6-OLD": {
+      "kind": "A: PRE behaviour for selected items at POST layout",
+      "plan_sha256": "47930cf6bab0bc9a905d9fe6dd916dae572a435ec3e18700994463ccb1f748c6",
+      "sha256": "f27303fd5ee265427b1744a51ade195966f58c8a16ff2942307dc11c375c1ac9"
+    },
+    "PAD-A": {
+      "kind": "A: PRE behaviour for selected items at POST layout",
+      "plan_sha256": "03d2b30135a6693b76ac6c49ee6e86dbd960f2eb6eb4dda72b5111c72132607c",
+      "sha256": "1a8411f96fbb3ff40e088a511255fdd506bf17c46825d529647b0b5f7801876b"
+    }
+  },
+  "cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "elapsed_seconds": 134.60094386106357,
+  "receipt": {
+    "path": "/home/user/Projects/cx-exbatch3/docs/exbatch/binaries.json",
+    "sha256": "09bf15d8350d002a25c5f1ed14f0e5fb0d920bb42ac6e7189e44d32fb5c4c1d6"
+  }
+}
