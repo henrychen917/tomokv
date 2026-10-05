@@ -1431,6 +1431,9 @@ void publish_multi_child_epochs(MultiExecState& state, uint64_t ticket) {
 }
 
 void abort_multi_children(MultiExecState& state) {
+    // EXECABORT also decides the parent's WATCH reservations. Without this
+    // publication a queue-time error leaves epoch=0/aborted=false forever.
+    state.aborted.store(true, std::memory_order_release);
     for (const auto& command : state.commands)
         if (command->scatter)
             command->scatter->aborted.store(true, std::memory_order_release);

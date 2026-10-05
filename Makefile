@@ -88,6 +88,10 @@ $(BIN): $(OBJ) $(DB0_OBJ)
 # decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
 $(BUILD_ROOT)/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10600
 $(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10600
+# The parent EXECABORT store adds four IPA instructions. Keep PRE's namespaced
+# xshard inlining decisions outside MULTI; docs/gt13split/audit_bodies.py checks
+# every function, including ordinary xshard_plain_prepare and cold clones.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127577
 # The isolated prebuild TU reuses the string parser text without emitting its public handlers.
 $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
@@ -226,6 +230,11 @@ unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flip
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
 DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
+# EXECABORT/WATCH: same serverless witness linked against real production bodies.
+build/execabort-watch-unit: build/tests/execabort_watch_unit.o $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
+build/execabort-watch-db0-unit: build/db0/tests/execabort_watch_unit.o $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # EX1/EX3/EX6 use production objects without opening a listener or IO ring.
 build/exbatch-unit: build/tests/exbatch_unit.o $(CORE_TEST_OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
