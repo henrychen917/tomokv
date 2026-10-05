@@ -1,0 +1,12 @@
+  rearmed churn after shard moves: delta=1
+  rearmed churn after shard moves: delta=3
+  rearmed churn after shard moves: delta=5
+  rearmed churn after shard moves: delta=25
+  rearmed churn after shard moves: delta=69
+  workers completed                                    ok  unfinished/empty workers []
+  server alive after churn                             ok
+  armed lane served reads (non-vacuity)                ok read_local_hits delta 3837832
+  block cache held blocks (non-vacuity)                ok peak mem_block_cache 342080 bytes
+  load balancer moved shards (non-vacuity)             ok tomokv_keylb_bucket_moves delta 69 -- the automatic balancer must move shards; retain more shards than workers
+  churn: ops=9735339 workers=48 flushes=6 peak_block_cache=342080
+rlcache-churn PASS (checks=5 skips=0 strict)

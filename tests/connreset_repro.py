@@ -291,19 +291,10 @@ def boot(args, variant, directory):
         proc = subprocess.Popen(argv, cwd=ROOT, stdout=out, stderr=subprocess.STDOUT,
                                 start_new_session=True)
     try:
-        deadline = time.monotonic() + 15
-        while True:
-            require(proc.poll() is None, "server exited: " + (directory / "server.log").read_text()[-3000:])
-            try:
-                conn = Conn("127.0.0.1", args.port, timeout=.5)
-                try:
-                    require(conn.must("PING") == b"PONG", "server readiness PING")
-                finally:
-                    conn.close()
-                break
-            except (OSError, EOFError):
-                require(time.monotonic() < deadline, "server startup timeout")
-                time.sleep(.05)
+        from _lib import wait_ready
+        ready = wait_ready("127.0.0.1", args.port, timeout=15, process=proc,
+                           log_path=directory / "server.log")
+        ready.close()
         affinity = {}
         for task in Path(f"/proc/{proc.pid}/task").iterdir():
             try:

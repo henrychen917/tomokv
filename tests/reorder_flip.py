@@ -48,17 +48,6 @@ def interrupted(signum, frame):
     raise KeyboardInterrupt(f"signal {signum}")
 
 
-def listening(port):
-    # Read kernel state without accepting a client before the unchanged driver.
-    # A readiness PING/INFO can change the initial IO placement of its clients.
-    for path in ("/proc/net/tcp", "/proc/net/tcp6"):
-        for line in Path(path).read_text().splitlines()[1:]:
-            fields = line.split()
-            if fields[3] == "0A" and int(fields[1].rsplit(":", 1)[1], 16) == port:
-                return True
-    return False
-
-
 def check_settings(settings, args, pid):
     expected = {"thread_mode": "2s", "shards": "16", "atomic": "0",
                 "flip_auto": "1", "reorder": args.reorder or "0",
@@ -134,31 +123,18 @@ def main():
                                           stderr=subprocess.STDOUT)
                 record["server_pid"] = server.pid
                 write_json(run / "result.json", record)
-                deadline = time.monotonic() + 20
-                while True:
-                    if server.poll() is not None:
-                        raise RuntimeError(f"server exited before readiness: {server.returncode}")
-                    if args.bare_boot:
-                        if listening(port): break
-                        if time.monotonic() >= deadline:
-                            raise RuntimeError("server did not listen within 20 seconds")
-                        time.sleep(0.1)
-                        continue
+                from _lib import wait_ready
+                ready = wait_ready("127.0.0.1", port, timeout=20, process=server,
+                                   log_path=run / "server.log")
+                ready.close()
+                if not args.bare_boot:
+                    control = flipctl.Resp("127.0.0.1", port)
                     try:
-                        control = flipctl.Resp("127.0.0.1", port)
-                    except OSError:
-                        if time.monotonic() >= deadline:
-                            raise RuntimeError("server did not listen within 20 seconds")
-                        time.sleep(0.1)
-                        continue
-                    try:
-                        assert control.command("PING") == b"PONG"
                         record["initial_server"] = flipctl.info(control, "SERVER")
                         record["initial_flipctl"] = flipctl.info(control)
                         check_settings(record["initial_server"], args, server.pid)
                     finally:
                         control.close()
-                    break
                 driver = subprocess.Popen(driver_argv, cwd=ROOT, stdout=driver_log,
                                           stderr=subprocess.STDOUT,
                                           env=os.environ | {"PYTHONUNBUFFERED": "1",

@@ -679,7 +679,7 @@
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
     },
     {
-      "when": "2026-10-06 03:30",
+      "when": "2026-10-06 02:24",
       "added": [
         "EXECABORT releases WATCH reservation"
       ],
