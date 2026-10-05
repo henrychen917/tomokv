@@ -122,7 +122,10 @@ def boot_failure(proc, log_path, error):
     except OSError as exc:
         tail = f'(cannot read log: {exc})'
     state = 'not started' if proc is None else f'pid={proc.pid}, exit={proc.poll()}'
-    return BootFailure(f'server boot failed ({state}): {error}\n'
+    summary = str(error)
+    if summary.startswith('server exited during boot '):
+        summary = summary.split('\n', 1)[0]  # this wrapper owns the bounded log tail below
+    return BootFailure(f'server boot failed ({state}): {summary}\n'
                        f'last 25 lines of {log_path} (stdout/stderr):\n{tail}')
 
 
