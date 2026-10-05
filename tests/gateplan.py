@@ -342,12 +342,12 @@ def self_test():
     topology.update({1000 + 3 * cpu: group for cpu, group in list(topology.items())})
 
     class PlanningTests(unittest.TestCase):
-        def plan(self, *flags):
+        def plan(self, *flags, only_jobs=""):
             # Gate workers export their own slice of GATE_*; validation of the planner must use
             # its synthetic topology even when called from one of those workers.
-            with mock.patch.dict(os.environ, {}, clear=True):
+            with mock.patch.dict(os.environ, {"GATE_ONLY_JOBS": only_jobs}, clear=True):
                 args = parser().parse_args(list(flags))
-            return make_plan(args, topology=topology, available=set(topology), check_available=False)
+                return make_plan(args, topology=topology, available=set(topology), check_available=False)
 
         def test_default_full_box(self):
             plan = self.plan()
@@ -439,15 +439,16 @@ def self_test():
                         self.plan(purpose, *flags)
 
         def test_selected_full_jobs_need_only_correctness_geometry(self):
-            with mock.patch.dict(os.environ, {"GATE_ONLY_JOBS": "rlcache ring_unit"}):
-                plan = self.plan("iteration", "--server-cores", "112-119",
-                                 "--load-cores", "120-127", "--load-smt", "")
+            flags = ("--server-cores", "112-119", "--load-cores", "120-127", "--load-smt", "")
+            plan = self.plan("iteration", *flags, only_jobs="rlcache ring_unit")
             self.assertEqual(plan["tier"], "full")
             self.assertEqual(plan["correctness_ratio"], "6:2")
             self.assertEqual(plan["slot_count"], 1)
             self.assertEqual(plan["slots"][0]["server_cores"], "112-119")
             self.assertEqual(plan["slots"][0]["load_cpus"], "120-127")
             self.assertEqual(plan["perf"]["split_ratio"], "")
+            with self.assertRaisesRegex(ValueError, 'no reviewed abba io:ex ratio'):
+                self.plan("perf", *flags, only_jobs="rlcache ring_unit")
 
         def test_planned_port_overrides_stale_abba_environment(self):
             import abbagate
