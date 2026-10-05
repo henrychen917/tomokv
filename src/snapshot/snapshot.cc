@@ -253,6 +253,10 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     blocking_.store(is_blocking, std::memory_order_relaxed);
     save_current_shard_.store(0, std::memory_order_relaxed);
     writer_tid_.store(writer.id(), std::memory_order_relaxed);
+    // Every entry (SAVE/BGSAVE, cron, rewrite, shutdown) binds the actual IO writer here.
+    // SnapshotStart CQEs go to executors and cannot be the writer's only arming mechanism.
+    // Keep the latch through failure/cancellation until the writer observes Idle.
+    writer.set_snapshot_writer_bound(true);
     writer_ring_.store(&writer_ring, std::memory_order_release);
     server_ = &server;
     rewrite_ = rewrite;

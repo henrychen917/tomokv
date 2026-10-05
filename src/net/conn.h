@@ -55,6 +55,7 @@
 
 namespace tomo {
 
+namespace r7 { class ShadowLongIndex; }
 class Client;
 struct MultiSession;
 void multi_session_destroy(MultiSession* session);
@@ -793,6 +794,7 @@ public:
 
 private:
     // --- io-hot scalars, packed: touched together on every pass ---------------------------------
+    friend class r7::ShadowLongIndex;
     int       fd_   = -1;
     uint32_t  rlen_ = 0;          // bytes received
     uint32_t  rpos_ = 0;          // bytes parsed
@@ -845,6 +847,11 @@ private:
     Session   session_;                 // 68..71
     uint8_t   wb_deferrals_ = 0;         // 72: existing IO-only padding before ROB
     uint32_t  inline_scanned_ = 0;       // 76..79: cursor relative to rpos_; existing padding
+    // R7-only IO state, inside the existing 80..127 alignment hole. Deliberately
+    // uninitialized here: the armed parser initializes at dispatch_id == 0.
+    // Ordinary Client construction and every reorder=0 path keep their bytes.
+    uint64_t  r7_long_slots_;
+    uint64_t  r7_long_newest_;
 
     // --- the ROB (manages its own cross-thread layout) ------------------------------------------
     Rob<kRobWindow> rob_;

@@ -1,0 +1,1 @@
+PASS negative control snapshot-aof-only rejected: FAIL core concurrency: standalone snapshot writer is eligible

@@ -1,0 +1,1 @@
+PASS negative control snapshot-no-bind rejected: FAIL core concurrency: common snapshot start arms the writer with AOF and save disabled

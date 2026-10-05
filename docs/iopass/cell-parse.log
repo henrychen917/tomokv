@@ -1,0 +1,3 @@
+PASS split measurement definition Cell(id='d32g', mode='2s', read_local=1, overlap=1, reorder=0, op='GET', depth=32, conns=512, instances=0, atomic=1, score='rate', mix='-', smoke=False, pin_required=True, data_bytes=64, ceiling_status='')
+PASS split measurement definition Cell(id='d8s', mode='2s', read_local=1, overlap=1, reorder=0, op='SET', depth=8, conns=512, instances=0, atomic=1, score='rate', mix='-', smoke=False, pin_required=True, data_bytes=64, ceiling_status='')
+No measurement or server was started; load calibration remains mainline-owned.

@@ -1,0 +1,937 @@
+[
+  {
+    "name": "config-parser-test",
+    "command": [
+      "build/config-parser-test"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/config-parser-test.log"
+  },
+  {
+    "name": "flipctl-unit",
+    "command": [
+      "build/flipctl-unit"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/flipctl-unit.log"
+  },
+  {
+    "name": "read-local-ring-unit",
+    "command": [
+      "build/read-local-ring-unit"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/read-local-ring-unit.log"
+  },
+  {
+    "name": "read-local-write-ring-unit",
+    "command": [
+      "build/read-local-write-ring-unit"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/read-local-write-ring-unit.log"
+  },
+  {
+    "name": "rlfence-unit",
+    "command": [
+      "build/rlfence-unit"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/rlfence-unit.log"
+  },
+  {
+    "name": "waits-unit",
+    "command": [
+      "build/waits-unit"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/waits-unit.log"
+  },
+  {
+    "name": "climon-mask-unit",
+    "command": [
+      "build/climon-mask-unit"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/climon-mask-unit.log"
+  },
+  {
+    "name": "shutdown-unit",
+    "command": [
+      "build/shutdown-unit"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/shutdown-unit.log"
+  },
+  {
+    "name": "netcap-unit",
+    "command": [
+      "build/netcap-unit"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/netcap-unit.log"
+  },
+  {
+    "name": "multidb-unit",
+    "command": [
+      "build/multidb-unit"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/multidb-unit.log"
+  },
+  {
+    "name": "multidb-boundary-unit",
+    "command": [
+      "build/multidb-boundary-unit"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/multidb-boundary-unit.log"
+  },
+  {
+    "name": "climon-mask-old-unit",
+    "command": [
+      "build/climon-mask-old-unit"
+    ],
+    "expected": 1,
+    "returncode": 1,
+    "passed": true,
+    "log": "docs/iopass/validation/climon-mask-old-unit.log"
+  },
+  {
+    "name": "core-concurrency-unit-watch",
+    "command": [
+      "build/core-concurrency-unit",
+      "watch"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/core-concurrency-unit-watch.log"
+  },
+  {
+    "name": "core-concurrency-unit-lifetime",
+    "command": [
+      "build/core-concurrency-unit",
+      "lifetime"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/core-concurrency-unit-lifetime.log"
+  },
+  {
+    "name": "core-concurrency-unit-drain",
+    "command": [
+      "build/core-concurrency-unit",
+      "drain"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/core-concurrency-unit-drain.log"
+  },
+  {
+    "name": "core-concurrency-unit-route",
+    "command": [
+      "build/core-concurrency-unit",
+      "route"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/core-concurrency-unit-route.log"
+  },
+  {
+    "name": "core-concurrency-unit-snapshot",
+    "command": [
+      "build/core-concurrency-unit",
+      "snapshot"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/core-concurrency-unit-snapshot.log"
+  },
+  {
+    "name": "core-concurrency-unit-config",
+    "command": [
+      "build/core-concurrency-unit",
+      "config"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/core-concurrency-unit-config.log"
+  },
+  {
+    "name": "core-concurrency-unit-notify",
+    "command": [
+      "build/core-concurrency-unit",
+      "notify"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/core-concurrency-unit-notify.log"
+  },
+  {
+    "name": "rltopo-unit-1s",
+    "command": [
+      "build/rltopo-unit",
+      "1s"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/rltopo-unit-1s.log"
+  },
+  {
+    "name": "rltopo-unit-2s",
+    "command": [
+      "build/rltopo-unit",
+      "2s"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/rltopo-unit-2s.log"
+  },
+  {
+    "name": "exbatch_checks-publication",
+    "command": [
+      "/usr/bin/python3",
+      "tests/exbatch_checks.py",
+      "publication"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/exbatch_checks-publication.log"
+  },
+  {
+    "name": "exbatch_checks-watch",
+    "command": [
+      "/usr/bin/python3",
+      "tests/exbatch_checks.py",
+      "watch"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/exbatch_checks-watch.log"
+  },
+  {
+    "name": "exbatch_checks-metadata",
+    "command": [
+      "/usr/bin/python3",
+      "tests/exbatch_checks.py",
+      "metadata"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/exbatch_checks-metadata.log"
+  },
+  {
+    "name": "lbplanner_checks",
+    "command": [
+      "/usr/bin/python3",
+      "tests/lbplanner_checks.py"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/lbplanner_checks.log"
+  },
+  {
+    "name": "persistfix_checks",
+    "command": [
+      "/usr/bin/python3",
+      "tests/persistfix_checks.py"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/persistfix_checks.log"
+  },
+  {
+    "name": "wb_rule_checks-check-policy",
+    "command": [
+      "/usr/bin/python3",
+      "tests/wb_rule_checks.py",
+      "check",
+      "policy"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/wb_rule_checks-check-policy.log"
+  },
+  {
+    "name": "wb_rule_checks-check-phase",
+    "command": [
+      "/usr/bin/python3",
+      "tests/wb_rule_checks.py",
+      "check",
+      "phase"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/wb_rule_checks-check-phase.log"
+  },
+  {
+    "name": "wb_rule_checks-check-stages",
+    "command": [
+      "/usr/bin/python3",
+      "tests/wb_rule_checks.py",
+      "check",
+      "stages"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/wb_rule_checks-check-stages.log"
+  },
+  {
+    "name": "wb_rule_checks-check-split-phase",
+    "command": [
+      "/usr/bin/python3",
+      "tests/wb_rule_checks.py",
+      "check",
+      "split-phase"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/wb_rule_checks-check-split-phase.log"
+  },
+  {
+    "name": "wb_rule_checks-check-split-overlap",
+    "command": [
+      "/usr/bin/python3",
+      "tests/wb_rule_checks.py",
+      "check",
+      "split-overlap"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/wb_rule_checks-check-split-overlap.log"
+  },
+  {
+    "name": "wbland_checks-check-clauses",
+    "command": [
+      "/usr/bin/python3",
+      "tests/wbland_checks.py",
+      "check",
+      "clauses"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/wbland_checks-check-clauses.log"
+  },
+  {
+    "name": "wbland_checks-check-paths",
+    "command": [
+      "/usr/bin/python3",
+      "tests/wbland_checks.py",
+      "check",
+      "paths"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/wbland_checks-check-paths.log"
+  },
+  {
+    "name": "flushfix_checks-check-flush",
+    "command": [
+      "/usr/bin/python3",
+      "tests/flushfix_checks.py",
+      "check",
+      "flush"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/flushfix_checks-check-flush.log"
+  },
+  {
+    "name": "flushfix_checks-check-headers",
+    "command": [
+      "/usr/bin/python3",
+      "tests/flushfix_checks.py",
+      "check",
+      "headers"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/flushfix_checks-check-headers.log"
+  },
+  {
+    "name": "mdbqsbr_checks-build/mdbqsbr-unit",
+    "command": [
+      "/usr/bin/python3",
+      "tests/mdbqsbr_checks.py",
+      "build/mdbqsbr-unit"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/mdbqsbr_checks-build_mdbqsbr-unit.log"
+  },
+  {
+    "name": "multidb_serial---self-test",
+    "command": [
+      "/usr/bin/python3",
+      "tests/multidb_serial.py",
+      "--self-test"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/multidb_serial---self-test.log"
+  },
+  {
+    "name": "atomic-survivors-unit-admission",
+    "command": [
+      "build/atomic-survivors-unit",
+      "admission"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-admission.log"
+  },
+  {
+    "name": "atomic-survivors-unit-closure",
+    "command": [
+      "build/atomic-survivors-unit",
+      "closure"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-closure.log"
+  },
+  {
+    "name": "atomic-survivors-unit-script_keys",
+    "command": [
+      "build/atomic-survivors-unit",
+      "script_keys"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-script_keys.log"
+  },
+  {
+    "name": "atomic-survivors-unit-rename_overlay",
+    "command": [
+      "build/atomic-survivors-unit",
+      "rename_overlay"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-rename_overlay.log"
+  },
+  {
+    "name": "atomic-survivors-unit-write_latest",
+    "command": [
+      "build/atomic-survivors-unit",
+      "write_latest"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-write_latest.log"
+  },
+  {
+    "name": "atomic-survivors-unit-script_apply",
+    "command": [
+      "build/atomic-survivors-unit",
+      "script_apply"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-script_apply.log"
+  },
+  {
+    "name": "atomic-survivors-unit-post_apply_probe",
+    "command": [
+      "build/atomic-survivors-unit",
+      "post_apply_probe"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-post_apply_probe.log"
+  },
+  {
+    "name": "atomic-survivors-unit-lua_conversion",
+    "command": [
+      "build/atomic-survivors-unit",
+      "lua_conversion"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-lua_conversion.log"
+  },
+  {
+    "name": "atomic-survivors-unit-watch_parent",
+    "command": [
+      "build/atomic-survivors-unit",
+      "watch_parent"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-watch_parent.log"
+  },
+  {
+    "name": "atomic-survivors-unit-watch_cycle",
+    "command": [
+      "build/atomic-survivors-unit",
+      "watch_cycle"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-watch_cycle.log"
+  },
+  {
+    "name": "atomic-survivors-unit-mset_arity",
+    "command": [
+      "build/atomic-survivors-unit",
+      "mset_arity"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-mset_arity.log"
+  },
+  {
+    "name": "atomic-survivors-unit-watch_oom",
+    "command": [
+      "build/atomic-survivors-unit",
+      "watch_oom"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-watch_oom.log"
+  },
+  {
+    "name": "atomic-survivors-unit-lua_lines",
+    "command": [
+      "build/atomic-survivors-unit",
+      "lua_lines"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-lua_lines.log"
+  },
+  {
+    "name": "atomic-survivors-unit-library_limit",
+    "command": [
+      "build/atomic-survivors-unit",
+      "library_limit"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-library_limit.log"
+  },
+  {
+    "name": "atomic-survivors-unit-stage_flag",
+    "command": [
+      "build/atomic-survivors-unit",
+      "stage_flag"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-stage_flag.log"
+  },
+  {
+    "name": "atomic-survivors-unit-instruction_limit",
+    "command": [
+      "build/atomic-survivors-unit",
+      "instruction_limit"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/atomic-survivors-unit-instruction_limit.log"
+  },
+  {
+    "name": "netcmd-unit-streams",
+    "command": [
+      "build/netcmd-unit",
+      "streams"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/netcmd-unit-streams.log"
+  },
+  {
+    "name": "netcmd-unit-zpop",
+    "command": [
+      "build/netcmd-unit",
+      "zpop"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/netcmd-unit-zpop.log"
+  },
+  {
+    "name": "netcmd-unit-notify-oom",
+    "command": [
+      "build/netcmd-unit",
+      "notify-oom"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/netcmd-unit-notify-oom.log"
+  },
+  {
+    "name": "netcmd-unit-notify-retry",
+    "command": [
+      "build/netcmd-unit",
+      "notify-retry"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/netcmd-unit-notify-retry.log"
+  },
+  {
+    "name": "netcmd-unit-flush",
+    "command": [
+      "build/netcmd-unit",
+      "flush"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/netcmd-unit-flush.log"
+  },
+  {
+    "name": "netcmd-unit-output",
+    "command": [
+      "build/netcmd-unit",
+      "output"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/netcmd-unit-output.log"
+  },
+  {
+    "name": "netcmd-unit-pubsub",
+    "command": [
+      "build/netcmd-unit",
+      "pubsub"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/netcmd-unit-pubsub.log"
+  },
+  {
+    "name": "netcmd-unit-receive",
+    "command": [
+      "build/netcmd-unit",
+      "receive"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/netcmd-unit-receive.log"
+  },
+  {
+    "name": "netcmd-unit-config",
+    "command": [
+      "build/netcmd-unit",
+      "config"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/netcmd-unit-config.log"
+  },
+  {
+    "name": "netcmd-unit-hexpire-oom",
+    "command": [
+      "build/netcmd-unit",
+      "hexpire-oom"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/netcmd-unit-hexpire-oom.log"
+  },
+  {
+    "name": "store-regression-unlinked",
+    "command": [
+      "build/store-regression",
+      "unlinked"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/store-regression-unlinked.log"
+  },
+  {
+    "name": "store-regression-randomkey",
+    "command": [
+      "build/store-regression",
+      "randomkey"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/store-regression-randomkey.log"
+  },
+  {
+    "name": "store-regression-rehash",
+    "command": [
+      "build/store-regression",
+      "rehash"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/store-regression-rehash.log"
+  },
+  {
+    "name": "store-regression-rollback",
+    "command": [
+      "build/store-regression",
+      "rollback"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/store-regression-rollback.log"
+  },
+  {
+    "name": "store-regression-snapshot-eviction",
+    "command": [
+      "build/store-regression",
+      "snapshot-eviction"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/store-regression-snapshot-eviction.log"
+  },
+  {
+    "name": "store-regression-aof-eviction",
+    "command": [
+      "build/store-regression",
+      "aof-eviction"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/store-regression-aof-eviction.log"
+  },
+  {
+    "name": "store-regression-intents",
+    "command": [
+      "build/store-regression",
+      "intents"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/store-regression-intents.log"
+  },
+  {
+    "name": "store-regression-imported-hash",
+    "command": [
+      "build/store-regression",
+      "imported-hash"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/store-regression-imported-hash.log"
+  },
+  {
+    "name": "store-regression-field-index-failure",
+    "command": [
+      "build/store-regression",
+      "field-index-failure"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/store-regression-field-index-failure.log"
+  },
+  {
+    "name": "store-regression-hash-bytes",
+    "command": [
+      "build/store-regression",
+      "hash-bytes"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/store-regression-hash-bytes.log"
+  },
+  {
+    "name": "store-regression-sidecar-deadline-sidecar",
+    "command": [
+      "build/store-regression-sidecar",
+      "deadline-sidecar"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/store-regression-sidecar-deadline-sidecar.log"
+  },
+  {
+    "name": "rehash-waits-unit-retirement",
+    "command": [
+      "build/rehash-waits-unit",
+      "retirement"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/rehash-waits-unit-retirement.log"
+  },
+  {
+    "name": "splitlocal_checks-check",
+    "command": [
+      "/usr/bin/python3",
+      "tests/splitlocal_checks.py",
+      "check"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/splitlocal_checks-check.log"
+  },
+  {
+    "name": "r7shadow_sync",
+    "command": [
+      "/usr/bin/python3",
+      "tests/r7shadow_sync.py"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/r7shadow_sync.log"
+  },
+  {
+    "name": "read_local_lane---self-test-mget-fence",
+    "command": [
+      "/usr/bin/python3",
+      "tests/read_local_lane.py",
+      "--self-test",
+      "mget-fence"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/read_local_lane---self-test-mget-fence.log"
+  },
+  {
+    "name": "docs_drift---self-test",
+    "command": [
+      "/usr/bin/python3",
+      "tests/docs_drift.py",
+      "--self-test"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/docs_drift---self-test.log"
+  },
+  {
+    "name": "connreset_harness_test",
+    "command": [
+      "/usr/bin/python3",
+      "tests/connreset_harness_test.py"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/connreset_harness_test.log"
+  },
+  {
+    "name": "connreset-negative",
+    "command": [
+      "/usr/bin/python3",
+      "tests/connreset_harness_test.py",
+      "--negative-control"
+    ],
+    "expected": 1,
+    "returncode": 1,
+    "passed": true,
+    "log": "docs/iopass/validation/connreset-negative.log"
+  },
+  {
+    "name": "reorder_receipt-build/reorder-engagement-unit-build/iopass-validation-reorder-engagement-unit---engagement",
+    "command": [
+      "/usr/bin/python3",
+      "tests/reorder_receipt.py",
+      "build/reorder-engagement-unit",
+      "build/iopass-validation-reorder-engagement-unit",
+      "--engagement"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/reorder_receipt-build_reorder-engagement-unit-build_iopass-validation-reorder-engagement-unit---engagement.log"
+  },
+  {
+    "name": "reorder_receipt-build/reorder-engagement-unit-db0-build/iopass-validation-reorder-engagement-unit-db0---engagement",
+    "command": [
+      "/usr/bin/python3",
+      "tests/reorder_receipt.py",
+      "build/reorder-engagement-unit-db0",
+      "build/iopass-validation-reorder-engagement-unit-db0",
+      "--engagement"
+    ],
+    "expected": 0,
+    "returncode": 0,
+    "passed": true,
+    "log": "docs/iopass/validation/reorder_receipt-build_reorder-engagement-unit-db0-build_iopass-validation-reorder-engagement-unit-db0---engagement.log"
+  }
+]

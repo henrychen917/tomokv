@@ -1,0 +1,4 @@
+PASS tracer REP length 0 four instructions; {'ptrace_steps': 4, 'rep_iteration_steps': 0}
+PASS tracer REP length 1 four instructions; {'ptrace_steps': 4, 'rep_iteration_steps': 0}
+PASS tracer REP length 64 four instructions; {'ptrace_steps': 67, 'rep_iteration_steps': 63}
+PASS tracer REP length 128 four instructions; {'ptrace_steps': 131, 'rep_iteration_steps': 127}
