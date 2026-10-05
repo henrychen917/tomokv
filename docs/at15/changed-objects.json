@@ -1,0 +1,14 @@
+[
+  "db0/src/cmd/acl.o",
+  "db0/src/cmd/cmdmeta.o",
+  "db0/src/cmd/multidb.o",
+  "db0/src/cmd/server_tail.o",
+  "db0/src/cmd/t_server.o",
+  "db0/src/cmd/xshard.o",
+  "src/cmd/acl.o",
+  "src/cmd/cmdmeta.o",
+  "src/cmd/multidb.o",
+  "src/cmd/server_tail.o",
+  "src/cmd/t_server.o",
+  "src/cmd/xshard.o"
+]

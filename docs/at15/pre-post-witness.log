@@ -1,0 +1,124 @@
+PRE unit 1s info exit=1
+FAIL at15: INFO must be one bulk/verbatim element inside EXEC
+PRE unit 1s sleep exit=1
+FAIL at15: DEBUG SLEEP 0 EXEC element
+PRE unit 1s controls exit=0
+PASS at15 db=namespaced mode=1s atomic=0 resp=2 case=controls
+PASS at15 db=namespaced mode=1s atomic=0 resp=3 case=controls
+PASS at15 db=namespaced mode=1s atomic=1 resp=2 case=controls
+PASS at15 db=namespaced mode=1s atomic=1 resp=3 case=controls
+PRE unit 1s config exit=1
+FAIL at15: queued reply
+PRE unit 2s info exit=1
+FAIL at15: INFO must be one bulk/verbatim element inside EXEC
+PRE unit 2s sleep exit=1
+FAIL at15: DEBUG SLEEP 0 EXEC element
+PRE unit 2s controls exit=0
+PASS at15 db=namespaced mode=2s atomic=0 resp=2 case=controls
+PASS at15 db=namespaced mode=2s atomic=0 resp=3 case=controls
+PASS at15 db=namespaced mode=2s atomic=1 resp=2 case=controls
+PASS at15 db=namespaced mode=2s atomic=1 resp=3 case=controls
+PRE unit 2s config exit=1
+FAIL at15: queued reply
+PRE db0-unit 1s info exit=1
+FAIL at15: INFO must be one bulk/verbatim element inside EXEC
+PRE db0-unit 1s sleep exit=1
+FAIL at15: DEBUG SLEEP 0 EXEC element
+PRE db0-unit 1s controls exit=0
+PASS at15 db=db0 mode=1s atomic=0 resp=2 case=controls
+PASS at15 db=db0 mode=1s atomic=0 resp=3 case=controls
+PASS at15 db=db0 mode=1s atomic=1 resp=2 case=controls
+PASS at15 db=db0 mode=1s atomic=1 resp=3 case=controls
+PRE db0-unit 1s config exit=1
+FAIL at15: queued reply
+PRE db0-unit 2s info exit=1
+FAIL at15: INFO must be one bulk/verbatim element inside EXEC
+PRE db0-unit 2s sleep exit=1
+FAIL at15: DEBUG SLEEP 0 EXEC element
+PRE db0-unit 2s controls exit=0
+PASS at15 db=db0 mode=2s atomic=0 resp=2 case=controls
+PASS at15 db=db0 mode=2s atomic=0 resp=3 case=controls
+PASS at15 db=db0 mode=2s atomic=1 resp=2 case=controls
+PASS at15 db=db0 mode=2s atomic=1 resp=3 case=controls
+PRE db0-unit 2s config exit=1
+FAIL at15: queued reply
+POST unit 1s info exit=0
+PASS at15 db=namespaced mode=1s atomic=0 resp=2 case=info
+PASS at15 db=namespaced mode=1s atomic=0 resp=3 case=info
+PASS at15 db=namespaced mode=1s atomic=1 resp=2 case=info
+PASS at15 db=namespaced mode=1s atomic=1 resp=3 case=info
+POST unit 1s sleep exit=0
+PASS at15 db=namespaced mode=1s atomic=0 resp=2 case=sleep
+PASS at15 db=namespaced mode=1s atomic=0 resp=3 case=sleep
+PASS at15 db=namespaced mode=1s atomic=1 resp=2 case=sleep
+PASS at15 db=namespaced mode=1s atomic=1 resp=3 case=sleep
+POST unit 1s controls exit=0
+PASS at15 db=namespaced mode=1s atomic=0 resp=2 case=controls
+PASS at15 db=namespaced mode=1s atomic=0 resp=3 case=controls
+PASS at15 db=namespaced mode=1s atomic=1 resp=2 case=controls
+PASS at15 db=namespaced mode=1s atomic=1 resp=3 case=controls
+POST unit 1s config exit=0
+PASS at15 db=namespaced mode=1s atomic=0 resp=2 case=config
+PASS at15 db=namespaced mode=1s atomic=0 resp=3 case=config
+PASS at15 db=namespaced mode=1s atomic=1 resp=2 case=config
+PASS at15 db=namespaced mode=1s atomic=1 resp=3 case=config
+POST unit 2s info exit=0
+PASS at15 db=namespaced mode=2s atomic=0 resp=2 case=info
+PASS at15 db=namespaced mode=2s atomic=0 resp=3 case=info
+PASS at15 db=namespaced mode=2s atomic=1 resp=2 case=info
+PASS at15 db=namespaced mode=2s atomic=1 resp=3 case=info
+POST unit 2s sleep exit=0
+PASS at15 db=namespaced mode=2s atomic=0 resp=2 case=sleep
+PASS at15 db=namespaced mode=2s atomic=0 resp=3 case=sleep
+PASS at15 db=namespaced mode=2s atomic=1 resp=2 case=sleep
+PASS at15 db=namespaced mode=2s atomic=1 resp=3 case=sleep
+POST unit 2s controls exit=0
+PASS at15 db=namespaced mode=2s atomic=0 resp=2 case=controls
+PASS at15 db=namespaced mode=2s atomic=0 resp=3 case=controls
+PASS at15 db=namespaced mode=2s atomic=1 resp=2 case=controls
+PASS at15 db=namespaced mode=2s atomic=1 resp=3 case=controls
+POST unit 2s config exit=0
+PASS at15 db=namespaced mode=2s atomic=0 resp=2 case=config
+PASS at15 db=namespaced mode=2s atomic=0 resp=3 case=config
+PASS at15 db=namespaced mode=2s atomic=1 resp=2 case=config
+PASS at15 db=namespaced mode=2s atomic=1 resp=3 case=config
+POST db0-unit 1s info exit=0
+PASS at15 db=db0 mode=1s atomic=0 resp=2 case=info
+PASS at15 db=db0 mode=1s atomic=0 resp=3 case=info
+PASS at15 db=db0 mode=1s atomic=1 resp=2 case=info
+PASS at15 db=db0 mode=1s atomic=1 resp=3 case=info
+POST db0-unit 1s sleep exit=0
+PASS at15 db=db0 mode=1s atomic=0 resp=2 case=sleep
+PASS at15 db=db0 mode=1s atomic=0 resp=3 case=sleep
+PASS at15 db=db0 mode=1s atomic=1 resp=2 case=sleep
+PASS at15 db=db0 mode=1s atomic=1 resp=3 case=sleep
+POST db0-unit 1s controls exit=0
+PASS at15 db=db0 mode=1s atomic=0 resp=2 case=controls
+PASS at15 db=db0 mode=1s atomic=0 resp=3 case=controls
+PASS at15 db=db0 mode=1s atomic=1 resp=2 case=controls
+PASS at15 db=db0 mode=1s atomic=1 resp=3 case=controls
+POST db0-unit 1s config exit=0
+PASS at15 db=db0 mode=1s atomic=0 resp=2 case=config
+PASS at15 db=db0 mode=1s atomic=0 resp=3 case=config
+PASS at15 db=db0 mode=1s atomic=1 resp=2 case=config
+PASS at15 db=db0 mode=1s atomic=1 resp=3 case=config
+POST db0-unit 2s info exit=0
+PASS at15 db=db0 mode=2s atomic=0 resp=2 case=info
+PASS at15 db=db0 mode=2s atomic=0 resp=3 case=info
+PASS at15 db=db0 mode=2s atomic=1 resp=2 case=info
+PASS at15 db=db0 mode=2s atomic=1 resp=3 case=info
+POST db0-unit 2s sleep exit=0
+PASS at15 db=db0 mode=2s atomic=0 resp=2 case=sleep
+PASS at15 db=db0 mode=2s atomic=0 resp=3 case=sleep
+PASS at15 db=db0 mode=2s atomic=1 resp=2 case=sleep
+PASS at15 db=db0 mode=2s atomic=1 resp=3 case=sleep
+POST db0-unit 2s controls exit=0
+PASS at15 db=db0 mode=2s atomic=0 resp=2 case=controls
+PASS at15 db=db0 mode=2s atomic=0 resp=3 case=controls
+PASS at15 db=db0 mode=2s atomic=1 resp=2 case=controls
+PASS at15 db=db0 mode=2s atomic=1 resp=3 case=controls
+POST db0-unit 2s config exit=0
+PASS at15 db=db0 mode=2s atomic=0 resp=2 case=config
+PASS at15 db=db0 mode=2s atomic=0 resp=3 case=config
+PASS at15 db=db0 mode=2s atomic=1 resp=2 case=config
+PASS at15 db=db0 mode=2s atomic=1 resp=3 case=config

@@ -230,6 +230,11 @@ unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flip
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
 DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
+# AT15: production transaction routing, no listener or worker threads.
+build/at15-unit: build/tests/at15_unit.o $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
+build/at15-db0-unit: build/db0/tests/at15_unit.o $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # EXECABORT/WATCH: same serverless witness linked against real production bodies.
 build/execabort-watch-unit: build/tests/execabort_watch_unit.o $(CORE_TEST_OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm

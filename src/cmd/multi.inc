@@ -3,6 +3,8 @@
 // This file is textually included by xshard.cc.  It shares the command-image helpers in the same
 // anonymous namespace and deliberately creates no extra translation unit.
 
+#include "cmdmeta.h"
+
 namespace tomo {
 
 struct MultiQueuedCommand {
@@ -34,6 +36,8 @@ enum class MultiCommandKind : uint8_t {
     Swapdb,
     Prebuilt,
     Unsupported,
+    Admin,
+    DebugSleep,
 };
 
 enum class MultiBlockingPop : uint8_t {
@@ -296,21 +300,17 @@ void destroy_multi_state(MultiExecState* state) {
     delete state;
 }
 
-bool command_forbidden_in_multi(const Op& op) {
-    // Subscription controls need the IO-owned async home protocol, which cannot run from an EXEC
-    // child. Reject all six controls uniformly; this is intentionally stricter than Redis for the
-    // four regular controls and matches it for SSUBSCRIBE/SUNSUBSCRIBE.
-    const bool config_mutation = multi_name(op, "config") && op.argc() > 1 &&
-                                 !op.arg(1).eq_icase("get");
-    return (op.spec->flags & CmdFlags::NoMulti) ||
-           multi_name(op, "save") || multi_name(op, "flushall") ||
-           multi_name(op, "flushdb") || config_mutation || multi_name(op, "randomkey") ||
-           multi_name(op, "spop") || multi_name(op, "srandmember") ||
-           multi_name(op, "zrandmember") || multi_name(op, "hrandfield") ||
+bool multi_engine_policy_refusal(const Op& op) {
+    // Owner decision group 5: these are engine limitations, NOT Redis no_multi flags.
+    // Whole-store replacement has no transaction-private image; subscription controls and
+    // ACL need their IO-owned protocols, not a synchronous EXEC child handler.
+    // Keep the existing safety boundary until those mechanisms have transaction lowering.
+    return multi_name(op, "flushall") || multi_name(op, "flushdb") || multi_name(op, "acl") ||
            multi_name(op, "subscribe") || multi_name(op, "unsubscribe") ||
            multi_name(op, "psubscribe") || multi_name(op, "punsubscribe") ||
            multi_name(op, "ssubscribe") || multi_name(op, "sunsubscribe") ||
-           multi_name(op, "acl");
+           (multi_name(op, "debug") && op.argc() == 2 &&
+            (op.arg(1).eq_icase("reload") || op.arg(1).eq_icase("loadaof")));
 }
 
 bool queued_copy(const Op& op, MultiQueuedCommand& out) {
@@ -522,14 +522,12 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
     if (has_name(command.queued, "echo")) return MultiCommandKind::Echo;
     if (has_name(command.queued, "unwatch")) return MultiCommandKind::UnwatchReply;
     if (command.queued.spec->flags & CmdFlags::ConnLocal) return MultiCommandKind::IoLocal;
-    if (has_name(command.queued, "dbsize")) return MultiCommandKind::Unsupported;
-    if (has_name(command.queued, "config") && command.queued.argv.size() > 1 &&
-        Slice(command.queued.argv[1].data(),
-              static_cast<uint32_t>(command.queued.argv[1].size())).eq_icase("get"))
-        return MultiCommandKind::IoLocal;
+    if (command.queued.spec->flags & CmdFlags::ConfigRoute)
+        return command_config_routes_all_shards(*command.op)
+            ? MultiCommandKind::Unsupported : MultiCommandKind::Admin;
     // SubcmdRoute containers ride CursorShard only to reach the IO special-route hook; they are
     // not cursor commands. Their keyed forms have a truthful key range and fall through to Local;
-    // their keyless subcommands answer on the IO thread like DBSIZE and CONFIG GET.
+    // their keyless subcommands answer on the IO thread.
     if (command.queued.spec->flags & CmdFlags::SubcmdRoute)
         return command.key_args.empty() ? MultiCommandKind::IoLocal : MultiCommandKind::Local;
     if ((command.queued.spec->flags & CmdFlags::CursorShard) &&
@@ -685,17 +683,27 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 }
             }
             if (state.client->resp3()) command->op->mark_resp3();
+            if (command->kind == MultiCommandKind::Admin &&
+                has_name(command->queued, "debug")) {
+                uint64_t sleep_ms = 0;
+                const auto sleep = debug_sleep_prepare(
+                    server, *state.client, *command->op, sleep_ms);
+                if (sleep == DebugSleepResult::Handled) command->kind = MultiCommandKind::Prebuilt;
+                else if (sleep == DebugSleepResult::Deferred) {
+                    command->kind = MultiCommandKind::DebugSleep;
+                    command->integer.store(sleep_ms, std::memory_order_relaxed);
+                }
+            }
             if (command->kind == MultiCommandKind::Scan &&
                 !command_prepare_scan_route(server, *command->op))
                 command->kind = MultiCommandKind::Prebuilt;
             if (command->kind == MultiCommandKind::Unsupported &&
-                ((command->queued.spec->flags & CmdFlags::MultiShard) ||
-                 has_name(command->queued, "dbsize")) &&
-                !(command->queued.spec->flags & CmdFlags::AllShards)) {
+                (command->queued.spec->flags &
+                 (CmdFlags::MultiShard | CmdFlags::AllShards | CmdFlags::ConfigRoute))) {
                 ScatterDispatch child_dispatch;
                 const ScatterPrepare prepared = xshard_prepare(
                     server, *command->op, state.scatter_pool, state.owner_io,
-                    state.origin_conn_id, child_dispatch, true);
+                    state.origin_conn_id, child_dispatch, true, state.client);
                 if (prepared == ScatterPrepare::Ready) {
                     command->kind = MultiCommandKind::Xshard;
                     command->scatter = child_dispatch.state;
@@ -732,7 +740,9 @@ bool prepare_commands(Server& server, MultiExecState& state,
                     command->key_shards.clear();
                 }
             }
-            if (command->kind == MultiCommandKind::Swapdb) {
+            if (command->kind == MultiCommandKind::Swapdb ||
+                command->kind == MultiCommandKind::Admin ||
+                command->kind == MultiCommandKind::DebugSleep) {
                 for (uint32_t sid = 0; sid < server.nshards(); ++sid)
                     add_shard(command->participants, static_cast<int32_t>(sid));
             } else if (command->kind == MultiCommandKind::Local) {
@@ -1169,6 +1179,22 @@ bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& 
 
 bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& command,
                            Shard& shard, uint32_t owner_thread_id, uint32_t stage) {
+    // ConfigRoute's keyless handlers run once, on shard 0's owner, between two all-owner
+    // joins. In particular CONFIG GET before CONFIG SET must not run at reply retirement.
+    // DEBUG SLEEP parks these EXEC tasks; it never blocks an IO or executor thread.
+    if (command.kind == MultiCommandKind::Admin || command.kind == MultiCommandKind::DebugSleep) {
+        if (stage == 0) return true;
+        if (command.kind == MultiCommandKind::DebugSleep)
+            return now_ns() >= static_cast<uint64_t>(command.integer.load(std::memory_order_relaxed));
+        if (shard.id() == 0) {
+            Client* previous_client = command_local_client();
+            ThreadCtx* previous_thread = command_local_thread();
+            command_set_local_context(state.client, &server.thread(owner_thread_id));
+            command.op->spec->handler(shard, *command.op);
+            command_set_local_context(previous_client, previous_thread);
+        }
+        return true;
+    }
     // All children already name the physical keys implied by preceding swaps.
     // Join all shards here; the map itself changes only at the commit decision.
     if (command.kind == MultiCommandKind::Swapdb) {
@@ -1313,7 +1339,8 @@ void assemble_cross_reply(MultiCommand& command) {
         else reply_bulk(op.sink(), op.arg(1));
     } else if (command.kind == MultiCommandKind::Echo) {
         reply_bulk(op.sink(), op.arg(1));
-    } else if (command.kind == MultiCommandKind::UnwatchReply) {
+    } else if (command.kind == MultiCommandKind::UnwatchReply ||
+               command.kind == MultiCommandKind::DebugSleep) {
         reply_ok(op.sink());
     } else {
         reply_err(op.sink(), "ERR command is not supported by MULTI execution");
@@ -1394,6 +1421,18 @@ void finalize_reservations(MultiExecState& state, Shard& shard) {
 
 void finish_command(MultiCommand& command, uint32_t stage) {
     if (command.pending.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
+    if (stage == 0 && (command.kind == MultiCommandKind::Admin ||
+                       command.kind == MultiCommandKind::DebugSleep)) {
+        if (command.kind == MultiCommandKind::DebugSleep) {
+            // Reuse the kind-specific accumulator: duration becomes a deadline at the join.
+            const auto ms = static_cast<uint64_t>(command.integer.load(std::memory_order_relaxed));
+            command.integer.store(now_ns() + ms * 1000000ull, std::memory_order_relaxed);
+        }
+        command.pending.store(static_cast<uint32_t>(command.participants.size()),
+                              std::memory_order_relaxed);
+        command.stage.store(1, std::memory_order_release);
+        return;
+    }
     if (command.kind == MultiCommandKind::Msetnx && stage == 0 &&
         !command.condition_failed.load(std::memory_order_acquire)) {
         command.pending.store(static_cast<uint32_t>(command.participants.size()),
@@ -1404,6 +1443,7 @@ void finish_command(MultiCommand& command, uint32_t stage) {
     if (command.kind != MultiCommandKind::Local &&
         command.kind != MultiCommandKind::Scan &&
         command.kind != MultiCommandKind::IoLocal &&
+        command.kind != MultiCommandKind::Admin &&
         command.kind != MultiCommandKind::Swapdb &&
         command.kind != MultiCommandKind::Prebuilt) assemble_cross_reply(command);
     command.finished.store(true, std::memory_order_release);
@@ -1653,7 +1693,7 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
     }
 
     if (!session || !session->active) return MultiIoAction::NotHandled;
-    if (command_forbidden_in_multi(op)) {
+    if (command_metadata_no_multi(op) || multi_engine_policy_refusal(op)) {
         session->queue_error = true;
         reply_err(op.sink(), "ERR Command not allowed inside a transaction");
         return MultiIoAction::LocalDone;

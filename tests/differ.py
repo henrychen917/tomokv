@@ -5792,6 +5792,11 @@ for cs, cf in ((ts, tf), (os_, of)):
     cs.sendall(enc(["FLUSHALL"]))
     if read_reply(cf)[:1] != b"+": raise RuntimeError("FLUSHALL failed on clean-slate")
 script_stats_before = target_stats() if SUITE == "script" else None
+if SUITE == "multi":
+    # INFO contains process-specific values; this directed leg validates exact RESP framing,
+    # required sections, and the deterministic transaction replies on both independent servers.
+    from at15 import compare as compare_at15
+    compare_at15(TH, TP, OH, OP, RESP3)
 # OBJECT ENCODING compares hash/set/zset only at matched promotion limits. TomoKV's limits
 # are fixed; configure the oracle to those values. These setup replies are drained, not diffed.
 if SUITE in ("servertail", "edgeenc"):

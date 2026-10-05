@@ -291,6 +291,19 @@ const CommandMetadata* command_metadata_for(const CommandSpec& spec) {
     return spec.id < g_metadata_by_id.size() ? g_metadata_by_id[spec.id] : nullptr;
 }
 
+bool command_metadata_no_multi(Op& op) {
+    static constexpr uint64_t mask = [] {
+        for (size_t i = 0; i < std::size(kGeneratedCommandFlagNames); ++i) {
+            const std::string_view flag(kGeneratedCommandFlagNames[i]);
+            if (flag == "no_multi" || flag == "no-multi") return uint64_t{1} << i;
+        }
+        return uint64_t{0};
+    }();
+    static_assert(mask, "generated COMMAND metadata must contain no_multi");
+    const auto* metadata = command_metadata_resolve(op, 0);
+    return metadata && (metadata->flags & mask);
+}
+
 const CommandMetadata* command_metadata_lookup(Slice name) {
     TOMO_EXBATCH_TWIN(legacy, 6);
     {
