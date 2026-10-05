@@ -1,0 +1,13 @@
+{
+  "base": "0849c451f",
+  "changed_helpers": [
+    "rename_held"
+  ],
+  "added_helpers": [
+    "rename_held_attempt"
+  ],
+  "labels_unchanged": true,
+  "gate_delta_quick": 0,
+  "gate_delta_full": 0,
+  "test_revision": "adb9d1659"
+}

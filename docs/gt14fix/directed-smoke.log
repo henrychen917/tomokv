@@ -1,0 +1,5 @@
+held 0 (True, 1, [], True, False)
+held 1 (False, 1, [], True, False)
+  ok   contention detector forced at least one OCC restart retries=+1 errors=[]
+  ok   opposite-order overlapping scripts terminate without deadlock success=[40, 40] alive=[] errors=[] values=[b'80', b'80', b'80', b'80']
+  ok   cross script and plain MSET serialize without a torn generation alive=[] errors=[] values=[b'S', b'S', b'S', b'S']

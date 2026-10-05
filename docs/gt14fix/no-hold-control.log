@@ -1,0 +1,6 @@
+held 0 (0, 0, ["controller:source-complete hold not witnessed: status=0 replies=[b'OK']"], True, False)
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-gt14fix/build/gt14fix/directed.py", line 25, in <module>
+    assert result[0] == (atomic == 0) and result[1] == 1 and not result[2] and result[3] and not result[4]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
