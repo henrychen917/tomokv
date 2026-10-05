@@ -24,21 +24,43 @@ enum class ParseResult { Ok, Incomplete, Error, Empty };
 // Redis 7.4's PROTO_INLINE_MAX_SIZE is a fixed protocol bound, not a CONFIG knob.
 inline constexpr uint32_t kProtoInlineMaxSize = 64 * 1024;
 
+// Only validate quoting here: decoding quoted/escaped argv needs separately owned
+// storage, outside this error-path change. Never rewrite pinned input or borrow the
+// reply buffer for argv: dispatch can retry, and the executor owns reply storage.
+__attribute__((noinline, cold)) inline bool resp_inline_quotes_valid(const char* p, const char* end) {
+    char quote = 0;
+    for (; p != end && *p; ++p) {
+        const char c = *p;
+        if (quote) {
+            if (c == '\\' && p + 1 != end && p[1] &&
+                (quote == '"' || p[1] == '\'')) { ++p; continue; }
+            if (c == quote) {
+                quote = 0;
+                if (p + 1 != end && p[1] && !std::isspace(static_cast<unsigned char>(p[1])))
+                    return false;
+            }
+        } else if (c == '"' || c == '\'') {
+            quote = c;
+        }
+    }
+    return quote == 0;
+}
+
 // `scanned` is relative to the unconsumed request, so quiescent buffer compaction and
-// connection migration preserve it. Retain the last byte for a split CRLF. No bytes
+// connection migration preserve it. Scan for LF, trimming an optional CR. No bytes
 // are copied or changed: argv can still point into the append-only receive buffer.
 inline ParseResult resp_parse_inline(const char* buf, uint32_t len, uint32_t& pos,
                                       Op& op, const char** err, uint32_t& scanned) {
     const uint32_t available = len - pos;
     uint32_t i = scanned;
-    for (; i + 1 < available; ++i) {
+    for (; i < available; ++i) {
 #ifdef TOMO_NETCAP_TEST
         extern uint64_t netcap_scan_bytes;
         ++netcap_scan_bytes;
 #endif
-        if (buf[pos + i] == '\r' && buf[pos + i + 1] == '\n') break;
+        if (buf[pos + i] == '\n' || buf[pos + i] == '\0') break;
     }
-    if (i + 1 >= available) {
+    if (i == available || buf[pos + i] == '\0') {
         scanned = i;
         if (available > kProtoInlineMaxSize) {
             *err = "ERR Protocol error: too big inline request";
@@ -46,8 +68,13 @@ inline ParseResult resp_parse_inline(const char* buf, uint32_t len, uint32_t& po
         }
         return ParseResult::Incomplete;
     }
-    const uint32_t eol = pos + i;
+    const uint32_t next = pos + i + 1;
+    const uint32_t eol = pos + i - (i && buf[pos + i - 1] == '\r');
     scanned = 0; // A dispatch refusal may parse this complete frame again.
+    if (!resp_inline_quotes_valid(buf + pos, buf + eol)) {
+        *err = "ERR Protocol error: unbalanced quotes in request";
+        return ParseResult::Error;
+    }
     i = pos;
     while (i < eol) {
         while (i < eol && (buf[i] == ' ' || buf[i] == '\t')) ++i;
@@ -58,7 +85,7 @@ inline ParseResult resp_parse_inline(const char* buf, uint32_t len, uint32_t& po
             return ParseResult::Error;
         }
     }
-    pos = eol + 2;
+    pos = next;
     return op.argc() ? ParseResult::Ok : ParseResult::Empty;
 }
 
@@ -73,6 +100,65 @@ inline const char* resp_expected_bulk_error(char actual, Op& op) {
     op.reply.append(message, sizeof(message) - 1);
     op.reply.append("\r\n");
     return message;
+}
+
+// Redis waits for the first CR and one following byte before validating a count.
+// In particular, malformed digits without CR are incomplete until the 64 KiB
+// bound (including the '*'/'$' prefix); a CR at the very end is still incomplete.
+// Redis's search stops at NUL and does not check that the byte after CR is LF.
+__attribute__((noinline, cold)) inline ParseResult resp_count_line(
+        const char* buf, uint32_t len, uint32_t start, uint32_t& end,
+        bool multibulk, const char** err) {
+    end = start;
+    while (end < len && buf[end] && buf[end] != '\r') ++end;
+    if (end == len || !buf[end]) {
+        if (len - start <= kProtoInlineMaxSize) return ParseResult::Incomplete;
+        *err = multibulk ? "ERR Protocol error: too big mbulk count string"
+                        : "ERR Protocol error: too big bulk count string";
+        return ParseResult::Error;
+    }
+    return end + 1 < len ? ParseResult::Ok : ParseResult::Incomplete;
+}
+
+__attribute__((noinline, cold)) inline ParseResult resp_length_slow(
+        const char* buf, uint32_t len, uint32_t& pos, uint64_t maxv,
+        uint64_t& out, bool multibulk, const char** err) {
+    uint32_t end;
+    const auto line = resp_count_line(buf, len, pos - 1, end, multibulk, err);
+    if (line != ParseResult::Ok) return line;
+    const char* invalid = multibulk ? "ERR Protocol error: invalid multibulk length"
+                                    : "ERR Protocol error: invalid bulk length";
+    const uint32_t first = pos + (pos < end && buf[pos] == '-');
+    int64_t value = 0;
+    // from_chars supplies signed overflow checking; the first-digit rule supplies
+    // string2ll's stricter grammar (no +, whitespace, -0 or redundant zeroes).
+    const bool zero = end == pos + 1 && buf[pos] == '0';
+    if (!zero && (first >= end || buf[first] < '1' || buf[first] > '9')) {
+        *err = invalid; return ParseResult::Error;
+    }
+    const auto parsed = std::from_chars(buf + pos, buf + end, value);
+    if (parsed.ec != std::errc{} || parsed.ptr != buf + end ||
+        (multibulk ? value > INT32_MAX : value < 0)) {
+        *err = invalid; return ParseResult::Error;
+    }
+    // Keep the ordinary parser's original immediate bound. Counts above 1 Mi
+    // take this cold continuation, up to Redis's INT_MAX; no eager argv reserve.
+    if (multibulk && maxv == 1024 * 1024) maxv = INT32_MAX;
+    if (value > 0 && static_cast<uint64_t>(value) > maxv) {
+        *err = invalid; return ParseResult::Error;
+    }
+    out = value > 0 ? static_cast<uint64_t>(value) : 0;
+    pos = end + 2;
+    return ParseResult::Ok;
+}
+
+__attribute__((noinline, cold)) inline ParseResult resp_bulk_prefix_error(
+        const char* buf, uint32_t len, uint32_t pos, Op& op, const char** err) {
+    uint32_t end;
+    const auto line = resp_count_line(buf, len, pos, end, false, err);
+    if (line != ParseResult::Ok) return line;
+    *err = resp_expected_bulk_error(buf[pos], op);
+    return ParseResult::Error;
 }
 
 // Read decimal digits terminated by CRLF, advancing `pos` past the CRLF.
@@ -93,7 +179,8 @@ inline ParseResult parse_len_crlf(const char* buf, uint32_t len, uint32_t& pos,
         const char c = buf[i];
         if (c == '\r') {
             if (i + 1 >= len) return ParseResult::Incomplete;
-            if (buf[i + 1] != '\n' || digits == 0) return ParseResult::Error;
+            if (buf[i + 1] != '\n' || digits == 0 ||
+                (digits > 1 && buf[pos] == '0')) return ParseResult::Error;
             pos = i + 2;
             out = v;
             return ParseResult::Ok;
@@ -134,17 +221,25 @@ inline ParseResult resp_parse_t(const char* buf, uint32_t len, uint32_t& pos, Op
     uint32_t p = pos + 1;                      // past '*'
     uint64_t nargs = 0;
     ParseResult r = parse_len_crlf(buf, len, p, max_multibulk, nargs);
-    if (r == ParseResult::Incomplete) return ParseResult::Incomplete;
-    if (r == ParseResult::Error || nargs == 0) { *err = "ERR Protocol error: invalid multibulk length"; return ParseResult::Error; }
+    if (__builtin_expect(r != ParseResult::Ok, false)) {
+        r = resp_length_slow(buf, len, p, max_multibulk, nargs, true, err);
+        if (r != ParseResult::Ok) return r;
+    }
+    if (nargs == 0) { pos = p; return ParseResult::Empty; }
 
     for (uint64_t a = 0; a < nargs; a++) {
         if (p >= len) { pos = start; return ParseResult::Incomplete; }
-        if (buf[p] != '$') { *err = resp_expected_bulk_error(buf[p], op); return ParseResult::Error; }
+        if (buf[p] != '$') return resp_bulk_prefix_error(buf, len, p, op, err);
         p++;
         uint64_t blen = 0;
-        r = parse_len_crlf(buf, len, p, max_bulk, blen);
-        if (r == ParseResult::Incomplete) { pos = start; return ParseResult::Incomplete; }
-        if (r == ParseResult::Error) { *err = "ERR Protocol error: invalid bulk length"; return ParseResult::Error; }
+        // The common constant is unchanged. Larger configured limits use the
+        // signed, overflow-checked cold decoder once this small bound is crossed.
+        r = parse_len_crlf(buf, len, p, max_bulk < 512ull * 1024 * 1024
+                                      ? max_bulk : 512ull * 1024 * 1024, blen);
+        if (__builtin_expect(r != ParseResult::Ok, false)) {
+            r = resp_length_slow(buf, len, p, max_bulk, blen, false, err);
+            if (r != ParseResult::Ok) { pos = start; return r; }
+        }
         if (p + blen + 2 > len) { pos = start; return ParseResult::Incomplete; }
         if (!op.push_arg(Slice(buf + p, static_cast<uint32_t>(blen)))) {
             *err = "ERR out of memory parsing command";

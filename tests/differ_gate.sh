@@ -280,6 +280,20 @@ for ATOMIC in "${ATOMICS[@]}"; do
   fi
   TARGET_PID=$BOOT_PID
 
+  # Raw parser errors cannot be expressed by differ.py's valid-command encoders.
+  # Reuse this matrix's owned target/reference boots and require exact bytes, EOF
+  # after errors, and a live connection after empty arrays and LF inline frames.
+  LEG="RESP protocol error compatibility (atomic=$ATOMIC)"
+  LEG_LOG="$OUT/respcompat-a$ATOMIC.txt"
+  if taskset -c "$LOAD_CORES" timeout 120 python3 tests/respcompat.py \
+      127.0.0.1 "$TARGET_PORT" --oracle 127.0.0.1 "$ORACLE_PORT" >"$LEG_LOG" 2>&1; then
+    say "$LEG" "ok ($(tail -n 1 "$LEG_LOG"))"
+    PASS=$((PASS+1))
+  else
+    say "$LEG" "FAIL (see $LEG_LOG)"
+    FAIL=$((FAIL+1))
+  fi
+
   for SEED in "${SEEDS[@]}"; do
     for SUITE in "${SUITES[@]}"; do
       # The cross-owner SORT suite asserts the 6:2 thread split out of INFO and refuses any other

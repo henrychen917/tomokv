@@ -1000,7 +1000,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
+              core_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1665,6 +1665,31 @@ for mode in 1s 2s; do for engine in uring epoll; do
   fi
   stop
 done; done
+}
+
+job_respcompat(){
+# NET13/14/15/16: one aggregate row, both thread modes, before the quick exit.
+# The differential matrix also runs this byte oracle against its existing Redis boot.
+local mode compatible=1 booted
+row_begin "RESP protocol error compatibility"
+for mode in 1s 2s; do
+  booted=0
+  if [ "$mode" = 1s ]; then
+    boot_fused "$CANDIDATE_BINARY" --save '' && booted=1
+  else
+    boot "$CANDIDATE_BINARY" --thread-mode 2s --save '' && booted=1
+  fi
+  if [ "$booted" != 1 ] || ! py tests/respcompat.py 127.0.0.1 "$PORT" \
+      >"$TMPDIR/gate-respcompat-$mode.txt" 2>&1; then
+    compatible=0
+  fi
+  stop
+done
+if [ "$compatible" = 1 ]; then
+  ok "RESP protocol error compatibility"
+else
+  bad "RESP protocol error compatibility" "see $TMPDIR/gate-respcompat-*.txt and $SRVLOG"
+fi
 }
 
 job_acl_metadata(){
@@ -3148,6 +3173,10 @@ collect_job netcmd_units
 # NET1 contributes one serverless row above plus four live rows here: +5 quick / +5 full.
 # EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
 collect_job netcap
+
+# respcompat: +1 quick / +1 full, counted here before the quick-tier exit.
+# EXPECT counts and ledger fixtures are maintained by the owner.
+collect_job respcompat
 
 collect_job acl_metadata
 
