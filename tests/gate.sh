@@ -276,8 +276,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=495
-EXPECT_FULL=512                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+EXPECT_QUICK=496
+EXPECT_FULL=513                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1314,6 +1314,16 @@ job_climonfix(){
 }
 
 job_lbplanner_units(){
+# Connreset: the observer must join before server teardown on rejected baselines.
+# One new serverless row BEFORE the quick exit (+1 quick/full); counts are owner-owned.
+row_begin "LB sampler exceptional cleanup + negative control"
+if py tests/connreset_harness_test.py >"$TMPDIR/connreset-harness.log" 2>&1 \
+    && { py tests/connreset_harness_test.py --negative-control >"$TMPDIR/connreset-negative.log" 2>&1; test "$?" -eq 1; } \
+    && grep -q 'FAIL: test_baseline_failure_joins_monitor_before_server_and_preserves_cause' "$TMPDIR/connreset-negative.log"; then
+  ok "LB sampler exceptional cleanup + negative control"
+else
+  bad "LB sampler exceptional cleanup + negative control" "see $TMPDIR/connreset-harness.log and $TMPDIR/connreset-negative.log"
+fi
 # CT1: one hand-off witness row, collected BEFORE the quick exit (+1 quick/full).
 row_begin "LB monitor plan handoff + negative controls"
 if unit_ready lbplanner-units && taskset -c "$CORES" python3 tests/lbplanner_checks.py \

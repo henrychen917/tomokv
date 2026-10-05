@@ -24,6 +24,7 @@
 #include <vector>
 #include "server.h"
 #include "signalacct.h"
+#include "connreset.h"
 #include "wb_rule.h"
 #include "iopipe_pipeline.h"
 #include "signal.h"
@@ -2366,7 +2367,13 @@ private:
         // alive until this CQE arrives, but it is a corpse: positive bytes must not resurrect it by
         // parsing and dispatching new Tasks after the teardown quiescence fence.
         if (c->dead()) return;
-        if (res <= 0) { close_client(c); return; }
+        if (res <= 0) {
+#ifdef TOMO_CONNRESET_TRACE
+            connreset::note(*c, self_->id(), res == 0 ? "recv_eof" : "recv_error",
+                            std::source_location::current(), res);
+#endif
+            close_client(c); return;
+        }
         c->commit_read(static_cast<size_t>(res));
         if (query_buffer_exceeded(*c)) { close_client(c); return; }
         c->set_last_interaction_s(cached_now_s_);
@@ -5479,7 +5486,11 @@ ordinary_shard_ready:
         notify_config_version_ = snapshot.version;
     }
 
-    void close_client(Client* c, bool drain_tls_output = false) {
+    void close_client(Client* c, bool drain_tls_output = false
+#ifdef TOMO_CONNRESET_TRACE
+                      , std::source_location site = std::source_location::current()
+#endif
+                      ) {
         // IDEMPOTENT, and that is load-bearing: an abrupt disconnect can close a conn twice --
         // once when the recv fails and again when the in-flight reply's send CQE comes back
         // failed. The second call found the client already parked on the deferred-free list and
@@ -5487,6 +5498,9 @@ ordinary_shard_ready:
         // churn under ASAN; latent since the first teardown path was written.
         if (c->dead()) return;
         if (!c->closing()) {
+#ifdef TOMO_CONNRESET_TRACE
+            connreset::note(*c, self_->id(), "close_begin", site);
+#endif
             c->mark_closing();
             if (deferred_timer_cancel(c)) enqueue_serve(c);
             if (c->blocked() && blocking_cancel_client(*srv_, *self_, ring_, *c))
@@ -5541,6 +5555,9 @@ ordinary_shard_ready:
         self_->release_wb_slot(c->wb_slot());
         c->set_wb_slot(Client::kNoWbSlot);
         wb_.teardown(*c);
+#ifdef TOMO_CONNRESET_TRACE
+        connreset::note(*c, self_->id(), "fd_release", site);
+#endif
         ::close(c->fd());
         srv_->client_released();
         srv_->lb_forget_client(c->id());

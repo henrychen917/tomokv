@@ -1,6 +1,6 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "9585797fac915c59ebeaa83e0c569a86024a553484b2d4066d14e8fdc8dd83ff",
+  "source_sha256": "99fccca8b364570b2ff43a79cb728bb27559c1daa323fb9e4430ec5656b92b43",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
@@ -19,6 +19,7 @@
     "shutdown persistence (2s, command)",
     "shutdown persistence (2s, sigterm)",
     "shutdown persistence (2s, sigint)",
+    "LB sampler exceptional cleanup + negative control",
     "LB monitor plan handoff + negative controls",
     "exbatch publication unit + negative controls",
     "exbatch watch unit + negative controls",
@@ -664,6 +665,14 @@
         "exbatch publication and WATCH lifecycle (2s)",
         "exbatch publication unit + negative controls",
         "exbatch watch unit + negative controls"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-05 11:19",
+      "added": [
+        "LB sampler exceptional cleanup + negative control"
       ],
       "removed": [],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"

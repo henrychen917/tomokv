@@ -1,0 +1,4 @@
+no-pipeline: rejected: not every persistent client completed a pipeline
+no-storm: rejected: unarmed storm
+no-post-sample: rejected: no post-transition monitor sample
+wrong-geometry: rejected: observed IO/EX counts differ from 8/8

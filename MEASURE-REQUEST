@@ -4,3 +4,7 @@ PRE cd02ecbab; POST/PAD-A and per-item kind-A controls are built under build/exb
 38 cells: 14 unchanged generic, 9 split/MSET supplements, 15 directed cells.
 Exact argv and warm state: docs/exbatch/measurement-cells.json.
 No server, load generator, gate, or performance measurement was run by the lane.
+
+Lane connreset2: see MEASURE-REQUEST-connreset2.md for reconciliation with the
+landed bench4 sampler and the required serverless checks. Original churn evidence
+and artifact receipts remain in MEASURE-REQUEST-connreset.md and docs/connreset/.

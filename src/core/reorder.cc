@@ -1998,7 +1998,13 @@ void IoLoop::r7_on_recv(Client* c, int res) {
     // alive until this CQE arrives, but it is a corpse: positive bytes must not resurrect it by
     // parsing and dispatching new Tasks after the teardown quiescence fence.
     if (c->dead()) return;
-    if (res <= 0) { close_client(c); return; }
+    if (res <= 0) {
+#ifdef TOMO_CONNRESET_TRACE
+        connreset::note(*c, self_->id(), res == 0 ? "recv_eof" : "recv_error",
+                        std::source_location::current(), res);
+#endif
+        close_client(c); return;
+    }
     c->commit_read(static_cast<size_t>(res));
     if (query_buffer_exceeded(*c)) { close_client(c); return; }
     c->set_last_interaction_s(cached_now_s_);
