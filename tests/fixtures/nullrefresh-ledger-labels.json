@@ -1,6 +1,6 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "99fccca8b364570b2ff43a79cb728bb27559c1daa323fb9e4430ec5656b92b43",
+  "source_sha256": "4871714adf6fbdf6556206e1706503e3f00c02bbf260a525f5882957846dc3c1",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
@@ -68,6 +68,7 @@
     "flushfix headers witnesses",
     "multidb serverless owners",
     "multidb global namespace boundary",
+    "EXECABORT releases WATCH reservation",
     "atomic survivors unit build",
     "atomic survivor: admission",
     "atomic survivor: closure",
@@ -673,6 +674,14 @@
       "when": "2026-10-05 11:19",
       "added": [
         "LB sampler exceptional cleanup + negative control"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-06 02:24",
+      "added": [
+        "EXECABORT releases WATCH reservation"
       ],
       "removed": [],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
