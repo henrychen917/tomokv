@@ -1,0 +1,44 @@
+test_auto_smt_obeys_selected_budget_and_available_topology (__main__.self_test.<locals>.PlanningTests.test_auto_smt_obeys_selected_budget_and_available_topology) ... ok
+test_complete_tier_aliases_emit_full_correctness_and_actual_subset_argv (__main__.self_test.<locals>.PlanningTests.test_complete_tier_aliases_emit_full_correctness_and_actual_subset_argv) ... ok
+test_default_full_box (__main__.self_test.<locals>.PlanningTests.test_default_full_box) ... ok
+test_default_small_machine_fails_with_budget (__main__.self_test.<locals>.PlanningTests.test_default_small_machine_fails_with_budget) ... ok
+test_diagnostic_tiers_and_strengthening_iteration (__main__.self_test.<locals>.PlanningTests.test_diagnostic_tiers_and_strengthening_iteration) ... ok
+test_explicit_empty_load_smt_reserves_siblings (__main__.self_test.<locals>.PlanningTests.test_explicit_empty_load_smt_reserves_siblings) ... ok
+test_explicit_smt_follows_selected_physical_owner (__main__.self_test.<locals>.PlanningTests.test_explicit_smt_follows_selected_physical_owner) ... ok
+test_insufficient_ports_does_not_reduce_concurrency (__main__.self_test.<locals>.PlanningTests.test_insufficient_ports_does_not_reduce_concurrency) ... ok
+test_invalid_budget (__main__.self_test.<locals>.PlanningTests.test_invalid_budget) ... ok
+test_invalid_ranges (__main__.self_test.<locals>.PlanningTests.test_invalid_ranges) ... ok
+test_load_on_server_sibling (__main__.self_test.<locals>.PlanningTests.test_load_on_server_sibling) ... ok
+test_minimum_budget (__main__.self_test.<locals>.PlanningTests.test_minimum_budget) ... ok
+test_no_correctness_slot (__main__.self_test.<locals>.PlanningTests.test_no_correctness_slot) ... ok
+test_nonexistent_binary_fails_before_run (__main__.self_test.<locals>.PlanningTests.test_nonexistent_binary_fails_before_run) ... ok
+test_physical_axis_cannot_hide_smt (__main__.self_test.<locals>.PlanningTests.test_physical_axis_cannot_hide_smt) ... ok
+test_plan_is_deterministic (__main__.self_test.<locals>.PlanningTests.test_plan_is_deterministic) ... ok
+test_planned_port_overrides_stale_abba_environment (__main__.self_test.<locals>.PlanningTests.test_planned_port_overrides_stale_abba_environment) ... ok
+test_server_load_overlap (__main__.self_test.<locals>.PlanningTests.test_server_load_overlap) ... ok
+test_sibling_must_name_its_physical_axis (__main__.self_test.<locals>.PlanningTests.test_sibling_must_name_its_physical_axis) ... ok
+test_slots_own_disjoint_resources (__main__.self_test.<locals>.PlanningTests.test_slots_own_disjoint_resources) ... ok
+test_unavailable_requested_cpu_fails (__main__.self_test.<locals>.PlanningTests.test_unavailable_requested_cpu_fails) ... ok
+test_unknown_abba_thread_budget_fails_before_work (__main__.self_test.<locals>.PlanningTests.test_unknown_abba_thread_budget_fails_before_work) ... ok
+test_unknown_cpu_fails_without_reading_unrelated_state (__main__.self_test.<locals>.PlanningTests.test_unknown_cpu_fails_without_reading_unrelated_state) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 0.423s
+
+OK
+test_calibration_import_replays_evidence_and_rejects_mutations (gate_measurements.self_test.<locals>.Measurements.test_calibration_import_replays_evidence_and_rejects_mutations) ... ok
+test_fast_calibration_import_is_pin_only_and_replays_every_rung (gate_measurements.self_test.<locals>.Measurements.test_fast_calibration_import_is_pin_only_and_replays_every_rung) ... ok
+test_geometry_changes_invalidate (gate_measurements.self_test.<locals>.Measurements.test_geometry_changes_invalidate) ... ok
+test_historical_unknown_geometry_cannot_pin (gate_measurements.self_test.<locals>.Measurements.test_historical_unknown_geometry_cannot_pin) ... ok
+test_ratio_has_no_core_count_fallback (gate_measurements.self_test.<locals>.Measurements.test_ratio_has_no_core_count_fallback) ... ok
+test_reference_digest_mutation_fails (gate_measurements.self_test.<locals>.Measurements.test_reference_digest_mutation_fails) ... ok
+test_shape_changes_invalidate_every_axis (gate_measurements.self_test.<locals>.Measurements.test_shape_changes_invalidate_every_axis) ... ok
+test_unknown_fields_and_missing_provenance_fail (gate_measurements.self_test.<locals>.Measurements.test_unknown_fields_and_missing_provenance_fail) ... ok
+test_value_sizes_cannot_share_a_load_floor (gate_measurements.self_test.<locals>.Measurements.test_value_sizes_cannot_share_a_load_floor) ... ok
+test_variance_pin_schema_rejects_hand_edited_count_limits_and_evidence (gate_measurements.self_test.<locals>.Measurements.test_variance_pin_schema_rejects_hand_edited_count_limits_and_evidence) ... ok
+test_workload_code_change_invalidates_unchanged_cell_flags (gate_measurements.self_test.<locals>.Measurements.test_workload_code_change_invalidates_unchanged_cell_flags) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 2.684s
+
+OK
