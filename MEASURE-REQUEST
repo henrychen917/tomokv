@@ -1,3 +1,9 @@
+Lane gt15fix: snapshot loads during FLIP/key-LB
+
+See MEASURE-REQUEST-gt15fix.md for the race audit, helper, 13 serverless witnesses,
+six rejected negative controls, and the pending 20x hexpire / 5x feature-split-1
+proofs confined to CPUs 112-127. Test-only; no server or gate was run, zero new rows.
+
 Lane lbplanner: CT1 / CT2 / CT3
 
 See MEASURE-REQUEST-lbplanner.md for the complete report and mainline-only cells,
