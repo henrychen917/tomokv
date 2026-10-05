@@ -1264,6 +1264,135 @@ def assess(results, episodes="both"):
             "rate_tail_tolerance": "none; no arm-dependent or invented noise allowance"}
 
 
+def replay_episode(path, config, criteria):
+    """Recompute from saved telemetry without refitting PRE or trusting old scores."""
+    saved = json.loads(path.read_text())
+    # Copy only identity, placement receipts and workload measurements. In
+    # particular, missing telemetry must never print yesterday's thrash count
+    # as though it had been recomputed under today's rules.
+    fields = ("name", "episode", "mode", "arm", "round", "probe", "hotmax", "shards",
+              "hot_pipeline", "binary", "sha256", "arms_receipt", "seed_sha256",
+              "requested_shards", "baseline", "stimulus_t", "owners", "cohort_owners",
+              "rate", "p99", "loaders", "accounting", "p99_method", "coord_busy")
+    result = {k: saved[k] for k in fields if k in saved}
+    result.update(status="NA", measurement_valid=False,
+                  replay={"saved_status": saved.get("status"), "saved_reason": saved.get("reason"),
+                          "saved_measurement_valid": saved.get("measurement_valid", False),
+                          "measurement_source": "saved run.json rate/HDR/accounting; no new measurement",
+                          "missing": []})
+    telemetry = path.with_name("telemetry.jsonl")
+    if not telemetry.is_file():
+        result["replay"]["missing"].append(str(telemetry))
+        return dict(result, reason="missing telemetry.jsonl; current rules cannot be scored")
+    errors = []
+    try:
+        with telemetry.open() as stream:
+            samples = [json.loads(line) for line in stream]
+        result.update(owner_tracking(samples))
+    except (ValueError, KeyError, TypeError, OSError) as error:
+        return dict(result, status="FAIL", reason="invalid telemetry: " + str(error))
+    calibration = result["episode"] == "balanced"
+    kind = ("client-skew" if config.get("episodes") == "client-skew" else "key-skew") if calibration else result["episode"]
+    criterion = saved.get("criterion") or criteria.get(result["mode"])
+    result["criterion"] = criterion  # never re-fit a newly admissible calibration
+    needed = ("warm", "baseline") if calibration or result.get("stimulus_t") is None else (
+        "warm", "baseline", "max_converge", "suffix")
+    missing_config = [k for k in needed if k not in config]
+    if missing_config:
+        result["replay"]["missing"].append("manifest.json config: " + ", ".join(missing_config))
+        return dict(result, reason="missing saved configuration: " + ", ".join(missing_config))
+    if not calibration and criterion is None:
+        result["replay"]["missing"].append("frozen PRE criterion (run.json or criteria.json)")
+        return dict(result, reason="missing frozen PRE criterion; refusing to refit from another baseline")
+    try:
+        start = saved["baseline"]["start"] + config["warm"]
+        stop = start + config["baseline"]
+        balanced = [s for s in samples if start <= s["t"] <= stop]
+        require(balanced and balanced[0]["t"] - start <= .5 and stop - balanced[-1]["t"] <= .5,
+                "missing baseline endpoint coverage (limit<=0.5s)")
+        baseline = baseline_stationarity(balanced, None if calibration else criterion["shard_owners"], kind)
+        result["baseline_stationarity"] = baseline
+        for key in ("baseline_client_moves", "baseline_key_moves", "baseline_earlier_client_moves",
+                    "baseline_decision_client_moves"):
+            result[key] = baseline.get(key)
+        if baseline["status"] != "PASS":
+            errors.append(baseline["reason"])
+        if calibration:
+            return dict(result, status=baseline["status"], reason=baseline["reason"])
+        if result.get("stimulus_t") is None:
+            result["replay"]["missing"].append("post-stimulus evidence (no saved stimulus_t)")
+            return dict(result, status="FAIL" if errors else "NA",
+                        reason="; ".join([*errors, "no saved stimulus; baseline=" + baseline["status"]]))
+        stimulus = result["stimulus_t"]
+        end = stimulus + config["max_converge"] + DECISION_SECONDS + config["suffix"]
+        diagnostic = diagnostic_envelope(criterion, baseline["spread_maxima"])
+        result["diagnostic_envelope"] = diagnostic
+        result.update(convergence(samples, stimulus, end, criterion, kind,
+                                  config["max_converge"], config["suffix"], diagnostic))
+        # Old convergence FAIL with valid accounting can be rescored. An old
+        # telemetry/accounting/teardown failure cannot silently become valid.
+        if not saved.get("measurement_valid") or any(saved.get(k) is None for k in
+                                                      ("accounting", "rate", "p99", "loaders")):
+            errors.append("saved workload measurement lacks valid accounting/telemetry evidence")
+        result["measurement_valid"] = not errors
+        if errors:
+            result.update(status="FAIL", reason="; ".join([*errors, result["reason"]]))
+    except (ValueError, KeyError, TypeError) as error:
+        result.update(status="FAIL", reason="replay scoring failed: " + str(error), measurement_valid=False)
+    if result.get("probe"):
+        result["convergence_status"], result["convergence_reason"] = result["status"], result["reason"]
+        result["status"], result["reason"] = probe_verdict(result)
+    return result
+
+
+def replay(directory):
+    """Read-only campaign, episode, or archive collection replay; never boots."""
+    directory = directory.resolve()
+    require(directory.is_dir(), "replay directory missing: " + str(directory))
+    paths = sorted(directory.rglob("run.json"))
+    require(bool(paths), "replay has no run.json files: " + str(directory))
+    campaigns = {}
+    for path in paths:
+        campaign = path.parent.parent
+        if campaign not in campaigns:
+            metadata = {}
+            for name in ("manifest", "criteria"):
+                source = campaign / (name + ".json")
+                metadata[name] = json.loads(source.read_text()) if source.is_file() else {}
+            campaigns[campaign] = dict(metadata, results=[])
+        data = campaigns[campaign]
+        result = replay_episode(path, data["manifest"].get("config", {}), data["criteria"])
+        data["results"].append(result)
+        if result["episode"] != "balanced":
+            print(episode_row(result))
+        baseline = result.get("baseline_stationarity", {}).get("status", "NA")
+        print(f"LBPLANNER-REPLAY {path.parent.name} {result['status']} baseline={baseline} "
+              f"saved={result['replay']['saved_status']}: {result['reason']}")
+        for missing in result["replay"]["missing"]:
+            print(f"LBPLANNER-REPLAY-MISSING {path.parent.name}: {missing}")
+    reports = []
+    for campaign, data in campaigns.items():
+        results = [r for r in data["results"] if r["episode"] != "balanced" and not r.get("probe")]
+        kinds = {r["episode"] for r in results}
+        episodes = data["manifest"].get("config", {}).get("episodes") or (
+            next(iter(kinds)) if len(kinds) == 1 else "both")
+        present = {(r["arm"], r["mode"], r["episode"], r["round"]) for r in results}
+        missing = [f"{e}-{m}-{a}-r{n}/run.json" for a, m, e, n in schedule(episodes)
+                   if (a, m, e, n) not in present]
+        for name in missing:
+            print(f"LBPLANNER-REPLAY-MISSING {campaign / name}")
+        report = assess(results, episodes)
+        for check in report["checks"]:
+            print(f"LBPLANNER-REPLAY-PAIR {check['episode']} {check['mode']} r{check['round']} "
+                  f"{check['status']}: " + ("; ".join(check["reasons"]) or "all paired rules passed"))
+        print(f"LBPLANNER-REPLAY-VERDICT {campaign} {report['status']} "
+              f"schedule_complete={report['schedule_complete']}; saved rate/HDR, current telemetry rules")
+        reports.append({"directory": str(campaign), "results": data["results"], "report": report,
+                        "missing_runs": missing})
+    return {"status": "PASS" if all(r["report"]["status"] == "PASS" for r in reports) else "FAIL",
+            "campaigns": reports}
+
+
 def dry_run(args):
     def command(argv):
         print(shlex.join(argv))
@@ -1330,6 +1459,8 @@ def argument_parser():
     action = parser.add_mutually_exclusive_group()
     action.add_argument("--self-test", action="store_true")
     action.add_argument("--dry-run", action="store_true")
+    action.add_argument("--replay", type=Path, metavar="RUNDIR",
+                        help="read-only rescore of saved run.json/telemetry.jsonl; uses saved configuration and frozen PRE criteria")
     parser.add_argument("--output", type=Path, default=ROOT / "build/lbplanner-episodes")
     parser.add_argument("--memtier", default="memtier_benchmark")
     parser.add_argument("--port", type=int, default=7931)
@@ -1353,6 +1484,8 @@ def main(argv=None):
     args = argument_parser().parse_args(argv)
     if args.self_test:
         return 0 if unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(SelfTest)).wasSuccessful() else 1
+    if args.replay is not None:
+        return 0 if replay(args.replay)["status"] == "PASS" else 1
     args.output = args.output.resolve()
     require(args.warm >= 30 and args.baseline >= 12, "keep warm >=30 s and baseline >=12 s")
     require(args.max_converge >= DECISION_SECONDS and args.suffix >= DECISION_SECONDS,
@@ -1925,6 +2058,124 @@ class SelfTest(unittest.TestCase):
                     control[metric] += 1
         del results[0]["returns"]
         self.assertEqual(assess(results)["status"], "FAIL")
+
+    def replay_fixture(self, directory):
+        config = {"episodes": "key-skew", "warm": 0, "baseline": 12, "max_converge": 20, "suffix": 3}
+        criterion = self.criterion()
+        save_json(directory / "manifest.json", {"config": config})
+        save_json(directory / "criteria.json", {m: criterion for m in ("1s", "2s")})
+        samples = self.trace(end=42)
+        for s in samples:
+            s["signals"]["shards"][0]["owner"] = int(18 <= s["t"] < 41)
+        saved = {"status": "FAIL", "reason": "old scoring", "measurement_valid": True,
+                 "baseline": {"start": 0, "end": 13}, "stimulus_t": 14,
+                 "criterion": criterion, "thrash_moves": 999, "shards": 1,
+                 "rate": 200, "p99": 1, "coord_busy": 80,
+                 "loaders": [{"rate": 100, "p99": 1}] * 2,
+                 "accounting": {"commands": {"SET": {"server_calls": 200, "completed_hdr_count": 200,
+                                                       "memtier_count": 200}}}}
+        telemetry = "".join(json.dumps(s) + "\n" for s in samples)
+        for arm, mode, episode, number in schedule("key-skew"):
+            name = f"{episode}-{mode}-{arm}-r{number}"
+            run = directory / name
+            run.mkdir()
+            save_json(run / "run.json", dict(saved, name=name, arm=arm, mode=mode, episode=episode, round=number))
+            (run / "telemetry.jsonl").write_text(telemetry)
+        return config, criterion
+
+    def test_replay_is_read_only_and_needs_no_live_tools(self):
+        from contextlib import redirect_stdout
+        import io
+        import tempfile
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+            directory = Path(temp)
+            self.replay_fixture(directory)
+            before = {str(p): (digest(p), p.stat().st_mtime_ns) for p in directory.rglob("*") if p.is_file()}
+            output = io.StringIO()
+            with patch.object(subprocess, "Popen", side_effect=AssertionError("spawned process")), \
+                    patch.object(subprocess, "run", side_effect=AssertionError("ran process")), \
+                    patch.object(socket, "socket", side_effect=AssertionError("opened socket")), \
+                    patch.object(Path, "write_text", side_effect=AssertionError("wrote file")), \
+                    patch.object(Path, "write_bytes", side_effect=AssertionError("wrote file")), \
+                    patch.object(Path, "mkdir", side_effect=AssertionError("created directory")), \
+                    patch(__name__ + ".bind_arms", side_effect=AssertionError("bound live arms")), \
+                    patch(__name__ + ".save_json", side_effect=AssertionError("saved output")), \
+                    patch.object(os, "sched_setaffinity", side_effect=AssertionError("changed affinity")), \
+                    redirect_stdout(output):
+                code = main(["--replay", str(directory), "--arms", "/missing/arms.json", "--output", "/unused"])
+            self.assertEqual(code, 0)
+            self.assertEqual(before, {str(p): (digest(p), p.stat().st_mtime_ns)
+                                      for p in directory.rglob("*") if p.is_file()})
+            rows = [r for r in output.getvalue().splitlines() if r.startswith("LBPLANNER-EPISODE ")]
+            self.assertEqual(len(rows), 18)
+            self.assertTrue(all("thrash_moves=0 " in r and " moves=2 returns=1 exchanges=0 shards=1" in r for r in rows))
+            self.assertTrue(all(" refused=NA escapes=NA" in r for r in rows))
+
+    def test_replay_missing_telemetry_clears_old_scores_and_reports_missing_runs(self):
+        from contextlib import redirect_stdout
+        import io
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+            directory = Path(temp)
+            config, criterion = self.replay_fixture(directory)
+            run = directory / "key-skew-1s-POST-r1"
+            (run / "telemetry.jsonl").unlink()
+            result = replay_episode(run / "run.json", config, {"1s": criterion})
+            self.assertEqual(result["status"], "NA")
+            self.assertFalse(result["measurement_valid"])
+            self.assertNotIn("thrash_moves", result)
+            self.assertIn("thrash_moves=NA", episode_row(result))
+            output = io.StringIO()
+            with redirect_stdout(output):
+                report = replay(run)  # a single episode also works, without inventing its missing pairs
+            self.assertEqual(report["status"], "FAIL")
+            self.assertIn("missing telemetry.jsonl", output.getvalue())
+            self.assertIn("key-skew-1s-PRE-r1/run.json", output.getvalue())
+
+    def test_replay_uses_saved_frozen_criterion_and_valid_accounting(self):
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+            directory = Path(temp)
+            config, criterion = self.replay_fixture(directory)
+            path = directory / "key-skew-1s-POST-r1" / "run.json"
+            saved = json.loads(path.read_text())
+            saved["measurement_valid"] = False
+            save_json(path, saved)
+            result = replay_episode(path, config, {})
+            self.assertEqual(result["status"], "FAIL")
+            self.assertIn("lacks valid accounting", result["reason"])
+            saved["measurement_valid"] = True
+            save_json(path, saved)
+            samples = [json.loads(s) for s in path.with_name("telemetry.jsonl").read_text().splitlines()]
+            samples[390]["info"][SPREADS[0]] = 5
+            path.with_name("telemetry.jsonl").write_text("".join(json.dumps(s) + "\n" for s in samples))
+            wide = dict(criterion, upper={k: 1000 for k in SPREADS})
+            result = replay_episode(path, config, {"1s": wide})
+            self.assertEqual(result["status"], "FAIL")
+            self.assertIn("post-move rebound", result["reason"])
+            self.assertEqual(result["criterion"]["upper"][SPREADS[0]], 1)
+            result = replay_episode(path, {}, {})
+            self.assertEqual(result["status"], "NA")
+            self.assertIn("missing saved configuration", result["reason"])
+            self.assertEqual(result["shard_moves"], 2)  # owner evidence survives missing scoring metadata
+
+    def test_replay_newly_admissible_baseline_cannot_invent_stimulus(self):
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+            directory = Path(temp)
+            path = directory / "run.json"
+            samples = [self.sample(i / 10, client=int(i >= 570)) for i in range(601)]
+            save_json(path, {"episode": "client-skew", "mode": "2s", "arm": "POST", "round": 1,
+                             "status": "FAIL", "baseline": {"start": 0}, "criterion": self.criterion()})
+            path.with_name("telemetry.jsonl").write_text("".join(json.dumps(s) + "\n" for s in samples))
+            result = replay_episode(path, {"episodes": "client-skew", "warm": 0, "baseline": 60}, {})
+            self.assertEqual(result["status"], "NA")
+            self.assertEqual(result["baseline_stationarity"]["status"], "PASS")
+            self.assertEqual(result["baseline_decision_client_moves"], 1)
+            self.assertIn("no saved stimulus", result["reason"])
+            self.assertNotIn("t_converge", result)
+            self.assertFalse(result["measurement_valid"])
 
     def test_paired_client_spread_uses_pre_round_range_not_move_count(self):
         results = [dict(arm=a, mode=m, episode=e, round=r, status="PASS", t_converge=4,
