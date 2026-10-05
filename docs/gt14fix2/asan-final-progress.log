@@ -1,0 +1,80 @@
+START tier=asan run=01 utc=2026-10-05T02:43:53Z
+TEST tier=asan run=01 test=atomic_torn exit=0 utc=2026-10-05T02:44:18Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 50320 byte(s) leaked in 7 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001392 witness_s=0.0013252049684524536 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=131776 final=True errors=[] threads_still_alive=False hold_s=0.001356 witness_s=0.0012893551029264927 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   OFF control exposes RENAMENX losing race anomalies=25 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=01 exit=1 utc=2026-10-05T02:44:19Z
+START tier=asan run=02 utc=2026-10-05T02:44:19Z
+TEST tier=asan run=02 test=atomic_torn exit=0 utc=2026-10-05T02:44:44Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 50320 byte(s) leaked in 7 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001475 witness_s=0.0014133560471236706 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=137800 final=True errors=[] threads_still_alive=False hold_s=0.001341 witness_s=0.001272815279662609 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   OFF control exposes RENAMENX losing race anomalies=53 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=02 exit=1 utc=2026-10-05T02:44:45Z
+START tier=asan run=03 utc=2026-10-05T02:44:45Z
+TEST tier=asan run=03 test=atomic_torn exit=0 utc=2026-10-05T02:45:10Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 50320 byte(s) leaked in 7 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001388 witness_s=0.0013231346383690834 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=117546 final=True errors=[] threads_still_alive=False hold_s=0.000346 witness_s=0.00027912063524127007 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   OFF control exposes RENAMENX losing race anomalies=1 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=03 exit=1 utc=2026-10-05T02:45:10Z
+START tier=asan run=04 utc=2026-10-05T02:45:10Z
+TEST tier=asan run=04 test=atomic_torn exit=0 utc=2026-10-05T02:45:36Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 50320 byte(s) leaked in 7 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001418 witness_s=0.0013640746474266052 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=98524 final=True errors=[] threads_still_alive=False hold_s=0.001357 witness_s=0.0012918943539261818 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   OFF control exposes RENAMENX losing race anomalies=48 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=04 exit=1 utc=2026-10-05T02:45:36Z
+START tier=asan run=05 utc=2026-10-05T02:45:36Z
+TEST tier=asan run=05 test=atomic_torn exit=0 utc=2026-10-05T02:46:02Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 50320 byte(s) leaked in 7 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001364 witness_s=0.0012995051220059395 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=140773 final=True errors=[] threads_still_alive=False hold_s=0.001322 witness_s=0.001255773939192295 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   OFF control exposes RENAMENX losing race anomalies=16 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=05 exit=1 utc=2026-10-05T02:46:02Z
+START tier=asan run=06 utc=2026-10-05T02:46:02Z
+TEST tier=asan run=06 test=atomic_torn exit=0 utc=2026-10-05T02:46:27Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 50320 byte(s) leaked in 7 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001392 witness_s=0.0013331151567399502 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=140041 final=True errors=[] threads_still_alive=False hold_s=0.001356 witness_s=0.0012864740565419197 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   OFF control exposes RENAMENX losing race anomalies=8 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=06 exit=1 utc=2026-10-05T02:46:28Z
+START tier=asan run=07 utc=2026-10-05T02:46:28Z
+TEST tier=asan run=07 test=atomic_torn exit=0 utc=2026-10-05T02:46:53Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 50320 byte(s) leaked in 7 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001451 witness_s=0.0013775648549199104 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=53335 final=True errors=[] threads_still_alive=False hold_s=0.001441 witness_s=0.001347765326499939 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   OFF control exposes RENAMENX losing race anomalies=7 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=07 exit=1 utc=2026-10-05T02:46:54Z
+START tier=asan run=08 utc=2026-10-05T02:46:54Z
+TEST tier=asan run=08 test=atomic_torn exit=0 utc=2026-10-05T02:47:19Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 50320 byte(s) leaked in 7 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001513 witness_s=0.0014443653635680676 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=49078 final=True errors=[] threads_still_alive=False hold_s=0.000423 witness_s=0.00035377079620957375 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  SKIP OFF control exposes RENAMENX losing race clean run, losing race never manifested (kernel-timing geometry)
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=08 exit=1 utc=2026-10-05T02:47:20Z
+START tier=asan run=09 utc=2026-10-05T02:47:20Z
+TEST tier=asan run=09 test=atomic_torn exit=0 utc=2026-10-05T02:47:45Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 71384 byte(s) leaked in 10 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.005124 witness_s=0.0016098851338028908 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=24597 final=True errors=[] threads_still_alive=False hold_s=0.005140 witness_s=0.0014965361915528774 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  SKIP OFF control exposes RENAMENX losing race clean run, losing race never manifested (kernel-timing geometry)
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=09 exit=1 utc=2026-10-05T02:47:46Z
+START tier=asan run=10 utc=2026-10-05T02:47:46Z
+TEST tier=asan run=10 test=atomic_torn exit=0 utc=2026-10-05T02:48:11Z
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 50320 byte(s) leaked in 7 allocation(s).'
+  ok   OFF control exposes torn RENAME invalid=1 reads=1 errors=[] threads_still_alive=False hold_s=0.001507 witness_s=0.0014265859499573708 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   ON RENAME/MGET has exactly one live image invalid=0 reads=74102 final=True errors=[] threads_still_alive=False hold_s=0.001532 witness_s=0.0014406749978661537 ceiling_ms=30000 attempt=1/4 rerolls=[]
+  ok   OFF control exposes RENAMENX losing race anomalies=33 errors=[] threads_still_alive=False
+  ok   ON RENAMENX loser is invisible anomalies=0 errors=[] threads_still_alive=False
+DONE tier=asan run=10 exit=1 utc=2026-10-05T02:48:12Z

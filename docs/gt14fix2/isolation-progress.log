@@ -1,0 +1,12 @@
+baseline-never-hold torture exit=0
+baseline-never-hold ryow exit=0
+baseline-never-hold atomic_ryow exit=0
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 263376 byte(s) leaked in 64 allocation(s).'
+baseline-never-hold shutdown_check=1
+==637494==ERROR: LeakSanitizer: detected memory leaks
+SUMMARY: AddressSanitizer: 263376 byte(s) leaked in 64 allocation(s).
+post-atomic-only atomic_torn exit=1
+shutdown report: last line is not shutdown_report: b'SUMMARY: AddressSanitizer: 50320 byte(s) leaked in 7 allocation(s).'
+post-atomic-only shutdown_check=1
+==637957==ERROR: LeakSanitizer: detected memory leaks
+SUMMARY: AddressSanitizer: 50320 byte(s) leaked in 7 allocation(s).

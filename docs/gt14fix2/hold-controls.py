@@ -23,6 +23,34 @@ if mode == 'no-hold':
     print('PASS absent hold is rejected')
     sys.exit()
 
+if mode == 'routing':
+    local = ns['gate_geometry']()['local_pair']
+    result = ns['rename_held'](0, local)
+    print('same-owner recovery:', result, flush=True)
+    assert result[0] == 1 and result[1] == 1 and not result[2] and result[3] and not result[4]
+    assert 'attempt=2/4' in result[5], result
+    ns['gate_geometry'] = lambda: {'mover_pair': local}
+    result = ns['rename_held'](0, local)
+    print('never-cross-owner:', result, flush=True)
+    assert result[1] == 0 and result[2] and 'attempt=4/4' in result[5]
+    # Hold an actual cross-owner hop for only 100 ms, then delay the first observer past expiry.
+    original_debug = ns['debug']
+    def short_debug(name, value):
+        return original_debug(name, 100 if name == 'ATOMIC-OFF-HOP-HOLD' and value else value)
+    ns['debug'] = short_debug
+    original_cmd = Resp.cmd
+    def slow_status(self, *args):
+        if args == ('DEBUG', 'ATOMIC-OFF-HOP-STATUS'):
+            time.sleep(.15)
+        return original_cmd(self, *args)
+    Resp.cmd = slow_status
+    result = ns['rename_held'](0, keys)
+    print('expired-hold rejection:', result, flush=True)
+    assert result[1] == 0 and result[2] and 'status=3' in result[2][0]
+    assert 'attempt=1/4' in result[5], result
+    print('PASS bounded routing recovery and expired-hold rejection')
+    sys.exit()
+
 def held(atomic, budget, pause, expire=False):
     config('atomic', atomic)
     admin, writer = Resp(), Resp()

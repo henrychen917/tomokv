@@ -1,2 +1,2 @@
-no-hold result: (0, 0, ["controller:source-complete hold not witnessed: status=0 replies=[b'OK']"], True, False, 'hold_s=0.001426 witness_s=None ceiling_ms=30000')
+no-hold result: (0, 0, ["controller:source-complete hold not witnessed: status=0 replies=[b'OK'] keys=('at:geometry:0000', 'at:geometry:0001') routes=[[12, 6], [3, 7]] current_routes=[[12, 6], [3, 7]]"], True, False, 'hold_s=0.001461 witness_s=None ceiling_ms=30000 attempt=1/4 rerolls=[]')
 PASS absent hold is rejected

@@ -41,6 +41,9 @@
     "changed_helpers": [
       "rename_held"
     ],
+    "added_helpers": [
+      "rename_held_attempt"
+    ],
     "labels_unchanged": true,
     "gate_delta_quick": 0,
     "gate_delta_full": 0
@@ -48,7 +51,8 @@
   "sha256": {
     "tests/gate.sh": "43222d32cdb4727c8a9c06506759cb76ef0ecbd7414143329d1e56eff7dc5855",
     "tests/gate_subset.sh": "88406335af97b13e383b31f4d25ce04cb625e1b105b3c2686cbadff46d5887d6",
-    "tests/atomic_torn.py": "74de4265b74e682c76b2f88c62b8b2d8dcbda4b71135db3c4cfa81efc6f54960",
+    "tests/atomic_torn.py": "19a6967c6bc3e41661c4b8410f86c62d8d3677cfa3fcdcb6204e77b7fc75837a",
     "tests/xscript.py": "7af2aa6bf4c73f27d72b067c96056ad25951a5410f26772f87541dcde9d147fd"
-  }
+  },
+  "test_revision": "adb9d1659"
 }

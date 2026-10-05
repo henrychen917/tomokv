@@ -1,0 +1,127 @@
+{
+  "completed": 3,
+  "requested": 20,
+  "remaining": 17,
+  "passed_rows": 57,
+  "failed_rows": 0,
+  "successful_subsets": 3,
+  "test_revision": "adb9d1659",
+  "binary_sha256": "79f3688f51ee0a0bd09777716d001b67ff4efa622f5ef1961b274ec7591a3b61",
+  "runs": [
+    {
+      "run": 1,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.RaVrtI",
+      "passed": 19,
+      "failed": 0,
+      "exit": 0,
+      "exit_source": "campaign",
+      "jobs": {
+        "debug-1": {
+          "exit": 0,
+          "passed": 14,
+          "failed": 0,
+          "seconds": 72.154918
+        },
+        "atomic_batteries": {
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "seconds": 35.673541
+        }
+      },
+      "OFF": {
+        "hold_s": 0.001321,
+        "witness_s": 0.0012732939794659615,
+        "attempt": 1,
+        "rerolls": "[]"
+      },
+      "ON": {
+        "hold_s": 0.001313,
+        "witness_s": 0.0012666638940572739,
+        "attempt": 1,
+        "rerolls": "[]",
+        "hammer_reads": 94476
+      }
+    },
+    {
+      "run": 2,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.7sAhVQ",
+      "passed": 19,
+      "failed": 0,
+      "exit": 0,
+      "exit_source": "campaign",
+      "jobs": {
+        "debug-1": {
+          "exit": 0,
+          "passed": 14,
+          "failed": 0,
+          "seconds": 72.042581
+        },
+        "atomic_batteries": {
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "seconds": 35.604313
+        }
+      },
+      "OFF": {
+        "hold_s": 0.001314,
+        "witness_s": 0.0012660953216254711,
+        "attempt": 1,
+        "rerolls": "[]"
+      },
+      "ON": {
+        "hold_s": 0.000186,
+        "witness_s": 0.00013900082558393478,
+        "attempt": 1,
+        "rerolls": "[]",
+        "hammer_reads": 137543
+      }
+    },
+    {
+      "run": 3,
+      "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.QNSFfQ",
+      "passed": 19,
+      "failed": 0,
+      "exit": 0,
+      "exit_source": "campaign",
+      "jobs": {
+        "debug-1": {
+          "exit": 0,
+          "passed": 14,
+          "failed": 0,
+          "seconds": 72.106803
+        },
+        "atomic_batteries": {
+          "exit": 0,
+          "passed": 4,
+          "failed": 0,
+          "seconds": 36.406639
+        }
+      },
+      "OFF": {
+        "hold_s": 0.001349,
+        "witness_s": 0.0013052751310169697,
+        "attempt": 1,
+        "rerolls": "[]"
+      },
+      "ON": {
+        "hold_s": 0.00024,
+        "witness_s": 0.00019896076992154121,
+        "attempt": 1,
+        "rerolls": "[]",
+        "hammer_reads": 64819
+      }
+    }
+  ],
+  "OFF": {
+    "min_s": 0.001314,
+    "median_s": 0.001321,
+    "max_s": 0.001349
+  },
+  "ON": {
+    "min_s": 0.000186,
+    "median_s": 0.00024,
+    "max_s": 0.001313
+  }
+}
