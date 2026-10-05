@@ -1014,7 +1014,7 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
             result["shards"] = identity["shards"]
             placement = cohort_owners(owners, episode)
             result["cohort_owners"] = placement
-            result["cohort_owners_method"] = "connection index -> sorted boot IO owners, round robin; verified by owner-select receipts"
+            result["cohort_owners_method"] = "requested connection index -> sorted boot IO owners, round robin; actual placements in baseline.owners and owners"
             require(identity["shards"] == seed_record["shards"],
                     f"shards={identity['shards']}, seed limit={seed_record['shards']}")
             require(key_mapping(conn, args.hotmax, identity["shards"]) == seed_record["hot_keys"],
@@ -1280,6 +1280,8 @@ def replay_episode(path, config, criteria):
                           "saved_measurement_valid": saved.get("measurement_valid", False),
                           "measurement_source": "saved run.json rate/HDR/accounting; no new measurement",
                           "missing": []})
+    if result["episode"] != "balanced" and result.get("stimulus_t") is None:
+        result["replay"]["missing"].append("post-stimulus evidence (no saved stimulus_t)")
     telemetry = path.with_name("telemetry.jsonl")
     if not telemetry.is_file():
         result["replay"]["missing"].append(str(telemetry))
@@ -1320,7 +1322,6 @@ def replay_episode(path, config, criteria):
         if calibration:
             return dict(result, status=baseline["status"], reason=baseline["reason"])
         if result.get("stimulus_t") is None:
-            result["replay"]["missing"].append("post-stimulus evidence (no saved stimulus_t)")
             return dict(result, status="FAIL" if errors else "NA",
                         reason="; ".join([*errors, "no saved stimulus; baseline=" + baseline["status"]]))
         stimulus = result["stimulus_t"]
@@ -1412,7 +1413,7 @@ def dry_run(args):
         command(server_command(args, arm, mode, directory))
         print("# RESP: INFO SERVER (owned PID); DEBUG SHARDS; INFO LB + DEBUG LBSIGNALS every 100 ms")
         print("# Selector RESP per connection attempt: DEBUG IO-THREAD (<=512 fresh sockets); actual IO IDs come from boot")
-        print("# Owner placeholders expand to comma-separated sorted DEBUG LBSIGNALS IO/fused IDs; EX IDs are excluded")
+        print("# Owner placeholders expand to 64 round-robin slots over sorted DEBUG LBSIGNALS IO/fused IDs; EX IDs are excluded")
         for label in ("baseline-a", "baseline-b"):
             command(load_command(args, directory, label, 1, KEYS, args.warm + args.baseline + 3, owners=owners))
         if episode != "balanced":
@@ -1936,6 +1937,12 @@ class SelfTest(unittest.TestCase):
         self.assertEqual(sum(w["required_moves"] for w in result["thrash_windows"]), result["key_moves"])
         early = convergence(trace, 14, 44, self.criterion(), "key-skew", 40, 3)
         self.assertEqual(early["thrash_moves"], result["thrash_moves"])
+        for sample in trace:
+            sample["info"][CLIENT], sample["info"][KEY] = sample["info"][KEY], 0
+        client = convergence(trace, 14, 60, self.criterion(), "client-skew", 40, 3)
+        self.assertEqual(client["thrash_moves"], 5)
+        self.assertEqual(client["status"], "FAIL")
+        self.assertIn("spread stopped falling", client["reason"])
 
     def test_thrash_uses_running_best_and_counts_windows_once(self):
         trace = [self.sample(i / 10, spread=100 if i <= 140 else
@@ -2047,14 +2054,16 @@ class SelfTest(unittest.TestCase):
                         spread_end=100, rate=100, p99=1, stall={k: 0 for k in STALL},
                         attempts=3, pass_limit=0) for a, m, e, r in schedule()]
         self.assertEqual(assess(results)["status"], "PASS")
-        for control in (results[0], results[1]):
+        for control in (results[0], results[1], results[18], results[19]):
             for metric in OWNER_METRICS:
                 with self.subTest(control=control["arm"], metric=metric):
                     control[metric] -= 1
                     report = assess(results)
                     self.assertEqual(report["status"], "FAIL")
+                    check = next(c for c in report["checks"] if all(c[k] == control[k]
+                                 for k in ("episode", "mode", "round")))
                     self.assertTrue(any(metric in reason and control["arm"] in reason
-                                        for reason in report["checks"][0]["reasons"]))
+                                        for reason in check["reasons"]))
                     control[metric] += 1
         del results[0]["returns"]
         self.assertEqual(assess(results)["status"], "FAIL")
@@ -2266,6 +2275,11 @@ class SelfTest(unittest.TestCase):
             self.assertIn("balanced key_moves=1", result["reason"])
             self.assertFalse(result["measurement_valid"])
             self.assertEqual(events, ["join", "teardown"])
+            saved = json.loads((args.output / result["name"] / "run.json").read_text())
+            self.assertEqual(saved["cohort_owners"]["baseline-a"], [0] * 64)
+            self.assertEqual(saved["cohort_owners"]["baseline-b"], [0] * 64)
+            self.assertTrue(all("LB_EPISODE_OWNERS=" + ",".join(["0"] * 64) in argv
+                                for argv in saved["commands"]))
 
     def test_last_required_move_and_three_real_ticks(self):
         trace = self.trace()
