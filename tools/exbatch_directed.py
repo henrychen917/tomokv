@@ -2,8 +2,9 @@
 """Mainline-only EX1/EX3/EX6 directed measurements (never part of the gate).
 
 The inventory is executable input, not a second transcription of the recipes.
---self-test opens no sockets; when perf is available it checks a local busy loop
-on CPUs 112-127. --dry-run only executes memtier --help, as a required grammar
+--self-test opens no sockets; it builds a native preload fixture and, when perf
+is available, checks a local busy loop on CPUs 112-127.
+--dry-run only executes memtier --help, as a required grammar
 check; all workload commands are printed.
 Normal invocation owns/reaps its children, boots fresh state for EVERY sample,
 and retains failed samples. See MEASURE-REQUEST-exbatch-bench.md for scopes.
@@ -57,7 +58,8 @@ REQUIRED_OPTIONS = ("command", "command-ratio", "command-key-pattern", "transact
 # Connections still go directly to the exact server/port; no proxy, extra client,
 # MONITOR in the timed run, or changed command grammar. A missing hook fails the
 # exact guard/HDR count reconciliation. Per-FD state avoids a shared hot counter.
-# This is compiled by MAINLINE before measurement, never by --self-test/dry-run.
+# MAINLINE compiles this before measurement; --self-test compiles a memory-only
+# fixture on CPUs 112-127. --dry-run never compiles it.
 ZERO_REPLY_GUARD = r'''
 #define _GNU_SOURCE
 #include <arpa/inet.h>
@@ -77,7 +79,7 @@ ZERO_REPLY_GUARD = r'''
 struct state { unsigned long long bytes; unsigned phase, active; char pad[48]; };
 static struct state states[FDS];
 static _Atomic unsigned long long closed_bytes, connections;
-static int receipt = -1;
+static const char *receipt_path;
 static int (*next_connect)(int, const struct sockaddr *, socklen_t);
 static int (*next_close)(int);
 static ssize_t (*next_read)(int, void *, size_t);
@@ -103,10 +105,11 @@ __attribute__((constructor)) static void init(void) {
     next_read = resolve("read"); next_readv = resolve("readv");
     next_recv = resolve("recv"); next_recvfrom = resolve("recvfrom");
     next_recvmsg = resolve("recvmsg");
-    const char *path = getenv("EXBATCH_ZERO_RECEIPT");
-    if (!path) die("missing receipt path");
-    receipt = open(path, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
-    if (receipt < 0) die("cannot create receipt");
+    receipt_path = getenv("EXBATCH_ZERO_RECEIPT");
+    if (!receipt_path) die("missing receipt path");
+    /* LD_PRELOAD also runs this constructor in taskset, before it execs
+       memtier. Do not create the exclusive receipt until the receiving
+       process finishes: a launcher must not reserve its child's path. */
 }
 static void retire(int fd) {
     if (fd < 0 || fd >= FDS || !states[fd].active) return;
@@ -187,6 +190,8 @@ __attribute__((destructor)) static void finish(void) {
     for (int fd = 0; fd < FDS; ++fd) retire(fd);
     unsigned long long bytes = atomic_load(&closed_bytes), clients = atomic_load(&connections);
     if (!clients || !bytes || bytes % 4) die("no verified complete replies");
+    int receipt = open(receipt_path, O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0600);
+    if (receipt < 0) die("cannot create receipt");
     char text[256];
     int n = snprintf(text, sizeof(text), "{\"connections\":%llu,\"bytes\":%llu,\"zero_replies\":%llu}\n",
                      clients, bytes, bytes / 4);
@@ -196,14 +201,13 @@ __attribute__((destructor)) static void finish(void) {
 '''
 
 ZERO_REPLY_UNIT = r'''
-int main(int argc, char **argv) {
-    if (argc != 2) return 2;
-    if (!strcmp(argv[1], "empty")) return 0;
+int guard_unit(const char *mode) {
+    if (!strcmp(mode, "empty")) return 0;
     atomic_store(&connections, 1);
     states[64000].active = 1; /* memory-only parser fixture, no socket */
-    if (!strcmp(argv[1], "bad")) consume(64000, ":1\r\n", 4);
-    else if (!strcmp(argv[1], "error")) consume(64000, "-ERR\r\n", 6);
-    else if (!strcmp(argv[1], "partial")) consume(64000, ":0\r", 3);
+    if (!strcmp(mode, "bad")) consume(64000, ":1\r\n", 4);
+    else if (!strcmp(mode, "error")) consume(64000, "-ERR\r\n", 6);
+    else if (!strcmp(mode, "partial")) consume(64000, ":0\r", 3);
     else {
         const char good[] = ":0\r\n:0\r\n:0\r\n";
         for (int chunk = 1; chunk <= 12; ++chunk)
@@ -214,6 +218,9 @@ int main(int argc, char **argv) {
         consume_iov(64000, vec, 2, 8);
     }
     return 0;
+}
+int main(int argc, char **argv) {
+    return argc == 2 ? guard_unit(argv[1]) : 2;
 }
 '''
 
@@ -281,6 +288,53 @@ def save(path, data):
     temporary = path.with_name(path.name + ".tmp")
     temporary.write_text(json.dumps(data, indent=2, sort_keys=True, allow_nan=False) + "\n")
     temporary.replace(path)
+
+
+def file_evidence(folder, names):
+    """Bounded, failure-only reads; never collect extra traffic on the server."""
+    result = {}
+    for name in names:
+        path = folder / name
+        try:
+            with path.open("rb") as stream:
+                size = stream.seek(0, os.SEEK_END)
+                stream.seek(max(0, size - 2048))
+                result[name] = dict(bytes=size, tail=stream.read().decode("utf-8", "replace"))
+        except OSError as error:
+            result[name] = dict(unavailable=str(error))
+    return result
+
+
+class StepFailure(RuntimeError):
+    pass
+
+
+class Diagnostics:
+    def __init__(self, folder, scope):
+        self.folder, self.scope = folder, scope
+        self.started = time.monotonic()
+        self.steps = []
+        self.step("starting")
+
+    def step(self, name, **evidence):
+        now = time.monotonic()
+        if self.steps:
+            self.steps[-1]["seconds"] = now - self.steps[-1]["started"]
+        self.current = dict(step=name, started=now, evidence=evidence)
+        self.steps.append(self.current)
+
+    def failure(self, error, **evidence):
+        now = time.monotonic()
+        self.current["seconds"] = now - self.current["started"]
+        detail = dict(scope=self.scope, step=self.current["step"],
+                      elapsed_seconds=self.current["seconds"], total_seconds=now - self.started,
+                      error=f"{type(error).__name__}: {error}", steps=self.steps,
+                      evidence={**self.current["evidence"], **evidence})
+        path = self.folder / f"{self.scope}-failure.json"
+        save(path, detail)
+        return StepFailure(f"{self.scope}/{detail['step']} failed after {detail['elapsed_seconds']:.3f}s "
+                           f"(total {detail['total_seconds']:.3f}s): {detail['error']}; "
+                           f"partial evidence={json.dumps(detail['evidence'], sort_keys=True)}; receipt={path}")
 
 
 def inventory():
@@ -607,22 +661,37 @@ def warm_worker(cell, index, folder, verify_only=False):
     templates = [shlex.split(c) for c in cell["workload"]["warm_commands"]]
     warmed, checked = 0, 0
     started = time.monotonic()
-    with contextlib.closing(Conn("127.0.0.1", 18179, timeout=60)) as conn:
-        for low in range(item["key_min"], item["key_max"] + 1, 128):
-            batch = []
-            for n in range(low, min(low + 128, item["key_max"] + 1)):
-                if not verify_only:
-                    for template in templates:
-                        argv = [s.replace("{n}", str(n)) for s in template]
-                        expected = b"OK" if argv[0] == "SET" or argv[:2] == ["XGROUP", "CREATE"] else b"1-0" if argv[0] == "XADD" else 1
-                        batch.append((argv, expected))
-                        warmed += 1
-                verify = verification_commands(base, n)
-                batch += verify
-                checked += len(verify)
-            conn.raw(b"".join(encode(*argv) for argv, _ in batch))
-            for argv, expected in batch:
-                check_reply(conn.read(), expected, argv)
+    kind = "verify" if verify_only else "warm"
+    diagnostic = Diagnostics(folder, f"{kind}-{index}")
+    replies = 0
+    try:
+        diagnostic.step("connect", timeout_seconds=60, key_min=item["key_min"], key_max=item["key_max"])
+        with contextlib.closing(Conn("127.0.0.1", 18179, timeout=60)) as conn:
+            for low in range(item["key_min"], item["key_max"] + 1, 128):
+                batch = []
+                high = min(low + 128, item["key_max"] + 1)
+                for n in range(low, high):
+                    if not verify_only:
+                        for template in templates:
+                            argv = [s.replace("{n}", str(n)) for s in template]
+                            expected = b"OK" if argv[0] == "SET" or argv[:2] == ["XGROUP", "CREATE"] else b"1-0" if argv[0] == "XADD" else 1
+                            batch.append((argv, expected))
+                            warmed += 1
+                    verify = verification_commands(base, n)
+                    batch += verify
+                    checked += len(verify)
+                diagnostic.step("batch send", key_min=low, key_max=high - 1,
+                                batch_commands=len(batch), replies_checked=replies, timeout_seconds=60)
+                conn.raw(b"".join(encode(*argv) for argv, _ in batch))
+                diagnostic.step("batch replies", key_min=low, key_max=high - 1,
+                                batch_commands=len(batch), timeout_seconds=60)
+                for reply_index, (argv, expected) in enumerate(batch):
+                    diagnostic.current["evidence"].update(reply_index=reply_index, command=argv,
+                                                          replies_checked=replies)
+                    check_reply(conn.read(), expected, argv)
+                    replies += 1
+    except Exception as error:
+        raise diagnostic.failure(error, replies_checked=replies) from error
     save(folder / f"{'verify' if verify_only else 'warm'}-{index}.json",
          dict(key_min=item["key_min"], key_max=item["key_max"], warmed_commands=warmed,
               verified_commands=checked, seconds=time.monotonic() - started, complete=True))
@@ -761,7 +830,8 @@ class PerfWindow:
             status = self.process.poll()
             require(status is None, f"perf exited ({status}) awaiting {text!r} ACK; see {self.folder / 'perf.log'}")
             remaining = deadline - time.monotonic()
-            require(remaining > 0, f"perf control ACK timeout for {text!r}; received {bytes(received)!r}")
+            require(remaining > 0, f"perf control ACK timeout for {text!r} after {time.monotonic() - before:.3f}s; "
+                    f"received {bytes(received)!r}; pid={self.process.pid}; see {self.folder / 'perf.log'}")
             if not select.select([self.ack], [], [], min(.05, remaining))[0]:
                 continue
             # FIFO reads are stream fragments, not replies. Drain every available
@@ -806,10 +876,12 @@ def quiet_file_guard():
 
 
 def wait_for(path, process, seconds=10):
-    deadline = time.monotonic() + seconds
+    started = time.monotonic()
+    deadline = started + seconds
     while not path.exists():
         require(process.poll() is None, f"worker exited before {path}")
-        require(time.monotonic() < deadline, f"timeout waiting for {path}")
+        require(time.monotonic() < deadline, f"timeout waiting for {path} after {time.monotonic() - started:.3f}s; "
+                f"pid={process.pid}, exit_status={process.poll()}")
         time.sleep(.01)
 
 
@@ -834,26 +906,45 @@ def role_cpus(snapshot, regime, boot):
 
 
 def wire_probe(cell, folder, children, guard=None):
-    with contextlib.closing(Conn("127.0.0.1", 18179, timeout=10)) as monitor:
-        check_reply(monitor.must("MONITOR"), b"OK", "MONITOR")
-        guarded = cell["id"].startswith(BASES[3])
-        env = guard_environment(guard, folder, "wire-probe") if guarded else None
-        proc = children.start(probe_argv(cell, folder), folder / "wire-probe.log", folder, env)
-        frames = []
-        for _ in range(2 * cell["workload"]["cycle_frames"]):
-            raw = monitor.read()
-            require(isinstance(raw, bytes), "missing MONITOR wire witness")
-            # All recipe tokens are printable ASCII. Refuse unknown escaping.
-            tokens = re.findall(r'"(?:[^"\\]|\\.)*"', raw.decode("ascii"))
-            frames.append([json.loads(s) for s in tokens])
-        require(proc.wait(timeout=10) == 0, "memtier wire probe failed")
-    record = validate_wire(cell, frames)
-    parsed = parse_memtier(folder / "wire-probe.json", cell, folder / "wire-probe.log")
-    record["completed"] = parsed["completed"]
-    if guarded:
-        record["zero_reply_guard"] = check_zero_receipt(folder / "wire-probe-zero.json", parsed["completed"]["XGROUP"], 1)
-    save(folder / "wire-witness.json", record)
-    return record
+    diagnostic = Diagnostics(folder, "wire-probe")
+    frames, proc, raw = [], None, None
+    expected_frames = 2 * cell["workload"]["cycle_frames"]
+    try:
+        diagnostic.step("MONITOR connect", timeout_seconds=10)
+        with contextlib.closing(Conn("127.0.0.1", 18179, timeout=10)) as monitor:
+            diagnostic.step("MONITOR acknowledgement", timeout_seconds=10)
+            check_reply(monitor.must("MONITOR"), b"OK", "MONITOR")
+            guarded = cell["id"].startswith(BASES[3])
+            env = guard_environment(guard, folder, "wire-probe") if guarded else None
+            diagnostic.step("memtier launch", argv=probe_argv(cell, folder), guard_env=env)
+            proc = children.start(probe_argv(cell, folder), folder / "wire-probe.log", folder, env)
+            # At most 12 short MONITOR lines fit comfortably in the socket buffer.
+            # Reap the tiny probe first so an LD_PRELOAD/grammar failure is reported
+            # immediately, instead of waiting for frames it will never send.
+            diagnostic.step("memtier exit", timeout_seconds=10)
+            status = proc.wait(timeout=10)
+            require(status == 0, f"memtier wire probe exited {status}")
+            diagnostic.step("MONITOR frames", timeout_seconds=10)
+            for _ in range(expected_frames):
+                raw = monitor.read()
+                require(isinstance(raw, bytes), "missing MONITOR wire witness")
+                # All recipe tokens are printable ASCII. Refuse unknown escaping.
+                tokens = re.findall(r'"(?:[^"\\]|\\.)*"', raw.decode("ascii"))
+                frames.append([json.loads(s) for s in tokens])
+        diagnostic.step("wire/HDR/guard validation")
+        record = validate_wire(cell, frames)
+        parsed = parse_memtier(folder / "wire-probe.json", cell, folder / "wire-probe.log")
+        record["completed"] = parsed["completed"]
+        if guarded:
+            record["zero_reply_guard"] = check_zero_receipt(folder / "wire-probe-zero.json", parsed["completed"]["XGROUP"], 1)
+        save(folder / "wire-witness.json", record)
+        return record
+    except Exception as error:
+        raise diagnostic.failure(error, expected_frames=expected_frames, frames=frames,
+                                 received_frames=len(frames), last_raw=repr(raw),
+                                 pid=proc.pid if proc else None, exit_status=proc.poll() if proc else None,
+                                 artifacts=file_evidence(folder, ("wire-probe.log", "wire-probe.json",
+                                                                   "wire-probe-zero.json"))) from error
 
 
 def check_mix(cell, counts, bound):
@@ -873,11 +964,14 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
                   startup_allowance_seconds=0, server_boot_timeout_seconds=30)
     children, monitor, conn, perf = Children(), None, None, None
     started = time.monotonic()
+    diagnostic = Diagnostics(folder, "sample")
     try:
+        diagnostic.step("quiet preflight")
         quiet_file_guard()
         monitor = QuietMonitor(range(8), range(8, 112), ports=[18179],
                                sample_artifact=folder / "quiet-samples.jsonl").start()
         record["quiet"] = monitor.evidence()
+        diagnostic.step("server launch and boot", timeout_seconds=30)
         # Bind without REUSEPORT before launch; never adopt another process's listener.
         import socket
         with socket.socket() as probe:
@@ -912,36 +1006,45 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
             require(boot[name] == value, f"effective boot {name} differs from recipe")
         require(conn.must("DBSIZE") == 0, "server did not boot with fresh empty state")
         if base == BASES[0]:
+            diagnostic.step("WATCH proof")
             watch_proof(folder)
+        diagnostic.step("warm worker launch")
         warmers = []
         for i in range(8):
             argv = worker_argv("warm", cell, folder, i)
             record["argv"].setdefault("warm", []).append(argv)
             warmers.append(children.start(argv, folder / f"warm-{i}.log", folder))
         for i, worker in enumerate(warmers):
+            diagnostic.step("warm worker exit", instance=i, pid=worker.pid, timeout_seconds=600)
             require(worker.wait(timeout=600) == 0, f"typed warm/verification failed for instance {i}")
+        diagnostic.step("warm state validation")
         require(conn.must("DBSIZE") == cell["workload"]["physical_keys"], "warm physical key count differs")
         record["warm"] = [json.loads((folder / f"warm-{i}.json").read_text()) for i in range(8)]
         record["argv"]["wire_probe"] = probe_argv(cell, folder)
         if base == BASES[3]:
             require(guard is not None and digest(guard["path"]) == guard["sha256"], "XGROUP native guard changed")
             record["zero_reply_guard"] = guard
+        diagnostic.step("wire probe")
         record["wire_witness"] = wire_probe(cell, folder, children, guard)
+        diagnostic.step("wire connection drain", timeout_seconds=10)
         deadline = time.monotonic() + 10
         while int(info(conn, "clients")["connected_clients"]) != 1:
             require(time.monotonic() < deadline, "wire probe/monitor connections did not drain")
             time.sleep(.02)
         before_full = info(conn, "commandstats")
         record["whole_commandstats_before"] = before_full
+        diagnostic.step("perf startup/disable ACK")
         perf = PerfWindow(folder, children)
         record["argv"]["perf"] = perf_argv(folder)
         poller = None
         if base == BASES[-1]:
+            diagnostic.step("observer ready", timeout_seconds=10)
             argv = worker_argv("poll", cell, folder)
             record["argv"]["observer"] = argv
             poller = children.start(argv, folder / "poll.log", folder)
             wait_for(folder / "poll-ready.json", poller)
             save(folder / "poll-start.json", dict(start=time.monotonic() + .05))
+        diagnostic.step("load launch and warmup")
         launch = time.monotonic()
         loads = []
         for i in range(8):
@@ -961,6 +1064,7 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
         (folder / "lb-before.txt").write_bytes(lb0raw)
         lb0 = parse_snapshot(lb0raw)
         roles = role_cpus(lb0, regime, boot)
+        diagnostic.step("perf enable ACK / initial commandstats")
         enable = perf.command("enable")
         before_at = time.monotonic()
         before = info(conn, "commandstats")
@@ -968,11 +1072,13 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
         # Normal gate uses no diagnostic +5s allowance: preserve --test-time=28.
         # The five-second tail absorbs sequential launch and counter endpoint work.
         require(t0 - launch < WARMUP + 1, "load startup/counter setup consumed >1s of the reserved tail")
+        diagnostic.step("central perf window", window_seconds=WINDOW)
         while time.monotonic() < t0 + WINDOW:
             time.sleep(min(1, max(0, t0 + WINDOW - time.monotonic())))
             quiet_file_guard()
             monitor.check()
             require(server.poll() is None and all(p.poll() is None for p in loads), "child exited inside central window")
+        diagnostic.step("final commandstats / perf disable ACK")
         after_at = time.monotonic()
         after = info(conn, "commandstats")
         t1 = time.monotonic()
@@ -984,6 +1090,7 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
         require(t0 - enable["before"] <= .05 and disable["after"] - t1 <= .05 and t1 - t0 <= WINDOW + .05,
                 "PMU/counter endpoint skew exceeds 50ms; reject window")
         record["commandstats_before"], record["commandstats_after"] = before, after
+        diagnostic.step("perf finish and counter validation")
         pmu = perf.finish()
         pmu["executable"] = perf.identity
         lb1raw = conn.must("DEBUG", "LBSIGNALS")
@@ -1013,8 +1120,10 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
         if q is not None:
             record["rate_match"] = rate_check([record["rate"]], q)
         for i, load in enumerate(loads):
+            diagnostic.step("memtier load exit", instance=i, pid=load.pid, timeout_seconds=30)
             require(load.wait(timeout=30) == 0, f"memtier {i} failed")
         if poller:
+            diagnostic.step("observer exit", pid=poller.pid, timeout_seconds=10)
             (folder / "poll-stop").touch()
             require(poller.wait(timeout=10) == 0, "observer failed")
             polls = json.loads((folder / "poll.json").read_text())
@@ -1026,6 +1135,7 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
             record["observer"] = dict(successful=polls["successful"], central_successful=len(central),
                                        central_memory_calls=memory_calls, missed_deadlines=0,
                                        scope="one persistent connection, CPU111, 100Hz; workload denominator excludes MEMORY")
+        diagnostic.step("whole-run HDR/guard accounting")
         after_full = info(conn, "commandstats")
         record["whole_commandstats_after"] = after_full
         full_counts = command_counts(cell, before_full, after_full)
@@ -1054,24 +1164,34 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
                                    queued_replies_are_not_extra_writes=True)
         require(conn.must("DBSIZE") == cell["workload"]["physical_keys"], "workload grew/lost physical keys")
         if base == BASES[3]:
+            diagnostic.step("verify worker launch")
             verifiers = [children.start(worker_argv("verify", cell, folder, i), folder / f"verify-{i}.log", folder)
                          for i in range(8)]
             record["argv"]["verify"] = [worker_argv("verify", cell, folder, i) for i in range(8)]
-            for process in verifiers:
+            for i, process in enumerate(verifiers):
+                diagnostic.step("verify worker exit", instance=i, pid=process.pid, timeout_seconds=180)
                 require(process.wait(timeout=180) == 0, "XGROUP existing-consumer/cardinality check failed")
             record["xgroup"] = dict(all_keys_verified_before_and_after=True, existing_consumer_reply=0,
                                      streams=65536, groups_per_stream=1, consumers_per_group=1,
                                      scored_zero_replies=completed["XGROUP"],
                                      observation="every scored wire reply checked as :0 CR LF by SHA-bound native receive guard; exact guard/HDR reconciliation")
+        diagnostic.step("final quiet/identity checks")
         quiet_file_guard()
         monitor.check()
         require(digest(binary) == identities[arm]["sha256"], "arm changed during sample")
         record["complete"] = True
         return record
     except BaseException as error:
-        record["error"] = f"{type(error).__name__}: {error}"
-        raise
+        failure = diagnostic.failure(error,
+            children=[dict(pid=p.pid, exit_status=p.poll()) for p in children.processes],
+            artifacts=file_evidence(folder, sorted({p.name for pattern in ("*.log", "*-failure.json", "*-zero.json")
+                                                     for p in folder.glob(pattern)})))
+        record["error"] = str(failure)
+        if not isinstance(error, Exception):
+            raise
+        raise failure from error
     finally:
+        diagnostic.step("cleanup")
         if perf:
             perf.close()
         if conn:
@@ -1080,6 +1200,8 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
         if monitor:
             record["quiet"] = monitor.close()
         record["elapsed_seconds"] = time.monotonic() - started
+        diagnostic.step("finished")
+        record["steps"] = diagnostic.steps
         save(folder / "sample.json", record)
 
 
@@ -1121,8 +1243,13 @@ def block_checks(samples, q):
             require(statistics.mean(s["saturation"]["score_pct"] for s in side) >= SATURATION_FLOOR and
                     min(s["saturation"]["score_pct"] for s in side) >= SATURATION_FLOOR - 5,
                     "unlimited-rate block lacks gate productive-role occupancy; not a sustainable plateau")
-            require(max(s["rate"] for s in side) / min(s["rate"] for s in side) <= 1.02,
-                    "same-arm plateau repeats differ >2%; recollect quiet block")
+            rates = [s["rate"] for s in side]
+            ratio = max(rates) / min(rates)
+            spread = ratio - 1
+            require(ratio <= 1.02,
+                    f"same-arm plateau repeats differ >2%; arm={side[0].get('arm', 'unknown')} "
+                    f"rates={rates[0]:.6f}/{rates[1]:.6f} frames/s spread={100 * spread:.6f}%; "
+                    f"samples={[s.get('artifacts') for s in side]}; recollect quiet block")
     if "observer" in samples[0]:
         require(max(s["observer"]["central_successful"] for s in samples) -
                 min(s["observer"]["central_successful"] for s in samples) <= 2, "poll cadence differs across arms")
@@ -1281,19 +1408,19 @@ def self_test():
         compressed = zlib.compress(body)
         return base64.b64encode(struct.pack(">II", 0x1c849304, len(compressed)) + compressed).decode()
 
-    def synthetic(cell):
+    def synthetic(cell, rounds=10000):
         counts = Counter(c.split()[0] for c in cell["workload"]["commands"])
         stats = {"Runtime": {"Interrupted": "false", "Time unit": "MILLISECONDS", "Total duration": 28000},
                  "Per-Key Misses": {}}
         for name, weight in counts.items():
-            count = 10000 * weight
+            count = rounds * weight
             stats[name.capitalize() + "s"] = dict(Count=count, **{
                 "Time-Serie": {"0": {"Count": count, "Bytes RX": count * (9 if name == "EXEC" else 4)}},
                 "Aborts/sec": 0,
                 "Percentile Latencies": {"Histogram log format": {"Compressed Histogram": histogram(count)}}})
             if name in ("EXEC", "GET"):
                 stats["Per-Key Misses"][name] = {"Total Hits": count, "Total Misses": 0}
-        stats["Totals"] = {"Count": sum(counts.values()) * 10000, "Connection Errors": 0,
+        stats["Totals"] = {"Count": sum(counts.values()) * rounds, "Connection Errors": 0,
                            "Connection Errors/sec": 0, "Aborts/sec": 0}
         return {"ALL STATS": stats}
 
@@ -1485,6 +1612,119 @@ def self_test():
             with self.assertRaisesRegex(RuntimeError, "two rotations"):
                 validate_wire(cell, frames[:-1])
 
+        def test_wire_failure_names_step_elapsed_and_partial_evidence(self):
+            cell = self.cells[BASES[3] + "_f0"]
+            stages = ("MONITOR connect", "MONITOR acknowledgement", "memtier exit", "MONITOR frames")
+            for index, stage in enumerate(stages):
+                with self.subTest(stage=stage):
+                    folder = self.folder / str(index)
+                    folder.mkdir()
+                    (folder / "wire-probe.log").write_text("partial memtier evidence\n")
+                    now = [1000.]
+                    def timed_out(*args, **kwargs):
+                        now[0] += 10
+                        if stage == "memtier exit":
+                            raise subprocess.TimeoutExpired([MEMTIER], 10)
+                        raise TimeoutError("timed out")
+                    conn = mock.Mock()
+                    conn.must.return_value = b"OK"
+                    proc = mock.Mock(pid=321)
+                    proc.wait.return_value = 0
+                    proc.poll.return_value = None if stage == "memtier exit" else 0
+                    owned = mock.Mock()
+                    owned.start.return_value = proc
+                    connect = mock.Mock(return_value=conn)
+                    if stage == "MONITOR connect":
+                        connect.side_effect = timed_out
+                    elif stage == "MONITOR acknowledgement":
+                        conn.must.side_effect = timed_out
+                    elif stage == "memtier exit":
+                        proc.wait.side_effect = timed_out
+                    else:
+                        replies = iter([b'1 [0 local] "XGROUP" "CREATECONSUMER" "s:exbatch-1" "g" "c"'])
+                        conn.read.side_effect = lambda: next(replies, None) or timed_out()
+                    with mock.patch.dict(globals(), Conn=connect), mock.patch("time.monotonic", lambda: now[0]):
+                        with self.assertRaises(StepFailure) as caught:
+                            wire_probe(cell, folder, owned, dict(path="/guard.so"))
+                    self.assertIn(f"wire-probe/{stage} failed after 10.000s", str(caught.exception))
+                    self.assertIn("partial memtier evidence", str(caught.exception))
+                    detail = json.loads((folder / "wire-probe-failure.json").read_text())
+                    self.assertEqual(detail["step"], stage)
+                    self.assertEqual(detail["elapsed_seconds"], 10)
+                    evidence = detail["evidence"]
+                    self.assertEqual(evidence["expected_frames"], 2)
+                    self.assertEqual(evidence["received_frames"], 1 if stage == "MONITOR frames" else 0)
+                    self.assertIn("wire-probe-zero.json", evidence["artifacts"])
+                    if stage == "MONITOR frames":
+                        self.assertEqual(evidence["exit_status"], 0)
+                        self.assertEqual(evidence["frames"][0][0], "XGROUP")
+
+        def test_wire_success_reaps_then_keeps_guard_and_transaction_witnesses(self):
+            for base in (BASES[0], BASES[3]):
+                cell = self.cells[base + "_f0"]
+                frames = [s.replace("__key__", "exbatch-1").replace("__data__", "x" * 64).split()
+                          for s in cell["workload"]["commands"]] * 2
+                raw = iter(('1 [0 local] ' + ' '.join(json.dumps(s) for s in frame)).encode() for frame in frames)
+                save(self.folder / "wire-probe.json", synthetic(cell, rounds=2))
+                (self.folder / "wire-probe.log").write_text("")
+                if base == BASES[3]:
+                    save(self.folder / "wire-probe-zero.json", dict(connections=1, bytes=8, zero_replies=2))
+                exited = []
+                conn, proc, owned = mock.Mock(), mock.Mock(pid=321), mock.Mock()
+                conn.must.return_value = b"OK"
+                def read():
+                    self.assertTrue(exited, "MONITOR read masked an unchecked child exit")
+                    return next(raw)
+                conn.read.side_effect = read
+                proc.wait.side_effect = lambda timeout: exited.append(True) or 0
+                owned.start.return_value = proc
+                with mock.patch.dict(globals(), Conn=lambda *a, **k: conn):
+                    record = wire_probe(cell, self.folder, owned, dict(path="/guard.so"))
+                self.assertTrue(record["complete"])
+                self.assertEqual(record["frames"], frames)
+                self.assertEqual(sum(record["completed"].values()), len(frames))
+                if base == BASES[3]:
+                    self.assertEqual(record["zero_reply_guard"]["zero_replies"], 2)
+                self.assertTrue((self.folder / "wire-witness.json").exists())
+                conn.close.assert_called_once()
+
+        def test_wire_guard_exit_is_not_hidden_by_monitor_timeout(self):
+            conn = mock.Mock()
+            conn.must.return_value = b"OK"
+            conn.read.side_effect = AssertionError("must notice child exit before reading MONITOR")
+            proc = mock.Mock(pid=321)
+            proc.wait.return_value = proc.poll.return_value = 86
+            owned = mock.Mock()
+            owned.start.return_value = proc
+            (self.folder / "wire-probe.log").write_text("EXBATCH ZERO-REPLY GUARD FAILED: cannot create receipt\n")
+            (self.folder / "wire-probe-zero.json").touch()
+            with mock.patch.dict(globals(), Conn=lambda *a, **k: conn):
+                with self.assertRaisesRegex(StepFailure, "memtier exit.*exited 86.*cannot create receipt"):
+                    wire_probe(self.cells[BASES[3] + "_f0"], self.folder, owned, dict(path="/guard.so"))
+            conn.read.assert_not_called()
+            conn.close.assert_called_once()
+            evidence = json.loads((self.folder / "wire-probe-failure.json").read_text())["evidence"]
+            self.assertEqual(evidence["exit_status"], 86)
+            self.assertEqual(evidence["artifacts"]["wire-probe-zero.json"]["bytes"], 0)
+
+        def test_warm_and_verify_timeout_retains_key_command_and_reply_progress(self):
+            cell = copy.deepcopy(self.cells[BASES[3] + "_s0"])
+            cell["memtier_instances"][0]["key_max"] = 1
+            for verify in (False, True):
+                conn = mock.Mock()
+                conn.read.side_effect = [1 if verify else b"1-0", TimeoutError("timed out")]
+                kind = "verify" if verify else "warm"
+                with mock.patch.dict(globals(), Conn=lambda *a, **k: conn):
+                    with self.assertRaisesRegex(StepFailure, f"{kind}-0/batch replies failed after"):
+                        warm_worker(cell, 0, self.folder, verify_only=verify)
+                detail = json.loads((self.folder / f"{kind}-0-failure.json").read_text())
+                evidence = detail["evidence"]
+                self.assertEqual(evidence["key_min"], 1)
+                self.assertEqual(evidence["replies_checked"], 1)
+                self.assertEqual(evidence["command"][:2], ["XINFO", "GROUPS"] if verify else ["XGROUP", "CREATE"])
+                self.assertFalse((self.folder / f"{kind}-0.json").exists())
+                conn.close.assert_called_once()
+
         def test_xgroup_guard_rejects_new_consumer_or_cardinality(self):
             check_reply(0, 0, "XGROUP CREATECONSUMER")
             with self.assertRaises(RuntimeError):
@@ -1568,6 +1808,8 @@ def self_test():
                         return 0
 
                 class Owned:
+                    def __init__(self):
+                        self.processes = processes
                     def start(self, argv, log, cwd, extra_env=None):
                         load = Path(log).name.startswith("load-")
                         p = Process(load)
@@ -1649,6 +1891,10 @@ def self_test():
                             run_sample(cell, "PRE", {"PRE": dict(path="/fake/PRE", sha256="bound")}, folder, q)
                 self.assertTrue(all(p.done for p in processes))
                 self.assertEqual(json.loads((folder / "sample.json").read_text())["complete"], q is None)
+                if q is not None:
+                    failure = json.loads((folder / "sample-failure.json").read_text())
+                    self.assertEqual(failure["step"], "perf finish and counter validation")
+                    self.assertEqual(len(failure["evidence"]["children"]), len(processes))
 
         def test_role_cpu_map_does_not_confuse_cpu_time_with_placement(self):
             raw = b"lbver 1 stamp_ns 1000000000\n" + b"".join(
@@ -1667,6 +1913,19 @@ def self_test():
             with self.assertRaisesRegex(RuntimeError, "occupancy"):
                 block_checks(samples, None)
 
+        def test_plateau_rejection_keeps_two_percent_limit_and_reports_both_repeats(self):
+            samples = [dict(arm="PRE", rate=100, saturation={"score_pct": 99}, artifacts=f"sample-{i}")
+                       for i in range(4)]
+            samples[3]["rate"] = 102
+            block_checks(samples, None)
+            samples[3]["rate"] = 102.0001
+            with self.assertRaisesRegex(RuntimeError, "arm=PRE rates=100.000000/102.000100.*spread=.*sample-0.*sample-3"):
+                block_checks(samples, None)
+            samples[3]["rate"] = 100
+            samples[1]["rate"] = 103
+            with self.assertRaisesRegex(RuntimeError, "rates=103.000000/100.000000.*sample-1.*sample-2"):
+                block_checks(samples, None)
+
         def test_aggregate_pools_histograms_and_pmu_numerators(self):
             sample = dict(complete=True, frames=100, cycles=1000, instructions=1500, rate=5,
                           histogram={1000: 90, 9000: 10})
@@ -1675,6 +1934,42 @@ def self_test():
             row = endgame(self.cells[BASES[0] + "_f0"], "PRE", "POST", result, result, 17)
             self.assertTrue(row.startswith("EXBATCH-DIRECTED exbatch_watch_w32 f0 PRE->POST rate="))
             self.assertTrue(row.endswith("matched=17"))
+
+    class NativeGuardControl(unittest.TestCase):
+        def test_preload_survives_taskset_exec_and_still_rejects_bad_or_missing_replies(self):
+            # The in-memory unit is exported ONLY by this test library. The tiny
+            # driver calls it after taskset's real exec; neither opens a socket.
+            with tempfile.TemporaryDirectory(dir=ROOT / "build", prefix="exbatch-guard-selftest-") as tmp:
+                folder = Path(tmp)
+                library, driver = folder / "guard.so", folder / "driver"
+                (folder / "guard.c").write_text(ZERO_REPLY_GUARD + ZERO_REPLY_UNIT)
+                (folder / "driver.c").write_text('''
+#include <dlfcn.h>
+int main(int argc, char **argv) {
+    int (*unit)(const char *) = dlsym(RTLD_DEFAULT, "guard_unit");
+    return argc == 2 && unit ? unit(argv[1]) : 2;
+}
+''')
+                for name, flags in (("guard", ["-shared", "-fPIC"]), ("driver", [])):
+                    subprocess.run(["taskset", "-c", "112-127", "cc", "-std=c11", "-O2", "-Wall", "-Wextra", "-Werror",
+                                    *flags, "-o", str(library if name == "guard" else driver),
+                                    str(folder / (name + ".c")), "-ldl"], check=True, capture_output=True, timeout=30)
+                for mode in ("good", "bad", "error", "partial", "empty", "good"):
+                    receipt = folder / (mode + ".json")
+                    existed = receipt.exists()
+                    proc = subprocess.run(["taskset", "-c", "112", str(driver), mode],
+                        env={**os.environ, "LD_PRELOAD": str(library), "EXBATCH_ZERO_RECEIPT": str(receipt)},
+                        capture_output=True, text=True, timeout=5)
+                    with self.subTest(mode=mode, existed=existed):
+                        self.assertEqual(proc.returncode, 0 if mode == "good" and not existed else 86, proc.stderr)
+                        if mode == "good":
+                            check_zero_receipt(receipt, 38, 1)
+                            if existed:
+                                self.assertIn("cannot create receipt", proc.stderr)
+                        else:
+                            self.assertIn("EXBATCH ZERO-REPLY GUARD FAILED:", proc.stderr)
+                            self.assertNotIn("cannot create receipt", proc.stderr)
+                            self.assertFalse(receipt.exists())
 
     class RealPerfControl(unittest.TestCase):
         def test_busy_loop_counts_only_inside_enabled_window(self):
@@ -1799,7 +2094,9 @@ def self_test():
         suite = unittest.defaultTestLoader.loadTestsFromTestCase(Controls)
         result = unittest.TextTestRunner(verbosity=2).run(suite)
     with mock.patch("socket.create_connection", side_effect=AssertionError("self-test opened a socket")):
-        live = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(RealPerfControl))
+        suite = unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromTestCase(cls)
+                                   for cls in (NativeGuardControl, RealPerfControl))
+        live = unittest.TextTestRunner(verbosity=2).run(suite)
     return 0 if result.wasSuccessful() and live.wasSuccessful() else 1
 
 
