@@ -1,3 +1,9 @@
+Lane reorderscan: RO1 / RO2
+
+See MEASURE-REQUEST-reorderscan.md for the two commits, before/after work counts,
+non-R7 byte identity, frozen PRE/POST/PAD-A digests, and mainline-only cells.
+Serverless checks pass. Zero gate rows added; no server, benchmark, or gate run.
+
 Lane gt15fix: snapshot loads during FLIP/key-LB
 
 See MEASURE-REQUEST-gt15fix.md for the race audit, helper, 13 serverless witnesses,
