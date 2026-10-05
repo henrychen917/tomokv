@@ -1,0 +1,14 @@
+  ok   enable atomic lane
+  ok   atomic MSET then plain GET/MGET RYOW replies=b'OK'/b'ryow:one'/[b'ryow:one', b'ryow:one', b'ryow:one', b'ryow:one', b'ryow:one', b'ryow:one', b'ryow:one', b'ryow:one']
+  ok   atomic MSET then last-key-overlapping MGET RYOW replies=b'OK'/[b'guard:old', b'guard:old', b'guard:old', b'guard:old', b'guard:old', b'guard:old', b'guard:old', b'guard:old', b'ryow:mget']
+  ok   atomic MSET then plain SET keeps same-key program order replies=b'OK'/b'OK' values=[b'order:plain', b'order:atomic', b'order:atomic', b'order:atomic', b'order:atomic', b'order:atomic', b'order:atomic', b'order:atomic']
+  ok   MSETNX single-hop serial semantics replies=1/0 values=[b'nx:first', b'nx:first', b'nx:first', b'nx:first', b'nx:first', b'nx:first', b'nx:first', b'nx:first']
+  ok   MSETNX duplicate key uses pre-command state reply=1 value=b'nx:last'
+  ok   abandoned MSETNX candidates are never observable reads=102 errors=[]
+  note atomic-window overlap attempt=1/4 outcome=armed limit=256 groups=24 peak=24 held_stalls=0 stalls=0 carried=0 held_replies=0 arm_s=0.005 held_replies/s=0.0 released=True replies=24/24 resume_s=0.005 resume_replies/s=4514.9
+  ok   cross-key atomics on one connection overlap overlap attempt=1/4 outcome=armed limit=256 groups=24 peak=24 held_stalls=0 stalls=0 carried=0 held_replies=0 arm_s=0.005 held_replies/s=0.0 released=True replies=24/24 resume_s=0.005 resume_replies/s=4514.9 credits=256 observed_attempts=1/1
+  ok   unheld pipelined groups completed
+  FAIL pipelined atomic groups beat the serial round-trip rate pipe=39508/s serial=40747/s ratio=0.97
+  ok   DEL-vs-MSET is all-or-nothing torn=0 reads=56246 errors=[] samples=[]
+  ok   plain SET interleaves by ticket on a recorded key bad=0 reads=53795 errors=[]
+ATOMIC_RYOW FAIL 1

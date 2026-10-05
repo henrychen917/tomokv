@@ -1,0 +1,310 @@
+[
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_111apply_imageILb0EEENS0_9WorkErrorERNS_5ShardENS_5SliceEmRKNS0_11ObjectImageEb.isra.0",
+    "name": "tomo::(anonymous namespace)::WorkError tomo::(anonymous namespace)::apply_image<false>(tomo::Shard&, tomo::Slice, unsigned long, tomo::(anonymous namespace)::ObjectImage const&, bool) [clone .isra.0]",
+    "pre_bytes": 611,
+    "post_bytes": 611
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+    "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+    "pre_bytes": 947,
+    "post_bytes": 945
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_117debug_hop_pendingERKNS_12ScatterStateE",
+    "name": "tomo::(anonymous namespace)::debug_hop_pending(tomo::ScatterState const&)",
+    "pre_bytes": 0,
+    "post_bytes": 83
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_117notify_event_nameENS_13NotifyEventIdE",
+    "name": "tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)",
+    "pre_bytes": 1072,
+    "post_bytes": 1072
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_123arm_debug_off_hop_delayERNS_12ScatterStateERKNS_2OpE.isra.0",
+    "name": "tomo::(anonymous namespace)::arm_debug_off_hop_delay(tomo::ScatterState&, tomo::Op const&) [clone .isra.0]",
+    "pre_bytes": 331,
+    "post_bytes": 507
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_123notify_make_publicationEhjhNS_13NotifyEventIdENS_5SliceERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES9_.constprop.0.isra.0",
+    "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
+    "pre_bytes": 1330,
+    "post_bytes": 1374
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_123notify_make_publicationEhjhNS_13NotifyEventIdENS_5SliceERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES9_.constprop.0.isra.0.cold",
+    "name": "tomo::(anonymous namespace)::notify_make_publication(unsigned char, unsigned int, unsigned char, tomo::NotifyEventId, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]",
+    "pre_bytes": 118,
+    "post_bytes": 129
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo18multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextE",
+    "name": "tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*)",
+    "pre_bytes": 11880,
+    "post_bytes": 11848
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo18multi_execute_taskERNS_6ServerERKNS_4TaskERNS_5ShardEjjPNS_15AofOwnerContextE.cold",
+    "name": "tomo::multi_execute_task(tomo::Server&, tomo::Task const&, tomo::Shard&, unsigned int, unsigned int, tomo::AofOwnerContext*) [clone .cold]",
+    "pre_bytes": 256,
+    "post_bytes": 256
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo24xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE",
+    "name": "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&)",
+    "pre_bytes": 3710,
+    "post_bytes": 3694
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo24xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE.cold",
+    "name": "tomo::xshard_task_should_defer(tomo::Server&, tomo::Shard&, tomo::Task const&, tomo::Op&) [clone .cold]",
+    "pre_bytes": 5,
+    "post_bytes": 31
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo25debug_atomic_off_hop_holdEb",
+    "name": "tomo::debug_atomic_off_hop_hold(bool)",
+    "pre_bytes": 0,
+    "post_bytes": 16
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo27debug_atomic_off_hop_statusEv",
+    "name": "tomo::debug_atomic_off_hop_status()",
+    "pre_bytes": 0,
+    "post_bytes": 121
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo9FlatStore24foreign_read_poison_openEv",
+    "name": "tomo::FlatStore::foreign_read_poison_open()",
+    "pre_bytes": 769,
+    "post_bytes": 873
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0",
+    "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0]",
+    "pre_bytes": 3715,
+    "post_bytes": 3635
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0.cold",
+    "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0] [clone .cold]",
+    "pre_bytes": 162,
+    "post_bytes": 162
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_111init_configERKNS_6ConfigE",
+    "name": "tomo::(anonymous namespace)::init_config(tomo::Config const&)",
+    "pre_bytes": 7897,
+    "post_bytes": 7945
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
+    "name": "tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)",
+    "pre_bytes": 6319,
+    "post_bytes": 6500
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+    "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
+    "pre_bytes": 16464,
+    "post_bytes": 16215
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+    "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]",
+    "pre_bytes": 378,
+    "post_bytes": 353
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "symbol": "_ZN4tomo37cfg_client_output_buffer_limit_stringB5cxx11ERKNS_24ClientOutputBufferLimitsE",
+    "name": "tomo::cfg_client_output_buffer_limit_string[abi:cxx11](tomo::ClientOutputBufferLimits const&)",
+    "pre_bytes": 5256,
+    "post_bytes": 5263
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "symbol": "_ZN4tomo9reply_intINS_2Op4SinkEEEvOT_x",
+    "name": "void tomo::reply_int<tomo::Op::Sink>(tomo::Op::Sink&&, long long)",
+    "pre_bytes": 673,
+    "post_bytes": 462
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "symbol": "_ZNSt5mutex4lockEv",
+    "name": "std::mutex::lock()",
+    "pre_bytes": 0,
+    "post_bytes": 29
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "symbol": "_ZStplIcSt11char_traitsIcESaIcEENSt7__cxx1112basic_stringIT_T0_T1_EEOS8_S9_",
+    "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&&)",
+    "pre_bytes": 849,
+    "post_bytes": 1118
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db010kvobj_freeEPNS_5KvObjE.part.0",
+    "name": "tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]",
+    "pre_bytes": 351,
+    "post_bytes": 383
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
+    "name": "tomo_db0::(anonymous namespace)::classify_keys(tomo_db0::Op const&, tomo_db0::(anonymous namespace)::Kind, tomo_db0::(anonymous namespace)::XshardKeyHints const&, tomo_db0::(anonymous namespace)::XshardKeyPlan&)",
+    "pre_bytes": 945,
+    "post_bytes": 947
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_117debug_hop_pendingERKNS_12ScatterStateE",
+    "name": "tomo_db0::(anonymous namespace)::debug_hop_pending(tomo_db0::ScatterState const&)",
+    "pre_bytes": 0,
+    "post_bytes": 83
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_117notify_event_nameENS_13NotifyEventIdE",
+    "name": "tomo_db0::(anonymous namespace)::notify_event_name(tomo_db0::NotifyEventId)",
+    "pre_bytes": 1072,
+    "post_bytes": 1072
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_123arm_debug_off_hop_delayERNS_12ScatterStateERKNS_2OpE.isra.0",
+    "name": "tomo_db0::(anonymous namespace)::arm_debug_off_hop_delay(tomo_db0::ScatterState&, tomo_db0::Op const&) [clone .isra.0]",
+    "pre_bytes": 331,
+    "post_bytes": 507
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_123parse_zrangestore_rangeERNS_2OpERKNS0_17ImageRangeOptionsERNS0_14ImageRangeSpecE.isra.0",
+    "name": "tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::ImageRangeOptions const&, tomo_db0::(anonymous namespace)::ImageRangeSpec&) [clone .isra.0]",
+    "pre_bytes": 1297,
+    "post_bytes": 1230
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_123parse_zrangestore_rangeERNS_2OpERKNS0_17ImageRangeOptionsERNS0_14ImageRangeSpecE.isra.0.cold",
+    "name": "tomo_db0::(anonymous namespace)::parse_zrangestore_range(tomo_db0::Op&, tomo_db0::(anonymous namespace)::ImageRangeOptions const&, tomo_db0::(anonymous namespace)::ImageRangeSpec&) [clone .isra.0] [clone .cold]",
+    "pre_bytes": 90,
+    "post_bytes": 86
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_128execute_atomic_direct_renameERKNS_4TaskERNS_5ShardERNS_2OpEj",
+    "name": "tomo_db0::(anonymous namespace)::execute_atomic_direct_rename(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "pre_bytes": 1304,
+    "post_bytes": 1404
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db024xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE",
+    "name": "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&)",
+    "pre_bytes": 3630,
+    "post_bytes": 3614
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db024xshard_task_should_deferERNS_6ServerERNS_5ShardERKNS_4TaskERNS_2OpE.cold",
+    "name": "tomo_db0::xshard_task_should_defer(tomo_db0::Server&, tomo_db0::Shard&, tomo_db0::Task const&, tomo_db0::Op&) [clone .cold]",
+    "pre_bytes": 5,
+    "post_bytes": 31
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db025debug_atomic_off_hop_holdEb",
+    "name": "tomo_db0::debug_atomic_off_hop_hold(bool)",
+    "pre_bytes": 0,
+    "post_bytes": 16
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db027debug_atomic_off_hop_statusEv",
+    "name": "tomo_db0::debug_atomic_off_hop_status()",
+    "pre_bytes": 0,
+    "post_bytes": 121
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZN8tomo_db09FlatStore26atomic_collapse_read_localEmm",
+    "name": "tomo_db0::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)",
+    "pre_bytes": 6796,
+    "post_bytes": 6780
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZNSt6vectorIjSaIjEE12emplace_backIJjEEERjDpOT_.isra.0",
+    "name": "unsigned int& std::vector<unsigned int, std::allocator<unsigned int> >::emplace_back<unsigned int>(unsigned int&&) [clone .isra.0]",
+    "pre_bytes": 352,
+    "post_bytes": 371
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "symbol": "_ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt6vectorIS7_SaIS7_EEEElNS0_5__ops15_Iter_less_iterEEvT_SF_T0_T1_.isra.0",
+    "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter>(__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, __gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, long, __gnu_cxx::__ops::_Iter_less_iter) [clone .isra.0]",
+    "pre_bytes": 5840,
+    "post_bytes": 5851
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_113cmd_randomkeyERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_bytes": 653,
+    "post_bytes": 663
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
+    "name": "tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_bytes": 6295,
+    "post_bytes": 6500
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db020kvobj_external_bytesEPKNS_5KvObjE",
+    "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+    "pre_bytes": 1447,
+    "post_bytes": 1463
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db032command_client_migration_extractEPNS_6ClientE",
+    "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+    "pre_bytes": 608,
+    "post_bytes": 624
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "symbol": "_ZN8tomo_db09reply_errINS_2Op4SinkEEEvOT_PKc",
+    "name": "void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)",
+    "pre_bytes": 614,
+    "post_bytes": 813
+  }
+]

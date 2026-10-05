@@ -1,0 +1,58 @@
+{
+  "base": "0849c451f3312a295d2b87c57f17347b646d2293",
+  "merged": "07023fd6e",
+  "implementation": "d040a8785",
+  "PRE": {
+    "functions": 10285,
+    "function_table_sha256": "f6d965295571fbbeb4d664acfacf790f8b2750178759df6d347bd4d2900590d9",
+    "section_table_sha256": "9f715ba159042d2de9e915a05760305d46145ba74403db2650dab6af2ee196bd",
+    "binary_sha256": "80270fa00716572c421e496c54abd39dbe1e197e8a96212d87998f1105542145",
+    "text_bytes": 7797376
+  },
+  "POST": {
+    "functions": 10285,
+    "function_table_sha256": "6a278bfa8f2503d8bf863a91b0952560faf4c35b91925faad88814fd0d9dfad5",
+    "section_table_sha256": "deab9dca8057858dc81e1af4eed5fed5b37f4c7f375f46d887b4dc0488f9f22f",
+    "binary_sha256": "79f3688f51ee0a0bd09777716d001b67ff4efa622f5ef1961b274ec7591a3b61",
+    "text_bytes": 7797680
+  },
+  "asan-PRE": {
+    "functions": 4938,
+    "function_table_sha256": "7c58942f7c824a09fcff2d6200e85d36e14166a4d545be371dbd7839bca1154f",
+    "section_table_sha256": "012fdde188570e7761b549d0ac29dbc9b5beab919d63a28f56784908652335cc",
+    "binary_sha256": "2f173568466eb7c01ca84e4786235b3d6d19c305c5cc241586a3ec938e8149d1",
+    "text_bytes": 14608426
+  },
+  "asan-POST": {
+    "functions": 4938,
+    "function_table_sha256": "a04cad84cc31fd417dac8797fba77cc19b360d91b7b26828c8d88cf6af8a2ffe",
+    "section_table_sha256": "702237a577771db2fb42ff82fa9d02c78ac4670c7f243a3bef9cbfb8424df1e3",
+    "binary_sha256": "238e4c35ff4f7054b934bed4bc1bfb0da62a5b05c4c47294115d27a833839290",
+    "text_bytes": 14608500
+  },
+  "hot_identity": {
+    "selected": 1482,
+    "raw_equal": 1482,
+    "relocation_equal": 1482,
+    "db0": 742
+  },
+  "source_scope": {
+    "base": "0849c451f",
+    "changed_helpers": [
+      "rename_held"
+    ],
+    "added_helpers": [
+      "rename_held_attempt"
+    ],
+    "labels_unchanged": true,
+    "gate_delta_quick": 0,
+    "gate_delta_full": 0
+  },
+  "sha256": {
+    "tests/gate.sh": "43222d32cdb4727c8a9c06506759cb76ef0ecbd7414143329d1e56eff7dc5855",
+    "tests/gate_subset.sh": "88406335af97b13e383b31f4d25ce04cb625e1b105b3c2686cbadff46d5887d6",
+    "tests/atomic_torn.py": "19a6967c6bc3e41661c4b8410f86c62d8d3677cfa3fcdcb6204e77b7fc75837a",
+    "tests/xscript.py": "7af2aa6bf4c73f27d72b067c96056ad25951a5410f26772f87541dcde9d147fd"
+  },
+  "test_revision": "adb9d1659"
+}

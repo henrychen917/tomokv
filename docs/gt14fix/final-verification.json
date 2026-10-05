@@ -1,0 +1,10 @@
+{
+  "revision": "7641c85caa0c82f73bf921e036a2cc8b1420b8b8",
+  "artifact_directory": "/home/user/Projects/cx-gt14fix/build/gate-run.mt3IRd",
+  "passed": 19,
+  "failed": 0,
+  "test_sha256": {
+    "atomic_torn.py": "1932ab53e50b9d3285012c37c3f0368225e2788866ec1552c79081257b67622b",
+    "xscript.py": "7af2aa6bf4c73f27d72b067c96056ad25951a5410f26772f87541dcde9d147fd"
+  }
+}

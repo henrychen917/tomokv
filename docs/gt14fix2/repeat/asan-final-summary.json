@@ -1,0 +1,271 @@
+{
+  "test_revision": "343de5a00",
+  "server_revision": "d040a8785",
+  "final_guard_revision": "adb9d1659",
+  "final_guard_applicability": "All 20 held arms succeeded without a routing miss (attempt=1, rerolls=[]); the added rejection-only moved guard cannot change their outcomes. Final guard also exercised by the separate final routing controls.",
+  "completed": 10,
+  "atomic_torn_passes": 10,
+  "clean_shutdowns": 0,
+  "runs": [
+    {
+      "run": 1,
+      "atomic_torn_pass": true,
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001392,
+          "witness_s": 0.0013252049684524536,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001356,
+          "witness_s": 0.0012893551029264927,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        }
+      ],
+      "leak_bytes": 50320,
+      "leak_allocations": 7,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 2,
+      "atomic_torn_pass": true,
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001475,
+          "witness_s": 0.0014133560471236706,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001341,
+          "witness_s": 0.001272815279662609,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        }
+      ],
+      "leak_bytes": 50320,
+      "leak_allocations": 7,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 3,
+      "atomic_torn_pass": true,
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001388,
+          "witness_s": 0.0013231346383690834,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.000346,
+          "witness_s": 0.00027912063524127007,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        }
+      ],
+      "leak_bytes": 50320,
+      "leak_allocations": 7,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 4,
+      "atomic_torn_pass": true,
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001418,
+          "witness_s": 0.0013640746474266052,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001357,
+          "witness_s": 0.0012918943539261818,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        }
+      ],
+      "leak_bytes": 50320,
+      "leak_allocations": 7,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 5,
+      "atomic_torn_pass": true,
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001364,
+          "witness_s": 0.0012995051220059395,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001322,
+          "witness_s": 0.001255773939192295,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        }
+      ],
+      "leak_bytes": 50320,
+      "leak_allocations": 7,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 6,
+      "atomic_torn_pass": true,
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001392,
+          "witness_s": 0.0013331151567399502,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001356,
+          "witness_s": 0.0012864740565419197,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        }
+      ],
+      "leak_bytes": 50320,
+      "leak_allocations": 7,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 7,
+      "atomic_torn_pass": true,
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001451,
+          "witness_s": 0.0013775648549199104,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001441,
+          "witness_s": 0.001347765326499939,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        }
+      ],
+      "leak_bytes": 50320,
+      "leak_allocations": 7,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 8,
+      "atomic_torn_pass": true,
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001513,
+          "witness_s": 0.0014443653635680676,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.000423,
+          "witness_s": 0.00035377079620957375,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        }
+      ],
+      "leak_bytes": 50320,
+      "leak_allocations": 7,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 9,
+      "atomic_torn_pass": true,
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.005124,
+          "witness_s": 0.0016098851338028908,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.00514,
+          "witness_s": 0.0014965361915528774,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        }
+      ],
+      "leak_bytes": 71384,
+      "leak_allocations": 10,
+      "shutdown_last_line": false
+    },
+    {
+      "run": 10,
+      "atomic_torn_pass": true,
+      "holds": [
+        {
+          "atomic": 0,
+          "hold_s": 0.001507,
+          "witness_s": 0.0014265859499573708,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        },
+        {
+          "atomic": 1,
+          "hold_s": 0.001532,
+          "witness_s": 0.0014406749978661537,
+          "ceiling_ms": 30000,
+          "attempt": 1,
+          "rerolls": []
+        }
+      ],
+      "leak_bytes": 50320,
+      "leak_allocations": 7,
+      "shutdown_last_line": false
+    }
+  ],
+  "OFF": {
+    "min_s": 0.001364,
+    "median_s": 0.0014345,
+    "max_s": 0.005124
+  },
+  "ON": {
+    "min_s": 0.000346,
+    "median_s": 0.001356,
+    "max_s": 0.00514
+  }
+}

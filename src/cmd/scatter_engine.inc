@@ -1137,6 +1137,27 @@ uint32_t initialize_owner_completion(ScatterState& state) {
     return owners;
 }
 
+// No arena/Server layout change or lifetime-bearing pointer: the absolute deadline is also the
+// one-shot generation. Releasing/rearming cannot hold an old task. Only the DEBUG parser arms it.
+constexpr uint64_t kDebugHopHold = uint64_t{1} << 63;
+// Before claim, the tag carries the test's millisecond budget in the same atomic word.
+// After claim, the untagged absolute deadline is the generation token as before.
+std::atomic<uint64_t> debug_hop_hold{0};       // 0=off, tagged=armed, otherwise claimed deadline
+std::atomic<uint64_t> debug_hop_observed{0};   // source completed while destination was held
+
+[[gnu::cold, gnu::noinline]] bool debug_hop_pending(const ScatterState& state) {
+    const uint64_t deadline = state.debug_hop_deadline & ~kDebugHopHold;
+    if (now_ns() >= deadline) return false;
+    if (state.debug_hop_deadline & kDebugHopHold) {
+        if (debug_hop_hold.load(std::memory_order_acquire) != deadline) return false;
+        // The directed RENAME has two keys on two owners. pending is decremented only after
+        // the other owner has completed its mutation (including the ON private candidate).
+        if (state.pending.load(std::memory_order_acquire) == 1)
+            debug_hop_observed.store(deadline, std::memory_order_release);
+    }
+    return true;
+}
+
 // DEBUG's atomic-OFF half widens an already non-atomic physical publication gap; it must never
 // turn a read/probe wave into a delay. Classify the actual routed owners first, then load the shared
 // knob only for a mutation wave that spans more than one owner. A zero setting does no clock read
@@ -1144,7 +1165,24 @@ uint32_t initialize_owner_completion(ScatterState& state) {
 void arm_debug_off_hop_delay(ScatterState& state, const Op& op) {
     // Forced children inside EXEC are atomic_group too: they must reach the parent's one-ticket
     // atomic_commit_group boundary, where the same Server word supplies the ON delay.
-    if (state.atomic_group || !xshard_owner_mutation_phase(state, op) || state.nsub < 2) return;
+    if (!xshard_owner_mutation_phase(state, op) || state.nsub < 2) return;
+    uint64_t armed;
+    if (state.kind == Kind::Rename &&
+        ((armed = debug_hop_hold.load(std::memory_order_acquire)) & kDebugHopHold)) {
+        const uint32_t source = state.server->worker_of_shard(state.keys[0].shard);
+        if (source != state.server->worker_of_shard(state.keys[1].shard)) {
+            // The test supplies its own budget, capped at 30 seconds by DEBUG. Status remains
+            // expired until explicit release; timeout is never a successful observation.
+            const uint64_t deadline = now_ns() + (armed & ~kDebugHopHold) * 1000000ull;
+            if (debug_hop_hold.compare_exchange_strong(armed, deadline,
+                                                       std::memory_order_acq_rel)) {
+                state.debug_hop_lead_owner = source;
+                state.debug_hop_deadline = deadline | kDebugHopHold;
+                return;
+            }
+        }
+    }
+    if (state.atomic_group) return;
     const uint32_t delay_us = state.server->debug_hop_delay();
     if (__builtin_expect(delay_us == 0, true)) return;
     const uint32_t lead_owner = state.server->worker_of_shard(state.groups[0].shard);
@@ -2635,6 +2673,20 @@ bool xshard_owner_mutation_phase(const ScatterState& state, const Op& op) {
 }
 
 }  // namespace
+
+void debug_atomic_off_hop_hold(uint64_t ceiling_ms) {
+    const uint64_t bounded_ms = std::min(ceiling_ms, uint64_t{30000});
+    debug_hop_hold.store(bounded_ms ? kDebugHopHold | bounded_ms : 0,
+                         std::memory_order_release);
+}
+
+int debug_atomic_off_hop_status() {
+    const uint64_t deadline = debug_hop_hold.load(std::memory_order_acquire);
+    if (deadline == 0) return 0;
+    if (deadline & kDebugHopHold) return 1;
+    if (now_ns() >= deadline) return 3;
+    return debug_hop_observed.load(std::memory_order_acquire) == deadline ? 2 : 1;
+}
 
 void xshard_visit_task_hashes(const Task& task, void* context,
                               void (*visit)(void*, uint64_t)) {

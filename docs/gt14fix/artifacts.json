@@ -1,0 +1,87 @@
+{
+  "base": "ea177342dd9ce181488f0954fe436d5f25d78fe5",
+  "PRE": {
+    "functions": 10279,
+    "function_table_sha256": "3044a71f67d35a2ca19626c0b3676d7dce0773940db7be8a8991272e56b3b080",
+    "section_table_sha256": "022f172e8fc0548e70b8e4eeca9918ee95171768e529a2d0c1a5bf184aba9a36",
+    "binary_sha256": "0090ca12acb2f02ce7c5a1f6d5a9d3ce577795fd6349695c041212493a6e6f69",
+    "text_bytes": 7796224
+  },
+  "POST": {
+    "functions": 10285,
+    "function_table_sha256": "f6d965295571fbbeb4d664acfacf790f8b2750178759df6d347bd4d2900590d9",
+    "section_table_sha256": "9f715ba159042d2de9e915a05760305d46145ba74403db2650dab6af2ee196bd",
+    "binary_sha256": "80270fa00716572c421e496c54abd39dbe1e197e8a96212d87998f1105542145",
+    "text_bytes": 7797376
+  },
+  "test_scope": {
+    "tests/atomic_torn.py": {
+      "unchanged_existing_functions": [
+        "abort_barriers",
+        "conditional_races",
+        "config",
+        "debug",
+        "flip_writer",
+        "frame",
+        "gate_geometry",
+        "hammer",
+        "lmpop_accounting",
+        "mset",
+        "note",
+        "release_note",
+        "rename_hammer",
+        "required_stat",
+        "signature",
+        "sinterstore_hammer",
+        "skip",
+        "stats"
+      ],
+      "changed_existing_functions": [],
+      "added_functions": [
+        "rename_held"
+      ],
+      "labels_unchanged": true,
+      "unrelated_top_level_prefix_unchanged": true,
+      "unrelated_top_level_suffix_byte_identical": true
+    },
+    "tests/xscript.py": {
+      "unchanged_existing_functions": [
+        "core_semantics",
+        "cross_script",
+        "cut_window_refusal",
+        "frame",
+        "geometry",
+        "maxmemory_pressure",
+        "note",
+        "reservation_counterexample",
+        "reservation_release_paths",
+        "same_owner_pair",
+        "settle",
+        "staging_limit_control",
+        "stats",
+        "wait_for",
+        "watch_declared_keys_only"
+      ],
+      "changed_existing_functions": [
+        "contention_and_deadlock"
+      ],
+      "added_functions": [],
+      "labels_unchanged": true,
+      "other_contention_function_checks_byte_identical": true
+    },
+    "tests/gate.sh": {
+      "byte_identical": true,
+      "sha256": "43222d32cdb4727c8a9c06506759cb76ef0ecbd7414143329d1e56eff7dc5855"
+    },
+    "tests/gate_subset.sh": {
+      "byte_identical": true,
+      "sha256": "88406335af97b13e383b31f4d25ce04cb625e1b105b3c2686cbadff46d5887d6"
+    }
+  },
+  "fixture_tree_unchanged": true,
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "object_audit_command": "taskset -c 120-127 python3 tools/lbstall_artifacts.py compare build/gt14fix/pre build docs/gt14fix/hot-byte-audit.json",
+  "full_inventory_note": "Existing Elf.canonical with R_X86_64_TPOFF32 (relocation 23) treated as a four-byte relocation; only xshard.o and t_server.o in both namespaces were inventoried for the changed-functions list.",
+  "final_code_revision": "7641c85caa0c82f73bf921e036a2cc8b1420b8b8",
+  "server_unchanged_after_campaign": true
+}

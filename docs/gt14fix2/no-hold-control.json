@@ -1,0 +1,18 @@
+{
+  "source_sha256": "79f3688f51ee0a0bd09777716d001b67ff4efa622f5ef1961b274ec7591a3b61",
+  "control_sha256": "2de28977167c5174fad1c65b43e2c9cc72ffe426165837a7caf1c01126521087",
+  "patches": [
+    {
+      "symbol": "_ZN8tomo_db025debug_atomic_off_hop_holdEm",
+      "offset": 1145856,
+      "original": "f3",
+      "replacement": "c3"
+    },
+    {
+      "symbol": "_ZN4tomo25debug_atomic_off_hop_holdEm",
+      "offset": 4891760,
+      "original": "f3",
+      "replacement": "c3"
+    }
+  ]
+}
