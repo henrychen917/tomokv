@@ -1,0 +1,4 @@
+  p8: N lane hits with retirement blocked; ordered replies + RYOW ok hits=8; RYOW demotions=1
+  p32: N lane hits with retirement blocked; ordered replies + RYOW ok hits=32; RYOW demotions=1
+read_local_mget_fence PASS (checks=2 skips=0)
+read_local_lane serverless mget-fence PASS (held-window verdict, replies and RYOW)

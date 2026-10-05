@@ -1,0 +1,1 @@
+PASS negative control snapshot-clear-active rejected: FAIL core concurrency: zero-work writer pass retains binding while cancellation is held

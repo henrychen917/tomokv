@@ -1,0 +1,20 @@
+PASS control case=all fault=0 exit=0: PASS mdbqsbr coverage
+PASS control case=lifetime fault=1 exit=1: held map not deleted before final dereference
+PASS control case=owner fault=1 exit=1: held map not deleted before final dereference
+PASS control case=capture fault=1 exit=1: capture/logical retains map through last dereference
+PASS control case=logical fault=1 exit=1: capture/logical retains map through last dereference
+PASS control case=lifetime fault=2 exit=1: last-swap maintenance frees held version exactly once
+PASS control case=entry fault=3 exit=1: sampled-even participant still owes publication acknowledgement
+PASS control case=park fault=3 exit=1: parked/even/role-changing participant not silently exempted
+PASS control case=role fault=3 exit=1: parked/even/role-changing participant not silently exempted
+PASS control case=nested fault=4 exit=1: held map not deleted before final dereference
+PASS control case=coverage fault=5 exit=1: ordinary IO/owner loop covers stamping with read-local off
+PASS control case=coverage fault=3 exit=1: role change cannot skip even physical participant
+PASS control case=backlog fault=6 exit=1: staggered active readers drain backlog
+PASS control case=backlog fault=2 exit=1: staggered active readers drain backlog
+PASS control case=allocation fault=7 exit=1: prepared commit performs zero allocations under denial
+PASS control case=journal fault=8 exit=1: AOF refusal leaves old mapping live
+PASS control case=endpoints fault=9 exit=1: COPY/MOVE endpoints use one immutable version across forced swap
+PASS control case=wake fault=10 exit=1: every physical worker has a readable retire doorbell
+PASS control case=shutdown fault=11 exit=-6: fatal: database retire acknowledgement timeout
+PASS control case=deadline fault=0 exit=-6: participant=t1 os_tid=0 ack=0 exited=0

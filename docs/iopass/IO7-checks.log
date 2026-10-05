@@ -1,0 +1,7 @@
+PASS IO2 boot/config/signal/role election
+PASS IO3 delayed ACK, post-ACK dispatch, epoch rollover, coordinator, database fences
+PASS IO4 disabled/AOF election/sticky role binding/standalone snapshot/cancellation/rearm
+PASS IO6 zero/reserve/1024 assignments/word boundaries/full fallback/release/reuse/unmasked sweep
+PASS IO7 2s shards=16 refusal/retry/MSET/plain-EXISTS/DEL/zero scratch
+PASS IO7 1s shards=16 refusal/retry/MSET/plain-EXISTS/DEL/zero scratch
+PASS IO7 2s shards=256 refusal/retry/MSET/plain-EXISTS/DEL/zero scratch

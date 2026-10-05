@@ -1,0 +1,11 @@
+PASS production PASS LB record lifetime: late reader acquires replacement; active reader defers one consumption
+PASS LB monitor handoff: both modes/branches; once; stale epochs; zero IO allocations
+PASS no-publish FAIL core concurrency: monitor must produce a finished plan; unarmed witness fails
+PASS stale-flip FAIL core concurrency: stale topology plan dropped without drain
+PASS stale-lb FAIL core concurrency: stale topology plan dropped without drain
+PASS duplicate FAIL core concurrency: finished plan consumed exactly once
+PASS copy-on-io FAIL core concurrency: IO handoff allocates and frees nothing
+PASS record-reuse FAIL core concurrency: record reuse waits for the cancelled drain reader, without blocking IO
+PASS client-drain-first-tail: POST2/PAD-A2, both modes, three isolated negative controls
+PASS PAD-A PASS PAD-A PRE behavior: IO-hosted key/client search, direct drain, cron, fresh parse gates
+PASS POST-rejects-PRE FAIL core concurrency: PAD monitor never runs LB search

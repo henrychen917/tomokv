@@ -1,0 +1,8 @@
+PASS multidb accept boundary 2s read-local=0 atomic=1: 6 forced windows
+PASS multidb accept boundary 2s read-local=1 atomic=1: 6 forced windows
+PASS multidb accept boundary 1s read-local=0 atomic=1: 6 forced windows
+PASS multidb accept boundary 1s read-local=1 atomic=1: 6 forced windows
+PASS multidb stamp/publication boundary 2s: one forced swap, one SET, intervening read
+PASS multidb serial boundary 2s: 4 writers x p32 x 32 epochs; delayed windows=32
+PASS multidb stamp/publication boundary 1s: one forced swap, one SET, intervening read
+PASS multidb serial boundary 1s: 4 writers x p32 x 32 epochs; delayed windows=32

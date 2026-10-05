@@ -1,0 +1,35 @@
+tests/r7shadow_unit.cc: In function ‘int main()’:
+tests/r7shadow_unit.cc:284:17: error: ‘kGenthreadPipelineExBatchOps’ was not declared in this scope
+  284 |     three_pipes<kGenthreadPipelineExBatchOps>();
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+tests/r7shadow_unit.cc:284:46: error: no matching function for call to ‘three_pipes<<expression error> >()’
+  284 |     three_pipes<kGenthreadPipelineExBatchOps>();
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+tests/r7shadow_unit.cc:47:6: note: candidate: ‘template<long unsigned int B> void {anonymous}::three_pipes()’
+   47 | void three_pipes() {
+      |      ^~~~~~~~~~~
+tests/r7shadow_unit.cc:47:6: note:   template argument deduction/substitution failed:
+tests/r7shadow_unit.cc:284:46: error: template argument 1 is invalid
+  284 |     three_pipes<kGenthreadPipelineExBatchOps>();
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+tests/r7shadow_unit.cc:288:53: error: no matching function for call to ‘barriers_and_order<kGenthreadPipelineExBatchOps>()’
+  288 |     barriers_and_order<kGenthreadPipelineExBatchOps>();
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+tests/r7shadow_unit.cc:133:6: note: candidate: ‘template<long unsigned int B> void {anonymous}::barriers_and_order()’
+  133 | void barriers_and_order() {
+      |      ^~~~~~~~~~~~~~~~~~
+tests/r7shadow_unit.cc:133:6: note:   template argument deduction/substitution failed:
+tests/r7shadow_unit.cc:290:52: error: no matching function for call to ‘queued_completion<kGenthreadPipelineExBatchOps>()’
+  290 |     queued_completion<kGenthreadPipelineExBatchOps>();
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+tests/r7shadow_unit.cc:166:6: note: candidate: ‘template<long unsigned int B> void {anonymous}::queued_completion()’
+  166 | void queued_completion() {
+      |      ^~~~~~~~~~~~~~~~~
+tests/r7shadow_unit.cc:166:6: note:   template argument deduction/substitution failed:
+tests/r7shadow_unit.cc:294:50: error: no matching function for call to ‘bounded_service<kGenthreadPipelineExBatchOps>()’
+  294 |     bounded_service<kGenthreadPipelineExBatchOps>();
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~
+tests/r7shadow_unit.cc:238:6: note: candidate: ‘template<long unsigned int B> void {anonymous}::bounded_service()’
+  238 | void bounded_service() {
+      |      ^~~~~~~~~~~~~~~
+tests/r7shadow_unit.cc:238:6: note:   template argument deduction/substitution failed:
