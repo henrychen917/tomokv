@@ -1,1 +1,1 @@
-32 runs: PRE fails INFO/SLEEP/CONFIG; POST passes; controls pass both arms
+40 runs: PRE fails INFO/SLEEP/CONFIG/metadata; POST passes; controls pass both arms

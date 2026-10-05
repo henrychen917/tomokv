@@ -1,2 +1,1 @@
-Hot bodies: 1482; raw byte equal: 1481; bytes + resolved relocation targets equal: 1481
-DIFF db0/src/cmd/xshard.o 692 808 tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*)
+Hot bodies: 1482; raw byte equal: 1480; bytes + resolved relocation targets equal: 1482

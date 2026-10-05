@@ -24,7 +24,8 @@ def changed(before, after):
     for name, label in zip(names, labels):
         if name not in old or name not in new or a.canonical(old[name]) != b.canonical(new[name]):
             rows.append(dict(symbol=name, name=label, pre_size=old.get(name, {}).get('size', 0),
-                             post_size=new.get(name, {}).get('size', 0)))
+                             post_size=new.get(name, {}).get('size', 0),
+                             raw_equal=name in old and name in new and a.body(old[name]) == b.body(new[name])))
     return rows
 
 

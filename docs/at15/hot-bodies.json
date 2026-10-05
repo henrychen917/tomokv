@@ -644,7 +644,7 @@
     "name": "tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*) [clone .isra.0]",
     "pre_size": 1125,
     "post_size": 1125,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
@@ -1246,9 +1246,9 @@
     "symbol": "_ZN8tomo_db09FlatStore8erase_inEimNS_5SliceEPb",
     "name": "tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*)",
     "pre_size": 692,
-    "post_size": 808,
-    "raw_equal": false,
-    "relocation_equal": false
+    "post_size": 692,
+    "raw_equal": true,
+    "relocation_equal": true
   },
   {
     "object": "db0/src/cmd/xshard.o",
@@ -7313,7 +7313,7 @@
     "name": "tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*) [clone .isra.0]",
     "pre_size": 1008,
     "post_size": 1008,
-    "raw_equal": true,
+    "raw_equal": false,
     "relocation_equal": true
   },
   {
