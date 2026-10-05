@@ -234,9 +234,9 @@ DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
 STORESIZE_CORE_OBJ := $(filter-out build/src/cmd/xshard.o build/src/cmd/multidb.o build/db0/src/cmd/xshard.o build/db0/src/cmd/multidb.o,$(CORE_TEST_OBJ) $(DB0_TEST_OBJ))
 build/storesize/multidb.cc: tests/storesize_checks.py src/cmd/multidb.cc
 	python3 $< src/cmd/multidb.cc $@
-build/storesize/multidb.o: build/storesize/multidb.cc $(wildcard src/*/*.h) Makefile
+build/storesize/multidb.o: build/storesize/multidb.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Isrc/cmd -I. -c $< -o $@
-build/storesize/db0-multidb.o: build/storesize/multidb.cc $(wildcard src/*/*.h) Makefile
+build/storesize/db0-multidb.o: build/storesize/multidb.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -Isrc/cmd -I. -c $< -o $@
 build/storesize-unit: build/tests/storesize_unit.o build/db0/tests/storesize_unit.o build/storesize/multidb.o build/storesize/db0-multidb.o $(STORESIZE_CORE_OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm

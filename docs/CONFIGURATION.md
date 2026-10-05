@@ -188,7 +188,8 @@ INFO emits `db0:keys=K,expires=E,avg_ttl=T` for a nonempty database. `keys` and
 millisecond estimate: at publication the owner samples at most 16 expiry-index
 slots, using a cursor separate from active expiry, then INFO subtracts the current
 wall clock from that sample's mean deadline. It is zero when no keys have an
-expiry or no live sample is available. It is an estimate, not an exact average
+expiry or no sample has been recorded; an empty sample retains the preceding
+estimate. It is an estimate, not an exact average
 over every deadline; polling INFO visits no objects. All existing structure-size
 locks remain unchanged; each store has a 16-byte cold sampling sidecar.
 

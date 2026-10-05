@@ -9,7 +9,7 @@ to ASCII case. Empty databases have no `dbN` line. The requested field grammar i
 | --- | --- | --- |
 | `keys` | Resident keys in logical database N, including elapsed keys pending collection | One owner batch boundary |
 | `expires` | Keys with a logical key deadline; a persisted object retaining TTL storage is not volatile | One owner batch boundary |
-| `avg_ttl` | Nonnegative millisecond TTL estimate; zero with no deadlines/sample | Published sample from the owner boundary, aged using wall time at INFO; sampling error has no exactness guarantee |
+| `avg_ttl` | Nonnegative millisecond TTL estimate; zero with no deadlines or no recorded sample | Published sample from the owner boundary, aged using wall time at INFO; empty samples retain the prior estimate; sampling error has no exactness guarantee |
 
 Counters are independently sampled across shards; INFO is not a global MVCC
 snapshot. The bound is an owner progress boundary, not a millisecond deadline.
