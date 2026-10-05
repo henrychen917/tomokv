@@ -1,0 +1,464 @@
+{
+  "kind": "A: PRE behaviour for the selected item(s), exact POST text size and function layout",
+  "group": "ex3",
+  "source_sha256": "1cd99bfdba8b6f33cb19b9fa744cc2050d978c14bdefba78353d46b126259918",
+  "inventory": {
+    "3": 31,
+    "1": 2,
+    "30": 10,
+    "6": 6
+  },
+  "patches": [
+    {
+      "address": 324448,
+      "offset": 324448,
+      "target": 324464,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90b000000",
+      "functions": [
+        "_ZN12_GLOBAL__N_17watchesERKN8tomo_db05ShardE"
+      ]
+    },
+    {
+      "address": 540802,
+      "offset": 540802,
+      "target": 540864,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e939000000",
+      "functions": [
+        "_ZN8tomo_db05Shard19watch_database_swapEhhhhPSt6vectorISt4pairIPNS_6ClientEmESaIS5_EE"
+      ]
+    },
+    {
+      "address": 542420,
+      "offset": 542420,
+      "target": 542432,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e907000000",
+      "functions": [
+        "_ZN8tomo_db05Shard19watch_database_swapEhh"
+      ]
+    },
+    {
+      "address": 697195,
+      "offset": 697195,
+      "target": 697050,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e96affffff",
+      "functions": [
+        "_ZN8tomo_db05Shard26watch_finalize_reservationERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 697318,
+      "offset": 697318,
+      "target": 697376,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e935000000",
+      "functions": [
+        "_ZN8tomo_db05Shard17watch_write_readyENS_5SliceEPKv"
+      ]
+    },
+    {
+      "address": 697766,
+      "offset": 697766,
+      "target": 697824,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e935000000",
+      "functions": [
+        "_ZN8tomo_db023multi_plain_write_readyERNS_5ShardERNS_2OpE"
+      ]
+    },
+    {
+      "address": 698213,
+      "offset": 698213,
+      "target": 698272,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e936000000",
+      "functions": [
+        "_ZN8tomo_db05Shard21watch_all_write_readyEv"
+      ]
+    },
+    {
+      "address": 698804,
+      "offset": 698804,
+      "target": 698832,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e917000000",
+      "functions": [
+        "_ZN8tomo_db05Shard25watch_all_write_committedEi"
+      ]
+    },
+    {
+      "address": 699446,
+      "offset": 699446,
+      "target": 699339,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e990ffffff",
+      "functions": [
+        "_ZN8tomo_db05Shard17watch_prune_staleERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 699553,
+      "offset": 699553,
+      "target": 699600,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e92a000000",
+      "functions": [
+        "_ZN8tomo_db05Shard21watch_write_committedENS_5SliceEPNS_6ClientEm"
+      ]
+    },
+    {
+      "address": 700036,
+      "offset": 700036,
+      "target": 700080,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e927000000",
+      "functions": [
+        "_ZN8tomo_db027multi_plain_write_committedERNS_5ShardERNS_2OpE"
+      ]
+    },
+    {
+      "address": 700467,
+      "offset": 700467,
+      "target": 700512,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e928000000",
+      "functions": [
+        "_ZN8tomo_db019xshard_watch_finishERKNS_4TaskERNS_5ShardERNS_2OpENS_17ScatterTaskResultE"
+      ]
+    },
+    {
+      "address": 701431,
+      "offset": 701431,
+      "target": 701184,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e904ffffff",
+      "functions": [
+        "_ZN8tomo_db05Shard12watch_removeENS_5SliceEPNS_6ClientEm"
+      ]
+    },
+    {
+      "address": 702079,
+      "offset": 702079,
+      "target": 701872,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e92cffffff",
+      "functions": [
+        "_ZN8tomo_db05Shard9watch_addENS_5SliceEPNS_6ClientEmt"
+      ]
+    },
+    {
+      "address": 702954,
+      "offset": 702954,
+      "target": 702964,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e905000000",
+      "functions": [
+        "_ZN8tomo_db05Shard24watch_append_reservationERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNS0_16WatchReservationE"
+      ]
+    },
+    {
+      "address": 704641,
+      "offset": 704641,
+      "target": 704704,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e93a000000",
+      "functions": [
+        "_ZN8tomo_db05Shard19watch_reserve_writeENS_5SliceEPNS_6ClientEmPKvPSt6atomicImEPS6_IbEPS6_IjE"
+      ]
+    },
+    {
+      "address": 709616,
+      "offset": 709616,
+      "target": 710240,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e96b020000",
+      "functions": [
+        "_ZN8tomo_db014xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj"
+      ]
+    },
+    {
+      "address": 2744305,
+      "offset": 2744305,
+      "target": 2745482,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e994040000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 2745408,
+      "offset": 2745408,
+      "target": 2745669,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e900010000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 2747745,
+      "offset": 2747745,
+      "target": 2748938,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9a4040000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 2748864,
+      "offset": 2748864,
+      "target": 2749125,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e900010000",
+      "functions": [
+        "_ZN8tomo_db07ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 3129156,
+      "offset": 3129156,
+      "target": 3129168,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e907000000",
+      "functions": [
+        "_ZNK8tomo_db05Shard11has_watchesEv"
+      ]
+    },
+    {
+      "address": 3898640,
+      "offset": 3898640,
+      "target": 3898704,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e93b000000",
+      "functions": [
+        "_ZN4tomo5Shard19watch_database_swapEhhhhPSt6vectorISt4pairIPNS_6ClientEmESaIS5_EE"
+      ]
+    },
+    {
+      "address": 3900164,
+      "offset": 3900164,
+      "target": 3900176,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e907000000",
+      "functions": [
+        "_ZN4tomo5Shard19watch_database_swapEhh"
+      ]
+    },
+    {
+      "address": 4056075,
+      "offset": 4056075,
+      "target": 4055930,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e96affffff",
+      "functions": [
+        "_ZN4tomo5Shard26watch_finalize_reservationERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 4056198,
+      "offset": 4056198,
+      "target": 4056256,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e935000000",
+      "functions": [
+        "_ZN4tomo5Shard17watch_write_readyENS_5SliceEPKv"
+      ]
+    },
+    {
+      "address": 4056662,
+      "offset": 4056662,
+      "target": 4056720,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e935000000",
+      "functions": [
+        "_ZN4tomo23multi_plain_write_readyERNS_5ShardERNS_2OpE"
+      ]
+    },
+    {
+      "address": 4057109,
+      "offset": 4057109,
+      "target": 4057168,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e936000000",
+      "functions": [
+        "_ZN4tomo5Shard21watch_all_write_readyEv"
+      ]
+    },
+    {
+      "address": 4057693,
+      "offset": 4057693,
+      "target": 4057712,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e90e000000",
+      "functions": [
+        "_ZN4tomo5Shard25watch_all_write_committedEi"
+      ]
+    },
+    {
+      "address": 4058310,
+      "offset": 4058310,
+      "target": 4058203,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e990ffffff",
+      "functions": [
+        "_ZN4tomo5Shard17watch_prune_staleERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE"
+      ]
+    },
+    {
+      "address": 4058426,
+      "offset": 4058426,
+      "target": 4058480,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e931000000",
+      "functions": [
+        "_ZN4tomo5Shard21watch_write_committedENS_5SliceEPNS_6ClientEm"
+      ]
+    },
+    {
+      "address": 4058916,
+      "offset": 4058916,
+      "target": 4058960,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e927000000",
+      "functions": [
+        "_ZN4tomo27multi_plain_write_committedERNS_5ShardERNS_2OpE"
+      ]
+    },
+    {
+      "address": 4059341,
+      "offset": 4059341,
+      "target": 4059392,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e92e000000",
+      "functions": [
+        "_ZN4tomo19xshard_watch_finishERKNS_4TaskERNS_5ShardERNS_2OpENS_17ScatterTaskResultE"
+      ]
+    },
+    {
+      "address": 4060295,
+      "offset": 4060295,
+      "target": 4060048,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e904ffffff",
+      "functions": [
+        "_ZN4tomo5Shard12watch_removeENS_5SliceEPNS_6ClientEm"
+      ]
+    },
+    {
+      "address": 4060963,
+      "offset": 4060963,
+      "target": 4060752,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e928ffffff",
+      "functions": [
+        "_ZN4tomo5Shard9watch_addENS_5SliceEPNS_6ClientEmt"
+      ]
+    },
+    {
+      "address": 4061802,
+      "offset": 4061802,
+      "target": 4061812,
+      "item": 30,
+      "before": "0f1f440000",
+      "after": "e905000000",
+      "functions": [
+        "_ZN4tomo5Shard24watch_append_reservationERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERKNS0_16WatchReservationE"
+      ]
+    },
+    {
+      "address": 4063484,
+      "offset": 4063484,
+      "target": 4063536,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e92f000000",
+      "functions": [
+        "_ZN4tomo5Shard19watch_reserve_writeENS_5SliceEPNS_6ClientEmPKvPSt6atomicImEPS6_IbEPS6_IjE"
+      ]
+    },
+    {
+      "address": 4067440,
+      "offset": 4067440,
+      "target": 4068048,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e95b020000",
+      "functions": [
+        "_ZN4tomo14xshard_executeERKNS_4TaskERNS_5ShardERNS_2OpEj"
+      ]
+    },
+    {
+      "address": 6048100,
+      "offset": 6048100,
+      "target": 6048112,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e907000000",
+      "functions": [
+        "_ZNK4tomo5Shard11has_watchesEv"
+      ]
+    },
+    {
+      "address": 6197953,
+      "offset": 6197953,
+      "target": 6199130,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e994040000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb1EEEbRKNS_4TaskE"
+      ]
+    },
+    {
+      "address": 6201377,
+      "offset": 6201377,
+      "target": 6202570,
+      "item": 3,
+      "before": "0f1f440000",
+      "after": "e9a4040000",
+      "functions": [
+        "_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE"
+      ]
+    }
+  ]
+}

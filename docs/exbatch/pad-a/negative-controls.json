@@ -1,0 +1,20 @@
+[
+  {
+    "control": "missing-patch",
+    "executed": false,
+    "reason": "required retarget absent or wrong",
+    "rejected": true
+  },
+  {
+    "control": "unplanned-byte",
+    "executed": false,
+    "reason": "unplanned byte changed",
+    "rejected": true
+  },
+  {
+    "control": "function-address",
+    "executed": false,
+    "reason": "function/symbol address table changed",
+    "rejected": true
+  }
+]

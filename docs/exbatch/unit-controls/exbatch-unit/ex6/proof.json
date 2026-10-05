@@ -1,0 +1,22 @@
+{
+  "all_other_bytes_equal": true,
+  "entry_program_headers_and_sections_equal": true,
+  "every_function_address_and_size_equal": true,
+  "group": "ex6",
+  "kind": "A: PRE behaviour for the selected item(s), exact POST text size and function layout",
+  "pad": {
+    "binary_sha256": "6b930e9c3ccae1704f2b3f7dc3d130b9b2951cbb024811b0b60ec375c4454c10",
+    "function_table_sha256": "5c17df9db8afa36f986036ddd1f032b2ef7abde2be4c3295b78dee787ec65864",
+    "functions": 5176,
+    "section_table_sha256": "662fc9d3b6b97b07a930b84a996b2e80a76dea175652ef079332e845757ae710",
+    "text_bytes": 3637633
+  },
+  "patches": 3,
+  "post": {
+    "binary_sha256": "394a35300e4a04c5c709294d7555696711c9cc4f5d7a5ea4cf21d54111967470",
+    "function_table_sha256": "5c17df9db8afa36f986036ddd1f032b2ef7abde2be4c3295b78dee787ec65864",
+    "functions": 5176,
+    "section_table_sha256": "662fc9d3b6b97b07a930b84a996b2e80a76dea175652ef079332e845757ae710",
+    "text_bytes": 3637633
+  }
+}
