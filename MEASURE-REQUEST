@@ -1,10 +1,12 @@
-See MEASURE-REQUEST-exbatch.md for the complete mainline-only request.
+Lane gt15fix: snapshot loads during FLIP/key-LB
 
-PRE cd02ecbab; POST/PAD-A and per-item kind-A controls are built under build/exbatch/.
-38 cells: 14 unchanged generic, 9 split/MSET supplements, 15 directed cells.
-Exact argv and warm state: docs/exbatch/measurement-cells.json.
-No server, load generator, gate, or performance measurement was run by the lane.
+See MEASURE-REQUEST-gt15fix.md for the race audit, helper, 13 serverless witnesses,
+six rejected negative controls, and the pending 20x hexpire / 5x feature-split-1
+proofs confined to CPUs 112-127. Test-only; no server or gate was run, zero new rows.
 
-Lane connreset2: see MEASURE-REQUEST-connreset2.md for reconciliation with the
-landed bench4 sampler and the required serverless checks. Original churn evidence
-and artifact receipts remain in MEASURE-REQUEST-connreset.md and docs/connreset/.
+Lane lbplanner: CT1 / CT2 / CT3
+
+See MEASURE-REQUEST-lbplanner.md for the complete report and mainline-only cells,
+three regimes, counters, arms and pass conditions. PRE, POST and verified PAD-A
+are built; serverless proofs pass. No server, benchmark, live test or gate was run.
+Mainline measurement and live-gate acceptance remain pending.
