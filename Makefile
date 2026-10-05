@@ -34,6 +34,7 @@ SRC      += src/cmd/pfdebug.cc
 SRC      += src/cmd/cmdmeta.cc
 SRC      += src/cmd/t_sort.cc
 SRC      += src/cmd/multidb.cc
+SRC      += src/cmd/storesize.cc
 # Preserve mainline weak-symbol selection; isolated R7 bodies link last.
 SRC      += src/core/reorder.cc
 LDLIBS   += -lssl -lcrypto
@@ -226,6 +227,17 @@ unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flip
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
 DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
+# ST2 cost witness: only the two cold census walks are instrumented. The fixture
+# dispatches real commands and counts work; it never boots a listener or workers.
+STORESIZE_CORE_OBJ := $(filter-out build/src/cmd/xshard.o build/src/cmd/multidb.o build/db0/src/cmd/xshard.o build/db0/src/cmd/multidb.o,$(CORE_TEST_OBJ) $(DB0_TEST_OBJ))
+build/storesize/multidb.cc: tests/storesize_checks.py src/cmd/multidb.cc
+	python3 $< src/cmd/multidb.cc $@
+build/storesize/multidb.o: build/storesize/multidb.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Isrc/cmd -I. -c $< -o $@
+build/storesize/db0-multidb.o: build/storesize/multidb.cc $(wildcard src/*/*.h) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -Isrc/cmd -I. -c $< -o $@
+build/storesize-unit: build/tests/storesize_unit.o build/db0/tests/storesize_unit.o build/storesize/multidb.o build/storesize/db0-multidb.o $(STORESIZE_CORE_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # EX1/EX3/EX6 use production objects without opening a listener or IO ring.
 build/exbatch-unit: build/tests/exbatch_unit.o $(CORE_TEST_OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm

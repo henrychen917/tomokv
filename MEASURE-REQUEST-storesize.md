@@ -18,3 +18,12 @@ accounting without a keyspace walk requires mutation accounting in the multi-DB
 image; that conflicts with literal byte identity of every ordinary command path.
 The owner has been asked to resolve that constraint. Default-image hot code will
 be audited independently from multi-DB code, with all differences disclosed.
+
+First implementation step restores the default single-DB route. Serverless
+`taskset -c 112-127 ./build/storesize-unit --db0-only` passes: plain DBSIZE,
+bare INFO and INFO KEYSPACE visit zero slots/objects at 128, 4096 and 16384 keys;
+DBSIZE NOW still visits all 32768 slots / 16384 objects in the largest fixture.
+It checks one-boundary staleness, equality with the published shard sum after
+publication, expiry/PERSIST output and section routing. Receipt:
+`docs/storesize/db0-checks.log`. Multi-DB still uses its legacy scatter at this
+intermediate commit. No gate row has been added yet.

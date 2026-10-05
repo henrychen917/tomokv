@@ -87,6 +87,8 @@
 
 namespace tomo {
 
+struct StoreSizeState;
+
 // Fault injection for the cold table-allocation paths. It is compiled in whenever NDEBUG is not
 // defined -- which is every build the Makefile produces, release included -- and costs one relaxed
 // load per table allocation, never anything on the request path. Defining NDEBUG removes this
@@ -239,6 +241,24 @@ public:
             }
         }
         return checked;
+    }
+
+    // Monitoring's owner-side sample has its own cursor. It neither advances
+    // active expiry's cursor nor migrates/reaps anything, and counts empty slots
+    // against its budget. INFO itself never enters this function.
+    template <typename Fn>
+    void sample_readonly(uint64_t& cursor, uint32_t budget, Fn&& fn) const {
+        const size_t old_left = cap_[0] - migrate_;
+        const size_t total = old_left + cap_[1];
+        for (size_t n = 0; n < std::min<size_t>(budget, total); ++n) {
+            if (cursor >= total) cursor = 0;
+            const size_t pos = cursor++;
+            if (pos < old_left) {
+                if (states(0)[migrate_ + pos] == kLive) fn(hashes_[0][migrate_ + pos]);
+            } else if (states(1)[pos - old_left] == kLive) {
+                fn(hashes_[1][pos - old_left]);
+            }
+        }
     }
 
     // Best-effort random live hash selection. Both the random probes and sparse-table cursor
@@ -705,6 +725,10 @@ public:
     explicit FlatStore(uint32_t initial_cap = 1024) {
         const uint32_t cap = round_pow2(initial_cap);
         if (!cap || !alloc_table(0, cap)) throw std::bad_alloc();
+        if (!init_storesize()) {
+            std::free(tab_[0]);
+            throw std::bad_alloc();
+        }
     }
     ~FlatStore() {
         // At process teardown no reader survives. Collapse pending entries first so the ordinary
@@ -723,6 +747,7 @@ public:
         // thread may still be handing their value bytes to the kernel.
         for (const Borrow& b : borrows_)
             if (b.retired) kvobj_free(b.retired);
+        destroy_storesize();
     }
     FlatStore(const FlatStore&) = delete;
     FlatStore& operator=(const FlatStore&) = delete;
@@ -991,6 +1016,10 @@ public:
     uint64_t capacity() const { return static_cast<uint64_t>(cap_[0]) + cap_[1]; }
     size_t   object_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
     uint32_t expire_count() const { return expires_.size(); }
+    // Cold batch-boundary publication. No key/TTL mutation publishes counters.
+    bool init_storesize();
+    void publish_keyspace_sample();
+    uint64_t published_avg_deadline() const;
     // Hashes in this shard carrying at least one field deadline. THE gate for the whole hash-field
     // TTL feature: a shard that has never seen HEXPIRE reads zero here and every hash command pays
     // one predicted-false test, with all field-TTL machinery out of line behind it.
@@ -1916,6 +1945,7 @@ public:
     }
 
 private:
+    void destroy_storesize();
     void refresh_field_ttl_gate() {
         // Once registration was lost, the count is no longer exact until FLUSH. Preserve a
         // positive gate without reporting an artificial UINT32_MAX population through INFO.
@@ -3650,7 +3680,11 @@ private:
     // that make the guarantee base-independent, and this is that balance — it is also why the
     // object still measures 944 bytes instead of 916. Repurposing it is fine only for a field that
     // is never written on the key path, and only if FlatStoreLayoutLock still passes.
-    char      reader_owner_gap_[28] = {};
+    char      reader_owner_gap_[4] = {};
+    // Boot/batch-initialized pointer, never changed by an ordinary operation.
+    // Reuses eight separator bytes; all existing member offsets stay fixed.
+    StoreSizeState* storesize_ = nullptr;
+    char      storesize_gap_[16] = {};
 
     // ---- OWNER BLOCK. Written by the single owner on the ordinary insert/DEL path. The first
     // eight fields are 48 bytes, so the whole per-operation counter set is one line for the owner
@@ -3724,7 +3758,8 @@ struct FlatStoreLayoutLock {
     // First word of the bind-once separator that buys the distance below it.
     static constexpr size_t atomic_separator_first = offsetof(FlatStore, atomic_ticket_fn_);
     static constexpr size_t line         = 64;
-    static constexpr size_t gap_bytes    = sizeof(FlatStore::reader_owner_gap_);
+    static constexpr size_t gap_bytes    = sizeof(FlatStore::reader_owner_gap_) +
+        sizeof(FlatStore::storesize_) + sizeof(FlatStore::storesize_gap_);
 };
 
 // THE INVARIANT, STATED TWICE BECAUSE THE READER BLOCK HAS OWNER WRITES ON BOTH SIDES OF IT: no
