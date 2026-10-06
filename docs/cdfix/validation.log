@@ -1,0 +1,7 @@
+POST-multi expected exit 0 PASS
+POST-db0 expected exit 0 PASS
+PRE-multi expected exit 1 PASS
+PRE-db0 expected exit 1 PASS
+PHYSICAL-multi expected exit 1 PASS
+Python syntax checks PASS
+Gate and differ boot scripts unchanged

@@ -1,0 +1,15 @@
+CD6: RESP2 notify=0 28 pages, 27 witnessed rehashes, 192 members covered
+CD6: RESP2 notify=1 28 pages, 27 witnessed rehashes, 192 members covered
+CD6: RESP3 notify=0 28 pages, 27 witnessed rehashes, 192 members covered
+CD6: RESP3 notify=1 28 pages, 27 witnessed rehashes, 192 members covered
+PASS scan
+CD6: 8 growth/wraparound cases, three witnessed capacity increases per scan
+PASS scan-growth
+CD7: 2048 byte-exact GEOPOS replies, 416 trimmed coordinates, RESP2/3 notify off/on
+PASS coordinates
+CD8: 32 STORE orders/verbs/destinations/protocols/notification cases
+PASS stores
+CD13: GEOADD retains skiplist; STORE can compact; notify off/on
+PASS encoding
+CD13: exact metadata 5/12/31 retained by GEOADD/STORE/STOREDIST; notify off/on
+PASS metadata
