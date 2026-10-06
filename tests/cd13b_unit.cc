@@ -46,10 +46,16 @@ struct Fixture {
         for (uint32_t sid = 0; sid < server.nshards(); ++sid)
             xshard_cleanup_shard_at(server.shard(sid), UINT64_MAX, UINT64_MAX, UINT32_MAX);
     }
+    void configure(Shard& shard) {
+        const auto snapshot = server.live_config_snapshot(server.worker_of_shard(shard.id()));
+        shard.configure_maxmemory(snapshot.maxmemory != 0, snapshot.maxmemory / server.nshards(),
+                                  snapshot.policy, snapshot.samples);
+    }
     void owner_phase(ScatterState& state, Op& op) {
         for (uint32_t i = 0; i < state.nsub; ++i) {
             const int sid = state.groups[i].shard;
             const auto tid = server.worker_of_shard(sid);
+            configure(server.shard(sid));
             server.shard(sid).set_cached_now_ms(now_realtime_ms(), 0);
             require(xshard_execute(Task{&client, 0, sid, &state}, server.shard(sid), op, tid) ==
                     ScatterTaskResult::Complete, "owner phase completed without retries");
@@ -62,8 +68,9 @@ struct Fixture {
                 ScatterPrepare::Ready, "GEO scatter prepared");
         auto& state = *dispatch.state;
         state.now_cut_ms = now_realtime_ms();
-        require(state.two_hop && state.nsub == 2 && state.key_count == 2, "two GEO shards");
-        const auto a = state.groups[0].shard, b = state.groups[1].shard;
+        require(state.two_hop && state.nsub > 0 && state.key_count == 2, "two GEO key records");
+        // Hop one reads only the source. The destination is first visited in the apply hop.
+        const auto a = state.keys[0].shard, b = state.keys[1].shard;
         require(a != b && server.worker_of_shard(a) != server.worker_of_shard(b),
                 "GEO keys must have distinct owner threads");
         owner_phase(state, op);
@@ -106,9 +113,9 @@ struct Fixture {
         require(op.spec, "known fixture command");
         if (notify) op.spec = command_notify_variant(op.spec);
         if (resp3) op.mark_resp3();
-        if (op.cmd_name().eq_icase("GEORADIUS") || op.cmd_name().eq_icase("GEOSEARCHSTORE")) {
+        if (op.cmd_name().eq_icase("georadius") || op.cmd_name().eq_icase("geosearchstore")) {
             geo_store(op);
-        } else if (op.cmd_name().eq_icase("CONFIG") && op.arg(1).eq_icase("SET")) {
+        } else if (op.cmd_name().eq_icase("config") && op.arg(1).eq_icase("set")) {
             ScatterDispatch dispatch;
             require(xshard_prepare(server, op, pool, 0, client.id(), dispatch) ==
                     ScatterPrepare::Ready, "CONFIG scatter prepared");
@@ -119,10 +126,11 @@ struct Fixture {
             xshard_destroy(&state, pool, 0); pool.reap_deferred();
         } else {
             int16_t first = op.spec->first_key;
-            if (op.cmd_name().eq_icase("OBJECT")) first = 2;
+            if (op.cmd_name().eq_icase("object")) first = 2;
             if (first > 0) op.hash = FlatStore::hash_key(op.arg(first));
             const auto sid = first > 0 ? server.router().shard_of(op.hash) : 0;
             auto& shard = server.shard(sid);
+            configure(shard);
             shard.set_cached_now_ms(now_realtime_ms(), 0);
             op.shard = sid;
             op.spec->handler(shard, op);

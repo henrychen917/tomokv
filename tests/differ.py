@@ -5393,8 +5393,13 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
     # Unknown categories are empty arrays, while category spelling is case-insensitive.
     # The exact empty frame matters in RESP2 and RESP3; valid LIST order is unordered.
     from cd13b_wire import aclcat_property
-    diffs += aclcat_property((("target", lambda argv: command(ts, tf, argv)),
-                             ("oracle", lambda argv: command(os_, of, argv))))
+    fired["aclcat_filters"] = 0
+    def aclcat_command(sock, file, argv):
+        coverage.note(argv, "CD13b ACLCAT property")
+        fired["aclcat_filters"] += 1
+        return command(sock, file, argv)
+    diffs += aclcat_property((("target", lambda argv: aclcat_command(ts, tf, argv)),
+                             ("oracle", lambda argv: aclcat_command(os_, of, argv))))
 
     # Compare the pipe-qualified inventory as a set: raw order is explicitly unordered.
     lists = []
@@ -5459,7 +5464,7 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
     ts.close()
     os_.close()
     if fired["pipes"] != 129 or fired["info"] < 1900 or fired["intent"] < 1900 or \
-            fired["categories"] < 40 or fired["docs_boundary"] != 1:
+            fired["categories"] < 40 or fired["docs_boundary"] != 1 or fired["aclcat_filters"] != 8:
         mismatch("cmdmeta non-vacuity", repr(fired).encode(), b"required counters")
     print("DIFFER cmdmeta: %d ops, %d diffs -> %s (%s)" %
           (compared, diffs, "PASS" if diffs == 0 else "FAIL",
