@@ -5402,17 +5402,6 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
         if target != oracle:
             mismatch(label, target, oracle)
 
-    # Unknown categories are empty arrays, while category spelling is case-insensitive.
-    # The exact empty frame matters in RESP2 and RESP3; valid LIST order is unordered.
-    from cd13b_wire import aclcat_property
-    fired["aclcat_filters"] = 0
-    def aclcat_command(sock, file, argv):
-        coverage.note(argv, "CD13b ACLCAT property")
-        fired["aclcat_filters"] += 1
-        return command(sock, file, argv)
-    diffs += aclcat_property((("target", lambda argv: aclcat_command(ts, tf, argv)),
-                             ("oracle", lambda argv: aclcat_command(os_, of, argv))))
-
     def query(sock, file, argv):
         nonlocal compared
         compared += 1
@@ -5555,8 +5544,7 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
     os_.close()
     if fired["pipes"] != 96 or fired["info"] < 1900 or fired["intent"] < 1900 or \
             fired["categories"] != 21 or fired["docs_boundary"] != 1 or \
-            fired["absent_info_docs"] != 78 or fired["patterns"] != 8 or fired["module_filters"] != 3 or \
-            fired["aclcat_filters"] != 8:
+            fired["absent_info_docs"] != 78 or fired["patterns"] != 8 or fired["module_filters"] != 3:
         mismatch("cmdmeta non-vacuity", repr(fired).encode(), b"required counters")
     print("DIFFER cmdmeta: %d ops, %d diffs -> %s (%s)" %
           (compared, diffs, "PASS" if diffs == 0 else "FAIL",
@@ -6418,11 +6406,23 @@ if SUITE == "stream":
             print("  APPROX-TRIM PROPERTY FAIL reply=%r" % length_reply)
 if SUITE == "geo":
     diffs += geo_lfu_property((("target", ts, tf), ("oracle", os_, of)))
-    from cd13b_wire import geo_store_property, ownership
+    from cd13b_wire import aclcat_property, geo_store_property, ownership
     def cd13b_call(sock, file, argv):
-        coverage.note(argv, "CD13b cross-owner GEO STORE")
+        coverage.note(argv, "CD13b GEO/ACLCAT property")
         sock.sendall(enc(argv))
         return read_reply(file)
+    # Keep the raw-wire ACLCAT checks here so cmdmeta's parsed-reply fixture stays intact.
+    # Both RESP versions must return the exact empty array and case-insensitive string set.
+    cd13b_fired = {"aclcat_filters": 0}
+    def cd13b_aclcat_call(sock, file, argv):
+        cd13b_fired["aclcat_filters"] += 1
+        return cd13b_call(sock, file, argv)
+    diffs += aclcat_property(
+        (("target", lambda argv: cd13b_aclcat_call(ts, tf, argv)),
+         ("oracle", lambda argv: cd13b_aclcat_call(os_, of, argv))))
+    if cd13b_fired["aclcat_filters"] != 8:
+        diffs += 1
+        print("  CD13b ACLCAT non-vacuity FAIL: %r (expected 8 probes)" % cd13b_fired)
     cd13b_target = lambda argv: cd13b_call(ts, tf, argv)
     diffs += geo_store_property(
         (("target", cd13b_target), ("oracle", lambda argv: cd13b_call(os_, of, argv))),
