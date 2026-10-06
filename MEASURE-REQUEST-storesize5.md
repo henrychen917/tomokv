@@ -1,7 +1,7 @@
 # storesize5 — landed at15 composition and DBSIZE differential contract
 
 Work in progress: implementation, three arms, directed proofs and body audit complete;
-full differential and selected atomic gate receipts pending.
+full differential receipts pending.
 Worktree `/home/user/Projects/cx-storesize`, branch `cx-storesize`.
 Started from `c55d4a370`, merged `origin/cpp` = `9d957b9fb` (landed at15)
 in `600063010`. The two-mode differential repair is `647f277c7`.
@@ -82,7 +82,9 @@ relaxation. No gate row was added by this round.
 - `GATE_ONLY_JOBS=storage_units`: **12 ok / 0 FAIL**, run `gate-run.6nsG9p`,
   CPUs 112–127, server 112–119, load 120–127, no SMT, ports 18340–18342.
   The partial ledger and exact plan are in `docs/storesize5`.
-- `GATE_ONLY_JOBS=atomic_units`: running, including published monitoring.
+- `GATE_ONLY_JOBS=atomic_units`: **25 ok / 0 FAIL**, run `gate-run.GanB5F`,
+  same CPU/port geometry, including published monitoring, MULTI admin and all
+  survivor rows. POST remains byte-identical after both selected gate jobs.
 - Full split/armed-fused differential folds: pending.
 
 ## Rebuilt artifacts and hot-body audit
