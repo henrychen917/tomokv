@@ -1250,6 +1250,8 @@ void AofManager::maybe_schedule_auto_rewrite() {
 }
 
 void AofManager::maybe_pause_rewrite(AofRewriteDebugStage stage) {
+    bool aof_debug_frame_state(const std::string&, uint32_t, uint64_t, uint64_t) noexcept;
+    void aof_debug_frame_cleanup(const std::string&) noexcept;
     if (debug_rewrite_pause_.load(std::memory_order_acquire) != stage) return;
     const std::string marker = directory_path_ + "/debug-aof-rewrite-stage";
     const int marker_fd = ::open(marker.c_str(), O_CREAT | O_TRUNC | O_WRONLY | O_CLOEXEC, 0600);
@@ -1265,6 +1267,11 @@ void AofManager::maybe_pause_rewrite(AofRewriteDebugStage stage) {
     }
     while (debug_rewrite_pause_.load(std::memory_order_acquire) == stage && server_ &&
            !server_->shutting_down().load(std::memory_order_relaxed)) {
+        // Only the explicitly armed DEBUG pause executes this observer. Publish atomically so
+        // a framing test can prove that a complete group and LargeBegin are queued, then release
+        // the writer. No new state, branch, or call on any ordinary writer/producer pass.
+        (void)aof_debug_frame_state(directory_path_, writer_tid_,
+                                   pending_chunks(), posted_sequence());
         if (::access(marker.c_str(), F_OK) != 0) {
             debug_rewrite_pause_.store(AofRewriteDebugStage::None, std::memory_order_release);
             break;
@@ -1272,6 +1279,7 @@ void AofManager::maybe_pause_rewrite(AofRewriteDebugStage stage) {
         std::this_thread::yield();
     }
     (void)::unlink(marker.c_str());
+    aof_debug_frame_cleanup(directory_path_);
 }
 
 void AofManager::maybe_start_rewrite(ThreadCtx& writer, Ring& ring) {

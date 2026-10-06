@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serverless whole-object/function audit; only the DEBUG handler may change."""
+"""Serverless whole-object/function audit; only the existing DEBUG pause may change."""
 import hashlib
 import inspect
 import json
@@ -51,9 +51,7 @@ for path in sorted(pre.rglob("*.o")):
                         bytes_and_targets_equal=same,
                         pre_size=left["size"] if left else 0, post_size=right["size"] if right else 0)
             changed.append(item)
-            if not same and not any(token in label for token in (
-                    "(anonymous namespace)::cmd_debug_impl(",
-                    "(anonymous namespace)::debug_aof_frame_state(")):
+            if not same and "::AofManager::maybe_pause_rewrite(" not in label:
                 unexpected.append(item)
 
 summary = dict(objects=objects, changed=changed, unexpected=unexpected,
@@ -65,5 +63,6 @@ print("Objects:", len(objects), "identical:", sum(row["file_equal"] for row in o
 print("Bodies:", summary["function_bodies"], "raw equal:", summary["raw_body_equal"],
       "bytes and resolved targets equal:", summary["bytes_and_targets_equal"])
 for row in changed:
-    print(json.dumps(row))
+    if not row["bytes_and_targets_equal"]:
+        print(json.dumps(row))
 assert not unexpected, "ordinary production bodies changed"

@@ -2,6 +2,7 @@
 """Serverless controls for the live framing schedule; a missing witness must be red."""
 import tempfile
 import unittest
+import io
 from pathlib import Path
 from unittest.mock import patch
 
@@ -23,6 +24,7 @@ class Schedule:
     def __init__(self, directory, *, pause=True, group=True, large=True, fired=True,
                  group_reply=2, write_reply=b"OK"):
         self.marker = Path(directory) / "debug-aof-rewrite-stage"
+        self.state = Path(directory) / "debug-aof-frame-state"
         self.pause, self.group, self.large, self.fired = pause, group, large, fired
         self.group_reply, self.write_reply = group_reply, write_reply
         self.pending, self.posted = 0, 100
@@ -36,20 +38,21 @@ class Schedule:
                       "aof_groups_committed": int(self.released),
                       "aof_control_frames_deferred": int(self.released and self.fired)}
             return "\r\n".join("%s:%d" % row for row in values.items()).encode()
-        if args == ("DEBUG", "AOF-FRAME-STATE"):
-            return [5, self.pending, self.posted]
         if args == ("DEBUG", "AOF-REWRITE-PAUSE", "after-manifest"):
             return b"OK"
         if args == ("BGREWRITEAOF",):
             if self.pause:
+                self.state.write_text("5 0 100\n")
                 self.marker.write_text("after-manifest\n")
             return b"Background append only file rewriting started"
         if args == ("DEBUG", "AOF-REWRITE-PAUSE", "off"):
             self.released, self.pending = True, 0
+            self.state.unlink(missing_ok=True)
             return b"OK"
         if args[0] == "EVAL":
             if self.group:
                 self.pending, self.posted = 3, 103
+                self.state.write_text("5 3 103\n")
             return self.group_reply
         if args[0] == "GET":
             return b"directed-window-l"
@@ -61,6 +64,7 @@ class Schedule:
         self.commands.append(args[:2])
         if self.large:
             self.pending, self.posted = 4, 104
+            self.state.write_text("5 4 104\n")
 
     def read(self):
         if not self.released:
@@ -81,7 +85,7 @@ class FramingScheduleTests(unittest.TestCase):
     def run_schedule(self, **options):
         schedule = Schedule(self.directory, **options)
         return schedule, lambda: battery.directed_window(
-            schedule, schedule, ["low", "high"], self.directory)
+            schedule, schedule, ["low", "high"], self.directory, 5)
 
     def test_success_requires_every_witness_and_releases_before_read(self):
         schedule, run = self.run_schedule()
@@ -119,13 +123,14 @@ class FramingScheduleTests(unittest.TestCase):
                 self.assertTrue(schedule.released)
 
     def test_frame_state_rejects_missing_and_malformed_fields(self):
-        for state in (None, [], [5, 0], [5, 0, "1"], [5, -1, 1], [5, True, 1]):
+        self.assertIsNone(battery.frame_state(self.directory))
+        for state in ("", "5 0", "5 0 extra", "5 -1 1", "5 True 1", "5 0 1 2"):
             with self.subTest(state=state):
-                class Client:
-                    def cmd(self, *args):
-                        return state
-                with self.assertRaisesRegex(AssertionError, "invalid AOF-FRAME-STATE"):
-                    battery.frame_state(Client())
+                (Path(self.directory) / "debug-aof-frame-state").write_text(state)
+                with self.assertRaisesRegex(AssertionError, "invalid debug-aof-frame-state"):
+                    battery.frame_state(self.directory)
+        (Path(self.directory) / "debug-aof-frame-state").write_text("5 4 104\n")
+        self.assertEqual(battery.frame_state(self.directory), [5, 4, 104])
 
     def test_pair_uses_actual_owner_order_and_excludes_writer(self):
         with patch.object(battery._lib, "shards_of", return_value=[(0, 7), (1, 5), (2, 6)]):
@@ -141,6 +146,35 @@ class FramingScheduleTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "stale AOF rewrite marker"):
             run()
         self.assertEqual(schedule.commands, [])
+
+    def test_control_avoids_writer_and_full_channel_producer(self):
+        created = []
+        class Client:
+            def __init__(self, *args):
+                self.tid = [5, 7, 2][len(created)]
+                self.closed = False
+                created.append(self)
+            def cmd(self, *args):
+                return self.tid
+            def close(self):
+                self.closed = True
+        with patch.object(battery, "Resp", Client):
+            chosen = battery.usable_connection("unused", 0, {5, 7})
+        self.assertEqual(chosen.tid, 2)
+        self.assertEqual([client.closed for client in created], [True, True, False])
+
+    def test_failed_unlink_still_disarms_and_preserves_original_failure(self):
+        schedule, _ = self.run_schedule()
+        with patch.object(Path, "unlink", side_effect=OSError("unlink failure")):
+            with self.assertRaisesRegex(OSError, "unlink failure"):
+                battery.release_pause(schedule, schedule.marker)
+            self.assertTrue(schedule.released)
+            with patch.object(battery.sys, "stderr", io.StringIO()):
+                with self.assertRaisesRegex(AssertionError, "original witness failure"):
+                    try:
+                        raise AssertionError("original witness failure")
+                    finally:
+                        battery.release_pause(schedule, schedule.marker)
 
 
 if __name__ == "__main__":

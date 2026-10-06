@@ -14,7 +14,7 @@ This battery drives the window deliberately and proves BOTH halves:
   phase 1  negative control -- cross-shard groups with no large record in flight.  The deferral
            counter must stay at zero, so a non-zero reading in phase 2 means something.
   phase 2  pause the writer with the existing AOF-REWRITE-PAUSE after-manifest hook; queue a
-           complete group, then LargeBegin on its last producer. AOF-FRAME-STATE must witness
+           complete group, then LargeBegin on its last producer. The pause's status file witnesses
            both before release. The large record exceeds even the 256-frame drain-all budget,
            so the next pass MUST see a ready GCMT while the physical stream is still held.
            aof_control_frames_deferred > 0 remains mandatory.
@@ -160,22 +160,31 @@ def wait_for(probe, accept, label, deadline):
     raise AssertionError("%s was not witnessed within the bound (last=%r)" % (label, last))
 
 
-def frame_state(client):
-    state = client.cmd("DEBUG", "AOF-FRAME-STATE")
-    if (not isinstance(state, list) or len(state) != 3 or
-            any(type(value) is not int or value < 0 for value in state)):
-        raise AssertionError("invalid AOF-FRAME-STATE: %r" % (state,))
+def frame_state(directory):
+    path = Path(directory) / "debug-aof-frame-state"
+    try:
+        text = path.read_text()
+    except FileNotFoundError:
+        return None  # the armed writer has not published its first observation yet
+    fields = text.split()
+    if len(fields) != 3 or any(not field.isascii() or not field.isdigit() for field in fields):
+        raise AssertionError("invalid debug-aof-frame-state: %r" % text)
+    state = [int(field) for field in fields]
     return state  # writer thread, pending chunks, posted sequence (independent observations)
 
 
-def off_writer_connection(host, port, writer_tid):
+def usable_connection(host, port, blocked_tids):
     deadline = time.monotonic() + DEADLINE_S
     while time.monotonic() < deadline:
         client = Resp(host, port)
-        if client.cmd("DEBUG", "IO-THREAD") != writer_tid:
-            return client
+        try:
+            if client.cmd("DEBUG", "IO-THREAD") not in blocked_tids:
+                return client
+        except Exception:
+            client.close()
+            raise
         client.close()
-    raise AssertionError("no connection outside the AOF writer thread")
+    raise AssertionError("no connection outside blocked threads %r" % sorted(blocked_tids))
 
 
 def ordered_pair(client, keys, writer_tid):
@@ -196,9 +205,28 @@ def marker_stage(marker):
         return None
 
 
-def directed_window(control, writer, keys, aof_dir):
+def release_pause(control, marker):
+    failed = sys.exc_info()[0] is not None
+    errors = []
+    try:
+        marker.unlink(missing_ok=True)
+    except Exception as error:
+        errors.append(error)
+    try:
+        if control.cmd("DEBUG", "AOF-REWRITE-PAUSE", "off") != b"OK":
+            raise AssertionError("could not release AOF rewrite pause")
+    except Exception as error:
+        errors.append(error)
+    if errors:
+        if not failed:
+            raise errors[0]
+        for error in errors:
+            print("AOF rewrite pause cleanup failed: %s" % error, file=sys.stderr)
+
+
+def directed_window(control, writer, keys, aof_dir, writer_tid):
     marker = Path(aof_dir) / "debug-aof-rewrite-stage"
-    if marker.exists():
+    if marker.exists() or (Path(aof_dir) / "debug-aof-frame-state").exists():
         raise AssertionError("stale AOF rewrite marker before arming")
     start = info(control)
     deadline = time.monotonic() + DEADLINE_S
@@ -211,33 +239,30 @@ def directed_window(control, writer, keys, aof_dir):
             raise AssertionError("could not schedule AOF rewrite pause")
         wait_for(lambda: marker_stage(marker), lambda stage: stage == "after-manifest\n",
                  "writer pause after manifest", deadline)
-        state = frame_state(control)
-        if state[1] != 0:
+        state = wait_for(lambda: frame_state(aof_dir), lambda now: now is not None,
+                         "paused writer queue observation", deadline)
+        if state[0] != writer_tid or state[1] != 0:
             raise AssertionError("paused writer did not drain the old increment: %r" % state)
         if control.cmd(*group_args(keys, 0, "directed-window")) != 2:
             raise AssertionError("directed group did not return 2")
-        wait_for(lambda: frame_state(control),
-                 lambda now: now[1] == 3 and now[2] == state[2] + 3,
+        wait_for(lambda: frame_state(aof_dir),
+                 lambda now: now is not None and now[1] == 3 and now[2] == state[2] + 3,
                  "two group fragments and GCMT queued", deadline)
         # Same shard as the last group fragment: AofProducer preserves its record order. A
         # separate connection leaves the control connection usable while SET fills the channel.
         writer.send("SET", keys[1], b"L" * LARGE_BYTES)
         sent = True
-        queued = wait_for(lambda: frame_state(control),
-                          lambda now: now[1] >= 4 and now[2] >= state[2] + 4,
+        queued = wait_for(lambda: frame_state(aof_dir),
+                          lambda now: now is not None and now[1] >= 4 and now[2] >= state[2] + 4,
                           "LargeBegin queued behind the complete group", deadline)
         if marker_stage(marker) != "after-manifest\n":
             raise AssertionError("writer pause ended before LargeBegin was witnessed")
     finally:
         # File release also works if the producer is blocked on a full channel. Clear the arm
         # on every failure, including failure to reach the marker; no retry can hide bad data.
-        marker.unlink(missing_ok=True)
-        if control.cmd("DEBUG", "AOF-REWRITE-PAUSE", "off") != b"OK":
-            raise AssertionError("could not release AOF rewrite pause")
+        release_pause(control, marker)
     if not sent or writer.read() != b"OK":
         raise AssertionError("large SET did not complete after releasing the writer")
-    wait_for(lambda: frame_state(control), lambda state: state[1] == 0,
-             "AOF drain after the held window", deadline)
     stats = wait_for(lambda: info(control),
                      lambda now: now["aof_rewrite_completions"] > start["aof_rewrite_completions"]
                      and now["aof_groups_committed"] > start["aof_groups_committed"],
@@ -253,33 +278,44 @@ def directed_window(control, writer, keys, aof_dir):
 
 
 def main(host, port, aof_dir):
-    with_context = []
+    connections = []
     try:
         bootstrap = Resp(host, port)
-        with_context.append(bootstrap)
+        connections.append(bootstrap)
         assert_surface(bootstrap)
-        writer_tid = frame_state(bootstrap)[0]
-        control = off_writer_connection(host, port, writer_tid)
-        with_context.append(control)
-        writer = off_writer_connection(host, port, writer_tid)
-        with_context.append(writer)
-        run(control, writer, writer_tid, aof_dir)
+        topo = _lib.topology(bootstrap)
+        serving = [tid for tid, role in topo.roles.items() if role in ("io", "fused")]
+        if len(serving) < 2:
+            raise AssertionError("framing schedule needs a control thread outside the writer")
+        # Server::init binds the last serving thread as AOF writer. The armed status file below
+        # must confirm that identity before any group/large record is queued.
+        writer_tid = max(serving)
+        keys = one_key_per_shard(bootstrap, "frameorder:group")
+        pair = ordered_pair(bootstrap, keys, writer_tid)
+        large_owner = _lib.shards_of(bootstrap, pair)[1][1]
+        # In fused mode the large record's producer also serves connections. Its channel can
+        # fill while the writer is paused, so keep the observer off BOTH blocked threads.
+        control = usable_connection(host, port, {writer_tid, large_owner})
+        connections.append(control)
+        writer = usable_connection(host, port, {writer_tid})
+        connections.append(writer)
+        run(control, writer, writer_tid, pair, aof_dir)
     finally:
-        for client in reversed(with_context):
+        for client in reversed(connections):
             client.close()
 
 
-def run(control, writer, writer_tid, aof_dir):
+def run(control, writer, writer_tid, pair, aof_dir):
     assert_surface(control)
-    keys = one_key_per_shard(control, "frameorder:group")
 
     # ---- phase 1: negative control. Groups, no large records, counter must stay at zero. -----
     base = info(control)
     for round_index in range(40):
-        if control.cmd(*group_args(keys, round_index, "control-%d" % round_index)) != 2:
+        if control.cmd(*group_args(pair, round_index, "control-%d" % round_index)) != 2:
             raise AssertionError("negative-control group did not return 2")
-    wait_for(lambda: frame_state(control), lambda state: state[1] == 0,
-             "negative-control AOF drain", time.monotonic() + DEADLINE_S)
+    wait_for(lambda: info(control),
+             lambda now: now["aof_groups_committed"] == base["aof_groups_committed"] + 40,
+             "all negative-control groups committed", time.monotonic() + DEADLINE_S)
     after = info(control)
     if after["aof_groups_committed"] <= base["aof_groups_committed"]:
         raise AssertionError(
@@ -294,8 +330,7 @@ def run(control, writer, writer_tid, aof_dir):
     groups_control = after["aof_groups_committed"] - base["aof_groups_committed"]
 
     # ---- phase 2: force the interleave opportunity, with all group fragments already queued. --
-    pair = ordered_pair(control, keys, writer_tid)
-    fired, groups_window, elapsed = directed_window(control, writer, pair, aof_dir)
+    fired, groups_window, elapsed = directed_window(control, writer, pair, aof_dir, writer_tid)
 
     # ---- phase 3: frame-level walk of every increment in the directory. ---------------------
     segments = sorted(name for name in os.listdir(aof_dir) if name.endswith(".incr.tomo"))

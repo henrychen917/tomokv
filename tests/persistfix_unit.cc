@@ -1,7 +1,6 @@
 // Serverless PS1/PS2/PS14 schedules. No listener, io_uring setup or load generator.
 #include "src/core/server.h"
 #include "src/cmd/command.h"
-#include "src/cmd/debug.h"
 #include <chrono>
 #include <fcntl.h>
 #include <thread>
@@ -14,6 +13,7 @@ static void require(bool ok, const char* why) {
 static std::atomic<bool> waited{false};
 
 namespace tomo {
+bool aof_debug_frame_state(const std::string&, uint32_t, uint64_t, uint64_t) noexcept;
 struct PersistFixTest {
     Server server;
     AofManager& aof = server.aof();
@@ -122,28 +122,56 @@ struct PersistFixTest {
         std::puts("PASS persistfix refusal: retained chunk, counter and log line");
     }
     void frame_state() {
-        command_bind_server(&server);
-        Shard shard;
-        auto query = [&](bool extra = false) {
-            Op op;
-            op.push_arg(Slice("DEBUG"));
-            op.push_arg(Slice("AOF-FRAME-STATE"));
-            if (extra) op.push_arg(Slice("1"));
-            cmd_debug(shard, op);
-            return std::string(op.reply.data(), op.reply.size());
+        char directory[] = "build/persistfix/frame-state-XXXXXX";
+        require(::mkdtemp(directory), "create disposable DEBUG state directory");
+        const std::string path = std::string(directory) + "/debug-aof-frame-state";
+        auto contents = [&] {
+            const int fd = ::open(path.c_str(), O_RDONLY | O_CLOEXEC);
+            require(fd >= 0, "DEBUG state was published");
+            char text[80];
+            const ssize_t count = ::read(fd, text, sizeof(text));
+            ::close(fd);
+            require(count > 0, "DEBUG state is complete");
+            return std::string(text, static_cast<size_t>(count));
         };
-        require(query().starts_with("-ERR DEBUG command not allowed"), "frame observer is DEBUG-gated");
-        const_cast<Config&>(server.cfg()).enable_debug_command = DebugCommandMode::Yes;
-        require(query() == "*3\r\n:0\r\n:0\r\n:0\r\n", "frame observer reports zero without arming");
-        aof.pending_chunks_.store(7);
-        aof.posted_sequence_.store(11);
-        require(query() == "*3\r\n:0\r\n:7\r\n:11\r\n", "frame observer reads actual counters");
-        require(query(true).starts_with("-ERR unknown subcommand"), "frame observer rejects arguments");
-        aof.recording_.store(false);
-        require(query() == "-ERR appendonly is disabled\r\n", "frame observer rejects AOF-off");
+        require(aof_debug_frame_state(directory, 5, 0, 100), "initial DEBUG state publication");
+        require(contents() == "5 0 100\n", "initial counters are exact");
+        require(aof_debug_frame_state(directory, 5, 4, 104), "replace DEBUG state publication");
+        require(contents() == "5 4 104\n", "queued-window counters are exact");
+        require(::access((path + ".tmp").c_str(), F_OK) != 0, "temporary file was renamed");
+        require(aof_debug_frame_state(directory, UINT32_MAX, UINT64_MAX, UINT64_MAX),
+                "full-width counters fit the publication buffer");
+        require(contents() == "4294967295 18446744073709551615 18446744073709551615\n",
+                "full-width counters are not truncated");
+        ::unlink(path.c_str());
+        aof.directory_path_ = directory;
+        aof.maybe_pause_rewrite(AofRewriteDebugStage::AfterManifest);
+        require(::access(path.c_str(), F_OK) != 0, "unarmed DEBUG pause publishes nothing");
+        aof.posted_sequence_.store(100);
+        aof.debug_rewrite_pause_.store(AofRewriteDebugStage::AfterManifest);
+        std::thread paused([&] { aof.maybe_pause_rewrite(AofRewriteDebugStage::AfterManifest); });
+        auto observe = [&](const std::string& expected) {
+            const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+            while (std::chrono::steady_clock::now() < deadline) {
+                if (::access(path.c_str(), F_OK) == 0 && contents() == expected) return;
+                std::this_thread::yield();
+            }
+            require(false, "armed DEBUG pause must publish actual queue counters");
+        };
+        observe("0 0 100\n");
+        aof.pending_chunks_.store(4);
+        aof.posted_sequence_.store(104);
+        observe("0 4 104\n");
+        aof.debug_rewrite_pause_.store(AofRewriteDebugStage::None);
+        paused.join();
         aof.pending_chunks_.store(0);
-        command_bind_server(nullptr);
-        std::puts("PASS frame-state: DEBUG permission, zero/live counters, arity, AOF-off");
+        require(::access(path.c_str(), F_OK) != 0 &&
+                ::access((std::string(directory) + "/debug-aof-rewrite-stage").c_str(), F_OK) != 0,
+                "DEBUG release removes both observations");
+        ::rmdir(directory);
+        require(!aof_debug_frame_state(directory, 5, 4, 104),
+                "publication failure is not reported as a witness");
+        std::puts("PASS frame-state: unarmed/armed/released pause, exact counters, atomic rename, failed publication");
     }
     void frame_order(bool drain_all, uint32_t committer, bool break_guard) {
         // Drive the actual production writer without a listener, worker, or initialized Ring.

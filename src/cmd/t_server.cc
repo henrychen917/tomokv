@@ -806,21 +806,6 @@ void cmd_reset(Shard&, Op& op) {
     reply_simple(op.sink(), "RESET");
 }
 
-__attribute__((noinline, cold)) void debug_aof_frame_state(Op& op) {
-    if (!g_server || !g_server->aof().recording()) {
-        reply_err(op.sink(), "ERR appendonly is disabled");
-        return;
-    }
-    const AofManager& aof = g_server->aof();
-    // Three decimal uint64 values plus RESP framing fit in 80 bytes. Format here to keep
-    // the DEBUG-only observer from perturbing shared reply-template inlining decisions.
-    char reply[80];
-    const int length = std::snprintf(reply, sizeof(reply), "*3\r\n:%u\r\n:%llu\r\n:%llu\r\n",
-        aof.writer_tid(), static_cast<unsigned long long>(aof.pending_chunks()),
-        static_cast<unsigned long long>(aof.posted_sequence()));
-    op.sink().append(reply, static_cast<size_t>(length));
-}
-
 void cmd_debug_impl(Shard& shard, Op& op) {
     const Slice subcommand = op.arg(1);
 #ifdef TOMO_CONNRESET_TRACE
@@ -1197,13 +1182,6 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         }
         if (g_server) g_server->set_active_expire_enabled(op.arg(2).p[0] == '1');
         reply_ok(op.sink());
-        return;
-    }
-    // Cold observation only: the framing battery uses the existing rewrite pause to queue a
-    // complete group and LargeBegin before releasing the writer. No per-pass hook or new state.
-    // These are independent atomic observations, not a coherent snapshot while producers run.
-    if (eq_icase(subcommand, "aof-frame-state") && op.argc() == 2) {
-        debug_aof_frame_state(op);
         return;
     }
     if (eq_icase(subcommand, "aof-stop-after-group-fragments") && op.argc() == 3) {
