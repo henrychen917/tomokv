@@ -18,12 +18,13 @@ three regimes, counters, arms and pass conditions. PRE, POST and verified PAD-A
 are built; serverless proofs pass. No server, benchmark, live test or gate was run.
 Mainline measurement and live-gate acceptance remain pending.
 
-Lane storesize2: ST2 — routing complete, body-identity WIP
+Lane storesize3: ST3 — cold boundary and partial restoration, body-identity WIP
 
-See MEASURE-REQUEST-storesize2.md for both-image published routes, full passing
-serverless positive/negative controls, the nine-body compiler diagnosis,
-final PRE/POST/PAD-A hashes and measurement cells. PRE fully rebuilt to the
-unchanged 47b0c843d59a digest. Ordinary-body identity is still not met; the
-report identifies the original nine and additional merged-tree differences.
-One gate row remains, +1/+1 (maintainer-owned counts 498/515). No server,
-benchmark, gate or push was run; all builds/checks used CPUs 112-127.
+See MEASURE-REQUEST-storesize3.md for the cold-unit extraction, 7/9 original
+raw-body matches, full literal-byte failure lists in both images, and rebuilt
+POST/PAD-A hashes. PRE remains 47b0c843d59a. Strict body identity still FAILS;
+five ordinary db0 instruction differences remain against merged mainline,
+and multi-DB producer/incidental changes remain. Serverless positive suites
+and rejected routing control pass. Subexpiry retains the exact census source;
+field-TTL INFO may walk keys. One gate row remains +1/+1 (counts 498/515).
+No server, benchmark, gate or push; builds/checks on CPUs 112-127.

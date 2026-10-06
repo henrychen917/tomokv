@@ -117,7 +117,7 @@ def differences(before, after, audits, output):
         bc = b.canonical(new) if new else (b'', [])
         at = Counter(repr(target) for _, _, target in ac[1])
         bt = Counter(repr(target) for _, _, target in bc[1])
-        rows.append(dict(**row,
+        receipt = dict(**row,
                          pre_sha256=hashlib.sha256(pre).hexdigest(),
                          post_sha256=hashlib.sha256(post).hexdigest() if new else None,
                          pre_bytes=pre.hex(), post_bytes=post.hex(),
@@ -125,7 +125,18 @@ def differences(before, after, audits, output):
                          post_only_targets=list((bt - at).elements()),
                          classification=('missing body' if not new else
                                          'address encoding only' if row['relocation_equal'] else
-                                         'instruction or resolved-target difference')))
+                                         'instruction or resolved-target difference'))
+        # A moved publisher is still a failed comparison at its original
+        # object, but preserve its actual replacement bytes as a separate fact.
+        if not new and 'Shard12publish_size' in name:
+            moved = Elf(Path(after) / 'cmd/storesize.o')
+            target = moved.functions().get(name)
+            if target:
+                receipt['moved_definition'] = dict(
+                    object='cmd/storesize.o', size=target['size'],
+                    bytes=moved.body(target).hex(),
+                    sha256=hashlib.sha256(moved.body(target)).hexdigest())
+        rows.append(receipt)
     Path(output).write_text(json.dumps(rows, indent=2) + '\n')
     print('Literal byte receipts:', len(rows), 'in', output)
 
