@@ -872,10 +872,7 @@ bool command_list(Op& op) {
     if (filter_aclcat) {
         for (size_t i = 0; i < kAclCategoryCount; i++)
             if (argument.eq_icase(kAclCategories[i].name)) category_bit = kAclCategories[i].bit;
-        if (!category_bit) {
-            reply_array_header(op.sink(), 0);
-            return true;
-        }
+        // Redis treats an unknown category as a filter matching no commands.
     }
 
     std::vector<std::string> names;

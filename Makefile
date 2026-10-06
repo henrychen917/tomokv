@@ -37,6 +37,7 @@ SRC      += src/cmd/multidb.cc
 SRC      += src/cmd/multi_admin.cc
 # Preserve mainline weak-symbol selection; isolated R7 bodies link last.
 SRC      += src/core/reorder.cc
+SRC      += src/cmd/geo_store.cc
 LDLIBS   += -lssl -lcrypto
 BUILD_ROOT ?= build
 BIN      := $(BUILD_ROOT)/tomokv

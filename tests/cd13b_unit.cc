@@ -109,9 +109,14 @@ struct Fixture {
         if (op.cmd_name().eq_icase("GEORADIUS") || op.cmd_name().eq_icase("GEOSEARCHSTORE")) {
             geo_store(op);
         } else if (op.cmd_name().eq_icase("CONFIG") && op.arg(1).eq_icase("SET")) {
-            for (uint32_t sid = 0; sid < server.nshards(); ++sid) {
-                op.clear_reply(); op.spec->handler(server.shard(sid), op);
-            }
+            ScatterDispatch dispatch;
+            require(xshard_prepare(server, op, pool, 0, client.id(), dispatch) ==
+                    ScatterPrepare::Ready, "CONFIG scatter prepared");
+            auto& state = *dispatch.state;
+            state.now_cut_ms = now_realtime_ms();
+            owner_phase(state, op);
+            assemble_final(client, op, state, nullptr, nullptr, nullptr);
+            xshard_destroy(&state, pool, 0); pool.reap_deferred();
         } else {
             int16_t first = op.spec->first_key;
             if (op.cmd_name().eq_icase("OBJECT")) first = 2;

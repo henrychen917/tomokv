@@ -7,6 +7,7 @@ import argparse
 import concurrent.futures
 from pathlib import Path
 import socket
+import signal
 import subprocess
 import sys
 from _lib import encode
@@ -25,6 +26,8 @@ def build_one(arm, namespace):
     links = sorted(p for p in (objects / "src").rglob("*.o") if p.name not in ("main.o", "xshard.o"))
     if namespace == "db0":
         flags += ["-DTOMO_SINGLE_DATABASE=1", "-Dtomo=tomo_db0"]
+        # The non-namespaced dependency objects still need their production xshard symbols.
+        links.append(objects / "src/cmd/xshard.o")
         links = sorted(p for p in (objects / "db0/src").rglob("*.o")
                        if p.name not in ("main.o", "xshard.o")) + links
     with (OUT / (arm + "-" + namespace + "-build.log")).open("w") as log:
@@ -64,7 +67,15 @@ def run(args):
         try:
             def target(argv):
                 proc.stdin.write(encode(*argv)); proc.stdin.flush()
-                return read_reply(proc.stdout)
+                def timed_out(signum, frame):
+                    raise TimeoutError("serverless command timed out: %r" % argv)
+                old = signal.signal(signal.SIGALRM, timed_out)
+                signal.alarm(10)
+                try:
+                    return read_reply(proc.stdout)
+                finally:
+                    signal.alarm(0)
+                    signal.signal(signal.SIGALRM, old)
             sides = [(stem, target)]
             if args.oracle_port:
                 sock = socket.create_connection(("127.0.0.1", args.oracle_port), timeout=30)

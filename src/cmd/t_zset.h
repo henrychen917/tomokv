@@ -25,8 +25,12 @@ enum class ZsetOwnerResult : uint8_t {
     InsertFailed,
 };
 
-// Cold replacement adapter shared by local GEO and owner-side scatter image installation.
-void zset_copy_eviction_meta(KvObj* replacement, uint8_t meta);
+// Share CD13's cold adapter while retaining its local lambda identity and ordinary ZSET
+// code generation. An exported setter changes GCC's inlining of unrelated ZSET bodies.
+#define TOMO_ZSET_COPY_EVICTION_META(new_object, old_metadata) \
+    [](KvObj* replacement, uint8_t meta) __attribute__((noinline, flatten)) { \
+        replacement->set_eviction_meta(meta); \
+    }(new_object, old_metadata)
 
 // The pinned Redis 7.4.10 oracle (f103d127b) rejects every negative LIMIT offset,
 // for both compact and expanded zsets. Older 7.4 builds accidentally counted backwards

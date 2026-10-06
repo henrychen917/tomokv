@@ -368,13 +368,8 @@ WorkError apply_image(Shard& shard, Slice key, uint64_t hash, const ObjectImage&
     const SnapshotHookStatus loaded = load_object_image(key, image, shard.type_limits(), object);
     if (loaded == SnapshotHookStatus::Oom) return WorkError::Oom;
     if (loaded != SnapshotHookStatus::Ok || !object) return WorkError::Corrupt;
-    if (image.preserve_eviction_meta) {
-        KvObj* previous = shard.store().find_resident(hash, key);
-        // Match the local GEO path: an expired resident starts a new metadata lifetime.
-        if (previous && shard.store().deadline(hash, previous) >= 0 &&
-            shard.store().watch_deadline(hash, key) < 0) previous = nullptr;
-        zset_copy_eviction_meta(object, previous ? previous->eviction_meta() : 0);
-    }
+    if (image.preserve_eviction_meta)
+        geo_store_preserve_metadata(shard, key, hash, object);
     const FlatStore::InsertResult result = shard.store_insert<kNotify>(hash, object);
     if (result == FlatStore::InsertResult::Inserted) {
         shard.store().note_loaded_object(hash, object);
