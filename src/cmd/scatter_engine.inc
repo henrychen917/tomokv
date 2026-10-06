@@ -45,6 +45,9 @@ struct ObjectImage {
     bool expanded = false;
     Type type = Type::String;
     uint8_t encoding = 0;
+    // GEO STORE replaces the value like Redis setKey: retain the destination's LRU/LFU.
+    // Read it only on the applying owner, never from a coordinator snapshot.
+    bool preserve_eviction_meta = false;
     uint32_t entries = 0;
     int64_t expire_at_ms = -1;
     std::vector<uint8_t> payload;
@@ -365,6 +368,13 @@ WorkError apply_image(Shard& shard, Slice key, uint64_t hash, const ObjectImage&
     const SnapshotHookStatus loaded = load_object_image(key, image, shard.type_limits(), object);
     if (loaded == SnapshotHookStatus::Oom) return WorkError::Oom;
     if (loaded != SnapshotHookStatus::Ok || !object) return WorkError::Corrupt;
+    if (image.preserve_eviction_meta) {
+        KvObj* previous = shard.store().find_resident(hash, key);
+        // Match the local GEO path: an expired resident starts a new metadata lifetime.
+        if (previous && shard.store().deadline(hash, previous) >= 0 &&
+            shard.store().watch_deadline(hash, key) < 0) previous = nullptr;
+        zset_copy_eviction_meta(object, previous ? previous->eviction_meta() : 0);
+    }
     const FlatStore::InsertResult result = shard.store_insert<kNotify>(hash, object);
     if (result == FlatStore::InsertResult::Inserted) {
         shard.store().note_loaded_object(hash, object);

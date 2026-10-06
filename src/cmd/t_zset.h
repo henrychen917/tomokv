@@ -25,6 +25,9 @@ enum class ZsetOwnerResult : uint8_t {
     InsertFailed,
 };
 
+// Cold replacement adapter shared by local GEO and owner-side scatter image installation.
+void zset_copy_eviction_meta(KvObj* replacement, uint8_t meta);
+
 // The pinned Redis 7.4.10 oracle (f103d127b) rejects every negative LIMIT offset,
 // for both compact and expanded zsets. Older 7.4 builds accidentally counted backwards
 // in the skiplist path; preserving that quirk made cgaps seed 28 store a member where

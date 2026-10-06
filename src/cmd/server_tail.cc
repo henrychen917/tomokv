@@ -873,10 +873,7 @@ bool command_list(Op& op) {
         for (size_t i = 0; i < kAclCategoryCount; i++)
             if (argument.eq_icase(kAclCategories[i].name)) category_bit = kAclCategories[i].bit;
         if (!category_bit) {
-            std::string message = "ERR Unknown ACL category '";
-            message.append(argument.p, argument.n);
-            message += "'";
-            reply_err(op.sink(), message.c_str());
+            reply_array_header(op.sink(), 0);
             return true;
         }
     }
