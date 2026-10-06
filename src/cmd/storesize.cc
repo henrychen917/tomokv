@@ -5,6 +5,39 @@
 namespace tomo {
 __attribute__((noipa)) bool storesize_published_route() { return true; }
 
+// One owner-batch call. Keeping the complete body out of hot translation units
+// prevents the sampler/state graph from consuming their inlining budgets.
+void Shard::publish_size() noexcept {
+    TOMO_EXBATCH_TWIN(legacy, 1);
+    {
+    // Single owner: an unchanged statistic needs no producer store into the
+    // header sampled by INFO/DBSIZE. Keep the all-owned-shards batch walk:
+    // expiry, retries and transaction cleanup can change more than its last shard.
+    const auto size = store_.size();
+    if (published_size_.load(std::memory_order_relaxed) != size)
+        published_size_.store(size, std::memory_order_relaxed);
+    const auto bytes = store_.object_bytes();
+    if (published_obj_bytes_.load(std::memory_order_relaxed) != bytes)
+        published_obj_bytes_.store(bytes, std::memory_order_relaxed);
+    const auto expires = store_.expire_count();
+    if (published_expires_.load(std::memory_order_relaxed) != expires)
+        published_expires_.store(expires, std::memory_order_relaxed);
+    if constexpr (kSingleDatabase) store_.publish_keyspace_sample();
+    if constexpr (!kSingleDatabase) store_.publish_database_counts();
+    const auto evicted = stats_.evicted;
+    if (published_evicted_.load(std::memory_order_relaxed) != evicted)
+        published_evicted_.store(evicted, std::memory_order_relaxed);
+    }
+    return;
+legacy:
+    published_size_.store(store_.size(), std::memory_order_relaxed);
+    published_obj_bytes_.store(store_.object_bytes(), std::memory_order_relaxed);
+    published_expires_.store(store_.expire_count(), std::memory_order_relaxed);
+    if constexpr (kSingleDatabase) store_.publish_keyspace_sample();
+    if constexpr (!kSingleDatabase) store_.publish_database_counts();
+    published_evicted_.store(stats_.evicted, std::memory_order_relaxed);
+}
+
 struct StoreSizeState {
     uint64_t sample_cursor = 0;
     std::atomic<uint64_t> avg_deadline{0};
