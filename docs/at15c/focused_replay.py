@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import select
 import socket
 import subprocess
 import time
@@ -21,6 +22,9 @@ p.add_argument('--runs', type=int, default=3)
 p.add_argument('--trace', action='store_true')
 p.add_argument('--perf', action='store_true')
 p.add_argument('--directed', action='store_true')
+p.add_argument('--warmup', action='store_true',
+               help='run the six preceding seed-7 harness suites before edgetime')
+p.add_argument('--stop-on-failure', action='store_true')
 p.add_argument('--absolute-control', action='store_true',
                help='separate diagnostic: replace only the two PTTL queries with PEXPIRETIME')
 args = p.parse_args()
@@ -31,7 +35,7 @@ for port in (17899, 17900):
     with socket.socket() as probe:
         probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         probe.bind(('127.0.0.1', port))
-children, files, results = [], [], []
+children, files, descriptors, results = [], [], [], []
 
 
 def affinity(pid):
@@ -86,25 +90,44 @@ try:
                   '--databases', '16', '--atomic', '0', '--save', '',
                   '--dir', str(out / 'target'), '--enable-debug-command', 'yes'], 17899)
     (out / 'pids.json').write_text(json.dumps(dict(target=target.pid, oracle=oracle.pid)))
+    if args.warmup:
+        for suite in ('string', 'list', 'set', 'zset', 'hash', 'hexpire'):
+            run('warmup-' + suite, ['python3', 'tests/differ.py',
+                '127.0.0.1', '17899', '127.0.0.1', '17900', suite, '7'])
     perf = None
     if args.perf:
         log = (out / 'perf.log').open('w')
         files.append(log)
+        control_read, control_write = os.pipe()
+        ack_read, ack_write = os.pipe()
+        descriptors.extend((control_write, ack_read))
         perf_command = ['taskset', '-c', '127', 'perf', 'record', '-C', '112-119',
                     '-g', '--clockid', 'mono', '--call-graph', 'dwarf,8192', '--switch-events', '-e', 'cycles:u',
-                    '-F', '999', '-o', str(out / 'perf.data')]
+                    '-F', '999', '-D', '-1', '--control', f'fd:{control_read},{ack_write}',
+                    '-o', str(out / 'perf.data')]
         (out / 'perf-command.json').write_text(json.dumps(perf_command) + '\n')
         perf = subprocess.Popen(perf_command,
-                    stdout=log, stderr=subprocess.STDOUT)
+                    stdout=log, stderr=subprocess.STDOUT, pass_fds=(control_read, ack_write))
         children.append(perf)
-        time.sleep(.2)
-        if perf.poll() is not None:
-            raise RuntimeError('perf failed to start')
+        os.close(control_read)
+        os.close(ack_write)
+        os.write(control_write, b'enable\n')
+        if not select.select([ack_read], [], [], 15)[0] or os.read(ack_read, 64) != b'ack\n':
+            raise RuntimeError('perf did not acknowledge enabled events')
+        (out / 'perf-enabled.json').write_text(json.dumps(dict(
+            mono_ns=time.monotonic_ns(), wall_ns=time.time_ns())) + '\n')
     for index in range(args.runs):
         label = f'edgetime-{index + 1}'
         command = ['python3', 'docs/at15c/trace_differ.py', str(out / label)] if args.trace \
             else ['python3', 'tests/differ.py']
         run(label, [*command, '127.0.0.1', '17899', '127.0.0.1', '17900', 'edgetime', '7'])
+        if args.stop_on_failure and results[-1]['rc']:
+            data = json.loads((out / (label + '.json')).read_text())
+            replies = {(event['side'], event['op']): bytes.fromhex(event['reply'])
+                       for event in data['events'] if event['kind'] == 'reply'}
+            if any(abs(int(replies['target', op][1:-2])-int(replies['oracle', op][1:-2])) > 1
+                   for op in (1526, 2910)):
+                break
     if perf:
         perf.send_signal(signal.SIGINT)
         perf.wait(timeout=15)
@@ -126,4 +149,6 @@ finally:
                 proc.wait()
     for file in files:
         file.close()
+    for descriptor in descriptors:
+        os.close(descriptor)
     (out / 'results.json').write_text(json.dumps(results, indent=2) + '\n')

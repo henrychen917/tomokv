@@ -7,7 +7,8 @@ from pathlib import Path
 import shutil
 
 roots = ['trace-post', 'trace-pre', 'bisect-pre', 'bisect-post',
-         'profile-post-mono', 'directed-split', 'absolute-control-post', 'absolute-control-pre']
+         'profile-post-mono', 'directed-split', 'absolute-control-post', 'absolute-control-pre',
+         'profile-post-warm', 'trace-pre-warm']
 manifest = []
 for name in roots:
     root = Path('build/at15c') / name

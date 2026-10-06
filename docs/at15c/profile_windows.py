@@ -8,8 +8,8 @@ import subprocess
 import sys
 
 root = Path(sys.argv[1])
-out = Path('docs/at15c/profile-windows')
-out.mkdir(exist_ok=True)
+out = Path('docs/at15c/profile-windows') / root.name
+out.mkdir(parents=True, exist_ok=True)
 pid = json.loads((root / 'pids.json').read_text())['target']
 results = json.loads((root / 'results.json').read_text())
 tids = {int(tid) for result in results for tid in result['target_affinity']}

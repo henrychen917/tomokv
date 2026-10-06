@@ -251,3 +251,15 @@ DIFFER matrix: atomic={0} seeds={7 19 20 23 21 22} legs=252 logs=/home/user/Proj
   differ spubsub (atomic=0 seed=22)                          ok (DIFFER spubsub: 797 checks, 0 diffs -> PASS)
   differ notify (atomic=0 seed=22)                           ok (DIFFER notify: 330 ops, 452 events, 0 diffs -> PASS)
   differ wiredump (atomic=0 seed=22)                         ok (DIFFER wiredump: 4200 ops, 0 diffs, 24 clock tolerances -> PASS)
+  differ climon (atomic=0 seed=22)                           ok (DIFFER climon: 4318 ops, 0 diffs -> PASS)
+  differ compatintro (atomic=0 seed=22)                      ok (DIFFER compatintro: 5595 checks, 0 diffs -> PASS (getkeys=1550, config_multi=617, client_rows=244, acl_mutations=399, notify_events=15, silence_controls=5))
+  differ aclsel (atomic=0 seed=22)                           ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ cmdmeta (atomic=0 seed=22)                          ok (DIFFER cmdmeta: 4202 ops, 0 diffs -> PASS (info=2093, intent=2107, pipes=129, categories=89, docs_boundary=1, zero_controls=2))
+  differ s6fix (atomic=0 seed=22)                            ok (DIFFER s6fix: 48456 logical ops, 0 diffs -> PASS)
+  read-local lane fired (atomic=0)                           ok (hits=963 fallbacks=257)
+  target atomic=0 stop                                       ok (port 17899 free)
+  oracle stop                                                ok (port 17900 free)
+DIFFER COMMAND COVERAGE: diffed 229 of 245 registered commands (1056764 recorded comparison witnesses, 246 legs)
+  not observed in compared replies/properties: AUTH, BGREWRITEAOF, BGSAVE, FLIP, HELLO, LOLWUT, MONITOR, QUIT, REPLICAOF, SAVE, SHUTDOWN, SLAVEOF, TIME, UNWATCH, WATCH, ZREVRANGE
+DIFFER FANOUT FAIL: armed-0: failed leg edgetime-a0-s7.txt (exit 1)
+DIFFER GATE: pass=234 fail=14 runtime=9m11s

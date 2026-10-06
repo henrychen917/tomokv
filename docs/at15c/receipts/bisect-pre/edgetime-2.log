@@ -1,0 +1,4 @@
+  CLOCK TOLERANCE count=1 integers=1 command=['PTTL', 'et:s:23:2c57d06537cb90580459a716b6b8cb20c4']
+    target: b':2591999966\r\n'
+    oracle: b':2591999967\r\n'
+DIFFER edgetime: 4426 ops, 0 diffs, 1 clock tolerances -> PASS

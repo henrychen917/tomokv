@@ -75,7 +75,7 @@
     "edgetime": "FAIL",
     "diffs": 1,
     "clock_tolerances": 1,
-    "matrix_finished": false,
+    "matrix_finished": true,
     "passing_fold": false,
     "operations": {
       "1526": {
@@ -88,6 +88,102 @@
         "delta_ms": -2,
         "target": "b':2591999763\\r\\n'",
         "oracle": "b':2591999765\\r\\n'",
+        "evidence": "printed DIFF"
+      }
+    },
+    "matrix": {
+      "passed": 234,
+      "failed": 14,
+      "runtime": "9m11s"
+    },
+    "suite_legs": 246,
+    "suite_legs_passed": 233,
+    "failed_legs": [
+      {
+        "suite": "edgetime",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 19,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 19,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 20,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 20,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 23,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 23,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 21,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 21,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 22,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 22,
+        "rc": 1
+      }
+    ]
+  },
+  {
+    "run": "replay-3-post-armed",
+    "edgetime": "FAIL",
+    "diffs": 2,
+    "clock_tolerances": 1,
+    "matrix_finished": false,
+    "passing_fold": false,
+    "operations": {
+      "1526": {
+        "delta_ms": -6,
+        "target": "b':2591998966\\r\\n'",
+        "oracle": "b':2591998972\\r\\n'",
+        "evidence": "printed DIFF"
+      },
+      "2910": {
+        "delta_ms": -7,
+        "target": "b':2591999429\\r\\n'",
+        "oracle": "b':2591999436\\r\\n'",
         "evidence": "printed DIFF"
       }
     }

@@ -130,5 +130,413 @@
     "bytes": 7733,
     "sha256": "895d167f67a5929dd125c421f0665ef86b9706971a034644bfbfde898b99a0a8",
     "original": "build/at15c/trace-pre/target.log"
+  },
+  {
+    "path": "docs/at15c/receipts/bisect-pre/edgetime-1.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/bisect-pre/edgetime-1.log"
+  },
+  {
+    "path": "docs/at15c/receipts/bisect-pre/edgetime-2.log",
+    "bytes": 225,
+    "sha256": "5b84f1258392b1b7f5a8dedbaafc34228e2631f791aa83f918f9e6fa2fbb3006",
+    "original": "build/at15c/bisect-pre/edgetime-2.log"
+  },
+  {
+    "path": "docs/at15c/receipts/bisect-pre/edgetime-3.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/bisect-pre/edgetime-3.log"
+  },
+  {
+    "path": "docs/at15c/receipts/bisect-pre/oracle.log",
+    "bytes": 1203,
+    "sha256": "a83c884320217260a1fd86ab8150e738f529474d7bf17154f300324e5cc511af",
+    "original": "build/at15c/bisect-pre/oracle.log"
+  },
+  {
+    "path": "docs/at15c/receipts/bisect-pre/pids.json",
+    "bytes": 38,
+    "sha256": "7b2fa862258db3ad755e11caa2642e94ddd9a998807b751e00b4fd98fee5afd9",
+    "original": "build/at15c/bisect-pre/pids.json"
+  },
+  {
+    "path": "docs/at15c/receipts/bisect-pre/results.json",
+    "bytes": 3108,
+    "sha256": "e687a43116702b9c0f066c21187959e1dfed5a8a69412f43fbf7f5dfd8143201",
+    "original": "build/at15c/bisect-pre/results.json"
+  },
+  {
+    "path": "docs/at15c/receipts/bisect-pre/target.log",
+    "bytes": 7695,
+    "sha256": "d30525f7d803774d12c37a1afd8a9b11960b5a035149949f079df7009d4ce537",
+    "original": "build/at15c/bisect-pre/target.log"
+  },
+  {
+    "path": "docs/at15c/receipts/bisect-post/edgetime-1.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/bisect-post/edgetime-1.log"
+  },
+  {
+    "path": "docs/at15c/receipts/bisect-post/edgetime-2.log",
+    "bytes": 387,
+    "sha256": "6777fd624104056fdb0fc2734f3e782f4f4f8ae4d930351449aa6ce523f0c2aa",
+    "original": "build/at15c/bisect-post/edgetime-2.log"
+  },
+  {
+    "path": "docs/at15c/receipts/bisect-post/edgetime-3.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/bisect-post/edgetime-3.log"
+  },
+  {
+    "path": "docs/at15c/receipts/bisect-post/oracle.log",
+    "bytes": 1203,
+    "sha256": "19ceb57a714cd3d0c3e9cf873b1bab8dcee4137a5ec988269f506ca5137b5236",
+    "original": "build/at15c/bisect-post/oracle.log"
+  },
+  {
+    "path": "docs/at15c/receipts/bisect-post/pids.json",
+    "bytes": 38,
+    "sha256": "be18f63415504c37d61961848771232fe2330cf22c8dd2392a084238cfb2aeb0",
+    "original": "build/at15c/bisect-post/pids.json"
+  },
+  {
+    "path": "docs/at15c/receipts/bisect-post/results.json",
+    "bytes": 3108,
+    "sha256": "a210c0117f7aa1242483a27850609a3d1790e2dead486e5617c8ec4e91dee267",
+    "original": "build/at15c/bisect-post/results.json"
+  },
+  {
+    "path": "docs/at15c/receipts/bisect-post/target.log",
+    "bytes": 7696,
+    "sha256": "b2c0e642db9e858020547c8be5c2654db7dc2bd7b7bf7ecfa28aac2d62324885",
+    "original": "build/at15c/bisect-post/target.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/debug.log",
+    "bytes": 129,
+    "sha256": "2f915956f11c4eb66a6fdf4b274561b80466e8a0bf489daf1ce31253d7834e20",
+    "original": "build/at15c/profile-post-mono/debug.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/edgetime-1.json.gz",
+    "bytes": 235629,
+    "sha256": "14594198e3bece22a489a24bcc5f72eae247ce8b617dd559227c04e6d0eb3030",
+    "original": "build/at15c/profile-post-mono/edgetime-1.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/edgetime-1.log",
+    "bytes": 225,
+    "sha256": "2aee527e97560525497860440acb3c03a2927f494ef63ecfcb2ecd87efce22f6",
+    "original": "build/at15c/profile-post-mono/edgetime-1.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/edgetime-2.json.gz",
+    "bytes": 235725,
+    "sha256": "d60982594ca9fd7f11cb32f18e84e97f0a26a6792f2c2b52101d6274afa6f337",
+    "original": "build/at15c/profile-post-mono/edgetime-2.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/edgetime-2.log",
+    "bytes": 225,
+    "sha256": "2aee527e97560525497860440acb3c03a2927f494ef63ecfcb2ecd87efce22f6",
+    "original": "build/at15c/profile-post-mono/edgetime-2.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/edgetime-3.json.gz",
+    "bytes": 235605,
+    "sha256": "7d91d163e759818ebab22ebf785a61e9a655348648fe81d7fb0fd29017130b90",
+    "original": "build/at15c/profile-post-mono/edgetime-3.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/edgetime-3.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-mono/edgetime-3.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/multi-19.log",
+    "bytes": 137,
+    "sha256": "346cf54c9661b39ec6b9694e36d3009155868a09879af6245dfe049eae322be6",
+    "original": "build/at15c/profile-post-mono/multi-19.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/multi-20.log",
+    "bytes": 137,
+    "sha256": "2e8d88b9dcc74a94785cfba9a3f030ebcfc01e7bf3856e4ef610723f95fa4c63",
+    "original": "build/at15c/profile-post-mono/multi-20.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/multi-7.log",
+    "bytes": 137,
+    "sha256": "d764ecac655d11fa8537bfed28db0e5a2f2da982d4e50ef9c11e2f7e010313a4",
+    "original": "build/at15c/profile-post-mono/multi-7.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/multidb-19.log",
+    "bytes": 62,
+    "sha256": "a98dde49b4833d80d24fb063439c957e65c9aca45d890fe42939a6ab6a83e07d",
+    "original": "build/at15c/profile-post-mono/multidb-19.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/multidb-20.log",
+    "bytes": 62,
+    "sha256": "d0c56a7e4afc020dcf1b201832548353ce2b8ac30f32f8621928cec886b8d7d9",
+    "original": "build/at15c/profile-post-mono/multidb-20.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/multidb-7.log",
+    "bytes": 62,
+    "sha256": "a7ab9f4479a0b073dca0d8a69549d3e8d4669951339c8ebb09bbc985139c8328",
+    "original": "build/at15c/profile-post-mono/multidb-7.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/oracle.log",
+    "bytes": 1203,
+    "sha256": "8af90e94a59313ddf7f17c389c92bedfffc7b1a07703bfb6cfe2c67685bda1d4",
+    "original": "build/at15c/profile-post-mono/oracle.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/perf-command.json",
+    "bytes": 244,
+    "sha256": "67e07521777eee195792fbcfeba8e0713b03dd61a688db8069dcec00dec63314",
+    "original": "build/at15c/profile-post-mono/perf-command.json"
+  },
+  {
+    "path": "build/at15c/profile-post-mono/perf.data",
+    "bytes": 14832272,
+    "sha256": "b679466a6c5f6eff25875cd85666dccb1060fc213b6c47df981d120688ce65a1",
+    "storage": "worktree build artifact; not committed"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/perf.log",
+    "bytes": 177,
+    "sha256": "06ce39b85523ef47fbb1125bc7ed96a725a93c12b58097f4da2d814d5b5ef0d6",
+    "original": "build/at15c/profile-post-mono/perf.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/pids.json",
+    "bytes": 38,
+    "sha256": "efcb67e7bfa89df0805fa6d41b2ff4e018b5e627fde1640c817a2db8ef38c0da",
+    "original": "build/at15c/profile-post-mono/pids.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/results.json",
+    "bytes": 10575,
+    "sha256": "b9f22b08e12cba21faeb1643aac0aa4af47ad7c6aa012c10f1063de3ef12df0c",
+    "original": "build/at15c/profile-post-mono/results.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-mono/target.log",
+    "bytes": 7784,
+    "sha256": "a96dd484c07dfb2445a355f4c0cb5e7d66dc210efd4532920e55ee79b3795b96",
+    "original": "build/at15c/profile-post-mono/target.log"
+  },
+  {
+    "path": "docs/at15c/receipts/directed-split/debug.log",
+    "bytes": 129,
+    "sha256": "2f915956f11c4eb66a6fdf4b274561b80466e8a0bf489daf1ce31253d7834e20",
+    "original": "build/at15c/directed-split/debug.log"
+  },
+  {
+    "path": "docs/at15c/receipts/directed-split/edgetime-1.log",
+    "bytes": 225,
+    "sha256": "177d8cc3d94a8c5dfb055cfc4861dee6825c41aec0f4252aeba65a509ac4d2a0",
+    "original": "build/at15c/directed-split/edgetime-1.log"
+  },
+  {
+    "path": "docs/at15c/receipts/directed-split/edgetime-2.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/directed-split/edgetime-2.log"
+  },
+  {
+    "path": "docs/at15c/receipts/directed-split/edgetime-3.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/directed-split/edgetime-3.log"
+  },
+  {
+    "path": "docs/at15c/receipts/directed-split/multi-19.log",
+    "bytes": 137,
+    "sha256": "346cf54c9661b39ec6b9694e36d3009155868a09879af6245dfe049eae322be6",
+    "original": "build/at15c/directed-split/multi-19.log"
+  },
+  {
+    "path": "docs/at15c/receipts/directed-split/multi-20.log",
+    "bytes": 137,
+    "sha256": "2e8d88b9dcc74a94785cfba9a3f030ebcfc01e7bf3856e4ef610723f95fa4c63",
+    "original": "build/at15c/directed-split/multi-20.log"
+  },
+  {
+    "path": "docs/at15c/receipts/directed-split/multi-7.log",
+    "bytes": 137,
+    "sha256": "d764ecac655d11fa8537bfed28db0e5a2f2da982d4e50ef9c11e2f7e010313a4",
+    "original": "build/at15c/directed-split/multi-7.log"
+  },
+  {
+    "path": "docs/at15c/receipts/directed-split/multidb-19.log",
+    "bytes": 62,
+    "sha256": "a98dde49b4833d80d24fb063439c957e65c9aca45d890fe42939a6ab6a83e07d",
+    "original": "build/at15c/directed-split/multidb-19.log"
+  },
+  {
+    "path": "docs/at15c/receipts/directed-split/multidb-20.log",
+    "bytes": 62,
+    "sha256": "d0c56a7e4afc020dcf1b201832548353ce2b8ac30f32f8621928cec886b8d7d9",
+    "original": "build/at15c/directed-split/multidb-20.log"
+  },
+  {
+    "path": "docs/at15c/receipts/directed-split/multidb-7.log",
+    "bytes": 62,
+    "sha256": "a7ab9f4479a0b073dca0d8a69549d3e8d4669951339c8ebb09bbc985139c8328",
+    "original": "build/at15c/directed-split/multidb-7.log"
+  },
+  {
+    "path": "docs/at15c/receipts/directed-split/oracle.log",
+    "bytes": 1203,
+    "sha256": "a202c63a4358b7088aff15f3299fb68f5cd335f10caf44f4054b1deb48995df7",
+    "original": "build/at15c/directed-split/oracle.log"
+  },
+  {
+    "path": "docs/at15c/receipts/directed-split/pids.json",
+    "bytes": 38,
+    "sha256": "2f2fe606c35c1de758a254959275506b3482257779854278b4b7d8d12683864f",
+    "original": "build/at15c/directed-split/pids.json"
+  },
+  {
+    "path": "docs/at15c/receipts/directed-split/results.json",
+    "bytes": 10308,
+    "sha256": "9c0e4d7922c93c648617b93f87bb6edbccf0f04318455de35a4015830ed4ae3c",
+    "original": "build/at15c/directed-split/results.json"
+  },
+  {
+    "path": "docs/at15c/receipts/directed-split/target.log",
+    "bytes": 6816,
+    "sha256": "d0d1dd96ffba00dc390d260392d8a49bcd49a07984b90f2becaa4a3063e2c32c",
+    "original": "build/at15c/directed-split/target.log"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-post/edgetime-1.json.gz",
+    "bytes": 236171,
+    "sha256": "11969627bd646f06a30756fbe3f84b8530ca1601a2504615301608d3c8aecdc5",
+    "original": "build/at15c/absolute-control-post/edgetime-1.json"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-post/edgetime-1.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/absolute-control-post/edgetime-1.log"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-post/edgetime-2.json.gz",
+    "bytes": 236036,
+    "sha256": "73eae7bb6013b48313a492a965c4b66f4459874767d556c4f4f73d8dc35d18ad",
+    "original": "build/at15c/absolute-control-post/edgetime-2.json"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-post/edgetime-2.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/absolute-control-post/edgetime-2.log"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-post/edgetime-3.json.gz",
+    "bytes": 235605,
+    "sha256": "a7c129fa07909be9fc0921b5fde1b57131747d6d4a551b187601f65c76fe4077",
+    "original": "build/at15c/absolute-control-post/edgetime-3.json"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-post/edgetime-3.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/absolute-control-post/edgetime-3.log"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-post/oracle.log",
+    "bytes": 1203,
+    "sha256": "b1b917835f3c1d2679b03ab94a1dd0e3690e371476719a2fdbf233ff72c688f5",
+    "original": "build/at15c/absolute-control-post/oracle.log"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-post/pids.json",
+    "bytes": 38,
+    "sha256": "59e861332e079375411a0ce7a5e08f69fb4690880deb5fd23fde1b34a2fbf9b5",
+    "original": "build/at15c/absolute-control-post/pids.json"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-post/results.json",
+    "bytes": 9055,
+    "sha256": "c4ba43427d40a6ce855035bf439586e3579b9d2341f7f9846fd4f70687ee1526",
+    "original": "build/at15c/absolute-control-post/results.json"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-post/target.log",
+    "bytes": 7695,
+    "sha256": "508d24f4b68f44f03548b2c835f6c2e9c64098690e6ba4b1e2f304d4d6f55118",
+    "original": "build/at15c/absolute-control-post/target.log"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-pre/edgetime-1.json.gz",
+    "bytes": 236079,
+    "sha256": "c5f1004b586a379ada416891acb3a547d3f793cdd20f8cf252a97f073a723b69",
+    "original": "build/at15c/absolute-control-pre/edgetime-1.json"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-pre/edgetime-1.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/absolute-control-pre/edgetime-1.log"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-pre/edgetime-2.json.gz",
+    "bytes": 235550,
+    "sha256": "4d140b264f922b83a3fdcfd218c758ee95bfa5a7d628c3a8311250cf1183cbd2",
+    "original": "build/at15c/absolute-control-pre/edgetime-2.json"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-pre/edgetime-2.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/absolute-control-pre/edgetime-2.log"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-pre/edgetime-3.json.gz",
+    "bytes": 235768,
+    "sha256": "e5716ec960259ef6d5e901b9b2f1033ac8dc29270fb801398199c2df27e0e52c",
+    "original": "build/at15c/absolute-control-pre/edgetime-3.json"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-pre/edgetime-3.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/absolute-control-pre/edgetime-3.log"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-pre/oracle.log",
+    "bytes": 1203,
+    "sha256": "02ab771d6e6ac3af9f749f7182abe0b88168e2f0cfd0833713fb876d5cc54e1c",
+    "original": "build/at15c/absolute-control-pre/oracle.log"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-pre/pids.json",
+    "bytes": 38,
+    "sha256": "96de34031b1e79be5bfc881bcc6321812cd0a16ed4da7e92b3ba22897c1c498b",
+    "original": "build/at15c/absolute-control-pre/pids.json"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-pre/results.json",
+    "bytes": 3384,
+    "sha256": "81310ad9d0ec796d1f867146d78208ce3d19b0147f1d11299e342fe69a3250fa",
+    "original": "build/at15c/absolute-control-pre/results.json"
+  },
+  {
+    "path": "docs/at15c/receipts/absolute-control-pre/target.log",
+    "bytes": 7718,
+    "sha256": "f0bd066d6094effa1659f0fedafd6afb6749cd21a6145bf1459306dd9fe71d61",
+    "original": "build/at15c/absolute-control-pre/target.log"
   }
 ]

@@ -1,0 +1,4 @@
+$ taskset -c 112-127 ./build/atomic-survivors-unit post_apply_probe
+PASS post_apply_probe
+
+exit=0

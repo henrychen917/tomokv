@@ -1,0 +1,4 @@
+$ taskset -c 112-127 python3 tests/at15.py --self-test
+PASS AT15 wire validator: five broken reply controls rejected
+
+exit=0
