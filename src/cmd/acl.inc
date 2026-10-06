@@ -1159,6 +1159,7 @@ __attribute__((cold, noinline)) bool acl_finish_dispatch_denial(
     client.advance_parse(consumed);
     loop.self_->note_command_rejected(op.spec->id);
     loop.flip_fingerprint_note(*op.spec, op);
+    RejectedReplyScope rejected(op);
     acl_reply_denied(client, op, client.acl_user_idx(), denied, denied_arg, *loop.self_);
     loop.finish_prebuilt(&client, op);
     return true;

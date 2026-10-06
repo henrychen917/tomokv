@@ -28,6 +28,7 @@
 #include "command.h"
 #include "cmdmeta.h"
 #include "multi.h"
+#include "info_stats.h"
 #include "../core/config.h"
 #include "../core/io_loop.h"
 #include "../core/server.h"

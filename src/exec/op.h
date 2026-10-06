@@ -316,6 +316,10 @@ public:
             else bytes_copy(p, s, n);
             advance(n);
         }
+        // Error producers use the same ABI as append. In particular WRONGTYPE changes
+        // only its error-arm call target; successful reply bytes never inspect counters.
+        __attribute__((noinline)) void append_error(const char* s, size_t n);
+        __attribute__((noinline)) void begin_error();
         void append(std::string_view s) { append(s.data(), s.size()); }
         // RESP LITERALS. "+OK\r\n" and "$-1\r\n" are the reply of every SET and every GET miss,
         // and their length is a compile-time constant -- but this append is out of line with 225

@@ -1,3 +1,4 @@
+#include "info_stats.h"
 // scripting.cc — EVAL/EVALSHA and the process-wide SHA1 script cache.
 //
 // Routing validates the declared KEYS range on IO. Execution is one ordinary task on that shard's
@@ -191,7 +192,7 @@ bool parse_nonnegative(Slice value, uint32_t& result, bool& negative) {
 
 void reply_text_error(Op& op, std::string_view kind, std::string_view detail) {
     auto sink = op.sink();
-    sink.push_back('-');
+    sink.append_error("-", 1);
     sink.append(kind.data(), kind.size());
     if (!detail.empty()) { sink.push_back(' '); sink.append(detail.data(), detail.size()); }
     sink.append("\r\n", 2);
@@ -200,7 +201,7 @@ void reply_text_error(Op& op, std::string_view kind, std::string_view detail) {
 // A script error already carries its own code word ("ERR ...", "WRONGTYPE ...", "My Error").
 void reply_raw_error(Op& op, std::string_view message) {
     auto sink = op.sink();
-    sink.push_back('-');
+    sink.append_error("-", 1);
     sink.append(message.data(), message.size());
     sink.append("\r\n", 2);
 }
@@ -872,6 +873,8 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
         size_t length = 0;
         const char* value = lua_tolstring(state, -1, &length);
         if (!value) { lua_pop(state, 1); error = "invalid redis error table"; return false; }
+        if (auto* context = lua_context(state); context && context->parent)
+            command_note_error(*context->parent, output.data(), output.size());
         output.push_back('-'); reply_line_text(output, value, length); output.append("\r\n", 2);
         lua_pop(state, 1);
         return true;

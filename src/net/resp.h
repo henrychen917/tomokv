@@ -371,11 +371,15 @@ template <typename Buf> __attribute__((always_inline)) inline void reply_emptyst
     TOMO_CODED_REPLY(b, ReplyCode::EmptyStr)
     b.append("$0\r\n\r\n");
 }
+template <typename Buf> inline void reply_error_bytes(Buf&& b, const char* text, size_t size) {
+    if constexpr (requires { b.append_error(text, size); }) b.append_error(text, size);
+    else b.append(text, size);
+}
 template <typename Buf> inline void reply_wrongtype(Buf&& b) {
-    b.append("-WRONGTYPE Operation against a key holding the wrong kind of value\r\n", 68);
+    reply_error_bytes(b, "-WRONGTYPE Operation against a key holding the wrong kind of value\r\n", 68);
 }
 template <typename Buf> inline void reply_syntax(Buf&& b) {
-    b.append("-ERR syntax error\r\n", 19);
+    reply_error_bytes(b, "-ERR syntax error\r\n", 19);
 }
 template <typename Buf> inline void reply_outofrange(Buf&& b) {
     // Redis's getRangeLongFromObject names the bounds it enforces; every caller of this helper
@@ -383,7 +387,7 @@ template <typename Buf> inline void reply_outofrange(Buf&& b) {
     static constexpr char kMsg[] =
         "-ERR value is out of range, value must between "
         "-9223372036854775807 and 9223372036854775807\r\n";
-    b.append(kMsg, sizeof(kMsg) - 1);
+    reply_error_bytes(b, kMsg, sizeof(kMsg) - 1);
 }
 
 // RESP simple strings/errors cannot carry line delimiters, even when the source is a bulk.
@@ -398,6 +402,7 @@ template <typename Buf> inline void reply_line_text(Buf&& b, const char* text, s
     if (start < len) b.append(text + start, len - start);
 }
 template <typename Buf> inline void reply_err(Buf&& b, const char* msg) {
+    if constexpr (requires { b.begin_error(); }) b.begin_error();
     b.push_back('-'); reply_line_text(b, msg, std::strlen(msg)); b.append("\r\n", 2);
 }
 template <typename Buf> inline void reply_simple(Buf&& b, const char* msg) {

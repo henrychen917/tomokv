@@ -118,6 +118,7 @@ bool auth_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed
     client.advance_parse(consumed);
     loop.self_->note_command_rejected(op.spec->id);
     loop.flip_fingerprint_note(*op.spec, op);
+    RejectedReplyScope rejected(op);
     reply_err(op.sink(), "NOAUTH Authentication required.");
     loop.finish_prebuilt(&client, op);
     return true;
