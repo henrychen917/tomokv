@@ -49,7 +49,7 @@ __attribute__((noinline, cold)) inline bool resp_inline_quotes_valid(const char*
 // `scanned` is relative to the unconsumed request, so quiescent buffer compaction and
 // connection migration preserve it. Scan for LF, trimming an optional CR. No bytes
 // are copied or changed: argv can still point into the append-only receive buffer.
-inline ParseResult resp_parse_inline(const char* buf, uint32_t len, uint32_t& pos,
+[[gnu::cold, gnu::noinline]] inline ParseResult resp_parse_inline(const char* buf, uint32_t len, uint32_t& pos,
                                       Op& op, const char** err, uint32_t& scanned) {
     const uint32_t available = len - pos;
     uint32_t i = scanned;
@@ -89,7 +89,7 @@ inline ParseResult resp_parse_inline(const char* buf, uint32_t len, uint32_t& po
     return op.argc() ? ParseResult::Ok : ParseResult::Empty;
 }
 
-inline const char* resp_expected_bulk_error(char actual, Op& op) {
+[[gnu::cold, gnu::noinline]] inline const char* resp_expected_bulk_error(char actual, Op& op) {
     // Used immediately by the owning parser; thread-local storage avoids changing Op
     // or carrying a formatting buffer through every ordinary RESP parse.
     thread_local char message[] = "ERR Protocol error: expected '$', got '?'";
@@ -161,6 +161,37 @@ __attribute__((noinline, cold)) inline ParseResult resp_bulk_prefix_error(
     return ParseResult::Error;
 }
 
+// An exceptional header finishes the entire request here, never returning into
+// the ordinary parser's argument loop. The already parsed argv prefix is kept:
+// resetting Op would discard the connection flags captured by ROB acquisition.
+// Only receive-buffer slices are replayed; no receive byte is copied or changed.
+[[gnu::cold, gnu::noinline]] inline ParseResult resp_parse_slow(
+        const char* buf, uint32_t len, uint32_t& pos, Op& op, const char** err,
+        uint64_t max_multibulk, uint64_t max_bulk) {
+    uint32_t p = pos + 1;
+    uint64_t nargs = 0;
+    auto r = resp_length_slow(buf, len, p, max_multibulk, nargs, true, err);
+    if (r != ParseResult::Ok) return r;
+    if (nargs == 0) { pos = p; return ParseResult::Empty; }
+    const uint32_t parsed = op.argc();
+    for (uint64_t a = 0; a < nargs; ++a) {
+        if (p >= len) return ParseResult::Incomplete;
+        if (buf[p] != '$') return resp_bulk_prefix_error(buf, len, p, op, err);
+        ++p;
+        uint64_t blen = 0;
+        r = resp_length_slow(buf, len, p, max_bulk, blen, false, err);
+        if (r != ParseResult::Ok) return r;
+        if (p + blen + 2 > len) return ParseResult::Incomplete;
+        if (a >= parsed && !op.push_arg(Slice(buf + p, static_cast<uint32_t>(blen)))) {
+            *err = "ERR out of memory parsing command";
+            return ParseResult::Error;
+        }
+        p += static_cast<uint32_t>(blen) + 2;
+    }
+    pos = p;
+    return ParseResult::Ok;
+}
+
 // Read decimal digits terminated by CRLF, advancing `pos` past the CRLF.
 //
 // strtol was doing this, and strtol is a general-purpose parser: it skips leading whitespace,
@@ -173,14 +204,20 @@ __attribute__((noinline, cold)) inline ParseResult resp_bulk_prefix_error(
 inline ParseResult parse_len_crlf(const char* buf, uint32_t len, uint32_t& pos,
                                   uint64_t maxv, uint64_t& out) {
     uint32_t i = pos;
-    uint64_t v = 0;
-    uint32_t digits = 0;
+    if (i >= len) return ParseResult::Incomplete;
+    // Peel the first digit so its existing range check rejects zero as well as
+    // nondigits. Later digits keep the '0'..'9' check. The cold parser handles
+    // lone zero, negatives, incomplete malformed headers and exact error text.
+    const char first = buf[i];
+    if (first < '1' || first > '9') return ParseResult::Error;
+    uint64_t v = static_cast<uint64_t>(first - '0');
+    if (v > maxv) return ParseResult::Error;
+    ++i;
     while (i < len) {
         const char c = buf[i];
         if (c == '\r') {
             if (i + 1 >= len) return ParseResult::Incomplete;
-            if (buf[i + 1] != '\n' || digits == 0 ||
-                (digits > 1 && buf[pos] == '0')) return ParseResult::Error;
+            if (buf[i + 1] != '\n') return ParseResult::Error;
             pos = i + 2;
             out = v;
             return ParseResult::Ok;
@@ -188,7 +225,6 @@ inline ParseResult parse_len_crlf(const char* buf, uint32_t len, uint32_t& pos,
         if (c < '0' || c > '9') return ParseResult::Error;
         v = v * 10 + static_cast<uint64_t>(c - '0');
         if (v > maxv) return ParseResult::Error;
-        digits++;
         i++;
     }
     return ParseResult::Incomplete;
@@ -221,25 +257,23 @@ inline ParseResult resp_parse_t(const char* buf, uint32_t len, uint32_t& pos, Op
     uint32_t p = pos + 1;                      // past '*'
     uint64_t nargs = 0;
     ParseResult r = parse_len_crlf(buf, len, p, max_multibulk, nargs);
-    if (__builtin_expect(r != ParseResult::Ok, false)) {
-        r = resp_length_slow(buf, len, p, max_multibulk, nargs, true, err);
-        if (r != ParseResult::Ok) return r;
-    }
-    if (nargs == 0) { pos = p; return ParseResult::Empty; }
+    if (r == ParseResult::Incomplete) return ParseResult::Incomplete;
+    if (r == ParseResult::Error || nargs == 0)
+        return resp_parse_slow(buf, len, pos, op, err, max_multibulk, max_bulk);
 
     for (uint64_t a = 0; a < nargs; a++) {
         if (p >= len) { pos = start; return ParseResult::Incomplete; }
-        if (buf[p] != '$') return resp_bulk_prefix_error(buf, len, p, op, err);
+        if (buf[p] != '$')
+            return resp_parse_slow(buf, len, pos, op, err, max_multibulk, max_bulk);
         p++;
         uint64_t blen = 0;
         // The common constant is unchanged. Larger configured limits use the
         // signed, overflow-checked cold decoder once this small bound is crossed.
         r = parse_len_crlf(buf, len, p, max_bulk < 512ull * 1024 * 1024
                                       ? max_bulk : 512ull * 1024 * 1024, blen);
-        if (__builtin_expect(r != ParseResult::Ok, false)) {
-            r = resp_length_slow(buf, len, p, max_bulk, blen, false, err);
-            if (r != ParseResult::Ok) { pos = start; return r; }
-        }
+        if (r == ParseResult::Incomplete) { pos = start; return ParseResult::Incomplete; }
+        if (r == ParseResult::Error)
+            return resp_parse_slow(buf, len, pos, op, err, max_multibulk, max_bulk);
         if (p + blen + 2 > len) { pos = start; return ParseResult::Incomplete; }
         if (!op.push_arg(Slice(buf + p, static_cast<uint32_t>(blen)))) {
             *err = "ERR out of memory parsing command";

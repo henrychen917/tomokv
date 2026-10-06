@@ -54,6 +54,36 @@ int main() {
     const std::string ping = "*1\r\n$4\r\nPING\r\n";
     parse(ping, ParseResult::Ok, nullptr, {"PING"});
     parse("*1\rX$4\rYPINGzz", ParseResult::Ok, nullptr, {"PING"});
+    // A cold transfer after a parsed prefix must retain exactly that prefix,
+    // including the heap argv case, and append each remaining argument once.
+    for (unsigned exceptional : {0u, 1u, 7u, 8u, 16u, 17u}) {
+        std::string frame = "*18\r\n";
+        std::vector<std::string> args;
+        for (unsigned arg = 0; arg != 18; ++arg) {
+            args.push_back(arg == exceptional ? "" : "x");
+            frame += arg == exceptional ? "$0\r\n\r\n" : "$1\r\nx\r\n";
+        }
+        parse(frame, ParseResult::Ok, nullptr, args);
+        // Incomplete retries start with a fresh Op, as ROB acquisition does.
+        for (size_t length = 0; length < frame.size(); ++length)
+            parse(frame.substr(0, length), ParseResult::Incomplete);
+    }
+    parse("*3\r\n$4\r\nECHO\r\n$1\rXx\r\n$1\r\ny\r\n",
+          ParseResult::Ok, nullptr, {"ECHO", "x", "y"});
+    parse("*2\r\n$4\r\nECHO\r\n$01\r\nx\r\n", ParseResult::Error, invalid_bulk);
+    parse("*2\r\n$4\r\nECHO\r\n$x", ParseResult::Incomplete);
+    {
+        const std::string frame = "*2\r\n$4\r\nECHO\r\n$0\r\n\r\n";
+        tomo::Op op;
+        op.mark_reply_skip();
+        op.set_read_cut(123);
+        uint32_t pos = 0; const char* error = nullptr;
+        check(tomo::resp_parse(frame.data(), frame.size(), pos, op, &error) == ParseResult::Ok &&
+              pos == frame.size() && op.argc() == 2 && op.arg(0) == tomo::Slice("ECHO", 4) &&
+              op.arg(1).n == 0, "cold transfer preserves argv prefix");
+        check(op.reply_skip() && op.has_read_cut() && op.read_cut_lo == 123,
+              "cold transfer preserves captured Op flags");
+    }
     for (size_t i = 0; i < ping.size(); ++i) parse(ping.substr(0, i), ParseResult::Incomplete);
     for (const char* incomplete : {"*x", "*01", "*-1\r", "*2147483648\r", "*2147483647\r\n",
             "*1048577\r\n", "*1\r\n!", "*1\r\n!\r", "*1\r\n$-1", "*1\r\n$x\r"})
