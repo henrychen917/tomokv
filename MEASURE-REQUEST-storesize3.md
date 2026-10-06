@@ -8,7 +8,7 @@ ordinary db0 bodies still differ in instructions/targets against merged
 mainline, and the multi-DB image retains both producer-accounting changes and
 incidental compiler changes. These are not all DBSIZE/INFO routing bodies.
 The exact-byte exception is not being waived. No proof of impossibility is
-claimed: restoration remains unfinished at the lane's 60-minute limit.
+claimed: restoration remains unfinished in this time-boxed lane.
 
 Worktree `/home/user/Projects/cx-storesize`, branch `cx-storesize`. Started from
 `b7e22cb14`, merged `origin/cpp` at `7213a9405` in `0f3057a52` before editing.
