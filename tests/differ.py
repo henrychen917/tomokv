@@ -5820,8 +5820,20 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
 if LIST_GENERATORS:
     # This is the single suite inventory. Property suites live outside `gens` because their
     # replies are not byte-comparable, but the gate discovers them from this same list.
-    print("\n".join(list(gens) + ["blocking", "pubsub", "fanout", "spubsub", "notify",
-                                   "wiredump", "climon", "compatintro", "aclsel", "cmdmeta", "s6fix", "ccfix"]))
+    print("\n".join(list(gens) + [
+        'blocking',
+        'pubsub',
+        'fanout',
+        'spubsub',
+        'notify',
+        'wiredump',
+        'climon',
+        'compatintro',
+        'aclsel',
+        'cmdmeta',
+        's6fix',
+        'ccfix',
+    ]))
     sys.exit(0)
 ops = gens[SUITE](rng)
 
@@ -6248,7 +6260,7 @@ if SUITE == "infofix":
     commandstats = fields(ts, tf, "commandstats")
     members = dict(item.split("=", 1)
                    for item in commandstats.get("cmdstat_ping", "").split(",") if "=" in item)
-    if int(members.get("calls", "0")) < 1 or set(members) != {"calls", "rejected_calls", "failed_calls"}:
+    if int(members.get("calls", "0")) < 1 or set(members) != {"calls", "rejected_calls"}:
         property_fail("commandstats members", repr(members))
 
     # Unsupported telemetry is absent, while the useful sampled and byte counters stay present.

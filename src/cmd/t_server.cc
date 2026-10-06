@@ -939,13 +939,8 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
-    // NO DEBUG SLEEP BRANCH HERE, AND THAT IS THE POINT. Direct DEBUG SLEEP is intercepted by
-    // IoLoop before this handler, and an EXEC child never arrives either: MULTI execution has no
-    // MultiCommandKind for it, so assemble_cross_reply answers "command is not supported by MULTI
-    // execution" first. Measured on all three geometries (--shards 1, 2s 16 shards, 1s read-local
-    // 64 shards) -- every one returns the generic rejection, so a guard here only ever pretended to
-    // reject a shape that cannot reach it. Falling through to the unknown-subcommand reply is the
-    // honest behaviour if a future route does deliver one; nothing here can block an IO thread.
+    // Direct DEBUG SLEEP is intercepted by IoLoop; EXEC uses multi.inc's deferred owner tasks.
+    // Both routes share debug_sleep_prepare, so this handler never sleeps a worker thread.
 #ifndef NDEBUG
     // Fail the next N FlatStore/ExpireIndex table calloc calls. This is deliberately reachable only
     // through the already-gated DEBUG command and is compiled out of assertion-disabled builds.
@@ -2710,10 +2705,11 @@ void cmd_info(Shard&, Op& op) {
             for (uint32_t db = 0; db < g_server->cfg().databases; ++db) {
                 const auto& row = (*g_database_stats)[map[db]];
                 if (!row.keys) continue;
-                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu\r\n", db,
+                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu,subexpiry=%llu\r\n", db,
                         static_cast<unsigned long long>(row.keys),
                         static_cast<unsigned long long>(row.expires),
-                        static_cast<unsigned long long>(row.expires ? row.ttl / row.expires : 0));
+                        static_cast<unsigned long long>(row.expires ? row.ttl / row.expires : 0),
+                        static_cast<unsigned long long>(row.subexpiry));
             }
         }
     }
@@ -3016,6 +3012,7 @@ uint64_t command_proto_max_bulk_len() {
     return g_proto_max_bulk_len.load(std::memory_order_relaxed);
 }
 ThreadCtx* command_local_thread() { return g_thread; }
+Client* command_local_client() { return g_client; }
 
 void command_config_snapshot(std::vector<std::pair<std::string, std::string>>& out) {
     std::lock_guard<std::mutex> lock(g_config_mu);
