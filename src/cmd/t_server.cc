@@ -616,6 +616,13 @@ bool collect_config_updates(Op& op,
             const std::string requested(op.arg(i).p, op.arg(i).n);
             for (uint32_t previous = 2; previous < i; previous += 2) {
                 if (!eq_icase(op.arg(previous), requested.c_str())) continue;
+                if (!std::strcmp(item->name, "aof-load-truncated")) {
+                    std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
+                    msg += requested;
+                    msg += "') - duplicate parameter";
+                    reply_err(op.sink(), msg.c_str());
+                    return false;
+                }
                 reply_err(op.sink(), "ERR duplicate configuration parameter");
                 return false;
             }
@@ -2276,7 +2283,7 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->save_changes_since_last_save() : 0),
                 g_server && g_server->snapshot().in_progress() ? 1u : 0u,
                 static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->rdb_saves() : 0),
+                static_cast<unsigned long long>(snapshot_completed_saves()),
                 static_cast<unsigned long long>(
                     g_server ? g_server->scheduled_save_triggers() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->save_cron_checks() : 0),
