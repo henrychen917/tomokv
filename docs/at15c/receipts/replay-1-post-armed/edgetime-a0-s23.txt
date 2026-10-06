@@ -1,0 +1,4 @@
+  DIFF op 4365 ['PEXPIRETIME', 'et:edge']
+    target: b':1791272245421\r\n'
+    oracle: b':1791272245419\r\n'
+DIFFER edgetime: 4426 ops, 1 diffs, 0 clock tolerances -> FAIL

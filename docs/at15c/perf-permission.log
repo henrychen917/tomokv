@@ -1,0 +1,2 @@
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 1.509 MB build/at15c/perf-permission.data (496 samples) ]

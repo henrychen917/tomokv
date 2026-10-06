@@ -1,0 +1,4 @@
+Events disabled
+Events enabled
+[ perf record: Woken up 137 times to write data ]
+[ perf record: Captured and wrote 43.257 MB /home/user/Projects/cx-at15/build/at15c/profile-compiler-post/perf.data (4336 samples) ]

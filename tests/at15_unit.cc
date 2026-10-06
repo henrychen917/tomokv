@@ -1,0 +1,327 @@
+// AT15: real MULTI/EXEC bodies, without sockets, rings, workers or a listener.
+// No sockets, workers, IO rings, loading service, or test hooks. Link the SAME
+// witness object with PRE/POST production objects to falsify the fix in isolation.
+#include "src/core/server.h"
+#include "src/cmd/acl.h"
+#include "src/cmd/multi.h"
+#include "src/cmd/xshard.h"
+#include "src/cmd/cmdmeta.h"
+#include <chrono>
+#include <thread>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <vector>
+
+using namespace tomo;
+namespace {
+void require(bool yes, const char* why) {
+    if (!yes) { std::fprintf(stderr, "FAIL at15: %s\n", why); std::exit(1); }
+}
+void require_reply(const std::string& got, const std::string& wanted, const char* why) {
+    if (got != wanted) {
+        std::fprintf(stderr, "FAIL at15: %s\nGOT:\n%s\nWANTED:\n%s\n", why, got.c_str(), wanted.c_str());
+        std::exit(1);
+    }
+}
+struct Request {
+    std::vector<std::string> args;
+    Op op;
+    explicit Request(std::vector<std::string> values) : args(std::move(values)) {
+        op.reset();
+        for (const auto& value : args)
+            require(op.push_arg(Slice(value.data(), value.size())), "argument allocation");
+        op.spec = command_lookup(op.arg(0));
+        require(op.spec, "registered command");
+    }
+    std::string reply() const { return {op.reply.data(), op.reply.size()}; }
+};
+
+struct Fixture {
+    std::string placement;
+    Server server;
+    Client client{-1};
+    std::vector<MultiExecState*> deferred;
+    uint32_t io = 0;
+    explicit Fixture(bool fused, int atomic) {
+        Config cfg;
+        cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
+        cfg.thread_mode = fused ? ThreadMode::Fused : ThreadMode::Split;
+        cfg.atomic = atomic; cfg.databases = kSingleDatabase ? 1 : 2;
+        cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+        cfg.save.clear();
+        cfg.enable_debug_command = DebugCommandMode::Yes;
+        cpu_set_t allowed;
+        require(sched_getaffinity(0, sizeof(allowed), &allowed) == 0, "read permitted cores");
+        unsigned selected = 0;
+        for (int cpu = 0; cpu < CPU_SETSIZE && selected < 8; ++cpu) {
+            if (!CPU_ISSET(cpu, &allowed)) continue;
+            if (selected) placement += ',';
+            placement += (fused || selected < 6) ? "ifid@" : "ex@";
+            placement += std::to_string(cpu);
+            ++selected;
+        }
+        require(selected == 8, "eight permitted cores");
+        cfg.place = placement.c_str();
+        require(server.prepare_boot(cfg) && server.init(cfg), "16-shard, eight-worker geometry");
+        io = server.placement().ifid_threads().front();
+        client.set_id(91);
+        require(client.rob().acquire(), "transaction carrier");
+        command_bind_server(&server);
+        std::string error;
+        require(acl_initialize(server, cfg, error), "default ACL");
+    }
+    unsigned retries = 0;
+    std::string multi(std::vector<std::string> args, const CommandSpec* override_spec = nullptr) {
+        Request request(std::move(args));
+        if (override_spec) request.op.spec = override_spec;
+        MultiExecState* state = nullptr;
+        const auto action = multi_handle_io(server, client, request.op, io, state);
+        if (action == MultiIoAction::LocalDone) return request.reply();
+        require(action == MultiIoAction::Dispatch && state, "transaction dispatch");
+        // Real production objects drive queueing, owner-reference admission and retirement.
+        request.op.attach_multi_state(state);
+        client.rob().at(0).spec = request.op.spec;
+        client.atomic_group_started();
+        multi_dispatch_started(client, state);
+        std::vector<int32_t> remaining;
+        for (uint32_t i = 0; i < multi_dispatch_count(state); ++i)
+            remaining.push_back(multi_dispatch_shard(state, i));
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+        retries = 0;
+        while (!remaining.empty() && std::chrono::steady_clock::now() < deadline) {
+            for (size_t i = 0; i < remaining.size();) {
+                const int32_t sid = remaining[i];
+                const auto result = multi_execute_task(server,
+                    multi_make_task(&client, 0, sid, state), server.shard(sid),
+                    server.worker_of_shard(sid), 0, nullptr);
+                if (result == MultiTaskResult::Retry) { ++i; ++retries; }
+                else remaining.erase(remaining.begin() + i);
+            }
+        }
+        require(remaining.empty(), "EXEC must reply within the owner-phase bound");
+        command_set_local_context(&client, &server.thread(io));
+        multi_retire(client, request.op, deferred);
+        command_set_local_context(nullptr, nullptr);
+        for (uint32_t sid = 0; sid < server.nshards(); ++sid)
+            xshard_cleanup_shard(server, server.shard(sid), 32);
+        multi_reap_deferred(deferred);
+        require(deferred.empty(), "EXEC releases all state");
+        return request.reply();
+    }
+};
+
+std::string bulk(std::string body, bool resp3 = false) {
+    if (resp3) body = "txt:" + body;
+    return std::string(resp3 ? "=" : "$") + std::to_string(body.size()) + "\r\n" + body + "\r\n";
+}
+std::string exec_bulk(const std::string& wire, bool resp3) {
+    const std::string prefix = resp3 ? "*1\r\n=" : "*1\r\n$";
+    require(wire.starts_with(prefix), "INFO must be one bulk/verbatim element inside EXEC");
+    const auto end = wire.find("\r\n", prefix.size());
+    require(end != std::string::npos, "INFO length line");
+    const auto length = std::stoull(wire.substr(prefix.size(), end - prefix.size()));
+    const auto start = end + 2;
+    require(wire.size() == start + length + 2 && wire.ends_with("\r\n"), "exact INFO frame length");
+    auto body = wire.substr(start, length);
+    if (resp3) {
+        require(body.starts_with("txt:"), "INFO verbatim format");
+        body.erase(0, 4);
+    }
+    return body;
+}
+void begin(Fixture& f) { require(f.multi({"MULTI"}) == "+OK\r\n", "MULTI reply"); }
+void queue(Fixture& f, std::vector<std::string> args) {
+    require(f.multi(std::move(args)) == "+QUEUED\r\n", "queued reply");
+}
+std::string keyspace_row(unsigned db, unsigned keys, unsigned subexpiry) {
+    return "db" + std::to_string(db) + ":keys=" + std::to_string(keys) +
+           ",expires=0,avg_ttl=0,subexpiry=" + std::to_string(subexpiry) + "\r\n";
+}
+void check_subexpiry(Fixture& f, bool resp3) {
+    // This admission-only driver does not stamp the IO dispatch clock. Absolute
+    // future deadlines keep the census witness independent of that clock seam.
+    const std::string deadline = std::to_string(now_realtime_ms() / 1000 + 3600);
+    const auto body = [](unsigned keys, unsigned count) {
+        return "# Keyspace\r\n" + keyspace_row(0, keys, count);
+    };
+    const auto census = [&](const std::string& expected) {
+        // Compare the ordinary owner census and the transaction-visible census.
+        // Neither reads the approximate/stale shard-wide field-expiry gate.
+        DatabaseStatsTable stats{};
+        for (uint32_t sid = 0; sid < f.server.nshards(); ++sid)
+            multidb_stats(f.server.shard(sid), stats);
+        Request info({"INFO", "keyspace"});
+        if (resp3) info.op.mark_resp3();
+        command_info_with_databases(f.server, info.op, stats);
+        require(info.reply() == bulk(expected, resp3), "ordinary INFO exact subexpiry census");
+        begin(f); queue(f, {"INFO", "keyspace"});
+        require(exec_bulk(f.multi({"EXEC"}), resp3) == expected, "EXEC exact subexpiry census");
+    };
+    begin(f);
+    queue(f, {"HSET", "at15:h", "a", "1", "b", "2"});
+    queue(f, {"HEXPIREAT", "at15:h", deadline, "FIELDS", "2", "a", "b"});
+    queue(f, {"INFO", "keyspace"});
+    queue(f, {"HSET", "at15:j", "x", "1"});
+    queue(f, {"HEXPIREAT", "at15:j", deadline, "FIELDS", "1", "x"});
+    queue(f, {"INFO", "keyspace"});
+    queue(f, {"HPERSIST", "at15:h", "FIELDS", "1", "a"});
+    queue(f, {"INFO", "keyspace"});
+    queue(f, {"HPERSIST", "at15:h", "FIELDS", "1", "b"});
+    queue(f, {"INFO", "keyspace"});
+    queue(f, {"HDEL", "at15:j", "x"});
+    queue(f, {"INFO", "keyspace"});
+    require_reply(f.multi({"EXEC"}), "*12\r\n:2\r\n*2\r\n:1\r\n:1\r\n" + bulk(body(1, 1), resp3) +
+            ":1\r\n*1\r\n:1\r\n" + bulk(body(2, 2), resp3) +
+            "*1\r\n:1\r\n" + bulk(body(2, 2), resp3) +
+            "*1\r\n:1\r\n" + bulk(body(2, 1), resp3) + ":1\r\n" + bulk(body(1, 0), resp3),
+            "subexpiry counts hashes once and observes private field TTL transitions");
+    census(body(1, 0));
+    begin(f);
+    queue(f, {"HEXPIREAT", "at15:h", deadline, "FIELDS", "1", "a"});
+    require(f.multi({"EXEC"}) == "*1\r\n*1\r\n:1\r\n", "rearm field expiry");
+    census(body(1, 1));
+    begin(f);
+    queue(f, {"RENAME", "at15:h", "at15:renamed"});
+    require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "rename TTL-bearing hash");
+    census(body(1, 1));
+    if constexpr (!kSingleDatabase) {
+        begin(f);
+        queue(f, {"MOVE", "at15:renamed", "1"});
+        queue(f, {"INFO", "keyspace"});
+        queue(f, {"SWAPDB", "0", "1"});
+        queue(f, {"INFO", "keyspace"});
+        // Exercise the real namespace boundary without starting worker loops.
+        // This serverless driver has no outstanding IO/owner tasks to drain.
+        Request exec({"EXEC"});
+        MultiExecState* pending = nullptr;
+        require(multi_handle_io(f.server, f.client, exec.op, f.io, pending) == MultiIoAction::Backpressure &&
+                f.server.database_boundary_active(), "SWAPDB boundary actually armed");
+        f.server.flip_set_stage(FlipStage::DatabaseRun);
+        require(f.multi({"EXEC"}) == "*4\r\n:1\r\n" +
+                bulk("# Keyspace\r\n" + keyspace_row(1, 1, 1), resp3) +
+                "+OK\r\n" + bulk(body(1, 1), resp3), "subexpiry follows MOVE and private SWAPDB map");
+        f.server.database_boundary_end(f.client, f.client.rob().dispatch_id());
+        census(body(1, 1));
+    }
+    begin(f);
+    queue(f, {"SET", "at15:renamed", "string"});
+    require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "replace TTL-bearing hash");
+    census(body(1, 0));
+    begin(f); queue(f, {"DEL", "at15:renamed"});
+    require(f.multi({"EXEC"}) == "*1\r\n:1\r\n", "subexpiry test cleanup");
+    census("# Keyspace\r\n");
+}
+void check(Fixture& f, bool resp3, const std::string& only) {
+    if (only.empty() || only == "info") {
+        for (const char* section : {"", "server", "all", "default", "keyspace", "clients", "memory",
+                "persistence", "stats", "commandstats", "flipctl", "writeback", "lb", "no-such-section"}) {
+            begin(f);
+            std::vector<std::string> args{"INFO"};
+            if (*section) args.emplace_back(section);
+            queue(f, args);
+            const auto body = exec_bulk(f.multi({"EXEC"}), resp3);
+            if (!*section || std::string(section) == "all" || std::string(section) == "default")
+                require(body.find("# Server\r\n") != std::string::npos &&
+                        body.find("# Keyspace\r\n") != std::string::npos, "default/all INFO sections");
+            if (std::string(section) == "server")
+                require(body.starts_with("# Server\r\n") && body.find("# Keyspace") == std::string::npos,
+                        "INFO server section selection");
+            if (std::string(section) == "keyspace") require(body == "# Keyspace\r\n", "empty keyspace");
+            if (std::string(section) == "no-such-section") require(body.empty(), "unknown INFO section");
+            if (*section && std::string(section) != "no-such-section")
+                require(body.starts_with("# "), "requested INFO section is present");
+        }
+        begin(f); queue(f, {"INFO", "server", "keyspace"});
+        const auto body = exec_bulk(f.multi({"EXEC"}), resp3);
+        require(body.find("# Server\r\n") != std::string::npos && body.find("# Keyspace\r\n") != std::string::npos,
+                "multiple INFO sections");
+    }
+    if (only.empty() || only == "keyspace") {
+        begin(f);
+        queue(f, {"SET", "at15:private", "value"});
+        queue(f, {"INFO", "keyspace"});
+        queue(f, {"DEL", "at15:private"});
+        queue(f, {"INFO", "keyspace"});
+        require(f.multi({"EXEC"}) == "*4\r\n+OK\r\n" +
+                bulk("# Keyspace\r\ndb0:keys=1,expires=0,avg_ttl=0,subexpiry=0\r\n", resp3) +
+                ":1\r\n" + bulk("# Keyspace\r\n", resp3), "INFO observes own inserts and deletes");
+    }
+    if (only.empty() || only == "subexpiry") check_subexpiry(f, resp3);
+    if (only.empty() || only == "sleep") {
+        begin(f); queue(f, {"DEBUG", "SLEEP", "0"});
+        require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "DEBUG SLEEP 0 EXEC element");
+        begin(f); queue(f, {"DEBUG", "SLEEP", "0.01"});
+        const auto start = std::chrono::steady_clock::now();
+        require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "DEBUG SLEEP positive EXEC element");
+        require(f.retries && std::chrono::steady_clock::now() - start >= std::chrono::milliseconds(10),
+                "positive SLEEP actually parked until its deadline");
+    }
+    if (only.empty() || only == "controls") {
+        begin(f);
+        require(f.multi({"MULTI"}) == "-ERR MULTI calls can not be nested\r\n", "nested MULTI exact error");
+        require(f.multi({"WATCH", "at15:key"}) == "-ERR WATCH inside MULTI is not allowed\r\n", "WATCH exact error");
+        queue(f, {"PING"});
+        require(f.multi({"EXEC"}) == "*1\r\n+PONG\r\n", "control errors do not dirty EXEC");
+        for (const char* name : {"SAVE", "SUBSCRIBE"}) {
+            begin(f);
+            const auto args = std::string(name) == "SAVE" ? std::vector<std::string>{name}
+                : std::vector<std::string>{name, "at15:channel"};
+            require(f.multi(args) == "-ERR Command not allowed inside a transaction\r\n",
+                    "metadata SAVE / group-5 subscription policy exact refusal");
+            require(f.multi({"EXEC"}) == "-EXECABORT Transaction discarded because of previous errors.\r\n",
+                    "refusal dirties EXEC");
+        }
+    }
+    if (only.empty() || only == "metadata") {
+        Request shutdown({"SHUTDOWN", "NOSAVE"});
+        require(!(shutdown.op.spec->flags & CmdFlags::NoMulti), "SHUTDOWN has no dispatch NoMulti bit");
+        begin(f);
+        require(f.multi(shutdown.args) == "-ERR Command not allowed inside a transaction\r\n",
+                "SHUTDOWN refused by generated metadata");
+        require(f.multi({"EXEC"}) == "-EXECABORT Transaction discarded because of previous errors.\r\n",
+                "metadata refusal dirties EXEC");
+        Request info({"INFO", "server"});
+        CommandSpec route = *info.op.spec;
+        route.flags |= CmdFlags::NoMulti;
+        begin(f);
+        require(f.multi(info.args, &route) == "+QUEUED\r\n", "route NoMulti bit does not override Redis metadata");
+        require(exec_bulk(f.multi({"EXEC"}), resp3).starts_with("# Server\r\n"), "metadata-admitted INFO executes");
+    }
+    if (only.empty() || only == "config") {
+        begin(f);
+        queue(f, {"CONFIG", "GET", "maxmemory"});
+        queue(f, {"CONFIG", "SET", "maxmemory", "123456"});
+        queue(f, {"CONFIG", "GET", "maxmemory"});
+        queue(f, {"CONFIG", "SET", "maxmemory", "0"});
+        const std::string pair = resp3 ? "%1\r\n" : "*2\r\n";
+        require(f.multi({"EXEC"}) == "*4\r\n" + pair + bulk("maxmemory") + bulk("0") +
+                "+OK\r\n" + pair + bulk("maxmemory") + bulk("123456") + "+OK\r\n",
+                "CONFIG GET/SET executes in transaction order");
+        begin(f); queue(f, {"CONFIG", "RESETSTAT"}); queue(f, {"DEBUG", "BORROWCOUNT"});
+        require(f.multi({"EXEC"}) == "*2\r\n+OK\r\n:0\r\n", "admin/scatter reply shape");
+    }
+}
+}
+int main(int argc, char** argv) {
+    require(argc >= 2 && argc <= 3, "usage: at15-unit 1s|2s [info|sleep|controls|config|keyspace|metadata|subexpiry]");
+    const std::string mode = argv[1], only = argc == 3 ? argv[2] : "";
+    require(mode == "1s" || mode == "2s", "thread mode");
+    require(command_registry_init(false), "registry");
+    // Redis 7.4 generated metadata, not route flags or the audit's command-name guesses.
+    for (const char* name : {"INFO", "DEBUG", "SUBSCRIBE", "SSUBSCRIBE", "MULTI", "WATCH", "SAVE", "FLIP"}) {
+        Request request({name});
+        const bool expected = std::string(name) == "SAVE" || std::string(name) == "FLIP";
+        command_metadata_reply_info(request.op, command_metadata_for(*request.op.spec));
+        require((request.reply().find("+no_multi\r\n") != std::string::npos) == expected,
+                "generated no_multi flag");
+    }
+    for (int atomic : {0, 1}) for (bool resp3 : {false, true}) {
+        Fixture f(mode == "1s", atomic);
+        if (resp3) f.client.set_resp3(true);
+        check(f, resp3, only);
+        std::printf("PASS at15 db=%s mode=%s atomic=%d resp=%d case=%s\n",
+                    kSingleDatabase ? "db0" : "namespaced", mode.c_str(), atomic,
+                    resp3 ? 3 : 2, only.empty() ? "all" : only.c_str());
+    }
+}

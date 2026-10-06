@@ -1,0 +1,4 @@
+  CLOCK TOLERANCE count=1 integers=1 command=['PEXPIRETIME', 'et:edge']
+    target: b':1791274600980\r\n'
+    oracle: b':1791274600979\r\n'
+DIFFER edgetime: 4426 ops, 0 diffs, 1 clock tolerances -> PASS

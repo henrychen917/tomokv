@@ -1,0 +1,4 @@
+$ taskset -c 112-127 ./build/atomic-survivors-unit instruction_limit
+PASS instruction_limit
+
+exit=0

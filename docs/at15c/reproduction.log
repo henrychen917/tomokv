@@ -1,0 +1,6 @@
+replay-1-post-armed FAIL finished=True d1526=-5 d2910=-5
+replay-2-pre-armed FAIL finished=True d1526=-1 d2910=-2
+replay-3-post-armed FAIL finished=True d1526=-6 d2910=-7
+replay-4-pre-armed PASS finished=True d1526=0 d2910=0
+replay-5-post-armed PASS finished=True d1526=0 d2910=0
+replay-6-pre-armed PASS finished=True d1526=-1 d2910=0

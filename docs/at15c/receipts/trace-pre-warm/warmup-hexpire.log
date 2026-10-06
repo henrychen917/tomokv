@@ -1,0 +1,10 @@
+  CLOCK TOLERANCE count=1 integers=1 command=['HPTTL', 'hx0', 'FIELDS', '2', 'bin\x00fld', 'f10']
+    target: b'*2\r\n:108730760371\r\n:-2\r\n'
+    oracle: b'*2\r\n:108730760372\r\n:-2\r\n'
+  CLOCK TOLERANCE count=2 integers=2 command=['HPTTL', 'hx8', 'FIELDS', '2', '', '']
+    target: b'*2\r\n:108727167366\r\n:108727167366\r\n'
+    oracle: b'*2\r\n:108727167367\r\n:108727167367\r\n'
+  CLOCK TOLERANCE count=3 integers=1 command=['HPTTL', 'hx8', 'FIELDS', '3', 'f3', 'f9', 'f1']
+    target: b'*3\r\n:-2\r\n:-2\r\n:108727160362\r\n'
+    oracle: b'*3\r\n:-2\r\n:-2\r\n:108727160363\r\n'
+DIFFER hexpire: 4288 ops, 0 diffs, 3 clock tolerances -> PASS
