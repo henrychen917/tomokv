@@ -631,6 +631,19 @@
           "preempt": false
         }
       ],
+      "stack_command": [
+        "perf",
+        "script",
+        "-i",
+        "build/at15c/profile-post-mono/perf.data",
+        "--ns",
+        "--pid",
+        "1859275",
+        "--time",
+        "2928231.934439485,2928231.934950707",
+        "-F",
+        "+pid"
+      ],
       "offcpu": [
         {
           "tid": 1859275,
@@ -997,6 +1010,17 @@
           "preempt": false
         }
       ],
+      "workers_off_cpu_at_send": {
+        "1859282": 0.034421,
+        "1859276": 0.03315,
+        "1859277": 0.03421,
+        "1859283": 0.011621,
+        "1859281": 0.033721,
+        "1859279": 0.034081,
+        "1859278": 0.05019,
+        "1859280": 0.03299
+      },
+      "all_workers_off_cpu_at_send_ms": null,
       "duration_ms": 0.511222
     },
     {
@@ -1638,6 +1662,19 @@
           "preempt": false
         }
       ],
+      "stack_command": [
+        "perf",
+        "script",
+        "-i",
+        "build/at15c/profile-post-mono/perf.data",
+        "--ns",
+        "--pid",
+        "1859275",
+        "--time",
+        "2928231.949872242,2928231.950218053",
+        "-F",
+        "+pid"
+      ],
       "offcpu": [
         {
           "tid": 1859275,
@@ -2018,6 +2055,17 @@
           "preempt": false
         }
       ],
+      "workers_off_cpu_at_send": {
+        "1859282": 0.02889,
+        "1859276": 0.02773,
+        "1859277": 0.0274,
+        "1859283": 0.00927,
+        "1859281": 0.02861,
+        "1859279": 0.02836,
+        "1859278": 0.02809,
+        "1859280": 0.02741
+      },
+      "all_workers_off_cpu_at_send_ms": null,
       "duration_ms": 0.345811
     },
     {
@@ -2027,7 +2075,7 @@
       "end": 2928232297977761,
       "samples": 4,
       "leaf_symbols": {
-        "": 4
+        "566d6545fd65 prefetch_overlap_batch+0x45 (inlined)": 1
       },
       "switches": [
         {
@@ -2675,6 +2723,19 @@
           "preempt": false
         }
       ],
+      "stack_command": [
+        "perf",
+        "script",
+        "-i",
+        "build/at15c/profile-post-mono/perf.data",
+        "--ns",
+        "--pid",
+        "1859275",
+        "--time",
+        "2928232.297460879,2928232.297977761",
+        "-F",
+        "+pid"
+      ],
       "offcpu": [
         {
           "tid": 1859275,
@@ -3062,6 +3123,17 @@
           "preempt": false
         }
       ],
+      "workers_off_cpu_at_send": {
+        "1859282": 0.02681,
+        "1859276": 0.0256,
+        "1859277": 0.02717,
+        "1859283": 0.02608,
+        "1859281": 0.02596,
+        "1859279": 0.01037,
+        "1859278": 0.04126,
+        "1859280": 0.02609
+      },
+      "all_workers_off_cpu_at_send_ms": null,
       "duration_ms": 0.516882
     },
     {
@@ -3071,8 +3143,7 @@
       "end": 2928232313223706,
       "samples": 7,
       "leaf_symbols": {
-        "": 6,
-        "566d65299758 scan_cursor_reverse_bits (inlined)": 1
+        "566d6526d2c5 scan_home<tomo::xshard_execute(const Task&, Shard&, Op&, uint32_t)::<lambda(tomo::KvObj*)> >+0x85 (inlined)": 1
       },
       "switches": [
         {
@@ -3720,6 +3791,19 @@
           "preempt": false
         }
       ],
+      "stack_command": [
+        "perf",
+        "script",
+        "-i",
+        "build/at15c/profile-post-mono/perf.data",
+        "--ns",
+        "--pid",
+        "1859275",
+        "--time",
+        "2928232.312866775,2928232.313223706",
+        "-F",
+        "+pid"
+      ],
       "offcpu": [
         {
           "tid": 1859275,
@@ -4107,6 +4191,17 @@
           "preempt": false
         }
       ],
+      "workers_off_cpu_at_send": {
+        "1859282": 0.02915,
+        "1859276": 0.02863,
+        "1859277": 0.02829,
+        "1859283": 0.02938,
+        "1859281": 0.02894,
+        "1859279": 0.00972,
+        "1859278": 0.02884,
+        "1859280": 0.02832
+      },
+      "all_workers_off_cpu_at_send_ms": null,
       "duration_ms": 0.356931
     },
     {
@@ -4116,8 +4211,7 @@
       "end": 2928232615476977,
       "samples": 6,
       "leaf_symbols": {
-        "": 5,
-        "566d65299722 scan_cursor_reverse_bits (inlined)": 1
+        "566d65464e06 operator[]+0x1a6 (inlined)": 1
       },
       "switches": [
         {
@@ -4653,6 +4747,19 @@
           "preempt": false
         }
       ],
+      "stack_command": [
+        "perf",
+        "script",
+        "-i",
+        "build/at15c/profile-post-mono/perf.data",
+        "--ns",
+        "--pid",
+        "1859275",
+        "--time",
+        "2928232.614975665,2928232.615476977",
+        "-F",
+        "+pid"
+      ],
       "offcpu": [
         {
           "tid": 1859275,
@@ -4984,6 +5091,17 @@
           "preempt": false
         }
       ],
+      "workers_off_cpu_at_send": {
+        "1859282": 0.0233,
+        "1859276": 0.00892,
+        "1859277": 0.02321,
+        "1859283": 0.02255,
+        "1859281": 0.02294,
+        "1859279": 0.02247,
+        "1859278": 0.04233,
+        "1859280": 0.02223
+      },
+      "all_workers_off_cpu_at_send_ms": null,
       "duration_ms": 0.501312
     },
     {
@@ -4993,7 +5111,7 @@
       "end": 2928232631441855,
       "samples": 7,
       "leaf_symbols": {
-        "": 7
+        "566d651eb47c service_client_migrations<false>+0x1ac (inlined)": 1
       },
       "switches": [
         {
@@ -5641,6 +5759,19 @@
           "preempt": false
         }
       ],
+      "stack_command": [
+        "perf",
+        "script",
+        "-i",
+        "build/at15c/profile-post-mono/perf.data",
+        "--ns",
+        "--pid",
+        "1859275",
+        "--time",
+        "2928232.630907893,2928232.631441855",
+        "-F",
+        "+pid"
+      ],
       "offcpu": [
         {
           "tid": 1859275,
@@ -6028,6 +6159,17 @@
           "preempt": false
         }
       ],
+      "workers_off_cpu_at_send": {
+        "1859282": 0.027511,
+        "1859276": 0.00886,
+        "1859277": 0.026211,
+        "1859283": 0.027711,
+        "1859281": 0.02732,
+        "1859279": 0.027071,
+        "1859278": 0.02682,
+        "1859280": 0.02636
+      },
+      "all_workers_off_cpu_at_send_ms": null,
       "duration_ms": 0.533962
     }
   ],
@@ -6060,6 +6202,6 @@
     "--ns",
     "--show-switch-events",
     "-F",
-    "comm,pid,tid,cpu,time,event,ip,sym,dso"
+    "+pid"
   ]
 }

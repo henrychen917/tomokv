@@ -1,106 +1,132 @@
-          tomokv 1859275/1859276 [112] 2928232.630916753: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859277 [113] 2928232.630934104: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859280 [116] 2928232.630934253: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859278 [114] 2928232.630934713: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859279 [115] 2928232.630934964: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.630935213: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859282 [118] 2928232.630935404: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859283 [119] 2928232.630935604: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-tomokv 1859275/1859277 [113] 2928232.630951273: cycles:u: 
+          tomokv 1859275/1859276 [112] 2928232.630916753: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859277 [113] 2928232.630934104: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859280 [116] 2928232.630934253: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859278 [114] 2928232.630934713: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859279 [115] 2928232.630934964: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.630935213: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859282 [118] 2928232.630935404: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859283 [119] 2928232.630935604: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+tomokv 1859275/1859277 [113] 2928232.630951273:     331061 cycles:u:
 
-          tomokv 1859275/1859278 [114] 2928232.630960553: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859283 [119] 2928232.630962024: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859279 [115] 2928232.630965753: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859282 [118] 2928232.630966973: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.630968133: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859280 [116] 2928232.630969004: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859277 [113] 2928232.630973264: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859283 [119] 2928232.630991304: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859276 [112] 2928232.630993004: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859276 [112] 2928232.630995324: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859283 [119] 2928232.630995664: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859278 [114] 2928232.631014204: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-tomokv 1859275/1859276 [112] 2928232.631017064: cycles:u: 
+          tomokv 1859275/1859278 [114] 2928232.630960553: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859283 [119] 2928232.630962024: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859279 [115] 2928232.630965753: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859282 [118] 2928232.630966973: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.630968133: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859280 [116] 2928232.630969004: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859277 [113] 2928232.630973264: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859283 [119] 2928232.630991304: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859276 [112] 2928232.630993004: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859276 [112] 2928232.630995324: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859283 [119] 2928232.630995664: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859278 [114] 2928232.631014204: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+tomokv 1859275/1859276 [112] 2928232.631017064:     670516 cycles:u:
 
-          tomokv 1859275/1859278 [114] 2928232.631017554: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859278 [114] 2928232.631027634: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631027694: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859282 [118] 2928232.631028324: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859276 [112] 2928232.631030134: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859278 [114] 2928232.631030734: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631031214: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631033134: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859282 [118] 2928232.631033284: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859276 [112] 2928232.631036804: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631037444: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859278 [114] 2928232.631047604: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631048114: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859277 [113] 2928232.631048564: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859278 [114] 2928232.631050734: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631051064: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859277 [113] 2928232.631054264: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631058654: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859277 [113] 2928232.631058984: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859276 [112] 2928232.631060264: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631061994: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631063704: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859277 [113] 2928232.631065444: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859276 [112] 2928232.631067624: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631068194: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859278 [114] 2928232.631085144: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631085564: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859279 [115] 2928232.631086034: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859283 [119] 2928232.631086094: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859282 [118] 2928232.631086204: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859277 [113] 2928232.631086764: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859280 [116] 2928232.631087464: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-tomokv 1859275/1859278 [114] 2928232.631092414: cycles:u: 
+          tomokv 1859275/1859278 [114] 2928232.631017554: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859278 [114] 2928232.631027634: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631027694: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859282 [118] 2928232.631028324: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859276 [112] 2928232.631030134: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859278 [114] 2928232.631030734: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631031214: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631033134: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859282 [118] 2928232.631033284: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859276 [112] 2928232.631036804: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631037444: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859278 [114] 2928232.631047604: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631048114: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859277 [113] 2928232.631048564: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859278 [114] 2928232.631050734: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631051064: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859277 [113] 2928232.631054264: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631058654: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859277 [113] 2928232.631058984: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859276 [112] 2928232.631060264: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631061994: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631063704: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859277 [113] 2928232.631065444: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859276 [112] 2928232.631067624: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631068194: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859278 [114] 2928232.631085144: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631085564: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859279 [115] 2928232.631086034: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859283 [119] 2928232.631086094: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859282 [118] 2928232.631086204: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859277 [113] 2928232.631086764: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859280 [116] 2928232.631087464: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+tomokv 1859275/1859278 [114] 2928232.631092414:     347830 cycles:u:
 
-tomokv 1859275/1859282 [118] 2928232.631092954: cycles:u: 
+tomokv 1859275/1859282 [118] 2928232.631092954:     351357 cycles:u:
 
-tomokv 1859275/1859279 [115] 2928232.631094764: cycles:u: 
+tomokv 1859275/1859279 [115] 2928232.631094764:     251469 cycles:u:
 
-tomokv 1859275/1859281 [117] 2928232.631107804: cycles:u: 
+tomokv 1859275/1859281 [117] 2928232.631107804:     287739 cycles:u:
 
-          tomokv 1859275/1859283 [119] 2928232.631112014: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859278 [114] 2928232.631114774: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859277 [113] 2928232.631119084: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859280 [116] 2928232.631119694: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631120484: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859282 [118] 2928232.631121844: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859279 [115] 2928232.631122254: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859283 [119] 2928232.631131514: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859276 [112] 2928232.631132734: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859276 [112] 2928232.631135874: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859283 [119] 2928232.631136274: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859277 [113] 2928232.631153784: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859278 [114] 2928232.631153894: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859279 [115] 2928232.631154214: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859280 [116] 2928232.631154354: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631154654: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859283 [119] 2928232.631154734: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859282 [118] 2928232.631155034: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-tomokv 1859275/1859280 [116] 2928232.631173904: cycles:u: 
+          tomokv 1859275/1859283 [119] 2928232.631112014: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859278 [114] 2928232.631114774: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859277 [113] 2928232.631119084: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859280 [116] 2928232.631119694: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631120484: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859282 [118] 2928232.631121844: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859279 [115] 2928232.631122254: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859283 [119] 2928232.631131514: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859276 [112] 2928232.631132734: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859276 [112] 2928232.631135874: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859283 [119] 2928232.631136274: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859277 [113] 2928232.631153784: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859278 [114] 2928232.631153894: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859279 [115] 2928232.631154214: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859280 [116] 2928232.631154354: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631154654: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859283 [119] 2928232.631154734: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859282 [118] 2928232.631155034: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+tomokv 1859275/1859280 [116] 2928232.631173904:     261775 cycles:u:
 
-          tomokv 1859275/1859278 [114] 2928232.631179964: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859283 [119] 2928232.631180584: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859279 [115] 2928232.631183834: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859282 [118] 2928232.631186674: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631187044: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859277 [113] 2928232.631187434: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859280 [116] 2928232.631188584: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859279 [115] 2928232.631195774: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631195774: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859276 [112] 2928232.631196984: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859281 [117] 2928232.631199624: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859276 [112] 2928232.631201605: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859279 [115] 2928232.631202174: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859277 [113] 2928232.631209605: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859278 [114] 2928232.631209725: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859279 [115] 2928232.631209954: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859276 [112] 2928232.631211094: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859279 [115] 2928232.631213234: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859277 [113] 2928232.631213265: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859276 [112] 2928232.631213554: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0    
-          tomokv 1859275/1859278 [114] 2928232.631214045: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
-          tomokv 1859275/1859276 [112] 2928232.631220174: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0    
+          tomokv 1859275/1859278 [114] 2928232.631179964: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859283 [119] 2928232.631180584: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859279 [115] 2928232.631183834: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859282 [118] 2928232.631186674: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631187044: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859277 [113] 2928232.631187434: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859280 [116] 2928232.631188584: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859279 [115] 2928232.631195774: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631195774: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859276 [112] 2928232.631196984: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859281 [117] 2928232.631199624: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859276 [112] 2928232.631201605: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859279 [115] 2928232.631202174: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859277 [113] 2928232.631209605: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859278 [114] 2928232.631209725: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859279 [115] 2928232.631209954: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859276 [112] 2928232.631211094: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859279 [115] 2928232.631213234: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859277 [113] 2928232.631213265: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859276 [112] 2928232.631213554: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid:     0/0
+          tomokv 1859275/1859278 [114] 2928232.631214045: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+          tomokv 1859275/1859276 [112] 2928232.631220174: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid:     0/0
+
+# Explicit per-window DWARF callchains
+tomokv 1859275/1859277 [113] 2928232.630951273:     331061 cycles:u:
+	    566d651eb47c service_client_migrations<false>+0x1ac (inlined)
+	    566d65487289 run_loop<false, false, false, true, 0>+0x429 (inlined)
+	    566d65453955 operator()+0xea5 (inlined)
+	    566d65453955 __invoke_impl<void, tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> >+0xea5 (inlined)
+	    566d65453955 __invoke<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> >+0xea5 (inlined)
+	    566d65453955 _M_invoke<0>+0xea5 (inlined)
+	    566d65453955 operator()+0xea5 (inlined)
+	    566d65453955 _M_run+0xea5 (inlined)
+	    778013aecdb3 [unknown] (/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33)
+	    77801369cb83 start_thread+0x383 (/usr/lib/x86_64-linux-gnu/libc.so.6)
+	    778013729ecb __clone3+0x2b (inlined)
+
+tomokv 1859275/1859276 [112] 2928232.631017064:     670516 cycles:u:
+
+tomokv 1859275/1859278 [114] 2928232.631092414:     347830 cycles:u:
+
+tomokv 1859275/1859282 [118] 2928232.631092954:     351357 cycles:u:
+
+tomokv 1859275/1859279 [115] 2928232.631094764:     251469 cycles:u:
+
+tomokv 1859275/1859281 [117] 2928232.631107804:     287739 cycles:u:
+
+tomokv 1859275/1859280 [116] 2928232.631173904:     261775 cycles:u:

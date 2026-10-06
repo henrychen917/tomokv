@@ -42,12 +42,16 @@ def flush():
     for window in sample_windows:
         window['text'].extend(sample_block)
         window['samples'] += 1
-        if len(sample_block) > 1:
-            window['leaf_symbols'][sample_block[1].strip()] += 1
+        frames = [line.strip() for line in sample_block[1:] if line.strip()]
+        if frames:
+            window['leaf_symbols'][frames[0]] += 1
 
 
+# Add PID for unambiguous thread matching. Extract callchains separately below:
+# this perf build prints empty chains in the unbounded switch-event stream,
+# while the exact same samples resolve with an explicit --time window.
 perf_command = ['perf', 'script', '-i', str(root / 'perf.data'), '--ns', '--show-switch-events',
-                '-F', 'comm,pid,tid,cpu,time,event,ip,sym,dso']
+                '-F', '+pid']
 with (out / 'perf-script.err').open('w') as error:
     proc = subprocess.Popen(perf_command, stdout=subprocess.PIPE, stderr=error, text=True)
     for line in proc.stdout:
@@ -80,7 +84,26 @@ with (out / 'perf-script.err').open('w') as error:
     assert proc.wait() == 0
 
 for window in windows:
-    (out / (window['name'] + '.log')).write_text(''.join(window.pop('text')))
+    stack_command = ['perf', 'script', '-i', str(root / 'perf.data'), '--ns',
+                     '--pid', str(pid), '--time',
+                     f"{window['start']/1e9:.9f},{window['end']/1e9:.9f}", '-F', '+pid']
+    chains = subprocess.check_output(stack_command, text=True)
+    frame_pending = False
+    stack_samples = 0
+    window['leaf_symbols'].clear()
+    for line in chains.splitlines():
+        match = header.match(line)
+        if match:
+            frame_pending = 'cycles:u' in match[7]
+            stack_samples += frame_pending
+        elif frame_pending and line.strip():
+            window['leaf_symbols'][line.strip()] += 1
+            frame_pending = False
+    assert stack_samples == window['samples'], 'window extraction changed sample count'
+    window['stack_command'] = stack_command
+    extracted = ''.join(window.pop('text')) + '\n# Explicit per-window DWARF callchains\n' + chains
+    (out / (window['name'] + '.log')).write_text(
+        '\n'.join(line.rstrip() for line in extracted.splitlines()).rstrip() + '\n')
     offcpu = []
     for tid, events in switches.items():
         last_out = None
@@ -95,10 +118,17 @@ for window in windows:
                                        ms=(end-start)/1e6, preempt=last_out['preempt']))
                 last_out = None
     window['offcpu'] = sorted(offcpu, key=lambda row: row['ms'], reverse=True)
+    workers = tids - {pid}
+    initial = {row['tid']: row['ms'] for row in offcpu
+               if row['tid'] in workers and row['start'] == window['start']}
+    window['workers_off_cpu_at_send'] = initial
+    window['all_workers_off_cpu_at_send_ms'] = min(initial.values()) \
+        if initial.keys() == workers else None
     window['duration_ms'] = (window['end']-window['start'])/1e6
     print(window['name'], f"{window['duration_ms']:.3f} ms", 'samples', window['samples'],
           'longest off-CPU', window['offcpu'][:3])
 assert any(window['samples'] or window['switches'] for window in windows), 'no aligned profile evidence'
+assert all(window['leaf_symbols'] for window in windows if window['samples']), 'sample stacks missing'
 summary = dict(pid=pid, tids=sorted(tids), sample_counts=samples, windows=windows,
                perf_command=command, extraction_command=perf_command)
 (out / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')

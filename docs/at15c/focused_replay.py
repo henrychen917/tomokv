@@ -27,6 +27,8 @@ p.add_argument('--warmup', action='store_true',
 p.add_argument('--stop-on-failure', action='store_true')
 p.add_argument('--observed-mask', action='store_true',
                help='diagnostic control: recreate the broadened server masks observed in full replays')
+p.add_argument('--compiler-control', action='store_true',
+               help='labelled contention control: eight owned serverless compiles on CPUs 112-119')
 p.add_argument('--absolute-control', action='store_true',
                help='separate diagnostic: replace only the two PTTL queries with PEXPIRETIME')
 args = p.parse_args()
@@ -38,6 +40,7 @@ for port in (17899, 17900):
         probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         probe.bind(('127.0.0.1', port))
 children, files, descriptors, results = [], [], [], []
+compilers = []
 
 
 def affinity(pid):
@@ -65,6 +68,7 @@ def boot(label, command, port):
 def run(label, command):
     with (out / (label + '.log')).open('w') as log:
         start = time.time_ns()
+        compiling_before = [proc.pid for proc in compilers if proc.poll() is None]
         env = dict(os.environ)
         if args.absolute_control:
             env['AT15C_ABSOLUTE_CONTROL'] = '1'
@@ -72,6 +76,8 @@ def run(label, command):
                                 stdout=log, stderr=subprocess.STDOUT, timeout=180)
     results.append(dict(label=label, command=command, rc=result.returncode,
                         start_ns=start, end_ns=time.time_ns(),
+                        compilers_before=compiling_before,
+                        compilers_after=[proc.pid for proc in compilers if proc.poll() is None],
                         target_affinity=affinity(target.pid),
                         oracle_affinity=affinity(oracle.pid)))
     print(label, result.returncode, flush=True)
@@ -105,6 +111,22 @@ try:
             kind='recreate observed broadened masks; separate diagnostic control',
             before=before, after=dict(target=affinity(target.pid), oracle=affinity(oracle.pid))),
             indent=2) + '\n')
+    if args.compiler_control:
+        commands = []
+        for index in range(8):
+            command = ['taskset', '-c', str(112 + index), 'g++', '-std=c++20', '-O2', '-g',
+                       '-march=native', '-pthread', '-DTOMO_JEMALLOC', '-I.',
+                       '--param', 'inline-unit-growth=0', '--param', 'large-unit-insns=127577',
+                       '-c', 'src/cmd/xshard.cc', '-o', str(out / f'compiler-{index}.o')]
+            log = (out / f'compiler-{index}.log').open('w')
+            files.append(log)
+            compiler = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT,
+                                        start_new_session=True)
+            compilers.append(compiler)
+            commands.append(dict(pid=compiler.pid, command=command))
+        (out / 'compiler-control.json').write_text(json.dumps(dict(
+            kind='deliberately recreate observed compiler contention; not a regression measurement',
+            commands=commands), indent=2) + '\n')
     perf = None
     if args.perf:
         log = (out / 'perf.log').open('w')
@@ -152,6 +174,10 @@ try:
                     '127.0.0.1', '17899', '127.0.0.1', '17900', suite, str(seed)])
         run('debug', ['python3', 'tests/debug.py', '127.0.0.1', '17899'])
 finally:
+    for proc in compilers:
+        if proc.poll() is None:
+            os.killpg(proc.pid, signal.SIGTERM)
+            proc.wait(timeout=15)
     for proc in reversed(children):
         if proc.poll() is None:
             proc.terminate()
