@@ -6,6 +6,12 @@
 #include <iostream>
 
 using namespace tomo;
+// ObjectImage's new policy flag consumes padding; the image and every old field keep their
+// PRE layout. These assertions compile against PRE and POST, in both database namespaces.
+static_assert(sizeof(ObjectImage) == 48);
+static_assert(offsetof(ObjectImage, entries) == 8);
+static_assert(offsetof(ObjectImage, expire_at_ms) == 16);
+static_assert(offsetof(ObjectImage, payload) == 24);
 namespace {
 void require(bool ok, const char* why) {
     if (!ok) { std::fprintf(stderr, "FAIL cd13b: %s\n", why); std::exit(1); }

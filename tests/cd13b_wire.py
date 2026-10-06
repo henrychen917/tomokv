@@ -27,7 +27,11 @@ def ownership(call, keys):
     # DEBUG SHARD calls FlatStore::hash_key with this boot's random seed. LBSIGNALS supplies
     # current owners and migration counters; sid modulo executor count is not an owner proof.
     shards = [integer(call, ["DEBUG", "SHARD", key]) for key in keys]
-    raw = decoded(call(["DEBUG", "LBSIGNALS"]))
+    frame = call(["DEBUG", "LBSIGNALS"])
+    raw = decoded(frame)
+    if frame.startswith(b"="):
+        assert raw.startswith(b"txt:"), raw
+        raw = raw[4:]
     assert isinstance(raw, bytes) and raw.startswith(b"lbver 1"), raw
     rows = {}
     for line in raw.splitlines():
