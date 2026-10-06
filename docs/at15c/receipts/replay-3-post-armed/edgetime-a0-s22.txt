@@ -1,0 +1,4 @@
+  DIFF op 484 ['PTTL', 'et:s:22:3b7ff245e8ad8629d090beffa25a5a5db1']
+    target: b':2591999980\r\n'
+    oracle: b':2591999983\r\n'
+DIFFER edgetime: 4426 ops, 1 diffs, 0 clock tolerances -> FAIL

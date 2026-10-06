@@ -1,0 +1,114 @@
+[
+  {
+    "commit": "d913aab0b95a1a017bb2ad05c6fbf5772c8e4519",
+    "subject": "Execute INFO and ConfigRoute commands inside MULTI",
+    "src_tree": "b673e7deb3306b4be37eb9258a393d33ea3f1b9b",
+    "makefile": "82adde23ffd31cb06f15d5e5e7b3600c929c7e86",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "6bd6984259cac2a02b07a6b84ee34f3d592f621a",
+    "subject": "Count transaction-visible INFO keys and preserve ordered database maps",
+    "src_tree": "c1a93514fd154a7344b6d847747dc4769a2a79e5",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "bf0b65b38272ecb13724f8b2b8e8e302ae9570a9",
+    "subject": "Record AT15 witnesses, byte audit, and measurement arms",
+    "src_tree": "c1a93514fd154a7344b6d847747dc4769a2a79e5",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "fad6191f3e9368da71996d7c6ed8fccd792f4383",
+    "subject": "Merge remote-tracking branch 'origin/cpp' into cx-at15",
+    "src_tree": "c1a93514fd154a7344b6d847747dc4769a2a79e5",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "8c96a061dd4d1ead95797d83a085ff30c9c6f0db",
+    "subject": "gate: EXPECT_QUICK 497->498, EXPECT_FULL 514->515 for at15 (+1/+1 rows)",
+    "src_tree": "c1a93514fd154a7344b6d847747dc4769a2a79e5",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "3b5d9ec9f3344cd7c76bdbac92e39ec253213fc1",
+    "subject": "gate: ledger label fixture synced for at15",
+    "src_tree": "c1a93514fd154a7344b6d847747dc4769a2a79e5",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "61a9ab20f5d489b339b808e6fd08107378359aae",
+    "subject": "Merge remote-tracking branch 'origin/cpp' into cx-at15",
+    "src_tree": "c1a93514fd154a7344b6d847747dc4769a2a79e5",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "bb5b461eeaebb8b1f25dc9c347055f857915c269",
+    "subject": "Fix AT15 owner admission and Redis INFO and DEBUG compatibility",
+    "src_tree": "7f49c4147345587b808edb7b1d5c4d108b8666bf",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "76568a8fc1b063f94f6ad1119cee6013654ef365",
+    "subject": "Cover exact hash-field expiry counts in both INFO census paths",
+    "src_tree": "63669f32e420bf8b18e6efde6129b854c181807a",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "4c961026510027bedcdc6fe3fdb1be012a9c34b3",
+    "subject": "Add serverless repair proofs and preserve exact subexpiry transitions",
+    "src_tree": "63669f32e420bf8b18e6efde6129b854c181807a",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "64359c0d3a189fa3ec4382344e32602ad687dd02",
+    "subject": "Document AT15b repairs, negative controls and byte-identical hot paths",
+    "src_tree": "63669f32e420bf8b18e6efde6129b854c181807a",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "825e0b1b70904fa39266b3c28bce8b1a1bf912be",
+    "subject": "Record the AT15b maintainer handoff and storesize overlap",
+    "src_tree": "63669f32e420bf8b18e6efde6129b854c181807a",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "3cda2fcbdf08d3fb94130e29e92af4ed3e7f301e",
+    "subject": "Record complete split differential replay and retained unrelated failures",
+    "src_tree": "63669f32e420bf8b18e6efde6129b854c181807a",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "7d790d700268674700c9c9b97569b238e6399fed",
+    "subject": "Preserve both-mode replay results and original AT15 byte audit",
+    "src_tree": "63669f32e420bf8b18e6efde6129b854c181807a",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "cc5fa33a7180223250241fefc77f8f23f1075777",
+    "subject": "Record unresolved POST PTTL differential failure without weakening checks",
+    "src_tree": "63669f32e420bf8b18e6efde6129b854c181807a",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  },
+  {
+    "commit": "65735369344d5ed6778b4692f56b4b87e88698ef",
+    "subject": "Finalize AT15b proof results and flag remaining PTTL gate failure",
+    "src_tree": "63669f32e420bf8b18e6efde6129b854c181807a",
+    "makefile": "dfdd88961fbfe4014a28a3a525288219ee3f6089",
+    "lua_tree": "44b2653f17864211d32d495b04f9a1d0680f0a03"
+  }
+]

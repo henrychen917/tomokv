@@ -1,0 +1,87 @@
+      at15b-post 2000964/2000973 [119] 2930675.141391355: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001024/2001024
+      at15b-post 2000964/2000970 [116] 2930675.141435765: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001021/2001021
+      at15b-post 2000964/2000972 [118] 2930675.141452495: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001023/2001023
+      at15b-post 2000964/2000967 [113] 2930675.141464355: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001015/2001015
+      at15b-post 2000964/2000969 [115] 2930675.141467135: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001019/2001019
+      at15b-post 2000964/2000970 [116] 2930675.141472845: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001021/2001021
+      at15b-post 2000964/2000966 [112] 2930675.141479915: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001013/2001013
+      at15b-post 2000964/2000968 [114] 2930675.141491425: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001017/2001017
+      at15b-post 2000964/2000972 [118] 2930675.141501715: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001023/2001023
+      at15b-post 2000964/2000969 [115] 2930675.141514675: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001019/2001019
+      at15b-post 2000964/2000967 [113] 2930675.141515425: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001015/2001015
+      at15b-post 2000964/2000966 [112] 2930675.141531345: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001013/2001013
+      at15b-post 2000964/2000968 [114] 2930675.141540915: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001017/2001017
+      at15b-post 2000964/2000971 [117] 2930675.141737306: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001026/2001026
+      at15b-post 2000964/2000971 [117] 2930675.141777176: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001026/2001026
+      at15b-post 2000964/2000973 [119] 2930675.141792786: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001024/2001024
+      at15b-post 2000964/2000967 [113] 2930675.141813696: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001015/2001015
+      at15b-post 2000964/2000969 [115] 2930675.141813846: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001019/2001019
+      at15b-post 2000964/2000969 [115] 2930675.141824986: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001019/2001019
+      at15b-post 2000964/2000967 [113] 2930675.141830206: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001015/2001015
+      at15b-post 2000964/2000973 [119] 2930675.141847246: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001024/2001024
+      at15b-post 2000964/2000966 [112] 2930675.141894976: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001013/2001013
+      at15b-post 2000964/2000966 [112] 2930675.141908276: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001013/2001013
+      at15b-post 2000964/2000973 [119] 2930675.141913536: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001024/2001024
+      at15b-post 2000964/2000967 [113] 2930675.141922136: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001015/2001015
+      at15b-post 2000964/2000972 [118] 2930675.141928596: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001023/2001023
+      at15b-post 2000964/2000967 [113] 2930675.141929686: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001015/2001015
+      at15b-post 2000964/2000972 [118] 2930675.141940726: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001023/2001023
+      at15b-post 2000964/2000968 [114] 2930675.141953216: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001017/2001017
+      at15b-post 2000964/2000964 [112] 2930675.141971617: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001013/2001013
+      at15b-post 2000964/2000968 [114] 2930675.141973117: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001017/2001017
+      at15b-post 2000964/2000970 [116] 2930675.141976217: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001021/2001021
+      at15b-post 2000964/2000964 [112] 2930675.141980446: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001013/2001013
+      at15b-post 2000964/2000973 [119] 2930675.141991766: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001024/2001024
+      at15b-post 2000964/2000970 [116] 2930675.141991926: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001021/2001021
+      at15b-post 2000964/2000971 [117] 2930675.142025626: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001026/2001026
+      at15b-post 2000964/2000972 [118] 2930675.142027406: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001023/2001023
+      at15b-post 2000964/2000966 [112] 2930675.142028717: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001013/2001013
+      at15b-post 2000964/2000969 [115] 2930675.142033306: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001019/2001019
+      at15b-post 2000964/2000972 [118] 2930675.142034766: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001023/2001023
+      at15b-post 2000964/2000971 [117] 2930675.142035037: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001026/2001026
+      at15b-post 2000964/2000966 [112] 2930675.142037077: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001013/2001013
+      at15b-post 2000964/2000969 [115] 2930675.142043967: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001019/2001019
+      at15b-post 2000964/2000970 [116] 2930675.142048057: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001021/2001021
+      at15b-post 2000964/2000970 [116] 2930675.142057497: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001021/2001021
+      at15b-post 2000964/2000967 [113] 2930675.142155887: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001015/2001015
+      at15b-post 2000964/2000967 [113] 2930675.142167867: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001015/2001015
+      at15b-post 2000964/2000973 [119] 2930675.142178137: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001024/2001024
+      at15b-post 2000964/2000972 [118] 2930675.142213727: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001023/2001023
+      at15b-post 2000964/2000972 [118] 2930675.142231737: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001023/2001023
+      at15b-post 2000964/2000973 [119] 2930675.142242697: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001024/2001024
+      at15b-post 2000964/2000969 [115] 2930675.142280247: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001019/2001019
+      at15b-post 2000964/2000970 [116] 2930675.142283417: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001021/2001021
+      at15b-post 2000964/2000968 [114] 2930675.142287187: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001017/2001017
+      at15b-post 2000964/2000972 [118] 2930675.142288797: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001023/2001023
+      at15b-post 2000964/2000971 [117] 2930675.142303027: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001026/2001026
+      at15b-post 2000964/2000967 [113] 2930675.142307357: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001015/2001015
+at15b-post 2000964/2000973 [119] 2930675.142311347:    2606249 cycles:u:
+
+      at15b-post 2000964/2000970 [116] 2930675.142321698: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001021/2001021
+      at15b-post 2000964/2000966 [112] 2930675.142327167: PERF_RECORD_SWITCH_CPU_WIDE IN           prev pid/tid: 2001013/2001013
+      at15b-post 2000964/2000969 [115] 2930675.142328347: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001019/2001019
+      at15b-post 2000964/2000972 [118] 2930675.142332698: PERF_RECORD_SWITCH_CPU_WIDE OUT          next pid/tid: 2001023/2001023
+
+# Explicit per-window DWARF callchains
+at15b-post 2000964/2000973 [119] 2930675.142311347:    2606249 cycles:u:
+	    64cbda1c2292 mix64+0x52 (inlined)
+	    64cbda1c2292 slot_start+0x52 (inlined)
+	    64cbda1c2292 scan_home<tomo::xshard_execute(const Task&, Shard&, Op&, uint32_t)::<lambda(tomo::KvObj*)> >+0x52 (inlined)
+	    64cbda1ee6c3 scan<tomo::xshard_execute(const Task&, Shard&, Op&, uint32_t)::<lambda(tomo::KvObj*)> >+0x24c3 (inlined)
+	    64cbda1ee6c3 xshard_execute+0x24c3 (inlined)
+	    64cbda3b6583 execute<false>+0x413 (inlined)
+	    64cbda3b88aa service_xshard_retries<false>+0xba (inlined)
+	    64cbda3c2a33 fused_pass_impl<32, true, false, true>+0x613 (inlined)
+	    64cbda3d90f9 fused_baseline_pass+0x489 (inlined)
+	    64cbda3d90f9 fused_baseline_pass+0x489 (inlined)
+	    64cbda3d90f9 flush_ready<false, false, true, false, false, false>+0x489 (inlined)
+	    64cbda3dc345 run_loop<false, false, false, true, 0>+0x4e5 (inlined)
+	    64cbda3a8955 operator()+0xea5 (inlined)
+	    64cbda3a8955 __invoke_impl<void, tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> >+0xea5 (inlined)
+	    64cbda3a8955 __invoke<tomo::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> >+0xea5 (inlined)
+	    64cbda3a8955 _M_invoke<0>+0xea5 (inlined)
+	    64cbda3a8955 operator()+0xea5 (inlined)
+	    64cbda3a8955 _M_run+0xea5 (inlined)
+	    712b6a6ecdb3 [unknown] (/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33)
+	    712b6a29cb83 start_thread+0x383 (/usr/lib/x86_64-linux-gnu/libc.so.6)
+	    712b6a329ecb __clone3+0x2b (inlined)

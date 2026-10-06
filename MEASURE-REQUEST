@@ -23,3 +23,9 @@ WIP: CC18 executed-error producer and pending-MVCC CC11 path remain incomplete.
 PRE/POST binaries and hashes, exact requested wire behavior, byte/instruction witnesses,
 consumer parser consequences, existing +0/+0 rows, and the fourteen null cell IDs are recorded there.
 Mainline runs all servers, differentials, gates, and measurements. No lane measurement was run.
+
+Lane at15: MULTI admin replies
+
+See MEASURE-REQUEST-at15.md for PRE/POST hashes, serverless falsification, body
+identity, the +1/+1 row count, and explicit Redis-table/group-5 policy differences.
+Live verification and the gate remain maintainer work; no push.

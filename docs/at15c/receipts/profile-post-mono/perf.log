@@ -1,0 +1,2 @@
+[ perf record: Woken up 23 times to write data ]
+[ perf record: Captured and wrote 13.843 MB /home/user/Projects/cx-at15/build/at15c/profile-post-mono/perf.data (656 samples) ]

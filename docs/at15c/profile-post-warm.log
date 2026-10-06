@@ -1,0 +1,10 @@
+warmup-string 0
+warmup-list 0
+warmup-set 0
+warmup-zset 0
+warmup-hash 0
+warmup-hexpire 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-at15/docs/at15c/focused_replay.py", line 116, in <module>
+    raise RuntimeError('perf did not acknowledge enabled events')
+RuntimeError: perf did not acknowledge enabled events

@@ -1,0 +1,9 @@
+warmup-string 0
+warmup-list 0
+warmup-set 0
+warmup-zset 0
+warmup-hash 0
+warmup-hexpire 0
+edgetime-1 0
+edgetime-2 0
+edgetime-3 0

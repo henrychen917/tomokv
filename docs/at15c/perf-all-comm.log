@@ -1,0 +1,38 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 30K of event 'cycles:u'
+# Event count (approx.): 91113513277
+#
+# Overhead  Command        
+# ........  ...............
+#
+    89.13%  cc1plus        
+            |          
+            |--1.64%--ggc_set_mark(void const*)
+            |          |          
+            |           --1.31%--gt_ggc_mx_lang_tree_node(void*)
+            |                     |          
+            |                      --1.10%--gt_ggc_mx_lang_tree_node(void*)
+            |          
+            |--1.46%--bitmap_set_bit(bitmap_head*, int)
+            |          
+            |--1.29%--ggc_internal_alloc(unsigned long, void (*)(void*), unsigned long, unsigned long)
+            |          
+            |--1.22%--variably_modified_type_p(tree_node*, tree_node*)
+            |          |          
+            |           --1.01%--variably_modified_type_p(tree_node*, tree_node*)
+            |          
+            |--1.12%--_int_malloc
+            |          
+             --1.09%--get_ref_base_and_extent(tree_node*, poly_int_pod<1u, long>*, poly_int_pod<1u, long>*, poly_int_pod<1u, long>*, bool*)
+
+     7.39%  as             
+     2.47%  at15b-post     
+
+
+#
+# (Cannot load tips.txt file, please install perf!)
+#

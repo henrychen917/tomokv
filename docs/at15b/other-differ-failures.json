@@ -1,0 +1,25 @@
+[
+  {
+    "log": "build/at15b-differ-split/hexpire-a0-s7.txt",
+    "summary": "DIFFER hexpire: 4288 ops, 3 diffs, 0 clock tolerances -> FAIL",
+    "first_differences": [
+      "  DIFF op 1082 ['HPTTL', 'hx2', 'FIELDS', '1']\n    target: b'*1\\r\\n:108748631284\\r\\n'\n    oracle: b'*1\\r\\n:108748631286\\r\\n'",
+      "  DIFF op 2590 ['HPTTL', 'hx3', 'FIELDS', '1']\n    target: b'*1\\r\\n:108752231256\\r\\n'\n    oracle: b'*1\\r\\n:108752231258\\r\\n'"
+    ]
+  },
+  {
+    "log": "build/at15b-differ-split/edgetime-a0-s7.txt",
+    "summary": "DIFFER edgetime: 4426 ops, 1 diffs, 0 clock tolerances -> FAIL",
+    "first_differences": [
+      "  DIFF op 2910 ['PTTL', 'et:s:23:2c57d06537cb90580459a716b6b8cb20c4']\n    target: b':2591999925\\r\\n'\n    oracle: b':2591999927\\r\\n'"
+    ]
+  },
+  {
+    "log": "build/at15b-differ-split/wiredump-a0-s7.txt",
+    "summary": "DIFFER wiredump: 4200 ops, 1 diffs, 31 clock tolerances -> FAIL",
+    "first_differences": [
+      "  WIREDUMP DIFF op 3084 action=4 key=wd:zset-large\n  WIREDUMP DIFF op 3085 action=2 key=wd:list\n  WIREDUMP DIFF op 3086 action=3 key=wd:hash",
+      "  WIREDUMP DIFF op 3085 action=2 key=wd:list\n  WIREDUMP DIFF op 3086 action=3 key=wd:hash\n  WIREDUMP DIFF op 3087 action=2 key=wd:hash-ttl-all"
+    ]
+  }
+]

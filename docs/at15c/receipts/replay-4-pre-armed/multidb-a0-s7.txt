@@ -1,0 +1,4 @@
+  DIFF op 12 ['EXEC']
+    target: b'*5\r\n$76\r\n# Keyspace\r\ndb0:keys=1,expires=0,avg_ttl=0\r\ndb1:keys=2,expires=0,avg_ttl=0\r\n\r\n+OK\r\n$76\r\n# Keyspace\r\ndb0:keys=2,expires=0,avg_ttl=0\r\ndb1:keys=1,expires=0,avg_ttl=0\r\n\r\n+OK\r\n$76\r\n# Keyspace\r\ndb0:keys=1,expires=0,avg_ttl=0\r\ndb1:keys=2,expires=0,avg_tt'
+    oracle: b'*5\r\n$100\r\n# Keyspace\r\ndb0:keys=1,expires=0,avg_ttl=0,subexpiry=0\r\ndb1:keys=2,expires=0,avg_ttl=0,subexpiry=0\r\n\r\n+OK\r\n$100\r\n# Keyspace\r\ndb0:keys=2,expires=0,avg_ttl=0,subexpiry=0\r\ndb1:keys=1,expires=0,avg_ttl=0,subexpiry=0\r\n\r\n+OK\r\n$100\r\n# Keyspace\r\ndb0:keys'
+DIFFER multidb: 5418 ops, 1 diffs, 0 clock tolerances -> FAIL

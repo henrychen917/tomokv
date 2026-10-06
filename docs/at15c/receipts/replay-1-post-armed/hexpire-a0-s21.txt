@@ -1,0 +1,10 @@
+  CLOCK TOLERANCE count=1 integers=1 command=['HPTTL', 'hx3', 'FIELDS', '1', 'f2']
+    target: b'*1\r\n:108815188985\r\n'
+    oracle: b'*1\r\n:108815188986\r\n'
+  DIFF op 787 ['HPTTL', 'hx2', 'FIELDS', '3']
+    target: b'*3\r\n:-1\r\n:-1\r\n:108732388914\r\n'
+    oracle: b'*3\r\n:-1\r\n:-1\r\n:108732388911\r\n'
+  DIFF op 1259 ['HPTTL', 'hx1', 'FIELDS', '1']
+    target: b'*1\r\n:108728788899\r\n'
+    oracle: b'*1\r\n:108728788887\r\n'
+DIFFER hexpire: 4288 ops, 2 diffs, 1 clock tolerances -> FAIL

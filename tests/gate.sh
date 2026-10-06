@@ -276,8 +276,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=497
-EXPECT_FULL=514                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+EXPECT_QUICK=499
+EXPECT_FULL=516                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1000,7 +1000,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
+              core_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1583,6 +1583,19 @@ unit_ready multidb-boundary-unit && taskset -c "$CORES" ./build/multidb-boundary
     && ok "multidb global namespace boundary" \
     || bad "multidb global namespace boundary" "see $TMPDIR/multidb-boundary-unit.log"
 # One serverless EXECABORT/WATCH row, collected BEFORE the quick exit (+1/+1).
+# AT15: one serverless row before the quick exit (+1/+1); EXPECT/fixtures are owner-owned.
+row_begin "MULTI admin command replies"
+at15_ok=1
+for variant in at15-unit at15-db0-unit; do
+  if ! unit_ready "$variant"; then at15_ok=0; continue; fi
+  for mode in 1s 2s; do
+    taskset -c "$CORES" "./build/$variant" "$mode" \
+        >"$TMPDIR/$variant-$mode.log" 2>&1 || at15_ok=0
+  done
+done
+[ "$at15_ok" = 1 ] && ok "MULTI admin command replies" \
+    || bad "MULTI admin command replies" "see $TMPDIR/at15-*.log"
+
 # EXPECT_* and the ledger-label fixture remain maintainer-owned.
 row_begin "EXECABORT releases WATCH reservation"
 execabort_ok=1
@@ -1665,6 +1678,65 @@ for mode in 1s 2s; do for engine in uring epoll; do
   fi
   stop
 done; done
+}
+
+job_respcompat(){
+# NET13/14/15/16: one aggregate row, both differential geometries and atomic modes.
+# Raw protocol cases own this row and its Redis oracle, outside the valid-command
+# fan-out plan. Keep its shell pass total exactly equal to the planned comparisons.
+local mode atomic compatible=1 booted oracle_ready=0 oracle_port=$((PORT+1))
+local oracle_bin=${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server} oracle_dir
+row_begin "RESP protocol error compatibility"
+guard_port "$oracle_port"
+oracle_dir=$(mktemp -d "$TMPDIR/respcompat-oracle.XXXXXX") || compatible=0
+if [ "$compatible" = 1 ] && [ -x "$oracle_bin" ]; then
+  taskset -c "${GATE_DIFFER_ORACLE_CORES:-$CORES}" "$oracle_bin" \
+      --port "$oracle_port" --bind 127.0.0.1 --save '' --appendonly no --dir "$oracle_dir" \
+      >"$TMPDIR/gate-respcompat-oracle.txt" 2>&1 &
+  # The gate's existing oracle slot is included in normal and watchdog cleanup.
+  GLOBCASE_ORACLE=$!
+  for _ in $(seq 100); do
+    kill -0 "$GLOBCASE_ORACLE" 2>/dev/null || break
+    if [ "$(port_listeners "$oracle_port")" = "$GLOBCASE_ORACLE" ] &&
+       (exec 3<>/dev/tcp/127.0.0.1/"$oracle_port") 2>/dev/null; then
+      oracle_ready=1
+      break
+    fi
+    sleep 0.1
+  done
+fi
+if [ "$oracle_ready" = 1 ]; then
+for atomic in 0 1; do for mode in 1s 2s; do
+  booted=0
+  if [ "$mode" = 1s ]; then
+    boot_fused "$CANDIDATE_BINARY" --read-local 1 --atomic "$atomic" --save '' && booted=1
+  else
+    boot "$CANDIDATE_BINARY" --thread-mode 2s --atomic "$atomic" --save '' && booted=1
+  fi
+  if [ "$booted" != 1 ] || ! py tests/respcompat.py 127.0.0.1 "$PORT" \
+      --oracle 127.0.0.1 "$oracle_port" >"$TMPDIR/gate-respcompat-$mode-a$atomic.txt" 2>&1; then
+    compatible=0
+  fi
+  stop
+done; done
+else
+  compatible=0
+fi
+if [ "$GLOBCASE_ORACLE" -gt 0 ]; then
+  kill -TERM "$GLOBCASE_ORACLE" 2>/dev/null
+  if ! timeout --kill-after=1 10 tail --sleep-interval=.1 --pid="$GLOBCASE_ORACLE" -f /dev/null; then
+    compatible=0
+    kill -KILL "$GLOBCASE_ORACLE" 2>/dev/null
+  fi
+  wait "$GLOBCASE_ORACLE" 2>/dev/null || compatible=0
+  GLOBCASE_ORACLE=0
+fi
+[ -z "$(port_listeners "$oracle_port")" ] || compatible=0
+if [ "$compatible" = 1 ]; then
+  ok "RESP protocol error compatibility"
+else
+  bad "RESP protocol error compatibility" "see $TMPDIR/gate-respcompat-*.txt and $SRVLOG"
+fi
 }
 
 job_acl_metadata(){
@@ -2972,12 +3044,12 @@ job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
-      build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
+      build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
       build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
+  for target in at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -3148,6 +3220,10 @@ collect_job netcmd_units
 # NET1 contributes one serverless row above plus four live rows here: +5 quick / +5 full.
 # EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
 collect_job netcap
+
+# respcompat: +1 quick / +1 full, counted here before the quick-tier exit.
+# EXPECT counts and ledger fixtures are maintained by the owner.
+collect_job respcompat
 
 collect_job acl_metadata
 

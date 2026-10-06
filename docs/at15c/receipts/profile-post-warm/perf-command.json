@@ -1,0 +1,1 @@
+["taskset", "-c", "127", "perf", "record", "-C", "112-119", "-g", "--clockid", "mono", "--call-graph", "dwarf,8192", "--switch-events", "-e", "cycles:u", "-F", "999", "-D", "-1", "--control", "fd:6,9", "-o", "/home/user/Projects/cx-at15/build/at15c/profile-post-warm/perf.data"]

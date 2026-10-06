@@ -1,0 +1,4 @@
+canonical: result=0 pos=14 argc=1 error=none
+zero-first array: result=2 pos=0 argc=0 error=ERR Protocol error: invalid multibulk length
+zero-first bulk: result=2 pos=0 argc=0 error=ERR Protocol error: invalid bulk length
+later zero digit: result=0 pos=21 argc=1 error=none

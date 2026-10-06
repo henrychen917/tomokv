@@ -1,0 +1,6207 @@
+{
+  "pid": 1859275,
+  "tids": [
+    1859275,
+    1859276,
+    1859277,
+    1859278,
+    1859279,
+    1859280,
+    1859281,
+    1859282,
+    1859283,
+    1859322
+  ],
+  "sample_counts": {
+    "perf": 40,
+    "python3": 8,
+    "notify-rs inoti": 3,
+    "tomokv": 603,
+    "tokio-rt-worker": 2
+  },
+  "windows": [
+    {
+      "name": "edgetime-1-1526",
+      "op": 1526,
+      "start": 2928231934439485,
+      "end": 2928231934950707,
+      "samples": 0,
+      "leaf_symbols": {},
+      "switches": [
+        {
+          "tid": 1859283,
+          "ns": 2928231934451106,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231934472475,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934472635,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231934473206,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231934473566,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231934473695,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231934473906,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934476615,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231934476746,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231934477095,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231934477466,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231934477986,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231934479235,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231934488075,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231934488435,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231934488735,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231934489126,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934489306,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231934489675,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231934489866,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231934492306,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231934492755,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231934492946,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934493255,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231934493275,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231934493366,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231934493426,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934507726,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231934508666,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231934512036,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934512136,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934521566,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231934521726,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231934521856,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231934521966,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231934522366,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934524416,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231934524726,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231934524766,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231934525826,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231934526586,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934530796,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231934531316,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231934531406,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231934531926,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934534056,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231934534156,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231934537616,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231934537966,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231934557316,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231934557326,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231934557626,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934557956,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231934558036,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231934558626,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231934563766,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231934588386,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231934589136,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231934589676,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231934589836,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934590476,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231934591106,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231934595866,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231934608796,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934609256,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231934609786,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231934612286,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231934613066,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934614026,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231934621786,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231934622006,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231934624746,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231934625176,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231934632986,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231934633406,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231934637116,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231934637766,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231934647646,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934648036,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231934648166,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231934648736,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231934650906,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231934651406,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231934651576,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231934652256,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231934656976,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        }
+      ],
+      "stack_command": [
+        "perf",
+        "script",
+        "-i",
+        "build/at15c/profile-post-mono/perf.data",
+        "--ns",
+        "--pid",
+        "1859275",
+        "--time",
+        "2928231.934439485,2928231.934950707",
+        "-F",
+        "+pid"
+      ],
+      "offcpu": [
+        {
+          "tid": 1859275,
+          "start": 2928231934439485,
+          "end": 2928231934950707,
+          "ms": 0.511222,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928231934588386,
+          "end": 2928231934950707,
+          "ms": 0.362321,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928231934589136,
+          "end": 2928231934950707,
+          "ms": 0.361571,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928231934625176,
+          "end": 2928231934950707,
+          "ms": 0.325531,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928231934637766,
+          "end": 2928231934950707,
+          "ms": 0.312941,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928231934651406,
+          "end": 2928231934950707,
+          "ms": 0.299301,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231934651576,
+          "end": 2928231934950707,
+          "ms": 0.299131,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231934652256,
+          "end": 2928231934950707,
+          "ms": 0.298451,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231934656976,
+          "end": 2928231934950707,
+          "ms": 0.293731,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928231934493366,
+          "end": 2928231934563766,
+          "ms": 0.0704,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928231934492306,
+          "end": 2928231934558626,
+          "ms": 0.06632,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928231934595866,
+          "end": 2928231934648166,
+          "ms": 0.0523,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231934439485,
+          "end": 2928231934489675,
+          "ms": 0.05019,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928231934589836,
+          "end": 2928231934632986,
+          "ms": 0.04315,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928231934439485,
+          "end": 2928231934473906,
+          "ms": 0.034421,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928231934439485,
+          "end": 2928231934473695,
+          "ms": 0.03421,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928231934439485,
+          "end": 2928231934473566,
+          "ms": 0.034081,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231934614026,
+          "end": 2928231934648036,
+          "ms": 0.03401,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928231934439485,
+          "end": 2928231934473206,
+          "ms": 0.033721,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231934439485,
+          "end": 2928231934472635,
+          "ms": 0.03315,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928231934439485,
+          "end": 2928231934472475,
+          "ms": 0.03299,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928231934524766,
+          "end": 2928231934557316,
+          "ms": 0.03255,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928231934589676,
+          "end": 2928231934622006,
+          "ms": 0.03233,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928231934525826,
+          "end": 2928231934557626,
+          "ms": 0.0318,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928231934492946,
+          "end": 2928231934521966,
+          "ms": 0.02902,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928231934492755,
+          "end": 2928231934521726,
+          "ms": 0.028971,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928231934493426,
+          "end": 2928231934522366,
+          "ms": 0.02894,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231934493275,
+          "end": 2928231934521856,
+          "ms": 0.028581,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231934534056,
+          "end": 2928231934557956,
+          "ms": 0.0239,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231934534156,
+          "end": 2928231934558036,
+          "ms": 0.02388,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231934624746,
+          "end": 2928231934647646,
+          "ms": 0.0229,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928231934537966,
+          "end": 2928231934557326,
+          "ms": 0.01936,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231934590476,
+          "end": 2928231934609256,
+          "ms": 0.01878,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231934591106,
+          "end": 2928231934608796,
+          "ms": 0.01769,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231934493255,
+          "end": 2928231934507726,
+          "ms": 0.014471,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231934476615,
+          "end": 2928231934489306,
+          "ms": 0.012691,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928231934477986,
+          "end": 2928231934489866,
+          "ms": 0.01188,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928231934476746,
+          "end": 2928231934488435,
+          "ms": 0.011689,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928231934477466,
+          "end": 2928231934489126,
+          "ms": 0.01166,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928231934477095,
+          "end": 2928231934488735,
+          "ms": 0.01164,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231934439485,
+          "end": 2928231934451106,
+          "ms": 0.011621,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231934612286,
+          "end": 2928231934621786,
+          "ms": 0.0095,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231934512136,
+          "end": 2928231934521566,
+          "ms": 0.00943,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928231934479235,
+          "end": 2928231934488075,
+          "ms": 0.00884,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231934524726,
+          "end": 2928231934531316,
+          "ms": 0.00659,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231934524416,
+          "end": 2928231934530796,
+          "ms": 0.00638,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231934531926,
+          "end": 2928231934537616,
+          "ms": 0.00569,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928231934526586,
+          "end": 2928231934531406,
+          "ms": 0.00482,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231934633406,
+          "end": 2928231934637116,
+          "ms": 0.00371,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231934508666,
+          "end": 2928231934512036,
+          "ms": 0.00337,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231934609786,
+          "end": 2928231934613066,
+          "ms": 0.00328,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231934648736,
+          "end": 2928231934650906,
+          "ms": 0.00217,
+          "preempt": false
+        }
+      ],
+      "workers_off_cpu_at_send": {
+        "1859282": 0.034421,
+        "1859276": 0.03315,
+        "1859277": 0.03421,
+        "1859283": 0.011621,
+        "1859281": 0.033721,
+        "1859279": 0.034081,
+        "1859278": 0.05019,
+        "1859280": 0.03299
+      },
+      "all_workers_off_cpu_at_send_ms": null,
+      "duration_ms": 0.511222
+    },
+    {
+      "name": "edgetime-1-2910",
+      "op": 2910,
+      "start": 2928231949872242,
+      "end": 2928231950218053,
+      "samples": 0,
+      "leaf_symbols": {},
+      "switches": [
+        {
+          "tid": 1859283,
+          "ns": 2928231949881512,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231949899642,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231949899652,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231949899972,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231949900332,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231949900602,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231949900852,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231949901132,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231949926082,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231949926302,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231949930802,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231949933002,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231949933112,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231949933212,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231949934202,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231949947732,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231949948712,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231949951472,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231949952792,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231949961462,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231949964732,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231949969382,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231949969882,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231949970022,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231949970642,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231949972322,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231949974042,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231949975032,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231949975582,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231949984223,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231949984512,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231949984803,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231949984912,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231949987123,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231949987992,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231949989463,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231949990623,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231949995572,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231949995803,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231949996483,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231950005152,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231950011103,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231950011543,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231950023512,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231950023963,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231950024032,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231950024092,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231950024443,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231950024832,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231950024863,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231950051183,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231950051873,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231950056243,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231950057913,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231950058043,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231950058083,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231950058173,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231950066753,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231950068573,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231950071003,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231950072263,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231950088533,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231950088913,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231950089473,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231950089693,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231950090033,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231950090153,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231950090333,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928231950114383,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231950115513,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231950118943,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928231950122433,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231950122723,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928231950122733,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231950123443,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231950135033,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231950135123,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231950135843,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928231950138663,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231950141483,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231950142043,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231950149363,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231950149403,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231950149633,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231950150203,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928231950152733,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928231950153073,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231950153223,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928231950154113,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928231950159333,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        }
+      ],
+      "stack_command": [
+        "perf",
+        "script",
+        "-i",
+        "build/at15c/profile-post-mono/perf.data",
+        "--ns",
+        "--pid",
+        "1859275",
+        "--time",
+        "2928231.949872242,2928231.950218053",
+        "-F",
+        "+pid"
+      ],
+      "offcpu": [
+        {
+          "tid": 1859275,
+          "start": 2928231949872242,
+          "end": 2928231950218053,
+          "ms": 0.345811,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231950114383,
+          "end": 2928231950218053,
+          "ms": 0.10367,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928231950122433,
+          "end": 2928231950218053,
+          "ms": 0.09562,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928231950122733,
+          "end": 2928231950218053,
+          "ms": 0.09532,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928231949930802,
+          "end": 2928231950024092,
+          "ms": 0.09329,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928231949933002,
+          "end": 2928231950024832,
+          "ms": 0.09183,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928231950138663,
+          "end": 2928231950218053,
+          "ms": 0.07939,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928231950152733,
+          "end": 2928231950218053,
+          "ms": 0.06532,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928231950153073,
+          "end": 2928231950218053,
+          "ms": 0.06498,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231950154113,
+          "end": 2928231950218053,
+          "ms": 0.06394,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231950159333,
+          "end": 2928231950218053,
+          "ms": 0.05872,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928231949934202,
+          "end": 2928231949984803,
+          "ms": 0.050601,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928231949974042,
+          "end": 2928231950024443,
+          "ms": 0.050401,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231950051183,
+          "end": 2928231950089473,
+          "ms": 0.03829,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928231949933112,
+          "end": 2928231949970022,
+          "ms": 0.03691,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928231949933212,
+          "end": 2928231949969882,
+          "ms": 0.03667,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231949987123,
+          "end": 2928231950023512,
+          "ms": 0.036389,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231949926302,
+          "end": 2928231949961462,
+          "ms": 0.03516,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231949989463,
+          "end": 2928231950023963,
+          "ms": 0.0345,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231950115513,
+          "end": 2928231950149363,
+          "ms": 0.03385,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928231950056243,
+          "end": 2928231950089693,
+          "ms": 0.03345,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928231950058083,
+          "end": 2928231950090333,
+          "ms": 0.03225,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928231950057913,
+          "end": 2928231950090153,
+          "ms": 0.03224,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928231950058043,
+          "end": 2928231950090033,
+          "ms": 0.03199,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231949952792,
+          "end": 2928231949984512,
+          "ms": 0.03172,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928231950058173,
+          "end": 2928231950088533,
+          "ms": 0.03036,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928231949872242,
+          "end": 2928231949901132,
+          "ms": 0.02889,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928231949872242,
+          "end": 2928231949900852,
+          "ms": 0.02861,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928231949872242,
+          "end": 2928231949900602,
+          "ms": 0.02836,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231949872242,
+          "end": 2928231949900332,
+          "ms": 0.02809,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231949872242,
+          "end": 2928231949899972,
+          "ms": 0.02773,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928231949872242,
+          "end": 2928231949899652,
+          "ms": 0.02741,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928231949872242,
+          "end": 2928231949899642,
+          "ms": 0.0274,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928231950123443,
+          "end": 2928231950149403,
+          "ms": 0.02596,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231949926082,
+          "end": 2928231949947732,
+          "ms": 0.02165,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231950072263,
+          "end": 2928231950088913,
+          "ms": 0.01665,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928231950118943,
+          "end": 2928231950135033,
+          "ms": 0.01609,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928231950051873,
+          "end": 2928231950066753,
+          "ms": 0.01488,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928231950011103,
+          "end": 2928231950024863,
+          "ms": 0.01376,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928231950011543,
+          "end": 2928231950024032,
+          "ms": 0.012489,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928231950122723,
+          "end": 2928231950135123,
+          "ms": 0.0124,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231949972322,
+          "end": 2928231949984223,
+          "ms": 0.011901,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928231949975582,
+          "end": 2928231949984912,
+          "ms": 0.00933,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231949872242,
+          "end": 2928231949881512,
+          "ms": 0.00927,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231949996483,
+          "end": 2928231950005152,
+          "ms": 0.008669,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928231950142043,
+          "end": 2928231950149633,
+          "ms": 0.00759,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928231949987992,
+          "end": 2928231949995572,
+          "ms": 0.00758,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231950135843,
+          "end": 2928231950141483,
+          "ms": 0.00564,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928231949990623,
+          "end": 2928231949995803,
+          "ms": 0.00518,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928231949964732,
+          "end": 2928231949969382,
+          "ms": 0.00465,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231949970642,
+          "end": 2928231949975032,
+          "ms": 0.00439,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231950150203,
+          "end": 2928231950153223,
+          "ms": 0.00302,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231949948712,
+          "end": 2928231949951472,
+          "ms": 0.00276,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928231950068573,
+          "end": 2928231950071003,
+          "ms": 0.00243,
+          "preempt": false
+        }
+      ],
+      "workers_off_cpu_at_send": {
+        "1859282": 0.02889,
+        "1859276": 0.02773,
+        "1859277": 0.0274,
+        "1859283": 0.00927,
+        "1859281": 0.02861,
+        "1859279": 0.02836,
+        "1859278": 0.02809,
+        "1859280": 0.02741
+      },
+      "all_workers_off_cpu_at_send_ms": null,
+      "duration_ms": 0.345811
+    },
+    {
+      "name": "edgetime-2-1526",
+      "op": 1526,
+      "start": 2928232297460879,
+      "end": 2928232297977761,
+      "samples": 4,
+      "leaf_symbols": {
+        "566d6545fd65 prefetch_overlap_batch+0x45 (inlined)": 1
+      },
+      "switches": [
+        {
+          "tid": 1859279,
+          "ns": 2928232297471249,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297486479,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232297486839,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232297486959,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232297486969,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232297487689,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232297488049,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297490439,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232297491169,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232297491529,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232297492659,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232297495279,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232297498799,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232297500689,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232297500889,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232297501259,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297501519,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232297501839,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232297502139,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232297504909,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232297505179,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232297505269,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297505609,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232297505609,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232297505689,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297519559,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232297520149,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232297523619,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297523879,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297532969,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232297533089,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232297533309,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232297533739,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232297533909,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232297535979,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297535989,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232297536159,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232297538309,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232297538359,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297542909,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232297543239,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232297543539,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232297544149,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232297546419,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297546899,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232297550419,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232297550839,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232297554459,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232297555179,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232297570589,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232297570709,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232297571019,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232297571259,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297571659,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232297571779,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232297572099,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232297600859,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232297603119,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232297603719,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232297605429,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297607149,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232297609179,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232297610109,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232297623519,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297624019,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232297624319,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232297626459,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232297627619,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297627919,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232297636059,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232297636279,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232297636449,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232297638979,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232297639169,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232297639409,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232297643809,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232297644089,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232297644739,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232297646819,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232297651109,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232297651679,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232297654969,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232297655649,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232297665669,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297665939,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232297666189,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232297666639,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232297669289,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232297669329,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232297669689,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232297669869,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232297675240,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        }
+      ],
+      "stack_command": [
+        "perf",
+        "script",
+        "-i",
+        "build/at15c/profile-post-mono/perf.data",
+        "--ns",
+        "--pid",
+        "1859275",
+        "--time",
+        "2928232.297460879,2928232.297977761",
+        "-F",
+        "+pid"
+      ],
+      "offcpu": [
+        {
+          "tid": 1859275,
+          "start": 2928232297460879,
+          "end": 2928232297977761,
+          "ms": 0.516882,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232297600859,
+          "end": 2928232297977761,
+          "ms": 0.376902,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232297639169,
+          "end": 2928232297977761,
+          "ms": 0.338592,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232297651679,
+          "end": 2928232297977761,
+          "ms": 0.326082,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232297655649,
+          "end": 2928232297977761,
+          "ms": 0.322112,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232297669289,
+          "end": 2928232297977761,
+          "ms": 0.308472,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232297669689,
+          "end": 2928232297977761,
+          "ms": 0.308072,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232297669869,
+          "end": 2928232297977761,
+          "ms": 0.307892,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232297675240,
+          "end": 2928232297977761,
+          "ms": 0.302521,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232297505609,
+          "end": 2928232297572099,
+          "ms": 0.06649,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232297610109,
+          "end": 2928232297666189,
+          "ms": 0.05608,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232297498799,
+          "end": 2928232297550419,
+          "ms": 0.05162,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232297460879,
+          "end": 2928232297502139,
+          "ms": 0.04126,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232297603119,
+          "end": 2928232297643809,
+          "ms": 0.04069,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232297627919,
+          "end": 2928232297665939,
+          "ms": 0.03802,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232297535979,
+          "end": 2928232297570589,
+          "ms": 0.03461,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232297538359,
+          "end": 2928232297571259,
+          "ms": 0.0329,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232297603719,
+          "end": 2928232297636449,
+          "ms": 0.03273,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232297605429,
+          "end": 2928232297636279,
+          "ms": 0.03085,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232297504909,
+          "end": 2928232297533909,
+          "ms": 0.029,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232297505179,
+          "end": 2928232297533739,
+          "ms": 0.02856,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232297505269,
+          "end": 2928232297533089,
+          "ms": 0.02782,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232297505689,
+          "end": 2928232297533309,
+          "ms": 0.02762,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232297460879,
+          "end": 2928232297488049,
+          "ms": 0.02717,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232297460879,
+          "end": 2928232297487689,
+          "ms": 0.02681,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232297638979,
+          "end": 2928232297665669,
+          "ms": 0.02669,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232297460879,
+          "end": 2928232297486969,
+          "ms": 0.02609,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232297460879,
+          "end": 2928232297486959,
+          "ms": 0.02608,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232297460879,
+          "end": 2928232297486839,
+          "ms": 0.02596,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232297460879,
+          "end": 2928232297486479,
+          "ms": 0.0256,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232297546419,
+          "end": 2928232297571779,
+          "ms": 0.02536,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232297546899,
+          "end": 2928232297571659,
+          "ms": 0.02476,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232297550839,
+          "end": 2928232297571019,
+          "ms": 0.02018,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232297607149,
+          "end": 2928232297624019,
+          "ms": 0.01687,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232297555179,
+          "end": 2928232297570709,
+          "ms": 0.01553,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232297609179,
+          "end": 2928232297623519,
+          "ms": 0.01434,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232297505609,
+          "end": 2928232297519559,
+          "ms": 0.01395,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232297490439,
+          "end": 2928232297501519,
+          "ms": 0.01108,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232297460879,
+          "end": 2928232297471249,
+          "ms": 0.01037,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232297491529,
+          "end": 2928232297501839,
+          "ms": 0.01031,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232297544149,
+          "end": 2928232297554459,
+          "ms": 0.01031,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232297644739,
+          "end": 2928232297654969,
+          "ms": 0.01023,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232297491169,
+          "end": 2928232297501259,
+          "ms": 0.01009,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232297626459,
+          "end": 2928232297636059,
+          "ms": 0.0096,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232297523879,
+          "end": 2928232297532969,
+          "ms": 0.00909,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232297492659,
+          "end": 2928232297500689,
+          "ms": 0.00803,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232297536159,
+          "end": 2928232297543239,
+          "ms": 0.00708,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232297535989,
+          "end": 2928232297542909,
+          "ms": 0.00692,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232297495279,
+          "end": 2928232297500889,
+          "ms": 0.00561,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232297538309,
+          "end": 2928232297543539,
+          "ms": 0.00523,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232297639409,
+          "end": 2928232297644089,
+          "ms": 0.00468,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232297646819,
+          "end": 2928232297651109,
+          "ms": 0.00429,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232297520149,
+          "end": 2928232297523619,
+          "ms": 0.00347,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232297624319,
+          "end": 2928232297627619,
+          "ms": 0.0033,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232297666639,
+          "end": 2928232297669329,
+          "ms": 0.00269,
+          "preempt": false
+        }
+      ],
+      "workers_off_cpu_at_send": {
+        "1859282": 0.02681,
+        "1859276": 0.0256,
+        "1859277": 0.02717,
+        "1859283": 0.02608,
+        "1859281": 0.02596,
+        "1859279": 0.01037,
+        "1859278": 0.04126,
+        "1859280": 0.02609
+      },
+      "all_workers_off_cpu_at_send_ms": null,
+      "duration_ms": 0.516882
+    },
+    {
+      "name": "edgetime-2-2910",
+      "op": 2910,
+      "start": 2928232312866775,
+      "end": 2928232313223706,
+      "samples": 7,
+      "leaf_symbols": {
+        "566d6526d2c5 scan_home<tomo::xshard_execute(const Task&, Shard&, Op&, uint32_t)::<lambda(tomo::KvObj*)> >+0x85 (inlined)": 1
+      },
+      "switches": [
+        {
+          "tid": 1859279,
+          "ns": 2928232312876495,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232312895065,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232312895095,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232312895405,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232312895615,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232312895715,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232312895925,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232312896155,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232312922296,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232312922485,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232312922596,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232312928125,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232312930325,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232312931905,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232312933156,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232312944845,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232312944885,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232312945505,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232312947825,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232312949125,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232312949545,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232312959316,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232312962625,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232312967085,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232312967336,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232312967645,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232312968186,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232312970046,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232312970236,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232312972076,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232312972366,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232312975426,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232312975736,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232312984906,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232312985156,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232312985536,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232312985726,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232312987816,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232312988576,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232312989326,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232312991346,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232312995776,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232312996046,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232312996556,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232313004586,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232313006466,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232313010066,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232313032576,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232313032826,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232313032936,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232313033316,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232313033576,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232313033896,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232313033986,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232313058806,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232313059026,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232313061416,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232313065276,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232313065626,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232313066036,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232313066056,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232313078566,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232313078776,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232313079976,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232313082746,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232313083156,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232313085816,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232313101676,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232313101926,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232313103156,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232313103576,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232313103726,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232313104376,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232313104646,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232313127246,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232313129836,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232313130696,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232313135866,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232313137626,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232313137976,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232313139806,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232313150516,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232313151906,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232313154466,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232313154986,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232313164026,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232313164326,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232313164796,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232313167586,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232313168146,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232313168676,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232313174106,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        }
+      ],
+      "stack_command": [
+        "perf",
+        "script",
+        "-i",
+        "build/at15c/profile-post-mono/perf.data",
+        "--ns",
+        "--pid",
+        "1859275",
+        "--time",
+        "2928232.312866775,2928232.313223706",
+        "-F",
+        "+pid"
+      ],
+      "offcpu": [
+        {
+          "tid": 1859275,
+          "start": 2928232312866775,
+          "end": 2928232313223706,
+          "ms": 0.356931,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232312928125,
+          "end": 2928232313033896,
+          "ms": 0.105771,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232313127246,
+          "end": 2928232313223706,
+          "ms": 0.09646,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232313130696,
+          "end": 2928232313223706,
+          "ms": 0.09301,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232313137626,
+          "end": 2928232313223706,
+          "ms": 0.08608,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232313139806,
+          "end": 2928232313223706,
+          "ms": 0.0839,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232312949545,
+          "end": 2928232313033316,
+          "ms": 0.083771,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232313154986,
+          "end": 2928232313223706,
+          "ms": 0.06872,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232312972366,
+          "end": 2928232313033576,
+          "ms": 0.06121,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232313167586,
+          "end": 2928232313223706,
+          "ms": 0.05612,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232313168676,
+          "end": 2928232313223706,
+          "ms": 0.05503,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232312933156,
+          "end": 2928232312985536,
+          "ms": 0.05238,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232313174106,
+          "end": 2928232313223706,
+          "ms": 0.0496,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232312987816,
+          "end": 2928232313032576,
+          "ms": 0.04476,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232313059026,
+          "end": 2928232313103156,
+          "ms": 0.04413,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232312989326,
+          "end": 2928232313032826,
+          "ms": 0.0435,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232313065626,
+          "end": 2928232313104376,
+          "ms": 0.03875,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232313065276,
+          "end": 2928232313103726,
+          "ms": 0.03845,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232313066036,
+          "end": 2928232313103576,
+          "ms": 0.03754,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232312947825,
+          "end": 2928232312985156,
+          "ms": 0.037331,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232312930325,
+          "end": 2928232312967645,
+          "ms": 0.03732,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232312922596,
+          "end": 2928232312959316,
+          "ms": 0.03672,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232313066056,
+          "end": 2928232313101676,
+          "ms": 0.03562,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232312931905,
+          "end": 2928232312967336,
+          "ms": 0.035431,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232313129836,
+          "end": 2928232313164026,
+          "ms": 0.03419,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232312866775,
+          "end": 2928232312896155,
+          "ms": 0.02938,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232312866775,
+          "end": 2928232312895925,
+          "ms": 0.02915,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232312866775,
+          "end": 2928232312895715,
+          "ms": 0.02894,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232312866775,
+          "end": 2928232312895615,
+          "ms": 0.02884,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232312866775,
+          "end": 2928232312895405,
+          "ms": 0.02863,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232313135866,
+          "end": 2928232313164326,
+          "ms": 0.02846,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232313004586,
+          "end": 2928232313032936,
+          "ms": 0.02835,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232312866775,
+          "end": 2928232312895095,
+          "ms": 0.02832,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232312866775,
+          "end": 2928232312895065,
+          "ms": 0.02829,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232313006466,
+          "end": 2928232313033986,
+          "ms": 0.02752,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232312922296,
+          "end": 2928232312944885,
+          "ms": 0.022589,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232312922485,
+          "end": 2928232312944845,
+          "ms": 0.02236,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232313082746,
+          "end": 2928232313104646,
+          "ms": 0.0219,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232313058806,
+          "end": 2928232313078566,
+          "ms": 0.01976,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232313061416,
+          "end": 2928232313078776,
+          "ms": 0.01736,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232313085816,
+          "end": 2928232313101926,
+          "ms": 0.01611,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232312970046,
+          "end": 2928232312984906,
+          "ms": 0.01486,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232312996556,
+          "end": 2928232313010066,
+          "ms": 0.01351,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232313137976,
+          "end": 2928232313150516,
+          "ms": 0.01254,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232312975736,
+          "end": 2928232312985726,
+          "ms": 0.00999,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232312866775,
+          "end": 2928232312876495,
+          "ms": 0.00972,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232312968186,
+          "end": 2928232312975426,
+          "ms": 0.00724,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232312988576,
+          "end": 2928232312995776,
+          "ms": 0.0072,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232312991346,
+          "end": 2928232312996046,
+          "ms": 0.0047,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232312962625,
+          "end": 2928232312967085,
+          "ms": 0.00446,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232312945505,
+          "end": 2928232312949125,
+          "ms": 0.00362,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232313164796,
+          "end": 2928232313168146,
+          "ms": 0.00335,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232313079976,
+          "end": 2928232313083156,
+          "ms": 0.00318,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232313151906,
+          "end": 2928232313154466,
+          "ms": 0.00256,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232312970236,
+          "end": 2928232312972076,
+          "ms": 0.00184,
+          "preempt": false
+        }
+      ],
+      "workers_off_cpu_at_send": {
+        "1859282": 0.02915,
+        "1859276": 0.02863,
+        "1859277": 0.02829,
+        "1859283": 0.02938,
+        "1859281": 0.02894,
+        "1859279": 0.00972,
+        "1859278": 0.02884,
+        "1859280": 0.02832
+      },
+      "all_workers_off_cpu_at_send_ms": null,
+      "duration_ms": 0.356931
+    },
+    {
+      "name": "edgetime-3-1526",
+      "op": 1526,
+      "start": 2928232614975665,
+      "end": 2928232615476977,
+      "samples": 6,
+      "leaf_symbols": {
+        "566d65464e06 operator[]+0x1a6 (inlined)": 1
+      },
+      "switches": [
+        {
+          "tid": 1859276,
+          "ns": 2928232614984585,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232614997895,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232614998135,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232614998215,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232614998605,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232614998875,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232614998965,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232615005345,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232615006565,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232615007015,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232615007345,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232615007835,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232615013685,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232615016735,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232615016955,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232615017205,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232615017395,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232615017805,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232615017995,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232615021395,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232615021975,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232615022285,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232615022545,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232615023045,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232615025405,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232615043835,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232615043975,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232615044245,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232615044465,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232615046865,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232615046935,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232615049235,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232615049315,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232615054145,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232615054415,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232615056805,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232615057245,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232615064535,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232615064835,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232615069095,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232615069655,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232615085815,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232615086145,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232615086415,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232615086665,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232615086905,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232615087235,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232615087705,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232615117125,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232615118685,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232615119635,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232615120325,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232615121325,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232615122515,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232615123565,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232615133855,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232615135415,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232615137166,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232615138155,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232615149775,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232615150135,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232615150295,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232615152895,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232615152986,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232615153486,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232615157866,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232615158155,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232615159446,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232615161286,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232615163215,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232615164006,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232615178115,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232615178355,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232615180946,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232615181686,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232615187615,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        }
+      ],
+      "stack_command": [
+        "perf",
+        "script",
+        "-i",
+        "build/at15c/profile-post-mono/perf.data",
+        "--ns",
+        "--pid",
+        "1859275",
+        "--time",
+        "2928232.614975665,2928232.615476977",
+        "-F",
+        "+pid"
+      ],
+      "offcpu": [
+        {
+          "tid": 1859275,
+          "start": 2928232614975665,
+          "end": 2928232615476977,
+          "ms": 0.501312,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232615117125,
+          "end": 2928232615476977,
+          "ms": 0.359852,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232615119635,
+          "end": 2928232615476977,
+          "ms": 0.357342,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232615152986,
+          "end": 2928232615476977,
+          "ms": 0.323991,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232615161286,
+          "end": 2928232615476977,
+          "ms": 0.315691,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232615164006,
+          "end": 2928232615476977,
+          "ms": 0.312971,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232615180946,
+          "end": 2928232615476977,
+          "ms": 0.296031,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232615181686,
+          "end": 2928232615476977,
+          "ms": 0.295291,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232615187615,
+          "end": 2928232615476977,
+          "ms": 0.289362,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232615021395,
+          "end": 2928232615087235,
+          "ms": 0.06584,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232615021975,
+          "end": 2928232615087705,
+          "ms": 0.06573,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232615123565,
+          "end": 2928232615178355,
+          "ms": 0.05479,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232615013685,
+          "end": 2928232615064535,
+          "ms": 0.05085,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232614975665,
+          "end": 2928232615017995,
+          "ms": 0.04233,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232615046935,
+          "end": 2928232615085815,
+          "ms": 0.03888,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232615049235,
+          "end": 2928232615086665,
+          "ms": 0.03743,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232615121325,
+          "end": 2928232615157866,
+          "ms": 0.036541,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232615118685,
+          "end": 2928232615150135,
+          "ms": 0.03145,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232615057245,
+          "end": 2928232615086905,
+          "ms": 0.02966,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232615122515,
+          "end": 2928232615150295,
+          "ms": 0.02778,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232615152895,
+          "end": 2928232615178115,
+          "ms": 0.02522,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232614975665,
+          "end": 2928232614998965,
+          "ms": 0.0233,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232614975665,
+          "end": 2928232614998875,
+          "ms": 0.02321,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232614975665,
+          "end": 2928232614998605,
+          "ms": 0.02294,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232614975665,
+          "end": 2928232614998215,
+          "ms": 0.02255,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232614975665,
+          "end": 2928232614998135,
+          "ms": 0.02247,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232614975665,
+          "end": 2928232614997895,
+          "ms": 0.02223,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232615022285,
+          "end": 2928232615044245,
+          "ms": 0.02196,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232615064835,
+          "end": 2928232615086415,
+          "ms": 0.02158,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232615023045,
+          "end": 2928232615044465,
+          "ms": 0.02142,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232615022545,
+          "end": 2928232615043835,
+          "ms": 0.02129,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232615025405,
+          "end": 2928232615043975,
+          "ms": 0.01857,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232615069655,
+          "end": 2928232615086145,
+          "ms": 0.01649,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232615120325,
+          "end": 2928232615133855,
+          "ms": 0.01353,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232615056805,
+          "end": 2928232615069095,
+          "ms": 0.01229,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232615005345,
+          "end": 2928232615017205,
+          "ms": 0.01186,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232615138155,
+          "end": 2928232615149775,
+          "ms": 0.01162,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232615006565,
+          "end": 2928232615017805,
+          "ms": 0.01124,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232615007015,
+          "end": 2928232615017395,
+          "ms": 0.01038,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232615007345,
+          "end": 2928232615016955,
+          "ms": 0.00961,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232614975665,
+          "end": 2928232614984585,
+          "ms": 0.00892,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232615007835,
+          "end": 2928232615016735,
+          "ms": 0.0089,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232615046865,
+          "end": 2928232615054145,
+          "ms": 0.00728,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232615049315,
+          "end": 2928232615054415,
+          "ms": 0.0051,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232615153486,
+          "end": 2928232615158155,
+          "ms": 0.004669,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232615159446,
+          "end": 2928232615163215,
+          "ms": 0.003769,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232615135415,
+          "end": 2928232615137166,
+          "ms": 0.001751,
+          "preempt": false
+        }
+      ],
+      "workers_off_cpu_at_send": {
+        "1859282": 0.0233,
+        "1859276": 0.00892,
+        "1859277": 0.02321,
+        "1859283": 0.02255,
+        "1859281": 0.02294,
+        "1859279": 0.02247,
+        "1859278": 0.04233,
+        "1859280": 0.02223
+      },
+      "all_workers_off_cpu_at_send_ms": null,
+      "duration_ms": 0.501312
+    },
+    {
+      "name": "edgetime-3-2910",
+      "op": 2910,
+      "start": 2928232630907893,
+      "end": 2928232631441855,
+      "samples": 7,
+      "leaf_symbols": {
+        "566d651eb47c service_client_migrations<false>+0x1ac (inlined)": 1
+      },
+      "switches": [
+        {
+          "tid": 1859276,
+          "ns": 2928232630916753,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232630934104,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232630934253,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232630934713,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232630934964,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232630935213,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232630935404,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232630935604,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232630960553,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232630962024,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232630965753,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232630966973,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232630968133,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232630969004,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232630973264,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232630991304,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232630993004,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232630995324,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232630995664,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232631014204,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232631017554,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232631027634,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631027694,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232631028324,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232631030134,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232631030734,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631031214,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631033134,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232631033284,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232631036804,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631037444,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232631047604,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631048114,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232631048564,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232631050734,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631051064,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232631054264,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631058654,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232631058984,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232631060264,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631061994,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631063704,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232631065444,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232631067624,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631068194,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232631085144,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631085564,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232631086034,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232631086094,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232631086204,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232631086764,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232631087464,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232631112014,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232631114774,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232631119084,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232631119694,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631120484,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232631121844,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232631122254,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232631131514,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232631132734,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232631135874,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232631136274,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232631153784,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232631153894,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232631154214,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232631154354,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631154654,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232631154734,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232631155034,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232631179964,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "ns": 2928232631180584,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232631183834,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "ns": 2928232631186674,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631187044,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232631187434,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "ns": 2928232631188584,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232631195774,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631195774,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232631196984,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "ns": 2928232631199624,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232631201605,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232631202174,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232631209605,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232631209725,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232631209954,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232631211094,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "ns": 2928232631213234,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "ns": 2928232631213265,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232631213554,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "ns": 2928232631214045,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "ns": 2928232631220174,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        }
+      ],
+      "stack_command": [
+        "perf",
+        "script",
+        "-i",
+        "build/at15c/profile-post-mono/perf.data",
+        "--ns",
+        "--pid",
+        "1859275",
+        "--time",
+        "2928232.630907893,2928232.631441855",
+        "-F",
+        "+pid"
+      ],
+      "offcpu": [
+        {
+          "tid": 1859275,
+          "start": 2928232630907893,
+          "end": 2928232631441855,
+          "ms": 0.533962,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232631180584,
+          "end": 2928232631441855,
+          "ms": 0.261271,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232631186674,
+          "end": 2928232631441855,
+          "ms": 0.255181,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232631188584,
+          "end": 2928232631441855,
+          "ms": 0.253271,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232631199624,
+          "end": 2928232631441855,
+          "ms": 0.242231,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232631213234,
+          "end": 2928232631441855,
+          "ms": 0.228621,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232631213265,
+          "end": 2928232631441855,
+          "ms": 0.22859,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232631214045,
+          "end": 2928232631441855,
+          "ms": 0.22781,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232631220174,
+          "end": 2928232631441855,
+          "ms": 0.221681,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232630965753,
+          "end": 2928232631086034,
+          "ms": 0.120281,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232630969004,
+          "end": 2928232631087464,
+          "ms": 0.11846,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232630995664,
+          "end": 2928232631086094,
+          "ms": 0.09043,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232630973264,
+          "end": 2928232631048564,
+          "ms": 0.0753,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232630966973,
+          "end": 2928232631028324,
+          "ms": 0.061351,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232630968133,
+          "end": 2928232631027694,
+          "ms": 0.059561,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232630960553,
+          "end": 2928232631014204,
+          "ms": 0.053651,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232631033284,
+          "end": 2928232631086204,
+          "ms": 0.05292,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232631114774,
+          "end": 2928232631153894,
+          "ms": 0.03912,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232631119084,
+          "end": 2928232631153784,
+          "ms": 0.0347,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232631119694,
+          "end": 2928232631154354,
+          "ms": 0.03466,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232631050734,
+          "end": 2928232631085144,
+          "ms": 0.03441,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232631120484,
+          "end": 2928232631154654,
+          "ms": 0.03417,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232631121844,
+          "end": 2928232631155034,
+          "ms": 0.03319,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232631122254,
+          "end": 2928232631154214,
+          "ms": 0.03196,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232631179964,
+          "end": 2928232631209725,
+          "ms": 0.029761,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232630962024,
+          "end": 2928232630991304,
+          "ms": 0.02928,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232630907893,
+          "end": 2928232630935604,
+          "ms": 0.027711,
+          "preempt": false
+        },
+        {
+          "tid": 1859282,
+          "start": 2928232630907893,
+          "end": 2928232630935404,
+          "ms": 0.027511,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232630907893,
+          "end": 2928232630935213,
+          "ms": 0.02732,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232630907893,
+          "end": 2928232630934964,
+          "ms": 0.027071,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232630907893,
+          "end": 2928232630934713,
+          "ms": 0.02682,
+          "preempt": false
+        },
+        {
+          "tid": 1859280,
+          "start": 2928232630907893,
+          "end": 2928232630934253,
+          "ms": 0.02636,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232630907893,
+          "end": 2928232630934104,
+          "ms": 0.026211,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232631187434,
+          "end": 2928232631209605,
+          "ms": 0.022171,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232631065444,
+          "end": 2928232631086764,
+          "ms": 0.02132,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232631112014,
+          "end": 2928232631131514,
+          "ms": 0.0195,
+          "preempt": false
+        },
+        {
+          "tid": 1859283,
+          "start": 2928232631136274,
+          "end": 2928232631154734,
+          "ms": 0.01846,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232631068194,
+          "end": 2928232631085564,
+          "ms": 0.01737,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232631030734,
+          "end": 2928232631047604,
+          "ms": 0.01687,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232631183834,
+          "end": 2928232631195774,
+          "ms": 0.01194,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232631037444,
+          "end": 2928232631048114,
+          "ms": 0.01067,
+          "preempt": false
+        },
+        {
+          "tid": 1859278,
+          "start": 2928232631017554,
+          "end": 2928232631027634,
+          "ms": 0.01008,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232630907893,
+          "end": 2928232630916753,
+          "ms": 0.00886,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232631187044,
+          "end": 2928232631195774,
+          "ms": 0.00873,
+          "preempt": false
+        },
+        {
+          "tid": 1859279,
+          "start": 2928232631202174,
+          "end": 2928232631209954,
+          "ms": 0.00778,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232631051064,
+          "end": 2928232631058654,
+          "ms": 0.00759,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232631060264,
+          "end": 2928232631067624,
+          "ms": 0.00736,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232631030134,
+          "end": 2928232631036804,
+          "ms": 0.00667,
+          "preempt": false
+        },
+        {
+          "tid": 1859277,
+          "start": 2928232631054264,
+          "end": 2928232631058984,
+          "ms": 0.00472,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232631196984,
+          "end": 2928232631201605,
+          "ms": 0.004621,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232631132734,
+          "end": 2928232631135874,
+          "ms": 0.00314,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232631211094,
+          "end": 2928232631213554,
+          "ms": 0.00246,
+          "preempt": false
+        },
+        {
+          "tid": 1859276,
+          "start": 2928232630993004,
+          "end": 2928232630995324,
+          "ms": 0.00232,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232631031214,
+          "end": 2928232631033134,
+          "ms": 0.00192,
+          "preempt": false
+        },
+        {
+          "tid": 1859281,
+          "start": 2928232631061994,
+          "end": 2928232631063704,
+          "ms": 0.00171,
+          "preempt": false
+        }
+      ],
+      "workers_off_cpu_at_send": {
+        "1859282": 0.027511,
+        "1859276": 0.00886,
+        "1859277": 0.026211,
+        "1859283": 0.027711,
+        "1859281": 0.02732,
+        "1859279": 0.027071,
+        "1859278": 0.02682,
+        "1859280": 0.02636
+      },
+      "all_workers_off_cpu_at_send_ms": null,
+      "duration_ms": 0.533962
+    }
+  ],
+  "perf_command": [
+    "taskset",
+    "-c",
+    "127",
+    "perf",
+    "record",
+    "-C",
+    "112-119",
+    "-g",
+    "--clockid",
+    "mono",
+    "--call-graph",
+    "dwarf,8192",
+    "--switch-events",
+    "-e",
+    "cycles:u",
+    "-F",
+    "999",
+    "-o",
+    "/home/user/Projects/cx-at15/build/at15c/profile-post-mono/perf.data"
+  ],
+  "extraction_command": [
+    "perf",
+    "script",
+    "-i",
+    "build/at15c/profile-post-mono/perf.data",
+    "--ns",
+    "--show-switch-events",
+    "-F",
+    "+pid"
+  ]
+}
