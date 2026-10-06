@@ -1,0 +1,7 @@
+  row budget: 900s; median=43.22s; correctness-plan-fallback; mode equivalence part (all execution modes and knobs)
+DIFFER suites (44): string list set zset hash hexpire edgetime xshard xmove bitmap hll bitfield cgaps stream script streamgrp zsetops geo doubles scan multi edgeenc edgeproto cmdgap cmdgap2 sort servertail arity storeorder infofix multidb blocking pubsub fanout spubsub notify wiredump climon compatintro aclsel cmdmeta s6fix ccfix psfix
+DIFFER geometry: split (--ratio 6:2)
+DIFFER matrix: atomic={} seeds={7 19 20 23 27} legs=0 logs=/home/user/Projects/cx-ccfix/build/gate-run.S5ZBHC/jobs/differ-equivalence/differ
+  mode equivalence: all 32 execution/knob combinations       ok (exact replies and mechanism witnesses)
+DIFFER GATE: pass=1 fail=0 runtime=0m43s
+  mode equivalence part (all execution modes and knobs) ok

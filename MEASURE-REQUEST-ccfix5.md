@@ -45,7 +45,10 @@ lifetime count. `command_config_resetstat()` snapshots `ReadLocalStats` through
 CC18 explicitly exercises RESETSTAT three
 times, including at the end of its suite. The following psfix suite performs
 configuration/persistence operations and contributes no ordinary GET hits in
-atomic=0. Thus the terminal zero says nothing about earlier lane execution.
+atomic=0. Atomic=1 then runs four seed-19 MULTI repeats, which leave a small
+post-reset count (21 after the last repeat in final run 1). That explains
+why its original terminal witness still passed. The terminal zero in atomic=0
+says nothing about earlier lane execution.
 
 The full replay on POST, eight fused threads on 112–119, load on 120–127,
 16 shards, `--read-local 1 --atomic 0 --databases 16`, gives seed 7:
@@ -222,9 +225,12 @@ These are fresh merged-arm receipts; they do not rewrite ccfix4's recorded 0/11.
 
 Run 1 is complete: selected gate exit 0, atomic=0 **216/216** rows and atomic=1
 **220/220** rows, 981 peak hits in each, all 15 pending windows witnessed.
-[Receipt](docs/ccfix5/matrices/armed-1/receipt.json). The remaining two armed
-repetitions and split repetition are running. There are three serial armed-fused
-repetitions plus one split repetition,
+[Receipt](docs/ccfix5/matrices/armed-1/receipt.json). Split also completed with
+selected gate exit 0: **220/220** atomic=0 and **224/224** atomic=1, all 15 held
+windows, plus all mode-equivalence cells
+([receipt](docs/ccfix5/matrices/split/receipt.json)). The remaining two armed
+repetitions are running. There are three serial armed-fused repetitions plus
+one split repetition,
 using the full discovered suite/seed matrix in each part. Armed servers use
 112–119, load uses 120–127, and Redis 7.4 is pinned to CPU 120. To fit the
 90-minute lane limit, split overlaps armed after the paired diagnosis and all

@@ -1,0 +1,88 @@
+{
+  "name": "split",
+  "source": "/home/user/Projects/cx-ccfix/build/gate-run.S5ZBHC",
+  "group": "split",
+  "gate_exit_code": 0,
+  "private_correctness_complete": true,
+  "folded": {
+    "schema": 1,
+    "group": "split",
+    "parts": [
+      "split-0",
+      "split-1",
+      "equivalence"
+    ],
+    "start": 1791329191.1633136,
+    "end": 1791330192.7802358,
+    "seconds": 1001.6169221401215,
+    "comparisons": 476,
+    "complete": true
+  },
+  "parts": {
+    "split-0": {
+      "schema": 1,
+      "part": "split-0",
+      "run": "iteration:gate-run.S5ZBHC",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        27
+      ],
+      "comparisons": 220,
+      "complete": true,
+      "verdicts": [
+        "differ ccfix (atomic=0 seed=7)                             ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+        "differ ccfix (atomic=0 seed=19)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+        "differ ccfix (atomic=0 seed=20)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+        "differ ccfix (atomic=0 seed=23)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+        "differ ccfix (atomic=0 seed=27)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+        "DIFFER GATE: pass=220 fail=0 runtime=7m59s"
+      ],
+      "pending_windows": 0
+    },
+    "split-1": {
+      "schema": 1,
+      "part": "split-1",
+      "run": "iteration:gate-run.S5ZBHC",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        27
+      ],
+      "comparisons": 224,
+      "complete": true,
+      "verdicts": [
+        "differ ccfix (atomic=1 seed=7)                             ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+        "differ ccfix (atomic=1 seed=19)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+        "differ ccfix (atomic=1 seed=20)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+        "differ ccfix (atomic=1 seed=23)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+        "differ ccfix (atomic=1 seed=27)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+        "DIFFER GATE: pass=224 fail=0 runtime=7m59s"
+      ],
+      "pending_windows": 15
+    },
+    "equivalence": {
+      "schema": 1,
+      "part": "equivalence",
+      "run": "iteration:gate-run.S5ZBHC",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        27
+      ],
+      "comparisons": 32,
+      "complete": true,
+      "verdicts": [
+        "DIFFER GATE: pass=1 fail=0 runtime=0m43s"
+      ]
+    }
+  },
+  "outer_ledger": "PARTIAL\t0\tGATE_ONLY_JOBS=differ-split; NOT A RECEIPT\nok\t0.000000\trelease build (+footprint locks)\nok\t478.920000\tRedis 7.4 differential part (split, atomic 0)\nok\t478.730000\tRedis 7.4 differential part (split, atomic 1)\nok\t42.700000\tmode equivalence part (all execution modes and knobs)\n",
+  "archive_sha256": "4a2a5a1446c8b1b2dc4c7ef25b92656944dce62d70689d5d7c96e09d5a958ff2"
+}
