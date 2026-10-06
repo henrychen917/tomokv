@@ -52,14 +52,25 @@ def main():
     target_dir.mkdir()
     oracle_dir.mkdir()
     target = [str(args.binary.resolve()), '--bind', '127.0.0.1', '--port', str(args.port),
-              '--shards', '16', '--ratio', '6:2', '--thread-mode', args.mode,
+              '--shards', '16', '--thread-mode', args.mode,
               '--databases', str(args.databases), '--dir', str(target_dir), '--save', '',
               '--appendonly', 'yes', '--appendfsync', 'no', '--auto-aof-rewrite-percentage', '0']
+    if args.mode == '2s':
+        target += ['--ratio', '6:2']
     oracle = [str(args.oracle.resolve()), '--bind', '127.0.0.1', '--port', str(args.port + 1),
               '--dir', str(oracle_dir), '--save', '', '--appendonly', 'yes', '--appendfsync', 'no',
               '--auto-aof-rewrite-percentage', '0', '--protected-mode', 'no']
     with boot(target, args.cores, args.port, args.root / 'target.log'), \
             boot(oracle, args.load_cores, args.port + 1, args.root / 'oracle.log'):
+        if args.expect_pre_failure:
+            client = Conn('127.0.0.1', args.port)
+            try:
+                fields = info(client, 'persistence')
+                assert 'loading' not in fields and 'rdb_saves' not in fields
+                assert 'aof_rewrite_completions' in fields and 'aof_rewrite_consecutive_failures' in fields
+                print('PSFIX PRE INFO:', ' '.join(fields), flush=True)
+            finally:
+                client.close()
         command = ['taskset', '-c', args.load_cores, sys.executable, 'tests/differ.py',
                    '127.0.0.1', str(args.port), '127.0.0.1', str(args.port + 1), 'psfix', '7']
         for protocol in ([], ['-3']):
