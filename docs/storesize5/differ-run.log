@@ -5,3 +5,8 @@ END armed-0 PASS 554.396s
 START split-1 taskset -c 112-127 tests/differ_gate.sh /home/user/Projects/cx-storesize/build/storesize5/POST/tomokv 17899 17900 112-119 6:2
 END split-1 FAIL 557.875s
 START armed-1 taskset -c 112-127 tests/differ_gate.sh /home/user/Projects/cx-storesize/build/storesize5/POST/tomokv 17899 17900 112-119 6:2
+END armed-1 FAIL 339.861s
+START equivalence taskset -c 112-127 tests/differ_gate.sh /home/user/Projects/cx-storesize/build/storesize5/POST/tomokv 17899 17900 112-119 6:2
+END equivalence PASS 42.441s
+{"group": "split", "complete": false, "verdict": "FAIL", "error": "split-1: missing or unsuccessful worker completion ['1', '0', '1']", "scope": "strict gate inventory fold; serial lane run, no parallel wall-time budget"}
+{"group": "armed", "complete": false, "verdict": "FAIL", "error": "armed-1: missing or unsuccessful worker completion ['-15', '0', '1']", "scope": "strict gate inventory fold; serial lane run, no parallel wall-time budget"}

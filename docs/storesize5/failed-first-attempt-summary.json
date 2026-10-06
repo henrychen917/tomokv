@@ -1,0 +1,22 @@
+[
+  {
+    "part": "split-1",
+    "completed_legs": 256,
+    "passed_legs": 255,
+    "failed_legs": [
+      "wiredump\t1\t22\t0\t1\twiredump-a1-s22.txt"
+    ],
+    "exact_positions": 1800,
+    "convergence_checks": 6
+  },
+  {
+    "part": "armed-1",
+    "completed_legs": 159,
+    "passed_legs": 158,
+    "failed_legs": [
+      "edgetime\t1\t20\t0\t1\tedgetime-a1-s20.txt"
+    ],
+    "exact_positions": 1192,
+    "convergence_checks": 4
+  }
+]

@@ -107,11 +107,29 @@ The existing logger does not retain the unequal values for this arm and repeats
 its diagnostic for later operations once the cumulative diff count is nonzero;
 the final diff count is one. No compiler was active on the fenced CPUs in the
 post-failure process snapshot. No cause or candidate-specific regression is
-claimed from this one sample. The failed log and invocation are retained under
+claimed from this sample. The failed log and invocation are retained under
 `docs/storesize5/failed-first-split-1`. All six MULTI and multidb seeds and the
 four historical MULTI repeats passed in that lifetime. A complete fresh
 split/atomic=1 replay with unchanged source, binary, seeds, and tolerances is
-pending; no individual leg is replaced inside a completed failed lifetime.
+running; no individual leg is replaced inside a completed failed lifetime.
+
+The first armed/atomic=1 attempt subsequently failed `edgetime` seed 20 at
+operation 445: PTTL target `2591999962`, Redis `2591999969` (−7 ms). Its 159
+completed legs contain 158 passes and this one failure. To preserve the
+75-minute budget for full replacement lifetimes, this already-failed attempt
+was explicitly stopped after seed 23's wiredump leg; it is **incomplete**, not a
+completed matrix. The exact owned harness received SIGTERM, its listener
+cleanup completed, and the 32-cell mode-equivalence run then passed. The
+cancellation record, raw PTTL reply log, both failed/partial attempts' full
+journals and coverage artifacts are preserved in `docs/storesize5` and
+`failed-first-attempt.tar.gz`. These failures are not erased by later success.
+
+Fresh full atomic-one lifetimes are running serially with the unchanged
+candidate and comparator. The first failed split attempt still passed all
+1,800 DBSIZE exact positions and six convergence checks; the partial armed
+attempt passed 1,192 positions and four convergence checks. The selected
+four-part matrix requires its own 7,200 positions and 24 convergence checks.
+The final report must distinguish those fresh receipts from these originals.
 
 ## Rebuilt artifacts and hot-body audit
 
