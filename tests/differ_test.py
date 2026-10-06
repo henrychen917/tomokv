@@ -152,6 +152,49 @@ class ClockReplies(unittest.TestCase):
                 self.assertEqual('CLOCK TOLERANCE' in log.getvalue(), passed)
                 self.assertIn('clock tolerances -> ' + ('PASS' if passed else 'FAIL'), log.getvalue())
 
+    def test_multidb_exact_positions_and_publication_fail_independently(self):
+        expected = sum(o == ['DBSIZE', 'NOW'] for o in
+                       self.differ.gen_multidb(random.Random(7)))
+        self.assertGreater(expected, 0)
+        for wrong_exact, stuck in ((False, False), (True, False), (False, True)):
+            sent = [[], []]
+            polls = 0
+
+            def answer(argv, target=False):
+                nonlocal polls
+                sent[int(target)].append(argv)
+                if argv[0] != b'DBSIZE':
+                    return b'+OK\r\n'
+                if not target:
+                    self.assertEqual(argv, [b'DBSIZE'])
+                    return integer(1)
+                if argv == [b'DBSIZE', b'NOW']:
+                    first = sum(command == argv for command in sent[1]) == 1
+                    return integer(2 if wrong_exact and first else 1)
+                polls += 1
+                return integer(0 if stuck or polls < 3 else 1)
+
+            with self.subTest(wrong_exact=wrong_exact, stuck=stuck), \
+                    patch.object(sys, 'argv', ['differ.py', 'target', '1', 'oracle', '2', 'multidb', '7']), \
+                    patch('socket.create_connection', side_effect=[
+                        self.connection(lambda argv: answer(argv, True))[0],
+                        self.connection(answer)[0]]), \
+                    contextlib.redirect_stdout(io.StringIO()) as log, self.assertRaises(SystemExit) as exit:
+                runpy.run_path(str(ROOT / 'tests/differ.py'), run_name='__main__')
+            self.assertEqual(exit.exception.code, int(wrong_exact or stuck))
+            self.assertIn('exact_positions=%d' % expected, log.getvalue())
+            self.assertEqual(sum(argv == [b'DBSIZE', b'NOW'] for argv in sent[1]), expected + 1)
+            self.assertEqual('DBSIZE EXACT PROPERTY FAIL' in log.getvalue(), wrong_exact)
+            self.assertEqual('DBSIZE PUBLICATION PROPERTY FAIL' in log.getvalue(), stuck)
+            self.assertNotIn('CLOCK TOLERANCE', log.getvalue())
+            self.assertGreaterEqual(polls, 3)
+
+    def test_dbsize_rejects_equal_noninteger_replies(self):
+        for reply in (b'+OK\r\n', b'-ERR broken\r\n', b':-1\r\n',
+                      b':01\r\n', b'$1\r\n1\r\n'):
+            with self.subTest(reply=reply), self.assertRaises(ValueError):
+                self.differ.dbsize_integer(reply)
+
     def test_wiredump_tolerates_only_expiry_and_never_hash_values(self):
         for delta, change_value in ((1, False), (-1, False), (2, False), (1, True)):
             def answer(argv, target=False):

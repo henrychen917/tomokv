@@ -5756,6 +5756,40 @@ def gen_infofix(rng):
             ops.append(["PING"])
     return ops
 
+def dbsize_integer(reply):
+    """DBSIZE counts are exact nonnegative RESP integers, never clock tolerances."""
+    if re.fullmatch(br":(0|[1-9][0-9]*)\r\n", reply) is None:
+        raise ValueError("DBSIZE did not return a count: %r" % reply)
+    return int(reply[1:-2])
+
+
+def wait_published_dbsize(sock, file, expected):
+    """Observe batch publication every 1 ms, with a hard 100 ms reply deadline."""
+    started = time.monotonic()
+    deadline = started + 0.100
+    polls = 0
+    value = None
+    timeout = sock.gettimeout()
+    try:
+        while time.monotonic() < deadline:
+            sock.settimeout(max(0.000001, deadline - time.monotonic()))
+            sock.sendall(enc(["DBSIZE"]))
+            value = dbsize_integer(read_reply(file))
+            coverage.note(["DBSIZE"], "bounded batch-publication property")
+            polls += 1
+            elapsed = time.monotonic() - started
+            if value == expected and elapsed <= 0.100:
+                return True, polls, elapsed, value
+            remaining = deadline - time.monotonic()
+            if remaining > 0:
+                time.sleep(min(0.001, remaining))
+    except TimeoutError:
+        pass
+    finally:
+        sock.settimeout(timeout)
+    return False, polls, time.monotonic() - started, value
+
+
 def gen_multidb(rng):
     """One deep pipeline switches namespaces while older owner work is still in flight."""
     keys = ["mdb:%d" % i for i in range(24)] + ["mdb:\0binary", "mdb:" + "k" * 255]
@@ -5786,7 +5820,10 @@ def gen_multidb(rng):
         elif choice == 7:
             ops.append(["FLUSHDB"])
         elif choice == 8:
-            ops.append(["DBSIZE"])
+            # gen_edgetime deliberately excludes batch-published DBSIZE/INFO.
+            # Preserve this command position, but compare NOW to Redis DBSIZE
+            # as an exact-count property in the runner below.
+            ops.append(["DBSIZE", "NOW"])
         elif choice == 9:
             ops.append(["KEYS", "mdb:*"])
         elif choice == 10:
@@ -5795,8 +5832,10 @@ def gen_multidb(rng):
             ops += [["MULTI"], ["SELECT", str(rng.randrange(4))], ["SET", key, "txn"],
                     ["GET", key], ["SELECT", str(rng.randrange(4))], ["GET", key], ["EXEC"]]
     for db in range(4):
-        ops += [["SELECT", str(db)], ["KEYS", "*"], ["DBSIZE"]]
-    ops += [["SELECT", "0"], ["FLUSHALL"]]
+        ops += [["SELECT", str(db)], ["KEYS", "*"], ["DBSIZE", "NOW"]]
+    # Leave a known nonzero population for the publication check after the last
+    # reply. A publisher stuck at zero must fail, even if the random tail is empty.
+    ops += [["SELECT", "0"], ["FLUSHALL"], ["SET", "mdb:publication", "live"]]
     return ops
 
 
@@ -6034,6 +6073,7 @@ diffs = 0
 BATCH = (1 if SUITE == "script" else
          16 if SUITE in ("hll", "cgaps", "cmdgap2") else
          512 if SUITE in ("storeorder", "multidb") else 64)
+dbsize_positions_checked = 0
 for i in range(0, len(ops), BATCH):
     chunk = ops[i:i + BATCH]
     if chunk[0][0] == "SECOND":
@@ -6050,7 +6090,9 @@ for i in range(0, len(ops), BATCH):
                       (i, command[:4], a[:256], b[:256]))
         continue
     payload = b"".join(enc(o) for o in chunk)
-    ts.sendall(payload); os_.sendall(payload)
+    oracle_payload = (b"".join(enc(["DBSIZE"] if o == ["DBSIZE", "NOW"] else o)
+                               for o in chunk) if SUITE == "multidb" else payload)
+    ts.sendall(payload); os_.sendall(oracle_payload)
     for j, o in enumerate(chunk):
         try:
             a = normalize(o[0], read_reply(tf))
@@ -6065,6 +6107,17 @@ for i in range(0, len(ops), BATCH):
         a = normalize_introspection(o[0].upper(), o, a)
         b = normalize_introspection(o[0].upper(), o, b)
         coverage.note(o)
+        if SUITE == "multidb" and o == ["DBSIZE", "NOW"]:
+            dbsize_positions_checked += 1
+            try:
+                equal = dbsize_integer(a) == dbsize_integer(b)
+            except ValueError:
+                equal = False
+            if not equal:
+                diffs += 1
+                print("  DBSIZE EXACT PROPERTY FAIL op %d: target NOW=%r oracle DBSIZE=%r" %
+                      (i + j, a, b))
+            continue
         if not replies_equal(o, a, b):
             diffs += 1
             if diffs <= 12:
@@ -6105,6 +6158,27 @@ for i in range(0, len(ops), BATCH):
                         ps.close()
                     except Exception as probe_err:
                         print("    PROBE error: %r" % (probe_err,), flush=True)
+
+if SUITE == "multidb":
+    expected_positions = sum(o == ["DBSIZE", "NOW"] for o in ops)
+    if not expected_positions or dbsize_positions_checked != expected_positions:
+        raise RuntimeError("DBSIZE exact-count positions were not all checked")
+    ts.sendall(enc(["DBSIZE", "NOW"])); os_.sendall(enc(["DBSIZE"]))
+    exact = dbsize_integer(read_reply(tf))
+    oracle = dbsize_integer(read_reply(of))
+    coverage.note(["DBSIZE", "NOW"], "final publication reference")
+    if exact != 1 or oracle != 1:
+        diffs += 1
+        print("  DBSIZE EXACT PROPERTY FAIL final witness: target=%d oracle=%d expected=1" %
+              (exact, oracle))
+    converged, polls, elapsed, published = wait_published_dbsize(ts, tf, exact)
+    if not converged:
+        diffs += 1
+        print("  DBSIZE PUBLICATION PROPERTY FAIL: published=%r exact=%d polls=%d elapsed_ms=%.3f" %
+              (published, exact, polls, elapsed * 1000))
+    print("  multidb DBSIZE properties: exact_positions=%d publication_polls=%d "
+          "publication_ms=%.3f published=%r exact=%d converged=%s" %
+          (dbsize_positions_checked, polls, elapsed * 1000, published, exact, converged))
 
 if SUITE == "stream":
     # Auto IDs are clock-derived, and TomoKV intentionally refreshes its owner clock more
