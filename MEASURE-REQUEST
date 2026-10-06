@@ -34,3 +34,11 @@ Lane at15: MULTI admin replies
 See MEASURE-REQUEST-at15.md for PRE/POST hashes, serverless falsification, body
 identity, the +1/+1 row count, and explicit Redis-table/group-5 policy differences.
 Live verification and the gate remain maintainer work; no push.
+
+Lane storesize5: at15 composition and monitoring differential contract complete
+
+See MEASURE-REQUEST-storesize5.md: final split/armed folds complete=true PASS;
+40 AT15b proofs, storesize/multidb checks and 12+25 selected gate rows PASS.
+Original PTTL failures retained; unchanged full atomic-one replays passed.
+PRE/POST/PAD-A hashes and full body differences recorded. No push.
+Maintainer bookkeeping: existing storesize +1/+1 gives 500/517 and its fixture label.

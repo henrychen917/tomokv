@@ -1,7 +1,9 @@
 # storesize5 — landed at15 composition and DBSIZE differential contract
 
-Work in progress: implementation, three arms, directed proofs and body audit complete;
-full differential receipts pending.
+**Complete:** landed at15 merged; both final differential folds are
+**complete=true, verdict=PASS**; directed proofs and selected gate rows pass.
+Two original PTTL failures are preserved below; the unchanged full atomic-one
+replays pass. No full-gate or performance receipt is claimed.
 Worktree `/home/user/Projects/cx-storesize`, branch `cx-storesize`.
 Started from `c55d4a370`, merged `origin/cpp` = `9d957b9fb` (landed at15)
 in `600063010`. The two-mode differential repair is `647f277c7`.
@@ -101,7 +103,9 @@ live equivalence proof is included in the split fold.
   unchanged AT15b replay wrapper. The full split/atomic=1 replay passed 256/256 legs, including all four
   historical seed-19 MULTI repeats. The split fold is **complete=true,
   verdict=PASS**, 540 comparisons (508 differential legs + 32 equivalence cells).
-  Armed/atomic=1 replay remains pending.
+  Armed/atomic=1 replay passed 250/250 legs, including all four MULTI repeats;
+  its read-local witness fired. The armed fold is **complete=true, verdict=PASS**,
+  496 differential comparisons.
 
 The first split/atomic=1 lifetime completed **255/256 suite legs PASS**.
 Its sole failure was `wiredump` seed 22: one mismatch first reported at
@@ -128,11 +132,43 @@ journals and coverage artifacts are preserved in `docs/storesize5` and
 `failed-first-attempt.tar.gz`. These failures are not erased by later success.
 
 Fresh full atomic-one lifetimes run serially with the unchanged candidate
-and comparator. Split/atomic=1 has passed; armed/atomic=1 is running. The first failed split attempt still passed all
+and comparator. Both full replays passed, including the originally failing
+PTTL legs. No tolerance was widened and no failed log was replaced in place. The first failed split attempt still passed all
 1,800 DBSIZE exact positions and six convergence checks; the partial armed
 attempt passed 1,192 positions and four convergence checks. The selected
 four-part matrix requires its own 7,200 positions and 24 convergence checks.
-The final report must distinguish those fresh receipts from these originals.
+Across every attempt, including the preserved originals, 10,192 exact-count
+positions and 34 convergence checks completed. The final selected folds contain
+7,200 positions and 24 convergence checks, all passing. Every final convergence
+check succeeded on its first poll; maximum measured wait **0.035 ms** against
+the unchanged 100 ms bound. All 48 final MULTI/multidb suite legs (both geometries,
+both atomic modes, six seeds) have zero differences and zero clock tolerances.
+
+| Final part | Complete | Compared legs/cells | Result |
+| --- | --- | ---: | --- |
+| split-0 | true | 252 | PASS |
+| split-1, full replay | true | 256 | PASS |
+| armed-0 | true | 246 | PASS |
+| armed-1, full replay | true | 250 | PASS |
+| mode equivalence, seed 22 | true | 32 | PASS |
+| **split fold** | **true** | **540** | **PASS** |
+| **armed fold** | **true** | **496** | **PASS** |
+
+The 32 equivalence cells each compare 6,208 exact replies and require their
+mechanism witnesses. Armed-fused omits SORT exactly as the existing gate does:
+that suite requires split 6:2, where all six seeds run in both atomic modes.
+`docs/storesize5/summarize.py` rechecks the unchanged strict fold, all directed
+leg summaries and every publication property before writing
+[differ-results.json](docs/storesize5/differ-results.json). The complete final
+logs, command coverage, raw equivalence baseline, completion records and actual
+invocations are retained in `differ-receipts.tar.gz`, with a SHA-256 manifest.
+The initial failed/partial attempts have a separate archive and manifest.
+
+All live work is finished and the owned ports 17899/17900 are free. The final
+hash check confirms PRE, POST and PAD-A, plus byte identity of `build/tomokv`
+and POST. CPU affinity snapshots confirm target 112–119, Redis 120, clients
+121–127 in both geometries. Builds, audits and the 37 selected gate rows are
+separate evidence; these serial lane folds do not claim a timed full gate.
 
 ## Rebuilt artifacts and hot-body audit
 

@@ -61,7 +61,7 @@ report = dict(folds=folds, parts=parts, directed=directed, publication=propertie
 # Preserve every original matrix log, coverage artifact, completion and wrapper
 # receipt. Exclude server data directories and retain deterministic archive bytes.
 files = [p for p in sorted(source.rglob('*')) if p.is_file() and
-         (p.suffix in ('.log', '.txt', '.json', '.tsv') or p.name in ('done', 'ledger'))]
+         (p.suffix in ('.log', '.txt', '.json', '.tsv', '.resp') or p.name in ('done', 'ledger'))]
 manifest = []
 tar_bytes = io.BytesIO()
 with tarfile.open(fileobj=tar_bytes, mode='w') as archive:
