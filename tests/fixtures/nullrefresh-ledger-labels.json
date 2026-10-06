@@ -1,6 +1,6 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "4871714adf6fbdf6556206e1706503e3f00c02bbf260a525f5882957846dc3c1",
+  "source_sha256": "fd7083c6d257a44a1a3157aeb41b7df6438a1c641e3a56394391977c49896731",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
@@ -102,6 +102,7 @@
     "NET1 inline + query cap (1s, epoll)",
     "NET1 inline + query cap (2s, uring)",
     "NET1 inline + query cap (2s, epoll)",
+    "RESP protocol error compatibility",
     "generated Redis 7.4 ACL categories",
     "reject --mode (flag deleted)",
     "reject --spread",
@@ -682,6 +683,14 @@
       "when": "2026-10-06 02:24",
       "added": [
         "EXECABORT releases WATCH reservation"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-06 14:10",
+      "added": [
+        "RESP protocol error compatibility"
       ],
       "removed": [],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"

@@ -1,0 +1,14 @@
+test_early_close_fails (respcompat_test.WireOracleTests.test_early_close_fails) ... ok
+test_empty_array_reply_or_close_fails (respcompat_test.WireOracleTests.test_empty_array_reply_or_close_fails) ... ok
+test_empty_array_then_live_ping_passes (respcompat_test.WireOracleTests.test_empty_array_then_live_ping_passes) ... ok
+test_fragmented_exact_error_and_close_pass (respcompat_test.WireOracleTests.test_fragmented_exact_error_and_close_pass) ... ok
+test_missing_close_fails (respcompat_test.WireOracleTests.test_missing_close_fails) ... ok
+test_reply_after_error_fails (respcompat_test.WireOracleTests.test_reply_after_error_fails) ... ok
+test_reset_after_complete_error_passes (respcompat_test.WireOracleTests.test_reset_after_complete_error_passes) ... ok
+test_reset_before_complete_error_fails (respcompat_test.WireOracleTests.test_reset_before_complete_error_fails) ... ok
+test_wrong_text_fails (respcompat_test.WireOracleTests.test_wrong_text_fails) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.005s
+
+OK
