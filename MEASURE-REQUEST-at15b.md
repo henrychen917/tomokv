@@ -11,8 +11,8 @@ and clients on 121–127. No benchmark, full gate, or push was performed.
 
 | Landing failure | Cause | Repair | Proof |
 | --- | --- | --- | --- |
-| `differ multi`, atomic=0, seeds 7/19/20 | Queued INFO exposed the missing Redis 7.4 `subexpiry` field | Append the exact field and aggregate its actual hash count in ordinary and EXEC censuses | Split replay: all three named seeds pass, zero differences and zero clock tolerances; complete harness receipts below |
-| `differ multidb`, same seeds | Same missing field, including INFO around a private SWAPDB mapping | Carry the count through physical-DB aggregation and the command-position map | Split replay: all three named seeds pass, zero differences and zero clock tolerances; nonzero MOVE/SWAPDB serverless witness passes |
+| `differ multi`, atomic=0, seeds 7/19/20 | Queued INFO exposed the missing Redis 7.4 `subexpiry` field | Append the exact field and aggregate its actual hash count in ordinary and EXEC censuses | Split and armed fused: all three named seeds pass, zero differences and zero clock tolerances; complete harness receipts below |
+| `differ multidb`, same seeds | Same missing field, including INFO around a private SWAPDB mapping | Carry the count through physical-DB aggregation and the command-position map | Split and armed fused: all three named seeds pass, zero differences and zero clock tolerances; nonzero MOVE/SWAPDB serverless witness passes |
 | `DEBUG toggle/reload battery` | `tests/debug.py` required the retired unsupported-command EXEC element | Require `+OK` for MULTI, `+QUEUED` for DEBUG SLEEP `.01`, and exactly the array `[b'OK']` for EXEC | Python syntax check; real production serverless DEBUG SLEEP 0/positive witnesses pass, including an observed retry and full deadline. The DEBUG battery is **live**, so its whole body remains for the maintainer |
 | `atomic survivor: rename_overlay` | Driver explicitly initializes owner references, then AT15's moved initializer initializes them again at dispatch | Production `multi_dispatch_started` initializes only unprepared references and rejects a second publication. The initializer's double-initialization assertion remains | PRE SIGABRT backtrace at `initialize_multi_owner_record_refs`; unchanged survivor driver passes POST |
 | `atomic survivor: watch_parent` | Same double initialization | Same production repair | PRE SIGABRT backtrace; unchanged survivor driver passes POST |
@@ -110,8 +110,12 @@ The requested multi/multidb rows are reported separately from unrelated suites.
 Split completed: **249/252 suite legs pass**. All twelve multi/multidb legs pass
 with zero differences and zero clock tolerances. The shell reports `fail=4`:
 three failed suite legs plus its strict final fold rejecting that failed matrix.
-Runtime 9m19s; both owned listeners stopped cleanly. Fused and the frozen PRE
-control are pending; final totals will be appended here.
+Runtime 9m19s; both owned listeners stopped cleanly. Armed fused completed:
+**244/246 suite legs pass**, with all twelve multi/multidb legs passing exactly.
+The read-local witness fired (963 hits, 257 fallbacks). The shell reports
+`pass=245 fail=3`, including that positive witness and the failed final fold.
+Its two failed suites are seed-7 `edgetime` and `wiredump`; runtime 9m19s and
+both listeners stopped cleanly. The frozen PRE control is still running.
 
 The first split seed also reported HPTTL/PTTL differences of 2 ms in `hexpire`
 and `edgetime`, and one `wiredump` difference; these are preserved as failures,
@@ -135,6 +139,12 @@ changed/added bodies in the eight modified production objects; it includes
 incidental compiler changes to other emitted helpers, and does **not** claim
 they are all semantically part of MULTI/INFO. The selected hot-body identity is
 not a substitute for a rate regression check.
+
+The original pre-AT15 objects in `build/at15-pre` were also compared directly to
+final POST: **1,482/1,482 relocation-resolved equal, 1,480 raw equal**. GET/SET
+and parse/dispatch remain raw-identical. The two inherited raw differences are
+the `FlatStore::erase_in` clones in the two `t_server.o` images, retaining the
+same resolved call target. See `hot-original-{db0,namespaced}.{json,log}`.
 
 | Arm | Path | SHA-256 |
 | --- | --- | --- |

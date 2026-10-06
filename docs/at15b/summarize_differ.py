@@ -8,6 +8,7 @@ for name, directory, count in (
     ('POST split', 'at15b-differ-split', 252),
     ('POST armed fused', 'at15b-differ-armed', 246),
     ('PRE armed fused', 'at15b-pre-differ-armed', 246),
+    ('POST armed fused repeat', 'at15b-post-repeat-armed', 246),
 ):
     root = Path('build') / directory
     rows = []
