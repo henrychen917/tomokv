@@ -71,6 +71,16 @@ rejects a wrong exact count independently of stalled publication, plus equal
 noninteger count replies. Nine serverless controls pass without any comparison
 relaxation. No gate row was added by this round.
 
+The separate `tests/mode_equivalence.py:96` also has one plain DBSIZE, compared
+between TomoKV modes rather than against Redis. It remains unchanged: the
+prelude seeds all 97 keys (64 strings, one bitmap, and eight keys in each of four
+collection families), and none of the following 800 rounds changes key
+cardinality. Sets retain their `initial` member; list trims retain elements;
+there is no DEL/expiry/FLUSH in that stream. Its final count is therefore stable
+across the many preceding completed batches, unlike multidb's SET/FLUSHDB/map
+transitions. INFO telemetry is already excluded there. The unchanged 32-cell
+live equivalence proof is included in the split fold.
+
 ## Directed and gate evidence
 
 - `storesize_checks.py check-all`: PASS, including both images, modes and
@@ -89,6 +99,19 @@ relaxation. No gate row was added by this round.
 - Armed-fused/atomic=0: **246/246 suite legs PASS**, complete=true; read-local
   witness fired with 963 hits / 257 fallbacks. Both completed through the
   unchanged AT15b replay wrapper. Atomic-one and final group folds are pending.
+
+The first split/atomic=1 lifetime completed **255/256 suite legs PASS**.
+Its sole failure was `wiredump` seed 22: one mismatch first reported at
+operation 805, action 4, which compares `PTTL wd:restore` (`differ.py:4713–4718`).
+The existing logger does not retain the unequal values for this arm and repeats
+its diagnostic for later operations once the cumulative diff count is nonzero;
+the final diff count is one. No compiler was active on the fenced CPUs in the
+post-failure process snapshot. No cause or candidate-specific regression is
+claimed from this one sample. The failed log and invocation are retained under
+`docs/storesize5/failed-first-split-1`. All six MULTI and multidb seeds and the
+four historical MULTI repeats passed in that lifetime. A complete fresh
+split/atomic=1 replay with unchanged source, binary, seeds, and tolerances is
+pending; no individual leg is replaced inside a completed failed lifetime.
 
 ## Rebuilt artifacts and hot-body audit
 

@@ -3,3 +3,5 @@ END split-0 PASS 554.882s
 START armed-0 bash docs/at15b/replay.sh post-armed /home/user/Projects/cx-storesize/build/storesize5/differ/jobs/differ-armed-0/differ
 END armed-0 PASS 554.396s
 START split-1 taskset -c 112-127 tests/differ_gate.sh /home/user/Projects/cx-storesize/build/storesize5/POST/tomokv 17899 17900 112-119 6:2
+END split-1 FAIL 557.875s
+START armed-1 taskset -c 112-127 tests/differ_gate.sh /home/user/Projects/cx-storesize/build/storesize5/POST/tomokv 17899 17900 112-119 6:2
