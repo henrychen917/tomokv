@@ -558,8 +558,8 @@ static void owners() {
     require(scatter(server, 0, {"RANDOMKEY"}) == "$1\r\nk\r\n", "scoped RANDOMKEY");
     require(scatter(server, 1, {"RANDOMKEY"}) == "$-1\r\n", "empty RANDOMKEY");
     const auto keyspace = scatter(server, 0, {"INFO", "keyspace"});
-    require(keyspace.find("db0:keys=1,expires=0,avg_ttl=0\r\n") != std::string::npos &&
-            keyspace.find("db2:keys=1,expires=0,avg_ttl=0\r\n") != std::string::npos &&
+    require(keyspace.find("db0:keys=1,expires=0,avg_ttl=0,subexpiry=0\r\n") != std::string::npos &&
+            keyspace.find("db2:keys=1,expires=0,avg_ttl=0,subexpiry=0\r\n") != std::string::npos &&
             keyspace.find("db1:") == std::string::npos, "INFO uses logical nonempty DBs");
     for (bool atomic : {false, true}) {
         server.set_atomic_enabled(atomic);

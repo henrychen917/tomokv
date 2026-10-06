@@ -1005,10 +1005,11 @@ public:
     uint32_t expire_count() const { return expires_.size(); }
     // Cold batch-boundary publication. No key/TTL mutation publishes counters.
     [[gnu::noinline, gnu::cold]] bool init_storesize();
-    [[gnu::noinline, gnu::cold]] void publish_keyspace_sample() const;
+    [[gnu::noinline]] void publish_keyspace_sample() const noexcept;
+    bool published_field_ttl_attention() const noexcept;
     uint64_t published_avg_deadline(uint8_t physical = 0) const;
     uint64_t published_database_counts(uint8_t physical) const;
-    [[gnu::noinline]] void publish_database_counts() const;
+    [[gnu::noinline]] void publish_database_counts() const noexcept;
     // Hashes in this shard carrying at least one field deadline. THE gate for the whole hash-field
     // TTL feature: a shard that has never seen HEXPIRE reads zero here and every hash command pays
     // one predicted-false test, with all field-TTL machinery out of line behind it.
@@ -1942,6 +1943,7 @@ public:
 private:
     [[gnu::noinline, gnu::cold]] void destroy_storesize();
     StoreSizeState* storesize_state() const;
+    void publish_field_ttl_attention() const noexcept;
     void storesize_replace(const KvObj* before, const KvObj* after);
     void storesize_deadline(const KvObj* object, int64_t deadline);
     void storesize_clear();

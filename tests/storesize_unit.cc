@@ -17,6 +17,9 @@ using namespace tomo;
 
 namespace {
 bool legacy_mode = false;
+template<class Store> constexpr bool has_subexpiry = requires(const Store& store) {
+    store.published_field_ttl_attention();
+};
 template<class Store> std::optional<uint64_t> published_counts(const Store& store, uint8_t physical) {
     if constexpr (requires { store.published_database_counts(physical); })
         return store.published_database_counts(physical);
@@ -195,6 +198,47 @@ void databases(Server& server) {
     require(run(server, 0, {"FLUSHALL"}) == "+OK\r\n", "FLUSHALL counters");
     for (unsigned db = 0; db < count; ++db) row(server, db, 0, 0);
 }
+
+void field_counts(Server& server) {
+    require(run(server, 0, {"FLUSHALL"}) == "+OK\r\n", "field TTL setup");
+    const auto check = [&](unsigned db, unsigned count) {
+        for (auto args : {std::initializer_list<std::string>{"INFO"}, {"INFO", "KEYSPACE"}}) {
+            const auto info = run(server, db, args);
+            const auto at = info.find("db" + std::to_string(db) + ":");
+            require(at != std::string::npos, "field TTL database present");
+            const auto line = info.substr(at, info.find("\r\n", at) - at);
+            require(line.ends_with(",subexpiry=" + std::to_string(count)),
+                    "subexpiry counts hashes, not fields: " + line);
+        }
+    };
+    require(run(server, 0, {"HSET", "fields", "a", "1", "b", "2"}) == ":2\r\n", "two hash fields");
+    check(0, 0);
+    require(run(server, 0, {"HPEXPIRE", "fields", "600000", "FIELDS", "2", "a", "b"}) ==
+            "*2\r\n:1\r\n:1\r\n", "arm two field TTLs");
+    Request info(server, 0, {"INFO"});
+    require(command_config_routes_all_shards(info.op), "field attention selects exact census");
+    storesize_walk_slots = storesize_walk_objects = 0;
+    (void)run(server, 0, {"INFO"}, false);
+    require(storesize_walk_objects == 1, "field census really visited the hash");
+    check(0, 1);
+    if constexpr (!kSingleDatabase) {
+        require(run(server, 3, {"SET", "plain", "v"}) == "+OK\r\n", "other database");
+        check(3, 0);
+        require(run(server, 0, {"SWAPDB", "0", "3"}) == "+OK\r\n", "field TTL SWAPDB");
+        check(0, 0); check(3, 1);
+        require(run(server, 0, {"SWAPDB", "0", "3"}) == "+OK\r\n", "field TTL SWAPDB back");
+    }
+    require(run(server, 0, {"HPERSIST", "fields", "FIELDS", "1", "a"}) == "*1\r\n:1\r\n",
+            "remove first field TTL");
+    check(0, 1);
+    require(run(server, 0, {"HPERSIST", "fields", "FIELDS", "1", "b"}) == "*1\r\n:1\r\n",
+            "remove last field TTL");
+    check(0, 0); // a stale attention entry must not become a false subexpiry count
+    require(run(server, 0, {"FLUSHALL"}) == "+OK\r\n", "clear field attention");
+    Request cleared(server, 0, {"INFO"});
+    require(command_config_routes_all_shards(cleared.op) == legacy_mode, "FLUSH restores monitor route");
+    std::puts("PASS subexpiry census fallback, zero-field route and namespace mapping");
+}
 void routing(Server& server, bool legacy) {
     for (const auto* section : {"SERVER", "CLIENTS", "MEMORY", "PERSISTENCE", "STATS",
                               "COMMANDSTATS", "FLIPCTL", "WRITEBACK", "LB", "unknown"}) {
@@ -272,7 +316,9 @@ void checks(bool legacy, bool fused = false, bool armed = false) {
     const auto avg = std::stoull(info.substr(info.find("avg_ttl=") + 8));
     require(avg > 0 && avg <= 600000, "measured TTL estimate");
     require(run(server, 0, {"PERSIST", "ttl"}) == ":1\r\n", "PERSIST");
-    require(run(server, 0, {"INFO", "KEYSPACE"}).find("db0:keys=1,expires=0,avg_ttl=0\r\n") != std::string::npos,
+    const std::string persist_row = std::string("db0:keys=1,expires=0,avg_ttl=0") +
+        (has_subexpiry<FlatStore> ? ",subexpiry=0\r\n" : "\r\n");
+    require(run(server, 0, {"INFO", "KEYSPACE"}).find(persist_row) != std::string::npos,
             "PERSIST removes volatility even if object retains TTL slot");
     if (!legacy) {
         require(run(server, 0, {"SET", "unpublished", "v"}, false) == "+OK\r\n", "unpublished write");
@@ -282,6 +328,7 @@ void checks(bool legacy, bool fused = false, bool armed = false) {
         census(server, 0, 2);
     }
     databases(server);
+    if constexpr (has_subexpiry<FlatStore>) field_counts(server);
     command_bind_server(nullptr);
     std::printf("PASS storesize image=%s arm=%s mode=%s read-local=%u\n", kSingleDatabase ? "db0" : "multi",
                 legacy ? "PRE" : "POST", fused ? "1s" : "2s", armed);
