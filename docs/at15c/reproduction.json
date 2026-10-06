@@ -1,0 +1,23 @@
+[
+  {
+    "run": "replay-1-post-armed",
+    "edgetime": "FAIL",
+    "diffs": 2,
+    "clock_tolerances": 0,
+    "complete": false,
+    "operations": {
+      "1526": {
+        "delta_ms": -5,
+        "target": "b':2591998708\\r\\n'",
+        "oracle": "b':2591998713\\r\\n'",
+        "evidence": "printed DIFF"
+      },
+      "2910": {
+        "delta_ms": -5,
+        "target": "b':2591999381\\r\\n'",
+        "oracle": "b':2591999386\\r\\n'",
+        "evidence": "printed DIFF"
+      }
+    }
+  }
+]
