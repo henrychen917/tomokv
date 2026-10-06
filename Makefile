@@ -94,6 +94,17 @@ $(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growt
 $(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31320
 $(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14554
 $(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14427
+# CD6/CD13 add cold scan/replacement work. Preserve GCC 13's ordinary set/zset bodies in
+# both database namespaces; tests/cdfix_checks.py audits every emitted function against PRE.
+# These are compile-time inlining budgets, with no runtime option or request-path branch.
+$(BUILD_ROOT)/src/cmd/t_set.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=23440
+$(BUILD_ROOT)/db0/src/cmd/t_set.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=23300
+$(BUILD_ROOT)/src/cmd/t_zset.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=33395
+$(BUILD_ROOT)/db0/src/cmd/t_zset.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=32970
+# CD7/CD13's cold GEO text needs its own budget. The audit still reports the three
+# remaining GEO-helper differences; these settings do not claim that strict check passes.
+$(BUILD_ROOT)/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14410
+$(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14440
 # The parent EXECABORT store adds four IPA instructions. Keep PRE's namespaced
 # xshard inlining decisions outside MULTI; docs/gt13split/audit_bodies.py checks
 # every function, including ordinary xshard_plain_prepare and cold clones.

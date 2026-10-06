@@ -614,6 +614,42 @@ def gen_geo(rng):
     ]
     units = ["m", "km", "ft", "mi"]
     ops = []
+    # CD7: byte-compare the complete RESP frame, including bulk lengths / RESP3 doubles.
+    # Every invocation (the inventory runs RESP2 and RESP3) covers 256 fresh random points.
+    for i in range(256):
+        lon = format(rng.uniform(-180, 180), ".17g")
+        lat = format(rng.uniform(-85.05112878, 85.05112878), ".17g")
+        member = "spread:%03d" % i
+        ops += [["GEOADD", "geo:spread", lon, lat, member],
+                ["GEOPOS", "geo:spread", member]]
+
+    # CD8: each STORE word replaces BOTH the destination and score mode. Exercise both verbs,
+    # both orders, absent destinations, and overwriting a destination of a different type.
+    ops.append(["GEOADD", "geo:stores", "13", "38", "a", "13.01", "38.01", "b"])
+    for verb, center in (("GEORADIUS", ["13", "38"]),
+                         ("GEORADIUSBYMEMBER", ["a"])):
+        for first, last in (("STORE", "STOREDIST"), ("STOREDIST", "STORE")):
+            for existing in (False, True):
+                ops.append(["DEL", "geo:first", "geo:last"])
+                if existing:
+                    ops += [["SET", "geo:first", "keep-first"],
+                            ["SET", "geo:last", "replace-last"]]
+                ops.append([verb, "geo:stores"] + center +
+                           ["10", "km", first, "geo:first", last, "geo:last"])
+                for dest in ("geo:first", "geo:last"):
+                    ops += [["EXISTS", dest], ["TYPE", dest],
+                            ["ZRANGE", dest, "0", "-1", "WITHSCORES"]]
+
+    # CD13: expansion is one-way for GEOADD, including an expanded zset that has shrunk.
+    # A radius STORE is a replacement and CAN become listpack again, even when dest == source.
+    for i in range(160):
+        ops.append(["ZADD", "geo:expanded", str(i), "m%d" % i])
+    ops += [["ZREM", "geo:expanded"] + ["m%d" % i for i in range(2, 160)],
+            ["OBJECT", "ENCODING", "geo:expanded"],
+            ["GEOADD", "geo:expanded", "13", "38", "m0"],
+            ["OBJECT", "ENCODING", "geo:expanded"],
+            ["GEORADIUS", "geo:expanded", "13", "38", "40000", "km", "STORE", "geo:expanded"],
+            ["OBJECT", "ENCODING", "geo:expanded"]]
     for _ in range(4200):
         c = rng.randrange(19)
         key = rng.choice(keys)
@@ -681,6 +717,106 @@ def gen_geo(rng):
         else:
             ops.append(["ZCARD", rng.choice(destinations)])
     return ops
+
+
+def geo_lfu_property(sides):
+    """CD13 uses independent LFU witnesses: counters are stochastic, reply types are exact.
+
+    Reuse the differ harness's existing connections and vanilla oracle. Restore each server's
+    policy/budget even on failure; a cold counter is a failure to arm, never a skipped check.
+    """
+    failures = 0
+    saved = []
+
+    def issue(sock, file, argv):
+        sock.sendall(enc(argv))
+        coverage.note(argv, "CD13 LFU property")
+        return read_reply(file)
+
+    def integer(sock, file, argv):
+        raw = issue(sock, file, argv)
+        if not re.fullmatch(rb":[0-9]+\r\n", raw):
+            raise RuntimeError("CD13 expected integer: %r -> %r" % (argv, raw))
+        return int(raw[1:-2])
+
+    def check(ok, detail):
+        nonlocal failures
+        if not ok:
+            failures += 1
+            print("  GEO-LFU FAIL " + detail)
+
+    try:
+        for label, sock, file in sides:
+            settings = []
+            saved.append((sock, file, settings))
+            for name, value in (("maxmemory", "1073741824"),
+                                ("maxmemory-policy", "allkeys-lfu")):
+                old = parse_reply(issue(sock, file, ["CONFIG", "GET", name]))
+                if not isinstance(old, list) or len(old) != 2 or old[0] != name.encode():
+                    raise RuntimeError("CD13 cannot save %s: %r" % (name, old))
+                settings.append((name, old[1]))
+                if issue(sock, file, ["CONFIG", "SET", name, value]) != b"+OK\r\n":
+                    raise RuntimeError("CD13 cannot set " + name)
+
+            # Each attempt starts with a fresh key and its own measured initial counter.
+            armed = False
+            for attempt in range(3):
+                key = "geo:lfu:%d" % attempt
+                integer(sock, file, ["DEL", key])
+                for i in range(160):
+                    integer(sock, file, ["ZADD", key, str(i), "m%d" % i])
+                integer(sock, file, ["ZREM", key] + ["m%d" % i for i in range(2, 160)])
+                # The seed writes themselves are touches; use a separate newly-created key
+                # to measure the policy's initial counter without assuming either width.
+                fresh = key + ":initial"
+                integer(sock, file, ["DEL", fresh])
+                integer(sock, file, ["GEOADD", fresh, "0", "0", "m"])
+                initial = integer(sock, file, ["OBJECT", "FREQ", fresh])
+                integer(sock, file, ["DEL", fresh])
+                for burst in range(32):
+                    for _ in range(128):
+                        sock.sendall(enc(["ZCARD", key]))
+                    for _ in range(128):
+                        if read_reply(file) != b":2\r\n":
+                            raise RuntimeError("CD13 touch lost the seeded zset")
+                    before = integer(sock, file, ["OBJECT", "FREQ", key])
+                    if before >= initial + 3:
+                        armed = True
+                        break
+                if armed:
+                    break
+                integer(sock, file, ["DEL", key])
+            check(armed, "%s counter never rose above initial" % label)
+            if not armed:
+                continue
+            encoding = issue(sock, file, ["OBJECT", "ENCODING", key])
+            check(encoding == b"$8\r\nskiplist\r\n", label + " seed did not expand")
+            check(integer(sock, file, ["GEOADD", key, "13", "38", "m0"]) == 0,
+                  label + " GEOADD must update the existing member")
+            after = integer(sock, file, ["OBJECT", "FREQ", key])
+            check(after > initial,
+                  "%s GEOADD initial=%d before=%d after=%d" % (label, initial, before, after))
+            check(issue(sock, file, ["OBJECT", "ENCODING", key]) == encoding,
+                  label + " GEOADD demoted an expanded zset")
+            # Same-key STORE forces the local replacement path in every shard geometry.
+            for mode in ("STORE", "STOREDIST"):
+                before = integer(sock, file, ["OBJECT", "FREQ", key])
+                check(integer(sock, file, ["GEORADIUS", key, "13", "38", "40000", "km",
+                                          mode, key]) > 0, label + " empty STORE witness")
+                after = integer(sock, file, ["OBJECT", "FREQ", key])
+                check(after > initial,
+                      "%s %s initial=%d before=%d after=%d" %
+                      (label, mode, initial, before, after))
+                check(issue(sock, file, ["OBJECT", "ENCODING", key]) == b"$8\r\nlistpack\r\n",
+                      label + " STORE must choose the small result encoding")
+            integer(sock, file, ["DEL", key])
+            print("  GEO-LFU %s: initial=%d GEOADD/STORE/STOREDIST checked" % (label, initial))
+    finally:
+        for sock, file, settings in saved:
+            for name, value in reversed(settings):
+                if issue(sock, file, ["CONFIG", "SET", name, value]) != b"+OK\r\n":
+                    raise RuntimeError("CD13 failed to restore " + name)
+    return failures
 
 
 def gen_doubles(rng):
@@ -1457,6 +1593,67 @@ def gen_storeorder(rng):
         ops.append(["DEL", dst])
         ops.append(["EXISTS", dst])
     return ops[:4600]
+
+def sscan_churn_property(sock, file, label):
+    """Bounded SSCAN with a permanent population and fresh growth/tombstone churn per page."""
+    def issue(argv):
+        sock.sendall(enc(argv))
+        coverage.note(argv, "CD6 SSCAN churn property")
+        raw = read_reply(file)
+        if raw.startswith(b"-"):
+            raise RuntimeError("SSCAN churn %s: %r -> %r" % (label, argv[:4], raw))
+        return parse_reply(raw)
+
+    def mutate(verb, key, members):
+        for start in range(0, len(members), 64):
+            result = issue([verb, key] + members[start:start + 64])
+            if result != b":" + str(len(members[start:start + 64])).encode():
+                raise RuntimeError("SSCAN churn mutation did not change every requested member")
+
+    # Re-arm on fresh state if the first call did not actually paginate. Exhaustion fails.
+    for attempt in range(4):
+        key = "s:churn:%d" % attempt
+        permanent = ["steady:%d:%03d" % (attempt, i) for i in range(192)]
+        issue(["DEL", key])
+        mutate("SADD", key, permanent)
+        first = issue(["SSCAN", key, "0", "COUNT", "7", "MATCH", "steady:*"])
+        if not isinstance(first, list) or len(first) != 2 or not isinstance(first[1], list):
+            raise RuntimeError("SSCAN churn malformed first page: %r" % (first,))
+        if first[0] != b"0":
+            break
+        issue(["DEL", key])
+    else:
+        raise RuntimeError("SSCAN churn %s never paginated on fresh state" % label)
+
+    cursor, batch = first
+    seen = set(batch)
+    transient = []
+    # Population alternates 192 <-> 704. TomoKV grows to 1024 slots, then fresh members
+    # repeatedly force same-size tombstone rehashes. Redis may resize incrementally.
+    # 2048 calls exceeds a complete one-home-per-call cycle at either maximum table size.
+    for calls in range(2, 2049):
+        if transient:
+            mutate("SREM", key, transient)
+            transient = []
+        else:
+            transient = ["transient:%d:%03d" % (calls, i) for i in range(512)]
+            mutate("SADD", key, transient)
+        reply = issue(["SSCAN", key, cursor, "COUNT", "7", "MATCH", "steady:*"])
+        if not isinstance(reply, list) or len(reply) != 2 or not isinstance(reply[1], list):
+            raise RuntimeError("SSCAN churn malformed page: %r" % (reply,))
+        cursor, batch = reply
+        seen.update(batch)
+        if cursor == b"0":
+            expected = {member.encode() for member in permanent}
+            if seen != expected:
+                raise RuntimeError("SSCAN churn %s coverage: missing=%r unexpected=%r" %
+                                   (label, sorted(expected - seen)[:8], sorted(seen - expected)[:8]))
+            issue(["DEL", key])
+            print("  SSCAN-CHURN %s: %d calls, %d permanent members covered" %
+                  (label, calls, len(seen)))
+            return
+    raise RuntimeError("SSCAN churn %s did not terminate within 2048 calls" % label)
+
 
 def gen_scan(rng):
     """SCAN family. The diffed stream is the OPTION SURFACE plus the mutations that shape the
@@ -6023,6 +6220,9 @@ if SUITE == "stream":
         if length < 25:
             diffs += 1
             print("  APPROX-TRIM PROPERTY FAIL reply=%r" % length_reply)
+if SUITE == "geo":
+    diffs += geo_lfu_property((("target", ts, tf), ("oracle", os_, of)))
+
 if SUITE == "scan":
     # Cursor VALUES and emission ORDER are implementation-defined, so the walk cannot be byte
     # diffed. What is contractual, and what this checks, is the SET a completed walk yields: with
@@ -6077,6 +6277,9 @@ if SUITE == "scan":
                 diffs += 1
                 print("  SCAN-COMPLETENESS FAIL %s COUNT=%d: both sides empty, the check is "
                       "vacuous" % (label, count))
+
+    sscan_churn_property(ts, tf, "target")
+    sscan_churn_property(os_, of, "oracle")
 
 if SUITE == "infofix":
     # INFO is telemetry, so its values cannot be byte-compared across two implementations. Keep
