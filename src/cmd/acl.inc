@@ -1390,6 +1390,8 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
         std::vector<AclUserImage> images;
         std::string error;
         if (!acl_parse_file(g_acl_filename, images, error)) {
+            // Redis addReplyError supplies ERR for unprefixed ACL-file diagnostics.
+            error.insert(0, "ERR ");
             reply_err(op.sink(), error.c_str());
             return;
         }
