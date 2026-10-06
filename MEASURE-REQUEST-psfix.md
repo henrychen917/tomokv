@@ -56,7 +56,7 @@ then current size before base size. The counter is a process-wide atomic in the
 snapshot module, read only by INFO and written at init/successful finalization.
 
 Updated existing consumers in tests/aof_rewrite_triggers.py and
- tests/edgetime_persist.sh, plus obsolete immutable expectations in tests/knobs.py
+tests/edgetime_persist.sh, plus obsolete immutable expectations in tests/knobs.py
 and tests/redisgap.py. Remaining old strings in tests are deliberate PRE/no-alias
 negative assertions. There is no calib directory in this worktree; external
 `/home/user/Projects/calib` top-level text consumers have no matches. Old source
@@ -82,7 +82,7 @@ but not edited (own-worktree rule).
   requires CONFIG `no` to refuse it unchanged, and CONFIG `yes` to recover and
   truncate exactly those bytes, then byte-verifies the full dataset.
 - Python syntax checks, shell syntax check, and `git diff --check`: PASS.
-- Selected persistence gate: **RUNNING; final result will replace this line.**
+- Selected persistence gate: **76/76 PASS, 0 FAIL**. [Ledger](docs/psfix/gate-ledger.tsv), [log](docs/psfix/gate.log). Run artifacts: `build/gate-run.JYVsRP`; all selected jobs completed and their owned children were reaped.
 
 The gate command is:
 
