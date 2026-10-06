@@ -25,7 +25,7 @@ class Driver(unittest.TestCase):
         conn = mock.Mock()
         conn.cmd.side_effect = lambda *v: b'PONG' if v == ('PING',) else b'OK'
         with (mock.patch.object(live.subprocess, 'Popen', return_value=proc) as spawn,
-              mock.patch.object(live, 'Conn', return_value=conn),
+              mock.patch.object(live, 'wait_ready', return_value=conn),
               mock.patch.object(live, 'productive') as productive,
               mock.patch.object(live, 'wait_parked', return_value={'112': 'io_uring'}),
               mock.patch.object(live, 'load_report', return_value=report),

@@ -1,0 +1,7 @@
+  workers completed                                    ok  unfinished/empty workers []
+  server alive after churn                             ok
+  armed lane served reads (non-vacuity)                ok read_local_hits delta 3561053
+  block cache held blocks (non-vacuity)                ok peak mem_block_cache 302000 bytes
+  load balancer moved shards (non-vacuity)             FAIL tomokv_keylb_bucket_moves delta 0 -- the automatic balancer must move shards; retain more shards than workers
+  churn: ops=8945904 workers=48 flushes=5 peak_block_cache=302000
+rlcache-churn FAIL 1 (checks=5 skips=0 strict)

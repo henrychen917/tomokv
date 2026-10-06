@@ -1,0 +1,27 @@
+test_banner_must_be_an_exact_line (__main__.DeadlineAndIdentity.test_banner_must_be_an_exact_line) ... ok
+test_child_exit_during_handshake_fails (__main__.DeadlineAndIdentity.test_child_exit_during_handshake_fails) ... ok
+test_connect_exhausting_deadline_sends_no_ping (__main__.DeadlineAndIdentity.test_connect_exhausting_deadline_sends_no_ping) ... ok
+test_connection_and_handshake_share_one_deadline (__main__.DeadlineAndIdentity.test_connection_and_handshake_share_one_deadline) ... ok
+test_connection_refusal_then_mainline_pong (__main__.DeadlineAndIdentity.test_connection_refusal_then_mainline_pong) ... ok
+test_mainline_pong_needs_no_loading_phase (__main__.DeadlineAndIdentity.test_mainline_pong_needs_no_loading_phase) ... ok
+test_non_transport_oserror_is_not_retried (__main__.DeadlineAndIdentity.test_non_transport_oserror_is_not_retried) ... ok
+test_only_exact_loading_is_retryable (__main__.DeadlineAndIdentity.test_only_exact_loading_is_retryable) ... ok
+test_partial_line_and_bulk_cannot_renew_deadline (__main__.DeadlineAndIdentity.test_partial_line_and_bulk_cannot_renew_deadline) ... ok
+test_pid_missing_is_a_failure (__main__.DeadlineAndIdentity.test_pid_missing_is_a_failure) ... ok
+test_real_resp_reader_resets_deadline_for_application (__main__.DeadlineAndIdentity.test_real_resp_reader_resets_deadline_for_application) ... ok
+test_shell_pid_is_checked_and_verified (__main__.DeadlineAndIdentity.test_shell_pid_is_checked_and_verified) ... ok
+test_banner_absence_never_connects (__main__.Readiness.test_banner_absence_never_connects) ... ok
+test_banner_and_owned_peer (__main__.Readiness.test_banner_and_owned_peer) ... ok
+test_dead_child_does_not_connect (__main__.Readiness.test_dead_child_does_not_connect) ... ok
+test_dead_child_preserves_owned_log_diagnostic (__main__.Readiness.test_dead_child_preserves_owned_log_diagnostic) ... ok
+test_loading_then_pong_closes_only_refused_peer (__main__.Readiness.test_loading_then_pong_closes_only_refused_peer) ... ok
+test_never_loading_complete_fails_bounded (__main__.Readiness.test_never_loading_complete_fails_bounded) ... ok
+test_owned_pid_required (__main__.Readiness.test_owned_pid_required) ... ok
+test_public_reader_accepts_wire_fake_without_private_transport (__main__.Readiness.test_public_reader_accepts_wire_fake_without_private_transport) ... ok
+test_reset_and_eof_are_boot_retries (__main__.Readiness.test_reset_and_eof_are_boot_retries) ... ok
+test_unrelated_error_is_not_retried (__main__.Readiness.test_unrelated_error_is_not_retried) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 0.208s
+
+OK
