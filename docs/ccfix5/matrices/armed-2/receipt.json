@@ -1,0 +1,115 @@
+{
+  "source": "/home/user/Projects/cx-ccfix/build/gate-run.Qr7zy9",
+  "gate_exit_code": 1,
+  "private_correctness_complete": false,
+  "reason": "GEO seed 28 lost cross-owner placement during LFU priming; recorded failure, not a passing full matrix",
+  "parts": {
+    "0": {
+      "executed_legs": 215,
+      "failed_legs": [],
+      "ccfix_legs": [
+        [
+          "ccfix",
+          "0",
+          "7",
+          "0",
+          "0",
+          "ccfix-a0-s7.txt"
+        ],
+        [
+          "ccfix",
+          "0",
+          "19",
+          "0",
+          "0",
+          "ccfix-a0-s19.txt"
+        ],
+        [
+          "ccfix",
+          "0",
+          "20",
+          "0",
+          "0",
+          "ccfix-a0-s20.txt"
+        ],
+        [
+          "ccfix",
+          "0",
+          "23",
+          "0",
+          "0",
+          "ccfix-a0-s23.txt"
+        ],
+        [
+          "ccfix",
+          "0",
+          "28",
+          "0",
+          "0",
+          "ccfix-a0-s28.txt"
+        ]
+      ],
+      "pending_windows": 0,
+      "completion_published": true
+    },
+    "1": {
+      "executed_legs": 219,
+      "failed_legs": [
+        [
+          "geo",
+          "1",
+          "28",
+          "0",
+          "1",
+          "geo-a1-s28.txt"
+        ]
+      ],
+      "ccfix_legs": [
+        [
+          "ccfix",
+          "1",
+          "7",
+          "0",
+          "0",
+          "ccfix-a1-s7.txt"
+        ],
+        [
+          "ccfix",
+          "1",
+          "19",
+          "0",
+          "0",
+          "ccfix-a1-s19.txt"
+        ],
+        [
+          "ccfix",
+          "1",
+          "20",
+          "0",
+          "0",
+          "ccfix-a1-s20.txt"
+        ],
+        [
+          "ccfix",
+          "1",
+          "23",
+          "0",
+          "0",
+          "ccfix-a1-s23.txt"
+        ],
+        [
+          "ccfix",
+          "1",
+          "28",
+          "0",
+          "0",
+          "ccfix-a1-s28.txt"
+        ]
+      ],
+      "pending_windows": 15,
+      "completion_published": false
+    }
+  },
+  "outer_ledger": "PARTIAL\t0\tGATE_ONLY_JOBS=differ-armed; NOT A RECEIPT\nok\t0.000000\trelease build (+footprint locks)\nok\t464.980000\tRedis 7.4 differential part (armed fused, atomic 0)\nFAIL\t465.940000\tRedis 7.4 differential part (armed fused, atomic 1)\n",
+  "archive_sha256": "1966a1781060afbd505c7336fef721b7c0def3f1e338cc628b3676ae45bb9b4b"
+}

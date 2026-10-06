@@ -149,6 +149,8 @@ as the uncorrected merged POST**, with the following three-boot controls:
 | PRE, SWAPDB, source readers | 23/24 | 23/24 | 23/24 |
 | Uncorrected POST, SWAPDB, source readers | 23/24 | 24/24 | 23/24 |
 | Final POST, SWAPDB, release peers after each round | **24/24** | **24/24** | **24/24** |
+| PRE, matched closed-peer fixture, repeat control | 23/24 | 22/24 | 20/24 |
+| Final POST, same matched closed-peer fixture | **24/24** | **24/24** | **24/24** |
 
 Every unopened window has pending 0→0, atomic_localfast +1 and writer_ready=true,
 despite distinct DEBUG-reported owners. Every final POST window has at least two
@@ -160,7 +162,14 @@ zero fallbacks. The swapped-probe summary and complete INFO/DEBUG traces are
 retained in [swapped probes](docs/ccfix5/swapped-probes.json). A separate
 [validation](docs/ccfix5/final-probe-validation.json) checks all 72 final windows
 for pending 0→at-least-2, unchanged localfast and an unreplied writer. The negative results
-were not discarded. Additional identity-map reader controls are retained in
+were not discarded. The additional
+[matched closed-peer controls](docs/ccfix5/matched-closed-probes.json) use identical
+flags on both arms: `--attempts 24 --readers --swap --close-peers`, three boots
+per atomic mode, server 120–127 and clients 112–119. They ran after split
+completed, alongside armed run 2. PRE still fails seven constructions through
+localfast; POST opens all 72. Thus peer cleanup alone does not repair the
+namespace bug. Exact failing keys vary with the generated names; these counts
+are construction evidence, not a rate estimate. Additional identity-map reader controls are retained in
 [pending probes](docs/ccfix5/pending-probes.json).
 
 Fix: the three cold DEBUG subcommands copy their key Slice, apply
@@ -223,14 +232,29 @@ These are fresh merged-arm receipts; they do not rewrite ccfix4's recorded 0/11.
 
 ## Final matrix receipts
 
-Run 1 is complete: selected gate exit 0, atomic=0 **216/216** rows and atomic=1
-**220/220** rows, 981 peak hits in each, all 15 pending windows witnessed.
-[Receipt](docs/ccfix5/matrices/armed-1/receipt.json). Split also completed with
-selected gate exit 0: **220/220** atomic=0 and **224/224** atomic=1, all 15 held
-windows, plus all mode-equivalence cells
-([receipt](docs/ccfix5/matrices/split/receipt.json)). The remaining two armed
-repetitions are running. There are three serial armed-fused repetitions plus
-one split repetition,
+Three armed executions were requested. Runs 1 and 2 are complete; run 3 is
+running. **Run 2 is a retained failed full matrix**, despite every ccfix leg and
+pending-source window passing. It found the GEO placement-fixture issue below.
+
+| Run | Atomic=0 | Atomic=1 | Read-local peak hits (0 / 1) | Pending windows | Gate exit |
+|---|---|---|---|---|---|
+| [armed 1](docs/ccfix5/matrices/armed-1/receipt.json) | 216/216 | 220/220 | 981 / 981 | 15/15 | 0 |
+| [armed 2](docs/ccfix5/matrices/armed-2/receipt.json) | 216/216 | 218/219 comparison legs; GEO seed 28 failed | 981 / 981 | 15/15 | 1 |
+| armed 3 | running | running | pending | pending | pending |
+| [split](docs/ccfix5/matrices/split/receipt.json) | 220/220 | 224/224 | read-local not armed | 15/15 | 0 |
+
+Split additionally passes all **32 mode-equivalence cells**. Rows in the armed
+counts include the existing non-vacuity row; split counts are comparison legs.
+Failed run 2 emits `pass=219 fail=2` for atomic=1: 218 successful comparisons plus
+the lane row, one GEO failure and the strict missing-completion rejection. Its
+434 actual comparison legs were executed, with all ten ccfix legs passing.
+No failed run is relabelled as PASS. The complete archives preserve each frozen
+plan, journal, coverage artifact, ccfix leg and counter observation.
+
+The final run automatically retains failed seed 28, so its inventory expands
+to six seeds. Harness commits and relevant file hashes are recorded in
+[matrix sources](docs/ccfix5/matrix-source-manifests.json). There are three serial
+armed-fused repetitions plus one overlapping split repetition,
 using the full discovered suite/seed matrix in each part. Armed servers use
 112–119, load uses 120–127, and Redis 7.4 is pinned to CPU 120. To fit the
 90-minute lane limit, split overlaps armed after the paired diagnosis and all
@@ -254,6 +278,25 @@ taskset -c 112-127 tests/gate.sh iteration \
 # GATE_ONLY_JOBS=differ-split GATE_DIFFER_ORACLE_CORES=112
 # --server-cores 120-127 --load-cores 112-119 --ports 18161-18182
 ```
+
+The GEO failure was an arming assertion **before STORE**, not a differing GEO
+reply: `((13,5,1),(7,5,1))` showed distinct shards but the same current owner.
+`tests/cd13b_wire.py` selected a cross-owner pair, issued 4,096 LFU-priming reads,
+and assumed the old placement still applied. Load balancing could move the hot
+destination during that interval. This independent fixture came from the merged
+cd13b work; no GEO production body changed in ccfix5.
+
+The final harness checks LFU and current cross-owner placement together inside
+its existing three-fresh-destination arming loop. A failed arming is printed,
+both keys are deleted, and the next attempt uses fresh names. After three
+failures it fails with the LFU values and placement. The before/after STORE
+owner/migration equality, reply, encoding and LFU-preservation assertions remain
+unchanged. `tests/cd13b_window_test.py` runs the actual property with controlled
+movement: the old property fails all three verbs before STORE, the fix re-arms
+and passes all three, and a window that never opens fails all three after the
+bounded attempts. See [before failure](docs/ccfix5/geo-window-before.log) and
+[two passing controls](docs/ccfix5/geo-window-test.log). The final matrix uses
+this correction; it does not make the earlier failed matrix a pass.
 
 The release/footprint prerequisite runs with each selected gate part. These are
 partial correctness receipts, not a full 517-row gate or an ABBA result.
