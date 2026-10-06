@@ -1171,7 +1171,7 @@ reject_boot(){
 store_build(){
   local variant=${1:-} flags=${CXXFLAGS-'-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread'}
   # Match the three Makefile recipes, including the later -O1 override for TSan. Their former
-  # single compiler invocation serialized three large translation units on every cache miss.
+  # single compiler invocation serialized the large translation units on every cache miss.
   # Reuse the header-aware cache and keep compilation on this slot while other batteries run.
   if [ "$variant" = tsan ]; then
     flags+=' -O1 -fsanitize=thread -fno-omit-frame-pointer -no-pie'
@@ -1183,7 +1183,7 @@ store_build(){
       "$PWD/build/store-regression${variant:+-$variant}" \
       "$PWD/build/gate-cache/store${variant:+-$variant}-objects" \
       "$flags" '-Wl,--gc-sections' \
-      tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc
+      tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc src/cmd/storesize.cc
 }
 
 job_release(){
