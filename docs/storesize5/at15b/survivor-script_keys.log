@@ -1,0 +1,4 @@
+$ taskset -c 112-127 ./build/atomic-survivors-unit script_keys
+PASS script_keys
+
+exit=0

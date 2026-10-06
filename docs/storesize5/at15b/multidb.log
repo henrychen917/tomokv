@@ -1,0 +1,362 @@
+$ taskset -c 112-127 ./build/multidb-unit
+PASS probeadapter states db=0: disabled Hit Missing AtomicPending Churn real-resize
+PASS probeadapter states db=3: disabled Hit Missing AtomicPending Churn real-resize
+PASS sortstore all: 65 cases
+CLASS direct GET
+CLASS direct SET
+CLASS direct APPEND
+CLASS direct STRLEN
+CLASS direct GETRANGE
+CLASS direct SUBSTR
+CLASS direct SETRANGE
+CLASS direct SETBIT
+CLASS direct GETBIT
+CLASS direct BITFIELD
+CLASS direct BITFIELD_RO
+CLASS direct BITCOUNT
+CLASS direct BITPOS
+CLASS cold BITOP
+CLASS direct GETSET
+CLASS direct SETNX
+CLASS direct SETEX
+CLASS direct PSETEX
+CLASS direct GETEX
+CLASS direct GETDEL
+CLASS direct DEL
+CLASS direct UNLINK
+CLASS direct EXISTS
+CLASS direct TOUCH
+CLASS direct MGET
+CLASS direct MSET
+CLASS direct MSETNX
+CLASS cold RENAME
+CLASS cold RENAMENX
+CLASS cold COPY
+CLASS direct INCR
+CLASS direct DECR
+CLASS direct INCRBY
+CLASS direct DECRBY
+CLASS direct INCRBYFLOAT
+CLASS direct PFADD
+CLASS direct PFCOUNT
+CLASS direct PFMERGE
+CLASS direct EXPIRE
+CLASS direct PEXPIRE
+CLASS direct EXPIREAT
+CLASS direct PEXPIREAT
+CLASS direct TTL
+CLASS direct PTTL
+CLASS direct PERSIST
+CLASS direct EXPIRETIME
+CLASS direct PEXPIRETIME
+CLASS direct TYPE
+CLASS direct DUMP
+CLASS direct RESTORE
+CLASS direct HSET
+CLASS direct HMSET
+CLASS direct HSETNX
+CLASS direct HGET
+CLASS direct HMGET
+CLASS direct HDEL
+CLASS direct HLEN
+CLASS direct HEXISTS
+CLASS direct HSTRLEN
+CLASS direct HINCRBY
+CLASS direct HINCRBYFLOAT
+CLASS direct HGETALL
+CLASS direct HKEYS
+CLASS direct HVALS
+CLASS direct HRANDFIELD
+CLASS direct HSCAN
+CLASS direct HEXPIRE
+CLASS direct HPEXPIRE
+CLASS direct HEXPIREAT
+CLASS direct HPEXPIREAT
+CLASS direct HTTL
+CLASS direct HPTTL
+CLASS direct HEXPIRETIME
+CLASS direct HPEXPIRETIME
+CLASS direct HPERSIST
+CLASS direct LPUSH
+CLASS direct RPUSH
+CLASS direct LPUSHX
+CLASS direct RPUSHX
+CLASS direct LPOP
+CLASS direct RPOP
+CLASS direct LLEN
+CLASS direct LRANGE
+CLASS direct LINDEX
+CLASS direct LSET
+CLASS direct LINSERT
+CLASS direct LREM
+CLASS direct LTRIM
+CLASS direct LPOS
+CLASS cold BLPOP
+CLASS cold BRPOP
+CLASS cold BLMPOP
+CLASS cold BLMOVE
+CLASS cold BRPOPLPUSH
+CLASS cold LMPOP
+CLASS cold LMOVE
+CLASS cold RPOPLPUSH
+CLASS direct SADD
+CLASS direct SREM
+CLASS direct SISMEMBER
+CLASS direct SMISMEMBER
+CLASS direct SCARD
+CLASS direct SMEMBERS
+CLASS direct SPOP
+CLASS direct SRANDMEMBER
+CLASS direct SSCAN
+CLASS cold SMOVE
+CLASS direct SINTER
+CLASS direct SUNION
+CLASS direct SDIFF
+CLASS cold SINTERCARD
+CLASS direct SINTERSTORE
+CLASS direct SUNIONSTORE
+CLASS direct SDIFFSTORE
+CLASS direct ZADD
+CLASS direct ZSCORE
+CLASS direct ZMSCORE
+CLASS direct ZINCRBY
+CLASS direct ZCARD
+CLASS direct ZCOUNT
+CLASS direct ZRANGE
+CLASS direct ZRANGEBYSCORE
+CLASS direct ZREVRANGEBYSCORE
+CLASS direct ZRANGEBYLEX
+CLASS direct ZREVRANGEBYLEX
+CLASS direct ZREVRANGE
+CLASS direct ZRANK
+CLASS direct ZREVRANK
+CLASS direct ZREM
+CLASS direct ZREMRANGEBYRANK
+CLASS direct ZREMRANGEBYSCORE
+CLASS direct ZREMRANGEBYLEX
+CLASS direct ZLEXCOUNT
+CLASS direct ZPOPMIN
+CLASS direct ZPOPMAX
+CLASS direct ZRANDMEMBER
+CLASS direct ZSCAN
+CLASS cold BZPOPMIN
+CLASS cold BZPOPMAX
+CLASS cold BZMPOP
+CLASS cold ZMPOP
+CLASS cold ZRANGESTORE
+CLASS cold ZUNION
+CLASS cold ZINTER
+CLASS cold ZDIFF
+CLASS cold ZUNIONSTORE
+CLASS cold ZINTERSTORE
+CLASS cold ZDIFFSTORE
+CLASS cold ZINTERCARD
+CLASS direct GEOADD
+CLASS direct GEOPOS
+CLASS direct GEODIST
+CLASS direct GEOHASH
+CLASS direct GEOSEARCH
+CLASS cold GEOSEARCHSTORE
+CLASS cold GEORADIUS
+CLASS cold GEORADIUSBYMEMBER
+CLASS cold GEORADIUS_RO
+CLASS cold GEORADIUSBYMEMBER_RO
+CLASS direct XADD
+CLASS direct XLEN
+CLASS direct XRANGE
+CLASS direct XREVRANGE
+CLASS direct XDEL
+CLASS direct XTRIM
+CLASS cold XREAD
+CLASS cold XGROUP
+CLASS cold XREADGROUP
+CLASS direct XACK
+CLASS direct XPENDING
+CLASS direct XCLAIM
+CLASS direct XAUTOCLAIM
+CLASS direct XSETID
+CLASS cold XINFO
+CLASS direct PING
+CLASS direct ACL
+CLASS direct SAVE
+CLASS direct BGSAVE
+CLASS direct BGREWRITEAOF
+CLASS direct LASTSAVE
+CLASS direct ECHO
+CLASS direct AUTH
+CLASS direct HELLO
+CLASS direct RESET
+CLASS direct QUIT
+CLASS direct SUBSCRIBE
+CLASS direct UNSUBSCRIBE
+CLASS direct PSUBSCRIBE
+CLASS direct PUNSUBSCRIBE
+CLASS direct SSUBSCRIBE
+CLASS direct SUNSUBSCRIBE
+CLASS direct PUBLISH
+CLASS direct SPUBLISH
+CLASS direct PUBSUB
+CLASS direct CLIENT
+CLASS direct MONITOR
+CLASS direct COMMAND
+CLASS direct CONFIG
+CLASS direct DEBUG
+CLASS direct FLIP
+CLASS direct INFO
+CLASS direct SELECT
+CLASS cold MOVE
+CLASS direct SWAPDB
+CLASS direct DBSIZE
+CLASS direct FLUSHALL
+CLASS direct FLUSHDB
+CLASS direct RANDOMKEY
+CLASS direct SCAN
+CLASS cold KEYS
+CLASS cold SORT
+CLASS direct MULTI
+CLASS direct EXEC
+CLASS direct DISCARD
+CLASS direct WATCH
+CLASS direct UNWATCH
+CLASS cold EVAL
+CLASS cold EVALSHA
+CLASS cold EVAL_RO
+CLASS cold EVALSHA_RO
+CLASS direct SCRIPT
+CLASS cold FCALL
+CLASS cold FCALL_RO
+CLASS direct FUNCTION
+CLASS direct TIME
+CLASS direct LOLWUT
+CLASS direct ROLE
+CLASS direct WAIT
+CLASS direct WAITAOF
+CLASS direct FAILOVER
+CLASS direct REPLICAOF
+CLASS direct SLAVEOF
+CLASS direct PFSELFTEST
+CLASS direct SHUTDOWN
+CLASS cold SORT_RO
+CLASS cold OBJECT
+CLASS cold MEMORY
+CLASS direct SLOWLOG
+CLASS direct LATENCY
+CLASS cold LCS
+CLASS direct ASKING
+CLASS direct READONLY
+CLASS direct READWRITE
+CLASS direct RESTORE-ASKING
+CLASS direct PFDEBUG
+PASS mdbstamp registry: 197 direct, 48 cold; fixed-range argc 1..12
+PASS mdbstamp regular: 384 stamps, clean/notify/TLS/TLS-notify, live/private, repeat; zero allocations and metadata entries
+PASS mdbstamp semantics: get24 (live, repeat, private, reselect)
+PASS mdbstamp semantics: mset-stride (live, repeat, private, reselect)
+PASS mdbstamp semantics: msetnx-stride (live, repeat, private, reselect)
+PASS mdbstamp semantics: mset-dangling (live, repeat, private, reselect)
+PASS mdbstamp semantics: get-missing (live, repeat, private, reselect)
+PASS mdbstamp semantics: get-extra (live, repeat, private, reselect)
+PASS mdbstamp semantics: set-options (live, repeat, private, reselect)
+PASS mdbstamp semantics: ping-keyless (live, repeat, private, reselect)
+PASS mdbstamp semantics: select-keyless (live, repeat, private, reselect)
+PASS mdbstamp semantics: copy-db-replace (live, repeat, private, reselect)
+PASS mdbstamp semantics: copy-default (live, repeat, private, reselect)
+PASS mdbstamp semantics: copy-repeat-db (live, repeat, private, reselect)
+PASS mdbstamp semantics: copy-invalid-db (live, repeat, private, reselect)
+PASS mdbstamp semantics: copy-missing-db (live, repeat, private, reselect)
+PASS mdbstamp semantics: copy-invalid-option (live, repeat, private, reselect)
+PASS mdbstamp semantics: move (live, repeat, private, reselect)
+PASS mdbstamp semantics: move-invalid-db (live, repeat, private, reselect)
+PASS mdbstamp semantics: move-invalid-arity (live, repeat, private, reselect)
+PASS mdbstamp semantics: sort-store (live, repeat, private, reselect)
+PASS mdbstamp semantics: sort-patterns (live, repeat, private, reselect)
+PASS mdbstamp semantics: sort-ro (live, repeat, private, reselect)
+PASS mdbstamp semantics: sort-invalid-store (live, repeat, private, reselect)
+PASS mdbstamp semantics: eval (live, repeat, private, reselect)
+PASS mdbstamp semantics: eval-ro (live, repeat, private, reselect)
+PASS mdbstamp semantics: evalsha (live, repeat, private, reselect)
+PASS mdbstamp semantics: evalsha-ro (live, repeat, private, reselect)
+PASS mdbstamp semantics: fcall (live, repeat, private, reselect)
+PASS mdbstamp semantics: fcall-ro (live, repeat, private, reselect)
+PASS mdbstamp semantics: eval-zero (live, repeat, private, reselect)
+PASS mdbstamp semantics: eval-overcount (live, repeat, private, reselect)
+PASS mdbstamp semantics: eval-bad-count (live, repeat, private, reselect)
+PASS mdbstamp semantics: xread (live, repeat, private, reselect)
+PASS mdbstamp semantics: xreadgroup (live, repeat, private, reselect)
+PASS mdbstamp semantics: xread-no-streams (live, repeat, private, reselect)
+PASS mdbstamp semantics: xread-odd-tail (live, repeat, private, reselect)
+PASS mdbstamp semantics: zunionstore (live, repeat, private, reselect)
+PASS mdbstamp semantics: zinterstore (live, repeat, private, reselect)
+PASS mdbstamp semantics: zdiffstore (live, repeat, private, reselect)
+PASS mdbstamp semantics: zunion (live, repeat, private, reselect)
+PASS mdbstamp semantics: zintercard (live, repeat, private, reselect)
+PASS mdbstamp semantics: sintercard (live, repeat, private, reselect)
+PASS mdbstamp semantics: zstore-bad-count (live, repeat, private, reselect)
+PASS mdbstamp semantics: zmpop (live, repeat, private, reselect)
+PASS mdbstamp semantics: lmpop (live, repeat, private, reselect)
+PASS mdbstamp semantics: bzmpop (live, repeat, private, reselect)
+PASS mdbstamp semantics: blmpop (live, repeat, private, reselect)
+PASS mdbstamp semantics: blpop (live, repeat, private, reselect)
+PASS mdbstamp semantics: brpop (live, repeat, private, reselect)
+PASS mdbstamp semantics: bzpopmin (live, repeat, private, reselect)
+PASS mdbstamp semantics: bzpopmax (live, repeat, private, reselect)
+PASS mdbstamp semantics: georadius (live, repeat, private, reselect)
+PASS mdbstamp semantics: georadius-member (live, repeat, private, reselect)
+PASS mdbstamp semantics: object-help (live, repeat, private, reselect)
+PASS mdbstamp semantics: object-invalid (live, repeat, private, reselect)
+PASS mdbstamp semantics: object-key (live, repeat, private, reselect)
+PASS mdbstamp semantics: memory-help (live, repeat, private, reselect)
+PASS mdbstamp semantics: memory-key (live, repeat, private, reselect)
+PASS mdbstamp semantics: xgroup-help (live, repeat, private, reselect)
+PASS mdbstamp semantics: xgroup-key (live, repeat, private, reselect)
+PASS mdbstamp semantics: xinfo-help (live, repeat, private, reselect)
+PASS mdbstamp semantics: xinfo-key (live, repeat, private, reselect)
+PASS probeadapter states db=0: disabled Hit Missing AtomicPending Churn real-resize
+PASS db0 boot variant: legacy identity, decoder, binary keys, layouts and armed reads
+PASS multidb namespace identity and layout (read-local 0)
+PASS multidb namespace identity and layout (read-local 1)
+L4 TTL case: read-local=0 db=1 key-bytes=1 value-bytes=1024
+L4 TTL case: read-local=0 db=1 key-bytes=0 value-bytes=1024
+L4 TTL case: read-local=0 db=1 key-bytes=254 value-bytes=1024
+L4 TTL case: read-local=0 db=1 key-bytes=255 value-bytes=1024
+L4 TTL case: read-local=0 db=1 key-bytes=307 value-bytes=1024
+L4 TTL case: read-local=0 db=15 key-bytes=1 value-bytes=1024
+L4 TTL case: read-local=0 db=15 key-bytes=0 value-bytes=1024
+L4 TTL case: read-local=0 db=15 key-bytes=254 value-bytes=1024
+L4 TTL case: read-local=0 db=15 key-bytes=255 value-bytes=1024
+L4 TTL case: read-local=0 db=15 key-bytes=307 value-bytes=1024
+L4 TTL case: read-local=0 db=255 key-bytes=1 value-bytes=1024
+L4 TTL case: read-local=0 db=255 key-bytes=0 value-bytes=1024
+L4 TTL case: read-local=0 db=255 key-bytes=254 value-bytes=1024
+L4 TTL case: read-local=0 db=255 key-bytes=255 value-bytes=1024
+L4 TTL case: read-local=0 db=255 key-bytes=307 value-bytes=1024
+L4 TTL case: read-local=0 db=0 key-bytes=1 value-bytes=1024
+L4 TTL case: read-local=0 db=0 key-bytes=0 value-bytes=1024
+L4 TTL case: read-local=0 db=0 key-bytes=254 value-bytes=1024
+L4 TTL case: read-local=0 db=0 key-bytes=255 value-bytes=1024
+L4 TTL case: read-local=0 db=0 key-bytes=307 value-bytes=1024
+PASS multidb L4 TTL transitions (read-local 0)
+L4 TTL case: read-local=1 db=1 key-bytes=1 value-bytes=1024
+L4 TTL case: read-local=1 db=1 key-bytes=0 value-bytes=1024
+L4 TTL case: read-local=1 db=1 key-bytes=254 value-bytes=1024
+L4 TTL case: read-local=1 db=1 key-bytes=255 value-bytes=1024
+L4 TTL case: read-local=1 db=1 key-bytes=307 value-bytes=1024
+L4 TTL case: read-local=1 db=15 key-bytes=1 value-bytes=1024
+L4 TTL case: read-local=1 db=15 key-bytes=0 value-bytes=1024
+L4 TTL case: read-local=1 db=15 key-bytes=254 value-bytes=1024
+L4 TTL case: read-local=1 db=15 key-bytes=255 value-bytes=1024
+L4 TTL case: read-local=1 db=15 key-bytes=307 value-bytes=1024
+L4 TTL case: read-local=1 db=255 key-bytes=1 value-bytes=1024
+L4 TTL case: read-local=1 db=255 key-bytes=0 value-bytes=1024
+L4 TTL case: read-local=1 db=255 key-bytes=254 value-bytes=1024
+L4 TTL case: read-local=1 db=255 key-bytes=255 value-bytes=1024
+L4 TTL case: read-local=1 db=255 key-bytes=307 value-bytes=1024
+L4 TTL case: read-local=1 db=0 key-bytes=1 value-bytes=1024
+L4 TTL case: read-local=1 db=0 key-bytes=0 value-bytes=1024
+L4 TTL case: read-local=1 db=0 key-bytes=254 value-bytes=1024
+L4 TTL case: read-local=1 db=0 key-bytes=255 value-bytes=1024
+L4 TTL case: read-local=1 db=0 key-bytes=307 value-bytes=1024
+PASS multidb L4 TTL transitions (read-local 1)
+PASS multidb native snapshot records and AOF namespace/map replay
+PASS multidb owner phases, SELECT, MOVE, COPY, SWAPDB and WATCH
+
+exit=0
