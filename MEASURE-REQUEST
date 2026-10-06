@@ -23,3 +23,12 @@ Lane at15: MULTI admin replies
 See MEASURE-REQUEST-at15.md for PRE/POST hashes, serverless falsification, body
 identity, the +1/+1 row count, and explicit Redis-table/group-5 policy differences.
 Live verification and the gate remain maintainer work; no push.
+
+Lane cmdmeta: EX9 orphan command metadata
+
+See MEASURE-REQUEST-cmdmeta.md. Removed 33 orphan rows through the existing generator;
+341 metadata rows and 245 registry commands remain. Offline drift, regression controls,
+and object/linked byte audits pass within the documented address-relocation limits.
+PRE, POST, build/tomokv and explicit kind-A PAD are ready with SHA-256 receipts.
+Both-mode live differential/gate and the ordinary-command performance null remain
+maintainer work. No server, benchmark, or gate was run. Rows +0/+0; no push.

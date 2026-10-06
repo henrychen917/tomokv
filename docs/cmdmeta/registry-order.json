@@ -1,0 +1,1231 @@
+{
+  "count": 245,
+  "pre_post_identical": true,
+  "entries": [
+    {
+      "id": 0,
+      "name": "GET",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 1,
+      "name": "SET",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 2,
+      "name": "APPEND",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 3,
+      "name": "STRLEN",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 4,
+      "name": "GETRANGE",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 5,
+      "name": "SUBSTR",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 6,
+      "name": "SETRANGE",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 7,
+      "name": "SETBIT",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 8,
+      "name": "GETBIT",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 9,
+      "name": "BITFIELD",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 10,
+      "name": "BITFIELD_RO",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 11,
+      "name": "BITCOUNT",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 12,
+      "name": "BITPOS",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 13,
+      "name": "BITOP",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 14,
+      "name": "GETSET",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 15,
+      "name": "SETNX",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 16,
+      "name": "SETEX",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 17,
+      "name": "PSETEX",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 18,
+      "name": "GETEX",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 19,
+      "name": "GETDEL",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 20,
+      "name": "DEL",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 21,
+      "name": "UNLINK",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 22,
+      "name": "EXISTS",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 23,
+      "name": "TOUCH",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 24,
+      "name": "MGET",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 25,
+      "name": "MSET",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 26,
+      "name": "MSETNX",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 27,
+      "name": "RENAME",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 28,
+      "name": "RENAMENX",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 29,
+      "name": "COPY",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 30,
+      "name": "INCR",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 31,
+      "name": "DECR",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 32,
+      "name": "INCRBY",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 33,
+      "name": "DECRBY",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 34,
+      "name": "INCRBYFLOAT",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 35,
+      "name": "PFADD",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 36,
+      "name": "PFCOUNT",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 37,
+      "name": "PFMERGE",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 38,
+      "name": "EXPIRE",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 39,
+      "name": "PEXPIRE",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 40,
+      "name": "EXPIREAT",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 41,
+      "name": "PEXPIREAT",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 42,
+      "name": "TTL",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 43,
+      "name": "PTTL",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 44,
+      "name": "PERSIST",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 45,
+      "name": "EXPIRETIME",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 46,
+      "name": "PEXPIRETIME",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 47,
+      "name": "TYPE",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 48,
+      "name": "DUMP",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 49,
+      "name": "RESTORE",
+      "source": "src/cmd/t_string.cc"
+    },
+    {
+      "id": 50,
+      "name": "HSET",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 51,
+      "name": "HMSET",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 52,
+      "name": "HSETNX",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 53,
+      "name": "HGET",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 54,
+      "name": "HMGET",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 55,
+      "name": "HDEL",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 56,
+      "name": "HLEN",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 57,
+      "name": "HEXISTS",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 58,
+      "name": "HSTRLEN",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 59,
+      "name": "HINCRBY",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 60,
+      "name": "HINCRBYFLOAT",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 61,
+      "name": "HGETALL",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 62,
+      "name": "HKEYS",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 63,
+      "name": "HVALS",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 64,
+      "name": "HRANDFIELD",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 65,
+      "name": "HSCAN",
+      "source": "src/cmd/t_hash.cc"
+    },
+    {
+      "id": 66,
+      "name": "HEXPIRE",
+      "source": "src/cmd/t_hash_ttl.cc"
+    },
+    {
+      "id": 67,
+      "name": "HPEXPIRE",
+      "source": "src/cmd/t_hash_ttl.cc"
+    },
+    {
+      "id": 68,
+      "name": "HEXPIREAT",
+      "source": "src/cmd/t_hash_ttl.cc"
+    },
+    {
+      "id": 69,
+      "name": "HPEXPIREAT",
+      "source": "src/cmd/t_hash_ttl.cc"
+    },
+    {
+      "id": 70,
+      "name": "HTTL",
+      "source": "src/cmd/t_hash_ttl.cc"
+    },
+    {
+      "id": 71,
+      "name": "HPTTL",
+      "source": "src/cmd/t_hash_ttl.cc"
+    },
+    {
+      "id": 72,
+      "name": "HEXPIRETIME",
+      "source": "src/cmd/t_hash_ttl.cc"
+    },
+    {
+      "id": 73,
+      "name": "HPEXPIRETIME",
+      "source": "src/cmd/t_hash_ttl.cc"
+    },
+    {
+      "id": 74,
+      "name": "HPERSIST",
+      "source": "src/cmd/t_hash_ttl.cc"
+    },
+    {
+      "id": 75,
+      "name": "LPUSH",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 76,
+      "name": "RPUSH",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 77,
+      "name": "LPUSHX",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 78,
+      "name": "RPUSHX",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 79,
+      "name": "LPOP",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 80,
+      "name": "RPOP",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 81,
+      "name": "LLEN",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 82,
+      "name": "LRANGE",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 83,
+      "name": "LINDEX",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 84,
+      "name": "LSET",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 85,
+      "name": "LINSERT",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 86,
+      "name": "LREM",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 87,
+      "name": "LTRIM",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 88,
+      "name": "LPOS",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 89,
+      "name": "BLPOP",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 90,
+      "name": "BRPOP",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 91,
+      "name": "BLMPOP",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 92,
+      "name": "BLMOVE",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 93,
+      "name": "BRPOPLPUSH",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 94,
+      "name": "LMPOP",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 95,
+      "name": "LMOVE",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 96,
+      "name": "RPOPLPUSH",
+      "source": "src/cmd/t_list.cc"
+    },
+    {
+      "id": 97,
+      "name": "SADD",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 98,
+      "name": "SREM",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 99,
+      "name": "SISMEMBER",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 100,
+      "name": "SMISMEMBER",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 101,
+      "name": "SCARD",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 102,
+      "name": "SMEMBERS",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 103,
+      "name": "SPOP",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 104,
+      "name": "SRANDMEMBER",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 105,
+      "name": "SSCAN",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 106,
+      "name": "SMOVE",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 107,
+      "name": "SINTER",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 108,
+      "name": "SUNION",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 109,
+      "name": "SDIFF",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 110,
+      "name": "SINTERCARD",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 111,
+      "name": "SINTERSTORE",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 112,
+      "name": "SUNIONSTORE",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 113,
+      "name": "SDIFFSTORE",
+      "source": "src/cmd/t_set.cc"
+    },
+    {
+      "id": 114,
+      "name": "ZADD",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 115,
+      "name": "ZSCORE",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 116,
+      "name": "ZMSCORE",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 117,
+      "name": "ZINCRBY",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 118,
+      "name": "ZCARD",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 119,
+      "name": "ZCOUNT",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 120,
+      "name": "ZRANGE",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 121,
+      "name": "ZRANGEBYSCORE",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 122,
+      "name": "ZREVRANGEBYSCORE",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 123,
+      "name": "ZRANGEBYLEX",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 124,
+      "name": "ZREVRANGEBYLEX",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 125,
+      "name": "ZREVRANGE",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 126,
+      "name": "ZRANK",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 127,
+      "name": "ZREVRANK",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 128,
+      "name": "ZREM",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 129,
+      "name": "ZREMRANGEBYRANK",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 130,
+      "name": "ZREMRANGEBYSCORE",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 131,
+      "name": "ZREMRANGEBYLEX",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 132,
+      "name": "ZLEXCOUNT",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 133,
+      "name": "ZPOPMIN",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 134,
+      "name": "ZPOPMAX",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 135,
+      "name": "ZRANDMEMBER",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 136,
+      "name": "ZSCAN",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 137,
+      "name": "BZPOPMIN",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 138,
+      "name": "BZPOPMAX",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 139,
+      "name": "BZMPOP",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 140,
+      "name": "ZMPOP",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 141,
+      "name": "ZRANGESTORE",
+      "source": "src/cmd/t_zset.cc"
+    },
+    {
+      "id": 142,
+      "name": "ZUNION",
+      "source": "src/cmd/t_zset_ops.cc"
+    },
+    {
+      "id": 143,
+      "name": "ZINTER",
+      "source": "src/cmd/t_zset_ops.cc"
+    },
+    {
+      "id": 144,
+      "name": "ZDIFF",
+      "source": "src/cmd/t_zset_ops.cc"
+    },
+    {
+      "id": 145,
+      "name": "ZUNIONSTORE",
+      "source": "src/cmd/t_zset_ops.cc"
+    },
+    {
+      "id": 146,
+      "name": "ZINTERSTORE",
+      "source": "src/cmd/t_zset_ops.cc"
+    },
+    {
+      "id": 147,
+      "name": "ZDIFFSTORE",
+      "source": "src/cmd/t_zset_ops.cc"
+    },
+    {
+      "id": 148,
+      "name": "ZINTERCARD",
+      "source": "src/cmd/t_zset_ops.cc"
+    },
+    {
+      "id": 149,
+      "name": "GEOADD",
+      "source": "src/cmd/geo.cc"
+    },
+    {
+      "id": 150,
+      "name": "GEOPOS",
+      "source": "src/cmd/geo.cc"
+    },
+    {
+      "id": 151,
+      "name": "GEODIST",
+      "source": "src/cmd/geo.cc"
+    },
+    {
+      "id": 152,
+      "name": "GEOHASH",
+      "source": "src/cmd/geo.cc"
+    },
+    {
+      "id": 153,
+      "name": "GEOSEARCH",
+      "source": "src/cmd/geo.cc"
+    },
+    {
+      "id": 154,
+      "name": "GEOSEARCHSTORE",
+      "source": "src/cmd/geo.cc"
+    },
+    {
+      "id": 155,
+      "name": "GEORADIUS",
+      "source": "src/cmd/geo.cc"
+    },
+    {
+      "id": 156,
+      "name": "GEORADIUSBYMEMBER",
+      "source": "src/cmd/geo.cc"
+    },
+    {
+      "id": 157,
+      "name": "GEORADIUS_RO",
+      "source": "src/cmd/geo.cc"
+    },
+    {
+      "id": 158,
+      "name": "GEORADIUSBYMEMBER_RO",
+      "source": "src/cmd/geo.cc"
+    },
+    {
+      "id": 159,
+      "name": "XADD",
+      "source": "src/cmd/t_stream.cc"
+    },
+    {
+      "id": 160,
+      "name": "XLEN",
+      "source": "src/cmd/t_stream.cc"
+    },
+    {
+      "id": 161,
+      "name": "XRANGE",
+      "source": "src/cmd/t_stream.cc"
+    },
+    {
+      "id": 162,
+      "name": "XREVRANGE",
+      "source": "src/cmd/t_stream.cc"
+    },
+    {
+      "id": 163,
+      "name": "XDEL",
+      "source": "src/cmd/t_stream.cc"
+    },
+    {
+      "id": 164,
+      "name": "XTRIM",
+      "source": "src/cmd/t_stream.cc"
+    },
+    {
+      "id": 165,
+      "name": "XREAD",
+      "source": "src/cmd/t_stream.cc"
+    },
+    {
+      "id": 166,
+      "name": "XGROUP",
+      "source": "src/cmd/t_stream_groups.cc"
+    },
+    {
+      "id": 167,
+      "name": "XREADGROUP",
+      "source": "src/cmd/t_stream_groups.cc"
+    },
+    {
+      "id": 168,
+      "name": "XACK",
+      "source": "src/cmd/t_stream_groups.cc"
+    },
+    {
+      "id": 169,
+      "name": "XPENDING",
+      "source": "src/cmd/t_stream_groups.cc"
+    },
+    {
+      "id": 170,
+      "name": "XCLAIM",
+      "source": "src/cmd/t_stream_groups.cc"
+    },
+    {
+      "id": 171,
+      "name": "XAUTOCLAIM",
+      "source": "src/cmd/t_stream_groups.cc"
+    },
+    {
+      "id": 172,
+      "name": "XSETID",
+      "source": "src/cmd/t_stream_groups.cc"
+    },
+    {
+      "id": 173,
+      "name": "XINFO",
+      "source": "src/cmd/t_stream_groups.cc"
+    },
+    {
+      "id": 174,
+      "name": "PING",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 175,
+      "name": "ACL",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 176,
+      "name": "SAVE",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 177,
+      "name": "BGSAVE",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 178,
+      "name": "BGREWRITEAOF",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 179,
+      "name": "LASTSAVE",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 180,
+      "name": "ECHO",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 181,
+      "name": "AUTH",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 182,
+      "name": "HELLO",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 183,
+      "name": "RESET",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 184,
+      "name": "QUIT",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 185,
+      "name": "SUBSCRIBE",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 186,
+      "name": "UNSUBSCRIBE",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 187,
+      "name": "PSUBSCRIBE",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 188,
+      "name": "PUNSUBSCRIBE",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 189,
+      "name": "SSUBSCRIBE",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 190,
+      "name": "SUNSUBSCRIBE",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 191,
+      "name": "PUBLISH",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 192,
+      "name": "SPUBLISH",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 193,
+      "name": "PUBSUB",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 194,
+      "name": "CLIENT",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 195,
+      "name": "MONITOR",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 196,
+      "name": "COMMAND",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 197,
+      "name": "CONFIG",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 198,
+      "name": "DEBUG",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 199,
+      "name": "FLIP",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 200,
+      "name": "INFO",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 201,
+      "name": "SELECT",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 202,
+      "name": "MOVE",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 203,
+      "name": "SWAPDB",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 204,
+      "name": "DBSIZE",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 205,
+      "name": "FLUSHALL",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 206,
+      "name": "FLUSHDB",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 207,
+      "name": "RANDOMKEY",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 208,
+      "name": "SCAN",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 209,
+      "name": "KEYS",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 210,
+      "name": "SORT",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 211,
+      "name": "MULTI",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 212,
+      "name": "EXEC",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 213,
+      "name": "DISCARD",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 214,
+      "name": "WATCH",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 215,
+      "name": "UNWATCH",
+      "source": "src/cmd/t_server.cc"
+    },
+    {
+      "id": 216,
+      "name": "EVAL",
+      "source": "src/cmd/scripting.cc"
+    },
+    {
+      "id": 217,
+      "name": "EVALSHA",
+      "source": "src/cmd/scripting.cc"
+    },
+    {
+      "id": 218,
+      "name": "EVAL_RO",
+      "source": "src/cmd/scripting.cc"
+    },
+    {
+      "id": 219,
+      "name": "EVALSHA_RO",
+      "source": "src/cmd/scripting.cc"
+    },
+    {
+      "id": 220,
+      "name": "SCRIPT",
+      "source": "src/cmd/scripting.cc"
+    },
+    {
+      "id": 221,
+      "name": "FCALL",
+      "source": "src/cmd/functions.cc"
+    },
+    {
+      "id": 222,
+      "name": "FCALL_RO",
+      "source": "src/cmd/functions.cc"
+    },
+    {
+      "id": 223,
+      "name": "FUNCTION",
+      "source": "src/cmd/functions.cc"
+    },
+    {
+      "id": 224,
+      "name": "TIME",
+      "source": "src/cmd/server_tail.cc"
+    },
+    {
+      "id": 225,
+      "name": "LOLWUT",
+      "source": "src/cmd/server_tail.cc"
+    },
+    {
+      "id": 226,
+      "name": "ROLE",
+      "source": "src/cmd/server_tail.cc"
+    },
+    {
+      "id": 227,
+      "name": "WAIT",
+      "source": "src/cmd/server_tail.cc"
+    },
+    {
+      "id": 228,
+      "name": "WAITAOF",
+      "source": "src/cmd/server_tail.cc"
+    },
+    {
+      "id": 229,
+      "name": "FAILOVER",
+      "source": "src/cmd/server_tail.cc"
+    },
+    {
+      "id": 230,
+      "name": "REPLICAOF",
+      "source": "src/cmd/server_tail.cc"
+    },
+    {
+      "id": 231,
+      "name": "SLAVEOF",
+      "source": "src/cmd/server_tail.cc"
+    },
+    {
+      "id": 232,
+      "name": "PFSELFTEST",
+      "source": "src/cmd/server_tail.cc"
+    },
+    {
+      "id": 233,
+      "name": "SHUTDOWN",
+      "source": "src/cmd/server_tail.cc"
+    },
+    {
+      "id": 234,
+      "name": "SORT_RO",
+      "source": "src/cmd/server_tail.cc"
+    },
+    {
+      "id": 235,
+      "name": "OBJECT",
+      "source": "src/cmd/server_tail.cc"
+    },
+    {
+      "id": 236,
+      "name": "MEMORY",
+      "source": "src/cmd/server_tail.cc"
+    },
+    {
+      "id": 237,
+      "name": "SLOWLOG",
+      "source": "src/cmd/slowlog.cc"
+    },
+    {
+      "id": 238,
+      "name": "LATENCY",
+      "source": "src/cmd/slowlog.cc"
+    },
+    {
+      "id": 239,
+      "name": "LCS",
+      "source": "src/cmd/lcs.cc"
+    },
+    {
+      "id": 240,
+      "name": "ASKING",
+      "source": "src/cmd/cmdgap.cc"
+    },
+    {
+      "id": 241,
+      "name": "READONLY",
+      "source": "src/cmd/cmdgap.cc"
+    },
+    {
+      "id": 242,
+      "name": "READWRITE",
+      "source": "src/cmd/cmdgap.cc"
+    },
+    {
+      "id": 243,
+      "name": "RESTORE-ASKING",
+      "source": "src/cmd/cmdgap.cc"
+    },
+    {
+      "id": 244,
+      "name": "PFDEBUG",
+      "source": "src/cmd/pfdebug.cc"
+    }
+  ]
+}
