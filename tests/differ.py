@@ -5390,6 +5390,12 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
         if target != oracle:
             mismatch(label, target, oracle)
 
+    # Unknown categories are empty arrays, while category spelling is case-insensitive.
+    # The exact empty frame matters in RESP2 and RESP3; valid LIST order is unordered.
+    from cd13b_wire import aclcat_property
+    diffs += aclcat_property((("target", lambda argv: command(ts, tf, argv)),
+                             ("oracle", lambda argv: command(os_, of, argv))))
+
     # Compare the pipe-qualified inventory as a set: raw order is explicitly unordered.
     lists = []
     for sock, file in ((ts, tf), (os_, of)):
@@ -6145,6 +6151,15 @@ if SUITE == "stream":
             print("  APPROX-TRIM PROPERTY FAIL reply=%r" % length_reply)
 if SUITE == "geo":
     diffs += geo_lfu_property((("target", ts, tf), ("oracle", os_, of)))
+    from cd13b_wire import geo_store_property, ownership
+    def cd13b_call(sock, file, argv):
+        coverage.note(argv, "CD13b cross-owner GEO STORE")
+        sock.sendall(enc(argv))
+        return read_reply(file)
+    cd13b_target = lambda argv: cd13b_call(ts, tf, argv)
+    diffs += geo_store_property(
+        (("target", cd13b_target), ("oracle", lambda argv: cd13b_call(os_, of, argv))),
+        lambda keys: ownership(cd13b_target, keys))
 
 if SUITE == "scan":
     # Cursor VALUES and emission ORDER are implementation-defined, so the walk cannot be byte
