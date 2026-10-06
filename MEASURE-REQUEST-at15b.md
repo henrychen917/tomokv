@@ -23,6 +23,8 @@ generated `no_multi` metadata or the dispatch `NoMulti` bit. Those admission
 semantics remain intact. No survivor, multidb, or execfix driver was changed.
 The existing execfix helper has the same explicit initialization pattern and is
 covered by the production guard; no separate execfix binary target exists here.
+Normal production dispatch still prepares references on its final publication
+path, after backpressure checks and before the first owner task is posted.
 
 Backtraces and complete serverless logs are under [docs/at15b](docs/at15b).
 `pre-multidb-gdb.log` identifies `transaction` / `owners` after the L4 lines.
@@ -63,7 +65,7 @@ ordinary operation branch, retry/seqlock, or overwrite policy is added.
 
 ## Battery policy search and serverless verification
 
-`grep` searches covered all Python/C++/include batteries, including multiline
+`grep` searches covered all Python/C++/include/shell batteries, including multiline
 contexts selected by MULTI/EXEC and INFO/DEBUG/CONFIG. Receipts:
 `admin-battery-search.log` and `multi-policy-search.log`.
 
@@ -105,7 +107,11 @@ Both exit 1 with their specific witnesses. Neither control is a measurement arm.
 The unmodified `tests/differ_gate.sh` has no suite-only selector. It replays the
 landing run's frozen inventory (seeds 7/19/20/23/21/22) and all discovered suites.
 The requested multi/multidb rows are reported separately from unrelated suites.
-Split replay is in progress; final split/fused totals will be appended here.
+Split completed: **249/252 suite legs pass**. All twelve multi/multidb legs pass
+with zero differences and zero clock tolerances. The shell reports `fail=4`:
+three failed suite legs plus its strict final fold rejecting that failed matrix.
+Runtime 9m19s; both owned listeners stopped cleanly. Fused and the frozen PRE
+control are pending; final totals will be appended here.
 
 The first split seed also reported HPTTL/PTTL differences of 2 ms in `hexpire`
 and `edgetime`, and one `wiredump` difference; these are preserved as failures,

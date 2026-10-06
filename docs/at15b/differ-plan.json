@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "manifest": {
+    "run": "iteration:gate-run.zkfX3A",
+    "permanent": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "failed": [
+      7,
+      19,
+      20,
+      21,
+      23
+    ],
+    "rotating": 22,
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      21,
+      22
+    ],
+    "history": "/home/user/Projects/cx-at15/.gate-history/differ"
+  },
+  "suites": [
+    "string",
+    "list",
+    "set",
+    "zset",
+    "hash",
+    "hexpire",
+    "edgetime",
+    "xshard",
+    "xmove",
+    "bitmap",
+    "hll",
+    "bitfield",
+    "cgaps",
+    "stream",
+    "script",
+    "streamgrp",
+    "zsetops",
+    "geo",
+    "doubles",
+    "scan",
+    "multi",
+    "edgeenc",
+    "edgeproto",
+    "cmdgap",
+    "cmdgap2",
+    "sort",
+    "servertail",
+    "arity",
+    "storeorder",
+    "infofix",
+    "multidb",
+    "blocking",
+    "pubsub",
+    "fanout",
+    "spubsub",
+    "notify",
+    "wiredump",
+    "climon",
+    "compatintro",
+    "aclsel",
+    "cmdmeta",
+    "s6fix"
+  ],
+  "repeats": 4,
+  "equivalence_seeds": [
+    22
+  ]
+}
