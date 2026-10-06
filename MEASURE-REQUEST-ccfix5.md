@@ -95,7 +95,8 @@ does not register ccfix, so it executes neither the extra counter resets nor
 the pending-source test. Its terminal 914 hits therefore cannot be compared to
 ccfix's post-reset zero as a binary execution-rate difference. The landing and
 idle logs remain valid observations; the inferred lifetime interpretation was
-incorrect. No contention explanation is needed for A. The original landing
+incorrect. No contention explanation is needed for A. See the
+[retained mainline comparison](docs/ccfix5/mainline-comparison.json). The original landing
 `gate-run.HrdWfH` has atomic=1 misses at seeds 7 and 23; the actual idle replay
 `gate-run.zbWwPT` has a seed 19 miss. The endgame summary grep globbed all earlier
 `gate-run.*` directories, so its seed list combines runs. Headline's corresponding
@@ -215,10 +216,14 @@ These are fresh merged-arm receipts; they do not rewrite ccfix4's recorded 0/11.
 
 ## Final matrix receipts
 
-Pending: three serial armed-fused repetitions followed by one split repetition,
-using the full discovered suite/seed matrix in each part. Every server uses
-112–119; load uses 120–127; Redis 7.4 is explicitly pinned to CPU 120. The target
-has 16 shards and 16 databases. Armed uses eight fused threads, read-local=1;
+Pending: three serial armed-fused repetitions plus one split repetition,
+using the full discovered suite/seed matrix in each part. Armed servers use
+112–119, load uses 120–127, and Redis 7.4 is pinned to CPU 120. To fit the
+90-minute lane limit, split overlaps armed after the paired diagnosis and all
+instruction counts have finished: split servers use 120–127, clients 112–119,
+and Redis CPU 112, with ports 18161–18182. Server groups are disjoint but
+correctness client CPUs are shared across runs. No rate/latency conclusion is
+drawn from this overlap. Each target has 16 shards and 16 databases. Armed uses eight fused threads, read-local=1;
 split uses the gate ratio 6:2. This matches each landing slot's target geometry,
 while the 0–83/84–111 mainline run had enough slots to execute jobs concurrently.
 
@@ -230,7 +235,9 @@ GATE_DIFFER_ORACLE_CORES=120 GATE_ONLY_JOBS=differ-armed \
 taskset -c 112-127 tests/gate.sh iteration \
   --server-cores 112-119 --load-cores 120-127 --load-smt '' \
   --ports 18139-18160 --candidate-binary "$PWD/build/ccfix5/POST/tomokv"
-# Repeat three times, then use GATE_ONLY_JOBS=differ-split once.
+# Repeat armed three times. Split uses the same command with:
+# GATE_ONLY_JOBS=differ-split GATE_DIFFER_ORACLE_CORES=112
+# --server-cores 120-127 --load-cores 112-119 --ports 18161-18182
 ```
 
 The release/footprint prerequisite runs with each selected gate part. These are
