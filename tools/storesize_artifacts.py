@@ -79,11 +79,15 @@ def handlers(before, after, output):
                 continue
             symbol = new.get(name)
             rows.append(dict(object=str(path.relative_to(before)), name=title,
+                             symbol=name,
                              pre_size=old[name]['size'], post_size=symbol['size'] if symbol else 0,
+                             raw_equal=bool(symbol) and a.body(old[name]) == b.body(symbol),
                              relocation_equal=bool(symbol) and a.canonical(old[name]) == b.canonical(symbol)))
     assert rows
     Path(output).write_text(json.dumps(rows, indent=2) + '\n')
-    print('Handler/publication bodies:', len(rows), 'unchanged:', sum(row['relocation_equal'] for row in rows))
+    print('Handler/publication bodies:', len(rows),
+          'raw equal:', sum(row['raw_equal'] for row in rows),
+          'unchanged:', sum(row['relocation_equal'] for row in rows))
     for row in rows:
         if not row['relocation_equal']:
             print('DIFF', row['object'], row['pre_size'], row['post_size'], row['name'])

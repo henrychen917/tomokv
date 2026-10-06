@@ -5,6 +5,85 @@
 namespace tomo {
 __attribute__((noipa)) bool storesize_published_route() { return true; }
 
+void Shard::publish_size() {
+        TOMO_EXBATCH_TWIN(legacy, 1);
+        {
+        // Single owner: an unchanged statistic needs no producer store into the
+        // header sampled by INFO/DBSIZE. Keep the all-owned-shards batch walk:
+        // expiry, retries and transaction cleanup can change more than its last shard.
+        const auto size = store_.size();
+        if (published_size_.load(std::memory_order_relaxed) != size)
+            published_size_.store(size, std::memory_order_relaxed);
+        const auto bytes = store_.object_bytes();
+        if (published_obj_bytes_.load(std::memory_order_relaxed) != bytes)
+            published_obj_bytes_.store(bytes, std::memory_order_relaxed);
+        const auto expires = store_.expire_count();
+        if (published_expires_.load(std::memory_order_relaxed) != expires)
+            published_expires_.store(expires, std::memory_order_relaxed);
+        if constexpr (kSingleDatabase)
+            if (expires) store_.publish_keyspace_sample();
+        if constexpr (!kSingleDatabase) store_.publish_database_counts();
+        const auto evicted = stats_.evicted;
+        if (published_evicted_.load(std::memory_order_relaxed) != evicted)
+            published_evicted_.store(evicted, std::memory_order_relaxed);
+        }
+        return;
+    legacy:
+        published_size_.store(store_.size(), std::memory_order_relaxed);
+        published_obj_bytes_.store(store_.object_bytes(), std::memory_order_relaxed);
+        published_expires_.store(store_.expire_count(), std::memory_order_relaxed);
+        if constexpr (kSingleDatabase)
+            if (store_.expire_count()) store_.publish_keyspace_sample();
+        if constexpr (!kSingleDatabase) store_.publish_database_counts();
+        published_evicted_.store(stats_.evicted, std::memory_order_relaxed);
+    }
+
+struct StoreSizeState {
+    uint64_t sample_cursor = 0;
+    std::atomic<uint64_t> avg_deadline{0};
+};
+
+StoreSizeState* FlatStore::storesize_state() const {
+        StoreSizeState* state;
+        std::memcpy(&state, reader_owner_gap_ + 4, sizeof(state));
+        return state;
+    }
+
+template <typename Fn>
+void ExpireIndex::sample_readonly(uint64_t& cursor, uint32_t budget, Fn&& fn) const {
+        const size_t old_left = cap_[0] - migrate_;
+        const size_t total = old_left + cap_[1];
+        for (size_t n = 0; n < std::min<size_t>(budget, total); ++n) {
+            if (cursor >= total) cursor = 0;
+            const size_t pos = cursor++;
+            if (pos < old_left) {
+                if (states(0)[migrate_ + pos] == kLive) fn(hashes_[0][migrate_ + pos]);
+            } else if (states(1)[pos - old_left] == kLive) {
+                fn(hashes_[1][pos - old_left]);
+            }
+        }
+    }
+
+
+void FlatStore::publish_keyspace_sample() const {
+        auto* storesize_ = storesize_state();
+        unsigned __int128 sum = 0;
+        uint32_t count = 0;
+        // Two migration steps cover the index's initial 16 slots. Work remains
+        // bounded even at millions of volatile keys; this is an estimate, as in Redis.
+        expires_.sample_readonly(storesize_->sample_cursor, 2 * kRehashSlotsPerOp,
+            [&](uint64_t hash) {
+                const KvObj* object = find_hash_in(0, hash);
+                if (!object && rehashing()) object = find_hash_in(1, hash);
+                if (!object) return;
+                const int64_t at = deadline(hash, object);
+                if (at <= cached_now_ms_) return;
+                sum += static_cast<uint64_t>(at);
+                ++count;
+            });
+        if (count) storesize_->avg_deadline.store(sum / count, std::memory_order_relaxed);
+    }
+
 struct StoreSizePublished {
     // The key/expiry pair is one atomic observation; an INFO row never combines
     // an expiry count from one boundary with a key count from another.
