@@ -216,14 +216,19 @@ These are fresh merged-arm receipts; they do not rewrite ccfix4's recorded 0/11.
 
 ## Final matrix receipts
 
-Pending: three serial armed-fused repetitions plus one split repetition,
+Run 1 is complete: selected gate exit 0, atomic=0 **216/216** rows and atomic=1
+**220/220** rows, 981 peak hits in each, all 15 pending windows witnessed.
+[Receipt](docs/ccfix5/matrices/armed-1/receipt.json). The remaining two armed
+repetitions and split repetition are running. There are three serial armed-fused
+repetitions plus one split repetition,
 using the full discovered suite/seed matrix in each part. Armed servers use
 112–119, load uses 120–127, and Redis 7.4 is pinned to CPU 120. To fit the
 90-minute lane limit, split overlaps armed after the paired diagnosis and all
 instruction counts have finished: split servers use 120–127, clients 112–119,
 and Redis CPU 112, with ports 18161–18182. Server groups are disjoint but
 correctness client CPUs are shared across runs. No rate/latency conclusion is
-drawn from this overlap. Each target has 16 shards and 16 databases. Armed uses eight fused threads, read-local=1;
+drawn from this overlap. Each target has 16 shards and 16 databases. Armed uses
+eight fused threads, read-local=1;
 split uses the gate ratio 6:2. This matches each landing slot's target geometry,
 while the 0–83/84–111 mainline run had enough slots to execute jobs concurrently.
 
