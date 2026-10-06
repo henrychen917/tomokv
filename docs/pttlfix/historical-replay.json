@@ -1,0 +1,794 @@
+{
+  "traces": 105,
+  "checks": 8073,
+  "positive": 618,
+  "failures": 0,
+  "legacy_absolute_diffs": 5,
+  "results": [
+    {
+      "trace": "docs/at15c/receipts/absolute-control-post/edgetime-1.json.gz",
+      "checks": 75,
+      "positive": 4,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/absolute-control-post/edgetime-2.json.gz",
+      "checks": 75,
+      "positive": 4,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/absolute-control-post/edgetime-3.json.gz",
+      "checks": 75,
+      "positive": 4,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/absolute-control-pre/edgetime-1.json.gz",
+      "checks": 75,
+      "positive": 4,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/absolute-control-pre/edgetime-2.json.gz",
+      "checks": 75,
+      "positive": 4,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/absolute-control-pre/edgetime-3.json.gz",
+      "checks": 75,
+      "positive": 4,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-compiler-post/edgetime-1.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": [
+        {
+          "op": 4365,
+          "command": [
+            "PEXPIRETIME",
+            "et:edge"
+          ],
+          "target": ":1791275763037\r\n",
+          "oracle": ":1791275763038\r\n"
+        }
+      ]
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-1.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-10.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-11.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-12.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-13.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-14.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-15.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-16.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-17.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-18.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-19.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-2.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-20.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-21.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-22.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-23.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-24.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-25.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-26.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-27.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-28.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-29.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-3.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-30.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-31.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-32.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-33.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-34.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-35.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-36.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-37.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-38.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-39.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-4.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-40.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-5.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-6.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-7.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-8.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-observed-mask-post/edgetime-9.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-mono/edgetime-1.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-mono/edgetime-2.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-mono/edgetime-3.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-1.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-10.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-11.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-12.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-13.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-14.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-15.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-16.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-17.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-18.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-19.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-2.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-20.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-21.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-22.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-23.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-24.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-25.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-26.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-27.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-28.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-29.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": [
+        {
+          "op": 4365,
+          "command": [
+            "PEXPIRETIME",
+            "et:edge"
+          ],
+          "target": ":1791274600980\r\n",
+          "oracle": ":1791274600979\r\n"
+        }
+      ]
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-3.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-30.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-31.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-32.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-33.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-34.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-35.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-36.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-37.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-38.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-39.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-4.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-40.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-5.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-6.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-7.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-8.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/profile-post-warm-2/edgetime-9.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-compiler-pre/edgetime-1.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-compiler-pre/edgetime-2.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-compiler-pre/edgetime-3.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-observed-mask-pre/edgetime-1.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-observed-mask-pre/edgetime-2.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-observed-mask-pre/edgetime-3.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-post/edgetime-1.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": [
+        {
+          "op": 4365,
+          "command": [
+            "PEXPIRETIME",
+            "et:edge"
+          ],
+          "target": ":1791272747966\r\n",
+          "oracle": ":1791272747965\r\n"
+        }
+      ]
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-post/edgetime-2.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-post/edgetime-3.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-pre/edgetime-1.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": [
+        {
+          "op": 4365,
+          "command": [
+            "PEXPIRETIME",
+            "et:edge"
+          ],
+          "target": ":1791272754817\r\n",
+          "oracle": ":1791272754818\r\n"
+        }
+      ]
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-pre/edgetime-2.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": [
+        {
+          "op": 4365,
+          "command": [
+            "PEXPIRETIME",
+            "et:edge"
+          ],
+          "target": ":1791272755761\r\n",
+          "oracle": ":1791272755762\r\n"
+        }
+      ]
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-pre/edgetime-3.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-pre-warm/edgetime-1.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-pre-warm/edgetime-2.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    },
+    {
+      "trace": "docs/at15c/receipts/trace-pre-warm/edgetime-3.json.gz",
+      "checks": 77,
+      "positive": 6,
+      "failures": [],
+      "legacy_absolute_diffs": []
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+test_absolute_probes_and_all_non_ttl_replies_stay_exact (__main__.DeadlineReplies.test_absolute_probes_and_all_non_ttl_replies_stay_exact) ... ok
+test_all_setter_forms_record_generator_intent (__main__.DeadlineReplies.test_all_setter_forms_record_generator_intent) ... ok
+test_boundaries_and_negative_control_reject_identical_wrong_ttls (__main__.DeadlineReplies.test_boundaries_and_negative_control_reject_identical_wrong_ttls) ... ok
+test_conditional_writes_persistence_renames_copies_and_resets (__main__.DeadlineReplies.test_conditional_writes_persistence_renames_copies_and_resets) ... ok
+test_dbsize_rejects_equal_noninteger_replies (__main__.DeadlineReplies.test_dbsize_rejects_equal_noninteger_replies) ... ok
+test_each_server_needs_its_own_bound (__main__.DeadlineReplies.test_each_server_needs_its_own_bound) ... ok
+test_hash_deadline_mutations_keep_field_identity_and_order (__main__.DeadlineReplies.test_hash_deadline_mutations_keep_field_identity_and_order) ... ok
+test_independent_seven_ms_cuts_and_equal_positive_replies (__main__.DeadlineReplies.test_independent_seven_ms_cuts_and_equal_positive_replies) ... ok
+test_missing_deadline_or_timing_is_a_failure_even_for_equal_replies (__main__.DeadlineReplies.test_missing_deadline_or_timing_is_a_failure_even_for_equal_replies) ... ok
+test_multidb_exact_positions_and_publication_fail_independently (__main__.DeadlineReplies.test_multidb_exact_positions_and_publication_fail_independently) ... ok
+test_real_pipeline_checks_equal_wrong_replies_and_preserves_failure_exit (__main__.DeadlineReplies.test_real_pipeline_checks_equal_wrong_replies_and_preserves_failure_exit) ... ok
+test_relative_setter_uncertainty_is_measured_separately (__main__.DeadlineReplies.test_relative_setter_uncertainty_is_measured_separately) ... ok
+test_request_timing_starts_before_send_and_ends_after_each_read (__main__.DeadlineReplies.test_request_timing_starts_before_send_and_ends_after_each_read) ... ok
+test_seconds_rounding_is_inverted_not_tolerated (__main__.DeadlineReplies.test_seconds_rounding_is_inverted_not_tolerated) ... ok
+test_sentinels_zero_and_arrays (__main__.DeadlineReplies.test_sentinels_zero_and_arrays) ... ok
+test_wire_types_and_lengths_do_not_receive_deadline_relaxation (__main__.DeadlineReplies.test_wire_types_and_lengths_do_not_receive_deadline_relaxation) ... ok
+test_wiredump_tracks_relative_restore_and_keeps_absolute_probes_exact (__main__.DeadlineReplies.test_wiredump_tracks_relative_restore_and_keeps_absolute_probes_exact) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 4.235s
+
+OK

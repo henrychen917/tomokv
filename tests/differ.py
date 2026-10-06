@@ -399,8 +399,14 @@ def replies_equal(argv, target, oracle, deadlines=None, windows=None):
     a, b = ttl_integers(target, array), ttl_integers(oracle, array)
     if a is None or b is None or len(a) != len(b):
         return False
-    if array and (len(argv) < 5 or len(a) != len(argv) - 4):
-        return False
+    if array:
+        args = command_bytes(argv)
+        try:
+            if (len(args) < 5 or args[2].upper() != b"FIELDS" or
+                    int(args[3]) != len(a) or len(a) != len(args) - 4):
+                return False
+        except ValueError:
+            return False
     deadline_bounded_ttl_checks += 1
     if any((x < 0 or y < 0) and (x != y or x not in (-1, -2)) for x, y in zip(a, b)):
         return False
