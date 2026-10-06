@@ -252,12 +252,42 @@ printf 'DIFFER geometry: %s (%s)\n' "$TARGET_GEOMETRY" "${TARGET_SHAPE[*]}"
 printf 'DIFFER matrix: atomic={%s} seeds={%s} legs=%d logs=%s\n' \
     "${ATOMICS[*]}" "${SEEDS[*]}" "$((${#ATOMICS[@]} * ${#SEEDS[@]} * ${#SUITES[@]}))" "$OUT"
 
+# CONFIG RESETSTAT is part of several suites (including ccfix). INFO's read-local
+# counters are rebased by that command: the final value is not a lifetime count.
+# Retain observations from the actual matrix after every leg, without injecting
+# synthetic reads. A later reset cannot erase an already witnessed execution.
+sample_read_local(){
+  [ "$TARGET_GEOMETRY" = armed-fused ] || return 0
+  local label=$1 info hits fallbacks
+  info=$(taskset -c "$LOAD_CORES" timeout 10 "$REDIS_CLI" -h 127.0.0.1 -p "$TARGET_PORT" \
+      --raw INFO all 2>/dev/null | tr -d '\r')
+  hits=$(sed -n 's/^read_local_hits://p' <<<"$info" | head -1)
+  fallbacks=$(sed -n 's/^read_local_fallbacks://p' <<<"$info" | head -1)
+  if ! [[ "$hits" =~ ^[0-9]+$ && "$fallbacks" =~ ^[0-9]+$ ]]; then
+    printf '%s\tINVALID\thits=%s\tfallbacks=%s\n' "$label" "$hits" "$fallbacks" \
+        >> "$OUT/read-local-a$ATOMIC.tsv"
+    RL_SAMPLE_FAILED=1
+    return 1
+  fi
+  RL_FINAL_HITS=$hits
+  RL_FINAL_FB=$fallbacks
+  if [ "$hits" -gt "$RL_PEAK_HITS" ]; then
+    RL_PEAK_HITS=$hits
+    RL_PEAK_FB=$fallbacks
+  fi
+  printf '%s\t%s\t%s\n' "$label" "$hits" "$fallbacks" >> "$OUT/read-local-a$ATOMIC.tsv"
+}
+
 run_differ_leg(){
   local suite=$1 seed=$2 logfile=$3 repeat=${4:-0} rc=0 verdict=ok
   GATE_DIFFER_COVERAGE="$logfile.coverage.json" \
       taskset -c "$LOAD_CORES" timeout 900 python3 tests/differ.py \
       127.0.0.1 "$TARGET_PORT" 127.0.0.1 "$ORACLE_PORT" "$suite" "$seed" \
       >"$logfile" 2>&1 || rc=$?
+  if ! sample_read_local "${logfile##*/}"; then
+    printf '\nFAIL: read-local mechanism counters missing or malformed\n' >>"$logfile"
+    [ "$rc" -ne 0 ] || rc=1
+  fi
   # A missing coverage artifact means the comparison reporter never completed; a zero exit must
   # not hide that instrumentation failure. The test's own failed exit is preserved unchanged.
   if [ ! -s "$logfile.coverage.json" ]; then
@@ -320,6 +350,11 @@ for ATOMIC in "${ATOMICS[@]}"; do
     break
   fi
   TARGET_PID=$BOOT_PID
+  RL_PEAK_HITS=0 RL_PEAK_FB=0 RL_FINAL_HITS=0 RL_FINAL_FB=0 RL_SAMPLE_FAILED=0
+  if [ "$TARGET_GEOMETRY" = armed-fused ]; then
+    printf 'leg\thits\tfallbacks\n' > "$OUT/read-local-a$ATOMIC.tsv"
+    sample_read_local boot || FAIL=$((FAIL+1))
+  fi
 
   for SEED in "${SEEDS[@]}"; do
     for SUITE in "${SUITES[@]}"; do
@@ -365,17 +400,17 @@ for ATOMIC in "${ATOMICS[@]}"; do
 
   # NON-VACUITY, armed-fused only. This geometry exists to drive the matrix THROUGH the armed
   # read-local lane; a run in which that lane never served a single read proved nothing about it
-  # and must not be reported as a pass. Read the counter out of the live target before it is
-  # stopped and fail the leg when it is zero or missing.
+  # and must not be reported as a pass. The peak is an observation, not a total: the current
+  # counter can be zero after RESETSTAT. All observations come from this target's lifetime.
   if [ "$TARGET_GEOMETRY" = armed-fused ]; then
-    RL_INFO=$(taskset -c "$LOAD_CORES" "$REDIS_CLI" -h 127.0.0.1 -p "$TARGET_PORT" --raw INFO all 2>/dev/null | tr -d '\r')
-    RL_HITS=$(sed -n 's/^read_local_hits://p' <<<"$RL_INFO" | head -1)
-    RL_FB=$(sed -n 's/^read_local_fallbacks://p' <<<"$RL_INFO" | head -1)
-    if [ "${RL_HITS:-0}" -gt 0 ] 2>/dev/null; then
-      say "read-local lane fired (atomic=$ATOMIC)" "ok (hits=$RL_HITS fallbacks=${RL_FB:-?})"
+    sample_read_local final || RL_SAMPLE_FAILED=1
+    if [ "$RL_SAMPLE_FAILED" -eq 0 ] && [ "$RL_PEAK_HITS" -gt 0 ]; then
+      say "read-local lane fired (atomic=$ATOMIC)" \
+          "ok (hits=$RL_PEAK_HITS fallbacks=$RL_PEAK_FB at peak; final_hits=$RL_FINAL_HITS final_fallbacks=$RL_FINAL_FB)"
       PASS=$((PASS+1))
     else
-      say "read-local lane fired (atomic=$ATOMIC)" "FAIL (hits=${RL_HITS:-unset}) -- vacuous run"
+      say "read-local lane fired (atomic=$ATOMIC)" \
+          "FAIL (hits=$RL_PEAK_HITS final_hits=$RL_FINAL_HITS sample_failed=$RL_SAMPLE_FAILED) -- no valid execution witness"
       FAIL=$((FAIL+1))
     fi
   fi

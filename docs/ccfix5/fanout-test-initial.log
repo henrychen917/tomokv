@@ -1,0 +1,17 @@
+...F...............
+======================================================================
+FAIL: test_armed_witness_survives_reset_but_never_invents_a_hit (__main__.DifferentialFanout.test_armed_witness_survives_reset_but_never_invents_a_hit) (mode='zero')
+----------------------------------------------------------------------
+ValueError: armed-0: boot, identity, lane, comparison or shutdown failure
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-ccfix/tests/differ_fanout_test.py", line 184, in test_armed_witness_survives_reset_but_never_invents_a_hit
+    with self.assertRaisesRegex(ValueError, 'failed'):
+AssertionError: "failed" does not match "armed-0: boot, identity, lane, comparison or shutdown failure"
+
+----------------------------------------------------------------------
+Ran 19 tests in 20.020s
+
+FAILED (failures=1)
