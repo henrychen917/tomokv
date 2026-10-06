@@ -1,0 +1,13 @@
+tests/execatomic.py:154:        raise AssertionError("MULTI refused")
+tests/at15.py:105:    assert save == b'-ERR Command not allowed inside a transaction\r\n'
+tests/at15.py:128:        assert queued == b'-ERR Command not allowed inside a transaction\r\n'
+tests/at15.py:148:    for wire in (b'*1\r\n-ERR command is not supported by MULTI execution\r\n',
+tests/execabort_watch_unit.cc:152:            require(fixture.multi({"SAVE"}) == "-ERR Command not allowed inside a transaction\r\n",
+tests/pubsub.py:377:    if not isinstance(forbidden_multi, RespError) or "not allowed inside a transaction" not in str(forbidden_multi):
+tests/atomic_hazards.py:336:        problems.append("MULTI refused")
+tests/xscript.py:575:        note("Stage-1 cross script inside MULTI is explicitly refused",
+tests/at15_unit.cc:253:            require(f.multi(args) == "-ERR Command not allowed inside a transaction\r\n",
+tests/at15_unit.cc:263:        require(f.multi(shutdown.args) == "-ERR Command not allowed inside a transaction\r\n",
+tests/flip.py:151:          is_error_containing("not allowed inside a transaction"))
+tests/execiso.py:163:        raise AssertionError("MULTI refused")
+tests/execiso.py:271:            note(label, False, "MULTI refused")

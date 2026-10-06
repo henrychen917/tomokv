@@ -128,6 +128,73 @@ void begin(Fixture& f) { require(f.multi({"MULTI"}) == "+OK\r\n", "MULTI reply")
 void queue(Fixture& f, std::vector<std::string> args) {
     require(f.multi(std::move(args)) == "+QUEUED\r\n", "queued reply");
 }
+std::string keyspace_row(unsigned db, unsigned keys, unsigned subexpiry) {
+    return "db" + std::to_string(db) + ":keys=" + std::to_string(keys) +
+           ",expires=0,avg_ttl=0,subexpiry=" + std::to_string(subexpiry) + "\r\n";
+}
+void check_subexpiry(Fixture& f, bool resp3) {
+    const auto body = [](unsigned keys, unsigned count) {
+        return "# Keyspace\r\n" + keyspace_row(0, keys, count);
+    };
+    const auto census = [&](const std::string& expected) {
+        // Compare the ordinary owner census and the transaction-visible census.
+        // Neither reads the approximate/stale shard-wide field-expiry gate.
+        DatabaseStatsTable stats{};
+        for (uint32_t sid = 0; sid < f.server.nshards(); ++sid)
+            multidb_stats(f.server.shard(sid), stats);
+        Request info({"INFO", "keyspace"});
+        if (resp3) info.op.mark_resp3();
+        command_info_with_databases(f.server, info.op, stats);
+        require(info.reply() == bulk(expected, resp3), "ordinary INFO exact subexpiry census");
+        begin(f); queue(f, {"INFO", "keyspace"});
+        require(exec_bulk(f.multi({"EXEC"}), resp3) == expected, "EXEC exact subexpiry census");
+    };
+    begin(f);
+    queue(f, {"HSET", "at15:h", "a", "1", "b", "2"});
+    queue(f, {"HEXPIRE", "at15:h", "3600", "FIELDS", "2", "a", "b"});
+    queue(f, {"INFO", "keyspace"});
+    queue(f, {"HSET", "at15:j", "x", "1"});
+    queue(f, {"HEXPIRE", "at15:j", "3600", "FIELDS", "1", "x"});
+    queue(f, {"INFO", "keyspace"});
+    queue(f, {"HPERSIST", "at15:h", "FIELDS", "1", "a"});
+    queue(f, {"INFO", "keyspace"});
+    queue(f, {"HPERSIST", "at15:h", "FIELDS", "1", "b"});
+    queue(f, {"INFO", "keyspace"});
+    queue(f, {"HDEL", "at15:j", "x"});
+    queue(f, {"INFO", "keyspace"});
+    require(f.multi({"EXEC"}) == "*12\r\n:2\r\n*2\r\n:1\r\n:1\r\n" + bulk(body(1, 1), resp3) +
+            ":1\r\n*1\r\n:1\r\n" + bulk(body(2, 2), resp3) +
+            "*1\r\n:1\r\n" + bulk(body(2, 2), resp3) +
+            "*1\r\n:1\r\n" + bulk(body(2, 1), resp3) + ":1\r\n" + bulk(body(1, 0), resp3),
+            "subexpiry counts hashes once and observes private field TTL transitions");
+    census(body(1, 0));
+    begin(f);
+    queue(f, {"HEXPIRE", "at15:h", "3600", "FIELDS", "1", "a"});
+    require(f.multi({"EXEC"}) == "*1\r\n*1\r\n:1\r\n", "rearm field expiry");
+    census(body(1, 1));
+    begin(f);
+    queue(f, {"RENAME", "at15:h", "at15:renamed"});
+    require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "rename TTL-bearing hash");
+    census(body(1, 1));
+    if constexpr (!kSingleDatabase) {
+        begin(f);
+        queue(f, {"MOVE", "at15:renamed", "1"});
+        queue(f, {"INFO", "keyspace"});
+        queue(f, {"SWAPDB", "0", "1"});
+        queue(f, {"INFO", "keyspace"});
+        require(f.multi({"EXEC"}) == "*4\r\n:1\r\n" +
+                bulk("# Keyspace\r\n" + keyspace_row(1, 1, 1), resp3) +
+                "+OK\r\n" + bulk(body(1, 1), resp3), "subexpiry follows MOVE and private SWAPDB map");
+        census(body(1, 1));
+    }
+    begin(f);
+    queue(f, {"SET", "at15:renamed", "string"});
+    require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "replace TTL-bearing hash");
+    census(body(1, 0));
+    begin(f); queue(f, {"DEL", "at15:renamed"});
+    require(f.multi({"EXEC"}) == "*1\r\n:1\r\n", "subexpiry test cleanup");
+    census("# Keyspace\r\n");
+}
 void check(Fixture& f, bool resp3, const std::string& only) {
     if (only.empty() || only == "info") {
         for (const char* section : {"", "server", "all", "default", "keyspace", "clients", "memory",
@@ -163,6 +230,7 @@ void check(Fixture& f, bool resp3, const std::string& only) {
                 bulk("# Keyspace\r\ndb0:keys=1,expires=0,avg_ttl=0,subexpiry=0\r\n", resp3) +
                 ":1\r\n" + bulk("# Keyspace\r\n", resp3), "INFO observes own inserts and deletes");
     }
+    if (only.empty() || only == "subexpiry") check_subexpiry(f, resp3);
     if (only.empty() || only == "sleep") {
         begin(f); queue(f, {"DEBUG", "SLEEP", "0"});
         require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "DEBUG SLEEP 0 EXEC element");
@@ -219,7 +287,7 @@ void check(Fixture& f, bool resp3, const std::string& only) {
 }
 }
 int main(int argc, char** argv) {
-    require(argc >= 2 && argc <= 3, "usage: at15-unit 1s|2s [info|sleep|controls|config|keyspace|metadata]");
+    require(argc >= 2 && argc <= 3, "usage: at15-unit 1s|2s [info|sleep|controls|config|keyspace|metadata|subexpiry]");
     const std::string mode = argv[1], only = argc == 3 ? argv[2] : "";
     require(mode == "1s" || mode == "2s", "thread mode");
     require(command_registry_init(false), "registry");

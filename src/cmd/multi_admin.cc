@@ -15,8 +15,8 @@ void multi_database_stats(Shard& shard, DatabaseStatsTable& stats,
         // transaction cut. The store's field-expiry gate is only a shard-wide
         // hint and can retain stale index entries or an allocation-failure bit.
         if (object->is_type(Type::Hash)) {
-            const auto* ttls = hash_ttls_of(object);
-            row.subexpiry += ttls && !ttls->empty();
+            const auto* slot = hash_ttl_slot(object);
+            row.subexpiry += slot && *slot && !(*slot)->empty();
         }
         const int64_t deadline = object->expire_at_ms();
         if (deadline >= 0) {
