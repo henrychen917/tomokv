@@ -7,6 +7,12 @@ All builds and serverless work use CPUs 112–127. The explicitly requested
 differential harness uses target 112–119 (16 shards, 6 IO + 2 EX), Redis on 120,
 and clients on 121–127. No benchmark, full gate, or push was performed.
 
+**Acceptance remains open:** the six reported failures have targeted repairs
+and passing directed proofs, but the broader replay found a repeatable POST
+`edgetime`/atomic=0/seed=7 PTTL mismatch that did not occur in the PRE control.
+This branch is not an overall green gate or a demonstrated zero-regression
+landing. No timer tolerance or comparison was weakened.
+
 ## Failures, fixes, proofs
 
 | Landing failure | Cause | Repair | Proof |
@@ -115,13 +121,38 @@ Runtime 9m19s; both owned listeners stopped cleanly. Armed fused completed:
 The read-local witness fired (963 hits, 257 fallbacks). The shell reports
 `pass=245 fail=3`, including that positive witness and the failed final fold.
 Its two failed suites are seed-7 `edgetime` and `wiredump`; runtime 9m19s and
-both listeners stopped cleanly. The frozen PRE control is still running.
+both listeners stopped cleanly. The frozen PRE control completed in 9m20s:
+**234/246 suite legs pass**; its twelve failures are exactly the original
+multi/multidb missing-subexpiry differences, one difference per leg. All its
+other suites, including edgetime, hexpire and wiredump, pass. A final POST
+armed-fused repeat is in progress.
 
 The first split seed also reported HPTTL/PTTL differences of 2 ms in `hexpire`
 and `edgetime`, and one `wiredump` difference; these are preserved as failures,
 not attributed to this repair or excused by wider tolerances. No whole-matrix
 green claim is made. The original gate and DEBUG live battery remain maintainer
 work regardless of the directed results.
+
+The POST repeat again fails edgetime seed 7 at operations 1526 and 2910, now
+with PTTL values respectively `2591999305` vs Redis `2591999308`, and
+`2591999533` vs `2591999536`. The first POST fused run had 4 ms and 7 ms
+differences at these same operations. PRE passed. The generator uses absolute
+future deadlines and a 64-command pipeline; there is no INFO or MULTI in this
+stream. These results do not establish whether the cause is execution timing,
+incidental code placement/inlining, or another mechanism. They cannot be
+silently classified as pre-existing noise. The repeat's wiredump seed 7 passed.
+See `edgetime-repeat-failure.log` and the full retained harness logs; this
+remaining failure needs maintainer investigation before acceptance.
+
+Reproduction uses the checked-in copy of the landing plan:
+
+```sh
+bash docs/at15b/replay.sh post-split build/FRESH-split
+bash docs/at15b/replay.sh post-armed build/FRESH-armed
+bash docs/at15b/replay.sh pre-armed build/FRESH-pre
+```
+
+The wrapper invokes the unmodified harness and preserves its nonzero verdict.
 
 ## Byte audit and frozen arms
 
