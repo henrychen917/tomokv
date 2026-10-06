@@ -48,7 +48,14 @@ f0cde7f0fa97532ed560fcfdb4d7a9114b0a97cde880454df41b5218e4ad7187  build/tomokv
 - Unchanged `differ_fanout_test.py`: 18 tests, PASS, including missing,
   reordered, failed, unwitnessed, and unsuccessful-completion controls.
 - Unchanged `respcompat_test.py`: 9 tests, PASS.
-- Live gate: running in `build/gate-run.vnRVCd`; results pending.
+- Ledger fixture validation: 515 source-declared rows agree; fixture unchanged.
+- Historical accounting replay: all four parts reject the original surplus pass
+  and accept the exact total after removing RESP. Expected/passed totals are
+  split-0 210, split-1 214, armed-0 206, armed-1 210. This uses saved comparison
+  artifacts, **not a new live gate receipt**; see
+  `docs/respcompat3/accounting-replay.json`.
+- Live gate: interrupted in `build/gate-run.vnRVCd` after detecting another
+  lane on the assigned cores; clean validation is pending core availability.
 
 ```sh
 taskset -c 112-127 env GATE_ONLY_JOBS='differ-split differ-armed respcompat' \
@@ -56,7 +63,7 @@ taskset -c 112-127 env GATE_ONLY_JOBS='differ-split differ-armed respcompat' \
   --server-smt '' --load-smt '' --ports 18340-18342
 ```
 
-This launches the full, unmodified differential matrix through the actual gate
+This command launches the full, unmodified differential matrix through the actual gate
 worker path: split-0, split-1, armed-0, armed-1, and mode equivalence. Server and
 oracle flags use 112–119; the differ's own load-core flag uses 120–127. There is
 one correctness slot, ratio 6:2, 16 shards, no SMT. Public subset completion
@@ -70,3 +77,29 @@ differences; the log is retained at
 `jobs/differ-split-0/differ/wiredump-a0-s7.txt`. The complete run replays that
 seed under the unchanged durable failure corpus; nothing was removed or
 relabelled. No clean final result is claimed while validation is pending.
+
+## Core contention discovered during live validation
+
+At 07:18 UTC, a concurrently running differential in
+`/home/user/Projects/cx-at15` owned target PID 1757992 (`build/at15b-post`,
+port 17899) and Redis PID 1757964 (port 17900). The shell's target-core argument
+was 112–119; `/proc` showed every target/oracle thread actually allowed on
+112–127. The captured affinity evidence is in `docs/respcompat3/contention.txt`.
+This overlaps the entire allocation requested for respcompat3.
+
+The combined gate had passed wiredump/atomic=0/seed=7, but reported four
+hexpire/seed=19 differences (HPTTL discrepancies of 2–5 ms) and two
+edgetime/seed=19 differences (PTTL discrepancies of 12 and 22 ms). These remain
+real failing results; contention is a plausible explanation, not a proven
+excuse or a passing verdict. Logs remain under
+`build/gate-run.vnRVCd/jobs/differ-split-0/differ/`.
+
+Only this lane's gate coordinator was terminated, allowing its ordinary
+descendant cleanup to stop its own listeners. Both attempted gates exited
+130; ports 18340–18342 are free. No other lane was stopped or changed. At
+07:20 UTC, another gate in `cx-psfix` also appeared on server CPUs 112–119 and
+load CPUs 120–127. A core reservation was requested from the maintainer.
+
+Required live `complete=true` folds and the all-green targeted gate are still
+outstanding. The static checks and historical replay above do not substitute
+for those requirements.
