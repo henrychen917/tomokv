@@ -25,13 +25,15 @@ def reads(conn, n=1024):
         assert conn.must('GET', 'ccfix5:clean') == b'value'
 
 
-def probe(host, port, attempts, readers=False):
+def probe(host, port, attempts, readers=False, swap=False, close_peers=False):
     admin = _lib.Conn(host, port, timeout=10)
     retained = []
     try:
         print(json.dumps({'server': _lib.info(admin, 'server'),
                           'lbsignals': _lib.lbsignals(admin).raw}), flush=True)
         atomic = int(_lib.info(admin, 'server')['atomic'])
+        if swap:
+            assert admin.must('SWAPDB', '0', '1') == b'OK'
         admin.must('SET', 'ccfix5:clean', 'value')
         reads(admin)
         dump(admin, 'before-reset')
@@ -102,10 +104,12 @@ def probe(host, port, attempts, readers=False):
                 if opened and readers:
                     assert reader.read() == 0
             finally:
-                if readers:
+                if readers and not close_peers:
                     retained.extend((writer, reader))
                 else:
                     writer.close()
+                    if reader:
+                        reader.close()
     finally:
         for conn in retained:
             conn.close()
@@ -117,5 +121,7 @@ if __name__ == '__main__':
     parser.add_argument('port', type=int)
     parser.add_argument('--attempts', type=int, default=12)
     parser.add_argument('--readers', action='store_true')
+    parser.add_argument('--swap', action='store_true')
+    parser.add_argument('--close-peers', action='store_true')
     args = parser.parse_args()
-    probe('127.0.0.1', args.port, args.attempts, args.readers)
+    probe('127.0.0.1', args.port, args.attempts, args.readers, args.swap, args.close_peers)

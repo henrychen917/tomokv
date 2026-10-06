@@ -280,6 +280,11 @@ def run(api):
                         assert not select.select([writer[0]], [], [], 0)[0], "writer committed early"
                     assert read_reply(writer[1]) == b"+OK\r\n"
                     misses(args, wanted, read_reply(reader[1]), pending_deviation=True)
+                    # Release each round's connection read cuts before demanding that
+                    # FLUSHALL's old records drain on the next fresh-state round.
+                    for sock, file in (writer, reader):
+                        file.close()
+                        sock.close()
                     print("  EXPECTED-DEVIATION CC11 pending %s: no keymiss; "
                           "source records and predecessor reads witnessed, Redis emits %d" %
                           (verb, len(wanted)))
