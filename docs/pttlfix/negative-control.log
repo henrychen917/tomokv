@@ -1,0 +1,3 @@
+  TTL DEADLINE FAIL side=target command=['PTTL', 'key'] reply=98996 deadline_ns=(100000000000, 100000000000) window_ns=(1000000000, 1003000000)
+HARNESS NEGATIVE CONTROL: FAIL (expected)
+exit=1 (required negative-control exit=1)
