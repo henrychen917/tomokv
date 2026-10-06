@@ -1,0 +1,21 @@
+{
+  "handlers": 1213,
+  "ordinary": 1199,
+  "ordinary_equal": 1199,
+  "excluded_admin": [
+    "tomo_db0::cmd_acl(tomo_db0::Shard&, tomo_db0::Op&)",
+    "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
+    "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+    "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(char const*)#1}::operator()(char const*) const",
+    "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(char const*)#1}::operator()(char const*) const [clone .cold]",
+    "tomo::cmd_acl(tomo::Shard&, tomo::Op&)",
+    "tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)",
+    "tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&) [clone .cold]",
+    "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
+    "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]",
+    "tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)::{lambda(char const*)#1}::operator()(char const*) const",
+    "tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)::{lambda(char const*)#1}::operator()(char const*) const [clone .cold]"
+  ]
+}

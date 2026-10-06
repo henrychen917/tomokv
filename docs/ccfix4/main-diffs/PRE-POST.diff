@@ -1,0 +1,361 @@
+--- PRE/main.o
++++ POST/main.o
+@@ -1,5 +1,5 @@
+ 
+-build/ccfix4/PRE/db0/src/main.o:     file format elf64-x86-64
++build/ccfix4/POST/db0/src/main.o:     file format elf64-x86-64
+ 
+ 
+ Disassembly of section .text:
+@@ -942,188 +942,127 @@
+ 
+ 0000000000000000 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_>:
+    0:	f3 0f 1e fa          	endbr64
+-   4:	41 57                	push   %r15
+-   6:	41 56                	push   %r14
+-   8:	41 55                	push   %r13
+-   a:	41 54                	push   %r12
+-   c:	55                   	push   %rbp
+-   d:	53                   	push   %rbx
+-   e:	48 89 fd             	mov    %rdi,%rbp
+-  11:	48 83 ec 18          	sub    $0x18,%rsp
+-  15:	48 89 f3             	mov    %rsi,%rbx
+-  18:	f6 46 1c 02          	testb  $0x2,0x1c(%rsi)
+-  1c:	74 0e                	je     2c <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x2c>
+-  1e:	48 8b 07             	mov    (%rdi),%rax
+-  21:	48 8b 40 48          	mov    0x48(%rax),%rax
+-  25:	48 ff 80 48 01 00 00 	incq   0x148(%rax)
+-  2c:	48 83 bb a8 00 00 00 00 	cmpq   $0x0,0xa8(%rbx)
+-  34:	48 8b 45 08          	mov    0x8(%rbp),%rax
+-  38:	0f 84 36 01 00 00    	je     174 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x174>
+-  3e:	48 8b 4d 00          	mov    0x0(%rbp),%rcx
+-  42:	48 89 da             	mov    %rbx,%rdx
+-  45:	48 89 c6             	mov    %rax,%rsi
+-  48:	48 8b 79 18          	mov    0x18(%rcx),%rdi
+-  4c:	ff 51 20             	call   *0x20(%rcx)
+-  4f:	48 83 bb a8 00 00 00 00 	cmpq   $0x0,0xa8(%rbx)
+-  57:	0f 84 13 01 00 00    	je     170 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x170>
+-  5d:	48 8b 7d 08          	mov    0x8(%rbp),%rdi
+-  61:	44 0f b6 67 28       	movzbl 0x28(%rdi),%r12d
+-  66:	4d 69 e4 18 02 00 00 	imul   $0x218,%r12,%r12
+-  6d:	49 01 fc             	add    %rdi,%r12
+-  70:	49 8b 94 24 48 01 00 00 	mov    0x148(%r12),%rdx
+-  78:	48 85 d2             	test   %rdx,%rdx
+-  7b:	0f 85 bf 01 00 00    	jne    240 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x240>
+-  81:	48 8b 4b 20          	mov    0x20(%rbx),%rcx
+-  85:	8b 93 a4 00 00 00    	mov    0xa4(%rbx),%edx
+-  8b:	48 8b b3 98 00 00 00 	mov    0x98(%rbx),%rsi
+-  92:	4c 8b 43 28          	mov    0x28(%rbx),%r8
+-  96:	e8 00 00 00 00       	call   9b <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x9b>	97: R_X86_64_PLT32	_ZN8tomo_db06Client18append_buf_segmentEPKcmS2_m-0x4
+-  9b:	4c 8b 65 08          	mov    0x8(%rbp),%r12
+-  9f:	44 8b ab b0 00 00 00 	mov    0xb0(%rbx),%r13d
+-  a6:	48 8b b3 a8 00 00 00 	mov    0xa8(%rbx),%rsi
+-  ad:	49 8d bc 24 70 05 00 00 	lea    0x570(%r12),%rdi
+-  b5:	4c 89 ea             	mov    %r13,%rdx
+-  b8:	e8 00 00 00 00       	call   bd <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0xbd>	b9: R_X86_64_PLT32	_ZN8tomo_db012SegmentQueueILj8ELm4294967295EE10append_bufEPKcm-0x4
+-  bd:	41 80 bc 24 b4 07 00 00 00 	cmpb   $0x0,0x7b4(%r12)
+-  c6:	0f 85 34 01 00 00    	jne    200 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x200>
+-  cc:	48 8b 45 00          	mov    0x0(%rbp),%rax
+-  d0:	48 8b 93 a8 00 00 00 	mov    0xa8(%rbx),%rdx
+-  d7:	8b b3 b4 00 00 00    	mov    0xb4(%rbx),%esi
+-  dd:	48 8b 78 08          	mov    0x8(%rax),%rdi
+-  e1:	48 ff 80 f8 00 00 00 	incq   0xf8(%rax)
+-  e8:	ff 50 10             	call   *0x10(%rax)
+-  eb:	48 8b 45 00          	mov    0x0(%rbp),%rax
+-  ef:	4c 8b 65 08          	mov    0x8(%rbp),%r12
+-  f3:	48 8b 40 48          	mov    0x48(%rax),%rax
+-  f7:	41 8b 8c 24 38 06 00 00 	mov    0x638(%r12),%ecx
+-  ff:	41 8b 94 24 3c 06 00 00 	mov    0x63c(%r12),%edx
+- 107:	48 ff 80 48 01 00 00 	incq   0x148(%rax)
+- 10e:	8d 04 11             	lea    (%rcx,%rdx,1),%eax
+- 111:	41 3b 84 24 40 06 00 00 	cmp    0x640(%r12),%eax
+- 119:	0f 84 51 01 00 00    	je     270 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x270>
+- 11f:	4d 8b b4 24 30 06 00 00 	mov    0x630(%r12),%r14
+- 127:	48 8d 04 40          	lea    (%rax,%rax,2),%rax
+- 12b:	ff c2                	inc    %edx
+- 12d:	48 8d 0d 00 00 00 00 	lea    0x0(%rip),%rcx        # 134 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x134>	130: R_X86_64_PC32	_ZN8tomo_db08WbEngine5kCrlfE-0x4
+- 134:	49 8d 04 c6          	lea    (%r14,%rax,8),%rax
+- 138:	41 89 94 24 3c 06 00 00 	mov    %edx,0x63c(%r12)
+- 140:	48 89 48 08          	mov    %rcx,0x8(%rax)
+- 144:	48 b9 02 00 00 00 ff ff ff ff 	movabs $0xffffffff00000002,%rcx
+- 14e:	c6 00 02             	movb   $0x2,(%rax)
+- 151:	48 89 48 10          	mov    %rcx,0x10(%rax)
+- 155:	41 80 bc 24 b4 07 00 00 00 	cmpb   $0x0,0x7b4(%r12)
+- 15e:	74 77                	je     1d7 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x1d7>
+- 160:	49 83 44 24 38 02    	addq   $0x2,0x38(%r12)
+- 166:	eb 6f                	jmp    1d7 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x1d7>
+- 168:	0f 1f 84 00 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+- 170:	48 8b 45 08          	mov    0x8(%rbp),%rax
+- 174:	8b 88 3c 06 00 00    	mov    0x63c(%rax),%ecx
+- 17a:	8b 93 a4 00 00 00    	mov    0xa4(%rbx),%edx
+- 180:	85 c9                	test   %ecx,%ecx
+- 182:	75 3c                	jne    1c0 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x1c0>
+- 184:	85 d2                	test   %edx,%edx
+- 186:	74 1e                	je     1a6 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x1a6>
+- 188:	0f b6 48 28          	movzbl 0x28(%rax),%ecx
+- 18c:	48 69 c9 18 02 00 00 	imul   $0x218,%rcx,%rcx
+- 193:	48 01 94 08 48 01 00 00 	add    %rdx,0x148(%rax,%rcx,1)
+- 19b:	48 8b 45 00          	mov    0x0(%rbp),%rax
+- 19f:	48 ff 80 e0 00 00 00 	incq   0xe0(%rax)
+- 1a6:	48 8b 53 28          	mov    0x28(%rbx),%rdx
+- 1aa:	48 85 d2             	test   %rdx,%rdx
+- 1ad:	75 61                	jne    210 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x210>
+- 1af:	48 83 c4 18          	add    $0x18,%rsp
+- 1b3:	5b                   	pop    %rbx
+- 1b4:	5d                   	pop    %rbp
+- 1b5:	41 5c                	pop    %r12
+- 1b7:	41 5d                	pop    %r13
+- 1b9:	41 5e                	pop    %r14
+- 1bb:	41 5f                	pop    %r15
+- 1bd:	c3                   	ret
+- 1be:	66 90                	xchg   %ax,%ax
+- 1c0:	48 8b 4b 20          	mov    0x20(%rbx),%rcx
+- 1c4:	48 8b b3 98 00 00 00 	mov    0x98(%rbx),%rsi
+- 1cb:	4c 8b 43 28          	mov    0x28(%rbx),%r8
+- 1cf:	48 89 c7             	mov    %rax,%rdi
+- 1d2:	e8 00 00 00 00       	call   1d7 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x1d7>	1d3: R_X86_64_PLT32	_ZN8tomo_db06Client18append_buf_segmentEPKcmS2_m-0x4
+- 1d7:	8b 83 a4 00 00 00    	mov    0xa4(%rbx),%eax
+- 1dd:	85 c0                	test   %eax,%eax
+- 1df:	74 ce                	je     1af <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x1af>
+- 1e1:	48 8b 45 00          	mov    0x0(%rbp),%rax
+- 1e5:	48 ff 80 e0 00 00 00 	incq   0xe0(%rax)
+- 1ec:	48 83 c4 18          	add    $0x18,%rsp
+- 1f0:	5b                   	pop    %rbx
+- 1f1:	5d                   	pop    %rbp
+- 1f2:	41 5c                	pop    %r12
+- 1f4:	41 5d                	pop    %r13
+- 1f6:	41 5e                	pop    %r14
+- 1f8:	41 5f                	pop    %r15
+- 1fa:	c3                   	ret
+- 1fb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+- 200:	4d 01 6c 24 38       	add    %r13,0x38(%r12)
+- 205:	e9 c2 fe ff ff       	jmp    cc <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0xcc>
+- 20a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+- 210:	48 8b 4d 08          	mov    0x8(%rbp),%rcx
+- 214:	48 8b 73 20          	mov    0x20(%rbx),%rsi
+- 218:	0f b6 41 28          	movzbl 0x28(%rcx),%eax
+- 21c:	48 83 c4 18          	add    $0x18,%rsp
+- 220:	5b                   	pop    %rbx
+- 221:	5d                   	pop    %rbp
+- 222:	41 5c                	pop    %r12
+- 224:	41 5d                	pop    %r13
+- 226:	41 5e                	pop    %r14
+- 228:	41 5f                	pop    %r15
+- 22a:	48 69 c0 18 02 00 00 	imul   $0x218,%rax,%rax
+- 231:	48 8d bc 01 40 01 00 00 	lea    0x140(%rcx,%rax,1),%rdi
+- 239:	e9 00 00 00 00       	jmp    23e <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x23e>	23a: R_X86_64_PLT32	_ZN8tomo_db08SmallBufILm512EE6appendEPKcm-0x4
+- 23e:	66 90                	xchg   %ax,%ax
+- 240:	49 8b b4 24 40 01 00 00 	mov    0x140(%r12),%rsi
+- 248:	48 81 c7 70 05 00 00 	add    $0x570,%rdi
+- 24f:	e8 00 00 00 00       	call   254 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x254>	250: R_X86_64_PLT32	_ZN8tomo_db012SegmentQueueILj8ELm4294967295EE10append_bufEPKcm-0x4
+- 254:	49 c7 84 24 48 01 00 00 00 00 00 00 	movq   $0x0,0x148(%r12)
+- 260:	48 8b 7d 08          	mov    0x8(%rbp),%rdi
+- 264:	e9 18 fe ff ff       	jmp    81 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x81>
+- 269:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+- 270:	48 8d 14 52          	lea    (%rdx,%rdx,2),%rdx
+- 274:	48 c1 e2 03          	shl    $0x3,%rdx
+- 278:	85 c9                	test   %ecx,%ecx
+- 27a:	0f 85 80 00 00 00    	jne    300 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x300>
+- 280:	01 c0                	add    %eax,%eax
+- 282:	48 89 54 24 08       	mov    %rdx,0x8(%rsp)
+- 287:	89 c0                	mov    %eax,%eax
+- 289:	4c 8d 3c 40          	lea    (%rax,%rax,2),%r15
+- 28d:	49 89 c5             	mov    %rax,%r13
+- 290:	49 c1 e7 03          	shl    $0x3,%r15
+- 294:	4c 89 ff             	mov    %r15,%rdi
+- 297:	e8 00 00 00 00       	call   29c <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x29c>	298: R_X86_64_PLT32	malloc-0x4
+- 29c:	49 8b b4 24 30 06 00 00 	mov    0x630(%r12),%rsi
+- 2a4:	48 8b 54 24 08       	mov    0x8(%rsp),%rdx
+- 2a9:	4c 89 f9             	mov    %r15,%rcx
+- 2ac:	48 89 c7             	mov    %rax,%rdi
+- 2af:	49 89 c6             	mov    %rax,%r14
+- 2b2:	48 89 74 24 08       	mov    %rsi,0x8(%rsp)
+- 2b7:	e8 00 00 00 00       	call   2bc <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x2bc>	2b8: R_X86_64_PLT32	__memcpy_chk-0x4
+- 2bc:	48 8b 74 24 08       	mov    0x8(%rsp),%rsi
+- 2c1:	49 8d 84 24 70 05 00 00 	lea    0x570(%r12),%rax
+- 2c9:	48 39 c6             	cmp    %rax,%rsi
+- 2cc:	74 08                	je     2d6 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x2d6>
+- 2ce:	48 89 f7             	mov    %rsi,%rdi
+- 2d1:	e8 00 00 00 00       	call   2d6 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x2d6>	2d2: R_X86_64_PLT32	free-0x4
+- 2d6:	41 8b 94 24 3c 06 00 00 	mov    0x63c(%r12),%edx
+- 2de:	4d 89 b4 24 30 06 00 00 	mov    %r14,0x630(%r12)
+- 2e6:	45 89 ac 24 40 06 00 00 	mov    %r13d,0x640(%r12)
+- 2ee:	89 d0                	mov    %edx,%eax
+- 2f0:	41 03 84 24 38 06 00 00 	add    0x638(%r12),%eax
+- 2f8:	e9 2a fe ff ff       	jmp    127 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x127>
+- 2fd:	0f 1f 00             	nopl   (%rax)
+- 300:	49 8b bc 24 30 06 00 00 	mov    0x630(%r12),%rdi
+- 308:	48 8d 04 49          	lea    (%rcx,%rcx,2),%rax
+- 30c:	48 8d 34 c7          	lea    (%rdi,%rax,8),%rsi
+- 310:	e8 00 00 00 00       	call   315 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x315>	311: R_X86_64_PLT32	memmove-0x4
+- 315:	41 8b 94 24 3c 06 00 00 	mov    0x63c(%r12),%edx
+- 31d:	4d 8b b4 24 30 06 00 00 	mov    0x630(%r12),%r14
+- 325:	41 c7 84 24 38 06 00 00 00 00 00 00 	movl   $0x0,0x638(%r12)
+- 331:	89 d0                	mov    %edx,%eax
+- 333:	e9 ef fd ff ff       	jmp    127 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x127>
++   4:	41 55                	push   %r13
++   6:	41 54                	push   %r12
++   8:	55                   	push   %rbp
++   9:	48 89 fd             	mov    %rdi,%rbp
++   c:	53                   	push   %rbx
++   d:	48 89 f3             	mov    %rsi,%rbx
++  10:	48 83 ec 08          	sub    $0x8,%rsp
++  14:	f6 46 1c 02          	testb  $0x2,0x1c(%rsi)
++  18:	74 0e                	je     28 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x28>
++  1a:	48 8b 07             	mov    (%rdi),%rax
++  1d:	48 8b 40 48          	mov    0x48(%rax),%rax
++  21:	48 ff 80 48 01 00 00 	incq   0x148(%rax)
++  28:	48 83 bb a8 00 00 00 00 	cmpq   $0x0,0xa8(%rbx)
++  30:	48 8b 45 08          	mov    0x8(%rbp),%rax
++  34:	0f 84 fa 00 00 00    	je     134 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x134>
++  3a:	48 8b 4d 00          	mov    0x0(%rbp),%rcx
++  3e:	48 89 da             	mov    %rbx,%rdx
++  41:	48 89 c6             	mov    %rax,%rsi
++  44:	48 8b 79 18          	mov    0x18(%rcx),%rdi
++  48:	ff 51 20             	call   *0x20(%rcx)
++  4b:	48 83 bb a8 00 00 00 00 	cmpq   $0x0,0xa8(%rbx)
++  53:	0f 84 d7 00 00 00    	je     130 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x130>
++  59:	48 8b 7d 08          	mov    0x8(%rbp),%rdi
++  5d:	44 0f b6 67 28       	movzbl 0x28(%rdi),%r12d
++  62:	4d 69 e4 18 02 00 00 	imul   $0x218,%r12,%r12
++  69:	49 01 fc             	add    %rdi,%r12
++  6c:	49 8b 94 24 48 01 00 00 	mov    0x148(%r12),%rdx
++  74:	48 85 d2             	test   %rdx,%rdx
++  77:	0f 85 73 01 00 00    	jne    1f0 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x1f0>
++  7d:	48 8b 4b 20          	mov    0x20(%rbx),%rcx
++  81:	8b 93 a4 00 00 00    	mov    0xa4(%rbx),%edx
++  87:	48 8b b3 98 00 00 00 	mov    0x98(%rbx),%rsi
++  8e:	4c 8b 43 28          	mov    0x28(%rbx),%r8
++  92:	e8 00 00 00 00       	call   97 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x97>	93: R_X86_64_PLT32	_ZN8tomo_db06Client18append_buf_segmentEPKcmS2_m-0x4
++  97:	4c 8b 65 08          	mov    0x8(%rbp),%r12
++  9b:	44 8b ab b0 00 00 00 	mov    0xb0(%rbx),%r13d
++  a2:	48 8b b3 a8 00 00 00 	mov    0xa8(%rbx),%rsi
++  a9:	49 8d bc 24 70 05 00 00 	lea    0x570(%r12),%rdi
++  b1:	4c 89 ea             	mov    %r13,%rdx
++  b4:	e8 00 00 00 00       	call   b9 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0xb9>	b5: R_X86_64_PLT32	_ZN8tomo_db012SegmentQueueILj8ELm4294967295EE10append_bufEPKcm-0x4
++  b9:	41 80 bc 24 b4 07 00 00 00 	cmpb   $0x0,0x7b4(%r12)
++  c2:	74 05                	je     c9 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0xc9>
++  c4:	4d 01 6c 24 38       	add    %r13,0x38(%r12)
++  c9:	48 8b 45 00          	mov    0x0(%rbp),%rax
++  cd:	48 8b 93 a8 00 00 00 	mov    0xa8(%rbx),%rdx
++  d4:	8b b3 b4 00 00 00    	mov    0xb4(%rbx),%esi
++  da:	48 8b 78 08          	mov    0x8(%rax),%rdi
++  de:	48 ff 80 f8 00 00 00 	incq   0xf8(%rax)
++  e5:	ff 50 10             	call   *0x10(%rax)
++  e8:	48 8b 45 00          	mov    0x0(%rbp),%rax
++  ec:	48 8b 7d 08          	mov    0x8(%rbp),%rdi
++  f0:	48 8d 35 00 00 00 00 	lea    0x0(%rip),%rsi        # f7 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0xf7>	f3: R_X86_64_PC32	_ZN8tomo_db08WbEngine5kCrlfE-0x4
++  f7:	ba 02 00 00 00       	mov    $0x2,%edx
++  fc:	48 8b 40 48          	mov    0x48(%rax),%rax
++ 100:	48 ff 80 48 01 00 00 	incq   0x148(%rax)
++ 107:	e8 00 00 00 00       	call   10c <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x10c>	108: R_X86_64_PLT32	_ZN8tomo_db06Client21append_static_segmentEPKcj-0x4
++ 10c:	8b b3 a4 00 00 00    	mov    0xa4(%rbx),%esi
++ 112:	85 f6                	test   %esi,%esi
++ 114:	74 59                	je     16f <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x16f>
++ 116:	48 8b 45 00          	mov    0x0(%rbp),%rax
++ 11a:	48 ff 80 e0 00 00 00 	incq   0xe0(%rax)
++ 121:	48 83 c4 08          	add    $0x8,%rsp
++ 125:	5b                   	pop    %rbx
++ 126:	5d                   	pop    %rbp
++ 127:	41 5c                	pop    %r12
++ 129:	41 5d                	pop    %r13
++ 12b:	c3                   	ret
++ 12c:	0f 1f 40 00          	nopl   0x0(%rax)
++ 130:	48 8b 45 08          	mov    0x8(%rbp),%rax
++ 134:	8b 88 3c 06 00 00    	mov    0x63c(%rax),%ecx
++ 13a:	8b 93 a4 00 00 00    	mov    0xa4(%rbx),%edx
++ 140:	85 c9                	test   %ecx,%ecx
++ 142:	75 3c                	jne    180 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x180>
++ 144:	85 d2                	test   %edx,%edx
++ 146:	74 1e                	je     166 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x166>
++ 148:	0f b6 48 28          	movzbl 0x28(%rax),%ecx
++ 14c:	48 69 c9 18 02 00 00 	imul   $0x218,%rcx,%rcx
++ 153:	48 01 94 08 48 01 00 00 	add    %rdx,0x148(%rax,%rcx,1)
++ 15b:	48 8b 45 00          	mov    0x0(%rbp),%rax
++ 15f:	48 ff 80 e0 00 00 00 	incq   0xe0(%rax)
++ 166:	48 8b 53 28          	mov    0x28(%rbx),%rdx
++ 16a:	48 85 d2             	test   %rdx,%rdx
++ 16d:	75 51                	jne    1c0 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x1c0>
++ 16f:	48 83 c4 08          	add    $0x8,%rsp
++ 173:	5b                   	pop    %rbx
++ 174:	5d                   	pop    %rbp
++ 175:	41 5c                	pop    %r12
++ 177:	41 5d                	pop    %r13
++ 179:	c3                   	ret
++ 17a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
++ 180:	48 8b 4b 20          	mov    0x20(%rbx),%rcx
++ 184:	48 8b b3 98 00 00 00 	mov    0x98(%rbx),%rsi
++ 18b:	4c 8b 43 28          	mov    0x28(%rbx),%r8
++ 18f:	48 89 c7             	mov    %rax,%rdi
++ 192:	e8 00 00 00 00       	call   197 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x197>	193: R_X86_64_PLT32	_ZN8tomo_db06Client18append_buf_segmentEPKcmS2_m-0x4
++ 197:	8b 83 a4 00 00 00    	mov    0xa4(%rbx),%eax
++ 19d:	85 c0                	test   %eax,%eax
++ 19f:	74 ce                	je     16f <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x16f>
++ 1a1:	48 8b 45 00          	mov    0x0(%rbp),%rax
++ 1a5:	48 ff 80 e0 00 00 00 	incq   0xe0(%rax)
++ 1ac:	e9 70 ff ff ff       	jmp    121 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x121>
++ 1b1:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
++ 1bc:	0f 1f 40 00          	nopl   0x0(%rax)
++ 1c0:	48 8b 4d 08          	mov    0x8(%rbp),%rcx
++ 1c4:	48 8b 73 20          	mov    0x20(%rbx),%rsi
++ 1c8:	0f b6 41 28          	movzbl 0x28(%rcx),%eax
++ 1cc:	48 83 c4 08          	add    $0x8,%rsp
++ 1d0:	5b                   	pop    %rbx
++ 1d1:	5d                   	pop    %rbp
++ 1d2:	41 5c                	pop    %r12
++ 1d4:	41 5d                	pop    %r13
++ 1d6:	48 69 c0 18 02 00 00 	imul   $0x218,%rax,%rax
++ 1dd:	48 8d bc 01 40 01 00 00 	lea    0x140(%rcx,%rax,1),%rdi
++ 1e5:	e9 00 00 00 00       	jmp    1ea <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x1ea>	1e6: R_X86_64_PLT32	_ZN8tomo_db08SmallBufILm512EE6appendEPKcm-0x4
++ 1ea:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
++ 1f0:	49 8b b4 24 40 01 00 00 	mov    0x140(%r12),%rsi
++ 1f8:	48 81 c7 70 05 00 00 	add    $0x570,%rdi
++ 1ff:	e8 00 00 00 00       	call   204 <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x204>	200: R_X86_64_PLT32	_ZN8tomo_db012SegmentQueueILj8ELm4294967295EE10append_bufEPKcm-0x4
++ 204:	49 c7 84 24 48 01 00 00 00 00 00 00 	movq   $0x0,0x148(%r12)
++ 210:	48 8b 7d 08          	mov    0x8(%rbp),%rdi
++ 214:	e9 64 fe ff ff       	jmp    7d <_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_+0x7d>
+ 
+ Disassembly of section .text._ZZN8tomo_db08WbEngine10serve_implILb1ELb0ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_:
+ 
+@@ -1379,6 +1318,20 @@
+ 
+ Disassembly of section .text._ZN8tomo_db06IoLoop11flush_readyILb0ELb0ELb0ELb0ELb0ELb0EEEjv:
+ 
++Disassembly of section .text._ZN8tomo_db06IoLoop19collect_retire_workILb0ELb0EEEjb:
++
++Disassembly of section .text._ZN8tomo_db06IoLoop13pipeline_passILb0ELb1ELb0ELb0EEEjbbRbRm:
++
++Disassembly of section .text._ZN8tomo_db06IoLoop8run_loopILb0ELb1ELb0ELb0ELh1ELb0EEEvv:
++
++Disassembly of section .text._ZN8tomo_db06IoLoop8run_loopILb0ELb1ELb0ELb0ELh0ELb0EEEvv:
++
++Disassembly of section .text._ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv:
++
++Disassembly of section .text._ZN8tomo_db06IoLoop13pipeline_passILb0ELb0ELb0ELb0EEEjbbRbRm:
++
++Disassembly of section .text._ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh1ELb0EEEvv:
++
+ Disassembly of section .text._ZN8tomo_db06IoLoop19collect_retire_workILb0ELb1EEEjb:
+ 
+ Disassembly of section .text._ZN8tomo_db06IoLoop13pipeline_passILb0ELb0ELb1ELb0EEEjbbRbRm:
+@@ -1393,20 +1346,6 @@
+ 
+ Disassembly of section .text._ZN8tomo_db06IoLoop8run_loopILb0ELb1ELb1ELb0ELh1ELb0EEEvv:
+ 
+-Disassembly of section .text._ZN8tomo_db06IoLoop19collect_retire_workILb0ELb0EEEjb:
+-
+-Disassembly of section .text._ZN8tomo_db06IoLoop13pipeline_passILb0ELb1ELb0ELb0EEEjbbRbRm:
+-
+-Disassembly of section .text._ZN8tomo_db06IoLoop8run_loopILb0ELb1ELb0ELb0ELh1ELb0EEEvv:
+-
+-Disassembly of section .text._ZN8tomo_db06IoLoop8run_loopILb0ELb1ELb0ELb0ELh0ELb0EEEvv:
+-
+-Disassembly of section .text._ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv:
+-
+-Disassembly of section .text._ZN8tomo_db06IoLoop13pipeline_passILb0ELb0ELb0ELb0EEEjbbRbRm:
+-
+-Disassembly of section .text._ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh1ELb0EEEvv:
+-
+ Disassembly of section .text._ZN8tomo_db06IoLoop19collect_retire_workILb1ELb1EEEjb:
+ 
+ Disassembly of section .text._ZN8tomo_db06IoLoop13pipeline_passILb1ELb0ELb1ELb0EEEjbbRbRm:

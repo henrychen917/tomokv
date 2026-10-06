@@ -1,0 +1,18 @@
+{
+  "main-146203": {
+    "total": 826,
+    "hot": 129,
+    "changed": 0,
+    "hot_changed": 0,
+    "hot_differing_bytes": 0,
+    "rows": []
+  },
+  "server-31582": {
+    "total": 228,
+    "hot": 1,
+    "changed": 0,
+    "hot_changed": 0,
+    "hot_differing_bytes": 0,
+    "rows": []
+  }
+}
