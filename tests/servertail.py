@@ -209,7 +209,7 @@ def scope_b(c):
     check("FILTERBY bad selector", c.cmd("COMMAND", "LIST", "FILTERBY", "NOPE", "x"),
           err("ERR syntax error"))
     check("FILTERBY unknown category", c.cmd("COMMAND", "LIST", "FILTERBY", "ACLCAT", "nope"),
-          err_prefix("ERR Unknown ACL category"))
+          [])  # Redis returns *0\r\n for an unknown ACL category in RESP2 and RESP3.
 
     info = c.cmd("COMMAND", "INFO", "get")
     check("COMMAND INFO is a 10-element row", info,
