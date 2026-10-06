@@ -1,0 +1,1 @@
+START armed-1 taskset -c 112-127 tests/differ_gate.sh /home/user/Projects/cx-storesize/build/storesize5/POST/tomokv 17899 17900 112-119 6:2

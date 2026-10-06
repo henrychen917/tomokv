@@ -98,7 +98,10 @@ live equivalence proof is included in the split fold.
 - Split/atomic=0: **252/252 suite legs PASS**, complete=true.
 - Armed-fused/atomic=0: **246/246 suite legs PASS**, complete=true; read-local
   witness fired with 963 hits / 257 fallbacks. Both completed through the
-  unchanged AT15b replay wrapper. Atomic-one and final group folds are pending.
+  unchanged AT15b replay wrapper. The full split/atomic=1 replay passed 256/256 legs, including all four
+  historical seed-19 MULTI repeats. The split fold is **complete=true,
+  verdict=PASS**, 540 comparisons (508 differential legs + 32 equivalence cells).
+  Armed/atomic=1 replay remains pending.
 
 The first split/atomic=1 lifetime completed **255/256 suite legs PASS**.
 Its sole failure was `wiredump` seed 22: one mismatch first reported at
@@ -110,8 +113,8 @@ post-failure process snapshot. No cause or candidate-specific regression is
 claimed from this sample. The failed log and invocation are retained under
 `docs/storesize5/failed-first-split-1`. All six MULTI and multidb seeds and the
 four historical MULTI repeats passed in that lifetime. A complete fresh
-split/atomic=1 replay with unchanged source, binary, seeds, and tolerances is
-running; no individual leg is replaced inside a completed failed lifetime.
+split/atomic=1 replay with unchanged source, binary, seeds, and tolerances
+passed all 256 legs; no individual leg is replaced inside a completed failed lifetime.
 
 The first armed/atomic=1 attempt subsequently failed `edgetime` seed 20 at
 operation 445: PTTL target `2591999962`, Redis `2591999969` (−7 ms). Its 159
@@ -124,8 +127,8 @@ cancellation record, raw PTTL reply log, both failed/partial attempts' full
 journals and coverage artifacts are preserved in `docs/storesize5` and
 `failed-first-attempt.tar.gz`. These failures are not erased by later success.
 
-Fresh full atomic-one lifetimes are running serially with the unchanged
-candidate and comparator. The first failed split attempt still passed all
+Fresh full atomic-one lifetimes run serially with the unchanged candidate
+and comparator. Split/atomic=1 has passed; armed/atomic=1 is running. The first failed split attempt still passed all
 1,800 DBSIZE exact positions and six convergence checks; the partial armed
 attempt passed 1,192 positions and four convergence checks. The selected
 four-part matrix requires its own 7,200 positions and 24 convergence checks.
