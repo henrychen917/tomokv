@@ -1,0 +1,200 @@
+[
+  {
+    "object": "db0/src/cmd/cmdmeta.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_111child_countERKNS_15CommandMetadataE",
+    "name": "tomo_db0::(anonymous namespace)::child_count(tomo_db0::CommandMetadata const&)",
+    "pre_size": 155,
+    "post_size": 155,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/cmd/cmdmeta.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_114reply_info_rowERNS_2OpERKNS_15CommandMetadataE",
+    "name": "tomo_db0::(anonymous namespace)::reply_info_row(tomo_db0::Op&, tomo_db0::CommandMetadata const&)",
+    "pre_size": 4630,
+    "post_size": 4630,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/cmd/cmdmeta.o",
+    "symbol": "_ZN8tomo_db019command_metadata_atEj",
+    "name": "tomo_db0::command_metadata_at(unsigned int)",
+    "pre_size": 35,
+    "post_size": 35,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/cmd/cmdmeta.o",
+    "symbol": "_ZN8tomo_db021command_metadata_sizeEv",
+    "name": "tomo_db0::command_metadata_size()",
+    "pre_size": 10,
+    "post_size": 10,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/cmd/cmdmeta.o",
+    "symbol": "_ZN8tomo_db023command_metadata_lookupENS_5SliceE",
+    "name": "tomo_db0::command_metadata_lookup(tomo_db0::Slice)",
+    "pre_size": 344,
+    "post_size": 344,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/cmd/cmdmeta.o",
+    "symbol": "_ZN8tomo_db024command_metadata_resolveERNS_2OpEj",
+    "name": "tomo_db0::command_metadata_resolve(tomo_db0::Op&, unsigned int)",
+    "pre_size": 1678,
+    "post_size": 1678,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/cmd/cmdmeta.o",
+    "symbol": "_ZN8tomo_db024command_metadata_resolveERNS_2OpEj.cold",
+    "name": "tomo_db0::command_metadata_resolve(tomo_db0::Op&, unsigned int) [clone .cold]",
+    "pre_size": 40,
+    "post_size": 40,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/cmd/cmdmeta.o",
+    "symbol": "_ZN8tomo_db029command_metadata_collect_keysERNS_2OpEjRKNS_15CommandMetadataERSt6vectorINS_18CommandKeyMetadataESaIS6_EE",
+    "name": "tomo_db0::command_metadata_collect_keys(tomo_db0::Op&, unsigned int, tomo_db0::CommandMetadata const&, std::vector<tomo_db0::CommandKeyMetadata, std::allocator<tomo_db0::CommandKeyMetadata> >&)",
+    "pre_size": 5237,
+    "post_size": 5237,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/cmd/cmdmeta.o",
+    "symbol": "_ZN8tomo_db030command_metadata_key_flag_nameEj",
+    "name": "tomo_db0::command_metadata_key_flag_name(unsigned int)",
+    "pre_size": 25,
+    "post_size": 25,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/cmdmeta.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_111child_countERKNS_15CommandMetadataE",
+    "name": "tomo::(anonymous namespace)::child_count(tomo::CommandMetadata const&)",
+    "pre_size": 155,
+    "post_size": 155,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/cmdmeta.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_114reply_info_rowERNS_2OpERKNS_15CommandMetadataE",
+    "name": "tomo::(anonymous namespace)::reply_info_row(tomo::Op&, tomo::CommandMetadata const&)",
+    "pre_size": 4630,
+    "post_size": 4630,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/cmdmeta.o",
+    "symbol": "_ZN4tomo19command_metadata_atEj",
+    "name": "tomo::command_metadata_at(unsigned int)",
+    "pre_size": 35,
+    "post_size": 35,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/cmdmeta.o",
+    "symbol": "_ZN4tomo21command_metadata_sizeEv",
+    "name": "tomo::command_metadata_size()",
+    "pre_size": 10,
+    "post_size": 10,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/cmdmeta.o",
+    "symbol": "_ZN4tomo23command_metadata_lookupENS_5SliceE",
+    "name": "tomo::command_metadata_lookup(tomo::Slice)",
+    "pre_size": 344,
+    "post_size": 344,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/cmdmeta.o",
+    "symbol": "_ZN4tomo24command_metadata_resolveERNS_2OpEj",
+    "name": "tomo::command_metadata_resolve(tomo::Op&, unsigned int)",
+    "pre_size": 1678,
+    "post_size": 1678,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/cmdmeta.o",
+    "symbol": "_ZN4tomo24command_metadata_resolveERNS_2OpEj.cold",
+    "name": "tomo::command_metadata_resolve(tomo::Op&, unsigned int) [clone .cold]",
+    "pre_size": 40,
+    "post_size": 40,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/cmdmeta.o",
+    "symbol": "_ZN4tomo29command_metadata_collect_keysERNS_2OpEjRKNS_15CommandMetadataERSt6vectorINS_18CommandKeyMetadataESaIS6_EE",
+    "name": "tomo::command_metadata_collect_keys(tomo::Op&, unsigned int, tomo::CommandMetadata const&, std::vector<tomo::CommandKeyMetadata, std::allocator<tomo::CommandKeyMetadata> >&)",
+    "pre_size": 5253,
+    "post_size": 5253,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/cmdmeta.o",
+    "symbol": "_ZN4tomo30command_metadata_key_flag_nameEj",
+    "name": "tomo::command_metadata_key_flag_name(unsigned int)",
+    "pre_size": 25,
+    "post_size": 25,
+    "raw_equal": true,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  }
+]

@@ -1,0 +1,155 @@
+Compiler-boundary trials (not production arms).
+None achieved complete ordinary-body identity; no trial attributes/budgets adopted.
+Counts below compare only the compiled selected objects with merged mainline.
+The pure-sampler trials are object-only prototypes, not linked runnable binaries.
+Some early trials predate the explicit db0 INFO compile-time guard.
+
+build/storesize2/O2-accessor-audit.log
+main.o total 128 diff 2
+core/rl2s.o total 207 diff 8
+core/reorder.o total 131 diff 1
+
+build/storesize2/O3-accessor-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 5
+core/reorder.o total 131 diff 4
+
+build/storesize2/O3-cold-audit.log
+main.o total 128 diff 2
+core/rl2s.o total 207 diff 3
+core/reorder.o total 131 diff 4
+
+build/storesize2/cold-sample-audit.log
+main.o total 128 diff 3
+core/rl2s.o total 207 diff 11
+core/reorder.o total 131 diff 6
+cmd/t_server.o total 39 diff 4
+
+build/storesize2/cold-state-audit.log
+main.o total 128 diff 4
+core/rl2s.o total 207 diff 8
+cmd/t_server.o total 39 diff 3
+
+build/storesize2/early-sample-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 12
+cmd/t_server.o total 39 diff 2
+
+build/storesize2/flat-sample-audit.log
+main.o total 128 diff 11
+core/rl2s.o total 207 diff 21
+cmd/t_server.o total 39 diff 7
+
+build/storesize2/info-fix-audit.log
+cmd/t_server.o total 39 diff 4
+
+build/storesize2/inline-sample-audit.log
+main.o total 128 diff 3
+core/rl2s.o total 207 diff 8
+cmd/t_server.o total 39 diff 4
+
+build/storesize2/late-sample2-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 12
+core/reorder.o total 131 diff 3
+cmd/t_server.o total 39 diff 3
+
+build/storesize2/noexcept-state-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 8
+cmd/t_server.o total 39 diff 4
+
+build/storesize2/noinline-body-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 9
+cmd/t_server.o total 39 diff 4
+
+build/storesize2/noinline-state-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 8
+cmd/t_server.o total 39 diff 3
+
+build/storesize2/noipa-sample-audit.log
+main.o total 128 diff 2
+core/rl2s.o total 207 diff 10
+cmd/t_server.o total 39 diff 3
+
+build/storesize2/noipa-state-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 8
+cmd/t_server.o total 39 diff 3
+
+build/storesize2/o1-sample-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 5
+cmd/t_server.o total 39 diff 5
+
+build/storesize2/o1-state-audit.log
+main.o total 128 diff 6
+core/rl2s.o total 207 diff 5
+cmd/t_server.o total 39 diff 5
+
+build/storesize2/os-sample-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 9
+cmd/t_server.o total 39 diff 4
+
+build/storesize2/outline-index-audit.log
+main.o total 128 diff 2
+core/rl2s.o total 207 diff 11
+cmd/t_server.o total 39 diff 3
+
+build/storesize2/outlined-sample-audit.log
+main.o total 128 diff 3
+core/rl2s.o total 207 diff 6
+cmd/t_server.o total 39 diff 5
+
+build/storesize2/plain-sample-audit.log
+main.o total 128 diff 2
+core/rl2s.o total 207 diff 8
+cmd/t_server.o total 39 diff 3
+
+build/storesize2/pub-boundary-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 8
+cmd/t_server.o total 39 diff 3
+
+build/storesize2/pure-boundary-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 6
+core/reorder.o total 131 diff 2
+cmd/t_server.o total 39 diff 5
+
+build/storesize2/pure-leaf-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 6
+cmd/t_server.o total 39 diff 5
+
+build/storesize2/pure-noexcept-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 5
+core/reorder.o total 131 diff 0
+cmd/t_server.o total 39 diff 5
+
+build/storesize2/pure-noexcept-inline-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 4
+core/reorder.o total 131 diff 0
+cmd/t_server.o total 39 diff 5
+
+build/storesize2/pure-sample-audit.log
+main.o total 128 diff 2
+core/rl2s.o total 207 diff 10
+cmd/t_server.o total 39 diff 5
+
+build/storesize2/sample-O0-audit.log
+main.o total 128 diff 35
+core/rl2s.o total 207 diff 24
+core/reorder.o total 131 diff 20
+cmd/t_server.o total 39 diff 25
+
+build/storesize2/sample-O3-audit.log
+main.o total 128 diff 1
+core/rl2s.o total 207 diff 2
+core/reorder.o total 131 diff 3
+cmd/t_server.o total 39 diff 4

@@ -24,6 +24,17 @@ PRE/POST binaries and hashes, exact requested wire behavior, byte/instruction wi
 consumer parser consequences, existing +0/+0 rows, and the fourteen null cell IDs are recorded there.
 Mainline runs all servers, differentials, gates, and measurements. No lane measurement was run.
 
+Lane storesize3: ST3 — cold boundary and partial restoration, body-identity WIP
+
+See MEASURE-REQUEST-storesize3.md for the cold-unit extraction, 7/9 original
+raw-body matches, full literal-byte failure lists in both images, and rebuilt
+POST/PAD-A hashes. PRE remains 47b0c843d59a. Strict body identity still FAILS;
+five ordinary db0 instruction differences remain against merged mainline,
+and multi-DB producer/incidental changes remain. Serverless positive suites
+and rejected routing control pass. Subexpiry retains the exact census source;
+field-TTL INFO may walk keys. One gate row remains +1/+1 (counts 498/515).
+No server, benchmark, gate or push; builds/checks on CPUs 112-127.
+
 Lane at15: MULTI admin replies
 
 See MEASURE-REQUEST-at15.md for PRE/POST hashes, serverless falsification, body
@@ -36,3 +47,11 @@ serverless proofs, but success-body identity and the disabled scatter path do no
 meet the requirement. Exact perf-event equality also fails in one final interval.
 The report retains all failed audit rows, Redis semantic gaps, PRE/BASE/POST hashes,
 the unchanged measured ccfix reference, and +0/+0 gate rows. No server or gate run.
+
+Lane storesize5: at15 composition and monitoring differential contract complete
+
+See MEASURE-REQUEST-storesize5.md: final split/armed folds complete=true PASS;
+40 AT15b proofs, storesize/multidb checks and 12+25 selected gate rows PASS.
+Original PTTL failures retained; unchanged full atomic-one replays passed.
+PRE/POST/PAD-A hashes and full body differences recorded. No push.
+Maintainer bookkeeping: existing storesize +1/+1 gives 500/517 and its fixture label.

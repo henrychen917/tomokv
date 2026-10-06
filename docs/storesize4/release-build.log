@@ -1,0 +1,89 @@
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=146400 -DTOMO_JEMALLOC -I. -c src/main.cc -o build/src/main.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/net/tls.cc -o build/src/net/tls.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/commands.cc -o build/src/cmd/commands.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/glob.cc -o build/src/cmd/glob.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=127577 -DTOMO_JEMALLOC -I. -c src/cmd/xshard.cc -o build/src/cmd/xshard.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/acl.cc -o build/src/cmd/acl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/hll.cc -o build/src/cmd/hll.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_server.cc -o build/src/cmd/t_server.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param large-unit-insns=10600 -DTOMO_JEMALLOC -I. -c src/cmd/t_string.cc -o build/src/cmd/t_string.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_string_notify.cc -o build/src/cmd/t_string_notify.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_hash.cc -o build/src/cmd/t_hash.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_hash_ttl.cc -o build/src/cmd/t_hash_ttl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_list.cc -o build/src/cmd/t_list.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_set.cc -o build/src/cmd/t_set.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_zset.cc -o build/src/cmd/t_zset.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_zset_ops.cc -o build/src/cmd/t_zset_ops.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/geo.cc -o build/src/cmd/geo.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_stream.cc -o build/src/cmd/t_stream.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_stream_groups.cc -o build/src/cmd/t_stream_groups.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/scripting.cc -o build/src/cmd/scripting.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/functions.cc -o build/src/cmd/functions.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/serialize.cc -o build/src/cmd/serialize.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/snapshot/snapshot.cc -o build/src/snapshot/snapshot.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/persist/aof.cc -o build/src/persist/aof.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/climon.cc -o build/src/cmd/climon.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/tracking.cc -o build/src/cmd/tracking.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/server_tail.cc -o build/src/cmd/server_tail.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/slowlog.cc -o build/src/cmd/slowlog.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/lcs.cc -o build/src/cmd/lcs.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/info_stats.cc -o build/src/cmd/info_stats.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/lbsignals.cc -o build/src/cmd/lbsignals.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/core/flipctl.cc -o build/src/core/flipctl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=128865 -DTOMO_JEMALLOC -I. -c src/core/genthread.cc -o build/src/core/genthread.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=161715 -DTOMO_JEMALLOC -I. -c src/core/rl2s.cc -o build/src/core/rl2s.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/core/lbstall.cc -o build/src/core/lbstall.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/core/lbplanner.cc -o build/src/core/lbplanner.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/l4prebuild.cc -o build/src/cmd/l4prebuild.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/cmdgap.cc -o build/src/cmd/cmdgap.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/pfdebug.cc -o build/src/cmd/pfdebug.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/cmdmeta.cc -o build/src/cmd/cmdmeta.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_sort.cc -o build/src/cmd/t_sort.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/multidb.cc -o build/src/cmd/multidb.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/storesize.cc -o build/src/cmd/storesize.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/core/reorder.cc -o build/src/core/reorder.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=146270 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/main.cc -o build/db0/src/main.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/net/tls.cc -o build/db0/src/net/tls.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/commands.cc -o build/db0/src/cmd/commands.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/glob.cc -o build/db0/src/cmd/glob.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/xshard.cc -o build/db0/src/cmd/xshard.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/acl.cc -o build/db0/src/cmd/acl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/hll.cc -o build/db0/src/cmd/hll.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_server.cc -o build/db0/src/cmd/t_server.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param large-unit-insns=10600 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_string.cc -o build/db0/src/cmd/t_string.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_string_notify.cc -o build/db0/src/cmd/t_string_notify.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_hash.cc -o build/db0/src/cmd/t_hash.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_hash_ttl.cc -o build/db0/src/cmd/t_hash_ttl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_list.cc -o build/db0/src/cmd/t_list.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_set.cc -o build/db0/src/cmd/t_set.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_zset.cc -o build/db0/src/cmd/t_zset.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_zset_ops.cc -o build/db0/src/cmd/t_zset_ops.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/geo.cc -o build/db0/src/cmd/geo.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_stream.cc -o build/db0/src/cmd/t_stream.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_stream_groups.cc -o build/db0/src/cmd/t_stream_groups.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/scripting.cc -o build/db0/src/cmd/scripting.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/functions.cc -o build/db0/src/cmd/functions.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/serialize.cc -o build/db0/src/cmd/serialize.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/snapshot/snapshot.cc -o build/db0/src/snapshot/snapshot.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/persist/aof.cc -o build/db0/src/persist/aof.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/climon.cc -o build/db0/src/cmd/climon.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/tracking.cc -o build/db0/src/cmd/tracking.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/server_tail.cc -o build/db0/src/cmd/server_tail.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/slowlog.cc -o build/db0/src/cmd/slowlog.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/lcs.cc -o build/db0/src/cmd/lcs.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/info_stats.cc -o build/db0/src/cmd/info_stats.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/lbsignals.cc -o build/db0/src/cmd/lbsignals.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/flipctl.cc -o build/db0/src/core/flipctl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=128910 -Wa,--defsym,tomo_rlfence_text_pad=16 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/genthread.cc -o build/db0/src/core/genthread.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=161680 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/rl2s.cc -o build/db0/src/core/rl2s.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/lbstall.cc -o build/db0/src/core/lbstall.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/lbplanner.cc -o build/db0/src/core/lbplanner.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/l4prebuild.cc -o build/db0/src/cmd/l4prebuild.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/cmdgap.cc -o build/db0/src/cmd/cmdgap.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/pfdebug.cc -o build/db0/src/cmd/pfdebug.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/cmdmeta.cc -o build/db0/src/cmd/cmdmeta.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/t_sort.cc -o build/db0/src/cmd/t_sort.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/multidb.cc -o build/db0/src/cmd/multidb.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/cmd/storesize.cc -o build/db0/src/cmd/storesize.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=147304 -DTOMO_JEMALLOC -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c src/core/reorder.cc -o build/db0/src/core/reorder.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread build/db0/src/main.o build/db0/src/net/tls.o build/db0/src/cmd/commands.o build/db0/src/cmd/glob.o build/db0/src/cmd/xshard.o build/db0/src/cmd/acl.o build/db0/src/cmd/hll.o build/db0/src/cmd/t_server.o build/db0/src/cmd/t_string.o build/db0/src/cmd/t_string_notify.o build/db0/src/cmd/t_hash.o build/db0/src/cmd/t_hash_ttl.o build/db0/src/cmd/t_list.o build/db0/src/cmd/t_set.o build/db0/src/cmd/t_zset.o build/db0/src/cmd/t_zset_ops.o build/db0/src/cmd/geo.o build/db0/src/cmd/t_stream.o build/db0/src/cmd/t_stream_groups.o build/db0/src/cmd/scripting.o build/db0/src/cmd/functions.o build/db0/src/cmd/serialize.o build/db0/src/snapshot/snapshot.o build/db0/src/persist/aof.o build/db0/src/cmd/climon.o build/db0/src/cmd/tracking.o build/db0/src/cmd/server_tail.o build/db0/src/cmd/slowlog.o build/db0/src/cmd/lcs.o build/db0/src/cmd/info_stats.o build/db0/src/cmd/lbsignals.o build/db0/src/core/flipctl.o build/db0/src/core/genthread.o build/db0/src/core/rl2s.o build/db0/src/core/lbstall.o build/db0/src/core/lbplanner.o build/db0/src/cmd/l4prebuild.o build/db0/src/cmd/cmdgap.o build/db0/src/cmd/pfdebug.o build/db0/src/cmd/cmdmeta.o build/db0/src/cmd/t_sort.o build/db0/src/cmd/multidb.o build/db0/src/cmd/storesize.o build/db0/src/core/reorder.o build/src/main.o build/src/net/tls.o build/src/cmd/commands.o build/src/cmd/glob.o build/src/cmd/xshard.o build/src/cmd/acl.o build/src/cmd/hll.o build/src/cmd/t_server.o build/src/cmd/t_string.o build/src/cmd/t_string_notify.o build/src/cmd/t_hash.o build/src/cmd/t_hash_ttl.o build/src/cmd/t_list.o build/src/cmd/t_set.o build/src/cmd/t_zset.o build/src/cmd/t_zset_ops.o build/src/cmd/geo.o build/src/cmd/t_stream.o build/src/cmd/t_stream_groups.o build/src/cmd/scripting.o build/src/cmd/functions.o build/src/cmd/serialize.o build/src/snapshot/snapshot.o build/src/persist/aof.o build/src/cmd/climon.o build/src/cmd/tracking.o build/src/cmd/server_tail.o build/src/cmd/slowlog.o build/src/cmd/lcs.o build/src/cmd/info_stats.o build/src/cmd/lbsignals.o build/src/core/flipctl.o build/src/core/genthread.o build/src/core/rl2s.o build/src/core/lbstall.o build/src/core/lbplanner.o build/src/cmd/l4prebuild.o build/src/cmd/cmdgap.o build/src/cmd/pfdebug.o build/src/cmd/cmdmeta.o build/src/cmd/t_sort.o build/src/cmd/multidb.o build/src/cmd/storesize.o build/src/core/reorder.o -o build/tomokv -ljemalloc -luring -pthread -lssl -lcrypto -lm

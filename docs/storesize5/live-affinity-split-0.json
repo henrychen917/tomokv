@@ -1,0 +1,107 @@
+{
+  "timestamp": 1791288315.590002,
+  "processes": [
+    {
+      "pid": 3515571,
+      "name": "python3",
+      "cwd": "/home/user/Projects/cx-storesize",
+      "command": "python3 docs/storesize5/replay.py build/storesize5/differ ",
+      "threads": {
+        "3515571": [
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127
+        ]
+      }
+    },
+    {
+      "pid": 3515585,
+      "name": "redis-server",
+      "cwd": "/home/user/Projects/cx-storesize/build/storesize5/differ/jobs/differ-split-0/differ/oracle",
+      "command": "/home/user/Projects/redis/src/redis-server 127.0.0.1:17900                                                                                                                                                                                         ",
+      "threads": {
+        "3515585": [
+          120
+        ],
+        "3515594": [
+          120
+        ],
+        "3515595": [
+          120
+        ],
+        "3515596": [
+          120
+        ],
+        "3515597": [
+          120
+        ],
+        "3515598": [
+          120
+        ]
+      }
+    },
+    {
+      "pid": 3515610,
+      "name": "at15b-post",
+      "cwd": "/home/user/Projects/cx-storesize",
+      "command": "./build/at15b-post --port 17899 --bind 127.0.0.1 --shards 16 --ratio 6:2 --databases 16 --atomic 0 --save  --dir /home/user/Projects/cx-storesize/build/storesize5/differ/jobs/differ-split-0/differ/target-atomic-0 --enable-debug-command yes ",
+      "threads": {
+        "3515610": [
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119
+        ],
+        "3515619": [
+          118
+        ],
+        "3515620": [
+          119
+        ],
+        "3515621": [
+          112
+        ],
+        "3515622": [
+          113
+        ],
+        "3515623": [
+          114
+        ],
+        "3515624": [
+          115
+        ],
+        "3515625": [
+          116
+        ],
+        "3515626": [
+          117
+        ]
+      }
+    },
+    {
+      "pid": 3516350,
+      "name": "python3",
+      "cwd": "/home/user/Projects/cx-storesize",
+      "command": "python3 tests/differ.py 127.0.0.1 17899 127.0.0.1 17900 climon 7 ",
+      "threads": {
+        "3516350": [
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127
+        ]
+      }
+    }
+  ]
+}

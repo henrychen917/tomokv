@@ -1,0 +1,58 @@
+[
+  {
+    "generator": "gen_multi",
+    "line": 1765,
+    "command": [
+      "INFO",
+      "keyspace"
+    ]
+  },
+  {
+    "generator": "gen_multi",
+    "line": 1765,
+    "command": [
+      "INFO",
+      "keyspace"
+    ]
+  },
+  {
+    "generator": "gen_multidb",
+    "line": 5801,
+    "command": [
+      "INFO",
+      "keyspace"
+    ]
+  },
+  {
+    "generator": "gen_multidb",
+    "line": 5801,
+    "command": [
+      "INFO",
+      "keyspace"
+    ]
+  },
+  {
+    "generator": "gen_multidb",
+    "line": 5802,
+    "command": [
+      "INFO",
+      "keyspace"
+    ]
+  },
+  {
+    "generator": "gen_multidb",
+    "line": 5835,
+    "command": [
+      "DBSIZE",
+      "NOW"
+    ]
+  },
+  {
+    "generator": "gen_multidb",
+    "line": 5826,
+    "command": [
+      "DBSIZE",
+      "NOW"
+    ]
+  }
+]

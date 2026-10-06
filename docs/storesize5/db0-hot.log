@@ -1,0 +1,25 @@
+Hot bodies: 744; raw byte equal: 703; bytes + resolved relocation targets equal: 720
+DIFF core/genthread.o 9522 9538 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF core/genthread.o 18443 18416 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*)
+DIFF core/genthread.o 18295 18320 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo_db0::Client*)
+DIFF core/reorder.o 9506 9522 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF core/reorder.o 18363 18353 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*)
+DIFF core/reorder.o 18285 18269 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*)
+DIFF core/reorder.o 18251 18252 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo_db0::Client*)
+DIFF core/reorder.o 18169 18149 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false, false>(tomo_db0::Client*)
+DIFF core/reorder.o 729 796 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+DIFF core/rl2s.o 9496 9512 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF core/rl2s.o 17463 17475 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF core/rl2s.o 17581 17598 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF core/rl2s.o 684 797 bool tomo_db0::ExLoopT<true>::execute_snapshot_task<false>(tomo_db0::Task const&, bool)
+DIFF core/rl2s.o 17554 17563 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo_db0::Client*)
+DIFF core/rl2s.o 17455 17450 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)
+DIFF core/rl2s.o 17246 17290 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo_db0::Client*)
+DIFF core/rl2s.o 17143 17221 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo_db0::Client*)
+DIFF main.o 537 824 tomo_db0::WbEngine::serve_impl<false, true, false, true, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF main.o 537 824 tomo_db0::WbEngine::serve_impl<false, true, true, false, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF main.o 9639 9655 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false, false>(tomo_db0::Client*)
+DIFF main.o 9422 9438 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, true, false>(tomo_db0::Client*)
+DIFF main.o 9370 9386 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, true, false>(tomo_db0::Client*)
+DIFF main.o 9639 9655 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*)
+DIFF persist/aof.o 543 479 tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)

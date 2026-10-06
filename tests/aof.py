@@ -602,7 +602,45 @@ if MODE == "populate":
     print("AOF DATASET CAPTURED: %d static replies, PTTL=%d ms" %
           (len(PROBES), state["pttl_ms"]))
 elif MODE == "loadaof":
+    # PS5: changing CONFIG must affect the next load, not merely CONFIG GET.
+    # This row owns a quiescent, freshly populated AOF with automatic rewrite off
+    # (or below its size floor). Append an incomplete frame, never a valid record.
     expect(("DEBUG", "LOADAOF"), b"+OK\r\n")
+    config = {}
+    for name in ("dir", "appenddirname", "appendfilename", "aof-load-truncated"):
+        pair = flat_bulk_array(c.command("CONFIG", "GET", name))
+        if len(pair) != 2 or pair[0] != name.encode():
+            raise AssertionError("CONFIG GET did not supply " + name)
+        config[name] = pair[1].decode()
+    directory = os.path.join(config["dir"], config["appenddirname"])
+    manifest = os.path.join(directory, config["appendfilename"] + ".manifest")
+    if os.path.exists(manifest):
+        with open(manifest, encoding="utf-8") as source:
+            increments = [line.split()[1] for line in source if " type i " in line]
+        if not increments:
+            raise AssertionError("manifest contains no increment for tail-policy check")
+        path = os.path.join(directory, increments[-1])
+    else:
+        path = os.path.join(directory, config["appendfilename"] + ".1.incr.tomo")
+    original_size = os.path.getsize(path)
+    try:
+        expect(("CONFIG", "SET", "aof-load-truncated", "no"), b"+OK\r\n")
+        with open(path, "ab") as output:
+            output.write(b"AFR")
+            output.flush()
+            os.fsync(output.fileno())
+        if os.path.getsize(path) != original_size + 3:
+            raise AssertionError("incomplete AOF tail was not armed")
+        expect(("DEBUG", "LOADAOF"), b"-ERR Error trying to load the AOF, check server logs.\r\n")
+        if os.path.getsize(path) != original_size + 3:
+            raise AssertionError("strict runtime policy modified the incomplete tail")
+        expect(("CONFIG", "SET", "aof-load-truncated", "yes"), b"+OK\r\n")
+        expect(("DEBUG", "LOADAOF"), b"+OK\r\n")
+        if os.path.getsize(path) != original_size:
+            raise AssertionError("permissive runtime policy did not truncate the armed tail")
+        print("AOF LIVE POLICY PASS: armed 3 tail bytes; no refused unchanged; yes recovered and truncated")
+    finally:
+        expect(("CONFIG", "SET", "aof-load-truncated", config["aof-load-truncated"]), b"+OK\r\n")
     verify(load_state())
 elif MODE == "verify":
     verify(load_state())

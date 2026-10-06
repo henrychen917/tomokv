@@ -155,7 +155,10 @@ def check_aliases(h, mode):
         assert get(c, 'hll-sparse-max-bytes') == '1024'
         assert c.command('PFADD', 'hll-small', 'member') == 1
         assert c.command('PFDEBUG', 'ENCODING', 'hll-small') == 'sparse'
-        for name, value in [('unixsocketperm', '700'), ('aof-load-truncated', 'no'),
+        for policy in ('no', 'yes'):
+            assert c.command('CONFIG', 'SET', 'aof-load-truncated', policy) == 'OK'
+            assert get(c, 'aof-load-truncated') == policy
+        for name, value in [('unixsocketperm', '700'),
                             ('hll-sparse-max-bytes', '0'),
                             ('port', h.port), ('bind', '127.0.0.1'), ('unixsocket', '')]:
             assert 'immutable' in c.command('CONFIG', 'SET', name, value)['error']

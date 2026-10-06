@@ -69,12 +69,17 @@ try:
         if values.get(name.encode()) != expected.encode():
             raise AssertionError("CONFIG %s differs: %r" % (name, values.get(name.encode())))
     for name in ("read-local", "key-lb", "client-lb", "flip-auto", "net-io", "overlap", "reorder", "wb-policy",
-                 "hll-sparse-max-bytes", "aof-load-truncated", "unixsocketperm", "port", "bind", "unixsocket"):
+                 "hll-sparse-max-bytes", "unixsocketperm", "port", "bind", "unixsocket"):
         result = conn.cmd("CONFIG", "SET", name, values[name.encode()])
         if not isinstance(result, _lib.RespError) or "immutable" not in str(result):
             raise AssertionError("boot-only knob was mutable: " + name)
         if conn.must("CONFIG", "GET", name) != [name.encode(), values[name.encode()]]:
             raise AssertionError("rejected boot-only SET changed its GET value: " + name)
+    for policy in ("no", "yes"):
+        conn.must("CONFIG", "SET", "aof-load-truncated", policy)
+        if conn.must("CONFIG", "GET", "aof-load-truncated") != [b"aof-load-truncated", policy.encode()]:
+            raise AssertionError("AOF recovery policy did not change at runtime")
+    conn.must("CONFIG", "SET", "aof-load-truncated", values[b"aof-load-truncated"])
     writeback = _lib.info(conn, "WRITEBACK")
     if writeback.get("wb_policy") != "1":
         raise AssertionError("INFO WRITEBACK wb_policy differs: %r" % writeback)
