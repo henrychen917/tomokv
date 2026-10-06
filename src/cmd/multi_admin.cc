@@ -1,5 +1,6 @@
 // multi_admin.cc -- cold transaction-only INFO census; keep its store walkers out of dispatch TUs.
 #include "multidb.h"
+#include "t_hash_ttl.h"
 #include "../core/shard.h"
 
 namespace tomo {
@@ -10,6 +11,13 @@ void multi_database_stats(Shard& shard, DatabaseStatsTable& stats,
     const auto account = [&](KvObj* object) {
         auto& row = stats[object->key_namespace()];
         ++row.keys;
+        // Count hashes, not fields, from the image visible at this command's
+        // transaction cut. The store's field-expiry gate is only a shard-wide
+        // hint and can retain stale index entries or an allocation-failure bit.
+        if (object->is_type(Type::Hash)) {
+            const auto* ttls = hash_ttls_of(object);
+            row.subexpiry += ttls && !ttls->empty();
+        }
         const int64_t deadline = object->expire_at_ms();
         if (deadline >= 0) {
             ++row.expires;

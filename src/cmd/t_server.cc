@@ -2691,10 +2691,11 @@ void cmd_info(Shard&, Op& op) {
             for (uint32_t db = 0; db < g_server->cfg().databases; ++db) {
                 const auto& row = (*g_database_stats)[map[db]];
                 if (!row.keys) continue;
-                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu\r\n", db,
+                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu,subexpiry=%llu\r\n", db,
                         static_cast<unsigned long long>(row.keys),
                         static_cast<unsigned long long>(row.expires),
-                        static_cast<unsigned long long>(row.expires ? row.ttl / row.expires : 0));
+                        static_cast<unsigned long long>(row.expires ? row.ttl / row.expires : 0),
+                        static_cast<unsigned long long>(row.subexpiry));
             }
         }
     }

@@ -10,6 +10,7 @@
 #include "../net/resp.h"
 #include "../base/numeric.h"
 #include "blocking.h"
+#include "t_hash_ttl.h"
 
 namespace tomo {
 namespace {
@@ -733,6 +734,10 @@ void multidb_stats(Shard& shard, DatabaseStatsTable& stats) {
     shard.store().for_each([&](KvObj* object) {
             auto& row = stats[object->key_namespace()];
             ++row.keys;
+            if (object->is_type(Type::Hash)) {
+                const auto* ttls = hash_ttls_of(object);
+                row.subexpiry += ttls && !ttls->empty();
+            }
             const int64_t deadline = object->expire_at_ms();
             if (deadline >= 0) {
                 ++row.expires;

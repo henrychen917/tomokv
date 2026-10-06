@@ -1996,7 +1996,11 @@ int32_t multi_dispatch_shard(const MultiExecState* state, uint32_t index) {
 
 void multi_dispatch_started(Client& client, MultiExecState* state) {
     if (!state) return;
-    initialize_multi_owner_record_refs(*state);
+    if (state->published) std::abort();
+    // Internal owner drivers may have prepared sentinels already. The public
+    // dispatch boundary must also support callers that leave preparation to us,
+    // without counting any owner twice. Initialization itself stays one-shot.
+    if (!state->record_refs_precounted) initialize_multi_owner_record_refs(*state);
     state->published = true;
     MultiSession* session = client.multi_session();
     if (session && session->pending == state) session->pending = nullptr;
@@ -2196,6 +2200,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                                 physical[db].keys += row.keys;
                                 physical[db].expires += row.expires;
                                 physical[db].ttl += row.ttl;
+                                physical[db].subexpiry += row.subexpiry;
                             }
                         }
                         for (uint32_t db = 0; db < server.cfg().databases; ++db)

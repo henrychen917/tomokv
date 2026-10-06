@@ -160,7 +160,7 @@ void check(Fixture& f, bool resp3, const std::string& only) {
         queue(f, {"DEL", "at15:private"});
         queue(f, {"INFO", "keyspace"});
         require(f.multi({"EXEC"}) == "*4\r\n+OK\r\n" +
-                bulk("# Keyspace\r\ndb0:keys=1,expires=0,avg_ttl=0\r\n", resp3) +
+                bulk("# Keyspace\r\ndb0:keys=1,expires=0,avg_ttl=0,subexpiry=0\r\n", resp3) +
                 ":1\r\n" + bulk("# Keyspace\r\n", resp3), "INFO observes own inserts and deletes");
     }
     if (only.empty() || only == "sleep") {
