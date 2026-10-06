@@ -156,6 +156,31 @@ class CmdmetaTests(unittest.TestCase):
         wrong_category[b"get"][6].remove(b"@read")
         self.assertGreater(run_surface(wrong_category, oracle)[0], 0)
 
+    def test_directed_absence_assertions(self):
+        target, oracle = surface_fixture()
+        removed = {name for name in oracle if name.startswith((b"cluster|", b"module|"))}
+        tree = ast.parse((ROOT / "tests/cmdmeta.py").read_text())
+        function = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "absent_families")
+        class Connection:
+            def __init__(self, rows):
+                self.peer = Peer(rows, True)
+            def cmd(self, *argv):
+                self.peer.sendall(argv)
+                return self.peer.read()
+        def check(rows):
+            failures = []
+            def expect(label, got, want):
+                if not (want(got) if callable(want) else got == want):
+                    failures.append(label)
+            scope = dict(ABSENT_PIPES={name.decode() for name in removed}, expect=expect)
+            exec(compile(ast.Module(body=[function], type_ignores=[]), "cmdmeta.py:absence", "exec"), scope)
+            scope["absent_families"](Connection(rows), "scripted protocol")
+            return failures
+        self.assertEqual(check(target), [])
+        for name in removed:
+            with self.subTest(name=name):
+                self.assertTrue(check({**target, name: oracle[name]}))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

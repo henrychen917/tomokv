@@ -5405,7 +5405,6 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
     def query(sock, file, argv):
         nonlocal compared
         compared += 1
-        coverage.note(argv)
         return parse_reply(command(sock, file, argv))
 
     def names(sock, file, argv):
@@ -5456,6 +5455,7 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
         local = local_only if category in local_categories else set()
         target_cat = names(ts, tf, ["ACL", "CAT", category])
         same_set("ACL CAT " + category.decode(), target_cat, expected | local)
+        coverage.note(["ACL", "CAT", category])  # Both peers have replied and the sets were compared.
         same_set("ACL CAT no unexpected names " + category.decode(), target_cat - oracle_cat, local)
         oracle_filter = names(os_, of, ["COMMAND", "LIST", "FILTERBY", "ACLCAT", category])
         same_set("oracle ACLCAT filter " + category.decode(), oracle_filter, oracle_cat)
@@ -5494,6 +5494,9 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
         unknown = query(os_, of, ["COMMAND", verb, "cmdmeta-no-such-command"])
         if unknown != expected:
             mismatch("oracle unknown " + verb, repr(unknown).encode(), repr(expected).encode())
+        target_unknown = query(ts, tf, ["COMMAND", verb, "cmdmeta-no-such-command"])
+        if target_unknown != unknown:
+            mismatch("target unknown " + verb, repr(target_unknown).encode(), repr(unknown).encode())
         for name in sorted(absent_top | removed):
             target = query(ts, tf, ["COMMAND", verb, name])
             oracle = query(os_, of, ["COMMAND", verb, name])
