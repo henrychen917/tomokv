@@ -1,0 +1,61 @@
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'no'] -> b'+OK\r\n'
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$2\r\nno\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'yes'] -> b'+OK\r\n'
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'NO'] -> b'+OK\r\n'
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$2\r\nno\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'YeS'] -> b'+OK\r\n'
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', '0'] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', '1'] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'true'] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', ''] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'yes '] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'AOF-LOAD-TRUNCATED', '0'] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'no', 'AOF-LOAD-TRUNCATED', 'yes'] -> b"-ERR CONFIG SET failed (possibly related to argument 'AOF-LOAD-TRUNCATED') - duplicate parameter\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX field names/order: loading rdb_changes_since_last_save rdb_bgsave_in_progress rdb_last_save_time rdb_saves aof_enabled aof_rewrite_in_progress aof_rewrite_scheduled aof_last_bgrewrite_status aof_rewrites aof_rewrites_consecutive_failures aof_last_write_status aof_current_size aof_base_size aof_pending_rewrite
+  PSFIX target SAVE rdb_saves 0 -> 1; loading:0
+  PSFIX target SAVE rdb_saves 1 -> 2; loading:0
+  PSFIX target BGSAVE rdb_saves 2 -> 3; loading:0
+  PSFIX oracle SAVE rdb_saves 0 -> 1; loading:0
+  PSFIX oracle SAVE rdb_saves 1 -> 2; loading:0
+  PSFIX oracle BGSAVE rdb_saves 2 -> 3; loading:0
+DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'no'] -> b'+OK\r\n'
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'%1\r\n$18\r\naof-load-truncated\r\n$2\r\nno\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'yes'] -> b'+OK\r\n'
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'%1\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'NO'] -> b'+OK\r\n'
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'%1\r\n$18\r\naof-load-truncated\r\n$2\r\nno\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'YeS'] -> b'+OK\r\n'
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'%1\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', '0'] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'%1\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', '1'] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'%1\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'true'] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'%1\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', ''] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'%1\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'yes '] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'%1\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'AOF-LOAD-TRUNCATED', '0'] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'no', 'AOF-LOAD-TRUNCATED', 'yes'] -> b"-ERR CONFIG SET failed (possibly related to argument 'AOF-LOAD-TRUNCATED') - duplicate parameter\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'%1\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX field names/order: loading rdb_changes_since_last_save rdb_bgsave_in_progress rdb_last_save_time rdb_saves aof_enabled aof_rewrite_in_progress aof_rewrite_scheduled aof_last_bgrewrite_status aof_rewrites aof_rewrites_consecutive_failures aof_last_write_status aof_current_size aof_base_size aof_pending_rewrite
+  PSFIX target SAVE rdb_saves 3 -> 4; loading:0
+  PSFIX target SAVE rdb_saves 4 -> 5; loading:0
+  PSFIX target BGSAVE rdb_saves 5 -> 6; loading:0
+  PSFIX oracle SAVE rdb_saves 3 -> 4; loading:0
+  PSFIX oracle SAVE rdb_saves 4 -> 5; loading:0
+  PSFIX oracle BGSAVE rdb_saves 5 -> 6; loading:0
+DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS
+PSFIX failed SAVE leaves count unchanged; successful retry increments once
+PSFIX AOF rewrite completes without incrementing rdb_saves
+PSFIX PASS: 2s databases=1 RESP2/RESP3

@@ -41,12 +41,34 @@ void knob_matrix() {
     // These bindings are boot-latched in the lane. Their startup SET/GET round trip must
     // expose actual non-default values; live SET must fail and leave the value intact.
     for (const auto& [name, value] : {
-             std::pair{"hll-sparse-max-bytes", "1024"}, {"aof-load-truncated", "no"},
+             std::pair{"hll-sparse-max-bytes", "1024"},
              {"unixsocketperm", "600"}, {"port", "6397"}, {"bind", "127.0.0.2"},
              {"unixsocket", "build/unused-knob-matrix.sock"}, {"wb-policy", "1"}}) {
         get(name, value);
         set({"CONFIG", "SET", name, value}, false);
         get(name, value);
+    }
+    // The boot directive is no, but Redis permits live yes/no changes. Rejected
+    // values must preserve both states, including through the owner handler.
+    get("aof-load-truncated", "no");
+    for (const char* value : {"yes", "no"}) {
+        set({"CONFIG", "SET", "aof-load-truncated", value}, true);
+        get("aof-load-truncated", value);
+        auto reject = [&](std::initializer_list<const char*> values, const std::string& error) {
+            set(values, false);
+            get("aof-load-truncated", value);
+            check(execute(shard, values) == error, "aof-load-truncated exact SET error");
+            get("aof-load-truncated", value);
+        };
+        for (const char* invalid : {"1", "0", "true", "", "no "})
+            reject({"CONFIG", "SET", "aof-load-truncated", invalid},
+                   "-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated')"
+                   " - argument must be 'yes' or 'no'\r\n");
+        const char* changed = !std::strcmp(value, "yes") ? "no" : "yes";
+        for (const char* duplicate : {"aof-load-truncated", "AOF-LOAD-TRUNCATED"})
+            reject({"CONFIG", "SET", "aof-load-truncated", changed, duplicate, changed},
+                   std::string("-ERR CONFIG SET failed (possibly related to argument '") +
+                   duplicate + "') - duplicate parameter\r\n");
     }
     for (const char* policy : {"0", "1", "-1", "2"}) {
         set({"CONFIG", "SET", "wb-policy", policy}, false);
