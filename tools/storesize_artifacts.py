@@ -5,6 +5,7 @@ import hashlib
 import json
 import re
 import subprocess
+from collections import Counter
 from pathlib import Path
 from lbstall_artifacts import Elf
 
@@ -93,6 +94,42 @@ def handlers(before, after, output):
             print('DIFF', row['object'], row['pre_size'], row['post_size'], row['name'])
 
 
+def differences(before, after, audits, output):
+    """Keep literal bytes and resolved call/constant deltas for every failed row.
+
+    This supplements the original comparisons; it does not normalize anything
+    further or decide that an unexplained difference is an accepted exception.
+    """
+    selected = {}
+    for audit in audits:
+        for row in json.loads(Path(audit).read_text()):
+            if not row['raw_equal'] or not row['relocation_equal']:
+                selected[row['object'], row['symbol']] = row
+    rows = []
+    objects = {}
+    for (obj, name), row in sorted(selected.items()):
+        if obj not in objects:
+            objects[obj] = Elf(Path(before) / obj), Elf(Path(after) / obj)
+        a, b = objects[obj]
+        old, new = a.functions()[name], b.functions().get(name)
+        pre, post = a.body(old), b.body(new) if new else b''
+        ac = a.canonical(old)
+        bc = b.canonical(new) if new else (b'', [])
+        at = Counter(repr(target) for _, _, target in ac[1])
+        bt = Counter(repr(target) for _, _, target in bc[1])
+        rows.append(dict(**row,
+                         pre_sha256=hashlib.sha256(pre).hexdigest(),
+                         post_sha256=hashlib.sha256(post).hexdigest() if new else None,
+                         pre_bytes=pre.hex(), post_bytes=post.hex(),
+                         pre_only_targets=list((at - bt).elements()),
+                         post_only_targets=list((bt - at).elements()),
+                         classification=('missing body' if not new else
+                                         'address encoding only' if row['relocation_equal'] else
+                                         'instruction or resolved-target difference')))
+    Path(output).write_text(json.dumps(rows, indent=2) + '\n')
+    print('Literal byte receipts:', len(rows), 'in', output)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='action', required=True)
@@ -100,6 +137,9 @@ if __name__ == '__main__':
     pre.add_argument('root')
     audit = sub.add_parser('handlers')
     audit.add_argument('before'); audit.add_argument('after'); audit.add_argument('output')
+    diff = sub.add_parser('differences')
+    diff.add_argument('before'); diff.add_argument('after'); diff.add_argument('output')
+    diff.add_argument('audits', nargs='+')
     twin = sub.add_parser('pad')
     twin.add_argument('source'); twin.add_argument('output')
     args = parser.parse_args()
@@ -107,5 +147,7 @@ if __name__ == '__main__':
         pre_unit(args.root)
     elif args.action == 'handlers':
         handlers(args.before, args.after, args.output)
+    elif args.action == 'differences':
+        differences(args.before, args.after, args.audits, args.output)
     else:
         print(json.dumps(pad(args.source, args.output), indent=2))
