@@ -1,0 +1,6 @@
+PASS COPY pending-source keymiss=1
+PASS SINTERSTORE pending-source keymiss=2
+PASS BITOP pending-source keymiss=2
+PASS EXEC and nested script error attribution
+
+exit=0

@@ -29,3 +29,10 @@ Lane at15: MULTI admin replies
 See MEASURE-REQUEST-at15.md for PRE/POST hashes, serverless falsification, body
 identity, the +1/+1 row count, and explicit Redis-table/group-5 policy differences.
 Live verification and the gate remain maintainer work; no push.
+
+Lane ccfix2: see MEASURE-REQUEST-ccfix2.md.
+Committed WIP: executed-error hooks and pending-source notifications have directed
+serverless proofs, but success-body identity and the disabled scatter path do not
+meet the requirement. Exact perf-event equality also fails in one final interval.
+The report retains all failed audit rows, Redis semantic gaps, PRE/BASE/POST hashes,
+the unchanged measured ccfix reference, and +0/+0 gate rows. No server or gate run.

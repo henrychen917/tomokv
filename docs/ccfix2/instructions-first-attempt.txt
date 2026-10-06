@@ -1,0 +1,10 @@
+instructions-PRE PASS
+instructions-BASE PASS
+instructions-POST PASS
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-ccfix/tools/ccfix2_prove.py", line 95, in <module>
+    (units if args.proof == 'units' else instructions)()
+  File "/home/user/Projects/cx-ccfix/tools/ccfix2_prove.py", line 84, in instructions
+    assert rows['PRE' + suffix] == rows['BASE' + suffix] == rows['POST' + suffix], rows
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'PRE': 'off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n', 'BASE': 'off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n', 'POST': 'off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700039\n'}

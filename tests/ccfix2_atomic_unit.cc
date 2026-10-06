@@ -96,6 +96,16 @@ int main(int argc, char** argv) {
     require(multi_io(server, transaction, {"EXEC"}) == "-ERR EXEC without MULTI\r\n",
             "EXEC own error");
     require(thread.command_failed_calls(exec) == 1, "EXEC own error belongs to EXEC");
+    Client aborted{-1};
+    aborted.set_id(92);
+    require(multi_io(server, aborted, {"MULTI"}) == "+OK\r\n", "abort MULTI starts");
+    require(multi_io(server, aborted, {"GET", "ccfix2:wrongtype"}) == "+QUEUED\r\n",
+            "abort member queued");
+    multi_mark_queue_error(aborted);
+    require(multi_io(server, aborted, {"EXEC"}).starts_with("-EXECABORT"),
+            "queued error aborts EXEC");
+    require(thread.command_failed_calls(exec) == 2 && thread.command_failed_calls(get) == 1,
+            "EXECABORT belongs to EXEC; unexecuted member has no failed call");
     require(local(server, {"EVAL", "return {{err='ERR one'},{err='ERR two'}}",
             "0"}) == "*2\r\n-ERR one\r\n-ERR two\r\n", "multiple script error elements");
     require(thread.command_failed_calls(eval) == 1, "one failed call for multiple script errors");

@@ -1,0 +1,3 @@
+FAIL: exact pending-source keymiss count (Redis read-lookup count)
+
+exit=1
