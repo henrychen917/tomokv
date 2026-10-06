@@ -537,9 +537,16 @@ void cmd_geoadd(Shard& shard, Op& op) {
         });
     } catch (const std::bad_alloc&) { reply_err(op.sink(), "ERR out of memory"); return; }
     if (added || changed) {
+        // GEOADD is an in-place ZADD in Redis: retain the touched key's eviction history and
+        // never demote its encoding. The owner read above already removed an expired key.
+        KvObj* previous = shard.store().find_resident(op.hash, op.key());
+        const uint8_t eviction_meta = previous ? previous->eviction_meta() : 0;
+        const bool expanded = previous &&
+            CollectionRef(previous).encoding() != CollectionEncoding::Compact;
         const ZsetOwnerResult stored = zset_owner_replace(shard, op.key(), op.hash, kNotify,
                                                           entries, expire_at_ms,
-                                                          reserve_ttl_slot, true);
+                                                          eviction_meta, expanded,
+                                                          reserve_ttl_slot);
         if (stored != ZsetOwnerResult::Ok) { reply_owner_error(op, stored); return; }
         if constexpr (kNotify)
             notify_record(shard, op, NOTIFY_ZSET, NotifyEventId::Zadd, op.key());
@@ -765,8 +772,15 @@ void cmd_geo_xshard_local(Shard& shard, Op& op, bool notify) {
     }
     if (built == GeoBuildResult::Oom) { reply_err(op.sink(), "ERR out of memory"); return; }
     const Slice destination_key = op.arg(options.destination_arg);
+    const uint64_t destination_hash = FlatStore::hash_key(destination_key);
+    KvObj* previous = shard.store().find_resident(destination_hash, destination_key);
+    // Ignore elapsed residents without touching or reaping them before replacement admission.
+    if (previous && shard.store().deadline(destination_hash, previous) >= 0 &&
+        shard.store().watch_deadline(destination_hash, destination_key) < 0) previous = nullptr;
+    // Redis setKey keeps the old destination's LRU/LFU bits, but STORE may compact the value.
+    const uint8_t eviction_meta = previous ? previous->eviction_meta() : 0;
     const ZsetOwnerResult stored = zset_owner_replace(
-        shard, destination_key, FlatStore::hash_key(destination_key), notify, output, -1);
+        shard, destination_key, destination_hash, notify, output, -1, eviction_meta, false);
     if (stored != ZsetOwnerResult::Ok) { reply_owner_error(op, stored); return; }
     if (notify) {
         const NotifyEventId event = op.cmd_name().eq_icase("geosearchstore")

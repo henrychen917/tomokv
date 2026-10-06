@@ -202,6 +202,28 @@ void metadata() {
     std::puts("CD13: exact metadata 5/12/31 retained by GEOADD/STORE/STOREDIST; notify off/on");
 }
 
+// Hex transcripts for the review report. These call handlers directly, never a listener.
+void wire_examples() {
+    for (bool resp3 : {false, true}) for (bool distances : {false, true}) {
+        Fixture f(resp3);
+        auto record = [&](std::vector<std::string> args) {
+            std::string command;
+            for (const auto& arg : args) command += (command.empty() ? "" : " ") + arg;
+            std::printf("RESP%d %s -> %s\n", resp3 ? 3 : 2, command.c_str(),
+                        hex(f.run(args)).c_str());
+        };
+        record({"GEOADD", "geo", "13", "38", "a", "13.01", "38.01", "b"});
+        record({"GEORADIUSBYMEMBER", "geo", "a", "10", "km",
+                distances ? "STORE" : "STOREDIST", "first",
+                distances ? "STOREDIST" : "STORE", "last"});
+        for (const char* key : {"first", "last"}) {
+            record({"EXISTS", key});
+            record({"TYPE", key});
+            record({"ZRANGE", key, "0", "-1", "WITHSCORES"});
+        }
+    }
+}
+
 void scan() {
     for (bool resp3 : {false, true}) for (bool notify : {false, true}) {
         Fixture f(resp3, notify);
@@ -302,6 +324,7 @@ void scan_growth() {
 
 int main(int argc, char** argv) {
     require(command_registry_init(false), "command registry initialization");
+    if (argc == 2 && std::string(argv[1]) == "wire") { wire_examples(); return 0; }
     unsigned failed = 0, tested = 0;
     const struct { const char* name; void (*run)(); } cases[] = {
         {"scan", scan}, {"scan-growth", scan_growth}, {"coordinates", coordinates}, {"stores", stores},

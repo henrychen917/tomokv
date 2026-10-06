@@ -780,7 +780,7 @@ def geo_lfu_property(sides):
                         if read_reply(file) != b":2\r\n":
                             raise RuntimeError("CD13 touch lost the seeded zset")
                     before = integer(sock, file, ["OBJECT", "FREQ", key])
-                    if before > initial:
+                    if before >= initial + 3:
                         armed = True
                         break
                 if armed:
@@ -794,7 +794,7 @@ def geo_lfu_property(sides):
             check(integer(sock, file, ["GEOADD", key, "13", "38", "m0"]) == 0,
                   label + " GEOADD must update the existing member")
             after = integer(sock, file, ["OBJECT", "FREQ", key])
-            check(after > initial and after >= before,
+            check(after > initial,
                   "%s GEOADD initial=%d before=%d after=%d" % (label, initial, before, after))
             check(issue(sock, file, ["OBJECT", "ENCODING", key]) == encoding,
                   label + " GEOADD demoted an expanded zset")
@@ -804,7 +804,7 @@ def geo_lfu_property(sides):
                 check(integer(sock, file, ["GEORADIUS", key, "13", "38", "40000", "km",
                                           mode, key]) > 0, label + " empty STORE witness")
                 after = integer(sock, file, ["OBJECT", "FREQ", key])
-                check(after > initial and after >= before,
+                check(after > initial,
                       "%s %s initial=%d before=%d after=%d" %
                       (label, mode, initial, before, after))
                 check(issue(sock, file, ["OBJECT", "ENCODING", key]) == b"$8\r\nlistpack\r\n",

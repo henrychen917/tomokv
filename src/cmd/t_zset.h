@@ -41,13 +41,16 @@ inline bool zset_resolve_limit_offset(int64_t offset, uint64_t available, bool /
 
 // Owner-thread-only bridge used by GEO. Entries are copied out so no pointer can escape the
 // shard, and replacement is built completely before the live key is relinked.
+// Replacement callers supply the destination's current eviction bits without another touch.
+// expanded is true only when updating an already-expanded GEOADD source; STORE may compact.
 ZsetOwnerResult zset_owner_read(Shard& shard, Slice key, uint64_t hash, bool notify,
                                 bool read_stats,
                                 std::vector<ZsetEntry>& entries, int64_t& expire_at_ms,
                                 bool* reserve_ttl_slot = nullptr);
 ZsetOwnerResult zset_owner_replace(Shard& shard, Slice key, uint64_t hash, bool notify,
                                    const std::vector<ZsetEntry>& entries, int64_t expire_at_ms,
-                                   bool reserve_ttl_slot = false, bool preserve_encoding = false);
+                                   uint8_t eviction_meta, bool expanded,
+                                   bool reserve_ttl_slot = false);
 
 // SORT converts a zset source to the expanded encoding on the oracle and never converts back:
 // SORT, SORT_RO and even a BY-nosort SORT all do it, because sorting wants indexed access. It

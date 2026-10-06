@@ -2510,26 +2510,20 @@ ZsetOwnerResult zset_owner_read(Shard& shard, Slice key, uint64_t hash, bool not
 
 ZsetOwnerResult zset_owner_replace(Shard& shard, Slice key, uint64_t hash, bool notify,
                                    const std::vector<ZsetEntry>& entries, int64_t expire_at_ms,
-                                   bool reserve_ttl_slot, bool preserve_encoding) {
+                                   uint8_t eviction_meta, bool expanded, bool reserve_ttl_slot) {
     if (entries.empty()) {
         if (notify) shard.store_erase<true>(hash, key, FlatStore::EraseEvent::None);
         else shard.store().erase(hash, key);
         return ZsetOwnerResult::Ok;
     }
-    // GEOADD updates a zset in Redis; STORE replaces it and may choose a compact encoding.
-    // Both keep the destination's eviction history. The GEOADD read already touched the key.
-    KvObj* previous = shard.store().find_no_touch(hash, key);
-    const uint8_t eviction_meta = previous ? previous->eviction_meta() : 0;
-    const bool expanded = preserve_encoding && previous &&
-        static_cast<Type>(previous->type) == Type::Zset &&
-        CollectionRef(previous).encoding() != CollectionEncoding::Compact;
     auto* value = new (std::nothrow) ZsetVal;
     if (!value) return ZsetOwnerResult::Oom;
     CollectionRef ref(value);
-    if (expanded && !promote_zset(ref)) { delete value; return ZsetOwnerResult::Oom; }
+    // An already-expanded source must promote on the first insertion into the fresh value.
+    const CompactLimit limit = expanded ? CompactLimit{0, 0} : shard.type_limits().zset;
     for (const ZsetEntry& entry : entries) {
         double resulting = 0;
-        const AddOutcome added = zset_add_one(ref, shard.type_limits().zset, entry.score,
+        const AddOutcome added = zset_add_one(ref, limit, entry.score,
                                               Slice(entry.member.data(),
                                                     static_cast<uint32_t>(entry.member.size())),
                                               false, false, false, false, false, resulting);
@@ -2540,7 +2534,11 @@ ZsetOwnerResult zset_owner_replace(Shard& shard, Slice key, uint64_t hash, bool 
     }
     KvObj* object = kvobj_adopt_zset(key, value, expire_at_ms, reserve_ttl_slot);
     if (!object) { delete value; return ZsetOwnerResult::Oom; }
-    object->set_eviction_meta(eviction_meta);
+    // Keep this cold copy isolated: another direct call changes GCC's inlining of the same
+    // setter in ordinary SORT/ZSET bodies. Flatten only this tiny adapter.
+    [](KvObj* replacement, uint8_t meta) __attribute__((noinline, flatten)) {
+        replacement->set_eviction_meta(meta);
+    }(object, eviction_meta);
     const FlatStore::InsertResult inserted = notify
         ? shard.store_insert<true>(hash, object)
         : shard.store_insert<false>(hash, object);

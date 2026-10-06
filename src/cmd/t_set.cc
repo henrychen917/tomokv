@@ -1081,9 +1081,10 @@ void cmd_sscan(Shard& shard, Op& op) {
         matches.reserve(static_cast<size_t>(std::min<uint64_t>(options.count, table.size())));
         cursor = table.scan(cursor, options.count, matches);
         if (options.use_pattern) {
-            std::erase_if(matches, [&](uint32_t slot) {
-                return !command_glob_match(options.pattern, table.value_at(slot));
-            });
+            size_t kept = 0;
+            for (uint32_t slot : matches)
+                if (command_glob_match(options.pattern, table.value_at(slot))) matches[kept++] = slot;
+            matches.erase(matches.begin() + kept, matches.end());
         }
     } catch (const std::bad_alloc&) {
         reply_err(op.sink(), "ERR out of memory");

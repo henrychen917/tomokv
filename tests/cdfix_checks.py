@@ -47,6 +47,19 @@ def build(args):
             run(flags + [unit, out / "oracle.o", out / "redis-geohash.o", out / "redis-util.o"] + objects +
                 ["-Wl,--gc-sections", "-ljemalloc", "-luring", "-lssl", "-lcrypto", "-lm",
                  "-o", out / (arm + "-" + namespace)])
+    # Deliberately broken, test-only cursor: reverse physical slots instead of logical homes.
+    # The growth/wraparound property must reject this even though it terminates.
+    source = (ROOT / "src/cmd/t_set.cc").read_text()
+    correct = "slot.state == Live && (static_cast<uint32_t>(mix64(slot.hash)) & mask) == home"
+    assert source.count(correct) == 1
+    broken = out / "physical-slot.cc"
+    broken.write_text(source.replace(correct, "slot.state == Live && pos == home"))
+    run(flags + ["-Isrc/cmd", "-c", broken, "-o", out / "physical-slot.o"])
+    objects = sorted(p for p in (args.post / "src").rglob("*.o") if p.name not in ("main.o", "t_set.o"))
+    run(flags + [out / "multi.o", out / "physical-slot.o", out / "oracle.o",
+                 out / "redis-geohash.o", out / "redis-util.o"] + objects +
+        ["-Wl,--gc-sections", "-ljemalloc", "-luring", "-lssl", "-lcrypto", "-lm",
+         "-o", out / "PHYSICAL-multi"])
     print("Built PRE/POST serverless witnesses in both database namespaces")
 
 
@@ -132,10 +145,48 @@ def compare(args):
     }
     unexpected = [row for row in changed if not any(
         token in row["name"] for token in allowed.get(Path(row["object"]).name, ()))]
+    # A changed weak COMDAT copy is not executable if the linker discarded it in both arms.
+    # Require affirmative map + ELF evidence, and the selected copy's own full byte proof.
+    discarded = []
+    if not args.objects and all((root / "tomokv.map").exists() for root in (args.pre, args.post)):
+        maps = []
+        binaries = []
+        for root in (args.pre, args.post):
+            records = {}
+            pattern = r"^ \.text\.(\S+)\s+(0x[0-9a-f]+)\s+(0x[0-9a-f]+)\s+(\S+\.o)$"
+            for symbol, address, size, path in re.findall(
+                    pattern, (root / "tomokv.map").read_text(), re.M):
+                if path.startswith(str(root) + "/"):
+                    records.setdefault(symbol, []).append(
+                        (int(address, 16), int(size, 16), str(Path(path).relative_to(root))))
+            maps.append(records)
+            binaries.append(audit.Elf(root / "tomokv").functions())
+        indexed = {(row["object"], row["symbol"]): row for row in rows}
+        for row in unexpected:
+            origins = []
+            for records, symbols in zip(maps, binaries):
+                candidates = records.get(row["symbol"], [])
+                if not any(at == 0 and path == row["object"] for at, size, path in candidates):
+                    break
+                selected = [(at, size, path) for at, size, path in candidates if at]
+                if len(selected) != 1 or row["symbol"] not in symbols:
+                    break
+                at, size, path = selected[0]
+                symbol = symbols[row["symbol"]]
+                if (symbol["value"], symbol["size"]) != (at, size):
+                    break
+                origins.append(path)
+            if len(origins) == 2 and origins[0] == origins[1]:
+                selected = indexed.get((origins[0], row["symbol"]))
+                if selected and selected["bytes_and_targets_equal"]:
+                    row["retained_equal_copy"] = origins[0]
+                    discarded.append(row)
+        unexpected = [row for row in unexpected if row not in discarded]
     result = dict(pre=str(args.pre), post=str(args.post), functions=len(rows),
                   raw_equal=sum(row["raw_equal"] for row in rows),
                   bytes_and_targets_equal=sum(row["bytes_and_targets_equal"] for row in rows),
-                  objects=objects, changed=changed, unexpected=unexpected, protected=protected,
+                  objects=objects, changed=changed, discarded=discarded,
+                  unexpected=unexpected, protected=protected,
                   sha256={arm: hashlib.sha256((root / "tomokv").read_bytes()).hexdigest()
                           for arm, root in (("PRE", args.pre), ("POST", args.post))})
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -146,6 +197,8 @@ def compare(args):
         print("CHANGED", row["object"], row["pre_size"], row["post_size"], row["name"])
     print("Protected bodies: %d; equal: %d; unexpected changes: %d" %
           (len(protected), sum(row["bytes_and_targets_equal"] for row in protected), len(unexpected)))
+    for row in discarded:
+        print("DISCARDED", row["object"], row["name"], "retained equal copy:", row["retained_equal_copy"])
     assert protected and all(row["bytes_and_targets_equal"] for row in protected), "ordinary command changed"
     assert not unexpected, "unexpected changed body; see audit output"
 
