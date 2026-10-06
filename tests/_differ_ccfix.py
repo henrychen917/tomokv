@@ -46,6 +46,8 @@ def run(api):
         return read_reply(pair[1])
 
     admins = [connect(endpoint) for endpoint in endpoints]
+    original_atomic = parse(issue(admins[0], ["CONFIG", "GET", "atomic"]))[1]
+    assert original_atomic in (b"0", b"1"), original_atomic
 
     def equal(args, expected=None, pairs=None):
         nonlocal checks
@@ -108,7 +110,10 @@ def run(api):
         finally:
             path.write_bytes(original)
 
-        # CC11: deterministic same-shard and different-shard sources. A marker on the same
+        # CC11 base contract uses the ordinary store lookup. Retained atomic records
+        # can select the pending path even after a command completes; test that gap below.
+        assert issue(admins[0], ["CONFIG", "SET", "atomic", "0"]) == b"+OK\r\n"
+        # Deterministic same-shard and different-shard sources. A marker on the same
         # channel fences each batch; an absent keymiss is a zero count, never a timeout skip.
         equal(["FLUSHALL"], b"+OK\r\n")
         by_shard = {}
@@ -127,10 +132,18 @@ def run(api):
         equal(["SUBSCRIBE", channel], pairs=subscribers)
         serial = 0
 
+        def fired():
+            payload = parse(issue(admins[0], ["INFO", "stats"]))
+            return next(int(line.split(b":", 1)[1]) for line in payload.split(b"\r\n")
+                        if line.startswith(b"notify_events_fired:"))
+
         def misses(args, expected_keys, target_result=None, pending_deviation=False):
             nonlocal serial, checks
             if target_result is None:
+                before = fired()
                 equal(args)
+                assert fired() - before == len(expected_keys), ("CC11 producer count", args,
+                                                               fired() - before, expected_keys)
             else:
                 oracle_result = issue(admins[1], args)
                 assert target_result == oracle_result, (args, target_result, oracle_result)
@@ -140,16 +153,24 @@ def run(api):
             serial += 1
             equal(["PUBLISH", channel, marker], b":1\r\n")
             observed = []
-            for sub in subscribers:
+            for side, sub in enumerate(subscribers):
                 messages = []
+                marked = False
+                expected_count = 0 if side == 0 and pending_deviation else len(expected_keys)
                 while True:
                     message = parse(read_reply(sub[1]))
                     assert isinstance(message, list) and len(message) == 3, message
                     assert message[:2] == [b"message", channel.encode()], message
                     if message[2] == marker:
+                        marked = True
+                    else:
+                        messages.append(message[2])
+                    assert len(messages) <= expected_count, (args, messages)
+                    # Publication and notification delivery use different owners.
+                    # The marker may arrive first; missing events must still fail
+                    # at the connection's bounded read timeout, never be skipped.
+                    if marked and len(messages) == expected_count:
                         break
-                    messages.append(message[2])
-                    assert len(messages) <= len(expected_keys) + 8, (args, messages)
                 observed.append(sorted(messages))
             expected = sorted(k.encode() for k in expected_keys)
             assert observed[1] == expected, ("CC11 oracle", args, observed, expected)
@@ -184,6 +205,7 @@ def run(api):
             misses(["DEL", a, b, dest], [])
             print("  CC11 %s source/destination lookups: exact" % label)
 
+        assert issue(admins[0], ["CONFIG", "SET", "atomic", original_atomic]) == b"+OK\r\n"
         # The same persistent commit latch and owner geometry helpers used by the
         # atomics tests. No probabilistic delay: leave the writer undecided until
         # the real reader has resolved each pending source to its predecessor.
@@ -285,6 +307,10 @@ def run(api):
         return 0
     finally:
         # Preserve later suites even when a PRE arm fails one of these assertions.
+        try:
+            issue(admins[0], ["CONFIG", "SET", "atomic", original_atomic])
+        except (OSError, EOFError):
+            pass
         for pair in admins:
             for command in (["CONFIG", "SET", "notify-keyspace-events", ""],
                             ["CONFIG", "SET", "requirepass", ""],

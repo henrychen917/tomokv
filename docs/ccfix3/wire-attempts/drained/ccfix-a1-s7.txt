@@ -1,0 +1,11 @@
+  CC11 local source/destination lookups: exact
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-ccfix/tests/differ.py", line 4584, in <module>
+    sys.exit(run_ccfix(globals()))
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-ccfix/tests/_differ_ccfix.py", line 181, in run
+    misses([cmd, a, a, b], [a, b])
+  File "/home/user/Projects/cx-ccfix/tests/_differ_ccfix.py", line 142, in misses
+    assert time.monotonic() < deadline, "ordinary lookup records did not drain"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ordinary lookup records did not drain
