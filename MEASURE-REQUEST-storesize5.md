@@ -85,7 +85,10 @@ relaxation. No gate row was added by this round.
 - `GATE_ONLY_JOBS=atomic_units`: **25 ok / 0 FAIL**, run `gate-run.GanB5F`,
   same CPU/port geometry, including published monitoring, MULTI admin and all
   survivor rows. POST remains byte-identical after both selected gate jobs.
-- Full split/armed-fused differential folds: pending.
+- Split/atomic=0: **252/252 suite legs PASS**, complete=true.
+- Armed-fused/atomic=0: **246/246 suite legs PASS**, complete=true; read-local
+  witness fired with 963 hits / 257 fallbacks. Both completed through the
+  unchanged AT15b replay wrapper. Atomic-one and final group folds are pending.
 
 ## Rebuilt artifacts and hot-body audit
 
