@@ -12,6 +12,7 @@
 #include <charconv>
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <limits>
 #include <new>
@@ -425,11 +426,10 @@ void reply_fixed_bulk(Op& op, double value, int precision) {
 
 void reply_coordinate(Op& op, double value) {
     char text[96];
-    const auto out = std::to_chars(text, text + sizeof(text), value,
-                                   std::chars_format::fixed, 17);
+    const int size = std::snprintf(text, sizeof(text), "%.17Lf", static_cast<long double>(value));
     // Redis LD_STR_HUMAN: fixed 17 fractional digits, then trim zeroes and the dot.
     // Coordinates are finite and bounded, so the fixed conversion always fits this buffer.
-    char* end = out.ptr;
+    char* end = text + size;
     while (end[-1] == '0') --end;
     if (end[-1] == '.') --end;
     if (end == text + 2 && text[0] == '-' && text[1] == '0') {

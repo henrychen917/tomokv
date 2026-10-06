@@ -109,6 +109,26 @@ def compare(args):
         return bytes(body), sorted(targets, key=lambda row: row[0])
 
     audit.Elf.canonical = with_local_code_addresses
+    witness = audit.Elf(args.pre / "src/cmd/t_set.o")
+    name = next(name for name in witness.functions() if "SetMemberTable6insert" in name)
+    symbol = witness.functions()[name]
+    original = witness.canonical(symbol)
+    offset = witness.sections[symbol["sec"]][4] + symbol["value"]
+    saved_data = witness.data
+    mutated = bytearray(saved_data)
+    mutated[offset] ^= 1
+    witness.data = bytes(mutated)
+    assert witness.canonical(symbol) != original, "audit accepted a changed opcode"
+    witness.data = saved_data
+    relocations = witness.relocs[symbol["sec"]]
+    index = next(i for i, rel in enumerate(relocations)
+                 if symbol["value"] <= rel[0] < symbol["value"] + symbol["size"])
+    saved_relocation = relocations[index]
+    at, kind, target, addend = saved_relocation
+    relocations[index] = (at, kind, dict(target, sec=0, name="CDFIX_WRONG_TARGET"), addend)
+    assert witness.canonical(symbol) != original, "audit accepted a changed resolved target"
+    relocations[index] = saved_relocation
+    print("Audit negative controls: opcode and resolved-target changes rejected")
     rows, objects = [], []
     for path in sorted(args.pre.rglob("*.o")):
         rel = path.relative_to(args.pre)
@@ -143,7 +163,11 @@ def compare(args):
         "t_set.o": ("cmd_sscan<", "SetMemberTable::scan("),
         "t_zset.o": ("zset_owner_replace(",),
     }
-    unexpected = [row for row in changed if not any(
+    def new_geo_lookup(row):
+        return (Path(row["object"]).name == "geo.o" and row["pre_size"] == 0 and
+                "::FlatStore::find_resident(" in row["name"])
+
+    unexpected = [row for row in changed if not new_geo_lookup(row) and not any(
         token in row["name"] for token in allowed.get(Path(row["object"]).name, ()))]
     # A changed weak COMDAT copy is not executable if the linker discarded it in both arms.
     # Require affirmative map + ELF evidence, and the selected copy's own full byte proof.
@@ -164,9 +188,13 @@ def compare(args):
         indexed = {(row["object"], row["symbol"]): row for row in rows}
         for row in unexpected:
             origins = []
-            for records, symbols in zip(maps, binaries):
+            for arm, (records, symbols) in enumerate(zip(maps, binaries)):
                 candidates = records.get(row["symbol"], [])
-                if not any(at == 0 and path == row["object"] for at, size, path in candidates):
+                copy_size = row["pre_size"] if arm == 0 else row["post_size"]
+                if copy_size and not any(at == 0 and path == row["object"]
+                                         for at, size, path in candidates):
+                    break
+                if not copy_size and any(path == row["object"] for at, size, path in candidates):
                     break
                 selected = [(at, size, path) for at, size, path in candidates if at]
                 if len(selected) != 1 or row["symbol"] not in symbols:
@@ -183,6 +211,7 @@ def compare(args):
                     discarded.append(row)
         unexpected = [row for row in unexpected if row not in discarded]
     result = dict(pre=str(args.pre), post=str(args.post), functions=len(rows),
+                  negative_controls=["opcode rejected", "resolved target rejected"],
                   raw_equal=sum(row["raw_equal"] for row in rows),
                   bytes_and_targets_equal=sum(row["bytes_and_targets_equal"] for row in rows),
                   objects=objects, changed=changed, discarded=discarded,

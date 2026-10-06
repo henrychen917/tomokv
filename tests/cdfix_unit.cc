@@ -212,6 +212,8 @@ void wire_examples() {
             std::printf("RESP%d %s -> %s\n", resp3 ? 3 : 2, command.c_str(),
                         hex(f.run(args)).c_str());
         };
+        record({"GEOADD", "coordinate", "-160.5371430516242981", "32.99910767291845559", "m"});
+        record({"GEOPOS", "coordinate", "m"});
         record({"GEOADD", "geo", "13", "38", "a", "13.01", "38.01", "b"});
         record({"GEORADIUSBYMEMBER", "geo", "a", "10", "km",
                 distances ? "STORE" : "STOREDIST", "first",
