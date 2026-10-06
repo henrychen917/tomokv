@@ -79,10 +79,32 @@ def instructions():
     print('PASS all five 100,000-call intervals byte-equal in both namespaces', flush=True)
 
 
+def layouts():
+    import struct
+    from ccfix_audit import audit
+    rows = {}
+    for arm, headers in [('PRE', BUILD / 'pre-src'), ('POST', ROOT)]:
+        for db0 in (False, True):
+            key = arm + ('/db0' if db0 else '/multi')
+            target = BUILD / (key.replace('/', '-') + '-layout.o')
+            defines = ['-DTOMO_SINGLE_DATABASE=1', '-Dtomo=tomo_db0'] if db0 else []
+            subprocess.run(CXX + defines + ['-DTOMO_CORE_CONCURRENCY_TEST', '-I' + str(headers),
+                '-c', str(ROOT / 'tests/multidb_layout.cc'), '-o', str(target)], check=True)
+            elf = audit.Elf(target)
+            symbol = next(x for x in elf.symbols if x['name'] == 'multidb_layout_values')
+            data = elf.section_data(symbol['sec'])[symbol['value']:symbol['value'] + symbol['size']]
+            rows[key] = list(struct.unpack('<' + 'Q' * (len(data) // 8), data))
+            assert rows[key][1:9] == [336, 1984, 1408, 1440, 944, 192, 144, 624]
+    for suffix in ('/db0', '/multi'):
+        assert rows['PRE' + suffix] == rows['POST' + suffix]
+    (OUT / 'layout.json').write_text(json.dumps(rows, indent=2) + '\n')
+    print('PASS all exported layouts match PRE in both namespaces')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('proof', choices=('units', 'instructions'))
+    parser.add_argument('proof', choices=('units', 'instructions', 'layouts'))
     args = parser.parse_args()
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     OUT.mkdir(parents=True, exist_ok=True)
-    (units if args.proof == 'units' else instructions)()
+    {'units': units, 'instructions': instructions, 'layouts': layouts}[args.proof]()

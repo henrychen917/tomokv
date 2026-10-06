@@ -1,0 +1,133 @@
+{
+  "total": 228,
+  "changed": 18,
+  "hot_changed": 0,
+  "rows": [
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_112StatBaselineD1Ev",
+      "name": "tomo_db0::(anonymous namespace)::StatBaseline::~StatBaseline()",
+      "pre_size": 49,
+      "post_size": 98,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_112StatBaselineD2Ev",
+      "name": "tomo_db0::(anonymous namespace)::StatBaseline::~StatBaseline()",
+      "pre_size": 49,
+      "post_size": 98,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_113cmd_randomkeyERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 653,
+      "post_size": 663,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_116snapshot_commandERNS_2OpEb",
+      "name": "tomo_db0::(anonymous namespace)::snapshot_command(tomo_db0::Op&, bool)",
+      "pre_size": 1059,
+      "post_size": 1027,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 16177,
+      "post_size": 16015,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "pre_size": 349,
+      "post_size": 344,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_helloERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_hello(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 2491,
+      "post_size": 2459,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_helloERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo_db0::(anonymous namespace)::cmd_hello(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "pre_size": 43,
+      "post_size": 43,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db016reply_map_headerIRNS_2Op4SinkEEEvOT_mb",
+      "name": "void tomo_db0::reply_map_header<tomo_db0::Op::Sink&>(tomo_db0::Op::Sink&, unsigned long, bool)",
+      "pre_size": 381,
+      "post_size": 593,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db022serialize_notify_flagsB5cxx11Ej",
+      "name": "tomo_db0::serialize_notify_flags[abi:cxx11](unsigned int)",
+      "pre_size": 634,
+      "post_size": 586,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db023cfg_parse_save_scheduleEPKcmRSt6vectorINS_10SaveClauseESaIS3_EE",
+      "name": "tomo_db0::cfg_parse_save_schedule(char const*, unsigned long, std::vector<tomo_db0::SaveClause, std::allocator<tomo_db0::SaveClause> >&)",
+      "pre_size": 1928,
+      "post_size": 2056,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db024command_config_resetstatEv",
+      "name": "tomo_db0::command_config_resetstat()",
+      "pre_size": 2029,
+      "post_size": 2199,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db024command_config_resetstatEv.cold",
+      "name": "tomo_db0::command_config_resetstat() [clone .cold]",
+      "pre_size": 64,
+      "post_size": 61,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db032command_client_migration_extractEPNS_6ClientE",
+      "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+      "pre_size": 656,
+      "post_size": 624,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db09FlatStore23atomic_resolve_internalEmNS_5SliceEmb",
+      "name": "tomo_db0::FlatStore::atomic_resolve_internal(unsigned long, tomo_db0::Slice, unsigned long, bool)",
+      "pre_size": 2863,
+      "post_size": 3098,
+      "hot": false
+    },
+    {
+      "symbol": "_ZNSt12_Vector_baseImSaImEED1Ev",
+      "name": "std::_Vector_base<unsigned long, std::allocator<unsigned long> >::~_Vector_base()",
+      "pre_size": 33,
+      "post_size": 0,
+      "hot": false
+    },
+    {
+      "symbol": "_ZNSt12_Vector_baseImSaImEED2Ev",
+      "name": "std::_Vector_base<unsigned long, std::allocator<unsigned long> >::~_Vector_base()",
+      "pre_size": 33,
+      "post_size": 0,
+      "hot": false
+    },
+    {
+      "symbol": "_ZNSt6vectorImSaImEEaSERKS1_.isra.0",
+      "name": "std::vector<unsigned long, std::allocator<unsigned long> >::operator=(std::vector<unsigned long, std::allocator<unsigned long> > const&) [clone .isra.0]",
+      "pre_size": 0,
+      "post_size": 453,
+      "hot": false
+    }
+  ]
+}

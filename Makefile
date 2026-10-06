@@ -130,9 +130,9 @@ $(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0
 # CC18 adds one boot-only multiply when allocating the two error-counter arrays. Preserve
 # PRE's ordinary executor and IO inlining decisions in both namespace variants.
 $(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146215
-# Keep RANDOMKEY's nil reply inlining after the cold INFO baseline/emitter grows.
-# The ccfix body inventory verifies every ordinary command, including this db0 variant.
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31500
+# Keep ordinary RANDOMKEY/HELLO bodies after the cold INFO emitter drops failed_calls.
+# ccfix3's merged-tree body inventory derives this budget from PRE, not text size.
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31520
 # RL1: retain the measured ALT spelling and its fused GET placement controls.
 # docs/rlfence2/alt.patch and MEASURE-REQUEST-rlfence3.md record the byte proofs.
 $(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128873 -Wa,--defsym,tomo_rlfence_text_pad=16
