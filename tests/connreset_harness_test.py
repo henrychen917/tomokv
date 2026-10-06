@@ -46,6 +46,9 @@ class HarnessCleanup(unittest.TestCase):
                 instance = real_sampler(*args)
                 instance.thread = Thread()
                 instance.error = observer_error
+                # Bench5 also validates captured owner maps after a good baseline.
+                instance.samples = [{"t": 0, "signals": {"shards": {
+                    sid: {"owner": 0} for sid in range(identity["shards"])}}}]
                 samplers.append(instance)
                 return instance
 

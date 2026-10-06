@@ -1,0 +1,161 @@
+{
+  "revisions": [
+    "32ef635af^",
+    "32ef635af",
+    "HEAD"
+  ],
+  "checks": [
+    {
+      "path": "tests/_gate_process.py",
+      "function": "server",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "b89c365768f18f7b3bd1c71b57f5161155d49b3c63fdc435bac4903043aa90a8",
+      "launch_source": "def server(binary, server_cpus, port, directory, args):\n    directory = Path(directory).resolve()\n    directory.mkdir(parents=True, exist_ok=False)\n    data = directory / 'data'\n    data.mkdir()\n    # Successive cells reuse the gate's allocated port, including immediately after TLS and\n    # io_uring teardown. A bind-only probe mistakes retained TCP state for a live server.\n    # Reject every live listener (even one that cannot answer PING), then require INFO below\n    # to identify the exact child we launched before exercising the cell.\n    listeners = subprocess.check_output(\n        ['ss', '-H', '-ltnp', f'sport = :{port}'], stderr=subprocess.STDOUT, text=True)\n    (directory / 'port-guard.txt').write_text(listeners)\n    require(not listeners.strip(), f'port {port} already has a live listener: {listeners.strip()}')\n    argv = ['taskset', '-c', server_cpus, str(Path(binary).resolve()), '--port', str(port),\n            '--bind', '127.0.0.1', '--dir', str(data), '--save', '', '--appendonly', 'no',\n            '--enable-debug-command', 'yes', *map(str, args)]\n    (directory / 'argv.json').write_text(json.dumps(argv, indent=2) + '\\n')\n    conn = None\n    with (directory / 'server.log').open('w') as log:\n        process = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT)\n"
+    },
+    {
+      "path": "tests/shutdown_persist.py",
+      "function": "boot_argv",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "6d1a0d480eb24e84533857172407cd88fba473f07cf97745525b2355515bd8ab",
+      "launch_source": "def boot_argv(args, directory, save=None):\n    argv = ['taskset', '-c', args.cores, str(args.binary.resolve()), '--bind', '127.0.0.1',\n            '--port', str(args.port), '--dir', str(directory), '--shards', '16',\n            '--thread-mode', args.mode, '--net-io', args.net_io,\n            '--appendonly', 'no']\n    if args.mode == '2s':\n        argv += ['--ratio', args.ratio]\n    if save is not None:\n        argv += ['--save', save]\n    return argv\n"
+    },
+    {
+      "path": "tests/shutdown_persist.py",
+      "function": "boot",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "d08a66643e47e89a8f760e36e0d92059f2fac828a7dfaa05ab62e810fdba2cee",
+      "launch_source": "def boot(args, directory, label, save=None):\n    # The caller creates a fresh case directory, then reuses ONLY that directory for recovery.\n    log_path = directory / (label + '.log')\n    argv = boot_argv(args, directory, save)\n    (directory / (label + '.argv.json')).write_text(json.dumps(argv) + '\\n')\n    with log_path.open('w') as log:\n        process = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT)\n"
+    },
+    {
+      "path": "tests/resizefix.py",
+      "function": "main",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "baa4c0d4b84feb71e0093df0ac984c9f10aafc7bbcf8d54a8500ddb83f3c9a93",
+      "launch_source": "def main():\n    p = argparse.ArgumentParser()\n    p.add_argument('binary', type=Path)\n    p.add_argument('output', type=Path)\n    p.add_argument('--repeats', type=int, default=1)\n    p.add_argument('--idle', action='store_true')\n    args = p.parse_args()\n    require(args.repeats > 0, 'at least one complete battery repetition is required')\n    binary = args.binary.resolve()\n    output = args.output.resolve()\n    output.mkdir(parents=True, exist_ok=True)\n    results = []\n    for repetition in range(1, args.repeats + 1):\n        if not args.idle:\n            rc = execute(['taskset', '-c', '24-31', str(binary.parent / 'rehash-waits-unit'),\n                          'retirement'], output / ('retirement-%d.log' % repetition), 60)\n            results.append(dict(row='retirement', repetition=repetition, rc=rc))\n        for mode, local in [('split', 0), ('split', 1), ('fused', 0), ('fused', 1)]:\n            tag = '%s-%d-%d' % (mode, local, repetition)\n            port = 8540 + (0 if mode == 'split' else 2) + local\n            with socket.socket() as guard:\n                guard.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n                guard.bind(('127.0.0.1', port))\n            data = output / ('data-' + tag)\n            data.mkdir()\n            log = output / ('server-' + tag + '.log')\n            cmd = ['taskset', '-c', '8-15', str(binary), '--bind', '127.0.0.1',\n                   '--port', str(port), '--shards', '16', '--dir', str(data),\n                   '--atomic', '1', '--read-local', str(local), '--overlap', '0',\n                   '--flip-auto', '0', '--enable-debug-command', 'yes']\n            cmd += ['--ratio', '6:2'] if mode == 'split' else ['--thread-mode', 'fused']\n            srv = None\n            try:\n                with log.open('w') as out:\n                    srv = subprocess.Popen(cmd, cwd=ROOT, stdout=out, stderr=subprocess.STDOUT)\n"
+    },
+    {
+      "path": "tests/wiredump.py",
+      "function": "boot_pair",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "8e928ef0c2b1150f252cd740872eb3fb63b7c5324eaf6eac9f8ac792598304ca",
+      "launch_source": "def boot_pair(args):\n    ensure_port_free(args.host, args.target_port)\n    ensure_port_free(args.host, args.oracle_port)\n    logs = []\n    processes = []\n    try:\n        for label, command in (\n            (\"target\", [\"taskset\", \"-c\", \"112-115\", args.target_bin,\n                        \"--port\", str(args.target_port), \"--bind\", args.host,\n                        \"--shards\", \"2\", \"--no-pin\", \"--atomic\", str(args.atomic)]),\n            (\"oracle\", [\"taskset\", \"-c\", \"116-119\", args.oracle_bin,\n                        \"--port\", str(args.oracle_port), \"--bind\", args.host,\n                        \"--protected-mode\", \"no\", \"--save\", \"\", \"--appendonly\", \"no\"]),\n        ):\n            log = tempfile.NamedTemporaryFile(prefix=\"wiredump-%s-\" % label,\n                                              suffix=\".log\", delete=False)\n            logs.append(log)\n            process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)\n"
+    },
+    {
+      "path": "tests/mdbqsbr_live.py",
+      "function": "build_command",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "1ca7946e2da1b882796a265261c9008c6680cec514753d690a23e30f5331ddef",
+      "launch_source": "def build_command(binary, args):\n    \"\"\"Match gate boot_fused: role ratios apply only to split mode.\"\"\"\n    command = ['taskset', '-c', args.cores, str(binary), '--bind', '127.0.0.1',\n               '--port', str(args.port), '--thread-mode', args.mode,\n               '--shards', '16']\n    if args.mode == '2s':\n        command += ['--ratio', '6:2']\n    command += ['--databases', '16', '--read-local', str(args.read_local),\n                '--atomic', str(args.atomic), '--enable-debug-command', 'yes',\n                '--save', '', '--protected-mode', 'no']\n    return command\n"
+    },
+    {
+      "path": "tests/mdbqsbr_live.py",
+      "function": "boot",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "f5e78b467f9ba21ce3fb669285ebeb07f2eb846a92392fb87672c96233e3ffe7",
+      "launch_source": "def boot(binary, args, directory, log):\n    command = build_command(binary, args)\n    env = dict(os.environ)\n    env.pop('TOMOKV_L3_DOMAINS', None)  # discover the explicitly pinned eight cores\n    (directory / 'command.json').write_text(json.dumps(command) + '\\n')\n    proc = subprocess.Popen(command, cwd=directory, env=env, stdout=log,\n                            stderr=subprocess.STDOUT, preexec_fn=no_core_dump)\n"
+    },
+    {
+      "path": "tests/connreset_repro.py",
+      "function": "command",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "3b7980d16083e722ed4797674b4b4b595c919351d14fac336d2777089263fa8f",
+      "launch_source": "def command(args, variant, directory):\n    mode, _, profile = variant\n    client_lb, key_lb, _, _ = PROFILES[profile]\n    argv = [\"taskset\", \"-c\", \"112-127\", str(args.binary.resolve()), \"--bind\", \"127.0.0.1\",\n            \"--port\", str(args.port), \"--thread-mode\", mode, \"--client-lb\", str(client_lb),\n            \"--key-lb\", str(key_lb), \"--flip-auto\", \"0\", \"--enable-debug-command\", \"yes\",\n            \"--save\", \"\", \"--appendonly\", \"no\", \"--dir\", str(directory.resolve())]\n    if args.shards is not None:\n        argv += [\"--shards\", str(args.shards)]\n    return argv\n"
+    },
+    {
+      "path": "tests/connreset_repro.py",
+      "function": "boot",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "afa03c83ba27b42e4c6a0dd1f345e4273f78223ebde4145d50ece9debf0921f7",
+      "launch_source": "def boot(args, variant, directory):\n    # Refuse to share an occupied port, including another SO_REUSEPORT server.\n    with socket.socket() as check:\n        check.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n        check.bind((\"127.0.0.1\", args.port))\n    argv = command(args, variant, directory)\n    with (directory / \"server.log\").open(\"wb\") as out:\n        proc = subprocess.Popen(argv, cwd=ROOT, stdout=out, stderr=subprocess.STDOUT,\n                                start_new_session=True)\n"
+    },
+    {
+      "path": "tests/servertail.py",
+      "function": "boot",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "0cdad550e1e45dcbdf5bebde3a1f286d94d8183b2ff6ab8296821e717e128140",
+      "launch_source": "def boot(port, extra=(), conf=None, wait=6.0):\n    # A rewritten configuration is a different boot input. Keep every boot's arguments, input\n    # file, and server output so a failed round trip names its cause instead of only got=False.\n    diagnostics = tempfile.mkdtemp(prefix=\"servertail-boot-\")\n    logfile = os.path.join(diagnostics, \"server.log\")\n    detail = dict(port=port, cores=CORES, config=conf, binary=os.path.abspath(BINARY))\n    if conf:\n        with open(conf, \"rb\") as original, open(os.path.join(diagnostics, \"input.conf\"), \"wb\") as saved:\n            saved.write(original.read())\n\n    def record(reason, **fields):\n        detail.update(reason=reason, **fields)\n        with open(os.path.join(diagnostics, \"boot.json\"), \"w\") as output:\n            json.dump(detail, output, indent=2)\n            output.write(\"\\n\")\n\n    def failed(reason, **fields):\n        record(reason, **fields)\n        print(\"  boot diagnostic: %s %s (artifacts=%s)\" % (reason, fields, diagnostics), flush=True)\n        return None\n\n    # A bind-only probe also rejects kernel references that can briefly outlive a waited-for\n    # server's io_uring teardown. Match the gate's live-listener guard, which ignores those\n    # closed sockets. SO_REUSEPORT still must never join a live listener, and INFO below must\n    # identify the exact child we launch before this battery sends any commands to it.\n    try:\n        listeners = subprocess.check_output(\n            [\"ss\", \"-H\", \"-ltnp\", \"sport = :%d\" % port], stderr=subprocess.STDOUT, text=True)\n    except (OSError, subprocess.CalledProcessError) as error:\n        return failed(\"port guard unavailable\", error=repr(error))\n    if listeners.strip():\n        return failed(\"port guard refused live listener\", listeners=listeners.strip())\n    args = [\"taskset\", \"-c\", CORES, os.path.abspath(BINARY)]\n    if conf:\n        args += [conf]\n    args += [\"--port\", str(port), \"--bind\", HOST, \"--enable-debug-command\", \"yes\"]\n    args += list(extra)\n    # LeakSanitizer's exit-time accounting would turn every clean stop into exit 1: terminating\n    # with a client still connected leaves that connection's ROB block unreclaimed, identically on\n    # the SIGTERM path that predates SHUTDOWN (verified). Turning off the LEAK accounting keeps the\n    # exit-code assertion meaningful while every ASAN memory-error check stays armed.\n    env = dict(os.environ)\n    env[\"ASAN_OPTIONS\"] = env.get(\"ASAN_OPTIONS\", \"\") + \":detect_leaks=0\"\n    with open(logfile, \"wb\") as output:\n        proc = subprocess.Popen(args, stdout=output, stderr=subprocess.STDOUT, env=env)\n"
+    },
+    {
+      "path": "tests/signalacct_live.py",
+      "function": "attempt",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "35a1999243330a7f6fd8f3cd898f2dbe51559dac6c06bce0ff3144d34be46e21",
+      "launch_source": "def attempt(args, index):\n    directory = args.output / ('attempt-%d' % index)\n    directory.mkdir(parents=True, exist_ok=True)\n    log_path = directory / 'server.log'\n    command = ['taskset', '-c', args.cores, str(args.binary.resolve()), '--bind', '127.0.0.1',\n               '--port', str(args.port), '--thread-mode', args.mode, '--shards', '16',\n               '--read-local', str(args.read_local), '--overlap', str(args.overlap),\n               '--reorder', str(args.reorder), '--databases', str(args.databases),\n               '--net-io', args.net_io, '--flip-auto', '0', '--enable-debug-command', 'yes',\n               '--save', '', '--protected-mode', 'no']\n    if args.mode == '2s':\n        command += ['--ratio', '6:2']\n    (directory / 'argv.json').write_text(json.dumps(command, indent=2) + '\\n')\n    with log_path.open('wb') as log:\n        proc = subprocess.Popen(command, cwd=directory, stdout=log, stderr=subprocess.STDOUT,\n                                preexec_fn=no_core_dump)\n"
+    },
+    {
+      "path": "tests/flushfix_checks.py",
+      "function": "live",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "b42c44590dfb8d72bc8d3a452fa6ca069c4a6c8fc8254ce769546347821c96cb",
+      "launch_source": "def live(args):\n    # This mode is intentionally never called by the serverless checks. Mainline\n    # owns scheduling and starts only this test's isolated, disposable server.\n    import os\n    import resource\n    import signal\n    import tempfile\n    import time\n    from _lib import Conn, encode\n    from _gate_process import cpus, fields, stop_process\n    from gate_measurements import ratio\n\n    assert not set(cpus(args.server_cores)) & set(cpus(args.load_cores)), \"CPU sets overlap\"\n    assert len(cpus(args.server_cores)) == 8, \"use the gate's eight-core geometry\"\n    os.sched_setaffinity(0, cpus(args.load_cores))\n    with tempfile.TemporaryDirectory(prefix=\"flushfix-live-\", dir=ROOT / \"build\") as directory:\n        path = Path(directory)\n        command = [\"taskset\", \"-c\", args.server_cores, str(args.binary.resolve()),\n                   \"--port\", str(args.port), \"--shards\", \"16\", \"--ratio\", ratio(\"correctness\", 8),\n                   \"--thread-mode\", args.mode, \"--databases\", str(args.databases),\n                   \"--save\", \"\", \"--appendonly\", \"no\", \"--maxmemory\", \"0\", \"--dir\", str(path)]\n        with (path / \"server.log\").open(\"wb\") as log:\n            process = subprocess.Popen(command, cwd=ROOT, stdout=log, stderr=log)\n"
+    },
+    {
+      "path": "tests/redisgap.py",
+      "function": "Harness.args",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "9796e53b4533c0543998c81f81902f1ca1b92cb3b0c2c111e49e2846ee76bc60",
+      "launch_source": "    def args(self, mode, directory, extra, config):\n        args = ['taskset', '-c', '68-79', str(self.binary)]\n        if config:\n            args.append(str(config))\n        args += ['--bind', '127.0.0.1', '--port', str(self.port), '--shards', '16',\n                 '--thread-mode', mode, '--save', '', '--dir', str(directory),\n                 '--enable-debug-command', 'yes']\n        if mode == '2s':\n            args += ['--ratio', '6:2']\n        return args + list(extra)\n"
+    },
+    {
+      "path": "tests/redisgap.py",
+      "function": "Harness.server",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "433ba1b32d62ca65d234e25e2b18d84cb052126fdb21407a22756e0b8efe8bd8",
+      "launch_source": "    def server(self, mode, extra=(), config=None, directory=None):\n        # Check LISTEN state, not bind(): TIME_WAIT from an owned, already-exited child can\n        # reject a bind probe even though the server's SO_REUSEPORT listener can safely restart.\n        assert not self.listening(), 'port is occupied'\n        self.sequence += 1\n        directory = directory or self.root / ('data-%d' % self.sequence)\n        directory.mkdir(exist_ok=True)\n        log_path = self.root / ('server-%d.log' % self.sequence)\n        args = self.args(mode, directory, extra, config)\n        with log_path.open('wb') as log:\n            child = subprocess.Popen(args, stdout=log, stderr=subprocess.STDOUT)\n"
+    },
+    {
+      "path": "tests/reorder_flip.py",
+      "function": "main",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "080ad5be2fea9183b680d254bb91e342039b74b647da9eec7ecdb00703380b9e",
+      "launch_source": "def main():\n    parser = argparse.ArgumentParser(description=__doc__)\n    parser.add_argument(\"output\", type=Path)\n    parser.add_argument(\"--binary\", type=Path, default=ROOT / \"build/tomokv\")\n    parser.add_argument(\"--port\", type=int, default=10750)\n    parser.add_argument(\"--repetitions\", type=int, default=6)\n    parser.add_argument(\"--observe\", action=\"store_true\")\n    parser.add_argument(\"--reorder\", choices=(\"0\", \"1\"))\n    parser.add_argument(\"--overlap\", choices=(\"0\", \"1\"))\n    parser.add_argument(\"--bare-boot\", action=\"store_true\",\n                        help=\"send no readiness requests; verify INFO settings after the driver\")\n    parser.add_argument(\"--sample-driver\", action=\"store_true\", help=argparse.SUPPRESS)\n    parser.add_argument(\"--driver-args\", nargs=argparse.REMAINDER, help=argparse.SUPPRESS)\n    args = parser.parse_args()\n    if args.sample_driver:\n        observe(args.driver_args)\n        return\n    binary, port = args.binary.resolve(), args.port\n    assert args.repetitions > 0\n    assert set(os.sched_getaffinity(0)) <= set(range(120, 128)), \"pin runner to 120-127\"\n    out = args.output.resolve()\n    out.mkdir(parents=True, exist_ok=False)\n    spec = importlib.util.spec_from_file_location(\"flipctl\", DRIVER)\n    flipctl = importlib.util.module_from_spec(spec)\n    spec.loader.exec_module(flipctl)\n    binary_sha, driver_sha = sha(binary), sha(DRIVER)\n    results = []\n    signal.signal(signal.SIGTERM, interrupted)\n    for repetition in range(1, args.repetitions + 1):\n        run = out / f\"run-{repetition}\"\n        data = run / \"data\"\n        data.mkdir(parents=True)\n        # A foreign listener is a scheduling conflict, never a process to kill.\n        with socket.socket() as probe:\n            probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n            probe.bind((\"127.0.0.1\", port))\n        assert sha(binary) == binary_sha and sha(DRIVER) == driver_sha\n        server_argv = [\"taskset\", \"-c\", \"112-119\", str(binary),\n                       \"--port\", str(port), \"--shards\", \"16\", \"--ratio\", \"6:2\",\n                       \"--atomic\", \"0\", \"--enable-debug-command\", \"yes\", \"--flip-auto\", \"1\"]\n        if args.reorder is not None:\n            server_argv += [\"--reorder\", args.reorder]\n        if args.overlap is not None:\n            server_argv += [\"--overlap\", args.overlap]\n        driver_argv = [\"taskset\", \"-c\", \"120-127\", \"python3\"]\n        if args.observe:\n            driver_argv += [str(Path(__file__).resolve()), str(run), \"--sample-driver\", \"--driver-args\"]\n        else:\n            driver_argv += [str(DRIVER)]\n        driver_argv += [\"--host\", \"127.0.0.1\", \"--port\", str(port), \"--stable-seconds\", \"30\"]\n        record = dict(repetition=repetition, binary_sha256=binary_sha,\n                      driver_sha256=driver_sha, server_argv=server_argv,\n                      driver_argv=driver_argv, server_cwd=str(data), driver_cwd=str(ROOT),\n                      observer=args.observe, bare_boot=args.bare_boot,\n                      runner_sha256=sha(Path(__file__)), functional_acceptance=False)\n        server = driver = None\n        started = time.monotonic()\n        print(f\"run {repetition}/{args.repetitions}: starting {binary}, {binary_sha}\", flush=True)\n        try:\n            with (run / \"server.log\").open(\"w\") as server_log, \\\n                    (run / \"driver.log\").open(\"w\") as driver_log:\n                server = subprocess.Popen(server_argv, cwd=data, stdout=server_log,\n                                          stderr=subprocess.STDOUT)\n"
+    },
+    {
+      "path": "tests/watchlive_gate.sh",
+      "function": "boot",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "0a66ef28bffac686c2d869db651c8eb0aa48bc125ee1f0a069cd0dc95b1c6e6a",
+      "launch_source": "boot() {   # boot <extra server args...>\n    # A leftover listener would join the next start under SO_REUSEPORT and split the client load\n    # silently across two servers, which invalidates the measurement. Refuse instead.\n    if [ -n \"$(listener_pids)\" ]; then echo \"  FAIL listener already on $PORT\"; return 1; fi\n    taskset -c \"$CORES\" \"$BIN\" --port \"$PORT\" --enable-debug-command yes \"$@\" \\\n        >\"$LOG/server.log\" 2>&1 &"
+    },
+    {
+      "path": "tests/gate.sh",
+      "function": "launch",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "40a542856be1d2f0db0c1b5e4cd6721b0a26aa44bd5061ee07a87a4515aad0b9",
+      "launch_source": "launch(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits up to 30 s for the port\n  local tag=$1 bin=$2; shift 2\n  quiet_wait\n  SRV=0; SRVLOG=/dev/null\n  guard_port \"$PORT\"\n  [ -x \"$bin\" ] || { say \"boot ($tag)\" \"FAIL ($bin is not an executable)\"; return 1; }\n  SRVLOG=$(mktemp \"$TMPDIR/gate-srv-$tag.XXXXXX\")\n  # Every ordinary boot gets an empty persistence directory. Explicit recovery arms override it\n  # through their later --dir argument; a previous battery's SAVE must not become this one's input.\n  local boot_dir\n  boot_dir=$(mktemp -d \"$TMPDIR/gate-data-$tag.XXXXXX\") || return 1\n  # Persistence batteries may override this later; cleanup must not replace a tested BGSAVE cut.\n  taskset -c $CORES \"$bin\" --port $PORT --bind 127.0.0.1 --shards 16 --dir \"$boot_dir\" --save '' \"$@\" > \"$SRVLOG\" 2>&1 &\n  SRV=$!\n  # 30s, not 10s: the AOF replay boot replays its file BEFORE it listens, and on a box shared\n  # with other lanes that overran a 10s deadline and turned six AOF rows red with no defect behind\n  # them. A generous deadline costs nothing when the server is quick \u2014 the loop exits on connect.\n  for _ in $(seq 150); do\n    if ! kill -0 \"$SRV\" 2>/dev/null; then\n      wait \"$SRV\" 2>/dev/null; boot_log_tail \"$tag\" \"exited before it listened\"; return 1\n    fi\n    (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null && return 0; sleep 0.2; done\n  boot_log_tail \"$tag\" \"never accepted on $PORT within 30s\"\n  return 1\n}"
+    },
+    {
+      "path": "tests/gate.sh",
+      "function": "boot",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "26f34601aecb74118ba53cc53636ee6b20be4e27d51efcc67911c7d7a9185b0b",
+      "launch_source": "boot(){ local bin=$1; shift; launch main \"$bin\" --ratio $GATE_RATIO \"$@\"; }"
+    },
+    {
+      "path": "tests/gate.sh",
+      "function": "boot_fused",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "ff9497c5ca986b7ba0b9932227e0cae05b1cfdda54c6719f1c1d1215cb88f6b7",
+      "launch_source": "boot_fused(){ # deliberately omits --ratio, which fused mode rejects\n  local bin=$1; shift; launch fused \"$bin\" --thread-mode fused \"$@\"; }\nstop(){\n  if [ \"$SRV\" -gt 0 ]; then\n    kill -TERM \"$SRV\" 2>/dev/null\n    if ! timeout --kill-after=1 30 tail --sleep-interval=.1 --pid=\"$SRV\" -f /dev/null; then\n      kill -KILL \"$SRV\" 2>/dev/null\n      bad 'server shutdown' \"TIMEOUT after 30s waiting for owned PID $SRV\"\n    fi\n    wait \"$SRV\" 2>/dev/null; SRV=0\n  fi\n  settle\n}"
+    },
+    {
+      "path": "tests/gate.sh",
+      "function": "feature_split_job",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "5bd63d60267df0cf69f772f8b0b3245e0d3501f5b3c9d00749f56b5b9fd002a8",
+      "launch_source": "feature_split_job(){\n  local AT=$1 t FEATURE_ARGS\n  boot \"$CANDIDATE_BINARY\" --atomic $AT --enable-debug-command yes \\\n      || bad \"feature battery boot (atomic $AT)\"\n  for t in $FEATURE_BATTERIES; do\n    FEATURE_ARGS=()\n    [ \"$t\" = stream ] && FEATURE_ARGS+=(--release-build)\n    row_begin \"$t battery (atomic $AT)\"\n    py tests/$t.py 127.0.0.1 $PORT \"${FEATURE_ARGS[@]}\" >$TMPDIR/gate-$t-$AT.txt 2>&1 \\\n        && ok \"$t battery (atomic $AT)\" || bad \"$t battery (atomic $AT)\" \"see $TMPDIR/gate-$t-$AT.txt\"\n  done\n  stop\n  row_begin \"feature shutdown invariants (atomic $AT)\"\n  shutdown_clean \\\n      && ok \"feature shutdown invariants (atomic $AT)\" || bad \"feature shutdown invariants (atomic $AT)\"\n}"
+    },
+    {
+      "path": "tests/gate.sh",
+      "function": "job_rlcache",
+      "equal_pre_hardening_repaired": true,
+      "sha256": "9757cdefb0d4f493118d2ceab7ddd299a39accd674e6c6e11a9faf242fd80133",
+      "launch_source": "job_rlcache(){\nquiet_wait\n# More shards than workers permit ownership movement. The automatic balancer must move shards;\n# the battery's existing positive-movement assertion remains mandatory under the derived policy.\nif boot_fused $RLDBG --shards 64 --atomic 1 --read-local 1 --enable-debug-command yes; then\n  # The battery carries its own three non-vacuity checks: the armed lane served reads, the block\n  # cache actually held blocks, and -- the precondition for this whole class of defect -- the load\n  # balancer MOVED shards during the run.\n  row_begin \"armed block-cache churn battery\"\n  py tests/rlcache_churn.py 127.0.0.1 $PORT \"${GATE_RLCACHE_SECONDS:-25}\" 48 \\\n      >$TMPDIR/gate-rlcache-churn.txt 2>&1 \\\n      && ok \"armed block-cache churn battery\" \\\n      || bad \"armed block-cache churn battery\" \"see $TMPDIR/gate-rlcache-churn.txt\"\n  stop\n  row_begin \"read-local ownership invariants\"\n  if grep -q 'RLSINK-VIOLATION\\|RLCACHE-VIOLATION\\|RLRING-VIOLATION' \"$SRVLOG\"; then\n    bad \"read-local ownership invariants\" \"see $SRVLOG\"\n  elif shutdown_present; then\n    ok \"read-local ownership invariants\"\n  else\n    bad \"read-local ownership invariants\" \"server never reached its shutdown dump; see $SRVLOG\"\n  fi\nelse\n  bad \"armed block-cache churn battery\" \"boot failed; see $SRVLOG\"\n  bad \"read-local ownership invariants\" \"boot failed\"\nfi\n}"
+    }
+  ],
+  "resolved_revisions": {
+    "32ef635af^": "8e72d32a693a2031c6116fb752dd6a79a03a89cc",
+    "32ef635af": "32ef635afba8a3dbfe0ac23de41053514c143a41",
+    "HEAD": "75ec84195759ce5e8cc4408b1175c65dd629d620"
+  }
+}
