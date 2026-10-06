@@ -24,5 +24,7 @@ bool geo_prepare_route(Op& op, GeoRoute& route);
 GeoBuildResult geo_build_store(Op& op, const std::vector<ZsetEntry>& source,
                                std::vector<ZsetEntry>& destination);
 void cmd_geo_xshard_local(Shard& shard, Op& op, bool notify);
+// Called only by the applying shard owner, after materializing an unpublished GEO result.
+void geo_store_preserve_metadata(Shard& shard, Slice key, uint64_t hash, KvObj* object);
 
 }  // namespace tomo

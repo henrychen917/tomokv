@@ -1,0 +1,11 @@
+  GEO-LFU target: initial=5 GEOADD/STORE/STOREDIST checked
+  GEO-LFU oracle: initial=5 GEOADD/STORE/STOREDIST checked
+  CD13b ACLCAT target: unknown=b'*0\r\n' STRING/StRiNg=22 commands
+  CD13b ACLCAT oracle: unknown=b'*0\r\n' STRING/StRiNg=22 commands
+  CD13b GEO target STORE keys=('cd13b:target:STORE:0:source', 'cd13b:target:STORE:0:source:destination:1') route(sid,owner,migrations)=((6, 6, 1), (9, 7, 1)) initial=5 before=31 after=31 store=b':2\r\n' freq=b':31\r\n' encoding=b'$8\r\nlistpack\r\n'
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:0:source', 'cd13b:target:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((4, 6, 1), (0, 7, 1)) initial=5 before=31 after=31 store=b':2\r\n' freq=b':31\r\n' encoding=b'$8\r\nlistpack\r\n'
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:0:source', 'cd13b:target:GEOSEARCHSTORE:0:source:destination:1') route(sid,owner,migrations)=((6, 6, 1), (1, 7, 1)) initial=5 before=31 after=31 store=b':2\r\n' freq=b':31\r\n' encoding=b'$8\r\nlistpack\r\n'
+  CD13b GEO oracle STORE keys=('cd13b:oracle:STORE:0:source', 'cd13b:oracle:STORE:0:source:destination:0') route(sid,owner,migrations)=((5, 7, 1), (4, 6, 1)) initial=5 before=36 after=36 store=b':2\r\n' freq=b':36\r\n' encoding=b'$8\r\nlistpack\r\n'
+  CD13b GEO oracle STOREDIST keys=('cd13b:oracle:STOREDIST:0:source', 'cd13b:oracle:STOREDIST:0:source:destination:1') route(sid,owner,migrations)=((6, 6, 1), (9, 7, 1)) initial=5 before=35 after=35 store=b':2\r\n' freq=b':35\r\n' encoding=b'$8\r\nlistpack\r\n'
+  CD13b GEO oracle GEOSEARCHSTORE keys=('cd13b:oracle:GEOSEARCHSTORE:0:source', 'cd13b:oracle:GEOSEARCHSTORE:0:source:destination:1') route(sid,owner,migrations)=((7, 7, 1), (12, 6, 1)) initial=5 before=33 after=33 store=b':2\r\n' freq=b':33\r\n' encoding=b'$8\r\nlistpack\r\n'
+DIFFER geo: 4951 ops, 0 diffs, 0 clock tolerances -> PASS

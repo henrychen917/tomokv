@@ -1540,6 +1540,7 @@ bool finish_phase1(ScatterState& state, Op& op) {
                 state.final_error = WorkError::Oom;
                 return true;
             }
+            state.apply[0].preserve_eviction_meta = true;
             state.final_integer = static_cast<long long>(encoded.size());
             state.hop2[0] = 0;
             state.hop2_count = 1;

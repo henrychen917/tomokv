@@ -1,0 +1,6 @@
+PASS: run_cmdmeta_suite byte-for-byte identical to landed origin/cpp 08a68fcba
+PASS: original GEO generator and GEO LFU property byte-for-byte preserved
+PASS: 43 unique suites, one per line; all 42 cd13b suites retained plus landed psfix
+PASS: shared CD13b wire assertions and serverless fixtures unchanged
+PASS: empty git diff 8c8ffd6f0 -- src Makefile
+PASS: empty git diff 08a68fcba -- tests/gate.sh tests/fixtures

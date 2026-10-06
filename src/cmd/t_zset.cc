@@ -2534,11 +2534,7 @@ ZsetOwnerResult zset_owner_replace(Shard& shard, Slice key, uint64_t hash, bool 
     }
     KvObj* object = kvobj_adopt_zset(key, value, expire_at_ms, reserve_ttl_slot);
     if (!object) { delete value; return ZsetOwnerResult::Oom; }
-    // Keep this cold copy isolated: another direct call changes GCC's inlining of the same
-    // setter in ordinary SORT/ZSET bodies. Flatten only this tiny adapter.
-    [](KvObj* replacement, uint8_t meta) __attribute__((noinline, flatten)) {
-        replacement->set_eviction_meta(meta);
-    }(object, eviction_meta);
+    TOMO_ZSET_COPY_EVICTION_META(object, eviction_meta);
     const FlatStore::InsertResult inserted = notify
         ? shard.store_insert<true>(hash, object)
         : shard.store_insert<false>(hash, object);

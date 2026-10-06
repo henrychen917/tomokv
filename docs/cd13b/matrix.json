@@ -1,0 +1,130 @@
+[
+  {
+    "case": "multi-split-a0-r0-n0",
+    "status": 0
+  },
+  {
+    "case": "multi-split-a0-r0-n1",
+    "status": 0
+  },
+  {
+    "case": "multi-split-a0-r1-n0",
+    "status": 0
+  },
+  {
+    "case": "multi-split-a0-r1-n1",
+    "status": 0
+  },
+  {
+    "case": "multi-split-a1-r0-n0",
+    "status": 0
+  },
+  {
+    "case": "multi-split-a1-r0-n1",
+    "status": 0
+  },
+  {
+    "case": "multi-split-a1-r1-n0",
+    "status": 0
+  },
+  {
+    "case": "multi-split-a1-r1-n1",
+    "status": 0
+  },
+  {
+    "case": "multi-fused-a0-r0-n0",
+    "status": 0
+  },
+  {
+    "case": "multi-fused-a0-r0-n1",
+    "status": 0
+  },
+  {
+    "case": "multi-fused-a0-r1-n0",
+    "status": 0
+  },
+  {
+    "case": "multi-fused-a0-r1-n1",
+    "status": 0
+  },
+  {
+    "case": "multi-fused-a1-r0-n0",
+    "status": 0
+  },
+  {
+    "case": "multi-fused-a1-r0-n1",
+    "status": 0
+  },
+  {
+    "case": "multi-fused-a1-r1-n0",
+    "status": 0
+  },
+  {
+    "case": "multi-fused-a1-r1-n1",
+    "status": 0
+  },
+  {
+    "case": "db0-split-a0-r0-n0",
+    "status": 0
+  },
+  {
+    "case": "db0-split-a0-r0-n1",
+    "status": 0
+  },
+  {
+    "case": "db0-split-a0-r1-n0",
+    "status": 0
+  },
+  {
+    "case": "db0-split-a0-r1-n1",
+    "status": 0
+  },
+  {
+    "case": "db0-split-a1-r0-n0",
+    "status": 0
+  },
+  {
+    "case": "db0-split-a1-r0-n1",
+    "status": 0
+  },
+  {
+    "case": "db0-split-a1-r1-n0",
+    "status": 0
+  },
+  {
+    "case": "db0-split-a1-r1-n1",
+    "status": 0
+  },
+  {
+    "case": "db0-fused-a0-r0-n0",
+    "status": 0
+  },
+  {
+    "case": "db0-fused-a0-r0-n1",
+    "status": 0
+  },
+  {
+    "case": "db0-fused-a0-r1-n0",
+    "status": 0
+  },
+  {
+    "case": "db0-fused-a0-r1-n1",
+    "status": 0
+  },
+  {
+    "case": "db0-fused-a1-r0-n0",
+    "status": 0
+  },
+  {
+    "case": "db0-fused-a1-r0-n1",
+    "status": 0
+  },
+  {
+    "case": "db0-fused-a1-r1-n0",
+    "status": 0
+  },
+  {
+    "case": "db0-fused-a1-r1-n1",
+    "status": 0
+  }
+]

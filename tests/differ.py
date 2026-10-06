@@ -6618,6 +6618,27 @@ if SUITE == "stream":
             print("  APPROX-TRIM PROPERTY FAIL reply=%r" % length_reply)
 if SUITE == "geo":
     diffs += geo_lfu_property((("target", ts, tf), ("oracle", os_, of)))
+    from cd13b_wire import aclcat_property, geo_store_property, ownership
+    def cd13b_call(sock, file, argv):
+        coverage.note(argv, "CD13b GEO/ACLCAT property")
+        sock.sendall(enc(argv))
+        return read_reply(file)
+    # Keep the raw-wire ACLCAT checks here so cmdmeta's parsed-reply fixture stays intact.
+    # Both RESP versions must return the exact empty array and case-insensitive string set.
+    cd13b_fired = {"aclcat_filters": 0}
+    def cd13b_aclcat_call(sock, file, argv):
+        cd13b_fired["aclcat_filters"] += 1
+        return cd13b_call(sock, file, argv)
+    diffs += aclcat_property(
+        (("target", lambda argv: cd13b_aclcat_call(ts, tf, argv)),
+         ("oracle", lambda argv: cd13b_aclcat_call(os_, of, argv))))
+    if cd13b_fired["aclcat_filters"] != 8:
+        diffs += 1
+        print("  CD13b ACLCAT non-vacuity FAIL: %r (expected 8 probes)" % cd13b_fired)
+    cd13b_target = lambda argv: cd13b_call(ts, tf, argv)
+    diffs += geo_store_property(
+        (("target", cd13b_target), ("oracle", lambda argv: cd13b_call(os_, of, argv))),
+        lambda keys: ownership(cd13b_target, keys))
 
 if SUITE == "scan":
     # Cursor VALUES and emission ORDER are implementation-defined, so the walk cannot be byte

@@ -1,0 +1,11 @@
+test_directed_absence_assertions (__main__.CmdmetaTests.test_directed_absence_assertions) ... ok
+test_drift_checker_rejects_corruption (__main__.CmdmetaTests.test_drift_checker_rejects_corruption) ... ok
+test_regenerate (__main__.CmdmetaTests.test_regenerate) ... ok
+test_surface_accepts_contract (__main__.CmdmetaTests.test_surface_accepts_contract) ... ok
+test_surface_controls (__main__.CmdmetaTests.test_surface_controls) ... ok
+test_surface_rejects_each_orphan (__main__.CmdmetaTests.test_surface_rejects_each_orphan) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 9.888s
+
+OK
