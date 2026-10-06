@@ -1,0 +1,11 @@
+  Redis 7.4.10 oracle boot                                   ok (pid=770783 port=18080)
+  target atomic=0 boot                                       ok (pid=770802 port=18079)
+DIFFER ccfix: 210 exact comparisons -> PASS
+DIFFER ccfix: 210 exact comparisons -> PASS
+  target stop                                                ok (port 18079 free)
+  target atomic=1 boot                                       ok (pid=770838 port=18079)
+DIFFER ccfix: 222 exact comparisons -> PASS
+DIFFER ccfix: 222 exact comparisons -> PASS
+  target stop                                                ok (port 18079 free)
+  oracle stop                                                ok (port 18080 free)
+PASS ccfix3 focused differential: armed-fused, atomic=0/1, seeds=7/19 (not a gate receipt)

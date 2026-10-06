@@ -1,0 +1,55 @@
+{
+  "numeric_range": [
+    146100,
+    146600
+  ],
+  "step": 1,
+  "numeric_trials": 501,
+  "no_override": true,
+  "full_hot_matches": 0,
+  "selected_hot_bodies": 129,
+  "chosen": 146203,
+  "chosen_hot_changed": 1,
+  "chosen_hot_differing_bytes": 785,
+  "minimum_score_ranges": [
+    [
+      146203,
+      146210
+    ],
+    [
+      146212,
+      146219
+    ],
+    [
+      146311,
+      146318
+    ],
+    [
+      146320,
+      146327
+    ]
+  ],
+  "hot_difference_histogram": {
+    "1": 32,
+    "2": 129,
+    "3": 183,
+    "4": 119,
+    "5": 38
+  },
+  "historical_pair_symbols": [
+    "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+    "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+  ],
+  "historical_pair_restored_ranges": [
+    [
+      146305,
+      146600
+    ]
+  ],
+  "no_override_hot_changed": 7,
+  "ranking": [
+    "hot_changed",
+    "hot_differing_bytes",
+    "numeric_value"
+  ]
+}

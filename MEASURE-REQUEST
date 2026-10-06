@@ -55,3 +55,11 @@ See MEASURE-REQUEST-storesize5.md: final split/armed folds complete=true PASS;
 Original PTTL failures retained; unchanged full atomic-one replays passed.
 PRE/POST/PAD-A hashes and full body differences recorded. No push.
 Maintainer bookkeeping: existing storesize +1/+1 gives 500/517 and its fixture label.
+
+Lane ccfix4: psfix/storesize/cmdmeta composition and compiler search
+
+See MEASURE-REQUEST-ccfix4.md. All 501 db0 main budgets plus no override were
+checked; retain 146203 with one selected hot-body difference. PRE/POST are freshly
+built; 8 Redis legs, 13 selected gate rows, ccfix controls and cmdmeta drift pass.
+WIP: exact instruction equality fails in all 11 complete serial runs, retained in
+docs/ccfix4/instruction-status.json. Zero new gate rows; no EXPECT/fixture edits or push.
