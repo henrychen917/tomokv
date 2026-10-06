@@ -1,5 +1,5 @@
 {
-  "merge": "1ebeceac082e5092e42cdb76f3ff077df2b4fecc",
+  "production_commit": "4b825cf5a405645b82a1f7f794d8c5bfb3321f91",
   "pre": "dbd01dd99269d10225f7f3d17d300cb3f653b654",
   "production_blobs": {
     "src/README.md": "083780e99f6b2751e759166610299738312d7cc3",
@@ -66,7 +66,7 @@
     "src/cmd/t_hash_ttl.cc": "6339e53ec6804b0574b68cf430cbbf7b3235d8ef",
     "src/cmd/t_hash_ttl.h": "dc36cf107265786e98f13681faab9a91693a85dc",
     "src/cmd/t_list.cc": "36e6a41ca033faa33d315a037c721e181f805afa",
-    "src/cmd/t_server.cc": "b11d64c7e60bd66892a6fe835dd595483f58330a",
+    "src/cmd/t_server.cc": "a7a3379083ddfbac480f38d0ee23b2f4214b2f74",
     "src/cmd/t_set.cc": "2271185b81c8f0080b6ebc33a05be96cbc8be3f3",
     "src/cmd/t_sort.cc": "8d0a893b1dce5013c0bb3752da849d60d3ee7b21",
     "src/cmd/t_sort.h": "a662cf19a1d0547207872bb8cb52242350527480",

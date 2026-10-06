@@ -1,0 +1,3 @@
+   text	   data	    bss	    dec	    hex	filename
+8831610	  86616	1146456	10064682	 99932a	build/ccfix5/PRE/tomokv
+8832794	  86616	1146584	10065994	 99984a	build/ccfix5/POST/tomokv

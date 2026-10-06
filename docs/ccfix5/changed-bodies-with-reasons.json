@@ -577,6 +577,18 @@
   },
   {
     "object": "src/cmd/t_server.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
+    "name": "tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 6484,
+    "post_size": 6532,
+    "classification": "other",
+    "reason": "ccfix5: cold DEBUG SHARD, SHARDS and ATOMIC-FILTER-CELL hash the captured physical namespace; no ordinary request path changed."
+  },
+  {
+    "object": "src/cmd/t_server.o",
     "symbol": "_ZN4tomo12_GLOBAL__N_122collect_config_updatesERNS_2OpERSt6vectorISt4pairIPNS0_11ConfigValueENSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEESaISD_EE",
     "name": "tomo::(anonymous namespace)::collect_config_updates(tomo::Op&, std::vector<std::pair<tomo::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&)",
     "equal": false,

@@ -1,0 +1,3 @@
+  target r1 atomic=0 boot                                    ok (pid=2587320 port=18179)
+  target stop                                                ok (port 18179 free)
+  target r1 atomic=1 boot                                    ok (pid=2587351 port=18179)
