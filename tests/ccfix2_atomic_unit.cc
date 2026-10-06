@@ -5,10 +5,12 @@
 #undef main
 
 int main(int argc, char** argv) {
-    require(argc == 2, "ccfix2-atomic-unit armed|no-arm");
+    require(argc == 2 || argc == 3, "ccfix2-atomic-unit armed|no-arm [1s|2s]");
     const bool arm = std::string(argv[1]) == "armed";
     require(command_registry_init(false), "registry");
     Config cfg;
+    cfg.thread_mode = argc == 3 && std::string(argv[2]) == "1s"
+        ? ThreadMode::Fused : ThreadMode::Split;
     cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
     cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
     cfg.save.clear();
@@ -74,4 +76,36 @@ int main(int argc, char** argv) {
         std::printf("PASS %s pending-source keymiss=%llu\n", verb,
                     (unsigned long long)expected);
     }
+    ThreadCtx& thread = server.thread(0);
+    ThreadCtx::bind_command_stats_thread(&thread);
+    std::string acl_error;
+    require(acl_initialize(server, cfg, acl_error), "default ACL initialized");
+    const auto get = command_lookup(Slice("GET", 3))->id;
+    const auto exec = command_lookup(Slice("EXEC", 4))->id;
+    const auto eval = command_lookup(Slice("EVAL", 4))->id;
+    require(local(server, {"LPUSH", "ccfix2:wrongtype", "v"}) == ":1\r\n", "seed wrong type");
+    Client transaction{-1};
+    transaction.set_id(91);
+    require(multi_io(server, transaction, {"MULTI"}) == "+OK\r\n", "MULTI starts");
+    require(multi_io(server, transaction, {"GET", "ccfix2:wrongtype"}) == "+QUEUED\r\n",
+            "GET queued");
+    require(multi_io(server, transaction, {"EXEC"}).starts_with("*1\r\n-WRONGTYPE"),
+            "EXEC returns failing member");
+    require(thread.command_failed_calls(get) == 1 && thread.command_failed_calls(exec) == 0,
+            "member failure belongs to GET, not EXEC");
+    require(multi_io(server, transaction, {"EXEC"}) == "-ERR EXEC without MULTI\r\n",
+            "EXEC own error");
+    require(thread.command_failed_calls(exec) == 1, "EXEC own error belongs to EXEC");
+    require(local(server, {"EVAL", "return {{err='ERR one'},{err='ERR two'}}",
+            "0"}) == "*2\r\n-ERR one\r\n-ERR two\r\n", "multiple script error elements");
+    require(thread.command_failed_calls(eval) == 1, "one failed call for multiple script errors");
+    // The local() fixture routes by argv[1], which is a script rather than a key
+    // for EVAL. Give this real handler its declared key's shard, as dispatch does.
+    Request nested({"EVAL", "return redis.pcall('GET',KEYS[1])", "1", "ccfix2:wrongtype"});
+    nested.op.spec->handler(server.shard(sid(server, "ccfix2:wrongtype")), nested.op);
+    require(nested.reply().starts_with("-WRONGTYPE"), "returned nested error");
+    require(thread.command_failed_calls(get) == 2 && thread.command_failed_calls(eval) == 2,
+            "returned script error counts on the nested command and EVAL");
+    ThreadCtx::bind_command_stats_thread(nullptr);
+    std::puts("PASS EXEC and nested script error attribution");
 }

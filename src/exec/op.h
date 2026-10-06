@@ -28,6 +28,8 @@ struct CommandSpec;
 class  Client;
 struct ScatterState;
 struct BlockingState;
+class Op;
+void command_note_error(Op&, const char*, size_t) noexcept;
 
 enum class OpState : uint8_t {
     Free   = 0,   // slot is reusable
@@ -318,8 +320,13 @@ public:
         }
         // Error producers use the same ABI as append. In particular WRONGTYPE changes
         // only its error-arm call target; successful reply bytes never inspect counters.
-        __attribute__((noinline)) void append_error(const char* s, size_t n) noexcept;
-        __attribute__((noinline)) void begin_error() noexcept;
+        __attribute__((noinline)) void append_error(const char* s, size_t n) noexcept {
+            command_note_error(op_, nullptr, 0);
+            append(s, n);
+        }
+        __attribute__((noinline)) void begin_error() noexcept {
+            command_note_error(op_, nullptr, 0);
+        }
         void append(std::string_view s) { append(s.data(), s.size()); }
         // RESP LITERALS. "+OK\r\n" and "$-1\r\n" are the reply of every SET and every GET miss,
         // and their length is a compile-time constant -- but this append is out of line with 225

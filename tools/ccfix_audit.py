@@ -39,6 +39,49 @@ def data_target(self, symbol, addend, kind):
 
 audit.Elf.target = data_target
 
+# GAS also resolves same-section RIP-relative function addresses (notify wrappers
+# pass their handler with LEA). Preserve the named target, just as for direct calls.
+relocation_canonical = audit.Elf.canonical
+
+
+def code_address_canonical(self, symbol):
+    body, targets = relocation_canonical(self, symbol)
+    body = bytearray(body)
+    if not hasattr(self, 'code_addresses'):
+        self.code_addresses = {}
+        section = None
+        by_name = {n: i for i, n in enumerate(self.names)}
+        disassembly = subprocess.check_output(['objdump', '-dw', str(self.path)], text=True)
+        for line in disassembly.splitlines():
+            if line.startswith('Disassembly of section '):
+                section = by_name[line[len('Disassembly of section '):-1]]
+                continue
+            match = re.match(r'\s*([0-9a-f]+):\s+((?:[0-9a-f]{2} )+)\s*lea\s+.*\(%rip\).*#\s*([0-9a-f]+)\s+<', line)
+            if not match:
+                continue
+            raw = bytes.fromhex(match[2])
+            at, destination = int(match[1], 16), int(match[3], 16)
+            if len(raw) != 7 or raw[1] != 0x8d or raw[2] & 0xc7 != 5:
+                continue
+            if any(r[0] == at + 3 for r in self.relocs.get(section, [])):
+                continue
+            functions = [f for f in self.symbols if f['info'] & 15 == 2 and
+                         f['sec'] == section and f['value'] == destination and f['size']]
+            if not functions:
+                continue
+            identity = tuple(sorted(f['name'] for f in functions))
+            self.code_addresses.setdefault(section, []).append((at + 3, identity))
+    for at, identity in self.code_addresses.get(symbol['sec'], []):
+        offset = at - symbol['value']
+        if 0 <= offset <= len(body) - 4:
+            body[offset:offset + 4] = bytes(4)
+            targets.append((offset, 'code-address', identity))
+    targets.sort(key=lambda r: r[0])
+    return bytes(body), targets
+
+
+audit.Elf.canonical = code_address_canonical
+
 
 def error_callee_twin(canonical):
     """Only the owner's admitted error sink relocation; never mask instructions."""
