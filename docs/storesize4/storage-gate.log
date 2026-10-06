@@ -1,0 +1,29 @@
+GATE(iteration): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-storesize/build/gate-run.6Zoh4S
+PARTIAL jobs (including prerequisites): storage_units
+PARTIAL jobs (including prerequisites): storage_units
+  row budget: 900s; median=-s; correctness-plan-fallback; storage unlinked regression
+  storage unlinked regression                          ok
+  row budget: 900s; median=-s; correctness-plan-fallback; storage randomkey regression
+  storage randomkey regression                         ok
+  row budget: 900s; median=-s; correctness-plan-fallback; storage rehash regression
+  storage rehash regression                            ok
+  row budget: 900s; median=-s; correctness-plan-fallback; storage rollback regression
+  storage rollback regression                          ok
+  row budget: 900s; median=-s; correctness-plan-fallback; storage snapshot-eviction regression
+  storage snapshot-eviction regression                 ok
+  row budget: 900s; median=-s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); storage flags regression
+  storage flags regression                             ok
+  row budget: 900s; median=-s; correctness-plan-fallback; storage aof-eviction regression
+  storage aof-eviction regression                      ok
+  row budget: 900s; median=-s; correctness-plan-fallback; storage intents regression
+  storage intents regression                           ok
+  row budget: 900s; median=-s; correctness-plan-fallback; storage imported-hash regression
+  storage imported-hash regression                     ok
+  row budget: 900s; median=-s; correctness-plan-fallback; storage field-index-failure regression
+  storage field-index-failure regression               ok
+  row budget: 900s; median=-s; correctness-plan-fallback; storage hash-bytes regression
+  storage hash-bytes regression                        ok
+  row budget: 900s; median=-s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); storage deadline-sidecar regression
+  storage deadline-sidecar regression                  ok
+GATE(PARTIAL): 12 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-storesize/build/storesize4-proof/storage-ledger.partial

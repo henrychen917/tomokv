@@ -1,0 +1,10 @@
+mkdir -p build
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -ffunction-sections -fdata-sections -DTOMO_STORE_REGRESSION_TEST -I. \
+  tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc src/cmd/storesize.cc -Wl,--gc-sections -o build/store-regression
+mkdir -p build
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -O1 -fsanitize=thread -fno-omit-frame-pointer -no-pie \
+  -ffunction-sections -fdata-sections -DTOMO_STORE_REGRESSION_TEST -I. \
+  tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc src/cmd/storesize.cc -Wl,--gc-sections -o build/store-regression-tsan
+mkdir -p build
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -ffunction-sections -fdata-sections -DTOMO_STORE_REGRESSION_TEST \
+  -DTOMO_TTL_DEADLINE_SIDECAR=1 -I. tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc src/cmd/storesize.cc -Wl,--gc-sections -o build/store-regression-sidecar
