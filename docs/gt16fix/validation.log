@@ -1,0 +1,805 @@
+GT16 stable-hold validation, 2026-10-06
+
+Production baseline: 7213a9405; classifier implementation: f6180f501
+
+74f0bda156180941acd05a9ee99ce9fd70842e903a57c2318f393a929d69eeaa  build/tomokv
+
+
+Assertion preservation audit against 7213a9405
+ramp/boot assertions: unchanged; sha256=26c483b56af44a7c12a5a1f96a1c00ab7a4300bd104ea3c54d3370142f65b804
+bounded retry loop and surge/mix assertions: unchanged; sha256=7dec8e3b0eab952699ca45f3d3b494b81d8a8b2d2891d44b48767b0a51114af8
+pre-hold rate rule: unchanged; sha256=ddf524c10f415a55af38f4c55e74d7fced1cd55d075d2902ee7b939864927b49
+controller movement predicate: unchanged; sha256=1dc1a28bf7738fed72c1f2b70cf8d31df79e8c93498a8d8e58ebbac119aa76eb
+tests/gate.sh: unchanged
+tests/fixtures: unchanged
+src: unchanged
+
+
+Serverless mutation controls (expected test failures):
+
+GT16 dip rejected by old rolling-mean classifier: negative control rejected as expected
+test_reported_driver_dip_with_move_invalidates (flipctl_test.StableHoldClassifier.test_reported_driver_dip_with_move_invalidates) ... FAIL
+
+======================================================================
+FAIL: test_reported_driver_dip_with_move_invalidates (flipctl_test.StableHoldClassifier.test_reported_driver_dip_with_move_invalidates)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-gt16fix/tests/flipctl_test.py", line 25, in test_reported_driver_dip_with_move_invalidates
+    self.assertEqual(verdict, "INVALID")
+AssertionError: 'FAIL' != 'INVALID'
+- FAIL
++ INVALID
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (failures=1)
+
+stationary movement cannot be excused: negative control rejected as expected
+test_stationary_driver_with_move_fails (flipctl_test.StableHoldClassifier.test_stationary_driver_with_move_fails) ... FAIL
+
+======================================================================
+FAIL: test_stationary_driver_with_move_fails (flipctl_test.StableHoldClassifier.test_stationary_driver_with_move_fails)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-gt16fix/tests/flipctl_test.py", line 16, in test_stationary_driver_with_move_fails
+    self.assertEqual(verdict, "FAIL")
+AssertionError: 'PASS' != 'FAIL'
+- PASS
++ FAIL
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (failures=1)
+
+a never-opened window cannot pass: negative control rejected as expected
+test_empty_window_cannot_pass (flipctl_test.StableHoldClassifier.test_empty_window_cannot_pass) ...
+  test_empty_window_cannot_pass (flipctl_test.StableHoldClassifier.test_empty_window_cannot_pass) (moved=False) ... FAIL
+  test_empty_window_cannot_pass (flipctl_test.StableHoldClassifier.test_empty_window_cannot_pass) (moved=True) ... FAIL
+
+======================================================================
+FAIL: test_empty_window_cannot_pass (flipctl_test.StableHoldClassifier.test_empty_window_cannot_pass) (moved=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-gt16fix/tests/flipctl_test.py", line 69, in test_empty_window_cannot_pass
+    self.assertEqual(verdict, "INVALID")
+AssertionError: 'PASS' != 'INVALID'
+- PASS
++ INVALID
+
+
+======================================================================
+FAIL: test_empty_window_cannot_pass (flipctl_test.StableHoldClassifier.test_empty_window_cannot_pass) (moved=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-gt16fix/tests/flipctl_test.py", line 69, in test_empty_window_cannot_pass
+    self.assertEqual(verdict, "INVALID")
+AssertionError: 'PASS' != 'INVALID'
+- PASS
++ INVALID
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (failures=2)
+
+
+Run 1: gate-run.Emzv2w
+
+GATE(iteration): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-gt16fix/build/gate-run.Emzv2w
+PARTIAL jobs (including prerequisites): release flipctl
+PARTIAL jobs (including prerequisites): release flipctl
+  row budget: 900s; median=-s; no-history-conservative-default; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; flip controller: ramp gate, hold, surge + mix re-maneuvers
+  flip controller: ramp gate, hold, surge + mix re-maneuvers ok
+GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt16fix/build/gt16fix-proof/run-1-ledger.partial
+
+
+PARTIAL	0	GATE_ONLY_JOBS=flipctl; NOT A RECEIPT
+ok	101.260000	release build (+footprint locks)
+ok	140.950000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+
+
+Geometry plan:
+
+TIER=full
+GATE_PURPOSE=iteration
+GATE_PHYSICAL_CORES=16
+GATE_RATIO=6:2
+GATE_SLOTS=1
+GATE_PORT_FIRST=18340
+GATE_PORT_LAST=18342
+CANDIDATE_BINARY=/home/user/Projects/cx-gt16fix/build/tomokv
+REFERENCE_BINARY=''
+PERF_THREADS=8
+BUILD_CANDIDATE=1
+BUILD_CORES=112-127
+BUILD_JOBS=16
+PLAN_HEADER='16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads'
+GATE_SERVER_CORES=112-119
+GATE_SERVER_SMT=''
+GATE_LOAD_CORES=120-127
+GATE_LOAD_SMT=''
+PERF_SERVER_CORES=112-119
+PERF_SERVER_SMT=''
+PERF_LOAD_CORES=120-127
+PERF_LOAD_SMT=''
+PERF_SERVER_CPUS=112-119
+PERF_LOAD_CPUS=120-127
+PERF_PORT=18340
+PERF_SPLIT_RATIO=''
+SLOT_CORES=(112-119)
+SLOT_LOAD_CORES=(120-127)
+SLOT_LOAD_PHYSICAL=(120-127)
+SLOT_LOAD_SMT=('')
+SLOT_PORTS=(18340)
+ABBA_ARGS=(--subset smoke --candidate-binary /home/user/Projects/cx-gt16fix/build/tomokv --ports 18340-18342 --port 18340 --server-cores 112-119 --server-smt '' --load-cores 120-127 --load-smt '')
+
+
+Server boot:
+
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [112,113,114,115,116,117,118,119]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, overlap=0, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=112 L3=0 shards=0
+  thread t1: role=ifid cpu=113 L3=0 shards=0
+  thread t2: role=ifid cpu=114 L3=0 shards=0
+  thread t3: role=ifid cpu=115 L3=0 shards=0
+  thread t4: role=ifid cpu=116 L3=0 shards=0
+  thread t5: role=ifid cpu=117 L3=0 shards=0
+  thread t6: role=ex cpu=118 L3=0 shards=8
+  thread t7: role=ex cpu=119 L3=0 shards=8
+listening on 127.0.0.1:18340
+
+Battery:
+
+ramp deferred boot; jittery stationary load maneuvered in 8.2s (cap=30s); anchored off-rail at 6:2, rate=6001.000
+stable hold: 8s pre-hold window stationary (driver 6000,6000,6001,5999,5999,5980,5998,6001/s, driver anchor 5996.928/s, band 0.036512); assertion window open for 30s
+stable hold PASS: driver stationary for 30 samples: anchor=5996.928/s max deviation=0.013333 <= band=0.036512; no controller movement
+  driver per-second rates: 5962, 6000, 6001, 5977, 5998, 5999, 5999, 6001, 6001, 5978, 5999, 6000, 5981, 6000, 6000, 5991, 5999, 5999, 5998, 5999, 5999, 5983, 5999, 6001, 6001, 5984, 5998, 5917, 5997, 5984
+  per-second trace:
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5980/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +1.0s anchored       anchored   driver=    5962/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +2.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +3.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +4.0s anchored       anchored   driver=    5977/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +5.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +6.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +7.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +8.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +9.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +10.0s anchored       anchored   driver=    5978/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +11.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +12.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +13.0s anchored       anchored   driver=    5981/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +14.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +15.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +16.0s anchored       anchored   driver=    5991/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +17.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +18.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +19.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +20.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +21.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +22.0s anchored       anchored   driver=    5983/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +23.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +24.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +25.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +26.0s anchored       anchored   driver=    5984/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +27.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +28.0s anchored       anchored   driver=    5917/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +29.0s anchored       anchored   driver=    5997/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +30.0s anchored       anchored   driver=    5984/s live=6:2 anchor=6:2 triggers=1 last=boot
+stable hold: 30s on a measured-stationary load, no trigger or split movement (attempt 1 of 3)
+load surge: surge trigger fired, settled anchored at 6:2 and held (total triggers=2)
+mix change: re-maneuvered, settled anchored at 6:2 and held
+ok: flipctl functional acceptance
+
+
+Run 2: gate-run.W9PFSE
+
+GATE(iteration): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-gt16fix/build/gate-run.W9PFSE
+PARTIAL jobs (including prerequisites): release flipctl
+PARTIAL jobs (including prerequisites): release flipctl
+  row budget: 900s; median=101.26s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=140.95s; correctness-plan-fallback; flip controller: ramp gate, hold, surge + mix re-maneuvers
+  flip controller: ramp gate, hold, surge + mix re-maneuvers ok
+GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt16fix/build/gt16fix-proof/run-2-ledger.partial
+
+
+PARTIAL	0	GATE_ONLY_JOBS=flipctl; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	134.910000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+
+
+Geometry plan:
+
+TIER=full
+GATE_PURPOSE=iteration
+GATE_PHYSICAL_CORES=16
+GATE_RATIO=6:2
+GATE_SLOTS=1
+GATE_PORT_FIRST=18340
+GATE_PORT_LAST=18342
+CANDIDATE_BINARY=/home/user/Projects/cx-gt16fix/build/tomokv
+REFERENCE_BINARY=''
+PERF_THREADS=8
+BUILD_CANDIDATE=1
+BUILD_CORES=112-127
+BUILD_JOBS=16
+PLAN_HEADER='16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads'
+GATE_SERVER_CORES=112-119
+GATE_SERVER_SMT=''
+GATE_LOAD_CORES=120-127
+GATE_LOAD_SMT=''
+PERF_SERVER_CORES=112-119
+PERF_SERVER_SMT=''
+PERF_LOAD_CORES=120-127
+PERF_LOAD_SMT=''
+PERF_SERVER_CPUS=112-119
+PERF_LOAD_CPUS=120-127
+PERF_PORT=18340
+PERF_SPLIT_RATIO=''
+SLOT_CORES=(112-119)
+SLOT_LOAD_CORES=(120-127)
+SLOT_LOAD_PHYSICAL=(120-127)
+SLOT_LOAD_SMT=('')
+SLOT_PORTS=(18340)
+ABBA_ARGS=(--subset smoke --candidate-binary /home/user/Projects/cx-gt16fix/build/tomokv --ports 18340-18342 --port 18340 --server-cores 112-119 --server-smt '' --load-cores 120-127 --load-smt '')
+
+
+Server boot:
+
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [112,113,114,115,116,117,118,119]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, overlap=0, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=112 L3=0 shards=0
+  thread t1: role=ifid cpu=113 L3=0 shards=0
+  thread t2: role=ifid cpu=114 L3=0 shards=0
+  thread t3: role=ifid cpu=115 L3=0 shards=0
+  thread t4: role=ifid cpu=116 L3=0 shards=0
+  thread t5: role=ifid cpu=117 L3=0 shards=0
+  thread t6: role=ex cpu=118 L3=0 shards=8
+  thread t7: role=ex cpu=119 L3=0 shards=8
+listening on 127.0.0.1:18340
+
+Battery:
+
+ramp deferred boot; jittery stationary load maneuvered in 10.2s (cap=30s); anchored off-rail at 6:2, rate=6000.917
+stable hold: 8s pre-hold window stationary (driver 6000,5998,6001,6002,5999,6001,6001,5998/s, driver anchor 6000.023/s, band 0.036515); assertion window open for 30s
+stable hold PASS: driver stationary for 30 samples: anchor=6000.023/s max deviation=0.000408 <= band=0.036515; no controller movement
+  driver per-second rates: 6000, 6002, 6000, 6000, 6000, 6001, 6000, 5999, 5998, 5998, 5999, 6000, 6001, 6001, 6001, 6001, 6001, 6002, 6000, 6000, 6000, 6000, 6000, 5999, 5999, 5999, 5999, 6000, 6001, 5999
+  per-second trace:
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6002/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +1.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +2.0s anchored       anchored   driver=    6002/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +3.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +4.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +5.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +6.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +7.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +8.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +9.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +10.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +11.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +12.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +13.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +14.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +15.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +16.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +17.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +18.0s anchored       anchored   driver=    6002/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +19.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +20.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +21.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +22.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +23.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +24.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +25.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +26.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +27.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +28.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +29.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +30.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+stable hold: 30s on a measured-stationary load, no trigger or split movement (attempt 1 of 3)
+load surge: surge trigger fired, settled anchored at 6:2 and held (total triggers=2)
+mix change: re-maneuvered, settled anchored at 6:2 and held
+ok: flipctl functional acceptance
+
+
+Run 3: gate-run.Aoslqt
+
+GATE(iteration): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-gt16fix/build/gate-run.Aoslqt
+PARTIAL jobs (including prerequisites): release flipctl
+PARTIAL jobs (including prerequisites): release flipctl
+  row budget: 900s; median=50.645s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=137.93s; correctness-plan-fallback; flip controller: ramp gate, hold, surge + mix re-maneuvers
+  flip controller: ramp gate, hold, surge + mix re-maneuvers ok
+GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt16fix/build/gt16fix-proof/run-3-ledger.partial
+
+
+PARTIAL	0	GATE_ONLY_JOBS=flipctl; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	119.900000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+
+
+Geometry plan:
+
+TIER=full
+GATE_PURPOSE=iteration
+GATE_PHYSICAL_CORES=16
+GATE_RATIO=6:2
+GATE_SLOTS=1
+GATE_PORT_FIRST=18340
+GATE_PORT_LAST=18342
+CANDIDATE_BINARY=/home/user/Projects/cx-gt16fix/build/tomokv
+REFERENCE_BINARY=''
+PERF_THREADS=8
+BUILD_CANDIDATE=1
+BUILD_CORES=112-127
+BUILD_JOBS=16
+PLAN_HEADER='16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads'
+GATE_SERVER_CORES=112-119
+GATE_SERVER_SMT=''
+GATE_LOAD_CORES=120-127
+GATE_LOAD_SMT=''
+PERF_SERVER_CORES=112-119
+PERF_SERVER_SMT=''
+PERF_LOAD_CORES=120-127
+PERF_LOAD_SMT=''
+PERF_SERVER_CPUS=112-119
+PERF_LOAD_CPUS=120-127
+PERF_PORT=18340
+PERF_SPLIT_RATIO=''
+SLOT_CORES=(112-119)
+SLOT_LOAD_CORES=(120-127)
+SLOT_LOAD_PHYSICAL=(120-127)
+SLOT_LOAD_SMT=('')
+SLOT_PORTS=(18340)
+ABBA_ARGS=(--subset smoke --candidate-binary /home/user/Projects/cx-gt16fix/build/tomokv --ports 18340-18342 --port 18340 --server-cores 112-119 --server-smt '' --load-cores 120-127 --load-smt '')
+
+
+Server boot:
+
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [112,113,114,115,116,117,118,119]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, overlap=0, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=112 L3=0 shards=0
+  thread t1: role=ifid cpu=113 L3=0 shards=0
+  thread t2: role=ifid cpu=114 L3=0 shards=0
+  thread t3: role=ifid cpu=115 L3=0 shards=0
+  thread t4: role=ifid cpu=116 L3=0 shards=0
+  thread t5: role=ifid cpu=117 L3=0 shards=0
+  thread t6: role=ex cpu=118 L3=0 shards=8
+  thread t7: role=ex cpu=119 L3=0 shards=8
+listening on 127.0.0.1:18340
+
+Battery:
+
+ramp deferred boot; jittery stationary load maneuvered in 8.2s (cap=30s); anchored off-rail at 6:2, rate=6001.000
+stable hold: 8s pre-hold window stationary (driver 6000,6000,5994,6000,6000,5968,6000,5999/s, driver anchor 5995.190/s, band 0.036512); assertion window open for 30s
+stable hold PASS: driver stationary for 30 samples: anchor=5995.190/s max deviation=0.002383 <= band=0.036512; no controller movement
+  driver per-second rates: 6000, 6000, 6000, 5999, 5999, 6000, 5997, 6000, 5999, 6000, 5999, 6001, 6000, 6002, 6000, 5981, 6001, 6000, 5998, 5998, 5998, 6000, 6000, 5999, 6000, 6001, 6002, 6001, 6001, 6002
+  per-second trace:
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5994/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5968/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +1.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +2.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +3.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +4.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +5.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +6.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +7.0s anchored       anchored   driver=    5997/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +8.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +9.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +10.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +11.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +12.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +13.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +14.0s anchored       anchored   driver=    6002/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +15.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +16.0s anchored       anchored   driver=    5981/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +17.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +18.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +19.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +20.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +21.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +22.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +23.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +24.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +25.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +26.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +27.0s anchored       anchored   driver=    6002/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +28.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +29.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +30.0s anchored       anchored   driver=    6002/s live=6:2 anchor=6:2 triggers=1 last=boot
+stable hold: 30s on a measured-stationary load, no trigger or split movement (attempt 1 of 3)
+load surge: surge trigger fired, settled anchored at 6:2 and held (total triggers=2)
+mix change: re-maneuvered, settled anchored at 6:2 and held
+ok: flipctl functional acceptance
+
+Run 4: gate-run.eqkRsU
+
+GATE(iteration): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-gt16fix/build/gate-run.eqkRsU
+PARTIAL jobs (including prerequisites): release flipctl
+PARTIAL jobs (including prerequisites): release flipctl
+  row budget: 900s; median=0.03s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=134.91s; correctness-plan-fallback; flip controller: ramp gate, hold, surge + mix re-maneuvers
+  flip controller: ramp gate, hold, surge + mix re-maneuvers ok
+GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt16fix/build/gt16fix-proof/run-4-ledger.partial
+
+
+PARTIAL	0	GATE_ONLY_JOBS=flipctl; NOT A RECEIPT
+ok	0.020000	release build (+footprint locks)
+ok	124.900000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+
+
+Geometry plan:
+
+TIER=full
+GATE_PURPOSE=iteration
+GATE_PHYSICAL_CORES=16
+GATE_RATIO=6:2
+GATE_SLOTS=1
+GATE_PORT_FIRST=18340
+GATE_PORT_LAST=18342
+CANDIDATE_BINARY=/home/user/Projects/cx-gt16fix/build/tomokv
+REFERENCE_BINARY=''
+PERF_THREADS=8
+BUILD_CANDIDATE=1
+BUILD_CORES=112-127
+BUILD_JOBS=16
+PLAN_HEADER='16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads'
+GATE_SERVER_CORES=112-119
+GATE_SERVER_SMT=''
+GATE_LOAD_CORES=120-127
+GATE_LOAD_SMT=''
+PERF_SERVER_CORES=112-119
+PERF_SERVER_SMT=''
+PERF_LOAD_CORES=120-127
+PERF_LOAD_SMT=''
+PERF_SERVER_CPUS=112-119
+PERF_LOAD_CPUS=120-127
+PERF_PORT=18340
+PERF_SPLIT_RATIO=''
+SLOT_CORES=(112-119)
+SLOT_LOAD_CORES=(120-127)
+SLOT_LOAD_PHYSICAL=(120-127)
+SLOT_LOAD_SMT=('')
+SLOT_PORTS=(18340)
+ABBA_ARGS=(--subset smoke --candidate-binary /home/user/Projects/cx-gt16fix/build/tomokv --ports 18340-18342 --port 18340 --server-cores 112-119 --server-smt '' --load-cores 120-127 --load-smt '')
+
+
+Server boot:
+
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [112,113,114,115,116,117,118,119]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, overlap=0, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=112 L3=0 shards=0
+  thread t1: role=ifid cpu=113 L3=0 shards=0
+  thread t2: role=ifid cpu=114 L3=0 shards=0
+  thread t3: role=ifid cpu=115 L3=0 shards=0
+  thread t4: role=ifid cpu=116 L3=0 shards=0
+  thread t5: role=ifid cpu=117 L3=0 shards=0
+  thread t6: role=ex cpu=118 L3=0 shards=8
+  thread t7: role=ex cpu=119 L3=0 shards=8
+listening on 127.0.0.1:18340
+
+Battery:
+
+ramp deferred boot; jittery stationary load maneuvered in 8.2s (cap=30s); anchored off-rail at 6:2, rate=6000.667
+stable hold: 8s pre-hold window stationary (driver 6001,6000,6001,6000,6000,6001,6000,6000/s, driver anchor 6000.058/s, band 0.036512); assertion window open for 30s
+stable hold PASS: driver stationary for 30 samples: anchor=6000.058/s max deviation=0.000391 <= band=0.036512; no controller movement
+  driver per-second rates: 5999, 6000, 6000, 6001, 6000, 6000, 6000, 6000, 6000, 6001, 6001, 6001, 5998, 6000, 6000, 6000, 6001, 6001, 6001, 6000, 6000, 6001, 5999, 6000, 6000, 6000, 6000, 6000, 6002, 6001
+  per-second trace:
+    prehold t=  +0.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +1.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +2.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +3.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +4.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +5.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +6.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +7.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +8.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +9.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +10.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +11.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +12.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +13.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +14.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +15.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +16.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +17.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +18.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +19.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +20.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +21.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +22.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +23.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +24.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +25.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +26.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +27.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +28.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +29.0s anchored       anchored   driver=    6002/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +30.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+stable hold: 30s on a measured-stationary load, no trigger or split movement (attempt 1 of 3)
+load surge: surge trigger fired, settled anchored at 6:2 and held (total triggers=2)
+mix change: re-maneuvered, settled anchored at 6:2 and held
+ok: flipctl functional acceptance
+
+Run 5: gate-run.RL89Xx
+
+GATE(iteration): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-gt16fix/build/gate-run.RL89Xx
+PARTIAL jobs (including prerequisites): release flipctl
+PARTIAL jobs (including prerequisites): release flipctl
+  row budget: 900s; median=0.03s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=129.905s; correctness-plan-fallback; flip controller: ramp gate, hold, surge + mix re-maneuvers
+  flip controller: ramp gate, hold, surge + mix re-maneuvers ok
+GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt16fix/build/gt16fix-proof/run-5-ledger.partial
+
+
+PARTIAL	0	GATE_ONLY_JOBS=flipctl; NOT A RECEIPT
+ok	0.020000	release build (+footprint locks)
+ok	124.900000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+
+
+Geometry plan:
+
+TIER=full
+GATE_PURPOSE=iteration
+GATE_PHYSICAL_CORES=16
+GATE_RATIO=6:2
+GATE_SLOTS=1
+GATE_PORT_FIRST=18340
+GATE_PORT_LAST=18342
+CANDIDATE_BINARY=/home/user/Projects/cx-gt16fix/build/tomokv
+REFERENCE_BINARY=''
+PERF_THREADS=8
+BUILD_CANDIDATE=1
+BUILD_CORES=112-127
+BUILD_JOBS=16
+PLAN_HEADER='16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads'
+GATE_SERVER_CORES=112-119
+GATE_SERVER_SMT=''
+GATE_LOAD_CORES=120-127
+GATE_LOAD_SMT=''
+PERF_SERVER_CORES=112-119
+PERF_SERVER_SMT=''
+PERF_LOAD_CORES=120-127
+PERF_LOAD_SMT=''
+PERF_SERVER_CPUS=112-119
+PERF_LOAD_CPUS=120-127
+PERF_PORT=18340
+PERF_SPLIT_RATIO=''
+SLOT_CORES=(112-119)
+SLOT_LOAD_CORES=(120-127)
+SLOT_LOAD_PHYSICAL=(120-127)
+SLOT_LOAD_SMT=('')
+SLOT_PORTS=(18340)
+ABBA_ARGS=(--subset smoke --candidate-binary /home/user/Projects/cx-gt16fix/build/tomokv --ports 18340-18342 --port 18340 --server-cores 112-119 --server-smt '' --load-cores 120-127 --load-smt '')
+
+
+Server boot:
+
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [112,113,114,115,116,117,118,119]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, overlap=0, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=112 L3=0 shards=0
+  thread t1: role=ifid cpu=113 L3=0 shards=0
+  thread t2: role=ifid cpu=114 L3=0 shards=0
+  thread t3: role=ifid cpu=115 L3=0 shards=0
+  thread t4: role=ifid cpu=116 L3=0 shards=0
+  thread t5: role=ifid cpu=117 L3=0 shards=0
+  thread t6: role=ex cpu=118 L3=0 shards=8
+  thread t7: role=ex cpu=119 L3=0 shards=8
+listening on 127.0.0.1:18340
+
+Battery:
+
+ramp deferred boot; jittery stationary load maneuvered in 10.2s (cap=30s); anchored off-rail at 6:2, rate=6001.500
+stable hold: 8s pre-hold window stationary (driver 6001,5999,6001,6000,6000,5980,6001,6001/s, driver anchor 5997.626/s, band 0.036515); assertion window open for 30s
+stable hold PASS: driver stationary for 30 samples: anchor=5997.626/s max deviation=0.000817 <= band=0.036515; no controller movement
+  driver per-second rates: 6000, 6001, 6001, 6001, 6002, 6000, 6000, 5999, 6000, 5999, 5999, 5999, 5999, 6000, 5999, 6001, 6002, 6001, 6002, 6000, 6000, 6000, 6001, 6000, 6003, 6000, 5999, 5999, 5998, 5998
+  per-second trace:
+    prehold t=  +0.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5980/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +1.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +2.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +3.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +4.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +5.0s anchored       anchored   driver=    6002/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +6.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +7.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +8.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +9.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +10.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +11.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +12.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +13.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +14.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +15.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +16.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +17.0s anchored       anchored   driver=    6002/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +18.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +19.0s anchored       anchored   driver=    6002/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +20.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +21.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +22.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +23.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +24.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +25.0s anchored       anchored   driver=    6003/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +26.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +27.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +28.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +29.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +30.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+stable hold: 30s on a measured-stationary load, no trigger or split movement (attempt 1 of 3)
+load surge: surge trigger fired, settled anchored at 6:2 and held (total triggers=2)
+mix change: re-maneuvered, settled anchored at 6:2 and held
+ok: flipctl functional acceptance
+
+Run 6: gate-run.yRFxmr
+
+GATE(iteration): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-gt16fix/build/gate-run.yRFxmr
+PARTIAL jobs (including prerequisites): release flipctl
+PARTIAL jobs (including prerequisites): release flipctl
+  row budget: 900s; median=0.03s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=124.9s; correctness-plan-fallback; flip controller: ramp gate, hold, surge + mix re-maneuvers
+  flip controller: ramp gate, hold, surge + mix re-maneuvers ok
+GATE(PARTIAL): 2 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-gt16fix/build/gt16fix-proof/run-6-ledger.partial
+
+
+PARTIAL	0	GATE_ONLY_JOBS=flipctl; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	130.910000	flip controller: ramp gate, hold, surge + mix re-maneuvers
+
+
+Geometry plan:
+
+TIER=full
+GATE_PURPOSE=iteration
+GATE_PHYSICAL_CORES=16
+GATE_RATIO=6:2
+GATE_SLOTS=1
+GATE_PORT_FIRST=18340
+GATE_PORT_LAST=18342
+CANDIDATE_BINARY=/home/user/Projects/cx-gt16fix/build/tomokv
+REFERENCE_BINARY=''
+PERF_THREADS=8
+BUILD_CANDIDATE=1
+BUILD_CORES=112-127
+BUILD_JOBS=16
+PLAN_HEADER='16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads'
+GATE_SERVER_CORES=112-119
+GATE_SERVER_SMT=''
+GATE_LOAD_CORES=120-127
+GATE_LOAD_SMT=''
+PERF_SERVER_CORES=112-119
+PERF_SERVER_SMT=''
+PERF_LOAD_CORES=120-127
+PERF_LOAD_SMT=''
+PERF_SERVER_CPUS=112-119
+PERF_LOAD_CPUS=120-127
+PERF_PORT=18340
+PERF_SPLIT_RATIO=''
+SLOT_CORES=(112-119)
+SLOT_LOAD_CORES=(120-127)
+SLOT_LOAD_PHYSICAL=(120-127)
+SLOT_LOAD_SMT=('')
+SLOT_PORTS=(18340)
+ABBA_ARGS=(--subset smoke --candidate-binary /home/user/Projects/cx-gt16fix/build/tomokv --ports 18340-18342 --port 18340 --server-cores 112-119 --server-smt '' --load-cores 120-127 --load-smt '')
+
+
+Server boot:
+
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [112,113,114,115,116,117,118,119]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, overlap=0, io_uring, alloc=jemalloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=112 L3=0 shards=0
+  thread t1: role=ifid cpu=113 L3=0 shards=0
+  thread t2: role=ifid cpu=114 L3=0 shards=0
+  thread t3: role=ifid cpu=115 L3=0 shards=0
+  thread t4: role=ifid cpu=116 L3=0 shards=0
+  thread t5: role=ifid cpu=117 L3=0 shards=0
+  thread t6: role=ex cpu=118 L3=0 shards=8
+  thread t7: role=ex cpu=119 L3=0 shards=8
+listening on 127.0.0.1:18340
+
+Battery:
+
+ramp deferred boot; jittery stationary load maneuvered in 13.2s (cap=30s); anchored off-rail at 6:2, rate=6001.000
+stable hold: 8s pre-hold window stationary (driver 6001,5999,5998,6001,6000,6000,6000,5999/s, driver anchor 6000.022/s, band 0.036512); assertion window open for 30s
+stable hold PASS: driver stationary for 30 samples: anchor=6000.022/s max deviation=0.006160 <= band=0.036512; no controller movement
+  driver per-second rates: 6000, 6000, 6000, 5999, 6000, 6000, 5999, 6000, 6000, 6000, 6001, 6000, 5998, 6000, 5999, 6002, 5999, 6000, 5999, 6000, 6001, 5963, 6000, 6001, 6002, 6002, 6000, 5999, 5998, 5998
+  per-second trace:
+    prehold t=  +0.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +1.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +2.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +3.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +4.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +5.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +6.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +7.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +8.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +9.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +10.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +11.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +12.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +13.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +14.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +15.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +16.0s anchored       anchored   driver=    6002/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +17.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +18.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +19.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +20.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +21.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +22.0s anchored       anchored   driver=    5963/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +23.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +24.0s anchored       anchored   driver=    6001/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +25.0s anchored       anchored   driver=    6002/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +26.0s anchored       anchored   driver=    6002/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +27.0s anchored       anchored   driver=    6000/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +28.0s anchored       anchored   driver=    5999/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +29.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +30.0s anchored       anchored   driver=    5998/s live=6:2 anchor=6:2 triggers=1 last=boot
+stable hold: 30s on a measured-stationary load, no trigger or split movement (attempt 1 of 3)
+load surge: surge trigger fired, settled anchored at 6:2 and held (total triggers=2)
+mix change: re-maneuvered, settled anchored at 6:2 and held
+ok: flipctl functional acceptance

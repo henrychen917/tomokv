@@ -52,7 +52,8 @@ preceded by the eight 6000/s pre-hold samples; the new classifier reports
 
 Three in-memory negative controls were rejected by those tests: restoring the
 old rolling-mean classifier, accepting stationary movement, and accepting an
-empty window. Their output is in `build/gt16fix-proof/negative-controls.log`.
+empty window. Their expected test failures are retained in the
+[validation archive](docs/gt16fix/validation.log).
 `git diff --check` passed. Source comparison against `7213a9405` confirmed the
 unchanged assertion blocks and absence of gate, fixture or production changes.
 
@@ -87,7 +88,29 @@ INVALID attempts are reported and retried within the original budget; exhaustion
 is never a clean run. These are selected correctness checks, not a full gate
 receipt or a performance claim.
 
-Live validation is in progress. Run 1 (`build/gate-run.Emzv2w`) exited 0 with
-**2 ok / 0 FAIL**, completing its hold on attempt 1 of 3, then the surge and mix
-assertions. Runs 2–6 are executing sequentially; final receipts will be recorded
-below.
+## Completed live proof
+
+**Six consecutive runs exited 0: 12 selected rows passed, zero failures.** Every
+hold completed 30 measured samples on attempt 1 of 3. There were no INVALID or
+RE-ROLL windows in these live runs; the synthetic controls exercise invalidation.
+Each run also passed the unchanged ramp, surge and mix assertions.
+
+| Run | Fresh run directory under `build/` | ok / FAIL | Hold attempt | Max driver deviation | Published band |
+| --- | --- | --- | --- | --- | --- |
+| 1 | `gate-run.Emzv2w` | 2 / 0 | 1 / 3 | 1.3333% | 3.6512% |
+| 2 | `gate-run.W9PFSE` | 2 / 0 | 1 / 3 | 0.0408% | 3.6515% |
+| 3 | `gate-run.Aoslqt` | 2 / 0 | 1 / 3 | 0.2383% | 3.6512% |
+| 4 | `gate-run.eqkRsU` | 2 / 0 | 1 / 3 | 0.0391% | 3.6512% |
+| 5 | `gate-run.RL89Xx` | 2 / 0 | 1 / 3 | 0.0817% | 3.6515% |
+| 6 | `gate-run.yRFxmr` | 2 / 0 | 1 / 3 | 0.6160% | 3.6512% |
+
+The [committed validation archive](docs/gt16fix/validation.log) retains all six
+gate outputs, partial ledgers, CPU plans, server boot geometry and complete
+per-second battery traces, plus the assertion-preservation audit and negative
+controls. Only trailing display whitespace was trimmed. The original files
+remain in the listed build directories and `build/gt16fix-proof/`.
+
+The classifier and unit sources remained byte-identical to `f6180f501` throughout
+the runs. The single production binary also remained unchanged; its SHA-256 is
+`74f0bda156180941acd05a9ee99ce9fd70842e903a57c2318f393a929d69eeaa`.
+No push was performed.
