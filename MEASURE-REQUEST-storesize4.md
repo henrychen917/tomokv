@@ -5,6 +5,10 @@ Entry HEAD was `848fb3977`. `git merge origin/cpp` reported already up to date:
 `b1d931ee2` was already merged by `f2a927f9b`. Implementation: `080a83f3f`.
 No push. This lane changes test build inputs only.
 
+**Complete:** all 12 existing storage regression rows passed, and the
+`storesize published monitoring` row passed within a 24/24 selected gate run,
+both using the requested CPUs and ports. Production bytes are unchanged.
+
 ## Failure and fix
 
 The landing run `build/gate-run.BTFBOD/jobs/storage_units/` failed to link
@@ -53,6 +57,15 @@ No additional missing source list was found.
 | Gate ASAN, read-local debug, core TSan source lists | `src/cmd/*.cc` includes storesize automatically |
 | Standalone config, flip, foreign-read filter, ring, waits, and policy fixtures | Do not instantiate FlatStore; no new link dependency |
 
+The selected storesize, multidb, namespace-boundary, EXECABORT/WATCH,
+atomic-survivor, flushfix, and netcap targets were also rebuilt successfully
+on CPUs 112–127; `make -q` returned 0 for all of them. Their
+[build log](docs/storesize4/selected-unit-build.log) and
+[symbol audit](docs/storesize4/other-unit-link-proof.txt) show no unresolved
+storesize references. The gate subsequently rebuilt its broader prerequisites
+and marked all 25 shared unit targets ready, plus its alternate-binary helper:
+[ready markers](docs/storesize4/shared-unit-ready.txt).
+
 `dump_restore` (`tests/gate.sh:2035`) boots the production binary and uses
 `tests/dumprestore.py`; it does not use any storage regression unit. Its
 conditional rerun is therefore unnecessary for this link-input fix.
@@ -81,11 +94,34 @@ actual TSan `flags` binary and the deadline-sidecar binary. The
 eight server threads, ratio 6:2, no SMT, and port range. These fixtures are
 serverless; the gate's live boot helpers retain their 16-shard geometry.
 
-The remaining `storesize published monitoring` gate proof is pending in this
-intermediate report. Its owning job is `atomic_units` (not `core_units`).
-The first attempt, `build/gate-run.T1IT2E`, stopped before jobs began because
+`storesize published monitoring` belongs to `atomic_units`. Its final run used
+the exact requested flags:
+
+```bash
+GATE_ONLY_JOBS=atomic_units \
+GATE_LEDGER="$PWD/build/storesize4-proof/atomic-exact-ledger" \
+taskset -c 112-127 tests/gate.sh iteration \
+  --server-cores 112-119 --load-cores 120-127 \
+  --server-smt '' --load-smt '' --ports 18340-18342
+```
+
+Run `build/gate-run.6enFqB`: **exit 0, 24 ok, 0 FAIL** (one release row plus
+all 23 atomic-unit rows). The
+[partial ledger](docs/storesize4/atomic-exact-ledger.partial),
+[gate output](docs/storesize4/atomic-exact-gate.log), and
+[CPU plan](docs/storesize4/atomic-exact-plan.sh) preserve that exact geometry.
+The [monitoring log](docs/storesize4/atomic-exact-storesize-unit.log) covers
+db0/multi × split/fused × read-local off/on and records the passing negative
+control: restoring the census route fails the exact monitor-route assertion.
+
+The first attempt, `build/gate-run.T1IT2E`, stopped at the
+[port guard](docs/storesize4/atomic-port-guard.log) before jobs began because
 `cx-respcompat` was actively listening on ports 18340–18341. No process from
-that worktree was stopped.
+that worktree was stopped. An intermediate serverless run on free ports
+18350–18352, `build/gate-run.evgHZg`, also exited 0 with
+[24 ok, 0 FAIL](docs/storesize4/atomic-ledger.partial). Once the requested
+ports cleared, the final warm run above repeated the proof on 18340–18342;
+the alternate-port run is not the sole evidence.
 
 ## Production identity and row accounting
 
@@ -94,6 +130,7 @@ It rebuilt the production objects because Makefile is their prerequisite.
 The [build log](docs/storesize4/release-build.log) and
 [SHA receipt](docs/storesize4/production-sha256.txt) retain the evidence.
 `cmp build/tomokv build/storesize3/POST` also exited 0.
+The SHA and byte comparison were checked again after both selected gate runs.
 
 | Binary | SHA-256 before and after make |
 | --- | --- |
@@ -105,6 +142,9 @@ before the quick-tier exit block at line 3279. `storage_units` is collected
 at line 3149. The lane's earlier contribution remains **+1 / +1**; the
 maintainer had already set EXPECT to **498 / 515** before this lane began.
 Neither those assignments nor the ledger fixture was edited here.
+`bash -n tests/gate.sh`, `git diff --check`, and the source/fixture/EXPECT
+preservation checks passed. The repaired storage ledger preserves the exact
+12 labels and order from the failed landing ledger.
 
 These are selected correctness runs, not a full gate receipt or a performance
 claim; no ABBA/NIC measurements or PAD arm are involved. Storesize3's separate
