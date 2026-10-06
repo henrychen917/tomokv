@@ -1845,6 +1845,10 @@ public:
     }
     void snapshot_save_succeeded(uint64_t change_cut) {
         save_change_baseline_.store(change_cut, std::memory_order_relaxed);
+        rdb_saves_.fetch_add(1, std::memory_order_relaxed);
+    }
+    uint64_t rdb_saves() const {
+        return rdb_saves_.load(std::memory_order_relaxed);
     }
     uint64_t scheduled_save_triggers() const {
         return scheduled_save_triggers_.load(std::memory_order_relaxed);
@@ -3570,6 +3574,9 @@ private:
         std::atomic<uint32_t> client_readers{0}; // cold record lifetime; absent when LB=0
     };
     std::unique_ptr<LbPlan> lb_plan_; // absent with both balancers off
+    // Successful snapshot finalization only; AOF rewrite bases do not count.
+    // Uses existing tail padding, preserving Server size and every existing offset.
+    std::atomic<uint64_t> rdb_saves_{0};
 
 };
 

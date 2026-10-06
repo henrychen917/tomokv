@@ -356,7 +356,7 @@ void init_config(const Config& cfg) {
     g_config.push_back({"aof-timestamp-enabled", ConfigKind::Bool,
                         cfg.aof_timestamp_enabled ? "yes" : "no"});
     g_config.push_back({"aof-load-truncated", ConfigKind::Bool,
-                        cfg.aof_load_truncated ? "yes" : "no", true});
+                        cfg.aof_load_truncated ? "yes" : "no"});
     add_config("maxmemory", ConfigKind::Bytes, cfg.maxmemory);
     g_config.push_back({"maxmemory-policy", ConfigKind::Policy,
                         maxmemory_policy_name(cfg.maxmemory_policy)});
@@ -508,6 +508,10 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
         case ConfigKind::Bool:
             if (eq_icase(input, "yes")) { out = "yes"; return true; }
             if (eq_icase(input, "no")) { out = "no"; return true; }
+            if (!std::strcmp(entry.name, "aof-load-truncated")) {
+                error = "argument must be 'yes' or 'no'";
+                return false;
+            }
             if (input == Slice("1", 1)) { out = "yes"; return true; }
             if (input == Slice("0", 1)) { out = "no"; return true; }
             return false;
@@ -607,6 +611,7 @@ bool collect_config_updates(Op& op,
         // Redis rejects a repeated spelling but accepts canonical + historical aliases in
         // argument order (last value wins). The original TomoKV aliases allowed repetition.
         if ((item->kind == ConfigKind::Encoding && !legacy_compact) ||
+            !std::strcmp(item->name, "aof-load-truncated") ||
             !std::strcmp(item->name, "client-query-buffer-limit")) {
             const std::string requested(op.arg(i).p, op.arg(i).n);
             for (uint32_t previous = 2; previous < i; previous += 2) {
@@ -2244,8 +2249,9 @@ void cmd_info(Shard&, Op& op) {
             for (uint32_t i = 0; i < g_server->nshards(); i++)
                 preimages += g_server->shard(static_cast<int32_t>(i)).store().snapshot_preimages();
         appendf(body,
-                "# Persistence\r\nrdb_bgsave_in_progress:%u\r\nrdb_last_save_time:%lld\r\n"
-                "rdb_changes_since_last_save:%llu\r\nrdb_scheduled_saves:%llu\r\n"
+                "# Persistence\r\nloading:%u\r\nrdb_changes_since_last_save:%llu\r\n"
+                "rdb_bgsave_in_progress:%u\r\nrdb_last_save_time:%lld\r\nrdb_saves:%llu\r\n"
+                "rdb_scheduled_saves:%llu\r\n"
                 "rdb_save_cron_checks:%llu\r\n"
                 "snapshot_preimages:%llu\r\n"
                 "snapshot_cuts_armed:%llu\r\nsnapshot_cuts_waited:%llu\r\n"
@@ -2253,21 +2259,24 @@ void cmd_info(Shard&, Op& op) {
                 "snapshot_cut_ticket:%llu\r\n"
                 "aof_enabled:%u\r\naof_rewrite_in_progress:%u\r\n"
                 "aof_rewrite_scheduled:%u\r\naof_last_bgrewrite_status:%s\r\n"
-                "aof_last_write_status:%s\r\naof_base_size:%llu\r\n"
-                "aof_current_size:%llu\r\naof_pending_rewrite:%u\r\n"
+                "aof_rewrites:%llu\r\naof_rewrites_consecutive_failures:%u\r\n"
+                "aof_last_write_status:%s\r\naof_current_size:%llu\r\n"
+                "aof_base_size:%llu\r\naof_pending_rewrite:%u\r\n"
                 "aof_records_written:%llu\r\n"
                 "aof_replayed_records:%llu\r\naof_groups_committed:%llu\r\n"
                 "aof_groups_skipped_on_replay:%llu\r\naof_fsyncs:%llu\r\n"
                 "aof_send_gate_waits:%llu\r\naof_control_frames_deferred:%llu\r\n"
                 "aof_rewrite_base_size:%llu\r\n"
-                "aof_rewrite_requests:%llu\r\naof_rewrite_completions:%llu\r\n"
+                "aof_rewrite_requests:%llu\r\n"
                 "aof_auto_rewrite_triggers:%llu\r\naof_history_unlinks:%llu\r\n"
-                "aof_rewrite_failures:%llu\r\naof_rewrite_consecutive_failures:%u\r\n"
+                "aof_rewrite_failures:%llu\r\n"
                 "aof_auto_rewrite_backoff_skips:%llu\r\n",
-                g_server && g_server->snapshot().in_progress() ? 1u : 0u,
-                static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
+                g_server && g_server->loading() ? 1u : 0u,
                 static_cast<unsigned long long>(
                     g_server ? g_server->save_changes_since_last_save() : 0),
+                g_server && g_server->snapshot().in_progress() ? 1u : 0u,
+                static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->rdb_saves() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->scheduled_save_triggers() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->save_cron_checks() : 0),
@@ -2282,9 +2291,11 @@ void cmd_info(Shard&, Op& op) {
                 g_server && g_server->aof().rewrite_in_progress() ? 1u : 0u,
                 g_server && g_server->aof().rewrite_scheduled() ? 1u : 0u,
                 g_server && g_server->aof().last_rewrite_ok() ? "ok" : "err",
+                static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_completions() : 0),
+                g_server ? g_server->aof().consecutive_rewrite_failures() : 0,
                 g_server && g_server->aof().failed() ? "err" : "ok",
-                static_cast<unsigned long long>(g_server ? g_server->aof().base_size() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().current_size() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().base_size() : 0),
                 g_server && g_server->aof().rewrite_scheduled() ? 1u : 0u,
                 static_cast<unsigned long long>(g_server ? g_server->aof().records_written() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().replayed_records() : 0),
@@ -2295,11 +2306,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->aof().control_defers() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_base_size() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_requests() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_completions() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().auto_rewrite_triggers() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().history_unlinks() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_failures() : 0),
-                g_server ? g_server->aof().consecutive_rewrite_failures() : 0,
                 static_cast<unsigned long long>(g_server ? g_server->aof().auto_rewrite_backoff_skips() : 0));
     }
     if (info_section(op, "STATS")) {
@@ -3008,6 +3017,12 @@ void command_config_snapshot(std::vector<std::pair<std::string, std::string>>& o
     out.clear();
     out.reserve(g_config.size());
     for (const ConfigValue& item : g_config) out.emplace_back(item.name, item.value);
+}
+
+bool command_aof_load_truncated(bool boot_value) {
+    std::lock_guard<std::mutex> lock(g_config_mu);
+    const ConfigValue* item = find_config(Slice("aof-load-truncated", 18));
+    return item ? item->value == "yes" : boot_value;
 }
 
 void command_config_resetstat() {

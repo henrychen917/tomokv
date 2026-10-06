@@ -378,7 +378,7 @@ struct Config {
     uint32_t auto_aof_rewrite_percentage = 100;
     uint64_t auto_aof_rewrite_min_size = 64ull * 1024 * 1024;
     bool aof_timestamp_enabled = false;
-    bool aof_load_truncated = true;     // boot-only recovery policy; existing bool alignment hole
+    bool aof_load_truncated = true;     // boot recovery policy; CONFIG overrides the next live load
 
     // Logical databases share the sharded store; physical namespace IDs are one byte.
     uint32_t databases = 1;
