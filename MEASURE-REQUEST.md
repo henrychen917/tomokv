@@ -235,3 +235,7 @@ audit below; exit **1** intentionally reports the documented differences:
 ```sh
 taskset -c 112-119 python3 tools/lbstall_artifacts.py compare build/l4prebuild-round2/pre-v6/build/src build/src build/l4prebuild-round3/bytes.json
 ```
+
+## flakefix follow-up
+
+See [MEASURE-REQUEST-flakefix.md](MEASURE-REQUEST-flakefix.md): directed GT17 window, inherited GT14 fixes, serverless receipts and frozen PRE/POST. WIP: strict ordinary-body audit has three emitted-symbol mismatches; six live repetitions and the 14-cell null remain pending. Gate rows +0/+0.

@@ -1,0 +1,14 @@
+Objects: 88 identical: 86
+Bodies: 16934 raw equal: 16858 bytes and resolved targets equal: 16927
+{"object": "db0/src/persist/aof.o", "name": "tomo_db0::AofManager::maybe_pause_rewrite(tomo_db0::AofRewriteDebugStage)", "symbol": "_ZN8tomo_db010AofManager19maybe_pause_rewriteENS_20AofRewriteDebugStageE", "raw_equal": false, "bytes_and_targets_equal": false, "pre_size": 490, "post_size": 522}
+{"object": "db0/src/persist/aof.o", "name": "tomo_db0::AofManager::maybe_pause_rewrite(tomo_db0::AofRewriteDebugStage) [clone .cold]", "symbol": "_ZN8tomo_db010AofManager19maybe_pause_rewriteENS_20AofRewriteDebugStageE.cold", "raw_equal": false, "bytes_and_targets_equal": false, "pre_size": 42, "post_size": 42}
+{"object": "db0/src/persist/aof.o", "name": "tomo_db0::AofManager::init(tomo_db0::Server&, tomo_db0::Config const&, unsigned int, unsigned int, unsigned int, tomo_db0::AofReplayPlan const*)", "symbol": "_ZN8tomo_db010AofManager4initERNS_6ServerERKNS_6ConfigEjjjPKNS_13AofReplayPlanE", "raw_equal": false, "bytes_and_targets_equal": false, "pre_size": 6408, "post_size": 6424}
+{"object": "src/persist/aof.o", "name": "tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage)", "symbol": "_ZN4tomo10AofManager19maybe_pause_rewriteENS_20AofRewriteDebugStageE", "raw_equal": false, "bytes_and_targets_equal": false, "pre_size": 490, "post_size": 522}
+{"object": "src/persist/aof.o", "name": "tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage) [clone .cold]", "symbol": "_ZN4tomo10AofManager19maybe_pause_rewriteENS_20AofRewriteDebugStageE.cold", "raw_equal": false, "bytes_and_targets_equal": false, "pre_size": 42, "post_size": 42}
+{"object": "src/persist/aof.o", "name": "tomo::AofManager::~AofManager()", "symbol": "_ZN4tomo10AofManagerD1Ev", "raw_equal": false, "bytes_and_targets_equal": false, "pre_size": 1467, "post_size": 1483}
+{"object": "src/persist/aof.o", "name": "tomo::AofManager::~AofManager()", "symbol": "_ZN4tomo10AofManagerD2Ev", "raw_equal": false, "bytes_and_targets_equal": false, "pre_size": 1467, "post_size": 1483}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakefix/docs/flakefix/audit_bodies.py", line 68, in <module>
+    assert not unexpected, "ordinary production bodies changed"
+           ^^^^^^^^^^^^^^
+AssertionError: ordinary production bodies changed
