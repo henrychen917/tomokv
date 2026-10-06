@@ -49,14 +49,31 @@ def run(api):
     original_atomic = parse(issue(admins[0], ["CONFIG", "GET", "atomic"]))[1]
     assert original_atomic in (b"0", b"1"), original_atomic
 
+    def read_local_snapshot(label):
+        payload = parse(issue(admins[0], ["INFO", "all"]))
+        fields = dict(line.split(b":", 1) for line in payload.split(b"\r\n")
+                      if b":" in line and not line.startswith(b"#"))
+        names = (b"thread_mode", b"read_local", b"read_local_hits",
+                 b"read_local_fallbacks", b"read_local_arms")
+        print("  CC18 read-local %s: %s" %
+              (label, " ".join("%s=%s" % (key.decode(), fields.get(key, b"missing").decode())
+                               for key in names)))
+
+    read_local_snapshot("suite-entry")
+
     def equal(args, expected=None, pairs=None):
         nonlocal checks
+        resetting = args == ["CONFIG", "RESETSTAT"]
+        if resetting:
+            read_local_snapshot("before-reset")
         replies = [issue(pair, args) for pair in (pairs or admins)]
         assert replies[0] == replies[1], (args, replies)
         if expected is not None:
             assert replies[0] == expected, (args, replies, expected)
         api["coverage"].note(args)
         checks += 1
+        if resetting:
+            read_local_snapshot("after-reset")
         return replies[0]
 
     def stats(expected, others=None):
@@ -230,6 +247,7 @@ def run(api):
                     wanted = [a] if verb == "COPY" else [a, b]
                     writer, reader = connect(endpoints[0]), connect(endpoints[0])
                     before = _lib.info(probe, "stats")
+                    placement = _lib.shards_of(probe, [a, b, dest])
                     with _lib.armed(probe, "ATOMIC-COMMIT-HOLD", 1):
                         writer[0].sendall(enc(["MSET", a, "private", b, "private"]))
                         deadline = time.monotonic() + 5
@@ -237,7 +255,13 @@ def run(api):
                             held = _lib.info(probe, "stats")
                             if int(held["atomic_pending_entries"]) >= 2:
                                 break
-                            assert time.monotonic() < deadline, "pending-source window never opened"
+                            assert time.monotonic() < deadline, (
+                                "pending-source window never opened", verb,
+                                {"before": before, "held": held,
+                                 "placement": placement,
+                                 "placement_after": _lib.shards_of(probe, [a, b, dest]),
+                                 "writer_ready": bool(select.select([writer[0]], [], [], 0)[0]),
+                                 "lbsignals": _lib.lbsignals(probe).raw})
                             time.sleep(.005)
                         assert not select.select([writer[0]], [], [], 0)[0], "writer escaped hold"
                         predecessor = int(held["atomic_predecessor_reads"])
