@@ -1,0 +1,3 @@
+START split-1 taskset -c 112-127 tests/differ_gate.sh /home/user/Projects/cx-storesize/build/storesize5/POST/tomokv 17899 17900 112-119 6:2
+END split-1 PASS 553.320s
+{"schema": 1, "group": "split", "parts": ["split-0", "split-1", "equivalence"], "start": 1791288238.47663, "end": 1791290881.787259, "seconds": 2643.31062912941, "comparisons": 540, "complete": true, "verdict": "PASS", "scope": "strict gate inventory fold; serial lane run, no parallel wall-time budget"}

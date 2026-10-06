@@ -1,0 +1,4 @@
+$ taskset -c 112-127 ./build/atomic-survivors-unit rename_overlay
+PASS rename_overlay
+
+exit=0

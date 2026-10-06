@@ -34,6 +34,7 @@ SRC      += src/cmd/pfdebug.cc
 SRC      += src/cmd/cmdmeta.cc
 SRC      += src/cmd/t_sort.cc
 SRC      += src/cmd/multidb.cc
+SRC      += src/cmd/storesize.cc
 SRC      += src/cmd/multi_admin.cc
 # Preserve mainline weak-symbol selection; isolated R7 bodies link last.
 SRC      += src/core/reorder.cc
@@ -133,12 +134,14 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=146400
 $(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128865
 $(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161715
-$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146214
+# ST3: compiler budgets for the out-of-line, nonthrowing publisher.
+# Remaining identity failures are explicit in MEASURE-REQUEST-storesize3.md.
+$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146270
 # RL1: retain the measured ALT spelling and its fused GET placement controls.
 # docs/rlfence2/alt.patch and MEASURE-REQUEST-rlfence3.md record the byte proofs.
-$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128873 -Wa,--defsym,tomo_rlfence_text_pad=16
-$(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161715
-$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=147380
+$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128910 -Wa,--defsym,tomo_rlfence_text_pad=16
+$(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161680
+$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=147304
 $(BUILD_ROOT)/db0/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Separate C++ namespaces prevent accidental cross-variant inline/COMDAT binding.
@@ -219,7 +222,7 @@ build/read-local-write-ring-unit: tests/read_local_write_ring_unit.cc $(wildcard
 build/rlfence-unit: tests/rlfence_unit.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -I. tests/rlfence_unit.cc -o $@
-STORE_REGRESSION_SRC := tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc
+STORE_REGRESSION_SRC := tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc src/cmd/storesize.cc
 build/store-regression: $(STORE_REGRESSION_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -ffunction-sections -fdata-sections -DTOMO_STORE_REGRESSION_TEST -I. \
@@ -250,6 +253,17 @@ unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flip
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
 DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
+# ST2 cost witness: only the two cold census walks are instrumented. The fixture
+# dispatches real commands and counts work; it never boots a listener or workers.
+STORESIZE_CORE_OBJ := $(filter-out build/src/cmd/xshard.o build/src/cmd/multidb.o build/db0/src/cmd/xshard.o build/db0/src/cmd/multidb.o,$(CORE_TEST_OBJ) $(DB0_TEST_OBJ))
+build/storesize/multidb.cc: tests/storesize_checks.py src/cmd/multidb.cc
+	python3 $< src/cmd/multidb.cc $@
+build/storesize/multidb.o: build/storesize/multidb.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Isrc/cmd -I. -c $< -o $@
+build/storesize/db0-multidb.o: build/storesize/multidb.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -Isrc/cmd -I. -c $< -o $@
+build/storesize-unit: build/tests/storesize_unit.o build/db0/tests/storesize_unit.o build/storesize/multidb.o build/storesize/db0-multidb.o $(STORESIZE_CORE_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # AT15: production transaction routing, no listener or worker threads.
 build/at15-unit: build/tests/at15_unit.o $(CORE_TEST_OBJ)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm

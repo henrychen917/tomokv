@@ -404,7 +404,7 @@ bool command_aof_load_truncated(bool boot_value);
 // keeps every counter's single-writer property intact and adds no cross-thread write.
 void command_config_resetstat();
 bool command_validate_all_shards(Op& op);
-bool command_config_routes_all_shards(Op& op);
+bool command_config_routes_all_shards(Op& op, bool execution_boundary = false);
 bool command_validate_config_set(Op& op);
 bool command_prepare_script_route(Server& server, Op& op);
 bool command_validate_script_route(Op& op, uint32_t& first, uint32_t& count);

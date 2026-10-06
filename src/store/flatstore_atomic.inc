@@ -1295,10 +1295,12 @@ private:
                 if (object && tag_of_word(word) == tag && object->key().key_eq(key)) {
                     obj_bytes_ -= kvobj_size(object);
                     if (replacement && table == 0) {
+                        if constexpr (!kSingleDatabase) storesize_replace(object, replacement);
                         (void)track_expire(hash, replacement);
                         read_local_slot_store(&tab_[table][slot], make_word(tag, replacement));
                         obj_bytes_ += kvobj_size(replacement);
                     } else {
+                        if constexpr (!kSingleDatabase) storesize_replace(object, nullptr);
                         untrack_expire(hash);
                         read_local_slot_store(&tab_[table][slot], kTombBit);
                         live_[table]--; tombs_[table]++;
@@ -1312,6 +1314,7 @@ private:
         auto insert_replacement = [&] {
             if (!replacement) return;
             if (!have_insertion_slot) std::abort();
+            if constexpr (!kSingleDatabase) storesize_replace(nullptr, replacement);
             read_local_slot_store(
                 &tab_[0][insertion_slot], make_word(tag_of(hash), replacement));
             if (insertion_reuses_tomb) tombs_[0]--;
@@ -1370,10 +1373,12 @@ private:
                 if (object && tag_of_word(word) == tag && object->key().key_eq(key)) {
                     obj_bytes_ -= kvobj_size(object);
                     if (replacement && table == 0) {
+                        if constexpr (!kSingleDatabase) storesize_replace(object, replacement);
                         (void)track_expire(hash, replacement);
                         tab_[table][slot] = make_word(tag, replacement);
                         obj_bytes_ += kvobj_size(replacement);
                     } else {
+                        if constexpr (!kSingleDatabase) storesize_replace(object, nullptr);
                         untrack_expire(hash);
                         tab_[table][slot] = kTombBit;
                         live_[table]--; tombs_[table]++;
@@ -1387,6 +1392,7 @@ private:
         auto insert_replacement = [&] {
             if (!replacement) return;
             if (!have_insertion_slot) std::abort();
+            if constexpr (!kSingleDatabase) storesize_replace(nullptr, replacement);
             tab_[0][insertion_slot] = make_word(tag_of(hash), replacement);
             if (insertion_reuses_tomb) tombs_[0]--;
             live_[0]++;

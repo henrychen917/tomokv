@@ -2713,6 +2713,47 @@ void cmd_info(Shard&, Op& op) {
                         static_cast<unsigned long long>(row.expires ? row.ttl / row.expires : 0),
                         static_cast<unsigned long long>(row.subexpiry));
             }
+        } else if (kSingleDatabase && g_server && keys) {
+            unsigned __int128 ttl_sum = 0;
+            const uint64_t now = now_realtime_ms();
+            for (uint32_t i = 0; i < g_server->nshards(); ++i) {
+                const Shard& shard = g_server->shard(static_cast<int32_t>(i));
+                const uint64_t deadline = shard.store().published_avg_deadline();
+                if (deadline > now)
+                    ttl_sum += static_cast<unsigned __int128>(deadline - now) * shard.published_expires();
+            }
+            appendf(body, "db0:keys=%llu,expires=%llu,avg_ttl=%llu,subexpiry=0\r\n",
+                    static_cast<unsigned long long>(keys),
+                    static_cast<unsigned long long>(expires),
+                    static_cast<unsigned long long>(expires ? ttl_sum / expires : 0));
+        } else if (!kSingleDatabase && g_server) {
+            const uint64_t now = now_realtime_ms();
+            DatabaseMap::Read map(g_server->databases());
+            for (uint32_t db = 0; db < g_server->cfg().databases; ++db) {
+                uint64_t dbkeys = 0, dbexpires = 0;
+                unsigned __int128 ttl_sum = 0;
+                for (uint32_t i = 0; i < g_server->nshards(); ++i) {
+                    const Shard& shard = g_server->shard(static_cast<int32_t>(i));
+                    uint64_t count, expiring;
+                    if constexpr (kSingleDatabase) {
+                        count = shard.published_size();
+                        expiring = shard.published_expires();
+                    } else {
+                        const auto packed = shard.store().published_database_counts(map[db]);
+                        count = static_cast<uint32_t>(packed);
+                        expiring = packed >> 32;
+                    }
+                    dbkeys += count; dbexpires += expiring;
+                    const uint64_t deadline = shard.store().published_avg_deadline(map[db]);
+                    if (deadline > now)
+                        ttl_sum += static_cast<unsigned __int128>(deadline - now) * expiring;
+                }
+                if (!dbkeys) continue;
+                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu,subexpiry=%llu\r\n", db,
+                        static_cast<unsigned long long>(dbkeys),
+                        static_cast<unsigned long long>(dbexpires),
+                        static_cast<unsigned long long>(dbexpires ? ttl_sum / dbexpires : 0), 0ULL);
+            }
         }
     }
     if (g_server && info_section(op, "WRITEBACK")) g_server->wb_policy_info(body);
@@ -2726,8 +2767,11 @@ void cmd_dbsize(Shard&, Op& op) {
         return;
     }
     uint64_t keys = 0;
-    if (g_server) for (uint32_t i = 0; i < g_server->nshards(); i++)
-        keys += g_server->shard(static_cast<int32_t>(i)).published_size();
+    if (g_server) for (uint32_t i = 0; i < g_server->nshards(); i++) {
+        const auto& shard = g_server->shard(static_cast<int32_t>(i));
+        if constexpr (kSingleDatabase) keys += shard.published_size();
+        else keys += static_cast<uint32_t>(shard.store().published_database_counts(op.physical_db));
+    }
     reply_int(op.sink(), static_cast<long long>(keys));
 }
 
@@ -3287,13 +3331,18 @@ bool command_validate_all_shards(Op& op) {
     return false;
 }
 
-bool command_config_routes_all_shards(Op& op) {
+bool command_config_routes_all_shards(Op& op, bool execution_boundary) {
     // The conditional-scatter route: CONFIG SET fans out; DBSIZE NOW (owner request 2026-08-25)
     // is the exact-on-demand variant -- each owner counts its own store at execution time, so the
     // reply reflects everything already dispatched ahead of it on every shard, with none of the
     // batch-boundary publication lag the plain DBSIZE reads.
-    if (op.cmd_name().eq_icase("info")) return info_section(op, "KEYSPACE", true);
-    if (op.cmd_name().eq_icase("dbsize")) return op.argc() == 1 || (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
+    if (op.cmd_name().eq_icase("info"))
+        return info_section(op, "KEYSPACE", true) &&
+            // INFO queued in EXEC must census the transaction-visible images at its
+            // command position, even when no published field-TTL attention is set.
+            (execution_boundary || !storesize_published_route() ||
+             (g_server && storesize_field_census(*g_server)));
+    if (op.cmd_name().eq_icase("dbsize")) return (op.argc() == 1 && !storesize_published_route()) || (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
     if (op.cmd_name().eq_icase("debug"))
         return op.argc() == 2 &&
                (eq_icase(op.arg(1), "reload") || eq_icase(op.arg(1), "loadaof") ||

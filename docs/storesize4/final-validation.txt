@@ -1,0 +1,9 @@
+build/tomokv SHA-256: 30035c48fed39833b82041232230ed535d556821ae45adc47e633ff9b7265807
+cmp build/tomokv build/storesize3/POST: PASS
+Production sources, fixtures and EXPECT assignments unchanged from 848fb3977: PASS
+bash -n tests/gate.sh: PASS
+storage_units exact requested geometry: exit 0, 12 ok, 0 FAIL
+atomic_units alternate ports: exit 0, 24 ok, 0 FAIL
+atomic_units exact requested geometry: exit 0, 24 ok, 0 FAIL
+storesize published monitoring and restored-census negative control: PASS
+All report evidence links resolve: PASS

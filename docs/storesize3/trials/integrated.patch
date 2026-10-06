@@ -1,0 +1,273 @@
+--- a/src/store/flatstore.h
++++ b/src/store/flatstore.h
+@@ -87,13 +87,8 @@
+ 
+ namespace tomo {
+ 
+-// Cold monitor-only state. The definition is visible so GCC can prove that
+-// publication does not modify any executor/parser state; the sampler stays out
+-// of line. Per-operation storage/command bodies remain independently auditable.
+-struct StoreSizeState {
+-    uint64_t sample_cursor = 0;
+-    std::atomic<uint64_t> avg_deadline{0};
+-};
++// Defined with the sampler in the cold monitoring translation unit.
++struct StoreSizeState;
+ 
+ // Fault injection for the cold table-allocation paths. It is compiled in whenever NDEBUG is not
+ // defined -- which is every build the Makefile produces, release included -- and costs one relaxed
+@@ -249,23 +244,9 @@
+         return checked;
+     }
+ 
+-    // Monitoring's owner-side sample has its own cursor. It neither advances
+-    // active expiry's cursor nor migrates/reaps anything, and counts empty slots
+-    // against its budget. INFO itself never enters this function.
++    // Instantiated only by the cold monitoring sampler.
+     template <typename Fn>
+-    void sample_readonly(uint64_t& cursor, uint32_t budget, Fn&& fn) const {
+-        const size_t old_left = cap_[0] - migrate_;
+-        const size_t total = old_left + cap_[1];
+-        for (size_t n = 0; n < std::min<size_t>(budget, total); ++n) {
+-            if (cursor >= total) cursor = 0;
+-            const size_t pos = cursor++;
+-            if (pos < old_left) {
+-                if (states(0)[migrate_ + pos] == kLive) fn(hashes_[0][migrate_ + pos]);
+-            } else if (states(1)[pos - old_left] == kLive) {
+-                fn(hashes_[1][pos - old_left]);
+-            }
+-        }
+-    }
++    void sample_readonly(uint64_t& cursor, uint32_t budget, Fn&& fn) const;
+ 
+     // Best-effort random live hash selection. Both the random probes and sparse-table cursor
+     // fallback are bounded; callers count a miss as part of their sampling budget.
+@@ -1023,29 +1004,12 @@
+     size_t   object_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
+     uint32_t expire_count() const { return expires_.size(); }
+     // Cold batch-boundary publication. No key/TTL mutation publishes counters.
+-    bool init_storesize();
+-    __attribute__((noinline)) void publish_keyspace_sample() const {
+-        auto* storesize_ = storesize_state();
+-        unsigned __int128 sum = 0;
+-        uint32_t count = 0;
+-        // Two migration steps cover the index's initial 16 slots. Work remains
+-        // bounded even at millions of volatile keys; this is an estimate, as in Redis.
+-        expires_.sample_readonly(storesize_->sample_cursor, 2 * kRehashSlotsPerOp,
+-            [&](uint64_t hash) {
+-                const KvObj* object = find_hash_in(0, hash);
+-                if (!object && rehashing()) object = find_hash_in(1, hash);
+-                if (!object) return;
+-                const int64_t at = deadline(hash, object);
+-                if (at <= cached_now_ms_) return;
+-                sum += static_cast<uint64_t>(at);
+-                ++count;
+-            });
+-        if (count) storesize_->avg_deadline.store(sum / count, std::memory_order_relaxed);
+-    }
+-
++    [[gnu::noinline, gnu::cold]] bool init_storesize();
++    [[gnu::noinline]] void publish_keyspace_sample() const noexcept;
++    bool published_field_ttl_attention() const noexcept;
+     uint64_t published_avg_deadline(uint8_t physical = 0) const;
+     uint64_t published_database_counts(uint8_t physical) const;
+-    void publish_database_counts() const;
++    [[gnu::noinline]] void publish_database_counts() const noexcept;
+     // Hashes in this shard carrying at least one field deadline. THE gate for the whole hash-field
+     // TTL feature: a shard that has never seen HEXPIRE reads zero here and every hash command pays
+     // one predicted-false test, with all field-TTL machinery out of line behind it.
+@@ -1977,12 +1941,9 @@
+     }
+ 
+ private:
+-    void destroy_storesize();
+-    StoreSizeState* storesize_state() const {
+-        StoreSizeState* state;
+-        std::memcpy(&state, reader_owner_gap_ + 4, sizeof(state));
+-        return state;
+-    }
++    [[gnu::noinline, gnu::cold]] void destroy_storesize();
++    StoreSizeState* storesize_state() const;
++    void publish_field_ttl_attention() const noexcept;
+     void storesize_replace(const KvObj* before, const KvObj* after);
+     void storesize_deadline(const KvObj* object, int64_t deadline);
+     void storesize_clear();
+--- a/src/core/shard.h
++++ b/src/core/shard.h
+@@ -334,8 +334,7 @@
+         const auto expires = store_.expire_count();
+         if (published_expires_.load(std::memory_order_relaxed) != expires)
+             published_expires_.store(expires, std::memory_order_relaxed);
+-        if constexpr (kSingleDatabase)
+-            if (expires) store_.publish_keyspace_sample();
++        if constexpr (kSingleDatabase) store_.publish_keyspace_sample();
+         if constexpr (!kSingleDatabase) store_.publish_database_counts();
+         const auto evicted = stats_.evicted;
+         if (published_evicted_.load(std::memory_order_relaxed) != evicted)
+@@ -346,8 +345,7 @@
+         published_size_.store(store_.size(), std::memory_order_relaxed);
+         published_obj_bytes_.store(store_.object_bytes(), std::memory_order_relaxed);
+         published_expires_.store(store_.expire_count(), std::memory_order_relaxed);
+-        if constexpr (kSingleDatabase)
+-            if (store_.expire_count()) store_.publish_keyspace_sample();
++        if constexpr (kSingleDatabase) store_.publish_keyspace_sample();
+         if constexpr (!kSingleDatabase) store_.publish_database_counts();
+         published_evicted_.store(stats_.evicted, std::memory_order_relaxed);
+     }
+--- a/src/cmd/storesize.cc
++++ b/src/cmd/storesize.cc
+@@ -4,6 +4,54 @@
+ 
+ namespace tomo {
+ __attribute__((noipa)) bool storesize_published_route() { return true; }
++
++struct StoreSizeState {
++    uint64_t sample_cursor = 0;
++    std::atomic<uint64_t> avg_deadline{0};
++    std::atomic<bool> field_ttl_attention{false};
++};
++
++StoreSizeState* FlatStore::storesize_state() const {
++    StoreSizeState* state;
++    std::memcpy(&state, reader_owner_gap_ + 4, sizeof(state));
++    return state;
++}
++
++template <typename Fn>
++void ExpireIndex::sample_readonly(uint64_t& cursor, uint32_t budget, Fn&& fn) const {
++    const size_t old_left = cap_[0] - migrate_;
++    const size_t total = old_left + cap_[1];
++    for (size_t n = 0; n < std::min<size_t>(budget, total); ++n) {
++        if (cursor >= total) cursor = 0;
++        const size_t pos = cursor++;
++        if (pos < old_left) {
++            if (states(0)[migrate_ + pos] == kLive) fn(hashes_[0][migrate_ + pos]);
++        } else if (states(1)[pos - old_left] == kLive) {
++            fn(hashes_[1][pos - old_left]);
++        }
++    }
++}
++
++void FlatStore::publish_keyspace_sample() const noexcept {
++    auto* storesize_ = storesize_state();
++    publish_field_ttl_attention();
++    if (!expire_count()) return;
++    unsigned __int128 sum = 0;
++    uint32_t count = 0;
++    // Two migration steps cover the index's initial 16 slots. Work remains
++    // bounded even at millions of volatile keys; this is an estimate, as in Redis.
++    expires_.sample_readonly(storesize_->sample_cursor, 2 * kRehashSlotsPerOp,
++        [&](uint64_t hash) {
++            const KvObj* object = find_hash_in(0, hash);
++            if (!object && rehashing()) object = find_hash_in(1, hash);
++            if (!object) return;
++            const int64_t at = deadline(hash, object);
++            if (at <= cached_now_ms_) return;
++            sum += static_cast<uint64_t>(at);
++            ++count;
++        });
++    if (count) storesize_->avg_deadline.store(sum / count, std::memory_order_relaxed);
++}
+ 
+ struct StoreSizePublished {
+     // The key/expiry pair is one atomic observation; an INFO row never combines
+@@ -35,6 +83,26 @@
+     else state = new (std::nothrow) MultiStoreSizeState;
+     std::memcpy(reader_owner_gap_ + 4, &state, sizeof(state));
+     return state != nullptr;
++}
++
++// at15b counts nonempty field-TTL hash objects in the owner census. Publish
++// only the conservative attention flag here: ordinary monitoring remains a
++// counter read, and the existing census remains the exact source when needed.
++void FlatStore::publish_field_ttl_attention() const noexcept {
++    auto& published = storesize_state()->field_ttl_attention;
++    const bool value = field_expire_count() != 0;
++    if (published.load(std::memory_order_relaxed) != value)
++        published.store(value, std::memory_order_relaxed);
++}
++
++bool FlatStore::published_field_ttl_attention() const noexcept {
++    return storesize_state()->field_ttl_attention.load(std::memory_order_relaxed);
++}
++
++bool storesize_field_census(const Server& server) {
++    for (uint32_t sid = 0; sid < server.nshards(); ++sid)
++        if (server.shard(sid).store().published_field_ttl_attention()) return true;
++    return false;
+ }
+ 
+ uint64_t FlatStore::published_avg_deadline(uint8_t physical) const {
+@@ -101,7 +169,8 @@
+     }
+ }
+ 
+-void FlatStore::publish_database_counts() const {
++void FlatStore::publish_database_counts() const noexcept {
++    publish_field_ttl_attention();
+     if constexpr (!kSingleDatabase) {
+         auto& state = *static_cast<MultiStoreSizeState*>(storesize_state());
+         for (unsigned word = 0; word < 4; ++word) {
+--- a/src/cmd/multidb.h
++++ b/src/cmd/multidb.h
+@@ -212,9 +212,10 @@
+ Slice multidb_display_argument(const Op& op, uint32_t argument);
+ bool multidb_validate_swap(Server& server, Op& op);
+ bool multidb_commit_swap(Server& server, Shard& shard, Op& op);
+-struct DatabaseStats { uint64_t keys = 0, expires = 0, ttl = 0; };
++struct DatabaseStats { uint64_t keys = 0, expires = 0, ttl = 0, subexpiry = 0; };
+ using DatabaseStatsTable = std::array<DatabaseStats, 256>;
+ void multidb_stats(Shard& shard, DatabaseStatsTable& stats);
+ void command_info_with_databases(Server& server, Op& op, const DatabaseStatsTable& stats);
+ bool storesize_published_route();
++bool storesize_field_census(const Server& server);
+ } // namespace tomo
+--- a/src/cmd/t_server.cc
++++ b/src/cmd/t_server.cc
+@@ -2696,10 +2696,11 @@
+             for (uint32_t db = 0; db < g_server->cfg().databases; ++db) {
+                 const auto& row = (*g_database_stats)[map[db]];
+                 if (!row.keys) continue;
+-                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu\r\n", db,
++                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu,subexpiry=%llu\r\n", db,
+                         static_cast<unsigned long long>(row.keys),
+                         static_cast<unsigned long long>(row.expires),
+-                        static_cast<unsigned long long>(row.expires ? row.ttl / row.expires : 0));
++                        static_cast<unsigned long long>(row.expires ? row.ttl / row.expires : 0),
++                        static_cast<unsigned long long>(row.subexpiry));
+             }
+         } else if (kSingleDatabase && g_server && keys) {
+             unsigned __int128 ttl_sum = 0;
+@@ -2710,7 +2711,7 @@
+                 if (deadline > now)
+                     ttl_sum += static_cast<unsigned __int128>(deadline - now) * shard.published_expires();
+             }
+-            appendf(body, "db0:keys=%llu,expires=%llu,avg_ttl=%llu\r\n",
++            appendf(body, "db0:keys=%llu,expires=%llu,avg_ttl=%llu,subexpiry=0\r\n",
+                     static_cast<unsigned long long>(keys),
+                     static_cast<unsigned long long>(expires),
+                     static_cast<unsigned long long>(expires ? ttl_sum / expires : 0));
+@@ -2737,10 +2738,10 @@
+                         ttl_sum += static_cast<unsigned __int128>(deadline - now) * expiring;
+                 }
+                 if (!dbkeys) continue;
+-                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu\r\n", db,
++                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu,subexpiry=%llu\r\n", db,
+                         static_cast<unsigned long long>(dbkeys),
+                         static_cast<unsigned long long>(dbexpires),
+-                        static_cast<unsigned long long>(dbexpires ? ttl_sum / dbexpires : 0));
++                        static_cast<unsigned long long>(dbexpires ? ttl_sum / dbexpires : 0), 0ULL);
+             }
+         }
+     }
+@@ -3317,7 +3318,9 @@
+     // is the exact-on-demand variant -- each owner counts its own store at execution time, so the
+     // reply reflects everything already dispatched ahead of it on every shard, with none of the
+     // batch-boundary publication lag the plain DBSIZE reads.
+-    if (op.cmd_name().eq_icase("info")) return !storesize_published_route() && info_section(op, "KEYSPACE", true);
++    if (op.cmd_name().eq_icase("info"))
++        return info_section(op, "KEYSPACE", true) &&
++            (!storesize_published_route() || (g_server && storesize_field_census(*g_server)));
+     if (op.cmd_name().eq_icase("dbsize")) return (op.argc() == 1 && !storesize_published_route()) || (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
+     if (op.cmd_name().eq_icase("debug"))
+         return op.argc() == 2 &&

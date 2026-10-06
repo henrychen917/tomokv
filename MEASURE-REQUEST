@@ -18,17 +18,27 @@ three regimes, counters, arms and pass conditions. PRE, POST and verified PAD-A
 are built; serverless proofs pass. No server, benchmark, live test or gate was run.
 Mainline measurement and live-gate acceptance remain pending.
 
+Lane storesize3: ST3 — cold boundary and partial restoration, body-identity WIP
+
+See MEASURE-REQUEST-storesize3.md for the cold-unit extraction, 7/9 original
+raw-body matches, full literal-byte failure lists in both images, and rebuilt
+POST/PAD-A hashes. PRE remains 47b0c843d59a. Strict body identity still FAILS;
+five ordinary db0 instruction differences remain against merged mainline,
+and multi-DB producer/incidental changes remain. Serverless positive suites
+and rejected routing control pass. Subexpiry retains the exact census source;
+field-TTL INFO may walk keys. One gate row remains +1/+1 (counts 498/515).
+No server, benchmark, gate or push; builds/checks on CPUs 112-127.
+
 Lane at15: MULTI admin replies
 
 See MEASURE-REQUEST-at15.md for PRE/POST hashes, serverless falsification, body
 identity, the +1/+1 row count, and explicit Redis-table/group-5 policy differences.
 Live verification and the gate remain maintainer work; no push.
 
-Lane cmdmeta: EX9 orphan command metadata
+Lane storesize5: at15 composition and monitoring differential contract complete
 
-See MEASURE-REQUEST-cmdmeta.md. Removed 33 orphan rows through the existing generator;
-341 metadata rows and 245 registry commands remain. Offline drift, regression controls,
-and object/linked byte audits pass within the documented address-relocation limits.
-PRE, POST, build/tomokv and explicit kind-A PAD are ready with SHA-256 receipts.
-Both-mode live differential/gate and the ordinary-command performance null remain
-maintainer work. No server, benchmark, or gate was run. Rows +0/+0; no push.
+See MEASURE-REQUEST-storesize5.md: final split/armed folds complete=true PASS;
+40 AT15b proofs, storesize/multidb checks and 12+25 selected gate rows PASS.
+Original PTTL failures retained; unchanged full atomic-one replays passed.
+PRE/POST/PAD-A hashes and full body differences recorded. No push.
+Maintainer bookkeeping: existing storesize +1/+1 gives 500/517 and its fixture label.

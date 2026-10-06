@@ -1,0 +1,12 @@
+FAIL	0.000000	storage unlinked regression
+FAIL	0.010000	storage randomkey regression
+FAIL	0.010000	storage rehash regression
+FAIL	0.000000	storage rollback regression
+FAIL	0.000000	storage snapshot-eviction regression
+FAIL	0.010000	storage flags regression
+FAIL	0.010000	storage aof-eviction regression
+FAIL	0.000000	storage intents regression
+FAIL	0.000000	storage imported-hash regression
+FAIL	0.000000	storage field-index-failure regression
+FAIL	0.000000	storage hash-bytes regression
+FAIL	0.000000	storage deadline-sidecar regression

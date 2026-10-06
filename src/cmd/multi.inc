@@ -525,7 +525,7 @@ MultiCommandKind classify_multi_command(MultiCommand& command) {
     if (has_name(command.queued, "unwatch")) return MultiCommandKind::UnwatchReply;
     if (command.queued.spec->flags & CmdFlags::ConnLocal) return MultiCommandKind::IoLocal;
     if (command.queued.spec->flags & CmdFlags::ConfigRoute)
-        return command_config_routes_all_shards(*command.op)
+        return command_config_routes_all_shards(*command.op, true)
             ? MultiCommandKind::Unsupported : MultiCommandKind::Admin;
     // SubcmdRoute containers ride CursorShard only to reach the IO special-route hook; they are
     // not cursor commands. Their keyed forms have a truthful key range and fall through to Local;

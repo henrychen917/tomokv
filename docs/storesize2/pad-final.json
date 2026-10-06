@@ -1,0 +1,9 @@
+{
+  "kind": "A: behaviour twin",
+  "behavior": "PRE monitoring census routes; POST text sizes, symbol addresses and counter-maintenance code",
+  "changed_bytes": 2,
+  "source": "build/storesize2/POST",
+  "output": "build/storesize2/PAD-A",
+  "source_sha256": "f5195d4ac6e6f70f36907d70a809b1cdee17115973ea26f98e69b92e27a5f614",
+  "sha256": "1858a825dfd3a17e23fd37598b4e28531de811c4a5883b9b2d42a021af2f7313"
+}

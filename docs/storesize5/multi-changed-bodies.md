@@ -1,0 +1,362 @@
+# multi: 360 changed emitted copies versus origin/cpp
+
+- `cmd/l4prebuild.o: void tomo::(anonymous namespace)::cmd_set_prebuilt<false>(tomo::Shard&, tomo::Op&)` — 2372 → 2372 bytes; raw=False, resolved=True.
+- `cmd/l4prebuild.o: void tomo::(anonymous namespace)::cmd_set_prebuilt<true>(tomo::Shard&, tomo::Op&)` — 3192 → 3064 bytes; raw=False, resolved=False.
+- `cmd/l4prebuild.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 1416 → 1448 bytes; raw=False, resolved=False.
+- `cmd/l4prebuild.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 1191 → 1207 bytes; raw=False, resolved=False.
+- `cmd/l4prebuild.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 2032 → 1990 bytes; raw=False, resolved=False.
+- `cmd/l4prebuild.o: tomo::FlatStore::erase(unsigned long, tomo::Slice)` — 2542 → 2042 bytes; raw=False, resolved=False.
+- `cmd/l4prebuild.o: tomo::FlatStore::insert(unsigned long, tomo::KvObj*)` — 2095 → 1897 bytes; raw=False, resolved=False.
+- `cmd/l4prebuild.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 955 → 971 bytes; raw=False, resolved=False.
+- `cmd/multidb.o: tomo::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `cmd/multidb.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 1862 → 1910 bytes; raw=False, resolved=False.
+- `cmd/multidb.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 1282 → 1314 bytes; raw=False, resolved=False.
+- `cmd/multidb.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 2270 → 2304 bytes; raw=False, resolved=False.
+- `cmd/pfdebug.o: tomo::FlatStore::find(unsigned long, tomo::Slice)` — 697 → 2147 bytes; raw=False, resolved=False.
+- `cmd/pfdebug.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*) [clone .isra.0]` — 2168 → 0 bytes; raw=False, resolved=False.
+- `cmd/scripting.o: tomo::(anonymous namespace)::cmd_script(tomo::Shard&, tomo::Op&)` — 4078 → 4078 bytes; raw=False, resolved=True.
+- `cmd/scripting.o: void tomo::(anonymous namespace)::cmd_eval<false, true, false>(tomo::Shard&, tomo::Op&)` — 284 → 284 bytes; raw=False, resolved=True.
+- `cmd/scripting.o: void tomo::(anonymous namespace)::cmd_eval<false, true, true>(tomo::Shard&, tomo::Op&)` — 284 → 284 bytes; raw=False, resolved=True.
+- `cmd/scripting.o: void tomo::(anonymous namespace)::cmd_eval<true, true, false>(tomo::Shard&, tomo::Op&)` — 284 → 284 bytes; raw=False, resolved=True.
+- `cmd/scripting.o: void tomo::(anonymous namespace)::cmd_eval<true, true, true>(tomo::Shard&, tomo::Op&)` — 284 → 284 bytes; raw=False, resolved=True.
+- `cmd/scripting.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_eval<true, false, false>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/scripting.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_eval<true, false, true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/scripting.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_eval<true, true, false>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/scripting.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_eval<true, true, true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/scripting.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 1700 → 1732 bytes; raw=False, resolved=False.
+- `cmd/scripting.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 1191 → 1207 bytes; raw=False, resolved=False.
+- `cmd/scripting.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 2032 → 1990 bytes; raw=False, resolved=False.
+- `cmd/scripting.o: tomo::FlatStore::erase(unsigned long, tomo::Slice)` — 2767 → 2799 bytes; raw=False, resolved=False.
+- `cmd/serialize.o: tomo::cmd_restore(tomo::Shard&, tomo::Op&)` — 2123 → 2123 bytes; raw=False, resolved=True.
+- `cmd/serialize.o: tomo::(anonymous namespace)::cmd_restore_notify_body(tomo::Shard&, tomo::Op&)` — 2606 → 2606 bytes; raw=False, resolved=True.
+- `cmd/serialize.o: tomo::cmd_restore_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/serialize.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 1213 → 1243 bytes; raw=False, resolved=False.
+- `cmd/serialize.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 855 → 871 bytes; raw=False, resolved=False.
+- `cmd/serialize.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1375 → 1405 bytes; raw=False, resolved=False.
+- `cmd/serialize.o: tomo::FlatStore::erase(unsigned long, tomo::Slice)` — 1383 → 1320 bytes; raw=False, resolved=False.
+- `cmd/serialize.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 564 → 580 bytes; raw=False, resolved=False.
+- `cmd/server_tail.o: tomo::(anonymous namespace)::cmd_memory(tomo::Shard&, tomo::Op&)` — 8622 → 8622 bytes; raw=False, resolved=True.
+- `cmd/server_tail.o: tomo::(anonymous namespace)::cmd_object(tomo::Shard&, tomo::Op&)` — 1216 → 1216 bytes; raw=False, resolved=True.
+- `cmd/server_tail.o: tomo::(anonymous namespace)::cmd_waitaof(tomo::Shard&, tomo::Op&)` — 597 → 597 bytes; raw=False, resolved=True.
+- `cmd/server_tail.o: tomo::(anonymous namespace)::cmd_failover(tomo::Shard&, tomo::Op&)` — 450 → 450 bytes; raw=False, resolved=True.
+- `cmd/server_tail.o: tomo::(anonymous namespace)::cmd_shutdown(tomo::Shard&, tomo::Op&)` — 1319 → 1319 bytes; raw=False, resolved=True.
+- `cmd/server_tail.o: tomo::(anonymous namespace)::cmd_object_notify(tomo::Shard&, tomo::Op&)` — 1216 → 1216 bytes; raw=False, resolved=True.
+- `cmd/server_tail.o: tomo::(anonymous namespace)::cmd_role(tomo::Shard&, tomo::Op&)` — 655 → 655 bytes; raw=False, resolved=True.
+- `cmd/server_tail.o: tomo::command_prepare_subcmd_route(tomo::Server&, tomo::Op&)` — 941 → 941 bytes; raw=False, resolved=True.
+- `cmd/server_tail.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*) [clone .isra.0]` — 1497 → 1684 bytes; raw=False, resolved=False.
+- `cmd/t_hash.o: void tomo::(anonymous namespace)::cmd_hrandfield<false>(tomo::Shard&, tomo::Op&) [clone .cold]` — 57 → 57 bytes; raw=False, resolved=True.
+- `cmd/t_hash.o: void tomo::(anonymous namespace)::cmd_hrandfield<true>(tomo::Shard&, tomo::Op&) [clone .cold]` — 57 → 57 bytes; raw=False, resolved=True.
+- `cmd/t_hash.o: void tomo::(anonymous namespace)::cmd_hscan<false>(tomo::Shard&, tomo::Op&) [clone .cold]` — 124 → 124 bytes; raw=False, resolved=True.
+- `cmd/t_hash.o: void tomo::(anonymous namespace)::cmd_hscan<true>(tomo::Shard&, tomo::Op&) [clone .cold]` — 124 → 124 bytes; raw=False, resolved=True.
+- `cmd/t_hash.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 915 → 942 bytes; raw=False, resolved=False.
+- `cmd/t_hash.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 855 → 871 bytes; raw=False, resolved=False.
+- `cmd/t_hash.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1105 → 1135 bytes; raw=False, resolved=False.
+- `cmd/t_hash.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 564 → 580 bytes; raw=False, resolved=False.
+- `cmd/t_hash_ttl.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_hexpire<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_hash_ttl.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_hpersist<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_hash_ttl.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_hpexpire<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_hash_ttl.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_hexpireat<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_hash_ttl.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_hpexpireat<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_hash_ttl.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_hexpiretime<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_hash_ttl.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_hpexpiretime<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_hash_ttl.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_httl<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_hash_ttl.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_hpttl<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_hash_ttl.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 1854 → 1837 bytes; raw=False, resolved=False.
+- `cmd/t_hash_ttl.o: tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent) [clone .isra.0]` — 1544 → 1544 bytes; raw=False, resolved=True.
+- `cmd/t_hash_ttl.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 1282 → 1314 bytes; raw=False, resolved=False.
+- `cmd/t_hash_ttl.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 2523 → 2469 bytes; raw=False, resolved=False.
+- `cmd/t_hash_ttl.o: tomo::FlatStore::erase(unsigned long, tomo::Slice) [clone .isra.0]` — 2079 → 2095 bytes; raw=False, resolved=False.
+- `cmd/t_hash_ttl.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 955 → 971 bytes; raw=False, resolved=False.
+- `cmd/t_list.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 915 → 942 bytes; raw=False, resolved=False.
+- `cmd/t_list.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 855 → 871 bytes; raw=False, resolved=False.
+- `cmd/t_list.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1315 → 1345 bytes; raw=False, resolved=False.
+- `cmd/t_list.o: tomo::FlatStore::erase(unsigned long, tomo::Slice)` — 1304 → 1320 bytes; raw=False, resolved=False.
+- `cmd/t_list.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 564 → 580 bytes; raw=False, resolved=False.
+- `cmd/t_server.o: tomo::(anonymous namespace)::cmd_client(tomo::Shard&, tomo::Op&)` — 2524 → 2524 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)` — 7671 → 7671 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&) [clone .cold]` — 123 → 123 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo::(anonymous namespace)::cmd_dbsize(tomo::Shard&, tomo::Op&)` — 242 → 290 bytes; raw=False, resolved=False.
+- `cmd/t_server.o: tomo::(anonymous namespace)::cmd_command(tomo::Shard&, tomo::Op&)` — 2492 → 2492 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)` — 6484 → 6514 bytes; raw=False, resolved=False.
+- `cmd/t_server.o: tomo::(anonymous namespace)::cmd_auth(tomo::Shard&, tomo::Op&)` — 526 → 526 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo::(anonymous namespace)::cmd_flip(tomo::Shard&, tomo::Op&)` — 846 → 846 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)` — 16215 → 16967 bytes; raw=False, resolved=False.
+- `cmd/t_server.o: tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]` — 353 → 379 bytes; raw=False, resolved=False.
+- `cmd/t_server.o: tomo::(anonymous namespace)::cmd_scan(tomo::Shard&, tomo::Op&)` — 2959 → 2959 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo::(anonymous namespace)::cmd_flush(tomo::Shard&, tomo::Op&)` — 804 → 822 bytes; raw=False, resolved=False.
+- `cmd/t_server.o: tomo::(anonymous namespace)::cmd_hello(tomo::Shard&, tomo::Op&)` — 2229 → 2229 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo::command_config_routes_all_shards(tomo::Op&)` — 668 → 0 bytes; raw=False, resolved=False.
+- `cmd/t_server.o: tomo::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `cmd/t_server.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*) [clone .isra.0]` — 1008 → 1311 bytes; raw=False, resolved=False.
+- `cmd/t_server.o: unsigned int tomo::FlatStore::scan_home<tomo::(anonymous namespace)::cmd_scan(tomo::Shard&, tomo::Op&)::{lambda(tomo::KvObj*)#1}>(int, unsigned int, tomo::(anonymous namespace)::cmd_scan(tomo::Shard&, tomo::Op&)::{lambda(tomo::KvObj*)#1}&, bool)` — 1389 → 1389 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo::cmd_debug(tomo::Shard&, tomo::Op&)` — 150 → 150 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)::{lambda(char const*)#1}::operator()(char const*) const` — 397 → 397 bytes; raw=False, resolved=True.
+- `cmd/t_set.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 915 → 942 bytes; raw=False, resolved=False.
+- `cmd/t_set.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 855 → 871 bytes; raw=False, resolved=False.
+- `cmd/t_set.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1105 → 1135 bytes; raw=False, resolved=False.
+- `cmd/t_set.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 564 → 580 bytes; raw=False, resolved=False.
+- `cmd/t_stream.o: void tomo::(anonymous namespace)::cmd_xadd<false>(tomo::Shard&, tomo::Op&)` — 5422 → 5422 bytes; raw=False, resolved=True.
+- `cmd/t_stream.o: void tomo::(anonymous namespace)::cmd_xadd<true>(tomo::Shard&, tomo::Op&)` — 5641 → 5641 bytes; raw=False, resolved=True.
+- `cmd/t_stream.o: void tomo::(anonymous namespace)::cmd_xdel<false>(tomo::Shard&, tomo::Op&)` — 1170 → 1170 bytes; raw=False, resolved=True.
+- `cmd/t_stream.o: void tomo::(anonymous namespace)::cmd_xdel<true>(tomo::Shard&, tomo::Op&)` — 1234 → 1234 bytes; raw=False, resolved=True.
+- `cmd/t_stream.o: void tomo::(anonymous namespace)::cmd_xlen<false>(tomo::Shard&, tomo::Op&)` — 224 → 224 bytes; raw=False, resolved=True.
+- `cmd/t_stream.o: void tomo::(anonymous namespace)::cmd_xlen<true>(tomo::Shard&, tomo::Op&)` — 240 → 240 bytes; raw=False, resolved=True.
+- `cmd/t_stream.o: void tomo::(anonymous namespace)::cmd_xtrim<false>(tomo::Shard&, tomo::Op&)` — 572 → 572 bytes; raw=False, resolved=True.
+- `cmd/t_stream.o: void tomo::(anonymous namespace)::cmd_xtrim<true>(tomo::Shard&, tomo::Op&)` — 571 → 571 bytes; raw=False, resolved=True.
+- `cmd/t_stream.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_xrange<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_stream.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_xrevrange<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_stream.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_xadd<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_stream.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_xdel<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_stream.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_xlen<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_stream.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_xtrim<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_stream.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 915 → 942 bytes; raw=False, resolved=False.
+- `cmd/t_stream.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 855 → 871 bytes; raw=False, resolved=False.
+- `cmd/t_stream.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1105 → 1135 bytes; raw=False, resolved=False.
+- `cmd/t_stream.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 564 → 580 bytes; raw=False, resolved=False.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xclaim<false>(tomo::Shard&, tomo::Op&)` — 5368 → 5336 bytes; raw=False, resolved=False.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xclaim<false>(tomo::Shard&, tomo::Op&) [clone .cold]` — 339 → 339 bytes; raw=False, resolved=False.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xclaim<true>(tomo::Shard&, tomo::Op&)` — 5368 → 5336 bytes; raw=False, resolved=False.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xclaim<true>(tomo::Shard&, tomo::Op&) [clone .cold]` — 339 → 339 bytes; raw=False, resolved=False.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xgroup<false>(tomo::Shard&, tomo::Op&)` — 4692 → 4556 bytes; raw=False, resolved=False.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xgroup<false>(tomo::Shard&, tomo::Op&) [clone .cold]` — 174 → 174 bytes; raw=True, resolved=False.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xgroup<true>(tomo::Shard&, tomo::Op&)` — 5231 → 5231 bytes; raw=False, resolved=True.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xsetid<false>(tomo::Shard&, tomo::Op&)` — 1864 → 1864 bytes; raw=False, resolved=True.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xsetid<true>(tomo::Shard&, tomo::Op&)` — 1918 → 1918 bytes; raw=False, resolved=True.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xpending<false>(tomo::Shard&, tomo::Op&)` — 4299 → 4299 bytes; raw=False, resolved=True.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xpending<true>(tomo::Shard&, tomo::Op&)` — 4315 → 4315 bytes; raw=False, resolved=True.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xautoclaim<false>(tomo::Shard&, tomo::Op&)` — 2760 → 2760 bytes; raw=False, resolved=False.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xautoclaim<true>(tomo::Shard&, tomo::Op&)` — 2776 → 2776 bytes; raw=False, resolved=False.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xack<false>(tomo::Shard&, tomo::Op&)` — 952 → 952 bytes; raw=False, resolved=True.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xack<true>(tomo::Shard&, tomo::Op&)` — 952 → 952 bytes; raw=False, resolved=True.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xinfo<false>(tomo::Shard&, tomo::Op&)` — 3887 → 3887 bytes; raw=False, resolved=True.
+- `cmd/t_stream_groups.o: void tomo::(anonymous namespace)::cmd_xinfo<true>(tomo::Shard&, tomo::Op&)` — 3887 → 3887 bytes; raw=False, resolved=True.
+- `cmd/t_stream_groups.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_xgroup<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_stream_groups.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_xsetid<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_stream_groups.o: tomo::FlatStore::find(unsigned long, tomo::Slice)` — 697 → 1644 bytes; raw=False, resolved=False.
+- `cmd/t_stream_groups.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*) [clone .isra.0]` — 1497 → 0 bytes; raw=False, resolved=False.
+- `cmd/t_stream_groups.o: tomo::(anonymous namespace)::cmd_xautoclaim<false>(tomo::Shard&, tomo::Op&)::{lambda(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)` — 1160 → 1064 bytes; raw=False, resolved=False.
+- `cmd/t_stream_groups.o: tomo::(anonymous namespace)::cmd_xautoclaim<false>(tomo::Shard&, tomo::Op&)::{lambda(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*) [clone .cold]` — 82 → 82 bytes; raw=True, resolved=False.
+- `cmd/t_stream_groups.o: tomo::(anonymous namespace)::cmd_xautoclaim<true>(tomo::Shard&, tomo::Op&)::{lambda(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)` — 1160 → 1114 bytes; raw=False, resolved=False.
+- `cmd/t_stream_groups.o: tomo::(anonymous namespace)::cmd_xautoclaim<true>(tomo::Shard&, tomo::Op&)::{lambda(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo::StreamID const&, tomo::StreamBorrowedEntry const*) [clone .cold]` — 82 → 82 bytes; raw=True, resolved=False.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_append<false>(tomo::Shard&, tomo::Op&)` — 893 → 945 bytes; raw=False, resolved=False.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_bitpos<false>(tomo::Shard&, tomo::Op&)` — 1752 → 1752 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_decrby<false>(tomo::Shard&, tomo::Op&)` — 242 → 242 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_expire<false>(tomo::Shard&, tomo::Op&)` — 23 → 23 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_getbit<false>(tomo::Shard&, tomo::Op&)` — 391 → 391 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_getset<false>(tomo::Shard&, tomo::Op&)` — 366 → 366 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_incrby<false>(tomo::Shard&, tomo::Op&)` — 183 → 183 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_setbit<false>(tomo::Shard&, tomo::Op&)` — 1026 → 1026 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_strlen<false>(tomo::Shard&, tomo::Op&)` — 311 → 311 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_persist<false>(tomo::Shard&, tomo::Op&)` — 371 → 419 bytes; raw=False, resolved=False.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_pexpire<false>(tomo::Shard&, tomo::Op&)` — 20 → 20 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_pfcount<false>(tomo::Shard&, tomo::Op&)` — 752 → 752 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_bitcount<false>(tomo::Shard&, tomo::Op&)` — 1369 → 1369 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_expireat<false>(tomo::Shard&, tomo::Op&)` — 26 → 26 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_setrange<false>(tomo::Shard&, tomo::Op&)` — 997 → 997 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_pexpireat<false>(tomo::Shard&, tomo::Op&)` — 23 → 23 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_incrbyfloat<false>(tomo::Shard&, tomo::Op&)` — 1006 → 1006 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)` — 2201 → 2201 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_getex<false>(tomo::Shard&, tomo::Op&)` — 1837 → 1695 bytes; raw=False, resolved=False.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_pfadd<false>(tomo::Shard&, tomo::Op&)` — 1188 → 1188 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: void tomo::(anonymous namespace)::cmd_setnx<false>(tomo::Shard&, tomo::Op&)` — 373 → 373 bytes; raw=False, resolved=True.
+- `cmd/t_string.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 1135 → 1165 bytes; raw=False, resolved=False.
+- `cmd/t_string.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 855 → 871 bytes; raw=False, resolved=False.
+- `cmd/t_string.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1315 → 1345 bytes; raw=False, resolved=False.
+- `cmd/t_string.o: tomo::FlatStore::erase(unsigned long, tomo::Slice)` — 1304 → 819 bytes; raw=False, resolved=False.
+- `cmd/t_string.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 564 → 580 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_append<true>(tomo::Shard&, tomo::Op&)` — 996 → 996 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_bitpos<true>(tomo::Shard&, tomo::Op&)` — 1752 → 1752 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_decrby<true>(tomo::Shard&, tomo::Op&)` — 242 → 242 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_expire<true>(tomo::Shard&, tomo::Op&)` — 23 → 23 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_getbit<true>(tomo::Shard&, tomo::Op&)` — 391 → 391 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_getdel<true>(tomo::Shard&, tomo::Op&)` — 618 → 618 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_getset<true>(tomo::Shard&, tomo::Op&)` — 512 → 512 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_incrby<true>(tomo::Shard&, tomo::Op&)` — 183 → 183 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_setbit<true>(tomo::Shard&, tomo::Op&)` — 1170 → 1170 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_strlen<true>(tomo::Shard&, tomo::Op&)` — 311 → 311 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_persist<true>(tomo::Shard&, tomo::Op&)` — 438 → 472 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_pexpire<true>(tomo::Shard&, tomo::Op&)` — 20 → 20 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_pfcount<true>(tomo::Shard&, tomo::Op&)` — 752 → 752 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_bitcount<true>(tomo::Shard&, tomo::Op&)` — 1369 → 1369 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_expireat<true>(tomo::Shard&, tomo::Op&)` — 26 → 26 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_getrange<true>(tomo::Shard&, tomo::Op&)` — 935 → 935 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_setrange<true>(tomo::Shard&, tomo::Op&)` — 1045 → 1045 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_pexpireat<true>(tomo::Shard&, tomo::Op&)` — 23 → 23 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_incrbyfloat<true>(tomo::Shard&, tomo::Op&)` — 1166 → 1166 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_get<true, false>(tomo::Shard&, tomo::Op&)` — 792 → 792 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_get<true, true>(tomo::Shard&, tomo::Op&)` — 1088 → 1088 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_set<true>(tomo::Shard&, tomo::Op&)` — 2182 → 2182 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_getex<true>(tomo::Shard&, tomo::Op&)` — 1904 → 1724 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_pfadd<true>(tomo::Shard&, tomo::Op&)` — 1236 → 1236 bytes; raw=False, resolved=True.
+- `cmd/t_string_notify.o: void tomo::(anonymous namespace)::cmd_setnx<true>(tomo::Shard&, tomo::Op&)` — 421 → 455 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_del_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_ttl_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_decr_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_incr_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_pttl_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_pfadd_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_setnx_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_append_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_bitpos_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_decrby_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_expire_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_getbit_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_incrby_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_setbit_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_strlen_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_persist_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_pexpire_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_pfcount_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_bitcount_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_expireat_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_setrange_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_pexpireat_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_expiretime_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_incrbyfloat_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::cmd_pexpiretime_notify(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 1135 → 1165 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 855 → 871 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1315 → 1345 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::FlatStore::erase(unsigned long, tomo::Slice)` — 1304 → 1320 bytes; raw=False, resolved=False.
+- `cmd/t_string_notify.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 564 → 580 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zcount<false>(tomo::Shard&, tomo::Op&)` — 1553 → 1553 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zcount<true>(tomo::Shard&, tomo::Op&)` — 1553 → 1553 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zscore<false>(tomo::Shard&, tomo::Op&)` — 625 → 625 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zscore<true>(tomo::Shard&, tomo::Op&)` — 625 → 625 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zpopmax<false>(tomo::Shard&, tomo::Op&)` — 14 → 14 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zpopmax<true>(tomo::Shard&, tomo::Op&)` — 14 → 14 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zpopmin<false>(tomo::Shard&, tomo::Op&)` — 11 → 11 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zpopmin<true>(tomo::Shard&, tomo::Op&)` — 11 → 11 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zlexcount<false>(tomo::Shard&, tomo::Op&)` — 1306 → 1306 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zlexcount<true>(tomo::Shard&, tomo::Op&)` — 1306 → 1306 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zrandmember<false>(tomo::Shard&, tomo::Op&)` — 4401 → 4401 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zrandmember<false>(tomo::Shard&, tomo::Op&) [clone .cold]` — 250 → 250 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zrandmember<true>(tomo::Shard&, tomo::Op&)` — 4401 → 4401 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zrandmember<true>(tomo::Shard&, tomo::Op&) [clone .cold]` — 250 → 250 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zadd_generic<false>(tomo::Shard&, tomo::Op&, bool)` — 6533 → 6533 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zadd_generic<false>(tomo::Shard&, tomo::Op&, bool) [clone .cold]` — 155 → 155 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zadd_generic<true>(tomo::Shard&, tomo::Op&, bool)` — 6613 → 6613 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zadd_generic<true>(tomo::Shard&, tomo::Op&, bool) [clone .cold]` — 155 → 155 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zpop_generic<false>(tomo::Shard&, tomo::Op&, bool)` — 1534 → 1566 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zpop_generic<true>(tomo::Shard&, tomo::Op&, bool)` — 1632 → 1664 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zrank_generic<false>(tomo::Shard&, tomo::Op&, bool)` — 1757 → 1757 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zrank_generic<true>(tomo::Shard&, tomo::Op&, bool)` — 1757 → 1757 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zrange_generic<false>(tomo::Shard&, tomo::Op&, tomo::(anonymous namespace)::RangeKind, bool, bool)` — 940 → 940 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zrange_generic<true>(tomo::Shard&, tomo::Op&, tomo::(anonymous namespace)::RangeKind, bool, bool)` — 940 → 940 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zremrangebylex<false>(tomo::Shard&, tomo::Op&)` — 1358 → 1358 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zremrangebylex<true>(tomo::Shard&, tomo::Op&)` — 1358 → 1358 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zremrangebyrank<false>(tomo::Shard&, tomo::Op&)` — 620 → 639 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zremrangebyrank<true>(tomo::Shard&, tomo::Op&)` — 639 → 639 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zremrangebyscore<false>(tomo::Shard&, tomo::Op&)` — 1101 → 1101 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zremrangebyscore<true>(tomo::Shard&, tomo::Op&)` — 1101 → 1101 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zrem<false>(tomo::Shard&, tomo::Op&)` — 1775 → 1775 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zrem<true>(tomo::Shard&, tomo::Op&)` — 1938 → 1938 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zscan<false>(tomo::Shard&, tomo::Op&)` — 4267 → 4267 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zscan<false>(tomo::Shard&, tomo::Op&) [clone .cold]` — 200 → 200 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zscan<true>(tomo::Shard&, tomo::Op&)` — 4267 → 4267 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::(anonymous namespace)::cmd_zscan<true>(tomo::Shard&, tomo::Op&) [clone .cold]` — 200 → 200 bytes; raw=False, resolved=True.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zcount<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zrange<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zincrby<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zpopmax<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zpopmin<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zrevrank<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zlexcount<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zrevrange<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zrandmember<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zrangebylex<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zrangebyscore<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zremrangebylex<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zrevrangebylex<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zremrangebyrank<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zremrangebyscore<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zrevrangebyscore<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zadd<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zrem<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_zrank<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)` — 16 → 16 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 915 → 942 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 855 → 871 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1315 → 1345 bytes; raw=False, resolved=False.
+- `cmd/t_zset.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 564 → 580 bytes; raw=False, resolved=False.
+- `cmd/xshard.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 987 → 1014 bytes; raw=False, resolved=False.
+- `cmd/xshard.o: tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)` — 1558 → 1590 bytes; raw=False, resolved=False.
+- `cmd/xshard.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 855 → 871 bytes; raw=False, resolved=False.
+- `cmd/xshard.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1102 → 1132 bytes; raw=False, resolved=False.
+- `cmd/xshard.o: tomo::FlatStore::erase(unsigned long, tomo::Slice)` — 1093 → 1109 bytes; raw=False, resolved=False.
+- `cmd/xshard.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 772 → 783 bytes; raw=False, resolved=False.
+- `core/genthread.o: tomo::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `core/genthread.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo::Client*)` — 18309 → 18335 bytes; raw=False, resolved=False.
+- `core/genthread.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo::Client*) [clone .isra.0]` — 9806 → 9822 bytes; raw=False, resolved=False.
+- `core/genthread.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo::Client*)` — 18271 → 18292 bytes; raw=False, resolved=False.
+- `core/genthread.o: bool tomo::IoLoop::drive_tls<false, true, (unsigned char)0>(tomo::Client*) [clone .isra.0]` — 1684 → 1684 bytes; raw=False, resolved=True.
+- `core/genthread.o: bool tomo::IoLoop::drive_tls<true, false, (unsigned char)0>(tomo::Client*) [clone .isra.0]` — 1737 → 1737 bytes; raw=False, resolved=True.
+- `core/genthread.o: bool tomo::IoLoop::drive_tls<true, true, (unsigned char)0>(tomo::Client*) [clone .isra.0]` — 1737 → 1737 bytes; raw=False, resolved=True.
+- `core/genthread.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 991 → 1018 bytes; raw=False, resolved=False.
+- `core/genthread.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 855 → 871 bytes; raw=False, resolved=False.
+- `core/genthread.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1423 → 1464 bytes; raw=False, resolved=False.
+- `core/genthread.o: tomo::FlatStore::erase(unsigned long, tomo::Slice)` — 894 → 910 bytes; raw=False, resolved=False.
+- `core/genthread.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 772 → 783 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo::Client*)` — 18158 → 18130 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo::Client*) [clone .isra.0]` — 9864 → 9880 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo::Client*)` — 18112 → 18158 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false, false>(tomo::Client*)` — 18129 → 18143 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false, false>(tomo::Client*)` — 18305 → 18296 bytes; raw=False, resolved=False.
+- `core/reorder.o: bool tomo::IoLoop::drive_tls<true, false, (unsigned char)0>(tomo::Client*) [clone .isra.0]` — 1737 → 1737 bytes; raw=False, resolved=True.
+- `core/reorder.o: unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()` — 1338 → 1536 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 1181 → 1213 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 1150 → 1166 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1567 → 1631 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo::FlatStore::erase(unsigned long, tomo::Slice)` — 1128 → 1144 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 914 → 885 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)` — 17129 → 17129 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo::Client*) [clone .isra.0]` — 17435 → 17413 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)` — 17453 → 17442 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo::Client*) [clone .isra.0]` — 9768 → 9784 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)` — 17149 → 17149 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo::Client*) [clone .isra.0]` — 17490 → 17457 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo::Client*)` — 17559 → 17535 bytes; raw=False, resolved=False.
+- `core/rl2s.o: void tomo::IoLoop::run_loop<false, false, false, true, (unsigned char)1, true>()` — 3866 → 3866 bytes; raw=False, resolved=False.
+- `core/rl2s.o: bool tomo::IoLoop::drive_tls<false, true, (unsigned char)0>(tomo::Client*) [clone .isra.0]` — 1684 → 1684 bytes; raw=False, resolved=True.
+- `core/rl2s.o: bool tomo::IoLoop::drive_tls<true, false, (unsigned char)0>(tomo::Client*) [clone .isra.0]` — 1737 → 1737 bytes; raw=False, resolved=True.
+- `core/rl2s.o: bool tomo::IoLoop::drive_tls<true, true, (unsigned char)0>(tomo::Client*) [clone .isra.0]` — 1737 → 1737 bytes; raw=False, resolved=True.
+- `core/rl2s.o: unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()` — 3775 → 3887 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 915 → 942 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 855 → 871 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1105 → 1135 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo::FlatStore::erase(unsigned long, tomo::Slice)` — 894 → 910 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 564 → 580 bytes; raw=False, resolved=False.
+- `core/rl2s.o: auto tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const` — 772 → 852 bytes; raw=False, resolved=False.
+- `core/rl2s.o: auto tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const` — 772 → 852 bytes; raw=False, resolved=False.
+- `core/rl2s.o: auto tomo::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const` — 852 → 772 bytes; raw=False, resolved=False.
+- `core/rl2s.o: auto tomo::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const` — 852 → 772 bytes; raw=False, resolved=False.
+- `core/rl2s.o: auto tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const` — 772 → 852 bytes; raw=False, resolved=False.
+- `core/rl2s.o: auto tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const` — 772 → 852 bytes; raw=False, resolved=False.
+- `core/rl2s.o: auto tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const` — 852 → 772 bytes; raw=False, resolved=False.
+- `core/rl2s.o: auto tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const` — 852 → 772 bytes; raw=False, resolved=False.
+- `main.o: tomo::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `main.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false, false>(tomo::Client*)` — 9948 → 9964 bytes; raw=False, resolved=False.
+- `main.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, true, false>(tomo::Client*)` — 9684 → 9700 bytes; raw=False, resolved=False.
+- `main.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo::Client*)` — 9916 → 9932 bytes; raw=False, resolved=False.
+- `main.o: tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, true, false>(tomo::Client*)` — 9629 → 9645 bytes; raw=False, resolved=False.
+- `main.o: bool tomo::IoLoop::drive_tls<false, false, (unsigned char)0>(tomo::Client*) [clone .isra.0]` — 1684 → 1668 bytes; raw=False, resolved=False.
+- `main.o: bool tomo::IoLoop::drive_tls<false, false, (unsigned char)1>(tomo::Client*) [clone .isra.0]` — 1572 → 1572 bytes; raw=False, resolved=False.
+- `main.o: bool tomo::IoLoop::drive_tls<true, false, (unsigned char)0>(tomo::Client*) [clone .isra.0]` — 1737 → 1737 bytes; raw=False, resolved=True.
+- `main.o: bool tomo::IoLoop::drive_tls<true, false, (unsigned char)1>(tomo::Client*) [clone .isra.0]` — 1618 → 1602 bytes; raw=False, resolved=False.
+- `main.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 991 → 1018 bytes; raw=False, resolved=False.
+- `main.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 1012 → 1044 bytes; raw=False, resolved=False.
+- `main.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1423 → 1464 bytes; raw=False, resolved=False.
+- `main.o: tomo::FlatStore::erase(unsigned long, tomo::Slice)` — 894 → 910 bytes; raw=False, resolved=False.
+- `main.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 772 → 783 bytes; raw=False, resolved=False.
+- `persist/aof.o: tomo::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `persist/aof.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 1213 → 1243 bytes; raw=False, resolved=False.
+- `persist/aof.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 520 → 538 bytes; raw=False, resolved=False.
+- `persist/aof.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1375 → 1405 bytes; raw=False, resolved=False.
+- `persist/aof.o: tomo::FlatStore::erase(unsigned long, tomo::Slice)` — 1304 → 819 bytes; raw=False, resolved=False.
+- `persist/aof.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 564 → 580 bytes; raw=False, resolved=False.
+- `snapshot/snapshot.o: tomo::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `snapshot/snapshot.o: tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` — 1213 → 1243 bytes; raw=False, resolved=False.
+- `snapshot/snapshot.o: tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` — 855 → 871 bytes; raw=False, resolved=False.
+- `snapshot/snapshot.o: tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)` — 1375 → 1405 bytes; raw=False, resolved=False.
+- `snapshot/snapshot.o: tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` — 564 → 580 bytes; raw=False, resolved=False.
