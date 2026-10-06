@@ -104,7 +104,7 @@ rewrite_ok=0
 for _ in $(seq 1 300); do
   info="$("$CLI" -p "$PORT" INFO PERSISTENCE)"
   requests="$(echo "$info" | sed -n 's/^aof_rewrite_requests:\([0-9][0-9]*\).*/\1/p')"
-  completions="$(echo "$info" | sed -n 's/^aof_rewrite_completions:\([0-9][0-9]*\).*/\1/p')"
+  completions="$(echo "$info" | sed -n 's/^aof_rewrites:\([0-9][0-9]*\).*/\1/p')"
   in_progress="$(echo "$info" | sed -n 's/^aof_rewrite_in_progress:\([01]\).*/\1/p')"
   if [ "${requests:-0}" -ge 1 ] && [ "${completions:-0}" -ge 1 ] && \
      [ "${in_progress:-1}" -eq 0 ]; then

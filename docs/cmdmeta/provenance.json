@@ -1,0 +1,12 @@
+{
+  "redis_root": "/home/user/Projects/redis",
+  "redis_revision": "f103d127b9747965e28f20615ef790332661fc68",
+  "version": "7.4.10",
+  "json_files": 401,
+  "json_inventory_sha256": "93f81dbb106bf95ec32f285e1b0b5e70d48ccac75f3a687106a4d26bdf5b871e",
+  "oracle_binary": "/home/user/Projects/redis74/src/redis-server",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "pre_revision": "9d957b9fbb7a6eadace068b9615eef81b0dd6686",
+  "post_source_revision": "82811c5910172fccf1fa8c5d622cc881a5f11603"
+}

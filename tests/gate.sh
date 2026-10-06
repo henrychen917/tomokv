@@ -1783,7 +1783,7 @@ job_cmd_metadata(){
 # server then refuses to boot at all -- every row below goes red at once with no indication which
 # command is at fault. Static, so it fires before any server starts.
 row_begin "cmdmeta covers every registered command"
-py tests/cmdmeta_coverage.py >$TMPDIR/gate-cmdmeta-coverage.txt 2>&1 \
+py tests/cmdmeta_coverage.py --redis-root "$REDIS74_ROOT" >$TMPDIR/gate-cmdmeta-coverage.txt 2>&1 \
     && ok "cmdmeta covers every registered command" \
     || bad "cmdmeta covers every registered command" "see $TMPDIR/gate-cmdmeta-coverage.txt"
 }

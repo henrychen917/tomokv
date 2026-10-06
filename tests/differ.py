@@ -5313,7 +5313,15 @@ if SUITE == "compatintro":
 
 # ---- Lane t-aclsel: ACL selector grammar/reporting/enforcement differential -------------------
 def run_cmdmeta_suite(rng):
-    """Cold command metadata: 4,200 byte comparisons plus inventory/category properties."""
+    """Cold metadata: 4,200 byte comparisons plus the complete implemented Redis surface."""
+    from cmdmeta_coverage import registered_commands
+    from fnmatch import fnmatchcase
+
+    registry = {name.lower().encode() for name in registered_commands()}
+    # Explicit compatibility boundaries, never inferred by subtracting a faulty target reply.
+    absent_top = {b"cluster", b"migrate", b"module", b"psync", b"replconf", b"sync"}
+    local_only = {b"flip"}  # Mainline 3ca2c450e; named in every relevant receipt below.
+    local_categories = {b"write", b"admin", b"slow", b"dangerous"}
     subcommands = """
 acl|cat acl|deluser acl|dryrun acl|genpass acl|getuser acl|help acl|list acl|load acl|log
 acl|save acl|setuser acl|users acl|whoami client|caching client|getname client|getredir
@@ -5337,6 +5345,9 @@ script|exists script|flush script|help script|kill script|load slowlog|get slowl
 slowlog|len slowlog|reset xgroup|create xgroup|createconsumer xgroup|delconsumer
 xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help xinfo|stream
 """.split()
+    removed = {name.encode() for name in subcommands if name.split("|", 1)[0].encode() not in registry}
+    assert len(removed) == 33 and {name.split(b"|", 1)[0] for name in removed} == {b"cluster", b"module"}
+    subcommands = [name for name in subcommands if name.encode() not in removed]
     key_cases = [
         ["GET", "k"], ["MGET", "a", "b"], ["EXISTS", "a", "b"], ["DEL", "a", "b"],
         ["SET", "k", "v"], ["SET", "k", "v", "GET"], ["SETNX", "k", "v"],
@@ -5368,7 +5379,8 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
     diffs = 0
     compared = 0
     fired = {"info": 0, "intent": 0, "pipes": 0, "categories": 0,
-             "docs_boundary": 0, "zero_controls": 0}
+             "docs_boundary": 0, "zero_controls": 0, "absent_info_docs": 0,
+             "patterns": 0, "module_filters": 0}
 
     def command(sock, file, argv):
         sock.sendall(enc(argv))
@@ -5390,36 +5402,114 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
         if target != oracle:
             mismatch(label, target, oracle)
 
-    # Compare the pipe-qualified inventory as a set: raw order is explicitly unordered.
+    def query(sock, file, argv):
+        nonlocal compared
+        compared += 1
+        return parse_reply(command(sock, file, argv))
+
+    def names(sock, file, argv):
+        value = query(sock, file, argv)
+        if not isinstance(value, list) or not all(isinstance(name, bytes) for name in value):
+            mismatch("name-list shape " + repr(argv), repr(value).encode(), b"array of names")
+            return set()
+        result = set(value)
+        if len(result) != len(value):
+            mismatch("duplicate names " + repr(argv), repr(value).encode(), b"unique names")
+        return result
+
+    def same_set(label, actual, expected):
+        if actual != expected:
+            mismatch(label, repr(sorted(actual)).encode(), repr(sorted(expected)).encode())
+
+    version = query(os_, of, ["INFO", "SERVER"])
+    if not isinstance(version, bytes) or b"redis_version:7.4.10\r\n" not in version:
+        mismatch("pinned vanilla oracle", repr(version).encode(), b"Redis 7.4.10")
+
+    # Check the WHOLE target set, not an intersection that could hide phantom target names.
+    # The independent registry determines which Redis families are implemented.
     lists = []
     for sock, file in ((ts, tf), (os_, of)):
-        value = parse_reply(command(sock, file, ["COMMAND", "LIST"]))
-        lists.append({item for item in value if b"|" in item} if isinstance(value, list) else set())
-    expected = {name.encode() for name in subcommands}
-    if lists[0] != expected or lists[1] != expected:
-        mismatch("129 pipe-qualified LIST rows", repr(sorted(lists[0])).encode(),
-                 repr(sorted(lists[1])).encode())
-    fired["pipes"] = len(lists[0])
+        lists.append(names(sock, file, ["COMMAND", "LIST"]))
+    target_names, oracle_names = lists
+    oracle_top = {name for name in oracle_names if b"|" not in name}
+    same_set("explicit absent top-level families", oracle_top - registry, absent_top)
+    same_set("explicit TomoKV-only commands", registry - oracle_top, local_only)
+    implemented = {name for name in oracle_names if name.split(b"|", 1)[0] in registry}
+    same_set("COMMAND LIST registry + implemented subcommands", target_names, implemented | local_only)
+    same_set("NO unexpected Redis-unknown advertisements", target_names - oracle_names, local_only)
+    same_set("COMMAND LIST top-level registry", {n for n in target_names if b"|" not in n}, registry)
+    expected_pipes = {name.encode() for name in subcommands}
+    same_set("96 implemented pipe-qualified LIST rows", {n for n in target_names if b"|" in n}, expected_pipes)
+    same_set("129 oracle pipe-qualified LIST rows", {n for n in oracle_names if b"|" in n}, expected_pipes | removed)
+    fired["pipes"] = len(target_names & expected_pipes)
+    print("  EXPECTED Redis-only names:", ", ".join(n.decode() for n in sorted(oracle_names - implemented)))
+    print("  EXPLICIT existing TomoKV-only exception: flip (not claimed as Redis parity)")
 
-    for category in ("stream", "pubsub", "admin", "connection"):
-        values = []
+    categories = names(os_, of, ["ACL", "CAT"])
+    same_set("ACL CAT category names", names(ts, tf, ["ACL", "CAT"]), categories)
+    if len(categories) != 21:
+        mismatch("ACL CAT category coverage", str(len(categories)).encode(), b"21")
+    for category in sorted(categories):
+        oracle_cat = names(os_, of, ["ACL", "CAT", category])
+        expected = oracle_cat & implemented
+        local = local_only if category in local_categories else set()
+        target_cat = names(ts, tf, ["ACL", "CAT", category])
+        same_set("ACL CAT " + category.decode(), target_cat, expected | local)
+        coverage.note(["ACL", "CAT", category])  # Both peers have replied and the sets were compared.
+        same_set("ACL CAT no unexpected names " + category.decode(), target_cat - oracle_cat, local)
+        oracle_filter = names(os_, of, ["COMMAND", "LIST", "FILTERBY", "ACLCAT", category])
+        same_set("oracle ACLCAT filter " + category.decode(), oracle_filter, oracle_cat)
+        same_set("COMMAND LIST FILTERBY ACLCAT " + category.decode(),
+                 names(ts, tf, ["COMMAND", "LIST", "FILTERBY", "ACLCAT", category]), expected | local)
+        print("  EXPECTED Redis-only ACL CAT %s: %s" %
+              (category.decode(), ", ".join(n.decode() for n in sorted(oracle_cat - implemented)) or "(none)"))
+        fired["categories"] += 1
+
+    for pattern in ("*", "*|*", "cluster*", "module*", "CLUSTER*", "MODULE*", "get*", "FLIP*"):
+        oracle_pattern = names(os_, of, ["COMMAND", "LIST", "FILTERBY", "PATTERN", pattern])
+        local = {name for name in local_only if fnmatchcase(name.decode(), pattern.lower())}
+        same_set("COMMAND LIST FILTERBY PATTERN " + pattern,
+                 names(ts, tf, ["COMMAND", "LIST", "FILTERBY", "PATTERN", pattern]),
+                 (oracle_pattern & implemented) | local)
+        if pattern.lower() in ("cluster*", "module*") and not oracle_pattern:
+            mismatch("nonempty oracle family " + pattern, b"empty", b"parent plus children")
+        fired["patterns"] += 1
+    for module in ("cmdmeta-no-such-module", "cluster", "module"):
         for sock, file in ((ts, tf), (os_, of)):
-            parsed = parse_reply(command(sock, file, ["ACL", "CAT", category]))
-            values.append(sorted(item for item in parsed if b"|" in item))
-        if values[0] != values[1]:
-            mismatch("ACL CAT %s pipe rows" % category,
-                     repr(values[0]).encode(), repr(values[1]).encode())
-        fired["categories"] += len(values[0])
+            same_set("COMMAND LIST FILTERBY MODULE " + module,
+                     names(sock, file, ["COMMAND", "LIST", "FILTERBY", "MODULE", module]), set())
+        fired["module_filters"] += 1
 
-    # COUNT excludes subcommands on both servers. The unrelated nine top-level command gaps are
-    # outside this lane, so compare each side against its own non-pipe LIST cardinality.
+    # COUNT is anchored to the independent source registry, not just a second server reply.
     for side, sock, file in (("target", ts, tf), ("oracle", os_, of)):
-        listing = parse_reply(command(sock, file, ["COMMAND", "LIST"]))
-        count = parse_reply(command(sock, file, ["COMMAND", "COUNT"]))
+        count = query(sock, file, ["COMMAND", "COUNT"])
         value = int(count[1:]) if isinstance(count, bytes) and count[:1] == b":" else -1
-        top = sum(b"|" not in name for name in listing)
+        top = len(registry) if side == "target" else len(oracle_top)
         if value != top:
             mismatch("COUNT top-level property " + side, str(value).encode(), str(top).encode())
+
+    # Compare absent names to a genuinely unknown name on BOTH servers. Redis knows the removed
+    # names, so also require populated oracle INFO/DOCS; missing oracle coverage cannot pass.
+    for verb, expected in (("INFO", [None]), ("DOCS", [])):
+        unknown = query(os_, of, ["COMMAND", verb, "cmdmeta-no-such-command"])
+        if unknown != expected:
+            mismatch("oracle unknown " + verb, repr(unknown).encode(), repr(expected).encode())
+        target_unknown = query(ts, tf, ["COMMAND", verb, "cmdmeta-no-such-command"])
+        if target_unknown != unknown:
+            mismatch("target unknown " + verb, repr(target_unknown).encode(), repr(unknown).encode())
+        for name in sorted(absent_top | removed):
+            target = query(ts, tf, ["COMMAND", verb, name])
+            oracle = query(os_, of, ["COMMAND", verb, name])
+            if target != unknown:
+                mismatch("absent " + verb + " " + name.decode(), repr(target).encode(), repr(unknown).encode())
+            populated = (isinstance(oracle, list) and
+                         ((verb == "INFO" and len(oracle) == 1 and isinstance(oracle[0], list) and
+                           len(oracle[0]) == 10 and oracle[0][0] == name) or
+                          (verb == "DOCS" and len(oracle) == 2 and oracle[0] == name and
+                           isinstance(oracle[1], list) and bool(oracle[1]))))
+            if not populated:
+                mismatch("known oracle " + verb + " " + name.decode(), repr(oracle).encode(), b"populated metadata")
+            fired["absent_info_docs"] += 1
 
     # The prose corpus is intentionally not embedded. Prove the boundary actually differs and
     # that both sides returned documentation rather than letting a vacuous omission pass.
@@ -5452,8 +5542,9 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
     fired["zero_controls"] = 2
     ts.close()
     os_.close()
-    if fired["pipes"] != 129 or fired["info"] < 1900 or fired["intent"] < 1900 or \
-            fired["categories"] < 40 or fired["docs_boundary"] != 1:
+    if fired["pipes"] != 96 or fired["info"] < 1900 or fired["intent"] < 1900 or \
+            fired["categories"] != 21 or fired["docs_boundary"] != 1 or \
+            fired["absent_info_docs"] != 78 or fired["patterns"] != 8 or fired["module_filters"] != 3:
         mismatch("cmdmeta non-vacuity", repr(fired).encode(), b"required counters")
     print("DIFFER cmdmeta: %d ops, %d diffs -> %s (%s)" %
           (compared, diffs, "PASS" if diffs == 0 else "FAIL",
@@ -5839,6 +5930,102 @@ def gen_multidb(rng):
     return ops
 
 
+def run_psfix_suite():
+    """PS5/PS7: exact CONFIG bytes, INFO names/order, and completed-save properties."""
+    peers = [conn(TH, TP), conn(OH, OP)]
+    checks = 0
+
+    def issue(peer, argv):
+        sock, file = peer
+        sock.sendall(enc(argv))
+        return read_reply(file)
+
+    def both(argv):
+        nonlocal checks
+        replies = [issue(peer, argv) for peer in peers]
+        coverage.note(argv)
+        checks += 1
+        assert replies[0] == replies[1], (argv, replies)
+        print("  PSFIX exact %r -> %r" % (argv, replies[0]))
+        return replies[0]
+
+    def persistence(peer):
+        body = parse_reply(issue(peer, ["INFO", "persistence"]))
+        assert isinstance(body, bytes), body
+        rows = [line.split(b":", 1) for line in body.split(b"\r\n")
+                if line and not line.startswith(b"#")]
+        assert all(len(row) == 2 for row in rows), rows
+        fields = dict(rows)
+        assert len(fields) == len(rows), "duplicate INFO Persistence field"
+        return fields
+
+    try:
+        saved = [parse_reply(issue(peer, ["CONFIG", "GET", "aof-load-truncated"]))[1]
+                 for peer in peers]
+        try:
+            for value in ("no", "yes", "NO", "YeS"):
+                assert both(["CONFIG", "SET", "aof-load-truncated", value]) == b"+OK\r\n"
+                both(["CONFIG", "GET", "aof-load-truncated"])
+            for value in ("0", "1", "true", "", "yes "):
+                assert both(["CONFIG", "SET", "aof-load-truncated", value]).startswith(b"-ERR ")
+                both(["CONFIG", "GET", "aof-load-truncated"])
+            assert both(["CONFIG", "SET", "AOF-LOAD-TRUNCATED", "0"]).startswith(b"-ERR ")
+            assert both(["CONFIG", "SET", "aof-load-truncated", "no",
+                         "AOF-LOAD-TRUNCATED", "yes"]) == (
+                             b"-ERR CONFIG SET failed (possibly related to argument 'AOF-LOAD-TRUNCATED') - duplicate parameter\r\n")
+            both(["CONFIG", "GET", "aof-load-truncated"])
+        finally:
+            for peer, value in zip(peers, saved):
+                assert issue(peer, ["CONFIG", "SET", "aof-load-truncated", value]) == b"+OK\r\n"
+
+        # This explicit inventory makes omissions fail. Intersecting the two observed
+        # sets alone would silently accept a missing/misspelled field on the target.
+        shared = set(b"loading rdb_changes_since_last_save rdb_bgsave_in_progress "
+                     b"rdb_last_save_time rdb_saves aof_enabled aof_rewrite_in_progress "
+                     b"aof_rewrite_scheduled aof_last_bgrewrite_status aof_rewrites "
+                     b"aof_rewrites_consecutive_failures aof_last_write_status".split())
+        conditional = set(b"aof_current_size aof_base_size aof_pending_rewrite".split())
+        target, oracle = [persistence(peer) for peer in peers]
+        assert shared <= oracle.keys(), ("oracle inventory", shared - oracle.keys())
+        expected = shared | (conditional & oracle.keys())
+        assert target.keys() & expected == expected, ("missing target fields", expected - target.keys())
+        assert conditional <= target.keys(), "existing target fields disappeared"
+        assert not {b"aof_rewrite_completions", b"aof_rewrite_consecutive_failures"} & target.keys()
+        assert [name for name in target if name in expected] == [name for name in oracle if name in expected]
+        coverage.note(["INFO", "persistence"], "field-name set/order; values intentionally differ")
+        print("  PSFIX field names/order: %s" % b" ".join(name for name in oracle if name in expected).decode())
+
+        for label, peer in zip(("target", "oracle"), peers):
+            assert persistence(peer)[b"loading"] == b"0", (label, "loading after boot")
+            for command in ("SAVE", "SAVE", "BGSAVE"):
+                before = int(persistence(peer)[b"rdb_saves"])
+                reply = issue(peer, [command])
+                assert reply == (b"+OK\r\n" if command == "SAVE" else b"+Background saving started\r\n"), reply
+                deadline = time.monotonic() + 10
+                while True:
+                    fields = persistence(peer)
+                    if fields[b"rdb_bgsave_in_progress"] == b"0":
+                        break
+                    assert time.monotonic() < deadline, (label, "save did not complete")
+                    time.sleep(.005)
+                assert int(fields[b"rdb_saves"]) == before + 1, (label, command, before, fields)
+                assert int(persistence(peer)[b"rdb_saves"]) == before + 1, "INFO advanced save count"
+                assert fields[b"loading"] == b"0"
+                coverage.note([command], "rdb_saves advances exactly once after completion")
+                checks += 1
+                print("  PSFIX %s %s rdb_saves %d -> %d; loading:0" % (label, command, before, before + 1))
+    finally:
+        for sock, file in peers:
+            file.close()
+            sock.close()
+    print("DIFFER psfix: %d exact/property checks, 0 diffs -> PASS" % checks)
+
+
+if SUITE == "psfix":
+    run_psfix_suite()
+    sys.exit(0)
+
+
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
         "hash": gen_hash, "hexpire": gen_hexpire, "edgetime": gen_edgetime,
         "xshard": gen_xshard, "xmove": gen_xmove, "bitmap": gen_bitmap,
@@ -5856,7 +6043,7 @@ if LIST_GENERATORS:
     # This is the single suite inventory. Property suites live outside `gens` because their
     # replies are not byte-comparable, but the gate discovers them from this same list.
     print("\n".join(list(gens) + ["blocking", "pubsub", "fanout", "spubsub", "notify",
-                                   "wiredump", "climon", "compatintro", "aclsel", "cmdmeta", "s6fix"]))
+                                   "wiredump", "climon", "compatintro", "aclsel", "cmdmeta", "s6fix", "psfix"]))
     sys.exit(0)
 ops = gens[SUITE](rng)
 

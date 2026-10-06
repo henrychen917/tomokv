@@ -1,0 +1,20 @@
+PSFIX PRE INFO: rdb_bgsave_in_progress rdb_last_save_time rdb_changes_since_last_save rdb_scheduled_saves rdb_save_cron_checks snapshot_preimages snapshot_cuts_armed snapshot_cuts_waited snapshot_groups_drained snapshot_cut_ticket aof_enabled aof_rewrite_in_progress aof_rewrite_scheduled aof_last_bgrewrite_status aof_last_write_status aof_base_size aof_current_size aof_pending_rewrite aof_records_written aof_replayed_records aof_groups_committed aof_groups_skipped_on_replay aof_fsyncs aof_send_gate_waits aof_control_frames_deferred aof_rewrite_base_size aof_rewrite_requests aof_rewrite_completions aof_auto_rewrite_triggers aof_history_unlinks aof_rewrite_failures aof_rewrite_consecutive_failures aof_auto_rewrite_backoff_skips
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-psfix/tests/differ.py", line 5626, in run_psfix_suite
+    assert both(["CONFIG", "SET", "aof-load-truncated", value]) == b"+OK\r\n"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-psfix/tests/differ.py", line 5607, in both
+    assert replies[0] == replies[1], (argv, replies)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (['CONFIG', 'SET', 'aof-load-truncated', 'no'], [b'-ERR parameter is immutable at runtime\r\n', b'+OK\r\n'])
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-psfix/tests/differ.py", line 5684, in <module>
+    run_psfix_suite()
+  File "/home/user/Projects/cx-psfix/tests/differ.py", line 5638, in run_psfix_suite
+    assert issue(peer, ["CONFIG", "SET", "aof-load-truncated", value]) == b"+OK\r\n"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+PSFIX PRE CONTROL: differential rejected immutable aof-load-truncated

@@ -1,0 +1,77 @@
+PARTIAL	0	GATE_ONLY_JOBS=persistfix_units aof-epoll aof-uring aof_frame snapshot-epoll snapshot-uring; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.180000	configuration reduction + actual geometry (epoll, atomic 0)
+ok	0.640000	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)
+ok	0.090000	AOF writer fired (records=N)
+ok	0.050000	AOF process-restart script replay (epoll, atomic 0)
+ok	0.100000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=N skipped=N)
+ok	0.110000	configuration reduction + actual geometry (epoll, atomic 1)
+ok	0.490000	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)
+ok	0.080000	AOF writer fired (records=N)
+ok	0.090000	AOF process-restart script replay (epoll, atomic 1)
+ok	0.080000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=N skipped=N)
+ok	0.360000	AOF directed group interruption fired
+ok	0.060000	AOF atomic-group recovery + writer order
+ok	0.020000	AOF group shutdown invariants
+ok	0.840000	AOF always sync + reply gate fired
+ok	0.030000	AOF always recovery after quiescent SIGKILL
+ok	4.120000	AOF in-window kill recovery (2s, epoll)
+ok	5.080000	AOF in-window term recovery (2s, epoll)
+ok	3.820000	AOF in-window kill recovery (1s, epoll)
+ok	4.940000	AOF in-window term recovery (1s, epoll)
+ok	2.090000	AOF everysec write gate + idle sync fired
+ok	0.040000	AOF everysec durability window + tail warning
+ok	0.030000	AOF no-sync bypassed sync + reply gate
+ok	8.110000	AOF rewrite atomic/stage/corruption matrix
+ok	8.660000	AOF rewrite triggers + observability matrix
+ok	0.010000	AOF-off negative-control seed landed
+ok	0.010000	AOF-off negative control lost data
+ok	0.120000	configuration reduction + actual geometry (uring, atomic 0)
+ok	0.460000	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)
+ok	0.040000	AOF writer fired (records=N)
+ok	0.050000	AOF process-restart script replay (uring, atomic 0)
+ok	0.030000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=N skipped=N)
+ok	0.090000	configuration reduction + actual geometry (uring, atomic 1)
+ok	0.430000	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)
+ok	0.030000	AOF writer fired (records=N)
+ok	0.040000	AOF process-restart script replay (uring, atomic 1)
+ok	0.030000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=N skipped=N)
+ok	0.360000	AOF directed group interruption fired
+ok	0.050000	AOF atomic-group recovery + writer order
+ok	0.020000	AOF group shutdown invariants
+ok	0.990000	AOF always sync + reply gate fired
+ok	0.020000	AOF always recovery after quiescent SIGKILL
+ok	4.100000	AOF in-window kill recovery (2s, uring)
+ok	5.040000	AOF in-window term recovery (2s, uring)
+ok	3.740000	AOF in-window kill recovery (1s, uring)
+ok	5.540000	AOF in-window term recovery (1s, uring)
+ok	2.290000	AOF everysec write gate + idle sync fired
+ok	0.030000	AOF everysec durability window + tail warning
+ok	0.030000	AOF no-sync bypassed sync + reply gate
+ok	7.580000	AOF rewrite atomic/stage/corruption matrix
+ok	7.790000	AOF rewrite triggers + observability matrix
+ok	0.010000	AOF-off negative-control seed landed
+ok	0.010000	AOF-off negative control lost data
+ok	0.630000	snapshot concurrent cut (epoll)
+ok	0.190000	snapshot cut reload (epoll)
+ok	2.700000	snapshot never tears a cross-shard MSET group (epoll, atomic 1)
+ok	5.200000	snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)
+ok	0.050000	typed snapshot save (epoll)
+ok	0.050000	typed snapshot reload (epoll)
+ok	0.170000	typed snapshot preimage race (epoll)
+ok	0.050000	typed snapshot race reload (epoll)
+ok	0.620000	snapshot concurrent cut (uring)
+ok	0.160000	snapshot cut reload (uring)
+ok	2.720000	snapshot never tears a cross-shard MSET group (uring, atomic 1)
+ok	5.140000	snapshot never tears a MULTI/EXEC group (uring, default atomic 0)
+ok	0.050000	typed snapshot save (uring)
+ok	0.050000	typed snapshot reload (uring)
+ok	0.170000	typed snapshot preimage race (uring)
+ok	0.050000	typed snapshot race reload (uring)
+ok	0.040000	AOF publication/shutdown witnesses + negative controls
+ok	1.170000	AOF control frame never inside a large record (atomic 0)
+ok	1.140000	AOF control frame never inside a large record (atomic 1)
