@@ -9,7 +9,7 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'docs/ccfix3'
 BUILD = ROOT / 'build/ccfix3'
-CXX = ['g++', '-std=c++20', '-O2', '-g', '-Wall', '-Wextra', '-march=native',
+CXX = ['taskset', '-c', '112-127', 'g++', '-std=c++20', '-O2', '-g', '-Wall', '-Wextra', '-march=native',
        '-pthread', '-DTOMO_JEMALLOC']
 LIBS = ['-ljemalloc', '-luring', '-lssl', '-lcrypto', '-lm']
 
@@ -38,6 +38,10 @@ def run(name, binary, args=(), fails=False):
                             stderr=subprocess.STDOUT, text=True)
     (OUT / (name + '.log')).write_text(result.stdout + f'\nexit={result.returncode}\n')
     assert (result.returncode != 0) == fails, (name, result.returncode, result.stdout)
+    if fails:
+        reason = {'flags-PRE': 'serialize_notify_flags(mask) == expected',
+                  'atomic-unit-no-arm': 'pending record is on the source key'}[name]
+        assert reason in result.stdout, (name, 'wrong negative-control failure', result.stdout)
     print(name, 'expected failure' if fails else 'PASS', flush=True)
     return result.stdout
 

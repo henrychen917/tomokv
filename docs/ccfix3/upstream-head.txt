@@ -1,0 +1,15 @@
+9d957b9fb Merge at15 (e6f3563fc) into cx-final: gate iteration 516 rows, 0 gating FAIL
+e6f3563fc gate: ledger label fixture synced for at15
+a226329d5 gate: EXPECT_QUICK 498->499, EXPECT_FULL 515->516 for at15 (+1/+1 rows)
+b9e8ca01e Merge remote-tracking branch 'origin/cpp' into cx-at15
+cca246f80 gate: reference_binary -> 570712d8d (rebaseline; local, not pushed: reference must track origin/cpp)
+570712d8d Merge cdfix (23b111c46) into cx-final: gate iteration 515 rows, 0 gating FAIL
+23b111c46 Merge remote-tracking branch 'origin/cpp' into cx-cdfix
+837336727 gate: reference_binary -> 7923c388c (rebaseline; local, not pushed: reference must track origin/cpp)
+7923c388c Merge respcompat (c53fad78a) into cx-final: gate iteration 515 rows, 0 gating FAIL
+57ca02d8c Complete AT15c PTTL investigation with PRE counterexamples and aligned stall evidence
+7a02434e9 WIP: record final cdfix artifacts and three remaining GEO body differences
+9c11bb674 Contain set and zset codegen drift and strengthen falsifiable witnesses
+2dc3cb9e3 Retain warmed PRE counterexamples and forty pinned POST passes
+1ca53e17a Record non-monotonic bisect, exact deadline controls, and passing byte audits
+991907530 Add differential cases and serverless PRE failure witnesses for CD6 CD7 CD8 CD13

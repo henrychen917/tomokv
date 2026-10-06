@@ -1,0 +1,87 @@
+{
+  "head_when_checked": "ca316d37e73bc872acc82a36529eb6dfa81e11d2",
+  "checks": {
+    "production_matches_committed_source": {
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "ca316d37e",
+        "--",
+        "src",
+        "Makefile"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    "historical_evidence_unchanged": {
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "0eed75dff",
+        "--",
+        "docs/ccfix2"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    "gate_unchanged": {
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "origin/cpp",
+        "--",
+        "tests/gate.sh"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    "patch_whitespace": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    "python_syntax": {
+      "command": [
+        "python3",
+        "-m",
+        "py_compile",
+        "tests/_differ_ccfix.py",
+        "tests/differ.py",
+        "tests/infofix.py",
+        "tests/notify.py",
+        "tools/ccfix3_prove.py"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    "shell_syntax": {
+      "command": [
+        "bash",
+        "-n",
+        "tools/ccfix3_wire.sh",
+        "tests/differ_gate.sh"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    "default_matches_POST": {
+      "command": [
+        "cmp",
+        "build/tomokv",
+        "build/ccfix3/POST/tomokv"
+      ],
+      "exit": 0,
+      "output": ""
+    }
+  },
+  "failed_counter_production_references": [
+    "src/core/thread.h:444:    void note_command_failed(uint16_t id) {"
+  ]
+}
