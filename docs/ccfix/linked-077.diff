@@ -1,0 +1,13 @@
+Function: tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)
+Occurrence: 0
+--- PRE
++++ POST
+@@ -2951,7 +2951,7 @@
+ 3801 [ 3] cmp $0x4,%dl | 80 fa 04
+ 3804 [ 2] ja <+0x3820> | 77 1a
+ 3806 [ 3] movzbl %dl,%eax | 0f b6 c2
+-3809 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.5732> | 48 8d 15 ?? ?? ?? ??
++3809 [ 7] lea <rip>(%rip),%rdx # <CSWTCH.5742> | 48 8d 15 ?? ?? ?? ??
+ 3810 [ 4] movzbl (%rdx,%rax,1),%eax | 0f b6 04 02
+ 3814 [11] data16 cs nopw 0x0(%rax,%rax,1) | 66 66 2e 0f 1f 84 00 00 00 00 00
+ 381f [ 1] nop | 90

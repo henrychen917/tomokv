@@ -6,7 +6,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 276,
-    "post_size": 381
+    "post_size": 381,
+    "reason": "Compiler consequence in the changed ACL TU: error construction/rejection edits change inlining, local code/data placement, or local-clone target identity; no direct source edit to this body."
   },
   {
     "object": "db0/src/cmd/acl.o",
@@ -15,7 +16,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 12668,
-    "post_size": 12700
+    "post_size": 12700,
+    "reason": "CC13: prepend ERR to the ACL LOAD diagnostic; its exception/cleanup body moves with that code."
   },
   {
     "object": "db0/src/cmd/acl.o",
@@ -24,7 +26,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 685,
-    "post_size": 685
+    "post_size": 685,
+    "reason": "CC13: prepend ERR to the ACL LOAD diagnostic; its exception/cleanup body moves with that code."
   },
   {
     "object": "db0/src/cmd/acl.o",
@@ -33,7 +36,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 604,
-    "post_size": 600
+    "post_size": 600,
+    "reason": "CC18: update rejected_calls instead of calls on rejection."
   },
   {
     "object": "db0/src/cmd/acl.o",
@@ -42,7 +46,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 3398,
-    "post_size": 3398
+    "post_size": 3398,
+    "reason": "Compiler consequence in the changed ACL TU: error construction/rejection edits change inlining, local code/data placement, or local-clone target identity; no direct source edit to this body."
   },
   {
     "object": "db0/src/cmd/acl.o",
@@ -51,7 +56,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 2178,
-    "post_size": 2143
+    "post_size": 2143,
+    "reason": "Compiler consequence in the changed ACL TU: error construction/rejection edits change inlining, local code/data placement, or local-clone target identity; no direct source edit to this body."
   },
   {
     "object": "db0/src/cmd/acl.o",
@@ -60,79 +66,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 1011,
-    "post_size": 851
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_GLOBAL__sub_I__ZN8tomo_db019debug_sleep_prepareERNS_6ServerERNS_6ClientERNS_2OpERm",
-    "name": "_GLOBAL__sub_I__ZN8tomo_db019debug_sleep_prepareERNS_6ServerERNS_6ClientERNS_2OpERm",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 3191,
-    "post_size": 3191
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_110add_configEPKcNS0_10ConfigKindEm",
-    "name": "tomo_db0::(anonymous namespace)::add_config(char const*, tomo_db0::(anonymous namespace)::ConfigKind, unsigned long)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 894,
-    "post_size": 894
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpE",
-    "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 7618,
-    "post_size": 7566
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpE.cold",
-    "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 123,
-    "post_size": 123
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_dbsizeERNS_5ShardERNS_2OpE",
-    "name": "tomo_db0::(anonymous namespace)::cmd_dbsize(tomo_db0::Shard&, tomo_db0::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 242,
-    "post_size": 242
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_selectERNS_5ShardERNS_2OpE",
-    "name": "tomo_db0::(anonymous namespace)::cmd_select(tomo_db0::Shard&, tomo_db0::Op&)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 28,
-    "post_size": 28
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_111init_configERKNS_6ConfigE",
-    "name": "tomo_db0::(anonymous namespace)::init_config(tomo_db0::Config const&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 7897,
-    "post_size": 7897
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_111init_configERKNS_6ConfigE.cold",
-    "name": "tomo_db0::(anonymous namespace)::init_config(tomo_db0::Config const&) [clone .cold]",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 754,
-    "post_size": 754
+    "post_size": 851,
+    "reason": "Compiler consequence in the changed ACL TU: error construction/rejection edits change inlining, local code/data placement, or local-clone target identity; no direct source edit to this body."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -141,7 +76,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 49,
-    "post_size": 98
+    "post_size": 98,
+    "reason": "CC18: own, aggregate, reset, and destroy the two additional baseline vectors."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -150,79 +86,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 49,
-    "post_size": 98
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_112cmd_lastsaveERNS_5ShardERNS_2OpE",
-    "name": "tomo_db0::(anonymous namespace)::cmd_lastsave(tomo_db0::Shard&, tomo_db0::Op&)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 89,
-    "post_size": 89
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_113cmd_randomkeyERNS_5ShardERNS_2OpE",
-    "name": "tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 653,
-    "post_size": 663
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
-    "name": "tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 6484,
-    "post_size": 6484
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_116cmd_bgrewriteaofERNS_5ShardERNS_2OpE",
-    "name": "tomo_db0::(anonymous namespace)::cmd_bgrewriteaof(tomo_db0::Shard&, tomo_db0::Op&)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 265,
-    "post_size": 265
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_116snapshot_commandERNS_2OpEb",
-    "name": "tomo_db0::(anonymous namespace)::snapshot_command(tomo_db0::Op&, bool)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 1027,
-    "post_size": 1027
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_122collect_config_updatesERNS_2OpERSt6vectorISt4pairIPNS0_11ConfigValueENSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEESaISD_EE",
-    "name": "tomo_db0::(anonymous namespace)::collect_config_updates(tomo_db0::Op&, std::vector<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 8628,
-    "post_size": 8628
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_authERNS_5ShardERNS_2OpE",
-    "name": "tomo_db0::(anonymous namespace)::cmd_auth(tomo_db0::Shard&, tomo_db0::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 563,
-    "post_size": 563
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_flipERNS_5ShardERNS_2OpE",
-    "name": "tomo_db0::(anonymous namespace)::cmd_flip(tomo_db0::Shard&, tomo_db0::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 846,
-    "post_size": 846
+    "post_size": 98,
+    "reason": "CC18: own, aggregate, reset, and destroy the two additional baseline vectors."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -231,7 +96,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 16161,
-    "post_size": 16031
+    "post_size": 16031,
+    "reason": "CC18: aggregate and emit the three counters, with no timing fields; exception cleanup follows the new vectors."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -240,70 +106,18 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 349,
-    "post_size": 369
+    "post_size": 369,
+    "reason": "CC18: aggregate and emit the three counters, with no timing fields; exception cleanup follows the new vectors."
   },
   {
     "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_scanERNS_5ShardERNS_2OpE",
-    "name": "tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)",
+    "symbol": "_ZN8tomo_db016reply_map_headerIRNS_2Op4SinkEEEvOT_mb",
+    "name": "void tomo_db0::reply_map_header<tomo_db0::Op::Sink&>(tomo_db0::Op::Sink&, unsigned long, bool)",
     "equal": false,
     "raw_equal": false,
-    "pre_size": 3007,
-    "post_size": 3007
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_helloERNS_5ShardERNS_2OpE",
-    "name": "tomo_db0::(anonymous namespace)::cmd_hello(tomo_db0::Shard&, tomo_db0::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 2459,
-    "post_size": 2459
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_resetERNS_5ShardERNS_2OpE",
-    "name": "tomo_db0::(anonymous namespace)::cmd_reset(tomo_db0::Shard&, tomo_db0::Op&)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 639,
-    "post_size": 639
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db014command_serverEv",
-    "name": "tomo_db0::command_server()",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 12,
-    "post_size": 12
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db014reply_verbatimINS_2Op4SinkEEEvOT_NS_5SliceEPKcb.isra.0",
-    "name": "void tomo_db0::reply_verbatim<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, tomo_db0::Slice, char const*, bool) [clone .isra.0]",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 593,
-    "post_size": 360
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db016cfg_parse_memoryEPKcmRm",
-    "name": "tomo_db0::cfg_parse_memory(char const*, unsigned long, unsigned long&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 456,
-    "post_size": 477
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db019command_bind_serverEPNS_6ServerE",
-    "name": "tomo_db0::command_bind_server(tomo_db0::Server*)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 155,
-    "post_size": 155
+    "pre_size": 381,
+    "post_size": 593,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -312,7 +126,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 1463,
-    "post_size": 1447
+    "post_size": 1606,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -321,7 +136,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 634,
-    "post_size": 586
+    "post_size": 586,
+    "reason": "CC12: canonical flag order; n only in the non-A branch."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -330,43 +146,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 1928,
-    "post_size": 2056
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db023command_client_set_infoEPNS_6ClientENS_5SliceES2_",
-    "name": "tomo_db0::command_client_set_info(tomo_db0::Client*, tomo_db0::Slice, tomo_db0::Slice)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 512,
-    "post_size": 317
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db023command_client_set_infoEPNS_6ClientENS_5SliceES2_.cold",
-    "name": "tomo_db0::command_client_set_info(tomo_db0::Client*, tomo_db0::Slice, tomo_db0::Slice) [clone .cold]",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 61,
-    "post_size": 29
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db023command_config_snapshotERSt6vectorISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES7_ESaIS8_EE",
-    "name": "tomo_db0::command_config_snapshot(std::vector<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 1323,
-    "post_size": 1323
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db023command_config_snapshotERSt6vectorISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES7_ESaIS8_EE.cold",
-    "name": "tomo_db0::command_config_snapshot(std::vector<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&) [clone .cold]",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 31,
-    "post_size": 31
+    "post_size": 2056,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -375,7 +156,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 2029,
-    "post_size": 2199
+    "post_size": 2199,
+    "reason": "CC18: own, aggregate, reset, and destroy the two additional baseline vectors."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -384,7 +166,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 64,
-    "post_size": 61
+    "post_size": 61,
+    "reason": "CC18: own, aggregate, reset, and destroy the two additional baseline vectors."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -393,34 +176,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 689,
-    "post_size": 689
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db027command_validate_all_shardsERNS_2OpE",
-    "name": "tomo_db0::command_validate_all_shards(tomo_db0::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 357,
-    "post_size": 357
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db027command_validate_config_setERNS_2OpE",
-    "name": "tomo_db0::command_validate_config_set(tomo_db0::Op&)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 446,
-    "post_size": 446
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db032command_client_migration_extractEPNS_6ClientE",
-    "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 656,
-    "post_size": 576
+    "post_size": 689,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -429,25 +186,18 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 393,
-    "post_size": 393
+    "post_size": 393,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db09cmd_debugERNS_5ShardERNS_2OpE",
-    "name": "tomo_db0::cmd_debug(tomo_db0::Shard&, tomo_db0::Op&)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 150,
-    "post_size": 150
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZN8tomo_db09reply_errINS_2Op4SinkEEEvOT_PKc",
-    "name": "void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)",
+    "symbol": "_ZNK8tomo_db07Compact14capacity_bytesEv",
+    "name": "tomo_db0::Compact::capacity_bytes() const",
     "equal": false,
     "raw_equal": false,
-    "pre_size": 813,
-    "post_size": 614
+    "pre_size": 200,
+    "post_size": 0,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -456,7 +206,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 33,
-    "post_size": 0
+    "post_size": 0,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -465,25 +216,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 33,
-    "post_size": 0
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZNSt6vectorIN8tomo_db012_GLOBAL__N_111ConfigValueESaIS2_EE12emplace_backIJS2_EEERS2_DpOT_.constprop.0.isra.0",
-    "name": "tomo_db0::(anonymous namespace)::ConfigValue& std::vector<tomo_db0::(anonymous namespace)::ConfigValue, std::allocator<tomo_db0::(anonymous namespace)::ConfigValue> >::emplace_back<tomo_db0::(anonymous namespace)::ConfigValue>(tomo_db0::(anonymous namespace)::ConfigValue&&) [clone .constprop.0] [clone .isra.0]",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 304,
-    "post_size": 304
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZNSt6vectorIN8tomo_db012_GLOBAL__N_111ConfigValueESaIS2_EE17_M_realloc_insertIJS2_EEEvN9__gnu_cxx17__normal_iteratorIPS2_S4_EEDpOT_.constprop.0",
-    "name": "void std::vector<tomo_db0::(anonymous namespace)::ConfigValue, std::allocator<tomo_db0::(anonymous namespace)::ConfigValue> >::_M_realloc_insert<tomo_db0::(anonymous namespace)::ConfigValue>(__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::ConfigValue*, std::vector<tomo_db0::(anonymous namespace)::ConfigValue, std::allocator<tomo_db0::(anonymous namespace)::ConfigValue> > >, tomo_db0::(anonymous namespace)::ConfigValue&&) [clone .constprop.0]",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 1281,
-    "post_size": 1281
+    "post_size": 0,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -492,16 +226,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 0,
-    "post_size": 453
-  },
-  {
-    "object": "db0/src/cmd/t_server.o",
-    "symbol": "_ZSteqIcSt11char_traitsIcESaIcEEbRKNSt7__cxx1112basic_stringIT_T0_T1_EEPKS5_",
-    "name": "bool std::operator==<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const*)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 0,
-    "post_size": 83
+    "post_size": 453,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "db0/src/cmd/t_server.o",
@@ -510,16 +236,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 152,
-    "post_size": 152
-  },
-  {
-    "object": "db0/src/cmd/xshard.o",
-    "symbol": "_ZN8tomo_db010kvobj_freeEPNS_5KvObjE.part.0",
-    "name": "tomo_db0::kvobj_free(tomo_db0::KvObj*) [clone .part.0]",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 383,
-    "post_size": 351
+    "post_size": 152,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "db0/src/cmd/xshard.o",
@@ -528,7 +246,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 947,
-    "post_size": 945
+    "post_size": 945,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "db0/src/cmd/xshard.o",
@@ -537,7 +256,8 @@
     "equal": false,
     "raw_equal": true,
     "pre_size": 1072,
-    "post_size": 1072
+    "post_size": 1072,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "db0/src/cmd/xshard.o",
@@ -546,7 +266,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 426,
-    "post_size": 329
+    "post_size": 329,
+    "reason": "CC11: admit keymiss only for a read lookup in the armed emitter."
   },
   {
     "object": "db0/src/cmd/xshard.o",
@@ -555,7 +276,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 780,
-    "post_size": 764
+    "post_size": 764,
+    "reason": "CC18: update rejected_calls instead of calls on rejection."
   },
   {
     "object": "db0/src/cmd/xshard.o",
@@ -564,7 +286,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 247,
-    "post_size": 199
+    "post_size": 199,
+    "reason": "CC11: remove command-flag suppression after the unchanged disabled-mask prefix."
   },
   {
     "object": "db0/src/cmd/xshard.o",
@@ -573,7 +296,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 0,
-    "post_size": 486
+    "post_size": 652,
+    "reason": "CC11: new armed-path source-argument lookup classifier."
   },
   {
     "object": "db0/src/cmd/xshard.o",
@@ -582,7 +306,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 4939,
-    "post_size": 5165
+    "post_size": 5165,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "db0/src/cmd/xshard.o",
@@ -591,7 +316,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 6828,
-    "post_size": 6796
+    "post_size": 6796,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "db0/src/cmd/xshard.o",
@@ -600,7 +326,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 371,
-    "post_size": 352
+    "post_size": 352,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "db0/src/main.o",
@@ -609,7 +336,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 2721,
-    "post_size": 2722
+    "post_size": 2722,
+    "reason": "Compiler consequence of the boot-only allocation change and the +1 inline budget used to retain PRE executor/IO bodies; no direct source edit to this body."
   },
   {
     "object": "db0/src/main.o",
@@ -618,7 +346,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 2721,
-    "post_size": 2722
+    "post_size": 2722,
+    "reason": "Compiler consequence of the boot-only allocation change and the +1 inline budget used to retain PRE executor/IO bodies; no direct source edit to this body."
   },
   {
     "object": "db0/src/main.o",
@@ -627,7 +356,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 677,
-    "post_size": 664
+    "post_size": 664,
+    "reason": "Compiler consequence of the boot-only allocation change and the +1 inline budget used to retain PRE executor/IO bodies; no direct source edit to this body."
   },
   {
     "object": "db0/src/main.o",
@@ -636,25 +366,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 11945,
-    "post_size": 11961
-  },
-  {
-    "object": "db0/src/main.o",
-    "symbol": "_ZN8tomo_db07ExLoopTILb0EE3runEv",
-    "name": "tomo_db0::ExLoopT<false>::run()",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 7174,
-    "post_size": 7206
-  },
-  {
-    "object": "db0/src/main.o",
-    "symbol": "_ZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
-    "name": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 3388,
-    "post_size": 3324
+    "post_size": 11993,
+    "reason": "CC18: boot allocation now reserves three counter planes while preserving the calls-plane offset."
   },
   {
     "object": "db0/src/main.o",
@@ -663,7 +376,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 2799,
-    "post_size": 2799
+    "post_size": 2799,
+    "reason": "Compiler consequence of the boot-only allocation change and the +1 inline budget used to retain PRE executor/IO bodies; no direct source edit to this body."
   },
   {
     "object": "db0/src/main.o",
@@ -672,7 +386,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 2141,
-    "post_size": 2141
+    "post_size": 2141,
+    "reason": "Compiler consequence of the boot-only allocation change and the +1 inline budget used to retain PRE executor/IO bodies; no direct source edit to this body."
   },
   {
     "object": "src/cmd/acl.o",
@@ -681,7 +396,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 1429,
-    "post_size": 1389
+    "post_size": 1389,
+    "reason": "Compiler consequence in the changed ACL TU: error construction/rejection edits change inlining, local code/data placement, or local-clone target identity; no direct source edit to this body."
   },
   {
     "object": "src/cmd/acl.o",
@@ -690,7 +406,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 2632,
-    "post_size": 2616
+    "post_size": 2616,
+    "reason": "Compiler consequence in the changed ACL TU: error construction/rejection edits change inlining, local code/data placement, or local-clone target identity; no direct source edit to this body."
   },
   {
     "object": "src/cmd/acl.o",
@@ -699,7 +416,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 276,
-    "post_size": 381
+    "post_size": 381,
+    "reason": "Compiler consequence in the changed ACL TU: error construction/rejection edits change inlining, local code/data placement, or local-clone target identity; no direct source edit to this body."
   },
   {
     "object": "src/cmd/acl.o",
@@ -708,7 +426,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 12684,
-    "post_size": 12700
+    "post_size": 12700,
+    "reason": "CC13: prepend ERR to the ACL LOAD diagnostic; its exception/cleanup body moves with that code."
   },
   {
     "object": "src/cmd/acl.o",
@@ -717,7 +436,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 604,
-    "post_size": 600
+    "post_size": 600,
+    "reason": "CC18: update rejected_calls instead of calls on rejection."
   },
   {
     "object": "src/cmd/acl.o",
@@ -726,7 +446,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 2815,
-    "post_size": 2816
+    "post_size": 2816,
+    "reason": "Compiler consequence in the changed ACL TU: error construction/rejection edits change inlining, local code/data placement, or local-clone target identity; no direct source edit to this body."
   },
   {
     "object": "src/cmd/acl.o",
@@ -735,25 +456,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 851,
-    "post_size": 851
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_GLOBAL__sub_I__ZN4tomo19debug_sleep_prepareERNS_6ServerERNS_6ClientERNS_2OpERm",
-    "name": "_GLOBAL__sub_I__ZN4tomo19debug_sleep_prepareERNS_6ServerERNS_6ClientERNS_2OpERm",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 2921,
-    "post_size": 2921
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_110add_configEPKcNS0_10ConfigKindEm",
-    "name": "tomo::(anonymous namespace)::add_config(char const*, tomo::(anonymous namespace)::ConfigKind, unsigned long)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 894,
-    "post_size": 894
+    "post_size": 851,
+    "reason": "Compiler consequence in the changed ACL TU: error construction/rejection edits change inlining, local code/data placement, or local-clone target identity; no direct source edit to this body."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -762,43 +466,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 7671,
-    "post_size": 7629
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_dbsizeERNS_5ShardERNS_2OpE",
-    "name": "tomo::(anonymous namespace)::cmd_dbsize(tomo::Shard&, tomo::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 242,
-    "post_size": 242
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_selectERNS_5ShardERNS_2OpE",
-    "name": "tomo::(anonymous namespace)::cmd_select(tomo::Shard&, tomo::Op&)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 28,
-    "post_size": 28
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_111init_configERKNS_6ConfigE",
-    "name": "tomo::(anonymous namespace)::init_config(tomo::Config const&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 7897,
-    "post_size": 7897
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_111init_configERKNS_6ConfigE.cold",
-    "name": "tomo::(anonymous namespace)::init_config(tomo::Config const&) [clone .cold]",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 754,
-    "post_size": 754
+    "post_size": 7629,
+    "reason": "CC12/CC18: CONFIG uses changed flag serialization and reset-baseline code; compiler inlining changes this administrative handler."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -807,7 +476,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 49,
-    "post_size": 98
+    "post_size": 98,
+    "reason": "CC18: own, aggregate, reset, and destroy the two additional baseline vectors."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -816,43 +486,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 49,
-    "post_size": 98
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_112cmd_lastsaveERNS_5ShardERNS_2OpE",
-    "name": "tomo::(anonymous namespace)::cmd_lastsave(tomo::Shard&, tomo::Op&)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 89,
-    "post_size": 89
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
-    "name": "tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 6484,
-    "post_size": 6484
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_116cmd_bgrewriteaofERNS_5ShardERNS_2OpE",
-    "name": "tomo::(anonymous namespace)::cmd_bgrewriteaof(tomo::Shard&, tomo::Op&)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 265,
-    "post_size": 265
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_116snapshot_commandERNS_2OpEb",
-    "name": "tomo::(anonymous namespace)::snapshot_command(tomo::Op&, bool)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 1059,
-    "post_size": 1059
+    "post_size": 98,
+    "reason": "CC18: own, aggregate, reset, and destroy the two additional baseline vectors."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -861,7 +496,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 8600,
-    "post_size": 8585
+    "post_size": 8585,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -870,25 +506,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 147,
-    "post_size": 147
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_authERNS_5ShardERNS_2OpE",
-    "name": "tomo::(anonymous namespace)::cmd_auth(tomo::Shard&, tomo::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 526,
-    "post_size": 526
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_flipERNS_5ShardERNS_2OpE",
-    "name": "tomo::(anonymous namespace)::cmd_flip(tomo::Shard&, tomo::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 846,
-    "post_size": 846
+    "post_size": 147,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -897,7 +516,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 16215,
-    "post_size": 16063
+    "post_size": 16063,
+    "reason": "CC18: aggregate and emit the three counters, with no timing fields; exception cleanup follows the new vectors."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -906,52 +526,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 353,
-    "post_size": 369
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_scanERNS_5ShardERNS_2OpE",
-    "name": "tomo::(anonymous namespace)::cmd_scan(tomo::Shard&, tomo::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 2959,
-    "post_size": 2959
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_helloERNS_5ShardERNS_2OpE",
-    "name": "tomo::(anonymous namespace)::cmd_hello(tomo::Shard&, tomo::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 2229,
-    "post_size": 2229
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_resetERNS_5ShardERNS_2OpE",
-    "name": "tomo::(anonymous namespace)::cmd_reset(tomo::Shard&, tomo::Op&)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 639,
-    "post_size": 639
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo14command_serverEv",
-    "name": "tomo::command_server()",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 12,
-    "post_size": 12
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo19command_bind_serverEPNS_6ServerE",
-    "name": "tomo::command_bind_server(tomo::Server*)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 155,
-    "post_size": 155
+    "post_size": 369,
+    "reason": "CC18: aggregate and emit the three counters, with no timing fields; exception cleanup follows the new vectors."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -960,7 +536,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 634,
-    "post_size": 586
+    "post_size": 586,
+    "reason": "CC12: canonical flag order; n only in the non-A branch."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -969,25 +546,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 1928,
-    "post_size": 2056
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo23command_config_snapshotERSt6vectorISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES7_ESaIS8_EE",
-    "name": "tomo::command_config_snapshot(std::vector<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 1323,
-    "post_size": 1323
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo23command_config_snapshotERSt6vectorISt4pairINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES7_ESaIS8_EE.cold",
-    "name": "tomo::command_config_snapshot(std::vector<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&) [clone .cold]",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 31,
-    "post_size": 31
+    "post_size": 2056,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -996,7 +556,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 1812,
-    "post_size": 1812
+    "post_size": 1812,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -1005,7 +566,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 2029,
-    "post_size": 2199
+    "post_size": 2199,
+    "reason": "CC18: own, aggregate, reset, and destroy the two additional baseline vectors."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -1014,7 +576,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 64,
-    "post_size": 61
+    "post_size": 61,
+    "reason": "CC18: own, aggregate, reset, and destroy the two additional baseline vectors."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -1023,25 +586,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 689,
-    "post_size": 689
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo27command_validate_all_shardsERNS_2OpE",
-    "name": "tomo::command_validate_all_shards(tomo::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 357,
-    "post_size": 357
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo27command_validate_config_setERNS_2OpE",
-    "name": "tomo::command_validate_config_set(tomo::Op&)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 446,
-    "post_size": 446
+    "post_size": 689,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -1050,7 +596,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 864,
-    "post_size": 864
+    "post_size": 864,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -1059,7 +606,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 645,
-    "post_size": 645
+    "post_size": 645,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -1068,7 +616,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 393,
-    "post_size": 393
+    "post_size": 393,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -1077,16 +626,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 5268,
-    "post_size": 5051
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZN4tomo9cmd_debugERNS_5ShardERNS_2OpE",
-    "name": "tomo::cmd_debug(tomo::Shard&, tomo::Op&)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 150,
-    "post_size": 150
+    "post_size": 5051,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -1095,7 +636,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 973,
-    "post_size": 774
+    "post_size": 774,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -1104,7 +646,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 673,
-    "post_size": 462
+    "post_size": 462,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -1113,7 +656,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 2430,
-    "post_size": 2537
+    "post_size": 2537,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -1122,7 +666,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 33,
-    "post_size": 0
+    "post_size": 0,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -1131,25 +676,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 33,
-    "post_size": 0
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZNSt6vectorIN4tomo12_GLOBAL__N_111ConfigValueESaIS2_EE12emplace_backIJS2_EEERS2_DpOT_.constprop.0.isra.0",
-    "name": "tomo::(anonymous namespace)::ConfigValue& std::vector<tomo::(anonymous namespace)::ConfigValue, std::allocator<tomo::(anonymous namespace)::ConfigValue> >::emplace_back<tomo::(anonymous namespace)::ConfigValue>(tomo::(anonymous namespace)::ConfigValue&&) [clone .constprop.0] [clone .isra.0]",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 304,
-    "post_size": 304
-  },
-  {
-    "object": "src/cmd/t_server.o",
-    "symbol": "_ZNSt6vectorIN4tomo12_GLOBAL__N_111ConfigValueESaIS2_EE17_M_realloc_insertIJS2_EEEvN9__gnu_cxx17__normal_iteratorIPS2_S4_EEDpOT_.constprop.0",
-    "name": "void std::vector<tomo::(anonymous namespace)::ConfigValue, std::allocator<tomo::(anonymous namespace)::ConfigValue> >::_M_realloc_insert<tomo::(anonymous namespace)::ConfigValue>(__gnu_cxx::__normal_iterator<tomo::(anonymous namespace)::ConfigValue*, std::vector<tomo::(anonymous namespace)::ConfigValue, std::allocator<tomo::(anonymous namespace)::ConfigValue> > >, tomo::(anonymous namespace)::ConfigValue&&) [clone .constprop.0]",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 1281,
-    "post_size": 1281
+    "post_size": 0,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -1158,7 +686,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 0,
-    "post_size": 453
+    "post_size": 453,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/t_server.o",
@@ -1167,7 +696,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 1118,
-    "post_size": 849
+    "post_size": 849,
+    "reason": "Compiler consequence in the changed administrative TU: new baseline vector operations/data placement and inlining budget; no direct source edit to this body. Ordinary command bodies are separately checked."
   },
   {
     "object": "src/cmd/xshard.o",
@@ -1176,25 +706,18 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 933,
-    "post_size": 901
+    "post_size": 901,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "src/cmd/xshard.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_113classify_keysERKNS_2OpENS0_4KindERKNS0_14XshardKeyHintsERNS0_13XshardKeyPlanE",
-    "name": "tomo::(anonymous namespace)::classify_keys(tomo::Op const&, tomo::(anonymous namespace)::Kind, tomo::(anonymous namespace)::XshardKeyHints const&, tomo::(anonymous namespace)::XshardKeyPlan&)",
+    "symbol": "_ZN4tomo12_GLOBAL__N_111apply_imageILb0EEENS0_9WorkErrorERNS_5ShardENS_5SliceEmRKNS0_11ObjectImageEb.isra.0",
+    "name": "tomo::(anonymous namespace)::WorkError tomo::(anonymous namespace)::apply_image<false>(tomo::Shard&, tomo::Slice, unsigned long, tomo::(anonymous namespace)::ObjectImage const&, bool) [clone .isra.0]",
     "equal": false,
     "raw_equal": false,
-    "pre_size": 947,
-    "post_size": 945
-  },
-  {
-    "object": "src/cmd/xshard.o",
-    "symbol": "_ZN4tomo12_GLOBAL__N_117notify_event_nameENS_13NotifyEventIdE",
-    "name": "tomo::(anonymous namespace)::notify_event_name(tomo::NotifyEventId)",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 1072,
-    "post_size": 1072
+    "pre_size": 611,
+    "post_size": 611,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "src/cmd/xshard.o",
@@ -1203,7 +726,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 1422,
-    "post_size": 1346
+    "post_size": 1330,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "src/cmd/xshard.o",
@@ -1212,7 +736,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 127,
-    "post_size": 117
+    "post_size": 118,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "src/cmd/xshard.o",
@@ -1221,7 +746,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 1466,
-    "post_size": 1394
+    "post_size": 1394,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "src/cmd/xshard.o",
@@ -1230,7 +756,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 3329,
-    "post_size": 3356
+    "post_size": 3361,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "src/cmd/xshard.o",
@@ -1239,7 +766,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 426,
-    "post_size": 329
+    "post_size": 329,
+    "reason": "CC11: admit keymiss only for a read lookup in the armed emitter."
   },
   {
     "object": "src/cmd/xshard.o",
@@ -1248,7 +776,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 11880,
-    "post_size": 11848
+    "post_size": 11848,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "src/cmd/xshard.o",
@@ -1257,7 +786,8 @@
     "equal": false,
     "raw_equal": true,
     "pre_size": 256,
-    "post_size": 256
+    "post_size": 256,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "src/cmd/xshard.o",
@@ -1266,7 +796,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 780,
-    "post_size": 764
+    "post_size": 764,
+    "reason": "CC18: update rejected_calls instead of calls on rejection."
   },
   {
     "object": "src/cmd/xshard.o",
@@ -1275,7 +806,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 247,
-    "post_size": 199
+    "post_size": 199,
+    "reason": "CC11: remove command-flag suppression after the unchanged disabled-mask prefix."
   },
   {
     "object": "src/cmd/xshard.o",
@@ -1284,7 +816,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 0,
-    "post_size": 486
+    "post_size": 611,
+    "reason": "CC11: new armed-path source-argument lookup classifier."
   },
   {
     "object": "src/cmd/xshard.o",
@@ -1293,7 +826,18 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 1702,
-    "post_size": 1456
+    "post_size": 1456,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "symbol": "_ZN4tomo9FlatStore10retire_objEPNS_5KvObjE",
+    "name": "tomo::FlatStore::retire_obj(tomo::KvObj*)",
+    "equal": false,
+    "raw_equal": false,
+    "pre_size": 598,
+    "post_size": 454,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "src/cmd/xshard.o",
@@ -1302,25 +846,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 873,
-    "post_size": 769
-  },
-  {
-    "object": "src/cmd/xshard.o",
-    "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0",
-    "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0]",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 3635,
-    "post_size": 3686
-  },
-  {
-    "object": "src/cmd/xshard.o",
-    "symbol": "_ZZN4tomo12_GLOBAL__N_118prepare_sort_derefERNS_12ScatterStateERNS_2OpEENKUlRKNS_11SortPatternENS_5SliceEbmE_clES7_S8_bm.constprop.0.cold",
-    "name": "tomo::(anonymous namespace)::prepare_sort_deref(tomo::ScatterState&, tomo::Op&)::{lambda(tomo::SortPattern const&, tomo::Slice, bool, unsigned long)#1}::operator()(tomo::SortPattern const&, tomo::Slice, bool, unsigned long) const [clone .constprop.0] [clone .cold]",
-    "equal": false,
-    "raw_equal": true,
-    "pre_size": 162,
-    "post_size": 162
+    "post_size": 769,
+    "reason": "Compiler consequence in the changed notification/auth TU: added cold classifier and removed suppression change inlining, local code/data placement, or local-clone identity; no direct source edit to this body."
   },
   {
     "object": "src/main.o",
@@ -1329,7 +856,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 677,
-    "post_size": 664
+    "post_size": 664,
+    "reason": "Compiler consequence of the boot-only allocation change and the +1 inline budget used to retain PRE executor/IO bodies; no direct source edit to this body."
   },
   {
     "object": "src/main.o",
@@ -1338,25 +866,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 12072,
-    "post_size": 12072
-  },
-  {
-    "object": "src/main.o",
-    "symbol": "_ZN4tomo7ExLoopTILb0EE3runEv",
-    "name": "tomo::ExLoopT<false>::run()",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 7101,
-    "post_size": 7072
-  },
-  {
-    "object": "src/main.o",
-    "symbol": "_ZN4tomo9FlatStore26atomic_collapse_read_localEmm",
-    "name": "tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)",
-    "equal": false,
-    "raw_equal": false,
-    "pre_size": 7286,
-    "post_size": 7332
+    "post_size": 12088,
+    "reason": "CC18: boot allocation now reserves three counter planes while preserving the calls-plane offset."
   },
   {
     "object": "src/main.o",
@@ -1365,7 +876,8 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 2767,
-    "post_size": 2767
+    "post_size": 2767,
+    "reason": "Compiler consequence of the boot-only allocation change and the +1 inline budget used to retain PRE executor/IO bodies; no direct source edit to this body."
   },
   {
     "object": "src/main.o",
@@ -1374,6 +886,7 @@
     "equal": false,
     "raw_equal": false,
     "pre_size": 2141,
-    "post_size": 2141
+    "post_size": 2141,
+    "reason": "Compiler consequence of the boot-only allocation change and the +1 inline budget used to retain PRE executor/IO bodies; no direct source edit to this body."
   }
 ]

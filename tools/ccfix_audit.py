@@ -48,7 +48,8 @@ def main():
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     rows = []
-    for path in sorted(args.pre.rglob('*.o')):
+    objects = list((args.pre / 'src').rglob('*.o')) + list((args.pre / 'db0/src').rglob('*.o'))
+    for path in sorted(objects):
         rel = path.relative_to(args.pre)
         other = args.post / rel
         assert other.exists(), other
@@ -68,7 +69,8 @@ def main():
     changed = [r for r in rows if not r['equal']]
     (args.output / 'changed-bodies.json').write_text(json.dumps(changed, indent=2) + '\n')
     handlers = [r for r in rows if re.search(r'::cmd_\w+(?:<|\()', r['name'])]
-    hot = [r for r in rows if audit.HOT.search(r['name'])]
+    hot = [r for r in rows if audit.HOT.search(r['name']) or
+           re.search(r'ExLoopT<.*>::run\(', r['name'])]
     report = dict(total=len(rows), equal=sum(r['equal'] for r in rows), changed=len(changed),
                   handlers=len(handlers), handlers_equal=sum(r['equal'] for r in handlers),
                   hot=len(hot), hot_equal=sum(r['equal'] for r in hot),
@@ -76,6 +78,9 @@ def main():
                   changed_hot=[r for r in hot if not r['equal']])
     (args.output / 'summary.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps({k:v for k,v in report.items() if not isinstance(v,list)}))
+    assert not report['changed_hot'], 'ordinary hot-path bytes changed'
+    assert all(re.search(r'::cmd_(?:config|info)\(', r['name'])
+               for r in report['changed_handlers']), 'ordinary command bytes changed'
 
 
 if __name__ == '__main__':

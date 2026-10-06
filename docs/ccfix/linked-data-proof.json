@@ -1,0 +1,97 @@
+[
+  {
+    "name": "tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)",
+    "object": "src/cmd/xshard.o",
+    "body_equal": true,
+    "table_equal": true,
+    "table_hex": "0000010405"
+  },
+  {
+    "name": "tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)",
+    "object": "db0/src/cmd/xshard.o",
+    "body_equal": true,
+    "table_equal": true,
+    "table_hex": "0000010405"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, false, false, (unsigned char)0, false>()",
+    "object": "db0/src/main.o",
+    "body_equal": true,
+    "table_equal": true,
+    "case_offsets": [
+      1088,
+      1072,
+      2592,
+      2512,
+      1088,
+      2480,
+      2448,
+      1088,
+      1088,
+      1088,
+      1088,
+      1088,
+      2384,
+      2320,
+      1088,
+      1088,
+      1088,
+      2288
+    ],
+    "canonical_repr": "(b'\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00', [(0, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 1092)), (4, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 1080)), (8, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 2604)), (12, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 2528)), (16, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 1108)), (20, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 2504)), (24, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 2476)), (28, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 1120)), (32, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 1124)), (36, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 1128)), (40, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 1132)), (44, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 1136)), (48, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 2436)), (52, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 2376)), (56, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 1148)), (60, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 1152)), (64, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 1156)), (68, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb0ELb0ELh0ELb0EEEvv', 2360))])"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<false, false, true, false, (unsigned char)0, false>()",
+    "object": "db0/src/main.o",
+    "body_equal": true,
+    "table_equal": true,
+    "case_offsets": [
+      1056,
+      1040,
+      2928,
+      2848,
+      1056,
+      2816,
+      2784,
+      1056,
+      1056,
+      1056,
+      1056,
+      1056,
+      2720,
+      2656,
+      1056,
+      1056,
+      1056,
+      2624
+    ],
+    "canonical_repr": "(b'\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00', [(0, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 1060)), (4, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 1048)), (8, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 2940)), (12, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 2864)), (16, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 1076)), (20, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 2840)), (24, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 2812)), (28, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 1088)), (32, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 1092)), (36, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 1096)), (40, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 1100)), (44, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 1104)), (48, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 2772)), (52, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 2712)), (56, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 1116)), (60, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 1120)), (64, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 1124)), (68, 2, ('_ZN8tomo_db06IoLoop8run_loopILb0ELb0ELb1ELb0ELh0ELb0EEEvv', 2696))])"
+  },
+  {
+    "name": "void tomo_db0::IoLoop::run_loop<true, false, false, false, (unsigned char)0, false>()",
+    "object": "db0/src/main.o",
+    "body_equal": true,
+    "table_equal": true,
+    "case_offsets": [
+      1136,
+      1120,
+      2672,
+      2592,
+      1136,
+      2560,
+      2528,
+      1136,
+      1136,
+      1136,
+      1136,
+      1136,
+      2464,
+      2400,
+      1136,
+      1136,
+      1136,
+      2368
+    ],
+    "canonical_repr": "(b'\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00', [(0, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 1140)), (4, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 1128)), (8, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 2684)), (12, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 2608)), (16, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 1156)), (20, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 2584)), (24, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 2556)), (28, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 1168)), (32, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 1172)), (36, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 1176)), (40, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 1180)), (44, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 1184)), (48, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 2516)), (52, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 2456)), (56, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 1196)), (60, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 1200)), (64, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 1204)), (68, 2, ('_ZN8tomo_db06IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv', 2440))])"
+  }
+]
