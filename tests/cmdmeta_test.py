@@ -77,6 +77,8 @@ class Peer:
             if kind == b"MODULE":
                 return [b"get"] if self.fault == "module-leak" else []
         name = argv[2].lower()
+        if self.fault == "error-known-metadata" and name in self.rows and sub in (b"INFO", b"DOCS"):
+            return b"-ERR fixture metadata failure"
         if sub == b"INFO":
             return [self.rows.get(name)]
         if sub == b"DOCS":
@@ -148,6 +150,7 @@ class CmdmetaTests(unittest.TestCase):
             with self.subTest(fault=fault):
                 self.assertGreater(run_surface(target, oracle, target_fault=fault)[0], 0)
         self.assertGreater(run_surface(target, oracle, oracle_fault="empty-oracle-family")[0], 0)
+        self.assertGreater(run_surface(target, oracle, oracle_fault="error-known-metadata")[0], 0)
         missing_get = {name: row for name, row in target.items() if name != b"get"}
         self.assertGreater(run_surface(missing_get, oracle)[0], 0)
         extra = {**target, b"cmdmeta-phantom": target[b"get"]}

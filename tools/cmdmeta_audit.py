@@ -105,7 +105,9 @@ def main():
             reason = "maximum qualified name 29 -> 23 (stack scratch/bounds derived from table)"
         elif "command_metadata_size(" in name or "command_metadata_at(" in name:
             reason = "metadata row count 374 -> 341"
-        elif "command_metadata_collect_keys(" in name or "command_metadata_key_flag_name(" in name:
+        elif "command_metadata_collect_keys(" in name:
+            reason = "literal code unchanged; relocation addends follow moved key-flag/spec and switch tables"
+        elif "command_metadata_key_flag_name(" in name:
             reason = "literal code unchanged; relocation addends follow moved key-flag data"
         else:
             raise AssertionError((name, "unexplained changed metadata function"))
@@ -132,8 +134,19 @@ def main():
                 reason = "metadata helper: bounds/name limit or metadata-data relocation (changed-metadata-bodies.json)"
             elif matches:
                 reason = "all differing bytes lie in ELF relocation fields of a byte-identical object body"
+            elif name == "_start":
+                for label, root, symbol in (("pre", args.pre, x), ("post", args.post, y)):
+                    dump = subprocess.check_output(["objdump", "-dw", "--disassemble=_start",
+                                                    str(root / "tomokv")], text=True)
+                    (args.output / (label + "-_start.asm")).write_text(dump)
+                    calls = [(at, raw) for at, raw, text, _ in instructions(dump)
+                             if "call" in text and "<__libc_start_main@" in text]
+                    assert len(calls) == 1 and calls[0][1][:2] == b"\xff\x15"
+                    displacement = calls[0][0] - symbol["value"] + 2
+                    assert offsets <= set(range(displacement, displacement + 4))
+                reason = "_start: only the RIP displacement to the moved __libc_start_main GOT entry changes"
             else:
-                reason = "linker/startup body outside the command-handler inventory"
+                raise AssertionError((name, "unexplained linked byte change"))
             if re.search(r"(?:\d+cmd_)", name):
                 assert matches, (name, "ordinary linked command has non-relocation byte differences")
             byte_changes.append(dict(symbol=name, occurrence=occurrence,

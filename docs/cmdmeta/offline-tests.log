@@ -6,6 +6,6 @@ test_surface_controls (__main__.CmdmetaTests.test_surface_controls) ... ok
 test_surface_rejects_each_orphan (__main__.CmdmetaTests.test_surface_rejects_each_orphan) ... ok
 
 ----------------------------------------------------------------------
-Ran 6 tests in 5.997s
+Ran 6 tests in 5.974s
 
 OK

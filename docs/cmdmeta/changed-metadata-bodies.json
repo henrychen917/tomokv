@@ -109,7 +109,7 @@
     "code_targets_added": [],
     "pre_instructions": 1203,
     "post_instructions": 1203,
-    "reason": "literal code unchanged; relocation addends follow moved key-flag data"
+    "reason": "literal code unchanged; relocation addends follow moved key-flag/spec and switch tables"
   },
   {
     "object": "db0/src/cmd/cmdmeta.o",
@@ -235,7 +235,7 @@
     "code_targets_added": [],
     "pre_instructions": 1207,
     "post_instructions": 1207,
-    "reason": "literal code unchanged; relocation addends follow moved key-flag data"
+    "reason": "literal code unchanged; relocation addends follow moved key-flag/spec and switch tables"
   },
   {
     "object": "src/cmd/cmdmeta.o",

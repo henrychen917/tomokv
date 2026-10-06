@@ -5502,7 +5502,12 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
             oracle = query(os_, of, ["COMMAND", verb, name])
             if target != unknown:
                 mismatch("absent " + verb + " " + name.decode(), repr(target).encode(), repr(unknown).encode())
-            if not oracle or oracle == unknown:
+            populated = (isinstance(oracle, list) and
+                         ((verb == "INFO" and len(oracle) == 1 and isinstance(oracle[0], list) and
+                           len(oracle[0]) == 10 and oracle[0][0] == name) or
+                          (verb == "DOCS" and len(oracle) == 2 and oracle[0] == name and
+                           isinstance(oracle[1], list) and bool(oracle[1]))))
+            if not populated:
                 mismatch("known oracle " + verb + " " + name.decode(), repr(oracle).encode(), b"populated metadata")
             fired["absent_info_docs"] += 1
 
