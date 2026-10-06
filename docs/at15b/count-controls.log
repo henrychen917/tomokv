@@ -1,0 +1,80 @@
+$ g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -Isrc/cmd -c build/at15b-count-controls/transaction-zero.cc -o build/at15b-count-controls/transaction-zero.o
+$ g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread build/tests/at15_unit.o build/src/net/tls.o build/src/cmd/commands.o build/src/cmd/glob.o build/src/cmd/xshard.o build/src/cmd/acl.o build/src/cmd/hll.o build/src/cmd/t_server.o build/src/cmd/t_string.o build/src/cmd/t_string_notify.o build/src/cmd/t_hash.o build/src/cmd/t_hash_ttl.o build/src/cmd/t_list.o build/src/cmd/t_set.o build/src/cmd/t_zset.o build/src/cmd/t_zset_ops.o build/src/cmd/geo.o build/src/cmd/t_stream.o build/src/cmd/t_stream_groups.o build/src/cmd/scripting.o build/src/cmd/functions.o build/src/cmd/serialize.o build/src/snapshot/snapshot.o build/src/persist/aof.o build/src/cmd/climon.o build/src/cmd/tracking.o build/src/cmd/server_tail.o build/src/cmd/slowlog.o build/src/cmd/lcs.o build/src/cmd/info_stats.o build/src/cmd/lbsignals.o build/src/core/flipctl.o build/src/core/genthread.o build/src/core/rl2s.o build/src/core/lbstall.o build/src/core/lbplanner.o build/src/cmd/l4prebuild.o build/src/cmd/cmdgap.o build/src/cmd/pfdebug.o build/src/cmd/cmdmeta.o build/src/cmd/t_sort.o build/src/cmd/multidb.o build/at15b-count-controls/transaction-zero.o build/src/core/reorder.o -o build/at15b-count-controls/transaction-zero -ljemalloc -luring -pthread -lssl -lcrypto -lm
+transaction-zero: exit=1
+FAIL at15: subexpiry counts hashes once and observes private field TTL transitions
+GOT:
+*12
+:2
+*2
+:1
+:1
+$56
+# Keyspace
+db0:keys=1,expires=0,avg_ttl=0,subexpiry=0
+
+:1
+*1
+:1
+$56
+# Keyspace
+db0:keys=2,expires=0,avg_ttl=0,subexpiry=0
+
+*1
+:1
+$56
+# Keyspace
+db0:keys=2,expires=0,avg_ttl=0,subexpiry=0
+
+*1
+:1
+$56
+# Keyspace
+db0:keys=2,expires=0,avg_ttl=0,subexpiry=0
+
+:1
+$56
+# Keyspace
+db0:keys=1,expires=0,avg_ttl=0,subexpiry=0
+
+
+WANTED:
+*12
+:2
+*2
+:1
+:1
+$56
+# Keyspace
+db0:keys=1,expires=0,avg_ttl=0,subexpiry=1
+
+:1
+*1
+:1
+$56
+# Keyspace
+db0:keys=2,expires=0,avg_ttl=0,subexpiry=2
+
+*1
+:1
+$56
+# Keyspace
+db0:keys=2,expires=0,avg_ttl=0,subexpiry=2
+
+*1
+:1
+$56
+# Keyspace
+db0:keys=2,expires=0,avg_ttl=0,subexpiry=1
+
+:1
+$56
+# Keyspace
+db0:keys=1,expires=0,avg_ttl=0,subexpiry=0
+
+
+
+$ g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -Isrc/cmd -c build/at15b-count-controls/ordinary-zero.cc -o build/at15b-count-controls/ordinary-zero.o
+$ g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread build/tests/at15_unit.o build/src/net/tls.o build/src/cmd/commands.o build/src/cmd/glob.o build/src/cmd/xshard.o build/src/cmd/acl.o build/src/cmd/hll.o build/src/cmd/t_server.o build/src/cmd/t_string.o build/src/cmd/t_string_notify.o build/src/cmd/t_hash.o build/src/cmd/t_hash_ttl.o build/src/cmd/t_list.o build/src/cmd/t_set.o build/src/cmd/t_zset.o build/src/cmd/t_zset_ops.o build/src/cmd/geo.o build/src/cmd/t_stream.o build/src/cmd/t_stream_groups.o build/src/cmd/scripting.o build/src/cmd/functions.o build/src/cmd/serialize.o build/src/snapshot/snapshot.o build/src/persist/aof.o build/src/cmd/climon.o build/src/cmd/tracking.o build/src/cmd/server_tail.o build/src/cmd/slowlog.o build/src/cmd/lcs.o build/src/cmd/info_stats.o build/src/cmd/lbsignals.o build/src/core/flipctl.o build/src/core/genthread.o build/src/core/rl2s.o build/src/core/lbstall.o build/src/core/lbplanner.o build/src/cmd/l4prebuild.o build/src/cmd/cmdgap.o build/src/cmd/pfdebug.o build/src/cmd/cmdmeta.o build/src/cmd/t_sort.o build/at15b-count-controls/ordinary-zero.o build/src/cmd/multi_admin.o build/src/core/reorder.o -o build/at15b-count-controls/ordinary-zero -ljemalloc -luring -pthread -lssl -lcrypto -lm
+ordinary-zero: exit=1
+FAIL at15: ordinary INFO exact subexpiry census
+

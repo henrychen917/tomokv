@@ -1,0 +1,433 @@
+[
+  {
+    "run": "replay-1-post-armed",
+    "edgetime": "FAIL",
+    "diffs": 2,
+    "clock_tolerances": 0,
+    "matrix_finished": true,
+    "passing_fold": false,
+    "operations": {
+      "1526": {
+        "delta_ms": -5,
+        "target": "b':2591998708\\r\\n'",
+        "oracle": "b':2591998713\\r\\n'",
+        "evidence": "printed DIFF"
+      },
+      "2910": {
+        "delta_ms": -5,
+        "target": "b':2591999381\\r\\n'",
+        "oracle": "b':2591999386\\r\\n'",
+        "evidence": "printed DIFF"
+      }
+    },
+    "matrix": {
+      "passed": 239,
+      "failed": 9,
+      "runtime": "15m02s"
+    },
+    "suite_legs": 246,
+    "suite_legs_passed": 238,
+    "failed_legs": [
+      {
+        "suite": "edgetime",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "wiredump",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "hexpire",
+        "seed": 23,
+        "rc": 1
+      },
+      {
+        "suite": "edgetime",
+        "seed": 23,
+        "rc": 1
+      },
+      {
+        "suite": "hexpire",
+        "seed": 21,
+        "rc": 1
+      },
+      {
+        "suite": "wiredump",
+        "seed": 21,
+        "rc": 1
+      },
+      {
+        "suite": "hexpire",
+        "seed": 22,
+        "rc": 1
+      },
+      {
+        "suite": "wiredump",
+        "seed": 22,
+        "rc": 1
+      }
+    ]
+  },
+  {
+    "run": "replay-2-pre-armed",
+    "edgetime": "FAIL",
+    "diffs": 1,
+    "clock_tolerances": 1,
+    "matrix_finished": true,
+    "passing_fold": false,
+    "operations": {
+      "1526": {
+        "delta_ms": -1,
+        "target": "b':2591999104\\r\\n'",
+        "oracle": "b':2591999105\\r\\n'",
+        "evidence": "printed key-specific CLOCK TOLERANCE"
+      },
+      "2910": {
+        "delta_ms": -2,
+        "target": "b':2591999763\\r\\n'",
+        "oracle": "b':2591999765\\r\\n'",
+        "evidence": "printed DIFF"
+      }
+    },
+    "matrix": {
+      "passed": 234,
+      "failed": 14,
+      "runtime": "9m11s"
+    },
+    "suite_legs": 246,
+    "suite_legs_passed": 233,
+    "failed_legs": [
+      {
+        "suite": "edgetime",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 19,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 19,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 20,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 20,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 23,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 23,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 21,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 21,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 22,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 22,
+        "rc": 1
+      }
+    ]
+  },
+  {
+    "run": "replay-3-post-armed",
+    "edgetime": "FAIL",
+    "diffs": 2,
+    "clock_tolerances": 1,
+    "matrix_finished": true,
+    "passing_fold": false,
+    "operations": {
+      "1526": {
+        "delta_ms": -6,
+        "target": "b':2591998966\\r\\n'",
+        "oracle": "b':2591998972\\r\\n'",
+        "evidence": "printed DIFF"
+      },
+      "2910": {
+        "delta_ms": -7,
+        "target": "b':2591999429\\r\\n'",
+        "oracle": "b':2591999436\\r\\n'",
+        "evidence": "printed DIFF"
+      }
+    },
+    "matrix": {
+      "passed": 242,
+      "failed": 6,
+      "runtime": "11m01s"
+    },
+    "suite_legs": 246,
+    "suite_legs_passed": 241,
+    "failed_legs": [
+      {
+        "suite": "edgetime",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "edgetime",
+        "seed": 19,
+        "rc": 1
+      },
+      {
+        "suite": "wiredump",
+        "seed": 19,
+        "rc": 1
+      },
+      {
+        "suite": "edgetime",
+        "seed": 20,
+        "rc": 1
+      },
+      {
+        "suite": "edgetime",
+        "seed": 22,
+        "rc": 1
+      }
+    ]
+  },
+  {
+    "run": "replay-4-pre-armed",
+    "edgetime": "PASS",
+    "diffs": 0,
+    "clock_tolerances": 0,
+    "matrix_finished": true,
+    "passing_fold": false,
+    "operations": {
+      "1526": {
+        "delta_ms": 0,
+        "evidence": "exact equality: neither DIFF nor CLOCK TOLERANCE"
+      },
+      "2910": {
+        "delta_ms": 0,
+        "evidence": "exact equality: neither DIFF nor CLOCK TOLERANCE"
+      }
+    },
+    "matrix": {
+      "passed": 235,
+      "failed": 13,
+      "runtime": "9m08s"
+    },
+    "suite_legs": 246,
+    "suite_legs_passed": 234,
+    "failed_legs": [
+      {
+        "suite": "multi",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 19,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 19,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 20,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 20,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 23,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 23,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 21,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 21,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 22,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 22,
+        "rc": 1
+      }
+    ]
+  },
+  {
+    "run": "replay-5-post-armed",
+    "edgetime": "PASS",
+    "diffs": 0,
+    "clock_tolerances": 0,
+    "matrix_finished": true,
+    "passing_fold": false,
+    "operations": {
+      "1526": {
+        "delta_ms": 0,
+        "evidence": "exact equality: neither DIFF nor CLOCK TOLERANCE"
+      },
+      "2910": {
+        "delta_ms": 0,
+        "evidence": "exact equality: neither DIFF nor CLOCK TOLERANCE"
+      }
+    },
+    "matrix": {
+      "passed": 246,
+      "failed": 2,
+      "runtime": "9m20s"
+    },
+    "suite_legs": 246,
+    "suite_legs_passed": 245,
+    "failed_legs": [
+      {
+        "suite": "edgetime",
+        "seed": 20,
+        "rc": 1
+      }
+    ]
+  },
+  {
+    "run": "replay-6-pre-armed",
+    "edgetime": "PASS",
+    "diffs": 0,
+    "clock_tolerances": 1,
+    "matrix_finished": true,
+    "passing_fold": false,
+    "operations": {
+      "1526": {
+        "delta_ms": -1,
+        "target": "b':2591999603\\r\\n'",
+        "oracle": "b':2591999604\\r\\n'",
+        "evidence": "printed key-specific CLOCK TOLERANCE"
+      },
+      "2910": {
+        "delta_ms": 0,
+        "evidence": "exact equality: neither DIFF nor CLOCK TOLERANCE"
+      }
+    },
+    "matrix": {
+      "passed": 235,
+      "failed": 13,
+      "runtime": "9m36s"
+    },
+    "suite_legs": 246,
+    "suite_legs_passed": 234,
+    "failed_legs": [
+      {
+        "suite": "multi",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 19,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 19,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 20,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 20,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 23,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 23,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 21,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 21,
+        "rc": 1
+      },
+      {
+        "suite": "multi",
+        "seed": 22,
+        "rc": 1
+      },
+      {
+        "suite": "multidb",
+        "seed": 22,
+        "rc": 1
+      }
+    ]
+  }
+]

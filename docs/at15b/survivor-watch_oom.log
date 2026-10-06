@@ -1,0 +1,4 @@
+$ taskset -c 112-127 ./build/atomic-survivors-unit watch_oom
+PASS watch_oom
+
+exit=0

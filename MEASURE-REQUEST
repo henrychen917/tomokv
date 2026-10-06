@@ -18,19 +18,8 @@ three regimes, counters, arms and pass conditions. PRE, POST and verified PAD-A
 are built; serverless proofs pass. No server, benchmark, live test or gate was run.
 Mainline measurement and live-gate acceptance remain pending.
 
-Lane respcompat: NET13 / NET14 / NET15 / NET16 / NET19
+Lane at15: MULTI admin replies
 
-See MEASURE-REQUEST-respcompat.md for exact wire behavior, 311 raw-socket cases,
-serverless results, the complete changed-body audit, and PRE/POST/PAD-B digests.
-PAD-B is a B inverse control: POST behavior plus padding restoring PRE text size.
-Mainline owns the 14-cell null and live Redis/gate runs. One row before quick exit:
-owner count update 497/514 -> 498/515; no EXPECT or fixture edits in this lane.
-
-Lane respcompat2: WIP — required PRE parser byte identity remains unmet
-
-See MEASURE-REQUEST-respcompat2.md for the cold fallback candidate, the concrete
-NET16/PRE byte-identity conflict, all remaining body differences, and rebuilt
-POST/PAD-B SHA-256s. PAD-B is B: inverse control (POST plus 32 inert text bytes).
-Serverless: 204,263 parser checks, 311-case/343-step inventory replay, sanitizer
-and production-linked netcap checks pass. Live wire/differential/gate and rate
-verdicts remain owner work. No additional rows: inherited +1 quick / +1 full.
+See MEASURE-REQUEST-at15.md for PRE/POST hashes, serverless falsification, body
+identity, the +1/+1 row count, and explicit Redis-table/group-5 policy differences.
+Live verification and the gate remain maintainer work; no push.

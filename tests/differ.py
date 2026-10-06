@@ -1760,6 +1760,14 @@ def gen_multi(rng):
 
     for key in strkeys: ops.append(["SET", key, rng.choice(values)])
     for key in listkeys: ops.append(["RPUSH", key, "seed"])
+    # INFO keyspace has deterministic bytes here (no TTLs). Exercise its owner fan-out between
+    # transaction-private writes, plus the newly admitted singleton random-element handlers.
+    ops += [["MULTI"], ["INFO", "keyspace"], ["DEL", strkeys[0]], ["INFO", "keyspace"],
+            ["DEBUG", "SLEEP", "0"], ["EXEC"],
+            ["SADD", "mx:at15:set", "only"], ["HSET", "mx:at15:hash", "only", "value"],
+            ["ZADD", "mx:at15:zset", "1", "only"], ["MULTI"],
+            ["SRANDMEMBER", "mx:at15:set"], ["SPOP", "mx:at15:set"],
+            ["HRANDFIELD", "mx:at15:hash"], ["ZRANDMEMBER", "mx:at15:zset"], ["EXEC"]]
 
     def make():
         c = rng.randrange(21)
@@ -5752,6 +5760,12 @@ def gen_multidb(rng):
     """One deep pipeline switches namespaces while older owner work is still in flight."""
     keys = ["mdb:%d" % i for i in range(24)] + ["mdb:\0binary", "mdb:" + "k" * 255]
     ops = [["SELECT", "0"], ["FLUSHALL"]]
+    # Unequal populations make both map directions observable; INFO must use the map at its
+    # position in EXEC while the live map is still unpublished until the final decision.
+    ops += [["SET", "mdb:at15:a", "a"], ["SELECT", "1"],
+            ["SET", "mdb:at15:a", "a"], ["SET", "mdb:at15:b", "b"], ["MULTI"],
+            ["INFO", "keyspace"], ["SWAPDB", "0", "1"], ["INFO", "keyspace"],
+            ["SWAPDB", "0", "1"], ["INFO", "keyspace"], ["EXEC"], ["FLUSHALL"]]
     for db in range(4):
         ops += [["SELECT", str(db)], ["SET", "mdb:same", "db%d" % db]]
     for bad in ("bad", "+1", "01", "-0", "-1", "16", "2147483648", "-2147483649"):
@@ -6085,6 +6099,11 @@ for cs, cf in ((ts, tf), (os_, of)):
     cs.sendall(enc(["FLUSHALL"]))
     if read_reply(cf)[:1] != b"+": raise RuntimeError("FLUSHALL failed on clean-slate")
 script_stats_before = target_stats() if SUITE == "script" else None
+if SUITE == "multi":
+    # INFO contains process-specific values; this directed leg validates exact RESP framing,
+    # required sections, and the deterministic transaction replies on both independent servers.
+    from at15 import compare as compare_at15
+    compare_at15(TH, TP, OH, OP, RESP3)
 # OBJECT ENCODING compares hash/set/zset only at matched promotion limits. TomoKV's limits
 # are fixed; configure the oracle to those values. These setup replies are drained, not diffed.
 if SUITE in ("servertail", "edgeenc"):

@@ -1,0 +1,4 @@
+$ taskset -c 112-127 ./build/execabort-watch-db0-unit 2s no-arm
+FAIL execabort-watch: WATCH window never armed
+
+exit=1

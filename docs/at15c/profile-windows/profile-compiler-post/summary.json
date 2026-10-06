@@ -1,0 +1,1515 @@
+{
+  "pid": 2000964,
+  "tids": [
+    2000964,
+    2000966,
+    2000967,
+    2000968,
+    2000969,
+    2000970,
+    2000971,
+    2000972,
+    2000973
+  ],
+  "sample_counts": {
+    "perf": 40,
+    "cc1plus": 4191,
+    "claude": 3,
+    "at15b-post": 102
+  },
+  "windows": [
+    {
+      "name": "edgetime-1-1526",
+      "op": 1526,
+      "start": 2930675090101754,
+      "end": 2930675094423107,
+      "samples": 2,
+      "leaf_symbols": {
+        "64cbda1d769e ~vector+0x202e (inlined)": 1,
+        "64cbda106fec mix64+0xdc (inlined)": 1
+      },
+      "switches": [
+        {
+          "tid": 2000964,
+          "ns": 2930675091907339,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000964,
+          "ns": 2930675091917959,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "ns": 2930675093011802,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675093059793,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675093061653,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "ns": 2930675093063033,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675093075183,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675093077133,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675093078333,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675093085863,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "ns": 2930675093089293,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675093092183,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675093092743,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675093096263,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675093096793,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675093107513,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675093114723,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "ns": 2930675093534544,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "ns": 2930675093552584,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "ns": 2930675093576794,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675093592064,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675093608854,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "ns": 2930675093634274,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675093668784,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675093670015,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675093675504,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675093675624,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675093681155,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675093681984,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675093682355,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675093688315,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "ns": 2930675093708575,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "ns": 2930675093716904,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "ns": 2930675093727045,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675093729435,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675093732985,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675093735125,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675093740045,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675093923155,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675093948375,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "ns": 2930675094015965,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675094061356,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675094067226,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675094069356,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "ns": 2930675094076996,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675094077536,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "ns": 2930675094081076,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675094110856,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675094112296,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675094117186,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675094127536,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "ns": 2930675094127716,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "ns": 2930675094132686,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675094156706,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675094202156,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "ns": 2930675094224236,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675094224566,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675094231016,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675094236796,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675094243396,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        }
+      ],
+      "stack_command": [
+        "perf",
+        "script",
+        "-i",
+        "build/at15c/profile-compiler-post/perf.data",
+        "--ns",
+        "--pid",
+        "2000964",
+        "--time",
+        "2930675.090101754,2930675.094423107",
+        "-F",
+        "+pid"
+      ],
+      "offcpu": [
+        {
+          "tid": 2000968,
+          "start": 2930675090101754,
+          "end": 2930675093534544,
+          "ms": 3.43279,
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "start": 2930675090101754,
+          "end": 2930675093092183,
+          "ms": 2.990429,
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "start": 2930675090101754,
+          "end": 2930675093077133,
+          "ms": 2.975379,
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "start": 2930675090101754,
+          "end": 2930675093075183,
+          "ms": 2.973429,
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "start": 2930675090101754,
+          "end": 2930675093063033,
+          "ms": 2.961279,
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "start": 2930675090101754,
+          "end": 2930675093061653,
+          "ms": 2.959899,
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "start": 2930675090101754,
+          "end": 2930675093059793,
+          "ms": 2.958039,
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "start": 2930675090101754,
+          "end": 2930675093011802,
+          "ms": 2.910048,
+          "preempt": false
+        },
+        {
+          "tid": 2000964,
+          "start": 2930675091917959,
+          "end": 2930675094423107,
+          "ms": 2.505148,
+          "preempt": false
+        },
+        {
+          "tid": 2000964,
+          "start": 2930675090101754,
+          "end": 2930675091907339,
+          "ms": 1.805585,
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "start": 2930675093089293,
+          "end": 2930675094076996,
+          "ms": 0.987703,
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "start": 2930675093107513,
+          "end": 2930675093923155,
+          "ms": 0.815642,
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "start": 2930675093085863,
+          "end": 2930675093670015,
+          "ms": 0.584152,
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "start": 2930675093096263,
+          "end": 2930675093675504,
+          "ms": 0.579241,
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "start": 2930675093114723,
+          "end": 2930675093668784,
+          "ms": 0.554061,
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "start": 2930675093096793,
+          "end": 2930675093592064,
+          "ms": 0.495271,
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "start": 2930675093682355,
+          "end": 2930675094077536,
+          "ms": 0.395181,
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "start": 2930675093681155,
+          "end": 2930675094067226,
+          "ms": 0.386071,
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "start": 2930675093716904,
+          "end": 2930675094081076,
+          "ms": 0.364172,
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "start": 2930675093735125,
+          "end": 2930675094069356,
+          "ms": 0.334231,
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "start": 2930675093740045,
+          "end": 2930675094061356,
+          "ms": 0.321311,
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "start": 2930675094110856,
+          "end": 2930675094423107,
+          "ms": 0.312251,
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "start": 2930675094112296,
+          "end": 2930675094423107,
+          "ms": 0.310811,
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "start": 2930675094127536,
+          "end": 2930675094423107,
+          "ms": 0.295571,
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "start": 2930675094127716,
+          "end": 2930675094423107,
+          "ms": 0.295391,
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "start": 2930675094132686,
+          "end": 2930675094423107,
+          "ms": 0.290421,
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "start": 2930675093727045,
+          "end": 2930675094015965,
+          "ms": 0.28892,
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "start": 2930675093948375,
+          "end": 2930675094156706,
+          "ms": 0.208331,
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "start": 2930675094224236,
+          "end": 2930675094423107,
+          "ms": 0.198871,
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "start": 2930675094231016,
+          "end": 2930675094423107,
+          "ms": 0.192091,
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "start": 2930675094243396,
+          "end": 2930675094423107,
+          "ms": 0.179711,
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "start": 2930675093552584,
+          "end": 2930675093708575,
+          "ms": 0.155991,
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "start": 2930675094117186,
+          "end": 2930675094224566,
+          "ms": 0.10738,
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "start": 2930675093608854,
+          "end": 2930675093675624,
+          "ms": 0.06677,
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "start": 2930675093576794,
+          "end": 2930675093634274,
+          "ms": 0.05748,
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "start": 2930675093681984,
+          "end": 2930675093732985,
+          "ms": 0.051001,
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "start": 2930675093688315,
+          "end": 2930675093729435,
+          "ms": 0.04112,
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "start": 2930675094202156,
+          "end": 2930675094236796,
+          "ms": 0.03464,
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "start": 2930675093078333,
+          "end": 2930675093092743,
+          "ms": 0.01441,
+          "preempt": false
+        }
+      ],
+      "workers_off_cpu_at_send": {
+        "2000966": 2.975379,
+        "2000971": 2.961279,
+        "2000973": 2.910048,
+        "2000967": 2.973429,
+        "2000972": 2.990429,
+        "2000969": 2.958039,
+        "2000970": 2.959899,
+        "2000968": 3.43279
+      },
+      "all_workers_off_cpu_at_send_ms": 2.910048,
+      "duration_ms": 4.321353
+    },
+    {
+      "name": "edgetime-1-2910",
+      "op": 2910,
+      "start": 2930675141381575,
+      "end": 2930675142337118,
+      "samples": 1,
+      "leaf_symbols": {
+        "64cbda1c2292 mix64+0x52 (inlined)": 1
+      },
+      "switches": [
+        {
+          "tid": 2000973,
+          "ns": 2930675141391355,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675141435765,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675141452495,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675141464355,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675141467135,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675141472845,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675141479915,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "ns": 2930675141491425,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675141501715,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675141514675,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675141515425,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675141531345,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "ns": 2930675141540915,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "ns": 2930675141737306,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "ns": 2930675141777176,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "ns": 2930675141792786,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675141813696,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675141813846,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675141824986,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675141830206,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "ns": 2930675141847246,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675141894976,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675141908276,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "ns": 2930675141913536,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675141922136,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675141928596,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675141929686,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675141940726,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "ns": 2930675141953216,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000964,
+          "ns": 2930675141971617,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "ns": 2930675141973117,
+          "cpu": 114,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675141976217,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000964,
+          "ns": 2930675141980446,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "ns": 2930675141991766,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675141991926,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "ns": 2930675142025626,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675142027406,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675142028717,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675142033306,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675142034766,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "ns": 2930675142035037,
+          "cpu": 117,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675142037077,
+          "cpu": 112,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675142043967,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675142048057,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675142057497,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675142155887,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675142167867,
+          "cpu": 113,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "ns": 2930675142178137,
+          "cpu": 119,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675142213727,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675142231737,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "ns": 2930675142242697,
+          "cpu": 119,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675142280247,
+          "cpu": 115,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675142283417,
+          "cpu": 116,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "ns": 2930675142287187,
+          "cpu": 114,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675142288797,
+          "cpu": 118,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "ns": 2930675142303027,
+          "cpu": 117,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "ns": 2930675142307357,
+          "cpu": 113,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "ns": 2930675142321698,
+          "cpu": 116,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "ns": 2930675142327167,
+          "cpu": 112,
+          "direction": "IN",
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "ns": 2930675142328347,
+          "cpu": 115,
+          "direction": "OUT",
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "ns": 2930675142332698,
+          "cpu": 118,
+          "direction": "OUT",
+          "preempt": false
+        }
+      ],
+      "stack_command": [
+        "perf",
+        "script",
+        "-i",
+        "build/at15c/profile-compiler-post/perf.data",
+        "--ns",
+        "--pid",
+        "2000964",
+        "--time",
+        "2930675.141381575,2930675.142337118",
+        "-F",
+        "+pid"
+      ],
+      "offcpu": [
+        {
+          "tid": 2000964,
+          "start": 2930675141381575,
+          "end": 2930675141971617,
+          "ms": 0.590042,
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "start": 2930675141472845,
+          "end": 2930675141976217,
+          "ms": 0.503372,
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "start": 2930675141501715,
+          "end": 2930675141928596,
+          "ms": 0.426881,
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "start": 2930675141540915,
+          "end": 2930675141953216,
+          "ms": 0.412301,
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "start": 2930675141531345,
+          "end": 2930675141894976,
+          "ms": 0.363631,
+          "preempt": false
+        },
+        {
+          "tid": 2000964,
+          "start": 2930675141980446,
+          "end": 2930675142337118,
+          "ms": 0.356672,
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "start": 2930675141381575,
+          "end": 2930675141737306,
+          "ms": 0.355731,
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "start": 2930675141973117,
+          "end": 2930675142287187,
+          "ms": 0.31407,
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "start": 2930675141514675,
+          "end": 2930675141813846,
+          "ms": 0.299171,
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "start": 2930675141515425,
+          "end": 2930675141813696,
+          "ms": 0.298271,
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "start": 2930675142037077,
+          "end": 2930675142327167,
+          "ms": 0.29009,
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "start": 2930675142035037,
+          "end": 2930675142303027,
+          "ms": 0.26799,
+          "preempt": false
+        },
+        {
+          "tid": 2000971,
+          "start": 2930675141777176,
+          "end": 2930675142025626,
+          "ms": 0.24845,
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "start": 2930675142043967,
+          "end": 2930675142280247,
+          "ms": 0.23628,
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "start": 2930675141929686,
+          "end": 2930675142155887,
+          "ms": 0.226201,
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "start": 2930675142057497,
+          "end": 2930675142283417,
+          "ms": 0.22592,
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "start": 2930675141824986,
+          "end": 2930675142033306,
+          "ms": 0.20832,
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "start": 2930675142034766,
+          "end": 2930675142213727,
+          "ms": 0.178961,
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "start": 2930675142167867,
+          "end": 2930675142307357,
+          "ms": 0.13949,
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "start": 2930675141908276,
+          "end": 2930675142028717,
+          "ms": 0.120441,
+          "preempt": false
+        },
+        {
+          "tid": 2000968,
+          "start": 2930675141381575,
+          "end": 2930675141491425,
+          "ms": 0.10985,
+          "preempt": false
+        },
+        {
+          "tid": 2000966,
+          "start": 2930675141381575,
+          "end": 2930675141479915,
+          "ms": 0.09834,
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "start": 2930675141830206,
+          "end": 2930675141922136,
+          "ms": 0.09193,
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "start": 2930675141940726,
+          "end": 2930675142027406,
+          "ms": 0.08668,
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "start": 2930675141381575,
+          "end": 2930675141467135,
+          "ms": 0.08556,
+          "preempt": false
+        },
+        {
+          "tid": 2000967,
+          "start": 2930675141381575,
+          "end": 2930675141464355,
+          "ms": 0.08278,
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "start": 2930675141913536,
+          "end": 2930675141991766,
+          "ms": 0.07823,
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "start": 2930675141381575,
+          "end": 2930675141452495,
+          "ms": 0.07092,
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "start": 2930675142178137,
+          "end": 2930675142242697,
+          "ms": 0.06456,
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "start": 2930675142231737,
+          "end": 2930675142288797,
+          "ms": 0.05706,
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "start": 2930675141991926,
+          "end": 2930675142048057,
+          "ms": 0.056131,
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "start": 2930675141792786,
+          "end": 2930675141847246,
+          "ms": 0.05446,
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "start": 2930675141381575,
+          "end": 2930675141435765,
+          "ms": 0.05419,
+          "preempt": false
+        },
+        {
+          "tid": 2000970,
+          "start": 2930675142321698,
+          "end": 2930675142337118,
+          "ms": 0.01542,
+          "preempt": false
+        },
+        {
+          "tid": 2000973,
+          "start": 2930675141381575,
+          "end": 2930675141391355,
+          "ms": 0.00978,
+          "preempt": false
+        },
+        {
+          "tid": 2000969,
+          "start": 2930675142328347,
+          "end": 2930675142337118,
+          "ms": 0.008771,
+          "preempt": false
+        },
+        {
+          "tid": 2000972,
+          "start": 2930675142332698,
+          "end": 2930675142337118,
+          "ms": 0.00442,
+          "preempt": false
+        }
+      ],
+      "workers_off_cpu_at_send": {
+        "2000966": 0.09834,
+        "2000971": 0.355731,
+        "2000973": 0.00978,
+        "2000967": 0.08278,
+        "2000972": 0.07092,
+        "2000969": 0.08556,
+        "2000970": 0.05419,
+        "2000968": 0.10985
+      },
+      "all_workers_off_cpu_at_send_ms": 0.00978,
+      "duration_ms": 0.955543
+    }
+  ],
+  "perf_command": [
+    "taskset",
+    "-c",
+    "127",
+    "perf",
+    "record",
+    "-C",
+    "112-119",
+    "-g",
+    "--clockid",
+    "mono",
+    "--call-graph",
+    "dwarf,8192",
+    "--switch-events",
+    "-e",
+    "cycles:u",
+    "-F",
+    "999",
+    "-D",
+    "-1",
+    "--control",
+    "fd:14,17",
+    "-o",
+    "/home/user/Projects/cx-at15/build/at15c/profile-compiler-post/perf.data"
+  ],
+  "extraction_command": [
+    "perf",
+    "script",
+    "-i",
+    "build/at15c/profile-compiler-post/perf.data",
+    "--ns",
+    "--show-switch-events",
+    "-F",
+    "+pid"
+  ]
+}

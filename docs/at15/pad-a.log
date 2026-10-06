@@ -1,0 +1,9 @@
+{
+  "kind": "A: behaviour twin; aggregate .text-size control",
+  "limitation": "PRE behaviour and identical input objects; per-function POST placement is not reproduced",
+  "pre_text_section": 7782988,
+  "post_text_section": 7794684,
+  "pad_text_section": 7794684,
+  "unreachable_padding_bytes": 11696,
+  "sha256": "60ab5ca429cb982b953b31a9a25112100818fbd3bc18619d052688d51c824617"
+}

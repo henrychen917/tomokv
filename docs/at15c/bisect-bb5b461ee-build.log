@@ -1,0 +1,8 @@
+$ taskset -c 112-127 g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -Isrc/cmd -I. -c build/at15c/bisect-bb5b461ee/multi_admin.cc -o build/at15c/bisect-bb5b461ee/multi_admin.o
+build/at15c/bisect-bb5b461ee/multi_admin.cc: In lambda function:
+build/at15c/bisect-bb5b461ee/multi_admin.cc:18:32: error: ‘hash_ttls_of’ was not declared in this scope; did you mean ‘hash_ttl_slot’?
+   18 |             const auto* ttls = hash_ttls_of(object);
+      |                                ^~~~~~~~~~~~
+      |                                hash_ttl_slot
+
+exit=1

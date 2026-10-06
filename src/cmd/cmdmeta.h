@@ -43,6 +43,8 @@ int16_t command_metadata_first_key(const CommandMetadata& metadata);
 uint64_t command_metadata_categories(const CommandMetadata& metadata);
 bool command_metadata_is_subcommand(const CommandMetadata& metadata);
 bool command_metadata_arity_ok(const CommandMetadata& metadata, uint32_t argc);
+// Transaction admission uses Redis's generated flags, including subcommand flags.
+bool command_metadata_no_multi(Op& op);
 
 // Append one complete 10-field COMMAND INFO row, including rich flags, ACL categories, tips,
 // key specifications, and nested subcommands. A null metadata pointer appends protocol-native

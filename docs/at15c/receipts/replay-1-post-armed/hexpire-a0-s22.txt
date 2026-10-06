@@ -1,0 +1,4 @@
+  DIFF op 321 ['HPTTL', 'hx5', 'FIELDS', '3']
+    target: b'*3\r\n:-1\r\n:108728628442\r\n:-1\r\n'
+    oracle: b'*3\r\n:-1\r\n:108728628446\r\n:-1\r\n'
+DIFFER hexpire: 4288 ops, 1 diffs, 0 clock tolerances -> FAIL
