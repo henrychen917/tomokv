@@ -34,7 +34,7 @@ class Schedule:
     def cmd(self, *args):
         self.commands.append(args[:3])
         if args == ("INFO", "Persistence"):
-            values = {"aof_rewrite_completions": int(self.released),
+            values = {"aof_rewrites": int(self.released),
                       "aof_groups_committed": int(self.released),
                       "aof_control_frames_deferred": int(self.released and self.fired)}
             return "\r\n".join("%s:%d" % row for row in values.items()).encode()

@@ -264,7 +264,7 @@ def directed_window(control, writer, keys, aof_dir, writer_tid):
     if not sent or writer.read() != b"OK":
         raise AssertionError("large SET did not complete after releasing the writer")
     stats = wait_for(lambda: info(control),
-                     lambda now: now["aof_rewrite_completions"] > start["aof_rewrite_completions"]
+                     lambda now: now["aof_rewrites"] > start["aof_rewrites"]
                      and now["aof_groups_committed"] > start["aof_groups_committed"],
                      "rewrite and queued group completion", deadline)
     fired = stats["aof_control_frames_deferred"] - start["aof_control_frames_deferred"]
