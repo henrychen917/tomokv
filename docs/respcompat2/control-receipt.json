@@ -1,0 +1,22 @@
+[
+  {
+    "control": "duplicate-prefix",
+    "returncode": 1,
+    "last_line": "respcompat: 204263 checks, 33 failures",
+    "failures": [
+      "FAIL argc *18",
+      "FAIL argv *18",
+      "FAIL argv *18",
+      "FAIL argc *18",
+      "FAIL argv *18"
+    ]
+  },
+  {
+    "control": "reset-op",
+    "returncode": 1,
+    "last_line": "respcompat: 204263 checks, 1 failures",
+    "failures": [
+      "FAIL cold transfer preserves captured Op flags"
+    ]
+  }
+]

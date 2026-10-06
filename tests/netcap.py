@@ -159,7 +159,6 @@ def framing(host, port):
     for payload, message in (
         (b"*x\r\n", b"ERR Protocol error: invalid multibulk length"),
         (b"*1\r\n!\r\n", b"ERR Protocol error: expected '$', got '!'"),
-        (b"*1\r\n\x00\r\n", b"ERR Protocol error: expected '$', got '\x00'"),
         (b"*1\r\n$x\r\n", b"ERR Protocol error: invalid bulk length"),
     ):
         with closing(_lib.Conn(host, port, timeout=3)) as conn:

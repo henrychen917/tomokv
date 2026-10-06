@@ -1,0 +1,7 @@
+FAIL scan: CD6 SSCAN did not terminate with rehash between every call
+CD6: 8 growth/wraparound cases, three witnessed capacity increases per scan
+PASS scan-growth
+FAIL coordinates: CD7 point=21 RESP2 actual=2a310d0a2a320d0a2432320d0a2d3136302e35333731343330353136323432393831300d0a2432300d0a33322e39393931303736373239313834353535390d0a oracle=2a310d0a2a320d0a2432310d0a2d3136302e353337313433303531363234323938310d0a2432300d0a33322e39393931303736373239313834353535390d0a
+FAIL stores: CD8 first destination existence changed
+FAIL encoding: CD13 GEOADD demoted encoding
+FAIL metadata: CD13 GEOADD reset eviction metadata
