@@ -391,9 +391,10 @@ bool command_prepare_subcmd_route(Server& server, Op& op);
 // Lets the server-tail translation unit reach the bound Server without duplicating the binding.
 Server* command_server();
 uint64_t command_proto_max_bulk_len();
-// The IO thread currently running a ConnLocal handler, for the few commands that must talk to
-// the loop itself (SHUTDOWN's ring pokes). Null outside a ConnLocal call.
+// Bound handler context. ConnLocal runs on IO; EXEC's ConfigRoute stage temporarily binds its
+// parked client on shard 0's owner and restores the previous context afterwards.
 ThreadCtx* command_local_thread();
+Client* command_local_client();
 // Live CONFIG table as (name, value) pairs, for CONFIG REWRITE.
 void command_config_snapshot(std::vector<std::pair<std::string, std::string>>& out);
 // CONFIG RESETSTAT. The resettable INFO counters are per-shard and per-thread single-writer
@@ -401,7 +402,7 @@ void command_config_snapshot(std::vector<std::pair<std::string, std::string>>& o
 // keeps every counter's single-writer property intact and adds no cross-thread write.
 void command_config_resetstat();
 bool command_validate_all_shards(Op& op);
-bool command_config_routes_all_shards(Op& op);
+bool command_config_routes_all_shards(Op& op, bool execution_boundary = false);
 bool command_validate_config_set(Op& op);
 bool command_prepare_script_route(Server& server, Op& op);
 bool command_validate_script_route(Op& op, uint32_t& first, uint32_t& count);

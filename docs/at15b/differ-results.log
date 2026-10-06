@@ -1,0 +1,4 @@
+POST split : 249 / 252 suite legs pass; 12 / 12 multi/multidb legs pass
+POST armed fused : 244 / 246 suite legs pass; 12 / 12 multi/multidb legs pass
+PRE armed fused : 234 / 246 suite legs pass; 0 / 12 multi/multidb legs pass
+POST armed fused repeat : 245 / 246 suite legs pass; 12 / 12 multi/multidb legs pass

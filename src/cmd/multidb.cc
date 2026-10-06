@@ -736,8 +736,7 @@ void multidb_stats(Shard& shard, DatabaseStatsTable& stats) {
             ++row.keys;
             if (object->is_type(Type::Hash)) {
                 const auto* slot = hash_ttl_slot(object);
-                const auto* ttls = slot ? *slot : nullptr;
-                row.subexpiry += ttls && !ttls->empty();
+                row.subexpiry += slot && *slot && !(*slot)->empty();
             }
             const int64_t deadline = object->expire_at_ms();
             if (deadline >= 0) {

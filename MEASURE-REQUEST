@@ -28,3 +28,9 @@ and multi-DB producer/incidental changes remain. Serverless positive suites
 and rejected routing control pass. Subexpiry retains the exact census source;
 field-TTL INFO may walk keys. One gate row remains +1/+1 (counts 498/515).
 No server, benchmark, gate or push; builds/checks on CPUs 112-127.
+
+Lane at15: MULTI admin replies
+
+See MEASURE-REQUEST-at15.md for PRE/POST hashes, serverless falsification, body
+identity, the +1/+1 row count, and explicit Redis-table/group-5 policy differences.
+Live verification and the gate remain maintainer work; no push.

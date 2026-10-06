@@ -1,0 +1,43 @@
+{
+  "kind": "historical accounting replay",
+  "live_gate_receipt": false,
+  "source": "build/gate-run.yib6ZD",
+  "parts": [
+    {
+      "part": "split-0",
+      "comparisons": 210,
+      "original_passed": 211,
+      "passed_without_respcompat": 210,
+      "expected": 210,
+      "surplus_pass_rejected": true,
+      "corrected_accounting_accepted": true
+    },
+    {
+      "part": "split-1",
+      "comparisons": 214,
+      "original_passed": 215,
+      "passed_without_respcompat": 214,
+      "expected": 214,
+      "surplus_pass_rejected": true,
+      "corrected_accounting_accepted": true
+    },
+    {
+      "part": "armed-0",
+      "comparisons": 205,
+      "original_passed": 207,
+      "passed_without_respcompat": 206,
+      "expected": 206,
+      "surplus_pass_rejected": true,
+      "corrected_accounting_accepted": true
+    },
+    {
+      "part": "armed-1",
+      "comparisons": 209,
+      "original_passed": 211,
+      "passed_without_respcompat": 210,
+      "expected": 210,
+      "surplus_pass_rejected": true,
+      "corrected_accounting_accepted": true
+    }
+  ]
+}

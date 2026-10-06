@@ -1,0 +1,5 @@
+$ taskset -c 112-127 ./build/execabort-watch-unit 1s no-error
+PASS execabort-watch db=namespaced mode=1s atomic=0 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=namespaced mode=1s atomic=1 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+
+exit=0

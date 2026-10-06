@@ -939,13 +939,8 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
-    // NO DEBUG SLEEP BRANCH HERE, AND THAT IS THE POINT. Direct DEBUG SLEEP is intercepted by
-    // IoLoop before this handler, and an EXEC child never arrives either: MULTI execution has no
-    // MultiCommandKind for it, so assemble_cross_reply answers "command is not supported by MULTI
-    // execution" first. Measured on all three geometries (--shards 1, 2s 16 shards, 1s read-local
-    // 64 shards) -- every one returns the generic rejection, so a guard here only ever pretended to
-    // reject a shape that cannot reach it. Falling through to the unknown-subcommand reply is the
-    // honest behaviour if a future route does deliver one; nothing here can block an IO thread.
+    // Direct DEBUG SLEEP is intercepted by IoLoop; EXEC uses multi.inc's deferred owner tasks.
+    // Both routes share debug_sleep_prepare, so this handler never sleeps a worker thread.
 #ifndef NDEBUG
     // Fail the next N FlatStore/ExpireIndex table calloc calls. This is deliberately reachable only
     // through the already-gated DEBUG command and is compiled out of assertion-disabled builds.
@@ -3047,6 +3042,7 @@ uint64_t command_proto_max_bulk_len() {
     return g_proto_max_bulk_len.load(std::memory_order_relaxed);
 }
 ThreadCtx* command_local_thread() { return g_thread; }
+Client* command_local_client() { return g_client; }
 
 void command_config_snapshot(std::vector<std::pair<std::string, std::string>>& out) {
     std::lock_guard<std::mutex> lock(g_config_mu);
@@ -3313,14 +3309,17 @@ bool command_validate_all_shards(Op& op) {
     return false;
 }
 
-bool command_config_routes_all_shards(Op& op) {
+bool command_config_routes_all_shards(Op& op, bool execution_boundary) {
     // The conditional-scatter route: CONFIG SET fans out; DBSIZE NOW (owner request 2026-08-25)
     // is the exact-on-demand variant -- each owner counts its own store at execution time, so the
     // reply reflects everything already dispatched ahead of it on every shard, with none of the
     // batch-boundary publication lag the plain DBSIZE reads.
     if (op.cmd_name().eq_icase("info"))
         return info_section(op, "KEYSPACE", true) &&
-            (!storesize_published_route() || (g_server && storesize_field_census(*g_server)));
+            // INFO queued in EXEC must census the transaction-visible images at its
+            // command position, even when no published field-TTL attention is set.
+            (execution_boundary || !storesize_published_route() ||
+             (g_server && storesize_field_census(*g_server)));
     if (op.cmd_name().eq_icase("dbsize")) return (op.argc() == 1 && !storesize_published_route()) || (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
     if (op.cmd_name().eq_icase("debug"))
         return op.argc() == 2 &&

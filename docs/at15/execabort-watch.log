@@ -1,0 +1,26 @@
+PASS execabort-watch db=namespaced mode=1s atomic=0 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=namespaced mode=1s atomic=1 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=namespaced mode=1s atomic=0 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=namespaced mode=1s atomic=1 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=namespaced mode=1s atomic=0 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=namespaced mode=1s atomic=1 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=namespaced mode=2s atomic=0 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=namespaced mode=2s atomic=1 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=namespaced mode=2s atomic=0 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=namespaced mode=2s atomic=1 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=namespaced mode=2s atomic=0 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=namespaced mode=2s atomic=1 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+FAIL execabort-watch: WATCH window never armed
+PASS execabort-watch db=db0 mode=1s atomic=0 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=db0 mode=1s atomic=1 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=db0 mode=1s atomic=0 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=db0 mode=1s atomic=1 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=db0 mode=1s atomic=0 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=db0 mode=1s atomic=1 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=db0 mode=2s atomic=0 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=db0 mode=2s atomic=1 control=armed watch_armed=1 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=db0 mode=2s atomic=0 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=db0 mode=2s atomic=1 control=no-watch watch_armed=0 exec_reply=EXECABORT later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=db0 mode=2s atomic=0 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+PASS execabort-watch db=db0 mode=2s atomic=1 control=no-error watch_armed=1 exec_reply=empty-array later_set=OK denied=0 waits_before=0 waits_after=0 deferred=0
+FAIL execabort-watch: WATCH window never armed

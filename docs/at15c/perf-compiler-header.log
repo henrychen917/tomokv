@@ -1,0 +1,41 @@
+# ========
+# captured on    : Tue Oct  6 16:16:03 2026
+# header version : 1
+# data offset    : 2536
+# data size      : 45355752
+# feat offset    : 45358288
+# hostname : user-PowerEdge-R6615
+# os release : 7.0.0-30-generic
+# perf version : 7.0.12
+# arch : x86_64
+# nrcpus online : 256
+# nrcpus avail : 256
+# cpudesc : AMD EPYC 9754 128-Core Processor
+# cpuid : AuthenticAMD,25,160,2
+# total memory : 131362172 kB
+# cmdline : /usr/lib/linux-hwe-7.0-tools-7.0.0-30/perf
+# event : name = cycles:u, , id = { 786572, 786573, 786574, 786575, 786576, 786577, 786578, 786579 }, type = 0 (PERF_TYPE_HARDWARE), size = 144, config = 0 (PERF_COUNT_HW_CPU_CYCLES), { sample_period, sample_freq } = 999, sample_type = IP|TID|TIME|CALLCHAIN|CPU|PERIOD|REGS_USER|STACK_USER|IDENTIFIER, read_format = ID|LOST, disabled = 1, exclude_kernel = 1, exclude_hv = 1, freq = 1, sample_id_all = 1, exclude_callchain_user = 1, use_clockid = 1, sample_regs_user = 0xff0fff, sample_stack_user = 8192, clockid = 1
+# event : name = dummy:u, , id = { 786580, 786581, 786582, 786583, 786584, 786585, 786586, 786587, 786588, 786589, 786590, 786591, 786592, 786593, 786594, 786595, 786596, 786597, 786598, 786599, 786600, 786601, 786602, 786603, 786604, 786605, 786606, 786607, 786608, 786609, 786610, 786611, 786612, 786613, 786614, 786615, 786616, 786617, 786618, 786619, 786620, 786621, 786622, 786623, 786624, 786625, 786626, 786627, 786628, 786629, 786630, 786631, 786632, 786633, 786634, 786635, 786636, 786637, 786638, 786639, 786640, 786641, 786642, 786643, 786644, 786645, 786646, 786647, 786648, 786649, 786650, 786651, 786652, 786653, 786654, 786655, 786656, 786657, 786658, 786659, 786660, 786661, 786662, 786663, 786664, 786665, 786666, 786667, 786668, 786669, 786670, 786671, 786672, 786673, 786674, 786675, 786676, 786677, 786678, 786679, 786680, 786681, 786682, 786683, 786684, 786685, 786686, 786687, 786688, 786689, 786690, 786691, 786692, 786693, 786694, 786695, 786696, 786697, 786698, 786699, 786700, 786701, 786702, 786703, 786704, 786705, 786706, 786707, 786708, 786709, 786710, 786711, 786712, 786713, 786714, 786715, 786716, 786717, 786718, 786719, 786720, 786721, 786722, 786723, 786724, 786725, 786726, 786727, 786728, 786729, 786730, 786731, 786732, 786733, 786734, 786735, 786736, 786737, 786738, 786739, 786740, 786741, 786742, 786743, 786744, 786745, 786746, 786747, 786748, 786749, 786750, 786751, 786752, 786753, 786754, 786755, 786756, 786757, 786758, 786759, 786760, 786761, 786762, 786763, 786764, 786765, 786766, 786767, 786768, 786769, 786770, 786771, 786772, 786773, 786774, 786775, 786776, 786777, 786778, 786779, 786780, 786781, 786782, 786783, 786784, 786785, 786786, 786787, 786788, 786789, 786790, 786791, 786792, 786793, 786794, 786795, 786796, 786797, 786798, 786799, 786800, 786801, 786802, 786803, 786804, 786805, 786806, 786807, 786808, 786809, 786810, 786811, 786812, 786813, 786814, 786815, 786816, 786817, 786818, 786819, 786820, 786821, 786822, 786823, 786824, 786825, 786826, 786827, 786828, 786829, 786830, 786831, 786832, 786833, 786834, 786835 }, type = 1 (PERF_TYPE_SOFTWARE), size = 144, config = 0x9 (PERF_COUNT_SW_DUMMY), { sample_period, sample_freq } = 999, sample_type = IP|TID|TIME|CPU|PERIOD|IDENTIFIER, read_format = ID|LOST, exclude_kernel = 1, exclude_hv = 1, mmap = 1, comm = 1, freq = 1, task = 1, mmap_data = 1, sample_id_all = 1, exclude_guest = 1, mmap2 = 1, comm_exec = 1, use_clockid = 1, context_switch = 1, ksymbol = 1, bpf_event = 1, build_id = 1, clockid = 1
+# CPU_TOPOLOGY info available, use -I to display
+# NUMA_TOPOLOGY info available, use -I to display
+# pmu mappings: cpu = 4, amd_iommu_0 = 12, amd_iommu_1 = 13, amd_iommu_2 = 14, amd_iommu_3 = 15, breakpoint = 5, hwmon_bnxt_en = 4294901760, hwmon_bnxt_en = 4294901761, hwmon_k10temp = 4294901762, hwmon_power_meter = 4294901763, ibs_fetch = 10, ibs_op = 11, kprobe = 8, msr = 16, power = 17, power_core = 18, software = 1, tool = 4294967294, tracepoint = 2, uprobe = 9
+# CACHE info available, use -I to display
+# time of first sample : 2930674.827038
+# time of last sample : 2930675.373248
+# sample duration :    546.209 ms
+# MEM_TOPOLOGY info available, use -I to display
+# clockid frequency: 1000 MHz
+# bpf_prog_info empty
+# btf info empty
+# cpu pmu capabilities: branches=16, max_precise=0
+# clockid: monotonic (1)
+# reference time: 2026-10-06 16:16:02.293800 = 1791274562.293800 (TOD) = 2930674.451735078 (monotonic)
+# ibs_fetch pmu capabilities: zen4_ibs_extensions=1
+# ibs_op pmu capabilities: zen4_ibs_extensions=1
+# AMD systems uses ibs_op// PMU for some precise events, e.g.: cycles:p, see the 'perf list' man page for further details.
+# CPU_DOMAIN_INFO info available, use -I to display
+# e_machine : 62
+#   e_flags : 0
+# missing features: TRACING_DATA BUILD_ID BRANCH_STACK GROUP_DESC AUXTRACE STAT DIR_FORMAT COMPRESSED HYBRID_TOPOLOGY
+# ========
+#

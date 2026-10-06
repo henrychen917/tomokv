@@ -1,0 +1,632 @@
+[
+  {
+    "arm": "POST split",
+    "completed": 252,
+    "passed": 249,
+    "failed": [
+      {
+        "suite": "hexpire",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-differ-split/hexpire-a0-s7.txt",
+        "summary": "DIFFER hexpire: 4288 ops, 3 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "edgetime",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-differ-split/edgetime-a0-s7.txt",
+        "summary": "DIFFER edgetime: 4426 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "wiredump",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-differ-split/wiredump-a0-s7.txt",
+        "summary": "DIFFER wiredump: 4200 ops, 1 diffs, 31 clock tolerances -> FAIL"
+      }
+    ],
+    "multi_and_multidb": [
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-split/multi-a0-s7.txt",
+        "summary": "DIFFER multi: 4275 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-split/multidb-a0-s7.txt",
+        "summary": "DIFFER multidb: 5418 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 19,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-split/multi-a0-s19.txt",
+        "summary": "DIFFER multi: 4272 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 19,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-split/multidb-a0-s19.txt",
+        "summary": "DIFFER multidb: 5556 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 20,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-split/multi-a0-s20.txt",
+        "summary": "DIFFER multi: 4204 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 20,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-split/multidb-a0-s20.txt",
+        "summary": "DIFFER multidb: 5460 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 23,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-split/multi-a0-s23.txt",
+        "summary": "DIFFER multi: 4227 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 23,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-split/multidb-a0-s23.txt",
+        "summary": "DIFFER multidb: 5316 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 21,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-split/multi-a0-s21.txt",
+        "summary": "DIFFER multi: 4194 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 21,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-split/multidb-a0-s21.txt",
+        "summary": "DIFFER multidb: 5430 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 22,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-split/multi-a0-s22.txt",
+        "summary": "DIFFER multi: 4238 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 22,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-split/multidb-a0-s22.txt",
+        "summary": "DIFFER multidb: 5370 ops, 0 diffs, 0 clock tolerances -> PASS"
+      }
+    ]
+  },
+  {
+    "arm": "POST armed fused",
+    "completed": 246,
+    "passed": 244,
+    "failed": [
+      {
+        "suite": "edgetime",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-differ-armed/edgetime-a0-s7.txt",
+        "summary": "DIFFER edgetime: 4426 ops, 2 diffs, 1 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "wiredump",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-differ-armed/wiredump-a0-s7.txt",
+        "summary": "DIFFER wiredump: 4200 ops, 23 diffs, 111 clock tolerances -> FAIL"
+      }
+    ],
+    "multi_and_multidb": [
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-armed/multi-a0-s7.txt",
+        "summary": "DIFFER multi: 4275 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-armed/multidb-a0-s7.txt",
+        "summary": "DIFFER multidb: 5418 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 19,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-armed/multi-a0-s19.txt",
+        "summary": "DIFFER multi: 4272 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 19,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-armed/multidb-a0-s19.txt",
+        "summary": "DIFFER multidb: 5556 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 20,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-armed/multi-a0-s20.txt",
+        "summary": "DIFFER multi: 4204 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 20,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-armed/multidb-a0-s20.txt",
+        "summary": "DIFFER multidb: 5460 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 23,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-armed/multi-a0-s23.txt",
+        "summary": "DIFFER multi: 4227 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 23,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-armed/multidb-a0-s23.txt",
+        "summary": "DIFFER multidb: 5316 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 21,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-armed/multi-a0-s21.txt",
+        "summary": "DIFFER multi: 4194 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 21,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-armed/multidb-a0-s21.txt",
+        "summary": "DIFFER multidb: 5430 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 22,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-armed/multi-a0-s22.txt",
+        "summary": "DIFFER multi: 4238 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 22,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-differ-armed/multidb-a0-s22.txt",
+        "summary": "DIFFER multidb: 5370 ops, 0 diffs, 0 clock tolerances -> PASS"
+      }
+    ]
+  },
+  {
+    "arm": "PRE armed fused",
+    "completed": 246,
+    "passed": 234,
+    "failed": [
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multi-a0-s7.txt",
+        "summary": "DIFFER multi: 4275 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multidb-a0-s7.txt",
+        "summary": "DIFFER multidb: 5418 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 19,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multi-a0-s19.txt",
+        "summary": "DIFFER multi: 4272 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 19,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multidb-a0-s19.txt",
+        "summary": "DIFFER multidb: 5556 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 20,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multi-a0-s20.txt",
+        "summary": "DIFFER multi: 4204 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 20,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multidb-a0-s20.txt",
+        "summary": "DIFFER multidb: 5460 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 23,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multi-a0-s23.txt",
+        "summary": "DIFFER multi: 4227 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 23,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multidb-a0-s23.txt",
+        "summary": "DIFFER multidb: 5316 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 21,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multi-a0-s21.txt",
+        "summary": "DIFFER multi: 4194 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 21,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multidb-a0-s21.txt",
+        "summary": "DIFFER multidb: 5430 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 22,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multi-a0-s22.txt",
+        "summary": "DIFFER multi: 4238 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 22,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multidb-a0-s22.txt",
+        "summary": "DIFFER multidb: 5370 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      }
+    ],
+    "multi_and_multidb": [
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multi-a0-s7.txt",
+        "summary": "DIFFER multi: 4275 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multidb-a0-s7.txt",
+        "summary": "DIFFER multidb: 5418 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 19,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multi-a0-s19.txt",
+        "summary": "DIFFER multi: 4272 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 19,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multidb-a0-s19.txt",
+        "summary": "DIFFER multidb: 5556 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 20,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multi-a0-s20.txt",
+        "summary": "DIFFER multi: 4204 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 20,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multidb-a0-s20.txt",
+        "summary": "DIFFER multidb: 5460 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 23,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multi-a0-s23.txt",
+        "summary": "DIFFER multi: 4227 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 23,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multidb-a0-s23.txt",
+        "summary": "DIFFER multidb: 5316 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 21,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multi-a0-s21.txt",
+        "summary": "DIFFER multi: 4194 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 21,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multidb-a0-s21.txt",
+        "summary": "DIFFER multidb: 5430 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 22,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multi-a0-s22.txt",
+        "summary": "DIFFER multi: 4238 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 22,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-pre-differ-armed/multidb-a0-s22.txt",
+        "summary": "DIFFER multidb: 5370 ops, 1 diffs, 0 clock tolerances -> FAIL"
+      }
+    ]
+  },
+  {
+    "arm": "POST armed fused repeat",
+    "completed": 246,
+    "passed": 245,
+    "failed": [
+      {
+        "suite": "edgetime",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 1,
+        "log": "build/at15b-post-repeat-armed/edgetime-a0-s7.txt",
+        "summary": "DIFFER edgetime: 4426 ops, 2 diffs, 2 clock tolerances -> FAIL"
+      }
+    ],
+    "multi_and_multidb": [
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-post-repeat-armed/multi-a0-s7.txt",
+        "summary": "DIFFER multi: 4275 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 7,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-post-repeat-armed/multidb-a0-s7.txt",
+        "summary": "DIFFER multidb: 5418 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 19,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-post-repeat-armed/multi-a0-s19.txt",
+        "summary": "DIFFER multi: 4272 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 19,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-post-repeat-armed/multidb-a0-s19.txt",
+        "summary": "DIFFER multidb: 5556 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 20,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-post-repeat-armed/multi-a0-s20.txt",
+        "summary": "DIFFER multi: 4204 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 20,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-post-repeat-armed/multidb-a0-s20.txt",
+        "summary": "DIFFER multidb: 5460 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 23,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-post-repeat-armed/multi-a0-s23.txt",
+        "summary": "DIFFER multi: 4227 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 23,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-post-repeat-armed/multidb-a0-s23.txt",
+        "summary": "DIFFER multidb: 5316 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 21,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-post-repeat-armed/multi-a0-s21.txt",
+        "summary": "DIFFER multi: 4194 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 21,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-post-repeat-armed/multidb-a0-s21.txt",
+        "summary": "DIFFER multidb: 5430 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multi",
+        "atomic": 0,
+        "seed": 22,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-post-repeat-armed/multi-a0-s22.txt",
+        "summary": "DIFFER multi: 4238 ops, 0 diffs, 0 clock tolerances -> PASS"
+      },
+      {
+        "suite": "multidb",
+        "atomic": 0,
+        "seed": 22,
+        "repeat": 0,
+        "exit": 0,
+        "log": "build/at15b-post-repeat-armed/multidb-a0-s22.txt",
+        "summary": "DIFFER multidb: 5370 ops, 0 diffs, 0 clock tolerances -> PASS"
+      }
+    ]
+  }
+]

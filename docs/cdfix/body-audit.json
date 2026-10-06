@@ -1,0 +1,1476 @@
+{
+  "pre": "build/cdfix/PRE",
+  "post": "build/cdfix/POST",
+  "functions": 16838,
+  "negative_controls": [
+    "opcode rejected",
+    "resolved target rejected"
+  ],
+  "raw_equal": 16540,
+  "bytes_and_targets_equal": 16794,
+  "objects": [
+    {
+      "object": "db0/src/cmd/acl.o",
+      "functions": 258,
+      "raw_equal": 258,
+      "bytes_and_targets_equal": 258
+    },
+    {
+      "object": "db0/src/cmd/climon.o",
+      "functions": 220,
+      "raw_equal": 220,
+      "bytes_and_targets_equal": 220
+    },
+    {
+      "object": "db0/src/cmd/cmdgap.o",
+      "functions": 4,
+      "raw_equal": 4,
+      "bytes_and_targets_equal": 4
+    },
+    {
+      "object": "db0/src/cmd/cmdmeta.o",
+      "functions": 33,
+      "raw_equal": 33,
+      "bytes_and_targets_equal": 33
+    },
+    {
+      "object": "db0/src/cmd/commands.o",
+      "functions": 28,
+      "raw_equal": 28,
+      "bytes_and_targets_equal": 28
+    },
+    {
+      "object": "db0/src/cmd/functions.o",
+      "functions": 78,
+      "raw_equal": 78,
+      "bytes_and_targets_equal": 78
+    },
+    {
+      "object": "db0/src/cmd/geo.o",
+      "functions": 94,
+      "raw_equal": 56,
+      "bytes_and_targets_equal": 82
+    },
+    {
+      "object": "db0/src/cmd/glob.o",
+      "functions": 2,
+      "raw_equal": 2,
+      "bytes_and_targets_equal": 2
+    },
+    {
+      "object": "db0/src/cmd/hll.o",
+      "functions": 24,
+      "raw_equal": 24,
+      "bytes_and_targets_equal": 24
+    },
+    {
+      "object": "db0/src/cmd/info_stats.o",
+      "functions": 3,
+      "raw_equal": 3,
+      "bytes_and_targets_equal": 3
+    },
+    {
+      "object": "db0/src/cmd/l4prebuild.o",
+      "functions": 62,
+      "raw_equal": 62,
+      "bytes_and_targets_equal": 62
+    },
+    {
+      "object": "db0/src/cmd/lbsignals.o",
+      "functions": 15,
+      "raw_equal": 15,
+      "bytes_and_targets_equal": 15
+    },
+    {
+      "object": "db0/src/cmd/lcs.o",
+      "functions": 14,
+      "raw_equal": 14,
+      "bytes_and_targets_equal": 14
+    },
+    {
+      "object": "db0/src/cmd/multidb.o",
+      "functions": 83,
+      "raw_equal": 83,
+      "bytes_and_targets_equal": 83
+    },
+    {
+      "object": "db0/src/cmd/pfdebug.o",
+      "functions": 34,
+      "raw_equal": 34,
+      "bytes_and_targets_equal": 34
+    },
+    {
+      "object": "db0/src/cmd/scripting.o",
+      "functions": 138,
+      "raw_equal": 138,
+      "bytes_and_targets_equal": 138
+    },
+    {
+      "object": "db0/src/cmd/serialize.o",
+      "functions": 105,
+      "raw_equal": 105,
+      "bytes_and_targets_equal": 105
+    },
+    {
+      "object": "db0/src/cmd/server_tail.o",
+      "functions": 93,
+      "raw_equal": 93,
+      "bytes_and_targets_equal": 93
+    },
+    {
+      "object": "db0/src/cmd/slowlog.o",
+      "functions": 72,
+      "raw_equal": 72,
+      "bytes_and_targets_equal": 72
+    },
+    {
+      "object": "db0/src/cmd/t_hash.o",
+      "functions": 232,
+      "raw_equal": 232,
+      "bytes_and_targets_equal": 232
+    },
+    {
+      "object": "db0/src/cmd/t_hash_ttl.o",
+      "functions": 96,
+      "raw_equal": 96,
+      "bytes_and_targets_equal": 96
+    },
+    {
+      "object": "db0/src/cmd/t_list.o",
+      "functions": 195,
+      "raw_equal": 195,
+      "bytes_and_targets_equal": 195
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "functions": 227,
+      "raw_equal": 227,
+      "bytes_and_targets_equal": 227
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "functions": 203,
+      "raw_equal": 156,
+      "bytes_and_targets_equal": 196
+    },
+    {
+      "object": "db0/src/cmd/t_sort.o",
+      "functions": 22,
+      "raw_equal": 22,
+      "bytes_and_targets_equal": 22
+    },
+    {
+      "object": "db0/src/cmd/t_stream.o",
+      "functions": 249,
+      "raw_equal": 249,
+      "bytes_and_targets_equal": 249
+    },
+    {
+      "object": "db0/src/cmd/t_stream_groups.o",
+      "functions": 159,
+      "raw_equal": 159,
+      "bytes_and_targets_equal": 159
+    },
+    {
+      "object": "db0/src/cmd/t_string.o",
+      "functions": 145,
+      "raw_equal": 145,
+      "bytes_and_targets_equal": 145
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "functions": 171,
+      "raw_equal": 171,
+      "bytes_and_targets_equal": 171
+    },
+    {
+      "object": "db0/src/cmd/t_zset.o",
+      "functions": 293,
+      "raw_equal": 230,
+      "bytes_and_targets_equal": 290
+    },
+    {
+      "object": "db0/src/cmd/t_zset_ops.o",
+      "functions": 1,
+      "raw_equal": 1,
+      "bytes_and_targets_equal": 1
+    },
+    {
+      "object": "db0/src/cmd/tracking.o",
+      "functions": 67,
+      "raw_equal": 67,
+      "bytes_and_targets_equal": 67
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "functions": 854,
+      "raw_equal": 854,
+      "bytes_and_targets_equal": 854
+    },
+    {
+      "object": "db0/src/core/flipctl.o",
+      "functions": 73,
+      "raw_equal": 73,
+      "bytes_and_targets_equal": 73
+    },
+    {
+      "object": "db0/src/core/genthread.o",
+      "functions": 750,
+      "raw_equal": 750,
+      "bytes_and_targets_equal": 750
+    },
+    {
+      "object": "db0/src/core/lbplanner.o",
+      "functions": 64,
+      "raw_equal": 64,
+      "bytes_and_targets_equal": 64
+    },
+    {
+      "object": "db0/src/core/lbstall.o",
+      "functions": 12,
+      "raw_equal": 12,
+      "bytes_and_targets_equal": 12
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "functions": 814,
+      "raw_equal": 814,
+      "bytes_and_targets_equal": 814
+    },
+    {
+      "object": "db0/src/core/rl2s.o",
+      "functions": 906,
+      "raw_equal": 906,
+      "bytes_and_targets_equal": 906
+    },
+    {
+      "object": "db0/src/main.o",
+      "functions": 819,
+      "raw_equal": 819,
+      "bytes_and_targets_equal": 819
+    },
+    {
+      "object": "db0/src/net/tls.o",
+      "functions": 38,
+      "raw_equal": 38,
+      "bytes_and_targets_equal": 38
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "functions": 298,
+      "raw_equal": 298,
+      "bytes_and_targets_equal": 298
+    },
+    {
+      "object": "db0/src/snapshot/snapshot.o",
+      "functions": 125,
+      "raw_equal": 125,
+      "bytes_and_targets_equal": 125
+    },
+    {
+      "object": "src/cmd/acl.o",
+      "functions": 258,
+      "raw_equal": 258,
+      "bytes_and_targets_equal": 258
+    },
+    {
+      "object": "src/cmd/climon.o",
+      "functions": 219,
+      "raw_equal": 219,
+      "bytes_and_targets_equal": 219
+    },
+    {
+      "object": "src/cmd/cmdgap.o",
+      "functions": 4,
+      "raw_equal": 4,
+      "bytes_and_targets_equal": 4
+    },
+    {
+      "object": "src/cmd/cmdmeta.o",
+      "functions": 33,
+      "raw_equal": 33,
+      "bytes_and_targets_equal": 33
+    },
+    {
+      "object": "src/cmd/commands.o",
+      "functions": 28,
+      "raw_equal": 28,
+      "bytes_and_targets_equal": 28
+    },
+    {
+      "object": "src/cmd/functions.o",
+      "functions": 78,
+      "raw_equal": 78,
+      "bytes_and_targets_equal": 78
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "functions": 95,
+      "raw_equal": 56,
+      "bytes_and_targets_equal": 83
+    },
+    {
+      "object": "src/cmd/glob.o",
+      "functions": 2,
+      "raw_equal": 2,
+      "bytes_and_targets_equal": 2
+    },
+    {
+      "object": "src/cmd/hll.o",
+      "functions": 24,
+      "raw_equal": 24,
+      "bytes_and_targets_equal": 24
+    },
+    {
+      "object": "src/cmd/info_stats.o",
+      "functions": 3,
+      "raw_equal": 3,
+      "bytes_and_targets_equal": 3
+    },
+    {
+      "object": "src/cmd/l4prebuild.o",
+      "functions": 66,
+      "raw_equal": 66,
+      "bytes_and_targets_equal": 66
+    },
+    {
+      "object": "src/cmd/lbsignals.o",
+      "functions": 15,
+      "raw_equal": 15,
+      "bytes_and_targets_equal": 15
+    },
+    {
+      "object": "src/cmd/lcs.o",
+      "functions": 14,
+      "raw_equal": 14,
+      "bytes_and_targets_equal": 14
+    },
+    {
+      "object": "src/cmd/multidb.o",
+      "functions": 98,
+      "raw_equal": 98,
+      "bytes_and_targets_equal": 98
+    },
+    {
+      "object": "src/cmd/pfdebug.o",
+      "functions": 34,
+      "raw_equal": 34,
+      "bytes_and_targets_equal": 34
+    },
+    {
+      "object": "src/cmd/scripting.o",
+      "functions": 571,
+      "raw_equal": 571,
+      "bytes_and_targets_equal": 571
+    },
+    {
+      "object": "src/cmd/serialize.o",
+      "functions": 104,
+      "raw_equal": 104,
+      "bytes_and_targets_equal": 104
+    },
+    {
+      "object": "src/cmd/server_tail.o",
+      "functions": 92,
+      "raw_equal": 92,
+      "bytes_and_targets_equal": 92
+    },
+    {
+      "object": "src/cmd/slowlog.o",
+      "functions": 72,
+      "raw_equal": 72,
+      "bytes_and_targets_equal": 72
+    },
+    {
+      "object": "src/cmd/t_hash.o",
+      "functions": 233,
+      "raw_equal": 233,
+      "bytes_and_targets_equal": 233
+    },
+    {
+      "object": "src/cmd/t_hash_ttl.o",
+      "functions": 94,
+      "raw_equal": 94,
+      "bytes_and_targets_equal": 94
+    },
+    {
+      "object": "src/cmd/t_list.o",
+      "functions": 193,
+      "raw_equal": 193,
+      "bytes_and_targets_equal": 193
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "functions": 223,
+      "raw_equal": 223,
+      "bytes_and_targets_equal": 223
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "functions": 204,
+      "raw_equal": 159,
+      "bytes_and_targets_equal": 197
+    },
+    {
+      "object": "src/cmd/t_sort.o",
+      "functions": 22,
+      "raw_equal": 22,
+      "bytes_and_targets_equal": 22
+    },
+    {
+      "object": "src/cmd/t_stream.o",
+      "functions": 251,
+      "raw_equal": 251,
+      "bytes_and_targets_equal": 251
+    },
+    {
+      "object": "src/cmd/t_stream_groups.o",
+      "functions": 160,
+      "raw_equal": 160,
+      "bytes_and_targets_equal": 160
+    },
+    {
+      "object": "src/cmd/t_string.o",
+      "functions": 143,
+      "raw_equal": 143,
+      "bytes_and_targets_equal": 143
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "functions": 172,
+      "raw_equal": 172,
+      "bytes_and_targets_equal": 172
+    },
+    {
+      "object": "src/cmd/t_zset.o",
+      "functions": 294,
+      "raw_equal": 228,
+      "bytes_and_targets_equal": 291
+    },
+    {
+      "object": "src/cmd/t_zset_ops.o",
+      "functions": 1,
+      "raw_equal": 1,
+      "bytes_and_targets_equal": 1
+    },
+    {
+      "object": "src/cmd/tracking.o",
+      "functions": 68,
+      "raw_equal": 68,
+      "bytes_and_targets_equal": 68
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "functions": 859,
+      "raw_equal": 859,
+      "bytes_and_targets_equal": 859
+    },
+    {
+      "object": "src/core/flipctl.o",
+      "functions": 73,
+      "raw_equal": 73,
+      "bytes_and_targets_equal": 73
+    },
+    {
+      "object": "src/core/genthread.o",
+      "functions": 759,
+      "raw_equal": 759,
+      "bytes_and_targets_equal": 759
+    },
+    {
+      "object": "src/core/lbplanner.o",
+      "functions": 64,
+      "raw_equal": 64,
+      "bytes_and_targets_equal": 64
+    },
+    {
+      "object": "src/core/lbstall.o",
+      "functions": 12,
+      "raw_equal": 12,
+      "bytes_and_targets_equal": 12
+    },
+    {
+      "object": "src/core/reorder.o",
+      "functions": 825,
+      "raw_equal": 825,
+      "bytes_and_targets_equal": 825
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "functions": 923,
+      "raw_equal": 923,
+      "bytes_and_targets_equal": 923
+    },
+    {
+      "object": "src/main.o",
+      "functions": 824,
+      "raw_equal": 824,
+      "bytes_and_targets_equal": 824
+    },
+    {
+      "object": "src/net/tls.o",
+      "functions": 38,
+      "raw_equal": 38,
+      "bytes_and_targets_equal": 38
+    },
+    {
+      "object": "src/persist/aof.o",
+      "functions": 298,
+      "raw_equal": 298,
+      "bytes_and_targets_equal": 298
+    },
+    {
+      "object": "src/snapshot/snapshot.o",
+      "functions": 122,
+      "raw_equal": 122,
+      "bytes_and_targets_equal": 122
+    }
+  ],
+  "changed": [
+    {
+      "object": "db0/src/cmd/geo.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_geoaddILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 4661,
+      "post_size": 4788,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/geo.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_geoaddILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "pre_size": 239,
+      "post_size": 254,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/geo.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_geoaddILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 4833,
+      "post_size": 5018,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/geo.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_geoaddILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "pre_size": 243,
+      "post_size": 243,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/geo.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_112parse_searchERNS_2OpERNS0_16GeoSearchOptionsE.constprop.0",
+      "name": "tomo_db0::(anonymous namespace)::parse_search(tomo_db0::Op&, tomo_db0::(anonymous namespace)::GeoSearchOptions&) [clone .constprop.0]",
+      "pre_size": 3418,
+      "post_size": 3412,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/geo.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_116reply_coordinateERNS_2OpEd",
+      "name": "tomo_db0::(anonymous namespace)::reply_coordinate(tomo_db0::Op&, double)",
+      "pre_size": 483,
+      "post_size": 633,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/geo.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117reply_geo_resultsERNS_2OpERKNS0_16GeoSearchOptionsERKSt6vectorINS0_9GeoResultESaIS7_EE",
+      "name": "tomo_db0::(anonymous namespace)::reply_geo_results(tomo_db0::Op&, tomo_db0::(anonymous namespace)::GeoSearchOptions const&, std::vector<tomo_db0::(anonymous namespace)::GeoResult, std::allocator<tomo_db0::(anonymous namespace)::GeoResult> > const&)",
+      "pre_size": 1904,
+      "post_size": 1932,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/geo.o",
+      "symbol": "_ZN8tomo_db020cmd_geo_xshard_localERNS_5ShardERNS_2OpEb",
+      "name": "tomo_db0::cmd_geo_xshard_local(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+      "pre_size": 1274,
+      "post_size": 1719,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/geo.o",
+      "symbol": "_ZN8tomo_db020cmd_geo_xshard_localERNS_5ShardERNS_2OpEb.cold",
+      "name": "tomo_db0::cmd_geo_xshard_local(tomo_db0::Shard&, tomo_db0::Op&, bool) [clone .cold]",
+      "pre_size": 51,
+      "post_size": 51,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/geo.o",
+      "symbol": "_ZNK8tomo_db09FlatStore13find_residentEmNS_5SliceE",
+      "name": "tomo_db0::FlatStore::find_resident(unsigned long, tomo_db0::Slice) const",
+      "pre_size": 0,
+      "post_size": 108,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/geo.o",
+      "symbol": "_ZNK8tomo_db09FlatStore7find_inEimNS_5SliceE",
+      "name": "tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const",
+      "pre_size": 0,
+      "post_size": 554,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "retained_equal_copy": "db0/src/main.o"
+    },
+    {
+      "object": "db0/src/cmd/geo.o",
+      "symbol": "_ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPN8tomo_db09ZsetEntryESt6vectorIS3_SaIS3_EEEElNS0_5__ops15_Iter_comp_iterIZNS2_12_GLOBAL__N_110cmd_geoaddILb0EEEvRNS2_5ShardERNS2_2OpEEUlRKS3_SI_E_EEEvT_SL_T0_T1_",
+      "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, __gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}>)",
+      "pre_size": 2954,
+      "post_size": 3151,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_sscanILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 3126,
+      "post_size": 2858,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_sscanILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "pre_size": 115,
+      "post_size": 115,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_sscanILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 3126,
+      "post_size": 2858,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_19cmd_sscanILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "pre_size": 117,
+      "post_size": 115,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db013CollectionRef15replace_compactEONS_7CompactE",
+      "name": "tomo_db0::CollectionRef::replace_compact(tomo_db0::Compact&&)",
+      "pre_size": 306,
+      "post_size": 595,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "retained_equal_copy": "db0/src/cmd/t_list.o"
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZNK8tomo_db014SetMemberTable4scanEmmRSt6vectorIjSaIjEE",
+      "name": "tomo_db0::SetMemberTable::scan(unsigned long, unsigned long, std::vector<unsigned int, std::allocator<unsigned int> >&) const",
+      "pre_size": 0,
+      "post_size": 19,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZNK8tomo_db014SetMemberTable4scanEmmRSt6vectorIjSaIjEE.part.0",
+      "name": "tomo_db0::SetMemberTable::scan(unsigned long, unsigned long, std::vector<unsigned int, std::allocator<unsigned int> >&) const [clone .part.0]",
+      "pre_size": 0,
+      "post_size": 1072,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/t_zset.o",
+      "symbol": "_ZN8tomo_db018zset_owner_replaceERNS_5ShardENS_5SliceEmbRKSt6vectorINS_9ZsetEntryESaIS4_EElb",
+      "name": "tomo_db0::zset_owner_replace(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > const&, long, bool)",
+      "pre_size": 1030,
+      "post_size": 0,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/t_zset.o",
+      "symbol": "_ZN8tomo_db018zset_owner_replaceERNS_5ShardENS_5SliceEmbRKSt6vectorINS_9ZsetEntryESaIS4_EElhbb",
+      "name": "tomo_db0::zset_owner_replace(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > const&, long, unsigned char, bool, bool)",
+      "pre_size": 0,
+      "post_size": 1126,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "db0/src/cmd/t_zset.o",
+      "symbol": "_ZZN8tomo_db018zset_owner_replaceERNS_5ShardENS_5SliceEmbRKSt6vectorINS_9ZsetEntryESaIS4_EElhbbENKUlPNS_5KvObjEhE_clESA_h.isra.0",
+      "name": "tomo_db0::zset_owner_replace(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > const&, long, unsigned char, bool, bool)::{lambda(tomo_db0::KvObj*, unsigned char)#1}::operator()(tomo_db0::KvObj*, unsigned char) const [clone .isra.0]",
+      "pre_size": 0,
+      "post_size": 16,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_geoaddILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_geoadd<false>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 4682,
+      "post_size": 4821,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_geoaddILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_geoadd<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "pre_size": 243,
+      "post_size": 250,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_geoaddILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_geoadd<true>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 4873,
+      "post_size": 5051,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_geoaddILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_geoadd<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "pre_size": 235,
+      "post_size": 246,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_112parse_searchERNS_2OpERNS0_16GeoSearchOptionsE.constprop.0",
+      "name": "tomo::(anonymous namespace)::parse_search(tomo::Op&, tomo::(anonymous namespace)::GeoSearchOptions&) [clone .constprop.0]",
+      "pre_size": 3380,
+      "post_size": 3368,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_116reply_coordinateERNS_2OpEd",
+      "name": "tomo::(anonymous namespace)::reply_coordinate(tomo::Op&, double)",
+      "pre_size": 483,
+      "post_size": 633,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_117reply_geo_resultsERNS_2OpERKNS0_16GeoSearchOptionsERKSt6vectorINS0_9GeoResultESaIS7_EE",
+      "name": "tomo::(anonymous namespace)::reply_geo_results(tomo::Op&, tomo::(anonymous namespace)::GeoSearchOptions const&, std::vector<tomo::(anonymous namespace)::GeoResult, std::allocator<tomo::(anonymous namespace)::GeoResult> > const&)",
+      "pre_size": 1932,
+      "post_size": 1904,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZN4tomo20cmd_geo_xshard_localERNS_5ShardERNS_2OpEb",
+      "name": "tomo::cmd_geo_xshard_local(tomo::Shard&, tomo::Op&, bool)",
+      "pre_size": 1290,
+      "post_size": 1719,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZNK4tomo9FlatStore13find_residentEmNS_5SliceE",
+      "name": "tomo::FlatStore::find_resident(unsigned long, tomo::Slice) const",
+      "pre_size": 0,
+      "post_size": 108,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZNK4tomo9FlatStore7find_inEimNS_5SliceE",
+      "name": "tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const",
+      "pre_size": 0,
+      "post_size": 630,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "retained_equal_copy": "src/main.o"
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZSt13__adjust_heapIN9__gnu_cxx17__normal_iteratorIPN4tomo9ZsetEntryESt6vectorIS3_SaIS3_EEEElS3_NS0_5__ops15_Iter_comp_iterIZNS2_15geo_build_storeERNS2_2OpERKS7_RS7_EUlRKS3_SH_E_EEEvT_T0_SL_T1_T2_",
+      "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo::ZsetEntry*, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > >, long, tomo::ZsetEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >&)::{lambda(tomo::ZsetEntry const&, tomo::ZsetEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::ZsetEntry*, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > >, long, long, tomo::ZsetEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >&)::{lambda(tomo::ZsetEntry const&, tomo::ZsetEntry const&)#1}>)",
+      "pre_size": 1858,
+      "post_size": 1661,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZSt16__insertion_sortIN9__gnu_cxx17__normal_iteratorIPN4tomo9ZsetEntryESt6vectorIS3_SaIS3_EEEENS0_5__ops15_Iter_comp_iterIZNS2_12_GLOBAL__N_110cmd_geoaddILb0EEEvRNS2_5ShardERNS2_2OpEEUlRKS3_SI_E_EEEvT_SL_T0_",
+      "name": "void std::__insertion_sort<__gnu_cxx::__normal_iterator<tomo::ZsetEntry*, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::cmd_geoadd<false>(tomo::Shard&, tomo::Op&)::{lambda(tomo::ZsetEntry const&, tomo::ZsetEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::ZsetEntry*, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > >, __gnu_cxx::__normal_iterator<tomo::ZsetEntry*, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::cmd_geoadd<false>(tomo::Shard&, tomo::Op&)::{lambda(tomo::ZsetEntry const&, tomo::ZsetEntry const&)#1}>)",
+      "pre_size": 2742,
+      "post_size": 2451,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<false>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 3713,
+      "post_size": 3395,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "pre_size": 117,
+      "post_size": 117,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<true>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 3713,
+      "post_size": 3395,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_19cmd_sscanILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_sscan<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "pre_size": 117,
+      "post_size": 117,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo9FlatStore4findEmNS_5SliceE",
+      "name": "tomo::FlatStore::find(unsigned long, tomo::Slice)",
+      "pre_size": 806,
+      "post_size": 774,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "retained_equal_copy": "src/cmd/xshard.o"
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZNK4tomo14SetMemberTable4scanEmmRSt6vectorIjSaIjEE",
+      "name": "tomo::SetMemberTable::scan(unsigned long, unsigned long, std::vector<unsigned int, std::allocator<unsigned int> >&) const",
+      "pre_size": 0,
+      "post_size": 19,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZNK4tomo14SetMemberTable4scanEmmRSt6vectorIjSaIjEE.part.0",
+      "name": "tomo::SetMemberTable::scan(unsigned long, unsigned long, std::vector<unsigned int, std::allocator<unsigned int> >&) const [clone .part.0]",
+      "pre_size": 0,
+      "post_size": 1072,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/t_zset.o",
+      "symbol": "_ZN4tomo18zset_owner_replaceERNS_5ShardENS_5SliceEmbRKSt6vectorINS_9ZsetEntryESaIS4_EElb",
+      "name": "tomo::zset_owner_replace(tomo::Shard&, tomo::Slice, unsigned long, bool, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, long, bool)",
+      "pre_size": 941,
+      "post_size": 0,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/t_zset.o",
+      "symbol": "_ZN4tomo18zset_owner_replaceERNS_5ShardENS_5SliceEmbRKSt6vectorINS_9ZsetEntryESaIS4_EElhbb",
+      "name": "tomo::zset_owner_replace(tomo::Shard&, tomo::Slice, unsigned long, bool, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, long, unsigned char, bool, bool)",
+      "pre_size": 0,
+      "post_size": 1053,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/t_zset.o",
+      "symbol": "_ZZN4tomo18zset_owner_replaceERNS_5ShardENS_5SliceEmbRKSt6vectorINS_9ZsetEntryESaIS4_EElhbbENKUlPNS_5KvObjEhE_clESA_h.isra.0",
+      "name": "tomo::zset_owner_replace(tomo::Shard&, tomo::Slice, unsigned long, bool, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, long, unsigned char, bool, bool)::{lambda(tomo::KvObj*, unsigned char)#1}::operator()(tomo::KvObj*, unsigned char) const [clone .isra.0]",
+      "pre_size": 0,
+      "post_size": 16,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    }
+  ],
+  "discarded": [
+    {
+      "object": "db0/src/cmd/geo.o",
+      "symbol": "_ZNK8tomo_db09FlatStore7find_inEimNS_5SliceE",
+      "name": "tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const",
+      "pre_size": 0,
+      "post_size": 554,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "retained_equal_copy": "db0/src/main.o"
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db013CollectionRef15replace_compactEONS_7CompactE",
+      "name": "tomo_db0::CollectionRef::replace_compact(tomo_db0::Compact&&)",
+      "pre_size": 306,
+      "post_size": 595,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "retained_equal_copy": "db0/src/cmd/t_list.o"
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZNK4tomo9FlatStore7find_inEimNS_5SliceE",
+      "name": "tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const",
+      "pre_size": 0,
+      "post_size": 630,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "retained_equal_copy": "src/main.o"
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo9FlatStore4findEmNS_5SliceE",
+      "name": "tomo::FlatStore::find(unsigned long, tomo::Slice)",
+      "pre_size": 806,
+      "post_size": 774,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "retained_equal_copy": "src/cmd/xshard.o"
+    }
+  ],
+  "unexpected": [
+    {
+      "object": "db0/src/cmd/geo.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_117reply_geo_resultsERNS_2OpERKNS0_16GeoSearchOptionsERKSt6vectorINS0_9GeoResultESaIS7_EE",
+      "name": "tomo_db0::(anonymous namespace)::reply_geo_results(tomo_db0::Op&, tomo_db0::(anonymous namespace)::GeoSearchOptions const&, std::vector<tomo_db0::(anonymous namespace)::GeoResult, std::allocator<tomo_db0::(anonymous namespace)::GeoResult> > const&)",
+      "pre_size": 1904,
+      "post_size": 1932,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_117reply_geo_resultsERNS_2OpERKNS0_16GeoSearchOptionsERKSt6vectorINS0_9GeoResultESaIS7_EE",
+      "name": "tomo::(anonymous namespace)::reply_geo_results(tomo::Op&, tomo::(anonymous namespace)::GeoSearchOptions const&, std::vector<tomo::(anonymous namespace)::GeoResult, std::allocator<tomo::(anonymous namespace)::GeoResult> > const&)",
+      "pre_size": 1932,
+      "post_size": 1904,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "symbol": "_ZSt13__adjust_heapIN9__gnu_cxx17__normal_iteratorIPN4tomo9ZsetEntryESt6vectorIS3_SaIS3_EEEElS3_NS0_5__ops15_Iter_comp_iterIZNS2_15geo_build_storeERNS2_2OpERKS7_RS7_EUlRKS3_SH_E_EEEvT_T0_SL_T1_T2_",
+      "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo::ZsetEntry*, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > >, long, tomo::ZsetEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >&)::{lambda(tomo::ZsetEntry const&, tomo::ZsetEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::ZsetEntry*, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > >, long, long, tomo::ZsetEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >&)::{lambda(tomo::ZsetEntry const&, tomo::ZsetEntry const&)#1}>)",
+      "pre_size": 1858,
+      "post_size": 1661,
+      "raw_equal": false,
+      "bytes_and_targets_equal": false
+    }
+  ],
+  "protected": [
+    {
+      "object": "db0/src/cmd/t_hash.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_hsetILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_hset<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 1543,
+      "post_size": 1543,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_hash.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_hsetILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_hset<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "pre_size": 45,
+      "post_size": 45,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_hash.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_hsetILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_hset<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 1589,
+      "post_size": 1589,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_hash.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_hsetILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_hset<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "pre_size": 45,
+      "post_size": 45,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_hash.o",
+      "symbol": "_ZN8tomo_db014notify_handlerIXadL_ZNS_12_GLOBAL__N_18cmd_hsetILb1EEEvRNS_5ShardERNS_2OpEEEEEvS4_S6_",
+      "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hset<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 16,
+      "post_size": 16,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_112cmd_smembersILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_smembers<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 1520,
+      "post_size": 1520,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_112cmd_smembersILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_smembers<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 1520,
+      "post_size": 1520,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_113cmd_sismemberILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sismember<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 343,
+      "post_size": 343,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_113cmd_sismemberILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sismember<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 343,
+      "post_size": 343,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_saddILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sadd<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 3025,
+      "post_size": 3025,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_saddILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sadd<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "pre_size": 45,
+      "post_size": 45,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_saddILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sadd<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 3108,
+      "post_size": 3108,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_saddILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_sadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "pre_size": 45,
+      "post_size": 45,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db014SetMemberTable22ensure_insert_capacityEv",
+      "name": "tomo_db0::SetMemberTable::ensure_insert_capacity()",
+      "pre_size": 170,
+      "post_size": 170,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db014SetMemberTable6insertENS_5SliceEm",
+      "name": "tomo_db0::SetMemberTable::insert(tomo_db0::Slice, unsigned long)",
+      "pre_size": 1056,
+      "post_size": 1056,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db014SetMemberTable6insertENS_5SliceEm.cold",
+      "name": "tomo_db0::SetMemberTable::insert(tomo_db0::Slice, unsigned long) [clone .cold]",
+      "pre_size": 159,
+      "post_size": 159,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db014SetMemberTable6rehashEj",
+      "name": "tomo_db0::SetMemberTable::rehash(unsigned int)",
+      "pre_size": 1607,
+      "post_size": 1607,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db014SetMemberTable6rehashEj.cold",
+      "name": "tomo_db0::SetMemberTable::rehash(unsigned int) [clone .cold]",
+      "pre_size": 205,
+      "post_size": 205,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db014notify_handlerIXadL_ZNS_12_GLOBAL__N_112cmd_smembersILb1EEEvRNS_5ShardERNS_2OpEEEEEvS4_S6_",
+      "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_smembers<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 16,
+      "post_size": 16,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db014notify_handlerIXadL_ZNS_12_GLOBAL__N_113cmd_sismemberILb1EEEvRNS_5ShardERNS_2OpEEEEEvS4_S6_",
+      "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_sismember<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 16,
+      "post_size": 16,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "symbol": "_ZN8tomo_db014notify_handlerIXadL_ZNS_12_GLOBAL__N_18cmd_saddILb1EEEvRNS_5ShardERNS_2OpEEEEEvS4_S6_",
+      "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_sadd<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 16,
+      "post_size": 16,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_string.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_17cmd_getILb0ELb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 1072,
+      "post_size": 1072,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_string.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_17cmd_setILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_set<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 2201,
+      "post_size": 2201,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_17cmd_getILb1ELb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 776,
+      "post_size": 776,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_17cmd_getILb1ELb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 1088,
+      "post_size": 1088,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_17cmd_setILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_set<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 2182,
+      "post_size": 2182,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_hash.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_hsetILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_hset<false>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 1404,
+      "post_size": 1404,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_hash.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_hsetILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_hset<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "pre_size": 42,
+      "post_size": 42,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_hash.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_hsetILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_hset<true>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 1434,
+      "post_size": 1434,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_hash.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_hsetILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_hset<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "pre_size": 42,
+      "post_size": 42,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_hash.o",
+      "symbol": "_ZN4tomo14notify_handlerIXadL_ZNS_12_GLOBAL__N_18cmd_hsetILb1EEEvRNS_5ShardERNS_2OpEEEEEvS4_S6_",
+      "name": "void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_hset<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 16,
+      "post_size": 16,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_112cmd_smembersILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_smembers<false>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 1520,
+      "post_size": 1520,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_112cmd_smembersILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_smembers<true>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 1520,
+      "post_size": 1520,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_113cmd_sismemberILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sismember<false>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 343,
+      "post_size": 343,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_113cmd_sismemberILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sismember<true>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 343,
+      "post_size": 343,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_saddILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sadd<false>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 2815,
+      "post_size": 2815,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_saddILb0EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_sadd<false>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "pre_size": 45,
+      "post_size": 45,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_saddILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_sadd<true>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 2885,
+      "post_size": 2885,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_saddILb1EEEvRNS_5ShardERNS_2OpE.cold",
+      "name": "void tomo::(anonymous namespace)::cmd_sadd<true>(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "pre_size": 45,
+      "post_size": 45,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo14SetMemberTable22ensure_insert_capacityEv",
+      "name": "tomo::SetMemberTable::ensure_insert_capacity()",
+      "pre_size": 170,
+      "post_size": 170,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo14SetMemberTable6insertENS_5SliceEm",
+      "name": "tomo::SetMemberTable::insert(tomo::Slice, unsigned long)",
+      "pre_size": 1056,
+      "post_size": 1056,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo14SetMemberTable6insertENS_5SliceEm.cold",
+      "name": "tomo::SetMemberTable::insert(tomo::Slice, unsigned long) [clone .cold]",
+      "pre_size": 159,
+      "post_size": 159,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo14SetMemberTable6rehashEj",
+      "name": "tomo::SetMemberTable::rehash(unsigned int)",
+      "pre_size": 1607,
+      "post_size": 1607,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo14SetMemberTable6rehashEj.cold",
+      "name": "tomo::SetMemberTable::rehash(unsigned int) [clone .cold]",
+      "pre_size": 205,
+      "post_size": 205,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo14notify_handlerIXadL_ZNS_12_GLOBAL__N_112cmd_smembersILb1EEEvRNS_5ShardERNS_2OpEEEEEvS4_S6_",
+      "name": "void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_smembers<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 16,
+      "post_size": 16,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo14notify_handlerIXadL_ZNS_12_GLOBAL__N_113cmd_sismemberILb1EEEvRNS_5ShardERNS_2OpEEEEEvS4_S6_",
+      "name": "void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_sismember<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 16,
+      "post_size": 16,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "symbol": "_ZN4tomo14notify_handlerIXadL_ZNS_12_GLOBAL__N_18cmd_saddILb1EEEvRNS_5ShardERNS_2OpEEEEEvS4_S6_",
+      "name": "void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_sadd<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 16,
+      "post_size": 16,
+      "raw_equal": false,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_string.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_17cmd_getILb0ELb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 1072,
+      "post_size": 1072,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_string.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_17cmd_setILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 2201,
+      "post_size": 2201,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_17cmd_getILb1ELb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_get<true, false>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 792,
+      "post_size": 792,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_17cmd_getILb1ELb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_get<true, true>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 1088,
+      "post_size": 1088,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_17cmd_setILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_set<true>(tomo::Shard&, tomo::Op&)",
+      "pre_size": 2182,
+      "post_size": 2182,
+      "raw_equal": true,
+      "bytes_and_targets_equal": true
+    }
+  ],
+  "sha256": {
+    "PRE": "b968fbe3264a96d44bd2379cd20d381b6f51741811a2b0e886c239d23d7a42be",
+    "POST": "45879a65a3df0dd585d341f98a846cafcf89e046c887a4923639e8c221b33a43"
+  }
+}

@@ -1,0 +1,10 @@
+  DIFF op 1526 ['PTTL', 'et:s:28:37b3577a50660a7f7dc658feabe6c5fe53']
+    target: b':2591999674\r\n'
+    oracle: b':2591999676\r\n'
+  DIFF op 2910 ['PTTL', 'et:s:23:2c57d06537cb90580459a716b6b8cb20c4']
+    target: b':2591999676\r\n'
+    oracle: b':2591999678\r\n'
+  CLOCK TOLERANCE count=1 integers=1 command=['PTTL', 'et:s:07:ade700a2031427eb587eea8faefe9db49d']
+    target: b':2591999630\r\n'
+    oracle: b':2591999629\r\n'
+DIFFER edgetime: 4426 ops, 2 diffs, 1 clock tolerances -> FAIL

@@ -1,0 +1,2880 @@
+[
+  {
+    "object": "db0/src/cmd/t_stream_groups.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_113reply_nogroupERNS_2OpENS_5SliceES3_b.isra.0",
+    "name": "tomo_db0::(anonymous namespace)::reply_nogroup(tomo_db0::Op&, tomo_db0::Slice, tomo_db0::Slice, bool) [clone .isra.0]",
+    "pre_size": 1413,
+    "post_size": 1371,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/cmd/t_stream_groups.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_114cmd_xautoclaimILb0EEEvRNS_5ShardERNS_2OpE",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xautoclaim<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2758,
+    "post_size": 2758,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/cmd/t_stream_groups.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_114cmd_xautoclaimILb1EEEvRNS_5ShardERNS_2OpE",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xautoclaim<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2774,
+    "post_size": 2774,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/cmd/t_stream_groups.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_124reply_nogroup_subcommandERNS_2OpENS_5SliceES3_.isra.0",
+    "name": "tomo_db0::(anonymous namespace)::reply_nogroup_subcommand(tomo_db0::Op&, tomo_db0::Slice, tomo_db0::Slice) [clone .isra.0]",
+    "pre_size": 1349,
+    "post_size": 1307,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/cmd/t_stream_groups.o",
+    "symbol": "_ZN8tomo_db014notify_handlerIXadL_ZNS_12_GLOBAL__N_110cmd_xgroupILb1EEEvRNS_5ShardERNS_2OpEEEEEvS4_S6_",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_xgroup<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/cmd/t_stream_groups.o",
+    "symbol": "_ZN8tomo_db014notify_handlerIXadL_ZNS_12_GLOBAL__N_110cmd_xsetidILb1EEEvRNS_5ShardERNS_2OpEEEEEvS4_S6_",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_xsetid<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db012resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long) [clone .isra.0]",
+    "pre_size": 997,
+    "post_size": 1058,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db025resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db012resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0.cold",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+    "pre_size": 0,
+    "post_size": 52,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db025resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db012resp_parse_tILb1EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 1024,
+    "post_size": 1150,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db015resp_count_lineEPKcjjRjbPS1_",
+    "name": "tomo_db0::resp_count_line(char const*, unsigned int, unsigned int, unsigned int&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 102,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db015resp_parse_slowEPKcjRjRNS_2OpEPS1_mm",
+    "name": "tomo_db0::resp_parse_slow(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 0,
+    "post_size": 461,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db016resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN8tomo_db016resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN8tomo_db022resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_', -4)",
+      "('_ZN8tomo_db02Op8push_argENS_5SliceE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db016resp_length_slowEPKcjRjmRmbPS1_",
+    "name": "tomo_db0::resp_length_slow(char const*, unsigned int, unsigned int&, unsigned long, unsigned long&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 556,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db017resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo_db0::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned int&)",
+    "pre_size": 642,
+    "post_size": 382,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db024resp_inline_quotes_validEPKcS1_', -4)",
+      "('_ZN8tomo_db02Op8push_argENS_5SliceE', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db022resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_",
+    "name": "tomo_db0::resp_bulk_prefix_error(char const*, unsigned int, unsigned int, tomo_db0::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 118,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE",
+    "name": "tomo_db0::resp_expected_bulk_error(char, tomo_db0::Op&)",
+    "pre_size": 490,
+    "post_size": 410,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db024resp_inline_quotes_validEPKcS1_",
+    "name": "tomo_db0::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 141,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('isspace', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db025resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_",
+    "name": "tomo_db0::resp_parse_unlimited_slow(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 29,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db02Op8push_argENS_5SliceE",
+    "name": "tomo_db0::Op::push_arg(tomo_db0::Slice)",
+    "pre_size": 0,
+    "post_size": 304,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db06IoLoop12adopt_clientILb1ELb0ELh0EEEvPNS_6ClientEbb",
+    "name": "void tomo_db0::IoLoop::adopt_client<true, false, (unsigned char)0>(tomo_db0::Client*, bool, bool)",
+    "pre_size": 2047,
+    "post_size": 1951,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db06IoLoop10epoll_recvEPNS_6ClientE', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db06IoLoop12adopt_clientILb1ELb1ELh0EEEvPNS_6ClientEbb",
+    "name": "void tomo_db0::IoLoop::adopt_client<true, true, (unsigned char)0>(tomo_db0::Client*, bool, bool)",
+    "pre_size": 2047,
+    "post_size": 1951,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db06IoLoop10epoll_recvEPNS_6ClientE', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db06IoLoop18pubsub_deliver_oneERKNS_14PubSubDeliveryE",
+    "name": "tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)",
+    "pre_size": 1201,
+    "post_size": 1219,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db06IoLoop30quiesce_accepts_for_conversionEv",
+    "name": "tomo_db0::IoLoop::quiesce_accepts_for_conversion()",
+    "pre_size": 677,
+    "post_size": 664,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db06IoLoop7on_recvILb1ELb0ELb1ELh0EEEvPNS_6ClientEi",
+    "name": "void tomo_db0::IoLoop::on_recv<true, false, true, (unsigned char)0>(tomo_db0::Client*, int)",
+    "pre_size": 544,
+    "post_size": 451,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db025multi_session_query_bytesERKNS_6ClientE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZNK8tomo_db06IoLoop21query_buffer_exceededERKNS_6ClientE', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db06IoLoop7on_recvILb1ELb1ELb1ELh0EEEvPNS_6ClientEi",
+    "name": "void tomo_db0::IoLoop::on_recv<true, true, true, (unsigned char)0>(tomo_db0::Client*, int)",
+    "pre_size": 544,
+    "post_size": 451,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db025multi_session_query_bytesERKNS_6ClientE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZNK8tomo_db06IoLoop21query_buffer_exceededERKNS_6ClientE', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db08WbEngine4pumpILb0ELb0EEEbRNS_6ClientE",
+    "name": "bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)",
+    "pre_size": 1173,
+    "post_size": 886,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('io_uring_submit', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db04Ring3sqeEv', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db09FlatStore20atomic_recycle_valueEPNS_5KvObjE",
+    "name": "tomo_db0::FlatStore::atomic_recycle_value(tomo_db0::KvObj*)",
+    "pre_size": 741,
+    "post_size": 696,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZNK8tomo_db05KvObj3keyEv', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db09FlatStore25random_volatile_candidateEv",
+    "name": "tomo_db0::FlatStore::random_volatile_candidate()",
+    "pre_size": 931,
+    "post_size": 867,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZNK8tomo_db05KvObj3keyEv', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZN8tomo_db09FlatStore8hash_keyENS_5SliceE.isra.0",
+    "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+    "pre_size": 781,
+    "post_size": 797,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZN8tomo_db016run_fused_serverERNS3_6ServerEPKNS3_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS3_13AofReplayPlanESt14default_deleteISB_EESaISE_EES8_PNS3_10TlsContextERNS3_16LateUnixListenerERNS3_23ShutdownReportFinalLineEEUlvE0_EEEEE6_M_runEv",
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "pre_size": 4406,
+    "post_size": 4406,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db012resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long) [clone .isra.0]",
+    "pre_size": 997,
+    "post_size": 1058,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db025resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db012resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0.cold",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+    "pre_size": 0,
+    "post_size": 52,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db025resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db012resp_parse_tILb1EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 1024,
+    "post_size": 1150,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db015resp_count_lineEPKcjjRjbPS1_",
+    "name": "tomo_db0::resp_count_line(char const*, unsigned int, unsigned int, unsigned int&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 102,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db015resp_parse_slowEPKcjRjRNS_2OpEPS1_mm",
+    "name": "tomo_db0::resp_parse_slow(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 0,
+    "post_size": 461,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db016resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN8tomo_db016resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN8tomo_db022resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_', -4)",
+      "('_ZN8tomo_db02Op8push_argENS_5SliceE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db016resp_length_slowEPKcjRjmRmbPS1_",
+    "name": "tomo_db0::resp_length_slow(char const*, unsigned int, unsigned int&, unsigned long, unsigned long&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 556,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db017resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo_db0::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned int&)",
+    "pre_size": 642,
+    "post_size": 382,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db024resp_inline_quotes_validEPKcS1_', -4)",
+      "('_ZN8tomo_db02Op8push_argENS_5SliceE', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db022resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_",
+    "name": "tomo_db0::resp_bulk_prefix_error(char const*, unsigned int, unsigned int, tomo_db0::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 118,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE",
+    "name": "tomo_db0::resp_expected_bulk_error(char, tomo_db0::Op&)",
+    "pre_size": 490,
+    "post_size": 410,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db024resp_inline_quotes_validEPKcS1_",
+    "name": "tomo_db0::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 141,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('isspace', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db025resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_",
+    "name": "tomo_db0::resp_parse_unlimited_slow(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 29,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db02Op8push_argENS_5SliceE",
+    "name": "tomo_db0::Op::push_arg(tomo_db0::Slice)",
+    "pre_size": 0,
+    "post_size": 304,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db06IoLoop20pubsub_start_commandEPNS_6ClientERNS_2OpE",
+    "name": "tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)",
+    "pre_size": 2273,
+    "post_size": 2252,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZNK8tomo_db02Op8cmd_nameEv', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE34drain_tasks_read_local_interleavedILb0EEEjbRb",
+    "name": "unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)",
+    "pre_size": 1410,
+    "post_size": 1204,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZNK8tomo_db07ExLoopTILb1EE27fairlane_owner_debt_pendingEv', -4)",
+      "('_ZN8tomo_db07ExLoopTILb1EE21exec_batch_prefetchedILb0EEEvPKNS_4TaskEj', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db09FlatStore12budget_admitENS_5SliceE",
+    "name": "tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)",
+    "pre_size": 1011,
+    "post_size": 1011,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db09FlatStore17snapshot_progressEjj",
+    "name": "tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)",
+    "pre_size": 628,
+    "post_size": 663,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZNK8tomo_db05KvObj3keyEv', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_5Shard20lb_scan_bucket_bytesEjEUlPNS_5KvObjEE_EEjijRT_b",
+    "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+    "pre_size": 861,
+    "post_size": 964,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZNK8tomo_db05KvObj3keyEv', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZNK8tomo_db06IoLoop28flip_candidate_clients_readyERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+    "name": "tomo_db0::IoLoop::flip_candidate_clients_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const",
+    "pre_size": 988,
+    "post_size": 785,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('memcpy', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZN8tomo_db0L26run_fused_server_reorderedERNS3_6ServerEPKNS3_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS3_13AofReplayPlanESt14default_deleteISB_EESaISE_EES8_PNS3_10TlsContextERNS3_16LateUnixListenerERNS3_23ShutdownReportFinalLineEEUlvE0_EEEEE6_M_runEv",
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_fused_server_reordered(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "pre_size": 4452,
+    "post_size": 4452,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb1ELb1ELb0ELb1ELb0ELb1EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+    "name": "tomo_db0::WbEngine::serve_impl<true, true, false, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+    "pre_size": 1212,
+    "post_size": 984,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('malloc', -4)",
+      "('__memcpy_chk', -4)",
+      "('free', -4)",
+      "('memcpy', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db06Client11append_fillEPKcm', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb1ELb1ELb1ELb1ELb0ELb1EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+    "name": "tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+    "pre_size": 1212,
+    "post_size": 984,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('malloc', -4)",
+      "('__memcpy_chk', -4)",
+      "('free', -4)",
+      "('memcpy', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db06Client11append_fillEPKcm', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db012resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long) [clone .isra.0]",
+    "pre_size": 997,
+    "post_size": 1058,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db025resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db012resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0.cold",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+    "pre_size": 0,
+    "post_size": 52,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db025resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db012resp_parse_tILb1EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 1024,
+    "post_size": 1150,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db015resp_count_lineEPKcjjRjbPS1_",
+    "name": "tomo_db0::resp_count_line(char const*, unsigned int, unsigned int, unsigned int&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 102,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db015resp_parse_slowEPKcjRjRNS_2OpEPS1_mm",
+    "name": "tomo_db0::resp_parse_slow(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 0,
+    "post_size": 461,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db016resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN8tomo_db016resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN8tomo_db022resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_', -4)",
+      "('_ZN8tomo_db02Op8push_argENS_5SliceE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db016resp_length_slowEPKcjRjmRmbPS1_",
+    "name": "tomo_db0::resp_length_slow(char const*, unsigned int, unsigned int&, unsigned long, unsigned long&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 556,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db017resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo_db0::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned int&)",
+    "pre_size": 642,
+    "post_size": 382,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db024resp_inline_quotes_validEPKcS1_', -4)",
+      "('_ZN8tomo_db02Op8push_argENS_5SliceE', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db020kvobj_external_bytesEPKNS_5KvObjE",
+    "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+    "pre_size": 1127,
+    "post_size": 1127,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db022resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_",
+    "name": "tomo_db0::resp_bulk_prefix_error(char const*, unsigned int, unsigned int, tomo_db0::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 118,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE",
+    "name": "tomo_db0::resp_expected_bulk_error(char, tomo_db0::Op&)",
+    "pre_size": 490,
+    "post_size": 410,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db024resp_inline_quotes_validEPKcS1_",
+    "name": "tomo_db0::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 141,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('isspace', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db025resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_",
+    "name": "tomo_db0::resp_parse_unlimited_slow(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 29,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db02Op8push_argENS_5SliceE",
+    "name": "tomo_db0::Op::push_arg(tomo_db0::Slice)",
+    "pre_size": 0,
+    "post_size": 304,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop12arm_tls_recvILb1ELb0ELh1EEEvPNS_6ClientE",
+    "name": "void tomo_db0::IoLoop::arm_tls_recv<true, false, (unsigned char)1>(tomo_db0::Client*)",
+    "pre_size": 382,
+    "post_size": 334,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db06IoLoop10tls_engineEPKNS_6ClientE', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop12arm_tls_recvILb1ELb1ELh0EEEvPNS_6ClientE",
+    "name": "void tomo_db0::IoLoop::arm_tls_recv<true, true, (unsigned char)0>(tomo_db0::Client*)",
+    "pre_size": 382,
+    "post_size": 334,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db06IoLoop10tls_engineEPKNS_6ClientE', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop13pipeline_passILb0ELb0ELb0ELb1EEEjbbRbRm",
+    "name": "unsigned int tomo_db0::IoLoop::pipeline_pass<false, false, false, true>(bool, bool, bool&, unsigned long&)",
+    "pre_size": 1951,
+    "post_size": 1652,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db04Ring6msg_toERS0_m', -4)",
+      "('_ZN8tomo_db06IoLoop17pubsub_pass_flushEv', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop13pipeline_passILb1ELb0ELb0ELb1EEEjbbRbRm",
+    "name": "unsigned int tomo_db0::IoLoop::pipeline_pass<true, false, false, true>(bool, bool, bool&, unsigned long&)",
+    "pre_size": 1951,
+    "post_size": 1609,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db04Ring6msg_toERS0_m', -4)",
+      "('_ZN8tomo_db06IoLoop17pubsub_pass_flushEv', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb0ELj0ELb1ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo_db0::Client*)",
+    "pre_size": 17290,
+    "post_size": 17246,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZdlPvm', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZNSt10unique_ptrIN8tomo_db06IoLoop21ReadLocalDemotionPlan7StorageESt14default_deleteIS3_EED1Ev', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj0ELb1ELb1EEENS0_14DispatchResultEPNS_6ClientE",
+    "name": "tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo_db0::Client*)",
+    "pre_size": 17205,
+    "post_size": 17143,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZdlPvm', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZNSt10unique_ptrIN8tomo_db06IoLoop21ReadLocalDemotionPlan7StorageESt14default_deleteIS3_EED1Ev', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop22finish_client_transferILb0EEEbPNS_6ClientE.isra.0",
+    "name": "bool tomo_db0::IoLoop::finish_client_transfer<false>(tomo_db0::Client*) [clone .isra.0]",
+    "pre_size": 352,
+    "post_size": 333,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZdlPvm', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE10_M_disposeEv', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop22finish_client_transferILb0EEEbPNS_6ClientE.isra.0.cold",
+    "name": "bool tomo_db0::IoLoop::finish_client_transfer<false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]",
+    "pre_size": 40,
+    "post_size": 40,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop24pubsub_notification_sendERKSt10shared_ptrINS_23PubSubNotificationChainEE",
+    "name": "tomo_db0::IoLoop::pubsub_notification_send(std::shared_ptr<tomo_db0::PubSubNotificationChain> const&)",
+    "pre_size": 1141,
+    "post_size": 1141,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop6on_cqeILb1ELb1ELb1ELh0EEEvP12io_uring_cqe",
+    "name": "void tomo_db0::IoLoop::on_cqe<true, true, true, (unsigned char)0>(io_uring_cqe*)",
+    "pre_size": 745,
+    "post_size": 745,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db06IoLoop9ifid_postERNS0_9IfidBatchE.isra.0",
+    "name": "tomo_db0::IoLoop::ifid_post(tomo_db0::IoLoop::IfidBatch&) [clone .isra.0]",
+    "pre_size": 0,
+    "post_size": 269,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db04Ring6msg_toERS0_m', -4)",
+      "('_ZN8tomo_db06IoLoop17pubsub_pass_flushEv', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb1EE21execute_snapshot_taskILb0EEEbRKNS_4TaskEb",
+    "name": "bool tomo_db0::ExLoopT<true>::execute_snapshot_task<false>(tomo_db0::Task const&, bool)",
+    "pre_size": 797,
+    "post_size": 684,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZNSt5dequeIN8tomo_db04TaskESaIS1_EE16_M_push_back_auxIJRKS1_EEEvDpOT_', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZNSt5dequeIN8tomo_db04TaskESaIS1_EE9push_backERKS1_', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db09FlatStore13choose_victimENS_5SliceE",
+    "name": "tomo_db0::FlatStore::choose_victim(tomo_db0::Slice)",
+    "pre_size": 2604,
+    "post_size": 2556,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db09FlatStore32atomic_prepare_rollback_capacityEPNS_11AtomicEntryE",
+    "name": "tomo_db0::FlatStore::atomic_prepare_rollback_capacity(tomo_db0::AtomicEntry*)",
+    "pre_size": 1533,
+    "post_size": 1490,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('memcmp', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZNK8tomo_db05Slice6key_eqERKS0_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZN8tomo_db09FlatStore34atomic_prepare_capacity_read_localEj",
+    "name": "tomo_db0::FlatStore::atomic_prepare_capacity_read_local(unsigned int)",
+    "pre_size": 1011,
+    "post_size": 1027,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZN8tomo_db027run_split_read_local_serverERNS3_6ServerEPKNS3_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS3_13AofReplayPlanESt14default_deleteISB_EESaISE_EES8_PNS3_10TlsContextERNS3_16LateUnixListenerERNS3_23ShutdownReportFinalLineEEUlvE0_EEEEE6_M_runEv",
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo_db0::run_split_read_local_server(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "pre_size": 4548,
+    "post_size": 4548,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZNSt6vectorIN8tomo_db015PubSubEventItemESaIS1_EEaSERKS3_.isra.0",
+    "name": "std::vector<tomo_db0::PubSubEventItem, std::allocator<tomo_db0::PubSubEventItem> >::operator=(std::vector<tomo_db0::PubSubEventItem, std::allocator<tomo_db0::PubSubEventItem> > const&) [clone .isra.0]",
+    "pre_size": 1441,
+    "post_size": 1462,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZZN8tomo_db06IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientEENKUlOT_E2_clIZZNS1_ILb0ELj32ELb0ELb0EEES2_S4_ENKUlmE3_clEmEUlRKNS_2OpEE_EEDaS6_",
+    "name": "auto tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*)::{lambda(auto:1&&)#4}::operator()<tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const",
+    "pre_size": 852,
+    "post_size": 772,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb0ELj32ELb0ELb0EEES5_S7_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZZN8tomo_db06IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS1_ILb0ELj32ELb0ELb0EEES2_S4_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS6_",
+    "name": "auto tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const",
+    "pre_size": 852,
+    "post_size": 772,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb0ELj32ELb0ELb0EEES5_S7_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj32ELb0ELb1EEENS0_14DispatchResultEPNS_6ClientEENKUlOT_E2_clIZZNS1_ILb1ELj32ELb0ELb1EEES2_S4_ENKUlmE3_clEmEUlRKNS_2OpEE_EEDaS6_",
+    "name": "auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(auto:1&&)#4}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const",
+    "pre_size": 772,
+    "post_size": 852,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb1ELj32ELb0ELb1EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb1ELj32ELb0ELb1EEES5_S7_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "symbol": "_ZZN8tomo_db06IoLoop18parse_and_dispatchILb1ELj32ELb0ELb1EEENS0_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS1_ILb1ELj32ELb0ELb1EEES2_S4_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS6_",
+    "name": "auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const",
+    "pre_size": 772,
+    "post_size": 852,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZZN8tomo_db03RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb1ELj32ELb0ELb1EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb1ELj32ELb0ELb1EEES5_S7_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db011AofProducerD1Ev",
+    "name": "tomo_db0::AofProducer::~AofProducer()",
+    "pre_size": 2721,
+    "post_size": 2722,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db011AofProducerD2Ev",
+    "name": "tomo_db0::AofProducer::~AofProducer()",
+    "pre_size": 2721,
+    "post_size": 2722,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db012resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long) [clone .isra.0]",
+    "pre_size": 997,
+    "post_size": 1058,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db025resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db012resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0.cold",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+    "pre_size": 0,
+    "post_size": 52,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db025resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db012resp_parse_tILb1EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm",
+    "name": "tomo_db0::ParseResult tomo_db0::resp_parse_t<true>(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 1024,
+    "post_size": 1150,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db015resp_count_lineEPKcjjRjbPS1_",
+    "name": "tomo_db0::resp_count_line(char const*, unsigned int, unsigned int, unsigned int&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 102,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db015resp_parse_slowEPKcjRjRNS_2OpEPS1_mm",
+    "name": "tomo_db0::resp_parse_slow(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 0,
+    "post_size": 461,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db016resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN8tomo_db016resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN8tomo_db022resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_', -4)",
+      "('_ZN8tomo_db02Op8push_argENS_5SliceE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db016resp_length_slowEPKcjRjmRmbPS1_",
+    "name": "tomo_db0::resp_length_slow(char const*, unsigned int, unsigned int&, unsigned long, unsigned long&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 556,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db017resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo_db0::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**, unsigned int&)",
+    "pre_size": 642,
+    "post_size": 382,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db024resp_inline_quotes_validEPKcS1_', -4)",
+      "('_ZN8tomo_db02Op8push_argENS_5SliceE', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db022resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_",
+    "name": "tomo_db0::resp_bulk_prefix_error(char const*, unsigned int, unsigned int, tomo_db0::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 118,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db024resp_expected_bulk_errorEcRNS_2OpE",
+    "name": "tomo_db0::resp_expected_bulk_error(char, tomo_db0::Op&)",
+    "pre_size": 490,
+    "post_size": 410,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db024resp_inline_quotes_validEPKcS1_",
+    "name": "tomo_db0::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 141,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('isspace', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db025resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_",
+    "name": "tomo_db0::resp_parse_unlimited_slow(char const*, unsigned int, unsigned int&, tomo_db0::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 29,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN8tomo_db015resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db02Op8push_argENS_5SliceE",
+    "name": "tomo_db0::Op::push_arg(tomo_db0::Slice)",
+    "pre_size": 0,
+    "post_size": 304,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db06IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+    "name": "tomo_db0::IoLoop::pubsub_delete_event(tomo_db0::PubSubEvent*)",
+    "pre_size": 800,
+    "post_size": 800,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db06IoLoop30quiesce_accepts_for_conversionEv",
+    "name": "tomo_db0::IoLoop::quiesce_accepts_for_conversion()",
+    "pre_size": 677,
+    "post_size": 664,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb0EE21snapshot_control_passILj32ELb0EEEjv",
+    "name": "unsigned int tomo_db0::ExLoopT<false>::snapshot_control_pass<32u, false>()",
+    "pre_size": 3163,
+    "post_size": 3192,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZdlPvm', -4)",
+      "('_ZdlPvm', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+    "name": "tomo_db0::ExLoopT<false>::run()",
+    "pre_size": 7174,
+    "post_size": 7094,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZNSt12_Vector_baseImSaImEED2Ev', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZdlPvm', -4)",
+      "('_ZN8tomo_db09ThreadCtx11arm_blockedEv', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
+    "name": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
+    "pre_size": 3388,
+    "post_size": 3324,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZNSt5dequeIN8tomo_db04TaskESaIS1_EE16_M_push_back_auxIJRKS1_EEEvDpOT_', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZNSt5dequeIN8tomo_db04TaskESaIS1_EE9push_backERKS1_', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZ4mainEUlvE0_EEEEE6_M_runEv",
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#2}> > >::_M_run()",
+    "pre_size": 2799,
+    "post_size": 2799,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZ4mainEUlvE2_EEEEE6_M_runEv",
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#4}> > >::_M_run()",
+    "pre_size": 2141,
+    "post_size": 2141,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb0ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+    "name": "tomo_db0::WbEngine::serve_impl<false, true, false, false, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+    "pre_size": 824,
+    "post_size": 537,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('malloc', -4)",
+      "('__memcpy_chk', -4)",
+      "('free', -4)",
+      "('memmove', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db06Client21append_static_segmentEPKcj', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+    "name": "tomo_db0::WbEngine::serve_impl<false, true, false, true, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+    "pre_size": 824,
+    "post_size": 537,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('malloc', -4)",
+      "('__memcpy_chk', -4)",
+      "('free', -4)",
+      "('memmove', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db06Client21append_static_segmentEPKcj', -4)"
+    ]
+  },
+  {
+    "object": "db0/src/main.o",
+    "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb0ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+    "name": "tomo_db0::WbEngine::serve_impl<false, true, true, false, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+    "pre_size": 824,
+    "post_size": 537,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('malloc', -4)",
+      "('__memcpy_chk', -4)",
+      "('free', -4)",
+      "('memmove', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN8tomo_db06Client21append_static_segmentEPKcj', -4)"
+    ]
+  },
+  {
+    "object": "src/cmd/scripting.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_121create_sandbox_staticEP9lua_StatePPNS0_13ScriptContextE",
+    "name": "tomo::(anonymous namespace)::create_sandbox_static(lua_State*, tomo::(anonymous namespace)::ScriptContext**)",
+    "pre_size": 1405,
+    "post_size": 1405,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/scripting.o",
+    "symbol": "luaB_pcall",
+    "name": "luaB_pcall",
+    "pre_size": 339,
+    "post_size": 339,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/t_stream_groups.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_113reply_nogroupERNS_2OpENS_5SliceES3_b.isra.0",
+    "name": "tomo::(anonymous namespace)::reply_nogroup(tomo::Op&, tomo::Slice, tomo::Slice, bool) [clone .isra.0]",
+    "pre_size": 1637,
+    "post_size": 1621,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/t_stream_groups.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_114cmd_xautoclaimILb0EEEvRNS_5ShardERNS_2OpE",
+    "name": "void tomo::(anonymous namespace)::cmd_xautoclaim<false>(tomo::Shard&, tomo::Op&)",
+    "pre_size": 2760,
+    "post_size": 2760,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/t_stream_groups.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_114cmd_xautoclaimILb1EEEvRNS_5ShardERNS_2OpE",
+    "name": "void tomo::(anonymous namespace)::cmd_xautoclaim<true>(tomo::Shard&, tomo::Op&)",
+    "pre_size": 2776,
+    "post_size": 2776,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/t_stream_groups.o",
+    "symbol": "_ZN4tomo14notify_handlerIXadL_ZNS_12_GLOBAL__N_110cmd_xgroupILb1EEEvRNS_5ShardERNS_2OpEEEEEvS4_S6_",
+    "name": "void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_xgroup<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/cmd/t_stream_groups.o",
+    "symbol": "_ZN4tomo14notify_handlerIXadL_ZNS_12_GLOBAL__N_110cmd_xsetidILb1EEEvRNS_5ShardERNS_2OpEEEEEvS4_S6_",
+    "name": "void tomo::notify_handler<&(void tomo::(anonymous namespace)::cmd_xsetid<true>(tomo::Shard&, tomo::Op&))>(tomo::Shard&, tomo::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo12resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0",
+    "name": "tomo::ParseResult tomo::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long) [clone .isra.0]",
+    "pre_size": 914,
+    "post_size": 998,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo25resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo12resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0.cold",
+    "name": "tomo::ParseResult tomo::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+    "pre_size": 0,
+    "post_size": 52,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo25resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo12resp_parse_tILb1EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm",
+    "name": "tomo::ParseResult tomo::resp_parse_t<true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 952,
+    "post_size": 1073,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo15resp_count_lineEPKcjjRjbPS1_",
+    "name": "tomo::resp_count_line(char const*, unsigned int, unsigned int, unsigned int&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 102,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo15resp_parse_slowEPKcjRjRNS_2OpEPS1_mm",
+    "name": "tomo::resp_parse_slow(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 0,
+    "post_size": 461,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo16resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN4tomo16resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN4tomo22resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_', -4)",
+      "('_ZN4tomo2Op8push_argENS_5SliceE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo16resp_length_slowEPKcjRjmRmbPS1_",
+    "name": "tomo::resp_length_slow(char const*, unsigned int, unsigned int&, unsigned long, unsigned long&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 556,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo17resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned int&)",
+    "pre_size": 645,
+    "post_size": 382,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo24resp_inline_quotes_validEPKcS1_', -4)",
+      "('_ZN4tomo2Op8push_argENS_5SliceE', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo21weighted_lb_partitionERKSt6vectorINS_14WeightedLbItemESaIS1_EERKS0_IjSaIjEERS0_INS_20WeightedLbAssignmentESaISA_EE",
+    "name": "tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&, std::vector<tomo::WeightedLbAssignment, std::allocator<tomo::WeightedLbAssignment> >&)",
+    "pre_size": 6036,
+    "post_size": 6102,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZNSt6vectorIjSaIjEED1Ev', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZdlPvm', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo22resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_",
+    "name": "tomo::resp_bulk_prefix_error(char const*, unsigned int, unsigned int, tomo::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 118,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE",
+    "name": "tomo::resp_expected_bulk_error(char, tomo::Op&)",
+    "pre_size": 490,
+    "post_size": 410,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo24resp_inline_quotes_validEPKcS1_",
+    "name": "tomo::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 141,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('isspace', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo25resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_",
+    "name": "tomo::resp_parse_unlimited_slow(char const*, unsigned int, unsigned int&, tomo::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 29,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo2Op8push_argENS_5SliceE",
+    "name": "tomo::Op::push_arg(tomo::Slice)",
+    "pre_size": 0,
+    "post_size": 288,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo::Client*)",
+    "pre_size": 18324,
+    "post_size": 18309,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZNK4tomo7ExLoopTILb1EE21read_local_lane_quotaEm', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo6IoLoop18parse_and_dispatchILb1ELj32ELb0ELb0EEENS0_14DispatchResultEPNS_6ClientE",
+    "name": "tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo::Client*)",
+    "pre_size": 18292,
+    "post_size": 18271,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZNK4tomo7ExLoopTILb1EE21read_local_lane_quotaEm', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo6IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+    "name": "tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)",
+    "pre_size": 800,
+    "post_size": 683,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE24_M_release_last_use_coldEv', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_releaseEv', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo6IoLoop20pubsub_start_commandEPNS_6ClientERNS_2OpE",
+    "name": "tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)",
+    "pre_size": 1980,
+    "post_size": 1958,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo6IoLoop20pubsub_start_publishEPNS_6ClientERNS_2OpEb",
+    "name": "tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)",
+    "pre_size": 1744,
+    "post_size": 1381,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo6IoLoop21pubsub_finish_pendingEm",
+    "name": "tomo::IoLoop::pubsub_finish_pending(unsigned long)",
+    "pre_size": 3713,
+    "post_size": 3392,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('memcpy', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZN4tomo6IoLoop23pubsub_reply_restrictedERNS_2OpE.isra.0",
+    "name": "tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]",
+    "pre_size": 2051,
+    "post_size": 2035,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZNK4tomo5Slice8eq_icaseESt17basic_string_viewIcSt11char_traitsIcEE.isra.0', 0)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZNK4tomo7ExLoopTILb1EE21read_local_lane_quotaEm",
+    "name": "tomo::ExLoopT<true>::read_local_lane_quota(unsigned long) const",
+    "pre_size": 0,
+    "post_size": 63,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZN4tomo16run_fused_serverERNS3_6ServerEPKNS3_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS3_13AofReplayPlanESt14default_deleteISB_EESaISE_EES8_PNS3_10TlsContextERNS3_16LateUnixListenerERNS3_23ShutdownReportFinalLineEEUlvE0_EEEEE6_M_runEv",
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "pre_size": 4461,
+    "post_size": 4461,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZZN4tomo9FlatStore35atomic_exchange_physical_read_localEmNS_5SliceEPNS_5KvObjEENKUlvE0_clEv",
+    "name": "tomo::FlatStore::atomic_exchange_physical_read_local(unsigned long, tomo::Slice, tomo::KvObj*)::{lambda()#2}::operator()() const",
+    "pre_size": 553,
+    "post_size": 418,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZNK4tomo5KvObj3keyEv', -4)"
+    ]
+  },
+  {
+    "object": "src/core/genthread.o",
+    "symbol": "_ZZN4tomo9FlatStore35atomic_exchange_physical_read_localEmNS_5SliceEPNS_5KvObjEENKUlvE_clEv",
+    "name": "tomo::FlatStore::atomic_exchange_physical_read_local(unsigned long, tomo::Slice, tomo::KvObj*)::{lambda()#1}::operator()() const",
+    "pre_size": 553,
+    "post_size": 418,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZNK4tomo5KvObj3keyEv', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo12resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0",
+    "name": "tomo::ParseResult tomo::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long) [clone .isra.0]",
+    "pre_size": 914,
+    "post_size": 998,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo25resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo12resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0.cold",
+    "name": "tomo::ParseResult tomo::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+    "pre_size": 0,
+    "post_size": 52,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo25resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo12resp_parse_tILb1EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm",
+    "name": "tomo::ParseResult tomo::resp_parse_t<true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 952,
+    "post_size": 1073,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo15resp_count_lineEPKcjjRjbPS1_",
+    "name": "tomo::resp_count_line(char const*, unsigned int, unsigned int, unsigned int&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 102,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo15resp_parse_slowEPKcjRjRNS_2OpEPS1_mm",
+    "name": "tomo::resp_parse_slow(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 0,
+    "post_size": 461,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo16resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN4tomo16resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN4tomo22resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_', -4)",
+      "('_ZN4tomo2Op8push_argENS_5SliceE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo16resp_length_slowEPKcjRjmRmbPS1_",
+    "name": "tomo::resp_length_slow(char const*, unsigned int, unsigned int&, unsigned long, unsigned long&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 556,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo17resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned int&)",
+    "pre_size": 645,
+    "post_size": 382,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo24resp_inline_quotes_validEPKcS1_', -4)",
+      "('_ZN4tomo2Op8push_argENS_5SliceE', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo22resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_",
+    "name": "tomo::resp_bulk_prefix_error(char const*, unsigned int, unsigned int, tomo::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 118,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE",
+    "name": "tomo::resp_expected_bulk_error(char, tomo::Op&)",
+    "pre_size": 490,
+    "post_size": 410,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo24resp_inline_quotes_validEPKcS1_",
+    "name": "tomo::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 141,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('isspace', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo25resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_",
+    "name": "tomo::resp_parse_unlimited_slow(char const*, unsigned int, unsigned int&, tomo::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 29,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo2Op8push_argENS_5SliceE",
+    "name": "tomo::Op::push_arg(tomo::Slice)",
+    "pre_size": 0,
+    "post_size": 288,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo6IoLoop12adopt_clientILb0ELb0ELh0EEEvPNS_6ClientEbb",
+    "name": "void tomo::IoLoop::adopt_client<false, false, (unsigned char)0>(tomo::Client*, bool, bool)",
+    "pre_size": 2733,
+    "post_size": 2733,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZNK4tomo3RobILj64EE8quiescedEv', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE11drain_tasksILj32ELb0EEEjb",
+    "name": "unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)",
+    "pre_size": 2559,
+    "post_size": 3182,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo7ExLoopTILb1EE21exec_batch_prefetchedILb0EEEvPKNS_4TaskEj', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZNSt5dequeIN4tomo4TaskESaIS1_EE16_M_push_back_auxIJRKS1_EEEvDpOT_', -4)",
+      "('_ZNSt5dequeIN4tomo4TaskESaIS1_EE16_M_push_back_auxIJRKS1_EEEvDpOT_', -4)",
+      "('_ZNSt5dequeIN4tomo4TaskESaIS1_EE16_M_push_back_auxIJRKS1_EEEvDpOT_', -4)",
+      "('_ZN4tomo7ExLoopTILb1EE7executeILb0ELb0EEEbRKNS_4TaskE', -4)",
+      "('_ZN4tomo7ExLoopTILb1EE18flush_notify_batchEv', -4)",
+      "('_ZN4tomo7ExLoopTILb1EE18flush_notify_batchEv', -4)",
+      "('_ZN4tomo5Shard12publish_sizeEv', -4)",
+      "('_ZN4tomo7ExLoopTILb1EE16exec_batch_timedILb0EEEvPKNS_4TaskEj', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE5sweepILj32ELb1ELb0ELb0EEEjv",
+    "name": "unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()",
+    "pre_size": 1338,
+    "post_size": 1536,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo7ExLoopTILb1EE20flush_xshard_commitsEv', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo20xshard_flush_commitsERNS_6ServerERNS_9ThreadCtxERNS_4RingEPvPFvS6_PNS_6ClientEE', -4)",
+      "('_ZN4tomo6Server15ClientWorkScopeD1Ev', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZN4tomo9FlatStore15atomic_collapseEmm",
+    "name": "tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)",
+    "pre_size": 6820,
+    "post_size": 6876,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo10kvobj_sizeEPKNS_5KvObjE', -4)"
+    ]
+  },
+  {
+    "object": "src/core/reorder.o",
+    "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZN4tomoL26run_fused_server_reorderedERNS3_6ServerEPKNS3_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS3_13AofReplayPlanESt14default_deleteISB_EESaISE_EES8_PNS3_10TlsContextERNS3_16LateUnixListenerERNS3_23ShutdownReportFinalLineEEUlvE0_EEEEE6_M_runEv",
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_fused_server_reordered(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "pre_size": 4475,
+    "post_size": 4475,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo12resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0",
+    "name": "tomo::ParseResult tomo::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long) [clone .isra.0]",
+    "pre_size": 914,
+    "post_size": 998,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo25resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo12resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0.cold",
+    "name": "tomo::ParseResult tomo::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+    "pre_size": 0,
+    "post_size": 52,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo25resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo12resp_parse_tILb1EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm",
+    "name": "tomo::ParseResult tomo::resp_parse_t<true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 952,
+    "post_size": 1073,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo15resp_count_lineEPKcjjRjbPS1_",
+    "name": "tomo::resp_count_line(char const*, unsigned int, unsigned int, unsigned int&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 102,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo15resp_parse_slowEPKcjRjRNS_2OpEPS1_mm",
+    "name": "tomo::resp_parse_slow(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 0,
+    "post_size": 461,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo16resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN4tomo16resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN4tomo22resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_', -4)",
+      "('_ZN4tomo2Op8push_argENS_5SliceE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo16resp_length_slowEPKcjRjmRmbPS1_",
+    "name": "tomo::resp_length_slow(char const*, unsigned int, unsigned int&, unsigned long, unsigned long&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 556,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo17resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned int&)",
+    "pre_size": 645,
+    "post_size": 382,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo24resp_inline_quotes_validEPKcS1_', -4)",
+      "('_ZN4tomo2Op8push_argENS_5SliceE', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo20kvobj_external_bytesEPKNS_5KvObjE",
+    "name": "tomo::kvobj_external_bytes(tomo::KvObj const*)",
+    "pre_size": 986,
+    "post_size": 986,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo22resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_",
+    "name": "tomo::resp_bulk_prefix_error(char const*, unsigned int, unsigned int, tomo::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 118,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE",
+    "name": "tomo::resp_expected_bulk_error(char, tomo::Op&)",
+    "pre_size": 490,
+    "post_size": 410,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo24resp_inline_quotes_validEPKcS1_",
+    "name": "tomo::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 141,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('isspace', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo25resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_",
+    "name": "tomo::resp_parse_unlimited_slow(char const*, unsigned int, unsigned int&, tomo::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 29,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo2Op8push_argENS_5SliceE",
+    "name": "tomo::Op::push_arg(tomo::Slice)",
+    "pre_size": 0,
+    "post_size": 288,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop11pubsub_emitEPNS_6ClientEPKcmb",
+    "name": "tomo::IoLoop::pubsub_emit(tomo::Client*, char const*, unsigned long, bool)",
+    "pre_size": 1195,
+    "post_size": 1147,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZNSt5dequeIPN4tomo6ClientESaIS2_EE16_M_push_back_auxIJRKS2_EEEvDpOT_', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZNSt5dequeIPN4tomo6ClientESaIS2_EE9push_backERKS2_', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop12adopt_clientILb0ELb0ELh1EEEvPNS_6ClientEbb",
+    "name": "void tomo::IoLoop::adopt_client<false, false, (unsigned char)1>(tomo::Client*, bool, bool)",
+    "pre_size": 1310,
+    "post_size": 1295,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo6IoLoop8arm_recvILb0EEEvPNS_6ClientE', -4)",
+      "('_ZN4tomo6IoLoop13tls_slot_connEPKNS_6ClientE', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop12adopt_clientILb0ELb1ELh0EEEvPNS_6ClientEbb",
+    "name": "void tomo::IoLoop::adopt_client<false, true, (unsigned char)0>(tomo::Client*, bool, bool)",
+    "pre_size": 1310,
+    "post_size": 1295,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo6IoLoop8arm_recvILb0EEEvPNS_6ClientE', -4)",
+      "('_ZN4tomo6IoLoop13tls_slot_connEPKNS_6ClientE', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop13pipeline_passILb0ELb0ELb1ELb1EEEjbbRbRm",
+    "name": "unsigned int tomo::IoLoop::pipeline_pass<false, false, true, true>(bool, bool, bool&, unsigned long&)",
+    "pre_size": 1638,
+    "post_size": 1357,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo4Ring6msg_toERS0_m', -4)",
+      "('_ZN4tomo6IoLoop17pubsub_pass_flushEv', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop13pipeline_passILb1ELb0ELb1ELb1EEEjbbRbRm",
+    "name": "unsigned int tomo::IoLoop::pipeline_pass<true, false, true, true>(bool, bool, bool&, unsigned long&)",
+    "pre_size": 1638,
+    "post_size": 1357,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo4Ring6msg_toERS0_m', -4)",
+      "('_ZN4tomo6IoLoop17pubsub_pass_flushEv', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop24pubsub_notification_sendERKSt10shared_ptrINS_23PubSubNotificationChainEE",
+    "name": "tomo::IoLoop::pubsub_notification_send(std::shared_ptr<tomo::PubSubNotificationChain> const&)",
+    "pre_size": 1141,
+    "post_size": 1141,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop6on_cqeILb1ELb1ELb1ELh0EEEvP12io_uring_cqe",
+    "name": "void tomo::IoLoop::on_cqe<true, true, true, (unsigned char)0>(io_uring_cqe*)",
+    "pre_size": 745,
+    "post_size": 745,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb0ELb0ELb1ELh1ELb1EEEvv",
+    "name": "void tomo::IoLoop::run_loop<false, false, false, true, (unsigned char)1, true>()",
+    "pre_size": 3882,
+    "post_size": 3866,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('clock_gettime', -4)"
+    ],
+    "code_targets_added": [
+      "('io_uring_submit_and_get_events', -4)",
+      "('_ZN4tomo4SpanD1Ev', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE15fused_pass_implILj32ELb1ELb0ELb0EEEjv",
+    "name": "unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()",
+    "pre_size": 3887,
+    "post_size": 3775,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo7ExLoopTILb1EE14begin_snapshotEPNS_15SnapshotManagerE', -4)",
+      "('_ZN4tomo11DatabaseMap12consume_wakeEjRNS_4RingE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo7ExLoopTILb1EE6on_cqeEP12io_uring_cqe', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZN4tomo7ExLoopTILb1EE27prepare_captured_local_mgetERNS_2OpE",
+    "name": "tomo::ExLoopT<true>::prepare_captured_local_mget(tomo::Op&)",
+    "pre_size": 5024,
+    "post_size": 4909,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZN4tomo27run_split_read_local_serverERNS3_6ServerEPKNS3_16SnapshotLoadPlanERKSt6vectorISt10unique_ptrINS3_13AofReplayPlanESt14default_deleteISB_EESaISE_EES8_PNS3_10TlsContextERNS3_16LateUnixListenerERNS3_23ShutdownReportFinalLineEEUlvE0_EEEEE6_M_runEv",
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::run_split_read_local_server(tomo::Server&, tomo::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > > const&, tomo::SnapshotLoadPlan const*, tomo::TlsContext*, tomo::LateUnixListener&, tomo::ShutdownReportFinalLine&)::{lambda()#2}> > >::_M_run()",
+    "pre_size": 4563,
+    "post_size": 4563,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZZN4tomo6IoLoop18parse_and_dispatchILb0ELj0ELb1ELb1EEENS0_14DispatchResultEPNS_6ClientEENKUlOT_E2_clIZZNS1_ILb0ELj0ELb1ELb1EEES2_S4_ENKUlmE3_clEmEUlRKNS_2OpEE_EEDaS6_",
+    "name": "auto tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const",
+    "pre_size": 852,
+    "post_size": 772,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZZN4tomo3RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb0ELj0ELb1ELb1EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb0ELj0ELb1ELb1EEES5_S7_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZZN4tomo6IoLoop18parse_and_dispatchILb0ELj0ELb1ELb1EEENS0_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS1_ILb0ELj0ELb1ELb1EEES2_S4_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS6_",
+    "name": "auto tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const",
+    "pre_size": 852,
+    "post_size": 772,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZZN4tomo3RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb0ELj0ELb1ELb1EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb0ELj0ELb1ELb1EEES5_S7_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb1EEENS0_14DispatchResultEPNS_6ClientEENKUlOT_E2_clIZZNS1_ILb0ELj32ELb0ELb1EEES2_S4_ENKUlmE3_clEmEUlRKNS_2OpEE_EEDaS6_",
+    "name": "auto tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const",
+    "pre_size": 852,
+    "post_size": 772,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZZN4tomo3RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb1EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb0ELj32ELb0ELb1EEES5_S7_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZZN4tomo6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb1EEENS0_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS1_ILb0ELj32ELb0ELb1EEES2_S4_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS6_",
+    "name": "auto tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const",
+    "pre_size": 852,
+    "post_size": 772,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZZN4tomo3RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb0ELj32ELb0ELb1EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb0ELj32ELb0ELb1EEES5_S7_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm', -4)"
+    ],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb1ELb1EEENS0_14DispatchResultEPNS_6ClientEENKUlOT_E2_clIZZNS1_ILb1ELj0ELb1ELb1EEES2_S4_ENKUlmE3_clEmEUlRKNS_2OpEE_EEDaS6_",
+    "name": "auto tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(auto:1&&)#4}::operator()<tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#5}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const",
+    "pre_size": 772,
+    "post_size": 852,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZZN4tomo3RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb1ELj0ELb1ELb1EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb1ELj0ELb1ELb1EEES5_S7_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm', -4)"
+    ]
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "symbol": "_ZZN4tomo6IoLoop18parse_and_dispatchILb1ELj0ELb1ELb1EEENS0_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS1_ILb1ELj0ELb1ELb1EEES2_S4_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS6_",
+    "name": "auto tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const",
+    "pre_size": 772,
+    "post_size": 852,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZZN4tomo3RobILj64EE33read_local_owner_conflicts_beforeIZZNS_6IoLoop18parse_and_dispatchILb1ELj0ELb1ELb1EEENS3_14DispatchResultEPNS_6ClientEENKUlOT_E_clIZZNS4_ILb1ELj0ELb1ELb1EEES5_S7_ENKUlmE_clEmEUlRKNS_2OpEE_EEDaS9_EUlSF_E_EEbmS9_ENKUlmmE_clEmm', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_Z19tomokv_multidb_mainiPPc",
+    "name": "tomokv_multidb_main(int, char**)",
+    "pre_size": 11459,
+    "post_size": 11459,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo12resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0",
+    "name": "tomo::ParseResult tomo::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long) [clone .isra.0]",
+    "pre_size": 914,
+    "post_size": 998,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo25resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo12resp_parse_tILb0EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm.isra.0.cold",
+    "name": "tomo::ParseResult tomo::resp_parse_t<false>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long) [clone .isra.0] [clone .cold]",
+    "pre_size": 0,
+    "post_size": 52,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo25resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo12resp_parse_tILb1EEENS_11ParseResultEPKcjRjRNS_2OpEPS3_mm",
+    "name": "tomo::ParseResult tomo::resp_parse_t<true>(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 952,
+    "post_size": 1073,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo15resp_count_lineEPKcjjRjbPS1_",
+    "name": "tomo::resp_count_line(char const*, unsigned int, unsigned int, unsigned int&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 102,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo15resp_parse_slowEPKcjRjRNS_2OpEPS1_mm",
+    "name": "tomo::resp_parse_slow(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned long, unsigned long)",
+    "pre_size": 0,
+    "post_size": 461,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo16resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN4tomo16resp_length_slowEPKcjRjmRmbPS1_', -4)",
+      "('_ZN4tomo22resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_', -4)",
+      "('_ZN4tomo2Op8push_argENS_5SliceE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo16resp_length_slowEPKcjRjmRmbPS1_",
+    "name": "tomo::resp_length_slow(char const*, unsigned int, unsigned int&, unsigned long, unsigned long&, bool, char const**)",
+    "pre_size": 0,
+    "post_size": 556,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo17resp_parse_inlineEPKcjRjRNS_2OpEPS1_S2_",
+    "name": "tomo::resp_parse_inline(char const*, unsigned int, unsigned int&, tomo::Op&, char const**, unsigned int&)",
+    "pre_size": 645,
+    "post_size": 382,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo24resp_inline_quotes_validEPKcS1_', -4)",
+      "('_ZN4tomo2Op8push_argENS_5SliceE', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo22resp_bulk_prefix_errorEPKcjjRNS_2OpEPS1_",
+    "name": "tomo::resp_bulk_prefix_error(char const*, unsigned int, unsigned int, tomo::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 118,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_count_lineEPKcjjRjbPS1_', -4)",
+      "('_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo24resp_expected_bulk_errorEcRNS_2OpE",
+    "name": "tomo::resp_expected_bulk_error(char, tomo::Op&)",
+    "pre_size": 490,
+    "post_size": 410,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo24resp_inline_quotes_validEPKcS1_",
+    "name": "tomo::resp_inline_quotes_valid(char const*, char const*)",
+    "pre_size": 0,
+    "post_size": 141,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('isspace', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo25resp_parse_unlimited_slowEPKcjRjRNS_2OpEPS1_",
+    "name": "tomo::resp_parse_unlimited_slow(char const*, unsigned int, unsigned int&, tomo::Op&, char const**)",
+    "pre_size": 0,
+    "post_size": 29,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZN4tomo15resp_parse_slowEPKcjRjRNS_2OpEPS1_mm', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo2Op8push_argENS_5SliceE",
+    "name": "tomo::Op::push_arg(tomo::Slice)",
+    "pre_size": 0,
+    "post_size": 288,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('realloc', -4)",
+      "('__memcpy_chk', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo6IoLoop20refresh_age_samplingEv",
+    "name": "tomo::IoLoop::refresh_age_sampling()",
+    "pre_size": 0,
+    "post_size": 344,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZdlPvm', -4)",
+      "('memset', -4)",
+      "('_ZNKSt8__detail20_Prime_rehash_policy11_M_next_bktEm', -4)",
+      "('_ZNSt10_HashtableIPN4tomo6ClientESt4pairIKS2_NS0_6IoLoop10RobHeadAgeEESaIS7_ENSt8__detail10_Select1stESt8equal_toIS2_ESt4hashIS2_ENS9_18_Mod_range_hashingENS9_20_Default_ranged_hashENS9_20_Prime_rehash_policyENS9_17_Hashtable_traitsILb0ELb0ELb1EEEE9_M_rehashEmRKm', -4)",
+      "('__stack_chk_fail', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo6IoLoop23pubsub_reply_restrictedERNS_2OpE.isra.0",
+    "name": "tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]",
+    "pre_size": 2363,
+    "post_size": 2060,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE9_M_mutateEmmPKcm', -4)",
+      "('strlen', -4)",
+      "('_ZSt20__throw_length_errorPKc', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE6appendEPKc', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo6IoLoop23pubsub_reply_restrictedERNS_2OpE.isra.0.cold",
+    "name": "tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0] [clone .cold]",
+    "pre_size": 71,
+    "post_size": 71,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo6IoLoop30quiesce_accepts_for_conversionEv",
+    "name": "tomo::IoLoop::quiesce_accepts_for_conversion()",
+    "pre_size": 677,
+    "post_size": 440,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('io_uring_submit', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo4Ring3sqeEv', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo6IoLoop8run_loopILb0ELb1ELb0ELb0ELh0ELb0EEEvv",
+    "name": "void tomo::IoLoop::run_loop<false, true, false, false, (unsigned char)0, false>()",
+    "pre_size": 4332,
+    "post_size": 4044,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZdlPvm', -4)",
+      "('memset', -4)",
+      "('_ZNKSt8__detail20_Prime_rehash_policy11_M_next_bktEm', -4)",
+      "('_ZNSt10_HashtableIPN4tomo6ClientESt4pairIKS2_NS0_6IoLoop10RobHeadAgeEESaIS7_ENSt8__detail10_Select1stESt8equal_toIS2_ESt4hashIS2_ENS9_18_Mod_range_hashingENS9_20_Default_ranged_hashENS9_20_Prime_rehash_policyENS9_17_Hashtable_traitsILb0ELb0ELb1EEEE9_M_rehashEmRKm', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo6IoLoop20refresh_age_samplingEv', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb0ELb0ELb0ELh0ELb0EEEvv",
+    "name": "void tomo::IoLoop::run_loop<true, false, false, false, (unsigned char)0, false>()",
+    "pre_size": 4380,
+    "post_size": 4092,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZdlPvm', -4)",
+      "('memset', -4)",
+      "('_ZNKSt8__detail20_Prime_rehash_policy11_M_next_bktEm', -4)",
+      "('_ZNSt10_HashtableIPN4tomo6ClientESt4pairIKS2_NS0_6IoLoop10RobHeadAgeEESaIS7_ENSt8__detail10_Select1stESt8equal_toIS2_ESt4hashIS2_ENS9_18_Mod_range_hashingENS9_20_Default_ranged_hashENS9_20_Prime_rehash_policyENS9_17_Hashtable_traitsILb0ELb0ELb1EEEE9_M_rehashEmRKm', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo6IoLoop20refresh_age_samplingEv', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo6IoLoop8run_loopILb1ELb1ELb0ELb0ELh0ELb0EEEvv",
+    "name": "void tomo::IoLoop::run_loop<true, true, false, false, (unsigned char)0, false>()",
+    "pre_size": 4421,
+    "post_size": 4136,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('_ZdlPvm', -4)",
+      "('memset', -4)",
+      "('_ZNKSt8__detail20_Prime_rehash_policy11_M_next_bktEm', -4)",
+      "('_ZNSt10_HashtableIPN4tomo6ClientESt4pairIKS2_NS0_6IoLoop10RobHeadAgeEESaIS7_ENSt8__detail10_Select1stESt8equal_toIS2_ESt4hashIS2_ENS9_18_Mod_range_hashingENS9_20_Default_ranged_hashENS9_20_Prime_rehash_policyENS9_17_Hashtable_traitsILb0ELb0ELb1EEEE9_M_rehashEmRKm', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZN4tomo6IoLoop20refresh_age_samplingEv', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo6IoLoop9drive_tlsILb0ELb0ELh1EEEbPNS_6ClientE.isra.0",
+    "name": "bool tomo::IoLoop::drive_tls<false, false, (unsigned char)1>(tomo::Client*) [clone .isra.0]",
+    "pre_size": 1572,
+    "post_size": 1572,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": [
+      "('_ZNK4tomo3RobILj64EE8quiescedEv', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo7ExLoopTILb0EE3runEv",
+    "name": "tomo::ExLoopT<false>::run()",
+    "pre_size": 7101,
+    "post_size": 7072,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [
+      "('pthread_mutex_lock', -4)",
+      "('_ZSt20__throw_system_errori', -4)"
+    ],
+    "code_targets_added": [
+      "('_ZNSt5mutex4lockEv', -4)"
+    ]
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo9FlatStoreC1Ej",
+    "name": "tomo::FlatStore::FlatStore(unsigned int)",
+    "pre_size": 1994,
+    "post_size": 1946,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZN4tomo9FlatStoreC2Ej",
+    "name": "tomo::FlatStore::FlatStore(unsigned int)",
+    "pre_size": 1994,
+    "post_size": 1946,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZ19tomokv_multidb_mainiPPcEUlvE0_EEEEE6_M_runEv",
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::{lambda()#2}> > >::_M_run()",
+    "pre_size": 2767,
+    "post_size": 2767,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  },
+  {
+    "object": "src/main.o",
+    "symbol": "_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZ19tomokv_multidb_mainiPPcEUlvE2_EEEEE6_M_runEv",
+    "name": "std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::{lambda()#4}> > >::_M_run()",
+    "pre_size": 2141,
+    "post_size": 2141,
+    "raw_equal": false,
+    "relocation_equal": false,
+    "code_targets_removed": [],
+    "code_targets_added": []
+  }
+]
