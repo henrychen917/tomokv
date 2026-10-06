@@ -247,7 +247,6 @@ def run(api):
                     wanted = [a] if verb == "COPY" else [a, b]
                     writer, reader = connect(endpoints[0]), connect(endpoints[0])
                     before = _lib.info(probe, "stats")
-                    placement = _lib.shards_of(probe, [a, b, dest])
                     with _lib.armed(probe, "ATOMIC-COMMIT-HOLD", 1):
                         writer[0].sendall(enc(["MSET", a, "private", b, "private"]))
                         deadline = time.monotonic() + 5
@@ -258,9 +257,11 @@ def run(api):
                             assert time.monotonic() < deadline, (
                                 "pending-source window never opened", verb,
                                 {"before": before, "held": held,
-                                 "placement": placement,
+                                 "selected_owners": [owner for owner, keys in buckets.items()
+                                                     if len(keys) >= 2][:2],
                                  "placement_after": _lib.shards_of(probe, [a, b, dest]),
                                  "writer_ready": bool(select.select([writer[0]], [], [], 0)[0]),
+                                 "state": _lib.info(probe, "server", "lb"),
                                  "lbsignals": _lib.lbsignals(probe).raw})
                             time.sleep(.005)
                         assert not select.select([writer[0]], [], [], 0)[0], "writer escaped hold"
