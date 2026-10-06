@@ -1,0 +1,129 @@
+{
+  "value": 146197,
+  "pre_sha256": "c8bd8b7ea9332b1db8cc1cfea965e7cc0d67a050602254463e97fad051575557",
+  "source_tree": "e3f3039421aca2eb4e8e538b7efb8fb4a2214bd3",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=146197",
+    "-c",
+    "src/main.cc",
+    "-o",
+    "/home/user/Projects/cx-ccfix/build/ccfix4/budgets/146197.o"
+  ],
+  "seconds": 24.99346273485571,
+  "object_sha256": "1122449111c24e729e9acbc1ca9de333bd3190462ff2fdd81d2ce1809775ab45",
+  "total": 826,
+  "hot": 129,
+  "changed": 10,
+  "hot_changed": 2,
+  "hot_differing_bytes": 5862,
+  "rows": [
+    {
+      "symbol": "_ZN8tomo_db011AofProducerD1Ev",
+      "name": "tomo_db0::AofProducer::~AofProducer()",
+      "hot": false,
+      "pre_size": 2721,
+      "post_size": 2721,
+      "differing_bytes": 182,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db011AofProducerD2Ev",
+      "name": "tomo_db0::AofProducer::~AofProducer()",
+      "hot": false,
+      "pre_size": 2721,
+      "post_size": 2721,
+      "differing_bytes": 182,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+      "name": "tomo_db0::IoLoop::pubsub_delete_event(tomo_db0::PubSubEvent*)",
+      "hot": false,
+      "pre_size": 800,
+      "post_size": 800,
+      "differing_bytes": 66,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop30quiesce_accepts_for_conversionEv",
+      "name": "tomo_db0::IoLoop::quiesce_accepts_for_conversion()",
+      "hot": false,
+      "pre_size": 664,
+      "post_size": 677,
+      "differing_bytes": 287,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06Server4initERKNS_6ConfigEPKNS_13AofReplayPlanE",
+      "name": "tomo_db0::Server::init(tomo_db0::Config const&, tomo_db0::AofReplayPlan const*)",
+      "hot": false,
+      "pre_size": 11945,
+      "post_size": 11993,
+      "differing_bytes": 5182,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db07ExLoopTILb0EE21snapshot_control_passILj32ELb0EEEjv",
+      "name": "unsigned int tomo_db0::ExLoopT<false>::snapshot_control_pass<32u, false>()",
+      "hot": false,
+      "pre_size": 3192,
+      "post_size": 3163,
+      "differing_bytes": 815,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "name": "tomo_db0::ExLoopT<false>::run()",
+      "hot": true,
+      "pre_size": 7094,
+      "post_size": 7062,
+      "differing_bytes": 5077,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db09FlatStore26atomic_collapse_read_localEmm",
+      "name": "tomo_db0::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)",
+      "hot": false,
+      "pre_size": 6835,
+      "post_size": 6796,
+      "differing_bytes": 2560,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db09FlatStore8hash_keyENS_5SliceE.isra.0",
+      "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+      "hot": false,
+      "pre_size": 781,
+      "post_size": 845,
+      "differing_bytes": 394,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "name": "tomo_db0::WbEngine::serve_impl<false, true, false, true, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "hot": true,
+      "pre_size": 824,
+      "post_size": 537,
+      "differing_bytes": 785,
+      "targets_equal": false
+    }
+  ]
+}
