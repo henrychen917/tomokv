@@ -5387,7 +5387,7 @@
     "name": "bool tomo_db0::IoLoop::drive_tls<false, false, (unsigned char)1>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 1572,
     "post_size": 1572,
-    "raw_equal": false,
+    "raw_equal": true,
     "relocation_equal": true
   },
   {
@@ -5405,7 +5405,7 @@
     "name": "bool tomo_db0::IoLoop::drive_tls<true, false, (unsigned char)1>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 1602,
     "post_size": 1602,
-    "raw_equal": false,
+    "raw_equal": true,
     "relocation_equal": true
   },
   {
@@ -5423,7 +5423,7 @@
     "name": "bool tomo_db0::IoLoop::drive_tls<false, false, (unsigned char)0>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 1668,
     "post_size": 1668,
-    "raw_equal": false,
+    "raw_equal": true,
     "relocation_equal": true
   },
   {
@@ -5432,7 +5432,7 @@
     "name": "bool tomo_db0::IoLoop::drive_tls<true, false, (unsigned char)0>(tomo_db0::Client*) [clone .isra.0]",
     "pre_size": 1721,
     "post_size": 1721,
-    "raw_equal": false,
+    "raw_equal": true,
     "relocation_equal": true
   },
   {
@@ -5602,9 +5602,9 @@
     "symbol": "_ZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
     "name": "bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)",
     "pre_size": 3388,
-    "post_size": 3324,
-    "raw_equal": false,
-    "relocation_equal": false
+    "post_size": 3388,
+    "raw_equal": true,
+    "relocation_equal": true
   },
   {
     "object": "db0/src/main.o",
@@ -6646,9 +6646,9 @@
     "symbol": "_ZN8tomo_db09FlatStore11insert_intoEimPNS_5KvObjEb",
     "name": "tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)",
     "pre_size": 1298,
-    "post_size": 1361,
-    "raw_equal": false,
-    "relocation_equal": false
+    "post_size": 1298,
+    "raw_equal": true,
+    "relocation_equal": true
   },
   {
     "object": "db0/src/snapshot/snapshot.o",

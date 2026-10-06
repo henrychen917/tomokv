@@ -40,7 +40,7 @@ db0/src/core/rl2s.o 906 PRE functions, 906 POST functions
 db0/src/main.o 819 PRE functions, 819 POST functions
 db0/src/net/tls.o 38 PRE functions, 38 POST functions
 db0/src/persist/aof.o 298 PRE functions, 298 POST functions
-db0/src/snapshot/snapshot.o 125 PRE functions, 125 POST functions
+db0/src/snapshot/snapshot.o 125 PRE functions, 126 POST functions
 src/cmd/acl.o 258 PRE functions, 258 POST functions
 src/cmd/climon.o 219 PRE functions, 219 POST functions
 src/cmd/cmdgap.o 4 PRE functions, 4 POST functions
@@ -84,70 +84,48 @@ src/main.o 824 PRE functions, 824 POST functions
 src/net/tls.o 38 PRE functions, 38 POST functions
 src/persist/aof.o 298 PRE functions, 298 POST functions
 src/snapshot/snapshot.o 122 PRE functions, 122 POST functions
-Hot bodies: 1482; raw byte equal: 1474; bytes + resolved relocation targets equal: 1480
-DIFF db0/src/main.o 3388 3324 bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)
-DIFF db0/src/snapshot/snapshot.o 1298 1361 tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)
-AUDIT: 16825 function pairs; 1211 ordinary command bodies; 56 changed bodies; 7 inventory changes
-CHANGED db0/src/cmd/t_server.o 7618 7599 tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)
+Hot bodies: 1482; raw byte equal: 1480; bytes + resolved relocation targets equal: 1482
+AUDIT: 16824 function pairs; 1211 ordinary command bodies; 43 changed bodies; 10 inventory changes
+CHANGED db0/src/cmd/t_server.o 7618 7553 tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)
 CHANGED db0/src/cmd/t_server.o 123 123 tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
 CHANGED db0/src/cmd/t_server.o 7897 7881 tomo_db0::(anonymous namespace)::init_config(tomo_db0::Config const&)
-CHANGED db0/src/cmd/t_server.o 8628 8651 tomo_db0::(anonymous namespace)::collect_config_updates(tomo_db0::Op&, std::vector<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&)
-CHANGED db0/src/cmd/t_server.o 147 147 tomo_db0::(anonymous namespace)::collect_config_updates(tomo_db0::Op&, std::vector<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&) [clone .cold]
-CHANGED db0/src/cmd/t_server.o 16161 16262 tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)
-CHANGED db0/src/cmd/t_server.o 349 360 tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+CHANGED db0/src/cmd/t_server.o 8628 8848 tomo_db0::(anonymous namespace)::collect_config_updates(tomo_db0::Op&, std::vector<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&)
+CHANGED db0/src/cmd/t_server.o 147 181 tomo_db0::(anonymous namespace)::collect_config_updates(tomo_db0::Op&, std::vector<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&) [clone .cold]
+CHANGED db0/src/cmd/t_server.o 16161 16293 tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)
+CHANGED db0/src/cmd/t_server.o 349 369 tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
 CHANGED db0/src/cmd/t_server.o 381 593 void tomo_db0::reply_map_header<tomo_db0::Op::Sink&>(tomo_db0::Op::Sink&, unsigned long, bool)
 CHANGED db0/src/cmd/t_server.o 1463 1606 tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)
 CHANGED db0/src/cmd/t_server.o 689 689 tomo_db0::command_client_disconnected(tomo_db0::Client*)
 CHANGED db0/src/cmd/t_server.o 393 393 tomo_db0::command_client_migration_reserve(unsigned int)
-CHANGED db0/src/main.o 2721 2722 tomo_db0::AofProducer::~AofProducer()
-CHANGED db0/src/main.o 2721 2722 tomo_db0::AofProducer::~AofProducer()
-CHANGED db0/src/main.o 7174 7206 tomo_db0::ExLoopT<false>::run()
-CHANGED db0/src/main.o 3388 3324 bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)
-CHANGED db0/src/main.o 845 797 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
-CHANGED db0/src/main.o 2799 2799 std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#2}> > >::_M_run()
-CHANGED db0/src/main.o 2141 2141 std::thread::_State_impl<std::thread::_Invoker<std::tuple<main::{lambda()#4}> > >::_M_run()
-CHANGED db0/src/main.o 9178 9185 main
-CHANGED db0/src/main.o 4619 4619 main.cold
 CHANGED db0/src/persist/aof.o 1435 1435 tomo_db0::AofManager::~AofManager()
 CHANGED db0/src/persist/aof.o 1435 1435 tomo_db0::AofManager::~AofManager()
 CHANGED db0/src/persist/aof.o 6570 6522 tomo_db0::aof_read_recovery(tomo_db0::Config const&, unsigned int, std::unique_ptr<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >&, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)
-CHANGED db0/src/snapshot/snapshot.o 342 342 tomo_db0::SnapshotManager::complete_file_success()
-CHANGED db0/src/snapshot/snapshot.o 5309 5257 tomo_db0::SnapshotManager::start(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo_db0::AofManager*, char const*, char const*, bool)
-CHANGED db0/src/snapshot/snapshot.o 1298 1361 tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)
-CHANGED db0/src/snapshot/snapshot.o 1546 1523 tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)
-CHANGED src/cmd/t_server.o 7671 7566 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+CHANGED db0/src/snapshot/snapshot.o 342 358 tomo_db0::SnapshotManager::complete_file_success()
+CHANGED db0/src/snapshot/snapshot.o 2025 2025 tomo_db0::SnapshotManager::init(unsigned int, unsigned int, unsigned int, char const*, char const*, tomo_db0::PersistIoEngine)
+CHANGED db0/src/snapshot/snapshot.o 221 221 tomo_db0::snapshot_type_hooks(tomo_db0::Type)
+CHANGED db0/src/snapshot/snapshot.o 1546 1524 tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)
+CHANGED src/cmd/t_server.o 7671 7613 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
 CHANGED src/cmd/t_server.o 123 123 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&) [clone .cold]
 CHANGED src/cmd/t_server.o 7897 7881 tomo::(anonymous namespace)::init_config(tomo::Config const&)
-CHANGED src/cmd/t_server.o 8600 8641 tomo::(anonymous namespace)::collect_config_updates(tomo::Op&, std::vector<std::pair<tomo::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&)
-CHANGED src/cmd/t_server.o 147 153 tomo::(anonymous namespace)::collect_config_updates(tomo::Op&, std::vector<std::pair<tomo::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&) [clone .cold]
-CHANGED src/cmd/t_server.o 16215 16302 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
-CHANGED src/cmd/t_server.o 353 337 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+CHANGED src/cmd/t_server.o 8600 8956 tomo::(anonymous namespace)::collect_config_updates(tomo::Op&, std::vector<std::pair<tomo::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&)
+CHANGED src/cmd/t_server.o 147 210 tomo::(anonymous namespace)::collect_config_updates(tomo::Op&, std::vector<std::pair<tomo::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&) [clone .cold]
+CHANGED src/cmd/t_server.o 16215 16341 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+CHANGED src/cmd/t_server.o 353 369 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
 CHANGED src/cmd/t_server.o 1812 1812 tomo::command_client_connected(tomo::Client*, char const*, char const*, bool, unsigned long)
 CHANGED src/cmd/t_server.o 689 689 tomo::command_client_disconnected(tomo::Client*)
 CHANGED src/cmd/t_server.o 864 864 tomo::command_client_migration_extract(tomo::Client*)
 CHANGED src/cmd/t_server.o 645 645 tomo::command_client_migration_install(void*)
 CHANGED src/cmd/t_server.o 393 393 tomo::command_client_migration_reserve(unsigned int)
-CHANGED src/cmd/t_server.o 5268 5293 tomo::cfg_client_output_buffer_limit_string[abi:cxx11](tomo::ClientOutputBufferLimits const&)
+CHANGED src/cmd/t_server.o 5268 4600 tomo::cfg_client_output_buffer_limit_string[abi:cxx11](tomo::ClientOutputBufferLimits const&)
 CHANGED src/cmd/t_server.o 462 673 void tomo::reply_int<tomo::Op::Sink>(tomo::Op::Sink&&, long long)
-CHANGED src/main.o 11459 11459 tomokv_multidb_main(int, char**)
-CHANGED src/main.o 4293 4293 tomokv_multidb_main(int, char**) [clone .cold]
-CHANGED src/main.o 677 664 tomo::IoLoop::quiesce_accepts_for_conversion()
-CHANGED src/main.o 7101 7072 tomo::ExLoopT<false>::run()
-CHANGED src/main.o 7286 7332 tomo::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)
-CHANGED src/main.o 2767 2767 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::{lambda()#2}> > >::_M_run()
-CHANGED src/main.o 2141 2141 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomokv_multidb_main(int, char**)::{lambda()#4}> > >::_M_run()
+CHANGED src/cmd/t_server.o 2430 2288 tomo::Server::flipctl_debug_dump[abi:cxx11]() const
 CHANGED src/persist/aof.o 1467 1451 tomo::AofManager::~AofManager()
 CHANGED src/persist/aof.o 1467 1451 tomo::AofManager::~AofManager()
 CHANGED src/persist/aof.o 6810 6746 tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::default_delete<tomo::SnapshotLoadPlan> >&, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)
 CHANGED src/persist/aof.o 297 297 tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::default_delete<tomo::SnapshotLoadPlan> >&, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]
-CHANGED src/snapshot/snapshot.o 342 342 tomo::SnapshotManager::complete_file_success()
-CHANGED src/snapshot/snapshot.o 5605 5637 tomo::SnapshotManager::start(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo::AofManager*, char const*, char const*, bool)
-CHANGED src/snapshot/snapshot.o 100 100 tomo::SnapshotManager::start(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo::AofManager*, char const*, char const*, bool) [clone .cold]
-CHANGED src/snapshot/snapshot.o 986 951 tomo::kvobj_external_bytes(tomo::KvObj const*)
-Traceback (most recent call last):
-  File "/home/user/Projects/cx-psfix/tools/psfix_artifacts.py", line 94, in <module>
-    main()
-  File "/home/user/Projects/cx-psfix/tools/psfix_artifacts.py", line 90, in main
-    assert hot_ok, 'stock hot-body audit failed'
-           ^^^^^^
-AssertionError: stock hot-body audit failed
+CHANGED src/snapshot/snapshot.o 342 358 tomo::SnapshotManager::complete_file_success()
+CHANGED src/snapshot/snapshot.o 2025 2025 tomo::SnapshotManager::init(unsigned int, unsigned int, unsigned int, char const*, char const*, tomo::PersistIoEngine)
+CHANGED src/snapshot/snapshot.o 5605 5639 tomo::SnapshotManager::start(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo::AofManager*, char const*, char const*, bool)
+CHANGED src/snapshot/snapshot.o 221 221 tomo::snapshot_type_hooks(tomo::Type)
+CHANGED src/snapshot/snapshot.o 986 826 tomo::kvobj_external_bytes(tomo::KvObj const*)
+CHANGED src/snapshot/snapshot.o 2049 2188 tomo::FlatStore::make_room_for(tomo::Slice, unsigned long)
