@@ -1,6 +1,7 @@
 # storesize5 — landed at15 composition and DBSIZE differential contract
 
-Work in progress: implementation committed; live receipts and arm audit pending.
+Work in progress: implementation, three arms, directed proofs and body audit complete;
+full differential and selected atomic gate receipts pending.
 Worktree `/home/user/Projects/cx-storesize`, branch `cx-storesize`.
 Started from `c55d4a370`, merged `origin/cpp` = `9d957b9fb` (landed at15)
 in `600063010`. The two-mode differential repair is `647f277c7`.
@@ -70,13 +71,56 @@ rejects a wrong exact count independently of stalled publication, plus equal
 noninteger count replies. Nine serverless controls pass without any comparison
 relaxation. No gate row was added by this round.
 
-## Evidence still to collect
+## Directed and gate evidence
 
-- Complete split and armed-fused differential folds, both atomic modes and all
-  frozen landing seeds, including historical MULTI repeats and mode equivalence.
-- All 40 landed AT15b proof invocations; existing storesize and multidb checks.
-- Twelve storage rows and the published-monitoring row through GATE_ONLY_JOBS.
-- Rebuilt origin/cpp PRE, POST and PAD-A SHA-256; both-image hot-body audit.
+- `storesize_checks.py check-all`: PASS, including both images, modes and
+  read-local settings, bounded walk witnesses and rejected census-route control.
+- `multidb-unit`: PASS.
+- The landed `docs/at15b/prove.py`: all 40 invocations PASS, including required
+  nonzero negative-control exits. Only its log destination was redirected by
+  `docs/storesize5/prove.py`; the proof source is unchanged.
+- `GATE_ONLY_JOBS=storage_units`: **12 ok / 0 FAIL**, run `gate-run.6nsG9p`,
+  CPUs 112–127, server 112–119, load 120–127, no SMT, ports 18340–18342.
+  The partial ledger and exact plan are in `docs/storesize5`.
+- `GATE_ONLY_JOBS=atomic_units`: running, including published monitoring.
+- Full split/armed-fused differential folds: pending.
+
+## Rebuilt artifacts and hot-body audit
+
+PRE was compiled from a fresh archive of `origin/cpp` (`9d957b9fb`) inside this
+worktree. POST was rebuilt from the merged tree with GCC 13.3.0. Both independent
+database images are linked. The builds include normal footprint assertions.
+`build/tomokv` and POST compare byte-for-byte equal.
+
+| Arm | Path | SHA-256 |
+| --- | --- | --- |
+| PRE | `build/storesize5/PRE/tomokv` | `586154b65259dfbd9a57ea01883cba4f6444f155c3feaef8e48306a5d1219731` |
+| POST | `build/storesize5/POST/tomokv` | `472b2806b880931f11dbbe738d3c81a82bd81e6b0afbefb87c8a8c7e44819599` |
+| PAD-A | `build/storesize5/PAD-A/tomokv` | `4639f5566c3d4c5790e78f3f44268117eae7ae8d13974489cbd9d58ff81f4aac` |
+
+ELF `.text`: PRE 7,797,900 bytes; POST and PAD-A 7,807,180 bytes (+9,280).
+The unchanged storesize3 builder changes exactly two return-immediate bytes,
+one per image. POST/PAD-A section headers, symbol tables and addresses are
+identical. Build logs, `SHA256SUMS`, section inventory and PAD receipt are in
+`docs/storesize5`.
+
+| Image / audit | Raw equal | Resolved equal |
+| --- | ---: | ---: |
+| db0 hot | 703/744 | 720/744 |
+| db0 handlers/publication | 596/622 | 611/622 |
+| multi hot | 603/744 | 616/744 |
+| multi handlers/publication | 403/623 | 520/623 |
+
+The unchanged hot comparator exits 1 for each image. This is not a byte-identity
+pass. Per the lane instruction, residual compiler/inlining differences are
+listed, not pursued. The union contains **67 db0 and 360 multi changed emitted
+copies**. Full names, sizes, raw and resolved verdicts are in
+[db0 changed bodies](docs/storesize5/db0-changed-bodies.md) and
+[multi changed bodies](docs/storesize5/multi-changed-bodies.md); the two
+`*-literal-differences.json.gz` receipts retain actual bytes, body hashes and
+resolved-target differences. The route selector's old one-argument symbol is
+replaced by its explicit execution-boundary signature. Ordinary counts and
+publisher/accounting changes are not relabelled as INFO-only changes.
 
 The replay runner invokes the unchanged `docs/at15b/replay.sh` for atomic-zero
 parts and `tests/differ_gate.sh` for atomic-one/equivalence parts. All use target
@@ -87,8 +131,9 @@ receipts do not apply the parallel full gate's elapsed-time budget.
 
 ## Counts and measurement handoff
 
-The existing `storesize published monitoring` row remains before the quick-tier
-exit. This round adds zero rows; the lane's existing contribution is +1 quick /
+The existing `storesize published monitoring` row is at `tests/gate.sh:1587`,
+collected with `atomic_units` at line 3223, before the quick-tier exit at line
+3355 (exit 3359). This round adds zero rows; the lane's existing contribution is +1 quick /
 +1 full relative to origin/cpp. Origin EXPECT remains 499/516; the combined tree
 requires maintainer-owned 500/517 and the existing storesize fixture label.
 
