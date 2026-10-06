@@ -2,7 +2,8 @@
 # Import the gate's exact armed-fused boot and listener ownership helpers.
 set -eu
 cd "$(dirname "$0")/.."
-export GATE_LOAD_CORES=120-127
+export GATE_LOAD_CORES=${GATE_LOAD_CORES:-120-127}
+PROBE_TARGET_CORES=${CCFIX5_PROBE_CORES:-112-119}
 export GATE_DIFFER_GEOMETRY=armed-fused
 export GATE_DIFFER_OUT="$PWD/build/ccfix5/probe-${2:?arm name}"
 PROBE_ARGS=("${@:3}")
@@ -13,7 +14,7 @@ boundary = 'if ! [[ "$TARGET_PORT" =~'
 assert s.count(boundary) == 1
 print(s[:s.index(boundary)])
 PY
-) "${1:?binary}" 18179 18180 112-119 6:2
+) "${1:?binary}" 18179 18180 "$PROBE_TARGET_CORES" 6:2
 for REPEAT in 1 2 3; do
   for ATOMIC in 0 1; do
     DIR="$OUT/r$REPEAT-a$ATOMIC"
