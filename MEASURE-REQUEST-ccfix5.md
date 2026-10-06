@@ -71,11 +71,12 @@ dumps are in [PRE](docs/ccfix5/probe-PRE) and [POST](docs/ccfix5/probe-POST), wi
 [summary](docs/ccfix5/fresh-probes.json).
 
 There is no differing eligibility condition in this reproduction. The ordinary
-parse/GET/drain selection is 272/272 canonical bodies equal to merged PRE
+parse/GET/drain selection is 272/272 raw and canonical bodies equal to merged PRE
 ([inventory](docs/ccfix5/read-path-audit.json)). The notification mask is copied
 to `set_read_local_keymiss_notify()` by `IoLoop::refresh_notify_config()`; the
 keymiss bit intentionally routes notification-sensitive reads through the owner.
-Neither that code nor `Shard`'s flat sink binding differs from merged PRE.
+Neither that code nor `Shard`'s flat sink binding differs from merged PRE;
+`io_loop.h`, `ex_loop.h`, `read_local.h` and `shard.h` are source-identical.
 CC11's classifier runs only after the notification observer admits a keymiss.
 The classifier was not reverted: executing the unchanged POST already disproves
 the assertion that it never serves a local read.
@@ -153,7 +154,9 @@ the pending sources' predecessors. The documented notification deviation is
 checked only after those assertions. Both atomic=0 and atomic=1 boots also
 serve 1,024 clean local reads before RESETSTAT and another 1,024 afterward, with
 zero fallbacks. The swapped-probe summary and complete INFO/DEBUG traces are
-retained in [swapped probes](docs/ccfix5/swapped-probes.json); the negative results
+retained in [swapped probes](docs/ccfix5/swapped-probes.json). A separate
+[validation](docs/ccfix5/final-probe-validation.json) checks all 72 final windows
+for pending 0→at-least-2, unchanged localfast and an unreplied writer. The negative results
 were not discarded. Additional identity-map reader controls are retained in
 [pending probes](docs/ccfix5/pending-probes.json).
 
@@ -166,7 +169,8 @@ against real MSET key stamping across DBs 0, 1 and 15, before and after swaps
 namespace" and passes **864 comparisons** on POST, including 192 nonzero-namespace
 hashes. See [PRE failure](docs/ccfix5/debug-PRE.log) and
 [POST pass](docs/ccfix5/debug-POST.log). This is a serverless, deterministic
-regression proof, independent of random wire scheduling.
+regression proof, independent of random wire scheduling. Each arm uses its own
+headers and linked objects.
 
 The repeated source-reader probe also exposed retained connection read cuts:
 leaving all round peers open eventually failed "old pending records did not

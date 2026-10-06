@@ -17,7 +17,9 @@ if __name__ == '__main__':
     if args.proof == 'debug':
         for arm in ('PRE', 'POST'):
             core = [o for o in proof.objects(arm) if not o.endswith('/main.o')]
-            binary = proof.compile_test('debug-' + arm, proof.ROOT / 'tests/ccfix5_debug_unit.cc', core)
+            headers = proof.BUILD / 'pre-src' if arm == 'PRE' else proof.ROOT
+            binary = proof.compile_test('debug-' + arm, proof.ROOT / 'tests/ccfix5_debug_unit.cc',
+                                        core, ['-I' + str(headers)])
             result = subprocess.run(['taskset', '-c', '112-119', str(binary)],
                                     text=True, capture_output=True)
             (proof.OUT / ('debug-' + arm + '.log')).write_text(
