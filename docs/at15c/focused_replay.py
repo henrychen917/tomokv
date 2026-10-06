@@ -21,7 +21,10 @@ p.add_argument('--runs', type=int, default=3)
 p.add_argument('--trace', action='store_true')
 p.add_argument('--perf', action='store_true')
 p.add_argument('--directed', action='store_true')
+p.add_argument('--absolute-control', action='store_true',
+               help='separate diagnostic: replace only the two PTTL queries with PEXPIRETIME')
 args = p.parse_args()
+assert not args.absolute_control or args.trace
 out = Path(args.output).resolve()
 out.mkdir(parents=True, exist_ok=False)
 for port in (17899, 17900):
@@ -56,7 +59,10 @@ def boot(label, command, port):
 def run(label, command):
     with (out / (label + '.log')).open('w') as log:
         start = time.time_ns()
-        result = subprocess.run(['taskset', '-c', '121-127', *command],
+        env = dict(os.environ)
+        if args.absolute_control:
+            env['AT15C_ABSOLUTE_CONTROL'] = '1'
+        result = subprocess.run(['taskset', '-c', '121-127', *command], env=env,
                                 stdout=log, stderr=subprocess.STDOUT, timeout=180)
     results.append(dict(label=label, command=command, rc=result.returncode,
                         start_ns=start, end_ns=time.time_ns(),
@@ -84,9 +90,11 @@ try:
     if args.perf:
         log = (out / 'perf.log').open('w')
         files.append(log)
-        perf = subprocess.Popen(['taskset', '-c', '127', 'perf', 'record', '-C', '112-119',
-                    '-g', '--call-graph', 'dwarf,8192', '--switch-events', '-e', 'cycles:u',
-                    '-F', '999', '-o', str(out / 'perf.data')],
+        perf_command = ['taskset', '-c', '127', 'perf', 'record', '-C', '112-119',
+                    '-g', '--clockid', 'mono', '--call-graph', 'dwarf,8192', '--switch-events', '-e', 'cycles:u',
+                    '-F', '999', '-o', str(out / 'perf.data')]
+        (out / 'perf-command.json').write_text(json.dumps(perf_command) + '\n')
+        perf = subprocess.Popen(perf_command,
                     stdout=log, stderr=subprocess.STDOUT)
         children.append(perf)
         time.sleep(.2)

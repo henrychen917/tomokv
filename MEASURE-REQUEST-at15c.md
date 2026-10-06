@@ -79,7 +79,7 @@ POST uses `perf record -C 112-119 -g --call-graph dwarf,8192 --switch-events
 `docs/at15c/commit-inventory.json` inventories all sixteen lane commits by
 `src`, Makefile and third-party tree identity. The frozen PRE is `61a9ab20f`.
 AT15b has two production-changing commits: `bb5b461ee` and `76568a8fc`; all
-eight later commits retain `76568a8fc`'s production tree. The first commit
+seven later commits retain `76568a8fc`'s production tree. The first commit
 names `hash_ttls_of`, while the follow-up uses the declared `hash_ttl_slot`.
 The isolated builder records whether the intermediate tree compiles and links
 candidate trees under `build/at15c/bisect-<sha>/tomokv` from frozen objects with

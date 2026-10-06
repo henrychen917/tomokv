@@ -4,7 +4,8 @@
     "edgetime": "FAIL",
     "diffs": 2,
     "clock_tolerances": 0,
-    "complete": false,
+    "matrix_finished": true,
+    "passing_fold": false,
     "operations": {
       "1526": {
         "delta_ms": -5,
@@ -16,6 +17,77 @@
         "delta_ms": -5,
         "target": "b':2591999381\\r\\n'",
         "oracle": "b':2591999386\\r\\n'",
+        "evidence": "printed DIFF"
+      }
+    },
+    "matrix": {
+      "passed": 239,
+      "failed": 9,
+      "runtime": "15m02s"
+    },
+    "suite_legs": 246,
+    "suite_legs_passed": 238,
+    "failed_legs": [
+      {
+        "suite": "edgetime",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "wiredump",
+        "seed": 7,
+        "rc": 1
+      },
+      {
+        "suite": "hexpire",
+        "seed": 23,
+        "rc": 1
+      },
+      {
+        "suite": "edgetime",
+        "seed": 23,
+        "rc": 1
+      },
+      {
+        "suite": "hexpire",
+        "seed": 21,
+        "rc": 1
+      },
+      {
+        "suite": "wiredump",
+        "seed": 21,
+        "rc": 1
+      },
+      {
+        "suite": "hexpire",
+        "seed": 22,
+        "rc": 1
+      },
+      {
+        "suite": "wiredump",
+        "seed": 22,
+        "rc": 1
+      }
+    ]
+  },
+  {
+    "run": "replay-2-pre-armed",
+    "edgetime": "FAIL",
+    "diffs": 1,
+    "clock_tolerances": 1,
+    "matrix_finished": false,
+    "passing_fold": false,
+    "operations": {
+      "1526": {
+        "delta_ms": -1,
+        "target": "b':2591999104\\r\\n'",
+        "oracle": "b':2591999105\\r\\n'",
+        "evidence": "printed key-specific CLOCK TOLERANCE"
+      },
+      "2910": {
+        "delta_ms": -2,
+        "target": "b':2591999763\\r\\n'",
+        "oracle": "b':2591999765\\r\\n'",
         "evidence": "printed DIFF"
       }
     }

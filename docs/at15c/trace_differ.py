@@ -8,6 +8,7 @@ reads and the harness's target-before-oracle drain order must be accounted for.
 """
 import ast
 import json
+import os
 from pathlib import Path
 import sys
 import time
@@ -76,6 +77,18 @@ def read_reply(file):
 
 scope['conn'] = conn
 scope['read_reply'] = read_reply
+absolute_control = os.environ.get('AT15C_ABSOLUTE_CONTROL') == '1'
+if absolute_control:
+    original_generator = scope['gens']['edgetime']
+
+    def absolute_generator(rng):
+        operations = original_generator(rng)
+        for index in (1526, 2910):
+            assert operations[index][0] == 'PTTL'
+            operations[index][0] = 'PEXPIRETIME'
+        return operations
+
+    scope['gens']['edgetime'] = absolute_generator
 start = stamp()
 try:
     exec(compile(ast.Module(body=tree.body[cut:], type_ignores=[]), str(source), 'exec'), scope)
@@ -83,4 +96,5 @@ finally:
     prefix.parent.mkdir(parents=True, exist_ok=True)
     prefix.with_suffix('.json').write_text(json.dumps(dict(
         start=start, end=stamp(), operations=scope.get('ops'), events=events,
+        absolute_control=absolute_control,
         harness_sha256=__import__('hashlib').sha256(source.read_bytes()).hexdigest())) + '\n')
