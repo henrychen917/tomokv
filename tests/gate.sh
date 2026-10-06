@@ -1668,23 +1668,57 @@ done; done
 }
 
 job_respcompat(){
-# NET13/14/15/16: one aggregate row, both thread modes, before the quick exit.
-# The differential matrix also runs this byte oracle against its existing Redis boot.
-local mode compatible=1 booted
+# NET13/14/15/16: one aggregate row, both differential geometries and atomic modes.
+# Raw protocol cases own this row and its Redis oracle, outside the valid-command
+# fan-out plan. Keep its shell pass total exactly equal to the planned comparisons.
+local mode atomic compatible=1 booted oracle_ready=0 oracle_port=$((PORT+1))
+local oracle_bin=${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server} oracle_dir
 row_begin "RESP protocol error compatibility"
-for mode in 1s 2s; do
+guard_port "$oracle_port"
+oracle_dir=$(mktemp -d "$TMPDIR/respcompat-oracle.XXXXXX") || compatible=0
+if [ "$compatible" = 1 ] && [ -x "$oracle_bin" ]; then
+  taskset -c "${GATE_DIFFER_ORACLE_CORES:-$CORES}" "$oracle_bin" \
+      --port "$oracle_port" --bind 127.0.0.1 --save '' --appendonly no --dir "$oracle_dir" \
+      >"$TMPDIR/gate-respcompat-oracle.txt" 2>&1 &
+  # The gate's existing oracle slot is included in normal and watchdog cleanup.
+  GLOBCASE_ORACLE=$!
+  for _ in $(seq 100); do
+    kill -0 "$GLOBCASE_ORACLE" 2>/dev/null || break
+    if [ "$(port_listeners "$oracle_port")" = "$GLOBCASE_ORACLE" ] &&
+       (exec 3<>/dev/tcp/127.0.0.1/"$oracle_port") 2>/dev/null; then
+      oracle_ready=1
+      break
+    fi
+    sleep 0.1
+  done
+fi
+if [ "$oracle_ready" = 1 ]; then
+for atomic in 0 1; do for mode in 1s 2s; do
   booted=0
   if [ "$mode" = 1s ]; then
-    boot_fused "$CANDIDATE_BINARY" --save '' && booted=1
+    boot_fused "$CANDIDATE_BINARY" --read-local 1 --atomic "$atomic" --save '' && booted=1
   else
-    boot "$CANDIDATE_BINARY" --thread-mode 2s --save '' && booted=1
+    boot "$CANDIDATE_BINARY" --thread-mode 2s --atomic "$atomic" --save '' && booted=1
   fi
   if [ "$booted" != 1 ] || ! py tests/respcompat.py 127.0.0.1 "$PORT" \
-      >"$TMPDIR/gate-respcompat-$mode.txt" 2>&1; then
+      --oracle 127.0.0.1 "$oracle_port" >"$TMPDIR/gate-respcompat-$mode-a$atomic.txt" 2>&1; then
     compatible=0
   fi
   stop
-done
+done; done
+else
+  compatible=0
+fi
+if [ "$GLOBCASE_ORACLE" -gt 0 ]; then
+  kill -TERM "$GLOBCASE_ORACLE" 2>/dev/null
+  if ! timeout --kill-after=1 10 tail --sleep-interval=.1 --pid="$GLOBCASE_ORACLE" -f /dev/null; then
+    compatible=0
+    kill -KILL "$GLOBCASE_ORACLE" 2>/dev/null
+  fi
+  wait "$GLOBCASE_ORACLE" 2>/dev/null || compatible=0
+  GLOBCASE_ORACLE=0
+fi
+[ -z "$(port_listeners "$oracle_port")" ] || compatible=0
 if [ "$compatible" = 1 ]; then
   ok "RESP protocol error compatibility"
 else
