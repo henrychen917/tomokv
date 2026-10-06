@@ -1,0 +1,207 @@
+diff --git a/src/cmd/acl.inc b/src/cmd/acl.inc
+index fd0e59db9..f4eba40fc 100644
+--- a/src/cmd/acl.inc
++++ b/src/cmd/acl.inc
+@@ -1157,7 +1157,7 @@ __attribute__((cold, noinline)) bool acl_finish_dispatch_denial(
+         AclDeniedReason denied, uint32_t denied_arg) {
+     multi_mark_queue_error(client);
+     client.advance_parse(consumed);
+-    loop.self_->note_command(op.spec->id);
++    loop.self_->note_command_rejected(op.spec->id);
+     loop.flip_fingerprint_note(*op.spec, op);
+     acl_reply_denied(client, op, client.acl_user_idx(), denied, denied_arg, *loop.self_);
+     loop.finish_prebuilt(&client, op);
+@@ -1390,6 +1390,8 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
+         std::vector<AclUserImage> images;
+         std::string error;
+         if (!acl_parse_file(g_acl_filename, images, error)) {
++            // Redis addReplyError supplies ERR for unprefixed ACL-file diagnostics.
++            error.insert(0, "ERR ");
+             reply_err(op.sink(), error.c_str());
+             return;
+         }
+diff --git a/src/cmd/auth.inc b/src/cmd/auth.inc
+index dfde37f90..ca1be09fb 100644
+--- a/src/cmd/auth.inc
++++ b/src/cmd/auth.inc
+@@ -116,7 +116,7 @@ bool auth_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed
+     }
+     if (auth_allowed_without_credentials(op)) return false;
+     client.advance_parse(consumed);
+-    loop.self_->note_command(op.spec->id);
++    loop.self_->note_command_rejected(op.spec->id);
+     loop.flip_fingerprint_note(*op.spec, op);
+     reply_err(op.sink(), "NOAUTH Authentication required.");
+     loop.finish_prebuilt(&client, op);
+diff --git a/src/cmd/notify.h b/src/cmd/notify.h
+index 1d5dd14a0..e78bdf588 100644
+--- a/src/cmd/notify.h
++++ b/src/cmd/notify.h
+@@ -98,14 +98,13 @@ inline std::string serialize_notify_flags(uint32_t flags) {
+             {NOTIFY_GENERIC, 'g'}, {NOTIFY_STRING, '$'}, {NOTIFY_LIST, 'l'},
+             {NOTIFY_SET, 's'}, {NOTIFY_HASH, 'h'}, {NOTIFY_ZSET, 'z'},
+             {NOTIFY_EXPIRED, 'x'}, {NOTIFY_EVICTED, 'e'}, {NOTIFY_STREAM, 't'},
+-            {NOTIFY_MODULE, 'd'},
++            {NOTIFY_MODULE, 'd'}, {NOTIFY_NEW, 'n'},
+         };
+         for (const auto& entry : classes) if (flags & entry.bit) out.push_back(entry.flag);
+     }
+     if (flags & NOTIFY_KEYSPACE) out.push_back('K');
+     if (flags & NOTIFY_KEYEVENT) out.push_back('E');
+     if (flags & NOTIFY_KEY_MISS) out.push_back('m');
+-    if (flags & NOTIFY_NEW) out.push_back('n');
+     return out;
+ }
+ 
+diff --git a/src/cmd/notify.inc b/src/cmd/notify.inc
+index 4f82b7287..6c826e9f3 100644
+--- a/src/cmd/notify.inc
++++ b/src/cmd/notify.inc
+@@ -422,17 +422,42 @@ bool notify_flat_enabled(void* context, uint32_t cls) {
+     if (observed && (mask & NOTIFY_SAVE)) return true;
+     const uint32_t routes = notify_routes_for_class(mask, cls);
+     if (!routes) return false;
+-    if (cls == NOTIFY_KEY_MISS) {
+-        const Op* source = shard.notify_source();
+-        if (!source || !(source->spec->flags & CmdFlags::Readonly) ||
+-            (source->spec->flags & CmdFlags::Write)) return false;
+-    }
+     Server* server = shard.server();
+     if (!server) return false;
+     // Tracking invalidation needs the expiry/eviction observers even with nobody subscribed.
+     return server->pubsub_any_subscribers() || (routes & NOTIFY_TRACKING) != 0;
+ }
+ 
++// The flat lookup receives the actual argv Slice, including its identity and namespace.
++// Recover the read/write lookup flavour here, after the notification mask has admitted a
++// keymiss. A command's Write flag is insufficient: these commands read their sources and
++// write their destination. Pointer identity distinguishes even COPY k k and BITOP OR k k;
++// comparing key bytes would incorrectly notify the destination lookup too. Keeping this
++// classification in the observer leaves both clean handlers and the disarmed gate untouched.
++bool notify_keymiss_read_lookup(const Op& source, Slice key) {
++    if (!source.spec) return false;
++    if ((source.spec->flags & CmdFlags::Readonly) &&
++        !(source.spec->flags & CmdFlags::Write)) return true;
++    const Slice name = source.cmd_name();
++    uint32_t first, end = source.argc();
++    if (name.eq_icase("copy")) {
++        // Redis rejects the same-object form before either lookup. The local gather may
++        // already have probed both argv entries when it diagnoses that error.
++        if (end >= 3 && source.arg(1).key_mem_eq(source.arg(2))) return false;
++        first = 1; end = std::min(end, 2u);
++    }
++    else if (name.eq_icase("sinterstore") || name.eq_icase("sunionstore") ||
++             name.eq_icase("sdiffstore")) first = 2;
++    else if (name.eq_icase("bitop")) first = 3;
++    else return false;
++    for (uint32_t arg = first; arg < end; ++arg) {
++        const Slice candidate = source.arg(arg);
++        if (candidate.p == key.p && candidate.n == key.n && candidate.ns == key.ns)
++            return true;
++    }
++    return false;
++}
++
+ void notify_flat_emit(void* context, uint32_t cls, NotifyEventId event, Slice key) {
+     auto& shard = *static_cast<Shard*>(context);
+     // Hexpired/Del raised by the active field-expire cycle have no originating command either, so
+@@ -444,6 +469,8 @@ void notify_flat_emit(void* context, uint32_t cls, NotifyEventId event, Slice ke
+         return;
+     }
+     Op* source = shard.notify_source();
++    if (event == NotifyEventId::Keymiss &&
++        (!source || !notify_keymiss_read_lookup(*source, key))) return;
+     if (source) notify_record(shard, *source, cls, event, key);
+ }
+ 
+diff --git a/src/cmd/t_server.cc b/src/cmd/t_server.cc
+index e9ffe837e..b11d64c7e 100644
+--- a/src/cmd/t_server.cc
++++ b/src/cmd/t_server.cc
+@@ -1666,6 +1666,7 @@ struct StatBaseline {
+     uint64_t acl_denied_cmd = 0, acl_denied_key = 0, acl_denied_channel = 0, acl_denied_auth = 0;
+     ReadLocalStats read_local;
+     std::vector<uint64_t> command_calls;
++    std::vector<uint64_t> rejected_calls, failed_calls;
+ };
+ 
+ std::mutex g_stat_baseline_mu;
+@@ -1727,11 +1728,15 @@ void collect_stat_totals(StatBaseline& out) {
+         out.object_bytes += sh.published_obj_bytes();
+     }
+     out.command_calls.assign(command_registry_size(), 0);
++    out.rejected_calls.assign(command_registry_size(), 0);
++    out.failed_calls.assign(command_registry_size(), 0);
+     for (uint32_t t = 0; t < g_server->nthreads(); t++) {
+         ThreadCtx& thread = g_server->thread(t);
+         for (uint32_t id = 0; id < command_registry_size(); id++) {
+             const uint64_t calls = thread.command_calls(id);
+             out.command_calls[id] += calls;
++            out.rejected_calls[id] += thread.command_rejected_calls(id);
++            out.failed_calls[id] += thread.command_failed_calls(id);
+             out.total_ops += calls;
+             if (std::strcmp(command_registry_at(id)->name, "INFO")) out.sampled_ops += calls;
+         }
+@@ -2689,15 +2694,24 @@ void cmd_info(Shard&, Op& op) {
+     if (info_section(op, "COMMANDSTATS", false)) {
+         body += "# Commandstats\r\n";
+         for (uint32_t id = 0; id < command_registry_size(); id++) {
+-            uint64_t calls = 0;
+-            for (uint32_t t = 0; g_server && t < g_server->nthreads(); t++)
++            uint64_t calls = 0, rejected_calls = 0, failed_calls = 0;
++            for (uint32_t t = 0; g_server && t < g_server->nthreads(); t++) {
+                 calls += g_server->thread(t).command_calls(id);
++                rejected_calls += g_server->thread(t).command_rejected_calls(id);
++                failed_calls += g_server->thread(t).command_failed_calls(id);
++            }
+             if (id < baseline.command_calls.size())
+                 calls = minus_baseline(calls, baseline.command_calls[id]);
+-            if (!calls) continue;
++            if (id < baseline.rejected_calls.size())
++                rejected_calls = minus_baseline(rejected_calls, baseline.rejected_calls[id]);
++            if (id < baseline.failed_calls.size())
++                failed_calls = minus_baseline(failed_calls, baseline.failed_calls[id]);
++            if (!calls && !rejected_calls && !failed_calls) continue;
+             const std::string name = lower_name(command_registry_at(id)->name);
+-            appendf(body, "cmdstat_%s:calls=%llu\r\n",
+-                    name.c_str(), static_cast<unsigned long long>(calls));
++            // Omit unmeasured timing and unimplemented failed_calls; never invent counters.
++            appendf(body, "cmdstat_%s:calls=%llu,rejected_calls=%llu\r\n",
++                    name.c_str(), static_cast<unsigned long long>(calls),
++                    static_cast<unsigned long long>(rejected_calls));
+         }
+     }
+     if (info_section(op, "KEYSPACE")) {
+diff --git a/src/core/thread.h b/src/core/thread.h
+index 3908e7604..0b3845dde 100644
+--- a/src/core/thread.h
++++ b/src/core/thread.h
+@@ -357,6 +357,9 @@ public:
+ 
+     void init_command_counts(uint32_t count) {
+         command_count_size_ = count;
++        // Keep calls at their original offsets. The two cold arrays share the allocation,
++        // preserving ThreadCtx's layout and every instruction in note_command().
++        count *= 3;  // count is the bounded boot-time command registry size
+         command_counts_ = count ? std::make_unique<uint64_t[]>(count) : nullptr;
+     }
+ 
+@@ -435,6 +438,18 @@ public:
+     uint64_t command_calls(uint32_t id) const {
+         return id < command_count_size_ ? command_counts_[id] : 0;
+     }
++    void note_command_rejected(uint16_t id) {
++        if (id < command_count_size_) command_counts_[command_count_size_ + id]++;
++    }
++    void note_command_failed(uint16_t id) {
++        if (id < command_count_size_) command_counts_[size_t(command_count_size_) * 2 + id]++;
++    }
++    uint64_t command_rejected_calls(uint32_t id) const {
++        return id < command_count_size_ ? command_counts_[command_count_size_ + id] : 0;
++    }
++    uint64_t command_failed_calls(uint32_t id) const {
++        return id < command_count_size_ ? command_counts_[size_t(command_count_size_) * 2 + id] : 0;
++    }
+     uint64_t total_commands() const { return total_commands_; }
+     FlipFingerprintWriter& flip_fingerprint() { return flip_fingerprint_; }
+     const FlipFingerprintWriter& flip_fingerprint() const { return flip_fingerprint_; }
