@@ -1,0 +1,5 @@
+  CD13b ACLCAT POST-multi-split-a0-r0-n0-l1: unknown=b'*0\r\n' STRING/StRiNg=22 commands
+  CD13b GEO POST-multi-split-a0-r0-n0-l1 STORE keys=('cd13b:POST-multi-split-a0-r0-n0-l1:STORE:0:source', 'cd13b:POST-multi-split-a0-r0-n0-l1:STORE:0:source:destination:2') route(sid,owner,migrations)=((9, 7, 1), (6, 6, 1)) initial=5 before=31 after=17 store=b':2\r\n' freq=b':17\r\n' encoding=b'$8\r\nlistpack\r\n'
+  CD13b GEO POST-multi-split-a0-r0-n0-l1 STOREDIST keys=('cd13b:POST-multi-split-a0-r0-n0-l1:STOREDIST:0:source', 'cd13b:POST-multi-split-a0-r0-n0-l1:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((2, 6, 1), (13, 7, 1)) initial=5 before=31 after=17 store=b':2\r\n' freq=b':17\r\n' encoding=b'$8\r\nlistpack\r\n'
+  CD13b GEO POST-multi-split-a0-r0-n0-l1 GEOSEARCHSTORE keys=('cd13b:POST-multi-split-a0-r0-n0-l1:GEOSEARCHSTORE:0:source', 'cd13b:POST-multi-split-a0-r0-n0-l1:GEOSEARCHSTORE:0:source:destination:0') route(sid,owner,migrations)=((8, 6, 1), (9, 7, 1)) initial=5 before=31 after=17 store=b':2\r\n' freq=b':17\r\n' encoding=b'$8\r\nlistpack\r\n'
+CD13b POST-multi-split-a0-r0-n0-l1: 0 failures

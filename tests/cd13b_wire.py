@@ -24,7 +24,7 @@ def integer(call, args):
 
 
 def ownership(call, keys):
-    # DEBUG SHARD calls FlatStore::hash_key with this boot's random seed. LBSIGNALS supplies
+    # DEBUG SHARD calls FlatStore::hash_key with the current hash seed. LBSIGNALS supplies
     # current owners and migration counters; sid modulo executor count is not an owner proof.
     shards = [integer(call, ["DEBUG", "SHARD", key]) for key in keys]
     frame = call(["DEBUG", "LBSIGNALS"])
