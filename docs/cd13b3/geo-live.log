@@ -1,0 +1,18 @@
+  vanilla Redis oracle boot                                  ok (pid=1667365 port=18341)
+  oracle identity                                            ok (vanilla redis_version=7.4.10)
+eda318b9e356d172ce116fc7d48db491d4260d6eb286b7a229a7ed83ce2f1d45  /home/user/Projects/cx-cd13b/build/tomokv
+ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b  /home/user/Projects/redis74/src/redis-server
+  target split atomic=1 boot                                 ok (pid=1667391 port=18340)
+  GEO-LFU target: initial=5 GEOADD/STORE/STOREDIST checked
+  GEO-LFU oracle: initial=5 GEOADD/STORE/STOREDIST checked
+  CD13b ACLCAT target: unknown=b'*0\r\n' STRING/StRiNg=22 commands
+  CD13b ACLCAT oracle: unknown=b'*0\r\n' STRING/StRiNg=22 commands
+  CD13b GEO target STORE keys=('cd13b:target:STORE:0:source', 'cd13b:target:STORE:0:source:destination:3') route(sid,owner,migrations)=((11, 7, 1), (4, 6, 1)) initial=5 before=31 after=31 store=b':2\r\n' freq=b':31\r\n' encoding=b'$8\r\nlistpack\r\n'
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:0:source', 'cd13b:target:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((1, 7, 1), (10, 6, 1)) initial=5 before=31 after=31 store=b':2\r\n' freq=b':31\r\n' encoding=b'$8\r\nlistpack\r\n'
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:0:source', 'cd13b:target:GEOSEARCHSTORE:0:source:destination:0') route(sid,owner,migrations)=((1, 7, 1), (2, 6, 1)) initial=5 before=31 after=31 store=b':2\r\n' freq=b':31\r\n' encoding=b'$8\r\nlistpack\r\n'
+  CD13b GEO oracle STORE keys=('cd13b:oracle:STORE:0:source', 'cd13b:oracle:STORE:0:source:destination:0') route(sid,owner,migrations)=((11, 7, 1), (14, 6, 1)) initial=5 before=35 after=35 store=b':2\r\n' freq=b':35\r\n' encoding=b'$8\r\nlistpack\r\n'
+  CD13b GEO oracle STOREDIST keys=('cd13b:oracle:STOREDIST:0:source', 'cd13b:oracle:STOREDIST:0:source:destination:3') route(sid,owner,migrations)=((14, 6, 1), (15, 7, 1)) initial=5 before=30 after=30 store=b':2\r\n' freq=b':30\r\n' encoding=b'$8\r\nlistpack\r\n'
+  CD13b GEO oracle GEOSEARCHSTORE keys=('cd13b:oracle:GEOSEARCHSTORE:0:source', 'cd13b:oracle:GEOSEARCHSTORE:0:source:destination:5') route(sid,owner,migrations)=((5, 7, 1), (6, 6, 1)) initial=5 before=39 after=39 store=b':2\r\n' freq=b':39\r\n' encoding=b'$8\r\nlistpack\r\n'
+DIFFER geo: 4951 ops, 0 diffs, 0 clock tolerances -> PASS
+  target stop                                                ok (port 18340 free)
+  oracle stop                                                ok (port 18341 free)
