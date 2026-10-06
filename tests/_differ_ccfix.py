@@ -1,0 +1,187 @@
+"""CC11/CC12/CC13/CC18 wire differentials, called by differ.py on owned listeners."""
+from pathlib import Path
+
+FLAGS = ("", "AKE", "AKEn", "gnK", "gKn", "Em", "KEA", "$lshzxe",
+         "g$lshzxetdnKEm", "n", "nKmE", "AEmn")
+EXPECTED_FLAGS = dict(zip(FLAGS, ("", "AKE", "AKE", "gnK", "gnK", "Em", "AKE",
+                                "$lshzxe", "AKEm", "n", "nKEm", "AEm")))
+COUNTERS = (b"calls", b"rejected_calls", b"failed_calls")
+
+
+def commandstats(payload, target=False):
+    if not isinstance(payload, bytes):
+        raise AssertionError("INFO commandstats is not a bulk/verbatim reply")
+    result = {}
+    for line in payload.split(b"\r\n"):
+        if not line.startswith(b"cmdstat_"):
+            continue
+        name, values = line.split(b":", 1)
+        fields = [part.split(b"=", 1) for part in values.split(b",")]
+        if target and tuple(k for k, _ in fields) != COUNTERS:
+            raise AssertionError("unexpected target commandstats fields: %r" % line)
+        members = dict(fields)
+        if not all(k in members for k in COUNTERS):
+            raise AssertionError("missing commandstats counters: %r" % line)
+        result[name] = tuple(int(members[k]) for k in COUNTERS)
+    return result
+
+
+def run(api):
+    conn_mode, enc = api["conn_mode"], api["enc"]
+    read_reply, parse = api["read_reply"], api["parse_reply"]
+    endpoints = ((api["TH"], api["TP"]), (api["OH"], api["OP"]))
+    opened = []
+    checks = 0
+
+    def connect(endpoint):
+        pair = conn_mode(*endpoint, False, buffering=0)
+        opened.append(pair)
+        return pair
+
+    def issue(pair, args):
+        pair[0].sendall(enc(args))
+        return read_reply(pair[1])
+
+    admins = [connect(endpoint) for endpoint in endpoints]
+
+    def equal(args, expected=None, pairs=None):
+        nonlocal checks
+        replies = [issue(pair, args) for pair in (pairs or admins)]
+        assert replies[0] == replies[1], (args, replies)
+        if expected is not None:
+            assert replies[0] == expected, (args, replies, expected)
+        api["coverage"].note(args)
+        checks += 1
+        return replies[0]
+
+    def stats(expected):
+        nonlocal checks
+        replies = [issue(pair, ["INFO", "commandstats"]) for pair in admins]
+        rows = [commandstats(parse(reply), target=(i == 0)) for i, reply in enumerate(replies)]
+        values = [row.get(b"cmdstat_get", (0, 0, 0)) for row in rows]
+        assert values[0] == values[1] == expected, ("CC18 GET", values, expected, replies)
+        api["coverage"].note(["INFO", "commandstats"], "commandstats counters")
+        checks += 1
+
+    try:
+        # CC12: compare complete RESP frames AND Redis's canonical spellings.
+        for flags in FLAGS:
+            equal(["CONFIG", "SET", "notify-keyspace-events", flags], b"+OK\r\n")
+            reply = equal(["CONFIG", "GET", "notify-keyspace-events"])
+            assert parse(reply) == [b"notify-keyspace-events", EXPECTED_FLAGS[flags].encode()]
+        equal(["CONFIG", "SET", "notify-keyspace-events", ""], b"+OK\r\n")
+
+        # CC13: the harness boots both with the SAME filename so the complete error is comparable.
+        paths = [parse(issue(pair, ["CONFIG", "GET", "aclfile"])) for pair in admins]
+        assert paths[0] == paths[1] and paths[0][0] == b"aclfile" and paths[0][1], paths
+        path = Path(paths[0][1].decode())
+        original = path.read_bytes()
+        try:
+            path.write_bytes(b"user ccfix_broken bogusrule\n")
+            expected = (b"-ERR " + str(path).encode() + b":1: Syntax error. WARNING: ACL errors "
+                        b"detected, no change to the previously active ACL rules was performed\r\n")
+            equal(["ACL", "LOAD"], expected)
+            # Failed LOAD must preserve the previously working default user's permissions.
+            equal(["PING"], b"+PONG\r\n")
+        finally:
+            path.write_bytes(original)
+
+        # CC11: deterministic same-shard and different-shard sources. A marker on the same
+        # channel fences each batch; an absent keymiss is a zero count, never a timeout skip.
+        equal(["FLUSHALL"], b"+OK\r\n")
+        by_shard = {}
+        for candidate in range(1024):
+            key = "ccfix:%04d" % candidate
+            reply = issue(admins[0], ["DEBUG", "SHARD", key])
+            assert reply.startswith(b":"), reply
+            shard = int(reply[1:-2])
+            by_shard.setdefault(shard, []).append(key)
+            if len(by_shard.get(0, [])) >= 4 and len(by_shard.get(1, [])) >= 2:
+                break
+        assert len(by_shard.get(0, [])) >= 4 and len(by_shard.get(1, [])) >= 2, by_shard
+        channel = "__keyevent@0__:keymiss"
+        subscribers = [connect(endpoint) for endpoint in endpoints]
+        equal(["CONFIG", "SET", "notify-keyspace-events", "Em"], b"+OK\r\n")
+        equal(["SUBSCRIBE", channel], pairs=subscribers)
+        serial = 0
+
+        def misses(args, expected_keys):
+            nonlocal serial, checks
+            equal(args)
+            marker = ("ccfix:barrier:%d" % serial).encode()
+            serial += 1
+            equal(["PUBLISH", channel, marker], b":1\r\n")
+            observed = []
+            for sub in subscribers:
+                messages = []
+                while True:
+                    message = parse(read_reply(sub[1]))
+                    assert isinstance(message, list) and len(message) == 3, message
+                    assert message[:2] == [b"message", channel.encode()], message
+                    if message[2] == marker:
+                        break
+                    messages.append(message[2])
+                    assert len(messages) <= len(expected_keys) + 8, (args, messages)
+                observed.append(sorted(messages))
+            expected = sorted(k.encode() for k in expected_keys)
+            assert observed[0] == observed[1] == expected, ("CC11", args, observed, expected)
+            api["coverage"].note(args, "keymiss frames")
+            checks += 1
+
+        local = by_shard[0]
+        for label, sources in (("local", local[1:3]), ("cross", [local[1], by_shard[1][0]])):
+            dest, a, b = local[0], *sources
+            misses(["COPY", a, dest], [a])
+            misses(["COPY", a, a], [])
+            for cmd in ("SINTERSTORE", "SUNIONSTORE", "SDIFFSTORE"):
+                misses([cmd, dest, a, b], [a, b])
+                # Destination and source have equal bytes, but only the source lookup is a read.
+                misses([cmd, a, a, b], [a, b])
+            for operation in ("AND", "OR", "XOR"):
+                misses(["BITOP", operation, dest, a, b], [a, b])
+                misses(["BITOP", operation, a, a, b], [a, b])
+            misses(["BITOP", "NOT", dest, a], [a])
+            misses(["GET", a], [a])
+            misses(["DEL", a, b, dest], [])
+            misses(["SET", a, "v"], [])
+            misses(["COPY", a, dest], [])
+            misses(["DEL", a, dest], [])
+            equal(["SADD", a, "v"], b":1\r\n")
+            equal(["SADD", b, "w"], b":1\r\n")
+            for cmd in ("SINTERSTORE", "SUNIONSTORE", "SDIFFSTORE"):
+                misses([cmd, dest, a, b], [])
+            misses(["DEL", a, b, dest], [])
+            print("  CC11 %s source/destination lookups: exact" % label)
+        equal(["CONFIG", "SET", "notify-keyspace-events", ""], b"+OK\r\n")
+
+        # CC18: a denied command is rejected, an executed WRONGTYPE is a failed call.
+        equal(["ACL", "SETUSER", "ccfix_denied", "reset", "on", ">ccfix-password",
+               "~*", "+@all", "-get"], b"+OK\r\n")
+        denied = [connect(endpoint) for endpoint in endpoints]
+        equal(["AUTH", "ccfix_denied", "ccfix-password"], b"+OK\r\n", denied)
+        equal(["CONFIG", "RESETSTAT"], b"+OK\r\n")
+        equal(["GET", "ccfix:wrongtype"],
+              b"-NOPERM User ccfix_denied has no permissions to run the 'get' command\r\n", denied)
+        stats((0, 1, 0))
+        equal(["RPUSH", "ccfix:wrongtype", "v"], b":1\r\n")
+        equal(["GET", "ccfix:wrongtype"],
+              b"-WRONGTYPE Operation against a key holding the wrong kind of value\r\n")
+        stats((1, 1, 1))
+        equal(["GET", "ccfix:absent"], b"$-1\r\n")
+        stats((2, 1, 1))
+        equal(["CONFIG", "SET", "requirepass", "ccfix-password"], b"+OK\r\n")
+        try:
+            noauth = [connect(endpoint) for endpoint in endpoints]
+            equal(["GET", "ccfix:absent"], b"-NOAUTH Authentication required.\r\n", noauth)
+            stats((2, 2, 1))
+        finally:
+            equal(["CONFIG", "SET", "requirepass", ""], b"+OK\r\n")
+        equal(["CONFIG", "RESETSTAT"], b"+OK\r\n")
+        stats((0, 0, 0))
+        equal(["ACL", "DELUSER", "ccfix_denied"], b":1\r\n")
+        print("DIFFER ccfix: %d exact comparisons -> PASS" % checks)
+        return 0
+    finally:
+        for sock, file in opened:
+            file.close()
+            sock.close()

@@ -1157,7 +1157,7 @@ __attribute__((cold, noinline)) bool acl_finish_dispatch_denial(
         AclDeniedReason denied, uint32_t denied_arg) {
     multi_mark_queue_error(client);
     client.advance_parse(consumed);
-    loop.self_->note_command(op.spec->id);
+    loop.self_->note_command_rejected(op.spec->id);
     loop.flip_fingerprint_note(*op.spec, op);
     acl_reply_denied(client, op, client.acl_user_idx(), denied, denied_arg, *loop.self_);
     loop.finish_prebuilt(&client, op);

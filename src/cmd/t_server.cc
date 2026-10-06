@@ -1659,6 +1659,7 @@ struct StatBaseline {
     uint64_t acl_denied_cmd = 0, acl_denied_key = 0, acl_denied_channel = 0, acl_denied_auth = 0;
     ReadLocalStats read_local;
     std::vector<uint64_t> command_calls;
+    std::vector<uint64_t> rejected_calls, failed_calls;
 };
 
 std::mutex g_stat_baseline_mu;
@@ -1720,11 +1721,15 @@ void collect_stat_totals(StatBaseline& out) {
         out.object_bytes += sh.published_obj_bytes();
     }
     out.command_calls.assign(command_registry_size(), 0);
+    out.rejected_calls.assign(command_registry_size(), 0);
+    out.failed_calls.assign(command_registry_size(), 0);
     for (uint32_t t = 0; t < g_server->nthreads(); t++) {
         ThreadCtx& thread = g_server->thread(t);
         for (uint32_t id = 0; id < command_registry_size(); id++) {
             const uint64_t calls = thread.command_calls(id);
             out.command_calls[id] += calls;
+            out.rejected_calls[id] += thread.command_rejected_calls(id);
+            out.failed_calls[id] += thread.command_failed_calls(id);
             out.total_ops += calls;
             if (std::strcmp(command_registry_at(id)->name, "INFO")) out.sampled_ops += calls;
         }
@@ -2678,15 +2683,25 @@ void cmd_info(Shard&, Op& op) {
     if (info_section(op, "COMMANDSTATS", false)) {
         body += "# Commandstats\r\n";
         for (uint32_t id = 0; id < command_registry_size(); id++) {
-            uint64_t calls = 0;
-            for (uint32_t t = 0; g_server && t < g_server->nthreads(); t++)
+            uint64_t calls = 0, rejected_calls = 0, failed_calls = 0;
+            for (uint32_t t = 0; g_server && t < g_server->nthreads(); t++) {
                 calls += g_server->thread(t).command_calls(id);
+                rejected_calls += g_server->thread(t).command_rejected_calls(id);
+                failed_calls += g_server->thread(t).command_failed_calls(id);
+            }
             if (id < baseline.command_calls.size())
                 calls = minus_baseline(calls, baseline.command_calls[id]);
-            if (!calls) continue;
+            if (id < baseline.rejected_calls.size())
+                rejected_calls = minus_baseline(rejected_calls, baseline.rejected_calls[id]);
+            if (id < baseline.failed_calls.size())
+                failed_calls = minus_baseline(failed_calls, baseline.failed_calls[id]);
+            if (!calls && !rejected_calls && !failed_calls) continue;
             const std::string name = lower_name(command_registry_at(id)->name);
-            appendf(body, "cmdstat_%s:calls=%llu\r\n",
-                    name.c_str(), static_cast<unsigned long long>(calls));
+            // Deliberately omit unmeasured usec/usec_per_call. Never invent timing data.
+            appendf(body, "cmdstat_%s:calls=%llu,rejected_calls=%llu,failed_calls=%llu\r\n",
+                    name.c_str(), static_cast<unsigned long long>(calls),
+                    static_cast<unsigned long long>(rejected_calls),
+                    static_cast<unsigned long long>(failed_calls));
         }
     }
     if (info_section(op, "KEYSPACE")) {

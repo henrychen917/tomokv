@@ -241,11 +241,15 @@ run_differ_leg(){
 START_SECONDS=$SECONDS
 run_matrix(){
 mkdir -p "$OUT/oracle"
+# CC13 compares the complete ACL LOAD diagnostic, including its filename.
+# Both listeners read the same valid boot file; the ccfix suite briefly corrupts and restores it.
+CCFIX_ACLFILE="$(realpath "$OUT")/ccfix.acl"
+printf 'user default on nopass ~* &* +@all\n' > "$CCFIX_ACLFILE"
 ORACLE_LOG="$OUT/oracle.log"
 boot_owned "vanilla Redis oracle" "$ORACLE_PORT" "$ORACLE_CORES" "$ORACLE_LOG" \
     env LC_ALL=C "$ORACLE_BIN" --port "$ORACLE_PORT" --bind 127.0.0.1 \
     --dir "$OUT/oracle" --dbfilename dump.rdb --appendonly no --save '' \
-    --enable-debug-command yes "${ORACLE_ALIGNMENT[@]}" || return 1
+    --enable-debug-command yes --aclfile "$CCFIX_ACLFILE" "${ORACLE_ALIGNMENT[@]}" || return 1
 ORACLE_PID=$BOOT_PID
 
 ORACLE_INFO=$(
@@ -274,7 +278,7 @@ for ATOMIC in "${ATOMICS[@]}"; do
   if ! boot_owned "target atomic=$ATOMIC" "$TARGET_PORT" "$TARGET_CORES" "$TARGET_LOG" \
       "$TARGET_BIN" --port "$TARGET_PORT" --bind 127.0.0.1 --shards 16 \
       "${TARGET_SHAPE[@]}" --databases 16 --atomic "$ATOMIC" --save '' --dir "$TARGET_DIR" \
-      --enable-debug-command yes; then
+      --enable-debug-command yes --aclfile "$CCFIX_ACLFILE"; then
     FAIL=$((FAIL+1))
     break
   fi

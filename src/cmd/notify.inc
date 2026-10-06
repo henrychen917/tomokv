@@ -422,15 +422,40 @@ bool notify_flat_enabled(void* context, uint32_t cls) {
     if (observed && (mask & NOTIFY_SAVE)) return true;
     const uint32_t routes = notify_routes_for_class(mask, cls);
     if (!routes) return false;
-    if (cls == NOTIFY_KEY_MISS) {
-        const Op* source = shard.notify_source();
-        if (!source || !(source->spec->flags & CmdFlags::Readonly) ||
-            (source->spec->flags & CmdFlags::Write)) return false;
-    }
     Server* server = shard.server();
     if (!server) return false;
     // Tracking invalidation needs the expiry/eviction observers even with nobody subscribed.
     return server->pubsub_any_subscribers() || (routes & NOTIFY_TRACKING) != 0;
+}
+
+// The flat lookup receives the actual argv Slice, including its identity and namespace.
+// Recover the read/write lookup flavour here, after the notification mask has admitted a
+// keymiss. A command's Write flag is insufficient: these commands read their sources and
+// write their destination. Pointer identity distinguishes even COPY k k and BITOP OR k k;
+// comparing key bytes would incorrectly notify the destination lookup too. Keeping this
+// classification in the observer leaves both clean handlers and the disarmed gate untouched.
+bool notify_keymiss_read_lookup(const Op& source, Slice key) {
+    if (!source.spec) return false;
+    if ((source.spec->flags & CmdFlags::Readonly) &&
+        !(source.spec->flags & CmdFlags::Write)) return true;
+    const Slice name = source.cmd_name();
+    uint32_t first, end = source.argc();
+    if (name.eq_icase("copy")) {
+        // Redis rejects the same-object form before either lookup. The local gather may
+        // already have probed both argv entries when it diagnoses that error.
+        if (end >= 3 && source.arg(1).key_mem_eq(source.arg(2))) return false;
+        first = 1; end = std::min(end, 2u);
+    }
+    else if (name.eq_icase("sinterstore") || name.eq_icase("sunionstore") ||
+             name.eq_icase("sdiffstore")) first = 2;
+    else if (name.eq_icase("bitop")) first = 3;
+    else return false;
+    for (uint32_t arg = first; arg < end; ++arg) {
+        const Slice candidate = source.arg(arg);
+        if (candidate.p == key.p && candidate.n == key.n && candidate.ns == key.ns)
+            return true;
+    }
+    return false;
 }
 
 void notify_flat_emit(void* context, uint32_t cls, NotifyEventId event, Slice key) {
@@ -444,6 +469,8 @@ void notify_flat_emit(void* context, uint32_t cls, NotifyEventId event, Slice ke
         return;
     }
     Op* source = shard.notify_source();
+    if (event == NotifyEventId::Keymiss &&
+        (!source || !notify_keymiss_read_lookup(*source, key))) return;
     if (source) notify_record(shard, *source, cls, event, key);
 }
 

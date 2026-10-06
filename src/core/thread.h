@@ -357,7 +357,9 @@ public:
 
     void init_command_counts(uint32_t count) {
         command_count_size_ = count;
-        command_counts_ = count ? std::make_unique<uint64_t[]>(count) : nullptr;
+        // Keep calls at their original offsets. The two cold arrays share the allocation,
+        // preserving ThreadCtx's layout and every instruction in note_command().
+        command_counts_ = count ? std::make_unique<uint64_t[]>(size_t(count) * 3) : nullptr;
     }
 
     uint32_t id()   const { return id_; }
@@ -434,6 +436,18 @@ public:
     }
     uint64_t command_calls(uint32_t id) const {
         return id < command_count_size_ ? command_counts_[id] : 0;
+    }
+    void note_command_rejected(uint16_t id) {
+        if (id < command_count_size_) command_counts_[command_count_size_ + id]++;
+    }
+    void note_command_failed(uint16_t id) {
+        if (id < command_count_size_) command_counts_[size_t(command_count_size_) * 2 + id]++;
+    }
+    uint64_t command_rejected_calls(uint32_t id) const {
+        return id < command_count_size_ ? command_counts_[command_count_size_ + id] : 0;
+    }
+    uint64_t command_failed_calls(uint32_t id) const {
+        return id < command_count_size_ ? command_counts_[size_t(command_count_size_) * 2 + id] : 0;
     }
     uint64_t total_commands() const { return total_commands_; }
     FlipFingerprintWriter& flip_fingerprint() { return flip_fingerprint_; }
