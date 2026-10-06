@@ -17,6 +17,28 @@ scope = vars(audit).copy()
 exec(source.replace('24: 8,', '23: 4, 24: 8,'), scope)
 audit.Elf.canonical = scope['canonical']
 
+# Object files also encode local static data as section+offset relocations. Resolve those
+# to the named object and its internal byte offset, as the existing checker does for code.
+# This does not erase member offsets: moving a load within StatBaseline still fails.
+original_target = audit.Elf.target
+
+def data_target(self, symbol, addend, kind):
+    sec = symbol['sec']
+    if symbol['info'] & 15 == 3 and 0 < sec < len(self.sections) and not self.sections[sec][2] & 4:
+        offset = symbol['value'] + addend + (4 if kind in (2, 4, 9, 41, 42) else 0)
+        for obj in self.symbols:
+            if obj['info'] & 15 == 1 and obj['name'] and obj['sec'] == sec and \
+                    obj['value'] <= offset < obj['value'] + obj['size']:
+                if obj['name'].startswith('CSWTCH.'):
+                    data = self.section_data(sec)[obj['value']:obj['value'] + obj['size']]
+                    assert not any(obj['value'] <= r[0] < obj['value'] + obj['size']
+                                   for r in self.relocs.get(sec, []))
+                    return ('constant-object', data.hex(), offset - obj['value'])
+                return ('object', obj['name'], offset - obj['value'])
+    return original_target(self, symbol, addend, kind)
+
+audit.Elf.target = data_target
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)

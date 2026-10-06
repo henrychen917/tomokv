@@ -359,7 +359,8 @@ public:
         command_count_size_ = count;
         // Keep calls at their original offsets. The two cold arrays share the allocation,
         // preserving ThreadCtx's layout and every instruction in note_command().
-        command_counts_ = count ? std::make_unique<uint64_t[]>(size_t(count) * 3) : nullptr;
+        count *= 3;  // count is the bounded boot-time command registry size
+        command_counts_ = count ? std::make_unique<uint64_t[]>(count) : nullptr;
     }
 
     uint32_t id()   const { return id_; }

@@ -130,7 +130,8 @@ def run(api):
 
         local = by_shard[0]
         for label, sources in (("local", local[1:3]), ("cross", [local[1], by_shard[1][0]])):
-            dest, a, b = local[0], *sources
+            dest = local[0] if label == "local" else by_shard[1][1]
+            a, b = sources
             misses(["COPY", a, dest], [a])
             misses(["COPY", a, a], [])
             for cmd in ("SINTERSTORE", "SUNIONSTORE", "SDIFFSTORE"):
@@ -182,6 +183,15 @@ def run(api):
         print("DIFFER ccfix: %d exact comparisons -> PASS" % checks)
         return 0
     finally:
+        # Preserve later suites even when a PRE arm fails one of these assertions.
+        for pair in admins:
+            for command in (["CONFIG", "SET", "notify-keyspace-events", ""],
+                            ["CONFIG", "SET", "requirepass", ""],
+                            ["ACL", "DELUSER", "ccfix_denied"]):
+                try:
+                    issue(pair, command)
+                except (OSError, EOFError):
+                    pass
         for sock, file in opened:
             file.close()
             sock.close()
