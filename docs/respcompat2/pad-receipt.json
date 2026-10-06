@@ -1,0 +1,12 @@
+{
+  "kind": "B: inverse control",
+  "behaviour": "POST",
+  "padding_bytes": 32,
+  "pre_text": 7782988,
+  "post_text": 7782956,
+  "pad_text": 7782988,
+  "text_function_addresses_and_sizes_unchanged": true,
+  "four_island_entry_return_pairs_verified": true,
+  "other_text_bytes_identical": true,
+  "sha256": "f7ed8fcf915e896fcb9d41185dff194ba55e079b450f14a984b54d52ebbbbcc7"
+}

@@ -25,3 +25,12 @@ serverless results, the complete changed-body audit, and PRE/POST/PAD-B digests.
 PAD-B is a B inverse control: POST behavior plus padding restoring PRE text size.
 Mainline owns the 14-cell null and live Redis/gate runs. One row before quick exit:
 owner count update 497/514 -> 498/515; no EXPECT or fixture edits in this lane.
+
+Lane respcompat2: WIP — required PRE parser byte identity remains unmet
+
+See MEASURE-REQUEST-respcompat2.md for the cold fallback candidate, the concrete
+NET16/PRE byte-identity conflict, all remaining body differences, and rebuilt
+POST/PAD-B SHA-256s. PAD-B is B: inverse control (POST plus 32 inert text bytes).
+Serverless: 204,263 parser checks, 311-case/343-step inventory replay, sanitizer
+and production-linked netcap checks pass. Live wire/differential/gate and rate
+verdicts remain owner work. No additional rows: inherited +1 quick / +1 full.
