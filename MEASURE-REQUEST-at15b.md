@@ -125,7 +125,24 @@ both listeners stopped cleanly. The frozen PRE control completed in 9m20s:
 **234/246 suite legs pass**; its twelve failures are exactly the original
 multi/multidb missing-subexpiry differences, one difference per leg. All its
 other suites, including edgetime, hexpire and wiredump, pass. A final POST
-armed-fused repeat is in progress.
+armed-fused repeat completed in 9m13s: **245/246 suite legs pass**, all twelve
+multi/multidb legs pass, and read-local again fired (963 hits, 257 fallbacks).
+Its sole failed suite is edgetime seed 7. Both listeners stopped cleanly;
+the shell reports `pass=246 fail=2`, including the read-local witness and the
+strict fold's refusal of the failed matrix.
+
+| Arm | Suite legs passing | multi/multidb legs passing | Failed suites |
+| --- | ---: | ---: | --- |
+| POST split | 249/252 | 12/12 | seed-7 hexpire, edgetime, wiredump |
+| POST armed fused | 244/246 | 12/12 | seed-7 edgetime, wiredump |
+| Frozen PRE armed fused | 234/246 | 0/12 | All six seeds in multi and multidb: missing subexpiry |
+| POST armed fused repeat | 245/246 | 12/12 | seed-7 edgetime |
+
+`differ-results.json` and `differ-results.log` are generated from every complete
+leg journal and its executed-command coverage artifact by
+`docs/at15b/summarize_differ.py`. The script requires all 36 POST directed legs
+to pass with zero differences and zero clock tolerances and all twelve PRE
+directed legs to retain the original one-difference failure.
 
 The first split seed also reported HPTTL/PTTL differences of 2 ms in `hexpire`
 and `edgetime`, and one `wiredump` difference; these are preserved as failures,
@@ -153,6 +170,11 @@ bash docs/at15b/replay.sh pre-armed build/FRESH-pre
 ```
 
 The wrapper invokes the unmodified harness and preserves its nonzero verdict.
+No build or serverless test overlapped the final POST repeat. The initial split
+replay did overlap completion of the new witness build and serverless checks;
+its timing failures are retained, and the isolated repeat is the stronger
+evidence for the unresolved edgetime issue. These correctness runs are not
+performance measurements.
 
 ## Byte audit and frozen arms
 
