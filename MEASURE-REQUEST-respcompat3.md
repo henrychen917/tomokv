@@ -1,4 +1,4 @@
-# respcompat3 — differential accounting repair (validation in progress)
+# respcompat3 — WIP: accounting repaired, live acceptance blocked
 
 Worktree `/home/user/Projects/cx-respcompat`, branch `cx-respcompat`.
 Starting HEAD: `608064a27`. `git merge --no-edit origin/cpp` reported already up
@@ -42,7 +42,7 @@ Before and after the implementation:
 f0cde7f0fa97532ed560fcfdb4d7a9114b0a97cde880454df41b5218e4ad7187  build/tomokv
 ```
 
-## Validation so far
+## Completed validation
 
 - Shell syntax and `git diff --check`: PASS.
 - Unchanged `differ_fanout_test.py`: 18 tests, PASS, including missing,
@@ -55,7 +55,7 @@ f0cde7f0fa97532ed560fcfdb4d7a9114b0a97cde880454df41b5218e4ad7187  build/tomokv
   artifacts, **not a new live gate receipt**; see
   `docs/respcompat3/accounting-replay.json`.
 - Live gate: interrupted in `build/gate-run.vnRVCd` after detecting another
-  lane on the assigned cores; clean validation is pending core availability.
+  lane on the assigned cores; clean validation is blocked on core availability.
 
 ```sh
 taskset -c 112-127 env GATE_ONLY_JOBS='differ-split differ-armed respcompat' \
@@ -103,3 +103,32 @@ load CPUs 120–127. A core reservation was requested from the maintainer.
 Required live `complete=true` folds and the all-green targeted gate are still
 outstanding. The static checks and historical replay above do not substitute
 for those requirements.
+
+The new standalone RESP row was queued after the differential jobs, so it was
+not reached in either interrupted run. Its live four-cell oracle validation is
+also outstanding. After the requested core reservation is available, rerun the
+exact combined command above and retain all five child completions. To publish
+the native public folds (the subset path collects private rows only), run this
+against that new, completed run directory:
+
+```sh
+RESPCOMPAT_RUN=build/gate-run.REPLACE_WITH_COMPLETED_RUN
+for group in split armed; do
+  taskset -c 120-127 python3 tests/differ_fanout.py fold \
+    --plan "$RESPCOMPAT_RUN/differ-plan.json" --group "$group" \
+    --run-directory "$RESPCOMPAT_RUN" \
+    --row-plan "$RESPCOMPAT_RUN/row-timeouts.json" \
+    --row-history "$PWD/.gate-history/rows" \
+    --row-run "iteration:${RESPCOMPAT_RUN##*/}"
+done
+```
+
+The native fold calls a successful verdict `ok`, not `PASS`; that schema must
+remain unchanged. Inspect each child's `DIFFER GATE` totals against its frozen
+plan count plus the armed witness, and require both folds to be complete and
+successful under their original timing policies. No timing threshold has been
+raised and no incomplete run has been converted into a passing fold.
+
+Final no-op make and SHA check repeated after committing the evidence; the
+required production digest still matches. All changes are committed locally;
+nothing was pushed.
