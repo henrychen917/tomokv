@@ -90,7 +90,7 @@ one name per line. The future psfix merge must keep its additional suite as well
 INFO shape assertions in `tests/differ.py` and `tests/infofix.py` require two fields.
 
 The current root main.o keeps round-1's 146401 budget. The current db0 main.o
-keeps 146215 provisionally. Tested db0 values 146213–146220 and 146270 do not
+keeps 146215 provisionally. Tested db0 values 146213–146240 and 146270 do not
 reproduce all current PRE bodies; their full differences are retained as
 `docs/ccfix3/budget-main-*-db0.json`. 146214 also fails, so dropping the ccfix
 increment is not justified. These are experiments against 9d957b9fb, **not** a
@@ -176,8 +176,19 @@ ABBA, NIC, or full-gate measurement is run.
 - The final unmodified splitlocal audit reports 391/396. The five differences
   are the same switch-label/jump-table address class as round 1; the exact data
   proof passes. Neither result waives the two separate changed writeback helpers.
-- The requested selected gate is running with
-  `GATE_ONLY_JOBS='netcmd_units auth acl_recheck notify'`. Its final receipt is pending.
+- The selected gate passes **28/28, zero failures**, on the final `b61beaed...`
+  candidate. [Partial ledger](docs/ccfix3/gate-final/ledger.partial),
+  [exact CPU/binary plan](docs/ccfix3/gate-final/plan.sh), and
+  [complete output](docs/ccfix3/gate-final.log) are retained. The prior candidate
+  also passed 28/28; its separate receipt is under `docs/ccfix3/gate-initial`.
+
+```sh
+REDIS74_ROOT=/home/user/Projects/redis \
+GATE_ONLY_JOBS='netcmd_units auth acl_recheck notify' \
+taskset -c 112-127 tests/gate.sh quick \
+  --server-cores 112-119 --load-cores 120-127 --load-smt '' \
+  --ports 17999-18020 --candidate-binary "$PWD/build/ccfix3/POST/tomokv"
+```
 
 | Interval, 100,000 calls | PRE | POST | db0 PRE | db0 POST |
 |---|---:|---:|---:|---:|
