@@ -1,0 +1,20 @@
+[
+  {
+    "geometry": "split",
+    "legs": 24,
+    "failed_legs": 0,
+    "ttl_checks": {
+      "string": 2314,
+      "bitfield": 12
+    }
+  },
+  {
+    "geometry": "armed-fused",
+    "legs": 24,
+    "failed_legs": 0,
+    "ttl_checks": {
+      "string": 2314,
+      "bitfield": 12
+    }
+  }
+]

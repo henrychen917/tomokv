@@ -181,11 +181,12 @@ def normalize(cmdname, r):
     return r
 
 
-CLOCK_SCALAR_REPLIES = {"EXPIRETIME", "PEXPIRETIME", "TTL", "PTTL"}
-CLOCK_ARRAY_REPLIES = {"HEXPIRETIME", "HPEXPIRETIME", "HTTL", "HPTTL"}
-clock_tolerances = 0
+TTL_SCALAR_REPLIES = {"TTL", "PTTL"}
+TTL_ARRAY_REPLIES = {"HTTL", "HPTTL"}
+deadline_bounded_ttl_checks = 0
+NS_PER_MS = 1000000
 
-def clock_integers(reply, array):
+def ttl_integers(reply, array):
     # Inspect the wire types, not parse_reply(): a bulk string containing ":123" decodes
     # to the same bytes as an integer there. Array lengths and integer grammar stay exact.
     integer = rb":(0|-?[1-9][0-9]*)\r\n"
@@ -203,34 +204,221 @@ def clock_integers(reply, array):
         values = [int(match[1])]
     return values if all(-(1 << 63) <= value < (1 << 63) for value in values) else None
 
-def replies_equal(argv, target, oracle):
-    """Compare normalized replies, allowing only one native unit of clock skew.
+def command_bytes(argv):
+    return [arg.encode() if isinstance(arg, str) else arg for arg in argv]
 
-    No bucketing: +/-2 ms must fail even when both values land in the same second.
-    Missing-key/field and persistent sentinels are semantic results, so stay exact.
-    LASTSAVE has a separate per-server property check; stream generators exclude idle
-    times (XPENDING compares its summary counts). Neither needs integer relaxation here.
+
+class ReplyWindow:
+    """This server's batch send -> this reply's completed read, in wall-clock ns.
+
+    A server's integer millisecond time cut must lie in this interval. The single
+    extra millisecond covers clock quantization; scheduling delay is measured,
+    never guessed from a fixed tolerance or from the other server's reply.
     """
-    global clock_tolerances
-    if target == oracle:
-        return True
-    name = argv[0].upper()
-    if isinstance(name, bytes):
-        name = name.decode('ascii')
-    array = name in CLOCK_ARRAY_REPLIES
-    if not (array or name in CLOCK_SCALAR_REPLIES or
-            (name == "OBJECT" and len(argv) > 1 and argv[1].upper() in ("IDLETIME", b"IDLETIME"))):
-        return False
-    a, b = clock_integers(target, array), clock_integers(oracle, array)
+    def __init__(self, sent_ms, elapsed_ns):
+        self.start = sent_ms * NS_PER_MS
+        self.end = self.start + elapsed_ns + NS_PER_MS
+
+
+def timed_send(sock, payload):
+    started = time.monotonic_ns()
+    sent_ms = time.time_ns() // NS_PER_MS
+    sock.sendall(payload)
+    return sent_ms, started
+
+
+def timed_read(file, sent):
+    reply = read_reply(file)
+    window = ReplyWindow(sent[0], time.monotonic_ns() - sent[1])
+    return reply, window
+
+
+class TtlDeadlines:
+    """Deadlines from successful generated mutations, never inferred from TTL replies.
+
+    Absolute setters name a point. Relative setters necessarily name an interval:
+    duration + that setter's independently measured execution window. Retaining
+    this uncertainty preserves EX/PEXPIRE/RESTORE coverage without pretending the
+    two servers installed the same absolute deadline. Values are wall-clock ns.
+    """
+    def __init__(self):
+        self.db = 0
+        self.keys = {}
+        self.fields = {}
+
+    def forget(self, key):
+        self.keys.pop(key, None)
+        self.fields.pop(key, None)
+
+    def expected(self, argv):
+        args = command_bytes(argv)
+        key = (self.db, args[1])
+        if args[0].upper() in (b"HTTL", b"HPTTL"):
+            return [self.fields.get(key, {}).get(field) for field in args[4:]]
+        return [self.keys.get(key)]
+
+    @staticmethod
+    def deadline(value, seconds, absolute, window):
+        duration = int(value) * (1000 if seconds else 1) * NS_PER_MS
+        if absolute:
+            return duration, duration
+        return window.start + duration, window.end + duration
+
+    def observe(self, argv, reply, window):
+        if reply.startswith(b"-") or reply == b"+QUEUED\r\n":
+            return
+        args = command_bytes(argv)
+        name = args[0].upper()
+        if name == b"FLUSHALL":
+            self.keys.clear(); self.fields.clear()
+            return
+        if name == b"FLUSHDB":
+            for key in list(self.keys.keys() | self.fields.keys()):
+                if key[0] == self.db: self.forget(key)
+            return
+        if name == b"SELECT":
+            self.db = int(args[1])
+            return
+        if len(args) < 2:
+            return
+        key = (self.db, args[1])
+        # A past deadline cannot survive recreation by a later write. Do this on
+        # access, just as edgetime's disabled active-expiry stream does.
+        if key in self.keys and self.keys[key][1] < window.start:
+            self.forget(key)
+        if key in self.fields:
+            self.fields[key] = {f: d for f, d in self.fields[key].items()
+                                if d[1] >= window.start}
+        if name in (b"EXPIRE", b"PEXPIRE", b"EXPIREAT", b"PEXPIREAT"):
+            if reply == b":1\r\n":
+                self.keys[key] = self.deadline(args[2], not name.startswith(b"P"),
+                                               name.endswith(b"AT"), window)
+        elif name in (b"HEXPIRE", b"HPEXPIRE", b"HEXPIREAT", b"HPEXPIREAT"):
+            results = ttl_integers(reply, True)
+            if results is not None:
+                at = next(i for i in range(3, len(args)) if args[i].upper() == b"FIELDS")
+                deadline = self.deadline(args[2], not name.startswith(b"HP"),
+                                         name.endswith(b"AT"), window)
+                fields = self.fields.setdefault(key, {})
+                for field, result in zip(args[at + 2:], results):
+                    if result == 1: fields[field] = deadline
+                    elif result == 2: fields.pop(field, None)
+        elif name in (b"SET", b"GETEX", b"SETEX", b"PSETEX"):
+            if name in (b"SETEX", b"PSETEX"):
+                self.forget(key)
+                self.keys[key] = self.deadline(args[2], name == b"SETEX", False, window)
+                return
+            options = [arg.upper() for arg in args[3 if name == b"SET" else 2:]]
+            nil = reply in (b"$-1\r\n", b"_\r\n")
+            if name == b"SET":
+                if b"GET" in options:
+                    if (b"NX" in options and not nil) or (b"XX" in options and nil): return
+                elif nil:
+                    return
+                self.fields.pop(key, None)
+                if b"KEEPTTL" not in options: self.keys.pop(key, None)
+            elif nil:
+                return
+            if b"PERSIST" in options:
+                self.keys.pop(key, None)
+            for i, option in enumerate(options):
+                if option in (b"EX", b"PX", b"EXAT", b"PXAT"):
+                    self.keys[key] = self.deadline(options[i + 1], option.startswith(b"EX"),
+                                                   option.endswith(b"AT"), window)
+        elif name in (b"RESTORE", b"RESTORE-ASKING"):
+            self.forget(key)
+            if int(args[2]):
+                self.keys[key] = self.deadline(args[2], False,
+                    b"ABSTTL" in [a.upper() for a in args[4:]], window)
+        elif name == b"PERSIST" and reply == b":1\r\n":
+            self.keys.pop(key, None)
+        elif name in (b"DEL", b"UNLINK"):
+            for arg in args[1:]: self.forget((self.db, arg))
+        elif name in (b"GETDEL", b"GETSET") or (name == b"SETNX" and reply == b":1\r\n"):
+            self.forget(key)
+        elif name == b"MSET" or (name == b"MSETNX" and reply == b":1\r\n"):
+            for arg in args[1::2]: self.forget((self.db, arg))
+        elif name in (b"RENAME", b"RENAMENX", b"COPY"):
+            if name != b"RENAME" and reply != b":1\r\n": return
+            destination_db = self.db
+            if name == b"COPY":
+                for i in range(3, len(args) - 1):
+                    if args[i].upper() == b"DB": destination_db = int(args[i + 1])
+            destination = (destination_db, args[2])
+            if key == destination: return
+            self.forget(destination)
+            if key in self.keys: self.keys[destination] = self.keys[key]
+            if key in self.fields: self.fields[destination] = self.fields[key].copy()
+            if name != b"COPY": self.forget(key)
+        elif name in (b"HSET", b"HMSET", b"HDEL", b"HSETNX", b"HPERSIST"):
+            fields = self.fields.get(key, {})
+            if name == b"HPERSIST":
+                results = ttl_integers(reply, True)
+                if results is not None:
+                    for field, result in zip(args[4:], results):
+                        if result == 1: fields.pop(field, None)
+            elif name != b"HSETNX" or reply == b":1\r\n":
+                for field in (args[2:] if name == b"HDEL" else args[2::2]):
+                    fields.pop(field, None)
+        elif name in (b"SINTERSTORE", b"SUNIONSTORE", b"SDIFFSTORE", b"ZUNIONSTORE",
+                       b"ZINTERSTORE", b"ZDIFFSTORE", b"ZRANGESTORE", b"BITOP"):
+            self.forget((self.db, args[2]) if name == b"BITOP" else key)
+
+
+def ttl_within_deadline(name, value, deadline, window):
+    if deadline is None or window is None:
+        return False  # Missing instrumentation must never become a passing check.
+    # Invert each command's actual integer rounding, rather than allowing an
+    # arbitrary second of error. TTL rounds nearest; HTTL rounds upward.
+    if name == "TTL":
+        low, high = max(0, value * 1000 - 500), value * 1000 + 499
+    elif name == "HTTL":
+        low, high = max(0, value * 1000 - 999), value * 1000
+    else:
+        low = high = value
+    cut_low = deadline[0] - high * NS_PER_MS
+    cut_high = deadline[1] - low * NS_PER_MS
+    return cut_low <= window.end and cut_high >= window.start
+
+
+def replies_equal(argv, target, oracle, deadlines=None, windows=None):
+    """Non-TTL replies stay exact; relative TTLs validate each server independently.
+
+    deadline - remaining_TTL reconstructs a command-time cut. Its offset from
+    this request's send must lie in [0, measured send->read latency + 1 ms].
+    Check even equal positive replies: agreement cannot hide a shared TTL bug.
+    Absolute expiry probes and error replies never receive clock relaxation.
+    """
+    global deadline_bounded_ttl_checks
+    name = command_bytes(argv)[0].decode('ascii').upper()
+    array = name in TTL_ARRAY_REPLIES
+    if not (array or name in TTL_SCALAR_REPLIES):
+        return target == oracle
+    if target.startswith(b"-") or oracle.startswith(b"-"):
+        return target == oracle
+    a, b = ttl_integers(target, array), ttl_integers(oracle, array)
     if a is None or b is None or len(a) != len(b):
         return False
-    if any(x != y and (x < 0 or y < 0 or abs(x - y) != 1) for x, y in zip(a, b)):
+    if array:
+        args = command_bytes(argv)
+        try:
+            if (len(args) < 5 or args[2].upper() != b"FIELDS" or
+                    int(args[3]) != len(a) or len(a) != len(args) - 4):
+                return False
+        except ValueError:
+            return False
+    deadline_bounded_ttl_checks += 1
+    if any((x < 0 or y < 0) and (x != y or x not in (-1, -2)) for x, y in zip(a, b)):
         return False
-    clock_tolerances += 1
-    # Every use is visible, including its running per-leg reply count and raw operands;
-    # a consistently biased arithmetic result must not disappear into a green verdict.
-    print("  CLOCK TOLERANCE count=%d integers=%d command=%r\n    target: %r\n    oracle: %r" %
-          (clock_tolerances, sum(x != y for x, y in zip(a, b)), argv, target, oracle), flush=True)
+    for side, values in enumerate((a, b)):
+        expected = deadlines[side].expected(argv) if deadlines is not None else [None] * len(values)
+        window = windows[side] if windows is not None else None
+        for value, deadline in zip(values, expected):
+            if value >= 0 and not ttl_within_deadline(name, value, deadline, window):
+                print("  TTL DEADLINE FAIL side=%s command=%r reply=%d deadline_ns=%r window_ns=%r" %
+                      (("target", "oracle")[side], argv, value, deadline,
+                       (window.start, window.end) if window is not None else None), flush=True)
+                return False
     return True
 
 
@@ -1039,7 +1227,7 @@ def gen_hash(rng):
 def gen_hexpire(rng):
     # Hash-field TTLs.  Every deadline is ABSOLUTE and either far in the future or definitively in
     # the past, so expiry state is deterministic on both servers. Remaining TTL replies still
-    # read separate clocks; replies_equal handles their one-unit boundary skew. The "already
+    # read separate clocks; replies_equal checks their known deadlines independently. The "already
     # past" deadlines exercise the immediate-delete return code (2) reproducibly.
     keys = ["hx%d" % i for i in range(10)]
     fields = ["f%d" % i for i in range(14)] + ["", "bin\x00fld", "L" * 70]
@@ -1355,6 +1543,11 @@ def gen_edgetime(rng):
         ops.append(["SET", edge, "v"])
         ops.append(["GETEX", edge] + options)
         ops.append(["TTL", edge])
+        if options == ["EX", "600", "EX", "1200"]:
+            # The relative setter is checked above against its own request window.
+            # Install a shared deadline before byte-comparing an absolute probe:
+            # two relative setters need not have installed identical timestamps.
+            ops.append(["PEXPIREAT", edge, str(future_ms)])
         ops.append(["PEXPIRETIME", edge])
     ops += [
         ["SET", edge, "v"], ["PEXPIRE", edge, "0"], ["EXISTS", edge],
@@ -4587,10 +4780,15 @@ if SUITE == "notify":
 # suite cross-RESTOREs each side's payload into the other side and then byte-compares full reads.
 def run_wiredump_suite(rng):
     ts, tf = conn(TH, TP); os_, of = conn(OH, OP)
+    deadlines = (TtlDeadlines(), TtlDeadlines())
+    windows = [None, None]
 
     def command(sock, file, args):
-        sock.sendall(enc(args))
-        return read_reply(file)
+        side = 0 if sock is ts else 1
+        sent = timed_send(sock, enc(args))
+        reply, windows[side] = timed_read(file, sent)
+        deadlines[side].observe(args, reply, windows[side])
+        return reply
 
     def payload(reply):
         value = parse_reply(reply)
@@ -4669,6 +4867,7 @@ def run_wiredump_suite(rng):
         cached.append((key, kind, target_dump, oracle_dump, ttl_fields))
 
     for iteration in range(4200):
+        before_diffs = diffs
         key, kind, target_seed, oracle_seed, ttl_fields = rng.choice(cached)
         action = rng.randrange(5)
         if action == 0:
@@ -4714,15 +4913,18 @@ def run_wiredump_suite(rng):
             target_reply = command(ts, tf, ["PTTL", "wd:restore"])
             oracle_reply = command(os_, of, ["PTTL", "wd:restore"])
             coverage.note('PTTL')
-            if not replies_equal(["PTTL", "wd:restore"], target_reply, oracle_reply):
+            if not replies_equal(["PTTL", "wd:restore"], target_reply, oracle_reply,
+                                 deadlines, windows):
                 diffs += 1
+                if diffs <= 12:
+                    print("    PTTL target: %r oracle: %r" % (target_reply, oracle_reply))
         checks += 1
-        if diffs and diffs <= 12:
+        if diffs > before_diffs and diffs <= 12:
             print("  WIREDUMP DIFF op %d action=%d key=%s" % (iteration, action, key))
 
     ts.close(); os_.close()
-    print("DIFFER wiredump: %d ops, %d diffs, %d clock tolerances -> %s" %
-          (checks, diffs, clock_tolerances, "PASS" if diffs == 0 else "FAIL"))
+    print("DIFFER wiredump: %d ops, %d diffs, %d deadline-bounded TTL checks -> %s" %
+          (checks, diffs, deadline_bounded_ttl_checks, "PASS" if diffs == 0 else "FAIL"))
     return diffs
 
 if SUITE == "wiredump":
@@ -5848,7 +6050,7 @@ def gen_infofix(rng):
     return ops
 
 def dbsize_integer(reply):
-    """DBSIZE counts are exact nonnegative RESP integers, never clock tolerances."""
+    """DBSIZE counts are exact nonnegative RESP integers."""
     if re.fullmatch(br":(0|[1-9][0-9]*)\r\n", reply) is None:
         raise ValueError("DBSIZE did not return a count: %r" % reply)
     return int(reply[1:-2])
@@ -6261,16 +6463,21 @@ BATCH = (1 if SUITE == "script" else
          16 if SUITE in ("hll", "cgaps", "cmdgap2") else
          512 if SUITE in ("storeorder", "multidb") else 64)
 dbsize_positions_checked = 0
+ttl_deadlines = (TtlDeadlines(), TtlDeadlines())
 for i in range(0, len(ops), BATCH):
     chunk = ops[i:i + BATCH]
     if chunk[0][0] == "SECOND":
         command = chunk[0][1:]
         (tss, tsf), (oss, osf) = secondary
-        tss.sendall(enc(command)); oss.sendall(enc(command))
-        a = normalize(command[0], read_reply(tsf))
-        b = normalize(command[0], read_reply(osf))
+        target_sent = timed_send(tss, enc(command))
+        oracle_sent = timed_send(oss, enc(command))
+        a, target_window = timed_read(tsf, target_sent)
+        b, oracle_window = timed_read(osf, oracle_sent)
+        a, b = normalize(command[0], a), normalize(command[0], b)
         coverage.note(command)
-        if not replies_equal(command, a, b):
+        for state, reply, window in zip(ttl_deadlines, (a, b), (target_window, oracle_window)):
+            state.observe(command, reply, window)
+        if not replies_equal(command, a, b, ttl_deadlines, (target_window, oracle_window)):
             diffs += 1
             if diffs <= 12:
                 print("  DIFF op %d secondary %r\n    target: %r\n    oracle: %r" %
@@ -6279,21 +6486,26 @@ for i in range(0, len(ops), BATCH):
     payload = b"".join(enc(o) for o in chunk)
     oracle_payload = (b"".join(enc(["DBSIZE"] if o == ["DBSIZE", "NOW"] else o)
                                for o in chunk) if SUITE == "multidb" else payload)
-    ts.sendall(payload); os_.sendall(oracle_payload)
+    target_sent = timed_send(ts, payload)
+    oracle_sent = timed_send(os_, oracle_payload)
     for j, o in enumerate(chunk):
         try:
-            a = normalize(o[0], read_reply(tf))
+            a, target_window = timed_read(tf, target_sent)
+            a = normalize(o[0], a)
         except TimeoutError:
             print("  TIMEOUT target op %d: %r" % (i + j, o[:8]), flush=True)
             raise
         try:
-            b = normalize(o[0], read_reply(of))
+            b, oracle_window = timed_read(of, oracle_sent)
+            b = normalize(o[0], b)
         except TimeoutError:
             print("  TIMEOUT oracle op %d: %r" % (i + j, o[:8]), flush=True)
             raise
         a = normalize_introspection(o[0].upper(), o, a)
         b = normalize_introspection(o[0].upper(), o, b)
         coverage.note(o)
+        for state, reply, window in zip(ttl_deadlines, (a, b), (target_window, oracle_window)):
+            state.observe(o, reply, window)
         if SUITE == "multidb" and o == ["DBSIZE", "NOW"]:
             dbsize_positions_checked += 1
             try:
@@ -6305,7 +6517,7 @@ for i in range(0, len(ops), BATCH):
                 print("  DBSIZE EXACT PROPERTY FAIL op %d: target NOW=%r oracle DBSIZE=%r" %
                       (i + j, a, b))
             continue
-        if not replies_equal(o, a, b):
+        if not replies_equal(o, a, b, ttl_deadlines, (target_window, oracle_window)):
             diffs += 1
             if diffs <= 12:
                 shown_a = a if o[0].upper() == "KEYS" else a[:256]
@@ -6656,6 +6868,6 @@ if SUITE == "script":
     else:
         print("  script mechanism generated_cross=%d deltas=%r live=%d" %
               (script_cross_generated, deltas, live))
-print("DIFFER %s: %d ops, %d diffs, %d clock tolerances -> %s" %
-      (SUITE, len(ops), diffs, clock_tolerances, "PASS" if diffs == 0 else "FAIL"))
+print("DIFFER %s: %d ops, %d diffs, %d deadline-bounded TTL checks -> %s" %
+      (SUITE, len(ops), diffs, deadline_bounded_ttl_checks, "PASS" if diffs == 0 else "FAIL"))
 sys.exit(1 if diffs else 0)

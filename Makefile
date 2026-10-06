@@ -39,6 +39,8 @@ SRC      += src/cmd/multi_admin.cc
 # Preserve mainline weak-symbol selection; isolated R7 bodies link last.
 SRC      += src/core/reorder.cc
 SRC      += src/cmd/geo_store.cc
+# Cold DEBUG observer links after existing objects to preserve weak-symbol selection.
+SRC      += src/persist/aof_frame_debug.cc
 LDLIBS   += -lssl -lcrypto
 BUILD_ROOT ?= build
 BIN      := $(BUILD_ROOT)/tomokv

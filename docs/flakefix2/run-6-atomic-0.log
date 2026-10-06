@@ -1,0 +1,11 @@
+PASS frame-state: unarmed/armed/released pause, exact counters, atomic rename, failed publication
+PASS frame-order: drain_all=0 committer=0 deferrals=19
+PASS frame-order: drain_all=0 committer=1 deferrals=19
+PASS frame-order: drain_all=1 committer=0 deferrals=10
+PASS frame-order: drain_all=1 committer=1 deferrals=10
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 0.021s
+
+OK
+AOF FRAME ORDER PASS: negative-control groups=40 deferrals=0; window seconds=0.196 groups=1 deferrals=17; segments=1 bytes=17837182 frames=276 large_records=1 control_frames=1 interleaves=0

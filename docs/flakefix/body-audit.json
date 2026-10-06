@@ -1,0 +1,1514 @@
+{
+  "objects": [
+    {
+      "object": "db0/src/cmd/acl.o",
+      "file_equal": true,
+      "functions": 258,
+      "pre_sha256": "32059c885ede69a49c793750e7c8ed26ffd481559e22f4461950bba750383c96",
+      "post_sha256": "32059c885ede69a49c793750e7c8ed26ffd481559e22f4461950bba750383c96",
+      "raw_body_equal": 258,
+      "bytes_and_targets_equal": 258
+    },
+    {
+      "object": "db0/src/cmd/climon.o",
+      "file_equal": true,
+      "functions": 220,
+      "pre_sha256": "654db81071219ba3dda70d256db334aaf2c68d997379cf83cad0083bc2d5f4b5",
+      "post_sha256": "654db81071219ba3dda70d256db334aaf2c68d997379cf83cad0083bc2d5f4b5",
+      "raw_body_equal": 220,
+      "bytes_and_targets_equal": 220
+    },
+    {
+      "object": "db0/src/cmd/cmdgap.o",
+      "file_equal": true,
+      "functions": 4,
+      "pre_sha256": "13b6fd5bfb85c087930f92430b02a6dfb712f7fc9b0de1a0754efa5c80cc3d6e",
+      "post_sha256": "13b6fd5bfb85c087930f92430b02a6dfb712f7fc9b0de1a0754efa5c80cc3d6e",
+      "raw_body_equal": 4,
+      "bytes_and_targets_equal": 4
+    },
+    {
+      "object": "db0/src/cmd/cmdmeta.o",
+      "file_equal": true,
+      "functions": 34,
+      "pre_sha256": "833820f93bbfb746b92163552c13b9cdddadabad7e865e2922b7dfc2a09a4e6a",
+      "post_sha256": "833820f93bbfb746b92163552c13b9cdddadabad7e865e2922b7dfc2a09a4e6a",
+      "raw_body_equal": 34,
+      "bytes_and_targets_equal": 34
+    },
+    {
+      "object": "db0/src/cmd/commands.o",
+      "file_equal": true,
+      "functions": 28,
+      "pre_sha256": "202fd80db8a57bbd1100fae3446a6294929131476a74cb7faa97a0db9590bf4b",
+      "post_sha256": "202fd80db8a57bbd1100fae3446a6294929131476a74cb7faa97a0db9590bf4b",
+      "raw_body_equal": 28,
+      "bytes_and_targets_equal": 28
+    },
+    {
+      "object": "db0/src/cmd/functions.o",
+      "file_equal": true,
+      "functions": 78,
+      "pre_sha256": "205870434844516a2312ea2cea2c5cdfb96eff68019c4e284059f17650c2fd06",
+      "post_sha256": "205870434844516a2312ea2cea2c5cdfb96eff68019c4e284059f17650c2fd06",
+      "raw_body_equal": 78,
+      "bytes_and_targets_equal": 78
+    },
+    {
+      "object": "db0/src/cmd/geo.o",
+      "file_equal": true,
+      "functions": 94,
+      "pre_sha256": "697859801c4a7421b80f18e5dce548864d9c614e06ed1413408b0f67babecdaf",
+      "post_sha256": "697859801c4a7421b80f18e5dce548864d9c614e06ed1413408b0f67babecdaf",
+      "raw_body_equal": 94,
+      "bytes_and_targets_equal": 94
+    },
+    {
+      "object": "db0/src/cmd/glob.o",
+      "file_equal": true,
+      "functions": 2,
+      "pre_sha256": "4c8cf45546f68f770fb9b9362dfc4c7682bcd8b78aa7cb978c5273f511ba2fd0",
+      "post_sha256": "4c8cf45546f68f770fb9b9362dfc4c7682bcd8b78aa7cb978c5273f511ba2fd0",
+      "raw_body_equal": 2,
+      "bytes_and_targets_equal": 2
+    },
+    {
+      "object": "db0/src/cmd/hll.o",
+      "file_equal": true,
+      "functions": 24,
+      "pre_sha256": "81a3111453713c8719a9415e876687770ea338534a22a301a3fca8227015eeb0",
+      "post_sha256": "81a3111453713c8719a9415e876687770ea338534a22a301a3fca8227015eeb0",
+      "raw_body_equal": 24,
+      "bytes_and_targets_equal": 24
+    },
+    {
+      "object": "db0/src/cmd/info_stats.o",
+      "file_equal": true,
+      "functions": 3,
+      "pre_sha256": "6e159ba5bd0a8f578249ea86ad7d3ec3c9e02f3e60693a43166a799cd62003aa",
+      "post_sha256": "6e159ba5bd0a8f578249ea86ad7d3ec3c9e02f3e60693a43166a799cd62003aa",
+      "raw_body_equal": 3,
+      "bytes_and_targets_equal": 3
+    },
+    {
+      "object": "db0/src/cmd/l4prebuild.o",
+      "file_equal": true,
+      "functions": 62,
+      "pre_sha256": "a3477f9b6192e93bc7759c0bb9e7b678fd3faab656b222ac4c1bcb19f8841c17",
+      "post_sha256": "a3477f9b6192e93bc7759c0bb9e7b678fd3faab656b222ac4c1bcb19f8841c17",
+      "raw_body_equal": 62,
+      "bytes_and_targets_equal": 62
+    },
+    {
+      "object": "db0/src/cmd/lbsignals.o",
+      "file_equal": true,
+      "functions": 15,
+      "pre_sha256": "812fe5e06ac98d6e9e7e4c1f9485aa1899f5ca740f4087815ac44662c8459f1c",
+      "post_sha256": "812fe5e06ac98d6e9e7e4c1f9485aa1899f5ca740f4087815ac44662c8459f1c",
+      "raw_body_equal": 15,
+      "bytes_and_targets_equal": 15
+    },
+    {
+      "object": "db0/src/cmd/lcs.o",
+      "file_equal": true,
+      "functions": 14,
+      "pre_sha256": "3fa0c38c7b344bde2ecb974869448cb10d81cbe1418fbf3b5186714af23abf61",
+      "post_sha256": "3fa0c38c7b344bde2ecb974869448cb10d81cbe1418fbf3b5186714af23abf61",
+      "raw_body_equal": 14,
+      "bytes_and_targets_equal": 14
+    },
+    {
+      "object": "db0/src/cmd/multi_admin.o",
+      "file_equal": true,
+      "functions": 8,
+      "pre_sha256": "9dedf2e39576a6ae6b48a4c45d613f25bec0efd661c7643a970305b864dbced2",
+      "post_sha256": "9dedf2e39576a6ae6b48a4c45d613f25bec0efd661c7643a970305b864dbced2",
+      "raw_body_equal": 8,
+      "bytes_and_targets_equal": 8
+    },
+    {
+      "object": "db0/src/cmd/multidb.o",
+      "file_equal": true,
+      "functions": 83,
+      "pre_sha256": "30a5dc37866f34bbb451162bd573370249e4ed247f281bb620aaf0f4c3593f9e",
+      "post_sha256": "30a5dc37866f34bbb451162bd573370249e4ed247f281bb620aaf0f4c3593f9e",
+      "raw_body_equal": 83,
+      "bytes_and_targets_equal": 83
+    },
+    {
+      "object": "db0/src/cmd/pfdebug.o",
+      "file_equal": true,
+      "functions": 34,
+      "pre_sha256": "0d264421fe3217d8b72dcf26fdf830846e9ab799885e6b494642d0ac5bdeb751",
+      "post_sha256": "0d264421fe3217d8b72dcf26fdf830846e9ab799885e6b494642d0ac5bdeb751",
+      "raw_body_equal": 34,
+      "bytes_and_targets_equal": 34
+    },
+    {
+      "object": "db0/src/cmd/scripting.o",
+      "file_equal": true,
+      "functions": 138,
+      "pre_sha256": "9ae9507362ac5e4729d6947e97622f6f18fcb7bbf3e5b935f318b674f2317e76",
+      "post_sha256": "9ae9507362ac5e4729d6947e97622f6f18fcb7bbf3e5b935f318b674f2317e76",
+      "raw_body_equal": 138,
+      "bytes_and_targets_equal": 138
+    },
+    {
+      "object": "db0/src/cmd/serialize.o",
+      "file_equal": true,
+      "functions": 105,
+      "pre_sha256": "f588c055fa659e9a2aec5ab9aad38713bbfbd2668b992ae09e535169cf757504",
+      "post_sha256": "f588c055fa659e9a2aec5ab9aad38713bbfbd2668b992ae09e535169cf757504",
+      "raw_body_equal": 105,
+      "bytes_and_targets_equal": 105
+    },
+    {
+      "object": "db0/src/cmd/server_tail.o",
+      "file_equal": true,
+      "functions": 93,
+      "pre_sha256": "4a696193fbee69b7aef13f86414de3fcb37e63c42334e3de164f0944e0011de0",
+      "post_sha256": "4a696193fbee69b7aef13f86414de3fcb37e63c42334e3de164f0944e0011de0",
+      "raw_body_equal": 93,
+      "bytes_and_targets_equal": 93
+    },
+    {
+      "object": "db0/src/cmd/slowlog.o",
+      "file_equal": true,
+      "functions": 72,
+      "pre_sha256": "87bae6b952ffb55a7395f5179ef0a1d37705b7aa78abc03f119ec71f8a3b6dd9",
+      "post_sha256": "87bae6b952ffb55a7395f5179ef0a1d37705b7aa78abc03f119ec71f8a3b6dd9",
+      "raw_body_equal": 72,
+      "bytes_and_targets_equal": 72
+    },
+    {
+      "object": "db0/src/cmd/t_hash.o",
+      "file_equal": true,
+      "functions": 232,
+      "pre_sha256": "041b94b441b49af304ad2a5305eceda929046370832fa881651b7f53bbf2e0d9",
+      "post_sha256": "041b94b441b49af304ad2a5305eceda929046370832fa881651b7f53bbf2e0d9",
+      "raw_body_equal": 232,
+      "bytes_and_targets_equal": 232
+    },
+    {
+      "object": "db0/src/cmd/t_hash_ttl.o",
+      "file_equal": true,
+      "functions": 96,
+      "pre_sha256": "d0c9e004eba7a139250e40c60b9a635de79eae2cc010a381478d945666ed1a9d",
+      "post_sha256": "d0c9e004eba7a139250e40c60b9a635de79eae2cc010a381478d945666ed1a9d",
+      "raw_body_equal": 96,
+      "bytes_and_targets_equal": 96
+    },
+    {
+      "object": "db0/src/cmd/t_list.o",
+      "file_equal": true,
+      "functions": 195,
+      "pre_sha256": "30dd862121ed40cc72279302c421777a3c70ae7ac594ebf5b5d543d69816b131",
+      "post_sha256": "30dd862121ed40cc72279302c421777a3c70ae7ac594ebf5b5d543d69816b131",
+      "raw_body_equal": 195,
+      "bytes_and_targets_equal": 195
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "file_equal": true,
+      "functions": 227,
+      "pre_sha256": "fead092f1b4bbd1d1853e88ea3bb6305fb2ab7fd586f23b5f1bc4227237e4cbe",
+      "post_sha256": "fead092f1b4bbd1d1853e88ea3bb6305fb2ab7fd586f23b5f1bc4227237e4cbe",
+      "raw_body_equal": 227,
+      "bytes_and_targets_equal": 227
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "file_equal": true,
+      "functions": 203,
+      "pre_sha256": "4d95b5574b9f557c46e6ffa52383907211b5a8d15a70955df6fea2991337c138",
+      "post_sha256": "4d95b5574b9f557c46e6ffa52383907211b5a8d15a70955df6fea2991337c138",
+      "raw_body_equal": 203,
+      "bytes_and_targets_equal": 203
+    },
+    {
+      "object": "db0/src/cmd/t_sort.o",
+      "file_equal": true,
+      "functions": 22,
+      "pre_sha256": "498108885fad893cd4becac90b9355736ad1f8e63efc30dcc0c5c82834c7ce02",
+      "post_sha256": "498108885fad893cd4becac90b9355736ad1f8e63efc30dcc0c5c82834c7ce02",
+      "raw_body_equal": 22,
+      "bytes_and_targets_equal": 22
+    },
+    {
+      "object": "db0/src/cmd/t_stream.o",
+      "file_equal": true,
+      "functions": 249,
+      "pre_sha256": "dfe2d6bf14f3c17a475469b2f0817a490b4776bbfbe95abffc7a806b15596cc3",
+      "post_sha256": "dfe2d6bf14f3c17a475469b2f0817a490b4776bbfbe95abffc7a806b15596cc3",
+      "raw_body_equal": 249,
+      "bytes_and_targets_equal": 249
+    },
+    {
+      "object": "db0/src/cmd/t_stream_groups.o",
+      "file_equal": true,
+      "functions": 159,
+      "pre_sha256": "9401e72d72d79a064ed8c638e2f1ed55d4244da1b8cb465fa7ac5078b2bf05f7",
+      "post_sha256": "9401e72d72d79a064ed8c638e2f1ed55d4244da1b8cb465fa7ac5078b2bf05f7",
+      "raw_body_equal": 159,
+      "bytes_and_targets_equal": 159
+    },
+    {
+      "object": "db0/src/cmd/t_string.o",
+      "file_equal": true,
+      "functions": 145,
+      "pre_sha256": "ccc5f438f667cc1ba4c74ecf47759b9bd1159b61758415147c244aa8fc35f13a",
+      "post_sha256": "ccc5f438f667cc1ba4c74ecf47759b9bd1159b61758415147c244aa8fc35f13a",
+      "raw_body_equal": 145,
+      "bytes_and_targets_equal": 145
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "file_equal": true,
+      "functions": 171,
+      "pre_sha256": "163e4ef87dc6c5d724ca675aa10b76136aef04cd385131dab70952528762303b",
+      "post_sha256": "163e4ef87dc6c5d724ca675aa10b76136aef04cd385131dab70952528762303b",
+      "raw_body_equal": 171,
+      "bytes_and_targets_equal": 171
+    },
+    {
+      "object": "db0/src/cmd/t_zset.o",
+      "file_equal": true,
+      "functions": 292,
+      "pre_sha256": "293e18d1207433b044a977b465f05c28d6efe9fde9e9cf3c714607e29a5bf1bb",
+      "post_sha256": "293e18d1207433b044a977b465f05c28d6efe9fde9e9cf3c714607e29a5bf1bb",
+      "raw_body_equal": 292,
+      "bytes_and_targets_equal": 292
+    },
+    {
+      "object": "db0/src/cmd/t_zset_ops.o",
+      "file_equal": true,
+      "functions": 1,
+      "pre_sha256": "c88a1440a9e92165e333f209e051f7e1e0b993d4df28ad698cc98d8f48f0eca1",
+      "post_sha256": "c88a1440a9e92165e333f209e051f7e1e0b993d4df28ad698cc98d8f48f0eca1",
+      "raw_body_equal": 1,
+      "bytes_and_targets_equal": 1
+    },
+    {
+      "object": "db0/src/cmd/tracking.o",
+      "file_equal": true,
+      "functions": 67,
+      "pre_sha256": "ffdb2a5a1bfd7f549223545cd7e7d52f3e8f72f10ba443a9900839aa00d20271",
+      "post_sha256": "ffdb2a5a1bfd7f549223545cd7e7d52f3e8f72f10ba443a9900839aa00d20271",
+      "raw_body_equal": 67,
+      "bytes_and_targets_equal": 67
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "file_equal": true,
+      "functions": 859,
+      "pre_sha256": "c09d1f96c07281bd2d3b7485c72f076e0b066e1a27ebe944b4e7e049104a8b95",
+      "post_sha256": "c09d1f96c07281bd2d3b7485c72f076e0b066e1a27ebe944b4e7e049104a8b95",
+      "raw_body_equal": 859,
+      "bytes_and_targets_equal": 859
+    },
+    {
+      "object": "db0/src/core/flipctl.o",
+      "file_equal": true,
+      "functions": 73,
+      "pre_sha256": "eb2b1d2a04a3fd746aeb0c738ef466e0c4afd1f5e5ce6a5a0c703d7647fb0a97",
+      "post_sha256": "eb2b1d2a04a3fd746aeb0c738ef466e0c4afd1f5e5ce6a5a0c703d7647fb0a97",
+      "raw_body_equal": 73,
+      "bytes_and_targets_equal": 73
+    },
+    {
+      "object": "db0/src/core/genthread.o",
+      "file_equal": true,
+      "functions": 758,
+      "pre_sha256": "c3c28fb03dfd5dff334d33e1d4b18f91d11ecd6eb4f0e3dbed69573a2d3e81d1",
+      "post_sha256": "c3c28fb03dfd5dff334d33e1d4b18f91d11ecd6eb4f0e3dbed69573a2d3e81d1",
+      "raw_body_equal": 758,
+      "bytes_and_targets_equal": 758
+    },
+    {
+      "object": "db0/src/core/lbplanner.o",
+      "file_equal": true,
+      "functions": 64,
+      "pre_sha256": "8b7ea85a0b609031de217ac8b5be9d748e9baaff82eea29962d888a4ac8d66b7",
+      "post_sha256": "8b7ea85a0b609031de217ac8b5be9d748e9baaff82eea29962d888a4ac8d66b7",
+      "raw_body_equal": 64,
+      "bytes_and_targets_equal": 64
+    },
+    {
+      "object": "db0/src/core/lbstall.o",
+      "file_equal": true,
+      "functions": 12,
+      "pre_sha256": "a3ed6c87cdd8bc2936aadd6e0e411d384acbd6014d37d33e3304e22b32cccb55",
+      "post_sha256": "a3ed6c87cdd8bc2936aadd6e0e411d384acbd6014d37d33e3304e22b32cccb55",
+      "raw_body_equal": 12,
+      "bytes_and_targets_equal": 12
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "file_equal": true,
+      "functions": 822,
+      "pre_sha256": "de79042d58fd01b3828a0d1a08b375aa7d9c928da9ae53cf2c498ce0f829bb91",
+      "post_sha256": "de79042d58fd01b3828a0d1a08b375aa7d9c928da9ae53cf2c498ce0f829bb91",
+      "raw_body_equal": 822,
+      "bytes_and_targets_equal": 822
+    },
+    {
+      "object": "db0/src/core/rl2s.o",
+      "file_equal": true,
+      "functions": 915,
+      "pre_sha256": "54df4c4a3e84874e137bdb86a7a77128dd820027765c5b051e70d6228c112ed2",
+      "post_sha256": "54df4c4a3e84874e137bdb86a7a77128dd820027765c5b051e70d6228c112ed2",
+      "raw_body_equal": 915,
+      "bytes_and_targets_equal": 915
+    },
+    {
+      "object": "db0/src/main.o",
+      "file_equal": true,
+      "functions": 827,
+      "pre_sha256": "c874e7c6bfa489b31d1341637d5b57e6dbaccc2fcce77b9af1e78e4910a0a535",
+      "post_sha256": "c874e7c6bfa489b31d1341637d5b57e6dbaccc2fcce77b9af1e78e4910a0a535",
+      "raw_body_equal": 827,
+      "bytes_and_targets_equal": 827
+    },
+    {
+      "object": "db0/src/net/tls.o",
+      "file_equal": true,
+      "functions": 38,
+      "pre_sha256": "7d0200076a15473baa9027e84588a118d6bff612b861fd32780d1db1403e616a",
+      "post_sha256": "7d0200076a15473baa9027e84588a118d6bff612b861fd32780d1db1403e616a",
+      "raw_body_equal": 38,
+      "bytes_and_targets_equal": 38
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "file_equal": false,
+      "functions": 298,
+      "pre_sha256": "2fe0d65b8194a896cb2a425abff7ac0c62d7e43b117d4e493038a0a3a0d73681",
+      "post_sha256": "93b358f64e349c16e88ec85e482eeb55d371ca47dac88b483ac4908608d4d7b2",
+      "raw_body_equal": 255,
+      "bytes_and_targets_equal": 295
+    },
+    {
+      "object": "db0/src/snapshot/snapshot.o",
+      "file_equal": true,
+      "functions": 125,
+      "pre_sha256": "35c83566a1333cc32f1edbdfb19686791d1e9ff8d7ef6f23b7704a189196e7f0",
+      "post_sha256": "35c83566a1333cc32f1edbdfb19686791d1e9ff8d7ef6f23b7704a189196e7f0",
+      "raw_body_equal": 125,
+      "bytes_and_targets_equal": 125
+    },
+    {
+      "object": "src/cmd/acl.o",
+      "file_equal": true,
+      "functions": 258,
+      "pre_sha256": "94d33d872b279481106a547f784015d52e3056f4d14fa5e6c0f4affbd0b00a66",
+      "post_sha256": "94d33d872b279481106a547f784015d52e3056f4d14fa5e6c0f4affbd0b00a66",
+      "raw_body_equal": 258,
+      "bytes_and_targets_equal": 258
+    },
+    {
+      "object": "src/cmd/climon.o",
+      "file_equal": true,
+      "functions": 219,
+      "pre_sha256": "d8e57062b2effe997d3f0e1f91dd9979e5cb8be91aee11aaa2e4986e3613840a",
+      "post_sha256": "d8e57062b2effe997d3f0e1f91dd9979e5cb8be91aee11aaa2e4986e3613840a",
+      "raw_body_equal": 219,
+      "bytes_and_targets_equal": 219
+    },
+    {
+      "object": "src/cmd/cmdgap.o",
+      "file_equal": true,
+      "functions": 4,
+      "pre_sha256": "d65604d7d5c6d811083a1542e91ee301d6f15523259496c110a9b23792e34f9f",
+      "post_sha256": "d65604d7d5c6d811083a1542e91ee301d6f15523259496c110a9b23792e34f9f",
+      "raw_body_equal": 4,
+      "bytes_and_targets_equal": 4
+    },
+    {
+      "object": "src/cmd/cmdmeta.o",
+      "file_equal": true,
+      "functions": 34,
+      "pre_sha256": "cb534d781999ead9625d1ed9389acf9795a2f61f65a33fbb9ac6d2300bd3926e",
+      "post_sha256": "cb534d781999ead9625d1ed9389acf9795a2f61f65a33fbb9ac6d2300bd3926e",
+      "raw_body_equal": 34,
+      "bytes_and_targets_equal": 34
+    },
+    {
+      "object": "src/cmd/commands.o",
+      "file_equal": true,
+      "functions": 28,
+      "pre_sha256": "d9dd9dd709b4f4580719f34303e6b582d15058a735d7ccdf14376e2b7ce8fa25",
+      "post_sha256": "d9dd9dd709b4f4580719f34303e6b582d15058a735d7ccdf14376e2b7ce8fa25",
+      "raw_body_equal": 28,
+      "bytes_and_targets_equal": 28
+    },
+    {
+      "object": "src/cmd/functions.o",
+      "file_equal": true,
+      "functions": 78,
+      "pre_sha256": "b62f9707dbfc446a38efe21af11f1ab419db4101ef5321540206367a4792f6f8",
+      "post_sha256": "b62f9707dbfc446a38efe21af11f1ab419db4101ef5321540206367a4792f6f8",
+      "raw_body_equal": 78,
+      "bytes_and_targets_equal": 78
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "file_equal": true,
+      "functions": 95,
+      "pre_sha256": "097c17839e43501a0b19b5d46f0069c55cc4e0eb7a1017acc44ae83ea9c6216e",
+      "post_sha256": "097c17839e43501a0b19b5d46f0069c55cc4e0eb7a1017acc44ae83ea9c6216e",
+      "raw_body_equal": 95,
+      "bytes_and_targets_equal": 95
+    },
+    {
+      "object": "src/cmd/glob.o",
+      "file_equal": true,
+      "functions": 2,
+      "pre_sha256": "afa9c3e572e88db710f365cb02e902c50293fc502a20eb4c5aa1644459668c67",
+      "post_sha256": "afa9c3e572e88db710f365cb02e902c50293fc502a20eb4c5aa1644459668c67",
+      "raw_body_equal": 2,
+      "bytes_and_targets_equal": 2
+    },
+    {
+      "object": "src/cmd/hll.o",
+      "file_equal": true,
+      "functions": 24,
+      "pre_sha256": "31f6d6857d11554b59857612b5dcb3cb17ab849778c5ba1956a99e340d17ed7a",
+      "post_sha256": "31f6d6857d11554b59857612b5dcb3cb17ab849778c5ba1956a99e340d17ed7a",
+      "raw_body_equal": 24,
+      "bytes_and_targets_equal": 24
+    },
+    {
+      "object": "src/cmd/info_stats.o",
+      "file_equal": true,
+      "functions": 3,
+      "pre_sha256": "43a5665bcccce2192678e4c4a58051de1bdb59e180b696f44294c4b5d38cea2c",
+      "post_sha256": "43a5665bcccce2192678e4c4a58051de1bdb59e180b696f44294c4b5d38cea2c",
+      "raw_body_equal": 3,
+      "bytes_and_targets_equal": 3
+    },
+    {
+      "object": "src/cmd/l4prebuild.o",
+      "file_equal": true,
+      "functions": 66,
+      "pre_sha256": "6d49c245da1ac05293923169ee8a379d989667a2c2ac5923dd0c46e782e78b82",
+      "post_sha256": "6d49c245da1ac05293923169ee8a379d989667a2c2ac5923dd0c46e782e78b82",
+      "raw_body_equal": 66,
+      "bytes_and_targets_equal": 66
+    },
+    {
+      "object": "src/cmd/lbsignals.o",
+      "file_equal": true,
+      "functions": 15,
+      "pre_sha256": "f2ececcde5a8a5dbe87329c5356ab826ff0b729fd54611a3912a67e54e051517",
+      "post_sha256": "f2ececcde5a8a5dbe87329c5356ab826ff0b729fd54611a3912a67e54e051517",
+      "raw_body_equal": 15,
+      "bytes_and_targets_equal": 15
+    },
+    {
+      "object": "src/cmd/lcs.o",
+      "file_equal": true,
+      "functions": 14,
+      "pre_sha256": "7850a244a657450121853d499a89b7b480cf7c34c781d1fea560fe7f5b0bc402",
+      "post_sha256": "7850a244a657450121853d499a89b7b480cf7c34c781d1fea560fe7f5b0bc402",
+      "raw_body_equal": 14,
+      "bytes_and_targets_equal": 14
+    },
+    {
+      "object": "src/cmd/multi_admin.o",
+      "file_equal": true,
+      "functions": 9,
+      "pre_sha256": "9803f53bded50d5e5829cd0110fcb6d4d90e1f7ef99fc1d5d4b3c723f66c2578",
+      "post_sha256": "9803f53bded50d5e5829cd0110fcb6d4d90e1f7ef99fc1d5d4b3c723f66c2578",
+      "raw_body_equal": 9,
+      "bytes_and_targets_equal": 9
+    },
+    {
+      "object": "src/cmd/multidb.o",
+      "file_equal": true,
+      "functions": 98,
+      "pre_sha256": "abe70e0b88c2b5c78b461cbceebe4449b58145f1fe6eff7e98d0895c1b9a37fb",
+      "post_sha256": "abe70e0b88c2b5c78b461cbceebe4449b58145f1fe6eff7e98d0895c1b9a37fb",
+      "raw_body_equal": 98,
+      "bytes_and_targets_equal": 98
+    },
+    {
+      "object": "src/cmd/pfdebug.o",
+      "file_equal": true,
+      "functions": 34,
+      "pre_sha256": "eeb7cf8503e24229333ef6c4b35b27d6a4b26590b01970887cbb7a64ba720e20",
+      "post_sha256": "eeb7cf8503e24229333ef6c4b35b27d6a4b26590b01970887cbb7a64ba720e20",
+      "raw_body_equal": 34,
+      "bytes_and_targets_equal": 34
+    },
+    {
+      "object": "src/cmd/scripting.o",
+      "file_equal": true,
+      "functions": 571,
+      "pre_sha256": "a9fbdffbbf0ba8e42bc48c673660ca23df95f4b7b996433301e330dc881521b1",
+      "post_sha256": "a9fbdffbbf0ba8e42bc48c673660ca23df95f4b7b996433301e330dc881521b1",
+      "raw_body_equal": 571,
+      "bytes_and_targets_equal": 571
+    },
+    {
+      "object": "src/cmd/serialize.o",
+      "file_equal": true,
+      "functions": 104,
+      "pre_sha256": "2849fb1c0ba6279e2ef9887f58d34715c967e0bb0af24e4783178772ff00c03d",
+      "post_sha256": "2849fb1c0ba6279e2ef9887f58d34715c967e0bb0af24e4783178772ff00c03d",
+      "raw_body_equal": 104,
+      "bytes_and_targets_equal": 104
+    },
+    {
+      "object": "src/cmd/server_tail.o",
+      "file_equal": true,
+      "functions": 92,
+      "pre_sha256": "91b6bd761712685551a3227b2b63401a374affcccf84611458ee4e667e6375c9",
+      "post_sha256": "91b6bd761712685551a3227b2b63401a374affcccf84611458ee4e667e6375c9",
+      "raw_body_equal": 92,
+      "bytes_and_targets_equal": 92
+    },
+    {
+      "object": "src/cmd/slowlog.o",
+      "file_equal": true,
+      "functions": 72,
+      "pre_sha256": "9ea5a27f1cc964766141298553025ae98368f39474eae66dde55c85941e19218",
+      "post_sha256": "9ea5a27f1cc964766141298553025ae98368f39474eae66dde55c85941e19218",
+      "raw_body_equal": 72,
+      "bytes_and_targets_equal": 72
+    },
+    {
+      "object": "src/cmd/t_hash.o",
+      "file_equal": true,
+      "functions": 233,
+      "pre_sha256": "a26fe91ac09f4355020b9b5561bdd306e2f768566ac388b7830013721fad349d",
+      "post_sha256": "a26fe91ac09f4355020b9b5561bdd306e2f768566ac388b7830013721fad349d",
+      "raw_body_equal": 233,
+      "bytes_and_targets_equal": 233
+    },
+    {
+      "object": "src/cmd/t_hash_ttl.o",
+      "file_equal": true,
+      "functions": 94,
+      "pre_sha256": "191b50212dd6f91b5151af720dc44633f1cea33f38e3f138b3fff73c15472222",
+      "post_sha256": "191b50212dd6f91b5151af720dc44633f1cea33f38e3f138b3fff73c15472222",
+      "raw_body_equal": 94,
+      "bytes_and_targets_equal": 94
+    },
+    {
+      "object": "src/cmd/t_list.o",
+      "file_equal": true,
+      "functions": 193,
+      "pre_sha256": "3a2c0e1624f62a6ef0a77d6ef52cee3ff597c4e1949da12c4948dad38e092e29",
+      "post_sha256": "3a2c0e1624f62a6ef0a77d6ef52cee3ff597c4e1949da12c4948dad38e092e29",
+      "raw_body_equal": 193,
+      "bytes_and_targets_equal": 193
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "file_equal": true,
+      "functions": 224,
+      "pre_sha256": "03916a2fc889c9d2d75dc1ebe38a8bf07fcf09b7b511bdf2216a6373b16e7a44",
+      "post_sha256": "03916a2fc889c9d2d75dc1ebe38a8bf07fcf09b7b511bdf2216a6373b16e7a44",
+      "raw_body_equal": 224,
+      "bytes_and_targets_equal": 224
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "file_equal": true,
+      "functions": 204,
+      "pre_sha256": "ed77d7e6f239f207c7f952be4053f6972e79a674ca63ed1c66381c57ee261203",
+      "post_sha256": "ed77d7e6f239f207c7f952be4053f6972e79a674ca63ed1c66381c57ee261203",
+      "raw_body_equal": 204,
+      "bytes_and_targets_equal": 204
+    },
+    {
+      "object": "src/cmd/t_sort.o",
+      "file_equal": true,
+      "functions": 22,
+      "pre_sha256": "e6fedae32acbf2b89059706dc88d3285878f54be2a45ae106f15ce4b54b5436f",
+      "post_sha256": "e6fedae32acbf2b89059706dc88d3285878f54be2a45ae106f15ce4b54b5436f",
+      "raw_body_equal": 22,
+      "bytes_and_targets_equal": 22
+    },
+    {
+      "object": "src/cmd/t_stream.o",
+      "file_equal": true,
+      "functions": 251,
+      "pre_sha256": "49547c440109989a422469ae658bea497c1c1173821dbe1f54f0f4460e3eae46",
+      "post_sha256": "49547c440109989a422469ae658bea497c1c1173821dbe1f54f0f4460e3eae46",
+      "raw_body_equal": 251,
+      "bytes_and_targets_equal": 251
+    },
+    {
+      "object": "src/cmd/t_stream_groups.o",
+      "file_equal": true,
+      "functions": 160,
+      "pre_sha256": "614bca7920122ddd6d7112c6a9be64e2d9080ffb1d0c8c6225a82eb9c705abc9",
+      "post_sha256": "614bca7920122ddd6d7112c6a9be64e2d9080ffb1d0c8c6225a82eb9c705abc9",
+      "raw_body_equal": 160,
+      "bytes_and_targets_equal": 160
+    },
+    {
+      "object": "src/cmd/t_string.o",
+      "file_equal": true,
+      "functions": 143,
+      "pre_sha256": "04e17a1bb5373ee78e5a5bcd7236f6c89a6803c14bcdd69c157fac9b67ee6f0c",
+      "post_sha256": "04e17a1bb5373ee78e5a5bcd7236f6c89a6803c14bcdd69c157fac9b67ee6f0c",
+      "raw_body_equal": 143,
+      "bytes_and_targets_equal": 143
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "file_equal": true,
+      "functions": 172,
+      "pre_sha256": "606e75cb660fbabab8081d15afbfb4001ad1b5c805c01660ccdf51be0869c827",
+      "post_sha256": "606e75cb660fbabab8081d15afbfb4001ad1b5c805c01660ccdf51be0869c827",
+      "raw_body_equal": 172,
+      "bytes_and_targets_equal": 172
+    },
+    {
+      "object": "src/cmd/t_zset.o",
+      "file_equal": true,
+      "functions": 293,
+      "pre_sha256": "5d823bdb29c5d74a1b44ab15156614bfddf1b78c7c92e32b9cc7f88e27e6b10a",
+      "post_sha256": "5d823bdb29c5d74a1b44ab15156614bfddf1b78c7c92e32b9cc7f88e27e6b10a",
+      "raw_body_equal": 293,
+      "bytes_and_targets_equal": 293
+    },
+    {
+      "object": "src/cmd/t_zset_ops.o",
+      "file_equal": true,
+      "functions": 1,
+      "pre_sha256": "594ed8316c67ca3fe7ec317a76c23a74559987fcc532ca3325d84c8728009c82",
+      "post_sha256": "594ed8316c67ca3fe7ec317a76c23a74559987fcc532ca3325d84c8728009c82",
+      "raw_body_equal": 1,
+      "bytes_and_targets_equal": 1
+    },
+    {
+      "object": "src/cmd/tracking.o",
+      "file_equal": true,
+      "functions": 68,
+      "pre_sha256": "dde7d42bf47861b83ecead8f79932454c0a60b9b83fce4d3a867c87c7c7ed077",
+      "post_sha256": "dde7d42bf47861b83ecead8f79932454c0a60b9b83fce4d3a867c87c7c7ed077",
+      "raw_body_equal": 68,
+      "bytes_and_targets_equal": 68
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "file_equal": true,
+      "functions": 865,
+      "pre_sha256": "d6eaba5a19e6ebb30a28ee55a7a2c2230a879ed2331df153eecbef3905781436",
+      "post_sha256": "d6eaba5a19e6ebb30a28ee55a7a2c2230a879ed2331df153eecbef3905781436",
+      "raw_body_equal": 865,
+      "bytes_and_targets_equal": 865
+    },
+    {
+      "object": "src/core/flipctl.o",
+      "file_equal": true,
+      "functions": 73,
+      "pre_sha256": "f62aa766108deee34da0ef8d64de83a5b621126ac560445f9b8a7cfe0f9f340c",
+      "post_sha256": "f62aa766108deee34da0ef8d64de83a5b621126ac560445f9b8a7cfe0f9f340c",
+      "raw_body_equal": 73,
+      "bytes_and_targets_equal": 73
+    },
+    {
+      "object": "src/core/genthread.o",
+      "file_equal": true,
+      "functions": 768,
+      "pre_sha256": "0c2f2dab310595fdb29f2537704b5d12ab95b74095ea4e44eb1ebd2015df86d0",
+      "post_sha256": "0c2f2dab310595fdb29f2537704b5d12ab95b74095ea4e44eb1ebd2015df86d0",
+      "raw_body_equal": 768,
+      "bytes_and_targets_equal": 768
+    },
+    {
+      "object": "src/core/lbplanner.o",
+      "file_equal": true,
+      "functions": 64,
+      "pre_sha256": "fbbbf109d726938bb0ce31bd6688248c0d8e1b18a32b4508fca6505991cb3cbe",
+      "post_sha256": "fbbbf109d726938bb0ce31bd6688248c0d8e1b18a32b4508fca6505991cb3cbe",
+      "raw_body_equal": 64,
+      "bytes_and_targets_equal": 64
+    },
+    {
+      "object": "src/core/lbstall.o",
+      "file_equal": true,
+      "functions": 12,
+      "pre_sha256": "e6323a152dc45a2240e35d193f3f40173af47217b3d72ef31ad5b6b18b73d2c8",
+      "post_sha256": "e6323a152dc45a2240e35d193f3f40173af47217b3d72ef31ad5b6b18b73d2c8",
+      "raw_body_equal": 12,
+      "bytes_and_targets_equal": 12
+    },
+    {
+      "object": "src/core/reorder.o",
+      "file_equal": true,
+      "functions": 833,
+      "pre_sha256": "3b24350d1a84806db48a45d6ee74a98406b2b1c05adba5ec8865901f4cce1e8a",
+      "post_sha256": "3b24350d1a84806db48a45d6ee74a98406b2b1c05adba5ec8865901f4cce1e8a",
+      "raw_body_equal": 833,
+      "bytes_and_targets_equal": 833
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "file_equal": true,
+      "functions": 931,
+      "pre_sha256": "564f16ce2a95daf54d03406ba969a55076dba6faa05b278963b8c72a62722836",
+      "post_sha256": "564f16ce2a95daf54d03406ba969a55076dba6faa05b278963b8c72a62722836",
+      "raw_body_equal": 931,
+      "bytes_and_targets_equal": 931
+    },
+    {
+      "object": "src/main.o",
+      "file_equal": true,
+      "functions": 833,
+      "pre_sha256": "346659aec951ca136a2aaa80966b70ed5a55d13fd9a5ca3a8120caf665db0a44",
+      "post_sha256": "346659aec951ca136a2aaa80966b70ed5a55d13fd9a5ca3a8120caf665db0a44",
+      "raw_body_equal": 833,
+      "bytes_and_targets_equal": 833
+    },
+    {
+      "object": "src/net/tls.o",
+      "file_equal": true,
+      "functions": 38,
+      "pre_sha256": "b2d334e38ac8ebca0c777162d1e34b822d01fc6ca669454840011fedd119e88b",
+      "post_sha256": "b2d334e38ac8ebca0c777162d1e34b822d01fc6ca669454840011fedd119e88b",
+      "raw_body_equal": 38,
+      "bytes_and_targets_equal": 38
+    },
+    {
+      "object": "src/persist/aof.o",
+      "file_equal": false,
+      "functions": 298,
+      "pre_sha256": "1f826089a9353478d20d3410f8ec519cbabab24741dc730923c22a0a260735ef",
+      "post_sha256": "7f99084825467ec42401fc38b582df541b45ce448830b700c8157bb5d8cbc3d3",
+      "raw_body_equal": 265,
+      "bytes_and_targets_equal": 294
+    },
+    {
+      "object": "src/snapshot/snapshot.o",
+      "file_equal": true,
+      "functions": 122,
+      "pre_sha256": "ecc8735439d4ac2bd644390d973d794b62f6897818947a8a75008d6282473da1",
+      "post_sha256": "ecc8735439d4ac2bd644390d973d794b62f6897818947a8a75008d6282473da1",
+      "raw_body_equal": 122,
+      "bytes_and_targets_equal": 122
+    }
+  ],
+  "changed": [
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::maybe_sync(tomo_db0::ThreadCtx&, tomo_db0::Ring&, io_uring_sqe*)",
+      "symbol": "_ZN8tomo_db010AofManager10maybe_syncERNS_9ThreadCtxERNS_4RingEP12io_uring_sqe",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 3556,
+      "post_size": 3556
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::bind_writer(tomo_db0::ThreadCtx&, tomo_db0::Ring&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "symbol": "_ZN8tomo_db010AofManager11bind_writerERNS_9ThreadCtxERNS_4RingERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 655,
+      "post_size": 655
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::writer_pass(tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool)",
+      "symbol": "_ZN8tomo_db010AofManager11writer_passERNS_9ThreadCtxERNS_4RingEb",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1144,
+      "post_size": 1144
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::rewrite_mark(tomo_db0::ThreadCtx&, tomo_db0::Ring&, unsigned long, long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "symbol": "_ZN8tomo_db010AofManager12rewrite_markERNS_9ThreadCtxERNS_4RingEmlRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 3286,
+      "post_size": 3286
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo_db0::Ring&, io_uring_sqe*&)",
+      "symbol": "_ZN8tomo_db010AofManager14drain_producerEjRjS1_RNS_4RingERP12io_uring_sqe",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1554,
+      "post_size": 1554
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::on_io_complete(tomo_db0::ThreadCtx&, tomo_db0::Ring&, void*, int)",
+      "symbol": "_ZN8tomo_db010AofManager14on_io_completeERNS_9ThreadCtxERNS_4RingEPvi",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1651,
+      "post_size": 1651
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::worker_shutdown(unsigned int)",
+      "symbol": "_ZN8tomo_db010AofManager15worker_shutdownEj",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 994,
+      "post_size": 994
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::writer_shutdown(tomo_db0::ThreadCtx&, tomo_db0::Ring&) [clone .part.0]",
+      "symbol": "_ZN8tomo_db010AofManager15writer_shutdownERNS_9ThreadCtxERNS_4RingE.part.0",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1027,
+      "post_size": 1027
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::persist_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, std::vector<std::pair<unsigned long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<unsigned long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > > const&, std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "symbol": "_ZN8tomo_db010AofManager16persist_manifestERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEmmmmmRKSt6vectorISt4pairImS6_ESaISB_EERKS9_IS9_IjSaIjEESaISH_EERS6_",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 6409,
+      "post_size": 6409
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long)",
+      "symbol": "_ZN8tomo_db010AofManager16rewrite_completeERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEm",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 3138,
+      "post_size": 3138
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::mark_post_durable(unsigned long)",
+      "symbol": "_ZN8tomo_db010AofManager17mark_post_durableEm",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 153,
+      "post_size": 153
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::mark_post_written(unsigned long)",
+      "symbol": "_ZN8tomo_db010AofManager17mark_post_writtenEm",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 153,
+      "post_size": 153
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::wait_control_sync(tomo_db0::ThreadCtx&, tomo_db0::Ring&, int)",
+      "symbol": "_ZN8tomo_db010AofManager17wait_control_syncERNS_9ThreadCtxERNS_4RingEi",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 561,
+      "post_size": 561
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::wait_control_write(tomo_db0::ThreadCtx&, tomo_db0::Ring&, int, unsigned char const*, unsigned long, unsigned long&)",
+      "symbol": "_ZN8tomo_db010AofManager18wait_control_writeERNS_9ThreadCtxERNS_4RingEiPKhmRm",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 657,
+      "post_size": 657
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::mark_post_submitted(unsigned long)",
+      "symbol": "_ZN8tomo_db010AofManager19mark_post_submittedEm",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 153,
+      "post_size": 153
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::maybe_pause_rewrite(tomo_db0::AofRewriteDebugStage)",
+      "symbol": "_ZN8tomo_db010AofManager19maybe_pause_rewriteENS_20AofRewriteDebugStageE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "pre_size": 490,
+      "post_size": 522
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::maybe_pause_rewrite(tomo_db0::AofRewriteDebugStage) [clone .cold]",
+      "symbol": "_ZN8tomo_db010AofManager19maybe_pause_rewriteENS_20AofRewriteDebugStageE.cold",
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "pre_size": 42,
+      "post_size": 42
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::maybe_start_rewrite(tomo_db0::ThreadCtx&, tomo_db0::Ring&)",
+      "symbol": "_ZN8tomo_db010AofManager19maybe_start_rewriteERNS_9ThreadCtxERNS_4RingE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 582,
+      "post_size": 582
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::submit_data_frame_uring(std::unique_ptr<tomo_db0::AofChunk, std::default_delete<tomo_db0::AofChunk> >, tomo_db0::Ring&, io_uring_sqe*&)",
+      "symbol": "_ZN8tomo_db010AofManager23submit_data_frame_uringESt10unique_ptrINS_8AofChunkESt14default_deleteIS2_EERNS_4RingERP12io_uring_sqe",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 674,
+      "post_size": 674
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::submit_group_commit_uring(tomo_db0::AofStreamOwner::OpenToken const&, std::unique_ptr<tomo_db0::AofChunk, std::default_delete<tomo_db0::AofChunk> >, tomo_db0::Ring&, io_uring_sqe*&)",
+      "symbol": "_ZN8tomo_db010AofManager25submit_group_commit_uringERKNS_14AofStreamOwner9OpenTokenESt10unique_ptrINS_8AofChunkESt14default_deleteIS6_EERNS_4RingERP12io_uring_sqe",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 208,
+      "post_size": 208
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::write_group_commit_normal(tomo_db0::AofStreamOwner::OpenToken const&, tomo_db0::AofChunk&)",
+      "symbol": "_ZN8tomo_db010AofManager25write_group_commit_normalERKNS_14AofStreamOwner9OpenTokenERNS_8AofChunkE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 233,
+      "post_size": 233
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::cleanup_unreferenced_files()",
+      "symbol": "_ZN8tomo_db010AofManager26cleanup_unreferenced_filesEv",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 2045,
+      "post_size": 2045
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::submit_prepared_frame_uring(std::unique_ptr<tomo_db0::AofChunk, std::default_delete<tomo_db0::AofChunk> >, unsigned char const*, tomo_db0::Ring&, io_uring_sqe*&)",
+      "symbol": "_ZN8tomo_db010AofManager27submit_prepared_frame_uringESt10unique_ptrINS_8AofChunkESt14default_deleteIS2_EEPKhRNS_4RingERP12io_uring_sqe",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1364,
+      "post_size": 1364
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::init(tomo_db0::Server&, tomo_db0::Config const&, unsigned int, unsigned int, unsigned int, tomo_db0::AofReplayPlan const*)",
+      "symbol": "_ZN8tomo_db010AofManager4initERNS_6ServerERKNS_6ConfigEjjjPKNS_13AofReplayPlanE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "pre_size": 6408,
+      "post_size": 6424
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::~AofManager()",
+      "symbol": "_ZN8tomo_db010AofManagerD1Ev",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1435,
+      "post_size": 1435
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::~AofManager()",
+      "symbol": "_ZN8tomo_db010AofManagerD2Ev",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1435,
+      "post_size": 1435
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofProducer::group_emit(tomo_db0::AofProducer::PendingGroup&, unsigned char const*, unsigned long, bool)",
+      "symbol": "_ZN8tomo_db011AofProducer10group_emitERNS0_12PendingGroupEPKhmb",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 738,
+      "post_size": 738
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofProducer::group_seal(tomo_db0::AofProducer::PendingGroup&, unsigned int)",
+      "symbol": "_ZN8tomo_db011AofProducer10group_sealERNS0_12PendingGroupEj",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 69,
+      "post_size": 69
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofProducer::make_ready(std::unique_ptr<tomo_db0::AofChunk, std::default_delete<tomo_db0::AofChunk> >)",
+      "symbol": "_ZN8tomo_db011AofProducer10make_readyESt10unique_ptrINS_8AofChunkESt14default_deleteIS2_EE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 85,
+      "post_size": 85
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofProducer::record_bytes(tomo_db0::AofRecordKind, unsigned char, unsigned char, tomo_db0::Slice, long, unsigned long, unsigned char const*, unsigned long, tomo_db0::SnapshotTypeHooks const*, tomo_db0::SnapshotSaveCursor*, tomo_db0::AofOwnerContext*)",
+      "symbol": "_ZN8tomo_db011AofProducer12record_bytesENS_13AofRecordKindEhhNS_5SliceElmPKhmPKNS_17SnapshotTypeHooksEPNS_18SnapshotSaveCursorEPNS_15AofOwnerContextE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1489,
+      "post_size": 1489
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofProducer::resolve_groups()",
+      "symbol": "_ZN8tomo_db011AofProducer14resolve_groupsEv",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 559,
+      "post_size": 559
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofProducer::record_group_bytes(tomo_db0::AofProducer::PendingGroup&, tomo_db0::AofRecordKind, unsigned char, unsigned char, tomo_db0::Slice, long, tomo_db0::SnapshotTypeHooks const*, tomo_db0::SnapshotSaveCursor*, unsigned char const*, unsigned long)",
+      "symbol": "_ZN8tomo_db011AofProducer18record_group_bytesERNS0_12PendingGroupENS_13AofRecordKindEhhNS_5SliceElPKNS_17SnapshotTypeHooksEPNS_18SnapshotSaveCursorEPKhm",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1800,
+      "post_size": 1800
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofProducer::emit(unsigned char const*, unsigned long, bool, tomo_db0::AofOwnerContext*)",
+      "symbol": "_ZN8tomo_db011AofProducer4emitEPKhmbPNS_15AofOwnerContextE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 816,
+      "post_size": 816
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofProducer::seal(unsigned int, tomo_db0::AofOwnerContext*)",
+      "symbol": "_ZN8tomo_db011AofProducer4sealEjPNS_15AofOwnerContextE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 357,
+      "post_size": 357
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofProducer::flush(tomo_db0::AofOwnerContext&)",
+      "symbol": "_ZN8tomo_db011AofProducer5flushERNS_15AofOwnerContextE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 102,
+      "post_size": 102
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, bool&, tomo_db0::(anonymous namespace)::AofManifestData&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_113read_manifestERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERbRNS0_15AofManifestDataERS6_.constprop.0.isra.0",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 7316,
+      "post_size": 7316
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::(anonymous namespace)::aof_segment_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long)",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_116aof_segment_nameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEm",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 619,
+      "post_size": 619
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::aof_read_plan(char const*, unsigned int, bool, bool&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::vector<unsigned int, std::allocator<unsigned int> > const*)",
+      "symbol": "_ZN8tomo_db013aof_read_planEPKcjbRbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES9_PKSt6vectorIjSaIjEE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 4493,
+      "post_size": 4493
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::aof_load_shard(tomo_db0::AofReplayPlan const&, tomo_db0::Server&, tomo_db0::Shard&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "symbol": "_ZN8tomo_db014aof_load_shardERKNS_13AofReplayPlanERNS_6ServerERNS_5ShardERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1718,
+      "post_size": 1718
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::aof_commit_group(tomo_db0::AofManager&, std::shared_ptr<tomo_db0::AofGroupDecision> const&, unsigned long, tomo_db0::AofOwnerContext&)",
+      "symbol": "_ZN8tomo_db016aof_commit_groupERNS_10AofManagerERKSt10shared_ptrINS_16AofGroupDecisionEEmRNS_15AofOwnerContextE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 448,
+      "post_size": 448
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::aof_create_group(tomo_db0::AofManager&, std::vector<unsigned int, std::allocator<unsigned int> > const&)",
+      "symbol": "_ZN8tomo_db016aof_create_groupERNS_10AofManagerERKSt6vectorIjSaIjEE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1178,
+      "post_size": 1178
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::aof_read_recovery(tomo_db0::Config const&, unsigned int, std::unique_ptr<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >&, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "symbol": "_ZN8tomo_db017aof_read_recoveryERKNS_6ConfigEjRSt10unique_ptrINS_16SnapshotLoadPlanESt14default_deleteIS4_EERSt6vectorIS3_INS_13AofReplayPlanES5_ISA_EESaISC_EERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESM_",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 6570,
+      "post_size": 6570
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::aof_record_local_op(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::AofOwnerContext&)",
+      "symbol": "_ZN8tomo_db019aof_record_local_opERNS_5ShardERNS_2OpERNS_15AofOwnerContextE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 697,
+      "post_size": 697
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::bind_writer(tomo::ThreadCtx&, tomo::Ring&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "symbol": "_ZN4tomo10AofManager11bind_writerERNS_9ThreadCtxERNS_4RingERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 655,
+      "post_size": 655
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)",
+      "symbol": "_ZN4tomo10AofManager11writer_passERNS_9ThreadCtxERNS_4RingEb",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1144,
+      "post_size": 1144
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::rewrite_mark(tomo::ThreadCtx&, tomo::Ring&, unsigned long, long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "symbol": "_ZN4tomo10AofManager12rewrite_markERNS_9ThreadCtxERNS_4RingEmlRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 3286,
+      "post_size": 3286
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo::Ring&, io_uring_sqe*&)",
+      "symbol": "_ZN4tomo10AofManager14drain_producerEjRjS1_RNS_4RingERP12io_uring_sqe",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1554,
+      "post_size": 1554
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::on_io_complete(tomo::ThreadCtx&, tomo::Ring&, void*, int)",
+      "symbol": "_ZN4tomo10AofManager14on_io_completeERNS_9ThreadCtxERNS_4RingEPvi",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1651,
+      "post_size": 1651
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::worker_shutdown(unsigned int)",
+      "symbol": "_ZN4tomo10AofManager15worker_shutdownEj",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 994,
+      "post_size": 994
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::writer_shutdown(tomo::ThreadCtx&, tomo::Ring&) [clone .part.0]",
+      "symbol": "_ZN4tomo10AofManager15writer_shutdownERNS_9ThreadCtxERNS_4RingE.part.0",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1027,
+      "post_size": 1027
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::persist_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, std::vector<std::pair<unsigned long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<unsigned long, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > > const&, std::vector<std::vector<unsigned int, std::allocator<unsigned int> >, std::allocator<std::vector<unsigned int, std::allocator<unsigned int> > > > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "symbol": "_ZN4tomo10AofManager16persist_manifestERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEmmmmmRKSt6vectorISt4pairImS6_ESaISB_EERKS9_IS9_IjSaIjEESaISH_EERS6_",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 6608,
+      "post_size": 6608
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::rewrite_complete(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long)",
+      "symbol": "_ZN4tomo10AofManager16rewrite_completeERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEm",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 3138,
+      "post_size": 3138
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::wait_control_sync(tomo::ThreadCtx&, tomo::Ring&, int)",
+      "symbol": "_ZN4tomo10AofManager17wait_control_syncERNS_9ThreadCtxERNS_4RingEi",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 561,
+      "post_size": 561
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::wait_control_write(tomo::ThreadCtx&, tomo::Ring&, int, unsigned char const*, unsigned long, unsigned long&)",
+      "symbol": "_ZN4tomo10AofManager18wait_control_writeERNS_9ThreadCtxERNS_4RingEiPKhmRm",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 657,
+      "post_size": 657
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage)",
+      "symbol": "_ZN4tomo10AofManager19maybe_pause_rewriteENS_20AofRewriteDebugStageE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "pre_size": 490,
+      "post_size": 522
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::maybe_pause_rewrite(tomo::AofRewriteDebugStage) [clone .cold]",
+      "symbol": "_ZN4tomo10AofManager19maybe_pause_rewriteENS_20AofRewriteDebugStageE.cold",
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "pre_size": 42,
+      "post_size": 42
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::maybe_start_rewrite(tomo::ThreadCtx&, tomo::Ring&)",
+      "symbol": "_ZN4tomo10AofManager19maybe_start_rewriteERNS_9ThreadCtxERNS_4RingE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 582,
+      "post_size": 582
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::submit_data_frame_uring(std::unique_ptr<tomo::AofChunk, std::default_delete<tomo::AofChunk> >, tomo::Ring&, io_uring_sqe*&)",
+      "symbol": "_ZN4tomo10AofManager23submit_data_frame_uringESt10unique_ptrINS_8AofChunkESt14default_deleteIS2_EERNS_4RingERP12io_uring_sqe",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 674,
+      "post_size": 674
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::submit_group_commit_uring(tomo::AofStreamOwner::OpenToken const&, std::unique_ptr<tomo::AofChunk, std::default_delete<tomo::AofChunk> >, tomo::Ring&, io_uring_sqe*&)",
+      "symbol": "_ZN4tomo10AofManager25submit_group_commit_uringERKNS_14AofStreamOwner9OpenTokenESt10unique_ptrINS_8AofChunkESt14default_deleteIS6_EERNS_4RingERP12io_uring_sqe",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 208,
+      "post_size": 208
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::write_group_commit_normal(tomo::AofStreamOwner::OpenToken const&, tomo::AofChunk&)",
+      "symbol": "_ZN4tomo10AofManager25write_group_commit_normalERKNS_14AofStreamOwner9OpenTokenERNS_8AofChunkE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 233,
+      "post_size": 233
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::cleanup_unreferenced_files()",
+      "symbol": "_ZN4tomo10AofManager26cleanup_unreferenced_filesEv",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 2045,
+      "post_size": 2045
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::submit_prepared_frame_uring(std::unique_ptr<tomo::AofChunk, std::default_delete<tomo::AofChunk> >, unsigned char const*, tomo::Ring&, io_uring_sqe*&)",
+      "symbol": "_ZN4tomo10AofManager27submit_prepared_frame_uringESt10unique_ptrINS_8AofChunkESt14default_deleteIS2_EEPKhRNS_4RingERP12io_uring_sqe",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1364,
+      "post_size": 1364
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::init(tomo::Server&, tomo::Config const&, unsigned int, unsigned int, unsigned int, tomo::AofReplayPlan const*)",
+      "symbol": "_ZN4tomo10AofManager4initERNS_6ServerERKNS_6ConfigEjjjPKNS_13AofReplayPlanE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 6408,
+      "post_size": 6408
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::~AofManager()",
+      "symbol": "_ZN4tomo10AofManagerD1Ev",
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "pre_size": 1467,
+      "post_size": 1483
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::~AofManager()",
+      "symbol": "_ZN4tomo10AofManagerD2Ev",
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "pre_size": 1467,
+      "post_size": 1483
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofProducer::record_bytes(tomo::AofRecordKind, unsigned char, unsigned char, tomo::Slice, long, unsigned long, unsigned char const*, unsigned long, tomo::SnapshotTypeHooks const*, tomo::SnapshotSaveCursor*, tomo::AofOwnerContext*)",
+      "symbol": "_ZN4tomo11AofProducer12record_bytesENS_13AofRecordKindEhhNS_5SliceElmPKhmPKNS_17SnapshotTypeHooksEPNS_18SnapshotSaveCursorEPNS_15AofOwnerContextE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1505,
+      "post_size": 1505
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofProducer::resolve_groups()",
+      "symbol": "_ZN4tomo11AofProducer14resolve_groupsEv",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 559,
+      "post_size": 559
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofProducer::emit(unsigned char const*, unsigned long, bool, tomo::AofOwnerContext*)",
+      "symbol": "_ZN4tomo11AofProducer4emitEPKhmbPNS_15AofOwnerContextE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 816,
+      "post_size": 816
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofProducer::seal(unsigned int, tomo::AofOwnerContext*)",
+      "symbol": "_ZN4tomo11AofProducer4sealEjPNS_15AofOwnerContextE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 357,
+      "post_size": 357
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofProducer::flush(tomo::AofOwnerContext&)",
+      "symbol": "_ZN4tomo11AofProducer5flushERNS_15AofOwnerContextE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 102,
+      "post_size": 102
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::(anonymous namespace)::read_manifest(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, bool&, tomo::(anonymous namespace)::AofManifestData&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]",
+      "symbol": "_ZN4tomo12_GLOBAL__N_113read_manifestERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEERbRNS0_15AofManifestDataERS6_.constprop.0.isra.0",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 7316,
+      "post_size": 7316
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::(anonymous namespace)::aof_segment_name(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long)",
+      "symbol": "_ZN4tomo12_GLOBAL__N_116aof_segment_nameERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEm",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 619,
+      "post_size": 619
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::aof_read_plan(char const*, unsigned int, bool, bool&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::vector<unsigned int, std::allocator<unsigned int> > const*)",
+      "symbol": "_ZN4tomo13aof_read_planEPKcjbRbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES9_PKSt6vectorIjSaIjEE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 4493,
+      "post_size": 4493
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::aof_load_shard(tomo::AofReplayPlan const&, tomo::Server&, tomo::Shard&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "symbol": "_ZN4tomo14aof_load_shardERKNS_13AofReplayPlanERNS_6ServerERNS_5ShardERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1750,
+      "post_size": 1750
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::aof_create_group(tomo::AofManager&, std::vector<unsigned int, std::allocator<unsigned int> > const&)",
+      "symbol": "_ZN4tomo16aof_create_groupERNS_10AofManagerERKSt6vectorIjSaIjEE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 1178,
+      "post_size": 1178
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::default_delete<tomo::SnapshotLoadPlan> >&, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "symbol": "_ZN4tomo17aof_read_recoveryERKNS_6ConfigEjRSt10unique_ptrINS_16SnapshotLoadPlanESt14default_deleteIS4_EERSt6vectorIS3_INS_13AofReplayPlanES5_ISA_EESaISC_EERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESM_",
+      "raw_equal": false,
+      "bytes_and_targets_equal": true,
+      "pre_size": 6810,
+      "post_size": 6810
+    }
+  ],
+  "unexpected": [
+    {
+      "object": "db0/src/persist/aof.o",
+      "name": "tomo_db0::AofManager::init(tomo_db0::Server&, tomo_db0::Config const&, unsigned int, unsigned int, unsigned int, tomo_db0::AofReplayPlan const*)",
+      "symbol": "_ZN8tomo_db010AofManager4initERNS_6ServerERKNS_6ConfigEjjjPKNS_13AofReplayPlanE",
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "pre_size": 6408,
+      "post_size": 6424
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::~AofManager()",
+      "symbol": "_ZN4tomo10AofManagerD1Ev",
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "pre_size": 1467,
+      "post_size": 1483
+    },
+    {
+      "object": "src/persist/aof.o",
+      "name": "tomo::AofManager::~AofManager()",
+      "symbol": "_ZN4tomo10AofManagerD2Ev",
+      "raw_equal": false,
+      "bytes_and_targets_equal": false,
+      "pre_size": 1467,
+      "post_size": 1483
+    }
+  ],
+  "function_bodies": 16934,
+  "raw_body_equal": 16858,
+  "bytes_and_targets_equal": 16927
+}
