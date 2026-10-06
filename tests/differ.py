@@ -5589,6 +5589,100 @@ def gen_multidb(rng):
     return ops
 
 
+def run_psfix_suite():
+    """PS5/PS7: exact CONFIG bytes, INFO names/order, and completed-save properties."""
+    peers = [conn(TH, TP), conn(OH, OP)]
+    checks = 0
+
+    def issue(peer, argv):
+        sock, file = peer
+        sock.sendall(enc(argv))
+        return read_reply(file)
+
+    def both(argv):
+        nonlocal checks
+        replies = [issue(peer, argv) for peer in peers]
+        coverage.note(argv)
+        checks += 1
+        assert replies[0] == replies[1], (argv, replies)
+        print("  PSFIX exact %r -> %r" % (argv, replies[0]))
+        return replies[0]
+
+    def persistence(peer):
+        body = parse_reply(issue(peer, ["INFO", "persistence"]))
+        assert isinstance(body, bytes), body
+        rows = [line.split(b":", 1) for line in body.split(b"\r\n")
+                if line and not line.startswith(b"#")]
+        assert all(len(row) == 2 for row in rows), rows
+        fields = dict(rows)
+        assert len(fields) == len(rows), "duplicate INFO Persistence field"
+        return fields
+
+    try:
+        saved = [parse_reply(issue(peer, ["CONFIG", "GET", "aof-load-truncated"]))[1]
+                 for peer in peers]
+        try:
+            for value in ("no", "yes", "NO", "YeS"):
+                assert both(["CONFIG", "SET", "aof-load-truncated", value]) == b"+OK\r\n"
+                both(["CONFIG", "GET", "aof-load-truncated"])
+            for value in ("0", "1", "true", "", "yes "):
+                assert both(["CONFIG", "SET", "aof-load-truncated", value]).startswith(b"-ERR ")
+                both(["CONFIG", "GET", "aof-load-truncated"])
+            assert both(["CONFIG", "SET", "aof-load-truncated", "no",
+                         "AOF-LOAD-TRUNCATED", "yes"]) == b"-ERR duplicate configuration parameter\r\n"
+            both(["CONFIG", "GET", "aof-load-truncated"])
+        finally:
+            for peer, value in zip(peers, saved):
+                assert issue(peer, ["CONFIG", "SET", "aof-load-truncated", value]) == b"+OK\r\n"
+
+        # This explicit inventory makes omissions fail. Intersecting the two observed
+        # sets alone would silently accept a missing/misspelled field on the target.
+        shared = set(b"loading rdb_changes_since_last_save rdb_bgsave_in_progress "
+                     b"rdb_last_save_time rdb_saves aof_enabled aof_rewrite_in_progress "
+                     b"aof_rewrite_scheduled aof_last_bgrewrite_status aof_rewrites "
+                     b"aof_rewrites_consecutive_failures aof_last_write_status".split())
+        conditional = set(b"aof_current_size aof_base_size aof_pending_rewrite".split())
+        target, oracle = [persistence(peer) for peer in peers]
+        assert shared <= oracle.keys(), ("oracle inventory", shared - oracle.keys())
+        expected = shared | (conditional & oracle.keys())
+        assert target.keys() & expected == expected, ("missing target fields", expected - target.keys())
+        assert conditional <= target.keys(), "existing target fields disappeared"
+        assert not {b"aof_rewrite_completions", b"aof_rewrite_consecutive_failures"} & target.keys()
+        assert [name for name in target if name in expected] == [name for name in oracle if name in expected]
+        coverage.note(["INFO", "persistence"], "field-name set/order; values intentionally differ")
+        print("  PSFIX field names/order: %s" % b" ".join(name for name in oracle if name in expected).decode())
+
+        for label, peer in zip(("target", "oracle"), peers):
+            assert persistence(peer)[b"loading"] == b"0", (label, "loading after boot")
+            for command in ("SAVE", "SAVE", "BGSAVE"):
+                before = int(persistence(peer)[b"rdb_saves"])
+                reply = issue(peer, [command])
+                assert reply == (b"+OK\r\n" if command == "SAVE" else b"+Background saving started\r\n"), reply
+                deadline = time.monotonic() + 10
+                while True:
+                    fields = persistence(peer)
+                    if fields[b"rdb_bgsave_in_progress"] == b"0":
+                        break
+                    assert time.monotonic() < deadline, (label, "save did not complete")
+                    time.sleep(.005)
+                assert int(fields[b"rdb_saves"]) == before + 1, (label, command, before, fields)
+                assert int(persistence(peer)[b"rdb_saves"]) == before + 1, "INFO advanced save count"
+                assert fields[b"loading"] == b"0"
+                coverage.note([command], "rdb_saves advances exactly once after completion")
+                checks += 1
+                print("  PSFIX %s %s rdb_saves %d -> %d; loading:0" % (label, command, before, before + 1))
+    finally:
+        for sock, file in peers:
+            file.close()
+            sock.close()
+    print("DIFFER psfix: %d exact/property checks, 0 diffs -> PASS" % checks)
+
+
+if SUITE == "psfix":
+    run_psfix_suite()
+    sys.exit(0)
+
+
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
         "hash": gen_hash, "hexpire": gen_hexpire, "edgetime": gen_edgetime,
         "xshard": gen_xshard, "xmove": gen_xmove, "bitmap": gen_bitmap,
@@ -5606,7 +5700,7 @@ if LIST_GENERATORS:
     # This is the single suite inventory. Property suites live outside `gens` because their
     # replies are not byte-comparable, but the gate discovers them from this same list.
     print("\n".join(list(gens) + ["blocking", "pubsub", "fanout", "spubsub", "notify",
-                                   "wiredump", "climon", "compatintro", "aclsel", "cmdmeta", "s6fix"]))
+                                   "wiredump", "climon", "compatintro", "aclsel", "cmdmeta", "s6fix", "psfix"]))
     sys.exit(0)
 ops = gens[SUITE](rng)
 
