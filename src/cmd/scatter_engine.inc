@@ -2970,6 +2970,11 @@ ScatterTaskResult xshard_execute(const Task& task, Shard& shard, Op& op,
             KvObj* object = pending_reads ? shard.store().atomic_find_tracked(hash, key)
                                           : (notify ? shard.store_find<true>(hash, key)
                                                     : shard.store().find(hash, key));
+            // The tracked lookup bypasses find_notify. Use its resolved value at
+            // this fragment's epoch; a second lookup could observe another version.
+            if (notify && pending_reads && !object &&
+                notify_flat_enabled(&shard, NOTIFY_KEY_MISS))
+                notify_flat_emit(&shard, NOTIFY_KEY_MISS, NotifyEventId::Keymiss, key);
             if (read_lookup) shard.note_keyspace_read(object);
             return object;
         };

@@ -1,5 +1,8 @@
 """CC11/CC12/CC13/CC18 wire differentials, called by differ.py on owned listeners."""
 from pathlib import Path
+import select
+import time
+import _lib
 
 FLAGS = ("", "AKE", "AKEn", "gnK", "gKn", "Em", "KEA", "$lshzxe",
          "g$lshzxetdnKEm", "n", "nKmE", "AEmn")
@@ -54,12 +57,16 @@ def run(api):
         checks += 1
         return replies[0]
 
-    def stats(expected):
+    def stats(expected, others=None):
         nonlocal checks
         replies = [issue(pair, ["INFO", "commandstats"]) for pair in admins]
         rows = [commandstats(parse(reply), target=(i == 0)) for i, reply in enumerate(replies)]
         values = [row.get(b"cmdstat_get", (0, 0, 0)) for row in rows]
         assert values[0] == values[1] == expected, ("CC18 GET", values, expected, replies)
+        for name, wanted in (others or {}).items():
+            key = b"cmdstat_" + name.encode()
+            actual = [row.get(key, (0, 0, 0)) for row in rows]
+            assert actual[0] == actual[1] == wanted, ("CC18", name, actual, wanted, replies)
         api["coverage"].note(["INFO", "commandstats"], "commandstats counters")
         checks += 1
 
@@ -105,9 +112,15 @@ def run(api):
         equal(["SUBSCRIBE", channel], pairs=subscribers)
         serial = 0
 
-        def misses(args, expected_keys):
+        def misses(args, expected_keys, target_result=None):
             nonlocal serial, checks
-            equal(args)
+            if target_result is None:
+                equal(args)
+            else:
+                oracle_result = issue(admins[1], args)
+                assert target_result == oracle_result, (args, target_result, oracle_result)
+                api["coverage"].note(args)
+                checks += 1
             marker = ("ccfix:barrier:%d" % serial).encode()
             serial += 1
             equal(["PUBLISH", channel, marker], b":1\r\n")
@@ -153,6 +166,59 @@ def run(api):
                 misses([cmd, dest, a, b], [])
             misses(["DEL", a, b, dest], [])
             print("  CC11 %s source/destination lookups: exact" % label)
+
+        # The same persistent commit latch and owner geometry helpers used by the
+        # atomics tests. No probabilistic delay: leave the writer undecided until
+        # the real reader has resolved each pending source to its predecessor.
+        probe = _lib.Conn(*endpoints[0], timeout=10)
+        try:
+            atomic = int(_lib.info(probe, "server")["atomic"])
+            assert atomic in (0, 1)
+            if atomic:
+                for verb in ("COPY", "SINTERSTORE", "BITOP"):
+                    equal(["FLUSHALL"], b"+OK\r\n")
+                    deadline = time.monotonic() + 5
+                    while int(_lib.info(probe, "stats")["atomic_pending_entries"]):
+                        assert time.monotonic() < deadline, "old atomic records did not drain"
+                        time.sleep(.005)
+                    buckets = _lib.owner_buckets(probe, "ccfix2:%s:%d:" % (verb, time.time_ns()),
+                                                per_owner=2)
+                    owners = [keys for keys in buckets.values() if len(keys) >= 2][:2]
+                    a, b, dest = owners[0][0], owners[1][0], owners[1][1]
+                    args = ([verb, a, dest] if verb == "COPY" else
+                            [verb, "OR", dest, a, b] if verb == "BITOP" else
+                            [verb, dest, a, b])
+                    wanted = [a] if verb == "COPY" else [a, b]
+                    writer, reader = connect(endpoints[0]), connect(endpoints[0])
+                    before = _lib.info(probe, "stats")
+                    with _lib.armed(probe, "ATOMIC-COMMIT-HOLD", 1):
+                        writer[0].sendall(enc(["MSET", a, "private", b, "private"]))
+                        deadline = time.monotonic() + 5
+                        while True:
+                            held = _lib.info(probe, "stats")
+                            if int(held["atomic_pending_entries"]) >= 2:
+                                break
+                            assert time.monotonic() < deadline, "pending-source window never opened"
+                            time.sleep(.005)
+                        assert not select.select([writer[0]], [], [], 0)[0], "writer escaped hold"
+                        predecessor = int(held["atomic_predecessor_reads"])
+                        reader[0].sendall(enc(args))
+                        deadline = time.monotonic() + 5
+                        while True:
+                            observed = _lib.info(probe, "stats")
+                            if int(observed["atomic_predecessor_reads"]) - predecessor >= len(wanted):
+                                break
+                            assert time.monotonic() < deadline, "reader never visited pending sources"
+                            time.sleep(.005)
+                        assert int(observed["atomic_pending_entries"]) >= 2
+                        assert int(observed["atomic_localfast"]) == int(before["atomic_localfast"]), \
+                            "pending witness took localfast instead of scatter"
+                        assert not select.select([writer[0]], [], [], 0)[0], "writer committed early"
+                    assert read_reply(writer[1]) == b"+OK\r\n"
+                    misses(args, wanted, read_reply(reader[1]))
+                    print("  CC11 pending %s: exact, source records and predecessor reads witnessed" % verb)
+        finally:
+            probe.close()
         equal(["CONFIG", "SET", "notify-keyspace-events", ""], b"+OK\r\n")
 
         # CC18: a denied command is rejected, an executed WRONGTYPE is a failed call.
@@ -170,11 +236,17 @@ def run(api):
         stats((1, 1, 1))
         equal(["GET", "ccfix:absent"], b"$-1\r\n")
         stats((2, 1, 1))
+        equal(["MULTI"], b"+OK\r\n")
+        equal(["GET", "ccfix:wrongtype"], b"+QUEUED\r\n")
+        equal(["EXEC"], b"*1\r\n-WRONGTYPE Operation against a key holding the wrong kind of value\r\n")
+        stats((3, 1, 2), {"multi": (1, 0, 0), "exec": (1, 0, 0)})
+        equal(["EXEC"], b"-ERR EXEC without MULTI\r\n")
+        stats((3, 1, 2), {"exec": (2, 0, 1)})
         equal(["CONFIG", "SET", "requirepass", "ccfix-password"], b"+OK\r\n")
         try:
             noauth = [connect(endpoint) for endpoint in endpoints]
             equal(["GET", "ccfix:absent"], b"-NOAUTH Authentication required.\r\n", noauth)
-            stats((2, 2, 1))
+            stats((3, 2, 2))
         finally:
             equal(["CONFIG", "SET", "requirepass", ""], b"+OK\r\n")
         equal(["CONFIG", "RESETSTAT"], b"+OK\r\n")

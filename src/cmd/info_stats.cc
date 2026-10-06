@@ -61,13 +61,13 @@ bool has_error(const char* first, size_t first_size, const char* second, size_t 
 
 }  // namespace
 
-RejectedReplyScope::RejectedReplyScope(const Op& op) : previous_(rejected_reply) {
+RejectedReplyScope::RejectedReplyScope(const Op& op) noexcept : previous_(rejected_reply) {
     rejected_reply = &op;
 }
-RejectedReplyScope::~RejectedReplyScope() { rejected_reply = previous_; }
-bool RejectedReplyScope::contains(const Op& op) { return rejected_reply == &op; }
+RejectedReplyScope::~RejectedReplyScope() noexcept { rejected_reply = previous_; }
+bool RejectedReplyScope::contains(const Op& op) noexcept { return rejected_reply == &op; }
 
-void command_note_error(Op& op, const char* prior, size_t prior_size) {
+void command_note_error(Op& op, const char* prior, size_t prior_size) noexcept {
     if (!op.spec || RejectedReplyScope::contains(op)) return;
     ThreadCtx* thread = ThreadCtx::command_stats_thread();
     // Serverless command fixtures and explicitly bound admin contexts use the
@@ -79,8 +79,8 @@ void command_note_error(Op& op, const char* prior, size_t prior_size) {
     thread->note_command_failed(op.spec->id);
 }
 
-void Op::Sink::begin_error() { command_note_error(op_); }
-void Op::Sink::append_error(const char* text, size_t size) {
+void Op::Sink::begin_error() noexcept { command_note_error(op_); }
+void Op::Sink::append_error(const char* text, size_t size) noexcept {
     begin_error();
     append(text, size);
 }

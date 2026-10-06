@@ -5,8 +5,10 @@
 #include <utility>
 #include "src/cmd/command.h"
 #include "src/cmd/notify.h"
+#include "src/cmd/info_stats.h"
 #include "src/core/thread.h"
 #include "src/exec/op.h"
+#include "src/net/resp.h"
 namespace tomo { bool notify_keymiss_read_lookup(const Op&, Slice); }
 using namespace tomo;
 
@@ -53,6 +55,51 @@ int main() {
     thread.note_command_rejected(1);
     thread.note_command_failed(1);
     assert(thread.command_rejected_calls(1) == 0 && thread.command_failed_calls(1) == 0);
+
+    // Exercise the actual command error producers, not just the counter storage.
+    assert(command_registry_init(false));
+    thread.init_command_counts(command_registry_size());
+    ThreadCtx::bind_command_stats_thread(&thread);
+    Shard shard;
+    auto run = [&](std::initializer_list<const char*> args, bool rejected = false) {
+        Op op;
+        for (const char* arg : args) assert(op.push_arg(Slice(arg, std::strlen(arg))));
+        op.spec = command_lookup(op.cmd_name());
+        assert(op.spec);
+        op.hash = FlatStore::hash_key(op.key());
+        const uint64_t before = thread.command_failed_calls(op.spec->id);
+        if (rejected) {
+            thread.note_command_rejected(op.spec->id);
+            RejectedReplyScope scope(op);
+            reply_err(op.sink(), "NOPERM fixture denial");
+        } else {
+            thread.note_command(op.spec->id);
+            op.spec->handler(shard, op);
+        }
+        const bool error = !op.reply.empty() && op.reply.data()[0] == '-';
+        assert(thread.command_failed_calls(op.spec->id) == before + (error && !rejected));
+        return error;
+    };
+    assert(!run({"LPUSH", "ccfix:list", "v"}));
+    assert(run({"GET", "ccfix:list"}, true));
+    assert(run({"GET", "ccfix:list"}));
+    assert(!run({"GET", "ccfix:absent"}));
+    assert(run({"SET", "ccfix:k", "v", "BADOPTION"}));
+    assert(run({"EVALSHA", "0000000000000000000000000000000000000000", "0"}));
+    const auto* get = command_lookup(Slice("GET", 3));
+    assert(thread.command_calls(get->id) == 2);
+    assert(thread.command_rejected_calls(get->id) == 1);
+    assert(thread.command_failed_calls(get->id) == 1);
+    // Once per command even for multiple error members, and never infer an error
+    // from a bulk payload containing RESP-looking bytes.
+    Op composed;
+    composed.spec = get;
+    reply_array_header(composed.sink(), 3);
+    reply_bulk(composed.sink(), Slice("-ERR not an error", 17));
+    reply_wrongtype(composed.sink());
+    reply_syntax(composed.sink());
+    assert(thread.command_failed_calls(get->id) == 2);
+    ThreadCtx::bind_command_stats_thread(nullptr);
 #endif
     std::puts("PASS ccfix serverless assertions");
 }
