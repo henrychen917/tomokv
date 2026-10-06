@@ -333,7 +333,7 @@ bool parse_search(Op& op, GeoSearchOptions& options) {
         } else if (!search_store && !read_only_radius &&
                    (op.arg(arg).eq_icase("store") || op.arg(arg).eq_icase("storedist")) &&
                    arg + 1 < op.argc()) {
-            if (!options.store) options.destination_arg = arg + 1;
+            options.destination_arg = arg + 1;
             options.store = true;
             options.store_distance = op.arg(arg).eq_icase("storedist");
             arg++;
@@ -427,7 +427,16 @@ void reply_coordinate(Op& op, double value) {
     char text[96];
     const auto out = std::to_chars(text, text + sizeof(text), value,
                                    std::chars_format::fixed, 17);
-    const uint32_t length = static_cast<uint32_t>(out.ptr - text);
+    // Redis LD_STR_HUMAN: fixed 17 fractional digits, then trim zeroes and the dot.
+    // Coordinates are finite and bounded, so the fixed conversion always fits this buffer.
+    char* end = out.ptr;
+    while (end[-1] == '0') --end;
+    if (end[-1] == '.') --end;
+    if (end == text + 2 && text[0] == '-' && text[1] == '0') {
+        text[0] = '0';
+        end = text + 1;
+    }
+    const uint32_t length = static_cast<uint32_t>(end - text);
     if (!op.resp3()) {
         reply_bulk(op.sink(), Slice(text, length));
         return;
@@ -530,7 +539,7 @@ void cmd_geoadd(Shard& shard, Op& op) {
     if (added || changed) {
         const ZsetOwnerResult stored = zset_owner_replace(shard, op.key(), op.hash, kNotify,
                                                           entries, expire_at_ms,
-                                                          reserve_ttl_slot);
+                                                          reserve_ttl_slot, true);
         if (stored != ZsetOwnerResult::Ok) { reply_owner_error(op, stored); return; }
         if constexpr (kNotify)
             notify_record(shard, op, NOTIFY_ZSET, NotifyEventId::Zadd, op.key());
