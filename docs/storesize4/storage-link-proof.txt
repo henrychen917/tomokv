@@ -1,0 +1,26 @@
+build/gate-cache/store-objects/src_cmd_storesize.o
+0000000000000000 T tomo::FlatStore::init_storesize()
+0000000000000000 T tomo::FlatStore::storesize_clear()
+0000000000000000 T tomo::FlatStore::destroy_storesize()
+0000000000000000 T tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)
+0000000000000000 T tomo::FlatStore::storesize_deadline(tomo::KvObj const*, long)
+
+build/gate-cache/store-tsan-objects/src_cmd_storesize.o
+0000000000000000 T tomo::FlatStore::init_storesize()
+0000000000000000 T tomo::FlatStore::storesize_clear()
+0000000000000000 T tomo::FlatStore::destroy_storesize()
+0000000000000000 T tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)
+0000000000000000 T tomo::FlatStore::storesize_deadline(tomo::KvObj const*, long)
+
+build/gate-cache/store-sidecar-objects/src_cmd_storesize.o
+0000000000000000 T tomo::FlatStore::init_storesize()
+0000000000000000 T tomo::FlatStore::storesize_clear()
+0000000000000000 T tomo::FlatStore::destroy_storesize()
+0000000000000000 T tomo::FlatStore::storesize_replace(tomo::KvObj const*, tomo::KvObj const*)
+0000000000000000 T tomo::FlatStore::storesize_deadline(tomo::KvObj const*, long)
+
+build/store-regression: no unresolved storesize symbols; SHA-256=88cc46e129cdc744c80d13d5b83fc58f58c4b9eab3451cc2a82169df9ab44fed
+
+build/store-regression-tsan: no unresolved storesize symbols; SHA-256=e6d15f2ff7fde7ba0110e388f159ea3da811665df356c0be0f1e0b4e0bfc9d64
+
+build/store-regression-sidecar: no unresolved storesize symbols; SHA-256=c1a819cdc81338034607b2e3c1448f37e539dcf265fdbb27745d01bb4b4b1a29

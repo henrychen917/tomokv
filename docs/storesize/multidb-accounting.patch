@@ -1,0 +1,419 @@
+--- a/src/cmd/storesize.cc
++++ b/src/cmd/storesize.cc
+@@ -3,22 +3,124 @@
+ #include "../core/server.h"
+
+ namespace tomo {
+-
+-// Cold routing only. A kind-A copied-ELF control returns false here to restore
+-// PRE's census routes with exactly the candidate's text size and addresses.
+ __attribute__((noipa)) bool storesize_published_route() { return true; }
+
+-void FlatStore::destroy_storesize() { delete storesize_state(); }
++struct StoreSizePublished {
++    // The key/expiry pair is one atomic observation; an INFO row never combines
++    // an expiry count from one boundary with a key count from another.
++    std::atomic<uint64_t> counts{0};
++    std::atomic<uint64_t> avg_deadline{0};
++};
++struct StoreSizeOwner {
++    uint32_t keys = 0, expires = 0;
++    // Even UINT32_MAX deadlines of INT64_MAX fit without overflow.
++    unsigned __int128 deadlines = 0;
++};
++struct MultiStoreSizeState : StoreSizeState {
++    alignas(64) StoreSizePublished published[256];
++    // Producer-only rows are on separate cache lines from observer-read rows.
++    // The single-DB image uses existing store counts and needs no owner table.
++    alignas(64) std::array<StoreSizeOwner, 256> owner{};
++    std::array<uint64_t, 4> dirty{};
++};
++
++void FlatStore::destroy_storesize() {
++    if constexpr (kSingleDatabase) delete storesize_state();
++    else delete static_cast<MultiStoreSizeState*>(storesize_state());
++}
+
+ bool FlatStore::init_storesize() {
+-    auto* state = new (std::nothrow) StoreSizeState;
++    StoreSizeState* state;
++    if constexpr (kSingleDatabase) state = new (std::nothrow) StoreSizeState;
++    else state = new (std::nothrow) MultiStoreSizeState;
+     std::memcpy(reader_owner_gap_ + 4, &state, sizeof(state));
+     return state != nullptr;
+ }
+
+-uint64_t FlatStore::published_avg_deadline() const {
++uint64_t FlatStore::published_avg_deadline(uint8_t physical) const {
+     const auto* storesize_ = storesize_state();
+-    return storesize_ ? storesize_->avg_deadline.load(std::memory_order_relaxed) : 0;
++    if constexpr (kSingleDatabase) return storesize_->avg_deadline.load(std::memory_order_relaxed);
++    else return static_cast<const MultiStoreSizeState*>(storesize_)->published[physical].avg_deadline.load(std::memory_order_relaxed);
++}
++
++uint64_t FlatStore::published_database_counts(uint8_t physical) const {
++    if constexpr (kSingleDatabase) return 0;
++    else return static_cast<const MultiStoreSizeState*>(storesize_state())->published[physical].counts.load(std::memory_order_relaxed);
++}
++
++void FlatStore::storesize_replace(const KvObj* before, const KvObj* after) {
++    if constexpr (!kSingleDatabase) {
++        auto& state = *static_cast<MultiStoreSizeState*>(storesize_state());
++        const auto account = [&](const KvObj* object, bool add) {
++            if (!object) return;
++            const auto db = object->key_namespace();
++            auto& row = state.owner[db];
++            if (add) ++row.keys;
++            else { assert(row.keys); --row.keys; }
++            const int64_t at = object->expire_at_ms();
++            if (at >= 0) {
++                if (add) { ++row.expires; row.deadlines += static_cast<uint64_t>(at); }
++                else {
++                    assert(row.expires && row.deadlines >= static_cast<uint64_t>(at));
++                    --row.expires; row.deadlines -= static_cast<uint64_t>(at);
++                }
++            }
++            state.dirty[db / 64] |= uint64_t{1} << (db % 64);
++        };
++        account(before, false);
++        account(after, true);
++    }
++}
++
++void FlatStore::storesize_deadline(const KvObj* object, int64_t deadline) {
++    if constexpr (!kSingleDatabase) {
++        auto& state = *static_cast<MultiStoreSizeState*>(storesize_state());
++        const auto db = object->key_namespace();
++        auto& row = state.owner[db];
++        const int64_t old = object->expire_at_ms();
++        if (old >= 0) {
++            assert(row.expires && row.deadlines >= static_cast<uint64_t>(old));
++            --row.expires; row.deadlines -= static_cast<uint64_t>(old);
++        }
++        if (deadline >= 0) {
++            ++row.expires; row.deadlines += static_cast<uint64_t>(deadline);
++        }
++        state.dirty[db / 64] |= uint64_t{1} << (db % 64);
++    }
++}
++
++void FlatStore::storesize_clear() {
++    if constexpr (!kSingleDatabase) {
++        auto& state = *static_cast<MultiStoreSizeState*>(storesize_state());
++        for (unsigned db = 0; db < 256; ++db) {
++            auto& row = state.owner[db];
++            if (!row.keys && !row.expires) continue;
++            row = {};
++            state.dirty[db / 64] |= uint64_t{1} << (db % 64);
++        }
++    }
++}
++
++void FlatStore::publish_database_counts() const {
++    if constexpr (!kSingleDatabase) {
++        auto& state = *static_cast<MultiStoreSizeState*>(storesize_state());
++        for (unsigned word = 0; word < 4; ++word) {
++            uint64_t bits = state.dirty[word];
++            state.dirty[word] = 0;
++            while (bits) {
++                const unsigned db = 64 * word + __builtin_ctzll(bits);
++                bits &= bits - 1;
++                const auto& row = state.owner[db];
++                const uint64_t packed = row.keys | (uint64_t{row.expires} << 32);
++                const uint64_t deadline = row.expires ? row.deadlines / row.expires : 0;
++                auto& pub = state.published[db];
++                if (pub.avg_deadline.load(std::memory_order_relaxed) != deadline)
++                    pub.avg_deadline.store(deadline, std::memory_order_relaxed);
++                if (pub.counts.load(std::memory_order_relaxed) != packed)
++                    pub.counts.store(packed, std::memory_order_relaxed);
++            }
++        }
++    }
+ }
+
+ } // namespace tomo
+--- a/src/cmd/t_server.cc
++++ b/src/cmd/t_server.cc
+@@ -2701,19 +2701,34 @@
+                         static_cast<unsigned long long>(row.expires),
+                         static_cast<unsigned long long>(row.expires ? row.ttl / row.expires : 0));
+             }
+-        } else if (kSingleDatabase && g_server && keys) {
+-            unsigned __int128 ttl_sum = 0;
++        } else if (g_server) {
+             const uint64_t now = now_realtime_ms();
+-            for (uint32_t i = 0; i < g_server->nshards(); ++i) {
+-                const Shard& shard = g_server->shard(static_cast<int32_t>(i));
+-                const uint64_t deadline = shard.store().published_avg_deadline();
+-                if (deadline > now)
+-                    ttl_sum += static_cast<unsigned __int128>(deadline - now) * shard.published_expires();
++            DatabaseMap::Read map(g_server->databases());
++            for (uint32_t db = 0; db < g_server->cfg().databases; ++db) {
++                uint64_t dbkeys = 0, dbexpires = 0;
++                unsigned __int128 ttl_sum = 0;
++                for (uint32_t i = 0; i < g_server->nshards(); ++i) {
++                    const Shard& shard = g_server->shard(static_cast<int32_t>(i));
++                    uint64_t count, expiring;
++                    if constexpr (kSingleDatabase) {
++                        count = shard.published_size();
++                        expiring = shard.published_expires();
++                    } else {
++                        const auto packed = shard.store().published_database_counts(map[db]);
++                        count = static_cast<uint32_t>(packed);
++                        expiring = packed >> 32;
++                    }
++                    dbkeys += count; dbexpires += expiring;
++                    const uint64_t deadline = shard.store().published_avg_deadline(map[db]);
++                    if (deadline > now)
++                        ttl_sum += static_cast<unsigned __int128>(deadline - now) * expiring;
++                }
++                if (!dbkeys) continue;
++                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu\r\n", db,
++                        static_cast<unsigned long long>(dbkeys),
++                        static_cast<unsigned long long>(dbexpires),
++                        static_cast<unsigned long long>(dbexpires ? ttl_sum / dbexpires : 0));
+             }
+-            appendf(body, "db0:keys=%llu,expires=%llu,avg_ttl=%llu\r\n",
+-                    static_cast<unsigned long long>(keys),
+-                    static_cast<unsigned long long>(expires),
+-                    static_cast<unsigned long long>(expires ? ttl_sum / expires : 0));
+         }
+     }
+     if (g_server && info_section(op, "WRITEBACK")) g_server->wb_policy_info(body);
+@@ -2727,8 +2742,11 @@
+         return;
+     }
+     uint64_t keys = 0;
+-    if (g_server) for (uint32_t i = 0; i < g_server->nshards(); i++)
+-        keys += g_server->shard(static_cast<int32_t>(i)).published_size();
++    if (g_server) for (uint32_t i = 0; i < g_server->nshards(); i++) {
++        const auto& shard = g_server->shard(static_cast<int32_t>(i));
++        if constexpr (kSingleDatabase) keys += shard.published_size();
++        else keys += static_cast<uint32_t>(shard.store().published_database_counts(op.physical_db));
++    }
+     reply_int(op.sink(), static_cast<long long>(keys));
+ }
+
+@@ -3286,11 +3304,8 @@
+     // is the exact-on-demand variant -- each owner counts its own store at execution time, so the
+     // reply reflects everything already dispatched ahead of it on every shard, with none of the
+     // batch-boundary publication lag the plain DBSIZE reads.
+-    if (op.cmd_name().eq_icase("info"))
+-        return (!kSingleDatabase || !storesize_published_route()) && info_section(op, "KEYSPACE", true);
+-    if (op.cmd_name().eq_icase("dbsize")) return
+-        (op.argc() == 1 && (!kSingleDatabase || !storesize_published_route())) ||
+-        (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
++    if (op.cmd_name().eq_icase("info")) return !storesize_published_route() && info_section(op, "KEYSPACE", true);
++    if (op.cmd_name().eq_icase("dbsize")) return (op.argc() == 1 && !storesize_published_route()) || (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
+     if (op.cmd_name().eq_icase("debug"))
+         return op.argc() == 2 &&
+                (eq_icase(op.arg(1), "reload") || eq_icase(op.arg(1), "loadaof") ||
+--- a/src/core/shard.h
++++ b/src/core/shard.h
+@@ -336,6 +336,7 @@
+             published_expires_.store(expires, std::memory_order_relaxed);
+         if constexpr (kSingleDatabase)
+             if (expires) store_.publish_keyspace_sample();
++        if constexpr (!kSingleDatabase) store_.publish_database_counts();
+         const auto evicted = stats_.evicted;
+         if (published_evicted_.load(std::memory_order_relaxed) != evicted)
+             published_evicted_.store(evicted, std::memory_order_relaxed);
+@@ -347,6 +348,7 @@
+         published_expires_.store(store_.expire_count(), std::memory_order_relaxed);
+         if constexpr (kSingleDatabase)
+             if (store_.expire_count()) store_.publish_keyspace_sample();
++        if constexpr (!kSingleDatabase) store_.publish_database_counts();
+         published_evicted_.store(stats_.evicted, std::memory_order_relaxed);
+     }
+     uint32_t published_size() const { return published_size_.load(std::memory_order_relaxed); }
+--- a/src/store/flatstore.h
++++ b/src/store/flatstore.h
+@@ -1043,7 +1043,9 @@
+         if (count) storesize_->avg_deadline.store(sum / count, std::memory_order_relaxed);
+     }
+
+-    uint64_t published_avg_deadline() const;
++    uint64_t published_avg_deadline(uint8_t physical = 0) const;
++    uint64_t published_database_counts(uint8_t physical) const;
++    void publish_database_counts() const;
+     // Hashes in this shard carrying at least one field deadline. THE gate for the whole hash-field
+     // TTL feature: a shard that has never seen HEXPIRE reads zero here and every hash command pays
+     // one predicted-false test, with all field-TTL machinery out of line behind it.
+@@ -1531,6 +1533,7 @@
+         KvObj* old = find(h, key);
+         if (!old) return TtlResult::Missing;
+         if (old->has_ttl_slot()) {
++            if constexpr (!kSingleDatabase) storesize_deadline(old, expire_at_ms);
+             old->set_expire_at_ms(expire_at_ms);
+             (void)track_expire(h, old);
+             return TtlResult::Updated;
+@@ -1545,6 +1548,7 @@
+         KvObj* old = find_notify(h, key, sink);
+         if (!old) return TtlResult::Missing;
+         if (old->has_ttl_slot()) {
++            if constexpr (!kSingleDatabase) storesize_deadline(old, expire_at_ms);
+             old->set_expire_at_ms(expire_at_ms);
+             (void)track_expire(h, old);
+             return TtlResult::Updated;
+@@ -1558,6 +1562,7 @@
+         if (deadline(h, old) < 0) return TtlResult::NoChange;
+         if (__builtin_expect(read_local_enabled_, false))
+             return rewrite_expire_read_local(h, old, kNoTtlDeadline);
++        if constexpr (!kSingleDatabase) storesize_deadline(old, kNoTtlDeadline);
+         old->set_expire_at_ms(kNoTtlDeadline);
+         untrack_expire(h);
+         return TtlResult::Updated;
+@@ -1569,6 +1574,7 @@
+         if (deadline(h, old) < 0) return TtlResult::NoChange;
+         if (__builtin_expect(read_local_enabled_, false))
+             return rewrite_expire_read_local(h, old, kNoTtlDeadline);
++        if constexpr (!kSingleDatabase) storesize_deadline(old, kNoTtlDeadline);
+         old->set_expire_at_ms(kNoTtlDeadline);
+         untrack_expire(h);
+         return TtlResult::Updated;
+@@ -1793,6 +1799,7 @@
+     // FLUSH is intentionally proportional to the table capacity it discards. Borrowed string
+     // values move to the existing retirement list, so a send already in flight remains valid.
+     void clear() {
++        if constexpr (!kSingleDatabase) storesize_clear();
+         if (__builtin_expect(read_local_enabled_, false)) {
+             clear_read_local();
+             return;
+@@ -1827,6 +1834,7 @@
+     // allocations and their slot numbering until the capture walker releases its cursor; turn all
+     // live entries into ordinary tombstones instead of freeing the tables as clear() does.
+     void clear_during_snapshot() {
++        if constexpr (!kSingleDatabase) storesize_clear();
+         if (__builtin_expect(read_local_enabled_, false)) {
+             clear_during_snapshot_read_local();
+             return;
+@@ -1975,6 +1983,9 @@
+         std::memcpy(&state, reader_owner_gap_ + 4, sizeof(state));
+         return state;
+     }
++    void storesize_replace(const KvObj* before, const KvObj* after);
++    void storesize_deadline(const KvObj* object, int64_t deadline);
++    void storesize_clear();
+     void refresh_field_ttl_gate() {
+         // Once registration was lost, the count is no longer exact until FLUSH. Preserve a
+         // positive gate without reporting an artificial UINT32_MAX population through INFO.
+@@ -2674,6 +2685,7 @@
+                 else                 { tab_[t][i] = make_word(tag, o); }
+                 live_[t]++;
+                 if (fresh) {
++                    if constexpr (!kSingleDatabase) storesize_replace(nullptr, o);
+                     obj_bytes_ += kvobj_size(o);
+                     (void)this->track_expire(h, o);
+                 }
+@@ -2690,7 +2702,10 @@
+             else if (tag_of_word(w) == tag && cur->key().key_mem_eq(key)) {
+                 if (fresh && deadline_elapsed(h, cur, cached_now_ms_) && expired_counter_)
+                     (*expired_counter_)++;
+-                if (fresh) (void)this->track_expire(h, o);
++                if (fresh) {
++                    if constexpr (!kSingleDatabase) storesize_replace(cur, o);
++                    (void)this->track_expire(h, o);
++                }
+                 retire_obj(cur);                            // replace in place; live_ unchanged
+                 tab_[t][i] = make_word(tag, o);
+                 if (fresh) obj_bytes_ += kvobj_size(o);
+@@ -2721,6 +2736,7 @@
+                 if (was_expired) {
+                     *was_expired = deadline_elapsed(h, o, cached_now_ms_);
+                 }
++                if constexpr (!kSingleDatabase) storesize_replace(o, nullptr);
+                 untrack_expire(h);
+                 retire_obj(o);
+                 tab_[t][i] = kTombBit;                      // DEAD: non-zero, ptr == 0
+@@ -3124,6 +3140,7 @@
+                 const size_t added_bytes = kvobj_capacity(o) + read_local_external_bytes(o);
+                 obj_bytes_ += added_bytes;
+                 if (track_expire) {
++                    if constexpr (!kSingleDatabase) storesize_replace(nullptr, o);
+                     (void)this->track_expire(h, o);
+                     if (o->expire_at_ms() < 0) {
+                     }
+@@ -3138,7 +3155,10 @@
+                     (*expired_counter_)++;
+                 // An acquiring reader that starts after the retirement stamp must no longer be
+                 // able to acquire the displaced pointer.
+-                if (track_expire) (void)this->track_expire(h, o);
++                if (track_expire) {
++                    if constexpr (!kSingleDatabase) storesize_replace(cur, o);
++                    (void)this->track_expire(h, o);
++                }
+                 read_local_slot_store(&tab_[t][i], make_word(tag, o));
+                 retire_obj_read_local(cur);
+                 const size_t added_bytes = kvobj_capacity(o) + read_local_external_bytes(o);
+@@ -3164,6 +3184,7 @@
+                 if (was_expired) {
+                     *was_expired = deadline_elapsed(h, o, cached_now_ms_);
+                 }
++                if constexpr (!kSingleDatabase) storesize_replace(o, nullptr);
+                 untrack_expire(h);
+                 read_local_slot_store(&tab_[t][i], kTombBit);
+                 retire_obj_read_local(o);
+--- a/src/store/flatstore_atomic.inc
++++ b/src/store/flatstore_atomic.inc
+@@ -1295,10 +1295,12 @@
+                 if (object && tag_of_word(word) == tag && object->key().key_eq(key)) {
+                     obj_bytes_ -= kvobj_size(object);
+                     if (replacement && table == 0) {
++                        if constexpr (!kSingleDatabase) storesize_replace(object, replacement);
+                         (void)track_expire(hash, replacement);
+                         read_local_slot_store(&tab_[table][slot], make_word(tag, replacement));
+                         obj_bytes_ += kvobj_size(replacement);
+                     } else {
++                        if constexpr (!kSingleDatabase) storesize_replace(object, nullptr);
+                         untrack_expire(hash);
+                         read_local_slot_store(&tab_[table][slot], kTombBit);
+                         live_[table]--; tombs_[table]++;
+@@ -1312,6 +1314,7 @@
+         auto insert_replacement = [&] {
+             if (!replacement) return;
+             if (!have_insertion_slot) std::abort();
++            if constexpr (!kSingleDatabase) storesize_replace(nullptr, replacement);
+             read_local_slot_store(
+                 &tab_[0][insertion_slot], make_word(tag_of(hash), replacement));
+             if (insertion_reuses_tomb) tombs_[0]--;
+@@ -1370,10 +1373,12 @@
+                 if (object && tag_of_word(word) == tag && object->key().key_eq(key)) {
+                     obj_bytes_ -= kvobj_size(object);
+                     if (replacement && table == 0) {
++                        if constexpr (!kSingleDatabase) storesize_replace(object, replacement);
+                         (void)track_expire(hash, replacement);
+                         tab_[table][slot] = make_word(tag, replacement);
+                         obj_bytes_ += kvobj_size(replacement);
+                     } else {
++                        if constexpr (!kSingleDatabase) storesize_replace(object, nullptr);
+                         untrack_expire(hash);
+                         tab_[table][slot] = kTombBit;
+                         live_[table]--; tombs_[table]++;
+@@ -1387,6 +1392,7 @@
+         auto insert_replacement = [&] {
+             if (!replacement) return;
+             if (!have_insertion_slot) std::abort();
++            if constexpr (!kSingleDatabase) storesize_replace(nullptr, replacement);
+             tab_[0][insertion_slot] = make_word(tag_of(hash), replacement);
+             if (insertion_reuses_tomb) tombs_[0]--;
+             live_[0]++;
+--- a/tests/gate.sh
++++ b/tests/gate.sh
+@@ -1583,12 +1583,12 @@
+     && ok "multidb global namespace boundary" \
+     || bad "multidb global namespace boundary" "see $TMPDIR/multidb-boundary-unit.log"
+ # ST2: one serverless row before the quick-tier exit. The owner changes EXPECT.
+-# Multi-DB publication is a separate, unapplied proposal pending its hot-path exception.
+-row_begin "storesize db0 published monitoring"
+-unit_ready storesize-unit && taskset -c "$CORES" python3 tests/storesize_checks.py check build/storesize-unit \
++# Both database images are covered by this publication/accounting witness.
++row_begin "storesize published monitoring"
++unit_ready storesize-unit && taskset -c "$CORES" python3 tests/storesize_checks.py check-all build/storesize-unit \
+     >"$TMPDIR/storesize-unit.log" 2>&1 \
+-    && ok "storesize db0 published monitoring" \
+-    || bad "storesize db0 published monitoring" "see $TMPDIR/storesize-unit.log"
++    && ok "storesize published monitoring" \
++    || bad "storesize published monitoring" "see $TMPDIR/storesize-unit.log"
+ # SURVIVING.md's atomic lane, plus the post-APPLY diagnostic: one build and sixteen
+ # named defect rows. This collection site remains above the quick-tier exit.
+ row_begin "atomic survivors unit build"

@@ -1,0 +1,26 @@
+main.o total 128 diff 2
+  3388 3311 bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&)
+  4231 4442 void tomo_db0::IoLoop::run_loop<false, true, false, false, (unsigned char)0, false>()
+core/rl2s.o total 207 diff 6
+  852 772 auto tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_di
+  852 772 auto tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo_db0::Client*)::{lambda(auto:1&&)#4}::operator()<tomo_db0::IoLoop::parse_and_di
+  3138 3158 bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)
+  3287 3290 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+  852 772 auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_di
+  852 772 auto tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo_db0::Client*)::{lambda(auto:1&&)#4}::operator()<tomo_db0::IoLoop::parse_and_di
+core/reorder.o total 131 diff 6
+  3472 3459 bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)
+  3623 3626 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+  1853 2218 unsigned int tomo_db0::ExLoopT<true>::sweep<32u, true, false, false>()
+  4290 4440 unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+  18363 18411 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*)
+  4290 4440 unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+core/genthread.o total 113 diff 3
+  9522 9506 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*) [clone .isra.0]
+  3328 3315 bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)
+  3479 3482 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+cmd/t_server.o total 39 diff 4
+  653 663 tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)
+  16161 16503 tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)
+  349 351 tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+  7618 7664 tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)

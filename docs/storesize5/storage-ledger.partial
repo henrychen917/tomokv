@@ -1,0 +1,13 @@
+PARTIAL	0	GATE_ONLY_JOBS=storage_units; NOT A RECEIPT
+ok	0.010000	storage unlinked regression
+ok	0.010000	storage randomkey regression
+ok	0.000000	storage rehash regression
+ok	0.010000	storage rollback regression
+ok	0.000000	storage snapshot-eviction regression
+ok	0.070000	storage flags regression
+ok	0.000000	storage aof-eviction regression
+ok	0.000000	storage intents regression
+ok	0.000000	storage imported-hash regression
+ok	0.000000	storage field-index-failure regression
+ok	0.010000	storage hash-bytes regression
+ok	0.000000	storage deadline-sidecar regression

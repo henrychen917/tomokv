@@ -1,0 +1,31 @@
+GATE(iteration): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-psfix/build/gate-run.YNzjqM
+PARTIAL jobs (including prerequisites): release production_units netcmd_units
+PARTIAL jobs (including prerequisites): release production_units netcmd_units
+  row budget: 900s; median=0.02s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=0s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); netcmd regression build
+  netcmd regression build                              ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd streams regression
+  netcmd streams regression                            ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd zpop regression
+  netcmd zpop regression                               ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd notify-oom regression
+  netcmd notify-oom regression                         ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd notify-retry regression
+  netcmd notify-retry regression                       ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd flush regression
+  netcmd flush regression                              ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd output regression
+  netcmd output regression                             ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd pubsub regression
+  netcmd pubsub regression                             ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd receive regression
+  netcmd receive regression                            ok
+  row budget: 900s; median=-s; correctness-plan-fallback; netcmd config regression
+  netcmd config regression                             ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd hexpire-oom regression
+  netcmd hexpire-oom regression                        ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; NET1 serverless bounds + scan + reclamation
+  NET1 serverless bounds + scan + reclamation          ok
+GATE(PARTIAL): 13 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-psfix/docs/psfix2/gate-netcmd-ledger.tsv.partial

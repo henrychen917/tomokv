@@ -1,0 +1,26 @@
+build/store-regression: src/cmd/storesize.cc
+build/store-regression-tsan: src/cmd/storesize.cc
+build/store-regression-sidecar: src/cmd/storesize.cc
+build/multidb-unit: build/db0/src/cmd/storesize.o build/mdbqsbr-asan/src/cmd/storesize.o build/src/cmd/storesize.o
+build/multidb-boundary-unit: build/src/cmd/storesize.o
+build/mdbqsbr-unit: build/mdbqsbr-asan/src/cmd/storesize.o
+build/mdbqsbr-unit-tsan: build/mdbqsbr-tsan/src/cmd/storesize.o
+build/core-concurrency-unit: build/mdbqsbr-asan/src/cmd/storesize.o
+build/atomic-survivors-unit: build/src/cmd/storesize.o
+build/flushfix-unit: build/db0/src/cmd/storesize.o build/src/cmd/storesize.o
+build/execabort-watch-unit: build/src/cmd/storesize.o
+build/execabort-watch-db0-unit: build/db0/src/cmd/storesize.o build/src/cmd/storesize.o
+build/netcmd-unit: build/src/cmd/storesize.o
+build/netcap-unit: build/src/cmd/storesize.o
+build/storesize-unit: build/db0/src/cmd/storesize.o build/src/cmd/storesize.o
+build/exbatch-unit: build/src/cmd/storesize.o
+build/exbatch-db0-unit: build/db0/src/cmd/storesize.o build/src/cmd/storesize.o
+build/rehash-waits-unit: build/src/cmd/storesize.o
+build/rltopo-unit: build/mdbqsbr-asan/src/cmd/storesize.o
+build/lbplanner-unit: build/src/cmd/storesize.o
+build/persistfix-unit: build/src/cmd/storesize.o
+build/shutdown-unit: build/src/cmd/storesize.o
+build/reorder-engagement-unit: build/src/cmd/storesize.o
+build/reorder-engagement-unit-db0: build/db0/src/cmd/storesize.o build/src/cmd/storesize.o
+build/wb-rule-phase-unit: build/src/cmd/storesize.o
+build/wb-rule-db0-phase-unit: build/db0/src/cmd/storesize.o build/src/cmd/storesize.o

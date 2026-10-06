@@ -1,0 +1,4 @@
+START armed-1 taskset -c 112-127 tests/differ_gate.sh /home/user/Projects/cx-storesize/build/storesize5/POST/tomokv 17899 17900 112-119 6:2
+END armed-1 PASS 546.612s
+{"schema": 1, "group": "split", "parts": ["split-0", "split-1", "equivalence"], "start": 1791288238.47663, "end": 1791290881.787259, "seconds": 2643.31062912941, "comparisons": 540, "complete": true, "verdict": "PASS", "scope": "strict gate inventory fold; serial lane run, no parallel wall-time budget"}
+{"schema": 1, "group": "armed", "parts": ["armed-0", "armed-1"], "start": 1791288793.359203, "end": 1791291428.787318, "seconds": 2635.4281148910522, "comparisons": 496, "complete": true, "verdict": "PASS", "scope": "strict gate inventory fold; serial lane run, no parallel wall-time budget"}

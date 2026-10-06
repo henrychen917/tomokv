@@ -1,0 +1,22 @@
+{
+  "ordinary_command_bodies": 1225,
+  "ordinary_raw_equal": 1225,
+  "executable_objects": 88,
+  "identical_executable_objects": 86,
+  "changed_metadata_bodies": 18,
+  "linked_functions": 10350,
+  "linked_layout_changes": 0,
+  "linked_raw_byte_changes": 2346,
+  "linked_changes_confined_to_relocations": 2331,
+  "linked_ordinary_relocation_changes": 252,
+  "text_bytes": {
+    "PRE": 7797900,
+    "POST": 7797900
+  },
+  "pad": {
+    "kind": "A: PRE behavior with POST text size and every function address/size",
+    "sha256": "843ac6ecc49061d6a21bad40200fe90f4df4445a4e1785d7a1dee6d2a62d0dd0",
+    "identical_to": "PRE",
+    "limitation": "Degenerate text-layout control; metadata/data sizes differ from POST. No performance claim."
+  }
+}

@@ -1,0 +1,4356 @@
+[
+  {
+    "object": "cmd/acl.o",
+    "name": "tomo_db0::cmd_acl(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 74,
+    "post_size": 74,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/cmdgap.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_cluster_disabled(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 935,
+    "post_size": 935,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/functions.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_fcall<true, true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/functions.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_fcall<true, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 838,
+    "post_size": 838,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/functions.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_fcall<true, false>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/functions.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_fcall<true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 774,
+    "post_size": 774,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/functions.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_fcall<false, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 758,
+    "post_size": 758,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/functions.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_fcall<false, false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 45,
+    "post_size": 45,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/functions.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_fcall<true, false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 45,
+    "post_size": 45,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/functions.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_fcall<false, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 838,
+    "post_size": 838,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/functions.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_fcall<false, true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 45,
+    "post_size": 45,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/functions.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_fcall<true, true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 45,
+    "post_size": 45,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/functions.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_function(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11058,
+    "post_size": 11058,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/functions.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_function(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 499,
+    "post_size": 499,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void tomo_db0::notify_handler<&tomo_db0::(anonymous namespace)::cmd_geosearch_armed>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geosearch_armed(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 9,
+    "post_size": 9,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void tomo_db0::notify_handler<&tomo_db0::(anonymous namespace)::cmd_geohash_armed>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geohash_armed(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2180,
+    "post_size": 2180,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void tomo_db0::notify_handler<&tomo_db0::(anonymous namespace)::cmd_geodist_armed>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geodist_armed(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1144,
+    "post_size": 1144,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void tomo_db0::notify_handler<&tomo_db0::(anonymous namespace)::cmd_geopos_armed>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geopos_armed(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2162,
+    "post_size": 2162,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void tomo_db0::notify_handler<&tomo_db0::(anonymous namespace)::cmd_geoadd_armed>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geoadd_armed(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 9,
+    "post_size": 9,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geodist<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::Slice)#1}::operator()(tomo_db0::Slice) const [clone .isra.0]",
+    "pre_size": 686,
+    "post_size": 686,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geodist<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::Slice)#1}::operator()(tomo_db0::Slice) const [clone .isra.0]",
+    "pre_size": 686,
+    "post_size": 686,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void std::__insertion_sort<__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, __gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}>)",
+    "pre_size": 2742,
+    "post_size": 2742,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void std::__insertion_sort<__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, __gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}>)",
+    "pre_size": 2742,
+    "post_size": 2742,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, long, tomo_db0::ZsetEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, long, long, tomo_db0::ZsetEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}>)",
+    "pre_size": 1858,
+    "post_size": 1858,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, long, tomo_db0::ZsetEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, long, long, tomo_db0::ZsetEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}>)",
+    "pre_size": 1858,
+    "post_size": 1858,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geohash_armed(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geohash_clean(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2180,
+    "post_size": 2180,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geohash_clean(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geodist_armed(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geodist_clean(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1144,
+    "post_size": 1144,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geodist_clean(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geopos_armed(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geopos_clean(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2146,
+    "post_size": 2146,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geopos_clean(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geosearch<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 886,
+    "post_size": 886,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geosearch<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 51,
+    "post_size": 51,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geosearch_clean(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 9,
+    "post_size": 9,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geosearch<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 886,
+    "post_size": 886,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geosearch<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 51,
+    "post_size": 51,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::cmd_geo_xshard_local(tomo_db0::Shard&, tomo_db0::Op&, bool) [clone .cold]",
+    "pre_size": 51,
+    "post_size": 51,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, __gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}>)",
+    "pre_size": 2954,
+    "post_size": 2954,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 4833,
+    "post_size": 4833,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 243,
+    "post_size": 243,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, __gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}>)",
+    "pre_size": 2954,
+    "post_size": 2954,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 4661,
+    "post_size": 4661,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 239,
+    "post_size": 239,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_geoadd_clean(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 9,
+    "post_size": 9,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/geo.o",
+    "name": "tomo_db0::cmd_geo_xshard_local(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "pre_size": 1274,
+    "post_size": 1274,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/l4prebuild.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 4399,
+    "post_size": 4399,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/l4prebuild.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3228,
+    "post_size": 3228,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/l4prebuild.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 70,
+    "post_size": 70,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/l4prebuild.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_set_prebuilt<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 73,
+    "post_size": 73,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/multidb.o",
+    "name": "tomo_db0::Shard::publish_size()",
+    "pre_size": 216,
+    "post_size": 303,
+    "relocation_equal": false
+  },
+  {
+    "object": "cmd/pfdebug.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pfdebug_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3574,
+    "post_size": 3574,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/pfdebug.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pfdebug_impl<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 267,
+    "post_size": 267,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/pfdebug.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_pfdebug_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 9,
+    "post_size": 9,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/pfdebug.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pfdebug_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3574,
+    "post_size": 3574,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/pfdebug.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pfdebug_impl<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 267,
+    "post_size": 267,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/pfdebug.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_pfdebug(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 9,
+    "post_size": 9,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_eval<true, true, true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_eval<true, true, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 284,
+    "post_size": 284,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_eval<true, false, true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_eval<true, false, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 59,
+    "post_size": 59,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_eval<true, true, false>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_eval<true, true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 284,
+    "post_size": 284,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_eval<true, false, false>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_eval<true, false, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 59,
+    "post_size": 59,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_script(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3385,
+    "post_size": 3385,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_script(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 60,
+    "post_size": 60,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_eval<true, true, true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_eval<false, true, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 284,
+    "post_size": 284,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_eval<false, true, true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_eval<false, false, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 59,
+    "post_size": 59,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_eval<true, true, false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_eval<false, true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 284,
+    "post_size": 284,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_eval<false, true, false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/scripting.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_eval<false, false, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 59,
+    "post_size": 59,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/serialize.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_dump_notify_body(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1087,
+    "post_size": 1087,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/serialize.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_restore_notify_body(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2270,
+    "post_size": 2270,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/serialize.o",
+    "name": "tomo_db0::cmd_dump(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 116,
+    "post_size": 116,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/serialize.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_dump_notify_body(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 116,
+    "post_size": 116,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/serialize.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_restore_notify_body(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 119,
+    "post_size": 119,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/serialize.o",
+    "name": "tomo_db0::cmd_restore(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 119,
+    "post_size": 119,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/serialize.o",
+    "name": "_GLOBAL__sub_I__ZN8tomo_db08cmd_dumpERNS_5ShardERNS_2OpE",
+    "pre_size": 47,
+    "post_size": 47,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/serialize.o",
+    "name": "tomo_db0::cmd_dump_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/serialize.o",
+    "name": "tomo_db0::cmd_restore_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/serialize.o",
+    "name": "tomo_db0::cmd_dump(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1087,
+    "post_size": 1087,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/serialize.o",
+    "name": "tomo_db0::cmd_restore(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1507,
+    "post_size": 1507,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_time(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 646,
+    "post_size": 646,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_pfselftest(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 285,
+    "post_size": 285,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_role(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 655,
+    "post_size": 655,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_wait(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 223,
+    "post_size": 223,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_replicaof(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 74,
+    "post_size": 74,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_failover(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 274,
+    "post_size": 274,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_waitaof(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 597,
+    "post_size": 597,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_object(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1216,
+    "post_size": 1216,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_object_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1216,
+    "post_size": 1216,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_lolwut(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 770,
+    "post_size": 770,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_lolwut(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 40,
+    "post_size": 40,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_memory(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 8386,
+    "post_size": 8386,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_memory(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 218,
+    "post_size": 218,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_shutdown(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1148,
+    "post_size": 1148,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_shutdown(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 48,
+    "post_size": 48,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/server_tail.o",
+    "name": "tomo_db0::command_prepare_subcmd_route(tomo_db0::Server&, tomo_db0::Op&)",
+    "pre_size": 909,
+    "post_size": 909,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/slowlog.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_slowlog(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 5428,
+    "post_size": 5428,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/slowlog.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_slowlog(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 263,
+    "post_size": 263,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/slowlog.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_latency(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 8082,
+    "post_size": 8082,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/slowlog.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_latency(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 336,
+    "post_size": 336,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hscan<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hscan<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2439,
+    "post_size": 2439,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hrandfield<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hrandfield<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2369,
+    "post_size": 2369,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hvals<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hvals<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hkeys<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hkeys<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hgetall<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hgetall<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hincrbyfloat<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hincrbyfloat<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1406,
+    "post_size": 1406,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hincrby<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hincrby<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1274,
+    "post_size": 1274,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hstrlen<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hstrlen<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 217,
+    "post_size": 217,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hexists<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hexists<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 207,
+    "post_size": 207,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hlen<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hlen<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 170,
+    "post_size": 170,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hdel<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hdel<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1403,
+    "post_size": 1403,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hmget<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hmget<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 591,
+    "post_size": 591,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hget<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hget<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 495,
+    "post_size": 495,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hsetnx<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hsetnx<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 971,
+    "post_size": 971,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hset<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hset<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1589,
+    "post_size": 1589,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::HashFieldMap::scan_home<tomo_db0::(anonymous namespace)::cmd_hscan<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::HashFieldMap::Node const&)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_hscan<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::HashFieldMap::Node const&)#1}&) const",
+    "pre_size": 903,
+    "post_size": 903,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::HashFieldMap::scan_home<tomo_db0::(anonymous namespace)::cmd_hscan<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::HashFieldMap::Node const&)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_hscan<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::HashFieldMap::Node const&)#1}&) const",
+    "pre_size": 903,
+    "post_size": 903,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_hrandfield<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(unsigned int)#1}::operator()(unsigned int) const [clone .isra.0]",
+    "pre_size": 242,
+    "post_size": 242,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_hrandfield<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(unsigned int)#1}::operator()(unsigned int) const [clone .isra.0]",
+    "pre_size": 242,
+    "post_size": 242,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hscan<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 124,
+    "post_size": 124,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hscan<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2439,
+    "post_size": 2439,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hscan<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 124,
+    "post_size": 124,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hmget<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 591,
+    "post_size": 591,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hget<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 495,
+    "post_size": 495,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hincrbyfloat<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 48,
+    "post_size": 48,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hincrbyfloat<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1374,
+    "post_size": 1374,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hincrbyfloat<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 48,
+    "post_size": 48,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hstrlen<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 217,
+    "post_size": 217,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hexists<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 207,
+    "post_size": 207,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hlen<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 170,
+    "post_size": 170,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hdel<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 43,
+    "post_size": 43,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hdel<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1029,
+    "post_size": 1029,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hdel<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 43,
+    "post_size": 43,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hincrby<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 45,
+    "post_size": 45,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hincrby<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1210,
+    "post_size": 1210,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hincrby<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 45,
+    "post_size": 45,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hsetnx<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 42,
+    "post_size": 42,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hsetnx<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 907,
+    "post_size": 907,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hsetnx<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 42,
+    "post_size": 42,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hset<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 45,
+    "post_size": 45,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hset<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1543,
+    "post_size": 1543,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hset<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 45,
+    "post_size": 45,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hvals<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hkeys<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hgetall<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hrandfield<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 57,
+    "post_size": 57,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hrandfield<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2369,
+    "post_size": 2369,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hrandfield<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 57,
+    "post_size": 57,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hpersist<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hpersist<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hpexpiretime<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hpexpiretime<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hexpiretime<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hexpiretime<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hpttl<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hpttl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_httl<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_httl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hpexpireat<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hpexpireat<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 26,
+    "post_size": 26,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hexpireat<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hexpireat<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 26,
+    "post_size": 26,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hpexpire<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hpexpire<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 23,
+    "post_size": 23,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_hexpire<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hexpire<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 23,
+    "post_size": 23,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hpersist<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hpexpiretime<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hexpiretime<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hpttl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_httl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hpexpireat<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 26,
+    "post_size": 26,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hexpireat<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 26,
+    "post_size": 26,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hpexpire<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 23,
+    "post_size": 23,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_hash_ttl.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_hexpire<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 23,
+    "post_size": 23,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_lpos<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lpos<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2214,
+    "post_size": 2214,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_ltrim<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_ltrim<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2070,
+    "post_size": 2070,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_lrem<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lrem<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2196,
+    "post_size": 2196,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_linsert<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_linsert<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3032,
+    "post_size": 3032,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_lset<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lset<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1959,
+    "post_size": 1959,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_lindex<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lindex<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1045,
+    "post_size": 1045,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_lrange<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lrange<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 765,
+    "post_size": 765,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_llen<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_llen<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 573,
+    "post_size": 573,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_rpop<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_rpop<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_lpop<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lpop<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_rpushx<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_rpushx<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_lpushx<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lpushx<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 19,
+    "post_size": 19,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_rpush<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_rpush<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 13,
+    "post_size": 13,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_lpush<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lpush<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_llen<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 573,
+    "post_size": 573,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lindex<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1029,
+    "post_size": 1029,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lset<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 58,
+    "post_size": 58,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lset<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1912,
+    "post_size": 1912,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lset<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 58,
+    "post_size": 58,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_ltrim<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1937,
+    "post_size": 1937,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_ltrim<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 84,
+    "post_size": 84,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_ltrim<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 84,
+    "post_size": 84,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lrem<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 82,
+    "post_size": 82,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lrem<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2105,
+    "post_size": 2105,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lrem<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 82,
+    "post_size": 82,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_rpushx<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lpushx<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 19,
+    "post_size": 19,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_rpush<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 13,
+    "post_size": 13,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lpush<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_linsert<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 69,
+    "post_size": 69,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_linsert<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2950,
+    "post_size": 2950,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_linsert<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 69,
+    "post_size": 69,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lpos<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 108,
+    "post_size": 108,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lpos<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2198,
+    "post_size": 2198,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lpos<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 108,
+    "post_size": 108,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lrange<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 765,
+    "post_size": 765,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_rpop<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_list.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_lpop<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_select(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 28,
+    "post_size": 28,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}::operator()(tomo_db0::KvObj*) const [clone .part.0] [clone .isra.0]",
+    "pre_size": 482,
+    "post_size": 482,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_echo(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 507,
+    "post_size": 507,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_quit(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 297,
+    "post_size": 297,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_ping(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 494,
+    "post_size": 494,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_reset(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 639,
+    "post_size": 639,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool) [clone .isra.0]",
+    "pre_size": 601,
+    "post_size": 601,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1802,
+    "post_size": 1802,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+    "pre_size": 1567,
+    "post_size": 1535,
+    "relocation_equal": false
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_randomkey(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 653,
+    "post_size": 663,
+    "relocation_equal": false
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_transaction_control(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 74,
+    "post_size": 74,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_monitor(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 74,
+    "post_size": 74,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_pubsub_only(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 74,
+    "post_size": 74,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_bgrewriteaof(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 265,
+    "post_size": 265,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_auth(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 563,
+    "post_size": 563,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_lastsave(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 89,
+    "post_size": 89,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_dbsize(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 242,
+    "post_size": 242,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3007,
+    "post_size": 3007,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 69,
+    "post_size": 69,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_flip(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 846,
+    "post_size": 846,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_bgsave(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_save(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 17,
+    "post_size": 17,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_hello(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2459,
+    "post_size": 2459,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_hello(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 43,
+    "post_size": 43,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 6484,
+    "post_size": 6484,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 127,
+    "post_size": 127,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_client(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2539,
+    "post_size": 2539,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_client(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 40,
+    "post_size": 40,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_command(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2625,
+    "post_size": 2625,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_command(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 68,
+    "post_size": 68,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16161,
+    "post_size": 16503,
+    "relocation_equal": false
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 349,
+    "post_size": 351,
+    "relocation_equal": false
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(char const*)#1}::operator()(char const*) const",
+    "pre_size": 429,
+    "post_size": 429,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(char const*)#1}::operator()(char const*) const [clone .cold]",
+    "pre_size": 19,
+    "post_size": 19,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 7618,
+    "post_size": 7618,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 123,
+    "post_size": 123,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::Shard::publish_size()",
+    "pre_size": 216,
+    "post_size": 303,
+    "relocation_equal": false
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::command_config_routes_all_shards(tomo_db0::Op&)",
+    "pre_size": 610,
+    "post_size": 671,
+    "relocation_equal": false
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::cmd_flip_unavailable(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 74,
+    "post_size": 74,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_server.o",
+    "name": "tomo_db0::cmd_debug(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 150,
+    "post_size": 150,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_sscan<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3126,
+    "post_size": 3126,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_srandmember<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_srandmember<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3723,
+    "post_size": 3723,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_spop<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_spop<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3217,
+    "post_size": 3217,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_smembers<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_smembers<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1520,
+    "post_size": 1520,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_scard<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_scard<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 330,
+    "post_size": 330,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_smismember<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_smismember<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 750,
+    "post_size": 750,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_sismember<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_sismember<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 343,
+    "post_size": 343,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_srem<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_srem<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1300,
+    "post_size": 1300,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_sadd<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_sadd<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3108,
+    "post_size": 3108,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 117,
+    "post_size": 117,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3126,
+    "post_size": 3126,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_sscan<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 115,
+    "post_size": 115,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_smismember<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 750,
+    "post_size": 750,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_scard<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 330,
+    "post_size": 330,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_sismember<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 343,
+    "post_size": 343,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_srem<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_srem<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 918,
+    "post_size": 918,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_srem<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 40,
+    "post_size": 40,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_sadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 45,
+    "post_size": 45,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_sadd<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3025,
+    "post_size": 3025,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_sadd<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 45,
+    "post_size": 45,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_smembers<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1520,
+    "post_size": 1520,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_spop<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 48,
+    "post_size": 48,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_spop<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3036,
+    "post_size": 3036,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_spop<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 48,
+    "post_size": 48,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_srandmember<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 45,
+    "post_size": 45,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_srandmember<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3723,
+    "post_size": 3723,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_set.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_srandmember<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 45,
+    "post_size": 45,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_xtrim<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xtrim<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 620,
+    "post_size": 620,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_xdel<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xdel<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1246,
+    "post_size": 1246,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_xrevrange<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xrevrange<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_xrange<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xrange<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_xlen<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xlen<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 240,
+    "post_size": 240,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 5640,
+    "post_size": 5640,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xrevrange<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xrange<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xlen<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 224,
+    "post_size": 224,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xtrim<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 42,
+    "post_size": 42,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xtrim<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 572,
+    "post_size": 572,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xtrim<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 42,
+    "post_size": 42,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xdel<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 162,
+    "post_size": 162,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xdel<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1219,
+    "post_size": 1219,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xdel<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 167,
+    "post_size": 167,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 277,
+    "post_size": 277,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xadd<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 5441,
+    "post_size": 5441,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xadd<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 288,
+    "post_size": 288,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_xsetid<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xsetid<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1918,
+    "post_size": 1918,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_xgroup<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xgroup<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 5197,
+    "post_size": 5197,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_xautoclaim<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(void*, tomo_db0::StreamID&)#1}::_FUN(void*, tomo_db0::StreamID&)",
+    "pre_size": 133,
+    "post_size": 133,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_xautoclaim<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(void*, tomo_db0::StreamID&)#1}::_FUN(void*, tomo_db0::StreamID&)",
+    "pre_size": 133,
+    "post_size": 133,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xsetid<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1864,
+    "post_size": 1864,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xsetid<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 48,
+    "post_size": 48,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xsetid<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 48,
+    "post_size": 48,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xgroup<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 4524,
+    "post_size": 4524,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xgroup<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 173,
+    "post_size": 173,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xgroup<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 322,
+    "post_size": 322,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xack<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 952,
+    "post_size": 952,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xack<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 125,
+    "post_size": 125,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xack<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 952,
+    "post_size": 952,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xack<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 125,
+    "post_size": 125,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xautoclaim<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2774,
+    "post_size": 2774,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_xautoclaim<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)",
+    "pre_size": 1114,
+    "post_size": 1114,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xautoclaim<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 126,
+    "post_size": 126,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xautoclaim<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2758,
+    "post_size": 2758,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_xautoclaim<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)",
+    "pre_size": 1064,
+    "post_size": 1064,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xautoclaim<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 126,
+    "post_size": 126,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xinfo<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3887,
+    "post_size": 3887,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xinfo<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 86,
+    "post_size": 86,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xinfo<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 3887,
+    "post_size": 3887,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xinfo<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 86,
+    "post_size": 86,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_xautoclaim<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*) [clone .cold]",
+    "pre_size": 82,
+    "post_size": 82,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "tomo_db0::(anonymous namespace)::cmd_xautoclaim<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*)#1}::_FUN(void*, tomo_db0::StreamID const&, tomo_db0::StreamBorrowedEntry const*) [clone .cold]",
+    "pre_size": 82,
+    "post_size": 82,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xreadgroup<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 9,
+    "post_size": 9,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xreadgroup<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 9,
+    "post_size": 9,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xclaim<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 5384,
+    "post_size": 5384,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xclaim<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 339,
+    "post_size": 339,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xclaim<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 5336,
+    "post_size": 5336,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xclaim<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 339,
+    "post_size": 339,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xpending<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 4315,
+    "post_size": 4315,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xpending<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 224,
+    "post_size": 224,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xpending<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 4299,
+    "post_size": 4299,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_stream_groups.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_xpending<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 224,
+    "post_size": 224,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_type<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 433,
+    "post_size": 433,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1072,
+    "post_size": 1072,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_getrange<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 935,
+    "post_size": 935,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_del<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 763,
+    "post_size": 763,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_getdel<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 570,
+    "post_size": 570,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_set<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2201,
+    "post_size": 2201,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_getset<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 366,
+    "post_size": 366,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_psetex<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 21,
+    "post_size": 21,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_setex<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 21,
+    "post_size": 21,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_getex<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1725,
+    "post_size": 1725,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_incrbyfloat<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1166,
+    "post_size": 1166,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pexpiretime<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 19,
+    "post_size": 19,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_expiretime<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pttl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_ttl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 13,
+    "post_size": 13,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_exists<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1443,
+    "post_size": 1443,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_exists<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 5,
+    "post_size": 5,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_bitpos<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1752,
+    "post_size": 1752,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_bitcount<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1449,
+    "post_size": 1449,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_getbit<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 391,
+    "post_size": 391,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_strlen<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 311,
+    "post_size": 311,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_persist<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 371,
+    "post_size": 371,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pfcount<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 768,
+    "post_size": 768,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pfcount<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 127,
+    "post_size": 127,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pfadd<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1300,
+    "post_size": 1300,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pfadd<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 174,
+    "post_size": 174,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_setnx<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 373,
+    "post_size": 373,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_setbit<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1010,
+    "post_size": 1010,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_setrange<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1013,
+    "post_size": 1013,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_append<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 893,
+    "post_size": 893,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_decrby<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 242,
+    "post_size": 242,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_incrby<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 183,
+    "post_size": 183,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_decr<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_incr<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pexpireat<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 23,
+    "post_size": 23,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_expireat<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 26,
+    "post_size": 26,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pexpire<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 20,
+    "post_size": 20,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_expire<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 23,
+    "post_size": 23,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string.o",
+    "name": "tomo_db0::cmd_get_tls(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 776,
+    "post_size": 776,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 776,
+    "post_size": 776,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1088,
+    "post_size": 1088,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_set<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 2182,
+    "post_size": 2182,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_append<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 996,
+    "post_size": 996,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_strlen<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 311,
+    "post_size": 311,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_getrange<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 935,
+    "post_size": 935,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_setrange<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1045,
+    "post_size": 1045,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_setbit<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1170,
+    "post_size": 1170,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_getbit<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 391,
+    "post_size": 391,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_bitcount<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1369,
+    "post_size": 1369,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_bitpos<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1752,
+    "post_size": 1752,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_getset<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 512,
+    "post_size": 512,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_setnx<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 455,
+    "post_size": 455,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_setex<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 21,
+    "post_size": 21,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_psetex<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 21,
+    "post_size": 21,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_getex<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1904,
+    "post_size": 1904,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_getdel<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 618,
+    "post_size": 618,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_del<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1311,
+    "post_size": 1311,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_exists<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 827,
+    "post_size": 827,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_incr<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_decr<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_incrby<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 183,
+    "post_size": 183,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_decrby<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 242,
+    "post_size": 242,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_incrbyfloat<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1214,
+    "post_size": 1214,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pfadd<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1332,
+    "post_size": 1332,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pfcount<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 752,
+    "post_size": 752,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_expire<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 23,
+    "post_size": 23,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pexpire<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 20,
+    "post_size": 20,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_expireat<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 26,
+    "post_size": 26,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pexpireat<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 23,
+    "post_size": 23,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_ttl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 13,
+    "post_size": 13,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pttl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_persist<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 438,
+    "post_size": 438,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_expiretime<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pexpiretime<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 19,
+    "post_size": 19,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_type<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 449,
+    "post_size": 449,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pfadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 174,
+    "post_size": 174,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_pfcount<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 127,
+    "post_size": 127,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_get_tls_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_get_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_set_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_append_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_strlen_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_getrange_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_setrange_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_setbit_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_getbit_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_bitcount_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_bitpos_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_getset_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_setnx_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_setex_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_psetex_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_getex_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_getdel_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_del_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_exists_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_incr_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_decr_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_incrby_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_decrby_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_incrbyfloat_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_pfadd_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_pfcount_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_expire_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_pexpire_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_expireat_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_pexpireat_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_ttl_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_pttl_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_persist_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_expiretime_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_pexpiretime_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_string_notify.o",
+    "name": "tomo_db0::cmd_type_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zscan<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zscan<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 4260,
+    "post_size": 4260,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zrandmember<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrandmember<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 4401,
+    "post_size": 4401,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zpopmax<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zpopmax<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zpopmin<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zpopmin<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zlexcount<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zlexcount<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 970,
+    "post_size": 970,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zremrangebylex<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zremrangebylex<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1438,
+    "post_size": 1438,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zremrangebyscore<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zremrangebyscore<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1117,
+    "post_size": 1117,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zremrangebyrank<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zremrangebyrank<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 639,
+    "post_size": 639,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zrem<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrem<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1970,
+    "post_size": 1970,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zrevrank<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrevrank<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zrank<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrank<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zrevrange<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrevrange<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 22,
+    "post_size": 22,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zrevrangebylex<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrevrangebylex<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 22,
+    "post_size": 22,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zrangebylex<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrangebylex<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 19,
+    "post_size": 19,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zrevrangebyscore<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrevrangebyscore<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 22,
+    "post_size": 22,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zrangebyscore<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrangebyscore<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 19,
+    "post_size": 19,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zrange<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrange<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 19,
+    "post_size": 19,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zcount<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zcount<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1588,
+    "post_size": 1588,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zcard<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zcard<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 445,
+    "post_size": 445,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zincrby<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zincrby<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zmscore<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zmscore<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 861,
+    "post_size": 861,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zscore<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zscore<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 625,
+    "post_size": 625,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::notify_handler<&(void tomo_db0::(anonymous namespace)::cmd_zadd<true>(tomo_db0::Shard&, tomo_db0::Op&))>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 16,
+    "post_size": 16,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zadd<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "unsigned long tomo_db0::(anonymous namespace)::ZsetMemberMap::scan_home<tomo_db0::(anonymous namespace)::cmd_zscan<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::(anonymous namespace)::ZsetNode*)#1}>(tomo_db0::(anonymous namespace)::ZsetMemberMap::Table const&, unsigned int, tomo_db0::(anonymous namespace)::cmd_zscan<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::(anonymous namespace)::ZsetNode*)#1}&)",
+    "pre_size": 925,
+    "post_size": 925,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "unsigned long tomo_db0::(anonymous namespace)::ZsetMemberMap::scan_home<tomo_db0::(anonymous namespace)::cmd_zscan<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::(anonymous namespace)::ZsetNode*)#1}>(tomo_db0::(anonymous namespace)::ZsetMemberMap::Table const&, unsigned int, tomo_db0::(anonymous namespace)::cmd_zscan<true>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::(anonymous namespace)::ZsetNode*)#1}&)",
+    "pre_size": 925,
+    "post_size": 925,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zscan<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 200,
+    "post_size": 200,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zscan<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 4260,
+    "post_size": 4260,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zscan<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 200,
+    "post_size": 200,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zcard<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 445,
+    "post_size": 445,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zmscore<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 861,
+    "post_size": 861,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zscore<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 625,
+    "post_size": 625,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zpop_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "pre_size": 1566,
+    "post_size": 1566,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zpop_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool) [clone .cold]",
+    "pre_size": 61,
+    "post_size": 61,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zpopmax<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zpopmin<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zpop_generic<true>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "pre_size": 1664,
+    "post_size": 1664,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zpop_generic<true>(tomo_db0::Shard&, tomo_db0::Op&, bool) [clone .cold]",
+    "pre_size": 61,
+    "post_size": 61,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrange_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::(anonymous namespace)::RangeKind, bool, bool)",
+    "pre_size": 933,
+    "post_size": 933,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrevrange<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 22,
+    "post_size": 22,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrevrangebylex<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 22,
+    "post_size": 22,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrangebylex<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 19,
+    "post_size": 19,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrevrangebyscore<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 22,
+    "post_size": 22,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrangebyscore<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 19,
+    "post_size": 19,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrange<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 19,
+    "post_size": 19,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrange_generic<true>(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::(anonymous namespace)::RangeKind, bool, bool)",
+    "pre_size": 933,
+    "post_size": 933,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrank_generic<true>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "pre_size": 1757,
+    "post_size": 1757,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zlexcount<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 970,
+    "post_size": 970,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrank_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "pre_size": 1757,
+    "post_size": 1757,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrevrank<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrank<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zcount<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1588,
+    "post_size": 1588,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrem<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 43,
+    "post_size": 43,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zremrangebylex<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1438,
+    "post_size": 1438,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zremrangebylex<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zremrangebyscore<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1117,
+    "post_size": 1117,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zremrangebyscore<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zremrangebyrank<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 620,
+    "post_size": 620,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zremrangebyrank<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrem<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 1823,
+    "post_size": 1823,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrem<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 43,
+    "post_size": 43,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<true>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "pre_size": 6613,
+    "post_size": 6613,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<true>(tomo_db0::Shard&, tomo_db0::Op&, bool) [clone .cold]",
+    "pre_size": 155,
+    "post_size": 155,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool)",
+    "pre_size": 6533,
+    "post_size": 6533,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zadd_generic<false>(tomo_db0::Shard&, tomo_db0::Op&, bool) [clone .cold]",
+    "pre_size": 155,
+    "post_size": 155,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zincrby<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zadd<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zremrangebyrank<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zremrangebyscore<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zremrangebylex<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 39,
+    "post_size": 39,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrandmember<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 4401,
+    "post_size": 4401,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrandmember<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 250,
+    "post_size": 250,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/t_zset.o",
+    "name": "void tomo_db0::(anonymous namespace)::cmd_zrandmember<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+    "pre_size": 250,
+    "post_size": 250,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/xshard.o",
+    "name": "tomo_db0::Op::cmd_name() const",
+    "pre_size": 56,
+    "post_size": 56,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/xshard.o",
+    "name": "tomo_db0::cmd_bitfield(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 11,
+    "post_size": 11,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/xshard.o",
+    "name": "tomo_db0::cmd_bitfield_ro(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 14,
+    "post_size": 14,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/xshard.o",
+    "name": "tomo_db0::cmd_bitfield_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 135,
+    "post_size": 135,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/xshard.o",
+    "name": "tomo_db0::cmd_bitfield_ro_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 138,
+    "post_size": 138,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/xshard.o",
+    "name": "void tomo_db0::cmd_xshard_only_impl<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 17145,
+    "post_size": 17145,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/xshard.o",
+    "name": "tomo_db0::cmd_xshard_only_notify_body(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 9,
+    "post_size": 9,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/xshard.o",
+    "name": "tomo_db0::cmd_xshard_only_notify(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 117,
+    "post_size": 117,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/xshard.o",
+    "name": "void tomo_db0::cmd_xshard_only_impl<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 15739,
+    "post_size": 15739,
+    "relocation_equal": true
+  },
+  {
+    "object": "cmd/xshard.o",
+    "name": "tomo_db0::cmd_xshard_only(tomo_db0::Shard&, tomo_db0::Op&)",
+    "pre_size": 9,
+    "post_size": 9,
+    "relocation_equal": true
+  },
+  {
+    "object": "core/genthread.o",
+    "name": "tomo_db0::Op::cmd_name() const",
+    "pre_size": 56,
+    "post_size": 56,
+    "relocation_equal": true
+  },
+  {
+    "object": "core/genthread.o",
+    "name": "tomo_db0::Shard::publish_size()",
+    "pre_size": 216,
+    "post_size": 303,
+    "relocation_equal": false
+  },
+  {
+    "object": "core/reorder.o",
+    "name": "tomo_db0::Op::cmd_name() const",
+    "pre_size": 56,
+    "post_size": 56,
+    "relocation_equal": true
+  },
+  {
+    "object": "core/reorder.o",
+    "name": "tomo_db0::Shard::publish_size()",
+    "pre_size": 216,
+    "post_size": 303,
+    "relocation_equal": false
+  },
+  {
+    "object": "core/rl2s.o",
+    "name": "tomo_db0::Op::cmd_name() const",
+    "pre_size": 56,
+    "post_size": 56,
+    "relocation_equal": true
+  },
+  {
+    "object": "core/rl2s.o",
+    "name": "tomo_db0::Shard::publish_size()",
+    "pre_size": 216,
+    "post_size": 303,
+    "relocation_equal": false
+  },
+  {
+    "object": "main.o",
+    "name": "tomo_db0::Op::cmd_name() const",
+    "pre_size": 56,
+    "post_size": 56,
+    "relocation_equal": true
+  },
+  {
+    "object": "main.o",
+    "name": "tomo_db0::Shard::publish_size()",
+    "pre_size": 216,
+    "post_size": 303,
+    "relocation_equal": false
+  },
+  {
+    "object": "persist/aof.o",
+    "name": "tomo_db0::Shard::publish_size()",
+    "pre_size": 216,
+    "post_size": 303,
+    "relocation_equal": false
+  },
+  {
+    "object": "snapshot/snapshot.o",
+    "name": "tomo_db0::Shard::publish_size()",
+    "pre_size": 216,
+    "post_size": 303,
+    "relocation_equal": false
+  }
+]

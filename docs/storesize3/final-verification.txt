@@ -1,0 +1,7 @@
+2026-10-06, CPUs 112-127
+Forced build passed; final positive and negative fixtures passed (see logs).
+make -q build/tomokv build/storesize-unit build/multidb-unit: exit 0.
+sha256sum -c docs/storesize3/SHA256SUMS: all three OK.
+Report links and all literal body sizes/digests checked.
+Strict hot-body audit remains FAIL, intentionally recorded.
+No live server, benchmark, gate or push.

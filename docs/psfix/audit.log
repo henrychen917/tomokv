@@ -1,0 +1,131 @@
+db0/src/cmd/acl.o 258 PRE functions, 258 POST functions
+db0/src/cmd/climon.o 220 PRE functions, 220 POST functions
+db0/src/cmd/cmdgap.o 4 PRE functions, 4 POST functions
+db0/src/cmd/cmdmeta.o 33 PRE functions, 33 POST functions
+db0/src/cmd/commands.o 28 PRE functions, 28 POST functions
+db0/src/cmd/functions.o 78 PRE functions, 78 POST functions
+db0/src/cmd/geo.o 92 PRE functions, 92 POST functions
+db0/src/cmd/glob.o 2 PRE functions, 2 POST functions
+db0/src/cmd/hll.o 24 PRE functions, 24 POST functions
+db0/src/cmd/info_stats.o 3 PRE functions, 3 POST functions
+db0/src/cmd/l4prebuild.o 62 PRE functions, 62 POST functions
+db0/src/cmd/lbsignals.o 15 PRE functions, 15 POST functions
+db0/src/cmd/lcs.o 14 PRE functions, 14 POST functions
+db0/src/cmd/multidb.o 83 PRE functions, 83 POST functions
+db0/src/cmd/pfdebug.o 34 PRE functions, 34 POST functions
+db0/src/cmd/scripting.o 138 PRE functions, 138 POST functions
+db0/src/cmd/serialize.o 105 PRE functions, 105 POST functions
+db0/src/cmd/server_tail.o 93 PRE functions, 93 POST functions
+db0/src/cmd/slowlog.o 72 PRE functions, 72 POST functions
+db0/src/cmd/t_hash.o 232 PRE functions, 232 POST functions
+db0/src/cmd/t_hash_ttl.o 96 PRE functions, 96 POST functions
+db0/src/cmd/t_list.o 195 PRE functions, 195 POST functions
+db0/src/cmd/t_server.o 227 PRE functions, 229 POST functions
+db0/src/cmd/t_set.o 201 PRE functions, 201 POST functions
+db0/src/cmd/t_sort.o 22 PRE functions, 22 POST functions
+db0/src/cmd/t_stream.o 249 PRE functions, 249 POST functions
+db0/src/cmd/t_stream_groups.o 159 PRE functions, 159 POST functions
+db0/src/cmd/t_string.o 145 PRE functions, 145 POST functions
+db0/src/cmd/t_string_notify.o 171 PRE functions, 171 POST functions
+db0/src/cmd/t_zset.o 291 PRE functions, 291 POST functions
+db0/src/cmd/t_zset_ops.o 1 PRE functions, 1 POST functions
+db0/src/cmd/tracking.o 67 PRE functions, 67 POST functions
+db0/src/cmd/xshard.o 854 PRE functions, 854 POST functions
+db0/src/core/flipctl.o 73 PRE functions, 73 POST functions
+db0/src/core/genthread.o 750 PRE functions, 750 POST functions
+db0/src/core/lbplanner.o 64 PRE functions, 64 POST functions
+db0/src/core/lbstall.o 12 PRE functions, 12 POST functions
+db0/src/core/reorder.o 814 PRE functions, 814 POST functions
+db0/src/core/rl2s.o 906 PRE functions, 906 POST functions
+db0/src/main.o 819 PRE functions, 819 POST functions
+db0/src/net/tls.o 38 PRE functions, 38 POST functions
+db0/src/persist/aof.o 298 PRE functions, 298 POST functions
+db0/src/snapshot/snapshot.o 125 PRE functions, 126 POST functions
+src/cmd/acl.o 258 PRE functions, 258 POST functions
+src/cmd/climon.o 219 PRE functions, 219 POST functions
+src/cmd/cmdgap.o 4 PRE functions, 4 POST functions
+src/cmd/cmdmeta.o 33 PRE functions, 33 POST functions
+src/cmd/commands.o 28 PRE functions, 28 POST functions
+src/cmd/functions.o 78 PRE functions, 78 POST functions
+src/cmd/geo.o 93 PRE functions, 93 POST functions
+src/cmd/glob.o 2 PRE functions, 2 POST functions
+src/cmd/hll.o 24 PRE functions, 24 POST functions
+src/cmd/info_stats.o 3 PRE functions, 3 POST functions
+src/cmd/l4prebuild.o 66 PRE functions, 66 POST functions
+src/cmd/lbsignals.o 15 PRE functions, 15 POST functions
+src/cmd/lcs.o 14 PRE functions, 14 POST functions
+src/cmd/multidb.o 98 PRE functions, 98 POST functions
+src/cmd/pfdebug.o 34 PRE functions, 34 POST functions
+src/cmd/scripting.o 571 PRE functions, 571 POST functions
+src/cmd/serialize.o 104 PRE functions, 104 POST functions
+src/cmd/server_tail.o 92 PRE functions, 92 POST functions
+src/cmd/slowlog.o 72 PRE functions, 72 POST functions
+src/cmd/t_hash.o 233 PRE functions, 233 POST functions
+src/cmd/t_hash_ttl.o 94 PRE functions, 94 POST functions
+src/cmd/t_list.o 193 PRE functions, 193 POST functions
+src/cmd/t_server.o 223 PRE functions, 226 POST functions
+src/cmd/t_set.o 202 PRE functions, 202 POST functions
+src/cmd/t_sort.o 22 PRE functions, 22 POST functions
+src/cmd/t_stream.o 251 PRE functions, 251 POST functions
+src/cmd/t_stream_groups.o 160 PRE functions, 160 POST functions
+src/cmd/t_string.o 143 PRE functions, 143 POST functions
+src/cmd/t_string_notify.o 172 PRE functions, 172 POST functions
+src/cmd/t_zset.o 292 PRE functions, 292 POST functions
+src/cmd/t_zset_ops.o 1 PRE functions, 1 POST functions
+src/cmd/tracking.o 68 PRE functions, 68 POST functions
+src/cmd/xshard.o 859 PRE functions, 859 POST functions
+src/core/flipctl.o 73 PRE functions, 73 POST functions
+src/core/genthread.o 759 PRE functions, 759 POST functions
+src/core/lbplanner.o 64 PRE functions, 64 POST functions
+src/core/lbstall.o 12 PRE functions, 12 POST functions
+src/core/reorder.o 825 PRE functions, 825 POST functions
+src/core/rl2s.o 923 PRE functions, 923 POST functions
+src/main.o 824 PRE functions, 824 POST functions
+src/net/tls.o 38 PRE functions, 38 POST functions
+src/persist/aof.o 298 PRE functions, 298 POST functions
+src/snapshot/snapshot.o 122 PRE functions, 122 POST functions
+Hot bodies: 1482; raw byte equal: 1480; bytes + resolved relocation targets equal: 1482
+AUDIT: 16824 function pairs; 1211 ordinary command bodies; 43 changed bodies; 10 inventory changes
+CHANGED db0/src/cmd/t_server.o 7618 7553 tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)
+CHANGED db0/src/cmd/t_server.o 123 123 tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+CHANGED db0/src/cmd/t_server.o 7897 7881 tomo_db0::(anonymous namespace)::init_config(tomo_db0::Config const&)
+CHANGED db0/src/cmd/t_server.o 8628 8848 tomo_db0::(anonymous namespace)::collect_config_updates(tomo_db0::Op&, std::vector<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&)
+CHANGED db0/src/cmd/t_server.o 147 181 tomo_db0::(anonymous namespace)::collect_config_updates(tomo_db0::Op&, std::vector<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&) [clone .cold]
+CHANGED db0/src/cmd/t_server.o 16161 16293 tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)
+CHANGED db0/src/cmd/t_server.o 349 369 tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+CHANGED db0/src/cmd/t_server.o 381 593 void tomo_db0::reply_map_header<tomo_db0::Op::Sink&>(tomo_db0::Op::Sink&, unsigned long, bool)
+CHANGED db0/src/cmd/t_server.o 1463 1606 tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)
+CHANGED db0/src/cmd/t_server.o 689 689 tomo_db0::command_client_disconnected(tomo_db0::Client*)
+CHANGED db0/src/cmd/t_server.o 393 393 tomo_db0::command_client_migration_reserve(unsigned int)
+CHANGED db0/src/persist/aof.o 1435 1435 tomo_db0::AofManager::~AofManager()
+CHANGED db0/src/persist/aof.o 1435 1435 tomo_db0::AofManager::~AofManager()
+CHANGED db0/src/persist/aof.o 6570 6522 tomo_db0::aof_read_recovery(tomo_db0::Config const&, unsigned int, std::unique_ptr<tomo_db0::SnapshotLoadPlan, std::default_delete<tomo_db0::SnapshotLoadPlan> >&, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)
+CHANGED db0/src/snapshot/snapshot.o 342 358 tomo_db0::SnapshotManager::complete_file_success()
+CHANGED db0/src/snapshot/snapshot.o 2025 2025 tomo_db0::SnapshotManager::init(unsigned int, unsigned int, unsigned int, char const*, char const*, tomo_db0::PersistIoEngine)
+CHANGED db0/src/snapshot/snapshot.o 221 221 tomo_db0::snapshot_type_hooks(tomo_db0::Type)
+CHANGED db0/src/snapshot/snapshot.o 1546 1524 tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)
+CHANGED src/cmd/t_server.o 7671 7613 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)
+CHANGED src/cmd/t_server.o 123 123 tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&) [clone .cold]
+CHANGED src/cmd/t_server.o 7897 7881 tomo::(anonymous namespace)::init_config(tomo::Config const&)
+CHANGED src/cmd/t_server.o 8600 8956 tomo::(anonymous namespace)::collect_config_updates(tomo::Op&, std::vector<std::pair<tomo::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&)
+CHANGED src/cmd/t_server.o 147 210 tomo::(anonymous namespace)::collect_config_updates(tomo::Op&, std::vector<std::pair<tomo::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&) [clone .cold]
+CHANGED src/cmd/t_server.o 16215 16341 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)
+CHANGED src/cmd/t_server.o 353 369 tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]
+CHANGED src/cmd/t_server.o 1812 1812 tomo::command_client_connected(tomo::Client*, char const*, char const*, bool, unsigned long)
+CHANGED src/cmd/t_server.o 689 689 tomo::command_client_disconnected(tomo::Client*)
+CHANGED src/cmd/t_server.o 864 864 tomo::command_client_migration_extract(tomo::Client*)
+CHANGED src/cmd/t_server.o 645 645 tomo::command_client_migration_install(void*)
+CHANGED src/cmd/t_server.o 393 393 tomo::command_client_migration_reserve(unsigned int)
+CHANGED src/cmd/t_server.o 5268 4600 tomo::cfg_client_output_buffer_limit_string[abi:cxx11](tomo::ClientOutputBufferLimits const&)
+CHANGED src/cmd/t_server.o 462 673 void tomo::reply_int<tomo::Op::Sink>(tomo::Op::Sink&&, long long)
+CHANGED src/cmd/t_server.o 2430 2288 tomo::Server::flipctl_debug_dump[abi:cxx11]() const
+CHANGED src/persist/aof.o 1467 1451 tomo::AofManager::~AofManager()
+CHANGED src/persist/aof.o 1467 1451 tomo::AofManager::~AofManager()
+CHANGED src/persist/aof.o 6810 6746 tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::default_delete<tomo::SnapshotLoadPlan> >&, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)
+CHANGED src/persist/aof.o 297 297 tomo::aof_read_recovery(tomo::Config const&, unsigned int, std::unique_ptr<tomo::SnapshotLoadPlan, std::default_delete<tomo::SnapshotLoadPlan> >&, std::vector<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo::AofReplayPlan, std::default_delete<tomo::AofReplayPlan> > > >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .cold]
+CHANGED src/snapshot/snapshot.o 342 358 tomo::SnapshotManager::complete_file_success()
+CHANGED src/snapshot/snapshot.o 2025 2025 tomo::SnapshotManager::init(unsigned int, unsigned int, unsigned int, char const*, char const*, tomo::PersistIoEngine)
+CHANGED src/snapshot/snapshot.o 5605 5639 tomo::SnapshotManager::start(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo::AofManager*, char const*, char const*, bool)
+CHANGED src/snapshot/snapshot.o 221 221 tomo::snapshot_type_hooks(tomo::Type)
+CHANGED src/snapshot/snapshot.o 986 826 tomo::kvobj_external_bytes(tomo::KvObj const*)
+CHANGED src/snapshot/snapshot.o 2049 2188 tomo::FlatStore::make_room_for(tomo::Slice, unsigned long)

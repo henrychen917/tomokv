@@ -1,0 +1,34 @@
+[
+  {
+    "image": "db0",
+    "audit": "hot",
+    "total": 744,
+    "raw_equal": 703,
+    "resolved_equal": 720,
+    "exit": 1
+  },
+  {
+    "image": "db0",
+    "audit": "handlers",
+    "total": 622,
+    "raw_equal": 596,
+    "resolved_equal": 611,
+    "exit": 0
+  },
+  {
+    "image": "multi",
+    "audit": "hot",
+    "total": 744,
+    "raw_equal": 603,
+    "resolved_equal": 616,
+    "exit": 1
+  },
+  {
+    "image": "multi",
+    "audit": "handlers",
+    "total": 623,
+    "raw_equal": 403,
+    "resolved_equal": 520,
+    "exit": 0
+  }
+]

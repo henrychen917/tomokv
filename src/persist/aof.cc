@@ -2668,6 +2668,9 @@ bool aof_read_recovery(const Config& config, uint32_t expected_shards,
     increments.clear();
     warning.clear();
     error.clear();
+    // CONFIG SET changes recovery policy without touching the active writer.
+    // At boot the CONFIG table is empty, so the parsed startup value wins.
+    const bool load_truncated = command_aof_load_truncated(config.aof_load_truncated);
     const std::string directory = aof_directory_path(config);
     const std::string basename = plain_name(config.appendfilename)
         ? config.appendfilename : "appendonly.aof";
@@ -2679,7 +2682,7 @@ bool aof_read_recovery(const Config& config, uint32_t expected_shards,
         bool exists = false;
         std::string local_warning;
         auto plan = aof_read_plan(aof_file_path(config).c_str(), expected_shards,
-                                  config.aof_load_truncated,
+                                  load_truncated,
                                   exists, local_warning, error);
         if (!error.empty()) return false;
         if (!local_warning.empty()) warning = local_warning;
@@ -2717,7 +2720,7 @@ bool aof_read_recovery(const Config& config, uint32_t expected_shards,
         const bool last = index + 1 == manifest.increments.size();
         const std::vector<uint32_t>* initial = &manifest.increment_starts[index];
         auto plan = aof_read_plan((directory + "/" + entry.second).c_str(), expected_shards,
-                                  last && config.aof_load_truncated,
+                                  last && load_truncated,
                                   exists, local_warning, error, initial);
         if (!plan || !exists) {
             if (error.empty()) error = "AOF manifest increment file is missing";

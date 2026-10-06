@@ -1,0 +1,12 @@
+Handler/publication bodies: 622 raw equal: 596 unchanged: 611
+DIFF cmd/multidb.o 216 0 tomo_db0::Shard::publish_size()
+DIFF cmd/t_server.o 16177 16519 tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)
+DIFF cmd/t_server.o 349 351 tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+DIFF cmd/t_server.o 216 0 tomo_db0::Shard::publish_size()
+DIFF cmd/t_server.o 610 0 tomo_db0::command_config_routes_all_shards(tomo_db0::Op&)
+DIFF core/genthread.o 216 0 tomo_db0::Shard::publish_size()
+DIFF core/reorder.o 216 0 tomo_db0::Shard::publish_size()
+DIFF core/rl2s.o 216 0 tomo_db0::Shard::publish_size()
+DIFF main.o 216 0 tomo_db0::Shard::publish_size()
+DIFF persist/aof.o 216 0 tomo_db0::Shard::publish_size()
+DIFF snapshot/snapshot.o 216 0 tomo_db0::Shard::publish_size()

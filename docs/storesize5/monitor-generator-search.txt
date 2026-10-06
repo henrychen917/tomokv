@@ -1,0 +1,34 @@
+1192:    Deliberately not in the stream: DBSIZE and INFO (batch-published on TomoKV by design,
+1763:    # INFO keyspace has deterministic bytes here (no TTLs). Exercise its owner fan-out between
+1765:    ops += [["MULTI"], ["INFO", "keyspace"], ["DEL", strkeys[0]], ["INFO", "keyspace"],
+5759:def dbsize_integer(reply):
+5760:    """DBSIZE counts are exact nonnegative RESP integers, never clock tolerances."""
+5762:        raise ValueError("DBSIZE did not return a count: %r" % reply)
+5766:def wait_published_dbsize(sock, file, expected):
+5776:            sock.sendall(enc(["DBSIZE"]))
+5777:            value = dbsize_integer(read_reply(file))
+5778:            coverage.note(["DBSIZE"], "bounded batch-publication property")
+5801:            ["INFO", "keyspace"], ["SWAPDB", "0", "1"], ["INFO", "keyspace"],
+5802:            ["SWAPDB", "0", "1"], ["INFO", "keyspace"], ["EXEC"], ["FLUSHALL"]]
+5823:            # gen_edgetime deliberately excludes batch-published DBSIZE/INFO.
+5824:            # Preserve this command position, but compare NOW to Redis DBSIZE
+5826:            ops.append(["DBSIZE", "NOW"])
+5835:        ops += [["SELECT", str(db)], ["KEYS", "*"], ["DBSIZE", "NOW"]]
+6076:dbsize_positions_checked = 0
+6093:    oracle_payload = (b"".join(enc(["DBSIZE"] if o == ["DBSIZE", "NOW"] else o)
+6110:        if SUITE == "multidb" and o == ["DBSIZE", "NOW"]:
+6111:            dbsize_positions_checked += 1
+6113:                equal = dbsize_integer(a) == dbsize_integer(b)
+6118:                print("  DBSIZE EXACT PROPERTY FAIL op %d: target NOW=%r oracle DBSIZE=%r" %
+6163:    expected_positions = sum(o == ["DBSIZE", "NOW"] for o in ops)
+6164:    if not expected_positions or dbsize_positions_checked != expected_positions:
+6165:        raise RuntimeError("DBSIZE exact-count positions were not all checked")
+6166:    ts.sendall(enc(["DBSIZE", "NOW"])); os_.sendall(enc(["DBSIZE"]))
+6167:    exact = dbsize_integer(read_reply(tf))
+6168:    oracle = dbsize_integer(read_reply(of))
+6169:    coverage.note(["DBSIZE", "NOW"], "final publication reference")
+6172:        print("  DBSIZE EXACT PROPERTY FAIL final witness: target=%d oracle=%d expected=1" %
+6174:    converged, polls, elapsed, published = wait_published_dbsize(ts, tf, exact)
+6177:        print("  DBSIZE PUBLICATION PROPERTY FAIL: published=%r exact=%d polls=%d elapsed_ms=%.3f" %
+6179:    print("  multidb DBSIZE properties: exact_positions=%d publication_polls=%d "
+6181:          (dbsize_positions_checked, polls, elapsed * 1000, published, exact, converged))

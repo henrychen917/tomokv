@@ -1,0 +1,64 @@
+WALK arm=POST image=db0 keys=128 capacity=16384 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=DBSIZE NOW slots=16384 objects=128 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=DBSIZE NOW slots=16384 objects=4096 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=DBSIZE NOW slots=32768 objects=16384 shards=16
+PASS storesize image=db0 arm=POST mode=2s read-local=0
+WALK arm=POST image=db0 keys=128 capacity=16384 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=DBSIZE NOW slots=16384 objects=128 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=DBSIZE NOW slots=16384 objects=4096 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=DBSIZE NOW slots=32768 objects=16384 shards=16
+PASS storesize image=db0 arm=POST mode=2s read-local=1
+WALK arm=POST image=db0 keys=128 capacity=16384 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=DBSIZE NOW slots=16384 objects=128 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=DBSIZE NOW slots=16384 objects=4096 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=DBSIZE NOW slots=32768 objects=16384 shards=16
+PASS storesize image=db0 arm=POST mode=1s read-local=0
+WALK arm=POST image=db0 keys=128 capacity=16384 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=128 capacity=16384 command=DBSIZE NOW slots=16384 objects=128 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=4096 capacity=16384 command=DBSIZE NOW slots=16384 objects=4096 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=DBSIZE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO KEYSPACE slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=INFO SERVER slots=0 objects=0 shards=16
+WALK arm=POST image=db0 keys=16384 capacity=32768 command=DBSIZE NOW slots=32768 objects=16384 shards=16
+PASS storesize image=db0 arm=POST mode=1s read-local=1
