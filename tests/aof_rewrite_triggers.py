@@ -225,8 +225,8 @@ if manual_observed.get("aof_rewrite_requests", 0) <= manual_before.get("aof_rewr
     raise AssertionError("manual rewrite request counter did not fire")
 os.unlink(marker)
 manual_after = wait_info(
-    lambda values: values.get("aof_rewrite_completions", 0) >
-                   manual_before.get("aof_rewrite_completions", 0))
+    lambda values: values.get("aof_rewrites", 0) >
+                   manual_before.get("aof_rewrites", 0))
 if manual_after.get("aof_last_bgrewrite_status") != "ok" or manual_after.get("aof_base_size", 0) == 0:
     raise AssertionError("manual rewrite observability did not publish success: %r" % manual_after)
 
@@ -249,7 +249,7 @@ try:
         wait_info(lambda values, target=failure_start + attempt + 1:
                   values.get("aof_rewrite_failures", 0) >= target)
     limited = wait_info(lambda values:
-                        values.get("aof_rewrite_consecutive_failures", 0) >= 3)
+                        values.get("aof_rewrites_consecutive_failures", 0) >= 3)
     auto_before = limited.get("aof_auto_rewrite_triggers", 0)
     if controller.command("CONFIG", "SET",
                           "auto-aof-rewrite-percentage", "1",
@@ -271,9 +271,9 @@ if controller.command("CONFIG", "SET", "auto-aof-rewrite-percentage", "0") != b"
 recovery_before = info(controller)
 controller.send_only("BGREWRITEAOF")
 recovery_after = wait_info(
-    lambda values: values.get("aof_rewrite_completions", 0) >
-                   recovery_before.get("aof_rewrite_completions", 0))
-if recovery_after.get("aof_rewrite_consecutive_failures") != 0:
+    lambda values: values.get("aof_rewrites", 0) >
+                   recovery_before.get("aof_rewrites", 0))
+if recovery_after.get("aof_rewrites_consecutive_failures") != 0:
     raise AssertionError("successful rewrite did not clear the limiter")
 
 # Accumulate growth exclusively through script post-images with auto work exactly disabled, then
@@ -285,7 +285,7 @@ grown = wait_info(lambda values:
                   values.get("aof_current_size", 0) >
                   recovery_after.get("aof_rewrite_base_size", 0) * 6 // 5)
 auto_start = grown.get("aof_auto_rewrite_triggers", 0)
-completion_start = grown.get("aof_rewrite_completions", 0)
+completion_start = grown.get("aof_rewrites", 0)
 base_start = grown.get("aof_base_size", 0)
 if controller.command("DEBUG", "AOF-REWRITE-PAUSE", "before-manifest") != b"OK":
     raise AssertionError("could not arm auto rewrite pause")
@@ -298,7 +298,7 @@ if auto_observed.get("aof_auto_rewrite_triggers", 0) <= auto_start:
     raise AssertionError("automatic rewrite trigger counter did not fire")
 os.unlink(marker)
 auto_after = wait_info(lambda values:
-                       values.get("aof_rewrite_completions", 0) > completion_start)
+                       values.get("aof_rewrites", 0) > completion_start)
 if auto_after.get("aof_base_size", 0) <= base_start:
     raise AssertionError("automatic rewrite did not replace the BASE")
 if auto_after.get("aof_current_size", 0) >= grown.get("aof_current_size", 0):
@@ -320,7 +320,7 @@ verify_values(expected)
 time.sleep(2)
 print("AOF TRIGGER PASS: atomic=%d script_growth=384 requests=%d completions=%d "
       "auto=%d failures=%d backoff=%d" % (
-    ATOMIC, auto_after["aof_rewrite_requests"], auto_after["aof_rewrite_completions"],
+    ATOMIC, auto_after["aof_rewrite_requests"], auto_after["aof_rewrites"],
     auto_after["aof_auto_rewrite_triggers"], auto_after["aof_rewrite_failures"],
     auto_after["aof_auto_rewrite_backoff_skips"]))
 
