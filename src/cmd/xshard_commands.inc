@@ -1909,7 +1909,6 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
                     const auto& row = (*state.groups[i].aux->database_stats)[db];
                     stats[db].keys += row.keys; stats[db].expires += row.expires;
                     stats[db].ttl += row.ttl;
-                    stats[db].subexpiry += row.subexpiry;
                 }
             command_info_with_databases(*state.server, op, stats);
             break;

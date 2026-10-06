@@ -1076,21 +1076,37 @@ void cmd_sscan(Shard& shard, Op& op) {
     }
 
     const SetMemberTable& table = set.external_as<SetVal>()->table;
+    uint32_t position = 0;
+    const uint32_t cursor_generation = static_cast<uint32_t>(cursor >> 32);
+    if (cursor != 0 && cursor_generation == table.generation())
+        position = static_cast<uint32_t>(cursor);
+    if (position >= table.slot_count()) position = 0;
+
     std::vector<uint32_t> matches;
     try {
         matches.reserve(static_cast<size_t>(std::min<uint64_t>(options.count, table.size())));
-        cursor = table.scan(cursor, options.count, matches);
-        if (options.use_pattern) {
-            size_t kept = 0;
-            for (uint32_t slot : matches)
-                if (command_glob_match(options.pattern, table.value_at(slot))) matches[kept++] = slot;
-            matches.erase(matches.begin() + kept, matches.end());
-        }
     } catch (const std::bad_alloc&) {
         reply_err(op.sink(), "ERR out of memory");
         return;
     }
-    reply_scan(op, cursor, matches, table);
+    const uint64_t max_probes = options.count > std::numeric_limits<uint64_t>::max() / 10
+                                    ? std::numeric_limits<uint64_t>::max()
+                                    : options.count * 10;
+    uint64_t probes = 0, sampled = 0;
+    while (position < table.slot_count() && probes < max_probes && sampled < options.count) {
+        if (table.live_at(position)) {
+            sampled++;
+            const Slice member = table.value_at(position);
+            if (!options.use_pattern || command_glob_match(options.pattern, member))
+                matches.push_back(position);
+        }
+        position++;
+        probes++;
+    }
+    const uint64_t next_cursor = position == table.slot_count()
+                                     ? 0
+                                     : (static_cast<uint64_t>(table.generation()) << 32) | position;
+    reply_scan(op, next_cursor, matches, table);
 }
 
 #define TOMO_HANDLER_PAIR(fn) fn<false>, 1, 1, 1, notify_handler<fn<true>>
@@ -1328,31 +1344,6 @@ SnapshotTypeHooks set_snapshot_hooks() {
 
 CommandTable set_command_table() {
     return {kTable, sizeof(kTable) / sizeof(kTable[0])};
-}
-
-uint64_t SetMemberTable::scan(uint64_t cursor, uint64_t count,
-                              std::vector<uint32_t>& members) const {
-    if (!live_) return 0;
-    const uint32_t mask = static_cast<uint32_t>(slots_.size() - 1);
-    const uint64_t budget = count > UINT64_MAX / 10 ? UINT64_MAX : count * 10;
-    uint64_t probes = 0;
-    do {
-        const uint32_t home = static_cast<uint32_t>(cursor) & mask;
-        uint32_t pos = home;
-        // Complete the logical HOME bucket before advancing, including displaced members past
-        // tombstones and wraparound. Rehash preserves home hash prefixes, not physical slots.
-        // Walking the probe cluster here keeps scan bookkeeping out of insert/erase entirely.
-        do {
-            const Slot& slot = slots_[pos];
-            ++probes;
-            if (slot.state == Empty) break;
-            if (slot.state == Live && (static_cast<uint32_t>(mix64(slot.hash)) & mask) == home)
-                members.push_back(pos);
-            pos = (pos + 1) & mask;
-        } while (pos != home);
-        cursor = scan_cursor_next(cursor, mask);
-    } while (cursor && members.size() < count && probes < budget);
-    return cursor;
 }
 
 }  // namespace tomo

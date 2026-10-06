@@ -939,8 +939,13 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
-    // Direct DEBUG SLEEP is intercepted by IoLoop; EXEC uses multi.inc's deferred owner tasks.
-    // Both routes share debug_sleep_prepare, so this handler never sleeps a worker thread.
+    // NO DEBUG SLEEP BRANCH HERE, AND THAT IS THE POINT. Direct DEBUG SLEEP is intercepted by
+    // IoLoop before this handler, and an EXEC child never arrives either: MULTI execution has no
+    // MultiCommandKind for it, so assemble_cross_reply answers "command is not supported by MULTI
+    // execution" first. Measured on all three geometries (--shards 1, 2s 16 shards, 1s read-local
+    // 64 shards) -- every one returns the generic rejection, so a guard here only ever pretended to
+    // reject a shape that cannot reach it. Falling through to the unknown-subcommand reply is the
+    // honest behaviour if a future route does deliver one; nothing here can block an IO thread.
 #ifndef NDEBUG
     // Fail the next N FlatStore/ExpireIndex table calloc calls. This is deliberately reachable only
     // through the already-gated DEBUG command and is compiled out of assertion-disabled builds.
@@ -2692,11 +2697,10 @@ void cmd_info(Shard&, Op& op) {
                 failed_calls = minus_baseline(failed_calls, baseline.failed_calls[id]);
             if (!calls && !rejected_calls && !failed_calls) continue;
             const std::string name = lower_name(command_registry_at(id)->name);
-            // Deliberately omit unmeasured usec/usec_per_call. Never invent timing data.
-            appendf(body, "cmdstat_%s:calls=%llu,rejected_calls=%llu,failed_calls=%llu\r\n",
+            // Omit unmeasured timing and unimplemented failed_calls; never invent counters.
+            appendf(body, "cmdstat_%s:calls=%llu,rejected_calls=%llu\r\n",
                     name.c_str(), static_cast<unsigned long long>(calls),
-                    static_cast<unsigned long long>(rejected_calls),
-                    static_cast<unsigned long long>(failed_calls));
+                    static_cast<unsigned long long>(rejected_calls));
         }
     }
     if (info_section(op, "KEYSPACE")) {
@@ -2706,11 +2710,10 @@ void cmd_info(Shard&, Op& op) {
             for (uint32_t db = 0; db < g_server->cfg().databases; ++db) {
                 const auto& row = (*g_database_stats)[map[db]];
                 if (!row.keys) continue;
-                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu,subexpiry=%llu\r\n", db,
+                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu\r\n", db,
                         static_cast<unsigned long long>(row.keys),
                         static_cast<unsigned long long>(row.expires),
-                        static_cast<unsigned long long>(row.expires ? row.ttl / row.expires : 0),
-                        static_cast<unsigned long long>(row.subexpiry));
+                        static_cast<unsigned long long>(row.expires ? row.ttl / row.expires : 0));
             }
         }
     }
@@ -3008,62 +3011,11 @@ bool command_parse_scan_cursor(Slice text, uint64_t& cursor) {
     return true;
 }
 
-namespace {
-thread_local const Op* rejected_reply = nullptr;
-
-// Parse only the bytes already emitted. Array/map headers need no recursion: their
-// children follow in wire order. Bulk payloads are skipped, so a value containing
-// "-ERR" cannot suppress a later real error. This pays no reset/store on success.
-bool has_error(const char* first, size_t first_size, const char* second, size_t second_size) {
-    const size_t size = first_size + second_size;
-    auto byte = [&](size_t i) { return i < first_size ? first[i] : second[i - first_size]; };
-    for (size_t pos = 0; pos < size;) {
-        const char kind = byte(pos++);
-        if (kind == '-') return true;
-        const size_t begin = pos;
-        while (pos + 1 < size && !(byte(pos) == '\r' && byte(pos + 1) == '\n')) ++pos;
-        if (pos + 1 >= size) return false;
-        if (kind == '$' || kind == '!' || kind == '=') {
-            if (begin < pos && byte(begin) != '-') {
-                size_t length = 0;
-                for (size_t i = begin; i < pos; ++i) {
-                    if (byte(i) < '0' || byte(i) > '9' || length > size) return false;
-                    length = length * 10 + (byte(i) - '0');
-                }
-                pos += 2;
-                if (length > size - pos || size - pos - length < 2) return false;
-                pos += length + 2;
-                continue;
-            }
-        }
-        pos += 2;
-    }
-    return false;
-}
-
-}  // namespace
-
-RejectedReplyScope::RejectedReplyScope(const Op& op) noexcept : previous_(rejected_reply) {
-    rejected_reply = &op;
-}
-RejectedReplyScope::~RejectedReplyScope() noexcept { rejected_reply = previous_; }
-bool RejectedReplyScope::contains(const Op& op) noexcept { return rejected_reply == &op; }
-
-void command_note_error(Op& op, const char* prior, size_t prior_size) noexcept {
-    if (!op.spec || RejectedReplyScope::contains(op)) return;
-    ThreadCtx* thread = ThreadCtx::command_stats_thread();
-    if (!thread) return;
-    if (has_error(op.direct, op.direct_len, op.reply.data(), op.reply.size()) ||
-        (prior_size && has_error(prior, prior_size, nullptr, 0))) return;
-    thread->note_command_failed(op.spec->id);
-}
-
 Server* command_server() { return g_server; }
 uint64_t command_proto_max_bulk_len() {
     return g_proto_max_bulk_len.load(std::memory_order_relaxed);
 }
 ThreadCtx* command_local_thread() { return g_thread; }
-Client* command_local_client() { return g_client; }
 
 void command_config_snapshot(std::vector<std::pair<std::string, std::string>>& out) {
     std::lock_guard<std::mutex> lock(g_config_mu);

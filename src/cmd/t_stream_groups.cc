@@ -223,7 +223,7 @@ void maybe_release_groups(StreamVal& stream) {
 
 void reply_nogroup(Op& op, Slice key, Slice group, bool xreadgroup = false) {
     auto sink = op.sink();
-    sink.append_error("-", 1);
+    sink.push_back('-');
     sink.append("NOGROUP No such key '", sizeof("NOGROUP No such key '") - 1);
     reply_line_text(sink, key.p, key.n);
     sink.append("' or consumer group '", sizeof("' or consumer group '") - 1);
@@ -236,7 +236,7 @@ void reply_nogroup(Op& op, Slice key, Slice group, bool xreadgroup = false) {
 
 void reply_nogroup_subcommand(Op& op, Slice key, Slice group) {
     auto sink = op.sink();
-    sink.append_error("-", 1);
+    sink.push_back('-');
     sink.append("NOGROUP No such consumer group '",
                 sizeof("NOGROUP No such consumer group '") - 1);
     reply_line_text(sink, group.p, group.n);

@@ -83,7 +83,7 @@ struct LibraryDef {
 
 void reply_text_error(Op& op, std::string_view kind, std::string_view detail) {
     auto sink = op.sink();
-    sink.append_error("-", 1);
+    sink.push_back('-');
     sink.append(kind.data(), kind.size());
     if (!detail.empty()) { sink.push_back(' '); sink.append(detail.data(), detail.size()); }
     sink.append("\r\n", 2);

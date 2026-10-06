@@ -793,7 +793,6 @@ public:
     uint32_t slot_for_dense(uint32_t dense_index) const;
     bool live_at(uint32_t slot) const;
     Slice value_at(uint32_t slot) const;
-    uint64_t scan(uint64_t cursor, uint64_t count, std::vector<uint32_t>& members) const;
 
 private:
     enum : uint8_t { Empty = 0, Live = 1, Tomb = 2 };

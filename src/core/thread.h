@@ -424,15 +424,10 @@ public:
     // Shard::note_execution so the shard can tell local work from foreign work; that ratio is the
     // signal a later flip/LB controller acts on.
     void latch_placement(const Topology& topo) {
-        command_stats_thread_ = this;
         cpu_    = sched_getcpu();
         domain_ = topo.domain_of(cpu_);
     }
     uint32_t domain() const { return domain_; }
-    // Bound once by every physical worker, surviving IO/EX role changes. Error-only
-    // accounting uses this instead of adding context stores to ordinary dispatch.
-    static ThreadCtx* command_stats_thread() { return command_stats_thread_; }
-    static void bind_command_stats_thread(ThreadCtx* thread) { command_stats_thread_ = thread; }
 
     // The producer is the only writer. INFO's exceptional aggregation reads these cold arrays;
     // ordinary command execution performs one non-atomic increment in thread-private memory.
@@ -1112,7 +1107,6 @@ public:
     std::atomic<bool>& stop_flag() { return stop_; }
 
 private:
-    static inline thread_local ThreadCtx* command_stats_thread_ = nullptr;
     friend struct ThreadCtxLayoutLock;
     uint32_t          id_ = 0;
     std::atomic<Role> role_{Role::Idle};

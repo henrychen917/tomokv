@@ -36,7 +36,6 @@
 #include "hll.h"
 #include "geo.h"
 #include "multi.h"
-#include "info_stats.h"
 #include "notify.h"
 #include "scripting.h"
 #include "t_stream.h"

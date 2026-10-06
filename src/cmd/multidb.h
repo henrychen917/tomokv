@@ -212,7 +212,7 @@ bool multidb_prepare_move(Server& server, Op& op);
 Slice multidb_display_argument(const Op& op, uint32_t argument);
 bool multidb_validate_swap(Server& server, Op& op);
 bool multidb_commit_swap(Server& server, Shard& shard, Op& op);
-struct DatabaseStats { uint64_t keys = 0, expires = 0, ttl = 0, subexpiry = 0; };
+struct DatabaseStats { uint64_t keys = 0, expires = 0, ttl = 0; };
 using DatabaseStatsTable = std::array<DatabaseStats, 256>;
 void multidb_stats(Shard& shard, DatabaseStatsTable& stats);
 void command_info_with_databases(Server& server, Op& op, const DatabaseStatsTable& stats);
