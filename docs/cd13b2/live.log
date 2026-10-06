@@ -1,0 +1,17 @@
+  vanilla Redis oracle boot                                  ok (pid=683013 port=8199)
+  oracle identity                                            ok (vanilla redis_version=7.4.10)
+eda318b9e356d172ce116fc7d48db491d4260d6eb286b7a229a7ed83ce2f1d45  /home/user/Projects/cx-cd13b/build/tomokv
+ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b  /home/user/Projects/redis74/src/redis-server
+  target split atomic=1 boot                                 ok (pid=683039 port=8198)
+  split cmdmeta RESP2                                        DIFFER cmdmeta: 4475 ops, 0 diffs -> PASS (info=2125, intent=2075, pipes=96, categories=21, docs_boundary=1, zero_controls=2, absent_info_docs=78, patterns=8, module_filters=3)
+  split geo RESP2                                            DIFFER geo: 4951 ops, 0 diffs, 0 clock tolerances -> PASS
+  split cmdmeta RESP3                                        DIFFER cmdmeta: 4475 ops, 0 diffs -> PASS (info=2125, intent=2075, pipes=96, categories=21, docs_boundary=1, zero_controls=2, absent_info_docs=78, patterns=8, module_filters=3)
+  split geo RESP3                                            DIFFER geo: 4951 ops, 0 diffs, 0 clock tolerances -> PASS
+  target split stop                                          ok (port 8198 free)
+  target armed-fused atomic=1 boot                           ok (pid=684913 port=8198)
+  armed-fused cmdmeta RESP2                                  DIFFER cmdmeta: 4475 ops, 0 diffs -> PASS (info=2125, intent=2075, pipes=96, categories=21, docs_boundary=1, zero_controls=2, absent_info_docs=78, patterns=8, module_filters=3)
+  armed-fused geo RESP2                                      DIFFER geo: 4951 ops, 0 diffs, 0 clock tolerances -> PASS
+  armed-fused cmdmeta RESP3                                  DIFFER cmdmeta: 4475 ops, 0 diffs -> PASS (info=2125, intent=2075, pipes=96, categories=21, docs_boundary=1, zero_controls=2, absent_info_docs=78, patterns=8, module_filters=3)
+  armed-fused geo RESP3                                      DIFFER geo: 4951 ops, 0 diffs, 0 clock tolerances -> PASS
+  target armed-fused stop                                    ok (port 8198 free)
+  oracle stop                                                ok (port 8199 free)

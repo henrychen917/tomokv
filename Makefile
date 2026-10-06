@@ -38,6 +38,9 @@ SRC      += src/cmd/storesize.cc
 SRC      += src/cmd/multi_admin.cc
 # Preserve mainline weak-symbol selection; isolated R7 bodies link last.
 SRC      += src/core/reorder.cc
+SRC      += src/cmd/geo_store.cc
+# Cold DEBUG observer links after existing objects to preserve weak-symbol selection.
+SRC      += src/persist/aof_frame_debug.cc
 LDLIBS   += -lssl -lcrypto
 BUILD_ROOT ?= build
 BIN      := $(BUILD_ROOT)/tomokv
@@ -111,9 +114,11 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # The parent EXECABORT store adds four IPA instructions. Keep PRE's namespaced
 # xshard inlining decisions outside MULTI; docs/gt13split/audit_bodies.py checks
 # every function, including ordinary xshard_plain_prepare and cold clones.
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127577
+# CD13b adds owner-side GEO metadata calls; +51/+53 retains ordinary command/notify bodies
+# in both namespaces. tests/cd13b_audit.py checks every emitted body and linker selection.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127628
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=126170
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=126223
 # The isolated prebuild TU reuses the string parser text without emitting its public handlers.
 $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 

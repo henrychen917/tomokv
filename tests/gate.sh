@@ -2632,18 +2632,23 @@ job_aof_frame(){
 # writer flushed a ready GCMT at the top of a writer pass without checking that a large record
 # still held the physical stream. Recovery truncates the file from that large record's first byte,
 # so a control frame inside it is discardable -- and the loader refuses to start on the whole file.
-# Syscall persistence under epoll: that is where the defect was demonstrated (11 of 114 runs of the AOF
-# battery, 0 of 117 on uring) and where the window is entered reliably enough for the row to prove
-# its mechanism fired. The battery FAILS on a build with the guard removed (6 of 6).
+# Syscall persistence under epoll is where the defect was demonstrated. The existing rewrite
+# pause now queues a complete group before LargeBegin on the last producer; the record exceeds
+# both writer budgets. Stable owners and connection placement keep that schedule deterministic.
 for AOF_FRAME_ATOMIC in 0 1; do
 AOF_FRAME_DIR=$(mktemp -d "$TMPDIR/gate-aof-frameorder-atomic${AOF_FRAME_ATOMIC}.XXXXXX")
 boot "$CANDIDATE_BINARY" --protected-mode no --atomic "$AOF_FRAME_ATOMIC" --appendonly yes \
     --appendfsync no --net-io epoll --auto-aof-rewrite-percentage 0 \
+    --aof-timestamp-enabled no --key-lb 0 --client-lb 0 --flip-auto 0 \
     --enable-debug-command yes --dir "$AOF_FRAME_DIR" \
     || bad "AOF frame-order purpose boot (atomic $AOF_FRAME_ATOMIC)"
 row_begin "AOF control frame never inside a large record (atomic $AOF_FRAME_ATOMIC)"
-py tests/aof_frame_order.py 127.0.0.1 $PORT "$AOF_FRAME_DIR/appendonlydir" \
+unit_ready persistfix-units \
+    && taskset -c "$CORES" ./build/persistfix-unit frameorder \
     >$TMPDIR/gate-aof-frameorder-$AOF_FRAME_ATOMIC.txt 2>&1 \
+    && py tests/aof_frame_order_test.py >>$TMPDIR/gate-aof-frameorder-$AOF_FRAME_ATOMIC.txt 2>&1 \
+    && py tests/aof_frame_order.py 127.0.0.1 $PORT "$AOF_FRAME_DIR/appendonlydir" \
+    >>$TMPDIR/gate-aof-frameorder-$AOF_FRAME_ATOMIC.txt 2>&1 \
     && ok "AOF control frame never inside a large record (atomic $AOF_FRAME_ATOMIC)" \
     || bad "AOF control frame never inside a large record (atomic $AOF_FRAME_ATOMIC)" \
            "see $TMPDIR/gate-aof-frameorder-$AOF_FRAME_ATOMIC.txt"
@@ -3117,7 +3122,7 @@ job_dependencies(){
     core_units) echo 'production_units core_tsan_build';;
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
-    debug-*) echo 'release production_units';;
+    debug-*|aof_frame) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;

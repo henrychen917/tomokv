@@ -1,0 +1,13 @@
+test_boot_only_setup_and_cleanup_both_modes (__main__.self_test.<locals>.HarnessControls.test_boot_only_setup_and_cleanup_both_modes) ... ok
+test_cleanup_preserves_the_original_failure (__main__.self_test.<locals>.HarnessControls.test_cleanup_preserves_the_original_failure) ... ok
+test_correct_data_without_each_window_witness_still_fails (__main__.self_test.<locals>.HarnessControls.test_correct_data_without_each_window_witness_still_fails) ... ok
+test_data_reply_and_counter_failures_are_not_retried (__main__.self_test.<locals>.HarnessControls.test_data_reply_and_counter_failures_are_not_retried) ... ok
+test_missing_probe_never_arms (__main__.self_test.<locals>.HarnessControls.test_missing_probe_never_arms) ... ok
+test_rearm_requires_a_successful_fresh_window (__main__.self_test.<locals>.HarnessControls.test_rearm_requires_a_successful_fresh_window) ... ok
+test_unentered_window_fails_after_four_fresh_attempts (__main__.self_test.<locals>.HarnessControls.test_unentered_window_fails_after_four_fresh_attempts) ... ok
+test_wrong_boot_is_a_failure_before_any_race (__main__.self_test.<locals>.HarnessControls.test_wrong_boot_is_a_failure_before_any_race) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.037s
+
+OK

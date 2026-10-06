@@ -286,6 +286,8 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
         const uint32_t pos = state.key_order[group.begin + i];
         KeyRef& key = state.keys[pos];
         KvObj* value = state.apply[pos].present ? key.stable_object : nullptr;
+        if (value && state.apply[pos].preserve_eviction_meta)
+            geo_store_preserve_metadata(shard, op.arg(key.arg), key.hash, value);
         KvObj* old = store.atomic_install_group(
             pending_entry, key.hash, op.arg(key.arg), value);
         if (old) parked_bytes += kvobj_size(old);

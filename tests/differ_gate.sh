@@ -39,6 +39,15 @@ PASS=0
 FAIL=0
 PART=${GATE_DIFFER_PART:-all}
 PART_PLAN=${GATE_DIFFER_PLAN:-}
+# A standalone focused proof cannot produce a full-matrix completion artifact.
+# Both files contain one item per line; ordinary gate invocations leave them unset.
+PROOF_SUITES=${GATE_DIFFER_PROOF_SUITES:-}
+PROOF_SEEDS=${GATE_DIFFER_PROOF_SEEDS:-}
+if [ -n "$PROOF_SUITES$PROOF_SEEDS" ] &&
+   { [ "$PART" != all ] || [ -z "$PROOF_SUITES" ] || [ -z "$PROOF_SEEDS" ]; }; then
+  echo 'focused proof requires standalone part=all and both suite/seed files' >&2
+  exit 2
+fi
 case "$PART" in
   all) ATOMICS=(0 1);;
   split-0|split-1|armed-0|armed-1) ATOMICS=("${PART##*-}");;
@@ -177,6 +186,18 @@ DISCOVERED_SUITES=$(python3 tests/differ.py --list-generators) || {
   echo "failed to discover differ suites" >&2
   exit 2
 }
+if [ -n "$PROOF_SUITES" ]; then
+  DISCOVERED_SUITES=$(python3 - "$PROOF_SUITES" "$DISCOVERED_SUITES" <<'PY'
+from pathlib import Path
+import sys
+names = Path(sys.argv[1]).read_text().splitlines()
+assert names and len(names) == len(set(names)), 'empty or duplicate proof suite'
+assert set(names) <= set(sys.argv[2].splitlines()), 'unknown proof suite; use one name per line'
+print('\n'.join(names))
+PY
+  ) || exit 2
+  echo 'DIFFER FOCUSED PROOF: selected suites only; not a full differential matrix'
+fi
 readarray -t SUITES <<<"$DISCOVERED_SUITES"
 if [ "${#SUITES[@]}" -eq 0 ]; then
   echo "differ suite discovery returned no suites" >&2
@@ -188,7 +209,23 @@ mkdir -p "$OUT"
 # export one GATE_RUN_ID to give concurrent geometries the same newly allocated seed.
 EQUIVALENCE_SEEDS=()
 MULTI_REPEATS=${GATE_DIFFER_MULTI_REPEATS:-4}
-if [ "$PART" = all ]; then
+if [ -n "$PROOF_SUITES" ]; then
+  [ ! -e "$OUT/proof-seeds.json" ] || { echo 'refusing stale proof output' >&2; exit 2; }
+  SELECTED_SEEDS=$(python3 - "$PROOF_SEEDS" "$OUT/proof-seeds.json" <<'PY'
+import json
+from pathlib import Path
+import sys
+sys.path.insert(0, 'tests')
+from _differ_history import permanent_seeds
+seeds = [int(line) for line in Path(sys.argv[1]).read_text().splitlines()]
+assert seeds and len(seeds) == len(set(seeds)) and min(seeds) >= 0, 'invalid proof seeds'
+assert set(permanent_seeds()) <= set(seeds), 'proof lost permanent seeds'
+Path(sys.argv[2]).write_text(json.dumps(dict(kind='focused-proof', seeds=seeds)) + '\n')
+print(' '.join(map(str, seeds)))
+PY
+  ) || exit 2
+  MULTI_REPEATS=0
+elif [ "$PART" = all ]; then
   SELECTED_SEEDS=$(python3 tests/_differ_history.py allocate --run "$SEED_RUN" \
       --output "$OUT/seeds.json") || exit 2
 else
@@ -363,7 +400,8 @@ if [ "$PART" != equivalence ]; then run_matrix || FAIL=$((FAIL+1)); fi
 # listeners close: its private target port is reused across all 32 fresh boots.
 # The armed job need not repeat the identical matrix. The new per-run seed also
 # rotates the equivalence stream; discovered counterexamples remain permanent.
-if { [ "$PART" = all ] && [ "$TARGET_GEOMETRY" = split ]; } || [ "$PART" = equivalence ]; then
+if { [ "$PART" = all ] && [ -z "$PROOF_SUITES" ] && [ "$TARGET_GEOMETRY" = split ]; } ||
+   [ "$PART" = equivalence ]; then
   EQUIVALENCE_FLAGS=()
   if [ "$PART" = all ]; then
     EQUIVALENCE_SEED=$(python3 - "$OUT/seeds.json" <<'PY'
@@ -396,6 +434,8 @@ if [ "$PART" != all ]; then
       --directory "$OUT" --failures "$FAIL" --passed "$PASS" || FAIL=$((FAIL+1))
 fi
 ELAPSED=$((SECONDS-START_SECONDS))
-printf 'DIFFER GATE: pass=%d fail=%d runtime=%dm%02ds\n' \
+SUMMARY='DIFFER GATE'
+[ -z "$PROOF_SUITES" ] || SUMMARY='DIFFER FOCUSED PROOF'
+printf '%s: pass=%d fail=%d runtime=%dm%02ds\n' "$SUMMARY" \
     "$PASS" "$FAIL" "$((ELAPSED/60))" "$((ELAPSED%60))"
 exit $((FAIL > 0))

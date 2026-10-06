@@ -1,0 +1,27 @@
+DIFFER FOCUSED PROOF: pass=36 fail=0 runtime=0m24s
+DIFFER FOCUSED PROOF: pass=38 fail=0 runtime=0m15s
+DIFFER FOCUSED PROOF: pass=36 fail=0 runtime=0m24s
+DIFFER FOCUSED PROOF: pass=38 fail=0 runtime=0m15s
+DIFFER FOCUSED PROOF: pass=36 fail=0 runtime=0m23s
+DIFFER FOCUSED PROOF: pass=38 fail=0 runtime=0m16s
+DIFFER FOCUSED PROOF: pass=36 fail=0 runtime=0m12s
+DIFFER FOCUSED PROOF: pass=38 fail=0 runtime=0m14s
+/home/user/Projects/cx-pttlfix/build/pttlfix/tomokv: OK
+tests/differ.py: OK
+tests/differ_gate.sh: OK
+docs/pttlfix/prove.sh: OK
+docs/pttlfix/summarize.py: OK
+docs/pttlfix/suites.txt: OK
+docs/pttlfix/seeds.txt: OK
+docs/pttlfix/expected-counts.json: OK
+| Condition | Lifetime | Geometry | Legs | Failed legs | TTL checks | Result |
+| --- | ---: | --- | ---: | ---: | ---: | --- |
+| contended | 1 | split | 36 | 0 | 14098 | PASS |
+| contended | 1 | armed-fused | 36 | 0 | 14098 | PASS |
+| contended | 2 | split | 36 | 0 | 14098 | PASS |
+| contended | 2 | armed-fused | 36 | 0 | 14098 | PASS |
+| contended | 3 | split | 36 | 0 | 14098 | PASS |
+| contended | 3 | armed-fused | 36 | 0 | 14098 | PASS |
+| quiet | 1 | split | 36 | 0 | 14098 | PASS |
+| quiet | 1 | armed-fused | 36 | 0 | 14098 | PASS |
+{"edgetime": 6608, "hexpire": 27504, "wiredump": 78672}

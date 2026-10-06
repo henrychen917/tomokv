@@ -1,0 +1,4 @@
+PARTIAL	0	GATE_ONLY_JOBS=aof_frame; NOT A RECEIPT
+ok	0.030000	release build (+footprint locks)
+ok	0.410000	AOF control frame never inside a large record (atomic 0)
+ok	0.400000	AOF control frame never inside a large record (atomic 1)
