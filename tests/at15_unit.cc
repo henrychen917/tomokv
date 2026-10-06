@@ -18,6 +18,12 @@ namespace {
 void require(bool yes, const char* why) {
     if (!yes) { std::fprintf(stderr, "FAIL at15: %s\n", why); std::exit(1); }
 }
+void require_reply(const std::string& got, const std::string& wanted, const char* why) {
+    if (got != wanted) {
+        std::fprintf(stderr, "FAIL at15: %s\nGOT:\n%s\nWANTED:\n%s\n", why, got.c_str(), wanted.c_str());
+        std::exit(1);
+    }
+}
 struct Request {
     std::vector<std::string> args;
     Op op;
@@ -133,6 +139,9 @@ std::string keyspace_row(unsigned db, unsigned keys, unsigned subexpiry) {
            ",expires=0,avg_ttl=0,subexpiry=" + std::to_string(subexpiry) + "\r\n";
 }
 void check_subexpiry(Fixture& f, bool resp3) {
+    // This admission-only driver does not stamp the IO dispatch clock. Absolute
+    // future deadlines keep the census witness independent of that clock seam.
+    const std::string deadline = std::to_string(now_realtime_ms() / 1000 + 3600);
     const auto body = [](unsigned keys, unsigned count) {
         return "# Keyspace\r\n" + keyspace_row(0, keys, count);
     };
@@ -151,10 +160,10 @@ void check_subexpiry(Fixture& f, bool resp3) {
     };
     begin(f);
     queue(f, {"HSET", "at15:h", "a", "1", "b", "2"});
-    queue(f, {"HEXPIRE", "at15:h", "3600", "FIELDS", "2", "a", "b"});
+    queue(f, {"HEXPIREAT", "at15:h", deadline, "FIELDS", "2", "a", "b"});
     queue(f, {"INFO", "keyspace"});
     queue(f, {"HSET", "at15:j", "x", "1"});
-    queue(f, {"HEXPIRE", "at15:j", "3600", "FIELDS", "1", "x"});
+    queue(f, {"HEXPIREAT", "at15:j", deadline, "FIELDS", "1", "x"});
     queue(f, {"INFO", "keyspace"});
     queue(f, {"HPERSIST", "at15:h", "FIELDS", "1", "a"});
     queue(f, {"INFO", "keyspace"});
@@ -162,14 +171,14 @@ void check_subexpiry(Fixture& f, bool resp3) {
     queue(f, {"INFO", "keyspace"});
     queue(f, {"HDEL", "at15:j", "x"});
     queue(f, {"INFO", "keyspace"});
-    require(f.multi({"EXEC"}) == "*12\r\n:2\r\n*2\r\n:1\r\n:1\r\n" + bulk(body(1, 1), resp3) +
+    require_reply(f.multi({"EXEC"}), "*12\r\n:2\r\n*2\r\n:1\r\n:1\r\n" + bulk(body(1, 1), resp3) +
             ":1\r\n*1\r\n:1\r\n" + bulk(body(2, 2), resp3) +
             "*1\r\n:1\r\n" + bulk(body(2, 2), resp3) +
             "*1\r\n:1\r\n" + bulk(body(2, 1), resp3) + ":1\r\n" + bulk(body(1, 0), resp3),
             "subexpiry counts hashes once and observes private field TTL transitions");
     census(body(1, 0));
     begin(f);
-    queue(f, {"HEXPIRE", "at15:h", "3600", "FIELDS", "1", "a"});
+    queue(f, {"HEXPIREAT", "at15:h", deadline, "FIELDS", "1", "a"});
     require(f.multi({"EXEC"}) == "*1\r\n*1\r\n:1\r\n", "rearm field expiry");
     census(body(1, 1));
     begin(f);
@@ -182,9 +191,17 @@ void check_subexpiry(Fixture& f, bool resp3) {
         queue(f, {"INFO", "keyspace"});
         queue(f, {"SWAPDB", "0", "1"});
         queue(f, {"INFO", "keyspace"});
+        // Exercise the real namespace boundary without starting worker loops.
+        // This serverless driver has no outstanding IO/owner tasks to drain.
+        Request exec({"EXEC"});
+        MultiExecState* pending = nullptr;
+        require(multi_handle_io(f.server, f.client, exec.op, f.io, pending) == MultiIoAction::Backpressure &&
+                f.server.database_boundary_active(), "SWAPDB boundary actually armed");
+        f.server.flip_set_stage(FlipStage::DatabaseRun);
         require(f.multi({"EXEC"}) == "*4\r\n:1\r\n" +
                 bulk("# Keyspace\r\n" + keyspace_row(1, 1, 1), resp3) +
                 "+OK\r\n" + bulk(body(1, 1), resp3), "subexpiry follows MOVE and private SWAPDB map");
+        f.server.database_boundary_end(f.client, f.client.rob().dispatch_id());
         census(body(1, 1));
     }
     begin(f);
