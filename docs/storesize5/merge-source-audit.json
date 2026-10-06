@@ -1,0 +1,38 @@
+[
+  {
+    "file": "src/cmd/multi_admin.cc",
+    "origin_sha256": "9c855e344a6380fb8aa84597fdbf6babd377556ba7bfc123a2e75cbcd93059c0",
+    "post_sha256": "9c855e344a6380fb8aa84597fdbf6babd377556ba7bfc123a2e75cbcd93059c0",
+    "identical": true
+  },
+  {
+    "file": "src/cmd/multi.inc",
+    "origin_sha256": "4465227715271cd1e1f55cd4dac04d0e397a5be1784db6e7cc4a4f0a7ad3c14c",
+    "post_sha256": "dadd8a5ca62dbb7b0fdb072ca6015693e4d4d8bebba2f6b4d84edac4f5cffe3a",
+    "identical": false
+  },
+  {
+    "file": "src/cmd/multidb.cc",
+    "origin_sha256": "d959ba03c610223848f24dbeacdab18b7f45d205610e2bac4ae41b781f9a76a4",
+    "post_sha256": "d959ba03c610223848f24dbeacdab18b7f45d205610e2bac4ae41b781f9a76a4",
+    "identical": true
+  },
+  {
+    "file": "src/cmd/xshard_commands.inc",
+    "origin_sha256": "c67c023a2daee9b6571f6e3b6ab84bf54cce782e8ef1201bb7c41aaa885141a8",
+    "post_sha256": "c67c023a2daee9b6571f6e3b6ab84bf54cce782e8ef1201bb7c41aaa885141a8",
+    "identical": true
+  },
+  {
+    "file": "tests/gate.sh",
+    "origin_sha256": "bf7cdf980467c9094d4c997ecb20cc003a4f0dfb09ac76445a8e1bc0be6aab92",
+    "post_sha256": "6ec3317f3ea24573c874729d31e924c9343f136538346ebfc43d0a6e4490a101",
+    "identical": false
+  },
+  {
+    "file": "tests/fixtures/nullrefresh-ledger-labels.json",
+    "origin_sha256": "eade322c0b4f72a3ab44f6d978c18594298203a10cd33d1c10dfb176f893561c",
+    "post_sha256": "eade322c0b4f72a3ab44f6d978c18594298203a10cd33d1c10dfb176f893561c",
+    "identical": true
+  }
+]

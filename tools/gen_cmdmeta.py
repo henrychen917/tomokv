@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Generate cold command metadata by probing a running vanilla Redis 7.4 binary.
+"""Generate cold metadata from pinned Redis 7.4.10 JSON or its public COMMAND reply.
 
-This tool consumes only the public COMMAND reply. It deliberately does not read Redis source.
-The generated include is checked in so normal TomoKV builds have no oracle dependency.
+The JSON path is offline: it never starts or connects to a server. Normal builds consume the
+checked-in include; --check regenerates it and reports any drift.
 """
 
 import argparse
 import difflib
+import json
 import pathlib
 import re
 import socket
@@ -27,6 +28,125 @@ ACL_CATEGORIES = [
     "bitmap", "hyperloglog", "geo", "stream", "pubsub", "admin", "fast", "slow",
     "blocking", "dangerous", "connection", "transaction", "scripting",
 ]
+
+REDIS_VERSION = "7.4.10"
+REDIS_REVISION = "f103d127b9747965e28f20615ef790332661fc68"
+# Public reply order in Redis 7.4.10 server.c, addReplyFlagsForCommand/KeyArgs.
+COMMAND_FLAG_ORDER = """write readonly denyoom module admin pubsub noscript blocking loading
+stale skip_monitor skip_slowlog asking fast no_auth no_mandatory_keys no_async_loading
+no_multi movablekeys allow_busy""".split()
+KEY_FLAG_ORDER = "RO RW OW RM access update insert delete not_key incomplete variable_flags".split()
+
+
+def legacy_keys(specs):
+    """Redis's legacy first/last/step projection, including movablekeys detection."""
+    if not specs:
+        return (0, 0, 0), False
+    if len(specs) == 1 and "index" in specs[0]["begin_search"] and "range" in specs[0]["find_keys"]:
+        spec = specs[0]
+        first = spec["begin_search"]["index"]["pos"]
+        find = spec["find_keys"]["range"]
+        last = find["lastkey"]
+        return (first, last + first if last >= 0 else last, find["step"]), "INCOMPLETE" in spec["flags"]
+    first, last, previous, movable = None, 0, 0, False
+    for spec in specs:
+        begin, find = spec["begin_search"], spec["find_keys"]
+        if "index" not in begin or "range" not in find:
+            movable = True
+            continue
+        pos, span = begin["index"]["pos"], find["range"]
+        if span["step"] != 1 or (previous and previous != pos - 1):
+            movable = True
+            continue
+        movable |= "INCOMPLETE" in spec["flags"]
+        first = min(first, pos) if first is not None else pos
+        end = span["lastkey"] + pos if span["lastkey"] >= 0 else span["lastkey"]
+        last = max((last, end), key=lambda value: value & 0xffffffff)
+        previous = last
+    return ((first, last, 1), movable) if first is not None else ((0, 0, 0), True)
+
+
+def json_key_spec(spec):
+    result = []
+    if "notes" in spec:
+        result += [b"notes", spec["notes"].encode()]
+    flags = {flag if flag in ("RO", "RW", "OW", "RM") else flag.lower()
+             for flag in spec["flags"]}
+    if flags - set(KEY_FLAG_ORDER):
+        raise ValueError("unknown key flags: %r" % (flags - set(KEY_FLAG_ORDER)))
+    result += [b"flags", [flag.encode() for flag in KEY_FLAG_ORDER if flag in flags]]
+    # JSON uses pos/step, while COMMAND uses index/keystep.
+    fields = {"index": [("pos", "index")],
+              "keyword": [("keyword", "keyword"), ("startfrom", "startfrom")],
+              "range": [("lastkey", "lastkey"), ("step", "keystep"), ("limit", "limit")],
+              "keynum": [("keynumidx", "keynumidx"), ("firstkey", "firstkey"), ("step", "keystep")],
+              "unknown": []}
+    for part in ("begin_search", "find_keys"):
+        kind, values = next(iter(spec[part].items()))
+        payload = []
+        for source, target in fields[kind]:
+            value = values[source]
+            payload += [target.encode(), value.encode() if isinstance(value, str) else value]
+        result += [part.encode(), [b"type", kind.encode(), b"spec", payload]]
+    return result
+
+
+def redis_json_commands(redis_root):
+    """Build the public ten-field COMMAND schema from the pinned command JSON.
+
+    Category defaults and legacy keys follow server.c's metadata initialization. Sentinel-only
+    commands are absent from a normal Redis server, just as in its live COMMAND reply.
+    """
+    version = (redis_root / "src/version.h").read_text()
+    if '#define REDIS_VERSION "%s"' % REDIS_VERSION not in version:
+        raise ValueError("expected pinned Redis %s JSON checkout" % REDIS_VERSION)
+    rows, children = {}, {}
+    files = sorted((redis_root / "src/commands").glob("*.json"))
+    if not files:
+        raise ValueError("no Redis command JSON under %s" % redis_root)
+    for path in files:
+        for name, definition in json.loads(path.read_text()).items():
+            raw_flags = set(definition.get("command_flags", []))
+            if "ONLY_SENTINEL" in raw_flags:
+                continue
+            parent = definition.get("container", "").lower()
+            full = (parent + "|" if parent else "") + name.lower()
+            flags = {flag.lower() for flag in raw_flags}
+            specs = definition.get("key_specs", [])
+            legacy, movable = legacy_keys(specs)
+            if movable:
+                flags.add("movablekeys")
+            categories = {category.lower() for category in definition.get("acl_categories", [])}
+            if "write" in flags:
+                categories.add("write")
+            if "readonly" in flags and "scripting" not in categories:
+                categories.add("read")
+            if "admin" in flags:
+                categories.update(("admin", "dangerous"))
+            categories.update(flags & {"pubsub", "fast", "blocking"})
+            if "fast" not in categories:
+                categories.add("slow")
+            if categories - set(ACL_CATEGORIES):
+                raise ValueError("unknown ACL categories: %r" % categories)
+            row = [full.encode(), definition["arity"],
+                   [flag.encode() for flag in COMMAND_FLAG_ORDER if flag in flags], *legacy,
+                   [("@" + category).encode() for category in ACL_CATEGORIES if category in categories],
+                   [tip.lower().encode() for tip in definition.get("command_tips", [])],
+                   [json_key_spec(spec) for spec in specs], []]
+            if full in rows:
+                raise ValueError("duplicate Redis command %s" % full)
+            rows[full] = row
+            if parent:
+                children.setdefault(parent, []).append(row)
+    for parent, subcommands in children.items():
+        rows[parent][9] = subcommands
+    return [row for name, row in rows.items() if "|" not in name]
+
+
+def local_commands():
+    # Existing TomoKV-only FLIP contract (3ca2c450e); never infer it from the generated artifact.
+    return [[b"flip", -2, [b"write", b"admin", b"noscript", b"no_async_loading", b"no_multi"],
+             0, 0, 0, [b"@write", b"@admin", b"@slow", b"@dangerous"], [], [], []]]
 
 
 def encode(argv):
@@ -142,17 +262,19 @@ def mask_for(values, order):
     return result
 
 
-def generated_text(repo_root, host, port):
+def generated_text(repo_root, host=None, port=None, *, redis_root=None):
     implemented = tomo_commands(repo_root)
-    top_rows = oracle_command(host, port)
+    top_rows = (redis_json_commands(redis_root) if redis_root is not None
+                else oracle_command(host, port))
+    top_rows += [row for row in local_commands() if row[0].decode() in implemented]
     redis_top = {row[0].decode(): row for row in top_rows}
     missing = sorted(implemented - set(redis_top))
     if missing:
         raise ValueError("TomoKV commands absent from oracle metadata: %s" % ", ".join(missing))
 
-    # Keep every implemented top-level command plus all 129 Redis pipe-qualified subcommands.
-    # The latter are metadata rows, not executable aliases, so even subcommands of an intentionally
-    # unsupported container remain discoverable exactly as the lane's COMMAND LIST contract asks.
+    # Pack auxiliary tables in the historical order so retained rows keep exactly their flag
+    # masks and tip/key-spec offsets. Filter the advertised rows below, after packing: children
+    # of unimplemented containers must never become standalone command metadata.
     rows = []
     for top in top_rows:
         if top[0].decode() in implemented:
@@ -163,7 +285,10 @@ def generated_text(repo_root, host, port):
     # sort the generated rows so this checked-in artifact is reproducible.
     rows.sort(key=lambda row: row[0])
 
-    command_flags = ordered_union(rows, lambda row: [item.decode() for item in row[2]])
+    # Local rows were added after the original Redis mask layout was frozen.
+    local_names = {row[0] for row in local_commands()}
+    command_flags = ordered_union([row for row in rows if row[0] not in local_names],
+                                  lambda row: [item.decode() for item in row[2]])
     all_specs = []
     for row in rows:
         all_specs.extend(row[8])
@@ -193,15 +318,16 @@ def generated_text(repo_root, host, port):
         tip_refs.extend(item.decode() for item in row[7])
         specs_offset = len(key_spec_refs)
         key_spec_refs.extend(spec_index[frozen(spec)] for spec in row[8])
-        metadata_rows.append((
-            name, row[1], mask_for(flags, command_flags), row[3], row[4], row[5],
-            sum(1 << acl_rank[item] for item in categories),
-            tips_offset, len(row[7]), specs_offset, len(row[8]),
-        ))
+        if name.split("|", 1)[0] in implemented:
+            metadata_rows.append((
+                name, row[1], mask_for(flags, command_flags), row[3], row[4], row[5],
+                sum(1 << acl_rank[item] for item in categories),
+                tips_offset, len(row[7]), specs_offset, len(row[8]),
+            ))
 
     lines = [
-        "// Generated by tools/gen_cmdmeta.py from a live vanilla Redis 7.4 COMMAND reply.",
-        "// Do not edit; the generator reads no Redis source.",
+        "// Generated by tools/gen_cmdmeta.py from pinned Redis 7.4.10 metadata and the registry.",
+        "// Do not edit; regenerate with --redis-root <Redis 7.4.10 checkout>.",
         "",
         "static constexpr const char* kGeneratedCommandFlagNames[] = {",
     ]
@@ -253,13 +379,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", default=str(pathlib.Path(__file__).resolve().parents[1]))
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, required=True)
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--port", type=int, help="query an already running Redis oracle")
+    source.add_argument("--redis-root", type=pathlib.Path, help="offline pinned Redis 7.4.10 checkout")
     destination = parser.add_mutually_exclusive_group(required=True)
     destination.add_argument("--output")
     destination.add_argument("--check")
     args = parser.parse_args()
     root = pathlib.Path(args.repo_root)
-    generated = generated_text(root, args.host, args.port)
+    generated = generated_text(root, args.host, args.port, redis_root=args.redis_root)
     if args.output:
         pathlib.Path(args.output).write_text(generated)
         return
@@ -267,7 +395,7 @@ def main():
     if actual != generated:
         sys.stderr.writelines(difflib.unified_diff(
             actual.splitlines(True), generated.splitlines(True),
-            fromfile=args.check, tofile="live Redis metadata"))
+            fromfile=args.check, tofile="regenerated Redis metadata"))
         raise SystemExit(1)
 
 

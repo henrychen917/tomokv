@@ -1,0 +1,8 @@
+build/storesize-unit: no unresolved storesize symbols
+build/multidb-unit: no unresolved storesize symbols
+build/multidb-boundary-unit: no unresolved storesize symbols
+build/atomic-survivors-unit: no unresolved storesize symbols
+build/execabort-watch-unit: no unresolved storesize symbols
+build/execabort-watch-db0-unit: no unresolved storesize symbols
+build/flushfix-unit: no unresolved storesize symbols
+build/netcap-unit: no unresolved storesize symbols

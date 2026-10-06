@@ -1,0 +1,4 @@
+PASS differ-receipts: 2413 archived receipts match SHA-256
+PASS failed-first-attempt: 852 archived receipts match SHA-256
+PASS production and test sources unchanged throughout live verification
+PASS EXPECT assignments and fixture exactly match merged mainline

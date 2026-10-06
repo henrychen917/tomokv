@@ -85,7 +85,9 @@ class Elf:
             at = offset - symbol['value']
             if not 0 <= at < len(body):
                 continue
-            width = {1: 8, 2: 4, 4: 4, 9: 4, 10: 4, 11: 4, 24: 8,
+            # R_X86_64_TPOFF32 (23) appears in command handlers' thread-local
+            # counters. Keep its TLS symbol/addend in targets like other relocs.
+            width = {1: 8, 2: 4, 4: 4, 9: 4, 10: 4, 11: 4, 23: 4, 24: 8,
                      41: 4, 42: 4}.get(kind)
             assert width, f'unhandled relocation {kind}'
             body[at:at + width] = bytes(width)

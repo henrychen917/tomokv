@@ -1,0 +1,69 @@
+# db0: 67 changed emitted copies versus origin/cpp
+
+- `cmd/multidb.o: tomo_db0::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `cmd/t_server.o: tomo_db0::(anonymous namespace)::cmd_client(tomo_db0::Shard&, tomo_db0::Op&)` — 2539 → 2539 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)` — 7618 → 7618 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]` — 123 → 123 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo_db0::(anonymous namespace)::cmd_dbsize(tomo_db0::Shard&, tomo_db0::Op&)` — 242 → 242 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo_db0::(anonymous namespace)::cmd_command(tomo_db0::Shard&, tomo_db0::Op&)` — 2625 → 2625 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&)` — 6484 → 6484 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo_db0::(anonymous namespace)::cmd_auth(tomo_db0::Shard&, tomo_db0::Op&)` — 563 → 563 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo_db0::(anonymous namespace)::cmd_flip(tomo_db0::Shard&, tomo_db0::Op&)` — 846 → 846 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)` — 16177 → 16519 bytes; raw=False, resolved=False.
+- `cmd/t_server.o: tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]` — 349 → 351 bytes; raw=False, resolved=False.
+- `cmd/t_server.o: tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)` — 3007 → 3007 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo_db0::(anonymous namespace)::cmd_hello(tomo_db0::Shard&, tomo_db0::Op&)` — 2491 → 2491 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo_db0::command_config_routes_all_shards(tomo_db0::Op&)` — 610 → 0 bytes; raw=False, resolved=False.
+- `cmd/t_server.o: tomo_db0::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `cmd/t_server.o: tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*) [clone .isra.0]` — 1125 → 1125 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_scan(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool)` — 1567 → 1567 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool) [clone .isra.0]` — 601 → 601 bytes; raw=False, resolved=True.
+- `cmd/t_server.o: tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(char const*)#1}::operator()(char const*) const` — 429 → 429 bytes; raw=False, resolved=True.
+- `cmd/xshard.o: tomo_db0::cmd_bitfield_notify(tomo_db0::Shard&, tomo_db0::Op&)` — 135 → 135 bytes; raw=False, resolved=True.
+- `cmd/xshard.o: tomo_db0::cmd_bitfield_ro_notify(tomo_db0::Shard&, tomo_db0::Op&)` — 138 → 138 bytes; raw=False, resolved=True.
+- `core/genthread.o: tomo_db0::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `core/genthread.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*)` — 18443 → 18416 bytes; raw=False, resolved=False.
+- `core/genthread.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*) [clone .isra.0]` — 9522 → 9538 bytes; raw=False, resolved=False.
+- `core/genthread.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo_db0::Client*)` — 18295 → 18320 bytes; raw=False, resolved=False.
+- `core/genthread.o: bool tomo_db0::IoLoop::drive_tls<false, true, (unsigned char)0>(tomo_db0::Client*) [clone .isra.0]` — 1684 → 1684 bytes; raw=False, resolved=True.
+- `core/genthread.o: bool tomo_db0::IoLoop::drive_tls<true, false, (unsigned char)0>(tomo_db0::Client*) [clone .isra.0]` — 1737 → 1737 bytes; raw=False, resolved=True.
+- `core/genthread.o: bool tomo_db0::IoLoop::drive_tls<true, true, (unsigned char)0>(tomo_db0::Client*) [clone .isra.0]` — 1737 → 1737 bytes; raw=False, resolved=True.
+- `core/reorder.o: tomo_db0::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*)` — 18363 → 18353 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*) [clone .isra.0]` — 9506 → 9522 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo_db0::Client*)` — 18251 → 18252 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*)` — 18285 → 18269 bytes; raw=False, resolved=False.
+- `core/reorder.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false, false>(tomo_db0::Client*)` — 18169 → 18149 bytes; raw=False, resolved=False.
+- `core/reorder.o: bool tomo_db0::IoLoop::drive_tls<true, false, (unsigned char)0>(tomo_db0::Client*) [clone .isra.0]` — 1721 → 1721 bytes; raw=False, resolved=True.
+- `core/reorder.o: unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()` — 729 → 796 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo_db0::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `core/rl2s.o: unsigned int tomo_db0::IoLoop::wb_serve_natural<true, true, true>(tomo_db0::IoLoop::WbBatch&, bool&) [clone .isra.0]` — 576 → 576 bytes; raw=False, resolved=True.
+- `core/rl2s.o: unsigned int tomo_db0::IoLoop::wb_submit_reclaim<true, true>(tomo_db0::IoLoop::WbBatch&, bool&) [clone .isra.0]` — 438 → 438 bytes; raw=False, resolved=True.
+- `core/rl2s.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo_db0::Client*)` — 17246 → 17290 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, false>(tomo_db0::Client*) [clone .isra.0]` — 17581 → 17598 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo_db0::Client*)` — 17554 → 17563 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*) [clone .isra.0]` — 9496 → 9512 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo_db0::Client*)` — 17143 → 17221 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, false>(tomo_db0::Client*) [clone .isra.0]` — 17463 → 17475 bytes; raw=False, resolved=False.
+- `core/rl2s.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo_db0::Client*)` — 17455 → 17450 bytes; raw=False, resolved=False.
+- `core/rl2s.o: bool tomo_db0::IoLoop::drive_tls<false, false, (unsigned char)1>(tomo_db0::Client*) [clone .isra.0]` — 1572 → 1572 bytes; raw=False, resolved=True.
+- `core/rl2s.o: bool tomo_db0::IoLoop::drive_tls<false, true, (unsigned char)0>(tomo_db0::Client*) [clone .isra.0]` — 1684 → 1684 bytes; raw=False, resolved=True.
+- `core/rl2s.o: bool tomo_db0::IoLoop::drive_tls<true, false, (unsigned char)0>(tomo_db0::Client*) [clone .isra.0]` — 1737 → 1737 bytes; raw=False, resolved=True.
+- `core/rl2s.o: bool tomo_db0::IoLoop::drive_tls<true, false, (unsigned char)1>(tomo_db0::Client*) [clone .isra.0]` — 1618 → 1618 bytes; raw=False, resolved=True.
+- `core/rl2s.o: bool tomo_db0::IoLoop::drive_tls<true, true, (unsigned char)0>(tomo_db0::Client*) [clone .isra.0]` — 1737 → 1737 bytes; raw=False, resolved=True.
+- `core/rl2s.o: bool tomo_db0::IoLoop::drive_tls<true, true, (unsigned char)1>(tomo_db0::Client*) [clone .isra.0]` — 1618 → 1618 bytes; raw=False, resolved=True.
+- `core/rl2s.o: bool tomo_db0::ExLoopT<true>::execute_snapshot_task<false>(tomo_db0::Task const&, bool)` — 684 → 797 bytes; raw=False, resolved=False.
+- `main.o: tomo_db0::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `main.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false, false>(tomo_db0::Client*)` — 9639 → 9655 bytes; raw=False, resolved=False.
+- `main.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, true, false>(tomo_db0::Client*)` — 9422 → 9438 bytes; raw=False, resolved=False.
+- `main.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo_db0::Client*)` — 9639 → 9655 bytes; raw=False, resolved=False.
+- `main.o: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, true, false>(tomo_db0::Client*)` — 9370 → 9386 bytes; raw=False, resolved=False.
+- `main.o: bool tomo_db0::IoLoop::drive_tls<false, false, (unsigned char)0>(tomo_db0::Client*) [clone .isra.0]` — 1668 → 1668 bytes; raw=False, resolved=True.
+- `main.o: bool tomo_db0::IoLoop::drive_tls<false, false, (unsigned char)1>(tomo_db0::Client*) [clone .isra.0]` — 1572 → 1572 bytes; raw=False, resolved=True.
+- `main.o: bool tomo_db0::IoLoop::drive_tls<true, false, (unsigned char)0>(tomo_db0::Client*) [clone .isra.0]` — 1721 → 1721 bytes; raw=False, resolved=True.
+- `main.o: bool tomo_db0::IoLoop::drive_tls<true, false, (unsigned char)1>(tomo_db0::Client*) [clone .isra.0]` — 1602 → 1602 bytes; raw=False, resolved=True.
+- `main.o: tomo_db0::WbEngine::serve_impl<false, true, false, true, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const` — 537 → 824 bytes; raw=False, resolved=False.
+- `main.o: tomo_db0::WbEngine::serve_impl<false, true, true, false, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const` — 537 → 824 bytes; raw=False, resolved=False.
+- `persist/aof.o: tomo_db0::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.
+- `persist/aof.o: tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)` — 543 → 479 bytes; raw=False, resolved=False.
+- `snapshot/snapshot.o: tomo_db0::Shard::publish_size()` — 216 → 0 bytes; raw=False, resolved=False.

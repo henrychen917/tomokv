@@ -1,0 +1,19 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "tests/differ_gate.sh",
+    "/home/user/Projects/cx-storesize/build/storesize5/POST/tomokv",
+    "17899",
+    "17900",
+    "112-119",
+    "6:2"
+  ],
+  "binary": "/home/user/Projects/cx-storesize/build/storesize5/POST/tomokv",
+  "sha256": "472b2806b880931f11dbbe738d3c81a82bd81e6b0afbefb87c8a8c7e44819599",
+  "exit": 1,
+  "target_cores": "112-119",
+  "oracle_cores": "120",
+  "client_cores": "121-127"
+}

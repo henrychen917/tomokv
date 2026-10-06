@@ -1,0 +1,7 @@
+{
+  "exact_positions": 7200,
+  "convergence_checks": 24,
+  "maximum_publication_ms": 0.035
+}
+split complete=true verdict=PASS comparisons=540
+armed complete=true verdict=PASS comparisons=496

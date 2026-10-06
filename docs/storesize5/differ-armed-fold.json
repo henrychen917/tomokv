@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "group": "armed",
+  "parts": [
+    "armed-0",
+    "armed-1"
+  ],
+  "start": 1791288793.359203,
+  "end": 1791291428.787318,
+  "seconds": 2635.4281148910522,
+  "comparisons": 496,
+  "complete": true,
+  "verdict": "PASS",
+  "scope": "strict gate inventory fold; serial lane run, no parallel wall-time budget"
+}

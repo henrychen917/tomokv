@@ -1493,7 +1493,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                               Client* origin_client) {
     const bool all_shards = (op.spec->flags & CmdFlags::AllShards) ||
                             ((op.spec->flags & CmdFlags::ConfigRoute) &&
-                             command_config_routes_all_shards(op));
+                             command_config_routes_all_shards(op, force_atomic));
     Kind kind;
     if (all_shards)
         kind = op.cmd_name().eq_icase("randomkey") ? Kind::RandomKey :

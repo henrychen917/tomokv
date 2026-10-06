@@ -1,0 +1,4 @@
+build/storesize5/PRE/tomokv: OK
+build/storesize5/POST/tomokv: OK
+build/storesize5/PAD-A/tomokv: OK
+build/tomokv: OK
