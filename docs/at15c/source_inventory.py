@@ -9,7 +9,7 @@ def git(*args):
     return subprocess.check_output(['git', *args], text=True).strip()
 
 
-commits = git('rev-list', '--first-parent', '--reverse', 'origin/cpp..657353693').splitlines()
+commits = git('rev-list', '--first-parent', '--reverse', 'b1d931ee2..657353693').splitlines()
 assert len(commits) == 16
 rows = []
 for commit in commits:

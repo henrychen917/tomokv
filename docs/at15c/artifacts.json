@@ -538,5 +538,743 @@
     "bytes": 7718,
     "sha256": "f0bd066d6094effa1659f0fedafd6afb6749cd21a6145bf1459306dd9fe71d61",
     "original": "build/at15c/absolute-control-pre/target.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm/oracle.log",
+    "bytes": 1203,
+    "sha256": "b3396d0a947b5b5accaaeb35b4c07c86295672962d0bac773557399a02756af0",
+    "original": "build/at15c/profile-post-warm/oracle.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm/perf-command.json",
+    "bytes": 279,
+    "sha256": "0b533cdf075eb9da83937d4aec5c5e02677cbc945295c00e6514859622571857",
+    "original": "build/at15c/profile-post-warm/perf-command.json"
+  },
+  {
+    "path": "build/at15c/profile-post-warm/perf.data",
+    "bytes": 7455328,
+    "sha256": "0e926435ecf2d2715129c35e0a04b67e7461c4bafc318e4fc4466a5a15df917b",
+    "storage": "worktree build artifact; not committed"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm/perf.log",
+    "bytes": 205,
+    "sha256": "064beab29ea16e9319a7094d882baf654a02e3e4fd4b2c40ad222b7127d8a033",
+    "original": "build/at15c/profile-post-warm/perf.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm/pids.json",
+    "bytes": 38,
+    "sha256": "799e3d5469d9ac0c5bbec7926c4f5ff1136376709ac89eb5d3467dd3bb7ff1de",
+    "original": "build/at15c/profile-post-warm/pids.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm/results.json",
+    "bytes": 6203,
+    "sha256": "692f940875eb47537748d85753357e7c482f6804b3c800dd29831b45da9bd702",
+    "original": "build/at15c/profile-post-warm/results.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm/target.log",
+    "bytes": 7674,
+    "sha256": "b0bcc17ce4788b2854ead59ba1536fe219014709d33ff88d6b547bd5c8ebe052",
+    "original": "build/at15c/profile-post-warm/target.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm/warmup-hash.log",
+    "bytes": 59,
+    "sha256": "6e2dc0d2728fad78aa671201b2824164b6981d9f5938009d11a4cfd1630b507b",
+    "original": "build/at15c/profile-post-warm/warmup-hash.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm/warmup-hexpire.log",
+    "bytes": 62,
+    "sha256": "f07286d04fb91a673de1dc9defaddfcb42b930f89ac05bcc26cb715081cca463",
+    "original": "build/at15c/profile-post-warm/warmup-hexpire.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm/warmup-list.log",
+    "bytes": 59,
+    "sha256": "9fa44840b09ba131ae1f177970ea04549e7c7f7738923dec34a5611fd9cc9ffa",
+    "original": "build/at15c/profile-post-warm/warmup-list.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm/warmup-set.log",
+    "bytes": 58,
+    "sha256": "a30eac6aa679bbe9fe06095872a0057a556c76a3912668268457e6575f806ed0",
+    "original": "build/at15c/profile-post-warm/warmup-set.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm/warmup-string.log",
+    "bytes": 61,
+    "sha256": "9ed6afcbd675d89cbcffc4f2fe99f7b32a3e74b26c14ea6f53b19c52f7e55f4e",
+    "original": "build/at15c/profile-post-warm/warmup-string.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm/warmup-zset.log",
+    "bytes": 59,
+    "sha256": "af6473b7c0ca21965d2b0d65a7c4c381fae88ddc01d733cb465a69d4a5685458",
+    "original": "build/at15c/profile-post-warm/warmup-zset.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-1.json.gz",
+    "bytes": 235825,
+    "sha256": "998b9502555ae314154af96f6f452e2f7c23d0689fb84c500aebfea41a2b4955",
+    "original": "build/at15c/profile-post-warm-2/edgetime-1.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-1.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-1.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-10.json.gz",
+    "bytes": 235733,
+    "sha256": "e05439db2dc8bf00118deb730ce810f2e18fd2363f518b3b5a6dd25652467683",
+    "original": "build/at15c/profile-post-warm-2/edgetime-10.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-10.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-10.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-11.json.gz",
+    "bytes": 235614,
+    "sha256": "a2c1f796b1d95fcd49b1a0d08080449dc9a4cd75c3653e3d802083f5af217d2b",
+    "original": "build/at15c/profile-post-warm-2/edgetime-11.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-11.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-11.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-12.json.gz",
+    "bytes": 235548,
+    "sha256": "7422fa9103f82f46e3b4e21d080ce7b86c2955db01f343eea5539472b6d250ee",
+    "original": "build/at15c/profile-post-warm-2/edgetime-12.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-12.log",
+    "bytes": 225,
+    "sha256": "457ba0af2ad484a0b3a70aff597e08d6be9a18c6983ca9a7d236d728e8bd3aa9",
+    "original": "build/at15c/profile-post-warm-2/edgetime-12.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-13.json.gz",
+    "bytes": 235767,
+    "sha256": "e6e042f594f8e1dd8e2be8d40aae393f84ab9d62d726315e45d57b1487e2619d",
+    "original": "build/at15c/profile-post-warm-2/edgetime-13.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-13.log",
+    "bytes": 225,
+    "sha256": "457ba0af2ad484a0b3a70aff597e08d6be9a18c6983ca9a7d236d728e8bd3aa9",
+    "original": "build/at15c/profile-post-warm-2/edgetime-13.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-14.json.gz",
+    "bytes": 235885,
+    "sha256": "c736268f9d6bfc4b567667ed572feeaac69a5a258dc66f22dee85db41474c441",
+    "original": "build/at15c/profile-post-warm-2/edgetime-14.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-14.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-14.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-15.json.gz",
+    "bytes": 235471,
+    "sha256": "cfaf90ad17177f559b588f618b0fde4fed3f185de34eebffd4826d709abc048a",
+    "original": "build/at15c/profile-post-warm-2/edgetime-15.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-15.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-15.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-16.json.gz",
+    "bytes": 235647,
+    "sha256": "771da37e93dd64927d52fe678a68760893d62f54e5889c00bd1b75668a6b3edd",
+    "original": "build/at15c/profile-post-warm-2/edgetime-16.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-16.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-16.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-17.json.gz",
+    "bytes": 235752,
+    "sha256": "c2b249fbad4b3c34cb3e474beb42a85341440276a8712f495cfaf6e8a8669780",
+    "original": "build/at15c/profile-post-warm-2/edgetime-17.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-17.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-17.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-18.json.gz",
+    "bytes": 235343,
+    "sha256": "05d6336d41b41f9065764e8dd573d3fb6a11a5f61b6305ca94631dd5cc5c4d4c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-18.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-18.log",
+    "bytes": 225,
+    "sha256": "d4c3826b1cc6e2a1f15d8e4c875326856c4c29d805270dd0fef221c3dd91ab6d",
+    "original": "build/at15c/profile-post-warm-2/edgetime-18.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-19.json.gz",
+    "bytes": 235789,
+    "sha256": "59f7c4965727ed950afc9e8797bff45275cf07af029398d7b82433835737ad7e",
+    "original": "build/at15c/profile-post-warm-2/edgetime-19.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-19.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-19.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-2.json.gz",
+    "bytes": 235645,
+    "sha256": "697517cdbd1a0a5ee49b8152be7729aafd5b6c7acbd901577fba7b406c6aeb94",
+    "original": "build/at15c/profile-post-warm-2/edgetime-2.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-2.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-2.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-20.json.gz",
+    "bytes": 235472,
+    "sha256": "de682afdf82119046131390f27f189bc202128af640e50518d16eb289b32969f",
+    "original": "build/at15c/profile-post-warm-2/edgetime-20.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-20.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-20.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-21.json.gz",
+    "bytes": 235846,
+    "sha256": "d111e0b1f33550e2f2dc6ba698c0081525885a19e4f701fb44313031ed3068b4",
+    "original": "build/at15c/profile-post-warm-2/edgetime-21.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-21.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-21.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-22.json.gz",
+    "bytes": 235538,
+    "sha256": "56e8e3323c32658bdb995d318a7e99cdf53f242391a62831cfcf5908969b0045",
+    "original": "build/at15c/profile-post-warm-2/edgetime-22.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-22.log",
+    "bytes": 225,
+    "sha256": "173158e127831f513ae9832886f3524ae267b261a722bd7d06d70661d80cc0d6",
+    "original": "build/at15c/profile-post-warm-2/edgetime-22.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-23.json.gz",
+    "bytes": 235523,
+    "sha256": "8817f0ce9548d2afcb22a740e088bee4f899e0c2950c7acdf89dc4db7a16d770",
+    "original": "build/at15c/profile-post-warm-2/edgetime-23.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-23.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-23.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-24.json.gz",
+    "bytes": 235816,
+    "sha256": "61fe1ea5515f3a4af2d489f1dc2e0893c3e43ec9da13fa035fb5fd068ea6c5aa",
+    "original": "build/at15c/profile-post-warm-2/edgetime-24.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-24.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-24.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-25.json.gz",
+    "bytes": 235692,
+    "sha256": "f3f2affc482997c4c256ae8b394509ee00d3a2cdd651c5b0a1094f9945aa9ab1",
+    "original": "build/at15c/profile-post-warm-2/edgetime-25.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-25.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-25.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-26.json.gz",
+    "bytes": 235732,
+    "sha256": "09d84df16a37a2ef043c5aab3ef6fde9338491108a4d464f58358287ff6f9f73",
+    "original": "build/at15c/profile-post-warm-2/edgetime-26.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-26.log",
+    "bytes": 387,
+    "sha256": "ce3ff51bbfc0edc87bbb58c794fd23b7c9d2e79a4cba7cb0adbe98890565ca9c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-26.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-27.json.gz",
+    "bytes": 235672,
+    "sha256": "9195d19929319710a9111e6fd0c38a1274981eabeaa6c092ae9a3a33de6a8b74",
+    "original": "build/at15c/profile-post-warm-2/edgetime-27.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-27.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-27.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-28.json.gz",
+    "bytes": 235655,
+    "sha256": "070b5b92f1bb869828ff7a1c7df9c023f3dab6f906502b0693ca9c3412161045",
+    "original": "build/at15c/profile-post-warm-2/edgetime-28.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-28.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-28.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-29.json.gz",
+    "bytes": 235922,
+    "sha256": "e9e8c6ba09b8af7ccd676332680a440ef9e545e926bdd09963ce3d20144ef1a2",
+    "original": "build/at15c/profile-post-warm-2/edgetime-29.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-29.log",
+    "bytes": 203,
+    "sha256": "6336bf347aa07e66d097cfd50429a3967145966d4bfd56c3b481395ffc9bcfda",
+    "original": "build/at15c/profile-post-warm-2/edgetime-29.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-3.json.gz",
+    "bytes": 235496,
+    "sha256": "91b51e9715f0b4385ce51f875eb077cc88cc7b47ca988dca91f25eb9a4ebed3c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-3.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-3.log",
+    "bytes": 225,
+    "sha256": "2aee527e97560525497860440acb3c03a2927f494ef63ecfcb2ecd87efce22f6",
+    "original": "build/at15c/profile-post-warm-2/edgetime-3.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-30.json.gz",
+    "bytes": 235502,
+    "sha256": "28235ef6e6765a2fd3e83a56e8588e6402fc58a6bbd5a2a65e8edd796fcacf6e",
+    "original": "build/at15c/profile-post-warm-2/edgetime-30.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-30.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-30.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-31.json.gz",
+    "bytes": 235756,
+    "sha256": "ad4062171829806e5b67d47ea2eeb29091e1e35252f7d3a1fdb6a8b592735dce",
+    "original": "build/at15c/profile-post-warm-2/edgetime-31.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-31.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-31.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-32.json.gz",
+    "bytes": 235846,
+    "sha256": "b7e27b88ca6c0946165481569de97de7ef61634493f670c83465b2be14235300",
+    "original": "build/at15c/profile-post-warm-2/edgetime-32.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-32.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-32.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-33.json.gz",
+    "bytes": 235624,
+    "sha256": "34e083b65d3aa10e1c12a3be9586627076aff12e9b5ae3d59787ee77b375f6f7",
+    "original": "build/at15c/profile-post-warm-2/edgetime-33.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-33.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-33.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-34.json.gz",
+    "bytes": 235568,
+    "sha256": "7fe77475b25292275ac998c2894a723c466dba85152308547484ad84e4665269",
+    "original": "build/at15c/profile-post-warm-2/edgetime-34.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-34.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-34.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-35.json.gz",
+    "bytes": 235692,
+    "sha256": "4c1ead7b9e92e6231d896ee9b6f271ccdbf93bbed593754696586545bd54bcf7",
+    "original": "build/at15c/profile-post-warm-2/edgetime-35.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-35.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-35.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-36.json.gz",
+    "bytes": 235608,
+    "sha256": "67b85523a1866973302a924dc671e3bd18928c6a2efe1dc820c24652f3a91097",
+    "original": "build/at15c/profile-post-warm-2/edgetime-36.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-36.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-36.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-37.json.gz",
+    "bytes": 235957,
+    "sha256": "14210beb252001afdd2e76c621453fd1f22191e53c5f0064fd744e957b656738",
+    "original": "build/at15c/profile-post-warm-2/edgetime-37.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-37.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-37.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-38.json.gz",
+    "bytes": 235938,
+    "sha256": "222b935d5a8797d3bdbaad8cab451418edc66b1ef66046b286cf267bdecf80ff",
+    "original": "build/at15c/profile-post-warm-2/edgetime-38.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-38.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-38.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-39.json.gz",
+    "bytes": 235596,
+    "sha256": "1e0074bcde48aca0c8c5c6139129acfd7f530efd397635bfb468bf5e04652b73",
+    "original": "build/at15c/profile-post-warm-2/edgetime-39.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-39.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-39.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-4.json.gz",
+    "bytes": 235688,
+    "sha256": "389de7ed66a2c46434501be3abe5770e03ef5859132a14c284a96afdb2204873",
+    "original": "build/at15c/profile-post-warm-2/edgetime-4.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-4.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-4.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-40.json.gz",
+    "bytes": 235695,
+    "sha256": "84e006ffbe92d87c458635f512f197e8cccfe5e539c06f12b2db8eccebdbfada",
+    "original": "build/at15c/profile-post-warm-2/edgetime-40.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-40.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-40.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-5.json.gz",
+    "bytes": 235469,
+    "sha256": "8ff8a6f273b668e0d72f25e784e4adce536fe427340ed5b56a9889666f6601e2",
+    "original": "build/at15c/profile-post-warm-2/edgetime-5.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-5.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-5.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-6.json.gz",
+    "bytes": 235448,
+    "sha256": "a4ae42dc4fd5b7a752df671101741cbb53630cfde32e0a4997ec03381b2c838e",
+    "original": "build/at15c/profile-post-warm-2/edgetime-6.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-6.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-6.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-7.json.gz",
+    "bytes": 235628,
+    "sha256": "53a8709f53eebd011546e869f3a96056771786f98632e6c7d64e28fbdf973301",
+    "original": "build/at15c/profile-post-warm-2/edgetime-7.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-7.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-7.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-8.json.gz",
+    "bytes": 235415,
+    "sha256": "f54d2996210cfb5e20fa0c75a5a4c6544cd972ef305eda38771e5dd4222f0d2c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-8.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-8.log",
+    "bytes": 63,
+    "sha256": "560d7f83716a0c61a013c57f773cbc39a526466be942b15b7d702626f0b3106c",
+    "original": "build/at15c/profile-post-warm-2/edgetime-8.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-9.json.gz",
+    "bytes": 235998,
+    "sha256": "e8682eb1c73ebfe7371d26e2ce3ae79a56d805319454fd378433744f2e0b79a2",
+    "original": "build/at15c/profile-post-warm-2/edgetime-9.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/edgetime-9.log",
+    "bytes": 225,
+    "sha256": "0ad969f8bdd3a33caeb75f76428d05dda70df1e89bbd2620b7c9d5bfecc6a84b",
+    "original": "build/at15c/profile-post-warm-2/edgetime-9.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/oracle.log",
+    "bytes": 1203,
+    "sha256": "86da9b6c1f42f1eeeaf669358659a20bc559e6892c63ffdfc72e4d61721e500c",
+    "original": "build/at15c/profile-post-warm-2/oracle.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/perf-command.json",
+    "bytes": 281,
+    "sha256": "334cb7c47a5c47763b93d8fa657e63bc42e25c978212d0037ef29a2cc4652602",
+    "original": "build/at15c/profile-post-warm-2/perf-command.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/perf-enabled.json",
+    "bytes": 87,
+    "sha256": "f24aedf7f5cafa64dd3bdf878ea98c0873f0d698e0320a4b2068a8e08117f091",
+    "original": "build/at15c/profile-post-warm-2/perf-enabled.json"
+  },
+  {
+    "path": "build/at15c/profile-post-warm-2/perf.data",
+    "bytes": 160193632,
+    "sha256": "158cf93fbca3678adfab83ee5534351a1aa2fa74a33715485e590bcb2cd3acc5",
+    "storage": "worktree build artifact; not committed"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/perf.log",
+    "bytes": 214,
+    "sha256": "09954363f3d48da55b837937085ed9dd9515d9e2aed23edaa2b8dc5926d67e6a",
+    "original": "build/at15c/profile-post-warm-2/perf.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/pids.json",
+    "bytes": 38,
+    "sha256": "f234b20bee788fd03e8209d7890c289bf49149c21dd6126b9878256280fb742a",
+    "original": "build/at15c/profile-post-warm-2/pids.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/results.json",
+    "bytes": 51305,
+    "sha256": "52f5688033512dffc19aace8fba32c53b57368ac9df2bdf6fd6690eb78fee32e",
+    "original": "build/at15c/profile-post-warm-2/results.json"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/target.log",
+    "bytes": 7833,
+    "sha256": "8af216439bc25c4b057b9dc3afcf74abf30b87423d6425f3326af22a260565fa",
+    "original": "build/at15c/profile-post-warm-2/target.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/warmup-hash.log",
+    "bytes": 59,
+    "sha256": "6e2dc0d2728fad78aa671201b2824164b6981d9f5938009d11a4cfd1630b507b",
+    "original": "build/at15c/profile-post-warm-2/warmup-hash.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/warmup-hexpire.log",
+    "bytes": 62,
+    "sha256": "f07286d04fb91a673de1dc9defaddfcb42b930f89ac05bcc26cb715081cca463",
+    "original": "build/at15c/profile-post-warm-2/warmup-hexpire.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/warmup-list.log",
+    "bytes": 59,
+    "sha256": "9fa44840b09ba131ae1f177970ea04549e7c7f7738923dec34a5611fd9cc9ffa",
+    "original": "build/at15c/profile-post-warm-2/warmup-list.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/warmup-set.log",
+    "bytes": 58,
+    "sha256": "a30eac6aa679bbe9fe06095872a0057a556c76a3912668268457e6575f806ed0",
+    "original": "build/at15c/profile-post-warm-2/warmup-set.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/warmup-string.log",
+    "bytes": 61,
+    "sha256": "9ed6afcbd675d89cbcffc4f2fe99f7b32a3e74b26c14ea6f53b19c52f7e55f4e",
+    "original": "build/at15c/profile-post-warm-2/warmup-string.log"
+  },
+  {
+    "path": "docs/at15c/receipts/profile-post-warm-2/warmup-zset.log",
+    "bytes": 59,
+    "sha256": "af6473b7c0ca21965d2b0d65a7c4c381fae88ddc01d733cb465a69d4a5685458",
+    "original": "build/at15c/profile-post-warm-2/warmup-zset.log"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/edgetime-1.json.gz",
+    "bytes": 238824,
+    "sha256": "35712b235871186627e36fcf7cafcbc2298ebfac4e3d2b27aded0b83f843d77f",
+    "original": "build/at15c/trace-pre-warm/edgetime-1.json"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/edgetime-1.log",
+    "bytes": 327,
+    "sha256": "d7d2395e01d8ea9bf0df1af5c65d09e3892d6eac48d447649416eb11f32ef808",
+    "original": "build/at15c/trace-pre-warm/edgetime-1.log"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/edgetime-2.json.gz",
+    "bytes": 237860,
+    "sha256": "f53354b622e14bc565ad690271d0a7dac2e233b0769a96a48eb2e7669df77d42",
+    "original": "build/at15c/trace-pre-warm/edgetime-2.json"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/edgetime-2.log",
+    "bytes": 195,
+    "sha256": "c115946f952b32afa282369bd37d603ca7a8d043ed3352fd70e14545122be271",
+    "original": "build/at15c/trace-pre-warm/edgetime-2.log"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/edgetime-3.json.gz",
+    "bytes": 236405,
+    "sha256": "ac153d0ecfaea3032b4eb57583ac8dca905332318c59b9755aefb27bef93cffa",
+    "original": "build/at15c/trace-pre-warm/edgetime-3.json"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/edgetime-3.log",
+    "bytes": 387,
+    "sha256": "68e03024fb5be492a7446273fe9fbd3315dfeeb73eea17214303d986b68e6413",
+    "original": "build/at15c/trace-pre-warm/edgetime-3.log"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/oracle.log",
+    "bytes": 1203,
+    "sha256": "b88261eaff06af58b8d70fcaa524e2323d48e688852cc32efc13f5bfa033142d",
+    "original": "build/at15c/trace-pre-warm/oracle.log"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/pids.json",
+    "bytes": 38,
+    "sha256": "c289c97ff901316235b67fc3c22a1556520e6e596d5a43271f9f35f6fe27b541",
+    "original": "build/at15c/trace-pre-warm/pids.json"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/results.json",
+    "bytes": 9566,
+    "sha256": "fb160391a7fe050e1ccbf9edfd389ca105e272d44403163f9d298669fc4856e6",
+    "original": "build/at15c/trace-pre-warm/results.json"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/target.log",
+    "bytes": 7743,
+    "sha256": "c043b25cd520a7b96cc15a5317a239f1a38f3d2dbe339cd8f7af3e740196fb82",
+    "original": "build/at15c/trace-pre-warm/target.log"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/warmup-hash.log",
+    "bytes": 59,
+    "sha256": "6e2dc0d2728fad78aa671201b2824164b6981d9f5938009d11a4cfd1630b507b",
+    "original": "build/at15c/trace-pre-warm/warmup-hash.log"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/warmup-hexpire.log",
+    "bytes": 650,
+    "sha256": "ad9eb14d62ec0b9e8d36082b6d90a6a51f60797dd1e6e8eb558f4c510f579e1d",
+    "original": "build/at15c/trace-pre-warm/warmup-hexpire.log"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/warmup-list.log",
+    "bytes": 59,
+    "sha256": "9fa44840b09ba131ae1f177970ea04549e7c7f7738923dec34a5611fd9cc9ffa",
+    "original": "build/at15c/trace-pre-warm/warmup-list.log"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/warmup-set.log",
+    "bytes": 58,
+    "sha256": "a30eac6aa679bbe9fe06095872a0057a556c76a3912668268457e6575f806ed0",
+    "original": "build/at15c/trace-pre-warm/warmup-set.log"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/warmup-string.log",
+    "bytes": 61,
+    "sha256": "9ed6afcbd675d89cbcffc4f2fe99f7b32a3e74b26c14ea6f53b19c52f7e55f4e",
+    "original": "build/at15c/trace-pre-warm/warmup-string.log"
+  },
+  {
+    "path": "docs/at15c/receipts/trace-pre-warm/warmup-zset.log",
+    "bytes": 59,
+    "sha256": "af6473b7c0ca21965d2b0d65a7c4c381fae88ddc01d733cb465a69d4a5685458",
+    "original": "build/at15c/trace-pre-warm/warmup-zset.log"
   }
 ]

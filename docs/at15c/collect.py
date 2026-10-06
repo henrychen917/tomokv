@@ -8,7 +8,8 @@ import shutil
 
 roots = ['trace-post', 'trace-pre', 'bisect-pre', 'bisect-post',
          'profile-post-mono', 'directed-split', 'absolute-control-post', 'absolute-control-pre',
-         'profile-post-warm', 'trace-pre-warm']
+         'profile-post-warm', 'profile-post-warm-2', 'trace-pre-warm',
+         'profile-observed-mask-post', 'trace-observed-mask-pre']
 manifest = []
 for name in roots:
     root = Path('build/at15c') / name

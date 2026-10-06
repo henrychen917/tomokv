@@ -25,6 +25,8 @@ p.add_argument('--directed', action='store_true')
 p.add_argument('--warmup', action='store_true',
                help='run the six preceding seed-7 harness suites before edgetime')
 p.add_argument('--stop-on-failure', action='store_true')
+p.add_argument('--observed-mask', action='store_true',
+               help='diagnostic control: recreate the broadened server masks observed in full replays')
 p.add_argument('--absolute-control', action='store_true',
                help='separate diagnostic: replace only the two PTTL queries with PEXPIRETIME')
 args = p.parse_args()
@@ -94,6 +96,15 @@ try:
         for suite in ('string', 'list', 'set', 'zset', 'hash', 'hexpire'):
             run('warmup-' + suite, ['python3', 'tests/differ.py',
                 '127.0.0.1', '17899', '127.0.0.1', '17900', suite, '7'])
+    if args.observed_mask:
+        before = dict(target=affinity(target.pid), oracle=affinity(oracle.pid))
+        for server in (target, oracle):
+            for task in Path(f'/proc/{server.pid}/task').iterdir():
+                os.sched_setaffinity(int(task.name), set(range(112, 128)))
+        (out / 'affinity-control.json').write_text(json.dumps(dict(
+            kind='recreate observed broadened masks; separate diagnostic control',
+            before=before, after=dict(target=affinity(target.pid), oracle=affinity(oracle.pid))),
+            indent=2) + '\n')
     perf = None
     if args.perf:
         log = (out / 'perf.log').open('w')
@@ -112,10 +123,12 @@ try:
         os.close(control_read)
         os.close(ack_write)
         os.write(control_write, b'enable\n')
-        if not select.select([ack_read], [], [], 15)[0] or os.read(ack_read, 64) != b'ack\n':
+        ack = os.read(ack_read, 64) if select.select([ack_read], [], [], 15)[0] else b''
+        # perf 7.0 writes sizeof("ack\n"), including the terminating NUL.
+        if ack not in (b'ack\n', b'ack\n\0'):
             raise RuntimeError('perf did not acknowledge enabled events')
         (out / 'perf-enabled.json').write_text(json.dumps(dict(
-            mono_ns=time.monotonic_ns(), wall_ns=time.time_ns())) + '\n')
+            mono_ns=time.monotonic_ns(), wall_ns=time.time_ns(), ack_hex=ack.hex())) + '\n')
     for index in range(args.runs):
         label = f'edgetime-{index + 1}'
         command = ['python3', 'docs/at15c/trace_differ.py', str(out / label)] if args.trace \

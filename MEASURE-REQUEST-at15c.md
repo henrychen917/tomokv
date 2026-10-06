@@ -1,7 +1,7 @@
 # AT15c — seed-7 edgetime PTTL investigation
 
 Investigation in progress, 2026-10-06. This lane merged `origin/cpp` before editing
-(merge `bfc13903f`).
+(merge `bfc13903f`, mainline parent `b1d931ee2`).
 Only this worktree is edited. No production change, test comparison relaxation,
 EXPECT edit, benchmark, or push is part of this investigation.
 
@@ -54,6 +54,8 @@ Hash-field expirations at deadline 1 exist in the chunks, on other hash keys;
 the queried objects are strings. Active expiry is disabled by operation 0.
 The stream contains no INFO, MULTI, EXEC, WAIT, DEBUG SLEEP, or notification
 configuration/subscription. It ends by restoring active expiry.
+The executed-command coverage artifacts for all six preceding seed-7 suites
+also contain no INFO, MULTI, EXEC, WATCH or SWAPDB (`prelude-coverage.json`).
 
 Static ranking before live timing:
 
@@ -158,6 +160,8 @@ split and armed fused, live DEBUG in both modes, and all 40 invocations of
 `docs/at15b/prove.py` (only its output directory is redirected). This includes
 both formerly aborting survivor cases, multidb owners and required negative
 controls. These are directed receipts, not a green whole-matrix claim.
+All twelve directed multi/multidb legs have zero differences and zero clock
+tolerances.
 
 The unmodified `tools/lbstall_artifacts.py compare` reports **742/742**
 namespaced and **741/741** db0 selected bodies raw-identical and identical
