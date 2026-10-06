@@ -5628,6 +5628,7 @@ def run_psfix_suite():
             for value in ("0", "1", "true", "", "yes "):
                 assert both(["CONFIG", "SET", "aof-load-truncated", value]).startswith(b"-ERR ")
                 both(["CONFIG", "GET", "aof-load-truncated"])
+            assert both(["CONFIG", "SET", "AOF-LOAD-TRUNCATED", "0"]).startswith(b"-ERR ")
             assert both(["CONFIG", "SET", "aof-load-truncated", "no",
                          "AOF-LOAD-TRUNCATED", "yes"]) == (
                              b"-ERR CONFIG SET failed (possibly related to argument 'AOF-LOAD-TRUNCATED') - duplicate parameter\r\n")

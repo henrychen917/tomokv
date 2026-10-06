@@ -656,7 +656,10 @@ bool collect_config_updates(Op& op,
         if (!normalized) {
             if (config_error) {
                 std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
-                msg += item->name;
+                if (!std::strcmp(item->name, "aof-load-truncated"))
+                    msg.append(op.arg(i).p, op.arg(i).n);
+                else
+                    msg += item->name;
                 msg += "') - "; msg += config_error;
                 reply_err(op.sink(), msg.c_str()); return false;
             }
