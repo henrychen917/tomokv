@@ -1,10 +1,21 @@
 #!/usr/bin/env python3
 """Serverless controls: absent, wrong and late client witnesses must stay red."""
 from collections import deque
+import ast
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
 import _client_wait
+
+
+def definitions(filename, names, namespace):
+    """Load only real helpers; the batteries' module bodies open live sockets."""
+    tree = ast.parse((Path(__file__).parent / filename).read_text())
+    tree.body = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name in names]
+    assert {node.name for node in tree.body} == set(names)
+    exec(compile(tree, filename, "exec"), namespace)
+    return namespace
 
 
 class Clock:
@@ -93,6 +104,68 @@ class ClientWitnessTests(unittest.TestCase):
             _client_wait.wait_client_state(observer, 7, "gone")
         self.assertEqual(len(observer.commands), 1)
         self.assertEqual(observer.timeout, 30.0)
+
+
+class PersistenceWitnessTests(unittest.TestCase):
+    def test_idle_sync_waits_for_counter_and_preserves_policy_age(self):
+        clock = Clock()
+        def info(_):
+            return {"aof_fsyncs": 4 if clock.now < 1.8 else 5}
+        ns = definitions("aof_fsync.py", ["wait_idle_sync"], dict(time=clock, info=info))
+        self.assertEqual(ns["wait_idle_sync"](None, {"aof_fsyncs": 4}), {"aof_fsyncs": 5})
+        self.assertGreaterEqual(clock.now, 1.8)
+        clock.now = 0
+        ns["info"] = lambda _: {"aof_fsyncs": 5}
+        ns["wait_idle_sync"](None, {"aof_fsyncs": 4})
+        self.assertGreaterEqual(clock.now, 1.25)
+
+    def test_absent_sync_fails(self):
+        clock = Clock()
+        ns = definitions("aof_fsync.py", ["wait_idle_sync"],
+                         dict(time=clock, info=lambda _: {"aof_fsyncs": 4}))
+        with self.assertRaisesRegex(AssertionError, "not witnessed"):
+            ns["wait_idle_sync"](None, {"aof_fsyncs": 4}, timeout=2)
+
+    def test_save_must_finish_and_publish_valid_state(self):
+        clock = Clock()
+        values = deque([b"1", b"1", b"0"])
+        ns = definitions("snap_cut_battery.py", ["wait_save_idle"],
+                         dict(time=clock, info_field=lambda _: values.popleft()))
+        ns["wait_save_idle"]()
+        self.assertFalse(values)
+        for value in (None, b"bad", b"1"):
+            ns["info_field"] = lambda _, v=value: v
+            with self.assertRaises(AssertionError):
+                ns["wait_save_idle"](timeout=1)
+
+    def test_raw_load_keeps_exact_success_and_corruption_oracles(self):
+        refusal = b"-ERR loading is not allowed while FLIP is in progress\r\n"
+        corrupt = b"-ERR Error trying to load the AOF, check server logs.\r\n"
+        for expected in (b"+OK\r\n", corrupt):
+            with self.subTest(expected=expected):
+                client = Observer([refusal, expected])
+                client.command = client.cmd
+                waits = []
+                ns = definitions("aof.py", ["bulk_payload", "expect_loadaof"],
+                                 dict(c=client, time=Clock(), wait_flip_idle=lambda *args: waits.append(args)))
+                self.assertEqual(ns["expect_loadaof"](expected), expected)
+                self.assertEqual(len(waits), 2)
+                self.assertEqual(client.commands, [("DEBUG", "LOADAOF")] * 2)
+                self.assertIs(waits[0][0].sock, client.sock)
+                # INFO stays on the same connection and is decoded for the existing barrier.
+                client.replies = deque([b"$3\r\nx:y\r\n"])
+                self.assertEqual(waits[0][0].command("INFO", "SERVER", "LB"), b"x:y")
+
+    def test_raw_load_never_retries_data_errors_or_accepts_two_refusals(self):
+        refusal = b"-ERR loading is not allowed while FLIP is in progress\r\n"
+        for reply, calls in ((b"-ERR corruption\r\n", 1), (refusal, 2), (b"+OK\n", 1)):
+            client = Observer([reply])
+            client.command = client.cmd
+            ns = definitions("aof.py", ["expect_loadaof"],
+                             dict(c=client, time=Clock(), wait_flip_idle=lambda *args: None))
+            with self.assertRaises(AssertionError):
+                ns["expect_loadaof"](b"+OK\r\n")
+            self.assertEqual(len(client.commands), calls)
 
 
 if __name__ == "__main__":

@@ -23,6 +23,19 @@ def info_field(name):
     for ln in t.split(b"\r\n"):
         if ln.startswith(name.encode()+b":"): return ln.split(b":",1)[1]
     return None
+
+
+def wait_save_idle(timeout=90):
+    deadline = time.monotonic() + timeout
+    while True:
+        active = info_field("rdb_bgsave_in_progress")
+        if active not in (b"0", b"1"):
+            raise AssertionError("missing/invalid BGSAVE state: %r" % (active,))
+        if time.monotonic() >= deadline:
+            raise AssertionError("BGSAVE did not finish within %ds" % timeout)
+        if active == b"0":
+            return
+        time.sleep(.02)
 rng = random.Random(11)
 KEYS = [("pk:%d"%i, "val-%d-%s"%(i, "x"*rng.randrange(0,200))) for i in range(6000)]
 TTLK = [("tk:%d"%i, "tval%d"%i) for i in range(500)]
@@ -274,16 +287,20 @@ if MODE == "save":
         s.sendall(enc(["SET","gone:%d"%i,"g","PX","150"]))
     for _ in range(50): rr(f)
     time.sleep(0.5)
-    print("BGSAVE:", cmd("BGSAVE"))
+    wait_save_idle()
+    save_reply = cmd("BGSAVE")
+    if save_reply != b"+Background saving started":
+        raise AssertionError("BGSAVE failed: %r" % (save_reply,))
+    print("BGSAVE:", save_reply)
     # mutations begin only after the BGSAVE reply => ALL are post-cut. The dump must show none.
     m, fm = conn()
     def mc(*a): m.sendall(enc(list(a))); return rr(fm)
     for i in range(0, 6000, 2): mc("SET", "pk:%d"%i, "MUTATED-%d"%i)
     for i in range(100): mc("DEL", "pk:%d"%(i*3+1))
     for i in range(800): mc("SET", "post:%d"%i, "newkey%d"%i)
-    t0=time.time()
-    while info_field("rdb_bgsave_in_progress") != b"0" and time.time()-t0 < 90: time.sleep(0.2)
-    print("bgsave done in %.1fs (mutation storm raced the capture)" % (time.time()-t0))
+    t0=time.monotonic()
+    wait_save_idle()
+    print("bgsave done in %.1fs (mutation storm raced the capture)" % (time.monotonic()-t0))
     print("last_save_time:", info_field("last_save_time"))
 elif MODE == "verify_cut":
     # the dump is the state at the cut: every original pk value, no MUTATED, no post:*, no gone:*
