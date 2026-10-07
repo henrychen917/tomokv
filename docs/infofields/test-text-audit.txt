@@ -1,8 +1,43 @@
+tests/mutants.py:105:    # its executable/argument AND the counted success declaration in that same loop; finding
+tests/mutants.py:394:        argv = [sys.executable, tree / 'tests/feature_gate.py', '--cell', row['feature'],
+tests/mutants.py:401:        argv = [sys.executable, tree / 'tests/mutants.py', '--_live-row', row['id'], '--_tree', str(tree),
+tests/mutants.py:619:            result = command([sys.executable, ROOT / 'tests' / script, '127.0.0.1', str(args.port), *extras],
+tests/mutants.py:777:            raise AssertionError(f'{key}: wrong loop executable was accepted')
+tests/mutants.py:808:                  f'p=subprocess.Popen([sys.executable,"-c",{child!r}],stdout=subprocess.PIPE,text=True,start_new_session=True); '
+tests/mutants.py:810:        spectator = subprocess.Popen([sys.executable, '-c', 'import time; print("ready",flush=True); time.sleep(90)'],
+tests/mutants.py:815:            result = command([sys.executable, '-c', parent], ROOT, output / 'orphan.log', 5)
+tests/mutants.py:837:                    command([sys.executable, '-c', child], tree, output / 'interrupt.log', 5)
 tests/cd13b_unit.cc:32:        cfg.maxmemory = 1ull << 30; cfg.maxmemory_policy = MaxmemoryPolicy::AllKeysLfu;
 tests/infofields_test.py:2:"""Serverless falsification of the differential's field, rate and MONITOR checks."""
+tests/infofields_test.py:36:        misplaced[b"Server"][b"role"] = misplaced[b"Replication"].pop(b"role")
 tests/infofields_test.py:40:        duplicate[b"Server"][b"cluster_enabled"] = b"0"
 tests/infofields_test.py:45:        body = b"# Server\r\nrun_id:a\r\n\r\n# Cluster\r\ncluster_enabled:0\r\n"
+tests/infofields_test.py:60:    def test_monitor_bytes(self):
+tests/infofields_test.py:61:        quote = differ.monitor_quote(b'\x00\x07\x08\t\n\r"\\\x7f\xff')
+tests/infofields_test.py:64:        payload = differ.monitor_payload(line, b"127.0.0.1:1234")
+tests/infofields_test.py:69:                differ.monitor_payload(bad, b"127.0.0.1:1234")
+tests/infofields_test.py:71:            differ.monitor_payload(line, b"127.0.0.1:9999")
+tests/infofields_test.py:73:    def test_monitor_inclusion_controls(self):
+tests/infofields_test.py:75:        differ.monitor_check_streams(expected, expected, expected)
+tests/infofields_test.py:80:                differ.monitor_check_streams(broken, expected, expected)
+tests/infofields_test.py:82:            differ.monitor_check_streams([], [], [])
+tests/infofields_test.py:84:    def test_monitor_generator_cannot_omit_denials(self):
 tests/infofields_test.py:86:            commands = differ.gen_monitor(random.Random(seed))
+tests/signalacct_core_checks.inc:41:            if (f.server.flip_convert_[tid] != Role::Ex) continue;
+tests/signalacct_core_checks.inc:44:        require(selected == 1, "physical picker selects exactly one role conversion");
+tests/signalacct_core_checks.inc:45:        require(f.server.flip_convert_[0] == Role::Idle, "coordinator excluded despite lowest occupancy");
+tests/signalacct_core_checks.inc:47:            require(f.server.flip_convert_[5] == Role::Idle, "AOF writer excluded despite lowest occupancy");
+tests/signalacct_core_checks.inc:48:            require(f.server.flip_convert_[4] == Role::Idle, "unix owner excluded despite lowest occupancy");
+tests/signalacct_core_checks.inc:76:                require(controller.sample_role_demand(f.server,
+tests/signalacct_core_checks.inc:78:                        "model sample has ops, wall and idle evidence on both roles");
+tests/respcompat_pad.py:85:    assert restored == pre_text, 'unexpected executable change outside the four island relocations'
+tests/_gate_process.py:90:            threads[int(v[1])] = dict(role=v[2], clients=int(v[4]), iterations=int(v[5]),
+tests/signalacct_source_checks.py:63:    subprocess.run([sys.executable, 'tests/r7shadow_sync.py'], cwd=ROOT, check=True)
+tests/signalacct_source_checks.py:74:    r = subprocess.run([sys.executable, 'tests/r7shadow_sync.py'], cwd=dest, text=True,
+tests/abba_evidence.py:233:                # Recompute the productive-role witness from the same raw deltas
+tests/abba_evidence.py:251:            scores = [number(x.get("score_pct"), "productive-role occupancy", positive=True)
+tests/abba_evidence.py:255:                    f"{cell['id']}: judged block is below the productive-role floor "
+tests/abba_evidence.py:335:    # Ports and executable pathnames do not alter the experiment. Every other current or future
 tests/gate_history.py:135:    for key in ("run_id", "observation_id"):
 tests/gate_history.py:288:def record(directory: Path, *, run_id: str, label: str, seconds: float,
 tests/gate_history.py:292:        "run_id": run_id, "observation_id": observation_id or uuid.uuid4().hex,
@@ -29,10 +64,21 @@ tests/gate_history.py:944:        record(self.directory, run_id="old", label="fi
 tests/gate_history.py:959:                        record(self.directory, run_id="new", label="first", seconds=1,
 tests/gate_history.py:970:                record(directory, run_id="old", label="first", seconds=1, verdict="ok", observation_id="first")
 tests/gate_history.py:976:history.record(Path(sys.argv[2]), run_id="interrupted", label="crashed", seconds=2,
+tests/gate_history.py:979:                result = subprocess.run([sys.executable, "-c", code, str(root), str(directory), boundary], timeout=5)
 tests/gate_history.py:984:                    record(directory, run_id="recovery", label="crashed", seconds=2,
 tests/gate_history.py:987:                record(directory, run_id="recovery", label="last", seconds=3, verdict="ok", observation_id="last")
 tests/gate_history.py:998:    record(Path(sys.argv[2]), run_id="parallel", label="row", seconds=index,
+tests/gate_history.py:1001:        children = [subprocess.Popen([sys.executable, "-c", code, str(root), str(self.directory), str(worker)])
+tests/gate_history.py:1038:        command = [sys.executable, str(Path(__file__).resolve())]
+tests/gate_history.py:1075:        outsider = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+tests/gate_history.py:1186:ROW_PLAN="$FIXTURE/plan.json"; ROW_HISTORY="$FIXTURE/history"; ROW_RUN_ID=fixture
+tests/gate_history.py:1218:        broken_monitor = '''row_watch(){
+tests/gate_history.py:1224:            'row_begin fixture\nwait "$ROW_WATCHDOG"\nok fixture\n', extra_functions=broken_monitor)
+tests/gate_history.py:1321:        self.assertFalse(history[0]['timed_out'], 'monitor failure is not a fabricated row expiry')
+tests/gate_history.py:1406:ROW_PLAN="$RUN_DIR/plan.json"; ROW_HISTORY="$RUN_DIR/history"; ROW_RUN_ID=fixture
+tests/gate_history.py:1439:        outsider = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
 tests/gate_history.py:1474:        self.assertEqual([(row["scored"], row["ledger_label"], row["run_id"]) for row in history],
+tests/gate_history.py:1520:ROW_PLAN="$RUN_DIR/plan.json"; ROW_HISTORY="$RUN_DIR/history"; ROW_RUN_ID=fixture; TMPDIR="$RUN_DIR"
 tests/gate_history.py:1578:    def add(self, run_id, verdict="ok", label="row", observation_id=None):
 tests/gate_history.py:1579:        record(self.directory, run_id=run_id, label=label, seconds=1,
 tests/gate_history.py:1583:        for run_id, verdict in (("run-1", "ok"), ("run-2", "FAIL"), ("run-3", "ok")):
@@ -42,39 +88,944 @@ tests/gate_history.py:1600:            self.add(run_id, "ok", "passes")
 tests/gate_history.py:1601:            self.add(run_id, "FAIL", "fails")
 tests/gate_history.py:1670:            "run_id": "parallel", "label": "row", "seconds": 1,
 tests/gate_history.py:1700:        self.assertEqual([run["run_id"] for run in row["run_history"]], ["first", "second"])
+tests/gate_history.py:1707:        command = [sys.executable, str(Path(__file__).resolve()), "report", "--history", str(self.directory)]
 tests/gate_history.py:1795:            record(args.history, run_id=args.run_id, label=args.label, seconds=args.seconds,
-tests/config_parser_test.cc:535:        const uint32_t sampled_rate = sampled_lb.sample_rate.load();
-tests/config_parser_test.cc:537:        if (sampled_rate != 3 || sampled_lb.sample_rate.load() != sampled_rate)
+tests/config_parser_test.cc:232:    for (const char* flag : {"--latency-monitor-threshold", "--stream-node-max-entries",
+tests/gate_measurements.py:140:    # Database selection, boot flags and monitoring change the experiment even
+tests/gate_measurements.py:376:        # rechecks productive-role saturation and derives its own threshold.
+tests/gate_measurements.py:533:                path.write_bytes(b"different executable")
+tests/gate_measurements.py:687:            monitored = list(range(32)) + load_cpus
+tests/gate_measurements.py:694:                quiet_box=quiet_record(cpus=monitored, started_at=epoch, finished_at=epoch + 200, samples=201),
+tests/abba_aslr.py:11:The ordinary operational QuietMonitor remains mandatory. The internal diagnostic
+tests/abba_aslr.py:32:from gate_quiet import QuietMonitor
+tests/abba_aslr.py:75:            raise RuntimeError(f"mapped executable file was deleted: {name}")
+tests/abba_aslr.py:80:            raise RuntimeError(f"mapped executable identity changed: {name}")
+tests/abba_aslr.py:86:                raise RuntimeError(f"mapped executable changed while hashing: {name}")
+tests/abba_aslr.py:93:        raise RuntimeError("no mapped executable files were observed")
+tests/abba_aslr.py:104:    def __init__(self, folder, process, owner, posture, executable, argv):
+tests/abba_aslr.py:106:        self.executable, self.cache = executable, {}
+tests/abba_aslr.py:125:            row["executable"] = {"path": str(exe.resolve(strict=True)), "sha256": abba.sha256(exe)}
 tests/abba_aslr.py:126:            if row["executable"]["sha256"] != self.executable:
+tests/abba_aslr.py:132:                raise RuntimeError("owned executable argv is empty or incomplete")
+tests/abba_aslr.py:148:            row["mapped_executables"] = mapped_files(contents["maps"], self.process.pid, self.cache)
+tests/abba_aslr.py:236:class DiagnosticQuiet(QuietMonitor):
+tests/abba_aslr.py:272:        rc = abba.main(options, diagnostic_monitor=quiet, diagnostic_profile=0)
+tests/abba_aslr.py:309:                  run["address_layout"]["captures"]["before-load"]["mapped_executables"]} for run in selected]
+tests/abba_aslr.py:459:                executable = Path(sys.executable).resolve()
+tests/abba_aslr.py:464:                        str(executable), "-u", "-c", "import sys; print('READY',flush=True); sys.stdin.read()", ""],
+tests/abba_aslr.py:473:                        capture = AddressCapture(destination, p, owner, posture, abba.sha256(executable), argv)
+tests/abba_aslr.py:493:                            capture.capture("wrong-executable")
+tests/abba_aslr.py:513:                with self.assertRaisesRegex(RuntimeError, "no mapped executable"):
+tests/abba_aslr.py:527:                    args = parse_args(["--server-cores", "0-31", "--server-smt", "", "--load-cores", "32-127", "--load-smt", "160-255", "--memtier", sys.executable,
+tests/abba_aslr.py:535:                        def __init__(self, folder, process, owner, posture, executable, argv):
+tests/abba_aslr.py:540:                            self.record["captures"][phase] = {"personality_hex": "00040000" if self.record["posture"] == "OFF" else "00000000", "mapped_executables": [
+tests/storesize_unit.cc:239:    require(command_config_routes_all_shards(cleared.op) == legacy_mode, "FLUSH restores monitor route");
+tests/storesize_unit.cc:252:        require(command_config_routes_all_shards(request.op) == legacy, "monitor route");
+tests/mode_equivalence.py:312:            run=os.environ.get('GATE_RUN_ID', str(args.output.resolve())), seed=args.seed,
+tests/connreset_harness_test.py:83:    def test_baseline_failure_joins_monitor_before_server_and_preserves_cause(self):
+tests/connreset_harness_test.py:92:    def test_real_monitor_failure_still_fails_successful_episode(self):
+tests/connreset_harness_test.py:99:        result, _, _ = self.episode(True, "independent monitor error")
+tests/connreset_harness_test.py:101:        self.assertEqual(result["sampler_error"], "sampler failed: independent monitor error")
+tests/r7shadow_sync.py:6:The ordinary definitions stay unchanged except for cold role-entry selectors.
+tests/r7shadow_sync.py:117:                # Include the cold armed-role binding in the same IO tenure.
+tests/r7shadow_sync.py:120:    // Bind once at armed fused IO role entry.
+tests/nullpublish_refreeze_test.py:44:                return run(sys.executable, 'tools/nullpublish_refreeze.py', '--memtier',
+tests/nullpublish_refreeze_test.py:70:            run(sys.executable, 'tools/nullpublish_refreeze.py', '--generate-script')
 tests/infofields_unit.cc:11:    info_stats_reset(0, 12);
 tests/infofields_unit.cc:21:        const auto rates = info_stats_rates();
-tests/infofields_unit.cc:29:        assert(info_stats_rates()[0] == 1000);
-tests/infofields_unit.cc:35:        assert(info_stats_rates()[0] == 1000 * (16 - i) / 16);
-tests/infofields_unit.cc:37:    assert(info_stats_observe_memory(12) == 4096);
-tests/infofields_unit.cc:38:    info_stats_reset(totals[0], 12, totals[1], totals[2]);
-tests/infofields_unit.cc:39:    assert((info_stats_rates() == std::array<uint64_t, 3>{}));
-tests/infofields_unit.cc:40:    assert(info_stats_observe_memory(12) == 12);
-tests/infofields_unit.cc:42:    assert(info_stats_rates()[0] == 0);
-tests/infofields_unit.cc:45:    assert((info_stats_rates() == std::array<uint64_t, 3>{}));
-tests/infofields_unit.cc:48:    assert(info_stats_rates()[0] == 62);
+tests/infofields_unit.cc:30:        assert(info_stats_rates()[0] == 1000);
+tests/infofields_unit.cc:37:        assert(info_stats_rates()[0] == 1000 * (16 - i) / 16);
+tests/infofields_unit.cc:40:    info_stats_reset(totals[0], 12, totals[1], totals[2]);
+tests/infofields_unit.cc:41:    assert((info_stats_rates() == std::array<uint64_t, 3>{}));
+tests/infofields_unit.cc:44:    assert(info_stats_rates()[0] == 0);
+tests/infofields_unit.cc:47:    assert((info_stats_rates() == std::array<uint64_t, 3>{}));
+tests/infofields_unit.cc:50:    assert(info_stats_rates()[0] == 62);
+tests/perf_gate.py:136:            expect = row['role'] in ('ifid', 'unified')
+tests/perf_gate.py:137:            require(int(row['active']) == int(expect), f'reader {tid} role/active mismatch')
+tests/perf_gate.py:145:    executing_role = 'fused' if mode == '1s' else 'io' if local and reads else 'ex'
+tests/perf_gate.py:149:        require(row['role'] == prior['role'], 'role changed during fixed-placement measurement')
+tests/perf_gate.py:153:        busy[tid] = dict(role=row['role'], busy_ns=db, idle_ns=di, busy_fraction=db / (db + di))
+tests/perf_gate.py:154:        if row['role'] == executing_role:
+tests/servertail.py:6:Covers scope A (TIME/LOLWUT/ROLE/WAIT/FAILOVER/REPLICAOF/SLAVEOF/PFSELFTEST/SUBSTR/SORT_RO/
+tests/servertail.py:149:    check("ROLE", c.cmd("ROLE"), ["master", 0, []])
+tests/servertail.py:201:          lambda v: {"time", "lolwut", "role", "wait", "lcs", "slowlog", "latency",
+tests/servertail.py:308:    c.cmd("CONFIG", "SET", "maxmemory-policy", "allkeys-lfu")
+tests/servertail.py:313:    c.cmd("CONFIG", "SET", "maxmemory-policy", "noeviction")
+tests/connreset_repro.py:81:class Monitor:
+tests/connreset_repro.py:119:        require(self.ready.wait(5), "monitor did not connect")
+tests/connreset_repro.py:120:        require(self.failure is None, "monitor failed before load: " + str(self.failure))
+tests/connreset_repro.py:125:        require(not self.thread.is_alive(), "monitor failed to stop")
+tests/connreset_repro.py:218:    monitor = Monitor(args.port, directory / "monitor.jsonl", not args.info_only)
+tests/connreset_repro.py:222:        monitor.start()
+tests/connreset_repro.py:223:        observed = monitor.before["info"]
+tests/connreset_repro.py:227:        require(monitor.failure is None, "monitor failed before transition: " + str(monitor.failure))
+tests/connreset_repro.py:228:        result["before_transition"] = monitor.samples[-1] if monitor.samples else None
+tests/connreset_repro.py:229:        require(result["before_transition"] is not None, "monitor never completed a sample")
+tests/connreset_repro.py:231:        # roles. The armed transition, after every load client has replied, is
+tests/connreset_repro.py:236:                "before-transition sample did not witness all persistent clients plus monitor")
+tests/connreset_repro.py:244:        result["after_transition"] = monitor.samples[-1] if monitor.samples else None
+tests/connreset_repro.py:245:        if monitor.failure is None:
+tests/connreset_repro.py:248:                    "monitor never completed a sample after the transition")
+tests/connreset_repro.py:257:        result["monitor"] = monitor.finish()
+tests/connreset_repro.py:260:        # A new telemetry socket AFTER the retained monitor stops is explicitly separate.
+tests/connreset_repro.py:324:    lines = ["| Variant | resets/trials | EOF/trials | other monitor failures | incomplete trials |",
+tests/connreset_repro.py:328:        kinds = Counter((r.get("monitor", {}).get("failure") or {}).get("kind") for r in group)
+tests/connreset_repro.py:351:        info = row["monitor"]["before"]["info"]
+tests/connreset_repro.py:365:        failure = row["monitor"]["failure"]
+tests/connreset_repro.py:371:                    "no post-transition monitor sample")
+tests/connreset_repro.py:375:            "monitor": dict(counters), "max_monitor_gap_seconds":
+tests/connreset_repro.py:376:            max(r["monitor"]["max_sample_gap"] for r in rows)}
+tests/connreset_repro.py:397:    parser.add_argument("--expect-clean", action="store_true", help="nonzero exit on a retained monitor failure")
+tests/connreset_repro.py:402:        return int(args.expect_clean and summary["monitor"].get("clean", 0) != summary["trials"])
+tests/connreset_repro.py:450:                print(name, repeat, "monitor=", row.get("monitor", {}).get("failure"),
+tests/connreset_repro.py:454:    return int(any(r.get("trial_error") or (args.expect_clean and r.get("monitor", {}).get("failure")) for r in rows))
+tests/overlap_prefetch_unit.cc:47:            require(server.placement_.reserve_runtime_roles(8), "reserve fixture roles");
+tests/iopass_checks.inc:32:        server.placement_.set_runtime_role(io.self_->id(), Role::Ex);
+tests/iopass_checks.inc:33:        server.flip_set_stage(FlipStage::RoleReady);
+tests/iopass_checks.inc:35:        require(!io.save_cron_writer_, "RoleReady removes former elected writer");
+tests/iopass_checks.inc:38:        require(io.save_cron_writer_, "RoleReady elects surviving IO");
+tests/iopass_checks.inc:40:        std::puts("PASS IO2 boot/config/signal/role election");
+tests/iopass_checks.inc:198:        io.initialized_ = io.prepared_role_ = io.active_role_ = true;
+tests/iopass_checks.inc:236:        std::puts("PASS IO4 disabled/AOF election/sticky role binding/standalone snapshot/cancellation/rearm");
+tests/signalacct_core_controls.py:43:            p.write_text(once(p.read_text(), 'role_work[index] += flip_role_work(wall, idle);',
+tests/signalacct_core_controls.py:44:                             'role_work[index] += signal.busy_ns - start.busy_ns;'))
+tests/abba_experiments.py:296:        # Equal executable bytes are insufficient for wire-versus-snapshot: the store was built
+tests/abba_experiments.py:527:                                   "--output", str(directory / "experiment"), "--memtier", sys.executable])
+tests/abba_experiments.py:552:                monitor = mock.Mock()
+tests/abba_experiments.py:553:                monitor.start.side_effect = lambda: quiet_started.__setitem__(0, epoch + ticks[0])
+tests/abba_experiments.py:559:                monitor.evidence.side_effect = evidence
+tests/abba_experiments.py:560:                monitor.close.side_effect = evidence
+tests/abba_experiments.py:568:                     mock.patch.object(abba, "QuietMonitor", return_value=monitor) as quiet_factory, \
+tests/abba_experiments.py:620:                with mock.patch.object(abba, "QuietMonitor", return_value=quiet) as quiet_factory, \
+tests/abba_experiments.py:646:                    "--candidate-binary", str(binary), "--memtier", sys.executable,
+tests/abba_experiments.py:657:                with mock.patch.object(abba, "QuietMonitor", return_value=quiet) as quiet_factory, \
+tests/abba_experiments.py:978:        priming_quiet = abba.QuietMonitor(
+tests/abba_experiments.py:994:            raise ValueError("memtier executable not available")
+tests/abba_experiments.py:999:            raise ValueError("candidate binary is not executable")
+tests/abba_instrument.py:13:symlinks fail closed instead of hiding an executable dependency outside the scope.
+tests/abba_instrument.py:61:    # interpreter's complete build/version string are the executable identity.
+tests/abba_instrument.py:63:                executable_sha256=sha256(Path(sys.executable).resolve().read_bytes()))
+tests/abba_instrument.py:145:    require(isinstance(runtime, dict) and set(runtime) == {"implementation", "version", "executable_sha256"} and
+tests/abba_instrument.py:147:            re.fullmatch(r"[0-9a-f]{64}", runtime["executable_sha256"]), "missing Python instrument identity")
+tests/cd13b_wire.py:73:                                ("maxmemory-policy", "allkeys-lfu")):
+tests/mdbqsbr_live_test.py:141:        self.popen.side_effect = FileNotFoundError('missing executable')
+tests/mdbqsbr_live_test.py:145:        self.assertIn('server boot failed (not started): missing executable', message)
+tests/signalacct_live_test.py:40:                     role_exit=mode == '2s', stopped=mode == '1s')
+tests/signalacct_live_test.py:42:                      role_exit=False, stopped=True)
+tests/signalacct_live_test.py:43:        return dict(schema=1, thread_mode=mode, threads=[dict(tid=0, role='io' if mode == '2s' else 'fused',
+tests/gate_perf_evidence.json:275:        "read_local_thread_0": "role=unified,shards=2,active=1,hits_total=22752,mget_hits_total=11376",
+tests/gate_perf_evidence.json:276:        "read_local_thread_1": "role=unified,shards=2,active=1,hits_total=26551,mget_hits_total=13279",
+tests/gate_perf_evidence.json:277:        "read_local_thread_2": "role=unified,shards=2,active=1,hits_total=18960,mget_hits_total=9480",
+tests/gate_perf_evidence.json:278:        "read_local_thread_3": "role=unified,shards=2,active=1,hits_total=53088,mget_hits_total=26544",
+tests/gate_perf_evidence.json:279:        "read_local_thread_4": "role=unified,shards=2,active=1,hits_total=22752,mget_hits_total=11376",
+tests/gate_perf_evidence.json:280:        "read_local_thread_5": "role=unified,shards=2,active=1,hits_total=34128,mget_hits_total=17064",
+tests/gate_perf_evidence.json:281:        "read_local_thread_6": "role=unified,shards=2,active=1,hits_total=30336,mget_hits_total=15168",
+tests/gate_perf_evidence.json:282:        "read_local_thread_7": "role=unified,shards=2,active=1,hits_total=34128,mget_hits_total=17064",
+tests/gate_perf_evidence.json:342:        "read_local_thread_0": "role=unified,shards=2,active=1,hits_total=45888,mget_hits_total=22944",
+tests/gate_perf_evidence.json:343:        "read_local_thread_1": "role=unified,shards=2,active=1,hits_total=34416,mget_hits_total=17208",
+tests/gate_perf_evidence.json:344:        "read_local_thread_2": "role=unified,shards=2,active=1,hits_total=11472,mget_hits_total=5736",
+tests/gate_perf_evidence.json:345:        "read_local_thread_3": "role=unified,shards=2,active=1,hits_total=22944,mget_hits_total=11472",
+tests/gate_perf_evidence.json:346:        "read_local_thread_4": "role=unified,shards=2,active=1,hits_total=22944,mget_hits_total=11472",
+tests/gate_perf_evidence.json:347:        "read_local_thread_5": "role=unified,shards=2,active=1,hits_total=34424,mget_hits_total=17216",
+tests/gate_perf_evidence.json:348:        "read_local_thread_6": "role=unified,shards=2,active=1,hits_total=49712,mget_hits_total=24856",
+tests/gate_perf_evidence.json:349:        "read_local_thread_7": "role=unified,shards=2,active=1,hits_total=22944,mget_hits_total=11472",
+tests/gate_perf_evidence.json:416:        "read_local_thread_0": "role=unified,shards=2,active=1,hits_total=26880,mget_hits_total=13440",
+tests/gate_perf_evidence.json:417:        "read_local_thread_1": "role=unified,shards=2,active=1,hits_total=38400,mget_hits_total=19200",
+tests/gate_perf_evidence.json:418:        "read_local_thread_2": "role=unified,shards=2,active=1,hits_total=38400,mget_hits_total=19200",
+tests/gate_perf_evidence.json:419:        "read_local_thread_3": "role=unified,shards=2,active=1,hits_total=34560,mget_hits_total=17280",
+tests/gate_perf_evidence.json:420:        "read_local_thread_4": "role=unified,shards=2,active=1,hits_total=26880,mget_hits_total=13440",
+tests/gate_perf_evidence.json:421:        "read_local_thread_5": "role=unified,shards=2,active=1,hits_total=26880,mget_hits_total=13440",
+tests/gate_perf_evidence.json:422:        "read_local_thread_6": "role=unified,shards=2,active=1,hits_total=34560,mget_hits_total=17280",
+tests/gate_perf_evidence.json:423:        "read_local_thread_7": "role=unified,shards=2,active=1,hits_total=19208,mget_hits_total=9608",
+tests/gate_perf_evidence.json:490:        "read_local_thread_0": "role=unified,shards=2,active=1,hits_total=19280,mget_hits_total=9640",
+tests/gate_perf_evidence.json:491:        "read_local_thread_1": "role=unified,shards=2,active=1,hits_total=50128,mget_hits_total=25064",
+tests/gate_perf_evidence.json:492:        "read_local_thread_2": "role=unified,shards=2,active=1,hits_total=26992,mget_hits_total=13496",
+tests/gate_perf_evidence.json:493:        "read_local_thread_3": "role=unified,shards=2,active=1,hits_total=19280,mget_hits_total=9640",
+tests/gate_perf_evidence.json:494:        "read_local_thread_4": "role=unified,shards=2,active=1,hits_total=19280,mget_hits_total=9640",
+tests/gate_perf_evidence.json:495:        "read_local_thread_5": "role=unified,shards=2,active=1,hits_total=50128,mget_hits_total=25064",
+tests/gate_perf_evidence.json:496:        "read_local_thread_6": "role=unified,shards=2,active=1,hits_total=30856,mget_hits_total=15432",
+tests/gate_perf_evidence.json:497:        "read_local_thread_7": "role=unified,shards=2,active=1,hits_total=30848,mget_hits_total=15424",
+tests/gate_perf_evidence.json:951:        "read_local_thread_0": "role=ifid,shards=0,active=1,hits_total=45696,mget_hits_total=22848",
+tests/gate_perf_evidence.json:952:        "read_local_thread_1": "role=ifid,shards=0,active=1,hits_total=45696,mget_hits_total=22848",
+tests/gate_perf_evidence.json:953:        "read_local_thread_2": "role=ifid,shards=0,active=1,hits_total=34272,mget_hits_total=17136",
+tests/gate_perf_evidence.json:954:        "read_local_thread_3": "role=ifid,shards=0,active=1,hits_total=30464,mget_hits_total=15232",
+tests/gate_perf_evidence.json:955:        "read_local_thread_4": "role=ifid,shards=0,active=1,hits_total=45696,mget_hits_total=22848",
+tests/gate_perf_evidence.json:956:        "read_local_thread_5": "role=ifid,shards=0,active=1,hits_total=41888,mget_hits_total=20944",
+tests/gate_perf_evidence.json:957:        "read_local_thread_6": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:958:        "read_local_thread_7": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1003:        "read_local_thread_0": "role=ifid,shards=0,active=1,hits_total=30592,mget_hits_total=15296",
+tests/gate_perf_evidence.json:1004:        "read_local_thread_1": "role=ifid,shards=0,active=1,hits_total=49712,mget_hits_total=24856",
+tests/gate_perf_evidence.json:1005:        "read_local_thread_2": "role=ifid,shards=0,active=1,hits_total=30592,mget_hits_total=15296",
+tests/gate_perf_evidence.json:1006:        "read_local_thread_3": "role=ifid,shards=0,active=1,hits_total=38240,mget_hits_total=19120",
+tests/gate_perf_evidence.json:1007:        "read_local_thread_4": "role=ifid,shards=0,active=1,hits_total=49712,mget_hits_total=24856",
+tests/gate_perf_evidence.json:1008:        "read_local_thread_5": "role=ifid,shards=0,active=1,hits_total=45888,mget_hits_total=22944",
+tests/gate_perf_evidence.json:1009:        "read_local_thread_6": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1010:        "read_local_thread_7": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1055:        "read_local_thread_0": "role=ifid,shards=0,active=1,hits_total=49504,mget_hits_total=24752",
+tests/gate_perf_evidence.json:1056:        "read_local_thread_1": "role=ifid,shards=0,active=1,hits_total=57120,mget_hits_total=28560",
+tests/gate_perf_evidence.json:1057:        "read_local_thread_2": "role=ifid,shards=0,active=1,hits_total=38080,mget_hits_total=19040",
+tests/gate_perf_evidence.json:1058:        "read_local_thread_3": "role=ifid,shards=0,active=1,hits_total=38080,mget_hits_total=19040",
+tests/gate_perf_evidence.json:1059:        "read_local_thread_4": "role=ifid,shards=0,active=1,hits_total=30464,mget_hits_total=15232",
+tests/gate_perf_evidence.json:1060:        "read_local_thread_5": "role=ifid,shards=0,active=1,hits_total=30464,mget_hits_total=15232",
+tests/gate_perf_evidence.json:1061:        "read_local_thread_6": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1062:        "read_local_thread_7": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1114:        "read_local_thread_0": "role=ifid,shards=0,active=1,hits_total=38240,mget_hits_total=19120",
+tests/gate_perf_evidence.json:1115:        "read_local_thread_1": "role=ifid,shards=0,active=1,hits_total=42064,mget_hits_total=21032",
+tests/gate_perf_evidence.json:1116:        "read_local_thread_2": "role=ifid,shards=0,active=1,hits_total=34416,mget_hits_total=17208",
+tests/gate_perf_evidence.json:1117:        "read_local_thread_3": "role=ifid,shards=0,active=1,hits_total=45888,mget_hits_total=22944",
+tests/gate_perf_evidence.json:1118:        "read_local_thread_4": "role=ifid,shards=0,active=1,hits_total=57360,mget_hits_total=28680",
+tests/gate_perf_evidence.json:1119:        "read_local_thread_5": "role=ifid,shards=0,active=1,hits_total=26768,mget_hits_total=13384",
+tests/gate_perf_evidence.json:1120:        "read_local_thread_6": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1121:        "read_local_thread_7": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1173:        "read_local_thread_0": "role=ifid,shards=0,active=1,hits_total=23232,mget_hits_total=11616",
+tests/gate_perf_evidence.json:1174:        "read_local_thread_1": "role=ifid,shards=0,active=1,hits_total=50336,mget_hits_total=25168",
+tests/gate_perf_evidence.json:1175:        "read_local_thread_2": "role=ifid,shards=0,active=1,hits_total=38728,mget_hits_total=19368",
+tests/gate_perf_evidence.json:1176:        "read_local_thread_3": "role=ifid,shards=0,active=1,hits_total=46464,mget_hits_total=23232",
+tests/gate_perf_evidence.json:1177:        "read_local_thread_4": "role=ifid,shards=0,active=1,hits_total=38720,mget_hits_total=19360",
+tests/gate_perf_evidence.json:1178:        "read_local_thread_5": "role=ifid,shards=0,active=1,hits_total=50336,mget_hits_total=25168",
+tests/gate_perf_evidence.json:1179:        "read_local_thread_6": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1180:        "read_local_thread_7": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1232:        "read_local_thread_0": "role=ifid,shards=0,active=1,hits_total=61704,mget_hits_total=30856",
+tests/gate_perf_evidence.json:1233:        "read_local_thread_1": "role=ifid,shards=0,active=1,hits_total=23136,mget_hits_total=11568",
+tests/gate_perf_evidence.json:1234:        "read_local_thread_2": "role=ifid,shards=0,active=1,hits_total=61696,mget_hits_total=30848",
+tests/gate_perf_evidence.json:1235:        "read_local_thread_3": "role=ifid,shards=0,active=1,hits_total=15424,mget_hits_total=7712",
+tests/gate_perf_evidence.json:1236:        "read_local_thread_4": "role=ifid,shards=0,active=1,hits_total=46272,mget_hits_total=23136",
+tests/gate_perf_evidence.json:1237:        "read_local_thread_5": "role=ifid,shards=0,active=1,hits_total=38560,mget_hits_total=19280",
+tests/gate_perf_evidence.json:1238:        "read_local_thread_6": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1239:        "read_local_thread_7": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1291:        "read_local_thread_0": "role=ifid,shards=0,active=1,hits_total=61440,mget_hits_total=30720",
+tests/gate_perf_evidence.json:1292:        "read_local_thread_1": "role=ifid,shards=0,active=1,hits_total=26880,mget_hits_total=13440",
+tests/gate_perf_evidence.json:1293:        "read_local_thread_2": "role=ifid,shards=0,active=1,hits_total=38400,mget_hits_total=19200",
+tests/gate_perf_evidence.json:1294:        "read_local_thread_3": "role=ifid,shards=0,active=1,hits_total=34568,mget_hits_total=17288",
+tests/gate_perf_evidence.json:1295:        "read_local_thread_4": "role=ifid,shards=0,active=1,hits_total=57600,mget_hits_total=28800",
+tests/gate_perf_evidence.json:1296:        "read_local_thread_5": "role=ifid,shards=0,active=1,hits_total=26880,mget_hits_total=13440",
+tests/gate_perf_evidence.json:1297:        "read_local_thread_6": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1298:        "read_local_thread_7": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1350:        "read_local_thread_0": "role=ifid,shards=0,active=1,hits_total=61696,mget_hits_total=30848",
+tests/gate_perf_evidence.json:1351:        "read_local_thread_1": "role=ifid,shards=0,active=1,hits_total=30856,mget_hits_total=15432",
+tests/gate_perf_evidence.json:1352:        "read_local_thread_2": "role=ifid,shards=0,active=1,hits_total=26992,mget_hits_total=13496",
+tests/gate_perf_evidence.json:1353:        "read_local_thread_3": "role=ifid,shards=0,active=1,hits_total=34704,mget_hits_total=17352",
+tests/gate_perf_evidence.json:1354:        "read_local_thread_4": "role=ifid,shards=0,active=1,hits_total=46272,mget_hits_total=23136",
+tests/gate_perf_evidence.json:1355:        "read_local_thread_5": "role=ifid,shards=0,active=1,hits_total=46272,mget_hits_total=23136",
+tests/gate_perf_evidence.json:1356:        "read_local_thread_6": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1357:        "read_local_thread_7": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1410:        "read_local_thread_0": "role=unified,shards=32,active=1,hits_total=26880,mget_hits_total=13440",
+tests/gate_perf_evidence.json:1411:        "read_local_thread_1": "role=unified,shards=32,active=1,hits_total=26880,mget_hits_total=13440",
+tests/gate_perf_evidence.json:1412:        "read_local_thread_2": "role=unified,shards=32,active=1,hits_total=42240,mget_hits_total=21120",
+tests/gate_perf_evidence.json:1413:        "read_local_thread_3": "role=unified,shards=32,active=1,hits_total=26888,mget_hits_total=13448",
+tests/gate_perf_evidence.json:1414:        "read_local_thread_4": "role=unified,shards=32,active=1,hits_total=34560,mget_hits_total=17280",
+tests/gate_perf_evidence.json:1415:        "read_local_thread_5": "role=unified,shards=32,active=1,hits_total=42240,mget_hits_total=21120",
+tests/gate_perf_evidence.json:1416:        "read_local_thread_6": "role=unified,shards=32,active=1,hits_total=7680,mget_hits_total=3840",
+tests/gate_perf_evidence.json:1417:        "read_local_thread_7": "role=unified,shards=32,active=1,hits_total=38400,mget_hits_total=19200",
+tests/gate_perf_evidence.json:1462:        "read_local_thread_0": "role=ifid,shards=0,active=1,hits_total=60928,mget_hits_total=30464",
+tests/gate_perf_evidence.json:1463:        "read_local_thread_1": "role=ifid,shards=0,active=1,hits_total=45696,mget_hits_total=22848",
+tests/gate_perf_evidence.json:1464:        "read_local_thread_2": "role=ifid,shards=0,active=1,hits_total=68544,mget_hits_total=34272",
+tests/gate_perf_evidence.json:1465:        "read_local_thread_3": "role=ifid,shards=0,active=1,hits_total=68544,mget_hits_total=34272",
+tests/gate_perf_evidence.json:1466:        "read_local_thread_4": "role=ex,shards=0,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1467:        "read_local_thread_5": "role=ex,shards=0,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1468:        "read_local_thread_6": "role=ex,shards=0,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1469:        "read_local_thread_7": "role=ex,shards=1,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1514:        "read_local_thread_0": "role=ifid,shards=0,active=1,hits_total=49920,mget_hits_total=24960",
+tests/gate_perf_evidence.json:1515:        "read_local_thread_1": "role=ifid,shards=0,active=1,hits_total=49920,mget_hits_total=24960",
+tests/gate_perf_evidence.json:1516:        "read_local_thread_2": "role=ifid,shards=0,active=1,hits_total=26880,mget_hits_total=13440",
+tests/gate_perf_evidence.json:1517:        "read_local_thread_3": "role=ifid,shards=0,active=1,hits_total=46080,mget_hits_total=23040",
+tests/gate_perf_evidence.json:1518:        "read_local_thread_4": "role=ifid,shards=0,active=1,hits_total=42240,mget_hits_total=21120",
+tests/gate_perf_evidence.json:1519:        "read_local_thread_5": "role=ifid,shards=0,active=1,hits_total=30720,mget_hits_total=15360",
+tests/gate_perf_evidence.json:1520:        "read_local_thread_6": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1521:        "read_local_thread_7": "role=ex,shards=8,active=0,hits_total=0,mget_hits_total=0",
+tests/gate_perf_evidence.json:1605:          "role": "fused",
+tests/gate_perf_evidence.json:1611:          "role": "fused",
+tests/gate_perf_evidence.json:1617:          "role": "fused",
+tests/gate_perf_evidence.json:1623:          "role": "fused",
+tests/gate_perf_evidence.json:1629:          "role": "fused",
+tests/gate_perf_evidence.json:1635:          "role": "fused",
+tests/gate_perf_evidence.json:1641:          "role": "fused",
+tests/gate_perf_evidence.json:1647:          "role": "fused",
+tests/gate_perf_evidence.json:1694:          "role": "fused",
+tests/gate_perf_evidence.json:1700:          "role": "fused",
+tests/gate_perf_evidence.json:1706:          "role": "fused",
+tests/gate_perf_evidence.json:1712:          "role": "fused",
+tests/gate_perf_evidence.json:1718:          "role": "fused",
+tests/gate_perf_evidence.json:1724:          "role": "fused",
+tests/gate_perf_evidence.json:1730:          "role": "fused",
+tests/gate_perf_evidence.json:1736:          "role": "fused",
+tests/gate_perf_evidence.json:1777:          "role": "io",
+tests/gate_perf_evidence.json:1783:          "role": "io",
+tests/gate_perf_evidence.json:1789:          "role": "io",
+tests/gate_perf_evidence.json:1795:          "role": "io",
+tests/gate_perf_evidence.json:1801:          "role": "io",
+tests/gate_perf_evidence.json:1807:          "role": "io",
+tests/gate_perf_evidence.json:1813:          "role": "ex",
+tests/gate_perf_evidence.json:1819:          "role": "ex",
+tests/gate_perf_evidence.json:1864:          "role": "io",
+tests/gate_perf_evidence.json:1870:          "role": "io",
+tests/gate_perf_evidence.json:1876:          "role": "io",
+tests/gate_perf_evidence.json:1882:          "role": "io",
+tests/gate_perf_evidence.json:1888:          "role": "io",
+tests/gate_perf_evidence.json:1894:          "role": "io",
+tests/gate_perf_evidence.json:1900:          "role": "ex",
+tests/gate_perf_evidence.json:1906:          "role": "ex",
+tests/gate_perf_evidence.json:1953:          "role": "fused",
+tests/gate_perf_evidence.json:1959:          "role": "fused",
+tests/gate_perf_evidence.json:1965:          "role": "fused",
+tests/gate_perf_evidence.json:1971:          "role": "fused",
+tests/gate_perf_evidence.json:1977:          "role": "fused",
+tests/gate_perf_evidence.json:1983:          "role": "fused",
+tests/gate_perf_evidence.json:1989:          "role": "fused",
+tests/gate_perf_evidence.json:1995:          "role": "fused",
+tests/gate_perf_evidence.json:2041:          "role": "fused",
+tests/gate_perf_evidence.json:2047:          "role": "fused",
+tests/gate_perf_evidence.json:2053:          "role": "fused",
+tests/gate_perf_evidence.json:2059:          "role": "fused",
+tests/gate_perf_evidence.json:2065:          "role": "fused",
+tests/gate_perf_evidence.json:2071:          "role": "fused",
+tests/gate_perf_evidence.json:2077:          "role": "fused",
+tests/gate_perf_evidence.json:2083:          "role": "fused",
+tests/gate_perf_evidence.json:2123:          "role": "io",
+tests/gate_perf_evidence.json:2129:          "role": "io",
+tests/gate_perf_evidence.json:2135:          "role": "io",
+tests/gate_perf_evidence.json:2141:          "role": "io",
+tests/gate_perf_evidence.json:2147:          "role": "io",
+tests/gate_perf_evidence.json:2153:          "role": "io",
+tests/gate_perf_evidence.json:2159:          "role": "ex",
+tests/gate_perf_evidence.json:2165:          "role": "ex",
+tests/gate_perf_evidence.json:2209:          "role": "io",
+tests/gate_perf_evidence.json:2215:          "role": "io",
+tests/gate_perf_evidence.json:2221:          "role": "io",
+tests/gate_perf_evidence.json:2227:          "role": "io",
+tests/gate_perf_evidence.json:2233:          "role": "io",
+tests/gate_perf_evidence.json:2239:          "role": "io",
+tests/gate_perf_evidence.json:2245:          "role": "ex",
+tests/gate_perf_evidence.json:2251:          "role": "ex",
+tests/gate_perf_evidence.json:2297:          "role": "fused",
+tests/gate_perf_evidence.json:2303:          "role": "fused",
+tests/gate_perf_evidence.json:2309:          "role": "fused",
+tests/gate_perf_evidence.json:2315:          "role": "fused",
+tests/gate_perf_evidence.json:2321:          "role": "fused",
+tests/gate_perf_evidence.json:2327:          "role": "fused",
+tests/gate_perf_evidence.json:2333:          "role": "fused",
+tests/gate_perf_evidence.json:2339:          "role": "fused",
+tests/gate_perf_evidence.json:2386:          "role": "fused",
+tests/gate_perf_evidence.json:2392:          "role": "fused",
+tests/gate_perf_evidence.json:2398:          "role": "fused",
+tests/gate_perf_evidence.json:2404:          "role": "fused",
+tests/gate_perf_evidence.json:2410:          "role": "fused",
+tests/gate_perf_evidence.json:2416:          "role": "fused",
+tests/gate_perf_evidence.json:2422:          "role": "fused",
+tests/gate_perf_evidence.json:2428:          "role": "fused",
+tests/gate_perf_evidence.json:2469:          "role": "io",
+tests/gate_perf_evidence.json:2475:          "role": "io",
+tests/gate_perf_evidence.json:2481:          "role": "io",
+tests/gate_perf_evidence.json:2487:          "role": "io",
+tests/gate_perf_evidence.json:2493:          "role": "io",
+tests/gate_perf_evidence.json:2499:          "role": "io",
+tests/gate_perf_evidence.json:2505:          "role": "ex",
+tests/gate_perf_evidence.json:2511:          "role": "ex",
+tests/gate_perf_evidence.json:2552:          "role": "io",
+tests/gate_perf_evidence.json:2558:          "role": "io",
+tests/gate_perf_evidence.json:2564:          "role": "io",
+tests/gate_perf_evidence.json:2570:          "role": "io",
+tests/gate_perf_evidence.json:2576:          "role": "io",
+tests/gate_perf_evidence.json:2582:          "role": "io",
+tests/gate_perf_evidence.json:2588:          "role": "ex",
+tests/gate_perf_evidence.json:2594:          "role": "ex",
+tests/gate_perf_evidence.json:2641:          "role": "fused",
+tests/gate_perf_evidence.json:2647:          "role": "fused",
+tests/gate_perf_evidence.json:2653:          "role": "fused",
+tests/gate_perf_evidence.json:2659:          "role": "fused",
+tests/gate_perf_evidence.json:2665:          "role": "fused",
+tests/gate_perf_evidence.json:2671:          "role": "fused",
+tests/gate_perf_evidence.json:2677:          "role": "fused",
+tests/gate_perf_evidence.json:2683:          "role": "fused",
+tests/gate_perf_evidence.json:2729:          "role": "fused",
+tests/gate_perf_evidence.json:2735:          "role": "fused",
+tests/gate_perf_evidence.json:2741:          "role": "fused",
+tests/gate_perf_evidence.json:2747:          "role": "fused",
+tests/gate_perf_evidence.json:2753:          "role": "fused",
+tests/gate_perf_evidence.json:2759:          "role": "fused",
+tests/gate_perf_evidence.json:2765:          "role": "fused",
+tests/gate_perf_evidence.json:2771:          "role": "fused",
+tests/gate_perf_evidence.json:2811:          "role": "io",
+tests/gate_perf_evidence.json:2817:          "role": "io",
+tests/gate_perf_evidence.json:2823:          "role": "io",
+tests/gate_perf_evidence.json:2829:          "role": "io",
+tests/gate_perf_evidence.json:2835:          "role": "io",
+tests/gate_perf_evidence.json:2841:          "role": "io",
+tests/gate_perf_evidence.json:2847:          "role": "ex",
+tests/gate_perf_evidence.json:2853:          "role": "ex",
+tests/gate_perf_evidence.json:2893:          "role": "io",
+tests/gate_perf_evidence.json:2899:          "role": "io",
+tests/gate_perf_evidence.json:2905:          "role": "io",
+tests/gate_perf_evidence.json:2911:          "role": "io",
+tests/gate_perf_evidence.json:2917:          "role": "io",
+tests/gate_perf_evidence.json:2923:          "role": "io",
+tests/gate_perf_evidence.json:2929:          "role": "ex",
+tests/gate_perf_evidence.json:2935:          "role": "ex",
+tests/gate_perf_evidence.json:2981:          "role": "fused",
+tests/gate_perf_evidence.json:2987:          "role": "fused",
+tests/gate_perf_evidence.json:2993:          "role": "fused",
+tests/gate_perf_evidence.json:2999:          "role": "fused",
+tests/gate_perf_evidence.json:3005:          "role": "fused",
+tests/gate_perf_evidence.json:3011:          "role": "fused",
+tests/gate_perf_evidence.json:3017:          "role": "fused",
+tests/gate_perf_evidence.json:3023:          "role": "fused",
+tests/gate_perf_evidence.json:3070:          "role": "fused",
+tests/gate_perf_evidence.json:3076:          "role": "fused",
+tests/gate_perf_evidence.json:3082:          "role": "fused",
+tests/gate_perf_evidence.json:3088:          "role": "fused",
+tests/gate_perf_evidence.json:3094:          "role": "fused",
+tests/gate_perf_evidence.json:3100:          "role": "fused",
+tests/gate_perf_evidence.json:3106:          "role": "fused",
+tests/gate_perf_evidence.json:3112:          "role": "fused",
+tests/gate_perf_evidence.json:3153:          "role": "io",
+tests/gate_perf_evidence.json:3159:          "role": "io",
+tests/gate_perf_evidence.json:3165:          "role": "io",
+tests/gate_perf_evidence.json:3171:          "role": "io",
+tests/gate_perf_evidence.json:3177:          "role": "io",
+tests/gate_perf_evidence.json:3183:          "role": "io",
+tests/gate_perf_evidence.json:3189:          "role": "ex",
+tests/gate_perf_evidence.json:3195:          "role": "ex",
+tests/gate_perf_evidence.json:3240:          "role": "io",
+tests/gate_perf_evidence.json:3246:          "role": "io",
+tests/gate_perf_evidence.json:3252:          "role": "io",
+tests/gate_perf_evidence.json:3258:          "role": "io",
+tests/gate_perf_evidence.json:3264:          "role": "io",
+tests/gate_perf_evidence.json:3270:          "role": "io",
+tests/gate_perf_evidence.json:3276:          "role": "ex",
+tests/gate_perf_evidence.json:3282:          "role": "ex",
+tests/gate_perf_evidence.json:3334:          "role": "fused",
+tests/gate_perf_evidence.json:3340:          "role": "fused",
+tests/gate_perf_evidence.json:3346:          "role": "fused",
+tests/gate_perf_evidence.json:3352:          "role": "fused",
+tests/gate_perf_evidence.json:3358:          "role": "fused",
+tests/gate_perf_evidence.json:3364:          "role": "fused",
+tests/gate_perf_evidence.json:3370:          "role": "fused",
+tests/gate_perf_evidence.json:3376:          "role": "fused",
+tests/gate_perf_evidence.json:3425:          "role": "io",
+tests/gate_perf_evidence.json:3431:          "role": "io",
+tests/gate_perf_evidence.json:3437:          "role": "io",
+tests/gate_perf_evidence.json:3443:          "role": "io",
+tests/gate_perf_evidence.json:3449:          "role": "io",
+tests/gate_perf_evidence.json:3455:          "role": "io",
+tests/gate_perf_evidence.json:3461:          "role": "ex",
+tests/gate_perf_evidence.json:3467:          "role": "ex",
+tests/gate_perf_evidence.json:3513:          "role": "fused",
+tests/gate_perf_evidence.json:3519:          "role": "fused",
+tests/gate_perf_evidence.json:3525:          "role": "fused",
+tests/gate_perf_evidence.json:3531:          "role": "fused",
+tests/gate_perf_evidence.json:3537:          "role": "fused",
+tests/gate_perf_evidence.json:3543:          "role": "fused",
+tests/gate_perf_evidence.json:3549:          "role": "fused",
+tests/gate_perf_evidence.json:3555:          "role": "fused",
+tests/gate_perf_evidence.json:3602:          "role": "fused",
+tests/gate_perf_evidence.json:3608:          "role": "fused",
+tests/gate_perf_evidence.json:3614:          "role": "fused",
+tests/gate_perf_evidence.json:3620:          "role": "fused",
+tests/gate_perf_evidence.json:3626:          "role": "fused",
+tests/gate_perf_evidence.json:3632:          "role": "fused",
+tests/gate_perf_evidence.json:3638:          "role": "fused",
+tests/gate_perf_evidence.json:3644:          "role": "fused",
+tests/gate_perf_evidence.json:3685:          "role": "io",
+tests/gate_perf_evidence.json:3691:          "role": "io",
+tests/gate_perf_evidence.json:3697:          "role": "io",
+tests/gate_perf_evidence.json:3703:          "role": "io",
+tests/gate_perf_evidence.json:3709:          "role": "io",
+tests/gate_perf_evidence.json:3715:          "role": "io",
+tests/gate_perf_evidence.json:3721:          "role": "ex",
+tests/gate_perf_evidence.json:3727:          "role": "ex",
+tests/gate_perf_evidence.json:3768:          "role": "io",
+tests/gate_perf_evidence.json:3774:          "role": "io",
+tests/gate_perf_evidence.json:3780:          "role": "io",
+tests/gate_perf_evidence.json:3786:          "role": "io",
+tests/gate_perf_evidence.json:3792:          "role": "io",
+tests/gate_perf_evidence.json:3798:          "role": "io",
+tests/gate_perf_evidence.json:3804:          "role": "ex",
+tests/gate_perf_evidence.json:3810:          "role": "ex",
+tests/gate_perf_evidence.json:3857:          "role": "fused",
+tests/gate_perf_evidence.json:3863:          "role": "fused",
+tests/gate_perf_evidence.json:3869:          "role": "fused",
+tests/gate_perf_evidence.json:3875:          "role": "fused",
+tests/gate_perf_evidence.json:3881:          "role": "fused",
+tests/gate_perf_evidence.json:3887:          "role": "fused",
+tests/gate_perf_evidence.json:3893:          "role": "fused",
+tests/gate_perf_evidence.json:3899:          "role": "fused",
+tests/gate_perf_evidence.json:3945:          "role": "fused",
+tests/gate_perf_evidence.json:3951:          "role": "fused",
+tests/gate_perf_evidence.json:3957:          "role": "fused",
+tests/gate_perf_evidence.json:3963:          "role": "fused",
+tests/gate_perf_evidence.json:3969:          "role": "fused",
+tests/gate_perf_evidence.json:3975:          "role": "fused",
+tests/gate_perf_evidence.json:3981:          "role": "fused",
+tests/gate_perf_evidence.json:3987:          "role": "fused",
+tests/gate_perf_evidence.json:4027:          "role": "io",
+tests/gate_perf_evidence.json:4033:          "role": "io",
+tests/gate_perf_evidence.json:4039:          "role": "io",
+tests/gate_perf_evidence.json:4045:          "role": "io",
+tests/gate_perf_evidence.json:4051:          "role": "io",
+tests/gate_perf_evidence.json:4057:          "role": "io",
+tests/gate_perf_evidence.json:4063:          "role": "ex",
+tests/gate_perf_evidence.json:4069:          "role": "ex",
+tests/gate_perf_evidence.json:4109:          "role": "io",
+tests/gate_perf_evidence.json:4115:          "role": "io",
+tests/gate_perf_evidence.json:4121:          "role": "io",
+tests/gate_perf_evidence.json:4127:          "role": "io",
+tests/gate_perf_evidence.json:4133:          "role": "io",
+tests/gate_perf_evidence.json:4139:          "role": "io",
+tests/gate_perf_evidence.json:4145:          "role": "ex",
+tests/gate_perf_evidence.json:4151:          "role": "ex",
+tests/gate_perf_evidence.json:4199:          "role": "fused",
+tests/gate_perf_evidence.json:4205:          "role": "fused",
+tests/gate_perf_evidence.json:4211:          "role": "fused",
+tests/gate_perf_evidence.json:4217:          "role": "fused",
+tests/gate_perf_evidence.json:4223:          "role": "fused",
+tests/gate_perf_evidence.json:4229:          "role": "fused",
+tests/gate_perf_evidence.json:4235:          "role": "fused",
+tests/gate_perf_evidence.json:4241:          "role": "fused",
+tests/gate_perf_evidence.json:4281:          "role": "io",
+tests/gate_perf_evidence.json:4287:          "role": "io",
+tests/gate_perf_evidence.json:4293:          "role": "io",
+tests/gate_perf_evidence.json:4299:          "role": "io",
+tests/gate_perf_evidence.json:4305:          "role": "io",
+tests/gate_perf_evidence.json:4311:          "role": "io",
+tests/gate_perf_evidence.json:4317:          "role": "ex",
+tests/gate_perf_evidence.json:4323:          "role": "ex",
+tests/gate_perf_evidence.json:4436:              "role": "io",
+tests/gate_perf_evidence.json:4442:              "role": "io",
+tests/gate_perf_evidence.json:4448:              "role": "io",
+tests/gate_perf_evidence.json:4454:              "role": "io",
+tests/gate_perf_evidence.json:4460:              "role": "io",
+tests/gate_perf_evidence.json:4466:              "role": "io",
+tests/gate_perf_evidence.json:4472:              "role": "ex",
+tests/gate_perf_evidence.json:4478:              "role": "ex",
+tests/gate_perf_evidence.json:4518:              "role": "io",
+tests/gate_perf_evidence.json:4524:              "role": "io",
+tests/gate_perf_evidence.json:4530:              "role": "io",
+tests/gate_perf_evidence.json:4536:              "role": "io",
+tests/gate_perf_evidence.json:4542:              "role": "io",
+tests/gate_perf_evidence.json:4548:              "role": "io",
+tests/gate_perf_evidence.json:4554:              "role": "ex",
+tests/gate_perf_evidence.json:4560:              "role": "ex",
+tests/gate_perf_evidence.json:4600:              "role": "io",
+tests/gate_perf_evidence.json:4606:              "role": "io",
+tests/gate_perf_evidence.json:4612:              "role": "io",
+tests/gate_perf_evidence.json:4618:              "role": "io",
+tests/gate_perf_evidence.json:4624:              "role": "io",
+tests/gate_perf_evidence.json:4630:              "role": "io",
+tests/gate_perf_evidence.json:4636:              "role": "ex",
+tests/gate_perf_evidence.json:4642:              "role": "ex",
+tests/gate_perf_evidence.json:4682:              "role": "io",
+tests/gate_perf_evidence.json:4688:              "role": "io",
+tests/gate_perf_evidence.json:4694:              "role": "io",
+tests/gate_perf_evidence.json:4700:              "role": "io",
+tests/gate_perf_evidence.json:4706:              "role": "io",
+tests/gate_perf_evidence.json:4712:              "role": "io",
+tests/gate_perf_evidence.json:4718:              "role": "ex",
+tests/gate_perf_evidence.json:4724:              "role": "ex",
+tests/gate_perf_evidence.json:4764:              "role": "io",
+tests/gate_perf_evidence.json:4770:              "role": "io",
+tests/gate_perf_evidence.json:4776:              "role": "io",
+tests/gate_perf_evidence.json:4782:              "role": "io",
+tests/gate_perf_evidence.json:4788:              "role": "io",
+tests/gate_perf_evidence.json:4794:              "role": "io",
+tests/gate_perf_evidence.json:4800:              "role": "ex",
+tests/gate_perf_evidence.json:4806:              "role": "ex",
+tests/gate_perf_evidence.json:4846:              "role": "io",
+tests/gate_perf_evidence.json:4852:              "role": "io",
+tests/gate_perf_evidence.json:4858:              "role": "io",
+tests/gate_perf_evidence.json:4864:              "role": "io",
+tests/gate_perf_evidence.json:4870:              "role": "io",
+tests/gate_perf_evidence.json:4876:              "role": "io",
+tests/gate_perf_evidence.json:4882:              "role": "ex",
+tests/gate_perf_evidence.json:4888:              "role": "ex",
+tests/gate_perf_evidence.json:4928:              "role": "io",
+tests/gate_perf_evidence.json:4934:              "role": "io",
+tests/gate_perf_evidence.json:4940:              "role": "io",
+tests/gate_perf_evidence.json:4946:              "role": "io",
+tests/gate_perf_evidence.json:4952:              "role": "io",
+tests/gate_perf_evidence.json:4958:              "role": "io",
+tests/gate_perf_evidence.json:4964:              "role": "ex",
+tests/gate_perf_evidence.json:4970:              "role": "ex",
+tests/gate_perf_evidence.json:5010:              "role": "io",
+tests/gate_perf_evidence.json:5016:              "role": "io",
+tests/gate_perf_evidence.json:5022:              "role": "io",
+tests/gate_perf_evidence.json:5028:              "role": "io",
+tests/gate_perf_evidence.json:5034:              "role": "io",
+tests/gate_perf_evidence.json:5040:              "role": "io",
+tests/gate_perf_evidence.json:5046:              "role": "ex",
+tests/gate_perf_evidence.json:5052:              "role": "ex",
+tests/gate_perf_evidence.json:5092:              "role": "io",
+tests/gate_perf_evidence.json:5098:              "role": "io",
+tests/gate_perf_evidence.json:5104:              "role": "io",
+tests/gate_perf_evidence.json:5110:              "role": "io",
+tests/gate_perf_evidence.json:5116:              "role": "io",
+tests/gate_perf_evidence.json:5122:              "role": "io",
+tests/gate_perf_evidence.json:5128:              "role": "ex",
+tests/gate_perf_evidence.json:5134:              "role": "ex",
+tests/gate_perf_evidence.json:5174:              "role": "io",
+tests/gate_perf_evidence.json:5180:              "role": "io",
+tests/gate_perf_evidence.json:5186:              "role": "io",
+tests/gate_perf_evidence.json:5192:              "role": "io",
+tests/gate_perf_evidence.json:5198:              "role": "io",
+tests/gate_perf_evidence.json:5204:              "role": "io",
+tests/gate_perf_evidence.json:5210:              "role": "ex",
+tests/gate_perf_evidence.json:5216:              "role": "ex",
+tests/gate_perf_evidence.json:5256:              "role": "io",
+tests/gate_perf_evidence.json:5262:              "role": "io",
+tests/gate_perf_evidence.json:5268:              "role": "io",
+tests/gate_perf_evidence.json:5274:              "role": "io",
+tests/gate_perf_evidence.json:5280:              "role": "io",
+tests/gate_perf_evidence.json:5286:              "role": "io",
+tests/gate_perf_evidence.json:5292:              "role": "ex",
+tests/gate_perf_evidence.json:5298:              "role": "ex",
+tests/gate_perf_evidence.json:5338:              "role": "io",
+tests/gate_perf_evidence.json:5344:              "role": "io",
+tests/gate_perf_evidence.json:5350:              "role": "io",
+tests/gate_perf_evidence.json:5356:              "role": "io",
+tests/gate_perf_evidence.json:5362:              "role": "io",
+tests/gate_perf_evidence.json:5368:              "role": "io",
+tests/gate_perf_evidence.json:5374:              "role": "ex",
+tests/gate_perf_evidence.json:5380:              "role": "ex",
+tests/gate_perf_evidence.json:5422:              "role": "io",
+tests/gate_perf_evidence.json:5428:              "role": "io",
+tests/gate_perf_evidence.json:5434:              "role": "io",
+tests/gate_perf_evidence.json:5440:              "role": "io",
+tests/gate_perf_evidence.json:5446:              "role": "io",
+tests/gate_perf_evidence.json:5452:              "role": "io",
+tests/gate_perf_evidence.json:5458:              "role": "ex",
+tests/gate_perf_evidence.json:5464:              "role": "ex",
+tests/gate_perf_evidence.json:5501:              "role": "io",
+tests/gate_perf_evidence.json:5507:              "role": "io",
+tests/gate_perf_evidence.json:5513:              "role": "io",
+tests/gate_perf_evidence.json:5519:              "role": "io",
+tests/gate_perf_evidence.json:5525:              "role": "io",
+tests/gate_perf_evidence.json:5531:              "role": "io",
+tests/gate_perf_evidence.json:5537:              "role": "ex",
+tests/gate_perf_evidence.json:5543:              "role": "ex",
+tests/gate_perf_evidence.json:5581:              "role": "io",
+tests/gate_perf_evidence.json:5587:              "role": "io",
+tests/gate_perf_evidence.json:5593:              "role": "io",
+tests/gate_perf_evidence.json:5599:              "role": "io",
+tests/gate_perf_evidence.json:5605:              "role": "io",
+tests/gate_perf_evidence.json:5611:              "role": "io",
+tests/gate_perf_evidence.json:5617:              "role": "ex",
+tests/gate_perf_evidence.json:5623:              "role": "ex",
+tests/gate_perf_evidence.json:5662:              "role": "io",
+tests/gate_perf_evidence.json:5668:              "role": "io",
+tests/gate_perf_evidence.json:5674:              "role": "io",
+tests/gate_perf_evidence.json:5680:              "role": "io",
+tests/gate_perf_evidence.json:5686:              "role": "io",
+tests/gate_perf_evidence.json:5692:              "role": "io",
+tests/gate_perf_evidence.json:5698:              "role": "ex",
+tests/gate_perf_evidence.json:5704:              "role": "ex",
+tests/gate_perf_evidence.json:5823:              "role": "fused",
+tests/gate_perf_evidence.json:5829:              "role": "fused",
+tests/gate_perf_evidence.json:5835:              "role": "fused",
+tests/gate_perf_evidence.json:5841:              "role": "fused",
+tests/gate_perf_evidence.json:5847:              "role": "fused",
+tests/gate_perf_evidence.json:5853:              "role": "fused",
+tests/gate_perf_evidence.json:5859:              "role": "fused",
+tests/gate_perf_evidence.json:5865:              "role": "fused",
+tests/gate_perf_evidence.json:5910:              "role": "fused",
+tests/gate_perf_evidence.json:5916:              "role": "fused",
+tests/gate_perf_evidence.json:5922:              "role": "fused",
+tests/gate_perf_evidence.json:5928:              "role": "fused",
+tests/gate_perf_evidence.json:5934:              "role": "fused",
+tests/gate_perf_evidence.json:5940:              "role": "fused",
+tests/gate_perf_evidence.json:5946:              "role": "fused",
+tests/gate_perf_evidence.json:5952:              "role": "fused",
+tests/gate_perf_evidence.json:5997:              "role": "fused",
+tests/gate_perf_evidence.json:6003:              "role": "fused",
+tests/gate_perf_evidence.json:6009:              "role": "fused",
+tests/gate_perf_evidence.json:6015:              "role": "fused",
+tests/gate_perf_evidence.json:6021:              "role": "fused",
+tests/gate_perf_evidence.json:6027:              "role": "fused",
+tests/gate_perf_evidence.json:6033:              "role": "fused",
+tests/gate_perf_evidence.json:6039:              "role": "fused",
+tests/gate_perf_evidence.json:6084:              "role": "fused",
+tests/gate_perf_evidence.json:6090:              "role": "fused",
+tests/gate_perf_evidence.json:6096:              "role": "fused",
+tests/gate_perf_evidence.json:6102:              "role": "fused",
+tests/gate_perf_evidence.json:6108:              "role": "fused",
+tests/gate_perf_evidence.json:6114:              "role": "fused",
+tests/gate_perf_evidence.json:6120:              "role": "fused",
+tests/gate_perf_evidence.json:6126:              "role": "fused",
+tests/gate_perf_evidence.json:6171:              "role": "fused",
+tests/gate_perf_evidence.json:6177:              "role": "fused",
+tests/gate_perf_evidence.json:6183:              "role": "fused",
+tests/gate_perf_evidence.json:6189:              "role": "fused",
+tests/gate_perf_evidence.json:6195:              "role": "fused",
+tests/gate_perf_evidence.json:6201:              "role": "fused",
+tests/gate_perf_evidence.json:6207:              "role": "fused",
+tests/gate_perf_evidence.json:6213:              "role": "fused",
+tests/gate_perf_evidence.json:6258:              "role": "fused",
+tests/gate_perf_evidence.json:6264:              "role": "fused",
+tests/gate_perf_evidence.json:6270:              "role": "fused",
+tests/gate_perf_evidence.json:6276:              "role": "fused",
+tests/gate_perf_evidence.json:6282:              "role": "fused",
+tests/gate_perf_evidence.json:6288:              "role": "fused",
+tests/gate_perf_evidence.json:6294:              "role": "fused",
+tests/gate_perf_evidence.json:6300:              "role": "fused",
+tests/gate_perf_evidence.json:6345:              "role": "fused",
+tests/gate_perf_evidence.json:6351:              "role": "fused",
+tests/gate_perf_evidence.json:6357:              "role": "fused",
+tests/gate_perf_evidence.json:6363:              "role": "fused",
+tests/gate_perf_evidence.json:6369:              "role": "fused",
+tests/gate_perf_evidence.json:6375:              "role": "fused",
+tests/gate_perf_evidence.json:6381:              "role": "fused",
+tests/gate_perf_evidence.json:6387:              "role": "fused",
+tests/gate_perf_evidence.json:6432:              "role": "fused",
+tests/gate_perf_evidence.json:6438:              "role": "fused",
+tests/gate_perf_evidence.json:6444:              "role": "fused",
+tests/gate_perf_evidence.json:6450:              "role": "fused",
+tests/gate_perf_evidence.json:6456:              "role": "fused",
+tests/gate_perf_evidence.json:6462:              "role": "fused",
+tests/gate_perf_evidence.json:6468:              "role": "fused",
+tests/gate_perf_evidence.json:6474:              "role": "fused",
+tests/gate_perf_evidence.json:6519:              "role": "fused",
+tests/gate_perf_evidence.json:6525:              "role": "fused",
+tests/gate_perf_evidence.json:6531:              "role": "fused",
+tests/gate_perf_evidence.json:6537:              "role": "fused",
+tests/gate_perf_evidence.json:6543:              "role": "fused",
+tests/gate_perf_evidence.json:6549:              "role": "fused",
+tests/gate_perf_evidence.json:6555:              "role": "fused",
+tests/gate_perf_evidence.json:6561:              "role": "fused",
+tests/gate_perf_evidence.json:6606:              "role": "fused",
+tests/gate_perf_evidence.json:6612:              "role": "fused",
+tests/gate_perf_evidence.json:6618:              "role": "fused",
+tests/gate_perf_evidence.json:6624:              "role": "fused",
+tests/gate_perf_evidence.json:6630:              "role": "fused",
+tests/gate_perf_evidence.json:6636:              "role": "fused",
+tests/gate_perf_evidence.json:6642:              "role": "fused",
+tests/gate_perf_evidence.json:6648:              "role": "fused",
+tests/gate_perf_evidence.json:6693:              "role": "fused",
+tests/gate_perf_evidence.json:6699:              "role": "fused",
+tests/gate_perf_evidence.json:6705:              "role": "fused",
+tests/gate_perf_evidence.json:6711:              "role": "fused",
+tests/gate_perf_evidence.json:6717:              "role": "fused",
+tests/gate_perf_evidence.json:6723:              "role": "fused",
+tests/gate_perf_evidence.json:6729:              "role": "fused",
+tests/gate_perf_evidence.json:6735:              "role": "fused",
+tests/gate_perf_evidence.json:6780:              "role": "fused",
+tests/gate_perf_evidence.json:6786:              "role": "fused",
+tests/gate_perf_evidence.json:6792:              "role": "fused",
+tests/gate_perf_evidence.json:6798:              "role": "fused",
+tests/gate_perf_evidence.json:6804:              "role": "fused",
+tests/gate_perf_evidence.json:6810:              "role": "fused",
+tests/gate_perf_evidence.json:6816:              "role": "fused",
+tests/gate_perf_evidence.json:6822:              "role": "fused",
+tests/gate_perf_evidence.json:6869:              "role": "fused",
+tests/gate_perf_evidence.json:6875:              "role": "fused",
+tests/gate_perf_evidence.json:6881:              "role": "fused",
+tests/gate_perf_evidence.json:6887:              "role": "fused",
+tests/gate_perf_evidence.json:6893:              "role": "fused",
+tests/gate_perf_evidence.json:6899:              "role": "fused",
+tests/gate_perf_evidence.json:6905:              "role": "fused",
+tests/gate_perf_evidence.json:6911:              "role": "fused",
+tests/gate_perf_evidence.json:6953:              "role": "fused",
+tests/gate_perf_evidence.json:6959:              "role": "fused",
+tests/gate_perf_evidence.json:6965:              "role": "fused",
+tests/gate_perf_evidence.json:6971:              "role": "fused",
+tests/gate_perf_evidence.json:6977:              "role": "fused",
+tests/gate_perf_evidence.json:6983:              "role": "fused",
+tests/gate_perf_evidence.json:6989:              "role": "fused",
+tests/gate_perf_evidence.json:6995:              "role": "fused",
+tests/gate_perf_evidence.json:7038:              "role": "fused",
+tests/gate_perf_evidence.json:7044:              "role": "fused",
+tests/gate_perf_evidence.json:7050:              "role": "fused",
+tests/gate_perf_evidence.json:7056:              "role": "fused",
+tests/gate_perf_evidence.json:7062:              "role": "fused",
+tests/gate_perf_evidence.json:7068:              "role": "fused",
+tests/gate_perf_evidence.json:7074:              "role": "fused",
+tests/gate_perf_evidence.json:7080:              "role": "fused",
+tests/gate_perf_evidence.json:7124:              "role": "fused",
+tests/gate_perf_evidence.json:7130:              "role": "fused",
+tests/gate_perf_evidence.json:7136:              "role": "fused",
+tests/gate_perf_evidence.json:7142:              "role": "fused",
+tests/gate_perf_evidence.json:7148:              "role": "fused",
+tests/gate_perf_evidence.json:7154:              "role": "fused",
+tests/gate_perf_evidence.json:7160:              "role": "fused",
+tests/gate_perf_evidence.json:7166:              "role": "fused",
+tests/gate_perf_evidence.json:7278:              "role": "io",
+tests/gate_perf_evidence.json:7284:              "role": "io",
+tests/gate_perf_evidence.json:7290:              "role": "io",
+tests/gate_perf_evidence.json:7296:              "role": "io",
+tests/gate_perf_evidence.json:7302:              "role": "io",
+tests/gate_perf_evidence.json:7308:              "role": "io",
+tests/gate_perf_evidence.json:7314:              "role": "ex",
+tests/gate_perf_evidence.json:7320:              "role": "ex",
+tests/gate_perf_evidence.json:7359:              "role": "io",
+tests/gate_perf_evidence.json:7365:              "role": "io",
+tests/gate_perf_evidence.json:7371:              "role": "io",
+tests/gate_perf_evidence.json:7377:              "role": "io",
+tests/gate_perf_evidence.json:7383:              "role": "io",
+tests/gate_perf_evidence.json:7389:              "role": "io",
+tests/gate_perf_evidence.json:7395:              "role": "ex",
+tests/gate_perf_evidence.json:7401:              "role": "ex",
+tests/gate_perf_evidence.json:7440:              "role": "io",
+tests/gate_perf_evidence.json:7446:              "role": "io",
+tests/gate_perf_evidence.json:7452:              "role": "io",
+tests/gate_perf_evidence.json:7458:              "role": "io",
+tests/gate_perf_evidence.json:7464:              "role": "io",
+tests/gate_perf_evidence.json:7470:              "role": "io",
+tests/gate_perf_evidence.json:7476:              "role": "ex",
+tests/gate_perf_evidence.json:7482:              "role": "ex",
+tests/gate_perf_evidence.json:7521:              "role": "io",
+tests/gate_perf_evidence.json:7527:              "role": "io",
+tests/gate_perf_evidence.json:7533:              "role": "io",
+tests/gate_perf_evidence.json:7539:              "role": "io",
+tests/gate_perf_evidence.json:7545:              "role": "io",
+tests/gate_perf_evidence.json:7551:              "role": "io",
+tests/gate_perf_evidence.json:7557:              "role": "ex",
+tests/gate_perf_evidence.json:7563:              "role": "ex",
+tests/gate_perf_evidence.json:7602:              "role": "io",
+tests/gate_perf_evidence.json:7608:              "role": "io",
+tests/gate_perf_evidence.json:7614:              "role": "io",
+tests/gate_perf_evidence.json:7620:              "role": "io",
+tests/gate_perf_evidence.json:7626:              "role": "io",
+tests/gate_perf_evidence.json:7632:              "role": "io",
+tests/gate_perf_evidence.json:7638:              "role": "ex",
+tests/gate_perf_evidence.json:7644:              "role": "ex",
+tests/gate_perf_evidence.json:7683:              "role": "io",
+tests/gate_perf_evidence.json:7689:              "role": "io",
+tests/gate_perf_evidence.json:7695:              "role": "io",
+tests/gate_perf_evidence.json:7701:              "role": "io",
+tests/gate_perf_evidence.json:7707:              "role": "io",
+tests/gate_perf_evidence.json:7713:              "role": "io",
+tests/gate_perf_evidence.json:7719:              "role": "ex",
+tests/gate_perf_evidence.json:7725:              "role": "ex",
+tests/gate_perf_evidence.json:7764:              "role": "io",
+tests/gate_perf_evidence.json:7770:              "role": "io",
+tests/gate_perf_evidence.json:7776:              "role": "io",
+tests/gate_perf_evidence.json:7782:              "role": "io",
+tests/gate_perf_evidence.json:7788:              "role": "io",
+tests/gate_perf_evidence.json:7794:              "role": "io",
+tests/gate_perf_evidence.json:7800:              "role": "ex",
+tests/gate_perf_evidence.json:7806:              "role": "ex",
+tests/gate_perf_evidence.json:7845:              "role": "io",
+tests/gate_perf_evidence.json:7851:              "role": "io",
+tests/gate_perf_evidence.json:7857:              "role": "io",
+tests/gate_perf_evidence.json:7863:              "role": "io",
+tests/gate_perf_evidence.json:7869:              "role": "io",
+tests/gate_perf_evidence.json:7875:              "role": "io",
+tests/gate_perf_evidence.json:7881:              "role": "ex",
+tests/gate_perf_evidence.json:7887:              "role": "ex",
+tests/gate_perf_evidence.json:7926:              "role": "io",
+tests/gate_perf_evidence.json:7932:              "role": "io",
+tests/gate_perf_evidence.json:7938:              "role": "io",
+tests/gate_perf_evidence.json:7944:              "role": "io",
+tests/gate_perf_evidence.json:7950:              "role": "io",
+tests/gate_perf_evidence.json:7956:              "role": "io",
+tests/gate_perf_evidence.json:7962:              "role": "ex",
+tests/gate_perf_evidence.json:7968:              "role": "ex",
+tests/gate_perf_evidence.json:8007:              "role": "io",
+tests/gate_perf_evidence.json:8013:              "role": "io",
+tests/gate_perf_evidence.json:8019:              "role": "io",
+tests/gate_perf_evidence.json:8025:              "role": "io",
+tests/gate_perf_evidence.json:8031:              "role": "io",
+tests/gate_perf_evidence.json:8037:              "role": "io",
+tests/gate_perf_evidence.json:8043:              "role": "ex",
+tests/gate_perf_evidence.json:8049:              "role": "ex",
+tests/gate_perf_evidence.json:8088:              "role": "io",
+tests/gate_perf_evidence.json:8094:              "role": "io",
+tests/gate_perf_evidence.json:8100:              "role": "io",
+tests/gate_perf_evidence.json:8106:              "role": "io",
+tests/gate_perf_evidence.json:8112:              "role": "io",
+tests/gate_perf_evidence.json:8118:              "role": "io",
+tests/gate_perf_evidence.json:8124:              "role": "ex",
+tests/gate_perf_evidence.json:8130:              "role": "ex",
+tests/gate_perf_evidence.json:8169:              "role": "io",
+tests/gate_perf_evidence.json:8175:              "role": "io",
+tests/gate_perf_evidence.json:8181:              "role": "io",
+tests/gate_perf_evidence.json:8187:              "role": "io",
+tests/gate_perf_evidence.json:8193:              "role": "io",
+tests/gate_perf_evidence.json:8199:              "role": "io",
+tests/gate_perf_evidence.json:8205:              "role": "ex",
+tests/gate_perf_evidence.json:8211:              "role": "ex",
+tests/gate_perf_evidence.json:8252:              "role": "io",
+tests/gate_perf_evidence.json:8258:              "role": "io",
+tests/gate_perf_evidence.json:8264:              "role": "io",
+tests/gate_perf_evidence.json:8270:              "role": "io",
+tests/gate_perf_evidence.json:8276:              "role": "io",
+tests/gate_perf_evidence.json:8282:              "role": "io",
+tests/gate_perf_evidence.json:8288:              "role": "ex",
+tests/gate_perf_evidence.json:8294:              "role": "ex",
+tests/gate_perf_evidence.json:8330:              "role": "io",
+tests/gate_perf_evidence.json:8336:              "role": "io",
+tests/gate_perf_evidence.json:8342:              "role": "io",
+tests/gate_perf_evidence.json:8348:              "role": "io",
+tests/gate_perf_evidence.json:8354:              "role": "io",
+tests/gate_perf_evidence.json:8360:              "role": "io",
+tests/gate_perf_evidence.json:8366:              "role": "ex",
+tests/gate_perf_evidence.json:8372:              "role": "ex",
+tests/gate_perf_evidence.json:8409:              "role": "io",
+tests/gate_perf_evidence.json:8415:              "role": "io",
+tests/gate_perf_evidence.json:8421:              "role": "io",
+tests/gate_perf_evidence.json:8427:              "role": "io",
+tests/gate_perf_evidence.json:8433:              "role": "io",
+tests/gate_perf_evidence.json:8439:              "role": "io",
+tests/gate_perf_evidence.json:8445:              "role": "ex",
+tests/gate_perf_evidence.json:8451:              "role": "ex",
+tests/gate_perf_evidence.json:8489:              "role": "io",
+tests/gate_perf_evidence.json:8495:              "role": "io",
+tests/gate_perf_evidence.json:8501:              "role": "io",
+tests/gate_perf_evidence.json:8507:              "role": "io",
+tests/gate_perf_evidence.json:8513:              "role": "io",
+tests/gate_perf_evidence.json:8519:              "role": "io",
+tests/gate_perf_evidence.json:8525:              "role": "ex",
+tests/gate_perf_evidence.json:8531:              "role": "ex",
 tests/legacy_reorder_witness.py:9:instrumented build is used. MONITOR observes dispatch, while a conflicting GET
 tests/legacy_reorder_witness.py:12:after MONITOR reported the write first proves a nonidentity execution order.
 tests/legacy_reorder_witness.py:20:Its MONITOR-induced force_coarse branch at 4180-4185 is therefore not this path.
 tests/legacy_reorder_witness.py:23:before prefetch (ex_loop.h:2124-2125 and 2764). MONITOR still adds unscored work;
 tests/legacy_reorder_witness.py:26:MONITOR runs before a potentially refused enqueue (4560 versus 5251). Duplicate
 tests/legacy_reorder_witness.py:34:2 proves SETRANGE ran first. The same MONITOR/admission/topology controls apply.
+tests/legacy_reorder_witness.py:84:            threads[tid] = {"role": fields[2], "clients": int(fields[4]), "full": int(fields[12]),
+tests/legacy_reorder_witness.py:101:        require(first["role"] == last["role"], "thread role changed")
+tests/legacy_reorder_witness.py:124:        require(row["role"] == last["role"], "role changed while locating client")
+tests/legacy_reorder_witness.py:138:    producers = sum(row["role"] in ("io", "fused") for row in initial["threads"].values())
+tests/legacy_reorder_witness.py:179:def monitor_event(raw):
 tests/legacy_reorder_witness.py:180:    require(isinstance(raw, bytes), "MONITOR did not return a line")
 tests/legacy_reorder_witness.py:183:    require(match is not None, f"malformed MONITOR line: {text!r}")
 tests/legacy_reorder_witness.py:187:        raise WitnessError(f"malformed MONITOR arguments: {text!r}") from exc
 tests/legacy_reorder_witness.py:188:    require(arguments, "empty MONITOR command")
+tests/legacy_reorder_witness.py:192:def collect_until(monitor, client_address, fence):
+tests/legacy_reorder_witness.py:197:        event = monitor_event(monitor.read())
 tests/legacy_reorder_witness.py:201:    raise WitnessError("MONITOR fence was not reached within bounded transcript")
+tests/legacy_reorder_witness.py:207:    require(set(client_producers.values()) == {producer}, "writer/reader/monitor/blocker do not share a producer")
+tests/legacy_reorder_witness.py:299:            writer, reader, monitor, blocker = clients
 tests/legacy_reorder_witness.py:313:            # Seed distinct unused keys before MONITOR is armed. A remote control
 tests/legacy_reorder_witness.py:317:            require(monitor.must("MONITOR") == b"OK", "MONITOR refused")
+tests/legacy_reorder_witness.py:319:            peers = {name: producer for name in ("writer", "reader", "monitor", "blocker")}
 tests/legacy_reorder_witness.py:325:                # A same-producer ECHO drains every older local MONITOR event. All
+tests/legacy_reorder_witness.py:329:                collect_until(monitor, address(writer), begin)
+tests/legacy_reorder_witness.py:341:                events = collect_until(monitor, address(writer), end)
+tests/legacy_reorder_witness.py:389:    require(args.binary and args.binary.is_file() and os.access(args.binary, os.X_OK), "--binary must be executable")
+tests/legacy_reorder_witness.py:444:            self.before = {"stamp_ns": 1, "threads": {0: {"role": "io", "clients": 4, "full": 0, "masked_full": 0}},
+tests/legacy_reorder_witness.py:448:            self.events = [monitor_event(b'1.000001 [0 127.0.0.1:1] "SETRANGE" "K" "0" "X"'),
+tests/legacy_reorder_witness.py:449:                           monitor_event(b'1.000002 [0 127.0.0.1:2] "GET" "K"')]
+tests/legacy_reorder_witness.py:455:                          "monitor": 0, "blocker": 0})
+tests/legacy_reorder_witness.py:473:            events = [monitor_event(b'1.000001 [0 127.0.0.1:1] "SETRANGE" "K" "0" "1"'),
+tests/legacy_reorder_witness.py:474:                      monitor_event(b'1.000002 [0 127.0.0.1:2] "INCR" "K"')]
+tests/legacy_reorder_witness.py:526:        def test_malformed_monitor_and_hidden_extra_mutation_fail(self):
 tests/legacy_reorder_witness.py:528:                monitor_event(b'not a MONITOR frame')
+tests/legacy_reorder_witness.py:529:            extra = monitor_event(b'1.000003 [0 127.0.0.1:9] "SET" "K" "0"')
 tests/legacy_reorder_witness.py:548:            # Drive run_control's real client placement, requests, MONITOR parser,
+tests/legacy_reorder_witness.py:556:                    engine = SimpleNamespace(db={}, clients=0, next_client=0, monitor=None,
 tests/legacy_reorder_witness.py:577:                            if engine.monitor is not None and name != "MONITOR":
+tests/legacy_reorder_witness.py:579:                                engine.monitor.replies.append(f"1.000001 [0 {address(self)}] {quoted}".encode())
 tests/legacy_reorder_witness.py:596:                            elif name == "MONITOR":
+tests/legacy_reorder_witness.py:597:                                engine.monitor = self
+tests/signalacct_checks.h:52:    if (!std::strcmp(only, "all") || !std::strcmp(only, "roles")) {
+tests/signalacct_checks.h:59:        conserved(a, "first IO role exit conserves wall");
+tests/signalacct_checks.h:71:                sig.idle_ns == a.idle_ns + 100 + b.idle_ns, "role-separated sums count each tenure once");
+tests/signalacct_checks.h:72:        std::printf("signalacct roles: IO1=%llu EX=500 IO2=%llu busy2=%llu idle2=%llu\n",
+tests/signalacct_checks.h:99:                "window final partial interval flushed on role exit");
+tests/abba_calibration.py:23:Only --self-test is executable; real calibration/wiring awaits a stable instrument.
+tests/atomic_torn.py:146:    role label: under --thread-mode 1s every thread is labelled `io` and still owns shards, so a
+tests/atomic_torn.py:147:    role-based selection found zero executors and aborted with a false reason. The concurrency
+tests/gate.sh:153:ROW_RUN_ID="$GATE_PURPOSE:${RUN_DIR##*/}"
+tests/gate.sh:154:export GATE_RUN_ID="$ROW_RUN_ID"
+tests/gate.sh:161:    RECEIPT_START=$(python3 tests/gate_receipt.py begin --run-id "$ROW_RUN_ID" --tier "$GATE_PURPOSE" \
 tests/gate.sh:364:          mv "$ROW_WATCH_CANCEL.tmp" "$ROW_WATCH_CANCEL"; }; then ROW_MONITOR_FAILED=1; fi
 tests/gate.sh:367:    row_watch_clock || { ROW_MONITOR_FAILED=1; return 1; }
 tests/gate.sh:374:          ROW_MONITOR_FAILED=1; can_wait=0
@@ -84,30 +1035,158 @@ tests/gate.sh:410:      watcher_rc=255; ROW_MONITOR_FAILED=1
 tests/gate.sh:415:      ROW_MONITOR_FAILED=1
 tests/gate.sh:448:  ROW_EXPIRED=0; ROW_MONITOR_FAILED=0; ROW_PAUSED=0; ROW_START=$ROW_NOW
 tests/gate.sh:472:  [ "${ROW_MONITOR_FAILED:-0}" = 0 ] || verdict=FAIL
+tests/gate.sh:474:  python3 tests/gate_history.py record --history "$ROW_HISTORY" --run-id "$ROW_RUN_ID" \
 tests/gate.sh:483:    [ "${ROW_MONITOR_FAILED:-0}" = 0 ] || verdict=FAIL
 tests/gate.sh:601:    if [ "$ROW_EXPIRED" = 1 ] || [ "${ROW_MONITOR_FAILED:-0}" != 0 ]; then
+tests/gate.sh:602:      bad "$ROW_ID" 'build dependency deadline/monitor failed'
+tests/gate.sh:713:  [ -x "$bin" ] || { say "boot ($tag)" "FAIL ($bin is not an executable)"; return 1; }
+tests/gate.sh:1020:    python3 tests/differ_fanout.py plan --run "${ROW_RUN_ID:-$RUN_DIR}" --output "$RUN_DIR/differ-plan.json" \
+tests/gate.sh:1073:      --run-directory "$RUN_DIR" --row-plan "$ROW_PLAN" --row-history "$ROW_HISTORY" --row-run "$ROW_RUN_ID") || fold_rc=$?
 tests/gate.sh:1197:      || bad "release build" "candidate is not executable: $CANDIDATE_BINARY"
+tests/gate.sh:1202:  # An external executable has no demonstrated relationship to this source tree. Its full
+tests/gate.sh:1322:    && grep -q 'FAIL: test_baseline_failure_joins_monitor_before_server_and_preserves_cause' "$TMPDIR/connreset-negative.log"; then
+tests/gate.sh:1328:row_begin "LB monitor plan handoff + negative controls"
+tests/gate.sh:1331:  ok "LB monitor plan handoff + negative controls"
+tests/gate.sh:1333:  bad "LB monitor plan handoff + negative controls" "see $TMPDIR/lbplanner-unit.log"
+tests/gate.sh:1587:row_begin "storesize published monitoring"
+tests/gate.sh:1590:    && ok "storesize published monitoring" \
+tests/gate.sh:1591:    || bad "storesize published monitoring" "see $TMPDIR/storesize-unit.log"
+tests/gate.sh:2812:# The suite rejects live candidate probes even in a warm worktree; executable fixtures and an
+tests/gate.sh:3063:  # executable. Each dependent historical row owns the failure; this helper adds no gate row.
+tests/gate.sh:3160:    [ -x "$REDIS74_ROOT/$f" ] || ORACLE_MISSING="$ORACLE_MISSING $f(executable)"
 tests/gate.sh:3452:ABBA_CLEANUP_RC=${ROW_MONITOR_FAILED:-0}
+tests/gate.sh:3599:      --run-id "$ROW_RUN_ID" --tier "$GATE_PURPOSE" --passed "$PASS" --failed "$FAIL" \
+tests/notify.py:486:    admin.command("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
+tests/resp3.py:103:    expect(set(values) == {b"server", b"version", b"proto", b"id", b"mode", b"role", b"modules"},
+tests/core_concurrency_unit.cc:78:            require(server.placement_.reserve_runtime_roles(thread_count), "reserve placement roles");
+tests/fixtures/nullrefresh-ledger-labels.json:23:    "LB monitor plan handoff + negative controls",
+tests/fixtures/nullrefresh-ledger-labels.json:71:    "storesize published monitoring",
+tests/fixtures/nullrefresh-ledger-labels.json:659:        "LB monitor plan handoff + negative controls"
+tests/fixtures/nullrefresh-ledger-labels.json:711:        "storesize published monitoring"
 tests/climon2.py:2:"""Directed CLIENT connection-control + MONITOR battery. Usage: climon2.py HOST PORT
 tests/climon2.py:6:  * MONITOR asserts the feed line CONTENT (quoting, redaction) and the
+tests/climon2.py:7:    monitor_feed_lines counter moving.
 tests/climon2.py:294:    # ---- 4. MONITOR: feed content, quoting, redaction, counter -------------------------------
+tests/climon2.py:295:    before_lines = stats()["monitor_feed_lines"]
 tests/climon2.py:297:    expect(mon.command("MONITOR"), b"OK", "MONITOR")
-tests/climon2.py:312:    assert '"AUTH" "(redacted)"' in body, f"AUTH not redacted: {body}"
+tests/climon2.py:298:    assert clients_info()["monitor_clients"] == 1, "monitor_clients did not move"
+tests/climon2.py:307:    assert len(lines) >= 4, f"monitor feed too short: {feed!r}"
 tests/climon2.py:313:    assert "hunter2" not in body, "AUTH password leaked into the MONITOR feed"
+tests/climon2.py:316:    after_lines = stats()["monitor_feed_lines"]
+tests/climon2.py:317:    assert after_lines > before_lines, "monitor_feed_lines counter never moved"
+tests/climon2.py:318:    # A monitor DOES see its own traffic (oracle-matched).
+tests/climon2.py:321:    assert '"PING"' in self_feed, f"monitor did not see its own command: {self_feed!r}"
+tests/climon2.py:322:    # RESET exits monitor mode; the feed must go silent. A monitor sees its own RESET, and this
+tests/climon2.py:329:    assert clients_info()["monitor_clients"] == 0, "monitor_clients did not return to 0"
 tests/climon2.py:332:    # ---- 5. MONITOR is disarmed when nobody is watching --------------------------------------
+tests/climon2.py:333:    quiet_before = stats()["monitor_feed_lines"]
+tests/climon2.py:335:    assert stats()["monitor_feed_lines"] == quiet_before, \
+tests/climon2.py:336:        "feed lines were formatted with no monitor attached"
+tests/climon2.py:409:    print(f"climon2: ok ({checks} checks, monitor_feed_lines={st['monitor_feed_lines']}, "
+tests/_abba_test_fixtures.py:5:def saturation_record(mode="1s", score=99.9, threads=32, window_seconds=20, inactive_roles=()):
+tests/_abba_test_fixtures.py:10:        role = "fused" if mode == "1s" else "io" if tid < threads - threads // 2 else "ex"
+tests/_abba_test_fixtures.py:11:        before[tid] = dict(role=role, clients=0 if role == "ex" else 1,
+tests/_abba_test_fixtures.py:13:        active = role not in inactive_roles
+tests/abba_simple.py:10:checks -- instrument fingerprints, standing-null receipts, load-floor pins, productive-role
+tests/r7shadow_pad.py:17:    assert elf.kind != 1, 'expected a linked executable'
+tests/shutdown_report.py:38:    fired = dict.fromkeys(("did_submit", "sweep_submit", "park", "role_exit"), 0)
+tests/shutdown_report.py:48:        if row.get("role") in ("io", "fused") and not tenures:
+tests/shutdown_report.py:49:            fail("t%s: IO role never entered an accounted tenure" % tid)
+tests/shutdown_report.py:57:            if any(type(t.get(k)) is not bool for k in ("role_exit", "stopped")):
+tests/shutdown_report.py:61:            if not (t["role_exit"] or t["stopped"]):
+tests/shutdown_report.py:62:                fail(label + ": neither role exit nor shutdown fired")
+tests/shutdown_report.py:78:            fail("t%s: role-separated IO totals exceed lifetime counters" % tid)
+tests/shutdown_report.py:79:        mixed |= len(tenures) > 1 and any(t["role_exit"] for t in tenures[:-1])
+tests/shutdown_report.py:82:    required = ("did_submit", "sweep_submit", "park") + (("role_exit",) if report.get("thread_mode") == "2s" else ())
+tests/rltopo_unit.cc:90:            require(server.placement_.reserve_runtime_roles(8), "fixture roles");
+tests/abba_saturation_controls.py:9:It shares the production ownership/cleanup and quiet observer helpers. --spin-role
+tests/abba_saturation_controls.py:10:requires an actual high-CPU, nonproductive role; an unarmed spinner fails loudly.
+tests/abba_saturation_controls.py:29:from gate_quiet import QuietMonitor
+tests/abba_saturation_controls.py:47:# build. It is AFTER stop/role checks, normal owner dispatch, busy/idle/CPU
+tests/abba_saturation_controls.py:63:    # inactive role members from the denominator. Four sockets add no new path.
+tests/abba_saturation_controls.py:103:                           "Each single-connection negative must show real GET progress and reject the central95% role floor.",
+tests/abba_saturation_controls.py:120:        argv = [sys.executable, str(abba.ROOT / "tests/abbagate.py"),
+tests/abba_saturation_controls.py:216:            if not any(role["ops"] > 0 for role in saturation["roles"].values()):
+tests/abba_saturation_controls.py:288:def control_witness(saturation, central, spin_role=None):
+tests/abba_saturation_controls.py:291:    if spin_role is not None:
+tests/abba_saturation_controls.py:292:        role = saturation["roles"].get(spin_role)
+tests/abba_saturation_controls.py:293:        if role is None:
+tests/abba_saturation_controls.py:294:            raise RuntimeError(f"spinner role {spin_role} absent from the actual topology")
+tests/abba_saturation_controls.py:296:        # role, and every other role member must witness zero operation progress.
+tests/abba_saturation_controls.py:297:        members = [row for row in saturation["threads"].values() if row["role"] == spin_role]
+tests/abba_saturation_controls.py:305:                      for tid, row in saturation["threads"].items() if row["role"] == spin_role) / len(members)
+tests/abba_saturation_controls.py:307:            raise RuntimeError(f"spinner not armed: {spin_role} central CPU {cpu_pct:.3f}% "
+tests/abba_saturation_controls.py:332:                  measurement_valid=False, mode=args.mode, spin_role=args.spin_role,
+tests/abba_saturation_controls.py:345:    quiet = QuietMonitor(server_cpus, load_cpus, own_root_pid=os.getpid(), window_seconds=args.seconds,
+tests/abba_saturation_controls.py:378:                expected_roles = {"fused": 32} if args.mode == "1s" else {"io": 16, "ex": 16}
+tests/abba_saturation_controls.py:379:                actual_roles = {role: sum(row["role"] == role for row in before.threads.values())
+tests/abba_saturation_controls.py:380:                                for role in {row["role"] for row in before.threads.values()}}
+tests/abba_saturation_controls.py:381:                if actual_roles != expected_roles:
+tests/abba_saturation_controls.py:382:                    raise RuntimeError(f"unexpected negative-control topology: {actual_roles}")
+tests/abba_saturation_controls.py:393:                report["control_witness"] = control_witness(saturation, central, args.spin_role)
+tests/abba_saturation_controls.py:430:                port=8700, memtier=sys.executable)
+tests/abba_saturation_controls.py:477:                            role = "fused" if cell.mode == "1s" else "io" if tid < 16 else "ex"
+tests/abba_saturation_controls.py:479:                            clients = 1 if active and role != "ex" else 0
+tests/abba_saturation_controls.py:480:                            text += f"thread {tid} {role} 0 {clients} 1 {1000 if active and elapsed else 0} {elapsed if active else 0} {0 if active else elapsed} {elapsed if active else 0}\n"
+tests/abba_saturation_controls.py:498:                with mock.patch.object(abba, "QuietMonitor", return_value=quiet), \
+tests/abba_saturation_controls.py:559:                    role = "io" if tid < 16 else "ex"
+tests/abba_saturation_controls.py:560:                    clients = int(role == "io")
+tests/abba_saturation_controls.py:563:                    cpu = int(seconds * 1e9 * cpu_fraction) if role == "ex" else 0
+tests/abba_saturation_controls.py:564:                    before += f"thread {tid} {role} 0 {clients} 1 0 0 0 0\n"
+tests/abba_saturation_controls.py:565:                    after += f"thread {tid} {role} 0 {clients} 2 {ops} 0 {idle} {cpu}\n"
+tests/abba_saturation_controls.py:572:            self.assertEqual(saturation["roles"]["ex"]["ops"], 0)
+tests/abba_saturation_controls.py:586:            self.assertGreater(saturation["roles"]["ex"]["cpu_pct"], 95)
+tests/abba_saturation_controls.py:597:                        connections=0, mode="2s", spin_role=None, server_cores="0-31",
+tests/abba_saturation_controls.py:603:                            role = "io" if tid < 16 else "ex"
+tests/abba_saturation_controls.py:604:                            text += f"thread {tid} {role} 0 0 1 0 0 {time_ns} 0\n"
+tests/abba_saturation_controls.py:633:                         mock.patch(__name__ + ".QuietMonitor", Quiet), mock.patch.object(abba, "info", info), \
+tests/abba_saturation_controls.py:678:    parser.add_argument("--spin-role", choices=("io", "ex", "fused"))
+tests/docs_drift.py:110:                [sys.executable, str(Path(__file__).resolve()),
+tests/lbplanner_unit.cc:204:        // Retired plan capacity must return to the monitor, not be freed on the IO thread.
+tests/lbplanner_unit.cc:207:        bool produced = false; // monitor-private
+tests/lbplanner_unit.cc:210:        std::thread monitor([&] {
+tests/lbplanner_unit.cc:211:            require(std::this_thread::get_id() != io_thread, "search runs on monitor thread");
+tests/lbplanner_unit.cc:245:                "monitor must produce a finished plan; unarmed witness fails");
+tests/lbplanner_unit.cc:247:        require(f.server.lb_epoch() == 0, "monitor never starts IO drain");
+tests/lbplanner_unit.cc:259:        monitor.join();
+tests/lbplanner_unit.cc:293:        Core::LbFixture<false> changed_role;
+tests/lbplanner_unit.cc:294:        const uint64_t fold = changed_role.server.lb_policy_->last_fold_ns;
+tests/lbplanner_unit.cc:295:        require(!changed_role.server.lb_controller_tick(changed_role.source, changed_role.clock_ms + 1000) &&
+tests/lbplanner_unit.cc:296:                changed_role.server.lb_policy_->last_fold_ns == fold &&
+tests/lbplanner_unit.cc:297:                changed_role.server.lb_transition_refused() == 1,
+tests/lbplanner_unit.cc:322:            if (f.server.thread(tid).role() != Role::Ifid) continue;
+tests/lbplanner_unit.cc:374:    static void pad_monitor() {
+tests/lbplanner_unit.cc:377:        // A broken monitor retarget is stopped as soon as it performs a beat. A correct
+tests/lbplanner_unit.cc:378:        // PRE monitor returns immediately with --flip-auto 0. No listener/worker runs.
+tests/lbplanner_unit.cc:388:        f.server.monitor_controllers(); // same entry as all four real boot hosts
+tests/lbplanner_unit.cc:391:        require(f.server.lb_ticks() == 0, "PAD monitor never runs LB search");
+tests/lbplanner_unit.cc:394:        pad_monitor();
+tests/lbplanner_unit.cc:439:            f.server.lb_coordinator_ = f.io_id; // the monitor publishes this before PlanReady
+tests/lbplanner_unit.cc:466:        std::puts("PASS LB monitor handoff: both modes/branches; once; stale epochs; zero IO allocations");
+tests/climon_mask_unit.cc:17:    for (const char* lane : {"tracking", "monitor"}) {
 tests/persistfix.py:220:                                 info_run_id=fields.get('run_id'))
 tests/persistfix.py:246:        # INFO Server currently has process_id but no run_id. Keep the harness
 tests/persistfix.py:247:        # boot UUID explicitly separate from any future server-supplied run_id.
 tests/persistfix.py:248:        self.identity = dict(run_id=uuid.uuid4().hex, run_id_source='persistfix boot UUID',
 tests/persistfix.py:290:                f'pid={self.identity.get("pid")} run_id={self.identity.get("run_id")} '
+tests/persistfix.py:433:    """Serverless fault schedules: no executable server or load generator."""
 tests/persistfix.py:453:            self.run.identity = dict(pid=4321, run_id='test-boot', ready=False)
 tests/persistfix.py:482:            client = self.client(extra='run_id:server-run-id\r\n')
 tests/persistfix.py:492:            self.assertEqual((identity['pid'], identity['run_id'], identity['info_run_id']),
 tests/persistfix.py:593:                self.assertNotEqual(records[0]['run_id'], records[1]['run_id'])
 tests/persistfix.py:633:                self.assertIn('pid=4321 run_id=test-boot', message)
+tests/aof.py:70:                    subprocess.run([sys.executable, str(Path(__file__).resolve()),
+tests/netcmd_unit.cc:67:        // whole sibling pairs for BOTH roles; only one IO is a tracking destination below.
+tests/netcmd_unit.cc:73:            server.threads_[i]->init(i, Role::Ifid, server.threads_.size(), 0, 0);
+tests/netcmd_unit.cc:110:            server.threads_[i]->init(i, Role::Ifid, server.threads_.size(), 0, 0);
+tests/netcmd_unit.cc:470:        ThreadCtx self; self.init(0, Role::Ifid, 1, 0, 0);
+tests/netcmd_unit.cc:529:            ThreadCtx self; self.init(0, Role::Ifid, 1, 0, 0);
+tests/netcmd_unit.cc:558:            ThreadCtx self; self.init(0, Role::Ifid, 1, 0, 0);
+tests/gate_receipt.py:91:    # Raw file bytes and executable/symlink modes match Git trees; no HEAD/mtime/index hash is used.
 tests/gate_receipt.py:493:    require(re.fullmatch(r"[A-Za-z0-9_.:-]+", args.run_id) and args.run_id not in (".", ".."), "invalid run ID")
 tests/gate_receipt.py:520:    state = {"schema": SCHEMA, "kind": "gate-start", "run_id": args.run_id, "tier": args.tier,
 tests/gate_receipt.py:526:    path = directory / "runs" / args.run_id / "start.json"
+tests/gate_receipt.py:551:    require(mode == "100755", "candidate must be an executable regular file")
 tests/gate_receipt.py:552:    binding = {"schema": SCHEMA, "kind": "gate-candidate", "run_id": state["run_id"],
 tests/gate_receipt.py:583:        if row.get("run_id") != state["run_id"]:
 tests/gate_receipt.py:623:    # {schema:1, run_id, tier:'push'|'release'|'full', completed:true, verdict:'PASS', exit_code:0,
@@ -117,12 +1196,14 @@ tests/gate_receipt.py:683:    result = {"schema": 1, "run_id": args.run_id, "tie
 tests/gate_receipt.py:709:    for key, value in {"schema": 1, "completed": True, "verdict": "PASS", "run_id": state["run_id"],
 tests/gate_receipt.py:719:            row["schema"] == 1 and row["run_id"] == state["run_id"] and row["timing"] == "own-row" and
 tests/gate_receipt.py:762:        checked.append((local_ref, valid["run_id"]))
+tests/gate_receipt.py:861:            self.candidate.write_bytes(b"synthetic executable bytes, never run\n")
 tests/gate_receipt.py:867:            self.args = argparse.Namespace(run_id="fixture", tier="push", expected_ledger=self.ledger,
 tests/gate_receipt.py:879:            self.completed = dict(schema=1, run_id="fixture", tier="push", completed=True, verdict="PASS",
 tests/gate_receipt.py:883:            self.observed = [dict(schema=1, timing="own-row", run_id="fixture", observation_id=str(i),
 tests/gate_receipt.py:1013:            self.observed.append(dict(schema=1, timing="own-row", run_id="fixture", observation_id="dependency",
 tests/gate_receipt.py:1021:            self.args.run_id = "push:bootstrap"
 tests/gate_receipt.py:1048:                    run_id = f"{tier}:fragment-{built}"
+tests/gate_receipt.py:1052:RUN_DIR=$TEST_RUN; TMPDIR=$TEST_RUN; ROW_RUN_ID=$TEST_RUN_ID
 tests/gate_receipt.py:1072:                                                  "TEST_RUN_ID": run_id, "TEST_BUILT": str(built)})
 tests/gate_receipt.py:1081:                    self.assertFalse((history_directory(self.root) / "runs" / run_id / "receipt.json").exists())
 tests/gate_receipt.py:1123:                    gate_history.record(directory, run_id=self.args.run_id,
@@ -131,63 +1212,582 @@ tests/gate_receipt.py:1138:            self.args.run_id = "larger-full-run"
 tests/gate_receipt.py:1150:            self.completed["run_id"] = self.args.run_id
 tests/gate_receipt.py:1154:                row["run_id"] = self.args.run_id
 tests/gate_receipt.py:1162:            self.observed.append(dict(schema=1, timing="own-row", run_id=self.args.run_id,
+tests/gate_receipt.py:1209:                with self.subTest(mutation=mutate), self.assertRaisesRegex(ValueError, "saturation|productive-role"):
+tests/gate_receipt.py:1287:            for kind in ("content", "executable", "new untracked source", "symlink", "binary"):
+tests/gate_receipt.py:1291:                    elif kind == "executable":
+tests/gate_receipt.py:1299:                        self.candidate.write_bytes(b"another executable")
+tests/gate_receipt.py:1342:    refrozen = subprocess.run([sys.executable, str(ROOT / "tests/nullpublish_refreeze_test.py")]).returncode
+tests/feature_gate.py:70:            roles = ['ifid'] * (len(selected) // 2) + ['ex'] * (len(selected) - len(selected) // 2)
+tests/feature_gate.py:71:            knobs['place'] = ','.join(f'{role}@{cpu}' for role, cpu in zip(roles, selected))
+tests/feature_gate.py:142:        eligible = t['role'] in ('ifid', 'unified')
+tests/feature_gate.py:143:        require(int(t['active']) == int(eligible), f'thread {tid}: role/reader mismatch {t}')
+tests/feature_gate.py:151:            elif was['role'] == t['role'] and was['active'] == '0':
+tests/feature_gate.py:315:                actual_ratio = ':'.join(str(sum(t['role'] == role for t in geometry['threads'].values()))
+tests/feature_gate.py:316:                                        for role in ('io', 'ex'))
+tests/barrier.py:414:        command = [sys.executable, os.path.join(TEST_DIR, battery + ".py"), HOST, str(PORT)]
+tests/watchlive.py:12:what makes it dangerous for production monitoring.
 tests/watchlive.py:179:def run_repetition(host, port, nconn, watch, deadline, run_id, ping, seconds=2.0):
 tests/watchlive.py:212:                # run_id is FIXED for the whole repetition on purpose.  Rotating it per wave lets
 tests/watchlive.py:215:                blob, n, exec_idx = build_pipeline(run_id, i, watch)
 tests/watchlive.py:280:        run_id = int(time.time() * 1000) % 1000000 + r * 7919
 tests/watchlive.py:281:        verdict, detail = run_repetition(host, port, nconn, watch, deadline, run_id, ping)
+tests/limits.py:178:                           ("master 0 0 0", "master class"),
+tests/storesize_checks.py:39:        assert rejected.returncode == 1 and 'FAIL storesize: monitor route' in rejected.stderr, rejected
+tests/storesize_checks.py:40:        print('PASS negative control: restored census route fails the exact monitor-route assertion')
+tests/abba_worker_affinity.py:51:    executable = exe_identity(path / "exe")
+tests/abba_worker_affinity.py:68:            exe_identity(path / "exe") == executable, "generator identity/task set changed during observation")
+tests/abba_worker_affinity.py:69:    return dict(pid=process.pid, start_ticks=begin["start_ticks"], executable=executable,
+tests/abba_worker_affinity.py:153:                    role="coordinator" if row["tid"] == process.pid else "worker",
+tests/abba_worker_affinity.py:160:                        role="coordinator" if row["tid"] == process.pid else "worker",
+tests/abba_worker_affinity.py:213:                    snapshot["executable"] == saved["original"]["executable"], "generator identity changed after pinning")
+tests/abba_worker_affinity.py:332:            process = subprocess.Popen(["taskset", "-c", ",".join(map(str, cpus)), sys.executable, "-u", "-c", program],
+tests/abba_worker_affinity.py:361:                worker_cpus = [row["applied_affinity"][0] for row in saved["applied"] if row["role"] == "worker"]
+tests/abba_worker_affinity.py:369:                                      if row["role"] == "coordinator"), [worker_cpus[0]])
+tests/reorder_engagement_unit.cc:52:            require(server.placement_.reserve_runtime_roles(8), "reserve fixture roles");
+tests/gateplan.py:119:    for role in ("server", "load"):
+tests/gateplan.py:121:        for cpu in axes[role + "_cores"]:
+tests/gateplan.py:124:                raise ValueError(f"--{role}-cores contains SMT siblings {owners[group]} and {cpu}; "
+tests/gateplan.py:125:                                 f"put the sibling in --{role}-smt")
+tests/gateplan.py:127:        for cpu in axes[role + "_smt"]:
+tests/gateplan.py:129:                raise ValueError(f"--{role}-smt CPU {cpu} has no physical core in --{role}-cores")
+tests/gateplan.py:151:def executable(value, label):
+tests/gateplan.py:156:        raise ValueError(f"{label} is not an executable file: {path}")
+tests/gateplan.py:261:    candidate = executable(args.candidate_binary, "--candidate-binary")
+tests/gateplan.py:262:    reference = executable(args.reference_binary, "--reference-binary")
+tests/gateplan.py:534:            with self.assertRaisesRegex(ValueError, "not an executable file"):
+tests/psfix.py:143:                    command = ['taskset', '-c', args.load_cores, sys.executable, 'tests/differ.py',
+tests/psfix.py:169:                assert info(conn, 'persistence')['rdb_last_bgsave_status'] == 'err'
+tests/psfix.py:175:            assert info(conn, 'persistence')['rdb_last_bgsave_status'] == 'ok'
+tests/psfix.py:189:            assert fields['rdb_last_bgsave_status'] == 'ok'
+tests/gates_test.py:42:                  read_local_thread_0='role=ifid,shards=0,active=1,hits_total=0,mget_hits_total=0',
+tests/gates_test.py:43:                  read_local_thread_1='role=ex,shards=16,active=0,hits_total=0,mget_hits_total=0')
+tests/gates_test.py:45:    after['read_local_thread_0'] = 'role=ifid,shards=0,active=1,hits_total=9,mget_hits_total=8'
+tests/gates_test.py:55:    thread = dict(role='ex', clients=0, ops=100, busy_ns=1000, idle_ns=1000)
+tests/gates_test.py:166:    def test_reader_roles_and_each_hit_counter(self):
+tests/gates_test.py:192:        # A busy peer must not hide an idle executor in a role-average percentage.
+tests/gates_test.py:565:        foreign = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+tests/gates_test.py:579:        owned = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+tests/gates_test.py:580:        foreign = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+tests/gates_test.py:639:    child=children.start([sys.executable, '-c', 'import time; time.sleep(60)'], out/'child.log', out)
+tests/gates_test.py:660:            env = dict(os.environ, WIRE_PYTHON=sys.executable, WIRE_DRIVER=str(driver),
+tests/gates_test.py:662:            foreign = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+tests/gates_test.py:958:ROW_HISTORY="$RUN_DIR/history"; ROW_RUN_ID=test; ROW_PLAN="$RUN_DIR/plan.json"
 tests/gates_test.py:1427:            run.identity = dict(pid=12345, run_id='owned-peer-test', ready=False)
+tests/gates_test.py:1779:                               WIRE_PYTHON=sys.executable)
+tests/r7shadow_noop.py:23:def off_roles(binary):
+tests/r7shadow_noop.py:117:    excluded = {'pre': off_roles(pre), 'post': off_roles(post)}
+tests/rl2s.py:43:    io = {tid for tid, row in result.items() if row["role"] == "ifid"}
+tests/rl2s.py:44:    ex = {tid for tid, row in result.items() if row["role"] == "ex"}
+tests/rl2s.py:46:            "INFO role rows disagree with split geometry")
+tests/rl2s.py:52:            "IO owns shards, or lane activation disagrees with roles")
+tests/rl2s.py:102:                require(current_io == io, "unexpected role change during directed reads")
+tests/rl2s.py:173:        require(len(restored_io) == len(io) and len(restored_ex) == len(ex), "roles not restored")
+tests/rl2s.py:178:            require(ctl.cmd("FLIP", len(io), len(ex)) == b"OK", "cleanup could not restore roles")
+tests/shutsave_unit.cc:85:        map.monitor(server); // arm live supervision before the long command
+tests/shutsave_unit.cc:88:        map.monitor(server);
+tests/shutsave_unit.cc:92:        map.monitor(server); // leaving SAVE gets an ordinary opportunity to acknowledge
+tests/shutsave_unit.cc:111:            server.databases().monitor(server);
+tests/rehash_readonly.py:84:        require(len(topo.shard_owner) == 16 and len(topo.roles) == 8,
+tests/wbland_evidence.json:1338:          ".text._ZNK4tomo6Server15flip_final_roleEj"
+tests/aof_frame_order.py:130:    per shard, so covering every shard is what guarantees the two roles share threads. The shard
+tests/aof_frame_order.py:287:        serving = [tid for tid, role in topo.roles.items() if role in ("io", "fused")]
+tests/standing-null/3dcdaa497a4f1e2a670342e17daa27bb9c36e9a2cbc633196d134d85b65efb9a.instrument.json:1:{"entries":[{"mode":"100644","path":"tests/_abba_test_fixtures.py","sha256":"bd22b1020439f72c60241a02958e8d4ec5f40965ceb81c875a265f46420e3192"},{"mode":"100644","path":"tests/_gate_process.py","sha256":"8c5477988f5087283b8f2eade4c2a5d5c9bb88c0fb295a7eeed9d72c3002b02d"},{"mode":"100644","path":"tests/_lib.py","sha256":"66de3b0d1220901c9f29df2d81f33deec48c3ba3f1befe72a62cdcebff64ebc4"},{"mode":"100644","path":"tests/_nullrefresh_test.py","sha256":"53eb780d0b8f0ea6920b346afc8b8769a28470e174823a202458b6194ef61062"},{"mode":"100644","path":"tests/abba_binaries.py","sha256":"918fed56c7e419eb457948b9a86c23bfd6342a9ddbf1c3980c556eee0a565b59"},{"mode":"100644","path":"tests/abba_ceiling.py","sha256":"4069c4b4e9a7f38fa7c36be093614731cacc1af18a910ae3b092c350f789c78b"},{"mode":"100644","path":"tests/abba_evidence.py","sha256":"3588081206e799dc24be7c604e33785776e900c44c219ed3d66e581ed22bfc9d"},{"mode":"100644","path":"tests/abba_experiments.py","sha256":"039cc812b49b4e76feccf343b9d423262939ddfb26dfc9730959d34a24cc0e78"},{"mode":"100644","path":"tests/abba_instrument.py","sha256":"3b544a91a452534b35a0e5962ab9d66ce32c18b1e0f2ad8ffa1074a73cbda106"},{"mode":"100644","path":"tests/abba_null_sampling.py","sha256":"2c0f484093c92898be8959c53f1f063da510d357ab5774a4d32800597d0188c9"},{"mode":"100644","path":"tests/abba_profile.py","sha256":"7ec7c27419b9f2f30f0e1944499e48300afbb0d4ad0a268af29b56d51a3a8a33"},{"mode":"100644","path":"tests/abba_reorder_control.py","sha256":"f3ffe75bc65c8fad1998681023eab33f84ee1b8b7a662bb7f730be4b87aef666"},{"mode":"100644","path":"tests/abba_saturation.py","sha256":"bfc17d90e388d53fa10aab2d8ddcce5ccdb2577303ce17c643e8166a46b4a287"},{"mode":"100644","path":"tests/abba_simple.py","sha256":"797281e5a1cf91c46823b9f67d4f9b0aed4b6c0399bee4d3c501234c902e9e6e"},{"mode":"100644","path":"tests/abba_worker_affinity.py","sha256":"989f85c452a3b7113b4e60b2f4d1fc54dc32cbfe5fa0fa58374faa2143057a0a"},{"mode":"100644","path":"tests/abba_workloads.py","sha256":"0060d75451b97c4274600eefcd8c950e0683359b31df910233d5e60765e15ce9"},{"mode":"100644","path":"tests/abbagate.py","sha256":"7f717484a473579d435933d10f8ea310ff2d2576872ef9c465227d2afdd1df18"},{"mode":"100644","path":"tests/gate_history.py","sha256":"eaccee3837e233948d9b2e2d230ac69c0a52557cb2e3797763201b850fe8081f"},{"mode":"100644","path":"tests/gate_ledger_fixture.py","sha256":"e394e648fabb57b2c3c13af782f27f9227ee2ec3157194b4438ddfb274ed0f8c"},{"mode":"100644","path":"tests/gate_measurements.py","sha256":"da70d9ef12cf4c638040818004f13097aa47a0407e5d9fc9ff3770c29a655cdf"},{"mode":"100644","path":"tests/gate_quiet.py","sha256":"c0f6256d099595ef0609367ed77eaa88e487dbd2bdab72c31190b7ef96ed47d7"},{"mode":"100755","path":"tests/gate_receipt.py","sha256":"4677fdfc8c2e96882130f9481f9ea8d9286b1c5ad0ee3f72debe74884833c424"},{"mode":"100644","path":"tests/gateplan.py","sha256":"a66c0e5fd0a791bbfc827f1cfbb6c7a26a55e741735aaa10fab28992b18e8ddc"},{"mode":"100644","path":"tests/legacy_reorder_witness.py","sha256":"d0a9a72bc6c35838ea8cc5500e46fae46a16088adf455aa839605be569525a38"},{"mode":"100644","path":"tests/load_calibration.py","sha256":"bcbb47d4e145d30c4a08b44651bb0eab288c1ff858ae9ef6d96010d761548ff9"}],"python":{"executable_sha256":"e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f","implementation":"cpython","version":"3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]"},"roots":["tests/abba_instrument.py","tests/abbagate.py","tests/abba_experiments.py","tests/gate_history.py","tests/legacy_reorder_witness.py"],"schema":1,"scope":"tomokv-abba-instrument-v1","sha256":"3dcdaa497a4f1e2a670342e17daa27bb9c36e9a2cbc633196d134d85b65efb9a"}
+tests/standing-null/campaign7-holdout-resolution.json:4356:        "executable_sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+tests/standing-null/campaign7-holdout-resolution.json:4500:        "executable_sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+tests/multidb_boundary_unit.cc:116:        // Role conversion still rejects incoming descriptors, as do stale accept
+tests/multidb_boundary_unit.cc:120:                           FlipStage::ClientInstall, FlipStage::RoleReady, FlipStage::ShardCommit,
+tests/multidb_boundary_unit.cc:127:                                     0, sockets) == 0, "role fence socketpair");
+tests/multidb_boundary_unit.cc:131:                        "role-transition/stale accept still closes without admission");
+tests/lbsignals.py:69:roles = {r["role"] for r in t1}
+tests/lbsignals.py:72:    ok("1s: every thread is labelled fused", roles == {"fused"}, str(roles))
+tests/lbsignals.py:77:    ok("both roles present", {"io", "ex"} <= roles, str(roles))
+tests/lbsignals.py:80:       roll1["io"]["threads"] == sum(1 for r in t1 if r["role"] == "io")
+tests/lbsignals.py:81:       and roll1["ex"]["threads"] == sum(1 for r in t1 if r["role"] == "ex"))
+tests/lbsignals.py:90:       1 for r in t1 if r["role"] == "io")), str(der1))
+tests/lbsignals.py:116:           < r["iterations"] - it1.get(r["tid"], 0) for r in t2 if r["role"] == "ex"))
+tests/lbsignals.py:131:active_role = "fused" if FUSED else "io"
+tests/lbsignals.py:132:ok("%s ops reached the rollup" % active_role,
+tests/lbsignals.py:133:   _lib.wait_until(lambda: capture(s)[2][active_role]["ops"] -
+tests/lbsignals.py:134:                   roll_a[active_role]["ops"] >= N, 3.0,
+tests/lbsignals.py:166:       all(0 <= roll_b[role][field] <= SANE_AGE_US for role in ("io", "ex")
+tests/gate_ledger_fixture.py:53:    """Project data declarations only; all executable shell statements are discarded."""
+tests/gate_ledger_fixture.py:83:                # Ignore irrelevant executable values. If a label uses one, expand
+tests/xscript.py:733:        client.cmd("CONFIG", "SET", "maxmemory-policy", "noeviction")
+tests/abba_profile.py:189:    record["executable"] = exe_identity(path / "exe")
+tests/abba_profile.py:216:            exe_identity(path / "exe") == record["executable"] and process.poll() is None,
+tests/abba_profile.py:223:            before["executable"] == after["executable"], "profile process identity changed")
+tests/abba_profile.py:374:        return dict(pid=pid, stat=dict(start_ticks=123), executable=dict(path="owned", inode=1),
+tests/abba_profile.py:443:                         lambda row: row["executable"].update(inode=2), lambda row: row["threads"].clear(),
 tests/infofix.py:156:    high_peak = as_int(high, "used_memory_peak")
 tests/infofix.py:157:    low_peak = as_int(low, "used_memory_peak")
 tests/infofix.py:166:    check("RESETSTAT re-based peak", as_int(reset, "used_memory_peak"),
 tests/infofix.py:275:        return as_int(info(c, "stats"), "instantaneous_ops_per_sec")
 tests/infofix.py:289:        loaded = as_int(info(c, "stats"), "instantaneous_ops_per_sec")
+tests/mdbqsbr_checks.py:38:    ("park", 3, "parked/even/role-changing participant not silently exempted"),
+tests/mdbqsbr_checks.py:39:    ("role", 3, "parked/even/role-changing participant not silently exempted"),
+tests/mdbqsbr_checks.py:42:    ("coverage", 3, "role change cannot skip even physical participant"),
+tests/writer_atomic_campaign.py:210:            ["taskset", "-c", str(cpu), sys.executable, "-c", "while True: pass"],
+tests/writer_atomic_campaign.py:243:            "taskset", "-c", LOAD_CPUS, sys.executable, str(ROOT / "tests/writer_atomic.py"),
+tests/differ_fanout.py:31:    names = subprocess.check_output([sys.executable, str(ROOT / 'tests/differ.py'),
 tests/differ_fanout.py:227:    record(args.row_history, run_id=args.row_run, label=label, seconds=float(duration),
+tests/resizefix.py:62:        require(elf_type in (2, 3), 'Linux ELF executable required')
+tests/resizefix.py:66:        require(len(bases) == 1, 'unique executable load base required')
+tests/resizefix.py:114:                int(meta['read_local']) == local and len(topo.roles) == 8 and
+tests/replyschema.py:691:add("role", "ROLE")
+tests/replyschema.py:1140:    setup=(("CONFIG", "SET", "maxmemory-policy", "allkeys-lfu"), ("SET", "{p}:k", "v")))
+tests/replyschema.py:1143:    setup=(("CONFIG", "SET", "maxmemory-policy", "noeviction"), ("SET", "{p}:k", "v")))
+tests/abba_saturation.py:2:"""Replayable productive-role occupancy, one necessary saturation witness.
+tests/abba_saturation.py:62:            rows[tid] = dict(role=fields[2], domain=domain, clients=clients,
+tests/abba_saturation.py:70:    """Preserve the exact counters behind a productive-role occupancy score.
+tests/abba_saturation.py:77:    average over ALL threads in each role. Dropping inactive peers or taking the
+tests/abba_saturation.py:83:    divide work between roles by counters that have different units. Clients is
+tests/abba_saturation.py:86:    An idle role is legitimate: split read-local GET need not issue executor
+tests/abba_saturation.py:87:    tasks. Averaging that idle role into the busy role caps a saturated server at
+tests/abba_saturation.py:88:    50%. The maximum ROLE average identifies the bottleneck; it never drops idle
+tests/abba_saturation.py:89:    peers within that role. The unchanged floor must hold separately in every
+tests/abba_saturation.py:98:    roles = {row["role"] for row in start.threads.values()}
+tests/abba_saturation.py:99:    if roles not in ({"fused"}, {"io", "ex"}):
+tests/abba_saturation.py:100:        raise RuntimeError("incomplete or mixed LBSIGNALS role geometry")
+tests/abba_saturation.py:102:    role_rows = {role: dict(threads=0, productive_threads=0, ops=0,
+tests/abba_saturation.py:103:                           work_pct=0.0, cpu_pct=0.0, score_pct=0.0) for role in sorted(roles)}
+tests/abba_saturation.py:109:        role = before["role"]
+tests/abba_saturation.py:110:        if after["role"] != role:
+tests/abba_saturation.py:111:            raise RuntimeError("LBSIGNALS role changed during diagnostic window")
+tests/abba_saturation.py:117:        has_clients = role == "ex" or (before["clients"] > 0 and after["clients"] > 0)
+tests/abba_saturation.py:123:        thread_rows[tid] = dict(role=role, clients_before=before["clients"],
+tests/abba_saturation.py:131:        summary = role_rows[role]
+tests/abba_saturation.py:138:    for summary in role_rows.values():
+tests/abba_saturation.py:141:    role = max(role_rows, key=lambda name: role_rows[name]["score_pct"])
+tests/abba_saturation.py:142:    score = role_rows[role]["score_pct"]
+tests/abba_saturation.py:143:    return dict(schema=1, criterion="productive-role-v1",
+tests/abba_saturation.py:146:        highest_scoring_role=role, roles=role_rows, threads=thread_rows)
+tests/abba_saturation.py:162:    A reset, missing thread, foreign role, or changed derived value fails closed.
+tests/abba_saturation.py:168:                record.get("criterion") != "productive-role-v1" or
+tests/abba_saturation.py:180:                    row.get("role") not in ("io", "ex", "fused")):
+tests/abba_saturation.py:186:            if row["role"] == "ex" and (row["clients_before"] or row["clients_after"]):
+tests/abba_saturation.py:188:            before[tid] = dict(role=row["role"], clients=row["clients_before"],
+tests/abba_saturation.py:190:            after[tid] = dict(role=row["role"], clients=row["clients_after"],
+tests/abba_saturation.py:196:        roles = {row["role"] for row in before.values()}
+tests/abba_saturation.py:198:                roles != ({"fused"} if mode == "1s" else {"io", "ex"})):
+tests/abba_saturation.py:199:            raise ValueError("saturation roles differ from measured cell")
+tests/abba_saturation.py:200:        if mode == "2s" and sum(row["role"] == "ex" for row in before.values()) != len(before) // 2:
+tests/abba_saturation.py:201:            raise ValueError("saturation roles differ from fixed split geometry")
+tests/abba_saturation.py:205:        # fields and forged role averages/flags as well as a forged overall score.
+tests/abba_saturation.py:230:    roles = {role: dict(threads=0, score_pct=0.0) for role in sorted(record["roles"])}
+tests/abba_saturation.py:241:        roles[row["role"]]["threads"] += 1
+tests/abba_saturation.py:242:        roles[row["role"]]["score_pct"] += score
+tests/abba_saturation.py:243:    for row in roles.values():
+tests/abba_saturation.py:245:    role = max(roles, key=lambda name: roles[name]["score_pct"])
+tests/abba_saturation.py:246:    score = roles[role]["score_pct"]
+tests/abba_saturation.py:247:    return dict(criterion="central-productive-role-v1", first_ns=first_ns, last_ns=last_ns,
+tests/abba_saturation.py:250:        score_pct=score, floor_met=score >= record["floor_pct"], highest_scoring_role=role,
+tests/abba_saturation.py:251:        roles=roles, threads=threads)
+tests/abba_saturation.py:262:            for tid, (role, clients, ops, busy, idle, cpu) in enumerate(rows):
+tests/abba_saturation.py:263:                before += f"thread {tid} {role} 0 {clients} 1 0 0 0 0\n"
+tests/abba_saturation.py:264:                after += (f"thread {tid} {role} 0 {clients} 2 {ops} "
+tests/abba_saturation.py:275:            self.assertEqual(row["highest_scoring_role"], "io")
+tests/abba_saturation.py:276:            self.assertEqual(row["roles"]["ex"]["score_pct"], 0)
+tests/abba_saturation.py:284:            self.assertEqual(row["highest_scoring_role"], "ex")
+tests/abba_saturation.py:287:        def test_fused_combined_counter_is_not_divided_between_roles(self):
+tests/abba_saturation.py:290:            self.assertEqual(set(row["roles"]), {"fused"})
+tests/abba_saturation.py:292:        def test_idle_polling_control_and_one_hot_thread_cannot_certify_role(self):
+tests/abba_saturation.py:312:        def test_counter_reset_role_change_and_no_clock_progress_are_invalid(self):
+tests/abba_saturation.py:314:            bads = [before, LbSnapshot(after.stamp_ns, {0: {**after.threads[0], "role": "io"}}),
+tests/abba_saturation.py:329:            self.assertEqual(replayed["roles"]["ex"]["score_pct"], 0)
+tests/abba_saturation.py:341:                         lambda value: value["roles"]["fused"].update(score_pct=float("nan"))]
+tests/abba_saturation.py:350:            with self.assertRaisesRegex(ValueError, "roles differ"):
+tests/differ_fanout_test.py:121:        cli.write_text(f'''#!{sys.executable}
+tests/differ_fanout_test.py:151:                   REAL_PYTHON=sys.executable, FIXTURE_DRIVER=str(driver), FIXTURE_PLAN=str(plan),
+tests/differ_fanout_test.py:409:PASS=0; FAIL=0; WORKER_PIDS=(); ROW_PLAN=unused; ROW_HISTORY=unused; ROW_RUN_ID=fixture
+tests/wb_rule_phase_unit.cc:91:            require(server.placement_.reserve_runtime_roles(8), "roles");
+tests/r7shadow_split_witness.py:32:    # Split role entries are direct baseline calls, including both FLIP owner paths.
+tests/r7shadow_split_witness.py:39:        '// This is a split-role entry, including after FLIP. It has no R7 arm.', '')
+tests/lru_slow.sh:48:cmd("CONFIG","SET","maxmemory","1048576"); cmd("CONFIG","SET","maxmemory-policy","allkeys-lru")
+tests/netcmd_config_unit.cc:153:    for (const char* name : {"latency-monitor-threshold", "stream-node-max-entries",
+tests/reorder_receipt.py:22:    # These are disposable parsed instruction images, never executable mutants.
+tests/reorder_receipt.py:83:    subprocess.run([sys.executable, str(Path(__file__).with_name('r7shadow_noop.py')),
+tests/reorder_receipt.py:89:    r7shadow_noop.off_roles(binary)
+tests/writer_atomic.py:403:                return None, 0, {"role": "delete", "deleted": reply}
+tests/writer_atomic.py:408:            return value, 0, {"role": "mset"}
+tests/cdfix_checks.py:172:    # A changed weak COMDAT copy is not executable if the linker discarded it in both arms.
+tests/redisgap_atomic.py:117:    assert admin.must('CONFIG', 'GET', 'maxmemory-policy') == [b'maxmemory-policy', b'noeviction']
+tests/orthog.py:83:                    require((row["role"] == "ifid") == (tid in active), "role/lane mismatch")
+tests/signalacct_controls.py:28:                  role_exit=True, stopped=False)
+tests/signalacct_controls.py:30:                   role_exit=False, stopped=True)
+tests/signalacct_controls.py:32:        dict(tid=0, role='io', busy_ns=624, idle_ns=140, io_tenures=[record, reentry]),
+tests/signalacct_controls.py:33:        dict(tid=1, role='ex', busy_ns=300, idle_ns=500, io_tenures=[])])
+tests/signalacct_controls.py:43:        'no-exit-reason': lambda r: r['threads'][0]['io_tenures'][0].update(role_exit=False),
+tests/signalacct_controls.py:47:        'no-role-edge': lambda r: [t.update(role_exit=False, stopped=True) for t in r['threads'][0]['io_tenures']],
+tests/signalacct_controls.py:76:        'omit-stop-park-flush': ('roles', 'IO->EX->IO excludes EX', replace_once(source,
+tests/signalacct_controls.py:86:        'carry-ex': ('roles', 'IO->EX->IO excludes EX', replace_once(replace_once(replace_once(source,
+tests/storeorder.py:175:    """-> (stream, key_roles). stream entries are (argv, role, kind, expected)."""
+tests/storeorder.py:177:    roles = []
+tests/storeorder.py:184:        roles.append((kind, src, src2, dst))
+tests/storeorder.py:197:    return stream, roles
+tests/storeorder.py:229:    for i, (argv, role, kind, expected) in enumerate(stream):
+tests/storeorder.py:231:        if role == "store":
+tests/storeorder.py:235:        elif role == "read":
+tests/storeorder.py:246:        elif role == "afterdel":
+tests/storeorder.py:278:def geometry(sock, file, roles):
+tests/storeorder.py:285:    for _, src, src2, dst in roles: want.update((src, src2, dst))
+tests/storeorder.py:295:    cross = sum(1 for _, src, src2, dst in roles
+tests/storeorder.py:310:        stream, roles = build(rng, CYCLES, keys)
+tests/storeorder.py:315:        cross, nshards = geometry(sock, file, roles)
+tests/storeorder.py:324:        total_stores += sum(1 for _, role, _, _ in stream if role == "store")
+tests/storeorder.py:334:                  % (rep, len(stream), cross, len(roles), len(bad)))
+tests/slowlog.py:13:    latency_events_recorded   the latency monitor actually sampled
+tests/slowlog.py:104:    # Fused client and owner roles overlap: adding those role counts would double count rings.
+tests/slowlog.py:128:    check("disable latency", c.cmd("CONFIG", "SET", "latency-monitor-threshold", "0"), "OK")
+tests/slowlog.py:258:    check("latency monitor off", c.cmd("CONFIG", "SET", "latency-monitor-threshold", "0"), "OK")
+tests/slowlog.py:264:    check("monitor off records nothing",
+tests/slowlog.py:266:    check("monitor off LATEST empty", c.cmd("LATENCY", "LATEST"), [])
+tests/slowlog.py:268:    check("arm the monitor", c.cmd("CONFIG", "SET", "latency-monitor-threshold", "1"), "OK")
+tests/slowlog.py:273:    check("monitor recorded a sample",
+tests/slowlog.py:296:    c.cmd("CONFIG", "SET", "latency-monitor-threshold", "0")
+tests/bplus.py:185:        # Roles identify client-serving readers (`io` or `fused`); shard rows below
+tests/bplus.py:296:    for role in ("a", "b", "p", "c"):
+tests/bplus.py:297:        values[(role, "old")] = make_value(case, role, "old")
+tests/bplus.py:298:        values[(role, "new")] = make_value(case, role, "new")
+tests/bplus.py:299:        expect(connection.command("SET", geometry[role], values[(role, "old")]), b"OK",
+tests/bplus.py:300:               "%s seed %s" % (case, role.upper()))
+tests/_lib.py:17:    LBSIGNALS -- never the `ex` role label. Under --thread-mode 1s every thread is labelled `fused`;
+tests/_lib.py:363:LbThread = namedtuple("LbThread", "tid role domain clients iterations ops busy_ns idle_ns cpu_ns "
+tests/_lib.py:370:Topology = namedtuple("Topology", "roles shard_owner owners mode")
+tests/_lib.py:412:    roles:       {tid: 'io'|'ex'|'fused'} -- informational; never select owners by it
+tests/_lib.py:420:    roles = {t.tid: t.role for t in snap.threads}
+tests/_lib.py:425:    return Topology(roles, shard_owner, sorted(set(shard_owner.values())), mode)
+tests/boot_support_checks.inc:99:            const std::string role = fused ? "unified" : p.role == Role::Ifid ? "ifid" : "ex";
+tests/boot_support_checks.inc:100:            std::string row = "  thread t" + std::to_string(p.id) + ": role=" + role +
+tests/boot_support_checks.inc:104:            else if (armed) row += p.role == Role::Ifid ? " read-local=1" : " read-local=0";
+tests/lbplanner_checks.py:9:    'no-publish': 'monitor must produce a finished plan; unarmed witness fails',
+tests/lbplanner_checks.py:21:    good = (result.returncode == 0 and 'PASS LB monitor handoff' in output if name == 'production'
+tests/lbplanner_checks.py:53:    ('POST-rejects-PRE', 'build/lbplanner-unit', 1, 'PAD monitor never runs LB search'),
+tests/mdbqsbr_unit.cc:146:void park_or_role(bool role) {
+tests/mdbqsbr_unit.cc:151:        require(read[0] == 1, "pre-park/role reader loaded");
+tests/mdbqsbr_unit.cc:153:    require(!(f.server.client_work_epoch(1) & 1), "park/role gap has an even epoch");
+tests/mdbqsbr_unit.cc:154:    require(f.map.swap(0, 1), "publish in park/role gap");
+tests/mdbqsbr_unit.cc:157:            "parked/even/role-changing participant not silently exempted");
+tests/mdbqsbr_unit.cc:161:        if (role) { Server::ClientWorkScope owner(f.server, 1); }
+tests/mdbqsbr_unit.cc:163:                "resume/role entry acquires request before acknowledging");
+tests/mdbqsbr_unit.cc:216:    map.monitor(server);
+tests/mdbqsbr_unit.cc:231:    map.monitor(server); // missing live t1 must abort; stopped t1 must NOT wait
+tests/mdbqsbr_unit.cc:358:                    "resumed role acknowledges before stamping and drains without another swap");
+tests/mdbqsbr_unit.cc:376:            ThreadCtx self; self.init(1, Role::Ifid, 8, 0, 0);
+tests/mdbqsbr_unit.cc:390:            // Same physical participant changes role; no epoch/ack reset.
+tests/mdbqsbr_unit.cc:391:            self.set_role(Role::Ex); self.stop_flag().store(false);
+tests/mdbqsbr_unit.cc:392:            require(f.map.swap(0, 1), "publish during IO-to-EX role gap");
+tests/mdbqsbr_unit.cc:395:                    "role change cannot skip even physical participant");
+tests/mdbqsbr_unit.cc:400:                    "IO-to-EX role tenure uses same participant and unwinds scope");
+tests/mdbqsbr_unit.cc:401:            self.set_role(Role::Ifid); self.stop_flag().store(false);
+tests/mdbqsbr_unit.cc:402:            require(f.map.swap(0, 1), "publish during EX-to-IO role gap");
+tests/mdbqsbr_unit.cc:405:                    "reverse role change still owes a fresh acknowledgement");
+tests/mdbqsbr_unit.cc:409:                    "EX-to-IO role tenure uses same participant and unwinds scope");
+tests/mdbqsbr_unit.cc:433:    run("park", [] { park_or_role(false); });
+tests/mdbqsbr_unit.cc:434:    run("role", [] { park_or_role(true); });
+tests/abba_binaries.py:38:def executable(path):
+tests/abba_binaries.py:42:        fail(path, "missing executable")
+tests/abba_binaries.py:44:        fail(path, "not a regular executable")
+tests/abba_binaries.py:60:        fail(path, "missing executable")
+tests/abba_binaries.py:68:        info = executable(Path(source).resolve())
+tests/abba_binaries.py:109:            before = executable(source)
+tests/abba_binaries.py:124:                after = executable(source)
+tests/abba_binaries.py:130:            rows[arm] = dict(source=str(source), sha256=checksum, **identity(executable(dest)))
+tests/abba_binaries.py:146:        info = executable(path)
+tests/abba_binaries.py:150:            other = executable(Path(alias))
+tests/abba_binaries.py:155:        if identity(executable(path)) != identity(info):
+tests/abba_binaries.py:185:        alias = Path(argv[3])  # taskset -c CPU-LIST EXECUTABLE ...
+tests/abba_binaries.py:190:            fail(alias, "missing executable before exec")
+tests/abba_binaries.py:194:                fail(alias, "executable changed before exec")
 tests/abba_binaries.py:301:            with self.assertRaisesRegex(BinaryGuardError, f"missing executable: {missing}.*disk guard"):
 tests/abba_binaries.py:312:            with self.assertRaisesRegex(BinaryGuardError, f"missing executable: {alias}"):
+tests/abba_binaries.py:393:            with self.assertRaisesRegex(BinaryGuardError, "missing executable.*binary-B"):
+tests/abba_binaries.py:426:            with self.assertRaisesRegex(BinaryGuardError, "missing executable.*binary-B"):
+tests/reorder_noop.py:192:            # Allocated PROGBITS, neither writable nor executable.
+tests/wb_policy.py:43:        # Throwaway executable control: an always-defer wrapper must fail the
+tests/load_calibration.py:165:        quiet = abba.QuietMonitor(server_cpus, load_cpus, own_root_pid=os.getpid(),
+tests/load_calibration.py:168:        require(args.candidate.is_file() and os.access(args.candidate, os.X_OK), "candidate executable unavailable")
+tests/load_calibration.py:412:                    lb = SimpleNamespace(threads={i: {"role": "fused"} for i in range(32)})
+tests/load_calibration.py:460:                        "--only", self.cell.id, "--output", str(directory / "out"), "--memtier", sys.executable,
+tests/load_calibration.py:501:                    with mock.patch.multiple(abba, QuietMonitor=mock.Mock(return_value=quiet),
+tests/wbland_checks.py:211:    subprocess.run([sys.executable, '-B', 'tests/r7shadow_sync.py'], cwd=ROOT, check=True)
+tests/wbland_checks.py:260:            r = subprocess.run([sys.executable, '-B', str(Path(__file__).resolve()),
+tests/differ_test.py:348:                                  rdb_last_bgsave_status='ok',
 tests/pushtear.py:9:MONITOR feed line -- used to be parked on the newest live op's `reply`. That is
 tests/pushtear.py:24:  x producer               (pub/sub, tracking invalidation, MONITOR)
 tests/pushtear.py:26:                            for protocol-agnostic MONITOR delivery)
 tests/pushtear.py:367:    no REDIRECT correctly has no invalidation channel; the MONITOR cells retain RESP2 coverage."""
+tests/pushtear.py:479:def cell_monitor(zc_min, size, resp3):
 tests/pushtear.py:480:    """MONITOR x (RESP3 | RESP2) x value >= zc-min. Protocol-agnostic producer: the feed line is
+tests/pushtear.py:491:    tag = "monitor/%s/%dB" % ("resp3" if resp3 else "resp2", size)
 tests/pushtear.py:501:        started = mon.command("MONITOR", wait=0.6)
 tests/pushtear.py:503:            bad(tag, "MONITOR refused: %r" % started[:80])
-tests/differ.py:6297:    b"Server": {b"run_id", b"executable", b"config_file", b"io_threads_active"},
-tests/differ.py:6299:    b"Cluster": {b"cluster_enabled"},
-tests/differ.py:6300:    b"Persistence": {b"loading", b"rdb_last_bgsave_status"},
-tests/differ.py:6301:    b"Stats": {b"instantaneous_ops_per_sec", b"instantaneous_input_kbps",
-tests/differ.py:6302:               b"instantaneous_output_kbps", b"latest_fork_usec"},
-tests/differ.py:6303:    b"Memory": {b"used_memory_peak", b"maxmemory", b"maxmemory_policy",
-tests/differ.py:6304:                b"mem_fragmentation_ratio"},
-tests/differ.py:6359:        assert re.fullmatch(br"[0-9a-f]{40}", server[b"run_id"]), (side, server)
-tests/differ.py:6363:        assert rows[b"Cluster"][b"cluster_enabled"] == b"0", side
-tests/differ.py:6365:        assert rows[b"Persistence"][b"rdb_last_bgsave_status"] in (b"ok", b"err"), side
-tests/differ.py:6366:        assert rows[b"Stats"][b"latest_fork_usec"] == b"0" or side == "oracle", side
-tests/differ.py:6367:        assert re.fullmatch(br"[0-9]+\.[0-9]{2}", rows[b"Memory"][b"mem_fragmentation_ratio"]), side
-tests/differ.py:6368:        for name in (b"instantaneous_input_kbps", b"instantaneous_output_kbps"):
-tests/differ.py:6375:        assert info(peer, "server")[b"Server"][b"run_id"] == server[b"run_id"], side
-tests/differ.py:6376:    assert all_fields[0][b"Server"][b"io_threads_active"] == b"1"
-tests/differ.py:6392:        assert int(after[b"used_memory_peak"]) >= int(base[b"used_memory"]) + len(value), (side, base, after)
-tests/differ.py:6393:        assert int(after[b"used_memory"]) < int(after[b"used_memory_peak"]), (side, after)
-tests/differ.py:6429:            infofields_rate_check(int(rows[b"instantaneous_ops_per_sec"]), offered)
-tests/differ.py:6431:            assert float(rows[b"instantaneous_input_kbps"]) > 0, rows
-tests/differ.py:6432:            assert float(rows[b"instantaneous_output_kbps"]) > 0, rows
-tests/differ.py:6434:          (offered, [[int(rows[b"instantaneous_ops_per_sec"]) for rows in p[1]] for p in polls]))
-tests/differ.py:6447:    assert match is not None, ("MONITOR line format", raw)
-tests/differ.py:6448:    assert match[1] == address, ("MONITOR source address", match[1], address)
-tests/differ.py:6452:def gen_monitor(rng):
-tests/differ.py:6476:    assert expected, "empty MONITOR witness"
-tests/differ.py:6477:    assert target == oracle == expected, ("MONITOR inclusion/format", target, oracle, expected)
-tests/differ.py:6481:    commands = gen_monitor(rng)
-tests/differ.py:6499:            a.sendall(enc(["MONITOR"]))
-tests/differ.py:7072:    for required in ("instantaneous_ops_per_sec", "total_net_input_bytes",
-tests/differ.py:7088:                      for name in ("used_memory", "used_memory_peak"))
-tests/differ.py:7096:    if reset_memory.get("used_memory_peak") != reset_memory.get("used_memory"):
-tests/differ.py:7102:    def sampled_rate(sock, file):
-tests/differ.py:7103:        return int(fields(sock, file, "stats").get("instantaneous_ops_per_sec", "-1"))
-tests/differ.py:7107:        return sampled_rate(sock, file)
-tests/differ.py:7124:        target_rate = sampled_rate(ts, tf)
-tests/differ.py:7125:        oracle_rate = sampled_rate(os_, of)
+tests/pushtear.py:526:    if after.get("monitor_feed_lines", 0) == before.get("monitor_feed_lines", 0):
+tests/pushtear.py:527:        bad(tag, "monitor_feed_lines never moved: the producer never fired")
+tests/pushtear.py:533:        after.get("monitor_feed_lines", 0) - before.get("monitor_feed_lines", 0),
+tests/pushtear.py:758:        cell_monitor(knob, size, resp3=True)
+tests/pushtear.py:759:        cell_monitor(knob, size, resp3=False)
+tests/_nullrefresh_test.py:40:    """Synthetic two-role geometry, confined to disposable fixture configs."""
+tests/_nullrefresh_test.py:188:    """Synthetic proof artifacts; no executable or network boundary is crossed."""
+tests/_nullrefresh_test.py:191:                    threads={'0': dict(role='fused', clients=4, full=0, masked_full=0)})
+tests/_nullrefresh_test.py:240:        # sufficient to retain both split roles; duplicating their counters 16x
+tests/_nullrefresh_test.py:242:        # saturation suite retains inactive-peer and many-thread role checks.
+tests/_nullrefresh_test.py:608:                threads=len(self.env['server_cpus']))), 'productive-role'),
+tests/_nullrefresh_test.py:698:    def test_interrupted_atomic_replace_and_executable_byte_mutation(self):
+tests/_nullrefresh_test.py:715:        # Corrupt one byte in an executable ELF section, never run it.
+tests/multidb_unit.cc:217:                    "published monitors cannot arm the fanout diagnostic");
+tests/multidb_unit.cc:253:        // publication boundary before checking quiescent monitoring replies.
+tests/respcompat_audit.py:4:Use the existing ELF canonicalizer: executable bytes and resolved relocation
+tests/flipctl_unit.cc:769:        const double io_work = flip_role_work(wall, 0.17e9) + flip_role_work(wall, 2.40e9);
+tests/flipctl_unit.cc:770:        const double ex_work = flip_role_work(wall, 2.56e9) + flip_role_work(wall, 1.76e9);
+tests/flipctl_unit.cc:783:        if (flip_role_work(0, 5) != 0 || flip_role_work(10, 12) != 0 || flip_role_work(10, -1) != 10)
+tests/flipctl_unit.cc:784:            fail("flip_role_work bounds");
+tests/flipctl_unit.cc:788:        const double io_work = flip_role_work(38.1e9, 3.50e9) + flip_role_work(38.1e9, 3.24e9);
+tests/flipctl_unit.cc:789:        const double ex_work = flip_role_work(40.0e9, 1.18e9) + flip_role_work(40.0e9, 1.45e9);
+tests/abbagate.py:37:and must still satisfy the productive-role occupancy floor. Unpinned cells, or --escalate,
+tests/abbagate.py:38:search until EACH arm stops gaining AND its productive bottleneck role meets the floor.
+tests/abbagate.py:78:from gate_quiet import QuietMonitor, QuietViolation
+tests/abbagate.py:86:from abba_binaries import stage as stage_binaries, space_check, executable as require_binary
+tests/abbagate.py:97:BUSY_FLOOR = SATURATION_FLOOR  # productive-role occupancy; plateau remains independently required
+tests/abbagate.py:841:            row["rejection_reasons"].append(f"server below the {BUSY_FLOOR:g}% productive-role floor in some ABBA run")
+tests/abbagate.py:936:                    f"(productive-role occupancy mean {mean_occupancy:.1f}%, worst {min(occupancy):.1f}%, "
+tests/abbagate.py:1269:            raise Skip(f"reference executable unavailable: {binary}")
+tests/abbagate.py:1423:        if b < 0 or i < 0 or b + i <= 0 or start[tid]["role"] != end[tid]["role"]:
+tests/abbagate.py:1424:            raise RuntimeError("missing, reset, or changed-role busy counters")
+tests/abbagate.py:1432:    busy_between(start, end)  # Keep the same role/topology/reset validation.
+tests/abbagate.py:1433:    # Raw role-specific counters are diagnostic evidence, not a new saturation
+tests/abbagate.py:1438:    return {tid: {"role": start[tid]["role"],
+tests/abbagate.py:1791:                    result["executable_launch"] = "verified-open-file-descriptor"
+tests/abbagate.py:1889:            roles = {role: sum(row["role"] == role for row in before_lb.threads.values())
+tests/abbagate.py:1890:                     for role in {row["role"] for row in before_lb.threads.values()}}
+tests/abbagate.py:1891:            expected_roles = ({"fused": len(self.server_cpus)} if cell.mode == "1s"
+tests/abbagate.py:1893:            if roles != expected_roles:
+tests/abbagate.py:1894:                raise RuntimeError(f"actual thread roles {roles} differ from {expected_roles}")
+tests/abbagate.py:1895:            result["thread_roles"] = roles
+tests/abbagate.py:2066:              f"productive-role={result['central_saturation']['score_pct']:.3f}% "
+tests/abbagate.py:2086:          f"productive-role(ABBA)={','.join('?' if x is None else f'{x:.3f}' for x in a['saturation_pct_abba'])}% "
+tests/abbagate.py:2139:                   help="1 freezes one executable into identical arms and collects a null; always PARTIAL/exit 3")
+tests/abbagate.py:2162:def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
+tests/abbagate.py:2168:        if diagnostic_monitor is not None or diagnostic_profile or diagnostic_pin_load_workers or diagnostic_load_startup_seconds:
+tests/abbagate.py:2172:        if diagnostic_monitor is not None or diagnostic_profile or diagnostic_pin_load_workers or diagnostic_load_startup_seconds:
+tests/abbagate.py:2190:                diagnostic_monitor is not None or _pin_instances is not None):
+tests/abbagate.py:2193:    if diagnostic_monitor is not None:
+tests/abbagate.py:2203:        if not args.escalate and diagnostic_monitor is None and _pin_instances is None:
+tests/abbagate.py:2224:        if diagnostic_profile not in (0, 1) or diagnostic_profile and diagnostic_monitor is None:
+tests/abbagate.py:2231:                (diagnostic_monitor is None or not args.collect_null) or
+tests/abbagate.py:2264:            if (not args.collect_null or args.escalate or diagnostic_monitor is not None or
+tests/abbagate.py:2315:        quiet = (diagnostic_monitor or QuietMonitor)(server_cpus, load_cpus, **quiet_options)
+tests/abbagate.py:2319:            raise RuntimeError(f"candidate executable unavailable: {args.candidate}")
+tests/abbagate.py:2429:                        if diagnostic_monitor is not None:
+tests/abbagate.py:2432:                        if diagnostic_monitor is not None:
+tests/abbagate.py:2534:        report["measurement_valid"] = diagnostic_monitor is None
+tests/abbagate.py:2561:            if diagnostic_monitor is not None:
+tests/abbagate.py:2678:            patcher = mock.patch(__name__ + ".QuietMonitor", return_value=self.quiet)
+tests/abbagate.py:2931:                        "--cells", str(source), "--output", str(directory / "pin"), "--memtier", sys.executable,
+tests/abbagate.py:2941:                    memtier_sha256=sha256(Path(sys.executable).resolve()), memtier_version="unit",
+tests/abbagate.py:2942:                    memtier_path=str(Path(sys.executable).resolve()), population_by_arm={"B": "wire"},
+tests/abbagate.py:2996:                     mock.patch(__name__ + ".QuietMonitor", Quiet), \
+tests/abbagate.py:3570:                    lb = SimpleNamespace(threads={i: {"role": "fused", "busy": 10, "idle": 0} for i in (0, 1)})
+tests/abbagate.py:3819:                binary.write_bytes(b"test executable identity; never executed")
+tests/abbagate.py:4055:                run["saturation"] = saturation_record("2s", inactive_roles=("ex",))
+tests/abbagate.py:4060:            # The corrected role witness does not remove the higher-capacity probe.
+tests/abbagate.py:4144:            start = {0: {"role": "fused", "busy": 0, "idle": 0}}
+tests/abbagate.py:4145:            end = {0: {"role": "fused", "busy": 1, "idle": 99}}
+tests/abbagate.py:4150:        def test_raw_role_deltas_preserve_idle_executor_evidence(self):
+tests/abbagate.py:4151:            start = {0: {"role": "io", "busy": 10, "idle": 20},
+tests/abbagate.py:4152:                     1: {"role": "ex", "busy": 30, "idle": 40}}
+tests/abbagate.py:4153:            end = {0: {"role": "io", "busy": 108, "idle": 22},
+tests/abbagate.py:4154:                   1: {"role": "ex", "busy": 30, "idle": 140}}
+tests/abbagate.py:4156:                0: {"role": "io", "busy_ns": 98, "idle_ns": 2},
+tests/abbagate.py:4157:                1: {"role": "ex", "busy_ns": 0, "idle_ns": 100}})
+tests/abbagate.py:4186:                        "--output", str(output), "--memtier", sys.executable,
+tests/abbagate.py:4234:        def test_missing_candidate_executable_is_rejected(self):
+tests/abbagate.py:4238:            self.assertIn("RuntimeError: candidate executable unavailable:", report["reason"])
+tests/abbagate.py:4304:        def test_real_main_passes_actual_measurement_window_to_quiet_monitor(self):
+tests/abbagate.py:4634:                binary.write_bytes(b"test executable identity; never executed")
+tests/abbagate.py:4641:                            "--output", str(output), "--memtier", sys.executable, "--max-instances", "2",
+tests/abbagate.py:4703:                        "--memtier", sys.executable, "--server-cores", "0-31", "--load-cores", "32-127", "--load-smt", "",
+tests/abbagate.py:4735:                         mock.patch(__name__ + ".QuietMonitor", return_value=quiet), \
+tests/abbagate.py:4888:                binary.write_bytes(b"test executable identity; never executed")
+tests/abbagate.py:4894:                        "--output", str(output), "--memtier", sys.executable,
+tests/abbagate.py:4932:                outsider = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+tests/abbagate.py:4934:                    child = children.start([sys.executable, "-c", "import time; time.sleep(60)"],
+tests/abbagate.py:4946:            outsider = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+tests/abbagate.py:4953:                              "p=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)']); "
+tests/abbagate.py:4956:                    build = children.start([sys.executable, "-c", script], directory / "make.log", directory)
+tests/abbagate.py:4986:                child = subprocess.Popen([sys.executable, "-c", script, str(pidfile)],
+tests/abbagate.py:5069:                    reason = f"self-test probed live candidate {path}; use a temporary executable fixture"
+tests/gate_quiet.py:66:class QuietMonitor:
+tests/gate_quiet.py:73:            raise ValueError("quiet monitor requires server CPUs and positive finite intervals")
+tests/gate_quiet.py:76:            raise ValueError("quiet monitor ports must be integers in 1..65535")
+tests/gate_quiet.py:206:    monitor = QuietMonitor(server_cpus, load_cpus, ports=ports)
+tests/gate_quiet.py:207:    monitor.preflight()
+tests/gate_quiet.py:208:    return monitor.close()
+tests/gate_quiet.py:217:        def monitor(self, samples):
+tests/gate_quiet.py:221:                return QuietMonitor([0], [1], window_seconds=20)
+tests/gate_quiet.py:233:            monitor = self.monitor({0: (100, 0), 1: (100, 0)})
+tests/gate_quiet.py:235:                monitor.sample(enforce=True)
+tests/gate_quiet.py:236:            monitor.check()
+tests/gate_quiet.py:237:            self.assertEqual(monitor.cpus, {0, 1})
+tests/gate_quiet.py:238:            self.assertEqual(monitor.evidence()["generic_cpu_screening"]["peak_rolling"]["cpu_ticks"], 1)
+tests/gate_quiet.py:241:            monitor = self.monitor({0: (100, 0), 1: (100, 0)})
+tests/gate_quiet.py:243:                monitor.sample(enforce=True)
+tests/gate_quiet.py:244:                monitor.sample()
+tests/gate_quiet.py:246:                monitor.check()
+tests/gate_quiet.py:249:            monitor = self.monitor({0: (100, 0), 1: (100, 0)})
+tests/gate_quiet.py:251:                monitor.sample()
+tests/gate_quiet.py:252:            monitor.check()
+tests/gate_quiet.py:253:            self.assertEqual(monitor.evidence()["cpu_activity"][0]["phase"], "owned-workload")
+tests/gate_quiet.py:262:                monitor = self.monitor({0: (100, 0), 1: (100, 0)})
+tests/gate_quiet.py:263:                monitor.ports = [port]
+tests/gate_quiet.py:265:                    monitor.check_ports()
+tests/gate_quiet.py:268:            monitor = self.monitor({0: (100, 0), 1: (100, 0)})
+tests/gate_quiet.py:270:                monitor.observe()
+tests/gate_quiet.py:272:                monitor.check()
+tests/gate_quiet.py:275:            monitor = self.monitor({0: (100, 0), 1: (100, 0)})
+tests/gate_quiet.py:277:                self.assertFalse(monitor.close()["complete"])
+tests/gate_quiet.py:280:            monitor = self.monitor({0: (100, 0), 1: (100, 0)})
+tests/gate_quiet.py:282:                monitor.observe()
+tests/gate_quiet.py:284:                monitor.check()
+tests/flipreport_checks.inc:2:// Synthetic commands, role work and now_ms enter the complete production tick.
+tests/differ.py:137:    """MEMORY USAGE, ROLE and COMMAND INFO are compared for MEANING, not bytes.
+tests/differ.py:145:    if cmdname == "ROLE":
+tests/differ.py:148:            # element 1 is the master replication offset: redis advances it against a replication
+tests/differ.py:149:            # backlog it keeps and we do not, so it is not a comparable quantity. The role name and
+tests/differ.py:151:            return b"ROLE:%s/%s" % (parsed[0], repr(parsed[2]).encode())
+tests/differ.py:942:                                ("maxmemory-policy", "allkeys-lfu")):
+tests/differ.py:2455:    ops.append(["ROLE"])
+tests/differ.py:5278:    config_names = ["save", "appendonly", "appendfsync", "maxmemory", "maxmemory-policy",
+tests/differ.py:6034:    keys = ["ifxd:%02d" % index for index in range(32)]
+tests/differ.py:6244:                     b"rdb_last_save_time rdb_last_bgsave_status rdb_saves aof_enabled aof_rewrite_in_progress "
+tests/differ.py:6280:                assert fields[b"rdb_last_bgsave_status"] == b"ok", (label, command, fields)
+tests/differ.py:6298:    b"Server": {b"run_id", b"executable", b"config_file", b"io_threads_active"},
+tests/differ.py:6299:    b"Replication": {b"role"},
+tests/differ.py:6300:    b"Cluster": {b"cluster_enabled"},
+tests/differ.py:6301:    b"Persistence": {b"loading", b"rdb_last_bgsave_status"},
+tests/differ.py:6302:    b"Stats": {b"instantaneous_ops_per_sec", b"instantaneous_input_kbps",
+tests/differ.py:6303:               b"instantaneous_output_kbps", b"latest_fork_usec"},
+tests/differ.py:6304:    b"Memory": {b"used_memory_peak", b"maxmemory", b"maxmemory_policy",
+tests/differ.py:6305:                b"mem_fragmentation_ratio"},
+tests/differ.py:6360:        assert re.fullmatch(br"[0-9a-f]{40}", server[b"run_id"]), (side, server)
+tests/differ.py:6361:        assert server[b"executable"].startswith(b"/"), (side, server)
+tests/differ.py:6362:        assert server[b"config_file"] == b"" or server[b"config_file"].startswith(b"/"), (side, server)
+tests/differ.py:6363:        assert rows[b"Replication"][b"role"] == b"master", side
+tests/differ.py:6364:        assert rows[b"Cluster"][b"cluster_enabled"] == b"0", side
+tests/differ.py:6366:        assert rows[b"Persistence"][b"rdb_last_bgsave_status"] in (b"ok", b"err"), side
+tests/differ.py:6367:        assert rows[b"Stats"][b"latest_fork_usec"] == b"0" or side == "oracle", side
+tests/differ.py:6368:        assert re.fullmatch(br"[0-9]+\.[0-9]{2}", rows[b"Memory"][b"mem_fragmentation_ratio"]), side
+tests/differ.py:6369:        for name in (b"instantaneous_input_kbps", b"instantaneous_output_kbps"):
+tests/differ.py:6376:        assert info(peer, "server")[b"Server"][b"run_id"] == server[b"run_id"], side
+tests/differ.py:6377:    assert all_fields[0][b"Server"][b"io_threads_active"] == b"1"
+tests/differ.py:6386:        assert issue(peer, ["SET", "ifxd:cron-peak", value]) == b"+OK\r\n"
+tests/differ.py:6390:        assert issue(peer, ["DEL", "ifxd:cron-peak"]) == b":1\r\n"
+tests/differ.py:6393:        assert int(after[b"used_memory_peak"]) >= int(base[b"used_memory"]) + len(value), (side, base, after)
+tests/differ.py:6394:        assert int(after[b"used_memory"]) < int(after[b"used_memory_peak"]), (side, after)
+tests/differ.py:6430:            infofields_rate_check(int(rows[b"instantaneous_ops_per_sec"]), offered)
+tests/differ.py:6432:            assert float(rows[b"instantaneous_input_kbps"]) > 0, rows
+tests/differ.py:6433:            assert float(rows[b"instantaneous_output_kbps"]) > 0, rows
+tests/differ.py:6435:          (offered, [[int(rows[b"instantaneous_ops_per_sec"]) for rows in p[1]] for p in polls]))
+tests/differ.py:6438:def monitor_quote(value):
+tests/differ.py:6446:def monitor_payload(raw, address):
+tests/differ.py:6448:    assert match is not None, ("MONITOR line format", raw)
+tests/differ.py:6449:    assert match[1] == address, ("MONITOR source address", match[1], address)
+tests/differ.py:6453:def gen_monitor(rng):
+tests/differ.py:6454:    """Admin, skip_monitor, command/key ACL denials, NOAUTH and binary quoting."""
+tests/differ.py:6455:    marker = "ifmon:end:%d" % rng.randrange(1 << 30)
+tests/differ.py:6457:        (["SET", "ifmon:key", b'quote" slash\\ newline\n nul\x00 hi\xff'], b"+OK\r\n", True),
+tests/differ.py:6458:        (["GET", "ifmon:missing"], None, True),
+tests/differ.py:6461:        (["AUTH", "ifmon_limited", "ifmon_password"], b"+OK\r\n", True),
+tests/differ.py:6463:        (["SET", "ifmon:denied", "v"], b"-NOPERM", False),
+tests/differ.py:6467:        (["CONFIG", "SET", "requirepass", "ifmon_secret"], b"+OK\r\n", False),
+tests/differ.py:6469:        (["GET", "ifmon:noauth"], b"-NOAUTH", False),
+tests/differ.py:6470:        (["AUTH", "default", "ifmon_secret"], b"+OK\r\n", True),
+tests/differ.py:6476:def monitor_check_streams(target, oracle, expected):
+tests/differ.py:6477:    assert expected, "empty MONITOR witness"
+tests/differ.py:6478:    assert target == oracle == expected, ("MONITOR inclusion/format", target, oracle, expected)
+tests/differ.py:6481:def run_monitor_suite(rng):
+tests/differ.py:6482:    commands = gen_monitor(rng)
+tests/differ.py:6488:            expected.append(b" ".join(map(monitor_quote, displayed)))
+tests/differ.py:6497:            setup = ["ACL", "SETUSER", "ifmon_limited", "reset", "on", ">ifmon_password",
+tests/differ.py:6498:                     "~ifmon:*", "+get", "+ping", "+auth", "+reset"]
+tests/differ.py:6500:            a.sendall(enc(["MONITOR"]))
+tests/differ.py:6513:                lines.append(monitor_payload(read_reply(af), address))
+tests/differ.py:6514:                assert len(lines) <= len(commands) + 2, (side, "unbounded monitor stream", lines)
+tests/differ.py:6516:            assert issue(["ACL", "DELUSER", "ifmon_limited"]) == b":1\r\n", side
+tests/differ.py:6520:                issue(["AUTH", "default", "ifmon_secret"])
+tests/differ.py:6522:                issue(["ACL", "DELUSER", "ifmon_limited"])
+tests/differ.py:6525:    monitor_check_streams(streams[0], streams[1], expected)
+tests/differ.py:6526:    print("DIFFER monitor: %d driven commands, %d visible lines per peer, 0 diffs -> PASS" %
+tests/differ.py:6530:if SUITE == "monitor":
+tests/differ.py:6531:    run_monitor_suite(rng)
+tests/differ.py:6565:        'monitor',
+tests/differ.py:7065:    issue(ts, tf, ["SET", "ifxd:ttl", "v", "PX", "60000"])
+tests/differ.py:7073:    for required in ("instantaneous_ops_per_sec", "total_net_input_bytes",
+tests/differ.py:7084:        issue(sock, file, ["SET", "ifxd:peak", "x" * 512000])
+tests/differ.py:7086:        issue(sock, file, ["DEL", "ifxd:peak"])
+tests/differ.py:7089:                      for name in ("used_memory", "used_memory_peak"))
+tests/differ.py:7097:    if reset_memory.get("used_memory_peak") != reset_memory.get("used_memory"):
+tests/differ.py:7104:        return int(fields(sock, file, "stats").get("instantaneous_ops_per_sec", "-1"))
+tests/cd13b_window_test.py:18:        self.settings = {'maxmemory': '0', 'maxmemory-policy': 'noeviction'}
+tests/signalacct_byte_checks.py:32:    for name, other, expected in [('identity', binary, 0), ('executable-byte', corrupt, 1)]:
+tests/signalacct_byte_checks.py:35:            result = subprocess.run([sys.executable, 'tests/r7shadow_noop.py', str(binary),
+tests/signalacct_byte_checks.py:42:        if name == 'executable-byte':
+tests/bitfield.py:204:expect(client.cmd("CONFIG", "SET", "maxmemory-policy", "noeviction"), b"+OK", "noeviction")
+tests/mdbqsbr_live.py:96:    """Match gate boot_fused: role ratios apply only to split mode."""
+tests/mdbqsbr_live.py:163:    command = [sys.executable, str(ROOT / 'tests/multidb_serial.py'),
+tests/mdbqsbr_live.py:202:        roles = [thread.role for thread in topology.threads]
+tests/mdbqsbr_live.py:203:        require((roles.count('io') == 6 and roles.count('ex') == 2) if args.mode == '2s'
+tests/mdbqsbr_live.py:204:                else roles.count('fused') == WORKERS, 'boot did not preserve the requested ratio')
+tests/sortstore.py:95:    expect(len(topo.roles), 8, "eight threads")
+tests/sortstore.py:98:        expect(list(topo.roles.values()).count("io"), 6, "six IO threads")
+tests/sortstore.py:99:        expect(list(topo.roles.values()).count("ex"), 2, "two executor threads")
+tests/cd13b_audit.py:189:    # A changed weak COMDAT copy is not executable if the linker discarded it in both arms.
+tests/evict_battery.py:98:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "noeviction")
+tests/evict_battery.py:110:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
+tests/evict_battery.py:139:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "volatile-lru")
+tests/evict_battery.py:147:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "volatile-ttl")
+tests/evict_battery.py:166:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lfu")
+tests/evict_battery.py:242:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
+tests/evict_battery.py:350:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "noeviction")
+tests/evict_battery.py:364:    must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
+tests/evict_battery.py:377:    must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
+tests/evict_battery.py:386:    check("policy: rejects junk", cmd("CONFIG", "SET", "maxmemory-policy", "zzz").startswith(b"-"))
+tests/evict_battery.py:387:    g = cmd("CONFIG", "GET", "maxmemory-policy")
+tests/evict_battery.py:389:    multi = cmd("CONFIG", "SET", "maxmemory", "4194304", "maxmemory-policy", "volatile-ttl")
+tests/spinprobe.py:11:# one-second process-wide quiet-loop ceiling and checks every reported thread in either role model.
+tests/spinprobe.py:162:                "role": fields[2],
+tests/spinprobe.py:183:        if before[tid]["role"] != after[tid]["role"]:
+tests/spinprobe.py:184:            raise RuntimeError("thread %d changed role during quiet window: %s -> %s"
+tests/spinprobe.py:185:                               % (tid, before[tid]["role"], after[tid]["role"]))
+tests/spinprobe.py:186:        row = {"role": after[tid]["role"]}
+tests/spinprobe.py:208:        "tid=%d role=%s iterations=%d spins=%d wakes=%d/%d"
+tests/spinprobe.py:209:        % (tid, row["role"], row["iterations"], row["spins"],
+tests/spinprobe.py:226:        ex = row["role"] == "ex"
+tests/spinprobe.py:276:  print("pid %d idle %.0fs%s target tid=%d role=%s: baseline {%s}; partial {%s}; "
+tests/spinprobe.py:280:           target_tid, partial_before[target_tid]["role"],
+tests/knobs.py:103:        if any(owner not in {t.tid for t in snapshot.threads if t.role == "ex"}
+tests/knobs.py:110:    if (sum(t.role == "io" for t in snapshot.threads) != int(server["io_threads"]) or
+tests/knobs.py:111:            sum(t.role == "ex" for t in snapshot.threads) != int(server["ex_threads"])):
+tests/knobs.py:112:        raise AssertionError("INFO role counts differ from actual thread inventory")
+tests/differ_gate.sh:17:# thread roles at TARGET_RATIO with the read-local lane disarmed. `armed-fused` boots the same
+tests/differ_gate.sh:18:# binary the other way -- one fused role, --read-local 1 -- because the whole read-local parse and
+tests/differ_gate.sh:34:SEED_RUN=${GATE_RUN_ID:-$OUT}
 tests/differ_gate.sh:173:  echo "target binary is not executable: $TARGET_BIN" >&2
 tests/differ_gate.sh:177:  echo "pinned oracle is not executable: $ORACLE_BIN" >&2
 tests/differ_gate.sh:181:  echo "pinned redis-cli is not executable: $REDIS_CLI" >&2
+tests/differ_gate.sh:209:# export one GATE_RUN_ID to give concurrent geometries the same newly allocated seed.
+tests/lb_stationary.py:60:    by_role = {}
+tests/lb_stationary.py:63:        minimum = rounds * shards if thread.role in ('io', 'fused') else expected * owners[thread.tid]
+tests/lb_stationary.py:66:        by_role.setdefault(thread.role, []).append(delta)
+tests/lb_stationary.py:67:    # The fused counter combines parsing and owner work; compare like roles
+tests/lb_stationary.py:69:    for role, deltas in by_role.items():
+tests/lb_stationary.py:71:            raise AssertionError(f'stationary LB unequal thread traffic: {role} {deltas}')
+tests/lb_stationary.py:77:    role = {'1s': 'fused', '2s': 'io'}[mode]
+tests/lb_stationary.py:78:    tids = {t.tid for t in snap.threads if t.role == role}
+tests/lb_stationary.py:82:                         int(snap.rollups[role]['threads']) ==
+tests/lb_stationary.py:222:        role = 'fused' if mode == '1s' else 'io'
+tests/lb_stationary.py:223:        base = [N(tid=tid, role=role, ops=0) for tid in tids]
+tests/lb_stationary.py:224:        if mode == '2s': base += [N(tid=20 + i, role='ex', ops=0) for i in range(owners)]
+tests/lb_stationary.py:226:                 rollups={role: dict(threads=len(tids))})
+tests/lb_stationary.py:235:                                  (64 // owners if t.role in ('fused', 'ex') else 0))
+tests/lb_stationary.py:277:                   threads=[N(tid=i, role='fused', ops=0) for i in range(2)])
+tests/lb_stationary.py:279:                  threads=[N(tid=i, role='fused', ops=320) for i in range(2)])
