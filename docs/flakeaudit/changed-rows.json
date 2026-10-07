@@ -254,7 +254,7 @@
     "class": "BOUNDED-WITNESSED",
     "mechanism": "Concurrent-cut mode now requires save idle before BGSAVE, exact acceptance, and bounded completion; reload verifies the exact saved cut.",
     "sites": [
-      "tests/snap_cut_battery.py:231",
+      "tests/snap_cut_battery.py:277",
       "tests/gate.sh:2185"
     ]
   },
@@ -269,7 +269,7 @@
     "class": "BOUNDED-WITNESSED",
     "mechanism": "Concurrent-cut mode now requires save idle before BGSAVE, exact acceptance, and bounded completion; reload verifies the exact saved cut.",
     "sites": [
-      "tests/snap_cut_battery.py:231",
+      "tests/snap_cut_battery.py:277",
       "tests/gate.sh:2185"
     ]
   },

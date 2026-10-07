@@ -5047,7 +5047,7 @@
     "class": "BOUNDED-WITNESSED",
     "mechanism": "Concurrent-cut mode now requires save idle before BGSAVE, exact acceptance, and bounded completion; reload verifies the exact saved cut.",
     "sites": [
-      "tests/snap_cut_battery.py:231",
+      "tests/snap_cut_battery.py:277",
       "tests/gate.sh:2185"
     ]
   },
@@ -5062,7 +5062,7 @@
     "class": "BOUNDED-WITNESSED",
     "mechanism": "Concurrent-cut mode now requires save idle before BGSAVE, exact acceptance, and bounded completion; reload verifies the exact saved cut.",
     "sites": [
-      "tests/snap_cut_battery.py:231",
+      "tests/snap_cut_battery.py:305",
       "tests/gate.sh:2195"
     ]
   },
@@ -5167,7 +5167,7 @@
     "class": "BOUNDED-WITNESSED",
     "mechanism": "Concurrent-cut mode now requires save idle before BGSAVE, exact acceptance, and bounded completion; reload verifies the exact saved cut.",
     "sites": [
-      "tests/snap_cut_battery.py:231",
+      "tests/snap_cut_battery.py:277",
       "tests/gate.sh:2185"
     ]
   },
@@ -5182,7 +5182,7 @@
     "class": "BOUNDED-WITNESSED",
     "mechanism": "Concurrent-cut mode now requires save idle before BGSAVE, exact acceptance, and bounded completion; reload verifies the exact saved cut.",
     "sites": [
-      "tests/snap_cut_battery.py:231",
+      "tests/snap_cut_battery.py:305",
       "tests/gate.sh:2195"
     ]
   },
@@ -6360,7 +6360,7 @@
     "class": "DETERMINISTIC",
     "mechanism": "Certificate generation or complete auth handshakes; full partial-handshake timing legs are not selected.",
     "sites": [
-      "tests/tls.py:288",
+      "tests/tls.py:26",
       "tests/gate.sh:2663"
     ]
   },
@@ -6426,7 +6426,7 @@
     "class": "DETERMINISTIC",
     "mechanism": "Certificate generation or complete auth handshakes; full partial-handshake timing legs are not selected.",
     "sites": [
-      "tests/tls.py:288",
+      "tests/tls.py:156",
       "tests/gate.sh:2717"
     ]
   },
@@ -6453,7 +6453,7 @@
     "class": "DETERMINISTIC",
     "mechanism": "Certificate generation or complete auth handshakes; full partial-handshake timing legs are not selected.",
     "sites": [
-      "tests/tls.py:288",
+      "tests/tls.py:156",
       "tests/gate.sh:2729"
     ]
   },

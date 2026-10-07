@@ -177,6 +177,19 @@ def main():
         row["ordinal"] = ordinal
         row["class"], row["mechanism"] = classify(row)
         row["sites"] = [f"{path}:{REVIEWS[path]['line']}" for path in row["scripts"]]
+        selected_arms = {
+            2663: ("tests/tls.py", "def generate("),
+            2717: ("tests/tls.py", "def auth_matrix("),
+            2729: ("tests/tls.py", "def auth_matrix("),
+            2185: ("tests/snap_cut_battery.py", 'if MODE == "save":'),
+            2195: ("tests/snap_cut_battery.py", 'elif MODE == "verify_cut":'),
+        }
+        if row["gate_line"] in selected_arms:
+            path, marker = selected_arms[row["gate_line"]]
+            line = next(i for i, text in enumerate((ROOT / path).read_text().splitlines(), 1)
+                        if text.startswith(marker))
+            row["sites"] = [f"{path}:{line}" if site.startswith(path + ":") else site
+                            for site in row["sites"]]
         row["sites"].append("tests/gate.sh:" + str(row["gate_line"]))
     counts = Counter(row["class"] for row in rows)
     output = ["# Gate stimulus inventory", "",
