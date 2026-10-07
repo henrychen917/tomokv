@@ -1,4 +1,4 @@
-// Server-less battery for the exact scheduler used by both executor call sites. Real Clients,
+// Serverless battery for the production queue algorithms and their PAD control. Real Clients,
 // Tasks and published ROB slots; no alternate scheduling implementation or timing window.
 // The gate runs this under ASAN + UBSAN. A FIFO/no-op mutant must fail the permutation oracle.
 #include <algorithm>
@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <memory>
 #include <vector>
-#include "src/core/reorder.h"
+#include "reorder_batch_fixture.h"
 
 // This fixture never creates a MULTI session or executes a command. Keep the only out-of-line
 // Client destructor dependency explicit, and fail if the fixture ever strays into that subsystem.
@@ -73,7 +73,7 @@ template <size_t Capacity>
 void verify(Task (&tasks)[Capacity], const std::vector<Task>& expected, bool must_move) {
     require(expected.size() <= Capacity, "oracle exceeds its input capacity");
     const std::vector<Task> before(tasks, tasks + Capacity);
-    const ReorderResult witness = ex_schedule_batch(tasks, static_cast<uint32_t>(expected.size()));
+    const ReorderResult witness = test::schedule_test_batch(tasks, static_cast<uint32_t>(expected.size()));
     bool moved = false;
     for (size_t i = 0; i < expected.size(); i++) {
         require(same(tasks[i], expected[i]), "actual permutation differs from exact oracle");

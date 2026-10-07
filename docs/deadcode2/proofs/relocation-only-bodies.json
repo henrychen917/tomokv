@@ -1,0 +1,50 @@
+[
+  {
+    "object": "db0/src/core/lbplanner.o",
+    "name": "tomo_db0::Server::lb_controller_tick(unsigned int, unsigned long)",
+    "symbol": "_ZN8tomo_db06Server18lb_controller_tickEjm",
+    "pre_size": 6528,
+    "post_size": 6528,
+    "reason": "Only relocation displacements differ; instructions and exact relocation target identities agree."
+  },
+  {
+    "object": "db0/src/core/lbplanner.o",
+    "name": "tomo_db0::Server::lb_controller_tick_pad(unsigned int, unsigned long)",
+    "symbol": "_ZN8tomo_db06Server22lb_controller_tick_padEjm",
+    "pre_size": 7204,
+    "post_size": 7204,
+    "reason": "Only relocation displacements differ; instructions and exact relocation target identities agree."
+  },
+  {
+    "object": "db0/src/core/lbplanner.o",
+    "name": "tomo_db0::IoLoop::lb_control_pass_pad()",
+    "symbol": "_ZN8tomo_db06IoLoop19lb_control_pass_padEv",
+    "pre_size": 4609,
+    "post_size": 4609,
+    "reason": "Only relocation displacements differ; instructions and exact relocation target identities agree."
+  },
+  {
+    "object": "src/core/lbplanner.o",
+    "name": "tomo::Server::lb_controller_tick(unsigned int, unsigned long)",
+    "symbol": "_ZN4tomo6Server18lb_controller_tickEjm",
+    "pre_size": 6544,
+    "post_size": 6544,
+    "reason": "Only relocation displacements differ; instructions and exact relocation target identities agree."
+  },
+  {
+    "object": "src/core/lbplanner.o",
+    "name": "tomo::Server::lb_controller_tick_pad(unsigned int, unsigned long)",
+    "symbol": "_ZN4tomo6Server22lb_controller_tick_padEjm",
+    "pre_size": 7220,
+    "post_size": 7220,
+    "reason": "Only relocation displacements differ; instructions and exact relocation target identities agree."
+  },
+  {
+    "object": "src/core/lbplanner.o",
+    "name": "tomo::IoLoop::lb_control_pass_pad()",
+    "symbol": "_ZN4tomo6IoLoop19lb_control_pass_padEv",
+    "pre_size": 4609,
+    "post_size": 4609,
+    "reason": "Only relocation displacements differ; instructions and exact relocation target identities agree."
+  }
+]

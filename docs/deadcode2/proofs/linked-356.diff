@@ -1,0 +1,13 @@
+Function: void tomo_db0::IoLoop::run_loop<false, false, false, false, (unsigned char)0, false>()
+Occurrence: 0
+--- PRE
++++ POST
+@@ -23,7 +23,7 @@
+ 0062 [ 3] mov %rbx,%rdi | 48 89 df
+ 0065 [ 5] call <tomo_db0::IoLoop::arm_accept(tomo_db0::UrKind)> | e8 ?? ?? ?? ??
+ 006a [ 5] lea 0x50(%rsp),%rax | 48 8d 44 24 50
+-006f [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x169c8> | 4c 8d 3d ?? ?? ?? ??
++006f [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x16928> | 4c 8d 3d ?? ?? ?? ??
+ 0076 [ 5] mov %rax,0x8(%rsp) | 48 89 44 24 08
+ 007b [ 5] nopl 0x0(%rax,%rax,1) | 0f 1f 44 00 00
+ 0080 [ 7] mov 0x190(%rbx),%rsi | 48 8b b3 90 01 00 00

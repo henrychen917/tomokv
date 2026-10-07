@@ -1,0 +1,16 @@
+  heads: n=2..32, exact 4:1 short/long turns
+  heads: n=2..128, exact 4:1 short/long turns
+  pipelines: 32 tasks, head promotion and FIFO across ROB wraps
+  pipelines: 128 tasks, head promotion and FIFO across ROB wraps
+  barriers: capacity 32, all special flags and complete suffix
+  barriers: capacity 128, all special flags and complete suffix
+  controls: empty/single task, one full client, homogeneous and already ordered FIFO
+  predecessor controls: missing head, in-run gap and atomic hazard
+  dependency: due ratio turn waits for the fifth short predecessor
+  continuous: cross-gather promotion, bounded debt, barrier and immediate destruction
+  continuous: cross-gather promotion, bounded debt, barrier and immediate destruction
+  sustained: bounded long service across 12 gathers and ring wraps
+  sustained: bounded long service across 12 gathers and ring wraps
+  connection stream: 1024 tasks, advancing heads, hazards and fixed barrier scopes
+  connection stream: 1024 tasks, advancing heads, hazards and fixed barrier scopes
+reorder battery: PASS, 205 batch permutations plus continuous service, max batch 128

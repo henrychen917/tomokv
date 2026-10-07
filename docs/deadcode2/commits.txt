@@ -1,0 +1,27 @@
+baf93e826 Prove the linked switch-table relocations without broadening the R7 normalizer
+2cef27443 Preserve ordinary server command bodies after removing INFO aliases
+9ad06bd72 Name the IO loop that selects fused writeback
+5dbc78359 Retain detector arms that perturb writeback while correcting their documentation
+c681d3e18 Retain the policy patch point after its cleanup fails the writeback byte law
+66cff1a8a Add complete body inventory and PRE-schema PAD-A proof tools
+c7627a103 Add a seeded PRE schema witness for the layout control
+aaf2e4598 Retain TLS init selector after its deletion fails parser byte identity
+199c2549d Check renamed and retired INFO fields with seeded serverless fixtures
+f9b67d9fc Account for the proved dead ratio disjunct in the LB PAD source guard
+2ad8ea441 Keep split-local park witnesses tied to the named timeout
+a53d78456 Share read-local parse and RYOW classification source
+7b060b855 Preserve server offsets while retiring the flip band selector
+ee7572871 Record shipped fused quanta and mark proposed derivations unapplied
+086e3015c Ledger IO pipeline constants and share existing cadence definitions
+e557c4413 Track the shared reorder fixture in unit build dependencies
+74e7512de Stop publishing the rejected per-operation split estimator
+58b08869b Hardcode the shipped writeback default and retire its binary patcher
+b9bc421f5 Give client balancer counters their own INFO prefix
+426e22126 Retire unused flip band modes and redundant zero-ratio tests
+6bf51d709 Remove duplicate flip controller INFO aliases
+eb662a334 Correct writeback mode and coded-reply caller documentation
+c7224a6bd Correct read-local flag comments after IFID retirement
+03ee9d238 Move unused reorder batch wrapper into unit fixtures
+81d1fbeac Remove unreachable forced memory BIO TLS initialization
+2078e48f7 Remove unused IFID pending flag without moving live bits
+0464ce776 Remove unbuildable wedge forensics arm

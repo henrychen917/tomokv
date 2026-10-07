@@ -1,0 +1,34 @@
+PASS wbland endpoints
+PASS wbland exits
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+PASS wbland grammar
+PASS wbland info
+PASS wbland endpoints
+PASS wbland exits
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+--wb-policy wants 0 or 1
+PASS wbland grammar
+PASS wbland info

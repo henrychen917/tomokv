@@ -1,0 +1,157 @@
+{
+  "PRE": [
+    {
+      "body": "void tomo_db0::IoLoop::run_loop<false, false, false, false, (unsigned char)0, false>()",
+      "anchor_offset": 92616,
+      "table_bytes": 72,
+      "function_relative_targets": [
+        1088,
+        1072,
+        2592,
+        2512,
+        1088,
+        2480,
+        2448,
+        1088,
+        1088,
+        1088,
+        1088,
+        1088,
+        2384,
+        2320,
+        1088,
+        1088,
+        1088,
+        2288
+      ]
+    },
+    {
+      "body": "void tomo_db0::IoLoop::run_loop<false, false, true, false, (unsigned char)0, false>()",
+      "anchor_offset": 92688,
+      "table_bytes": 72,
+      "function_relative_targets": [
+        1056,
+        1040,
+        2928,
+        2848,
+        1056,
+        2816,
+        2784,
+        1056,
+        1056,
+        1056,
+        1056,
+        1056,
+        2720,
+        2656,
+        1056,
+        1056,
+        1056,
+        2624
+      ]
+    },
+    {
+      "body": "void tomo_db0::IoLoop::run_loop<true, false, false, false, (unsigned char)0, false>()",
+      "anchor_offset": 92832,
+      "table_bytes": 72,
+      "function_relative_targets": [
+        1136,
+        1120,
+        2672,
+        2592,
+        1136,
+        2560,
+        2528,
+        1136,
+        1136,
+        1136,
+        1136,
+        1136,
+        2464,
+        2400,
+        1136,
+        1136,
+        1136,
+        2368
+      ]
+    }
+  ],
+  "POST": [
+    {
+      "body": "void tomo_db0::IoLoop::run_loop<false, false, false, false, (unsigned char)0, false>()",
+      "anchor_offset": 92456,
+      "table_bytes": 72,
+      "function_relative_targets": [
+        1088,
+        1072,
+        2592,
+        2512,
+        1088,
+        2480,
+        2448,
+        1088,
+        1088,
+        1088,
+        1088,
+        1088,
+        2384,
+        2320,
+        1088,
+        1088,
+        1088,
+        2288
+      ]
+    },
+    {
+      "body": "void tomo_db0::IoLoop::run_loop<false, false, true, false, (unsigned char)0, false>()",
+      "anchor_offset": 92528,
+      "table_bytes": 72,
+      "function_relative_targets": [
+        1056,
+        1040,
+        2928,
+        2848,
+        1056,
+        2816,
+        2784,
+        1056,
+        1056,
+        1056,
+        1056,
+        1056,
+        2720,
+        2656,
+        1056,
+        1056,
+        1056,
+        2624
+      ]
+    },
+    {
+      "body": "void tomo_db0::IoLoop::run_loop<true, false, false, false, (unsigned char)0, false>()",
+      "anchor_offset": 92672,
+      "table_bytes": 72,
+      "function_relative_targets": [
+        1136,
+        1120,
+        2672,
+        2592,
+        1136,
+        2560,
+        2528,
+        1136,
+        1136,
+        1136,
+        1136,
+        1136,
+        2464,
+        2400,
+        1136,
+        1136,
+        1136,
+        2368
+      ]
+    }
+  ],
+  "verdict": "Only three unnamed rodata anchors move; all 54 jump destinations retain their exact function-relative offsets. Existing normalizer unchanged."
+}

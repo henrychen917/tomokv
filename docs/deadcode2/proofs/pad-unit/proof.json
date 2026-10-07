@@ -1,0 +1,39 @@
+{
+  "kind": "A: PRE observable behavior, POST text size and function/object layout",
+  "post": {
+    "functions": 6758,
+    "function_table_sha256": "d95e7ddf7b52644edf298e9f318be163c3a33465ff637ab5fb342b128fa596b8",
+    "section_table_sha256": "8484193ac7877d22233bd7793b6267d1f0ea7e114b2d5b54f8969e65667a2b56",
+    "binary_sha256": "1e179849fa0d4d1172f78988dc252ee8ffceeb379e7c4fc221f6c4e23e5146bb",
+    "text_bytes": 27810804
+  },
+  "pad": {
+    "functions": 6758,
+    "function_table_sha256": "d95e7ddf7b52644edf298e9f318be163c3a33465ff637ab5fb342b128fa596b8",
+    "section_table_sha256": "8484193ac7877d22233bd7793b6267d1f0ea7e114b2d5b54f8969e65667a2b56",
+    "binary_sha256": "53c5bc9733341586f0a0e4a1c5d85ff4b809fc46f176d56cde1480a2ae3ee27e",
+    "text_bytes": 27810804
+  },
+  "patches": 8,
+  "controls": {
+    "missing-transplant": {
+      "rejected": true,
+      "assertion": "planned patch missing",
+      "sha256": "595ccfd3c3192907bc8791a66b84afefad5f00f127cc6780c2e930646f214fe5"
+    },
+    "moved-symbol": {
+      "rejected": true,
+      "assertion": "function or section layout changed",
+      "sha256": "d121c290330058f7b25cd2e1be53ef81c64964b8e2811258d514f948d33919fb"
+    },
+    "one-byte": {
+      "rejected": true,
+      "assertion": "unplanned byte change",
+      "sha256": "9e90bc8b43558aaede2b97a8a83f83bc9ea1aed32c542b0ae0029a1fcabd4e05"
+    }
+  },
+  "exact_function_and_section_tables": true,
+  "all_other_original_bytes_identical": true,
+  "unwind_functions": 3,
+  "caveat": "Null-only control. RO7 false-arm code slots are repurposed; do not apply r7shadow_pad.py to this PAD-A."
+}

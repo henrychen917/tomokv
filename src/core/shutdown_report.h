@@ -121,16 +121,6 @@ private:
         uint64_t notify_drop = 0;
     };
 
-#ifdef TOMO_WEDGE_FORENSICS
-    struct StrandedClient {
-        uint32_t claims = 0;
-        uint32_t defers = 0;
-        uint32_t serves = 0;
-        uint32_t inflight = 0;
-        bool flag = false;
-    };
-    std::vector<StrandedClient> stranded_clients_;
-#endif
 
     ShutdownReport() = default;
 
@@ -236,13 +226,6 @@ ShutdownReport collect_shutdown_report(Server& server, IoLoops& io_loops) {
                 report.stuck_.rob_not_quiesced++;
                 const bool flag = client->retire_queued().load(std::memory_order_acquire);
                 if (flag) report.stuck_.flag_set++;
-#ifdef TOMO_WEDGE_FORENSICS
-                report.stranded_clients_.push_back({
-                    client->n_claims.load(std::memory_order_relaxed),
-                    client->n_defers.load(std::memory_order_relaxed),
-                    client->n_serves.load(std::memory_order_relaxed),
-                    client->rob().in_flight(), flag});
-#endif
                 for (uint64_t id = client->rob().flush_id(), end = client->rob().dispatch_id();
                      id != end; id++) {
                     switch (client->rob().at(id).state.load(std::memory_order_acquire)) {
@@ -315,13 +298,6 @@ inline void print_shutdown_report_human(const ShutdownReport& report) {
         }
     }
 
-#ifdef TOMO_WEDGE_FORENSICS
-    for (const ShutdownReport::StrandedClient& client : report.stranded_clients_) {
-        std::printf("  stranded conn: claims=%u defers=%u serves=%u inflight=%u flag=%d\n",
-                    client.claims, client.defers, client.serves, client.inflight,
-                    static_cast<int>(client.flag));
-    }
-#endif
 
     const ShutdownReport::Wb& wb = report.wb_;
     std::printf("wb: retired=%llu direct=%llu sends=%llu/%llu short=%llu err=%llu"

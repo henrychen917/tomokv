@@ -31,13 +31,15 @@ from abba_workloads import (command_histogram, memtier_workload_counts, percenti
                             require_workload_accounting)  # noqa: E402
 
 PREFIX = "tomokv_keylb_"
+CLIENT_PREFIX = "tomokv_clientlb_"
 TICKS, STAGE = PREFIX + "ticks", PREFIX + "stage"
-KEY, CLIENT, GATHERS = (PREFIX + n for n in ("bucket_moves", "client_moves", "bucket_gathers"))
-SPREADS = tuple(PREFIX + n + "_spread_current" for n in
-                ("bucket_weight", "bucket_bytes", "client_weight"))
+KEY, GATHERS = (PREFIX + n for n in ("bucket_moves", "bucket_gathers"))
+CLIENT = CLIENT_PREFIX + "moves"
+SPREADS = (PREFIX + "bucket_weight_spread_current", PREFIX + "bucket_bytes_spread_current",
+           CLIENT_PREFIX + "weight_spread_current")
 REFUSALS = tuple(PREFIX + n for n in (
     "no_candidate", "hysteresis_refused", "cooldown_refused", "transition_refused",
-    "capacity_refused", "client_refused", "hot_bucket_refused"))
+    "capacity_refused", "hot_bucket_refused")) + (CLIENT_PREFIX + "refused",)
 HISTORY_COUNTERS = tuple(PREFIX + n for n in (
     "reversal_refused", "recent_move_refused", "owner_pair_refused", "history_escapes"))
 OWNER_METRICS = ("shard_moves", "returns", "exchanges", "distinct_shards")
@@ -47,7 +49,7 @@ STALL = {short: "tomokv_lbstall_" + name for short, name in (
     ("cstate", "client_state"), ("invalid", "invalid_client"))}
 PENDING = "tomokv_lbstall_pending_ns_max"
 COUNTERS = (TICKS, KEY, CLIENT, GATHERS, PREFIX + "bucket_cross_domain_moves",
-            PREFIX + "client_cross_domain_moves", *REFUSALS, *STALL.values())
+            CLIENT_PREFIX + "cross_domain_moves", *REFUSALS, *STALL.values())
 FIELDS = (STAGE, PENDING, *COUNTERS, *SPREADS,
           *(n.replace("current", edge) for n in SPREADS for edge in ("before", "after")))
 ARMS = {
@@ -388,7 +390,7 @@ def inside(sample, criterion):
 def actuator_mix(anchor, final, total):
     return {"stall": {short: total[key] for short, key in STALL.items()},
             "pass_limit": total[STALL["passl"]],
-            "attempts": total[PREFIX + "client_refused"] + total[CLIENT],
+            "attempts": total[CLIENT_PREFIX + "refused"] + total[CLIENT],
             # A high-water mark is not additive: subtracting two maxima would
             # mislabel a difference as a duration. Retain both endpoints.
             "pending_ms": final["info"][PENDING] / 1e6,
@@ -2451,7 +2453,7 @@ class SelfTest(unittest.TestCase):
         for i, field in enumerate(STALL.values()):
             first["info"][field], last["info"][field] = 10, 10 + i
         first["info"][PENDING], last["info"][PENDING] = 1000000, 2500000
-        last["info"][PREFIX + "client_refused"] = 30
+        last["info"][CLIENT_PREFIX + "refused"] = 30
         mix = actuator_mix(first, last, delta(first, last))
         self.assertEqual(mix["pending_ms"], 2.5)
         self.assertEqual(mix["pending_ms_before"], 1)

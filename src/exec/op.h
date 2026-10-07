@@ -111,8 +111,8 @@ public:
         state.store(OpState::Free, std::memory_order_relaxed);
     }
 
-    // Bits 6 and 7 are shared with Client-only state. Only the armed coarse parser masks those
-    // captured connection bits before explicitly classifying the slot; reset() above remains the
+    // Bit 7 overlaps Client::kBlocked; connection bit 6 is unused. The armed coarse parser
+    // clears both read-local classification bits before classifying the slot; reset() remains the
     // literal baseline path for every ordinary ROB acquisition.
     void reset_read_local(uint8_t route_flags = 0) {
         reset<true>(static_cast<uint8_t>(
@@ -212,8 +212,7 @@ public:
         if (cut > now) cut -= uint64_t{1} << 32;
         return cut;
     }
-    // Fused read-local bookkeeping reuses bit 6 only after the enabled parser masks the captured
-    // connection flag above.
+    // Fused read-local bookkeeping uses bit 6, cleared by reset_read_local() above.
     void mark_read_local() { route_flags_ |= kReadLocal; }
     bool read_local() const { return route_flags_ & kReadLocal; }
     // A precise write promises that it cannot mutate outside its declared point/keyset. If an

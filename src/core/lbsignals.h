@@ -13,15 +13,9 @@
 // without stepping on each other. That statelessness is itself a signal-quality feature: the
 // fork's sampled-cputime hack had one global window that every consumer fought over.
 //
-// RATIO_STAR — the headline derivation. Because busy time is time-weighted per role and ops flow
-// through both roles, the per-op service cost of each role is directly measurable:
-//     c_io = io_busy_ns / io_ops        c_ex = ex_busy_ns / ex_ops
-// Work conservation then gives the throughput-optimal split of N threads:
-//     n_io* = N * c_io / (c_io + c_ex)
-// This is the "best ratio" a work-bound regime can justify from first principles. It is exact
-// for the saturated pipelined regime; the p1 regime is width/latency-bound (p1 = send_threads x
-// rate law), so ratio_star deliberately reports the work-bound optimum and the signal-quality
-// study quantifies each estimator's distance from the empirically best ratio per regime.
+// Role ns_per_op is diagnostic only: executor ops count shard tasks while IO ops count
+// commands. Their ratio is not a thread-split estimator on multi-key workloads. The role
+// controller uses wall-minus-idle demand instead (flip_policy.h).
 // Queue delay and oldest-age may TRIGGER a controller investigation, but they do not judge a
 // placement: only measured throughput after the move can do that. Latency signals show pressure,
 // not whether a different owner split will process more work.
@@ -138,13 +132,7 @@ struct LbSnapshot {
     LbRoleRollup ex;                       // Role::Ex rollup
     LbRoleRollup fused;                    // combined 1s loop work; never a synthetic split
 
-    // Work-conservation optimum for the current total thread count; 0 threads / 0 ops degrade to
-    // an even split rather than a division fault so an idle server still answers.
-    double ratio_star_io_frac() const {
-        const double cio = io.ns_per_op(), cex = ex.ns_per_op();
-        const double s = cio + cex;
-        return s > 0.0 ? cio / s : 0.5;
-    }
+
 };
 
 // Capture is declared here and defined in src/cmd/lbsignals.cc (it needs the full Server type).
@@ -165,9 +153,8 @@ LbSnapshot lbsignals_capture(Server& srv);
 //          <oldest_age_min_us> <oldest_age_max_us> <oldest_age_ewma_us>
 //          masked_lane_high_water <n> masked_lane_full_events <n>
 //          masked_arena_occupancy_at_lane_full <fraction>
-// In 2s the derived row retains ratio_star_io_frac/ratio_star_io/ratio_star_ex. In 1s there is no
-// role split to optimize, so it reports thread_mode/fused_threads instead. Both forms include the
-// actual distinct shard-owner and client-serving thread counts.
+// The derived row reports thread_mode, foreign_frac, and actual distinct shard-owner and
+// client-serving thread counts. In 1s it also reports fused_threads; neither mode predicts a split.
 void lbsignals_format(const LbSnapshot& snap, std::string& out);
 // The short derived block for INFO's # LB section.
 void lbsignals_info_section(Server& srv, std::string& out);

@@ -102,7 +102,7 @@ $(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-in
 $(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31310
 # SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31630
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31630 --param max-inline-insns-auto=16
 # SV9 publishes save status only on cold completion/abort edges.
 $(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14584
 $(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14457
@@ -523,9 +523,9 @@ build/reorderscan-unit-asan: tests/reorderscan_unit.cc $(wildcard src/*/*.h) Mak
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@
 
-build/reorder-unit: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
+build/reorder-unit: tests/reorder_unit.cc tests/reorder_batch_fixture.h $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
-build/reorder-unit-asan: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
+build/reorder-unit-asan: tests/reorder_unit.cc tests/reorder_batch_fixture.h $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@
 
 build/reorder-engagement-unit: tests/reorder_engagement_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
@@ -563,9 +563,9 @@ build/r7shadow-split-unit-db0: tests/r7shadow_split_unit.cc tests/reorder_engage
 	  -include tests/r7shadow_witness.h -I. $< build/r7shadow3/reorder-witness-db0.o \
 	  $(filter-out build/db0/src/core/reorder.o,$(DB0_TEST_OBJ)) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
-build/r7shadow-unit: tests/r7shadow_unit.cc $(wildcard src/*/*.h) Makefile
+build/r7shadow-unit: tests/r7shadow_unit.cc tests/reorder_batch_fixture.h $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
-build/r7shadow-unit-asan: tests/r7shadow_unit.cc $(wildcard src/*/*.h) Makefile
+build/r7shadow-unit-asan: tests/r7shadow_unit.cc tests/reorder_batch_fixture.h $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@
 
 # Instructions only, no rate/timing benchmark and no server. Run on compile CPUs.

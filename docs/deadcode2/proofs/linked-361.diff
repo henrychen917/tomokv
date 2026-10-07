@@ -1,0 +1,13 @@
+Function: void tomo_db0::IoLoop::run_loop<false, false, true, false, (unsigned char)0, false>()
+Occurrence: 0
+--- PRE
++++ POST
+@@ -2,7 +2,7 @@
+ 0004 [ 2] push %r15 | 41 57
+ 0006 [ 2] push %r14 | 41 56
+ 0008 [ 2] push %r13 | 41 55
+-000a [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x16a10> | 4c 8d 3d ?? ?? ?? ??
++000a [ 7] lea <rip>(%rip),%r15 # <_IO_stdin_used+0x16970> | 4c 8d 3d ?? ?? ?? ??
+ 0011 [ 2] push %r12 | 41 54
+ 0013 [ 1] push %rbp | 55
+ 0014 [ 1] push %rbx | 53

@@ -32,19 +32,19 @@ def feature_evidence():
     knobs = {'thread-mode': '2s', 'read-local': 1, 'overlap': 1, 'reorder': 1,
              'flip-auto': 1, 'atomic': 1, 'key-lb': 1, 'client-lb': 1}
     keys = ('overlap_passes', 'overlap_interleaved_passes', 'atomic_groups',
-            'tomokv_keylb_ticks', 'tomokv_keylb_bucket_moves', 'tomokv_keylb_client_moves',
+            'tomokv_keylb_ticks', 'tomokv_keylb_bucket_moves', 'tomokv_clientlb_moves',
             'flipctl_forced_triggers', 'flipctl_triggers')
     before = {key: '0' for key in keys}
     before.update(reorder='0', reorder_retired='1', read_local_active_threads='1', schedule_stats_threads='2',
                   tomokv_keylb_bucket_weight_spread_current='0',
-                  tomokv_keylb_client_weight_spread_current='0',
+                  tomokv_clientlb_weight_spread_current='0',
                   overlap_schedule='split-io-overlap', overlap_enabled='1',
                   read_local_thread_0='role=ifid,shards=0,active=1,hits_total=0,mget_hits_total=0',
                   read_local_thread_1='role=ex,shards=16,active=0,hits_total=0,mget_hits_total=0')
     after = dict(before, **{key: '10' for key in keys})
     after['read_local_thread_0'] = 'role=ifid,shards=0,active=1,hits_total=9,mget_hits_total=8'
     after['tomokv_keylb_bucket_weight_spread_current'] = '3'
-    after['tomokv_keylb_client_weight_spread_current'] = '4'
+    after['tomokv_clientlb_weight_spread_current'] = '4'
     return before, after, knobs
 
 
@@ -108,7 +108,7 @@ class FeatureFailures(unittest.TestCase):
         feature.check_activity(b, a, knobs, 2, True)
         for key in ('overlap_passes', 'overlap_interleaved_passes', 'atomic_groups',
                     'tomokv_keylb_ticks', 'flipctl_forced_triggers',
-                    'tomokv_keylb_bucket_weight_spread_current', 'tomokv_keylb_client_weight_spread_current'):
+                    'tomokv_keylb_bucket_weight_spread_current', 'tomokv_clientlb_weight_spread_current'):
             with self.subTest(key=key), self.assertRaises(AssertionError):
                 feature.check_activity(b, dict(a, **{key: '0'}), knobs, 2, True)
 

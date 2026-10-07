@@ -2182,7 +2182,6 @@ void cmd_info(Shard&, Op& op) {
                     "flipctl_boot_triggers:%llu\r\nflipctl_fingerprint_triggers:%llu\r\n"
                     "flipctl_rate_surge_triggers:%llu\r\n"
                     "flipctl_rate_collapse_triggers:%llu\r\n"
-                    "flipctl_surge_triggers:%llu\r\nflipctl_collapse_triggers:%llu\r\n"
                     "flipctl_forced_triggers:%llu\r\n"
                     "flipctl_null_maneuvers:%llu\r\nflipctl_model_holds:%llu\r\n"
                     "flipctl_shift_confirmations:%u\r\n"
@@ -2200,8 +2199,6 @@ void cmd_info(Shard&, Op& op) {
                     static_cast<unsigned long long>(ctl.triggers),
                     static_cast<unsigned long long>(ctl.boot_triggers),
                     static_cast<unsigned long long>(ctl.fingerprint_triggers),
-                    static_cast<unsigned long long>(ctl.rate_surge_triggers),
-                    static_cast<unsigned long long>(ctl.rate_collapse_triggers),
                     static_cast<unsigned long long>(ctl.rate_surge_triggers),
                     static_cast<unsigned long long>(ctl.rate_collapse_triggers),
                     static_cast<unsigned long long>(ctl.forced_triggers),

@@ -1,0 +1,696 @@
+{
+  "pre": "build/deadcode2/PRE",
+  "post": "build/deadcode2/POST",
+  "objects": [
+    {
+      "object": "db0/src/cmd/acl.o",
+      "bodies": 258,
+      "raw_equal": 258,
+      "relocation_equal": 258
+    },
+    {
+      "object": "db0/src/cmd/climon.o",
+      "bodies": 220,
+      "raw_equal": 220,
+      "relocation_equal": 220
+    },
+    {
+      "object": "db0/src/cmd/cmdgap.o",
+      "bodies": 4,
+      "raw_equal": 4,
+      "relocation_equal": 4
+    },
+    {
+      "object": "db0/src/cmd/cmdmeta.o",
+      "bodies": 34,
+      "raw_equal": 34,
+      "relocation_equal": 34
+    },
+    {
+      "object": "db0/src/cmd/commands.o",
+      "bodies": 28,
+      "raw_equal": 28,
+      "relocation_equal": 28
+    },
+    {
+      "object": "db0/src/cmd/functions.o",
+      "bodies": 78,
+      "raw_equal": 78,
+      "relocation_equal": 78
+    },
+    {
+      "object": "db0/src/cmd/geo.o",
+      "bodies": 94,
+      "raw_equal": 94,
+      "relocation_equal": 94
+    },
+    {
+      "object": "db0/src/cmd/geo_store.o",
+      "bodies": 6,
+      "raw_equal": 6,
+      "relocation_equal": 6
+    },
+    {
+      "object": "db0/src/cmd/glob.o",
+      "bodies": 2,
+      "raw_equal": 2,
+      "relocation_equal": 2
+    },
+    {
+      "object": "db0/src/cmd/hll.o",
+      "bodies": 24,
+      "raw_equal": 24,
+      "relocation_equal": 24
+    },
+    {
+      "object": "db0/src/cmd/info_stats.o",
+      "bodies": 3,
+      "raw_equal": 3,
+      "relocation_equal": 3
+    },
+    {
+      "object": "db0/src/cmd/l4prebuild.o",
+      "bodies": 62,
+      "raw_equal": 62,
+      "relocation_equal": 62
+    },
+    {
+      "object": "db0/src/cmd/lbsignals.o",
+      "bodies": 15,
+      "raw_equal": 13,
+      "relocation_equal": 13
+    },
+    {
+      "object": "db0/src/cmd/lcs.o",
+      "bodies": 14,
+      "raw_equal": 14,
+      "relocation_equal": 14
+    },
+    {
+      "object": "db0/src/cmd/multi_admin.o",
+      "bodies": 8,
+      "raw_equal": 8,
+      "relocation_equal": 8
+    },
+    {
+      "object": "db0/src/cmd/multidb.o",
+      "bodies": 82,
+      "raw_equal": 82,
+      "relocation_equal": 82
+    },
+    {
+      "object": "db0/src/cmd/pfdebug.o",
+      "bodies": 34,
+      "raw_equal": 34,
+      "relocation_equal": 34
+    },
+    {
+      "object": "db0/src/cmd/scripting.o",
+      "bodies": 138,
+      "raw_equal": 138,
+      "relocation_equal": 138
+    },
+    {
+      "object": "db0/src/cmd/serialize.o",
+      "bodies": 105,
+      "raw_equal": 105,
+      "relocation_equal": 105
+    },
+    {
+      "object": "db0/src/cmd/server_tail.o",
+      "bodies": 92,
+      "raw_equal": 92,
+      "relocation_equal": 92
+    },
+    {
+      "object": "db0/src/cmd/slowlog.o",
+      "bodies": 72,
+      "raw_equal": 72,
+      "relocation_equal": 72
+    },
+    {
+      "object": "db0/src/cmd/storesize.o",
+      "bodies": 19,
+      "raw_equal": 19,
+      "relocation_equal": 19
+    },
+    {
+      "object": "db0/src/cmd/t_hash.o",
+      "bodies": 232,
+      "raw_equal": 232,
+      "relocation_equal": 232
+    },
+    {
+      "object": "db0/src/cmd/t_hash_ttl.o",
+      "bodies": 96,
+      "raw_equal": 96,
+      "relocation_equal": 96
+    },
+    {
+      "object": "db0/src/cmd/t_list.o",
+      "bodies": 195,
+      "raw_equal": 195,
+      "relocation_equal": 195
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "bodies": 228,
+      "raw_equal": 227,
+      "relocation_equal": 227
+    },
+    {
+      "object": "db0/src/cmd/t_set.o",
+      "bodies": 203,
+      "raw_equal": 203,
+      "relocation_equal": 203
+    },
+    {
+      "object": "db0/src/cmd/t_sort.o",
+      "bodies": 22,
+      "raw_equal": 22,
+      "relocation_equal": 22
+    },
+    {
+      "object": "db0/src/cmd/t_stream.o",
+      "bodies": 249,
+      "raw_equal": 249,
+      "relocation_equal": 249
+    },
+    {
+      "object": "db0/src/cmd/t_stream_groups.o",
+      "bodies": 159,
+      "raw_equal": 159,
+      "relocation_equal": 159
+    },
+    {
+      "object": "db0/src/cmd/t_string.o",
+      "bodies": 145,
+      "raw_equal": 145,
+      "relocation_equal": 145
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "bodies": 171,
+      "raw_equal": 171,
+      "relocation_equal": 171
+    },
+    {
+      "object": "db0/src/cmd/t_zset.o",
+      "bodies": 292,
+      "raw_equal": 292,
+      "relocation_equal": 292
+    },
+    {
+      "object": "db0/src/cmd/t_zset_ops.o",
+      "bodies": 1,
+      "raw_equal": 1,
+      "relocation_equal": 1
+    },
+    {
+      "object": "db0/src/cmd/tracking.o",
+      "bodies": 67,
+      "raw_equal": 67,
+      "relocation_equal": 67
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "bodies": 870,
+      "raw_equal": 870,
+      "relocation_equal": 870
+    },
+    {
+      "object": "db0/src/core/flipctl.o",
+      "bodies": 73,
+      "raw_equal": 73,
+      "relocation_equal": 73
+    },
+    {
+      "object": "db0/src/core/genthread.o",
+      "bodies": 757,
+      "raw_equal": 757,
+      "relocation_equal": 757
+    },
+    {
+      "object": "db0/src/core/lbplanner.o",
+      "bodies": 64,
+      "raw_equal": 59,
+      "relocation_equal": 62
+    },
+    {
+      "object": "db0/src/core/lbstall.o",
+      "bodies": 12,
+      "raw_equal": 12,
+      "relocation_equal": 12
+    },
+    {
+      "object": "db0/src/core/reorder.o",
+      "bodies": 821,
+      "raw_equal": 821,
+      "relocation_equal": 821
+    },
+    {
+      "object": "db0/src/core/rl2s.o",
+      "bodies": 914,
+      "raw_equal": 914,
+      "relocation_equal": 914
+    },
+    {
+      "object": "db0/src/main.o",
+      "bodies": 826,
+      "raw_equal": 826,
+      "relocation_equal": 826
+    },
+    {
+      "object": "db0/src/net/tls.o",
+      "bodies": 38,
+      "raw_equal": 38,
+      "relocation_equal": 38
+    },
+    {
+      "object": "db0/src/persist/aof.o",
+      "bodies": 297,
+      "raw_equal": 297,
+      "relocation_equal": 297
+    },
+    {
+      "object": "db0/src/persist/aof_frame_debug.o",
+      "bodies": 6,
+      "raw_equal": 6,
+      "relocation_equal": 6
+    },
+    {
+      "object": "db0/src/snapshot/snapshot.o",
+      "bodies": 124,
+      "raw_equal": 124,
+      "relocation_equal": 124
+    },
+    {
+      "object": "src/cmd/acl.o",
+      "bodies": 258,
+      "raw_equal": 258,
+      "relocation_equal": 258
+    },
+    {
+      "object": "src/cmd/climon.o",
+      "bodies": 219,
+      "raw_equal": 219,
+      "relocation_equal": 219
+    },
+    {
+      "object": "src/cmd/cmdgap.o",
+      "bodies": 4,
+      "raw_equal": 4,
+      "relocation_equal": 4
+    },
+    {
+      "object": "src/cmd/cmdmeta.o",
+      "bodies": 34,
+      "raw_equal": 34,
+      "relocation_equal": 34
+    },
+    {
+      "object": "src/cmd/commands.o",
+      "bodies": 28,
+      "raw_equal": 28,
+      "relocation_equal": 28
+    },
+    {
+      "object": "src/cmd/functions.o",
+      "bodies": 78,
+      "raw_equal": 78,
+      "relocation_equal": 78
+    },
+    {
+      "object": "src/cmd/geo.o",
+      "bodies": 95,
+      "raw_equal": 95,
+      "relocation_equal": 95
+    },
+    {
+      "object": "src/cmd/geo_store.o",
+      "bodies": 6,
+      "raw_equal": 6,
+      "relocation_equal": 6
+    },
+    {
+      "object": "src/cmd/glob.o",
+      "bodies": 2,
+      "raw_equal": 2,
+      "relocation_equal": 2
+    },
+    {
+      "object": "src/cmd/hll.o",
+      "bodies": 24,
+      "raw_equal": 24,
+      "relocation_equal": 24
+    },
+    {
+      "object": "src/cmd/info_stats.o",
+      "bodies": 3,
+      "raw_equal": 3,
+      "relocation_equal": 3
+    },
+    {
+      "object": "src/cmd/l4prebuild.o",
+      "bodies": 66,
+      "raw_equal": 66,
+      "relocation_equal": 66
+    },
+    {
+      "object": "src/cmd/lbsignals.o",
+      "bodies": 15,
+      "raw_equal": 13,
+      "relocation_equal": 13
+    },
+    {
+      "object": "src/cmd/lcs.o",
+      "bodies": 14,
+      "raw_equal": 14,
+      "relocation_equal": 14
+    },
+    {
+      "object": "src/cmd/multi_admin.o",
+      "bodies": 9,
+      "raw_equal": 9,
+      "relocation_equal": 9
+    },
+    {
+      "object": "src/cmd/multidb.o",
+      "bodies": 97,
+      "raw_equal": 97,
+      "relocation_equal": 97
+    },
+    {
+      "object": "src/cmd/pfdebug.o",
+      "bodies": 34,
+      "raw_equal": 34,
+      "relocation_equal": 34
+    },
+    {
+      "object": "src/cmd/scripting.o",
+      "bodies": 571,
+      "raw_equal": 571,
+      "relocation_equal": 571
+    },
+    {
+      "object": "src/cmd/serialize.o",
+      "bodies": 105,
+      "raw_equal": 105,
+      "relocation_equal": 105
+    },
+    {
+      "object": "src/cmd/server_tail.o",
+      "bodies": 92,
+      "raw_equal": 92,
+      "relocation_equal": 92
+    },
+    {
+      "object": "src/cmd/slowlog.o",
+      "bodies": 72,
+      "raw_equal": 72,
+      "relocation_equal": 72
+    },
+    {
+      "object": "src/cmd/storesize.o",
+      "bodies": 20,
+      "raw_equal": 20,
+      "relocation_equal": 20
+    },
+    {
+      "object": "src/cmd/t_hash.o",
+      "bodies": 233,
+      "raw_equal": 233,
+      "relocation_equal": 233
+    },
+    {
+      "object": "src/cmd/t_hash_ttl.o",
+      "bodies": 94,
+      "raw_equal": 94,
+      "relocation_equal": 94
+    },
+    {
+      "object": "src/cmd/t_list.o",
+      "bodies": 193,
+      "raw_equal": 193,
+      "relocation_equal": 193
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "bodies": 224,
+      "raw_equal": 223,
+      "relocation_equal": 223
+    },
+    {
+      "object": "src/cmd/t_set.o",
+      "bodies": 204,
+      "raw_equal": 204,
+      "relocation_equal": 204
+    },
+    {
+      "object": "src/cmd/t_sort.o",
+      "bodies": 22,
+      "raw_equal": 22,
+      "relocation_equal": 22
+    },
+    {
+      "object": "src/cmd/t_stream.o",
+      "bodies": 251,
+      "raw_equal": 251,
+      "relocation_equal": 251
+    },
+    {
+      "object": "src/cmd/t_stream_groups.o",
+      "bodies": 160,
+      "raw_equal": 160,
+      "relocation_equal": 160
+    },
+    {
+      "object": "src/cmd/t_string.o",
+      "bodies": 144,
+      "raw_equal": 144,
+      "relocation_equal": 144
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "bodies": 173,
+      "raw_equal": 173,
+      "relocation_equal": 173
+    },
+    {
+      "object": "src/cmd/t_zset.o",
+      "bodies": 293,
+      "raw_equal": 293,
+      "relocation_equal": 293
+    },
+    {
+      "object": "src/cmd/t_zset_ops.o",
+      "bodies": 1,
+      "raw_equal": 1,
+      "relocation_equal": 1
+    },
+    {
+      "object": "src/cmd/tracking.o",
+      "bodies": 68,
+      "raw_equal": 68,
+      "relocation_equal": 68
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "bodies": 877,
+      "raw_equal": 877,
+      "relocation_equal": 877
+    },
+    {
+      "object": "src/core/flipctl.o",
+      "bodies": 73,
+      "raw_equal": 73,
+      "relocation_equal": 73
+    },
+    {
+      "object": "src/core/genthread.o",
+      "bodies": 766,
+      "raw_equal": 766,
+      "relocation_equal": 766
+    },
+    {
+      "object": "src/core/lbplanner.o",
+      "bodies": 64,
+      "raw_equal": 59,
+      "relocation_equal": 62
+    },
+    {
+      "object": "src/core/lbstall.o",
+      "bodies": 12,
+      "raw_equal": 12,
+      "relocation_equal": 12
+    },
+    {
+      "object": "src/core/reorder.o",
+      "bodies": 832,
+      "raw_equal": 832,
+      "relocation_equal": 832
+    },
+    {
+      "object": "src/core/rl2s.o",
+      "bodies": 930,
+      "raw_equal": 930,
+      "relocation_equal": 930
+    },
+    {
+      "object": "src/main.o",
+      "bodies": 832,
+      "raw_equal": 832,
+      "relocation_equal": 832
+    },
+    {
+      "object": "src/net/tls.o",
+      "bodies": 38,
+      "raw_equal": 38,
+      "relocation_equal": 38
+    },
+    {
+      "object": "src/persist/aof.o",
+      "bodies": 297,
+      "raw_equal": 297,
+      "relocation_equal": 297
+    },
+    {
+      "object": "src/persist/aof_frame_debug.o",
+      "bodies": 6,
+      "raw_equal": 6,
+      "relocation_equal": 6
+    },
+    {
+      "object": "src/snapshot/snapshot.o",
+      "bodies": 122,
+      "raw_equal": 122,
+      "relocation_equal": 122
+    }
+  ],
+  "changed": [
+    {
+      "object": "db0/src/cmd/lbsignals.o",
+      "symbol": "_ZN8tomo_db016lbsignals_formatERKNS_10LbSnapshotERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "name": "tomo_db0::lbsignals_format(tomo_db0::LbSnapshot const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "pre_size": 907,
+      "post_size": 666,
+      "raw_equal": false,
+      "relocation_equal": false,
+      "pre_bytes_sha256": "279cfd7bdc8bb40eaf6439db040bf72438ba7f320b5330047337879d27e5fcb8",
+      "post_bytes_sha256": "5136395cc7fb05b5ed3c261ec22cd6bc598df95082508a230da6c94bb49a6f80",
+      "reason": "CT18: remove the rejected DEBUG split estimator and its three derived values."
+    },
+    {
+      "object": "db0/src/cmd/lbsignals.o",
+      "symbol": "_ZN8tomo_db022lbsignals_info_sectionERNS_6ServerERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "name": "tomo_db0::lbsignals_info_section(tomo_db0::Server&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "pre_size": 2714,
+      "post_size": 2646,
+      "raw_equal": false,
+      "relocation_equal": false,
+      "pre_bytes_sha256": "e936744f1352cb07e7ecacdd12004703d9b4c068e23c1d39309374823810cee8",
+      "post_bytes_sha256": "f05b5cafc10ad1000fc55a876b1829f75b5300f9f8475f5f8c06080b26ddb444",
+      "reason": "CT17/CT18: rename six client counters and remove the rejected INFO estimator."
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+      "pre_size": 16371,
+      "post_size": 16371,
+      "raw_equal": false,
+      "relocation_equal": false,
+      "pre_bytes_sha256": "00fb364b0b6ca63bed49011f16a909f570a97ca8bb56c5f09d27ba011979caaa",
+      "post_bytes_sha256": "44c9c451ebe19c79f7c139ae95922ea9f37a6d1738944d494ae25946d502425a",
+      "reason": "CT16: remove duplicate trigger fields and duplicate formatting arguments."
+    },
+    {
+      "object": "db0/src/core/lbplanner.o",
+      "symbol": "_ZZN8tomo_db06Server18lb_controller_tickEjmENKUldRNS_10LbAutotune11QuietJitterERjjE_clEdS3_S4_j",
+      "name": "tomo_db0::Server::lb_controller_tick(unsigned int, unsigned long)::{lambda(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+      "pre_size": 575,
+      "post_size": 559,
+      "raw_equal": false,
+      "relocation_equal": false,
+      "pre_bytes_sha256": "3c00cc5c88ba26afc1e4773da8139eea0c040735fee3e928829ffd6e3a88c8d3",
+      "post_bytes_sha256": "35b20ef96a05e93756bc1bd7b5e1685e23dd093ded7c488d24d48d31bff306e8",
+      "reason": "CT19: remove the unreachable ratio == 0 disjunct; includes the corresponding existing PAD controller."
+    },
+    {
+      "object": "db0/src/core/lbplanner.o",
+      "symbol": "_ZZN8tomo_db06Server22lb_controller_tick_padEjmENKUldRNS_10LbAutotune11QuietJitterERjjE_clEdS3_S4_j",
+      "name": "tomo_db0::Server::lb_controller_tick_pad(unsigned int, unsigned long)::{lambda(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo_db0::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+      "pre_size": 575,
+      "post_size": 559,
+      "raw_equal": false,
+      "relocation_equal": false,
+      "pre_bytes_sha256": "3c00cc5c88ba26afc1e4773da8139eea0c040735fee3e928829ffd6e3a88c8d3",
+      "post_bytes_sha256": "35b20ef96a05e93756bc1bd7b5e1685e23dd093ded7c488d24d48d31bff306e8",
+      "reason": "CT19: remove the unreachable ratio == 0 disjunct; includes the corresponding existing PAD controller."
+    },
+    {
+      "object": "src/cmd/lbsignals.o",
+      "symbol": "_ZN4tomo16lbsignals_formatERKNS_10LbSnapshotERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "name": "tomo::lbsignals_format(tomo::LbSnapshot const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "pre_size": 907,
+      "post_size": 666,
+      "raw_equal": false,
+      "relocation_equal": false,
+      "pre_bytes_sha256": "279cfd7bdc8bb40eaf6439db040bf72438ba7f320b5330047337879d27e5fcb8",
+      "post_bytes_sha256": "5136395cc7fb05b5ed3c261ec22cd6bc598df95082508a230da6c94bb49a6f80",
+      "reason": "CT18: remove the rejected DEBUG split estimator and its three derived values."
+    },
+    {
+      "object": "src/cmd/lbsignals.o",
+      "symbol": "_ZN4tomo22lbsignals_info_sectionERNS_6ServerERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE",
+      "name": "tomo::lbsignals_info_section(tomo::Server&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)",
+      "pre_size": 2714,
+      "post_size": 2646,
+      "raw_equal": false,
+      "relocation_equal": false,
+      "pre_bytes_sha256": "008cdfab7de6b9f72c9e66008f9f169b775a0ffba614777617a18b2271f29de3",
+      "post_bytes_sha256": "fa3c829cafb3310fe30a87763f1aba0bedaad110c1ace9cefa658eaf659f746c",
+      "reason": "CT17/CT18: rename six client counters and remove the rejected INFO estimator."
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
+      "pre_size": 16667,
+      "post_size": 16667,
+      "raw_equal": false,
+      "relocation_equal": false,
+      "pre_bytes_sha256": "b836d7b83d040f93bc9e47a6c58684adf1b83224ce0433a7a64211fd3c57ee73",
+      "post_bytes_sha256": "838a6d2b642b0c791135a56aa0fbd8ff45ce6b105fd1fd165f9f8a8b1b8d9b7c",
+      "reason": "CT16: remove duplicate trigger fields and duplicate formatting arguments."
+    },
+    {
+      "object": "src/core/lbplanner.o",
+      "symbol": "_ZZN4tomo6Server18lb_controller_tickEjmENKUldRNS_10LbAutotune11QuietJitterERjjE_clEdS3_S4_j",
+      "name": "tomo::Server::lb_controller_tick(unsigned int, unsigned long)::{lambda(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+      "pre_size": 575,
+      "post_size": 559,
+      "raw_equal": false,
+      "relocation_equal": false,
+      "pre_bytes_sha256": "abc7b4dbd4a3c39cd761885c628d7919fff261fa8e993533d94431a594429d48",
+      "post_bytes_sha256": "95d2ca76c3a8c944255bb963a1273b9c127084918631839479fbbdd4672003d4",
+      "reason": "CT19: remove the unreachable ratio == 0 disjunct; includes the corresponding existing PAD controller."
+    },
+    {
+      "object": "src/core/lbplanner.o",
+      "symbol": "_ZZN4tomo6Server22lb_controller_tick_padEjmENKUldRNS_10LbAutotune11QuietJitterERjjE_clEdS3_S4_j",
+      "name": "tomo::Server::lb_controller_tick_pad(unsigned int, unsigned long)::{lambda(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int)#1}::operator()(double, tomo::LbAutotune::QuietJitter&, unsigned int&, unsigned int) const",
+      "pre_size": 575,
+      "post_size": 559,
+      "raw_equal": false,
+      "relocation_equal": false,
+      "pre_bytes_sha256": "abc7b4dbd4a3c39cd761885c628d7919fff261fa8e993533d94431a594429d48",
+      "post_bytes_sha256": "95d2ca76c3a8c944255bb963a1273b9c127084918631839479fbbdd4672003d4",
+      "reason": "CT19: remove the unreachable ratio == 0 disjunct; includes the corresponding existing PAD controller."
+    }
+  ],
+  "comparison": "literal opcodes and bytes; relocation operands resolve to target identity",
+  "bodies": 17009,
+  "raw_equal": 16993,
+  "relocation_equal": 16999
+}

@@ -1,0 +1,5 @@
+PASS deadcode2 INFO/DEBUG schema=POST mode=2s databases=1
+PASS deadcode2 INFO/DEBUG schema=POST mode=1s databases=1
+PASS deadcode2 INFO/DEBUG schema=POST mode=2s databases=4
+PASS deadcode2 INFO/DEBUG schema=POST mode=1s databases=4
+PASS core concurrency lbfix (state assertions fired)
