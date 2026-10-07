@@ -138,6 +138,7 @@ def run(api):
                                          (label, args, wake, replies)) from error
             assert replies[0] == replies[1], (args, replies)
             assert b"value" in replies[0], (args, replies)
+            api["coverage"].note(args, "witnessed admitted wake")
             if args[0] in ("BLMOVE", "BRPOPLPUSH"):
                 assert replies[0] == b"$5\r\nvalue\r\n", (args, replies)
                 equal(admins, ["LLEN", keys[0]], b":0\r\n")
