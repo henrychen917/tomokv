@@ -13,8 +13,10 @@ import psfix
 
 class SaveLoadProof(unittest.TestCase):
     def setUp(self):
+        scratch = Path(__file__).resolve().parents[1] / 'build'
+        scratch.mkdir(exist_ok=True)
         self.root = Path(self.enterContext(tempfile.TemporaryDirectory(
-            dir=Path(__file__).resolve().parents[1] / 'build')))
+            dir=scratch)))
         self.enterContext(contextlib.redirect_stdout(io.StringIO()))
         self.peers = [Mock(), Mock()]
         for peer in self.peers:
