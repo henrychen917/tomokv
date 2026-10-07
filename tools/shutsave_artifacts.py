@@ -29,7 +29,7 @@ def main():
         '--eval=shutsave-list:;@echo $(SHUTDOWN_UNIT_OBJ)', 'shutsave-list'], text=True).split()
     command = ['g++', '-pthread', str(source_object), *objects, '-o',
                str(args.root / 'PRE/shutsave-unit'), '-ljemalloc', '-luring', '-lssl', '-lcrypto',
-               '-lm', '-Wl,--wrap=clock_gettime']
+               '-lm', '-Wl,--wrap=clock_gettime', '-Wl,--wrap=fdatasync']
     subprocess.run(command, check=True)
     assert sha(args.root / 'PRE/tomokv') == pre_sha, 'frozen PRE was changed'
     rows = []
@@ -60,9 +60,10 @@ def main():
     run('PRE', ['rewrite'], 'fatal: database worker shutdown timeout elapsed_ms=3000')
     run('PRE', ['retire'], 'fatal: database retire acknowledgement timeout elapsed_ms=3000')
     run('PRE', ['save', '2s', 'sigterm', args.keys], 'fatal: database worker shutdown timeout')
+    run('PRE', ['finalize', '2s', 'sigterm', args.keys], 'fatal: database worker shutdown timeout')
     for mode in ('2s', '1s'):
         for action in ('sigterm', 'nosave', 'shutdown'):
-            for save in ('save', 'bgsave'):
+            for save in ('save', 'bgsave', 'finalize'):
                 run('POST', [save, mode, action, args.keys])
             run('POST', ['save', mode, action, args.keys, 4, 'uring'])
         for phase in (1, 2, 3):

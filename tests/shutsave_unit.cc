@@ -6,8 +6,14 @@
 #include <memory>
 
 using namespace tomo;
-static uint64_t clock_ns = 0, clock_step = 0;
-static std::function<void()> clock_hook;
+static thread_local uint64_t clock_ns = 0, clock_step = 0;
+static thread_local std::function<void()> clock_hook;
+static std::function<void()> sync_hook;
+extern "C" int __real_fdatasync(int);
+extern "C" int __wrap_fdatasync(int fd) {
+    if (sync_hook) sync_hook();
+    return __real_fdatasync(fd);
+}
 extern "C" int __real_clock_gettime(clockid_t, timespec*);
 extern "C" int __wrap_clock_gettime(clockid_t id, timespec* out) {
     if (id != CLOCK_MONOTONIC || !clock_ns) return __real_clock_gettime(id, out);
@@ -115,7 +121,7 @@ struct CoreConcurrencyTest {
 
     template<bool Fused>
     static void save(const std::string& action, unsigned keys, bool background,
-                     Phase stop_phase = Phase::Capture, bool uring = false) {
+                     Phase stop_phase = Phase::Capture, bool uring = false, bool finalizing = false) {
         char directory[] = "build/shutsave/owner-XXXXXX";
         require(::mkdtemp(directory), "fresh snapshot directory");
         const std::string path = std::string(directory) + "/dump.tomo";
@@ -146,6 +152,21 @@ struct CoreConcurrencyTest {
             Phase stop_phase;
             bool armed = false, fired = false;
             unsigned passes = 0;
+            void stop() {
+                fired = true;
+                if (action == "sigterm") {
+                    if (!server.request_signal_shutdown()) server.finish_shutdown();
+                } else {
+                    Op op;
+                    require(op.push_arg(Slice("SHUTDOWN", 8)), "shutdown argv");
+                    if (action == "nosave") require(op.push_arg(Slice("NOSAVE", 6)), "nosave argv");
+                    op.spec = command_lookup(op.cmd_name());
+                    require(op.spec != nullptr, "registered shutdown handler");
+                    op.spec->handler(server.shard(0), op);
+                    require(op.reply.size() == 0, "shutdown command has no error reply");
+                }
+                require(server.shutting_down(), "terminal stop published inside real SAVE");
+            }
             uint32_t progress() {
                 require(++passes < 2'000'000, "bounded production snapshot progress");
                 auto& snapshot = server.snapshot();
@@ -159,19 +180,7 @@ struct CoreConcurrencyTest {
                 }
                 if (armed && !fired && snapshot.phase() == stop_phase &&
                     (stop_phase != Phase::Capture || snapshot.frame_count_ != 0)) {
-                    fired = true;
-                    if (action == "sigterm") {
-                        if (!server.request_signal_shutdown()) server.finish_shutdown();
-                    } else {
-                        Op op;
-                        require(op.push_arg(Slice("SHUTDOWN", 8)), "shutdown argv");
-                        if (action == "nosave") require(op.push_arg(Slice("NOSAVE", 6)), "nosave argv");
-                        op.spec = command_lookup(op.cmd_name());
-                        require(op.spec != nullptr, "registered shutdown handler");
-                        op.spec->handler(server.shard(0), op);
-                        require(op.reply.size() == 0, "shutdown command has no error reply");
-                    }
-                    require(server.shutting_down(), "terminal stop published inside real SAVE");
+                    stop();
                     return 0; // no producer work after terminal stop
                 }
                 uint32_t work = 0;
@@ -215,11 +224,36 @@ struct CoreConcurrencyTest {
             op.spec->handler(server->shard(op.shard), op);
             require(std::string(op.reply.data(), op.reply.size()) == "+OK\r\n", "dataset SET succeeds");
         }
-        driver.armed = true;
+        std::thread supervisor;
+        std::atomic<bool> release_sync{false};
+        if (finalizing) {
+            // Park the actual file-finalization call while a real supervisor
+            // thread executes join_workers. Only its clock is virtual; the
+            // image, fdatasync, rename, footer validation and lifetime edges are real.
+            sync_hook = [&] {
+                require(server->snapshot().phase() == Phase::Capture &&
+                        server->snapshot().ended_shards_ == 16,
+                        "BGSAVE finalization window has all real shard frames");
+                driver.stop();
+                supervisor = std::thread([&] {
+                    clock_ns = 100'000'000'000ull; clock_step = 250'000'000;
+                    clock_hook = [&] {
+                        if (clock_ns >= 108'000'000'000ull) {
+                            clock_step = 0;
+                            release_sync.store(true, std::memory_order_release);
+                        }
+                    };
+                    server->databases().join_workers(*server, workers);
+                    require(clock_ns == 108'000'000'000ull, "finalization outlives the old worker grace");
+                });
+                while (!release_sync.load(std::memory_order_acquire)) std::this_thread::yield();
+            };
+        }
+        driver.armed = !finalizing;
         const auto result = server->snapshot().start(*server, writer, ring, !background, error);
         if (background) {
             require(result == SnapshotManager::StartResult::Started, "real BGSAVE starts");
-            while (!driver.fired) {
+            while (finalizing ? server->snapshot().in_progress() : !driver.fired) {
                 driver.progress();
                 if (!driver.fired) {
                     server->snapshot().writer_pass(writer, ring, true);
@@ -235,10 +269,14 @@ struct CoreConcurrencyTest {
             require(server->snapshot().io_inflight_ == 0,
                     "cancelled SAVE reaps its own kernel requests before returning");
         }
+        sync_hook = {};
         require(driver.fired, "stop window actually opened");
-        require(bytes(path) == baseline, "abandonment preserves the valid previous snapshot");
+        if (finalizing) require(std::filesystem::file_size(path) > uint64_t(keys) * 4096,
+                               "completed snapshot includes the full dataset");
+        else require(bytes(path) == baseline, "abandonment preserves the valid previous snapshot");
         lives.clear();
-        server->databases().join_workers(*server, workers);
+        if (supervisor.joinable()) supervisor.join();
+        else server->databases().join_workers(*server, workers);
         writer.bind_fused_executor_hooks(nullptr, nullptr, nullptr);
         for (auto tid : server->placement().ex_threads()) server->thread(tid).set_ring(nullptr);
         driver.owners.clear();
@@ -248,8 +286,9 @@ struct CoreConcurrencyTest {
         for (const auto& entry : std::filesystem::directory_iterator(directory))
             require(entry.path().filename() == "dump.tomo", "abandoned temporary file is removed");
         std::filesystem::remove_all(directory);
-        std::printf("shutsave %s %s %s %s phase=%u value_bytes=%llu: PASS (window witnessed, valid baseline)\n",
-                    Fused ? "1s" : "2s", uring ? "uring" : "normal", background ? "BGSAVE" : "SAVE", action.c_str(),
+        std::printf("shutsave %s %s %s %s phase=%u value_bytes=%llu: PASS (window witnessed, valid snapshot)\n",
+                    Fused ? "1s" : "2s", uring ? "uring" : "normal",
+                    finalizing ? "BGSAVE-finalization" : background ? "BGSAVE" : "SAVE", action.c_str(),
                     unsigned(stop_phase), static_cast<unsigned long long>(keys) * 4096);
     }
 };
@@ -268,7 +307,7 @@ int main(int argc, char** argv) {
         CoreConcurrencyTest::retire(selection == "retire-hang");
     else if (selection == "boundary") CoreConcurrencyTest::boundary();
     else {
-        require(selection == "save" || selection == "bgsave", "known selection");
+        require(selection == "save" || selection == "bgsave" || selection == "finalize", "known selection");
         require(argc >= 4, "save/bgsave requires mode and action");
         require(command_registry_init(false), "command registry");
         const unsigned keys = argc > 4 ? std::stoul(argv[4]) : 131072;
@@ -276,7 +315,7 @@ int main(int argc, char** argv) {
                                     : SnapshotManager::Phase::Capture;
         const bool uring = argc > 6 && std::string(argv[6]) == "uring";
         require(!uring || selection == "save", "uring fixture exercises blocking SAVE's real CQE drain");
-        if (std::string(argv[2]) == "1s") CoreConcurrencyTest::save<true>(argv[3], keys, selection == "bgsave", phase, uring);
-        else CoreConcurrencyTest::save<false>(argv[3], keys, selection == "bgsave", phase, uring);
+        if (std::string(argv[2]) == "1s") CoreConcurrencyTest::save<true>(argv[3], keys, selection != "save", phase, uring, selection == "finalize");
+        else CoreConcurrencyTest::save<false>(argv[3], keys, selection != "save", phase, uring, selection == "finalize");
     }
 }
