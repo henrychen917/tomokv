@@ -6241,7 +6241,7 @@ def run_psfix_suite():
         # This explicit inventory makes omissions fail. Intersecting the two observed
         # sets alone would silently accept a missing/misspelled field on the target.
         shared = set(b"loading rdb_changes_since_last_save rdb_bgsave_in_progress "
-                     b"rdb_last_save_time rdb_saves aof_enabled aof_rewrite_in_progress "
+                     b"rdb_last_save_time rdb_last_bgsave_status rdb_saves aof_enabled aof_rewrite_in_progress "
                      b"aof_rewrite_scheduled aof_last_bgrewrite_status aof_rewrites "
                      b"aof_rewrites_consecutive_failures aof_last_write_status".split())
         conditional = set(b"aof_current_size aof_base_size aof_pending_rewrite".split())
@@ -6277,6 +6277,7 @@ def run_psfix_suite():
                 assert int(fields[b"rdb_saves"]) == before + 1, (label, command, before, fields)
                 assert int(persistence(peer)[b"rdb_saves"]) == before + 1, "INFO advanced save count"
                 assert fields[b"loading"] == b"0"
+                assert fields[b"rdb_last_bgsave_status"] == b"ok", (label, command, fields)
                 coverage.note([command], "rdb_saves advances exactly once after completion")
                 checks += 1
                 print("  PSFIX %s %s rdb_saves %d -> %d; loading:0" % (label, command, before, before + 1))

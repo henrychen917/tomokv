@@ -25,10 +25,12 @@ int main() {
     }
     const auto samples = g_info_stats.samples;
     const auto last = g_info_stats.last_sample_ns;
+    const auto cursor = g_info_stats.cursor;
     for (unsigned i = 0; i < 100; ++i) {
         assert(info_stats_rates()[0] == 1000);
         assert(g_info_stats.samples == samples);
         assert(g_info_stats.last_sample_ns == last);
+        assert(g_info_stats.cursor == cursor);
     }
     for (unsigned i = 1; i <= 16; ++i) {
         sample(now += tick, totals, 12);

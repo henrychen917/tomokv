@@ -22,8 +22,8 @@ audit.Elf.target = constant_target
 ROOT = Path(__file__).resolve().parents[1]
 COLD = re.compile(r'::(?:info_|command_bind_server\(|command_config_resetstat\(|'
                   r'\(anonymous namespace\)::cmd_(?:info|config)\(|'
-                  r'IoLoop::climon_monitor_feed\(|snapshot_last_bgsave_ok\(|'
-                  r'SnapshotManager::(?:abort_file|complete_file_success|init)\()')
+                  r'IoLoop::climon_monitor_feed\(|snapshot_last_bgsave_ok\(|record_bgsave_failure\(|'
+                  r'SnapshotManager::(?:abort_file|complete_file_success|init|start)\()')
 
 
 def selected(path):

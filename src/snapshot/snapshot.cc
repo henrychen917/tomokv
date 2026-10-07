@@ -145,6 +145,9 @@ SnapshotIoContext snapshot_io_context() { return tls_io_context; }
 // constructor and layouts so adding INFO fields cannot perturb ordinary execution.
 static std::atomic<uint64_t> completed_saves{0};
 static std::atomic<bool> last_bgsave_ok{true};
+[[gnu::noinline, gnu::cold]] static void record_bgsave_failure(AofManager* rewrite) {
+    if (!rewrite) last_bgsave_ok.store(false, std::memory_order_relaxed);
+}
 bool snapshot_last_bgsave_ok() {
     return last_bgsave_ok.load(std::memory_order_relaxed);
 }
@@ -318,6 +321,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     temp_path_ = final_path_ + suffix;
     fd_ = ::open(temp_path_.c_str(), O_CREAT | O_EXCL | O_WRONLY | O_CLOEXEC, 0600);
     if (fd_ < 0) {
+        record_bgsave_failure(rewrite_);
         error = "could not create snapshot temporary file";
         server.set_snapshot_atomic_barrier(false);
         phase_.store(Phase::Idle, std::memory_order_release);
