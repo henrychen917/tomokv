@@ -1,0 +1,4 @@
+PASS sortstore selected-DB STORE/read pipeline and DB 0 isolation
+multidb RYOW: 2048 SELECT round trips; concurrent writes=[116, 109, 112, 103]
+multidb SWAPDB: two swappers=[128, 128], read batches=66
+multidb PASS: namespace commands, transactions, WATCH, SWAPDB, blocking, notifications and persistence

@@ -1,0 +1,28 @@
+ok	0.060000	configuration reduction + actual geometry (epoll, atomic 0)
+ok	0.430000	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)
+ok	0.040000	AOF writer fired (records=N)
+ok	0.050000	AOF process-restart script replay (epoll, atomic 0)
+ok	0.030000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=N skipped=N)
+ok	0.080000	configuration reduction + actual geometry (epoll, atomic 1)
+ok	0.430000	AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)
+ok	0.040000	AOF writer fired (records=N)
+ok	0.040000	AOF process-restart script replay (epoll, atomic 1)
+ok	0.040000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=N skipped=N)
+ok	0.340000	AOF directed group interruption fired
+ok	0.050000	AOF atomic-group recovery + writer order
+ok	0.020000	AOF group shutdown invariants
+ok	0.840000	AOF always sync + reply gate fired
+ok	0.030000	AOF always recovery after quiescent SIGKILL
+ok	4.110000	AOF in-window kill recovery (2s, epoll)
+ok	4.950000	AOF in-window term recovery (2s, epoll)
+ok	3.910000	AOF in-window kill recovery (1s, epoll)
+ok	4.500000	AOF in-window term recovery (1s, epoll)
+ok	2.140000	AOF everysec write gate + idle sync fired
+ok	0.030000	AOF everysec durability window + tail warning
+ok	0.020000	AOF no-sync bypassed sync + reply gate
+ok	6.730000	AOF rewrite atomic/stage/corruption matrix
+ok	7.140000	AOF rewrite triggers + observability matrix
+ok	0.010000	AOF-off negative-control seed landed
+ok	0.000000	AOF-off negative control lost data
