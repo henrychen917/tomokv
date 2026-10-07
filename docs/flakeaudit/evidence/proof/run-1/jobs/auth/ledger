@@ -1,0 +1,7 @@
+ok	0.000000	reject bad protected-mode
+ok	0.010000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	0.280000	ACL battery (atomic off)
+ok	0.280000	ACL battery (atomic on)
+ok	1.030000	DEBUG toggle/reload battery
+ok	0.120000	typed snapshot round-trip incl stream

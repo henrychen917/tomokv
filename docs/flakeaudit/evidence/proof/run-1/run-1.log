@@ -1,0 +1,477 @@
+GATE(iteration): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-flakeaudit/build/gate-run.vuf9be
+PARTIAL jobs (including prerequisites): release production_units feature-split-0 feature-armed-0 feature-split-1 feature-armed-1 multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 aof-epoll aof-uring snapshot-epoll snapshot-uring netio-1s netio-2s auth
+PARTIAL jobs (including prerequisites): release production_units feature-split-0 feature-armed-0 feature-split-1 feature-armed-1 multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 aof-epoll aof-uring snapshot-epoll snapshot-uring netio-1s netio-2s auth
+  row budget: 900s; median=0.02s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=2.45s; correctness-plan-fallback; s6 battery (atomic 0)
+  s6 battery (atomic 0)                                ok
+  row budget: 900s; median=2.07s; correctness-plan-fallback; multi_exec battery (atomic 0)
+  multi_exec battery (atomic 0)                        ok
+  row budget: 900s; median=1.53s; correctness-plan-fallback; blocking battery (atomic 0)
+  blocking battery (atomic 0)                          ok
+  row budget: 900s; median=0.48s; correctness-plan-fallback; blockmulti battery (atomic 0)
+  blockmulti battery (atomic 0)                        ok
+  row budget: 900s; median=0.49s; correctness-plan-fallback; stream battery (atomic 0)
+  stream battery (atomic 0)                            ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; streamgroups battery (atomic 0)
+  streamgroups battery (atomic 0)                      ok
+  row budget: 900s; median=0.88s; correctness-plan-fallback; pubsub battery (atomic 0)
+  pubsub battery (atomic 0)                            ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; lua_scripting battery (atomic 0)
+  lua_scripting battery (atomic 0)                     ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; scriptsurf battery (atomic 0)
+  scriptsurf battery (atomic 0)                        ok
+  row budget: 900s; median=15.04s; correctness-plan-fallback; limits battery (atomic 0)
+  limits battery (atomic 0)                            ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; resp3 battery (atomic 0)
+  resp3 battery (atomic 0)                             ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; bitfield battery (atomic 0)
+  bitfield battery (atomic 0)                          ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; dumprestore battery (atomic 0)
+  dumprestore battery (atomic 0)                       ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; zsetops battery (atomic 0)
+  zsetops battery (atomic 0)                           ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; geo battery (atomic 0)
+  geo battery (atomic 0)                               ok
+  row budget: 900s; median=1.14s; correctness-plan-fallback; climon battery (atomic 0)
+  climon battery (atomic 0)                            ok
+  row budget: 900s; median=3.32s; correctness-plan-fallback; climon2 battery (atomic 0)
+  climon2 battery (atomic 0)                           ok
+  row budget: 900s; median=13.71s; correctness-plan-fallback; tracking battery (atomic 0)
+  tracking battery (atomic 0)                          ok
+  row budget: 900s; median=3.45s; correctness-plan-fallback; hexpire battery (atomic 0)
+  hexpire battery (atomic 0)                           ok
+  row budget: 900s; median=2.45s; correctness-plan-fallback; servertail battery (atomic 0)
+  servertail battery (atomic 0)                        ok
+  row budget: 900s; median=0.15s; correctness-plan-fallback; lcs battery (atomic 0)
+  lcs battery (atomic 0)                               ok
+  row budget: 900s; median=1.72s; correctness-plan-fallback; concur battery (atomic 0)
+  concur battery (atomic 0)                            ok
+  row budget: 900s; median=0.74s; correctness-plan-fallback; edgeproto battery (atomic 0)
+  edgeproto battery (atomic 0)                         ok
+  row budget: 900s; median=0.34s; correctness-plan-fallback; edgeenc battery (atomic 0)
+  edgeenc battery (atomic 0)                           ok
+  row budget: 900s; median=3.89s; correctness-plan-fallback; edgetime battery (atomic 0)
+  edgetime battery (atomic 0)                          ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; arity battery (atomic 0)
+  arity battery (atomic 0)                             ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; contarity battery (atomic 0)
+  contarity battery (atomic 0)                         ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; cmdgap battery (atomic 0)
+  cmdgap battery (atomic 0)                            ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; aclsel battery (atomic 0)
+  aclsel battery (atomic 0)                            ok
+  row budget: 900s; median=58.65s; correctness-plan-fallback; expwide battery (atomic 0)
+  expwide battery (atomic 0)                           ok
+  row budget: 900s; median=0.14s; correctness-plan-fallback; infofix battery (atomic 0)
+  infofix battery (atomic 0)                           ok
+  row budget: 900s; median=2.94s; correctness-plan-fallback; pushtear battery (atomic 0)
+  pushtear battery (atomic 0)                          ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; netcmd battery (atomic 0)
+  netcmd battery (atomic 0)                            ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; feature shutdown invariants (atomic 0)
+  feature shutdown invariants (atomic 0)               ok
+  row budget: 900s; median=0.26s; correctness-plan-fallback; fused+armed boot line (atomic 0)
+  fused+armed boot line (atomic 0)                     ok
+  row budget: 900s; median=1.13s; correctness-plan-fallback; fused+armed s6 battery (atomic 0)
+  fused+armed s6 battery (atomic 0)                    ok
+  row budget: 900s; median=2.08s; correctness-plan-fallback; fused+armed multi_exec battery (atomic 0)
+  fused+armed multi_exec battery (atomic 0)            ok
+  row budget: 900s; median=1.42s; correctness-plan-fallback; fused+armed blocking battery (atomic 0)
+  fused+armed blocking battery (atomic 0)              ok
+  row budget: 900s; median=0.48s; correctness-plan-fallback; fused+armed blockmulti battery (atomic 0)
+  fused+armed blockmulti battery (atomic 0)            ok
+  row budget: 900s; median=0.5s; correctness-plan-fallback; fused+armed stream battery (atomic 0)
+  fused+armed stream battery (atomic 0)                ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed streamgroups battery (atomic 0)
+  fused+armed streamgroups battery (atomic 0)          ok
+  row budget: 900s; median=0.92s; correctness-plan-fallback; fused+armed pubsub battery (atomic 0)
+  fused+armed pubsub battery (atomic 0)                ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed lua_scripting battery (atomic 0)
+  fused+armed lua_scripting battery (atomic 0)         ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; fused+armed scriptsurf battery (atomic 0)
+  fused+armed scriptsurf battery (atomic 0)            ok
+  row budget: 900s; median=15.21s; correctness-plan-fallback; fused+armed limits battery (atomic 0)
+  fused+armed limits battery (atomic 0)                ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed resp3 battery (atomic 0)
+  fused+armed resp3 battery (atomic 0)                 ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed bitfield battery (atomic 0)
+  fused+armed bitfield battery (atomic 0)              ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; fused+armed dumprestore battery (atomic 0)
+  fused+armed dumprestore battery (atomic 0)           ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; fused+armed zsetops battery (atomic 0)
+  fused+armed zsetops battery (atomic 0)               ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed geo battery (atomic 0)
+  fused+armed geo battery (atomic 0)                   ok
+  row budget: 900s; median=1.13s; correctness-plan-fallback; fused+armed climon battery (atomic 0)
+  fused+armed climon battery (atomic 0)                ok
+  row budget: 900s; median=3.33s; correctness-plan-fallback; fused+armed climon2 battery (atomic 0)
+  fused+armed climon2 battery (atomic 0)               ok
+  row budget: 900s; median=13.71s; correctness-plan-fallback; fused+armed tracking battery (atomic 0)
+  fused+armed tracking battery (atomic 0)              ok
+  row budget: 900s; median=3.45s; correctness-plan-fallback; fused+armed hexpire battery (atomic 0)
+  fused+armed hexpire battery (atomic 0)               ok
+  row budget: 900s; median=2.55s; correctness-plan-fallback; fused+armed servertail battery (atomic 0)
+  fused+armed servertail battery (atomic 0)            ok
+  row budget: 900s; median=0.16s; correctness-plan-fallback; fused+armed lcs battery (atomic 0)
+  fused+armed lcs battery (atomic 0)                   ok
+  row budget: 900s; median=1.8s; correctness-plan-fallback; fused+armed concur battery (atomic 0)
+  fused+armed concur battery (atomic 0)                ok
+  row budget: 900s; median=0.74s; correctness-plan-fallback; fused+armed edgeproto battery (atomic 0)
+  fused+armed edgeproto battery (atomic 0)             ok
+  row budget: 900s; median=0.36s; correctness-plan-fallback; fused+armed edgeenc battery (atomic 0)
+  fused+armed edgeenc battery (atomic 0)               ok
+  row budget: 900s; median=4.07s; correctness-plan-fallback; fused+armed edgetime battery (atomic 0)
+  fused+armed edgetime battery (atomic 0)              ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; fused+armed arity battery (atomic 0)
+  fused+armed arity battery (atomic 0)                 ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed contarity battery (atomic 0)
+  fused+armed contarity battery (atomic 0)             ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; fused+armed cmdgap battery (atomic 0)
+  fused+armed cmdgap battery (atomic 0)                ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed aclsel battery (atomic 0)
+  fused+armed aclsel battery (atomic 0)                ok
+  row budget: 900s; median=58.76s; correctness-plan-fallback; fused+armed expwide battery (atomic 0)
+  fused+armed expwide battery (atomic 0)               ok
+  row budget: 900s; median=0.15s; correctness-plan-fallback; fused+armed infofix battery (atomic 0)
+  fused+armed infofix battery (atomic 0)               ok
+  row budget: 900s; median=2.93s; correctness-plan-fallback; fused+armed pushtear battery (atomic 0)
+  fused+armed pushtear battery (atomic 0)              ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; fused+armed netcmd battery (atomic 0)
+  fused+armed netcmd battery (atomic 0)                ok
+  row budget: 900s; median=1.17s; correctness-plan-fallback; fused+armed shutdown report + lane fired (hits=N, atomic 0)
+  fused+armed shutdown report + lane fired (hits=557, atomic 0) ok
+  row budget: 900s; median=2.45s; correctness-plan-fallback; s6 battery (atomic 1)
+  s6 battery (atomic 1)                                ok
+  row budget: 900s; median=2.07s; correctness-plan-fallback; multi_exec battery (atomic 1)
+  multi_exec battery (atomic 1)                        ok
+  row budget: 900s; median=1.51s; correctness-plan-fallback; blocking battery (atomic 1)
+  blocking battery (atomic 1)                          ok
+  row budget: 900s; median=0.48s; correctness-plan-fallback; blockmulti battery (atomic 1)
+  blockmulti battery (atomic 1)                        ok
+  row budget: 900s; median=0.5s; correctness-plan-fallback; stream battery (atomic 1)
+  stream battery (atomic 1)                            ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; streamgroups battery (atomic 1)
+  streamgroups battery (atomic 1)                      ok
+  row budget: 900s; median=0.9s; correctness-plan-fallback; pubsub battery (atomic 1)
+  pubsub battery (atomic 1)                            ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; lua_scripting battery (atomic 1)
+  lua_scripting battery (atomic 1)                     ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; scriptsurf battery (atomic 1)
+  scriptsurf battery (atomic 1)                        ok
+  row budget: 900s; median=15.39s; correctness-plan-fallback; limits battery (atomic 1)
+  limits battery (atomic 1)                            ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; resp3 battery (atomic 1)
+  resp3 battery (atomic 1)                             ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; bitfield battery (atomic 1)
+  bitfield battery (atomic 1)                          ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; dumprestore battery (atomic 1)
+  dumprestore battery (atomic 1)                       ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; zsetops battery (atomic 1)
+  zsetops battery (atomic 1)                           ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; geo battery (atomic 1)
+  geo battery (atomic 1)                               ok
+  row budget: 900s; median=1.13s; correctness-plan-fallback; climon battery (atomic 1)
+  climon battery (atomic 1)                            ok
+  row budget: 900s; median=3.35s; correctness-plan-fallback; climon2 battery (atomic 1)
+  climon2 battery (atomic 1)                           ok
+  row budget: 900s; median=13.71s; correctness-plan-fallback; tracking battery (atomic 1)
+  tracking battery (atomic 1)                          ok
+  row budget: 900s; median=3.45s; correctness-plan-fallback; hexpire battery (atomic 1)
+  hexpire battery (atomic 1)                           ok
+  row budget: 900s; median=2.54s; correctness-plan-fallback; servertail battery (atomic 1)
+  servertail battery (atomic 1)                        ok
+  row budget: 900s; median=0.16s; correctness-plan-fallback; lcs battery (atomic 1)
+  lcs battery (atomic 1)                               ok
+  row budget: 900s; median=1.8s; correctness-plan-fallback; concur battery (atomic 1)
+  concur battery (atomic 1)                            ok
+  row budget: 900s; median=0.58s; correctness-plan-fallback; edgeproto battery (atomic 1)
+  edgeproto battery (atomic 1)                         ok
+  row budget: 900s; median=0.34s; correctness-plan-fallback; edgeenc battery (atomic 1)
+  edgeenc battery (atomic 1)                           ok
+  row budget: 900s; median=4.29s; correctness-plan-fallback; edgetime battery (atomic 1)
+  edgetime battery (atomic 1)                          ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; arity battery (atomic 1)
+  arity battery (atomic 1)                             ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; contarity battery (atomic 1)
+  contarity battery (atomic 1)                         ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; cmdgap battery (atomic 1)
+  cmdgap battery (atomic 1)                            ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; aclsel battery (atomic 1)
+  aclsel battery (atomic 1)                            ok
+  row budget: 900s; median=47.6s; correctness-plan-fallback; expwide battery (atomic 1)
+  expwide battery (atomic 1)                           ok
+  row budget: 900s; median=0.14s; correctness-plan-fallback; infofix battery (atomic 1)
+  infofix battery (atomic 1)                           ok
+  row budget: 900s; median=2.93s; correctness-plan-fallback; pushtear battery (atomic 1)
+  pushtear battery (atomic 1)                          ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; netcmd battery (atomic 1)
+  netcmd battery (atomic 1)                            ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; feature shutdown invariants (atomic 1)
+  feature shutdown invariants (atomic 1)               ok
+  row budget: 900s; median=0.26s; correctness-plan-fallback; fused+armed boot line (atomic 1)
+  fused+armed boot line (atomic 1)                     ok
+  row budget: 900s; median=1.22s; correctness-plan-fallback; fused+armed s6 battery (atomic 1)
+  fused+armed s6 battery (atomic 1)                    ok
+  row budget: 900s; median=2.07s; correctness-plan-fallback; fused+armed multi_exec battery (atomic 1)
+  fused+armed multi_exec battery (atomic 1)            ok
+  row budget: 900s; median=1.43s; correctness-plan-fallback; fused+armed blocking battery (atomic 1)
+  fused+armed blocking battery (atomic 1)              ok
+  row budget: 900s; median=0.48s; correctness-plan-fallback; fused+armed blockmulti battery (atomic 1)
+  fused+armed blockmulti battery (atomic 1)            ok
+  row budget: 900s; median=0.51s; correctness-plan-fallback; fused+armed stream battery (atomic 1)
+  fused+armed stream battery (atomic 1)                ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed streamgroups battery (atomic 1)
+  fused+armed streamgroups battery (atomic 1)          ok
+  row budget: 900s; median=0.88s; correctness-plan-fallback; fused+armed pubsub battery (atomic 1)
+  fused+armed pubsub battery (atomic 1)                ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed lua_scripting battery (atomic 1)
+  fused+armed lua_scripting battery (atomic 1)         ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; fused+armed scriptsurf battery (atomic 1)
+  fused+armed scriptsurf battery (atomic 1)            ok
+  row budget: 900s; median=14.83s; correctness-plan-fallback; fused+armed limits battery (atomic 1)
+  fused+armed limits battery (atomic 1)                ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed resp3 battery (atomic 1)
+  fused+armed resp3 battery (atomic 1)                 ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed bitfield battery (atomic 1)
+  fused+armed bitfield battery (atomic 1)              ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; fused+armed dumprestore battery (atomic 1)
+  fused+armed dumprestore battery (atomic 1)           ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; fused+armed zsetops battery (atomic 1)
+  fused+armed zsetops battery (atomic 1)               ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; fused+armed geo battery (atomic 1)
+  fused+armed geo battery (atomic 1)                   ok
+  row budget: 900s; median=1.12s; correctness-plan-fallback; fused+armed climon battery (atomic 1)
+  fused+armed climon battery (atomic 1)                ok
+  row budget: 900s; median=3.35s; correctness-plan-fallback; fused+armed climon2 battery (atomic 1)
+  fused+armed climon2 battery (atomic 1)               ok
+  row budget: 900s; median=13.71s; correctness-plan-fallback; fused+armed tracking battery (atomic 1)
+  fused+armed tracking battery (atomic 1)              ok
+  row budget: 900s; median=3.44s; correctness-plan-fallback; fused+armed hexpire battery (atomic 1)
+  fused+armed hexpire battery (atomic 1)               ok
+  row budget: 900s; median=2.55s; correctness-plan-fallback; fused+armed servertail battery (atomic 1)
+  fused+armed servertail battery (atomic 1)            ok
+  row budget: 900s; median=0.16s; correctness-plan-fallback; fused+armed lcs battery (atomic 1)
+  fused+armed lcs battery (atomic 1)                   ok
+  row budget: 900s; median=1.81s; correctness-plan-fallback; fused+armed concur battery (atomic 1)
+  fused+armed concur battery (atomic 1)                ok
+  row budget: 900s; median=0.74s; correctness-plan-fallback; fused+armed edgeproto battery (atomic 1)
+  fused+armed edgeproto battery (atomic 1)             ok
+  row budget: 900s; median=0.37s; correctness-plan-fallback; fused+armed edgeenc battery (atomic 1)
+  fused+armed edgeenc battery (atomic 1)               ok
+  row budget: 900s; median=4.06s; correctness-plan-fallback; fused+armed edgetime battery (atomic 1)
+  fused+armed edgetime battery (atomic 1)              ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed arity battery (atomic 1)
+  fused+armed arity battery (atomic 1)                 ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; fused+armed contarity battery (atomic 1)
+  fused+armed contarity battery (atomic 1)             ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed cmdgap battery (atomic 1)
+  fused+armed cmdgap battery (atomic 1)                ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed aclsel battery (atomic 1)
+  fused+armed aclsel battery (atomic 1)                ok
+  row budget: 900s; median=61.17s; correctness-plan-fallback; fused+armed expwide battery (atomic 1)
+  fused+armed expwide battery (atomic 1)               ok
+  row budget: 900s; median=0.15s; correctness-plan-fallback; fused+armed infofix battery (atomic 1)
+  fused+armed infofix battery (atomic 1)               ok
+  row budget: 900s; median=2.92s; correctness-plan-fallback; fused+armed pushtear battery (atomic 1)
+  fused+armed pushtear battery (atomic 1)              ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; fused+armed netcmd battery (atomic 1)
+  fused+armed netcmd battery (atomic 1)                ok
+  row budget: 900s; median=1.17s; correctness-plan-fallback; fused+armed shutdown report + lane fired (hits=N, atomic 1)
+  fused+armed shutdown report + lane fired (hits=557, atomic 1) ok
+  row budget: 900s; median=4.43s; correctness-plan-fallback; multidb (1s, read-local 0, atomic 0)
+  multidb (1s, read-local 0, atomic 0)                 ok
+  row budget: 900s; median=0.1s; correctness-plan-fallback; multidb (1s, read-local 0, atomic 0) SWAPDB serial order
+  multidb (1s, read-local 0, atomic 0) SWAPDB serial order ok
+  row budget: 900s; median=4.42s; correctness-plan-fallback; multidb (1s, read-local 0, atomic 1)
+  multidb (1s, read-local 0, atomic 1)                 ok
+  row budget: 900s; median=0.09s; correctness-plan-fallback; multidb (1s, read-local 0, atomic 1) SWAPDB serial order
+  multidb (1s, read-local 0, atomic 1) SWAPDB serial order ok
+  row budget: 900s; median=4.41s; correctness-plan-fallback; multidb (1s, read-local 1, atomic 0)
+  multidb (1s, read-local 1, atomic 0)                 ok
+  row budget: 900s; median=0.1s; correctness-plan-fallback; multidb (1s, read-local 1, atomic 0) SWAPDB serial order
+  multidb (1s, read-local 1, atomic 0) SWAPDB serial order ok
+  row budget: 900s; median=4.41s; correctness-plan-fallback; multidb (1s, read-local 1, atomic 1)
+  multidb (1s, read-local 1, atomic 1)                 ok
+  row budget: 900s; median=0.1s; correctness-plan-fallback; multidb (1s, read-local 1, atomic 1) SWAPDB serial order
+  multidb (1s, read-local 1, atomic 1) SWAPDB serial order ok
+  row budget: 900s; median=4.32s; correctness-plan-fallback; multidb (2s, read-local 0, atomic 0)
+  multidb (2s, read-local 0, atomic 0)                 ok
+  row budget: 900s; median=0.09s; correctness-plan-fallback; multidb (2s, read-local 0, atomic 0) SWAPDB serial order
+  multidb (2s, read-local 0, atomic 0) SWAPDB serial order ok
+  row budget: 900s; median=4.31s; correctness-plan-fallback; multidb (2s, read-local 0, atomic 1)
+  multidb (2s, read-local 0, atomic 1)                 ok
+  row budget: 900s; median=0.1s; correctness-plan-fallback; multidb (2s, read-local 0, atomic 1) SWAPDB serial order
+  multidb (2s, read-local 0, atomic 1) SWAPDB serial order ok
+  row budget: 900s; median=4.32s; correctness-plan-fallback; multidb (2s, read-local 1, atomic 0)
+  multidb (2s, read-local 1, atomic 0)                 ok
+  row budget: 900s; median=0.11s; correctness-plan-fallback; multidb (2s, read-local 1, atomic 0) SWAPDB serial order
+  multidb (2s, read-local 1, atomic 0) SWAPDB serial order ok
+  row budget: 900s; median=4.27s; correctness-plan-fallback; multidb (2s, read-local 1, atomic 1)
+  multidb (2s, read-local 1, atomic 1)                 ok
+  row budget: 900s; median=0.09s; correctness-plan-fallback; multidb (2s, read-local 1, atomic 1) SWAPDB serial order
+  multidb (2s, read-local 1, atomic 1) SWAPDB serial order ok
+  row budget: 900s; median=0.08s; correctness-plan-fallback; configuration reduction + actual geometry (epoll, atomic 0)
+  configuration reduction + actual geometry (epoll, atomic 0) ok
+  row budget: 900s; median=0.42s; correctness-plan-fallback; AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)
+  AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0) ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF writer fired (records=N)
+  AOF writer fired (records=977)                       ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; AOF process-restart script replay (epoll, atomic 0)
+  AOF process-restart script replay (epoll, atomic 0)  ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF native snapshot streams byte-exact
+  AOF native snapshot streams byte-exact               ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; AOF replay fired (records=N skipped=N)
+  AOF replay fired (records=977 skipped=0)             ok
+  row budget: 900s; median=0.09s; correctness-plan-fallback; configuration reduction + actual geometry (epoll, atomic 1)
+  configuration reduction + actual geometry (epoll, atomic 1) ok
+  row budget: 900s; median=0.43s; correctness-plan-fallback; AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)
+  AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1) ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF writer fired (records=N)
+  AOF writer fired (records=978)                       ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF process-restart script replay (epoll, atomic 1)
+  AOF process-restart script replay (epoll, atomic 1)  ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF native snapshot streams byte-exact
+  AOF native snapshot streams byte-exact               ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; AOF replay fired (records=N skipped=N)
+  AOF replay fired (records=978 skipped=0)             ok
+  row budget: 900s; median=0.34s; correctness-plan-fallback; AOF directed group interruption fired
+  AOF directed group interruption fired                ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; AOF atomic-group recovery + writer order
+  AOF atomic-group recovery + writer order             ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; AOF group shutdown invariants
+  AOF group shutdown invariants                        ok
+  row budget: 900s; median=0.915s; correctness-plan-fallback; AOF always sync + reply gate fired
+  AOF always sync + reply gate fired                   ok
+  row budget: 900s; median=0.025s; correctness-plan-fallback; AOF always recovery after quiescent SIGKILL
+  AOF always recovery after quiescent SIGKILL          ok
+  row budget: 900s; median=4.11s; correctness-plan-fallback; AOF in-window kill recovery (2s, epoll)
+  AOF in-window kill recovery (2s, epoll)              ok
+  row budget: 900s; median=5.2s; correctness-plan-fallback; AOF in-window term recovery (2s, epoll)
+  AOF in-window term recovery (2s, epoll)              ok
+  row budget: 900s; median=3.86s; correctness-plan-fallback; AOF in-window kill recovery (1s, epoll)
+  AOF in-window kill recovery (1s, epoll)              ok
+  row budget: 900s; median=5.1s; correctness-plan-fallback; AOF in-window term recovery (1s, epoll)
+  AOF in-window term recovery (1s, epoll)              ok
+  row budget: 900s; median=2.21s; correctness-plan-fallback; AOF everysec write gate + idle sync fired
+  AOF everysec write gate + idle sync fired            ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; AOF everysec durability window + tail warning
+  AOF everysec durability window + tail warning        ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; AOF no-sync bypassed sync + reply gate
+  AOF no-sync bypassed sync + reply gate               ok
+  row budget: 900s; median=8.495s; correctness-plan-fallback; AOF rewrite atomic/stage/corruption matrix
+  AOF rewrite atomic/stage/corruption matrix           ok
+  row budget: 900s; median=6.98s; correctness-plan-fallback; AOF rewrite triggers + observability matrix
+  AOF rewrite triggers + observability matrix          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; AOF-off negative-control seed landed
+  AOF-off negative-control seed landed                 ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; AOF-off negative control lost data
+  AOF-off negative control lost data                   ok
+  row budget: 900s; median=0.08s; correctness-plan-fallback; configuration reduction + actual geometry (uring, atomic 0)
+  configuration reduction + actual geometry (uring, atomic 0) ok
+  row budget: 900s; median=0.43s; correctness-plan-fallback; AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)
+  AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0) ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF writer fired (records=N)
+  AOF writer fired (records=977)                       ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF process-restart script replay (uring, atomic 0)
+  AOF process-restart script replay (uring, atomic 0)  ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF native snapshot streams byte-exact
+  AOF native snapshot streams byte-exact               ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; AOF replay fired (records=N skipped=N)
+  AOF replay fired (records=977 skipped=0)             ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; configuration reduction + actual geometry (uring, atomic 1)
+  configuration reduction + actual geometry (uring, atomic 1) ok
+  row budget: 900s; median=0.44s; correctness-plan-fallback; AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)
+  AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1) ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF writer fired (records=N)
+  AOF writer fired (records=978)                       ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF process-restart script replay (uring, atomic 1)
+  AOF process-restart script replay (uring, atomic 1)  ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; AOF native snapshot streams byte-exact
+  AOF native snapshot streams byte-exact               ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; AOF replay fired (records=N skipped=N)
+  AOF replay fired (records=978 skipped=0)             ok
+  row budget: 900s; median=0.34s; correctness-plan-fallback; AOF directed group interruption fired
+  AOF directed group interruption fired                ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; AOF atomic-group recovery + writer order
+  AOF atomic-group recovery + writer order             ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; AOF group shutdown invariants
+  AOF group shutdown invariants                        ok
+  row budget: 900s; median=0.915s; correctness-plan-fallback; AOF always sync + reply gate fired
+  AOF always sync + reply gate fired                   ok
+  row budget: 900s; median=0.025s; correctness-plan-fallback; AOF always recovery after quiescent SIGKILL
+  AOF always recovery after quiescent SIGKILL          ok
+  row budget: 900s; median=4.14s; correctness-plan-fallback; AOF in-window kill recovery (2s, uring)
+  AOF in-window kill recovery (2s, uring)              ok
+  row budget: 900s; median=4.68s; correctness-plan-fallback; AOF in-window term recovery (2s, uring)
+  AOF in-window term recovery (2s, uring)              ok
+  row budget: 900s; median=4s; correctness-plan-fallback; AOF in-window kill recovery (1s, uring)
+  AOF in-window kill recovery (1s, uring)              ok
+  row budget: 900s; median=5.64s; correctness-plan-fallback; AOF in-window term recovery (1s, uring)
+  AOF in-window term recovery (1s, uring)              ok
+  row budget: 900s; median=2.21s; correctness-plan-fallback; AOF everysec write gate + idle sync fired
+  AOF everysec write gate + idle sync fired            ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; AOF everysec durability window + tail warning
+  AOF everysec durability window + tail warning        ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; AOF no-sync bypassed sync + reply gate
+  AOF no-sync bypassed sync + reply gate               ok
+  row budget: 900s; median=8.495s; correctness-plan-fallback; AOF rewrite atomic/stage/corruption matrix
+  AOF rewrite atomic/stage/corruption matrix           ok
+  row budget: 900s; median=6.98s; correctness-plan-fallback; AOF rewrite triggers + observability matrix
+  AOF rewrite triggers + observability matrix          ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; AOF-off negative-control seed landed
+  AOF-off negative-control seed landed                 ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; AOF-off negative control lost data
+  AOF-off negative control lost data                   ok
+  row budget: 900s; median=0.64s; correctness-plan-fallback; snapshot concurrent cut (epoll)
+  snapshot concurrent cut (epoll)                      ok
+  row budget: 900s; median=0.19s; correctness-plan-fallback; snapshot cut reload (epoll)
+  snapshot cut reload (epoll)                          ok
+  row budget: 900s; median=2.77s; correctness-plan-fallback; snapshot never tears a cross-shard MSET group (epoll, atomic 1)
+  snapshot never tears a cross-shard MSET group (epoll, atomic 1) ok
+  row budget: 900s; median=5.17s; correctness-plan-fallback; snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)
+  snapshot never tears a MULTI/EXEC group (epoll, default atomic 0) ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot save (epoll)
+  typed snapshot save (epoll)                          ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot reload (epoll)
+  typed snapshot reload (epoll)                        ok
+  row budget: 900s; median=0.16s; correctness-plan-fallback; typed snapshot preimage race (epoll)
+  typed snapshot preimage race (epoll)                 ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot race reload (epoll)
+  typed snapshot race reload (epoll)                   ok
+  row budget: 900s; median=0.63s; correctness-plan-fallback; snapshot concurrent cut (uring)
+  snapshot concurrent cut (uring)                      ok
+  row budget: 900s; median=0.17s; correctness-plan-fallback; snapshot cut reload (uring)
+  snapshot cut reload (uring)                          ok
+  row budget: 900s; median=2.72s; correctness-plan-fallback; snapshot never tears a cross-shard MSET group (uring, atomic 1)
+  snapshot never tears a cross-shard MSET group (uring, atomic 1) ok
+  row budget: 900s; median=5.26s; correctness-plan-fallback; snapshot never tears a MULTI/EXEC group (uring, default atomic 0)
+  snapshot never tears a MULTI/EXEC group (uring, default atomic 0) ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot save (uring)
+  typed snapshot save (uring)                          ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot reload (uring)
+  typed snapshot reload (uring)                        ok
+  row budget: 900s; median=0.17s; correctness-plan-fallback; typed snapshot preimage race (uring)
+  typed snapshot preimage race (uring)                 ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot race reload (uring)
+  typed snapshot race reload (uring)                   ok
+  row budget: 900s; median=2.93s; correctness-plan-fallback; epoll directed correctness (1s)
+  epoll directed correctness (1s)                      ok
+  row budget: 900s; median=2.92s; correctness-plan-fallback; epoll directed correctness (2s)
+  epoll directed correctness (2s)                      ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject bad protected-mode
+  reject bad protected-mode                            ok
+  row budget: 900s; median=0.005s; correctness-plan-fallback; reject bad enable-debug-command
+  reject bad enable-debug-command                      ok
+  row budget: 900s; median=0.15s; correctness-plan-fallback; AUTH/HELLO/protected state machine
+  AUTH/HELLO/protected state machine                   ok
+  row budget: 900s; median=-s; correctness-plan-fallback; ACL battery (atomic off)
+  ACL battery (atomic off)                             ok
+  row budget: 900s; median=-s; correctness-plan-fallback; ACL battery (atomic on)
+  ACL battery (atomic on)                              ok
+  row budget: 900s; median=0.995s; correctness-plan-fallback; DEBUG toggle/reload battery
+  DEBUG toggle/reload battery                          ok
+  row budget: 900s; median=0.12s; correctness-plan-fallback; typed snapshot round-trip incl stream
+  typed snapshot round-trip incl stream                ok
+GATE(PARTIAL): 236 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-flakeaudit/build/flakeaudit/proof/run-1-ledger.partial
