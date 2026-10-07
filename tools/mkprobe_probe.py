@@ -35,7 +35,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests"))
 from _lib import Conn
 from abbagate import (Runner, read_cells, load_layout, info, require_unbound_port,
-                      generator_cpu_endpoint, generator_cpu_between)
+                      generator_cpu_endpoint, generator_cpu_between, memtier_totals)
 from abba_workloads import command_stat, memtier_workload_counts
 from abba_profile import EVENTS
 from abba_saturation import parse_snapshot, bottleneck_saturation
@@ -264,21 +264,22 @@ def server_command(args, cell, folder, policy):
     return command
 
 
-def perf_command(args, folder, kind):
+def perf_command(args, folder, kind, server_pid=None):
     control = f"--control=fifo:{folder / 'perf.ctl'},{folder / 'perf.ack'}"
     common = ["taskset", "-c", str(parse_cpu_range(args.cores[1])[0]), "perf"]
     if kind == "symbols":
-        return common + ["record", "-a", "-C", args.cores[0], "-e", "cycles", "-F", "199",
+        return common + ["record", "-p", str(server_pid) if server_pid is not None else "{SERVER_PID}",
+                         "-C", args.cores[0], "-e", "cycles", "-F", "199",
                          "--call-graph", "dwarf,8192", "--delay=-1", control,
                          "-o", str(folder / "perf.data")]
     events = CORE_EVENTS if kind == "core" else MEMORY_EVENTS
     return common + ["stat", "-a", "-A", "-C", args.cores[0], "-x", ",", "--no-big-num", "--no-scale",
-                     "-e", "{" + ",".join(events) + "}:D", "--delay=-1", control,
+                     "-e", "{" + ",".join(events) + "}:Duk", "--delay=-1", control,
                      "-o", str(folder / "perf.csv")]
 
 
 class PerfWindow(AckWindow):
-    def __init__(self, args, folder, children, kind):
+    def __init__(self, args, folder, children, kind, server_pid=None):
         self.folder, self.children, self.kind = folder, children, kind
         self.cores = args.cores
         self.ctl = self.ack = None
@@ -288,7 +289,7 @@ class PerfWindow(AckWindow):
                 os.mkfifo(folder / name)
             self.ctl = os.open(folder / "perf.ctl", os.O_RDWR | os.O_NONBLOCK)
             self.ack = os.open(folder / "perf.ack", os.O_RDWR | os.O_NONBLOCK)
-            self.process = children.start(perf_command(args, folder, kind), folder / "perf.log", folder)
+            self.process = children.start(perf_command(args, folder, kind, server_pid), folder / "perf.log", folder)
             self.command("disable")
         except BaseException:
             self.close()
@@ -326,6 +327,17 @@ def parse_perf(text, expected_cpus, events):
         require(set(row) == set(events), "missing perf group event")
         require(len({v['runtime_ns'] for v in row.values()}) == 1, "group members have different windows")
     return dict(cpus=rows, totals={event: sum(r[event]["value"] for r in rows.values()) for event in events})
+
+
+def core_metrics(totals, commands, keys, seconds, cores):
+    require(commands > 0 and keys > 0 and seconds > 0 and cores > 0, "invalid core-counter denominator")
+    cyc, ins, ref = (number(totals[n], n, positive=True) for n in CORE_EVENTS)
+    result = dict(instr_per_op=ins / commands, ipc=ins / cyc, cyc_per_op=cyc / commands,
+                  cycles_per_reference_cycle=cyc / ref, cycles_per_key=cyc / commands / keys)
+    require(.01 < result["ipc"] < 10 and 1 < result["instr_per_op"] < 1e8 and 1 < result["cyc_per_op"] < 1e9,
+            "implausible IPC/instructions/cycles per op")
+    require(cyc / seconds / cores < 8e9, "cycles exceed 8GHz/core physical bound")
+    return result
 
 
 def symbol_shares(text):
@@ -404,9 +416,12 @@ def telemetry(cell, observations, before, after):
         for suffix in ("queue_delay_samples", "oldest_age_samples"):
             key = "lb_ex_" + suffix
             require(all(key in row for row in observations), f"split sampler counter missing: {key}")
-            require(max(number(row[key], key) for row in observations) > 0, f"split sampler never armed: {key}")
+            values = [number(row[key], key) for row in observations]
+            require(values[-1] > values[0], f"split sampler did not progress in central window: {key}")
+            result[key] = values[-1] - values[0]
         for suffix in SIGNAL_SUFFIXES[2:]:
             require(result["lb_ex_" + suffix] > 0, f"split {suffix} stayed zero; sample is invalid")
+            require(result["lb_ex_" + suffix] <= 60_000_000, f"split {suffix} exceeds the existing lbsignals test's 60s sanity bound")
     result["queue_signal_scope"] = "central observed maxima; native role names; full-events are cumulative high-water observations"
     return result
 
@@ -530,6 +545,11 @@ def box_progress(before, after, budget_seconds):
 
 def run_pass(args, cell, job, folder, kind, snapshot, children, monitor, receipt):
     folder.mkdir()
+    reserve = 5 * 1024**3
+    estimate = Path(snapshot["path"]).stat().st_size
+    if kind == "symbols":
+        estimate += (args.window + 2) * len(parse_cpu_range(args.cores[0])) * 199 * 10000
+    require(shutil.disk_usage(folder).free > reserve + estimate, "insufficient free disk for retained evidence plus 5GiB reserve")
     # Clone an immutable setup image; never adopt the setup process or its counters.
     shutil.copyfile(snapshot["path"], folder / "dump.tomo")
     require(digest(folder / "dump.tomo") == snapshot["sha256"], "snapshot copy changed")
@@ -542,8 +562,8 @@ def run_pass(args, cell, job, folder, kind, snapshot, children, monitor, receipt
         require(conn.must("DBSIZE") == cell.key_count, "restored population count differs")
         require(all(conn.must("STRLEN", f"memtier-{k}") == cell.data_bytes for k in (1, cell.key_count)), "restored value sizes differ")
         before_full = info(conn, "commandstats")
-        perf = PerfWindow(args, folder, children, kind)
-        result["argv"]["perf"] = perf_command(args, folder, kind)
+        perf = PerfWindow(args, folder, children, kind, server.pid)
+        result["argv"]["perf"] = perf_command(args, folder, kind, server.pid)
         layout, commands = load_commands(args, cell, folder, job["keys"])
         result["argv"]["load"] = commands
         result["layout"] = layout
@@ -605,13 +625,8 @@ def run_pass(args, cell, job, folder, kind, snapshot, children, monitor, receipt
             result["perf"] = parse_perf((folder / "perf.csv").read_text(), parse_cpu_range(args.cores[0]), events)
             totals = result["perf"]["totals"]
             if kind == "core":
-                cyc, ins, ref = (number(totals[n], n, positive=True) for n in CORE_EVENTS)
-                result.update(instr_per_op=ins / count, ipc=ins / cyc, cyc_per_op=cyc / count,
-                              cycles_per_reference_cycle=cyc / ref,
-                              cycles_per_key=cyc / count / (job["keys"] if cell.op.startswith("M") else 1))
-                require(.01 < result["ipc"] < 10 and 1 < result["instr_per_op"] < 1e8 and 1 < result["cyc_per_op"] < 1e9,
-                        "implausible IPC/instructions/cycles per op")
-                require(cyc / (t1 - t0) / len(parse_cpu_range(args.cores[0])) < 8e9, "cycles exceed 8GHz/core physical bound")
+                result.update(core_metrics(totals, count, job["keys"] if cell.op.startswith("M") else 1,
+                                           t1 - t0, len(parse_cpu_range(args.cores[0]))))
             else:
                 counts = dict(zip(MEMORY_NAMES, (totals[e] for e in MEMORY_EVENTS)))
                 require(counts["any_fills"] >= counts["demand_fills"], "negative any-demand fills residual")
@@ -625,9 +640,9 @@ def run_pass(args, cell, job, folder, kind, snapshot, children, monitor, receipt
         documents = []
         for i, place in enumerate(layout):
             path = folder / f"load-{i}.json"
-            documents.append(memtier_workload_counts(cell, json.loads(path.read_text()), place["clients"] * place["threads"]))
+            documents.append(memtier_totals(path, cell, place["clients"] * place["threads"]))
             log = (folder / f"load-{i}.log").read_text()
-            require(not re.search(r"(?:error response|server error|connection error|failed to connect)", log, re.I), "memtier logged protocol/connection error")
+            require(not re.search(r"handle error response:|\berror:|\bfailed\b", log, re.I), "memtier logged protocol/connection error")
         completed = sum(d["completed_hdr_counts"][cell.op] for d in documents)
         require(completed == whole, f"server/HDR completed command mismatch {whole}/{completed}")
         require(whole >= count and whole > 0, "whole-run count smaller than central interval")
@@ -680,6 +695,7 @@ def run_sample(args, cell, job, folder, receipt):
                retired_per_send=NA, empty_serve_fraction=NA, passes=[])
     # Keep the full recipe separately from the short cell ID in every row.
     row["recipe"] = asdict(cell)
+    row["keys_per_command"] = job["keys"] if cell.op in ("MGET", "MSET") else 1
     row.update({name: NA for name in ("atomic_fanout_cuts", "atomic_read_cuts_held", "cmdstat_mget_calls", "cmdstat_mset_calls")})
     row.update({f"lb_{role}_{suffix}": NA for role in ("fused", "io", "ex") for suffix in SIGNAL_SUFFIXES})
     children, monitor = Children(), None
@@ -694,21 +710,25 @@ def run_sample(args, cell, job, folder, receipt):
             raise QuietViolation("named benchmark/compiler exceeded box-share preflight budget: " + json.dumps(row["box_share"]))
         snapshot = snapshot_fixture(args, cell, children, receipt["binary_sha256"])
         row["snapshot"] = snapshot
-        for kind in (["core", "memory"] if args.mode == "coherence" else
+        for kind in (["core", "memory", "symbols"] if args.mode == "probes" else
+                     ["core", "memory"] if args.mode == "coherence" else
                      ["core", "symbols"] if args.mode == "symbols" else ["core"]):
             piece = run_pass(args, cell, job, folder / kind, kind, snapshot, children, monitor, receipt)
             row["passes"].append(piece)
         core = row["passes"][0]
         for key in ("rate", "instr_per_op", "ipc", "cyc_per_op", "cycles_per_key", "retired_per_send", "empty_serve_fraction"):
             row[key] = core[key]
+        row.update({k: core["shutdown"]["wb"][k] for k in ("retired", "sends_submitted", "serves_empty", "serves")})
+        row.update(commands=core["commands"], seconds=core["seconds"])
         row.update(core["telemetry"])
-        row["saturation_pct"] = core["saturation"]["score_pct"]
-        if args.mode == "coherence":
-            row["memory_per_op"] = row["passes"][1]["memory_per_op"]
-            row["memory_pass_rate"] = row["passes"][1]["rate"]
+        row["saturation_pct"] = min(piece["saturation"]["score_pct"] for piece in row["passes"])
+        by_kind = {piece["kind"]: piece for piece in row["passes"]}
+        if "memory" in by_kind:
+            row["memory_per_op"] = by_kind["memory"]["memory_per_op"]
+            row["memory_pass_rate"] = by_kind["memory"]["rate"]
             row["memory_pass_scope"] = "separate fresh boot, its own central command denominator"
-        if args.mode == "symbols":
-            row["symbols"] = row["passes"][1]["symbols"]
+        if "symbols" in by_kind:
+            row["symbols"] = by_kind["symbols"]["symbols"]
         quiet_file_guard()
         monitor.check()
         row["status"] = "COMPLETE"
@@ -739,12 +759,18 @@ def complete_rows(paths):
             require(row["receipt_sha256"] == sha(canonical(receipt)), f"unbound result row: {path}")
             if row["status"] == "COMPLETE":
                 require(row["quiet"]["complete"] and all(p["exit_status"] is not None for p in row["children"]), "incomplete quiet/reaping evidence")
+                require(row["binary_sha256"] == receipt["binary_sha256"] and row["geometry"] == receipt["geometry"], "row binary/geometry differs from receipt")
+                for name in ("rate", "instr_per_op", "ipc", "cyc_per_op", "cycles_per_key", "retired_per_send", "empty_serve_fraction"):
+                    number(row[name], name, positive=name != "empty_serve_fraction")
+                    require(row[name] == row["passes"][0][name], "row does not match its recorded core pass: " + name)
+                require(math.isclose(row["ipc"], row["instr_per_op"] / row["cyc_per_op"], rel_tol=1e-12), "IPC != instr/op divided by cyc/op")
             rows.append(row)
     return rows, receipts
 
 
 def observations(rows, mode, cell, *, keys=8, arm="base", atomic=1, metric="cyc_per_op"):
-    chosen = [r for r in rows if r["status"] == "COMPLETE" and r["mode"] == mode and r["cell"] == cell
+    chosen = [r for r in rows if r["status"] == "COMPLETE" and (r["mode"] == mode or
+              (r["mode"] == "probes" and mode in ("counters", "coherence", "symbols"))) and r["cell"] == cell
               and r["keys"] == keys and r["arm"] == arm and r["recipe"]["atomic"] == atomic]
     require(len({r["sample"] for r in chosen}) == len(chosen), f"duplicate samples: {mode}/{cell}/{keys}/{arm}")
     require(len(chosen) >= 6, f"{mode}/{cell}/k{keys}/{arm}/atomic{atomic}: n={len(chosen)} < 6")
@@ -877,7 +903,7 @@ def verdicts(rows, calibration):
             # Exclusive symbol buckets do not double count call chains.
             values.append([a + b for a, b in zip(refresh, active)])
         evidence = [interval(v) for v in values]
-        enough = all(r["symbols"]["samples"] >= 1000 for r in rows if r["status"] == "COMPLETE" and r["mode"] == "symbols" and r["cell"] in ("m02", "m03", "mk128g"))
+        enough = all(r["symbols"]["samples"] >= 1000 for r in rows if r["status"] == "COMPLETE" and r["mode"] in ("symbols", "probes") and r["cell"] in ("m02", "m03", "mk128g"))
         require(enough, "M5 requires >=1000 cycles samples per symbol pass")
         # No inlining guess: an entirely unobserved function is unavailable, not a
         # proven zero. perf report --inline must actually resolve it in the set.
@@ -912,9 +938,9 @@ def campaign_commands(binary, destination):
     root = Path(destination)
     common = ["python3", str(ROOT / "tools/mkprobe_probe.py"), "--binary", str(binary),
               "--cores", "0-31,32-111", "--samples", "6", "--snapshot-cache", str(root / "snapshots")]
-    specs = [("null", []), ("counters", []),
+    specs = [("null", []), ("probes", []),
              ("counters-atomic0", ["--atomic", "0", "--cells", "m02,m03,mk128g"]),
-             ("coherence", []), ("wb-pair", []), ("keys", []), ("symbols", [])]
+             ("wb-pair", []), ("keys", [])]
     result = []
     for name, extra in specs:
         mode = "counters" if name == "counters-atomic0" else name
@@ -928,7 +954,8 @@ def campaign_commands(binary, destination):
 
 
 def report(rows, receipts, destination, binary):
-    identities = {(r["binary_sha256"], tuple(r["geometry"]), r["instrument_sha256"]) for r in receipts}
+    identities = {(r["binary_sha256"], tuple(r["geometry"]), r["instrument_sha256"],
+                   sha(canonical({k: r.get(k) for k in ("memtier", "perf", "environment", "placement")}))) for r in receipts}
     require(len(identities) <= 1, "report mixes binary, geometry or instrument identities")
     calibration = null_verdict(rows)
     # Null must have completed before every non-smoke measured row began.
@@ -943,11 +970,18 @@ def report(rows, receipts, destination, binary):
     save(destination / "report.json", result)
     lines = ["# mkprobe diagnostic report", "", "No performance claim. Verdicts describe the predeclared mechanism signatures only.", "",
              f"Same-binary null: **{calibration['status']}** — {calibration['reason']}", "",
-             "| Mechanism | Verdict | Reason |", "|---|---|---|"]
+             "| Mechanism | Verdict | Arithmetic | Reason |", "|---|---|---|---|"]
     for answer in answers:
-        lines.append(f"| {answer['mechanism']} | {answer['verdict']} | {answer['reason']} |")
+        lines.append(f"| {answer['mechanism']} | {answer['verdict']} | {answer.get('arithmetic', NA)} | {answer['reason']} |")
+    m1 = next(a for a in answers if a["mechanism"] == "M1")
+    if m1.get("checks"):
+        lines += ["", "| M1 cell | Prediction | Arithmetic | Observation |", "|---|---|---|---|"]
+        for check in m1["checks"]:
+            observed = check.get("evidence", {k: check[k] for k in ("rate", "cycles") if k in check})
+            lines.append(f"| {check['cell']} | {check['prediction']} | {check['result']} | `{json.dumps(observed, sort_keys=True)}` |")
     lines += ["", "Rows retain individual observations and arithmetic in report.json and rows.jsonl. n>=6 is required for every contributing cell/variant.",
               "", "The 1s age/delay columns are **not available**: flipctl sampling is Split-only. Split telemetry retains lb_ex_* and lb_io_* names; lb_fused_* is not synthesized for 2s.",
+              "", "**Fixed-split campaign blocker:** the current production sampler is disabled at --flip-auto 0 and outside active flip maneuvers. These fixed-geometry recipes therefore fail the required 2s age/delay progress check. Resolve that observation contract before starting the full campaign; no production counter or sampler was changed here.",
               "", "Perf core events are the abba_profile EVENTS group (cycles, instructions, ref-cycles), measured on server CPUs only. IPC=instructions/cycles; cyc/op=cycles/central calls; instr/op=instructions/central calls. Windows encompass INFO endpoints and are approximate. The memory pass and symbol pass each use a separate boot and denominator.",
               "", "WB ratios cover the whole restored boot, including warmup/tail and the recorded small observer bound. They exclude population. INFO held cuts is a sampled maximum gauge; fanout cuts is a central delta and can be zero at atomic=1.",
               "", "Memory events: any fills minus demand fills is the requested coherence residual, not a unique RFO count. The store event counts dispatch cycles blocked on store-queue tokens. L2 dTLB misses count table-walk requests, not walker duration. PMU availability/multiplexing failures invalidate the sample.",
@@ -962,6 +996,21 @@ def instrument_identity():
              ("abba_workloads.py", "abba_profile.py", "abbagate.py", "abba_saturation.py", "gate_quiet.py", "gateplan.py", "gate_measurements.py", "_lib.py")],
              ROOT / "tools/exbatch_directed.py"]
     return {str(p.relative_to(ROOT)): digest(p) for p in paths}
+
+
+def perf_identity():
+    executable = Path(shutil.which("perf") or "").resolve()
+    require(executable.is_file(), "perf executable missing")
+    version = subprocess.check_output([str(executable), "--version"], text=True).strip()
+    available = subprocess.check_output([str(executable), "list", "--raw-dump"], text=True).split()
+    require(all(e in available for e in MEMORY_EVENTS), "host does not expose the required Bergamo memory events")
+    descriptions = subprocess.check_output([str(executable), "list", *MEMORY_EVENTS], text=True)
+    cpu = Path("/proc/cpuinfo").read_text().split("\n\n", 1)[0]
+    model = {k.strip(): v.strip() for line in cpu.splitlines() if ":" in line for k,v in [line.split(":",1)]
+             if k.strip() in ("vendor_id", "cpu family", "model", "model name", "stepping", "microcode")}
+    return dict(path=str(executable), sha256=digest(executable), version=version, memory_event_descriptions=descriptions,
+                core_events=[list(e) for e in EVENTS], memory_events=list(MEMORY_EVENTS), cpu=model, kernel=os.uname().release,
+                boot_id=Path("/proc/sys/kernel/random/boot_id").read_text().strip())
 
 
 def dry_run(args, chosen):
@@ -983,7 +1032,8 @@ def dry_run(args, chosen):
         print(shlex.join(server_command(args, cell, folder, job["wb_policy"])))
         for command in load_commands(args, cell, folder, job["keys"])[1]:
             print(shlex.join(command))
-        for kind in (["core", "memory"] if args.mode == "coherence" else ["core", "symbols"] if args.mode == "symbols" else ["core"]):
+        for kind in (["core", "memory", "symbols"] if args.mode == "probes" else
+                     ["core", "memory"] if args.mode == "coherence" else ["core", "symbols"] if args.mode == "symbols" else ["core"]):
             print(shlex.join(perf_command(args, folder / kind, kind)))
     print("# row grammar: MKPROBE_ROW <one JSON object: schema, cell, sample, arm, recipe, keys, status, rate, instr_per_op, ipc, cyc_per_op, cycles_per_key, retired_per_send, empty_serve_fraction, atomic_*, cmdstat_*, lb_*, passes, quiet, children>")
     return proof
@@ -1015,6 +1065,11 @@ def self_test(args):
         rejects(lambda: parse_perf(broken, [112], CORE_EVENTS))
     rejects(lambda: parse_perf(text, [112, 113], CORE_EVENTS))
     passed("PMU partial, multiplexed, missing, duplicate and unavailable negative controls")
+    metrics = core_metrics(dict(zip(CORE_EVENTS, (100000, 80000, 50000))), 100, 8, 1, 8)
+    require(metrics["cyc_per_op"] == 1000 and metrics["instr_per_op"] == 800 and metrics["ipc"] == .8
+            and metrics["cycles_per_key"] == 125, "command/key denominator or IPC arithmetic differs")
+    rejects(lambda: core_metrics(dict(zip(CORE_EVENTS, (100000, 80000, 50000))), 0, 8, 1, 8))
+    passed("cycles/op, instructions/op, IPC and cycles/key independent arithmetic")
     wb = dict(retired=1000, sends_submitted=1000, serves=1100, serves_empty=100,
               sends_completed=1000, send_errors=0, peer_aborts=0, short_writes=0)
     wire = "shutdown_report " + json.dumps(dict(schema=1, wb=wb))
@@ -1027,7 +1082,9 @@ def self_test(args):
         base.update({f"lb_{role}_{s}": "1" for s in (*SIGNAL_SUFFIXES, "queue_delay_samples", "oldest_age_samples")})
     result = telemetry(inventory["m02"], [base, base], base, base)
     require(result["lb_fused_queue_delay_ewma_us"] == NA, "1s silent zero")
-    telemetry(inventory["m50"], [base, base], base, base)
+    advancing = {**base, "lb_ex_queue_delay_samples": "2", "lb_ex_oldest_age_samples": "2"}
+    telemetry(inventory["m50"], [base, advancing], base, advancing)
+    rejects(lambda: telemetry(inventory["m50"], [base, base], base, base))
     bad = {**base, "lb_ex_queue_delay_samples": "0"}
     rejects(lambda: telemetry(inventory["m50"], [bad, bad], bad, bad))
     bad = {k:v for k,v in base.items() if k != "atomic_fanout_cuts"}
@@ -1037,12 +1094,12 @@ def self_test(args):
     require(symbol_shares(symbols)["shares_pct"]["allocator"] == 50, "symbol attribution")
     rejects(lambda: symbol_shares(symbols.replace("Samples: 0", "Samples: 1")))
     passed("weighted symbol shares and lost-sample negative")
-    for mode, count in (("null", 168), ("wb-pair", 96), ("keys", 168), ("counters", 114), ("coherence", 114), ("symbols", 114), ("smoke", 2)):
+    for mode, count in (("null", 168), ("wb-pair", 96), ("keys", 168), ("counters", 114), ("coherence", 114), ("symbols", 114), ("probes", 114), ("smoke", 2)):
         local = argparse.Namespace(**vars(args))
         local.mode, local.cells, local.samples = mode, "", 6
         plan = jobs(local, selected(local, inventory))
         require(len(plan) == count and len({j["id"] for j in plan}) == count, "plan/ABBA sample identities")
-    passed("all seven mode matrices and ABBA per-arm n=6")
+    passed("all eight collection-mode matrices and ABBA per-arm n=6")
     unresolved = verdicts([], null_verdict([]))
     require(all(r["verdict"] == "UNRESOLVED" for r in unresolved), "empty data produced verdict")
     synthetic = []
@@ -1056,8 +1113,56 @@ def self_test(args):
     require(null_verdict(shifted)["status"] == "FAIL", "bad null passed")
     require(null_verdict(synthetic[:-1])["status"] == "UNRESOLVED", "n=5 null passed")
     passed("null arithmetic rejects 1% delta and n=5; empty campaign unresolved")
+    def fixture(mode, cell, *, keys=8, arm="base", **metrics):
+        return [dict(status="COMPLETE", mode=mode, cell=cell, keys=keys, arm=arm, sample=i,
+                     recipe=dict(atomic=1), saturation_pct=99, **metrics) for i in range(6)]
+    evidence = []
+    for cell in ("m02", "m03", "m05", "m06", "m50", "m51", "m53", "m54", "mk128g", "mk128s"):
+        evidence += fixture("counters", cell, retired_per_send=1.)
+    for cell in PAIR_IDS:
+        evidence += fixture("wb-pair", cell, arm="B", rate=1e6, cyc_per_op=1000.)
+        evidence += fixture("wb-pair", cell, arm="A", rate=1e6 if cell.startswith("m") else 9e5,
+                            cyc_per_op=1000. if cell.startswith("m") else 1100.)
+    for cell in SWEEP_IDS:
+        for key_count in KEYS:
+            spill = key_count >= (8 if cell in ("m02", "m03") else 4)
+            evidence += fixture("keys", cell, keys=key_count,
+                                cycles_per_key=1000. + (200. if cell in ("m03", "m06") else 100.) * spill)
+    for cell, share in (("m02", 1.), ("m03", 2.), ("mk128g", 3.)):
+        evidence += fixture("symbols", cell, symbols=dict(samples=2000, shares_pct=dict(refresh_snapshot_floor=share, active_snapshot_floor=0.)))
+    passed_null = dict(status="PASS", reason="synthetic test only")
+    answers = {r["mechanism"]:r for r in verdicts(evidence, passed_null)}
+    require(all(answers[m]["verdict"] == "CONFIRMED" for m in ("M1", "M3", "M5")), "positive mechanism fixtures did not confirm")
+    combined = {}
+    for row in evidence:
+        key = ("probes" if row["mode"] in ("counters", "symbols") else row["mode"], row["cell"], row["sample"], row["keys"], row["arm"])
+        combined[key] = {**combined.get(key, {}), **row, "mode": key[0]}
+    require(all(r["verdict"] == "CONFIRMED" for r in verdicts(list(combined.values()), passed_null) if r["mechanism"] in ("M1", "M3", "M5")),
+            "combined three-pass rows changed mechanism verdicts")
+    broken = [dict(r, retired_per_send=2.) if r["mode"] == "counters" and r["cell"] == "m03" else r for r in evidence]
+    answer = verdicts(broken, passed_null)[0]
+    require(answer["verdict"] == "REFUTED" and answer["arithmetic"] == "FAIL", "broken M1 batching passed")
+    broken = [dict(r, cycles_per_key=1000.) if r["mode"] == "keys" else r for r in evidence]
+    require(verdicts(broken, passed_null)[2]["verdict"] == "REFUTED", "flat spill cliff passed M3")
+    incomplete = [r for r in evidence if not (r["mode"] == "keys" and r["cell"] == "m02" and r["keys"] == 2 and r["sample"] == 5)]
+    require(verdicts(incomplete, passed_null)[2]["verdict"] == "UNRESOLVED", "n=5 key variant passed M3")
+    broken = [dict(r, symbols=dict(samples=2000, shares_pct=dict(refresh_snapshot_floor=.1, active_snapshot_floor=0.)))
+              if r["mode"] == "symbols" else r for r in evidence]
+    require(verdicts(broken, passed_null)[4]["verdict"] == "REFUTED", "sub-0.3% floor share passed M5")
+    broken = [dict(r, symbols=dict(samples=2000, shares_pct=dict(refresh_snapshot_floor=0., active_snapshot_floor=0.)))
+              if r["mode"] == "symbols" else r for r in evidence]
+    require(verdicts(broken, passed_null)[4]["verdict"] == "UNRESOLVED", "missing symbol attribution became zero-cost evidence")
+    passed("M1/M3/M5 positive signatures, deliberately broken mechanisms, missing variants and unavailable attribution")
     with tempfile.TemporaryDirectory(dir=ROOT / "build") as temp:
         folder = Path(temp)
+        receipt = dict(geometry=list(args.cores), arguments=dict(cores=args.cores), events=EVENTS)
+        save(folder / "receipt.json", receipt)
+        require(json.loads(canonical(receipt)) == json.loads((folder / "receipt.json").read_text()), "resume tuple/list normalization failed")
+        saved = (folder / "receipt.json").read_bytes()
+        changed = json.loads(saved)
+        changed["geometry"] = ["0-31", "32-111"]
+        require(changed != json.loads(canonical(receipt)), "changed geometry accepted as identical receipt")
+        passed("resume serialization identity and changed-geometry negative control")
         children = Children()
         try:
             process = children.start(["taskset", "-c", "112", sys.executable, "-c", "import time; time.sleep(30)"], folder / "child.log", folder)
@@ -1078,7 +1183,7 @@ def self_test(args):
 
 def arguments(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--mode", choices=("null", "counters", "coherence", "wb-pair", "keys", "symbols", "smoke", "report"), default="counters")
+    p.add_argument("--mode", choices=("null", "probes", "counters", "coherence", "wb-pair", "keys", "symbols", "smoke", "report"), default="counters")
     p.add_argument("--binary", type=Path, default=ROOT / "build/tomokv")
     p.add_argument("--memtier", default="/usr/bin/memtier_benchmark")
     p.add_argument("--cores", type=cores_arg, default=("112-119", "120-127"))
@@ -1121,19 +1226,24 @@ def run(args):
     receipt = dict(schema=SCHEMA, binary_path=str(args.binary), binary_sha256=digest(args.binary), memtier=memtier,
                    geometry=list(args.cores), sources=sources, instrument_sha256=sha(canonical(sources)),
                    arguments={k: str(v) if isinstance(v, Path) else v for k,v in vars(args).items()
-                              if k not in ("resume", "quiet_retries", "retry_seconds")}, argv_proof=argv_proof(args))
+                              if k not in ("resume", "quiet_retries", "retry_seconds")}, argv_proof=argv_proof(args), perf=perf_identity(),
+                   environment={k: os.environ.get(k, "") for k in ("MALLOC_CONF", "LD_PRELOAD", "LD_LIBRARY_PATH", "LC_ALL")},
+                   placement=dict(ratio=args.ratio, instances=args.instances, port=args.port, window=args.window))
+    # JSON arrays and Python tuples must compare identically on --resume.
+    receipt = json.loads(canonical(receipt))
     null_rows = []
     if args.mode not in ("null", "smoke"):
         require(args.null is not None, "run the 14-cell same-binary null FIRST; supply --null OUTPUT")
         null_rows, controls = complete_rows([args.null])
         require(null_verdict(null_rows)["status"] == "PASS", "earlier same-binary null has not passed")
         control = controls[0]
-        require(all(control[k] == receipt[k] for k in ("binary_sha256", "geometry", "instrument_sha256", "memtier")), "null identity/geometry/instrument does not match")
+        require(all(control[k] == receipt[k] for k in ("binary_sha256", "geometry", "instrument_sha256", "memtier", "perf", "environment", "placement")), "null identity/geometry/instrument/PMU/environment does not match")
         receipt["null_receipt_sha256"] = sha(canonical(control))
     if args.output.exists():
         require(args.resume, "output exists; use a fresh --output or --resume")
         require(json.loads((args.output / "receipt.json").read_text()) == receipt, "resume receipt changed; use a fresh output")
     else:
+        require(not args.resume, "--resume requires an existing output directory")
         args.output.mkdir(parents=True)
         save(args.output / "receipt.json", receipt)
     with (args.output / ".lock").open("w") as lock:
@@ -1151,12 +1261,18 @@ def run(args):
             for attempt in range(attempts):
                 number_ = 1 + len(list(parent.glob("attempt-*")))
                 row = run_sample(args, cell, job, parent / f"attempt-{number_:03d}", receipt)
+                row["attempt_history"] = []
+                for old_path in sorted(parent.glob("attempt-*/row.json")):
+                    previous = json.loads(old_path.read_text())
+                    row["attempt_history"].append(dict(artifact=str(old_path), status=previous["status"],
+                                                       error=previous.get("error"), started=previous["started"], finished=previous["finished"]))
                 save(path, row)
                 if row["status"] == "COMPLETE" or not row.get("quiet_refusal") or attempt + 1 == attempts:
                     break
                 print(f"# quiet refusal retained at {row['artifact']}; retry {attempt+2}/{attempts} in {args.retry_seconds}s", flush=True)
                 time.sleep(args.retry_seconds)
-            print("MKPROBE_ROW " + json.dumps(row, sort_keys=True, allow_nan=False), flush=True)
+            summary_row = {k:v for k,v in row.items() if k not in ("passes", "quiet", "snapshot", "box_preflight", "box_share")}
+            print("MKPROBE_ROW " + json.dumps(summary_row, sort_keys=True, allow_nan=False), flush=True)
             if row["status"] != "COMPLETE":
                 failed = True
                 # Smoke still attempts the other requested cell; campaigns stop on
@@ -1165,12 +1281,16 @@ def run(args):
                     break
         rows, receipts = complete_rows([args.output])
         (args.output / "rows.jsonl").write_text("".join(json.dumps(r, sort_keys=True, allow_nan=False) + "\n" for r in rows))
-        report(rows + null_rows, receipts, args.output, args.binary)
-        return 1 if failed else 0
+        summary = report(rows + null_rows, receipts, args.output, args.binary)
+        return 1 if failed or (args.mode == "null" and summary["null"]["status"] != "PASS") else 0
 
 
 def main(argv=None):
     args = arguments(argv)
+    os.environ["LC_ALL"] = "C"
+    topology = read_topology(parse_cpu_range(args.cores[0]) + parse_cpu_range(args.cores[1]))
+    require(not ({topology[c] for c in parse_cpu_range(args.cores[0])} & {topology[c] for c in parse_cpu_range(args.cores[1])}),
+            "server and generator axes share physical cores via SMT")
     # The Python observer and post-processing run on load CPUs. Dry runs and
     # self-tests always stay on the development allocation, even for a mainline plan.
     allowed = set(range(112, 128)) if args.self_test or args.dry_run or args.mode == "report" else set(parse_cpu_range(args.cores[1]))
