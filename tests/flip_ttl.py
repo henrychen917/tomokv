@@ -172,7 +172,9 @@ for rnd in range(ROUNDS):
         earliest_expiry_ms = int(stamp[0]) * 1000 + int(stamp[1]) // 1000 + TTL_MS
         armed_at = time.monotonic()
         for k in keys:
-            send(w, "SET", k, "v", "PX", str(TTL_MS))
+            # The cohort shares an explicit deadline, so the liveness witness
+            # does not infer a relative TTL from a different owner's clock.
+            send(w, "SET", k, "v", "PXAT", str(earliest_expiry_ms))
             assert rd(wf) == b"OK", "TTL seed failed"
         send(w, "DEBUG", "SHARDS", *keys)
         owners_before = rd(wf)

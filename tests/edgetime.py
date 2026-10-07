@@ -401,12 +401,14 @@ def arm_before_deadline(conn, observer, key, ttl_ms, commands, expected, queued=
         conn.cmd("DEL", key)
         before = info_counter(observer, "expired_keys")
         earliest = server_ms(observer) + ttl_ms
-        assert conn.cmd("SET", key, "v", "PX", str(ttl_ms)) == b"OK"
+        # An absolute deadline avoids assuming that IO TIME and the owner's
+        # already-cached clock came from the same loop pass.
+        assert conn.cmd("SET", key, "v", "PXAT", str(earliest)) == b"OK"
         expiry = conn.cmd("PEXPIRETIME", key)
         replies = [conn.cmd(*command) for command in commands]
         assert replies == expected, (commands, replies)
         if server_ms(observer) < earliest:
-            assert isinstance(expiry, int) and expiry >= earliest, expiry
+            assert expiry == earliest, expiry
             return before, expiry, replies
         assert conn.cmd("DISCARD" if queued else "UNWATCH") == b"OK"
         print("  INVALID live expiry setup; re-arming fresh state", flush=True)

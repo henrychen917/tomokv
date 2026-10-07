@@ -125,9 +125,13 @@ class ExpiryControls(unittest.TestCase):
                     return b"expired_hash_fields:0\r\nhash_field_expires:1\r\n"
                 if args[0] == "HPEXPIRE":
                     self.expiry = int(clock.now * 1000) + int(args[2])
-                    return [0, 0] if broken else [1, 1]
+                    return "QUEUED"
                 if args[0] == "HPEXPIRETIME":
-                    return [self.expiry, self.expiry]
+                    return "QUEUED"
+                if args[0] == "MULTI":
+                    return "OK"
+                if args[0] == "EXEC":
+                    return [[0, 0] if broken else [1, 1], [self.expiry, self.expiry]]
                 if args[0] == "HLEN":
                     if self.attempts <= late:
                         clock.now += 1

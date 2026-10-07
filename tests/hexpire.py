@@ -379,17 +379,22 @@ def arm_live_fields(c, key, contents, fields, ttl_ms):
         c.cmd("DEL", key)
         assert c.cmd("HSET", key, *contents) == len(contents) // 2
         before = info_counter(c, "expired_hash_fields")
-        earliest = server_ms(c) + ttl_ms
-        armed = c.cmd("HPEXPIRE", key, str(ttl_ms), "FIELDS", str(len(fields)), *fields)
+        # Capture the exact installed deadline under the same transaction cut.
+        # An IO TIME lower bound need not equal the owner's cached clock.
+        assert c.cmd("MULTI") == "OK"
+        assert c.cmd("HPEXPIRE", key, str(ttl_ms), "FIELDS", str(len(fields)), *fields) == "QUEUED"
+        assert c.cmd("HPEXPIRETIME", key, "FIELDS", str(len(fields)), *fields) == "QUEUED"
+        captured = c.cmd("EXEC")
+        assert isinstance(captured, list) and len(captured) == 2, captured
+        armed, deadlines = captured
         assert armed == [1] * len(fields), ("HPEXPIRE arm failed", armed)
-        deadlines = c.cmd("HPEXPIRETIME", key, "FIELDS", str(len(fields)), *fields)
+        assert len(deadlines) == len(fields), deadlines
+        assert all(isinstance(t, int) and t > 0 for t in deadlines), deadlines
         registered = info_counter(c, "hash_field_expires")
         size = c.cmd("HLEN", key)
-        if server_ms(c) >= earliest:
+        if server_ms(c) >= min(deadlines):
             print("  INVALID hash-field arm expired during setup: " + key, flush=True)
             continue
-        assert len(deadlines) == len(fields), deadlines
-        assert all(isinstance(t, int) and t >= earliest for t in deadlines), deadlines
         return armed, registered, size, before, max(deadlines)
 
 
