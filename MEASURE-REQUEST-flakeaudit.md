@@ -121,7 +121,7 @@ ratio 6:2 for split boots, and one correctness slot. No ABBA/NIC measurement
 is requested or claimed.
 
 <!-- PROOF_RESULTS_BEGIN -->
-Six-run live campaign: **5/6 complete; sixth PENDING (resume budget)**.
+Six-run live campaign: **6/6 PASS**.
 
 Every completed clean selection includes all 34 changed row occurrences. The table counts complete selected jobs and prerequisites; it is not a full-gate receipt.
 
@@ -132,6 +132,7 @@ Every completed clean selection includes all 34 changed row occurrences. The tab
 | 3 | `gate-run.1NgDk6` | 21:37:45–21:49:22 | 236 / 0 | 34 / 34 |
 | 4 | `gate-run.m2TTqt` | 21:49:23–22:00:55 | 236 / 0 | 34 / 34 |
 | 5 | `gate-run.XGq51P` | 22:00:56–22:12:42 | 236 / 0 | 34 / 34 |
+| 6 | `gate-run.uGXeA3` | 22:42:16–22:53:32 | 236 / 0 | 34 / 34 |
 
 Tracked [results and provenance](docs/flakeaudit/evidence/proof/results.json) link each run to its revision, unchanged server hash, ledger, phase timestamps and geometry. The adjacent run directories retain the complete gate log and the relevant battery logs. `archive_proof.py` refuses changed executable sources and cross-checks every changed row's multiplicity.
 <!-- PROOF_RESULTS_END -->

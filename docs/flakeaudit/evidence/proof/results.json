@@ -83,5 +83,22 @@
     },
     "completed": true,
     "sha256": "070e1e958ec0f3b7ceb0ec345139a400b4144d52c49f3faf64b627950bf21ae4"
+  },
+  {
+    "run": 6,
+    "artifact": "gate-run.uGXeA3",
+    "revision": "7b81682f03da500ce82d8cbab0cd44360d700779",
+    "origin": "0e894d165f81fbb6332f6dd2f36268a1642e9209",
+    "ok": 236,
+    "failed": 0,
+    "changed_passed": 34,
+    "missing": {},
+    "phases": {
+      "begin": 1791384136.3490462,
+      "parallel-begin": 1791384136.6230931,
+      "end": 1791384812.3469503
+    },
+    "completed": true,
+    "sha256": "070e1e958ec0f3b7ceb0ec345139a400b4144d52c49f3faf64b627950bf21ae4"
   }
 ]
