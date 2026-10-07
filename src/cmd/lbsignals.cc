@@ -198,13 +198,8 @@ void lbsignals_format(const LbSnapshot& snap, std::string& out) {
                    snap.fused.threads, snap.client_threads, snap.owner_threads, foreign_frac);
         return;
     }
-    const double fstar = snap.ratio_star_io_frac();
-    const uint32_t total = snap.io.threads + snap.ex.threads;
-    uint32_t nio = total ? static_cast<uint32_t>(fstar * total + 0.5) : 0;
-    if (total) { if (nio == 0) nio = 1; if (nio >= total) nio = total - 1; }
-    appendf_lb(out, "derived ratio_star_io_frac %.6f ratio_star_io %u ratio_star_ex %u "
-                    "foreign_frac %.6f thread_mode 2s client_threads %u owner_threads %u\n",
-               fstar, nio, total - nio, foreign_frac, snap.client_threads, snap.owner_threads);
+    appendf_lb(out, "derived foreign_frac %.6f thread_mode 2s client_threads %u owner_threads %u\n",
+               foreign_frac, snap.client_threads, snap.owner_threads);
 }
 
 void lbsignals_info_section(Server& srv, std::string& out) {
@@ -274,11 +269,11 @@ void lbsignals_info_section(Server& srv, std::string& out) {
                    "lb_io_ns_per_op:%.1f\r\nlb_ex_ns_per_op:%.1f\r\n"
                    "lb_io_avg_depth:%.3f\r\nlb_ex_avg_depth:%.3f\r\n"
                    "lb_io_full_events:%" PRIu64 "\r\nlb_ex_full_events:%" PRIu64 "\r\n"
-                   "lb_ratio_star_io_frac:%.4f\r\nlb_total_threads:%u\r\n"
+                   "lb_total_threads:%u\r\n"
                    "lb_foreign_op_frac:%.4f\r\n",
                    snap.io.threads, snap.ex.threads, snap.io.busy_frac(), snap.ex.busy_frac(),
                    snap.io.ns_per_op(), snap.ex.ns_per_op(), snap.io.avg_depth(), snap.ex.avg_depth(),
-                   snap.io.full_events, snap.ex.full_events, snap.ratio_star_io_frac(), total,
+                   snap.io.full_events, snap.ex.full_events, total,
                    foreign_frac);
         appendf_lb(out,
                    "lb_io_masked_lane_high_water:%u\r\n"
