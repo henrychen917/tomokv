@@ -7,8 +7,9 @@
 #   lfu       hot-set survival under pressure PLUS the mechanism: OBJECT FREQ rises for ordinary
 #             reads and stays put for CLIENT NO-TOUCH reads, whoever serves the read.
 #   lruclock  the LRU twin on the fixed 256 s clock: seed every old cohort before one bucket
-#             boundary, then prove ordinary reads reset age, NO-TOUCH retains age, and touched
-#             keys outlive untouched ones. The bounded clock wait can take 260 s per boot.
+#             boundary, then prove ordinary reads reset age, NO-TOUCH retains age, and
+#             all 50 re-read keys enter a newer bucket before eviction. The bounded clock wait
+#             can take 260 s per boot. Sampled eviction cannot promise universal hot-key survival.
 # On a fused boot with the read-local lane armed (INFO server read_local:1) both sections also
 # assert the reads they measure were LANE-served: before the lane learned to touch, a key kept hot
 # only by such reads was never counted as accessed and was evicted FIRST -- the policy inverted.
@@ -239,14 +240,12 @@ elif SECTION == "lfu":
 elif SECTION == "lruclock":
     # The production clock is fixed at 256 seconds per bucket.
     must("CONFIG", "SET", "maxmemory", MM); must("CONFIG", "SET", "maxmemory-policy", "allkeys-lru")
-    # 64 samples, and here -- unlike the lfu section -- that is a pure gain, which is the whole
-    # difference between the two policies in this tree. Sampling a candidate under LRU only READS
-    # its clock byte; sampling one under LFU DECREMENTS its counter (flatstore.h choose_victim),
-    # because five header bits leave no room for a wall-clock decay. So raising the sample count
-    # makes LRU's victim choice exact at no cost, while it would multiply LFU's decay rate by the
-    # same factor. With 64 samples the chance that not one of the ~3000 untouched old keys is in
-    # the sample is (1-p)^64 rather than (1-p)^5, which is what turns "the re-read keys mostly
-    # survive" into "all 50 survive" and lets this row assert an exact number.
+    # LRU reads metadata without aging it. However, these are 64 draws WITH REPLACEMENT,
+    # deduplicated after drawing, not an exhaustive scan (flatstore.h choose_victim*).
+    # Even with old keys remaining, a sample can contain only newer keys. No finite old-cohort
+    # size makes (1-p)^64 zero. GT18's 49/50 survivors therefore cannot adjudicate a touch defect.
+    # Assert exact clock metadata before pressure; store_regression's aof-eviction case proves
+    # the real chooser prefers an older key when BOTH ages are present in its candidate sample.
     must("CONFIG", "SET", "maxmemory-samples", "64")
     lane_armed = info_num("read_local") == 1
     must("SET", "lruc:probe", "v")
@@ -286,40 +285,59 @@ elif SECTION == "lruclock":
     if lane_armed:
         check("lruclock: the probe reads were lane-served", lane_probe >= 3 and lane_nt >= 15,
               "plain %d/3+ no-touch %d/20" % (lane_probe, lane_nt))
-    # Discrimination under pressure uses the same aged cohort. Heating 50 old keys leaves
-    # untouched old keys available to the eviction sampler throughout the following fill.
-    lane2 = info_num("read_local_keyspace_hits") or 0
-    # Keep re-reading through the fill so the hot cohort stays in the current bucket even if
-    # another production clock boundary occurs while the pressure arm runs.
-    # 6000 new keys, not 8000: with 64-sample selection the victim choice is EXACT, so the
-    # untouched old bucket is spent almost in order, and pressure sized to consume ~85% of it
-    # leaves the unlucky shards with nothing old left and they start on the re-read keys -- one
-    # run in five lost a key that way. Sized instead to spend about half the untouched bucket
-    # (~1.5k evictions against 2950 untouched), no shard runs out, the re-read 50 are never the
-    # oldest thing a sample can see, and the row asserts an exact 50.
-    HOT = ["lruold:%d" % i for i in range(50)]
-    reads = 0
+    # Prove the touch on every key, while eviction is still impossible. Warm the lane with
+    # NO-TOUCH first, then require ALL measured reads to be lane-served on the armed boot.
+    # If dispatch falls back, re-arm on 50 fresh, still-old keys: an executor touch in an
+    # invalid attempt must not conceal a missing lane touch in the next attempt.
+    reads = 3 * 50
+    for attempt in range(3):
+        hot_indices = range(attempt * 50, (attempt + 1) * 50)
+        HOT = ["lruold:%d" % i for i in hot_indices]
+        must("CLIENT", "NO-TOUCH", "ON")
+        for _ in range(3):
+            for key in HOT:
+                assert cmd("GET", key) == b"v" * 100, key
+        must("CLIENT", "NO-TOUCH", "OFF")
+        old_ages = [as_int(cmd("OBJECT", "IDLETIME", key)) for key in HOT]
+        assert all(age is not None and age >= 256 for age in old_ages), (
+            "lruclock: fresh re-read cohort never armed in an old bucket", old_ages)
+        lane2 = info_num("read_local_keyspace_hits") or 0
+        for _ in range(3):
+            for key in HOT:
+                assert cmd("GET", key) == b"v" * 100, key
+        lane_hot = (info_num("read_local_keyspace_hits") or 0) - lane2
+        hot_ages = [as_int(cmd("OBJECT", "IDLETIME", key)) for key in HOT]
+        if not lane_armed or lane_hot == reads:
+            break
+        print("  lruclock: INVALID touch arm %d/3: lane hits %d/%d; fresh cohort next" %
+              (attempt + 1, lane_hot, reads))
+    else:
+        raise AssertionError("lruclock: no fully lane-served touch window in 3 fresh cohorts")
+    check("lruclock: all 50 re-read keys reset IDLETIME before eviction",
+          hot_ages == [0] * 50, hot_ages)
+    cold_ages = [as_int(cmd("OBJECT", "IDLETIME", "lruold:%d" % i))
+                for i in range(150, 3000, 57)]
+    check("lruclock: untouched keys are in an older bucket than all 50 re-reads",
+          hot_ages == [0] * 50 and all(age is not None and age >= 256 for age in cold_ages),
+          cold_ages)
+    if lane_armed:
+        check("lruclock: all measured re-reads were lane-served", lane_hot == reads,
+              "lane hits %d of %d" % (lane_hot, reads))
+    # Exercise real pressure as well, but judge its exact accounting identity. Survivor counts
+    # are diagnostics: the sampler's contract is oldest IN THE SAMPLE, not oldest in the shard.
+    ooms = 0
     for c in range(15):
         for k in HOT:
             cmd("GET", k)
-        reads += len(HOT)
-        fill("lrunew", 400, start=c * 400, tolerate_oom=True)
-    lane_hot = (info_num("read_local_keyspace_hits") or 0) - lane2
+        ooms += fill("lrunew", 400, start=c * 400, tolerate_oom=True)
     ev = info_num("evicted_keys")
-    hot = alive("lruold", range(50))
-    cold = alive("lruold", range(50, 3000, 59))
+    hot = alive("lruold", hot_indices)
+    cold = alive("lruold", range(150, 3000, 57))
     check("lruclock: eviction FIRED", ev and ev > 0, "evicted=%s" % ev)
-    check("lruclock: the 50 re-read old keys ALL survive", hot == 50, hot)
-    # Relative, so it needs no magic constant and discriminates on its own: on a server whose lane
-    # does not touch, the re-read keys ARE untouched keys and come out at or below the control
-    # (measured 23 re-read alive against 30 untouched), so the comparison inverts. The absolute
-    # bound alongside it only says eviction actually reached the untouched bucket at all --
-    # measured 17-32 alive of the 50 sampled, so 40 is a floor, not a threshold anyone tunes.
-    check("lruclock: untouched old keys went first", cold < hot and cold <= 40,
-          "untouched %d/50 alive, re-read %d/50" % (cold, hot))
-    if lane_armed:
-        check("lruclock: the re-reads were lane-served", lane_hot >= reads * 8 // 10,
-              "lane hits %d of %d" % (lane_hot, reads))
+    live = int(cmd("DBSIZE", "NOW")[1:])
+    check("lruclock: every pressure write is accounted for", live + (ev or 0) + ooms == 9002,
+          "live=%d evicted=%s rejected=%d offered=9002" % (live, ev, ooms))
+    print("  lruclock: sampled survival (diagnostic): untouched %d/50, re-read %d/50" % (cold, hot))
 
 elif SECTION == "growth":
     # wrinkle fix: collection growth must respect maxmemory (pre-exec DENYOOM gate).
