@@ -195,14 +195,14 @@ def check_activity(before, after, knobs, nthreads, cross_owner):
     # A controller tick alone does not prove either independent signal collector is alive.
     # The common hot bitmap and differently placed clients deliberately create nonzero weights.
     for knob, field in (('key-lb', 'tomokv_keylb_bucket_weight_spread_current'),
-                        ('client-lb', 'tomokv_keylb_client_weight_spread_current')):
+                        ('client-lb', 'tomokv_clientlb_weight_spread_current')):
         require(field in after, f'missing LB signal witness {field}')
         weight = float(after[field])
         require(weight > 0 if knobs[knob] else weight == 0, f'{knob} signal collector did not match knob')
     if not knobs['key-lb']:
         require(number(after, 'tomokv_keylb_bucket_moves') == 0, 'key-lb off moved a bucket')
     if not knobs['client-lb']:
-        require(number(after, 'tomokv_keylb_client_moves') == 0, 'client-lb off moved a client')
+        require(number(after, 'tomokv_clientlb_moves') == 0, 'client-lb off moved a client')
     if knobs['flip-auto']:
         require(delta(before, after, 'flipctl_forced_triggers') > 0,
                 'enabled flip controller never consumed its trigger')

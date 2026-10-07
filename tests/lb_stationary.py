@@ -15,7 +15,7 @@ import time
 
 import _lib
 
-MOTION = ('tomokv_keylb_bucket_moves', 'tomokv_keylb_client_moves')
+MOTION = ('tomokv_keylb_bucket_moves', 'tomokv_clientlb_moves')
 TICKS = 'tomokv_keylb_ticks'
 GATHERS = 'tomokv_keylb_bucket_gathers'
 SETTLE_SECONDS = 12  # four current 3-second decisions before arming

@@ -330,9 +330,9 @@ void lbsignals_info_section(Server& srv, std::string& out) {
                "tomokv_keylb_stage:%u\r\n"
                "tomokv_keylb_ticks:%" PRIu64 "\r\n"
                "tomokv_keylb_bucket_moves:%" PRIu64 "\r\n"
-               "tomokv_keylb_client_moves:%" PRIu64 "\r\n"
+               "tomokv_clientlb_moves:%" PRIu64 "\r\n"
                "tomokv_keylb_bucket_cross_domain_moves:%" PRIu64 "\r\n"
-               "tomokv_keylb_client_cross_domain_moves:%" PRIu64 "\r\n"
+               "tomokv_clientlb_cross_domain_moves:%" PRIu64 "\r\n"
                "tomokv_keylb_no_candidate:%" PRIu64 "\r\n",
                srv.key_lb_signals_enabled() ? 1u : 0u,
                srv.client_lb_signals_enabled() ? 1u : 0u,
@@ -345,7 +345,7 @@ void lbsignals_info_section(Server& srv, std::string& out) {
                "tomokv_keylb_cooldown_refused:%" PRIu64 "\r\n"
                "tomokv_keylb_transition_refused:%" PRIu64 "\r\n"
                "tomokv_keylb_capacity_refused:%" PRIu64 "\r\n"
-               "tomokv_keylb_client_refused:%" PRIu64 "\r\n"
+               "tomokv_clientlb_refused:%" PRIu64 "\r\n"
                "tomokv_keylb_hot_bucket_refused:%" PRIu64 "\r\n",
                srv.lb_hysteresis_refused(), srv.lb_cooldown_refused(),
                srv.lb_transition_refused(), srv.lb_capacity_refused(), srv.lb_client_refused(),
@@ -356,9 +356,9 @@ void lbsignals_info_section(Server& srv, std::string& out) {
                "tomokv_keylb_bucket_weight_spread_current:%.3f\r\n"
                "tomokv_keylb_bucket_weight_spread_before:%.3f\r\n"
                "tomokv_keylb_bucket_weight_spread_after:%.3f\r\n"
-               "tomokv_keylb_client_weight_spread_current:%.3f\r\n"
-               "tomokv_keylb_client_weight_spread_before:%.3f\r\n"
-               "tomokv_keylb_client_weight_spread_after:%.3f\r\n",
+               "tomokv_clientlb_weight_spread_current:%.3f\r\n"
+               "tomokv_clientlb_weight_spread_before:%.3f\r\n"
+               "tomokv_clientlb_weight_spread_after:%.3f\r\n",
                srv.lb_bucket_weight_spread_current(),
                srv.lb_bucket_weight_spread_before(), srv.lb_bucket_weight_spread_after(),
                srv.lb_client_weight_spread_current(), srv.lb_client_weight_spread_before(),

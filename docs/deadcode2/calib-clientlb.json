@@ -1,0 +1,6 @@
+{
+  "source": "/home/user/Projects/calib/lbplanner-judge.py",
+  "sha256": "4194faf2e19e8ead4fdbd77cea7f98faf9921acae3a1e0ca9392b5b994976ee6",
+  "patched_sha256": "f32c55b102931de31efc8e789e0effee62935f9ba10284e8432f3c4db40ae2db",
+  "reason": "External calib is outside the authorized worktree; maintainer applies the reviewed patch."
+}
