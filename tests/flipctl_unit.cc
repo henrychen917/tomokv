@@ -388,7 +388,7 @@ int main(int argc, char** argv) {
     if (argc == 2 && std::strcmp(argv[1], "--rate-only") == 0)
         return FlipControllerTest::run() ? 1 : 0;
     // ---- detector rows (unchanged) --------------------------------------------------------------
-    FlipShiftDetector detector;
+    FlipShiftDetector detector(-1);
     if (detector.observe(quiet(80, 20)) ||
         detector.observe(quiet(79, 21, 1)) ||
         detector.observe(quiet(81, 19)))
@@ -408,51 +408,62 @@ int main(int argc, char** argv) {
     if (!detector.observe(multikey_mix()))
         fail("scripted workload mix change did not fire");
 
-    // Quiet-state noise sets a floor under the learned band; a real mix change still fires.
+    // THE TYPED BAND IS A FLOOR, NOT A CEILING. The gate-hygiene lane's instrumented failure: a
+    // driver holding its rate to 0.07% across 34 samples, a fingerprint distance of 0.2518 against
+    // a flat explicit band of 2% (0.0200) -- 12.6x its band -- fired a maneuver on a stationary load.
+    // A detector whose signature genuinely moves between adjacent quiet windows must end up with a
+    // band above that movement whatever the operator typed, and must still fire on a real change.
     {
-        FlipShiftDetector learned(4);
+        FlipShiftDetector typed(2, 4);   // internal explicit-band control: 2%
         // Stationary but NOISY: the read/write split alternates 35:65 / 65:35 window to window.
         // The detector smooths the signature, so the anchored distance this produces is ~0.09.
         const auto noisy = [](int k) { return quiet(k % 2 ? 65 : 35, k % 2 ? 35 : 65); };
         for (int k = 0; k < 8; k++)
-            if (learned.observe(noisy(k))) fail("a pre-anchor window fired the detector");
-        learned.anchor();
-        if (!(learned.band() > 0.15))
-            fail("a learned band ignored a signature that moves between quiet windows");
+            if (typed.observe(noisy(k))) fail("a pre-anchor window fired the detector");
+        typed.anchor();
+        if (!(typed.band() > 0.15))
+            fail("a typed band ignored a signature that moves between quiet windows");
         int fires = 0;
-        for (int k = 8; k < 24; k++) fires += learned.observe(noisy(k)) ? 1 : 0;
-        if (fires) fail("the learned band still fired on the signal's own quiet-state noise");
-        if (!(learned.band() > 0.09))
+        for (int k = 8; k < 24; k++) fires += typed.observe(noisy(k)) ? 1 : 0;
+        if (fires) fail("the typed band still fired on the signal's own quiet-state noise");
+        if (!(typed.band() > 0.09))
             fail("the band decayed below the distance its own quiet state produces");
         // ... and the feature still works: a real mix change clears the widened band.
-        if (!learned.observe(multikey_mix()))
-            fail("the widened learned band swallowed a real mix change");
+        if (!typed.observe(multikey_mix()))
+            fail("the widened typed band swallowed a real mix change");
     }
-    // A still signature at 10k sampled commands keeps the 2/sqrt(N) sampling floor.
+    // A STILL signature at a REAL window size keeps the operator's typed band exactly: the floors
+    // are the signal's own movement and the estimator's resolution, not a tax on every deployment.
+    // (Production windows are large -- the lane's dumps show 0.5M to 5M commands per window -- so
+    // the 1/sqrt(N) quantum is far below a typed 2%.)
     {
-        FlipShiftDetector learned(4);
-        for (int k = 0; k < 8; k++) learned.observe(quiet(8000, 2000, k % 2));
-        learned.anchor();
-        if (std::abs(learned.band() - 0.02) > 1e-9)
-            fail("a still signature did not keep the 2/sqrt(N) floor");
+        FlipShiftDetector typed(2, 4);
+        for (int k = 0; k < 8; k++) typed.observe(quiet(8000, 2000, k % 2));
+        typed.anchor();
+        if (std::abs(typed.band() - 0.02) > 1e-9)
+            fail("a still signature did not keep the typed 2% band");
         for (int k = 0; k < 8; k++)
-            if (learned.observe(quiet(8000, 2000, k % 2)))
-                fail("a still signature fired its learned band");
+            if (typed.observe(quiet(8000, 2000, k % 2)))
+                fail("a still signature fired its typed band");
     }
-    // N counts sampled commands: the learned band cannot undercut the estimator's resolution.
+    // A TYPED BAND CANNOT BUY RESOLUTION THE SIGNAL HAS NOT GOT. If the writer samples the request
+    // stream, N is what the signature was ESTIMATED from: a 100-command window resolves the mix to
+    // about 0.1, so a typed 2% is raised to the estimator's own 1/sqrt(N) scale. Simulated on a
+    // 1-in-100 sampled stationary stream this took two-consecutive spurious exceedances from three
+    // in 600 windows to none, while a real mix change still cleared the band by 3.3x.
     {
-        FlipShiftDetector sampled(8);
+        FlipShiftDetector sampled(2, 8);
         for (int k = 0; k < 8; k++) sampled.observe(quiet(50, 50));
         sampled.anchor();
         if (!(sampled.band() >= 2.0 / std::sqrt(100.0) - 1e-9))
-            fail("a learned band undercut the sampled estimator's own resolution");
+            fail("a typed band undercut the sampled estimator's own resolution");
         if (!sampled.observe(multikey_mix()))
             fail("the resolution floor swallowed a real mix change on a sampled stream");
     }
     // The learned (auto) band takes the same floor, and the max is what applies: on the same noisy
     // signature the band is the observed movement, not the count quantum under it.
     {
-        FlipShiftDetector autob(4);
+        FlipShiftDetector autob(-1, 4);
         const auto noisy = [](int k) { return quiet(k % 2 ? 6500 : 3500, k % 2 ? 3500 : 6500); };
         for (int k = 0; k < 8; k++) autob.observe(noisy(k));
         autob.anchor();
@@ -464,12 +475,17 @@ int main(int argc, char** argv) {
         for (int k = 8; k < 24; k++) fires += autob.observe(noisy(k)) ? 1 : 0;
         if (fires) fail("the learned band fired on quiet-state movement");
     }
-    // The production learned band under the real sampler: a stationary 50/50 stream at
-    // depth 32 stays quiet, while a real mix change still clears it. K is the sampled count.
+    // A TYPED BAND UNDER THE REAL SAMPLER. The shipped configuration cannot reach this -- the
+    // controller runs the learned band. This internal explicit-band control preserves the earlier
+    // regression: where the typed path bypassed the floor the fingerprint lane measured 73
+    // two-consecutive exceedances in 600 stationary windows at K=100 and 208 at K=60: a spurious
+    // maneuver every few seconds on a load that never changed. Driven here through THEIR writer, a
+    // stationary 50/50 stream at depth 32, with the floor in place: none, and a real mix change
+    // still clears. The window is what the writer actually published, so K is the SAMPLED count.
     {
         for (uint32_t window : {60u, 100u}) {
             XorShift rng;
-            FlipShiftDetector learned(8);
+            FlipShiftDetector typed(2, 8);   // internal explicit-band control: 2%
             int fires = 0, confirmed = 0, streak = 0;
             for (int w = 0; w < 60; w++) {
                 FlipFingerprintWriter writer;
@@ -480,17 +496,17 @@ int main(int argc, char** argv) {
                 });
                 const FlipFingerprintWindow& pub = writer.published();
                 if (pub.commands != window) fail("the driven window did not publish its frames");
-                const bool fired = w < 8 ? (learned.observe(pub), false) : learned.observe(pub);
-                if (w == 7) learned.anchor();
+                const bool fired = w < 8 ? (typed.observe(pub), false) : typed.observe(pub);
+                if (w == 7) typed.anchor();
                 fires += fired ? 1 : 0;
                 streak = fired ? streak + 1 : 0;
                 if (streak >= 2) { confirmed++; streak = 0; }
             }
-            if (confirmed) fail("a learned band under the real sampler fired on a stationary stream");
-            if (!(learned.band() >= 2.0 / std::sqrt(static_cast<double>(window)) - 1e-12))
-                fail("the learned band undercut the sampled estimator's resolution");
-            if (!learned.observe(multikey_mix()))
-                fail("the sampled learned band swallowed a real mix change");
+            if (confirmed) fail("a typed band under the real sampler fired on a stationary stream");
+            if (!(typed.band() >= 2.0 / std::sqrt(static_cast<double>(window)) - 1e-12))
+                fail("the typed band undercut the sampled estimator's resolution");
+            if (!typed.observe(multikey_mix()))
+                fail("the sampled typed band swallowed a real mix change");
         }
     }
     // AN EXCURSION MUST NOT WIDEN THE THRESHOLD THAT JUDGES IT. The regression this pins: folding
@@ -498,7 +514,7 @@ int main(int argc, char** argv) {
     // lift the band to the excursion's own size, so the change never cleared its band
     // (flip_multikey_hold positive phase, reached 0.80x). Only in-band windows may teach it.
     {
-        FlipShiftDetector d(4);
+        FlipShiftDetector d(-1, 4);
         for (int k = 0; k < 8; k++) d.observe(quiet(8000, 2000, k % 2));
         d.anchor();
         const double band_before = d.band();
@@ -657,7 +673,7 @@ int main(int argc, char** argv) {
         const FlipSignature sampled = flip_signature(quiet(8, 2));
         if (flip_signature_distance(full, sampled) != 0)
             fail("a 1/W sample of a stationary window changed the signature");
-        FlipShiftDetector k100, k10;
+        FlipShiftDetector k100(-1), k10(-1);
         k100.observe(quiet(80, 20)); k100.anchor();
         k10.observe(quiet(8, 2)); k10.anchor();
         // jitter is zero after one window and the noise bound needs two, so band = 2/sqrt(K).

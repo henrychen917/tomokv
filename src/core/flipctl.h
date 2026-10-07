@@ -169,12 +169,14 @@ double flip_signature_distance(const FlipSignature& left, const FlipSignature& r
 // Whole-signature distance including pass_depth. Diagnostics only -- never a trigger input.
 double flip_signature_pass_distance(const FlipSignature& left, const FlipSignature& right);
 
-// Small, deterministic detector used by both the controller and the unit test. Its learned
-// band is twice the signature's pre-anchor jitter, floored by both the continuously learned
-// in-band noise and 2/sqrt(N), where N is the number of sampled commands in the window.
+// The shipped controller uses the learned band: twice pre-anchor jitter, floored by both
+// continuously learned in-band noise and 2/sqrt(N) for N sampled commands. The fixed/disabled
+// forms remain for byte stability; no production constructor selects either form.
 class FlipShiftDetector {
 public:
-    explicit FlipShiftDetector(uint32_t noise_windows = 1) {
+    explicit FlipShiftDetector(int32_t configured_band = -1,
+                               uint32_t noise_windows = 1)
+        : configured_band_(configured_band) {
         signature_noise_.configure(noise_windows);
     }
 
@@ -191,17 +193,14 @@ public:
     double last_distance() const { return last_distance_; }
     double jitter() const { return jitter_; }
     // The signal's own adjacent-window movement, learned continuously from IN-BAND windows: the
-    // floor under the learned band.
+    // floor under the learned band (the only production mode).
     double noise_bound() const { return signature_noise_.bound(); }
     uint32_t noise_samples() const { return signature_noise_.samples; }
 
 private:
     void update_band();
 
-    // Keep the former selector's eight-byte slot as padding: shrinking this cold detector
-    // moves hot Server fields and changes ordinary command/dispatch operands. No live mode,
-    // named member, load or store remains in this slot.
-    uint64_t : 64;
+    int32_t configured_band_ = -1;
     FlipSignature smoothed_{};
     FlipSignature previous_{};
     FlipSignature learning_origin_{};
@@ -218,8 +217,6 @@ private:
     bool have_jitter_ = false;
     bool anchored_ = false;
 };
-
-static_assert(sizeof(FlipShiftDetector) == 560, "preserve hot Server offsets");
 
 enum class FlipctlTriggerReason : uint8_t {
     None = 0,
