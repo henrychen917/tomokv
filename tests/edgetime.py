@@ -381,17 +381,50 @@ def test_lazy_and_active(conn):
 # MULTI / EXEC and WATCH.
 # --------------------------------------------------------------------------------------------
 
+def server_ms(conn):
+    seconds, micros = conn.cmd("TIME")
+    return int(seconds) * 1000 + int(micros) // 1000
+
+
+def wait_deadline(observer, expiry):
+    deadline = time.monotonic() + 5
+    while server_ms(observer) < expiry:
+        if time.monotonic() >= deadline:
+            raise AssertionError("server clock never reached the armed expiry")
+        time.sleep(0.001)
+
+
+def arm_before_deadline(conn, observer, key, ttl_ms, commands, expected, queued=False):
+    """Re-arm only a missed live setup, never an EXEC result or a wrong reply."""
+    budget = time.monotonic() + 5
+    while time.monotonic() < budget:
+        conn.cmd("DEL", key)
+        before = info_counter(observer, "expired_keys")
+        earliest = server_ms(observer) + ttl_ms
+        assert conn.cmd("SET", key, "v", "PX", str(ttl_ms)) == b"OK"
+        expiry = conn.cmd("PEXPIRETIME", key)
+        replies = [conn.cmd(*command) for command in commands]
+        assert replies == expected, (commands, replies)
+        if server_ms(observer) < earliest:
+            assert isinstance(expiry, int) and expiry >= earliest, expiry
+            return before, expiry, replies
+        assert conn.cmd("DISCARD" if queued else "UNWATCH") == b"OK"
+        print("  INVALID live expiry setup; re-arming fresh state", flush=True)
+    raise AssertionError("no live expiry setup witnessed within the arming budget")
+
+
 def test_multi_watch(conn):
     other = Resp()
     try:
         set_active(conn, 0)
         conn.cmd("FLUSHALL")
 
-        before = info_counter(conn, "expired_keys")
-        conn.cmd("SET", "multi:queued", "v", "PX", "70")
-        check("MULTI before queued expiry", conn.cmd("MULTI"), b"OK")
-        check("GET queued before expiry", conn.cmd("GET", "multi:queued"), b"QUEUED")
-        time.sleep(0.16)
+        before, expiry, replies = arm_before_deadline(
+            conn, other, "multi:queued", 70,
+            [("MULTI",), ("GET", "multi:queued")], [b"OK", b"QUEUED"], queued=True)
+        check("MULTI before queued expiry", replies[0], b"OK")
+        check("GET queued before expiry", replies[1], b"QUEUED")
+        wait_deadline(other, expiry)
         check("expired between queue and EXEC", conn.cmd("EXEC"), [None])
         check("queued expiry mechanism fired", info_counter(conn, "expired_keys") - before, 1)
 
@@ -405,10 +438,10 @@ def test_multi_watch(conn):
         # EXEC.  Active expiry is off, so the key is still physically counted: the abort has to
         # come from the armed deadline, not from a delete somebody else already performed.
         conn.cmd("FLUSHALL")
-        before = info_counter(conn, "expired_keys")
-        conn.cmd("SET", "watch:elapsed", "v", "PX", "70")
-        check("WATCH elapsed setup", conn.cmd("WATCH", "watch:elapsed"), b"OK")
-        time.sleep(0.16)
+        before, expiry, replies = arm_before_deadline(
+            conn, other, "watch:elapsed", 70, [("WATCH", "watch:elapsed")], [b"OK"])
+        check("WATCH elapsed setup", replies[0], b"OK")
+        wait_deadline(other, expiry)
         check("WATCH key is still physically present", conn.cmd("DBSIZE"), 1)
         check("WATCH did not reap on arm", info_counter(conn, "expired_keys") - before, 0)
         conn.cmd("MULTI")
@@ -464,9 +497,9 @@ def test_multi_watch(conn):
         keys, _ = distinct_shard_keys(conn, "edgetime:watch", 4)
         for key in keys:
             conn.cmd("SET", key, "v")
-        conn.cmd("PEXPIRE", keys[2], "80")
-        conn.cmd("WATCH", *keys)
-        time.sleep(0.20)
+        _, expiry, _ = arm_before_deadline(
+            conn, other, keys[2], 80, [("WATCH", *keys)], [b"OK"])
+        wait_deadline(other, expiry)
         conn.cmd("MULTI")
         conn.cmd("GET", keys[0])
         check("cross-shard WATCH aborts on one elapsed key", conn.cmd("EXEC"), None)

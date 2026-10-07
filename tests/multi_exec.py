@@ -350,7 +350,8 @@ def torn_arm(seconds=2.0):
     # version of this window lives in tests/execatomic.py (DEBUG ATOMIC-FANOUT-DEFER).
     with closing(_lib.Conn(HOST, PORT)) as geometry:
         buckets = _lib.owner_buckets(geometry, "multi:torn", per_owner=4)
-        keys = [key for group in list(buckets.values())[:2] for key in group[:4]]
+        full_groups = [group for group in buckets.values() if len(group) >= 4]
+        keys = [key for group in full_groups[:2] for key in group[:4]]
     held_exec_cut(keys)
     before_cuts = info_field("atomic_fanout_cuts")
     before_pend = info_field("read_local_fallback_atomic_pending")

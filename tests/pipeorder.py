@@ -24,7 +24,7 @@ def rr(f):
         n = int(line[1:-2])
         return line if n == -1 else [rr(f) for _ in range(n)]
     raise RuntimeError(line)
-s = socket.create_connection(("127.0.0.1", PORT)); s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+s = socket.create_connection(("127.0.0.1", PORT), timeout=30); s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 f = s.makefile("rb")
 bad = 0
 # A held DEL supplies the dangerous predecessor deterministically. Keep the
@@ -32,7 +32,7 @@ bad = 0
 with closing(_lib.Conn("127.0.0.1", PORT)) as admin:
     assert admin.cmd("CONFIG", "GET", "atomic") == [b"atomic", b"1"]
     owners = _lib.owner_buckets(admin, "po:held", per_owner=3)
-    first, second = list(owners.values())[:2]
+    first, second = [group for group in owners.values() if len(group) >= 3][:2]
     a, x, y = first[:3]
     m, z, k = second[:3]
     assert admin.cmd("MSET", k, "v", a, "42", m, "hello") == b"OK"
