@@ -47,11 +47,6 @@
 #include "resp.h"
 #include "../base/slice.h"
 
-#ifdef TOMO_WEDGE_FORENSICS
-#define TOMO_FORENSIC(x) do { x; } while (0)
-#else
-#define TOMO_FORENSIC(x) do { } while (0)
-#endif
 
 namespace tomo {
 
@@ -784,13 +779,6 @@ public:
     static constexpr size_t atomic_groups_io_offset();
     static constexpr size_t inline_scanned_offset();
 
-#ifdef TOMO_WEDGE_FORENSICS
-    // FORENSICS for the stranded-reply class: claims (worker won the CAS), defers (lost it),
-    // serves (io actually served). serves < claims on a stranded client names the dropped link.
-    std::atomic<uint32_t> n_claims{0};
-    std::atomic<uint32_t> n_defers{0};
-    std::atomic<uint32_t> n_serves{0};
-#endif
 
 private:
     // --- io-hot scalars, packed: touched together on every pass ---------------------------------

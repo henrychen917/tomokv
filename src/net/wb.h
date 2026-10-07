@@ -765,7 +765,6 @@ private:
     // older fill bytes before segments; direct bytes precede spills; coded replies render at
     // the fill frontier or materialize into the current segment, just as before.
 #define TOMO_WB_SERVE_BODY(BeforeRetire, StageBorrow, ...) \
-        TOMO_FORENSIC(c.n_serves.fetch_add(1, std::memory_order_relaxed)); \
         stats_.serves++; \
         Client& conn = c; \
         if constexpr (TrackOutput) conn.start_obuf_tracking(); \
