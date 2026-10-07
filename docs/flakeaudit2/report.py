@@ -136,7 +136,8 @@ def main():
         "never PASS. Published bands and all thresholds are unchanged. The 21 serverless controls include "
         "deliberately moved trigger/state/split, a 90-second settle, more than three invalid windows and "
         "never-quiescent/short-budget controls. These mutate observed published state, not a live controller "
-        "binary. Live six-run and broken-binary proof are still required if admission was refused.", "",
+        "binary. Live six-run proof remains pending if admission was refused; no live mutant binary "
+        "was run. [Original GT16 failure](evidence/gt16-OPRDHt-original.log).", "",
         "**PSFIX seed 91, rows 515/516 — NEEDS-WITNESS (B), W14.** The suggested both-peer "
         "`rdb_bgsave_in_progress:0` poll already exists in `psfix_wait_idle` (10-second bounded loop). "
         "`SnapshotManager::start` also returns Busy when placement is transitioning; `snapshot_command` "
@@ -242,8 +243,9 @@ def main():
         "The deliberate GT16 controls inject trigger, state and anchor-split movement during an otherwise "
         "valid hold, each failing immediately without a re-roll. Other controls reject missing atomic "
         "installation, disabled holds, private values, truncated frames, duplicate coded ACL replies, "
-        "never-live TTL arms, absent/malformed lane counters, never-parked WAIT arms and in-window early replies. They do not replace live six-run or "
-        "broken-controller-binary receipts; quiet refusals prevent that claim.", "",
+        "never-live TTL arms, absent/malformed lane counters, never-parked WAIT arms and in-window early "
+        "replies. These are serverless mutation controls; no live mutant controller binary was run. "
+        "Live six-run receipts remain pending after quiet refusal.", "",
         "## Full triage", "",
         "[remaining-v2.md](docs/flakeaudit2/remaining-v2.md) contains all 42 original mechanisms, the "
         "GT16 and PSFIX addenda, exact residual thresholds, and 44 differential suites one per line.", "",
