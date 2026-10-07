@@ -1,10 +1,4 @@
-test_early_denial_fails_before_revocation (__main__.WitnessTests.test_early_denial_fails_before_revocation) ... ok
-test_late_witness_fails (__main__.WitnessTests.test_late_witness_fails) ... ok
-test_malformed_and_wrong_client_fail (__main__.WitnessTests.test_malformed_and_wrong_client_fail) ... ok
-test_never_parked_fails (__main__.WitnessTests.test_never_parked_fails) ... ok
-test_requested_command_timeout_matrix (__main__.WitnessTests.test_requested_command_timeout_matrix) ... ok
-test_requires_exact_client_then_blocked_flag (__main__.WitnessTests.test_requires_exact_client_then_blocked_flag) ... ok
-
+......
 ----------------------------------------------------------------------
 Ran 6 tests in 0.002s
 

@@ -1,16 +1,5 @@
-test_blocked_requires_this_clients_flag (__main__.ClientWitnessTests.test_blocked_requires_this_clients_flag) ... ok
-test_gone_requires_empty_client_list (__main__.ClientWitnessTests.test_gone_requires_empty_client_list) ... ok
-test_late_success_is_not_a_witness (__main__.ClientWitnessTests.test_late_success_is_not_a_witness) ... ok
-test_malformed_wrong_client_and_errors_fail_immediately (__main__.ClientWitnessTests.test_malformed_wrong_client_and_errors_fail_immediately) ... ok
-test_missing_window_never_passes (__main__.ClientWitnessTests.test_missing_window_never_passes) ... ok
-test_transport_failure_is_not_retried (__main__.ClientWitnessTests.test_transport_failure_is_not_retried) ... ok
-test_absent_sync_fails (__main__.PersistenceWitnessTests.test_absent_sync_fails) ... ok
-test_idle_sync_waits_for_counter_and_preserves_policy_age (__main__.PersistenceWitnessTests.test_idle_sync_waits_for_counter_and_preserves_policy_age) ... ok
-test_raw_load_keeps_exact_success_and_corruption_oracles (__main__.PersistenceWitnessTests.test_raw_load_keeps_exact_success_and_corruption_oracles) ... ok
-test_raw_load_never_retries_data_errors_or_accepts_two_refusals (__main__.PersistenceWitnessTests.test_raw_load_never_retries_data_errors_or_accepts_two_refusals) ... ok
-test_save_must_finish_and_publish_valid_state (__main__.PersistenceWitnessTests.test_save_must_finish_and_publish_valid_state) ... ok
-
+...........
 ----------------------------------------------------------------------
-Ran 11 tests in 0.042s
+Ran 11 tests in 0.038s
 
 OK

@@ -1,0 +1,38 @@
+[
+  {
+    "object": "db0/src/cmd/aclkeys.o",
+    "symbol": "_ZN8tomo_db023acl_check_metadata_keysERKNS_11AclSelectorERKNS_11CommandSpecEjPKvPFNS_5SliceES7_jEPj.cold",
+    "bytes": 135,
+    "instructions": 31
+  },
+  {
+    "object": "db0/src/cmd/aclkeys.o",
+    "symbol": "_ZN8tomo_db019acl_pattern_allowedERKNS_11AclSelectorENS_5SliceE",
+    "bytes": 109,
+    "instructions": 40
+  },
+  {
+    "object": "db0/src/cmd/aclkeys.o",
+    "symbol": "_ZN8tomo_db023acl_check_metadata_keysERKNS_11AclSelectorERKNS_11CommandSpecEjPKvPFNS_5SliceES7_jEPj",
+    "bytes": 990,
+    "instructions": 214
+  },
+  {
+    "object": "src/cmd/aclkeys.o",
+    "symbol": "_ZN4tomo23acl_check_metadata_keysERKNS_11AclSelectorERKNS_11CommandSpecEjPKvPFNS_5SliceES7_jEPj.cold",
+    "bytes": 132,
+    "instructions": 31
+  },
+  {
+    "object": "src/cmd/aclkeys.o",
+    "symbol": "_ZN4tomo19acl_pattern_allowedERKNS_11AclSelectorENS_5SliceE",
+    "bytes": 109,
+    "instructions": 40
+  },
+  {
+    "object": "src/cmd/aclkeys.o",
+    "symbol": "_ZN4tomo23acl_check_metadata_keysERKNS_11AclSelectorERKNS_11CommandSpecEjPKvPFNS_5SliceES7_jEPj",
+    "bytes": 958,
+    "instructions": 206
+  }
+]

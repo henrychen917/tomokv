@@ -8,7 +8,10 @@
     "raw_equal": false,
     "pre_size": 1296,
     "post_size": 568,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 331,
+    "post_instructions": 157,
+    "reason": "ACL key extraction and its argument-view callback"
   },
   {
     "object": "db0/src/cmd/acl.o",
@@ -19,7 +22,10 @@
     "raw_equal": false,
     "pre_size": 1393,
     "post_size": 609,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 345,
+    "post_instructions": 161,
+    "reason": "ACL key extraction and its argument-view callback"
   },
   {
     "object": "db0/src/cmd/acl.o",
@@ -30,7 +36,10 @@
     "raw_equal": false,
     "pre_size": 1393,
     "post_size": 609,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 345,
+    "post_instructions": 161,
+    "reason": "ACL key extraction and its argument-view callback"
   },
   {
     "object": "db0/src/cmd/acl.o",
@@ -41,7 +50,10 @@
     "raw_equal": false,
     "pre_size": 93,
     "post_size": 0,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 38,
+    "post_instructions": 0,
+    "reason": "ACL key-pattern predicate moved to aclkeys.cc"
   },
   {
     "object": "db0/src/cmd/acl.o",
@@ -52,7 +64,10 @@
     "raw_equal": false,
     "pre_size": 3398,
     "post_size": 3398,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 765,
+    "post_instructions": 769,
+    "reason": "Unresolved cold code-generation drift in the changed ACL TU"
   },
   {
     "object": "db0/src/cmd/acl.o",
@@ -63,7 +78,10 @@
     "raw_equal": false,
     "pre_size": 2816,
     "post_size": 2815,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 667,
+    "post_instructions": 665,
+    "reason": "Unresolved cold code-generation drift in the changed ACL TU"
   },
   {
     "object": "db0/src/cmd/acl.o",
@@ -74,7 +92,10 @@
     "raw_equal": false,
     "pre_size": 0,
     "post_size": 23,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 0,
+    "post_instructions": 8,
+    "reason": "ACL key extraction and its argument-view callback"
   },
   {
     "object": "db0/src/cmd/acl.o",
@@ -85,7 +106,10 @@
     "raw_equal": false,
     "pre_size": 0,
     "post_size": 70,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 0,
+    "post_instructions": 20,
+    "reason": "ACL key extraction and its argument-view callback"
   },
   {
     "object": "db0/src/cmd/acl.o",
@@ -96,7 +120,10 @@
     "raw_equal": false,
     "pre_size": 0,
     "post_size": 70,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 0,
+    "post_instructions": 20,
+    "reason": "ACL key extraction and its argument-view callback"
   },
   {
     "object": "src/cmd/acl.o",
@@ -107,7 +134,10 @@
     "raw_equal": false,
     "pre_size": 1101,
     "post_size": 513,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 291,
+    "post_instructions": 142,
+    "reason": "ACL key extraction and its argument-view callback"
   },
   {
     "object": "src/cmd/acl.o",
@@ -118,7 +148,10 @@
     "raw_equal": false,
     "pre_size": 1261,
     "post_size": 577,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 318,
+    "post_instructions": 156,
+    "reason": "ACL key extraction and its argument-view callback"
   },
   {
     "object": "src/cmd/acl.o",
@@ -129,7 +162,10 @@
     "raw_equal": false,
     "pre_size": 1261,
     "post_size": 577,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 318,
+    "post_instructions": 156,
+    "reason": "ACL key extraction and its argument-view callback"
   },
   {
     "object": "src/cmd/acl.o",
@@ -140,7 +176,10 @@
     "raw_equal": false,
     "pre_size": 93,
     "post_size": 0,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 38,
+    "post_instructions": 0,
+    "reason": "ACL key-pattern predicate moved to aclkeys.cc"
   },
   {
     "object": "src/cmd/acl.o",
@@ -151,7 +190,10 @@
     "raw_equal": false,
     "pre_size": 2234,
     "post_size": 2253,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 500,
+    "post_instructions": 506,
+    "reason": "Unresolved cold code-generation drift in the changed ACL TU"
   },
   {
     "object": "src/cmd/acl.o",
@@ -162,7 +204,10 @@
     "raw_equal": false,
     "pre_size": 63,
     "post_size": 63,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 13,
+    "post_instructions": 13,
+    "reason": "Unresolved cold code-generation drift in the changed ACL TU"
   },
   {
     "object": "src/cmd/acl.o",
@@ -173,7 +218,10 @@
     "raw_equal": false,
     "pre_size": 12700,
     "post_size": 12700,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 2517,
+    "post_instructions": 2517,
+    "reason": "Unresolved cold code-generation drift in the changed ACL TU"
   },
   {
     "object": "src/cmd/acl.o",
@@ -184,7 +232,10 @@
     "raw_equal": false,
     "pre_size": 685,
     "post_size": 685,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 129,
+    "post_instructions": 129,
+    "reason": "Unresolved cold code-generation drift in the changed ACL TU"
   },
   {
     "object": "src/cmd/acl.o",
@@ -195,7 +246,10 @@
     "raw_equal": false,
     "pre_size": 851,
     "post_size": 851,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 204,
+    "post_instructions": 204,
+    "reason": "Unresolved cold code-generation drift in the changed ACL TU"
   },
   {
     "object": "src/cmd/acl.o",
@@ -206,7 +260,10 @@
     "raw_equal": false,
     "pre_size": 0,
     "post_size": 23,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 0,
+    "post_instructions": 8,
+    "reason": "ACL key extraction and its argument-view callback"
   },
   {
     "object": "src/cmd/acl.o",
@@ -217,7 +274,10 @@
     "raw_equal": false,
     "pre_size": 0,
     "post_size": 68,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 0,
+    "post_instructions": 19,
+    "reason": "ACL key extraction and its argument-view callback"
   },
   {
     "object": "src/cmd/acl.o",
@@ -228,6 +288,9 @@
     "raw_equal": false,
     "pre_size": 0,
     "post_size": 68,
-    "classification": "other"
+    "classification": "other",
+    "pre_instructions": 0,
+    "post_instructions": 19,
+    "reason": "ACL key extraction and its argument-view callback"
   }
 ]
