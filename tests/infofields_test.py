@@ -70,6 +70,17 @@ class InfoFieldsControls(unittest.TestCase):
         with self.assertRaises(AssertionError):
             differ.monitor_payload(line, b"127.0.0.1:9999")
 
+    def test_monitor_inclusion_controls(self):
+        expected = [b'"SET" "k" "v"', b'"PING" "done"']
+        differ.monitor_check_streams(expected, expected, expected)
+        for broken in ([], expected[1:], expected + [b'"CONFIG" "GET" "maxmemory"'],
+                       expected + [b'"SET" "denied" "v"'],
+                       [b'"SET" "k" "wrong-quote"', expected[-1]]):
+            with self.assertRaises(AssertionError):
+                differ.monitor_check_streams(broken, expected, expected)
+        with self.assertRaises(AssertionError):
+            differ.monitor_check_streams([], [], [])
+
     def test_monitor_generator_cannot_omit_denials(self):
         for seed in (7, 91):
             commands = differ.gen_monitor(random.Random(seed))

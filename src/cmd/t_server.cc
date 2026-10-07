@@ -2245,14 +2245,6 @@ void cmd_info(Shard&, Op& op) {
         // allocated but hold no key, so they are reported here and deliberately left out of
         // used_memory / used_memory_dataset / the maxmemory budget: every figure above keeps the
         // same basis it had before the cache existed.
-        std::string maxmemory = "0", policy = "noeviction";
-        {
-            std::lock_guard<std::mutex> lock(g_config_mu);
-            for (const ConfigValue& item : g_config) {
-                if (!std::strcmp(item.name, "maxmemory")) maxmemory = item.value;
-                if (!std::strcmp(item.name, "maxmemory-policy")) policy = item.value;
-            }
-        }
         uint64_t block_cache = 0;
         if (g_server)
             for (uint32_t t = 0; t < g_server->nthreads(); t++)
@@ -2260,16 +2252,15 @@ void cmd_info(Shard&, Op& op) {
         appendf(body, "# Memory\r\nused_memory:%llu\r\nused_memory_dataset:%llu\r\n"
                       "used_memory_rss:%llu\r\nused_memory_peak:%llu\r\n"
                       "mem_allocator:%s\r\nallocator_allocated:%llu\r\nallocator_resident:%llu\r\n"
-                      "mem_block_cache:%llu\r\nmaxmemory:%s\r\nmaxmemory_policy:%s\r\n"
-                      "mem_fragmentation_ratio:%.2f\r\n",
+                      "mem_block_cache:%llu\r\n",
                 static_cast<unsigned long long>(used_memory),
                 static_cast<unsigned long long>(obj_bytes),
                 static_cast<unsigned long long>(resident),
                 static_cast<unsigned long long>(used_memory_peak),
                 alloc_backend(), static_cast<unsigned long long>(allocated),
                 static_cast<unsigned long long>(resident),
-                static_cast<unsigned long long>(block_cache), maxmemory.c_str(), policy.c_str(),
-                allocated && resident ? double(resident) / double(allocated) : 1.0);
+                static_cast<unsigned long long>(block_cache));
+        info_stats_memory_fields(body, allocated, resident);
     }
     if (info_section(op, "PERSISTENCE")) {
         uint64_t preimages = 0;

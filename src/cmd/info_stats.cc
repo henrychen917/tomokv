@@ -137,6 +137,24 @@ void info_stats_reset(uint64_t operations, uint64_t memory, uint64_t input, uint
     g_info_stats.cursor = 0;
 }
 
+void info_stats_memory_fields(std::string& body, uint64_t allocated, uint64_t resident) {
+    std::vector<std::pair<std::string, std::string>> config;
+    command_config_snapshot(config);
+    const char* maxmemory = "0";
+    const char* policy = "noeviction";
+    for (const auto& item : config) {
+        if (item.first == "maxmemory") maxmemory = item.second.c_str();
+        if (item.first == "maxmemory-policy") policy = item.second.c_str();
+    }
+    // Compare jemalloc resident/allocated on the same process-wide basis. The
+    // dataset-only admission budget is not an allocator fragmentation denominator.
+    char fields[192];
+    const int count = std::snprintf(fields, sizeof(fields),
+        "maxmemory:%s\r\nmaxmemory_policy:%s\r\nmem_fragmentation_ratio:%.2f\r\n",
+        maxmemory, policy, allocated && resident ? double(resident) / double(allocated) : 1.0);
+    if (count > 0 && static_cast<size_t>(count) < sizeof(fields)) body.append(fields, count);
+}
+
 const char* info_run_id() { return g_run_id.data(); }
 const char* info_executable() { return g_executable.c_str(); }
 const char* info_config_file() { return g_config_file.c_str(); }

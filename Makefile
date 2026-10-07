@@ -88,6 +88,10 @@ persistfix-live-controls: build/persistfix-controls/old-ack/tomokv build/persist
 $(BIN): $(OBJ) $(DB0_OBJ)
 	$(CXX) $(CXXFLAGS) $(DB0_OBJ) $(OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
+# SV6 adds only a cold metadata lookup; retain all unrelated climon bodies.
+$(BUILD_ROOT)/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=25735
+$(BUILD_ROOT)/db0/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=25670
+
 # The clean string family intentionally excludes the armed instantiations, but its parsed template
 # bodies still move GCC just past the default large-unit threshold. 10600 restores the same inlining
 # decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
@@ -95,11 +99,13 @@ $(BUILD_ROOT)/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=
 $(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10600
 # PS5/PS7 add cold CONFIG/INFO/finalization code. Retain PRE's inlining decisions
 # for every ordinary command and storage body; tools/psfix_artifacts.py audits both variants.
-$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31261
-# CC18 composes with PS5/PS7: 31582 retains all ordinary merged-PRE handlers.
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31582
-$(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14554
-$(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14427
+$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31310
+# SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
+# CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31630
+# SV9 publishes save status only on cold completion/abort edges.
+$(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14580
+$(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14453
 # CD6/CD13 add cold scan/replacement work. Preserve GCC 13's ordinary set/zset bodies in
 # both database namespaces; tests/cdfix_checks.py audits every emitted function against PRE.
 # These are compile-time inlining budgets, with no runtime option or request-path branch.

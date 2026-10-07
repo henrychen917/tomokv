@@ -1,0 +1,193 @@
+tests/cd13b_unit.cc:32:        cfg.maxmemory = 1ull << 30; cfg.maxmemory_policy = MaxmemoryPolicy::AllKeysLfu;
+tests/infofields_test.py:2:"""Serverless falsification of the differential's field, rate and MONITOR checks."""
+tests/infofields_test.py:40:        duplicate[b"Server"][b"cluster_enabled"] = b"0"
+tests/infofields_test.py:45:        body = b"# Server\r\nrun_id:a\r\n\r\n# Cluster\r\ncluster_enabled:0\r\n"
+tests/infofields_test.py:86:            commands = differ.gen_monitor(random.Random(seed))
+tests/gate_history.py:135:    for key in ("run_id", "observation_id"):
+tests/gate_history.py:288:def record(directory: Path, *, run_id: str, label: str, seconds: float,
+tests/gate_history.py:292:        "run_id": run_id, "observation_id": observation_id or uuid.uuid4().hex,
+tests/gate_history.py:336:        run_id = observation["run_id"]
+tests/gate_history.py:337:        run_order.setdefault(run_id, index)
+tests/gate_history.py:338:        grouped[observation["label"]].setdefault(run_id, []).append(observation)
+tests/gate_history.py:342:        for run_id in sorted(runs, key=run_order.__getitem__):
+tests/gate_history.py:343:            rows = runs[run_id]
+tests/gate_history.py:346:            run_summaries.append({"run_id": run_id, "verdict": verdict,
+tests/gate_history.py:354:                transitions.append({"from_run": previous["run_id"], "from_verdict": previous["verdict"],
+tests/gate_history.py:355:                    "to_run": current["run_id"], "to_verdict": current["verdict"],
+tests/gate_history.py:360:        mixed = [run["run_id"] for run in run_summaries if run["verdict"] == "mixed"]
+tests/gate_history.py:388:            detail = ", ".join(f"{run['run_id']} ({run['failures']}/{run['observations']} FAIL)" for run in mixed)
+tests/gate_history.py:743:        record(self.directory, run_id="run", label=label, seconds=seconds,
+tests/gate_history.py:870:        record(self.directory, run_id="old", label="first", seconds=1, verdict="ok", observation_id="first")
+tests/gate_history.py:874:                record(self.directory, run_id="new", label="other", seconds=2, verdict="ok", observation_id="first")
+tests/gate_history.py:877:                record(self.directory, run_id="new", label="new", seconds=2, verdict="ok",
+tests/gate_history.py:886:            record(self.directory, run_id="old", label="first", seconds=1, verdict="ok", observation_id=str(number))
+tests/gate_history.py:907:            record(self.directory, run_id="old", label="row", seconds=1,
+tests/gate_history.py:912:                record(self.directory, run_id="new", label="row", seconds=1,
+tests/gate_history.py:915:            record(self.directory, run_id="new", label="row", seconds=1,
+tests/gate_history.py:920:        record(self.directory, run_id="old", label="first", seconds=1, verdict="ok", observation_id="first")
+tests/gate_history.py:944:        record(self.directory, run_id="old", label="first", seconds=1, verdict="ok", observation_id="first")
+tests/gate_history.py:959:                        record(self.directory, run_id="new", label="first", seconds=1,
+tests/gate_history.py:970:                record(directory, run_id="old", label="first", seconds=1, verdict="ok", observation_id="first")
+tests/gate_history.py:976:history.record(Path(sys.argv[2]), run_id="interrupted", label="crashed", seconds=2,
+tests/gate_history.py:984:                    record(directory, run_id="recovery", label="crashed", seconds=2,
+tests/gate_history.py:987:                record(directory, run_id="recovery", label="last", seconds=3, verdict="ok", observation_id="last")
+tests/gate_history.py:998:    record(Path(sys.argv[2]), run_id="parallel", label="row", seconds=index,
+tests/gate_history.py:1474:        self.assertEqual([(row["scored"], row["ledger_label"], row["run_id"]) for row in history],
+tests/gate_history.py:1578:    def add(self, run_id, verdict="ok", label="row", observation_id=None):
+tests/gate_history.py:1579:        record(self.directory, run_id=run_id, label=label, seconds=1,
+tests/gate_history.py:1583:        for run_id, verdict in (("run-1", "ok"), ("run-2", "FAIL"), ("run-3", "ok")):
+tests/gate_history.py:1584:            self.add(run_id, verdict)
+tests/gate_history.py:1599:        for run_id in ("first", "second", "third"):
+tests/gate_history.py:1600:            self.add(run_id, "ok", "passes")
+tests/gate_history.py:1601:            self.add(run_id, "FAIL", "fails")
+tests/gate_history.py:1670:            "run_id": "parallel", "label": "row", "seconds": 1,
+tests/gate_history.py:1700:        self.assertEqual([run["run_id"] for run in row["run_history"]], ["first", "second"])
+tests/gate_history.py:1795:            record(args.history, run_id=args.run_id, label=args.label, seconds=args.seconds,
+tests/config_parser_test.cc:535:        const uint32_t sampled_rate = sampled_lb.sample_rate.load();
+tests/config_parser_test.cc:537:        if (sampled_rate != 3 || sampled_lb.sample_rate.load() != sampled_rate)
+tests/abba_aslr.py:126:            if row["executable"]["sha256"] != self.executable:
+tests/infofields_unit.cc:11:    info_stats_reset(0, 12);
+tests/infofields_unit.cc:21:        const auto rates = info_stats_rates();
+tests/infofields_unit.cc:29:        assert(info_stats_rates()[0] == 1000);
+tests/infofields_unit.cc:35:        assert(info_stats_rates()[0] == 1000 * (16 - i) / 16);
+tests/infofields_unit.cc:37:    assert(info_stats_observe_memory(12) == 4096);
+tests/infofields_unit.cc:38:    info_stats_reset(totals[0], 12, totals[1], totals[2]);
+tests/infofields_unit.cc:39:    assert((info_stats_rates() == std::array<uint64_t, 3>{}));
+tests/infofields_unit.cc:40:    assert(info_stats_observe_memory(12) == 12);
+tests/infofields_unit.cc:42:    assert(info_stats_rates()[0] == 0);
+tests/infofields_unit.cc:45:    assert((info_stats_rates() == std::array<uint64_t, 3>{}));
+tests/infofields_unit.cc:48:    assert(info_stats_rates()[0] == 62);
+tests/legacy_reorder_witness.py:9:instrumented build is used. MONITOR observes dispatch, while a conflicting GET
+tests/legacy_reorder_witness.py:12:after MONITOR reported the write first proves a nonidentity execution order.
+tests/legacy_reorder_witness.py:20:Its MONITOR-induced force_coarse branch at 4180-4185 is therefore not this path.
+tests/legacy_reorder_witness.py:23:before prefetch (ex_loop.h:2124-2125 and 2764). MONITOR still adds unscored work;
+tests/legacy_reorder_witness.py:26:MONITOR runs before a potentially refused enqueue (4560 versus 5251). Duplicate
+tests/legacy_reorder_witness.py:34:2 proves SETRANGE ran first. The same MONITOR/admission/topology controls apply.
+tests/legacy_reorder_witness.py:180:    require(isinstance(raw, bytes), "MONITOR did not return a line")
+tests/legacy_reorder_witness.py:183:    require(match is not None, f"malformed MONITOR line: {text!r}")
+tests/legacy_reorder_witness.py:187:        raise WitnessError(f"malformed MONITOR arguments: {text!r}") from exc
+tests/legacy_reorder_witness.py:188:    require(arguments, "empty MONITOR command")
+tests/legacy_reorder_witness.py:201:    raise WitnessError("MONITOR fence was not reached within bounded transcript")
+tests/legacy_reorder_witness.py:313:            # Seed distinct unused keys before MONITOR is armed. A remote control
+tests/legacy_reorder_witness.py:317:            require(monitor.must("MONITOR") == b"OK", "MONITOR refused")
+tests/legacy_reorder_witness.py:325:                # A same-producer ECHO drains every older local MONITOR event. All
+tests/legacy_reorder_witness.py:528:                monitor_event(b'not a MONITOR frame')
+tests/legacy_reorder_witness.py:548:            # Drive run_control's real client placement, requests, MONITOR parser,
+tests/legacy_reorder_witness.py:577:                            if engine.monitor is not None and name != "MONITOR":
+tests/legacy_reorder_witness.py:596:                            elif name == "MONITOR":
+tests/gate.sh:364:          mv "$ROW_WATCH_CANCEL.tmp" "$ROW_WATCH_CANCEL"; }; then ROW_MONITOR_FAILED=1; fi
+tests/gate.sh:367:    row_watch_clock || { ROW_MONITOR_FAILED=1; return 1; }
+tests/gate.sh:374:          ROW_MONITOR_FAILED=1; can_wait=0
+tests/gate.sh:378:      row_watch_clock || { ROW_MONITOR_FAILED=1; can_wait=0; break; }
+tests/gate.sh:385:        forced=1; ROW_MONITOR_FAILED=1
+tests/gate.sh:410:      watcher_rc=255; ROW_MONITOR_FAILED=1
+tests/gate.sh:415:      ROW_MONITOR_FAILED=1
+tests/gate.sh:448:  ROW_EXPIRED=0; ROW_MONITOR_FAILED=0; ROW_PAUSED=0; ROW_START=$ROW_NOW
+tests/gate.sh:472:  [ "${ROW_MONITOR_FAILED:-0}" = 0 ] || verdict=FAIL
+tests/gate.sh:483:    [ "${ROW_MONITOR_FAILED:-0}" = 0 ] || verdict=FAIL
+tests/gate.sh:601:    if [ "$ROW_EXPIRED" = 1 ] || [ "${ROW_MONITOR_FAILED:-0}" != 0 ]; then
+tests/gate.sh:1197:      || bad "release build" "candidate is not executable: $CANDIDATE_BINARY"
+tests/gate.sh:3452:ABBA_CLEANUP_RC=${ROW_MONITOR_FAILED:-0}
+tests/climon2.py:2:"""Directed CLIENT connection-control + MONITOR battery. Usage: climon2.py HOST PORT
+tests/climon2.py:6:  * MONITOR asserts the feed line CONTENT (quoting, redaction) and the
+tests/climon2.py:294:    # ---- 4. MONITOR: feed content, quoting, redaction, counter -------------------------------
+tests/climon2.py:297:    expect(mon.command("MONITOR"), b"OK", "MONITOR")
+tests/climon2.py:312:    assert '"AUTH" "(redacted)"' in body, f"AUTH not redacted: {body}"
+tests/climon2.py:313:    assert "hunter2" not in body, "AUTH password leaked into the MONITOR feed"
+tests/climon2.py:332:    # ---- 5. MONITOR is disarmed when nobody is watching --------------------------------------
+tests/persistfix.py:220:                                 info_run_id=fields.get('run_id'))
+tests/persistfix.py:246:        # INFO Server currently has process_id but no run_id. Keep the harness
+tests/persistfix.py:247:        # boot UUID explicitly separate from any future server-supplied run_id.
+tests/persistfix.py:248:        self.identity = dict(run_id=uuid.uuid4().hex, run_id_source='persistfix boot UUID',
+tests/persistfix.py:290:                f'pid={self.identity.get("pid")} run_id={self.identity.get("run_id")} '
+tests/persistfix.py:453:            self.run.identity = dict(pid=4321, run_id='test-boot', ready=False)
+tests/persistfix.py:482:            client = self.client(extra='run_id:server-run-id\r\n')
+tests/persistfix.py:492:            self.assertEqual((identity['pid'], identity['run_id'], identity['info_run_id']),
+tests/persistfix.py:593:                self.assertNotEqual(records[0]['run_id'], records[1]['run_id'])
+tests/persistfix.py:633:                self.assertIn('pid=4321 run_id=test-boot', message)
+tests/gate_receipt.py:493:    require(re.fullmatch(r"[A-Za-z0-9_.:-]+", args.run_id) and args.run_id not in (".", ".."), "invalid run ID")
+tests/gate_receipt.py:520:    state = {"schema": SCHEMA, "kind": "gate-start", "run_id": args.run_id, "tier": args.tier,
+tests/gate_receipt.py:526:    path = directory / "runs" / args.run_id / "start.json"
+tests/gate_receipt.py:552:    binding = {"schema": SCHEMA, "kind": "gate-candidate", "run_id": state["run_id"],
+tests/gate_receipt.py:583:        if row.get("run_id") != state["run_id"]:
+tests/gate_receipt.py:623:    # {schema:1, run_id, tier:'push'|'release'|'full', completed:true, verdict:'PASS', exit_code:0,
+tests/gate_receipt.py:628:    require(completed.get("schema") == 1 and completed.get("run_id") == state["run_id"] and
+tests/gate_receipt.py:654:    receipt = {"schema": SCHEMA, "kind": "full-gate-receipt", "verdict": "PASS", "run_id": state["run_id"],
+tests/gate_receipt.py:683:    result = {"schema": 1, "run_id": args.run_id, "tier": args.tier,
+tests/gate_receipt.py:709:    for key, value in {"schema": 1, "completed": True, "verdict": "PASS", "run_id": state["run_id"],
+tests/gate_receipt.py:719:            row["schema"] == 1 and row["run_id"] == state["run_id"] and row["timing"] == "own-row" and
+tests/gate_receipt.py:762:        checked.append((local_ref, valid["run_id"]))
+tests/gate_receipt.py:867:            self.args = argparse.Namespace(run_id="fixture", tier="push", expected_ledger=self.ledger,
+tests/gate_receipt.py:879:            self.completed = dict(schema=1, run_id="fixture", tier="push", completed=True, verdict="PASS",
+tests/gate_receipt.py:883:            self.observed = [dict(schema=1, timing="own-row", run_id="fixture", observation_id=str(i),
+tests/gate_receipt.py:1013:            self.observed.append(dict(schema=1, timing="own-row", run_id="fixture", observation_id="dependency",
+tests/gate_receipt.py:1021:            self.args.run_id = "push:bootstrap"
+tests/gate_receipt.py:1048:                    run_id = f"{tier}:fragment-{built}"
+tests/gate_receipt.py:1072:                                                  "TEST_RUN_ID": run_id, "TEST_BUILT": str(built)})
+tests/gate_receipt.py:1081:                    self.assertFalse((history_directory(self.root) / "runs" / run_id / "receipt.json").exists())
+tests/gate_receipt.py:1123:                    gate_history.record(directory, run_id=self.args.run_id,
+tests/gate_receipt.py:1126:                gate_history.record(directory, run_id=self.args.run_id, label="unscored build dependency: test.o",
+tests/gate_receipt.py:1138:            self.args.run_id = "larger-full-run"
+tests/gate_receipt.py:1150:            self.completed["run_id"] = self.args.run_id
+tests/gate_receipt.py:1154:                row["run_id"] = self.args.run_id
+tests/gate_receipt.py:1162:            self.observed.append(dict(schema=1, timing="own-row", run_id=self.args.run_id,
+tests/watchlive.py:179:def run_repetition(host, port, nconn, watch, deadline, run_id, ping, seconds=2.0):
+tests/watchlive.py:212:                # run_id is FIXED for the whole repetition on purpose.  Rotating it per wave lets
+tests/watchlive.py:215:                blob, n, exec_idx = build_pipeline(run_id, i, watch)
+tests/watchlive.py:280:        run_id = int(time.time() * 1000) % 1000000 + r * 7919
+tests/watchlive.py:281:        verdict, detail = run_repetition(host, port, nconn, watch, deadline, run_id, ping)
+tests/gates_test.py:1427:            run.identity = dict(pid=12345, run_id='owned-peer-test', ready=False)
+tests/infofix.py:156:    high_peak = as_int(high, "used_memory_peak")
+tests/infofix.py:157:    low_peak = as_int(low, "used_memory_peak")
+tests/infofix.py:166:    check("RESETSTAT re-based peak", as_int(reset, "used_memory_peak"),
+tests/infofix.py:275:        return as_int(info(c, "stats"), "instantaneous_ops_per_sec")
+tests/infofix.py:289:        loaded = as_int(info(c, "stats"), "instantaneous_ops_per_sec")
+tests/differ_fanout.py:227:    record(args.row_history, run_id=args.row_run, label=label, seconds=float(duration),
+tests/abba_binaries.py:301:            with self.assertRaisesRegex(BinaryGuardError, f"missing executable: {missing}.*disk guard"):
+tests/abba_binaries.py:312:            with self.assertRaisesRegex(BinaryGuardError, f"missing executable: {alias}"):
+tests/pushtear.py:9:MONITOR feed line -- used to be parked on the newest live op's `reply`. That is
+tests/pushtear.py:24:  x producer               (pub/sub, tracking invalidation, MONITOR)
+tests/pushtear.py:26:                            for protocol-agnostic MONITOR delivery)
+tests/pushtear.py:367:    no REDIRECT correctly has no invalidation channel; the MONITOR cells retain RESP2 coverage."""
+tests/pushtear.py:480:    """MONITOR x (RESP3 | RESP2) x value >= zc-min. Protocol-agnostic producer: the feed line is
+tests/pushtear.py:501:        started = mon.command("MONITOR", wait=0.6)
+tests/pushtear.py:503:            bad(tag, "MONITOR refused: %r" % started[:80])
+tests/differ.py:6297:    b"Server": {b"run_id", b"executable", b"config_file", b"io_threads_active"},
+tests/differ.py:6299:    b"Cluster": {b"cluster_enabled"},
+tests/differ.py:6300:    b"Persistence": {b"loading", b"rdb_last_bgsave_status"},
+tests/differ.py:6301:    b"Stats": {b"instantaneous_ops_per_sec", b"instantaneous_input_kbps",
+tests/differ.py:6302:               b"instantaneous_output_kbps", b"latest_fork_usec"},
+tests/differ.py:6303:    b"Memory": {b"used_memory_peak", b"maxmemory", b"maxmemory_policy",
+tests/differ.py:6304:                b"mem_fragmentation_ratio"},
+tests/differ.py:6359:        assert re.fullmatch(br"[0-9a-f]{40}", server[b"run_id"]), (side, server)
+tests/differ.py:6363:        assert rows[b"Cluster"][b"cluster_enabled"] == b"0", side
+tests/differ.py:6365:        assert rows[b"Persistence"][b"rdb_last_bgsave_status"] in (b"ok", b"err"), side
+tests/differ.py:6366:        assert rows[b"Stats"][b"latest_fork_usec"] == b"0" or side == "oracle", side
+tests/differ.py:6367:        assert re.fullmatch(br"[0-9]+\.[0-9]{2}", rows[b"Memory"][b"mem_fragmentation_ratio"]), side
+tests/differ.py:6368:        for name in (b"instantaneous_input_kbps", b"instantaneous_output_kbps"):
+tests/differ.py:6375:        assert info(peer, "server")[b"Server"][b"run_id"] == server[b"run_id"], side
+tests/differ.py:6376:    assert all_fields[0][b"Server"][b"io_threads_active"] == b"1"
+tests/differ.py:6392:        assert int(after[b"used_memory_peak"]) >= int(base[b"used_memory"]) + len(value), (side, base, after)
+tests/differ.py:6393:        assert int(after[b"used_memory"]) < int(after[b"used_memory_peak"]), (side, after)
+tests/differ.py:6429:            infofields_rate_check(int(rows[b"instantaneous_ops_per_sec"]), offered)
+tests/differ.py:6431:            assert float(rows[b"instantaneous_input_kbps"]) > 0, rows
+tests/differ.py:6432:            assert float(rows[b"instantaneous_output_kbps"]) > 0, rows
+tests/differ.py:6434:          (offered, [[int(rows[b"instantaneous_ops_per_sec"]) for rows in p[1]] for p in polls]))
+tests/differ.py:6447:    assert match is not None, ("MONITOR line format", raw)
+tests/differ.py:6448:    assert match[1] == address, ("MONITOR source address", match[1], address)
+tests/differ.py:6452:def gen_monitor(rng):
+tests/differ.py:6476:    assert expected, "empty MONITOR witness"
+tests/differ.py:6477:    assert target == oracle == expected, ("MONITOR inclusion/format", target, oracle, expected)
+tests/differ.py:6481:    commands = gen_monitor(rng)
+tests/differ.py:6499:            a.sendall(enc(["MONITOR"]))
+tests/differ.py:7072:    for required in ("instantaneous_ops_per_sec", "total_net_input_bytes",
+tests/differ.py:7088:                      for name in ("used_memory", "used_memory_peak"))
+tests/differ.py:7096:    if reset_memory.get("used_memory_peak") != reset_memory.get("used_memory"):
+tests/differ.py:7102:    def sampled_rate(sock, file):
+tests/differ.py:7103:        return int(fields(sock, file, "stats").get("instantaneous_ops_per_sec", "-1"))
+tests/differ.py:7107:        return sampled_rate(sock, file)
+tests/differ.py:7124:        target_rate = sampled_rate(ts, tf)
+tests/differ.py:7125:        oracle_rate = sampled_rate(os_, of)
+tests/differ_gate.sh:173:  echo "target binary is not executable: $TARGET_BIN" >&2
+tests/differ_gate.sh:177:  echo "pinned oracle is not executable: $ORACLE_BIN" >&2
+tests/differ_gate.sh:181:  echo "pinned redis-cli is not executable: $REDIS_CLI" >&2

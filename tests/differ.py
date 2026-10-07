@@ -6398,6 +6398,13 @@ def run_infofields_properties(peers):
     # on that poll and receive another chance. A late driver is a harness failure.
     for peer in peers:
         assert issue(peer, ["CONFIG", "RESETSTAT"]) == b"+OK\r\n"
+    # Prime an idle history before the silent loaded interval. PRE's lazy meter
+    # otherwise gets one perfectly rate-matched sample spanning RESETSTAT->INFO
+    # and could pass despite having no cron at all.
+    for _ in range(17):
+        for peer in peers:
+            info(peer, "stats")
+        time.sleep(.1)
     payload = enc(["PING"]) * 20
     started = time.monotonic()
     polls, sent = [], 0
@@ -6465,6 +6472,11 @@ def gen_monitor(rng):
     ]
 
 
+def monitor_check_streams(target, oracle, expected):
+    assert expected, "empty MONITOR witness"
+    assert target == oracle == expected, ("MONITOR inclusion/format", target, oracle, expected)
+
+
 def run_monitor_suite(rng):
     commands = gen_monitor(rng)
     streams = []
@@ -6509,7 +6521,7 @@ def run_monitor_suite(rng):
                 issue(["ACL", "DELUSER", "ifmon_limited"])
             finally:
                 af.close(); a.close(); bf.close(); b.close()
-    assert streams[0] == streams[1] == expected, ("MONITOR inclusion/format", streams, expected)
+    monitor_check_streams(streams[0], streams[1], expected)
     print("DIFFER monitor: %d driven commands, %d visible lines per peer, 0 diffs -> PASS" %
           (len(commands), len(expected)))
 

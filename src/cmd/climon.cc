@@ -653,6 +653,7 @@ void IoLoop::climon_monitor_format(Client* client, Op& op, std::string& out) {
 void IoLoop::climon_monitor_feed(Client* client, Op& op) {
     // Redis excludes both admin and skip_monitor, including container subcommands.
     // MONITOR itself is admin; ordinary commands from a monitor are still visible.
+    if (op.cmd_name().eq_icase("monitor")) return;
     if (command_metadata_skip_monitor(op)) return;
     std::string line;
     climon_monitor_format(client, op, line);
