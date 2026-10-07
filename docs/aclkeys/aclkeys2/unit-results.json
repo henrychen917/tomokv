@@ -1,0 +1,34 @@
+[
+  {
+    "argv": [
+      "build/aclkeys/POST/aclkeys-unit",
+      "permissions"
+    ],
+    "returncode": 0,
+    "log": "docs/aclkeys/aclkeys2/unit-permissions.txt"
+  },
+  {
+    "argv": [
+      "build/aclkeys/POST/aclkeys-unit",
+      "registry"
+    ],
+    "returncode": 1,
+    "log": "docs/aclkeys/aclkeys2/unit-registry.txt"
+  },
+  {
+    "argv": [
+      "build/aclkeys/POST/aclkeys-unit-db0",
+      "permissions"
+    ],
+    "returncode": 0,
+    "log": "docs/aclkeys/aclkeys2/unit-db0-permissions.txt"
+  },
+  {
+    "argv": [
+      "build/aclkeys/POST/aclkeys-unit-db0",
+      "registry"
+    ],
+    "returncode": 1,
+    "log": "docs/aclkeys/aclkeys2/unit-db0-registry.txt"
+  }
+]

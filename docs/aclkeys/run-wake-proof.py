@@ -57,6 +57,12 @@ def quiet(out, ports):
 
 
 def reproduce(binary, out):
+    oracle = Path("/home/user/Projects/redis74/src/redis-server")
+    (out / "reproduction-identity.json").write_text(json.dumps(dict(start=now(),
+        binary=str(binary), sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
+        oracle=str(oracle), oracle_sha256=hashlib.sha256(oracle.read_bytes()).hexdigest(),
+        geometry="split 6:2, 16 shards, 16 databases", server_cpus="112-119",
+        oracle_client_cpus="120-127", socket_timeout_seconds=5), indent=2) + "\n")
     api = codec()
     enc, read, parse = (api[name] for name in ("enc", "read_reply", "parse_reply"))
     results = []
@@ -66,8 +72,7 @@ def reproduce(binary, out):
             name = "%s-a%d" % (label, atomic)
             directory = ROOT / "build/aclkeys2" / out.name / name
             directory.mkdir(parents=True, exist_ok=False)
-            argv = [str(binary if label == "TomoKV" else
-                        Path("/home/user/Projects/redis74/src/redis-server")),
+            argv = [str(binary if label == "TomoKV" else oracle),
                     "--bind", "127.0.0.1", "--port", str(port),
                     "--dir", str(directory), "--save", ""]
             argv += (["--shards", "16", "--ratio", "6:2", "--databases", "16",
