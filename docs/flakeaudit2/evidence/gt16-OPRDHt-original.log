@@ -1,0 +1,207 @@
+ramp deferred boot; jittery stationary load maneuvered in 6.2s (cap=30s); anchored off-rail at 6:2, rate=4901.750
+stable hold: 8s pre-hold window stationary (driver 4904,4903,4903,4904,4904,4905,4898,4896/s, driver anchor 4901.981/s, controller anchor 4901.750/s, band 0.040410); assertion window open for 30s
+stable hold RE-ROLL 1/3: INVALID: driver left the controller's published band at hold sample 16: rate=4701.384/s anchor=4901.981/s deviation=0.040922 > band=0.040410
+  driver per-second rates: 4897, 4892, 4896, 4897, 4899, 4898, 4898, 4903, 4902, 4900, 4899, 4862, 4891, 4893, 4781, 4701, 4833, 4847, 4495, 4827, 4887, 4890, 4881, 4883, 4844, 4890, 4869, 4837, 4744, 4753
+  per-second trace:
+    prehold t=  +0.0s anchored       anchored   driver=    4904/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4903/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4903/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4904/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4904/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4905/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4898/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4896/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +1.0s anchored       anchored   driver=    4897/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +2.0s anchored       anchored   driver=    4892/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +3.0s anchored       anchored   driver=    4896/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +4.0s anchored       anchored   driver=    4897/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +5.0s anchored       anchored   driver=    4899/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +6.0s anchored       anchored   driver=    4898/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +7.0s anchored       anchored   driver=    4898/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +8.0s anchored       anchored   driver=    4903/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +9.0s anchored       anchored   driver=    4902/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +10.0s anchored       anchored   driver=    4900/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +11.0s anchored       anchored   driver=    4899/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +12.0s anchored       anchored   driver=    4862/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +13.0s anchored       anchored   driver=    4891/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +14.0s anchored       anchored   driver=    4893/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +15.0s anchored       anchored   driver=    4781/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +16.0s anchored       anchored   driver=    4701/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +17.0s anchored       anchored   driver=    4833/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +18.0s anchored       anchored   driver=    4847/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +19.0s anchored       anchored   driver=    4495/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +20.0s anchored       anchored   driver=    4827/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +21.0s anchored       anchored   driver=    4887/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +22.0s anchored       anchored   driver=    4890/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +23.0s anchored       anchored   driver=    4881/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +24.0s anchored       anchored   driver=    4883/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +25.0s anchored       anchored   driver=    4844/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +26.0s anchored       anchored   driver=    4890/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +27.0s anchored       anchored   driver=    4869/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +28.0s anchored       anchored   driver=    4837/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +29.0s anchored       anchored   driver=    4744/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +30.0s anchored       anchored   driver=    4753/s live=6:2 anchor=6:2 triggers=1 last=boot
+stable hold RE-ROLL 2/3: pre-hold window is not stationary: driver left the controller anchor's published band at hold sample 6: rate=4558.766/s driver anchor=4735.747/s controller anchor=4890.934/s deviation=0.067915 > band=0.041048
+  per-second trace:
+    prehold t=  +0.0s anchored       anchored   driver=    4797/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4877/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4822/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4848/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4832/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4559/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4572/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4578/s live=6:2 anchor=6:2 triggers=1 last=boot
+stable hold RE-ROLL 3/3: INVALID: only 2 one-second samples; the rule needs at least 4 -- controller moved during the pre-hold measurement window of the stable hold: {'flipctl_state': 'maneuvering', 'flipctl_phase': 'measuring', 'flipctl_anchor_io': '6', 'flipctl_anchor_ex': '2', 'flipctl_anchor_rate': '4884.007', 'flipctl_signature_band': '0.000000000', 'flipctl_rate_band': '0.042481137', 'flipctl_triggers': '2', 'flipctl_boot_triggers': '1', 'flipctl_fingerprint_triggers': '0', 'flipctl_rate_surge_triggers': '0', 'flipctl_rate_collapse_triggers': '1', 'flipctl_surge_triggers': '0', 'flipctl_collapse_triggers': '1', 'flipctl_forced_triggers': '0', 'flipctl_null_maneuvers': '0', 'flipctl_model_holds': '0', 'flipctl_shift_confirmations': '2', 'flipctl_rate_confirmations': '2', 'flipctl_round_trips': '1', 'flipctl_model_margin': '2', 'flipctl_last_trigger': 'anchor-rate-collapse', 'flipctl_model_last_decision': 'measuring', 'flipctl_model_kappa': '0.5000', 'flipctl_model_moves': '1', 'flipctl_model_misses': '1', 'flipctl_invalidated_maneuvers': '0', 'flipctl_cost_holds': '0', 'flipctl_client_cost': '23.02', 'flipctl_last_flip_lost': '138.1', 'flipctl_last_flip_moved': '3', 'flipctl_flip_ticks': '1.00', 'flipctl_refine_decision': 'none', 'flipctl_refine_steps': '0'}
+  last_trigger=anchor-rate-collapse  band=0.042481  anchor_rate=4884.007
+  driver per-second rates: 4688, 4684
+  per-second trace:
+    prehold t=  +0.0s anchored       anchored   driver=    4688/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s maneuvering    measuring  driver=    4684/s live=6:2 anchor=6:2 triggers=2 last=anchor-rate-collapse
+  DEBUG FLIPCTL at the move:
+    state=maneuvering
+    phase=measuring
+    anchor=6:2
+    anchor_rate=4884.007
+    signature_band=0.000000000
+    signature_distance=0.000000000
+    signature_jitter=0.000000000
+    signature_noise_bound=0.000000000 signature_noise_samples=0
+    rate_band=0.042481137
+    anchor_rate_jitter=0.003714365
+    last_shift_distance=0.000000000
+    last_shift_band=0.000000000
+    boot_rate_ewma=5106.230
+    boot_rate_jitter=0.032570903
+    boot_rate_slope=0.018061264
+    boot_rate_slope_threshold=0.029132302
+    boot_nonidle_ticks=10
+    model_io_frac=0.022293
+    model_io_frac_low=0.021843
+    model_io_frac_high=0.022743
+    model_samples=0 model_readings_cap=15
+    model_headroom_io=0.9851 model_headroom_ex=0.0777
+    model_target_io=0 model_gain_mean=0.0000 model_gain_low=0.0000 model_gain_high=0.0000
+    model_required_gain=0.0000 model_margin=2 model_last_decision=measuring
+    model_holds=0 round_trips=1 maneuver_flips=0
+    shift_confirmations=2 rate_confirmations=2
+    shift_streak=0 null_maneuvers=0 maneuver_origin_io=6
+    last_trigger=anchor-rate-collapse
+    triggers=2 boot=1 fingerprint=0 rate_surge=0 rate_collapse=1 forced=0
+    pending_io=6 seek=none seek_target_io=0 origin_rate=0.000
+    origin_rate_readings=0 origin_rate_min=0.000 origin_rate_max=0.000 baseline_band=0.0000
+    origin_sigma=0.00000 model_kappa=0.5000 model_verify_readings=0 rate_ew_sigma=0.03650 rate_ew_n=46
+    cost_benefit=0.0 cost_cost=0.0 cost_transfer=0.0 cost_blackout_s=0.00 cost_horizon_s=0.00 cost_payback_s=0.00 cost_pays=0
+    cost_client=23.02 cost_reshuffle=0.900 cost_flip_ticks=1.00 cost_p_miss=0.667 cost_flips=2 cost_moves=1 cost_misses=1 cost_lost_sum=138.1 cost_moved_sum=6.0
+    hyp_predicted=0.0000 hyp_delivered=0.0000 hyp_threshold=0.0000 hyp_sigma=0.00000 hyp_origin_samples=0 target_readings=0 pending_miss=0
+    last_flip_lost=138.1 last_flip_moved=3 invalidated=0 cost_holds=0
+    refine_decision=none refine_steps=0 seek_origin_io=6 refining=0 refine_bar=0.0000
+    sig_now valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+    sig_anchor valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+    dist_parts pass=0.000000000 class=0.000000000 kpm=0.000000000 vbpc=0.000000000
+    visited=
+    
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclkeys/tests/flipctl.py", line 656, in <module>
+    main()
+  File "/home/user/Projects/cx-aclkeys/tests/flipctl.py", line 571, in main
+    raise AssertionError("stable hold never opened and completed after bounded re-arms: " +
+AssertionError: stable hold never opened and completed after bounded re-arms: attempt 1: INVALID: driver left the controller's published band at hold sample 16: rate=4701.384/s anchor=4901.981/s deviation=0.040922 > band=0.040410
+  driver per-second rates: 4897, 4892, 4896, 4897, 4899, 4898, 4898, 4903, 4902, 4900, 4899, 4862, 4891, 4893, 4781, 4701, 4833, 4847, 4495, 4827, 4887, 4890, 4881, 4883, 4844, 4890, 4869, 4837, 4744, 4753
+  per-second trace:
+    prehold t=  +0.0s anchored       anchored   driver=    4904/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4903/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4903/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4904/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4904/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4905/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4898/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4896/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +1.0s anchored       anchored   driver=    4897/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +2.0s anchored       anchored   driver=    4892/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +3.0s anchored       anchored   driver=    4896/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +4.0s anchored       anchored   driver=    4897/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +5.0s anchored       anchored   driver=    4899/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +6.0s anchored       anchored   driver=    4898/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +7.0s anchored       anchored   driver=    4898/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +8.0s anchored       anchored   driver=    4903/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t=  +9.0s anchored       anchored   driver=    4902/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +10.0s anchored       anchored   driver=    4900/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +11.0s anchored       anchored   driver=    4899/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +12.0s anchored       anchored   driver=    4862/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +13.0s anchored       anchored   driver=    4891/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +14.0s anchored       anchored   driver=    4893/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +15.0s anchored       anchored   driver=    4781/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +16.0s anchored       anchored   driver=    4701/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +17.0s anchored       anchored   driver=    4833/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +18.0s anchored       anchored   driver=    4847/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +19.0s anchored       anchored   driver=    4495/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +20.0s anchored       anchored   driver=    4827/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +21.0s anchored       anchored   driver=    4887/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +22.0s anchored       anchored   driver=    4890/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +23.0s anchored       anchored   driver=    4881/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +24.0s anchored       anchored   driver=    4883/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +25.0s anchored       anchored   driver=    4844/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +26.0s anchored       anchored   driver=    4890/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +27.0s anchored       anchored   driver=    4869/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +28.0s anchored       anchored   driver=    4837/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +29.0s anchored       anchored   driver=    4744/s live=6:2 anchor=6:2 triggers=1 last=boot
+    hold   t= +30.0s anchored       anchored   driver=    4753/s live=6:2 anchor=6:2 triggers=1 last=boot
+attempt 2: pre-hold window is not stationary: driver left the controller anchor's published band at hold sample 6: rate=4558.766/s driver anchor=4735.747/s controller anchor=4890.934/s deviation=0.067915 > band=0.041048
+  per-second trace:
+    prehold t=  +0.0s anchored       anchored   driver=    4797/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4877/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4822/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4848/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4832/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4559/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4572/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s anchored       anchored   driver=    4578/s live=6:2 anchor=6:2 triggers=1 last=boot
+attempt 3: INVALID: only 2 one-second samples; the rule needs at least 4 -- controller moved during the pre-hold measurement window of the stable hold: {'flipctl_state': 'maneuvering', 'flipctl_phase': 'measuring', 'flipctl_anchor_io': '6', 'flipctl_anchor_ex': '2', 'flipctl_anchor_rate': '4884.007', 'flipctl_signature_band': '0.000000000', 'flipctl_rate_band': '0.042481137', 'flipctl_triggers': '2', 'flipctl_boot_triggers': '1', 'flipctl_fingerprint_triggers': '0', 'flipctl_rate_surge_triggers': '0', 'flipctl_rate_collapse_triggers': '1', 'flipctl_surge_triggers': '0', 'flipctl_collapse_triggers': '1', 'flipctl_forced_triggers': '0', 'flipctl_null_maneuvers': '0', 'flipctl_model_holds': '0', 'flipctl_shift_confirmations': '2', 'flipctl_rate_confirmations': '2', 'flipctl_round_trips': '1', 'flipctl_model_margin': '2', 'flipctl_last_trigger': 'anchor-rate-collapse', 'flipctl_model_last_decision': 'measuring', 'flipctl_model_kappa': '0.5000', 'flipctl_model_moves': '1', 'flipctl_model_misses': '1', 'flipctl_invalidated_maneuvers': '0', 'flipctl_cost_holds': '0', 'flipctl_client_cost': '23.02', 'flipctl_last_flip_lost': '138.1', 'flipctl_last_flip_moved': '3', 'flipctl_flip_ticks': '1.00', 'flipctl_refine_decision': 'none', 'flipctl_refine_steps': '0'}
+  last_trigger=anchor-rate-collapse  band=0.042481  anchor_rate=4884.007
+  driver per-second rates: 4688, 4684
+  per-second trace:
+    prehold t=  +0.0s anchored       anchored   driver=    4688/s live=6:2 anchor=6:2 triggers=1 last=boot
+    prehold t=  +0.0s maneuvering    measuring  driver=    4684/s live=6:2 anchor=6:2 triggers=2 last=anchor-rate-collapse
+  DEBUG FLIPCTL at the move:
+    state=maneuvering
+    phase=measuring
+    anchor=6:2
+    anchor_rate=4884.007
+    signature_band=0.000000000
+    signature_distance=0.000000000
+    signature_jitter=0.000000000
+    signature_noise_bound=0.000000000 signature_noise_samples=0
+    rate_band=0.042481137
+    anchor_rate_jitter=0.003714365
+    last_shift_distance=0.000000000
+    last_shift_band=0.000000000
+    boot_rate_ewma=5106.230
+    boot_rate_jitter=0.032570903
+    boot_rate_slope=0.018061264
+    boot_rate_slope_threshold=0.029132302
+    boot_nonidle_ticks=10
+    model_io_frac=0.022293
+    model_io_frac_low=0.021843
+    model_io_frac_high=0.022743
+    model_samples=0 model_readings_cap=15
+    model_headroom_io=0.9851 model_headroom_ex=0.0777
+    model_target_io=0 model_gain_mean=0.0000 model_gain_low=0.0000 model_gain_high=0.0000
+    model_required_gain=0.0000 model_margin=2 model_last_decision=measuring
+    model_holds=0 round_trips=1 maneuver_flips=0
+    shift_confirmations=2 rate_confirmations=2
+    shift_streak=0 null_maneuvers=0 maneuver_origin_io=6
+    last_trigger=anchor-rate-collapse
+    triggers=2 boot=1 fingerprint=0 rate_surge=0 rate_collapse=1 forced=0
+    pending_io=6 seek=none seek_target_io=0 origin_rate=0.000
+    origin_rate_readings=0 origin_rate_min=0.000 origin_rate_max=0.000 baseline_band=0.0000
+    origin_sigma=0.00000 model_kappa=0.5000 model_verify_readings=0 rate_ew_sigma=0.03650 rate_ew_n=46
+    cost_benefit=0.0 cost_cost=0.0 cost_transfer=0.0 cost_blackout_s=0.00 cost_horizon_s=0.00 cost_payback_s=0.00 cost_pays=0
+    cost_client=23.02 cost_reshuffle=0.900 cost_flip_ticks=1.00 cost_p_miss=0.667 cost_flips=2 cost_moves=1 cost_misses=1 cost_lost_sum=138.1 cost_moved_sum=6.0
+    hyp_predicted=0.0000 hyp_delivered=0.0000 hyp_threshold=0.0000 hyp_sigma=0.00000 hyp_origin_samples=0 target_readings=0 pending_miss=0
+    last_flip_lost=138.1 last_flip_moved=3 invalidated=0 cost_holds=0
+    refine_decision=none refine_steps=0 seek_origin_io=6 refining=0 refine_bar=0.0000
+    sig_now valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+    sig_anchor valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+    dist_parts pass=0.000000000 class=0.000000000 kpm=0.000000000 vbpc=0.000000000
+    visited=
+    
