@@ -201,6 +201,18 @@ def server_arguments(flags):
     return argv
 
 
+def server_databases(argv):
+    configured = []
+    for index, arg in enumerate(argv):
+        if arg == "--databases":
+            configured.append(argv[index + 1] if index + 1 < len(argv) else "")
+        elif arg.startswith("--databases="):
+            configured.append(arg.split("=", 1)[1])
+    if len(configured) > 1 or any(not re.fullmatch(r"[1-9][0-9]*", value) for value in configured):
+        raise ValueError("srv= requires one positive --databases value")
+    return int(configured[0]) if configured else 0
+
+
 def cell_options(fields):
     options = {}
     for field in fields:
@@ -210,14 +222,7 @@ def cell_options(fields):
         options[name] = value
     flags = options.get("srv", "")
     argv = server_arguments(flags)
-    configured = []
-    for index, arg in enumerate(argv):
-        if arg == "--databases":
-            configured.append(argv[index + 1] if index + 1 < len(argv) else "")
-        elif arg.startswith("--databases="):
-            configured.append(arg.split("=", 1)[1])
-    if len(configured) > 1 or any(not re.fullmatch(r"[1-9][0-9]*", value) for value in configured):
-        raise ValueError("srv= requires one positive --databases value")
+    configured = server_databases(argv)
     dbs = options.get("dbs", "0")
     keys = options.get("keys", "0")
     if not re.fullmatch(r"-1|0|[1-9][0-9]*", dbs) or not re.fullmatch(r"0|[1-9][0-9]*", keys):
@@ -226,8 +231,8 @@ def cell_options(fields):
     if dbs == -1:
         if not configured:
             raise ValueError("dbs=-1 needs srv=--databases N")
-        dbs = int(configured[0])
-    if dbs and (not configured or dbs > int(configured[0])):
+        dbs = configured
+    if dbs and dbs > configured:
         raise ValueError("dbs= exceeds the explicit srv=--databases N")
     poll = options.get("poll", "0")
     if poll not in ("0", "info1hz"):
@@ -607,9 +612,13 @@ def require_cell_options_evidence(cell, run):
     flags = server_arguments(cell.server_flags)
     if flags and run.get("server_argv", [])[-len(flags):] != flags:
         raise RuntimeError("server argv did not retain the cell's srv= flags")
+    configured = server_databases(flags)
+    if configured and run.get("configured_databases") != configured:
+        raise RuntimeError("server did not apply the exact srv=--databases value")
     if cell.dbs:
         expected = {str(database): cell.database_keys(database) for database in range(cell.dbs)}
-        if (run.get("population", {}).get("database_counts") != expected or
+        if (not isinstance(run.get("population"), dict) or
+                run["population"].get("database_counts") != expected or
                 run.get("database_counts_after") != expected or
                 run.get("configured_databases", 0) < cell.dbs):
             raise RuntimeError("missing or incorrect multi-DB population/boot evidence")
@@ -634,6 +643,7 @@ def require_cell_options_evidence(cell, run):
         polls = record.get("polls", [])
         central = run.get("central_info_polls", {})
         if (record.get("error") or not polls or record.get("completed_polls") != len(polls) or
+                not 0 <= central.get("before", -1) <= central.get("after", -1) <= len(polls) or
                 central.get("subtracted") != central.get("after", 0) - central.get("before", 0) or
                 not math.floor(run["window_seconds"]) <= central.get("subtracted", 0) <= math.ceil(run["window_seconds"])):
             raise RuntimeError("incomplete INFO polling evidence")
@@ -642,6 +652,12 @@ def require_cell_options_evidence(cell, run):
                     not 0 <= poll["sent_monotonic"] - poll["scheduled_monotonic"] < 1 or
                     poll["finished_monotonic"] < poll["sent_monotonic"] or poll["reply_bytes"] <= 0):
                 raise RuntimeError("INFO polling missed a period or returned invalid timing")
+        start = run["midpoint_monotonic"] - run["window_seconds"] / 2
+        end = run["midpoint_monotonic"] + run["window_seconds"] / 2
+        if (record["started_monotonic"] > start or record.get("stopped_monotonic", 0) < end or
+                central["before"] != sum(poll["finished_monotonic"] <= start for poll in polls) or
+                central["after"] != sum(poll["finished_monotonic"] <= end for poll in polls)):
+            raise RuntimeError("INFO polling endpoints do not bracket the measured window")
         expected_commands = (int(run["info_after"]["total_commands_processed"]) -
                              int(run["info_before"]["total_commands_processed"]) - 1 - central["subtracted"])
         if run["commands"] != expected_commands:
@@ -1743,7 +1759,9 @@ class Runner:
         command += ["--shards", str(min(8 * (ex if cell.mode == "2s" else len(self.server_cpus)), 256))]
         for name, value in knobs.items():
             command += [f"--{name}", str(value)]
-        command += server_arguments(cell.server_flags)
+        extra_arguments = server_arguments(cell.server_flags)
+        configured_databases = server_databases(extra_arguments)
+        command += extra_arguments
         started = time.monotonic()
         srv, conn, generators = None, None, []
         log = folder / "server.log"
@@ -1763,7 +1781,7 @@ class Runner:
                 result.update(pid=srv.pid, boot_info=_calibration["boot_info"],
                     server_argv=_calibration["server_argv"], population=_calibration["population"],
                     populate_seconds=0.)
-                if cell.dbs:
+                if configured_databases:
                     result["configured_databases"] = _calibration["configured_databases"]
             else:
                 self.prepare_data(cell, arm, folder)
@@ -1815,18 +1833,18 @@ class Runner:
                     actual = conn.must("CONFIG", "GET", name)
                     if actual != [name.encode(), str(value).encode()]:
                         raise RuntimeError(f"boot did not apply {name}={value}: {actual!r}")
-                if cell.dbs:
+                if configured_databases:
                     configured = conn.must("CONFIG", "GET", "databases")
                     if (len(configured) != 2 or configured[0] != b"databases"
-                            or int(configured[1]) < cell.dbs):
-                        raise RuntimeError(f"boot cannot serve {cell.dbs} databases: {configured!r}")
+                            or int(configured[1]) != configured_databases):
+                        raise RuntimeError(f"boot did not apply databases={configured_databases}: {configured!r}")
                     result["configured_databases"] = int(configured[1])
                 result["population"] = self.populate(cell, arm, conn, folder)
                 result["populate_seconds"] = time.monotonic() - started
                 if _calibration is not None:
                     _calibration.update(srv=srv, conn=conn, cell=asdict(cell), boot_info=identity,
                         server_argv=result["server_argv"], population=result["population"])
-                    if cell.dbs:
+                    if configured_databases:
                         _calibration["configured_databases"] = result["configured_databases"]
             # Bracket ALL generators, after wire/snapshot population and any service-
             # cost probes. Only the named workload command counters enter accounting;
@@ -2748,6 +2766,7 @@ def self_test():
             require_cell_options_evidence(cell, run)
             for mutate in (lambda r: r["database_counts_after"].update({"7": 0}),
                            lambda r: r.update(configured_databases=1),
+                           lambda r: r.update(configured_databases=32),
                            lambda r: r["server_argv"].pop(),
                            lambda r: r["load_argv"][7].remove("--select-db=7"),
                            lambda r: r["load_layout"][7].update(connection_start=0)):
@@ -2811,13 +2830,15 @@ def self_test():
                     records.append(poller.record)
             cell = replace(self.cell, poll="info1hz")
             record = dict(records[0], completed_polls=3, stopped_monotonic=13.)
-            run = dict(info_poller=record, window_seconds=2., commands=100,
+            run = dict(info_poller=record, window_seconds=2., midpoint_monotonic=11.5, commands=100,
                 central_info_polls=dict(before=1, after=3, subtracted=2),
                 info_before=dict(total_commands_processed="100"), info_after=dict(total_commands_processed="203"))
             require_cell_options_evidence(cell, run)
             for mutate in (lambda r: r["info_poller"].update(error="missed period"),
                            lambda r: r["info_poller"]["polls"].pop(),
                            lambda r: r["central_info_polls"].update(subtracted=0),
+                           lambda r: r["central_info_polls"].update(before=0, after=2),
+                           lambda r: r["info_poller"].update(stopped_monotonic=11.),
                            lambda r: r.update(commands=102)):
                 broken = copy.deepcopy(run)
                 mutate(broken)
