@@ -1,0 +1,16 @@
+[
+  {
+    "repo": "redis/redis-py",
+    "commit": "27225cf0dcc683ce963437495b07ad7fdc83fc83",
+    "path": "redis/_parsers/helpers.py",
+    "sha256": "d16eb448a8adab1faa7558633c108419e86c690e019843f7c39057cb7ac67424",
+    "url": "https://github.com/redis/redis-py/blob/27225cf0dcc683ce963437495b07ad7fdc83fc83/redis/_parsers/helpers.py"
+  },
+  {
+    "repo": "oliver006/redis_exporter",
+    "commit": "072bd8bdabb60de075206fbebc9698edb1fff8f1",
+    "path": "exporter/info.go",
+    "sha256": "62f52e2c9e4a2c1ca9b46c298b421f4ac28db82f10587e9e36530705d1df933c",
+    "url": "https://github.com/oliver006/redis_exporter/blob/072bd8bdabb60de075206fbebc9698edb1fff8f1/exporter/info.go"
+  }
+]

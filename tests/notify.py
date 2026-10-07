@@ -191,11 +191,11 @@ def expect_none(flags, command, label):
 
 try:
     expect(admin.command("CONFIG", "SET", "atomic", "0"), b"OK", "initial atomic off")
-    # G1-G4: exact parser, atomic rejection, normalization, and the upstream n-after-A arm.
+    # G1-G4: exact parser, atomic rejection, normalization, and upstream A suppressing n.
     grammar = [
         ("", ""), ("KA", "AK"), ("EA", "AE"), ("gKE", "gKE"),
         ("$lshzxetKE", "$lshzxetKE"), ("gg", "g"), ("g$lshzxetd", "A"),
-        ("AKEn", "AKEn"),
+        ("AKEn", "AKE"),
     ]
     for supplied, canonical in grammar:
         config(supplied)

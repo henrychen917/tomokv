@@ -1,0 +1,39 @@
+normalizer self-checks PASS
+DIFF 002.diff auto tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const
+DIFF 003.diff auto tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const
+DIFF 005.diff auto tomo::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo::Client*)::{lambda(auto:1&&)#1}::operator()<tomo::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}>(tomo::IoLoop::parse_and_dispatch<true, 32u, false, true>(tomo::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo::Op const&)#1}&&) const
+DIFF 009.diff auto tomo_db0::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const
+DIFF 011.diff auto tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false, true>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const
+DIFF 012.diff auto tomo_db0::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo_db0::Client*)::{lambda(auto:1&&)#1}::operator()<tomo_db0::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}>(tomo_db0::IoLoop::parse_and_dispatch<true, 0u, true, true>(tomo_db0::Client*)::{lambda(unsigned long)#1}::operator()(unsigned long) const::{lambda(tomo_db0::Op const&)#1}&&) const
+DIFF 036.diff tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false, false>(tomo::Client*)
+DIFF 037.diff tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, true, false>(tomo::Client*)
+DIFF 043.diff tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false, false>(tomo::Client*)
+DIFF 048.diff tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, true, false>(tomo::Client*)
+DIFF 074.diff tomo::cmd_get_tls(tomo::Shard&, tomo::Op&)
+DIFF 077.diff tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)
+DIFF 080.diff tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)::{lambda(unsigned long, tomo::Slice, bool)#1}::operator()(unsigned long, tomo::Slice, bool) const
+DIFF 081.diff tomo::xshard_prepare(tomo::Server&, tomo::Op&, tomo::ScatterArenaPool&, unsigned int, unsigned long, tomo::ScatterDispatch&, bool, tomo::Client*)
+DIFF 087.diff tomo_db0::ExLoopT<false>::run()
+DIFF 099.diff tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, true, true>(tomo_db0::Client*)
+DIFF 135.diff tomo_db0::cmd_get_tls(tomo_db0::Shard&, tomo_db0::Op&)
+DIFF 138.diff tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)
+DIFF 141.diff tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)::{lambda(unsigned long, tomo_db0::Slice, bool)#1}::operator()(unsigned long, tomo_db0::Slice, bool) const
+DIFF 142.diff tomo_db0::xshard_prepare(tomo_db0::Server&, tomo_db0::Op&, tomo_db0::ScatterArenaPool&, unsigned int, unsigned long, tomo_db0::ScatterDispatch&, bool, tomo_db0::Client*)
+DIFF 255.diff unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, true>()
+DIFF 273.diff unsigned int tomo_db0::IoLoop::pipeline_pass<false, false, false, true>(bool, bool, bool&, unsigned long&)
+DIFF 281.diff unsigned int tomo_db0::IoLoop::pipeline_pass<true, false, false, true>(bool, bool, bool&, unsigned long&)
+DIFF 298.diff void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)
+DIFF 299.diff void tomo::(anonymous namespace)::cmd_get<true, false>(tomo::Shard&, tomo::Op&)
+DIFF 300.diff void tomo::(anonymous namespace)::cmd_get<true, true>(tomo::Shard&, tomo::Op&)
+DIFF 301.diff void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)
+DIFF 302.diff void tomo::(anonymous namespace)::cmd_set<true>(tomo::Shard&, tomo::Op&)
+DIFF 311.diff void tomo::IoLoop::run_loop<false, false, false, true, (unsigned char)1, true>()
+DIFF 347.diff void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)
+DIFF 348.diff void tomo_db0::(anonymous namespace)::cmd_get<true, false>(tomo_db0::Shard&, tomo_db0::Op&)
+DIFF 349.diff void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)
+DIFF 350.diff void tomo_db0::(anonymous namespace)::cmd_set<false>(tomo_db0::Shard&, tomo_db0::Op&)
+DIFF 351.diff void tomo_db0::(anonymous namespace)::cmd_set<true>(tomo_db0::Shard&, tomo_db0::Op&)
+DIFF 356.diff void tomo_db0::IoLoop::run_loop<false, false, false, false, (unsigned char)0, false>()
+DIFF 361.diff void tomo_db0::IoLoop::run_loop<false, false, true, false, (unsigned char)0, false>()
+DIFF 376.diff void tomo_db0::IoLoop::run_loop<true, false, false, false, (unsigned char)0, false>()
+strict_noop=False: 359/396 identical bodies

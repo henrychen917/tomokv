@@ -1,0 +1,9 @@
+build/ccfix5/PRE/tomokv [16] .text             PROGBITS        000000000001d6b0 01d6b0 773075 00  AX  0   0 16
+build/ccfix5/PRE/tomokv [30] .data             PROGBITS        000000000087f000 87e000 0049b8 00  WA  0   0 32
+build/ccfix5/PRE/tomokv [31] .bss              NOBITS          00000000008839c0 8829b8 117c78 00  WA  0   0 64
+build/ccfix5/merged-before-debug-fix-tomokv [16] .text             PROGBITS        000000000001d6b0 01d6b0 773275 00  AX  0   0 16
+build/ccfix5/merged-before-debug-fix-tomokv [30] .data             PROGBITS        000000000087f000 87f000 0049b8 00  WA  0   0 32
+build/ccfix5/merged-before-debug-fix-tomokv [31] .bss              NOBITS          00000000008839c0 8839b8 117cf8 00  WA  0   0 64
+build/ccfix5/POST/tomokv [16] .text             PROGBITS        000000000001d6b0 01d6b0 7732a5 00  AX  0   0 16
+build/ccfix5/POST/tomokv [30] .data             PROGBITS        000000000087f000 87f000 0049b8 00  WA  0   0 32
+build/ccfix5/POST/tomokv [31] .bss              NOBITS          00000000008839c0 8839b8 117cf8 00  WA  0   0 64

@@ -1,0 +1,14 @@
+PARTIAL	0	GATE_ONLY_JOBS=netcmd_units; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.010000	netcmd regression build
+ok	0.000000	netcmd streams regression
+ok	0.000000	netcmd zpop regression
+ok	0.010000	netcmd notify-oom regression
+ok	0.000000	netcmd notify-retry regression
+ok	0.010000	netcmd flush regression
+ok	0.000000	netcmd output regression
+ok	0.010000	netcmd pubsub regression
+ok	0.000000	netcmd receive regression
+ok	0.040000	netcmd config regression
+ok	0.000000	netcmd hexpire-oom regression
+ok	0.010000	NET1 serverless bounds + scan + reclamation

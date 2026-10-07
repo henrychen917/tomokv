@@ -1,0 +1,1 @@
+PASS: same PRE GET object compares equal; flipping its first opcode byte in memory makes the canonical audit unequal. No altered object was linked or executed.

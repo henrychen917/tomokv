@@ -1,0 +1,112 @@
+{
+  "landing": {
+    "root": "/home/user/Projects/cx-ccfix/build/gate-run.HrdWfH",
+    "parts": {
+      "0": {
+        "rows": [
+          "DIFFER geometry: armed-fused (--thread-mode fused --read-local 1)",
+          "DIFFER matrix: atomic={0} seeds={7 19 20 23 21} legs=220 logs=/home/user/Projects/cx-ccfix/build/gate-run.HrdWfH/jobs/differ-armed-0/differ",
+          "  differ ccfix (atomic=0 seed=7)                             ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+          "  differ ccfix (atomic=0 seed=19)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+          "  differ ccfix (atomic=0 seed=20)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+          "  differ ccfix (atomic=0 seed=23)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+          "  differ ccfix (atomic=0 seed=21)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+          "  read-local lane fired (atomic=0)                           FAIL (hits=0) -- vacuous run",
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (893252 recorded comparison witnesses, 215 legs)",
+          "DIFFER FANOUT FAIL: armed-0: boot, identity, lane, comparison or shutdown failure",
+          "DIFFER GATE: pass=215 fail=2 runtime=7m45s",
+          "  Redis 7.4 differential part (armed fused, atomic 0)  FAIL"
+        ],
+        "ccfix_legs": 5
+      },
+      "1": {
+        "rows": [
+          "DIFFER geometry: armed-fused (--thread-mode fused --read-local 1)",
+          "DIFFER matrix: atomic={1} seeds={7 19 20 23 21} legs=220 logs=/home/user/Projects/cx-ccfix/build/gate-run.HrdWfH/jobs/differ-armed-1/differ",
+          "  differ ccfix (atomic=1 seed=7)                             FAIL (see /home/user/Projects/cx-ccfix/build/gate-run.HrdWfH/jobs/differ-armed-1/differ/ccfix-a1-s7.txt; AssertionError: pending-source window never opened)",
+          "  differ ccfix (atomic=1 seed=19)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+          "  differ ccfix (atomic=1 seed=20)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+          "  differ ccfix (atomic=1 seed=23)                            FAIL (see /home/user/Projects/cx-ccfix/build/gate-run.HrdWfH/jobs/differ-armed-1/differ/ccfix-a1-s23.txt; AssertionError: pending-source window never opened)",
+          "  differ ccfix (atomic=1 seed=21)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+          "  read-local lane fired (atomic=1)                           ok (hits=15 fallbacks=245)",
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (910471 recorded comparison witnesses, 219 legs)",
+          "DIFFER FANOUT FAIL: armed-1: failed leg ccfix-a1-s7.txt (exit 1)",
+          "DIFFER GATE: pass=218 fail=3 runtime=7m56s",
+          "  Redis 7.4 differential part (armed fused, atomic 1)  FAIL"
+        ],
+        "ccfix_legs": 5,
+        "pending_failure_logs": [
+          "build/gate-run.HrdWfH/jobs/differ-armed-1/differ/ccfix-a1-s23.txt",
+          "build/gate-run.HrdWfH/jobs/differ-armed-1/differ/ccfix-a1-s7.txt"
+        ]
+      }
+    }
+  },
+  "idle_ccfix": {
+    "root": "/home/user/Projects/cx-ccfix/build/gate-run.zbWwPT",
+    "parts": {
+      "0": {
+        "rows": [
+          "DIFFER geometry: armed-fused (--thread-mode fused --read-local 1)",
+          "DIFFER matrix: atomic={0} seeds={7 19 20 23 22} legs=220 logs=/home/user/Projects/cx-ccfix/build/gate-run.zbWwPT/jobs/differ-armed-0/differ",
+          "  differ ccfix (atomic=0 seed=7)                             ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+          "  differ ccfix (atomic=0 seed=19)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+          "  differ ccfix (atomic=0 seed=20)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+          "  differ ccfix (atomic=0 seed=23)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+          "  differ ccfix (atomic=0 seed=22)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+          "  read-local lane fired (atomic=0)                           FAIL (hits=0) -- vacuous run",
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (893373 recorded comparison witnesses, 215 legs)",
+          "DIFFER FANOUT FAIL: armed-0: boot, identity, lane, comparison or shutdown failure",
+          "DIFFER GATE: pass=215 fail=2 runtime=7m40s",
+          "  Redis 7.4 differential part (armed fused, atomic 0)  FAIL"
+        ],
+        "ccfix_legs": 5
+      },
+      "1": {
+        "rows": [
+          "DIFFER geometry: armed-fused (--thread-mode fused --read-local 1)",
+          "DIFFER matrix: atomic={1} seeds={7 19 20 23 22} legs=220 logs=/home/user/Projects/cx-ccfix/build/gate-run.zbWwPT/jobs/differ-armed-1/differ",
+          "  differ ccfix (atomic=1 seed=7)                             ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+          "  differ ccfix (atomic=1 seed=19)                            FAIL (see /home/user/Projects/cx-ccfix/build/gate-run.zbWwPT/jobs/differ-armed-1/differ/ccfix-a1-s19.txt; AssertionError: pending-source window never opened)",
+          "  differ ccfix (atomic=1 seed=20)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+          "  differ ccfix (atomic=1 seed=23)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+          "  differ ccfix (atomic=1 seed=22)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+          "  read-local lane fired (atomic=1)                           ok (hits=18 fallbacks=242)",
+          "DIFFER COMMAND COVERAGE: diffed 232 of 245 registered commands (910573 recorded comparison witnesses, 219 legs)",
+          "DIFFER FANOUT FAIL: armed-1: failed leg ccfix-a1-s19.txt (exit 1)",
+          "DIFFER GATE: pass=219 fail=2 runtime=7m47s",
+          "  Redis 7.4 differential part (armed fused, atomic 1)  FAIL"
+        ],
+        "ccfix_legs": 5,
+        "pending_failure_logs": [
+          "build/gate-run.zbWwPT/jobs/differ-armed-1/differ/ccfix-a1-s19.txt"
+        ]
+      }
+    }
+  },
+  "idle_headline": {
+    "root": "/home/user/Projects/cx-final/build/gate-run.FsHboC",
+    "parts": {
+      "0": {
+        "rows": [
+          "DIFFER geometry: armed-fused (--thread-mode fused --read-local 1)",
+          "DIFFER matrix: atomic={0} seeds={7 19 20 23 22 43} legs=258 logs=/home/user/Projects/cx-final/build/gate-run.FsHboC/jobs/differ-armed-0/differ",
+          "  read-local lane fired (atomic=0)                           ok (hits=914 fallbacks=273)",
+          "DIFFER COMMAND COVERAGE: diffed 231 of 245 registered commands (1218957 recorded comparison witnesses, 252 legs)",
+          "DIFFER GATE: pass=253 fail=0 runtime=9m08s"
+        ],
+        "ccfix_legs": 0
+      },
+      "1": {
+        "rows": [
+          "DIFFER geometry: armed-fused (--thread-mode fused --read-local 1)",
+          "DIFFER matrix: atomic={1} seeds={7 19 20 23 22 43} legs=258 logs=/home/user/Projects/cx-final/build/gate-run.FsHboC/jobs/differ-armed-1/differ",
+          "  read-local lane fired (atomic=1)                           ok (hits=22 fallbacks=238)",
+          "DIFFER COMMAND COVERAGE: diffed 231 of 245 registered commands (1236123 recorded comparison witnesses, 256 legs)",
+          "DIFFER GATE: pass=257 fail=0 runtime=9m08s"
+        ],
+        "ccfix_legs": 0
+      }
+    }
+  }
+}

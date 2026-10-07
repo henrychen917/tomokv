@@ -1,0 +1,19 @@
+diff --git a/src/cmd/t_server.cc b/src/cmd/t_server.cc
+index 4c63844ef..061816e8b 100644
+--- a/src/cmd/t_server.cc
++++ b/src/cmd/t_server.cc
+@@ -2697,11 +2697,10 @@ void cmd_info(Shard&, Op& op) {
+                 failed_calls = minus_baseline(failed_calls, baseline.failed_calls[id]);
+             if (!calls && !rejected_calls && !failed_calls) continue;
+             const std::string name = lower_name(command_registry_at(id)->name);
+-            // Deliberately omit unmeasured usec/usec_per_call. Never invent timing data.
+-            appendf(body, "cmdstat_%s:calls=%llu,rejected_calls=%llu,failed_calls=%llu\r\n",
++            // Omit unmeasured timing and unimplemented failed_calls; never invent counters.
++            appendf(body, "cmdstat_%s:calls=%llu,rejected_calls=%llu\r\n",
+                     name.c_str(), static_cast<unsigned long long>(calls),
+-                    static_cast<unsigned long long>(rejected_calls),
+-                    static_cast<unsigned long long>(failed_calls));
++                    static_cast<unsigned long long>(rejected_calls));
+         }
+     }
+     if (info_section(op, "KEYSPACE")) {

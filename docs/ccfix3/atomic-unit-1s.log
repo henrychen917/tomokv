@@ -1,0 +1,6 @@
+EXPECTED-DEVIATION CC11 COPY pending-source keymiss=0
+EXPECTED-DEVIATION CC11 SINTERSTORE pending-source keymiss=0
+EXPECTED-DEVIATION CC11 BITOP pending-source keymiss=0
+EXPECTED-DEVIATION CC18: EXEC and Lua failed_calls stay zero
+
+exit=0

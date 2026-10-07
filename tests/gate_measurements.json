@@ -562,11 +562,11 @@
     }
   },
   "reference_binary": {
-    "path": "/home/user/Projects/bench-bins/tomokv-headline-2c8cdcb05",
-    "commit": "2c8cdcb05a3219ac459dbacfb3ceebb6360807b8",
-    "sha256": "8a1c709e0bf528481e3aeb9c0d331ccc635c9e033ce215739922851b47d8aecd",
+    "path": "/home/user/Projects/bench-bins/tomokv-headline-cce87ae77",
+    "commit": "cce87ae7779eb917f0cf9310068c68f0535541cb",
+    "sha256": "0725a434b77a26632a04b7c44f196208a45fb0c00b4ab4621ab0ed9a5c075e06",
     "provenance": {
-      "when": "2026-10-06T21:31:04.669816+00:00",
+      "when": "2026-10-07T02:34:15.030652+00:00",
       "how": "rebaseline.sh after a green gate pushed this commit to origin/cpp"
     }
   },

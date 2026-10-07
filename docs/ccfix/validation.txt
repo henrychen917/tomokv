@@ -1,0 +1,12 @@
+Both production builds PASS (GCC 13.3.0).
+POST serverless assertions PASS.
+PRE serializer negative control failed as required at AKEn.
+Root and db0 PRE/POST notification and calls-counter instruction receipts byte-equal.
+Object audit: 1486/1486 selected hot bodies; 1208/1213 handlers; only CONFIG/INFO handlers differ.
+Linked legacy checker: 391/396; five label-only differences require the supplemental exact table proof.
+Canonical opcode negative control PASS.
+Commandstats parser positive/negative controls PASS; missing/wrong-order/fabricated timing target fields rejected.
+All PRE/POST locked layouts equal.
+Python compilation, shell syntax, git diff --check PASS.
+Binary SHA-256 manifest and identical POST copy verified.
+No server, load generator, benchmark, differential, or gate run. CC18 executed-error producer absent; differential expected to fail.

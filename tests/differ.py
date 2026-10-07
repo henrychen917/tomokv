@@ -4772,6 +4772,10 @@ def run_notify_suite(rng):
           (len(stream), events, diffs, "PASS" if diffs == 0 else "FAIL"))
     return diffs
 
+if SUITE == "ccfix":
+    from _differ_ccfix import run as run_ccfix
+    sys.exit(run_ccfix(globals()))
+
 if SUITE == "notify":
     sys.exit(1 if run_notify_suite(rng) else 0)
 
@@ -6132,6 +6136,59 @@ def gen_multidb(rng):
     return ops
 
 
+def psfix_wait_idle(peers, persistence, phase):
+    """Both peers must be idle before a save/count baseline; 10 s total, 1 ms polls."""
+    deadline = time.monotonic() + 10
+    states = {}
+    busy = set()
+    polls = 0
+    timeouts = [sock.gettimeout() for sock, _ in peers]
+    try:
+        while True:
+            fields = []
+            for label, peer in zip(("target", "oracle"), peers):
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError
+                peer[0].settimeout(remaining)
+                row = persistence(peer)
+                state = row.get(b"rdb_bgsave_in_progress")
+                states[label] = state
+                assert state in (b"0", b"1"), (
+                    "PSFIX harness error: %s %s invalid rdb_bgsave_in_progress=%r" %
+                    (phase, label, state))
+                if state == b"1":
+                    busy.add(label)
+                fields.append(row)
+            polls += 1
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError
+            if all(state == b"0" for state in states.values()):
+                if busy:
+                    print("  PSFIX idle barrier %s: polls=%d busy_peers=%s" %
+                          (phase, polls, ",".join(label for label in ("target", "oracle")
+                                                if label in busy)), flush=True)
+                return fields
+            time.sleep(min(0.001, remaining))
+    except TimeoutError as error:
+        raise AssertionError(
+            "PSFIX harness error: %s: both peers did not become save-idle within 10 s; "
+            "rdb_bgsave_in_progress=%r" % (phase, states)) from error
+    finally:
+        for (sock, _), timeout in zip(peers, timeouts):
+            sock.settimeout(timeout)
+
+
+def psfix_check_save_reply(label, command, reply):
+    if reply == b"-ERR Background save already in progress\r\n":
+        raise AssertionError(
+            "PSFIX harness error: %s %s raced a background save after the both-peer "
+            "idle barrier; reply must not be compared: %r" % (label, command, reply))
+    assert reply == (b"+OK\r\n" if command == "SAVE" else b"+Background saving started\r\n"), (
+        label, command, reply)
+
+
 def run_psfix_suite():
     """PS5/PS7: exact CONFIG bytes, INFO names/order, and completed-save properties."""
     peers = [conn(TH, TP), conn(OH, OP)]
@@ -6197,19 +6254,14 @@ def run_psfix_suite():
         coverage.note(["INFO", "persistence"], "field-name set/order; values intentionally differ")
         print("  PSFIX field names/order: %s" % b" ".join(name for name in oracle if name in expected).decode())
 
-        for label, peer in zip(("target", "oracle"), peers):
+        for index, (label, peer) in enumerate(zip(("target", "oracle"), peers)):
             assert persistence(peer)[b"loading"] == b"0", (label, "loading after boot")
             for command in ("SAVE", "SAVE", "BGSAVE"):
-                before = int(persistence(peer)[b"rdb_saves"])
+                idle = psfix_wait_idle(peers, persistence, "before %s %s" % (label, command))
+                before = int(idle[index][b"rdb_saves"])
                 reply = issue(peer, [command])
-                assert reply == (b"+OK\r\n" if command == "SAVE" else b"+Background saving started\r\n"), reply
-                deadline = time.monotonic() + 10
-                while True:
-                    fields = persistence(peer)
-                    if fields[b"rdb_bgsave_in_progress"] == b"0":
-                        break
-                    assert time.monotonic() < deadline, (label, "save did not complete")
-                    time.sleep(.005)
+                psfix_check_save_reply(label, command, reply)
+                fields = psfix_wait_idle(peers, persistence, "after %s %s" % (label, command))[index]
                 assert int(fields[b"rdb_saves"]) == before + 1, (label, command, before, fields)
                 assert int(persistence(peer)[b"rdb_saves"]) == before + 1, "INFO advanced save count"
                 assert fields[b"loading"] == b"0"
@@ -6244,8 +6296,21 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
 if LIST_GENERATORS:
     # This is the single suite inventory. Property suites live outside `gens` because their
     # replies are not byte-comparable, but the gate discovers them from this same list.
-    print("\n".join(list(gens) + ["blocking", "pubsub", "fanout", "spubsub", "notify",
-                                   "wiredump", "climon", "compatintro", "aclsel", "cmdmeta", "s6fix", "psfix"]))
+    print("\n".join(list(gens) + [
+        'blocking',
+        'pubsub',
+        'fanout',
+        'spubsub',
+        'notify',
+        'wiredump',
+        'climon',
+        'compatintro',
+        'aclsel',
+        'cmdmeta',
+        's6fix',
+        'ccfix',
+        'psfix',
+    ]))
     sys.exit(0)
 ops = gens[SUITE](rng)
 
@@ -6733,12 +6798,12 @@ if SUITE == "infofix":
         if got != want: property_fail(side + " byte control", "got=%r want=%r" % (got, want))
     print("  infofix byte controls: target+oracle exact")
 
-    # Commandstats deliberately exposes only the one member TomoKV measures.
+    # Commandstats exposes measured counters; timing fields remain deliberately absent.
     issue(ts, tf, ["PING"])
     commandstats = fields(ts, tf, "commandstats")
     members = dict(item.split("=", 1)
                    for item in commandstats.get("cmdstat_ping", "").split(",") if "=" in item)
-    if int(members.get("calls", "0")) < 1 or set(members) != {"calls"}:
+    if int(members.get("calls", "0")) < 1 or set(members) != {"calls", "rejected_calls"}:
         property_fail("commandstats members", repr(members))
 
     # Unsupported telemetry is absent, while the useful sampled and byte counters stay present.

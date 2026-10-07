@@ -251,6 +251,127 @@ class DeadlineReplies(unittest.TestCase):
         sock.sendall.side_effect = send
         return sock, file
 
+    def test_psfix_waits_for_both_peers_in_the_same_poll(self):
+        peers = [(Mock(), None), (Mock(), None)]
+        for sock, _ in peers:
+            sock.gettimeout.return_value = 30
+        # The initially idle target becomes busy as the oracle completes.
+        states = iter((b'0', b'1', b'1', b'0', b'0', b'0'))
+        observed = []
+        def persistence(peer):
+            observed.append(peers.index(peer))
+            return {b'rdb_bgsave_in_progress': next(states)}
+        with patch.object(self.differ.time, 'sleep') as sleep:
+            result = self.differ.psfix_wait_idle(peers, persistence, 'before SAVE')
+        self.assertEqual(observed, [0, 1, 0, 1, 0, 1])
+        self.assertEqual(result, [{b'rdb_bgsave_in_progress': b'0'}] * 2)
+        self.assertEqual(sleep.call_args_list, [unittest.mock.call(.001)] * 2)
+        for sock, _ in peers:
+            sock.settimeout.assert_called_with(30)
+
+    def test_psfix_stuck_peer_has_one_ten_second_deadline(self):
+        peers = [(Mock(), None), (Mock(), None)]
+        now = [0.0]
+        def sleep(seconds):
+            self.assertLessEqual(seconds, .001)
+            now[0] += seconds
+        for busy in (0, 1):
+            now[0] = 0
+            def persistence(peer):
+                return {b'rdb_bgsave_in_progress': b'1' if peer is peers[busy] else b'0'}
+            with self.subTest(busy=busy), \
+                    patch.object(self.differ.time, 'monotonic', side_effect=lambda: now[0]), \
+                    patch.object(self.differ.time, 'sleep', side_effect=sleep), \
+                    self.assertRaisesRegex(AssertionError, 'PSFIX harness error.*within 10 s'):
+                self.differ.psfix_wait_idle(peers, persistence, 'before BGSAVE')
+            self.assertEqual(now[0], 10)
+
+    def test_psfix_missing_or_invalid_busy_field_never_means_idle(self):
+        peers = [(Mock(), None), (Mock(), None)]
+        for state in (None, b'', b'2', b'no'):
+            with self.subTest(state=state), self.assertRaisesRegex(AssertionError, 'harness error'):
+                self.differ.psfix_wait_idle(peers, lambda peer: {b'rdb_bgsave_in_progress': state},
+                                           'before SAVE')
+
+    def test_psfix_slow_info_is_bounded_and_restores_socket_timeout(self):
+        peers = [(Mock(), None), (Mock(), None)]
+        with self.assertRaisesRegex(AssertionError, 'PSFIX harness error.*within 10 s'):
+            self.differ.psfix_wait_idle(peers, Mock(side_effect=TimeoutError), 'before SAVE')
+        for sock, _ in peers:
+            sock.settimeout.assert_called_with(sock.gettimeout.return_value)
+        self.assertLessEqual(peers[0][0].settimeout.call_args_list[0].args[0], 10)
+
+    def test_psfix_background_save_collision_is_a_harness_error_on_either_peer(self):
+        for label in ('target', 'oracle'):
+            for command in ('SAVE', 'BGSAVE'):
+                with self.subTest(label=label, command=command), \
+                        self.assertRaisesRegex(AssertionError, 'PSFIX harness error: ' + label):
+                    self.differ.psfix_check_save_reply(
+                        label, command, b'-ERR Background save already in progress\r\n')
+        self.differ.psfix_check_save_reply('target', 'SAVE', b'+OK\r\n')
+        self.differ.psfix_check_save_reply('oracle', 'BGSAVE', b'+Background saving started\r\n')
+        with self.assertRaises(AssertionError):
+            self.differ.psfix_check_save_reply('target', 'SAVE', b'+Background saving started\r\n')
+
+    def test_real_psfix_sequence_barriers_and_save_counts_stay_exact(self):
+        def bulk(value):
+            return b'$%d\r\n' % len(value) + value + b'\r\n'
+        for increment in (1, 2):
+            states = [dict(saves=0, busy=20, pending=1, config=b'yes') for _ in range(2)]
+            commands = []
+            def answer(side, argv):
+                state = states[side]
+                if argv[0] == b'CONFIG':
+                    if argv[1] == b'GET':
+                        return b'*2\r\n' + bulk(b'aof-load-truncated') + bulk(state['config'])
+                    if len(argv) == 6:
+                        return (b"-ERR CONFIG SET failed (possibly related to argument 'AOF-LOAD-TRUNCATED') "
+                                b"- duplicate parameter\r\n")
+                    if argv[-1].lower() not in (b'yes', b'no'):
+                        return b'-ERR invalid boolean\r\n'
+                    state['config'] = argv[-1].lower()
+                    return b'+OK\r\n'
+                if argv[0] == b'INFO':
+                    busy = state['busy'] > 0
+                    if busy:
+                        state['busy'] -= 1
+                    elif state['pending']:
+                        state['saves'] += state['pending']
+                        state['pending'] = 0
+                    fields = dict(loading=0, rdb_changes_since_last_save=0,
+                                  rdb_bgsave_in_progress=int(busy), rdb_last_save_time=0,
+                                  rdb_saves=state['saves'], aof_enabled=0, aof_rewrite_in_progress=0,
+                                  aof_rewrite_scheduled=0, aof_last_bgrewrite_status='ok',
+                                  aof_rewrites=0, aof_rewrites_consecutive_failures=0,
+                                  aof_last_write_status='ok', aof_current_size=0,
+                                  aof_base_size=0, aof_pending_rewrite=0)
+                    return bulk(''.join('%s:%s\r\n' % item for item in fields.items()).encode())
+                self.assertIn(argv[0], (b'SAVE', b'BGSAVE'))
+                self.assertTrue(all(s['busy'] == 0 and s['pending'] == 0 for s in states),
+                                'save was issued before BOTH peers completed prior jobs')
+                commands.append((side, argv[0]))
+                if argv[0] == b'SAVE':
+                    state['saves'] += increment
+                    return b'+OK\r\n'
+                state.update(busy=3, pending=increment)
+                return b'+Background saving started\r\n'
+            peers = [self.connection(lambda argv: answer(0, argv)),
+                     self.connection(lambda argv: answer(1, argv))]
+            with self.subTest(increment=increment), \
+                    patch.object(self.differ, 'conn', side_effect=peers), \
+                    patch.object(self.differ.time, 'sleep'), \
+                    patch.object(self.differ, 'psfix_wait_idle', wraps=self.differ.psfix_wait_idle) as wait:
+                if increment == 2:
+                    with self.assertRaises(AssertionError):
+                        self.differ.run_psfix_suite()
+                else:
+                    self.differ.run_psfix_suite()
+                    self.assertEqual(commands, [(side, command) for side in (0, 1)
+                                               for command in (b'SAVE', b'SAVE', b'BGSAVE')])
+                    phases = [call.args[2] for call in wait.call_args_list]
+                    self.assertEqual(sum(phase.startswith('before ') for phase in phases), 6)
+                    self.assertEqual(sum(phase.startswith('after ') for phase in phases), 6)
+
     def test_real_pipeline_checks_equal_wrong_replies_and_preserves_failure_exit(self):
         source = ROOT / 'tests/differ.py'
         tree = ast.parse(source.read_text())

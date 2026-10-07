@@ -76,8 +76,8 @@ class DifferentialFanout(unittest.TestCase):
         self.directory = Path(self.temporary.name)
         self.plan = fixture_plan()
 
-    def run_part(self, part, poison=''):
-        directory = self.directory / part
+    def run_part(self, part, poison='', read_local='normal'):
+        directory = self.directory / (part + '-' + read_local)
         directory.mkdir()
         out = directory / 'output'
         plan = directory / 'plan.json'; write_json(plan, self.plan)
@@ -118,7 +118,20 @@ elif args[0]=='tests/mode_equivalence.py':
 else: raise AssertionError(args)
 ''')
         cli = directory / 'oracle-cli'
-        cli.write_text('#!/bin/sh\nprintf "redis_version:7.4.2\\nread_local_hits:1\\nread_local_fallbacks:0\\n"\n')
+        cli.write_text(f'''#!{sys.executable}
+from pathlib import Path
+counter = Path({str(directory / 'cli-count')!r})
+n = int(counter.read_text()) + 1 if counter.exists() else 1
+counter.write_text(str(n))
+mode = {read_local!r}
+print('redis_version:7.4.2')
+# First invocation is oracle identity, second is target boot, third follows a leg.
+# Model RESETSTAT: a real hit in one leg, then zeros through the final sample.
+hits = 7 if mode == 'reset' and n == 3 else 1 if mode == 'normal' else 0
+if mode != 'missing':
+    print('read_local_hits:' + str(hits))
+print('read_local_fallbacks:0')
+''')
         cli.chmod(0o755)
         source = (ROOT / 'tests/differ_gate.sh').read_text()
         marker = source.index('DISCOVERED_SUITES=')
@@ -145,7 +158,8 @@ quiet_stop(){ :; }
         # same source path as $0, so its initial cd still resolves the repository correctly.
         result = subprocess.run(['bash', '-c', script, str(ROOT / 'tests/differ_gate.sh'), '/bin/true'],
                                 cwd=ROOT, env=env, text=True, capture_output=True, timeout=30)
-        if result.returncode != int(bool(poison)):
+        (directory / 'stdout').write_text(result.stdout)
+        if result.returncode != int(bool(poison) or read_local in ('zero', 'missing')):
             saved = Path(tempfile.mkdtemp(prefix='differ-fanout-failure-', dir=ROOT / 'build'))
             shutil.copytree(directory, saved, dirs_exist_ok=True)
             (saved / 'fixture.sh').write_text(script)
@@ -155,6 +169,21 @@ quiet_stop(){ :; }
                       result.stdout + result.stderr)
         completed = json.loads((directory / 'finish.json').read_text())
         return directory, out, completed
+
+    def test_armed_witness_survives_reset_but_never_invents_a_hit(self):
+        directory, out, completed = self.run_part('armed-0', read_local='reset')
+        fanout.finish(self.plan, 'armed-0', out, **completed)
+        text = (directory / 'stdout').read_text()
+        self.assertIn('hits=7 fallbacks=0 at peak; final_hits=0', text)
+        self.assertIn('\t7\t0\n', (out / 'read-local-a0.tsv').read_text())
+        for mode in ('zero', 'missing'):
+            with self.subTest(mode=mode):
+                directory, out, completed = self.run_part('armed-0', read_local=mode)
+                self.assertGreater(completed['failures'], 0)
+                self.assertIn('no valid execution witness', (directory / 'stdout').read_text())
+                with self.assertRaisesRegex(ValueError, 'fail'):
+                    fanout.finish(self.plan, 'armed-0', out, **completed)
+                self.assertFalse((out / 'complete.json').exists())
 
     def test_actual_atomic_lifetimes_keep_every_seed_suite_and_same_target_repeat(self):
         for part in fanout.PARTS[:4]:

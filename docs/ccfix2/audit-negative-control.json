@@ -1,0 +1,7 @@
+{
+  "error_callee_admitted": true,
+  "opcode_mutation_rejected": true,
+  "unrelated_target_change_rejected": true,
+  "symbol": "_ZN4tomo12_GLOBAL__N_17cmd_getILb0ELb1EEEvRNS_5ShardERNS_2OpE",
+  "scope": "canonical bodies in memory; no mutated production executable run"
+}

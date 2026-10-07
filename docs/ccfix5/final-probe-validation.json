@@ -1,0 +1,44 @@
+{
+  "r1-a0": {
+    "held_mset_windows": 0,
+    "hits_before_reset": 1024,
+    "hits_after_reset": 0,
+    "fresh_hits": 1024,
+    "fallbacks": 0
+  },
+  "r1-a1": {
+    "held_mset_windows": 24,
+    "hits_before_reset": 1024,
+    "hits_after_reset": 0,
+    "fresh_hits": 1024,
+    "fallbacks": 0
+  },
+  "r2-a0": {
+    "held_mset_windows": 0,
+    "hits_before_reset": 1024,
+    "hits_after_reset": 0,
+    "fresh_hits": 1024,
+    "fallbacks": 0
+  },
+  "r2-a1": {
+    "held_mset_windows": 24,
+    "hits_before_reset": 1024,
+    "hits_after_reset": 0,
+    "fresh_hits": 1024,
+    "fallbacks": 0
+  },
+  "r3-a0": {
+    "held_mset_windows": 0,
+    "hits_before_reset": 1024,
+    "hits_after_reset": 0,
+    "fresh_hits": 1024,
+    "fallbacks": 0
+  },
+  "r3-a1": {
+    "held_mset_windows": 24,
+    "hits_before_reset": 1024,
+    "hits_after_reset": 0,
+    "fresh_hits": 1024,
+    "fallbacks": 0
+  }
+}

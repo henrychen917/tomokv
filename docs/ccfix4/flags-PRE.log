@@ -1,0 +1,3 @@
+flags-PRE: /home/user/Projects/cx-ccfix/tests/ccfix_unit.cc:24: int main(): Assertion `serialize_notify_flags(mask) == expected' failed.
+
+exit=-6

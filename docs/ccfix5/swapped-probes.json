@@ -1,0 +1,290 @@
+{
+  "PRE-swap": [
+    {
+      "boot": "r1-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": [],
+      "traceback": null
+    },
+    {
+      "boot": "r1-a1",
+      "windows": 24,
+      "opened": 23,
+      "misses": [
+        {
+          "attempt": 3,
+          "verb": "COPY",
+          "selected_owners": [
+            4,
+            3
+          ],
+          "debug_shards": [
+            [
+              12,
+              4
+            ],
+            [
+              11,
+              3
+            ]
+          ],
+          "writer_ready": true,
+          "pending": [
+            "0",
+            "0"
+          ],
+          "localfast": [
+            "0",
+            "1"
+          ]
+        }
+      ],
+      "traceback": null
+    },
+    {
+      "boot": "r2-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": [],
+      "traceback": null
+    },
+    {
+      "boot": "r2-a1",
+      "windows": 24,
+      "opened": 23,
+      "misses": [
+        {
+          "attempt": 18,
+          "verb": "COPY",
+          "selected_owners": [
+            3,
+            5
+          ],
+          "debug_shards": [
+            [
+              3,
+              3
+            ],
+            [
+              13,
+              5
+            ]
+          ],
+          "writer_ready": true,
+          "pending": [
+            "0",
+            "0"
+          ],
+          "localfast": [
+            "1",
+            "2"
+          ]
+        }
+      ],
+      "traceback": null
+    },
+    {
+      "boot": "r3-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": [],
+      "traceback": null
+    },
+    {
+      "boot": "r3-a1",
+      "windows": 24,
+      "opened": 23,
+      "misses": [
+        {
+          "attempt": 11,
+          "verb": "BITOP",
+          "selected_owners": [
+            7,
+            3
+          ],
+          "debug_shards": [
+            [
+              15,
+              7
+            ],
+            [
+              11,
+              3
+            ]
+          ],
+          "writer_ready": true,
+          "pending": [
+            "0",
+            "0"
+          ],
+          "localfast": [
+            "0",
+            "1"
+          ]
+        }
+      ],
+      "traceback": null
+    }
+  ],
+  "POST-before-swap": [
+    {
+      "boot": "r1-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": [],
+      "traceback": null
+    },
+    {
+      "boot": "r1-a1",
+      "windows": 24,
+      "opened": 23,
+      "misses": [
+        {
+          "attempt": 0,
+          "verb": "COPY",
+          "selected_owners": [
+            7,
+            5
+          ],
+          "debug_shards": [
+            [
+              15,
+              7
+            ],
+            [
+              5,
+              5
+            ]
+          ],
+          "writer_ready": true,
+          "pending": [
+            "0",
+            "0"
+          ],
+          "localfast": [
+            "0",
+            "1"
+          ]
+        }
+      ],
+      "traceback": null
+    },
+    {
+      "boot": "r2-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": [],
+      "traceback": null
+    },
+    {
+      "boot": "r2-a1",
+      "windows": 24,
+      "opened": 24,
+      "misses": [],
+      "traceback": null
+    },
+    {
+      "boot": "r3-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": [],
+      "traceback": null
+    },
+    {
+      "boot": "r3-a1",
+      "windows": 24,
+      "opened": 23,
+      "misses": [
+        {
+          "attempt": 1,
+          "verb": "SINTERSTORE",
+          "selected_owners": [
+            7,
+            6
+          ],
+          "debug_shards": [
+            [
+              7,
+              7
+            ],
+            [
+              6,
+              6
+            ]
+          ],
+          "writer_ready": true,
+          "pending": [
+            "0",
+            "0"
+          ],
+          "localfast": [
+            "0",
+            "1"
+          ]
+        }
+      ],
+      "traceback": null
+    }
+  ],
+  "POST-swap": [
+    {
+      "boot": "r1-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": [],
+      "traceback": null
+    },
+    {
+      "boot": "r1-a1",
+      "windows": 12,
+      "opened": 12,
+      "misses": [],
+      "traceback": " (most recent call last):\n  File \"/home/user/Projects/cx-ccfix/tools/ccfix5_probe.py\", line 124, in <module>\n    probe('127.0.0.1', args.port, args.attempts, args.readers, args.swap)\n  File \"/home/user/Projects/cx-ccfix/tools/ccfix5_probe.py\", line 60, in probe\n    assert time.monotonic() < deadline, 'old pending records did not drain'\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: old pending records did not drain\n"
+    }
+  ],
+  "POST-swap-closed": [
+    {
+      "boot": "r1-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": [],
+      "traceback": null
+    },
+    {
+      "boot": "r1-a1",
+      "windows": 24,
+      "opened": 24,
+      "misses": [],
+      "traceback": null
+    },
+    {
+      "boot": "r2-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": [],
+      "traceback": null
+    },
+    {
+      "boot": "r2-a1",
+      "windows": 24,
+      "opened": 24,
+      "misses": [],
+      "traceback": null
+    },
+    {
+      "boot": "r3-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": [],
+      "traceback": null
+    },
+    {
+      "boot": "r3-a1",
+      "windows": 24,
+      "opened": 24,
+      "misses": [],
+      "traceback": null
+    }
+  ]
+}

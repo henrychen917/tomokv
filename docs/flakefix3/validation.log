@@ -1,0 +1,172 @@
+flakefix3 validation on code e97456d2d
+EXPECT_QUICK unchanged: 500
+EXPECT_FULL unchanged: 517
+Production, Makefile and fixture diff empty.
+Gate executable text unchanged; row delta +0/+0.
+origin/cpp merged immediately before final affected serverless checks; already up to date at dbd01dd99.
+Server, gate, benchmark and load-generator runs: NOT RUN (maintainer-owned).
+PASS python3 -m py_compile tests/differ.py tests/differ_test.py tests/evict_battery.py tests/evict_battery_test.py tests/flipctl.py tests/flipctl_test.py tests/psfix.py tests/psfix_test.py
+PASS bash -n tests/gate.sh
+PASS git diff --check
+
+flipctl-unit
+test_band_boundary_is_inclusive_and_exceedance_is_not (__main__.StableHoldClassifier.test_band_boundary_is_inclusive_and_exceedance_is_not) ... ok
+test_band_comes_from_controller_without_a_typed_tolerance (__main__.StableHoldClassifier.test_band_comes_from_controller_without_a_typed_tolerance) ... ok
+test_dip_without_controller_move_is_still_invalid (__main__.StableHoldClassifier.test_dip_without_controller_move_is_still_invalid) ... ok
+test_empty_window_cannot_pass (__main__.StableHoldClassifier.test_empty_window_cannot_pass) ... ok
+test_invalid_controller_anchor_cannot_pass (__main__.StableHoldClassifier.test_invalid_controller_anchor_cannot_pass) ... ok
+test_invalid_observations_cannot_pass (__main__.StableHoldClassifier.test_invalid_observations_cannot_pass) ... ok
+test_reported_driver_dip_with_move_invalidates (__main__.StableHoldClassifier.test_reported_driver_dip_with_move_invalidates) ... ok
+test_reported_retry_trace_leaves_controller_band (__main__.StableHoldClassifier.test_reported_retry_trace_leaves_controller_band) ... ok
+test_retry_cannot_recenter_away_from_controller (__main__.StableHoldClassifier.test_retry_cannot_recenter_away_from_controller) ... ok
+test_retry_uses_fresh_driver_anchor_and_trace (__main__.StableHoldClassifier.test_retry_uses_fresh_driver_anchor_and_trace) ... ok
+test_single_second_surge_is_also_invalid (__main__.StableHoldClassifier.test_single_second_surge_is_also_invalid) ... ok
+test_small_anchor_difference_inside_published_band_is_not_an_exemption (__main__.StableHoldClassifier.test_small_anchor_difference_inside_published_band_is_not_an_exemption) ... ok
+test_stationary_driver_with_move_fails (__main__.StableHoldClassifier.test_stationary_driver_with_move_fails) ... ok
+test_stationary_driver_without_move_passes (__main__.StableHoldClassifier.test_stationary_driver_without_move_passes) ... ok
+test_sustained_step_cannot_recenter_the_anchor (__main__.StableHoldClassifier.test_sustained_step_cannot_recenter_the_anchor) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.001s
+
+OK
+
+differ-unit
+test_absolute_probes_and_all_non_ttl_replies_stay_exact (__main__.DeadlineReplies.test_absolute_probes_and_all_non_ttl_replies_stay_exact) ... ok
+test_all_setter_forms_record_generator_intent (__main__.DeadlineReplies.test_all_setter_forms_record_generator_intent) ... ok
+test_boundaries_and_negative_control_reject_identical_wrong_ttls (__main__.DeadlineReplies.test_boundaries_and_negative_control_reject_identical_wrong_ttls) ... ok
+test_conditional_writes_persistence_renames_copies_and_resets (__main__.DeadlineReplies.test_conditional_writes_persistence_renames_copies_and_resets) ... ok
+test_dbsize_rejects_equal_noninteger_replies (__main__.DeadlineReplies.test_dbsize_rejects_equal_noninteger_replies) ... ok
+test_each_server_needs_its_own_bound (__main__.DeadlineReplies.test_each_server_needs_its_own_bound) ... ok
+test_hash_deadline_mutations_keep_field_identity_and_order (__main__.DeadlineReplies.test_hash_deadline_mutations_keep_field_identity_and_order) ... ok
+test_independent_seven_ms_cuts_and_equal_positive_replies (__main__.DeadlineReplies.test_independent_seven_ms_cuts_and_equal_positive_replies) ... ok
+test_missing_deadline_or_timing_is_a_failure_even_for_equal_replies (__main__.DeadlineReplies.test_missing_deadline_or_timing_is_a_failure_even_for_equal_replies) ... ok
+test_multidb_exact_positions_and_publication_fail_independently (__main__.DeadlineReplies.test_multidb_exact_positions_and_publication_fail_independently) ... ok
+test_psfix_background_save_collision_is_a_harness_error_on_either_peer (__main__.DeadlineReplies.test_psfix_background_save_collision_is_a_harness_error_on_either_peer) ... ok
+test_psfix_missing_or_invalid_busy_field_never_means_idle (__main__.DeadlineReplies.test_psfix_missing_or_invalid_busy_field_never_means_idle) ... ok
+test_psfix_slow_info_is_bounded_and_restores_socket_timeout (__main__.DeadlineReplies.test_psfix_slow_info_is_bounded_and_restores_socket_timeout) ... ok
+test_psfix_stuck_peer_has_one_ten_second_deadline (__main__.DeadlineReplies.test_psfix_stuck_peer_has_one_ten_second_deadline) ... ok
+test_psfix_waits_for_both_peers_in_the_same_poll (__main__.DeadlineReplies.test_psfix_waits_for_both_peers_in_the_same_poll) ... ok
+test_real_pipeline_checks_equal_wrong_replies_and_preserves_failure_exit (__main__.DeadlineReplies.test_real_pipeline_checks_equal_wrong_replies_and_preserves_failure_exit) ... ok
+test_real_psfix_sequence_barriers_and_save_counts_stay_exact (__main__.DeadlineReplies.test_real_psfix_sequence_barriers_and_save_counts_stay_exact) ... ok
+test_relative_setter_uncertainty_is_measured_separately (__main__.DeadlineReplies.test_relative_setter_uncertainty_is_measured_separately) ... ok
+test_request_timing_starts_before_send_and_ends_after_each_read (__main__.DeadlineReplies.test_request_timing_starts_before_send_and_ends_after_each_read) ... ok
+test_seconds_rounding_is_inverted_not_tolerated (__main__.DeadlineReplies.test_seconds_rounding_is_inverted_not_tolerated) ... ok
+test_sentinels_zero_and_arrays (__main__.DeadlineReplies.test_sentinels_zero_and_arrays) ... ok
+test_wire_types_and_lengths_do_not_receive_deadline_relaxation (__main__.DeadlineReplies.test_wire_types_and_lengths_do_not_receive_deadline_relaxation) ... ok
+test_wiredump_tracks_relative_restore_and_keeps_absolute_probes_exact (__main__.DeadlineReplies.test_wiredump_tracks_relative_restore_and_keeps_absolute_probes_exact) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 5.434s
+
+OK
+
+evict-battery-unit
+test_49_survivors_do_not_replace_the_exact_fifty_metadata_assertion (__main__.LruClockBattery.test_49_survivors_do_not_replace_the_exact_fifty_metadata_assertion) ... ok
+test_dispatch_fallback_rearms_on_fresh_old_keys (__main__.LruClockBattery.test_dispatch_fallback_rearms_on_fresh_old_keys) ... ok
+test_eviction_counter_publication_can_lag_but_count_must_converge (__main__.LruClockBattery.test_eviction_counter_publication_can_lag_but_count_must_converge) ... ok
+test_no_lane_window_is_a_bounded_failure (__main__.LruClockBattery.test_no_lane_window_is_a_bounded_failure) ... ok
+test_one_missing_lane_touch_fails_even_with_successful_pressure (__main__.LruClockBattery.test_one_missing_lane_touch_fails_even_with_successful_pressure) ... ok
+test_one_unaccounted_write_fails_after_bounded_publication_wait (__main__.LruClockBattery.test_one_unaccounted_write_fails_after_bounded_publication_wait) ... ok
+test_unchanged_clock_cannot_arm (__main__.LruClockBattery.test_unchanged_clock_cannot_arm) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.056s
+
+OK
+
+psfix-unit
+test_load_off_preserves_plain_differential_failures (__main__.SaveLoadProof.test_load_off_preserves_plain_differential_failures) ... ok
+test_missing_or_one_peer_barrier_is_not_a_proof (__main__.SaveLoadProof.test_missing_or_one_peer_barrier_is_not_a_proof) ... ok
+test_requires_two_live_jobs_and_the_real_before_save_wait (__main__.SaveLoadProof.test_requires_two_live_jobs_and_the_real_before_save_wait) ... ok
+test_short_save_never_starts_a_vacuous_leg (__main__.SaveLoadProof.test_short_save_never_starts_a_vacuous_leg) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.004s
+
+OK
+
+store-unit
+PASS storage aof-eviction
+
+negative-python
+GT16b: erase the controller anchor on retry
+test_retry_cannot_recenter_away_from_controller (flipctl_test.StableHoldClassifier.test_retry_cannot_recenter_away_from_controller) ... FAIL
+test_reported_retry_trace_leaves_controller_band (flipctl_test.StableHoldClassifier.test_reported_retry_trace_leaves_controller_band) ... FAIL
+
+======================================================================
+FAIL: test_retry_cannot_recenter_away_from_controller (flipctl_test.StableHoldClassifier.test_retry_cannot_recenter_away_from_controller)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakefix3/tests/flipctl_test.py", line 94, in test_retry_cannot_recenter_away_from_controller
+    self.assertEqual(verdict, "INVALID")
+AssertionError: 'PASS' != 'INVALID'
+- PASS
++ INVALID
+
+
+======================================================================
+FAIL: test_reported_retry_trace_leaves_controller_band (flipctl_test.StableHoldClassifier.test_reported_retry_trace_leaves_controller_band)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakefix3/tests/flipctl_test.py", line 105, in test_reported_retry_trace_leaves_controller_band
+    self.assertEqual(self.classify(rates, True, anchor=5794.954,
+AssertionError: 'FAIL' != 'INVALID'
+- FAIL
++ INVALID
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.001s
+
+FAILED (failures=2)
+
+REJECTED: GT16b: erase the controller anchor on retry
+GT19: issue saves without the before-save idle barrier
+test_real_psfix_sequence_barriers_and_save_counts_stay_exact (differ_test.DeadlineReplies.test_real_psfix_sequence_barriers_and_save_counts_stay_exact) ...
+  test_real_psfix_sequence_barriers_and_save_counts_stay_exact (differ_test.DeadlineReplies.test_real_psfix_sequence_barriers_and_save_counts_stay_exact) (increment=1) ... FAIL
+
+======================================================================
+FAIL: test_real_psfix_sequence_barriers_and_save_counts_stay_exact (differ_test.DeadlineReplies.test_real_psfix_sequence_barriers_and_save_counts_stay_exact) (increment=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakefix3/tests/differ_test.py", line 368, in test_real_psfix_sequence_barriers_and_save_counts_stay_exact
+    self.differ.run_psfix_suite()
+  File "/home/user/Projects/cx-flakefix3/tests/differ.py", line 6258, in run_psfix_suite
+    reply = issue(peer, [command])
+            ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-flakefix3/tests/differ.py", line 6195, in issue
+    sock.sendall(enc(argv))
+  File "/usr/lib/python3.12/unittest/mock.py", line 1134, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/mock.py", line 1138, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/mock.py", line 1199, in _execute_mock_call
+    result = effect(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-flakefix3/tests/differ_test.py", line 247, in send
+    file.write(answer(argv))
+               ^^^^^^^^^^^^
+  File "/home/user/Projects/cx-flakefix3/tests/differ_test.py", line 358, in <lambda>
+    peers = [self.connection(lambda argv: answer(0, argv)),
+                                          ^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-flakefix3/tests/differ_test.py", line 350, in answer
+    self.assertTrue(all(s['busy'] == 0 and s['pending'] == 0 for s in states),
+AssertionError: False is not true : save was issued before BOTH peers completed prior jobs
+
+----------------------------------------------------------------------
+Ran 1 test in 0.006s
+
+FAILED (failures=1)
+
+REJECTED: GT19: issue saves without the before-save idle barrier
+
+negative-store
+exit=1
+FAIL: 64-sample LRU must select the older key when it is in the sample
+
+Binary SHA-256
+4cdff7e7fb43ea4bc5c9b0cf73bf2986287663b477b9356668ab7aeb67d6cedb  build/store-regression
+1ac2b9a05c961a21728302f5a9d47b70a7474564b403a44d4cf74c0f64295f20  build/flakefix3/negative/store-regression

@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "part": "equivalence",
+  "run": "iteration:gate-run.S5ZBHC",
+  "seeds": [
+    7,
+    19,
+    20,
+    23,
+    27
+  ],
+  "comparisons": 32,
+  "complete": true
+}

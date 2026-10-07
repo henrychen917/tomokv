@@ -1157,7 +1157,7 @@ __attribute__((cold, noinline)) bool acl_finish_dispatch_denial(
         AclDeniedReason denied, uint32_t denied_arg) {
     multi_mark_queue_error(client);
     client.advance_parse(consumed);
-    loop.self_->note_command(op.spec->id);
+    loop.self_->note_command_rejected(op.spec->id);
     loop.flip_fingerprint_note(*op.spec, op);
     acl_reply_denied(client, op, client.acl_user_idx(), denied, denied_arg, *loop.self_);
     loop.finish_prebuilt(&client, op);
@@ -1390,6 +1390,8 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
         std::vector<AclUserImage> images;
         std::string error;
         if (!acl_parse_file(g_acl_filename, images, error)) {
+            // Redis addReplyError supplies ERR for unprefixed ACL-file diagnostics.
+            error.insert(0, "ERR ");
             reply_err(op.sink(), error.c_str());
             return;
         }

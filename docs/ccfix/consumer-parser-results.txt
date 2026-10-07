@@ -1,0 +1,2 @@
+redis-py: {'cmdstat_get': {'calls': 1, 'rejected_calls': 2, 'failed_calls': 3}}
+redis_exporter: source audit only (Go is unavailable). parseMetricsCommandStats treats field 0 as calls and field 1 as usecTotal, then returns without rejected/failed metrics when there are only 3 fields. Thus calls=1,rejected_calls=2,failed_calls=3 means calls=1, reported duration=2 microseconds, extendedStats=false in that parser.

@@ -1,0 +1,46 @@
+[
+  {
+    "before": {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 6484,
+      "post_size": 6484
+    },
+    "after": {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 6484,
+      "post_size": 6532
+    }
+  },
+  {
+    "before": {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo9cmd_debugERNS_5ShardERNS_2OpE",
+      "name": "tomo::cmd_debug(tomo::Shard&, tomo::Op&)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": true,
+      "pre_size": 150,
+      "post_size": 150
+    },
+    "after": {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo9cmd_debugERNS_5ShardERNS_2OpE",
+      "name": "tomo::cmd_debug(tomo::Shard&, tomo::Op&)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 150,
+      "post_size": 150
+    }
+  }
+]
