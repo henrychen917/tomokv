@@ -169,14 +169,12 @@ double flip_signature_distance(const FlipSignature& left, const FlipSignature& r
 // Whole-signature distance including pass_depth. Diagnostics only -- never a trigger input.
 double flip_signature_pass_distance(const FlipSignature& left, const FlipSignature& right);
 
-// Small, deterministic detector used by both the controller and the unit test. In auto mode its
-// band is twice the signature's own adjacent-window EWMA jitter, with one observed-command quantum
-// as the floor. A numeric band is a percent; zero disables shift triggering.
+// Small, deterministic detector used by both the controller and the unit test. Its learned
+// band is twice the signature's pre-anchor jitter, floored by both the continuously learned
+// in-band noise and 2/sqrt(N), where N is the number of sampled commands in the window.
 class FlipShiftDetector {
 public:
-    explicit FlipShiftDetector(int32_t configured_band = -1,
-                               uint32_t noise_windows = 1)
-        : configured_band_(configured_band) {
+    explicit FlipShiftDetector(uint32_t noise_windows = 1) {
         signature_noise_.configure(noise_windows);
     }
 
@@ -193,14 +191,13 @@ public:
     double last_distance() const { return last_distance_; }
     double jitter() const { return jitter_; }
     // The signal's own adjacent-window movement, learned continuously from IN-BAND windows: the
-    // floor under the band, typed or learned.
+    // floor under the learned band.
     double noise_bound() const { return signature_noise_.bound(); }
     uint32_t noise_samples() const { return signature_noise_.samples; }
 
 private:
     void update_band();
 
-    int32_t configured_band_ = -1;
     FlipSignature smoothed_{};
     FlipSignature previous_{};
     FlipSignature learning_origin_{};

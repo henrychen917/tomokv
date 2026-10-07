@@ -65,7 +65,7 @@ bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
             const double fire = noise.band(owners);
             const double release = fire * 0.8; // Schmitt release band
             if (ratio > fire) streak = std::min<uint32_t>(streak + 1, LbAutotune::kDecisionTicks);
-            else if (ratio < release || ratio == 0) streak = 0;
+            else if (ratio < release) streak = 0;
             if (streak < LbAutotune::kDecisionTicks) {
                 lb_hysteresis_refused_.fetch_add(1, std::memory_order_relaxed);
                 return false;
@@ -412,7 +412,7 @@ bool Server::lb_controller_tick_pad(uint32_t coordinator, uint64_t now_ms) {
             const double fire = noise.band(owners);
             const double release = fire * 0.8; // Schmitt release band
             if (ratio > fire) streak = std::min<uint32_t>(streak + 1, LbAutotune::kDecisionTicks);
-            else if (ratio < release || ratio == 0) streak = 0;
+            else if (ratio < release) streak = 0;
             if (streak < LbAutotune::kDecisionTicks) {
                 lb_hysteresis_refused_.fetch_add(1, std::memory_order_relaxed);
                 return false;

@@ -109,10 +109,6 @@ void FlipShiftDetector::reset() {
 }
 
 void FlipShiftDetector::update_band() {
-    if (configured_band_ == 0) {
-        band_ = 0;
-        return;
-    }
     // SAMPLING SCALE, not counting resolution. Every family in the distance is a proportion or a
     // per-command mean estimated from the N commands this window observed, so two windows drawn
     // from one stationary workload differ by the ESTIMATOR'S OWN NOISE, which falls as 1/sqrt(N)
@@ -130,24 +126,9 @@ void FlipShiftDetector::update_band() {
     // the mix to about 0.1, not to the 0.009 the underlying 10k commands would give.
     const double quantum =
         1.0 / std::sqrt(static_cast<double>(std::max<uint64_t>(smoothed_.commands, 1)));
-    // A TYPED BAND IS A FLOOR, NOT A CEILING, AND IT CANNOT BUY RESOLUTION THE SIGNAL HAS NOT GOT.
-    // The internal detector's explicit-band unit-test control sets the mix change worth a maneuver;
-    // it says nothing about how
-    // still the signature holds, and it used to return here consulting neither the estimator's
-    // resolution nor the signal's measured movement. Measured by the gate-hygiene lane on a driver
-    // whose rate held to 0.07% across 34 samples: a fingerprint distance of 0.2518 against a flat
-    // 0.0200 band -- 12.6x -- fired a maneuver on a stationary load. Simulated here on a 1-in-100
-    // sampled stream, a typed 2% band produced three two-consecutive exceedances in 600 stationary
-    // windows (a spurious maneuver each); with the quantum applied it produces none, and a real mix
-    // change still clears the band by 3.3x. So both branches take the same two floors.
+    // The frozen learning-window jitter cannot undercut either the sampling scale or the
+    // continuously learned in-band noise. Excursions never widen the band that judges them.
     const double floor = std::max(2.0 * quantum, signature_noise_.bound());
-    if (configured_band_ > 0) {
-        band_ = std::max(static_cast<double>(configured_band_) / 100.0, floor);
-        return;
-    }
-    // ... and the learned band adds the frozen learning-window jitter, floored the same way: that
-    // jitter is the largest adjacent step seen in the few windows before the anchor, so a learning
-    // window that happened to be still freezes a band the hold then trips over.
     band_ = std::max(2.0 * jitter_, floor);
 }
 
@@ -176,7 +157,7 @@ bool FlipShiftDetector::observe(const FlipFingerprintWindow& sample) {
         ? flip_signature_distance(smoothed_, previous_) : 0;
     if (anchored_) {
         last_distance_ = flip_signature_distance(smoothed_, anchored_signature_);
-        const bool fired = configured_band_ != 0 && last_distance_ > band_;
+        const bool fired = last_distance_ > band_;
         // LEARN THE STATISTIC THAT IS ACTUALLY TESTED. The trigger compares the distance from the
         // ANCHOR; the adjacent-window distance is a different quantity -- smoothed and correlated,
         // so systematically smaller -- and flooring an anchor-distance test with it underestimates.
@@ -237,7 +218,7 @@ bool FlipController::init(bool enabled, uint32_t nthreads) {
     maneuver_learning_windows_ = std::max<uint32_t>(1, maneuver_learning_windows_);
     // The signature noise estimate's time constant is the same window count the controller already
     // uses to learn a signature at an anchor -- derived from the live pool, not typed.
-    shift_detector_ = FlipShiftDetector(-1, signature_learning_windows_);
+    shift_detector_ = FlipShiftDetector(signature_learning_windows_);
     if (!enabled) {
         phase_ = Phase::Disabled;
         return true;
