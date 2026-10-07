@@ -85,6 +85,21 @@ def value(index):
     return prefix + bytes([65 + index % 26]) * (128 - len(prefix))
 
 
+def wait_idle_sync(client, before, timeout=10.0):
+    # Retain the policy-age lower bound, but elapsed time is not evidence that the
+    # idle writer ran. The same exact counter assertion must also be witnessed.
+    started = time.monotonic()
+    deadline = started + timeout
+    while True:
+        after = info(client)
+        now = time.monotonic()
+        if now >= deadline:
+            raise AssertionError("idle data-sync was not witnessed: %r" % after)
+        if now - started >= 1.25 and after["aof_fsyncs"] > before["aof_fsyncs"]:
+            return after
+        time.sleep(min(.02, deadline - now))
+
+
 client = Resp()
 if client.cmd("CONFIG", "GET", "appendfsync") != [b"appendfsync", POLICY.encode()]:
     raise AssertionError("appendfsync surface differs")
@@ -102,8 +117,9 @@ if MODE == "populate":
     if POLICY == "everysec":
         # The base is now older than one policy interval. The later large value remains inside
         # the current durability window and is the only value the shell gate shortens.
-        time.sleep(1.25)
-    after = info(client)
+        after = wait_idle_sync(client, before)
+    else:
+        after = info(client)
     if POLICY == "no":
         if after.get("aof_fsyncs", -1) != 0:
             raise AssertionError("no policy submitted a data-sync: %r" % after)

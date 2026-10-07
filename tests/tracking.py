@@ -15,6 +15,8 @@ import struct
 import sys
 import time
 
+from _client_wait import wait_client_state
+
 
 class RespError(Exception):
     pass
@@ -468,7 +470,7 @@ try:
     rc.command("GET", "rd:1")
     rc.drain(0.2)
     target.close(reset=True)
-    time.sleep(0.4)
+    wait_client_state(admin, tid, "gone")
     writer.command("SET", "rd:1", "3")
     time.sleep(0.4)
     rc.drain(0.4)

@@ -22,6 +22,8 @@ import struct
 import sys
 import time
 
+from _client_wait import wait_client_state
+
 
 class RespError(Exception):
     pass
@@ -345,11 +347,11 @@ try:
     expect(admin.command("CLIENT", "UNBLOCK", str(bid)), 0,
            "UNBLOCK of a live but NOT blocked client")   # negative control
     blocker.send("BLPOP", "cl2:nolist", "30")
-    time.sleep(0.3)
+    wait_client_state(admin, bid, "blocked")
     expect(admin.command("CLIENT", "UNBLOCK", str(bid)), 1, "UNBLOCK returns 1")
     expect(blocker.drain(1.0), b"*-1\r\n", "TIMEOUT flavour delivers the null array")
     blocker.send("BLPOP", "cl2:nolist", "30")
-    time.sleep(0.3)
+    wait_client_state(admin, bid, "blocked")
     expect(admin.command("CLIENT", "UNBLOCK", str(bid), "ERROR"), 1, "UNBLOCK ERROR returns 1")
     expect(blocker.drain(1.0),
            b"-UNBLOCKED client unblocked via CLIENT UNBLOCK\r\n", "ERROR flavour")
