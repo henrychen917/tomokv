@@ -29,6 +29,11 @@ def main():
         if not summary:
             continue
         artifact = Path(re.search(r"  artifacts: (\S+)", log)[1])
+        plan = set((artifact / "plan.sh").read_text().splitlines())
+        required_geometry = {"GATE_SERVER_CORES=112-119", "GATE_LOAD_CORES=120-127",
+                             "GATE_SERVER_SMT=''", "GATE_LOAD_SMT=''", "GATE_RATIO=6:2",
+                             "GATE_SLOTS=1", "GATE_PORT_FIRST=18340", "GATE_PORT_LAST=18342"}
+        assert required_geometry <= plan, f"wrong proof geometry: {required_geometry - plan}"
         ledger = SOURCE / f"run-{run}-ledger.partial"
         rows = [line.split("\t", 2) for line in ledger.read_text().splitlines()
                 if not line.startswith("PARTIAL\t")]
