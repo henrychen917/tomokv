@@ -6266,7 +6266,9 @@ def run_psfix_suite():
                 idle = psfix_wait_idle(peers, persistence, "before %s %s" % (label, command))
                 before = int(idle[index][b"rdb_saves"])
                 if command == "SAVE":
-                    with save_reply_timeout(peer[0], save_bytes):
+                    with save_reply_timeout(peer[0], save_bytes) as timeout:
+                        print("  PSFIX %s SAVE timeout=%.3f s used_memory=%d" %
+                              (label, timeout, save_bytes), flush=True)
                         reply = issue(peer, [command])
                 else:
                     reply = issue(peer, [command])

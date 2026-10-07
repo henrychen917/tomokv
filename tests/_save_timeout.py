@@ -12,8 +12,9 @@ def save_timeout_seconds(value_bytes):
 @contextmanager
 def save_reply_timeout(sock, value_bytes):
     original = sock.gettimeout()
-    sock.settimeout(max(original or 0, save_timeout_seconds(value_bytes)))
+    timeout = max(original or 0, save_timeout_seconds(value_bytes))
+    sock.settimeout(timeout)
     try:
-        yield
+        yield timeout
     finally:
         sock.settimeout(original)

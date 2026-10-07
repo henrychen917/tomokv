@@ -52,6 +52,12 @@ def seed_save_load(peers, keys):
 
 
 def run_differ(command, log_path, load_peers, save_bytes=0):
+    budget_bytes = save_bytes
+    if save_bytes and load_peers:
+        # differ sizes each peer's SAVE from used_memory. Include the larger
+        # peer's allocator/key overhead in the enclosing process budget too.
+        budget_bytes = max(save_bytes, *(int(info(peer, 'memory')['used_memory'])
+                                         for peer in load_peers))
     if load_peers:
         # Start one independent save on EACH peer, then run the differential leg while
         # those jobs are active. Further injections inside rdb_saves' exact +1 interval
@@ -66,7 +72,7 @@ def run_differ(command, log_path, load_peers, save_bytes=0):
                 'PSFIX save-load never armed for >100 ms on %s; increase --bgsave-load-keys' % label)
     # Four synchronous saves per differential leg. The process watchdog must
     # contain their socket budgets plus the unchanged both-peer idle barriers.
-    timeout = 90 + 4 * save_timeout_seconds(save_bytes) if save_bytes else 90
+    timeout = 4 * save_timeout_seconds(budget_bytes) + 12 * 10 + 30 if save_bytes else 90
     result = subprocess.run(command, capture_output=True, text=True, timeout=timeout)
     output = result.stdout + result.stderr
     log_path.write_text(output)

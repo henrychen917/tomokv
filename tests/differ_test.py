@@ -379,6 +379,19 @@ class DeadlineReplies(unittest.TestCase):
                     self.assertEqual(sum(phase.startswith('before ') for phase in phases), 6)
                     self.assertEqual(sum(phase.startswith('after ') for phase in phases), 6)
 
+    def test_old_thirty_second_save_timeout_fails_the_real_psfix_sequence(self):
+        # A separate case has no active subTest outcome to swallow the expected
+        # mutant failure. Exercise the actual generator, including all barriers.
+        control = DeadlineReplies('test_real_psfix_sequence_barriers_and_save_counts_stay_exact')
+        control.setUp()
+        try:
+            with patch.object(self.differ, 'save_reply_timeout',
+                              lambda *args: contextlib.nullcontext(30)), \
+                    self.assertRaisesRegex(AssertionError, '512 MiB SAVE must outlive'):
+                control.test_real_psfix_sequence_barriers_and_save_counts_stay_exact()
+        finally:
+            control.doCleanups()
+
     def test_real_pipeline_checks_equal_wrong_replies_and_preserves_failure_exit(self):
         source = ROOT / 'tests/differ.py'
         tree = ast.parse(source.read_text())

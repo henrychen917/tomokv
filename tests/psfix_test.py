@@ -77,7 +77,16 @@ class SaveLoadProof(unittest.TestCase):
         sock.settimeout.assert_called_with(30)
         with patch.object(psfix.subprocess, 'run', return_value=self.result()) as run:
             psfix.run_differ(['differ'], self.root / 'large.log', [], size)
-        self.assertGreaterEqual(run.call_args.kwargs['timeout'], 4 * 94 + 90)
+        self.assertGreaterEqual(run.call_args.kwargs['timeout'], 4 * 94 + 12 * 10)
+
+    def test_process_budget_includes_larger_peers_memory_overhead(self):
+        output = 'PSFIX idle barrier before target SAVE: polls=102 busy_peers=target,oracle\n'
+        replies = [{'used_memory': str(768 * 1024 * 1024)}, {'used_memory': str(512 * 1024 * 1024)}]
+        replies += [{'rdb_bgsave_in_progress': state} for state in ('0', '0', '1', '1')]
+        with patch.object(psfix, 'info', side_effect=replies), \
+                patch.object(psfix.subprocess, 'run', return_value=self.result(output)) as run:
+            psfix.run_differ(['differ'], self.root / 'memory.log', self.peers, 512 * 1024 * 1024)
+        self.assertGreaterEqual(run.call_args.kwargs['timeout'], 4 * 126 + 12 * 10)
 
     def test_existing_long_timeout_is_preserved_and_bad_size_rejected(self):
         sock = Mock()

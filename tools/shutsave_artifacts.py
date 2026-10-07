@@ -52,7 +52,7 @@ def main():
     for selection in ('join', 'rewrite', 'retire', 'boundary'):
         run('POST', [selection])
     for selection, fatal in (
-            ('hang', 'fatal: database worker shutdown timeout elapsed_ms=11000'),
+            ('hang', 'fatal: database worker shutdown timeout elapsed_ms=10000'),
             ('hung-worker', 'fatal: database worker shutdown timeout elapsed_ms=3000'),
             ('retire-hang', 'fatal: database retire acknowledgement timeout elapsed_ms=11000')):
         run('POST', [selection], fatal)

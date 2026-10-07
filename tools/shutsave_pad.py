@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import resource
 import shutil
 import subprocess
 
@@ -71,6 +72,18 @@ def main():
                   layout='POST cold DatabaseMap::State and total .text size; function addresses may differ',
                   padding_bytes=padding, text_bytes=wanted, state_layouts=layouts,
                   sha256=hashlib.sha256((pad / 'tomokv').read_bytes()).hexdigest())
+    core = subprocess.check_output([
+        'make', '--no-print-directory', '-s', 'BUILD_ROOT=' + str(pad),
+        '--eval=shutsave-pad-core:;@echo $(SHUTDOWN_UNIT_OBJ)', 'shutsave-pad-core'], text=True).split()
+    subprocess.run(['g++', '-pthread', str(post / 'tests/shutsave_unit.o'), *core,
+                    '-o', str(pad / 'shutsave-unit'), '-ljemalloc', '-luring', '-lssl', '-lcrypto',
+                    '-lm', '-Wl,--wrap=clock_gettime', '-Wl,--wrap=fdatasync'], check=True)
+    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+    control = subprocess.run([str(pad / 'shutsave-unit'), 'join'],
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=10)
+    (pad / 'pre-behavior.log').write_text(control.stdout)
+    assert control.returncode == -6 and 'fatal: database worker shutdown timeout elapsed_ms=3000' in control.stdout
+    report['pre_behavior_control'] = dict(returncode=control.returncode, expected_fatal_reproduced=True)
     (pad / 'kind.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report, indent=2))
 

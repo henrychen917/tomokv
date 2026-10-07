@@ -288,7 +288,7 @@ void DatabaseMap::join_workers(Server& server, std::vector<std::thread>& workers
                     // not instantly expire a worker still leaving its save stack.
                     // stop_since never moves, including across save/rewrite epochs.
                     stop_bound = std::max(stop_bound, s.wait_bound_ms(3 * grace_bound_ms(), now));
-                    if (now - stop_since > stop_bound)
+                    if (now - stop_since >= stop_bound)
                         overdue(server, "worker shutdown", now - stop_since);
                 }
                 std::unique_lock lock(s.wait_mutex);
