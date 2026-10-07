@@ -136,7 +136,7 @@ def classify(row):
     if site == 2800 and re.search(r"feature 1s-\d-\d-\d-1$", name):
         return D, "Invalid fused plus flip-auto combination is rejected at boot by construction."
     if site in (2185, 2195):
-        return B, "Concurrent-cut mode now requires save idle before BGSAVE, exact acceptance, and bounded completion; reload verifies the exact saved cut."
+        return L, "Save acceptance/completion now require witnesses, but capture may finish before the first post-cut mutation; the log claims overlap without proving it. Reload inherits that stimulus. Needs a held capture stage plus a required concurrent-mutation witness."
     if site in (2663, 2717, 2729):
         return D, "Certificate generation or complete auth handshakes; full partial-handshake timing legs are not selected."
     if site == 1287:

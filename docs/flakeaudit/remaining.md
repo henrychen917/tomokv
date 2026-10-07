@@ -1,6 +1,6 @@
 # Remaining stimulus work
 
-These 113 public row occurrences remain LOTTERY, even when a separate setup step in the same battery was fixed. This is not a claim that all are known flakes or that all require production changes. The exact row names, source lines and multiplicity are in inventory.md; the groups below preserve that mapping.
+These 117 public row occurrences remain LOTTERY, even when a separate setup step in the same battery was fixed. This is not a claim that all are known flakes or that all require production changes. The exact row names, source lines and multiplicity are in inventory.md; the groups below preserve that mapping.
 
 Two shell changes are local follow-ups: the armed feature high-water counter (row declarations at gate.sh:816) and the framed kTLS INFO read (gate.sh:2736). They were not in the recovered implementation or six-run campaign. The resume prioritizes proving the existing changes; those two fixes remain explicitly unfinished, not mislabeled as design blockers. Other entries specify the required scheduling, clock, oracle or instrumentation decision.
 
@@ -37,6 +37,7 @@ Two shell changes are local follow-ups: the armed feature high-water counter (ro
 | 328, 329, 330 | ORACLE / SCHEDULE DESIGN | Size-scaling decisions use sampled elapsed-time ratios/rates. Needs a matched workload/stationarity measurement protocol without relaxing existing bounds. |
 | 337, 338 | PRODUCTION DEFECT; witness patch separate | Restricted BLPOP is denied before parking: acl_check_keys treats its timeout as a key. The same NOPERM passes the supposed post-wake recheck. Strict witness patch and two failure logs retained; requires production ACL key-range correction outside this lane. |
 | 339 | ORACLE / SCHEDULE DESIGN; other setup fixed | Reload admission is fixed; independent progress during DEBUG SLEEP still has 300ms timing windows. Needs a published sleep-stage latch and release control. |
+| 341, 342, 349, 350 | ORACLE / SCHEDULE DESIGN; other setup fixed | Save acceptance/completion now require witnesses, but capture may finish before the first post-cut mutation; the log claims overlap without proving it. Reload inherits that stimulus. Needs a held capture stage plus a required concurrent-mutation witness. |
 | 343, 344, 351, 352 | ORACLE / SCHEDULE DESIGN | Atomic-group submodes rely on fixed writer warmup, N saves and positive cut/read/write counts. Concurrent-cut save mode is fixed separately. Group overlap needs a held pending group at the cut. |
 | 361 | ORACLE / SCHEDULE DESIGN | Lazy-expiry key has 20ms TTL while notification config is being changed; it can expire while notifications are disabled. Needs expiry/config arming with an actual deadline witness. |
 | 364 | ORACLE / SCHEDULE DESIGN | Fixed-duration worker/flipper run requires at least one accepted flip, without a witnessed load/flip interval. Needs a bounded until-witnessed phase preserving all data checks. |

@@ -14,8 +14,8 @@ and the independent fixture's **500 quick / 517 full** split:
 | Class | Rows |
 |---|---:|
 | DETERMINISTIC | 229 |
-| BOUNDED-WITNESSED | 175 |
-| LOTTERY | 113 |
+| BOUNDED-WITNESSED | 171 |
+| LOTTERY | 117 |
 
 A battery receives its worst remaining class: fixing one setup race does
 not certify its unrelated timing checks. The source-only generator checks
@@ -30,6 +30,10 @@ The resumed review corrected the TLS optional auth-only classification
 the previously missing differential expansion, and recorded that the RYOW
 contention leg writes `rk*` in its workers but `own*` in the foreground.
 That leg does not exercise the same-key contention its comment advertises.
+The final review also keeps the snapshot concurrent-cut/save-reload pair
+LOTTERY on both engines: save acceptance/completion is now witnessed, but
+capture may finish before the first mutation. Its overlap claim still needs
+a held capture stage and a positive concurrent-mutation witness.
 
 ## Implemented repairs
 
@@ -155,8 +159,8 @@ raw commands are source-classified, not blanket-deleted.
 
 ## Remaining rows and limitations
 
-[remaining.md](docs/flakeaudit/remaining.md) maps **all 113 LOTTERY
-occurrences into 41 mechanisms**, with their public row ordinals and the
+[remaining.md](docs/flakeaudit/remaining.md) maps **all 117 LOTTERY
+occurrences into 42 mechanisms**, with their public row ordinals and the
 required change. The inventory contains every exact row name and source
 line, including residual lotteries in partially repaired batteries.
 Reasons include held-command schedules, controllable expiry/configuration

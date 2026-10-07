@@ -251,8 +251,8 @@
       "tests/snap_cut_battery.py"
     ],
     "ordinal": 341,
-    "class": "BOUNDED-WITNESSED",
-    "mechanism": "Concurrent-cut mode now requires save idle before BGSAVE, exact acceptance, and bounded completion; reload verifies the exact saved cut.",
+    "class": "LOTTERY",
+    "mechanism": "Save acceptance/completion now require witnesses, but capture may finish before the first post-cut mutation; the log claims overlap without proving it. Reload inherits that stimulus. Needs a held capture stage plus a required concurrent-mutation witness.",
     "sites": [
       "tests/snap_cut_battery.py:277",
       "tests/gate.sh:2185"
@@ -266,8 +266,8 @@
       "tests/snap_cut_battery.py"
     ],
     "ordinal": 349,
-    "class": "BOUNDED-WITNESSED",
-    "mechanism": "Concurrent-cut mode now requires save idle before BGSAVE, exact acceptance, and bounded completion; reload verifies the exact saved cut.",
+    "class": "LOTTERY",
+    "mechanism": "Save acceptance/completion now require witnesses, but capture may finish before the first post-cut mutation; the log claims overlap without proving it. Reload inherits that stimulus. Needs a held capture stage plus a required concurrent-mutation witness.",
     "sites": [
       "tests/snap_cut_battery.py:277",
       "tests/gate.sh:2185"
