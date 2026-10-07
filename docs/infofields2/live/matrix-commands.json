@@ -1,0 +1,140 @@
+[
+  {
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "build/infofields/POST/tomokv",
+      "18899",
+      "18900",
+      "112-119",
+      "6:2"
+    ],
+    "log": "/home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-POST-split/differ.log",
+    "exit": 0,
+    "run_id": "infofields2-POST-split",
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_DIFFER_PROOF_SUITES": "docs/infofields/suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "docs/infofields/seeds.txt",
+      "GATE_LOAD_CORES": "120-127",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-POST-split",
+      "GATE_RUN_ID": "infofields2-POST-split"
+    },
+    "quiet": [
+      {
+        "command": [
+          "bash",
+          "tools/quietcheck.sh",
+          "112-119,120-127",
+          "18899"
+        ],
+        "log": "/home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-POST-split/quiet-0-18899.log",
+        "exit": 0
+      },
+      {
+        "command": [
+          "bash",
+          "tools/quietcheck.sh",
+          "112-119,120-127",
+          "18900"
+        ],
+        "log": "/home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-POST-split/quiet-0-18900.log",
+        "exit": 0
+      }
+    ]
+  },
+  {
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "build/infofields/POST/tomokv",
+      "18899",
+      "18900",
+      "112-119",
+      "6:2"
+    ],
+    "log": "/home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-POST-armed-fused/differ.log",
+    "exit": 0,
+    "run_id": "infofields2-POST-armed-fused",
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_DIFFER_PROOF_SUITES": "docs/infofields/suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "docs/infofields/seeds.txt",
+      "GATE_LOAD_CORES": "120-127",
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-POST-armed-fused",
+      "GATE_RUN_ID": "infofields2-POST-armed-fused"
+    },
+    "quiet": [
+      {
+        "command": [
+          "bash",
+          "tools/quietcheck.sh",
+          "112-119,120-127",
+          "18899"
+        ],
+        "log": "/home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-POST-armed-fused/quiet-0-18899.log",
+        "exit": 0
+      },
+      {
+        "command": [
+          "bash",
+          "tools/quietcheck.sh",
+          "112-119,120-127",
+          "18900"
+        ],
+        "log": "/home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-POST-armed-fused/quiet-0-18900.log",
+        "exit": 0
+      }
+    ]
+  },
+  {
+    "command": [
+      "bash",
+      "tests/differ_gate.sh",
+      "build/infofields/PRE/tomokv",
+      "18899",
+      "18900",
+      "112-119",
+      "6:2"
+    ],
+    "log": "/home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/differ.log",
+    "exit": 1,
+    "run_id": "infofields2-PRE-split",
+    "environment": {
+      "REDIS74_ROOT": "/home/user/Projects/redis74",
+      "GATE_DIFFER_ORACLE_BIN": "/home/user/Projects/redis74/src/redis-server",
+      "GATE_DIFFER_PROOF_SUITES": "docs/infofields/suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "docs/infofields/seeds.txt",
+      "GATE_LOAD_CORES": "120-127",
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split",
+      "GATE_RUN_ID": "infofields2-PRE-split"
+    },
+    "quiet": [
+      {
+        "command": [
+          "bash",
+          "tools/quietcheck.sh",
+          "112-119,120-127",
+          "18899"
+        ],
+        "log": "/home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/quiet-2-18899.log",
+        "exit": 0
+      },
+      {
+        "command": [
+          "bash",
+          "tools/quietcheck.sh",
+          "112-119,120-127",
+          "18900"
+        ],
+        "log": "/home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/quiet-2-18900.log",
+        "exit": 0
+      }
+    ]
+  }
+]

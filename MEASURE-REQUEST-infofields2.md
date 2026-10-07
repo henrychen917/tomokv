@@ -1,4 +1,4 @@
-# infofields2: path 2; nested Lua feed requirement remains unfinished
+# infofields2 WIP: path 2; nested Lua feeds and PRE fused proof unfinished
 
 **Do not treat this as a completed landable delivery.** The retained change takes
 path **2** for refused-command visibility and preserves the ordinary-body proof.
@@ -6,7 +6,8 @@ It fixes INFO placement and MONITOR's six explicit script entry feeds. The 05:15
 addendum also requires nested `lua` feeds; that implementation was tried, failed
 the body audit, and was removed. The strict script witness demonstrates this
 remaining gap. No new gate row is deliberately red, but that alone does not
-complete the requested task.
+complete the requested task. The PRE armed-fused rerun also remains unfinished
+under the 90-minute lane limit; see the live-results section.
 
 The branch remains `cx-infofields`. The initial merge and permanent-seed repair
 were committed together in `ee09a032d`; subsequent work is committed in small
@@ -171,10 +172,52 @@ GATE_DIFFER_OUT="$directory" GATE_RUN_ID="infofields2-$arm-$geometry" \
 bash tests/differ_gate.sh "build/infofields/$arm/tomokv" 18899 18900 112-119 6:2
 ```
 
-The literal values for all four expansions are in the retained command receipts.
+The literal values for completed expansions are in the retained command receipts.
 Suite and seed files have one entry per line. No permanent seed was removed.
 
-DIFFERENTIAL_MATRIX_PENDING
+Three full four-suite differential legs completed as follows. Each suite column is
+pass/fail over seeds 7/19/20/23/91; all legs used the required 16-shard geometry.
+
+| Arm / geometry | Atomic | infofix P/F | psfix P/F | climon P/F | monitor P/F |
+| --- | ---: | --- | --- | --- | --- |
+| POST-split | 0 | 5/0 | 5/0 | 5/0 | 5/0 |
+| POST-split | 1 | 5/0 | 5/0 | 5/0 | 5/0 |
+| POST-armed-fused | 0 | 5/0 | 5/0 | 5/0 | 5/0 |
+| POST-armed-fused | 1 | 5/0 | 5/0 | 5/0 | 5/0 |
+| PRE-split | 0 | 0/5 | 0/5 | 5/0 | 0/5 |
+| PRE-split | 1 | 0/5 | 0/5 | 5/0 | 0/5 |
+| PRE-armed-fused | 0 | not run | not run | not run | not run |
+| PRE-armed-fused | 1 | not run | not run | not run | not run |
+
+| Run ID | Harness pass/fail | Runtime | Retained log |
+| --- | --- | --- | --- |
+| infofields2-POST-split | 40/0 | 13m41s | [log](docs/infofields2/live/infofields2-POST-split.log) |
+| infofields2-POST-armed-fused | 42/0 | 13m41s | [log](docs/infofields2/live/infofields2-POST-armed-fused.log) |
+| infofields2-PRE-split | 10/30 | 11m55s | [log](docs/infofields2/live/infofields2-PRE-split.log) |
+
+**The requested PRE armed-fused rerun is unfinished.** The two POST legs took
+13m41s each; the prescribed quiet retries consumed another ten minutes across
+the live proofs (200 seconds before a controller witness, 400 before PRE split).
+The orchestrator was stopped after PRE split to honor the 90-minute lane limit.
+This is a missing live-proof requirement, not a passing or waived leg. The supplied
+mainline PRE armed-fused baseline is cited above and does not replace this rerun.
+
+PRE split failed all ten new INFO checks on missing Server fields (`run_id`,
+`executable`, `config_file`, `io_threads_active`), all ten save-status checks on
+missing `rdb_last_bgsave_status`, and all ten MONITOR stream checks; climon passed
+all ten legs. POST had no psfix SAVE-race recurrence. All three completed harnesses
+reported both target lifetimes and the oracle stopped with their ports free.
+The owned Python orchestrator then received SIGTERM (exit 143) after PRE split
+had returned exit 1; this did not terminate a live test server. Final inspection
+found ports 18899 and 18900 free. [Orchestrator log](docs/infofields2/live/matrix-orchestrator.log)
+and [deadline-stop receipt](docs/infofields2/live/deadline-stop.log).
+
+Armed-fused totals also include two read-local non-vacuity checks. Their exact
+hit/fallback counts, every suite/seed result, and quiet-preflight logs are in the
+[matrix summary](docs/infofields2/live/matrix-summary.json).
+[Exact harness commands and environment](docs/infofields2/live/matrix-commands.json);
+[all per-leg, coverage and server logs](docs/infofields2/live/matrix-all-logs.json.gz).
+
 
 ### Rate, peak and controller witnesses
 
@@ -213,7 +256,12 @@ The quiet preflight refused once before `live-controller/split-a1-config1`:
 `quietcheck: assigned cores busy: cpu113=30% cpu118=30%`.
 The runner retried after 200 seconds; the next screening passed. The cause was not
 established, so this is not attributed to a sibling compiler. The remaining smoke
-and controller screenings passed on their first attempt.
+and controller screenings passed on their first attempt. Before PRE split, the
+first matrix screening refused with `cpu118=17%`; after 200 seconds the next
+refused with `cpu114=29% cpu124=31%`; after another 200 seconds both port/core
+checks passed and PRE split started. No compiler was visible in the process
+snapshot inspected after the second refusal. These causes remain unestablished.
+The two POST matrix screenings passed on their first attempts.
 
 ### Non-gated strict witnesses
 
@@ -248,8 +296,21 @@ Python syntax, shell syntax and `git diff --check` pass. The tests/ text audit
 used grep, including literal, hexadecimal and escaped-byte spellings:
 [before](docs/infofields2/test-text-before.txt), [after](docs/infofields2/test-text-after.txt).
 
-Remaining mandatory work: implement actual nested Lua feeds without altering
-ordinary bodies, make `--scripts` strict witness pass for admitted script commands,
-and promote those nested assertions into the gated leg. Refusal assertions remain
-separately documented under the explicitly allowed path 2. The live witnesses must
+Remaining mandatory work: complete the PRE armed-fused four-suite rerun, implement
+actual nested Lua feeds without altering ordinary bodies, make `--scripts` strict witness pass for admitted script commands,
+and promote those nested assertions into the gated leg. The unrun PRE armed-fused
+control must use the original four-suite file, both atomic modes and all five seeds:
+
+```sh
+REDIS74_ROOT=/home/user/Projects/redis74 \
+GATE_DIFFER_ORACLE_BIN=/home/user/Projects/redis74/src/redis-server \
+GATE_DIFFER_PROOF_SUITES=docs/infofields/suites.txt \
+GATE_DIFFER_PROOF_SEEDS=docs/infofields/seeds.txt \
+GATE_LOAD_CORES=120-127 GATE_DIFFER_GEOMETRY=armed-fused \
+GATE_DIFFER_OUT=build/infofields2/live-PRE-armed-fused-resume \
+GATE_RUN_ID=infofields2-PRE-armed-fused-resume \
+bash tests/differ_gate.sh build/infofields/PRE/tomokv 18899 18900 112-119 6:2
+```
+
+Refusal assertions remain separately documented under the explicitly allowed path 2. The live witnesses must
 not be represented as proof that the nested implementation exists.
