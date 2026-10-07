@@ -1,0 +1,9 @@
+{
+  "finished": "2026-10-07T17:35:35.069964+00:00",
+  "results": {
+    "hashes": 0,
+    "post-copy": 0,
+    "registry-and-permissions": 1,
+    "live_proofs": "REFUSED: quiet preflight failed all four attempts"
+  }
+}

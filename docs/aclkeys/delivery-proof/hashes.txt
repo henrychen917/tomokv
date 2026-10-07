@@ -1,0 +1,8 @@
+2026-10-07T17:25:21.370063+00:00
+$ sha256sum -c docs/aclkeys/SHA256SUMS
+build/aclkeys/PRE/tomokv: OK
+build/aclkeys/POST/tomokv: OK
+build/tomokv: OK
+build/aclkeys/PAD-B/tomokv: OK
+
+2026-10-07T17:25:21.934517+00:00 exit=0

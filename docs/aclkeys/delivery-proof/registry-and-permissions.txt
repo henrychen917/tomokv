@@ -1,0 +1,33 @@
+2026-10-07T17:25:22.048946+00:00
+$ taskset -c 112-127 build/aclkeys/POST/aclkeys-unit
+MISMATCH BLMPOP runtime=3,-1,1 generated=0,0,0
+MISMATCH LMPOP runtime=2,-1,1 generated=0,0,0
+MISMATCH SINTERCARD runtime=2,-1,1 generated=0,0,0
+MISMATCH BZMPOP runtime=3,-1,1 generated=0,0,0
+MISMATCH ZMPOP runtime=2,-1,1 generated=0,0,0
+MISMATCH ZUNION runtime=2,-1,1 generated=0,0,0
+MISMATCH ZINTER runtime=2,-1,1 generated=0,0,0
+MISMATCH ZDIFF runtime=2,-1,1 generated=0,0,0
+MISMATCH ZUNIONSTORE runtime=1,-1,1 generated=1,1,1
+MISMATCH ZINTERSTORE runtime=1,-1,1 generated=1,1,1
+MISMATCH ZDIFFSTORE runtime=1,-1,1 generated=1,1,1
+MISMATCH ZINTERCARD runtime=2,-1,1 generated=0,0,0
+MISMATCH GEORADIUS runtime=1,-1,1 generated=1,1,1
+MISMATCH GEORADIUSBYMEMBER runtime=1,-1,1 generated=1,1,1
+MISMATCH XGROUP runtime=2,2,1 generated=0,0,0
+MISMATCH XINFO runtime=2,2,1 generated=0,0,0
+MISMATCH SSUBSCRIBE runtime=0,0,0 generated=1,-1,1
+MISMATCH SUNSUBSCRIBE runtime=0,0,0 generated=1,-1,1
+MISMATCH SPUBLISH runtime=0,0,0 generated=1,1,1
+MISMATCH EVAL runtime=3,-1,1 generated=0,0,0
+MISMATCH EVALSHA runtime=3,-1,1 generated=0,0,0
+MISMATCH EVAL_RO runtime=3,-1,1 generated=0,0,0
+MISMATCH EVALSHA_RO runtime=3,-1,1 generated=0,0,0
+MISMATCH FCALL runtime=3,-1,1 generated=0,0,0
+MISMATCH FCALL_RO runtime=3,-1,1 generated=0,0,0
+MISMATCH OBJECT runtime=2,2,1 generated=0,0,0
+MISMATCH MEMORY runtime=2,2,1 generated=0,0,0
+registry: 245 specs checked, 27 mismatches
+permissions: 142 admission/denial assertions PASS
+
+2026-10-07T17:25:22.052571+00:00 exit=1
