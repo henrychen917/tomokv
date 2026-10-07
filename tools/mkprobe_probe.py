@@ -348,6 +348,9 @@ def symbol_shares(text):
                 weights[name] += weight
                 found[name] += 1
     require(total > 0, "empty symbol profile")
+    event_count = re.search(r"# Event count \(approx\.\):\s+(\d+)", text)
+    if event_count:
+        require(total == int(event_count[1]), "symbol periods do not reconcile to the captured cycles period")
     return dict(total_period=total, samples=int(sample_match[1].replace(",", "")),
                 shares_pct={name: 100 * weights[name] / total for name in SYMBOLS},
                 observed_symbols=dict(found), scope="exclusive leaf/inline symbol, period weighted; unobserved is not proof of absence")
@@ -382,6 +385,12 @@ def telemetry(cell, observations, before, after):
     for command in ("mget", "mset"):
         result["cmdstat_" + command + "_calls"] = command_stat(after, command)[0] - command_stat(before, command)[0]
         require(result["cmdstat_" + command + "_calls"] >= 0, "commandstats reset")
+    calls = result["cmdstat_mget_calls"]
+    result["fanout_cuts_per_mget"] = result["atomic_fanout_cuts"] / calls if calls else NA
+    result["atomic_cut_witness"] = (
+        "fanout cuts are not an engagement witness at atomic=1; use held-cut gauge" if cell.atomic else
+        "PASS" if calls and .9 <= result["fanout_cuts_per_mget"] <= 1.1 else
+        "not applicable" if not calls else "FAIL")
     for role in ("fused", "io", "ex"):
         for suffix in SIGNAL_SUFFIXES:
             key = f"lb_{role}_{suffix}"
@@ -423,7 +432,9 @@ def boot(args, cell, folder, policy, children, binary_sha):
             time.sleep(.1)
     require(digest(f"/proc/{server.pid}/exe") == binary_sha, "running binary differs from receipt")
     for field, expected in dict(thread_mode=cell.mode, read_local=str(cell.read_local), atomic=str(cell.atomic),
-                                wb_policy=str(policy), flip_auto="0", key_lb="1", client_lb="1").items():
+                                wb_policy=str(policy), flip_auto="0", key_lb="1", client_lb="1",
+                                overlap=str(cell.overlap), reorder=str(cell.reorder), net_io="uring", pin_threads="1",
+                                shards=command[command.index("--shards") + 1]).items():
         require(identity.get(field) == expected, f"boot {field}={identity.get(field)!r}, expected {expected}")
     placement = {int(t): int(c) for t, c in (p.split(":") for p in identity["thread_cpus"].split(","))}
     require(set(placement.values()) == set(parse_cpu_range(args.cores[0])), "server escaped requested CPU geometry")
@@ -479,6 +490,44 @@ def wait_until(deadline, processes, monitor):
         time.sleep(min(.1, max(0, deadline - time.monotonic())))
 
 
+def box_inventory(owned=()):
+    """Conservative read-only box-share screen; never signals foreign processes.
+
+    The historical boxguard.sh is not installed in this worktree. Record actual
+    known competing servers/generators/compilers, in addition to gate_quiet's
+    selected-CPU activity budget. Affinity alone is not evidence of activity.
+    This is not a claim to recognize every possible source of interference.
+    """
+    owned = {os.getpid(), *(p.pid for p in owned)}
+    competitors = []
+    for path in Path("/proc").iterdir():
+        if not path.name.isdigit() or int(path.name) in owned:
+            continue
+        try:
+            name = (path / "comm").read_text().strip()
+            if not name.startswith(("tomokv", "memtier", "redis-server", "valkey-server", "dragonfly", "keydb-server", "memcached", "cc1", "clang", "lto1", "rustc")):
+                continue
+            status = (path / "status").read_text()
+            state = re.search(r"^State:\s+(\S+)", status, re.M)
+            if state and state[1] == "Z":
+                continue
+            affinity = re.search(r"^Cpus_allowed_list:\s+(.*)", status, re.M)
+            stat = (path / "stat").read_text().rsplit(")", 1)[1].split()
+            competitors.append(dict(pid=int(path.name), name=name, cpus=affinity[1] if affinity else "unknown",
+                                    start=int(stat[19]), ticks=int(stat[11]) + int(stat[12])))
+        except (FileNotFoundError, ProcessLookupError):
+            continue
+    return competitors
+
+
+def box_progress(before, after, budget_seconds):
+    old = {(r["pid"], r["start"]): r["ticks"] for r in before}
+    progress = [{**r, "cpu_seconds": max(0, r["ticks"] - old.get((r["pid"], r["start"]), 0)) / os.sysconf("SC_CLK_TCK")}
+                for r in after]
+    total = sum(r["cpu_seconds"] for r in progress)
+    return dict(processes=progress, cpu_seconds=total, budget_seconds=budget_seconds, passed=total <= budget_seconds)
+
+
 def run_pass(args, cell, job, folder, kind, snapshot, children, monitor, receipt):
     folder.mkdir()
     # Clone an immutable setup image; never adopt the setup process or its counters.
@@ -510,9 +559,18 @@ def run_pass(args, cell, job, folder, kind, snapshot, children, monitor, receipt
         observations = [first]
         deadline = t0 + args.window
         next_poll = t0 + 1
+        foreign = box_inventory(children.processes)
+        foreign_at = time.monotonic()
+        result["box_runtime"] = []
         while time.monotonic() < deadline:
             wait_until(min(next_poll, deadline), [server, *loads], monitor)
             if time.monotonic() < deadline:
+                current = box_inventory(children.processes)
+                now = time.monotonic()
+                share = box_progress(foreign, current, monitor.cpu_budget_seconds * (now - foreign_at) / monitor.window_seconds)
+                result["box_runtime"].append(share)
+                require(share["passed"], "competing benchmark/compiler consumed the box-share CPU budget during central window")
+                foreign, foreign_at = current, now
                 observations.append(info(conn, "all"))
                 next_poll += 1
         last = info(conn, "all")
@@ -542,10 +600,6 @@ def run_pass(args, cell, job, folder, kind, snapshot, children, monitor, receipt
                     "--stdio", "--stdio-color", "never", "--no-children", "--inline", "--show-total-period",
                     "--percent-limit", "0", "--sort", "symbol", "-t", ";"]
             result["argv"]["perf_report"] = argv
-            p = subprocess.run(argv, capture_output=True, text=True, timeout=120)
-            (folder / "symbols.txt").write_text(p.stdout + p.stderr)
-            require(p.returncode == 0, "perf report failed")
-            result["symbols"] = symbol_shares(p.stdout)
         else:
             events = CORE_EVENTS if kind == "core" else MEMORY_EVENTS
             result["perf"] = parse_perf((folder / "perf.csv").read_text(), parse_cpu_range(args.cores[0]), events)
@@ -593,6 +647,12 @@ def run_pass(args, cell, job, folder, kind, snapshot, children, monitor, receipt
         result["observer_call_bound"] = len(observations) + 20
         require(result["observer_call_bound"] / whole < .001, "observer commands exceed 0.1% of workload")
         require(digest(args.binary) == receipt["binary_sha256"] and digest(args.memtier) == receipt["memtier"]["sha256"], "executable changed during sample")
+        if kind == "symbols":
+            # Post-process only after load generators and server have exited.
+            p = subprocess.run(result["argv"]["perf_report"], capture_output=True, text=True, timeout=120)
+            (folder / "symbols.txt").write_text(p.stdout + p.stderr)
+            require(p.returncode == 0, "perf report failed")
+            result["symbols"] = symbol_shares(p.stdout)
         result["complete"] = True
         # The SHA-bound cache retains the exact input. Successful private copies
         # would otherwise consume hundreds of GB over a night; failed copies stay.
@@ -620,12 +680,18 @@ def run_sample(args, cell, job, folder, receipt):
                retired_per_send=NA, empty_serve_fraction=NA, passes=[])
     # Keep the full recipe separately from the short cell ID in every row.
     row["recipe"] = asdict(cell)
+    row.update({name: NA for name in ("atomic_fanout_cuts", "atomic_read_cuts_held", "cmdstat_mget_calls", "cmdstat_mset_calls")})
+    row.update({f"lb_{role}_{suffix}": NA for role in ("fused", "io", "ex") for suffix in SIGNAL_SUFFIXES})
     children, monitor = Children(), None
     try:
         quiet_file_guard()
+        row["box_preflight"] = box_inventory()
         monitor = QuietMonitor(parse_cpu_range(args.cores[0]), parse_cpu_range(args.cores[1]), ports=[args.port],
                                sample_artifact=folder / "quiet.jsonl")
         monitor.start()
+        row["box_share"] = box_progress(row["box_preflight"], box_inventory(), monitor.cpu_budget_seconds)
+        if not row["box_share"]["passed"]:
+            raise QuietViolation("named benchmark/compiler exceeded box-share preflight budget: " + json.dumps(row["box_share"]))
         snapshot = snapshot_fixture(args, cell, children, receipt["binary_sha256"])
         row["snapshot"] = snapshot
         for kind in (["core", "memory"] if args.mode == "coherence" else
@@ -743,9 +809,13 @@ def verdicts(rows, calibration):
 
     def m1():
         checks = []
+        contradicted = False
+        uncertain = False
         for cell in ("m02", "m03", "m05", "m06", "m50", "m51", "m53", "m54", "mk128g", "mk128s"):
             v = interval(observations(rows, "counters", cell, metric="retired_per_send"))
             passed = BATCH_RANGE[0] <= v["low"] <= v["high"] <= BATCH_RANGE[1]
+            contradicted |= v["low"] > BATCH_RANGE[1] or v["high"] < BATCH_RANGE[0]
+            uncertain |= not passed
             checks.append(dict(cell=cell, prediction="0.9 <= retired/sends_submitted <= 1.1", result="PASS" if passed else "FAIL", evidence=v))
         for cell in PAIR_IDS:
             rate = paired_change(observations(rows, "wb-pair", cell, arm="A", metric="rate"),
@@ -753,15 +823,26 @@ def verdicts(rows, calibration):
             cycles = paired_change(observations(rows, "wb-pair", cell, arm="A"), observations(rows, "wb-pair", cell, arm="B"))
             multi = cell.startswith("m")
             passed = (abs(rate["median"]) <= BOX_BAND and abs(cycles["median"]) <= BOX_BAND) if multi else (rate["high"] < -BOX_BAND and cycles["low"] > BOX_BAND)
+            if multi:
+                contradicted |= rate["low"] > BOX_BAND or rate["high"] < -BOX_BAND or cycles["low"] > BOX_BAND or cycles["high"] < -BOX_BAND
+                uncertain |= rate["low"] < -BOX_BAND or rate["high"] > BOX_BAND or cycles["low"] < -BOX_BAND or cycles["high"] > BOX_BAND
+            else:
+                contradicted |= rate["low"] >= 0 or cycles["high"] <= 0
+                uncertain |= not passed
             checks.append(dict(cell=cell, prediction="wb0/wb1 multi-key null" if multi else "wb0 loses rate and costs cycles versus wb1",
                                result="PASS" if passed else "FAIL", rate=rate, cycles=cycles))
         passed = all(c["result"] == "PASS" for c in checks)
-        return dict(verdict="CONFIRMED" if passed else "REFUTED", arithmetic="PASS" if passed else "FAIL", checks=checks,
+        state = "REFUTED" if contradicted else "UNRESOLVED" if uncertain else "CONFIRMED"
+        return dict(verdict=state, arithmetic="PASS" if passed else "FAIL", checks=checks,
                     reason="Conjunction of reply batching arithmetic and same-binary policy effects; read-local MGET controls excluded from scatter prediction")
 
     def m3():
         details = []
         passed = True
+        contradicted = False
+        for cell in SWEEP_IDS:
+            for key_count in KEYS:
+                observations(rows, "keys", cell, keys=key_count, metric="cycles_per_key")
         for small, large, p8, p32 in ((7, 8, "m02", "m03"), (3, 4, "m05", "m06")):
             jumps = []
             for cell in (p8, p32):
@@ -771,9 +852,11 @@ def verdicts(rows, calibration):
                 relative = paired_change(b, a)
                 jumps.append([y - x for x, y in zip(a, b)])
                 passed &= relative["low"] > 2 * BOX_BAND
+                contradicted |= relative["high"] <= 0
                 details.append(dict(cell=cell, boundary=f"{small}->{large}", cycles_per_key_step=step, relative=relative))
             growth = interval([b - a for a, b in zip(*jumps)])
             passed &= growth["low"] > 0
+            contradicted |= growth["high"] <= 0
             details.append(dict(boundary=f"{small}->{large}", p32_minus_p8_step=growth))
         # Beyond MGET's spill cliff, more keys must not introduce another positive
         # per-key jump larger than the propagated identical-arm resolution.
@@ -781,8 +864,9 @@ def verdicts(rows, calibration):
             smooth = paired_change(observations(rows, "keys", cell, keys=16, metric="cycles_per_key"),
                                    observations(rows, "keys", cell, keys=9, metric="cycles_per_key"))
             passed &= smooth["high"] <= 2 * BOX_BAND
+            contradicted |= smooth["low"] > 2 * BOX_BAND
             details.append(dict(cell=cell, boundary="9->16", no_extra_positive_step=smooth))
-        return dict(verdict="CONFIRMED" if passed else "REFUTED", checks=details,
+        return dict(verdict="CONFIRMED" if passed else "REFUTED" if contradicted else "UNRESOLVED", checks=details,
                     reason="Predeclared cycles/key cliffs at MGET 7->8 and MSET 3->4, both larger at p32; MGET 9->16 has no further positive jump")
 
     def m5():
@@ -797,7 +881,7 @@ def verdicts(rows, calibration):
         require(enough, "M5 requires >=1000 cycles samples per symbol pass")
         # No inlining guess: an entirely unobserved function is unavailable, not a
         # proven zero. perf report --inline must actually resolve it in the set.
-        require(any(v > 0 for group in values for v in group), "floor symbols unobserved; cannot treat missing attribution as 0%")
+        require(any(v > 0 for v in values[1]), "p32 floor symbols unobserved; cannot treat missing attribution as 0%")
         if evidence[1]["high"] < .3:
             state, reason = "REFUTED", "p32 floor-sweep exclusive share upper bound is below the note's 0.3% criterion"
         elif interval([b - a for a, b in zip(values[0], values[1])])["low"] > 0 and interval([b - a for a, b in zip(values[1], values[2])])["low"] > 0:
@@ -809,8 +893,8 @@ def verdicts(rows, calibration):
     def m2():
         evidence = {}
         for name in ("coherence_residual", "demand_fills", "table_walk_requests"):
-            evidence[name] = {c: interval(observations(rows, "coherence", c, metric="memory_per_op/" + name)) for c in ("m02", "m03", "mk128g", "h05")}
-        for c in ("m02", "m03", "mk128g"):
+            evidence[name] = {c: interval(observations(rows, "coherence", c, metric="memory_per_op/" + name)) for c in ("m02", "m03", "mk128g", "h05", "m05", "m06", "mk128s", "h06")}
+        for c in ("m02", "m03", "mk128g", "m05", "m06", "mk128s"):
             observations(rows, "symbols", c, metric="symbols/shares_pct/xshard_execute")
         return dict(verdict="UNRESOLVED", reason="Cold-fragment signature measured, but aggregate fills/walks and xshard_execute share cannot isolate 6-10 remote lines per fragment from allocator/floor/gather traffic. No existing fragment-coldness counter or intervention; do not infer causality.", evidence=evidence)
 
