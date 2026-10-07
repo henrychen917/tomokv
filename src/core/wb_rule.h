@@ -20,13 +20,7 @@ inline constexpr unsigned kCompleteVisits = 3;
 // section 39 (2026-09-23/24), w4-c12: parse 32 / EX 32 / composite 1/2.
 inline constexpr std::ratio<1, 2> kPolicyFraction{};
 
-// Cold artifact selector: only the default 0/1 policy, no detector/probe bits.
-// tools/wbland_artifacts.py patches this immediate for the frozen pol0 arm.
-__attribute__((noinline, noclone)) inline int default_policy() {
-    int policy;
-    asm volatile("mov $1, %0" : "=a"(policy));
-    return policy;
-}
+inline constexpr int default_policy() { return 1; }
 
 inline void info(std::string& body, int policy) {
     char line[64];
