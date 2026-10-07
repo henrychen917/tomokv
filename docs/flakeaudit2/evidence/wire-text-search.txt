@@ -1,0 +1,20 @@
+SEARCH 'no invalidation before registering'
+tests/tracking.py:317:        expect(t.drain(0.3), b"", "no invalidation before registering")
+SEARCH 'register while still alive'
+tests/tracking.py:322:            expect(value, b"1", "register while still alive")
+SEARCH 'expiry invalidation'
+tests/tracking.py:327:    expect(t.raw_reply(), push(expiry_key.encode()), "expiry invalidation")
+SEARCH 'let it park'
+SEARCH 'BLPOP timeout'
+tests/pushtear.py:687:            bad(tag, "SWALLOWED: BLPOP timeout reply missing after a push landed on it: %r"
+tests/pushtear.py:696:        ok(tag, "push delivered immediately (seg+%d) and BLPOP timeout still emitted" % segmented)
+tests/aclreply.py:150:    trial("BLPOP timeout, command revoked (RESP2)",
+tests/aclreply.py:153:    trial("BLPOP timeout, command revoked (RESP3)",
+tests/aclreply.py:184:    trial("BLPOP timeout, still permitted (RESP2)",
+tests/aclreply.py:187:    trial("BLPOP timeout, still permitted (RESP3)",
+SEARCH 'time.sleep(0.15)'
+tests/edgetime.py:427:        time.sleep(0.15)
+tests/edgetime.py:430:        time.sleep(0.15)
+tests/blocking.py:253:        time.sleep(0.15)
+SEARCH 'blocking/push-then-timeout'
+tests/pushtear.py:637:    tag = "blocking/push-then-timeout"

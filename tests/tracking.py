@@ -110,6 +110,24 @@ class Conn:
             deadline = time.time() + 0.15
         return out
 
+    def raw_reply(self):
+        """Read one whole push, preserving its exact bytes across TCP fragments."""
+        prefix = self.exact(1)
+        line = self.file.readline()
+        assert line.endswith(b"\r\n"), (prefix, line)
+        frame = prefix + line
+        if prefix == b"$":
+            size = int(line[:-2])
+            if size >= 0:
+                body = self.exact(size + 2)
+                assert body[-2:] == b"\r\n", body
+                frame += body
+        elif prefix in (b"*", b">"):
+            frame += b"".join(self.raw_reply() for _ in range(max(0, int(line[:-2]))))
+        else:
+            assert prefix in (b"+", b"-", b":", b"_"), prefix
+        return frame
+
     def close(self, reset=False):
         if not self.sock:
             return
@@ -287,13 +305,27 @@ try:
 
     # Expiry-driven deletion. The TTL is set BEFORE this client registers, so the only event it
     # can possibly receive for this key is the expiry itself.
-    writer.command("SET", "trk:exp", "1")
-    writer.command("PEXPIRE", "trk:exp", "400")
-    expect(t.drain(0.3), b"", "no invalidation before registering")
-    expect(t.command("GET", "trk:exp"), b"1", "register while still alive")
-    time.sleep(0.8)
-    writer.command("GET", "trk:exp")   # nudge the expiry observer
-    expect(t.drain(2.0), push(b"trk:exp"), "expiry invalidation")
+    arm_budget = time.monotonic() + 10
+    while True:
+        # Fresh client/key on every scheduling miss: stale registrations and
+        # their eventual pushes cannot contaminate the successful arm.
+        t.close()
+        t = new(resp3=True)
+        expect(t.command("CLIENT", "TRACKING", "on"), b"OK", "expiry tracking arm")
+        expiry_key = "trk:exp:%d" % time.time_ns()
+        expect(writer.command("SET", expiry_key, "1"), b"OK", "expiry seed")
+        expect(t.drain(0.3), b"", "no invalidation before registering")
+        armed_at = time.monotonic()
+        expect(writer.command("PEXPIRE", expiry_key, "400"), 1, "expiry deadline arm")
+        value = t.command("GET", expiry_key)
+        if time.monotonic() - armed_at < .4:
+            expect(value, b"1", "register while still alive")
+            break
+        assert time.monotonic() < arm_budget, "expiry registration window never opened"
+    # A positive framed push is the delivery witness. No idle recv interval can
+    # complete this assertion before the required frame actually arrives.
+    expect(t.raw_reply(), push(expiry_key.encode()), "expiry invalidation")
+    expect(writer.command("GET", expiry_key), None, "expired key is absent")
     checks += 8
 
     # ---- 3. NOLOOP ---------------------------------------------------------------------------
