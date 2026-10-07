@@ -1,0 +1,7 @@
+tests/differ.py:3384:                    print("  INVALID WAIT arm elapsed before both exact clients parked", flush=True)
+tests/differ.py:3391:                    print("  INVALID WAIT silence observation crossed the finite deadline", flush=True)
+tests/differ.py:3394:                property_check("WAIT 1 %s readiness parity" % timeout, tready, oready)
+tests/differ.py:3395:                property_check("target WAIT 1 %s silence control" % timeout, tready, False)
+tests/differ.py:3396:                property_check("oracle WAIT 1 %s silence control" % timeout, oready, False)
+tests/differ.py:3402:                    property_check("WAIT finite deadline fired", time.monotonic() - started >= 0.15, True)
+tests/differ.py:3407:            raise AssertionError("WAIT silence window never opened before arming deadline")

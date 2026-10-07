@@ -1,5 +1,26 @@
-.....................
+test_band_boundary_is_inclusive_and_exceedance_is_not (__main__.StableHoldClassifier.test_band_boundary_is_inclusive_and_exceedance_is_not) ... ok
+test_band_comes_from_controller_without_a_typed_tolerance (__main__.StableHoldClassifier.test_band_comes_from_controller_without_a_typed_tolerance) ... ok
+test_dip_without_controller_move_is_still_invalid (__main__.StableHoldClassifier.test_dip_without_controller_move_is_still_invalid) ... ok
+test_empty_window_cannot_pass (__main__.StableHoldClassifier.test_empty_window_cannot_pass) ... ok
+test_invalid_controller_anchor_cannot_pass (__main__.StableHoldClassifier.test_invalid_controller_anchor_cannot_pass) ... ok
+test_invalid_observations_cannot_pass (__main__.StableHoldClassifier.test_invalid_observations_cannot_pass) ... ok
+test_reported_driver_dip_with_move_invalidates (__main__.StableHoldClassifier.test_reported_driver_dip_with_move_invalidates) ... ok
+test_reported_retry_trace_leaves_controller_band (__main__.StableHoldClassifier.test_reported_retry_trace_leaves_controller_band) ... ok
+test_retry_cannot_recenter_away_from_controller (__main__.StableHoldClassifier.test_retry_cannot_recenter_away_from_controller) ... ok
+test_retry_uses_fresh_driver_anchor_and_trace (__main__.StableHoldClassifier.test_retry_uses_fresh_driver_anchor_and_trace) ... ok
+test_single_second_surge_is_also_invalid (__main__.StableHoldClassifier.test_single_second_surge_is_also_invalid) ... ok
+test_small_anchor_difference_inside_published_band_is_not_an_exemption (__main__.StableHoldClassifier.test_small_anchor_difference_inside_published_band_is_not_an_exemption) ... ok
+test_stationary_driver_with_move_fails (__main__.StableHoldClassifier.test_stationary_driver_with_move_fails) ... ok
+test_stationary_driver_without_move_passes (__main__.StableHoldClassifier.test_stationary_driver_without_move_passes) ... ok
+test_sustained_step_cannot_recenter_the_anchor (__main__.StableHoldClassifier.test_sustained_step_cannot_recenter_the_anchor) ... ok
+test_budget_cannot_shorten_the_hold (__main__.StableHoldSchedule.test_budget_cannot_shorten_the_hold) ... ok
+test_deliberate_movement_during_valid_hold_fails_without_retry (__main__.StableHoldSchedule.test_deliberate_movement_during_valid_hold_fails_without_retry) ... ok
+test_invalid_budget_exhaustion_never_passes (__main__.StableHoldSchedule.test_invalid_budget_exhaustion_never_passes) ... ok
+test_more_than_three_invalid_arms_can_reach_a_full_hold (__main__.StableHoldSchedule.test_more_than_three_invalid_arms_can_reach_a_full_hold) ... ok
+test_never_quiescent_cannot_pass (__main__.StableHoldSchedule.test_never_quiescent_cannot_pass) ... ok
+test_settling_does_not_consume_the_hold_window (__main__.StableHoldSchedule.test_settling_does_not_consume_the_hold_window) ... ok
+
 ----------------------------------------------------------------------
-Ran 21 tests in 0.005s
+Ran 21 tests in 0.006s
 
 OK

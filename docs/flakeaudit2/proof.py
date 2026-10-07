@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Serial, fail-closed extension of flakeaudit/repeat.sh. Never discard a failed run."""
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
-import shutil
 import subprocess
 import sys
 import time
@@ -44,10 +44,17 @@ def quiet(out, prior=None):
     return False
 
 
-def run(out, command, env=None):
+def server_digest():
+    server = ROOT / "build/tomokv"
+    return hashlib.file_digest(server.open("rb"), "sha256").hexdigest() if server.exists() else None
+
+
+def run(out, command, env=None, gate=False):
+    before = server_digest()
     write(out / "invocation.json", dict(command=command, revision=subprocess.check_output(
         ["git", "rev-parse", "HEAD"], text=True).strip(), origin=subprocess.check_output(
-        ["git", "rev-parse", "origin/cpp"], text=True).strip(), started_at=time.time()))
+        ["git", "rev-parse", "origin/cpp"], text=True).strip(), started_at=time.time(),
+        server_sha256_before=before, selected_jobs=(env or {}).get("GATE_ONLY_JOBS")))
     with (out / "run.log").open("w") as log:
         rc = subprocess.call(command, stdout=log, stderr=subprocess.STDOUT, env=env)
     # Preserve all textual gate evidence, including failed and partial jobs. Large
@@ -68,7 +75,10 @@ def run(out, command, env=None):
     ledgers = list(out.glob("ledger*"))
     failures = [line for path in ledgers if path.is_file()
                 for line in path.read_text(errors="replace").splitlines() if line.startswith("FAIL\t")]
-    write(out / "result.json", dict(rc=rc, fail_rows=failures,
+    after = server_digest()
+    if gate and (not before or before != after or not ledgers or failures or not roots):
+        rc = rc or 1
+    write(out / "result.json", dict(rc=rc, fail_rows=failures, server_sha256_after=after,
                                    run_ids=[p.name for p in roots], ended_at=time.time()))
     print("%s rc=%d FAIL rows=%d" % (out.name, rc, len(failures)), flush=True)
     return rc
@@ -82,21 +92,32 @@ def main():
     os.chdir(ROOT)
     base = ROOT / "docs/flakeaudit2/evidence" / (args.stage + "-" + time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()))
     base.mkdir()
+    command = ["taskset", "-c", "112-127", "tests/gate.sh", "iteration",
+               "--server-cores", "112-119", "--load-cores", "120-127",
+               "--server-smt", "", "--load-smt", "", "--ports", "18340-18342"]
+    write(base / "request.json", dict(stage=args.stage, command=command,
+        repetitions=6 if args.stage == "selected" else 1,
+        jobs=(ROOT / "docs/flakeaudit2/jobs.txt").read_text().splitlines()
+             if args.stage == "selected" else None))
     if not quiet(base, args.prior_screen):
         return 3
     if args.stage == "build":
         return run(base, ["taskset", "-c", "112-127", "make", "-j16"])
+    if server_digest() is None:
+        out = base / "build"
+        out.mkdir()
+        rc = run(out, ["taskset", "-c", "112-127", "make", "-j16"])
+        if rc:
+            return rc
     for index in range(1, 7 if args.stage == "selected" else 2):
         out = base / ("run-%d" % index)
         out.mkdir()
         env = os.environ.copy()
+        env.pop("GATE_ONLY_JOBS", None)
         env["GATE_LEDGER"] = str(out / "ledger")
         if args.stage == "selected":
             env["GATE_ONLY_JOBS"] = " ".join((ROOT / "docs/flakeaudit2/jobs.txt").read_text().splitlines())
-        command = ["taskset", "-c", "112-127", "tests/gate.sh", "iteration",
-                   "--server-cores", "112-119", "--load-cores", "120-127",
-                   "--server-smt", "", "--load-smt", "", "--ports", "18340-18342"]
-        rc = run(out, command, env)
+        rc = run(out, command, env, gate=True)
         if rc:
             return rc
     return 0
