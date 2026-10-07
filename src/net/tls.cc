@@ -308,7 +308,7 @@ void TlsConn::restore_socket_flags() {
     saved_socket_flags_ = -1;
 }
 
-bool TlsConn::init(const TlsContext& context, TlsAuthClients auth, int fd,
+bool TlsConn::init(const TlsContext& context, TlsAuthClients auth, int fd, bool try_ktls,
                    std::string& error) {
     ERR_clear_error();
     ssl_ = SSL_new(context.native());
@@ -319,13 +319,17 @@ bool TlsConn::init(const TlsContext& context, TlsAuthClients auth, int fd,
     SSL_set_app_data(ssl_, this);
 
     socket_fd_ = fd;
-    fd_handshake_ = true;
-    saved_socket_flags_ = ::fcntl(fd, F_GETFL, 0);
-    if (saved_socket_flags_ < 0 ||
-        ::fcntl(fd, F_SETFL, saved_socket_flags_ | O_NONBLOCK) != 0 ||
-        SSL_set_fd(ssl_, fd) != 1) {
-        error = openssl_error("Failed to attach non-blocking TLS socket");
-        restore_socket_flags();
+    fd_handshake_ = try_ktls;
+    if (fd_handshake_) {
+        saved_socket_flags_ = ::fcntl(fd, F_GETFL, 0);
+        if (saved_socket_flags_ < 0 ||
+            ::fcntl(fd, F_SETFL, saved_socket_flags_ | O_NONBLOCK) != 0 ||
+            SSL_set_fd(ssl_, fd) != 1) {
+            error = openssl_error("Failed to attach non-blocking TLS socket");
+            restore_socket_flags();
+            return false;
+        }
+    } else if (!install_memory_bio(error)) {
         return false;
     }
     SSL_set_mode(ssl_, SSL_MODE_ENABLE_PARTIAL_WRITE |
@@ -363,6 +367,12 @@ TlsOp TlsConn::handshake() {
     ERR_clear_error();
     const int result = SSL_accept(ssl_);
     if (result == 1) {
+        if (!fd_handshake_) {
+            wanted_ = TlsOp::Progress;
+            state_ = State::MemoryUserspace;
+            return TlsOp::Progress;
+        }
+
         // A socket BIO is unbuffered. SSL_accept has emitted its final flight (including TLS 1.3
         // session tickets) before returning success. A zero-length SSL_write_ex completes any
         // provider-delayed post-handshake ticket work while OpenSSL still owns the record layer;

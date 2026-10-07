@@ -1,0 +1,160 @@
+diff --git a/src/core/io_loop.h b/src/core/io_loop.h
+index 36cb9e304..ec8de9d88 100644
+--- a/src/core/io_loop.h
++++ b/src/core/io_loop.h
+@@ -1408,8 +1408,7 @@ private:
+         try {
+             auto conn = std::make_unique<TlsConn>();
+             std::string error;
+-            if (!conn->init(*tls_context_, srv_->cfg().tls_auth_clients, c->fd(),
+-                            true, error)) {
++            if (!conn->init(*tls_context_, srv_->cfg().tls_auth_clients, c->fd(), error)) {
+                 std::fprintf(stderr, "TLS connection init failed: %s\n", error.c_str());
+                 return false;
+             }
+diff --git a/src/net/tls.cc b/src/net/tls.cc
+index a31c37427..94d1e1c30 100644
+--- a/src/net/tls.cc
++++ b/src/net/tls.cc
+@@ -308,7 +308,7 @@ void TlsConn::restore_socket_flags() {
+     saved_socket_flags_ = -1;
+ }
+ 
+-bool TlsConn::init(const TlsContext& context, TlsAuthClients auth, int fd, bool try_ktls,
++bool TlsConn::init(const TlsContext& context, TlsAuthClients auth, int fd,
+                    std::string& error) {
+     ERR_clear_error();
+     ssl_ = SSL_new(context.native());
+@@ -319,17 +319,13 @@ bool TlsConn::init(const TlsContext& context, TlsAuthClients auth, int fd, bool
+     SSL_set_app_data(ssl_, this);
+ 
+     socket_fd_ = fd;
+-    fd_handshake_ = try_ktls;
+-    if (fd_handshake_) {
+-        saved_socket_flags_ = ::fcntl(fd, F_GETFL, 0);
+-        if (saved_socket_flags_ < 0 ||
+-            ::fcntl(fd, F_SETFL, saved_socket_flags_ | O_NONBLOCK) != 0 ||
+-            SSL_set_fd(ssl_, fd) != 1) {
+-            error = openssl_error("Failed to attach non-blocking TLS socket");
+-            restore_socket_flags();
+-            return false;
+-        }
+-    } else if (!install_memory_bio(error)) {
++    fd_handshake_ = true;
++    saved_socket_flags_ = ::fcntl(fd, F_GETFL, 0);
++    if (saved_socket_flags_ < 0 ||
++        ::fcntl(fd, F_SETFL, saved_socket_flags_ | O_NONBLOCK) != 0 ||
++        SSL_set_fd(ssl_, fd) != 1) {
++        error = openssl_error("Failed to attach non-blocking TLS socket");
++        restore_socket_flags();
+         return false;
+     }
+     SSL_set_mode(ssl_, SSL_MODE_ENABLE_PARTIAL_WRITE |
+@@ -367,12 +363,6 @@ TlsOp TlsConn::handshake() {
+     ERR_clear_error();
+     const int result = SSL_accept(ssl_);
+     if (result == 1) {
+-        if (!fd_handshake_) {
+-            wanted_ = TlsOp::Progress;
+-            state_ = State::MemoryUserspace;
+-            return TlsOp::Progress;
+-        }
+-
+         // A socket BIO is unbuffered. SSL_accept has emitted its final flight (including TLS 1.3
+         // session tickets) before returning success. A zero-length SSL_write_ex completes any
+         // provider-delayed post-handshake ticket work while OpenSSL still owns the record layer;
+diff --git a/src/net/tls.h b/src/net/tls.h
+index 3300cc76e..5e855903d 100644
+--- a/src/net/tls.h
++++ b/src/net/tls.h
+@@ -2,8 +2,8 @@
+ //
+ // A kTLS attempt starts with a non-blocking socket BIO so OpenSSL can install the kernel record
+ // layer. For TLS 1.2, once both directions engage, SSL becomes a cold lifetime holder and ordinary
+-// io_uring recv/send owns application data.  Forced fallback uses the original BIO-pair engine;
+-// automatic fallback uses it when neither direction engaged and retains the socket BIO when a
++// io_uring recv/send owns application data. Automatic fallback uses the BIO-pair engine
++// when neither direction engaged and retains the socket BIO when a
+ // direction is already irreversible, preserving a valid userspace transport in either case.
+ // TLS 1.3 always retains OpenSSL on RX for post-handshake messages and KeyUpdate.
+ // OpenSSL 3.0/3.1 TX key updates are installed by the keylog callback (Linux re-key support needed).
+@@ -62,7 +62,7 @@ public:
+     TlsConn(const TlsConn&) = delete;
+     TlsConn& operator=(const TlsConn&) = delete;
+ 
+-    bool init(const TlsContext& context, TlsAuthClients auth, int fd, bool try_ktls,
++    bool init(const TlsContext& context, TlsAuthClients auth, int fd,
+               std::string& error);
+ 
+     bool handshaking() const { return state_ == State::Handshaking; }
+diff --git a/tests/ktls_keyupdate_unit.cc b/tests/ktls_keyupdate_unit.cc
+index 838bda8ed..2014783c4 100644
+--- a/tests/ktls_keyupdate_unit.cc
++++ b/tests/ktls_keyupdate_unit.cc
+@@ -48,7 +48,7 @@ struct Fixture {
+     SSL_CTX* client_context = nullptr;
+     SSL* client = nullptr;
+     int fds[2]{-1, -1};
+-    Fixture(const std::string& dir, int version, bool attempt, bool tx, bool rx,
++    Fixture(const std::string& dir, int version, bool tx, bool rx,
+             const char* suite = "TLS_AES_128_GCM_SHA256", bool small_fragment = false) {
+         fake_tx = tx; fake_rx = rx; rx_installs = tx_installs = 0;
+         installed_keys.clear(); peer_secrets.clear();
+@@ -62,7 +62,7 @@ struct Fixture {
+         require(context != nullptr, error.c_str());
+         require(socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0, fds) == 0,
+                 "local socketpair");
+-        require(server.init(*context, TlsAuthClients::No, fds[0], attempt, error), error.c_str());
++        require(server.init(*context, TlsAuthClients::No, fds[0], error), error.c_str());
+         observed_bio = SSL_get_wbio(server.*member(SslAccess{}));
+         client_context = SSL_CTX_new(TLS_client_method());
+         require(client_context && SSL_CTX_set_min_proto_version(client_context, version) == 1 &&
+@@ -245,7 +245,7 @@ int main(int argc, char** argv) {
+     current_case = argv[2];
+     if (current_case == "rx-policy") {
+         for (bool native_rx : {false, true}) {
+-            Fixture f(argv[1], TLS1_3_VERSION, true, true, native_rx);
++            Fixture f(argv[1], TLS1_3_VERSION, true, native_rx);
+             require(rx_installs == 0, "TLS13_RX_DECLINED: no initial-secret TLS_RX install");
+             require(f.server.socket_userspace() && !f.server.ktls(),
+                     "TLS13_RX_DECLINED: OpenSSL retains control-record ownership");
+@@ -254,7 +254,7 @@ int main(int argc, char** argv) {
+     } else if (current_case == "tx-rekey") {
+         for (auto suite : {"TLS_AES_128_GCM_SHA256", "TLS_AES_256_GCM_SHA384",
+                            "TLS_CHACHA20_POLY1305_SHA256", "TLS_AES_128_CCM_SHA256"}) {
+-            Fixture f(argv[1], TLS1_3_VERSION, true, true, false, suite);
++            Fixture f(argv[1], TLS1_3_VERSION, true, false, suite);
+             f.updates();
+             require(tx_installs == 2, "TLS13_TX_REKEY: both requested updates reinstall TX");
+             switch (SSL_CIPHER_get_protocol_id(SSL_get_current_cipher(f.client))) {
+@@ -266,7 +266,7 @@ int main(int argc, char** argv) {
+             }
+         }
+     } else if (current_case == "tx-failure") {
+-        Fixture f(argv[1], TLS1_3_VERSION, true, true, false);
++        Fixture f(argv[1], TLS1_3_VERSION, true, false);
+         f.exchange();
+         reject_tx = true;
+         require(SSL_key_update(f.client, SSL_KEY_UPDATE_REQUESTED) == 1 &&
+@@ -279,16 +279,14 @@ int main(int argc, char** argv) {
+         require(f.server.last_error().find("kTLS TX re-key failed") != std::string::npos,
+                 "failed re-key has a diagnostic");
+     } else if (current_case == "tls12") {
+-        Fixture f(argv[1], TLS1_2_VERSION, true, true, true);
++        Fixture f(argv[1], TLS1_2_VERSION, true, true);
+         require(f.server.ktls() && f.server.was_ktls(), "TLS12_KTLS: both directions retained");
+         require(rx_installs == 0, "TLS12_KTLS: no manual key install");
+     } else if (current_case == "userspace") {
+-        for (bool attempt : {false, true}) {
+-            Fixture f(argv[1], TLS1_3_VERSION, attempt, false, false, "TLS_AES_128_GCM_SHA256", attempt);
+-            require(f.server.memory_userspace(), "userspace fallback stays on the BIO pair");
+-            f.updates();
+-            require(rx_installs == 0 && tx_installs == 0, "userspace never installs kernel keys");
+-        }
++        Fixture f(argv[1], TLS1_3_VERSION, false, false, "TLS_AES_128_GCM_SHA256", true);
++        require(f.server.memory_userspace(), "automatic userspace fallback stays on the BIO pair");
++        f.updates();
++        require(rx_installs == 0 && tx_installs == 0, "userspace never installs kernel keys");
+     } else require(false, "unknown case");
+     std::printf("ok: NET2 %s (TlsConn=%zu)\n", current_case.c_str(), sizeof(TlsConn));
+ }

@@ -1408,7 +1408,8 @@ private:
         try {
             auto conn = std::make_unique<TlsConn>();
             std::string error;
-            if (!conn->init(*tls_context_, srv_->cfg().tls_auth_clients, c->fd(), error)) {
+            if (!conn->init(*tls_context_, srv_->cfg().tls_auth_clients, c->fd(),
+                            true, error)) {
                 std::fprintf(stderr, "TLS connection init failed: %s\n", error.c_str());
                 return false;
             }
