@@ -1,0 +1,25 @@
+# Mainline-only directed instrument; never read by the gate. Rows +0/+0.
+# Canonical m*/h* IDs: tests/headline_cells.txt; controls are copied from tests/wb_rule_cells.txt.
+# Frozen headline SHA256 d5c2b906668e4f49b4e6bed7aeee7c9610dadae3a239e333a9a2fd0f43dc1350
+# p8g/p8s/d128g_l0 definitions: tests/wb_rule_cells.txt (including original provenance).
+# Preserve every existing recipe; missing generator pins use mkprobe --instances (default 8).
+m02 | 1s | rl=0 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m03 | 1s | rl=0 | ov=0 | ro=0 | MGET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m05 | 1s | rl=0 | ov=0 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m06 | 1s | rl=0 | ov=0 | ro=0 | MSET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m26 | 1s | rl=1 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m27 | 1s | rl=1 | ov=0 | ro=0 | MGET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m50 | 2s | rl=0 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m51 | 2s | rl=0 | ov=0 | ro=0 | MGET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m53 | 2s | rl=0 | ov=0 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m54 | 2s | rl=0 | ov=0 | ro=0 | MSET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m74 | 2s | rl=1 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+m75 | 2s | rl=1 | ov=0 | ro=0 | MGET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+p8g | 1s | rl=0 | ov=1 | ro=0 | GET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+p8s | 1s | rl=0 | ov=1 | ro=0 | SET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+h05 | 1s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+h06 | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+d128g_l0 | 1s | rl=0 | ov=1 | ro=0 | GET | p128 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+# New pair: exactly m03/m06 with p32 -> p128; 1s, rl0, ov0, ro0, atomic1.
+mk128g | 1s | rl=0 | ov=0 | ro=0 | MGET | p128 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+mk128s | 1s | rl=0 | ov=0 | ro=0 | MSET | p128 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
