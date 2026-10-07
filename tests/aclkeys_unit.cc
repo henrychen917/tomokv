@@ -72,6 +72,9 @@ static unsigned registry_ranges() {
 static unsigned checks = 0;
 static unsigned retire_checks = 0;
 
+// Call the ACL recheck directly with retained arguments and a completed reply.
+// This isolates extraction/reply preservation; the live suite owns park/wake
+// lifecycle coverage, including XREAD and moves that retire through scatter.
 static void retired_reply(uint32_t user, const std::vector<std::string>& argv,
                           const std::vector<uint32_t>& key_indexes, const char* reply) {
     Client client(-1);
