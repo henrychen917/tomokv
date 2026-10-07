@@ -1,0 +1,13 @@
+PASS pending Long-only scope: FIFO and zero permutations are correct
+PASS three pipes B=32: six unshadowed shorts, three longs, seven shadowed shorts
+PASS three pipes B=128: six unshadowed shorts, three longs, seven shadowed shorts
+PASS newest-long stamps, Done without retire, and real ROB recycling
+PASS completion probe when a hidden follower becomes eligible
+PASS L s L dependencies and barrier B=32
+PASS L s L dependencies and barrier B=128
+PASS queued foreign completion B=32: Done clears without ROB retirement
+PASS queued foreign completion B=128: Done clears without ROB retirement
+PASS all thirteen special barriers and inherited atomic hazard classification
+PASS numeric off/on resolution and 2s no-op
+PASS bounded service B=32: 1536 picks, max wait 64 <= K=352; immediate destruction
+PASS bounded service B=128: 6144 picks, max wait 256 <= K=1408; immediate destruction

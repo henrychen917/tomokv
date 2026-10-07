@@ -1,0 +1,22 @@
+{
+  "PRE": {
+    "path": "build/deadcode2/PRE/tomokv",
+    "sha256": "aa0742922e4bfbe130441469754ff647b0e8172cfd079c1cd70376403bc2b53a",
+    "text_bytes": 7812565,
+    "function_entries": 9184
+  },
+  "POST": {
+    "path": "build/deadcode2/POST/tomokv",
+    "sha256": "8b8376500d8dd0afbd55cdeea01ba02ea7b7461bf2f4c182917457ee34965b8e",
+    "text_bytes": 7811893,
+    "function_entries": 9184
+  },
+  "PAD-A": {
+    "path": "build/deadcode2/PAD-A/tomokv",
+    "sha256": "cb47dbfa8955945ae879c135522503871f3c285780c66515e0a5773b7cf55e97",
+    "text_bytes": 7811893,
+    "function_entries": 9184
+  },
+  "production_source": "2cef2744397e4d6a307b03fc2388f88140e3dbac",
+  "merge_base": "d81b6d3a2b095224d59049dc60342a6ca1574674"
+}

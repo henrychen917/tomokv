@@ -1,0 +1,691 @@
+TRACE flipreport databases=1 now=11000 horizon=10.00 pays=0 decision=sampling-cost
+WIRE flipreport short mode=2s databases=1 INFO bytes=896
+$888
+# Flipctl
+flipctl_state:maneuvering
+flipctl_phase:measuring
+flipctl_anchor_io:0
+flipctl_anchor_ex:0
+flipctl_anchor_rate:0.000
+flipctl_signature_band:0.000000000
+flipctl_rate_band:0.000000000
+flipctl_triggers:1
+flipctl_boot_triggers:0
+flipctl_fingerprint_triggers:0
+flipctl_rate_surge_triggers:0
+flipctl_rate_collapse_triggers:0
+flipctl_forced_triggers:1
+flipctl_null_maneuvers:0
+flipctl_model_holds:0
+flipctl_shift_confirmations:2
+flipctl_rate_confirmations:2
+flipctl_round_trips:0
+flipctl_model_margin:1
+flipctl_last_trigger:forced
+flipctl_model_last_decision:sampling-cost
+flipctl_model_kappa:1.0000
+flipctl_model_moves:0
+flipctl_model_misses:0
+flipctl_invalidated_maneuvers:0
+flipctl_cost_holds:0
+flipctl_client_cost:0.00
+flipctl_last_flip_lost:0.0
+flipctl_last_flip_moved:0
+flipctl_flip_ticks:20.00
+flipctl_refine_decision:none
+flipctl_refine_steps:0
+
+WIRE flipreport short mode=2s databases=1 DEBUG bytes=2254
+$2245
+state=maneuvering
+phase=measuring
+anchor=0:0
+anchor_rate=0.000
+signature_band=0.000000000
+signature_distance=0.000000000
+signature_jitter=0.000000000
+signature_noise_bound=0.000000000 signature_noise_samples=0
+rate_band=0.000000000
+anchor_rate_jitter=0.000000000
+last_shift_distance=0.000000000
+last_shift_band=0.000000000
+boot_rate_ewma=0.000
+boot_rate_jitter=0.000000000
+boot_rate_slope=0.000000000
+boot_rate_slope_threshold=0.000000000
+boot_nonidle_ticks=0
+model_io_frac=0.500000
+model_io_frac_low=0.500000
+model_io_frac_high=0.500000
+model_samples=4 model_readings_cap=15
+model_headroom_io=0.0000 model_headroom_ex=0.0000
+model_target_io=4 model_gain_mean=1.0000 model_gain_low=1.0000 model_gain_high=1.0000
+model_required_gain=0.0365 model_margin=1 model_last_decision=sampling-cost
+model_holds=0 round_trips=0 maneuver_flips=0
+shift_confirmations=2 rate_confirmations=2
+shift_streak=0 null_maneuvers=0 maneuver_origin_io=6
+last_trigger=forced
+triggers=1 boot=0 fingerprint=0 rate_surge=0 rate_collapse=0 forced=1
+pending_io=0 seek=none seek_target_io=0 origin_rate=0.000
+origin_rate_readings=4 origin_rate_min=6000.000 origin_rate_max=6000.000 baseline_band=0.0000
+origin_sigma=0.00000 model_kappa=1.0000 model_verify_readings=1 rate_ew_sigma=0.00000 rate_ew_n=3
+cost_benefit=0.0 cost_cost=69000.0 cost_transfer=0.0 cost_blackout_s=23.00 cost_horizon_s=10.00 cost_payback_s=34.50 cost_pays=0
+cost_client=0.00 cost_reshuffle=1.000 cost_flip_ticks=20.00 cost_p_miss=0.500 cost_flips=1 cost_moves=0 cost_misses=0 cost_lost_sum=0.0 cost_moved_sum=0.0
+hyp_predicted=0.0000 hyp_delivered=0.0000 hyp_threshold=0.0000 hyp_sigma=0.00000 hyp_origin_samples=0 target_readings=0 pending_miss=0
+last_flip_lost=0.0 last_flip_moved=0 invalidated=0 cost_holds=0
+refine_decision=none refine_steps=0 seek_origin_io=6 refining=0 refine_bar=0.0000
+sig_now valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+sig_anchor valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+dist_parts pass=0.000000000 class=0.000000000 kpm=0.000000000 vbpc=0.000000000
+visited=
+
+TRACE flipreport databases=1 now=46000 horizon=45.00 pays=1 decision=move issued=1
+WIRE flipreport long mode=2s databases=1 INFO bytes=890
+$882
+# Flipctl
+flipctl_state:maneuvering
+flipctl_phase:waiting-flip
+flipctl_anchor_io:0
+flipctl_anchor_ex:0
+flipctl_anchor_rate:0.000
+flipctl_signature_band:0.000000000
+flipctl_rate_band:0.000000000
+flipctl_triggers:1
+flipctl_boot_triggers:0
+flipctl_fingerprint_triggers:0
+flipctl_rate_surge_triggers:0
+flipctl_rate_collapse_triggers:0
+flipctl_forced_triggers:1
+flipctl_null_maneuvers:0
+flipctl_model_holds:0
+flipctl_shift_confirmations:2
+flipctl_rate_confirmations:2
+flipctl_round_trips:0
+flipctl_model_margin:1
+flipctl_last_trigger:forced
+flipctl_model_last_decision:move
+flipctl_model_kappa:1.0000
+flipctl_model_moves:0
+flipctl_model_misses:0
+flipctl_invalidated_maneuvers:0
+flipctl_cost_holds:0
+flipctl_client_cost:0.00
+flipctl_last_flip_lost:0.0
+flipctl_last_flip_moved:0
+flipctl_flip_ticks:20.00
+flipctl_refine_decision:none
+flipctl_refine_steps:0
+
+WIRE flipreport long mode=2s databases=1 DEBUG bytes=2274
+$2265
+state=maneuvering
+phase=waiting-flip
+anchor=0:0
+anchor_rate=0.000
+signature_band=0.000000000
+signature_distance=0.000000000
+signature_jitter=0.000000000
+signature_noise_bound=0.000000000 signature_noise_samples=0
+rate_band=0.000000000
+anchor_rate_jitter=0.000000000
+last_shift_distance=0.000000000
+last_shift_band=0.000000000
+boot_rate_ewma=0.000
+boot_rate_jitter=0.000000000
+boot_rate_slope=0.000000000
+boot_rate_slope_threshold=0.000000000
+boot_nonidle_ticks=0
+model_io_frac=0.500000
+model_io_frac_low=0.500000
+model_io_frac_high=0.500000
+model_samples=5 model_readings_cap=15
+model_headroom_io=0.0000 model_headroom_ex=0.0000
+model_target_io=4 model_gain_mean=1.0000 model_gain_low=1.0000 model_gain_high=1.0000
+model_required_gain=0.0149 model_margin=1 model_last_decision=move
+model_holds=0 round_trips=0 maneuver_flips=1
+shift_confirmations=2 rate_confirmations=2
+shift_streak=0 null_maneuvers=0 maneuver_origin_io=6
+last_trigger=forced
+triggers=1 boot=0 fingerprint=0 rate_surge=0 rate_collapse=0 forced=1
+pending_io=4 seek=at-target seek_target_io=4 origin_rate=6000.000
+origin_rate_readings=5 origin_rate_min=6000.000 origin_rate_max=6000.000 baseline_band=0.0000
+origin_sigma=0.00000 model_kappa=1.0000 model_verify_readings=1 rate_ew_sigma=0.00000 rate_ew_n=4
+cost_benefit=132000.0 cost_cost=69000.0 cost_transfer=0.0 cost_blackout_s=23.00 cost_horizon_s=45.00 cost_payback_s=34.50 cost_pays=1
+cost_client=0.00 cost_reshuffle=1.000 cost_flip_ticks=20.00 cost_p_miss=0.500 cost_flips=1 cost_moves=0 cost_misses=0 cost_lost_sum=0.0 cost_moved_sum=0.0
+hyp_predicted=1.0000 hyp_delivered=0.0000 hyp_threshold=0.0000 hyp_sigma=0.00000 hyp_origin_samples=5 target_readings=0 pending_miss=0
+last_flip_lost=0.0 last_flip_moved=0 invalidated=0 cost_holds=0
+refine_decision=none refine_steps=0 seek_origin_io=6 refining=0 refine_bar=0.0000
+sig_now valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+sig_anchor valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+dist_parts pass=0.000000000 class=0.000000000 kpm=0.000000000 vbpc=0.000000000
+visited=6@6000.000000
+
+WIRE flipreport disabled mode=2s databases=1 INFO bytes=880
+$872
+# Flipctl
+flipctl_state:disabled
+flipctl_phase:disabled
+flipctl_anchor_io:0
+flipctl_anchor_ex:0
+flipctl_anchor_rate:0.000
+flipctl_signature_band:0.000000000
+flipctl_rate_band:0.000000000
+flipctl_triggers:0
+flipctl_boot_triggers:0
+flipctl_fingerprint_triggers:0
+flipctl_rate_surge_triggers:0
+flipctl_rate_collapse_triggers:0
+flipctl_forced_triggers:0
+flipctl_null_maneuvers:0
+flipctl_model_holds:0
+flipctl_shift_confirmations:2
+flipctl_rate_confirmations:2
+flipctl_round_trips:0
+flipctl_model_margin:1
+flipctl_last_trigger:none
+flipctl_model_last_decision:none
+flipctl_model_kappa:1.0000
+flipctl_model_moves:0
+flipctl_model_misses:0
+flipctl_invalidated_maneuvers:0
+flipctl_cost_holds:0
+flipctl_client_cost:0.00
+flipctl_last_flip_lost:0.0
+flipctl_last_flip_moved:0
+flipctl_flip_ticks:0.00
+flipctl_refine_decision:none
+flipctl_refine_steps:0
+
+WIRE flipreport disabled mode=2s databases=1 DEBUG bytes=2224
+$2215
+state=disabled
+phase=disabled
+anchor=0:0
+anchor_rate=0.000
+signature_band=0.000000000
+signature_distance=0.000000000
+signature_jitter=0.000000000
+signature_noise_bound=0.000000000 signature_noise_samples=0
+rate_band=0.000000000
+anchor_rate_jitter=0.000000000
+last_shift_distance=0.000000000
+last_shift_band=0.000000000
+boot_rate_ewma=0.000
+boot_rate_jitter=0.000000000
+boot_rate_slope=0.000000000
+boot_rate_slope_threshold=0.000000000
+boot_nonidle_ticks=0
+model_io_frac=0.000000
+model_io_frac_low=0.000000
+model_io_frac_high=0.000000
+model_samples=0 model_readings_cap=0
+model_headroom_io=0.0000 model_headroom_ex=0.0000
+model_target_io=0 model_gain_mean=0.0000 model_gain_low=0.0000 model_gain_high=0.0000
+model_required_gain=0.0000 model_margin=1 model_last_decision=none
+model_holds=0 round_trips=0 maneuver_flips=0
+shift_confirmations=2 rate_confirmations=2
+shift_streak=0 null_maneuvers=0 maneuver_origin_io=0
+last_trigger=none
+triggers=0 boot=0 fingerprint=0 rate_surge=0 rate_collapse=0 forced=0
+pending_io=0 seek=none seek_target_io=0 origin_rate=0.000
+origin_rate_readings=0 origin_rate_min=0.000 origin_rate_max=0.000 baseline_band=0.0000
+origin_sigma=0.00000 model_kappa=1.0000 model_verify_readings=0 rate_ew_sigma=0.00000 rate_ew_n=0
+cost_benefit=0.0 cost_cost=0.0 cost_transfer=0.0 cost_blackout_s=0.00 cost_horizon_s=0.00 cost_payback_s=0.00 cost_pays=0
+cost_client=0.00 cost_reshuffle=1.000 cost_flip_ticks=1.00 cost_p_miss=0.500 cost_flips=0 cost_moves=0 cost_misses=0 cost_lost_sum=0.0 cost_moved_sum=0.0
+hyp_predicted=0.0000 hyp_delivered=0.0000 hyp_threshold=0.0000 hyp_sigma=0.00000 hyp_origin_samples=0 target_readings=0 pending_miss=0
+last_flip_lost=0.0 last_flip_moved=0 invalidated=0 cost_holds=0
+refine_decision=none refine_steps=0 seek_origin_io=0 refining=0 refine_bar=0.0000
+sig_now valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+sig_anchor valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+dist_parts pass=0.000000000 class=0.000000000 kpm=0.000000000 vbpc=0.000000000
+visited=
+
+WIRE flipreport anchored mode=2s databases=1 INFO bytes=883
+$875
+# Flipctl
+flipctl_state:anchored
+flipctl_phase:anchored
+flipctl_anchor_io:6
+flipctl_anchor_ex:2
+flipctl_anchor_rate:6000.000
+flipctl_signature_band:0.000000000
+flipctl_rate_band:0.000333333
+flipctl_triggers:0
+flipctl_boot_triggers:0
+flipctl_fingerprint_triggers:0
+flipctl_rate_surge_triggers:0
+flipctl_rate_collapse_triggers:0
+flipctl_forced_triggers:0
+flipctl_null_maneuvers:0
+flipctl_model_holds:0
+flipctl_shift_confirmations:2
+flipctl_rate_confirmations:2
+flipctl_round_trips:0
+flipctl_model_margin:1
+flipctl_last_trigger:none
+flipctl_model_last_decision:none
+flipctl_model_kappa:1.0000
+flipctl_model_moves:0
+flipctl_model_misses:0
+flipctl_invalidated_maneuvers:0
+flipctl_cost_holds:0
+flipctl_client_cost:0.00
+flipctl_last_flip_lost:0.0
+flipctl_last_flip_moved:0
+flipctl_flip_ticks:0.00
+flipctl_refine_decision:none
+flipctl_refine_steps:0
+
+WIRE flipreport anchored mode=2s databases=1 DEBUG bytes=2227
+$2218
+state=anchored
+phase=anchored
+anchor=6:2
+anchor_rate=6000.000
+signature_band=0.000000000
+signature_distance=0.000000000
+signature_jitter=0.000000000
+signature_noise_bound=0.000000000 signature_noise_samples=0
+rate_band=0.000333333
+anchor_rate_jitter=0.000000000
+last_shift_distance=0.000000000
+last_shift_band=0.000000000
+boot_rate_ewma=0.000
+boot_rate_jitter=0.000000000
+boot_rate_slope=0.000000000
+boot_rate_slope_threshold=0.000000000
+boot_nonidle_ticks=0
+model_io_frac=0.000000
+model_io_frac_low=0.000000
+model_io_frac_high=0.000000
+model_samples=0 model_readings_cap=0
+model_headroom_io=0.0000 model_headroom_ex=0.0000
+model_target_io=0 model_gain_mean=0.0000 model_gain_low=0.0000 model_gain_high=0.0000
+model_required_gain=0.0000 model_margin=1 model_last_decision=none
+model_holds=0 round_trips=0 maneuver_flips=0
+shift_confirmations=2 rate_confirmations=2
+shift_streak=0 null_maneuvers=0 maneuver_origin_io=0
+last_trigger=none
+triggers=0 boot=0 fingerprint=0 rate_surge=0 rate_collapse=0 forced=0
+pending_io=0 seek=none seek_target_io=0 origin_rate=0.000
+origin_rate_readings=0 origin_rate_min=0.000 origin_rate_max=0.000 baseline_band=0.0000
+origin_sigma=0.00000 model_kappa=1.0000 model_verify_readings=0 rate_ew_sigma=0.00000 rate_ew_n=0
+cost_benefit=0.0 cost_cost=0.0 cost_transfer=0.0 cost_blackout_s=0.00 cost_horizon_s=0.00 cost_payback_s=0.00 cost_pays=0
+cost_client=0.00 cost_reshuffle=1.000 cost_flip_ticks=1.00 cost_p_miss=0.500 cost_flips=0 cost_moves=0 cost_misses=0 cost_lost_sum=0.0 cost_moved_sum=0.0
+hyp_predicted=0.0000 hyp_delivered=0.0000 hyp_threshold=0.0000 hyp_sigma=0.00000 hyp_origin_samples=0 target_readings=0 pending_miss=0
+last_flip_lost=0.0 last_flip_moved=0 invalidated=0 cost_holds=0
+refine_decision=none refine_steps=0 seek_origin_io=0 refining=0 refine_bar=0.0000
+sig_now valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+sig_anchor valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+dist_parts pass=0.000000000 class=0.000000000 kpm=0.000000000 vbpc=0.000000000
+visited=
+
+WIRE flipreport unavailable mode=1s databases=1 INFO bytes=222
+$214
+# Flipctl
+flipctl_state:unavailable
+flipctl_phase:fused
+flipctl_available:0
+flipctl_thread_mode:1s
+flipctl_reason:threads_are_fused
+flipctl_fused_threads:8
+flipctl_client_threads:8
+flipctl_owner_threads:8
+
+WIRE flipreport unavailable mode=1s databases=1 DEBUG bytes=139
+$131
+state=unavailable
+phase=fused
+available=0
+thread_mode=1s
+reason=threads_are_fused
+fused_threads=8
+client_threads=8
+owner_threads=8
+
+TRACE flipreport databases=4 now=11000 horizon=10.00 pays=0 decision=sampling-cost
+WIRE flipreport short mode=2s databases=4 INFO bytes=896
+$888
+# Flipctl
+flipctl_state:maneuvering
+flipctl_phase:measuring
+flipctl_anchor_io:0
+flipctl_anchor_ex:0
+flipctl_anchor_rate:0.000
+flipctl_signature_band:0.000000000
+flipctl_rate_band:0.000000000
+flipctl_triggers:1
+flipctl_boot_triggers:0
+flipctl_fingerprint_triggers:0
+flipctl_rate_surge_triggers:0
+flipctl_rate_collapse_triggers:0
+flipctl_forced_triggers:1
+flipctl_null_maneuvers:0
+flipctl_model_holds:0
+flipctl_shift_confirmations:2
+flipctl_rate_confirmations:2
+flipctl_round_trips:0
+flipctl_model_margin:1
+flipctl_last_trigger:forced
+flipctl_model_last_decision:sampling-cost
+flipctl_model_kappa:1.0000
+flipctl_model_moves:0
+flipctl_model_misses:0
+flipctl_invalidated_maneuvers:0
+flipctl_cost_holds:0
+flipctl_client_cost:0.00
+flipctl_last_flip_lost:0.0
+flipctl_last_flip_moved:0
+flipctl_flip_ticks:20.00
+flipctl_refine_decision:none
+flipctl_refine_steps:0
+
+WIRE flipreport short mode=2s databases=4 DEBUG bytes=2254
+$2245
+state=maneuvering
+phase=measuring
+anchor=0:0
+anchor_rate=0.000
+signature_band=0.000000000
+signature_distance=0.000000000
+signature_jitter=0.000000000
+signature_noise_bound=0.000000000 signature_noise_samples=0
+rate_band=0.000000000
+anchor_rate_jitter=0.000000000
+last_shift_distance=0.000000000
+last_shift_band=0.000000000
+boot_rate_ewma=0.000
+boot_rate_jitter=0.000000000
+boot_rate_slope=0.000000000
+boot_rate_slope_threshold=0.000000000
+boot_nonidle_ticks=0
+model_io_frac=0.500000
+model_io_frac_low=0.500000
+model_io_frac_high=0.500000
+model_samples=4 model_readings_cap=15
+model_headroom_io=0.0000 model_headroom_ex=0.0000
+model_target_io=4 model_gain_mean=1.0000 model_gain_low=1.0000 model_gain_high=1.0000
+model_required_gain=0.0365 model_margin=1 model_last_decision=sampling-cost
+model_holds=0 round_trips=0 maneuver_flips=0
+shift_confirmations=2 rate_confirmations=2
+shift_streak=0 null_maneuvers=0 maneuver_origin_io=6
+last_trigger=forced
+triggers=1 boot=0 fingerprint=0 rate_surge=0 rate_collapse=0 forced=1
+pending_io=0 seek=none seek_target_io=0 origin_rate=0.000
+origin_rate_readings=4 origin_rate_min=6000.000 origin_rate_max=6000.000 baseline_band=0.0000
+origin_sigma=0.00000 model_kappa=1.0000 model_verify_readings=1 rate_ew_sigma=0.00000 rate_ew_n=3
+cost_benefit=0.0 cost_cost=69000.0 cost_transfer=0.0 cost_blackout_s=23.00 cost_horizon_s=10.00 cost_payback_s=34.50 cost_pays=0
+cost_client=0.00 cost_reshuffle=1.000 cost_flip_ticks=20.00 cost_p_miss=0.500 cost_flips=1 cost_moves=0 cost_misses=0 cost_lost_sum=0.0 cost_moved_sum=0.0
+hyp_predicted=0.0000 hyp_delivered=0.0000 hyp_threshold=0.0000 hyp_sigma=0.00000 hyp_origin_samples=0 target_readings=0 pending_miss=0
+last_flip_lost=0.0 last_flip_moved=0 invalidated=0 cost_holds=0
+refine_decision=none refine_steps=0 seek_origin_io=6 refining=0 refine_bar=0.0000
+sig_now valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+sig_anchor valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+dist_parts pass=0.000000000 class=0.000000000 kpm=0.000000000 vbpc=0.000000000
+visited=
+
+TRACE flipreport databases=4 now=46000 horizon=45.00 pays=1 decision=move issued=1
+WIRE flipreport long mode=2s databases=4 INFO bytes=890
+$882
+# Flipctl
+flipctl_state:maneuvering
+flipctl_phase:waiting-flip
+flipctl_anchor_io:0
+flipctl_anchor_ex:0
+flipctl_anchor_rate:0.000
+flipctl_signature_band:0.000000000
+flipctl_rate_band:0.000000000
+flipctl_triggers:1
+flipctl_boot_triggers:0
+flipctl_fingerprint_triggers:0
+flipctl_rate_surge_triggers:0
+flipctl_rate_collapse_triggers:0
+flipctl_forced_triggers:1
+flipctl_null_maneuvers:0
+flipctl_model_holds:0
+flipctl_shift_confirmations:2
+flipctl_rate_confirmations:2
+flipctl_round_trips:0
+flipctl_model_margin:1
+flipctl_last_trigger:forced
+flipctl_model_last_decision:move
+flipctl_model_kappa:1.0000
+flipctl_model_moves:0
+flipctl_model_misses:0
+flipctl_invalidated_maneuvers:0
+flipctl_cost_holds:0
+flipctl_client_cost:0.00
+flipctl_last_flip_lost:0.0
+flipctl_last_flip_moved:0
+flipctl_flip_ticks:20.00
+flipctl_refine_decision:none
+flipctl_refine_steps:0
+
+WIRE flipreport long mode=2s databases=4 DEBUG bytes=2274
+$2265
+state=maneuvering
+phase=waiting-flip
+anchor=0:0
+anchor_rate=0.000
+signature_band=0.000000000
+signature_distance=0.000000000
+signature_jitter=0.000000000
+signature_noise_bound=0.000000000 signature_noise_samples=0
+rate_band=0.000000000
+anchor_rate_jitter=0.000000000
+last_shift_distance=0.000000000
+last_shift_band=0.000000000
+boot_rate_ewma=0.000
+boot_rate_jitter=0.000000000
+boot_rate_slope=0.000000000
+boot_rate_slope_threshold=0.000000000
+boot_nonidle_ticks=0
+model_io_frac=0.500000
+model_io_frac_low=0.500000
+model_io_frac_high=0.500000
+model_samples=5 model_readings_cap=15
+model_headroom_io=0.0000 model_headroom_ex=0.0000
+model_target_io=4 model_gain_mean=1.0000 model_gain_low=1.0000 model_gain_high=1.0000
+model_required_gain=0.0149 model_margin=1 model_last_decision=move
+model_holds=0 round_trips=0 maneuver_flips=1
+shift_confirmations=2 rate_confirmations=2
+shift_streak=0 null_maneuvers=0 maneuver_origin_io=6
+last_trigger=forced
+triggers=1 boot=0 fingerprint=0 rate_surge=0 rate_collapse=0 forced=1
+pending_io=4 seek=at-target seek_target_io=4 origin_rate=6000.000
+origin_rate_readings=5 origin_rate_min=6000.000 origin_rate_max=6000.000 baseline_band=0.0000
+origin_sigma=0.00000 model_kappa=1.0000 model_verify_readings=1 rate_ew_sigma=0.00000 rate_ew_n=4
+cost_benefit=132000.0 cost_cost=69000.0 cost_transfer=0.0 cost_blackout_s=23.00 cost_horizon_s=45.00 cost_payback_s=34.50 cost_pays=1
+cost_client=0.00 cost_reshuffle=1.000 cost_flip_ticks=20.00 cost_p_miss=0.500 cost_flips=1 cost_moves=0 cost_misses=0 cost_lost_sum=0.0 cost_moved_sum=0.0
+hyp_predicted=1.0000 hyp_delivered=0.0000 hyp_threshold=0.0000 hyp_sigma=0.00000 hyp_origin_samples=5 target_readings=0 pending_miss=0
+last_flip_lost=0.0 last_flip_moved=0 invalidated=0 cost_holds=0
+refine_decision=none refine_steps=0 seek_origin_io=6 refining=0 refine_bar=0.0000
+sig_now valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+sig_anchor valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+dist_parts pass=0.000000000 class=0.000000000 kpm=0.000000000 vbpc=0.000000000
+visited=6@6000.000000
+
+WIRE flipreport disabled mode=2s databases=4 INFO bytes=880
+$872
+# Flipctl
+flipctl_state:disabled
+flipctl_phase:disabled
+flipctl_anchor_io:0
+flipctl_anchor_ex:0
+flipctl_anchor_rate:0.000
+flipctl_signature_band:0.000000000
+flipctl_rate_band:0.000000000
+flipctl_triggers:0
+flipctl_boot_triggers:0
+flipctl_fingerprint_triggers:0
+flipctl_rate_surge_triggers:0
+flipctl_rate_collapse_triggers:0
+flipctl_forced_triggers:0
+flipctl_null_maneuvers:0
+flipctl_model_holds:0
+flipctl_shift_confirmations:2
+flipctl_rate_confirmations:2
+flipctl_round_trips:0
+flipctl_model_margin:1
+flipctl_last_trigger:none
+flipctl_model_last_decision:none
+flipctl_model_kappa:1.0000
+flipctl_model_moves:0
+flipctl_model_misses:0
+flipctl_invalidated_maneuvers:0
+flipctl_cost_holds:0
+flipctl_client_cost:0.00
+flipctl_last_flip_lost:0.0
+flipctl_last_flip_moved:0
+flipctl_flip_ticks:0.00
+flipctl_refine_decision:none
+flipctl_refine_steps:0
+
+WIRE flipreport disabled mode=2s databases=4 DEBUG bytes=2224
+$2215
+state=disabled
+phase=disabled
+anchor=0:0
+anchor_rate=0.000
+signature_band=0.000000000
+signature_distance=0.000000000
+signature_jitter=0.000000000
+signature_noise_bound=0.000000000 signature_noise_samples=0
+rate_band=0.000000000
+anchor_rate_jitter=0.000000000
+last_shift_distance=0.000000000
+last_shift_band=0.000000000
+boot_rate_ewma=0.000
+boot_rate_jitter=0.000000000
+boot_rate_slope=0.000000000
+boot_rate_slope_threshold=0.000000000
+boot_nonidle_ticks=0
+model_io_frac=0.000000
+model_io_frac_low=0.000000
+model_io_frac_high=0.000000
+model_samples=0 model_readings_cap=0
+model_headroom_io=0.0000 model_headroom_ex=0.0000
+model_target_io=0 model_gain_mean=0.0000 model_gain_low=0.0000 model_gain_high=0.0000
+model_required_gain=0.0000 model_margin=1 model_last_decision=none
+model_holds=0 round_trips=0 maneuver_flips=0
+shift_confirmations=2 rate_confirmations=2
+shift_streak=0 null_maneuvers=0 maneuver_origin_io=0
+last_trigger=none
+triggers=0 boot=0 fingerprint=0 rate_surge=0 rate_collapse=0 forced=0
+pending_io=0 seek=none seek_target_io=0 origin_rate=0.000
+origin_rate_readings=0 origin_rate_min=0.000 origin_rate_max=0.000 baseline_band=0.0000
+origin_sigma=0.00000 model_kappa=1.0000 model_verify_readings=0 rate_ew_sigma=0.00000 rate_ew_n=0
+cost_benefit=0.0 cost_cost=0.0 cost_transfer=0.0 cost_blackout_s=0.00 cost_horizon_s=0.00 cost_payback_s=0.00 cost_pays=0
+cost_client=0.00 cost_reshuffle=1.000 cost_flip_ticks=1.00 cost_p_miss=0.500 cost_flips=0 cost_moves=0 cost_misses=0 cost_lost_sum=0.0 cost_moved_sum=0.0
+hyp_predicted=0.0000 hyp_delivered=0.0000 hyp_threshold=0.0000 hyp_sigma=0.00000 hyp_origin_samples=0 target_readings=0 pending_miss=0
+last_flip_lost=0.0 last_flip_moved=0 invalidated=0 cost_holds=0
+refine_decision=none refine_steps=0 seek_origin_io=0 refining=0 refine_bar=0.0000
+sig_now valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+sig_anchor valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+dist_parts pass=0.000000000 class=0.000000000 kpm=0.000000000 vbpc=0.000000000
+visited=
+
+WIRE flipreport anchored mode=2s databases=4 INFO bytes=883
+$875
+# Flipctl
+flipctl_state:anchored
+flipctl_phase:anchored
+flipctl_anchor_io:6
+flipctl_anchor_ex:2
+flipctl_anchor_rate:6000.000
+flipctl_signature_band:0.000000000
+flipctl_rate_band:0.000333333
+flipctl_triggers:0
+flipctl_boot_triggers:0
+flipctl_fingerprint_triggers:0
+flipctl_rate_surge_triggers:0
+flipctl_rate_collapse_triggers:0
+flipctl_forced_triggers:0
+flipctl_null_maneuvers:0
+flipctl_model_holds:0
+flipctl_shift_confirmations:2
+flipctl_rate_confirmations:2
+flipctl_round_trips:0
+flipctl_model_margin:1
+flipctl_last_trigger:none
+flipctl_model_last_decision:none
+flipctl_model_kappa:1.0000
+flipctl_model_moves:0
+flipctl_model_misses:0
+flipctl_invalidated_maneuvers:0
+flipctl_cost_holds:0
+flipctl_client_cost:0.00
+flipctl_last_flip_lost:0.0
+flipctl_last_flip_moved:0
+flipctl_flip_ticks:0.00
+flipctl_refine_decision:none
+flipctl_refine_steps:0
+
+WIRE flipreport anchored mode=2s databases=4 DEBUG bytes=2227
+$2218
+state=anchored
+phase=anchored
+anchor=6:2
+anchor_rate=6000.000
+signature_band=0.000000000
+signature_distance=0.000000000
+signature_jitter=0.000000000
+signature_noise_bound=0.000000000 signature_noise_samples=0
+rate_band=0.000333333
+anchor_rate_jitter=0.000000000
+last_shift_distance=0.000000000
+last_shift_band=0.000000000
+boot_rate_ewma=0.000
+boot_rate_jitter=0.000000000
+boot_rate_slope=0.000000000
+boot_rate_slope_threshold=0.000000000
+boot_nonidle_ticks=0
+model_io_frac=0.000000
+model_io_frac_low=0.000000
+model_io_frac_high=0.000000
+model_samples=0 model_readings_cap=0
+model_headroom_io=0.0000 model_headroom_ex=0.0000
+model_target_io=0 model_gain_mean=0.0000 model_gain_low=0.0000 model_gain_high=0.0000
+model_required_gain=0.0000 model_margin=1 model_last_decision=none
+model_holds=0 round_trips=0 maneuver_flips=0
+shift_confirmations=2 rate_confirmations=2
+shift_streak=0 null_maneuvers=0 maneuver_origin_io=0
+last_trigger=none
+triggers=0 boot=0 fingerprint=0 rate_surge=0 rate_collapse=0 forced=0
+pending_io=0 seek=none seek_target_io=0 origin_rate=0.000
+origin_rate_readings=0 origin_rate_min=0.000 origin_rate_max=0.000 baseline_band=0.0000
+origin_sigma=0.00000 model_kappa=1.0000 model_verify_readings=0 rate_ew_sigma=0.00000 rate_ew_n=0
+cost_benefit=0.0 cost_cost=0.0 cost_transfer=0.0 cost_blackout_s=0.00 cost_horizon_s=0.00 cost_payback_s=0.00 cost_pays=0
+cost_client=0.00 cost_reshuffle=1.000 cost_flip_ticks=1.00 cost_p_miss=0.500 cost_flips=0 cost_moves=0 cost_misses=0 cost_lost_sum=0.0 cost_moved_sum=0.0
+hyp_predicted=0.0000 hyp_delivered=0.0000 hyp_threshold=0.0000 hyp_sigma=0.00000 hyp_origin_samples=0 target_readings=0 pending_miss=0
+last_flip_lost=0.0 last_flip_moved=0 invalidated=0 cost_holds=0
+refine_decision=none refine_steps=0 seek_origin_io=0 refining=0 refine_bar=0.0000
+sig_now valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+sig_anchor valid=0 cmds=0 pass=0.000000,0.000000,0.000000,0.000000 class=0.000000,0.000000,0.000000,0.000000,0.000000,0.000000,0.000000 kpm=0.000000 vbpc=0.000000
+dist_parts pass=0.000000000 class=0.000000000 kpm=0.000000000 vbpc=0.000000000
+visited=
+
+WIRE flipreport unavailable mode=1s databases=4 INFO bytes=222
+$214
+# Flipctl
+flipctl_state:unavailable
+flipctl_phase:fused
+flipctl_available:0
+flipctl_thread_mode:1s
+flipctl_reason:threads_are_fused
+flipctl_fused_threads:8
+flipctl_client_threads:8
+flipctl_owner_threads:8
+
+WIRE flipreport unavailable mode=1s databases=4 DEBUG bytes=139
+$131
+state=unavailable
+phase=fused
+available=0
+thread_mode=1s
+reason=threads_are_fused
+fused_threads=8
+client_threads=8
+owner_threads=8
+
+PASS core concurrency flipreport-wire (state assertions fired)

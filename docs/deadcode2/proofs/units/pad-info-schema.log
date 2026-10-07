@@ -1,0 +1,5 @@
+PASS deadcode2 INFO/DEBUG schema=PRE mode=2s databases=1
+PASS deadcode2 INFO/DEBUG schema=PRE mode=1s databases=1
+PASS deadcode2 INFO/DEBUG schema=PRE mode=2s databases=4
+PASS deadcode2 INFO/DEBUG schema=PRE mode=1s databases=4
+PASS core concurrency deadcode2-info-pre (state assertions fired)

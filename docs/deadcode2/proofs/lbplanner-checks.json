@@ -1,0 +1,300 @@
+[
+  {
+    "arm": "production",
+    "passed": true,
+    "returncode": 0,
+    "output": "PASS LB record lifetime: late reader acquires replacement; active reader defers one consumption\nPASS LB monitor handoff: both modes/branches; once; stale epochs; zero IO allocations\n"
+  },
+  {
+    "arm": "no-publish",
+    "passed": true,
+    "returncode": 1,
+    "output": "FAIL core concurrency: monitor must produce a finished plan; unarmed witness fails\n"
+  },
+  {
+    "arm": "stale-flip",
+    "passed": true,
+    "returncode": 1,
+    "output": "FAIL core concurrency: stale topology plan dropped without drain\n"
+  },
+  {
+    "arm": "stale-lb",
+    "passed": true,
+    "returncode": 1,
+    "output": "FAIL core concurrency: stale topology plan dropped without drain\n"
+  },
+  {
+    "arm": "duplicate",
+    "passed": true,
+    "returncode": 1,
+    "output": "FAIL core concurrency: finished plan consumed exactly once\n"
+  },
+  {
+    "arm": "copy-on-io",
+    "passed": true,
+    "returncode": 1,
+    "output": "FAIL core concurrency: IO handoff allocates and frees nothing\n"
+  },
+  {
+    "arm": "record-reuse",
+    "passed": true,
+    "returncode": 1,
+    "output": "FAIL core concurrency: record reuse waits for the cancelled drain reader, without blocking IO\n"
+  },
+  {
+    "arm": "client-drain-first-tail",
+    "passed": true,
+    "arms": [
+      {
+        "arm": "POST2",
+        "passed": true,
+        "returncode": 0,
+        "cases": [
+          {
+            "arm": "POST",
+            "mode": "2s",
+            "ready": false,
+            "held_tails": 1,
+            "source_try_failures": 0,
+            "destination_try_failures": 0,
+            "ack_wait_passes": 0,
+            "decision_pass": 1,
+            "charged_passes": 0,
+            "first_parse_bytes": 0,
+            "executor": 1,
+            "protocol": 0,
+            "pass_limit": 0,
+            "destination": 0,
+            "moves": 0
+          },
+          {
+            "arm": "POST",
+            "mode": "1s",
+            "ready": false,
+            "held_tails": 1,
+            "source_try_failures": 0,
+            "destination_try_failures": 0,
+            "ack_wait_passes": 0,
+            "decision_pass": 1,
+            "charged_passes": 0,
+            "first_parse_bytes": 0,
+            "executor": 1,
+            "protocol": 0,
+            "pass_limit": 0,
+            "destination": 0,
+            "moves": 0
+          },
+          {
+            "arm": "POST",
+            "mode": "2s",
+            "ready": false,
+            "held_tails": 2,
+            "source_try_failures": 0,
+            "destination_try_failures": 0,
+            "ack_wait_passes": 0,
+            "decision_pass": 1,
+            "charged_passes": 0,
+            "first_parse_bytes": 0,
+            "executor": 1,
+            "protocol": 0,
+            "pass_limit": 0,
+            "destination": 0,
+            "moves": 0
+          },
+          {
+            "arm": "POST",
+            "mode": "1s",
+            "ready": false,
+            "held_tails": 2,
+            "source_try_failures": 0,
+            "destination_try_failures": 0,
+            "ack_wait_passes": 0,
+            "decision_pass": 1,
+            "charged_passes": 0,
+            "first_parse_bytes": 0,
+            "executor": 1,
+            "protocol": 0,
+            "pass_limit": 0,
+            "destination": 0,
+            "moves": 0
+          },
+          {
+            "arm": "POST",
+            "mode": "2s",
+            "ready": true,
+            "held_tails": 2,
+            "source_try_failures": 0,
+            "destination_try_failures": 0,
+            "ack_wait_passes": 1,
+            "decision_pass": 2,
+            "charged_passes": 1,
+            "first_parse_bytes": 0,
+            "executor": 0,
+            "protocol": 0,
+            "pass_limit": 0,
+            "destination": 0,
+            "moves": 1
+          },
+          {
+            "arm": "POST",
+            "mode": "1s",
+            "ready": true,
+            "held_tails": 2,
+            "source_try_failures": 0,
+            "destination_try_failures": 0,
+            "ack_wait_passes": 1,
+            "decision_pass": 2,
+            "charged_passes": 1,
+            "first_parse_bytes": 0,
+            "executor": 0,
+            "protocol": 0,
+            "pass_limit": 0,
+            "destination": 0,
+            "moves": 1
+          }
+        ],
+        "output": "TIMING={\"arm\":\"POST\",\"mode\":\"2s\",\"ready\":false,\"held_tails\":1,\"source_try_failures\":0,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":1,\"charged_passes\":0,\"first_parse_bytes\":0,\"executor\":1,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nTIMING={\"arm\":\"POST\",\"mode\":\"1s\",\"ready\":false,\"held_tails\":1,\"source_try_failures\":0,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":1,\"charged_passes\":0,\"first_parse_bytes\":0,\"executor\":1,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nTIMING={\"arm\":\"POST\",\"mode\":\"2s\",\"ready\":false,\"held_tails\":2,\"source_try_failures\":0,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":1,\"charged_passes\":0,\"first_parse_bytes\":0,\"executor\":1,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nTIMING={\"arm\":\"POST\",\"mode\":\"1s\",\"ready\":false,\"held_tails\":2,\"source_try_failures\":0,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":1,\"charged_passes\":0,\"first_parse_bytes\":0,\"executor\":1,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nTIMING={\"arm\":\"POST\",\"mode\":\"2s\",\"ready\":true,\"held_tails\":2,\"source_try_failures\":0,\"destination_try_failures\":0,\"ack_wait_passes\":1,\"decision_pass\":2,\"charged_passes\":1,\"first_parse_bytes\":0,\"executor\":0,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":1}\nTIMING={\"arm\":\"POST\",\"mode\":\"1s\",\"ready\":true,\"held_tails\":2,\"source_try_failures\":0,\"destination_try_failures\":0,\"ack_wait_passes\":1,\"decision_pass\":2,\"charged_passes\":1,\"first_parse_bytes\":0,\"executor\":0,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":1}\nPASS LB client-drain timing witness\n"
+      },
+      {
+        "arm": "PAD-A2",
+        "passed": true,
+        "returncode": 0,
+        "cases": [
+          {
+            "arm": "PAD-A",
+            "mode": "2s",
+            "ready": false,
+            "held_tails": 1,
+            "source_try_failures": 0,
+            "destination_try_failures": 0,
+            "ack_wait_passes": 0,
+            "decision_pass": 1,
+            "charged_passes": 1,
+            "first_parse_bytes": 0,
+            "executor": 1,
+            "protocol": 0,
+            "pass_limit": 0,
+            "destination": 0,
+            "moves": 0
+          },
+          {
+            "arm": "PAD-A",
+            "mode": "1s",
+            "ready": false,
+            "held_tails": 1,
+            "source_try_failures": 0,
+            "destination_try_failures": 0,
+            "ack_wait_passes": 0,
+            "decision_pass": 1,
+            "charged_passes": 1,
+            "first_parse_bytes": 0,
+            "executor": 1,
+            "protocol": 0,
+            "pass_limit": 0,
+            "destination": 0,
+            "moves": 0
+          },
+          {
+            "arm": "PAD-A",
+            "mode": "2s",
+            "ready": false,
+            "held_tails": 2,
+            "source_try_failures": 0,
+            "destination_try_failures": 0,
+            "ack_wait_passes": 0,
+            "decision_pass": 1,
+            "charged_passes": 1,
+            "first_parse_bytes": 0,
+            "executor": 1,
+            "protocol": 0,
+            "pass_limit": 0,
+            "destination": 0,
+            "moves": 0
+          },
+          {
+            "arm": "PAD-A",
+            "mode": "1s",
+            "ready": false,
+            "held_tails": 2,
+            "source_try_failures": 0,
+            "destination_try_failures": 0,
+            "ack_wait_passes": 0,
+            "decision_pass": 1,
+            "charged_passes": 1,
+            "first_parse_bytes": 0,
+            "executor": 1,
+            "protocol": 0,
+            "pass_limit": 0,
+            "destination": 0,
+            "moves": 0
+          },
+          {
+            "arm": "PAD-A",
+            "mode": "2s",
+            "ready": true,
+            "held_tails": 2,
+            "source_try_failures": 0,
+            "destination_try_failures": 0,
+            "ack_wait_passes": 1,
+            "decision_pass": 2,
+            "charged_passes": 2,
+            "first_parse_bytes": 0,
+            "executor": 0,
+            "protocol": 0,
+            "pass_limit": 0,
+            "destination": 0,
+            "moves": 1
+          },
+          {
+            "arm": "PAD-A",
+            "mode": "1s",
+            "ready": true,
+            "held_tails": 2,
+            "source_try_failures": 0,
+            "destination_try_failures": 0,
+            "ack_wait_passes": 1,
+            "decision_pass": 2,
+            "charged_passes": 2,
+            "first_parse_bytes": 0,
+            "executor": 0,
+            "protocol": 0,
+            "pass_limit": 0,
+            "destination": 0,
+            "moves": 1
+          }
+        ],
+        "output": "TIMING={\"arm\":\"PAD-A\",\"mode\":\"2s\",\"ready\":false,\"held_tails\":1,\"source_try_failures\":0,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":1,\"charged_passes\":1,\"first_parse_bytes\":0,\"executor\":1,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nTIMING={\"arm\":\"PAD-A\",\"mode\":\"1s\",\"ready\":false,\"held_tails\":1,\"source_try_failures\":0,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":1,\"charged_passes\":1,\"first_parse_bytes\":0,\"executor\":1,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nTIMING={\"arm\":\"PAD-A\",\"mode\":\"2s\",\"ready\":false,\"held_tails\":2,\"source_try_failures\":0,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":1,\"charged_passes\":1,\"first_parse_bytes\":0,\"executor\":1,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nTIMING={\"arm\":\"PAD-A\",\"mode\":\"1s\",\"ready\":false,\"held_tails\":2,\"source_try_failures\":0,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":1,\"charged_passes\":1,\"first_parse_bytes\":0,\"executor\":1,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nTIMING={\"arm\":\"PAD-A\",\"mode\":\"2s\",\"ready\":true,\"held_tails\":2,\"source_try_failures\":0,\"destination_try_failures\":0,\"ack_wait_passes\":1,\"decision_pass\":2,\"charged_passes\":2,\"first_parse_bytes\":0,\"executor\":0,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":1}\nTIMING={\"arm\":\"PAD-A\",\"mode\":\"1s\",\"ready\":true,\"held_tails\":2,\"source_try_failures\":0,\"destination_try_failures\":0,\"ack_wait_passes\":1,\"decision_pass\":2,\"charged_passes\":2,\"first_parse_bytes\":0,\"executor\":0,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":1}\nPASS LB client-drain timing witness\n"
+      },
+      {
+        "arm": "timing-lock",
+        "passed": true,
+        "returncode": 1,
+        "output": "TIMING={\"arm\":\"POST\",\"mode\":\"2s\",\"ready\":false,\"held_tails\":1,\"source_try_failures\":1,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":2,\"charged_passes\":0,\"first_parse_bytes\":0,\"executor\":1,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nFAIL core concurrency: contended shape lock never delays source or destination record reads\n"
+      },
+      {
+        "arm": "timing-late-pause",
+        "passed": true,
+        "returncode": 1,
+        "output": "TIMING={\"arm\":\"POST\",\"mode\":\"2s\",\"ready\":false,\"held_tails\":1,\"source_try_failures\":0,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":1,\"charged_passes\":0,\"first_parse_bytes\":896,\"executor\":0,\"protocol\":1,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nFAIL core concurrency: busy candidate refuses on pass one with its executor predicate\n"
+      },
+      {
+        "arm": "timing-budget",
+        "passed": true,
+        "returncode": 1,
+        "output": "TIMING={\"arm\":\"POST\",\"mode\":\"2s\",\"ready\":false,\"held_tails\":1,\"source_try_failures\":0,\"destination_try_failures\":0,\"ack_wait_passes\":0,\"decision_pass\":1,\"charged_passes\":1,\"first_parse_bytes\":0,\"executor\":1,\"protocol\":0,\"pass_limit\":0,\"destination\":0,\"moves\":0}\nFAIL core concurrency: drain budget charges only actual ACK waits\n"
+      }
+    ]
+  },
+  {
+    "arm": "PAD-A",
+    "passed": true,
+    "returncode": 0,
+    "output": "PASS PAD-A PRE behavior: IO-hosted key/client search, direct drain, cron, fresh parse gates\n"
+  },
+  {
+    "arm": "POST-rejects-PRE",
+    "passed": true,
+    "returncode": 1,
+    "output": "FAIL core concurrency: PAD monitor never runs LB search\n"
+  }
+]

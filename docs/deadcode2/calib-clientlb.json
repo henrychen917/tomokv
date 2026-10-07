@@ -2,5 +2,8 @@
   "source": "/home/user/Projects/calib/lbplanner-judge.py",
   "sha256": "4194faf2e19e8ead4fdbd77cea7f98faf9921acae3a1e0ca9392b5b994976ee6",
   "patched_sha256": "f32c55b102931de31efc8e789e0effee62935f9ba10284e8432f3c4db40ae2db",
-  "reason": "External calib is outside the authorized worktree; maintainer applies the reviewed patch."
+  "reason": "External calib is outside the authorized worktree; maintainer applies the reviewed patch.",
+  "final_observed_sha256": "e4955da66544abf04b7e9e8564a56d37ea0916a4259ece15dab4f742e05181a7",
+  "patch_status": "Superseded by a concurrent external edit. Do not apply this old-base patch to the current file.",
+  "final_observation": "External reader already accepts the new names and retains old-name compatibility. This lane did not edit it; strict removal of reader aliases remains outside the worktree."
 }
