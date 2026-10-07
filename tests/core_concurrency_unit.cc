@@ -957,7 +957,61 @@ struct CoreConcurrencyTest {
                 "ordinary owner lookup expires the witness, proving the hazardous state was real");
     }
 
+    template <bool Fused>
+    static void deadcode2_info(uint32_t databases) {
+        Fixture<Fused> f(false, 8, 16, databases);
+        f.server.cfg_.enable_debug_command = DebugCommandMode::Yes;
+        f.server.lb_client_moves_.store(11);
+        f.server.lb_client_refused_.store(13);
+        f.server.lb_client_cross_domain_moves_.store(17);
+        f.server.lb_client_weight_spread_current_.store(19 * 1024);
+        f.server.lb_client_weight_spread_before_.store(23 * 1024);
+        f.server.lb_client_weight_spread_after_.store(29 * 1024);
+        f.server.flipctl_.rate_surge_triggers_ = 31;
+        f.server.flipctl_.rate_collapse_triggers_ = 37;
+        command_bind_server(&f.server);
+        Op info; info.push_arg(Slice("INFO")); info.push_arg(Slice("ALL"));
+        command_lookup(Slice("INFO"))->handler(f.server.shard(0), info);
+        const std::string body(info.reply.data(), info.reply.size());
+        for (const char* row : {"tomokv_clientlb_moves:11", "tomokv_clientlb_refused:13",
+                               "tomokv_clientlb_cross_domain_moves:17",
+                               "tomokv_clientlb_weight_spread_current:19.000",
+                               "tomokv_clientlb_weight_spread_before:23.000",
+                               "tomokv_clientlb_weight_spread_after:29.000"}) {
+            const std::string wire = std::string("\r\n") + row + "\r\n";
+            const size_t at = body.find(wire);
+            require(at != std::string::npos && body.find(wire, at + 1) == std::string::npos,
+                    "deadcode2 INFO: exactly one client counter with its seeded value");
+        }
+        for (const char* removed : {"tomokv_keylb_client_", "lb_ratio_star_io_frac:",
+                                    "flipctl_surge_triggers:", "flipctl_collapse_triggers:"})
+            require(body.find(removed) == std::string::npos, "deadcode2 INFO: retired publication");
+        if constexpr (!Fused) {
+            require(body.find("flipctl_rate_surge_triggers:31\r\n") != std::string::npos &&
+                    body.find("flipctl_rate_collapse_triggers:37\r\n") != std::string::npos,
+                    "deadcode2 INFO: canonical flip trigger counters retain their values");
+        }
+        Op debug; debug.push_arg(Slice("DEBUG")); debug.push_arg(Slice("LBSIGNALS"));
+        command_lookup(Slice("DEBUG"))->handler(f.server.shard(0), debug);
+        const std::string derived(debug.reply.data(), debug.reply.size());
+        require(derived.find("derived ") != std::string::npos &&
+                derived.find("owner_threads ") != std::string::npos &&
+                derived.find("ratio_star") == std::string::npos,
+                "deadcode2 DEBUG: actual topology survives without rejected ratio estimates");
+        command_bind_server(nullptr);
+        std::printf("PASS deadcode2 INFO/DEBUG schema mode=%s databases=%u\n",
+                    Fused ? "1s" : "2s", databases);
+    }
+
+    static void deadcode2_info_all() {
+        for (uint32_t databases : {1u, 4u}) {
+            deadcode2_info<false>(databases);
+            deadcode2_info<true>(databases);
+        }
+    }
+
     static void lb_signals() {
+        deadcode2_info_all();
         lb_floor();
         lb_stationary_all();
         lb_hot_all();
@@ -1109,6 +1163,7 @@ int main(int argc, char** argv) {
     const std::string row = argv[1];
 #ifdef TOMO_LANEFULL_ONLY
     if (row == "lanefull") T::lanefull_all();
+    else if (row == "deadcode2-info") T::deadcode2_info_all();
     else if (row == "lanefull-info") T::lanefull_info_all();
     else if (row == "lanefull-info-pre") T::lanefull_info_all(true);
     else T::require(false, "select lanefull or lanefull-info");
@@ -1125,6 +1180,7 @@ int main(int argc, char** argv) {
     }
     else if (row == "deadfused-info-pad") T::deadfused_info_pad();
     else if (row == "lanefull") T::lanefull_all();
+    else if (row == "deadcode2-info") T::deadcode2_info_all();
     else if (row == "lanefull-info") T::lanefull_info_all();
     else if (row == "lanefull-info-pre") T::lanefull_info_all(true);
     else if (row == "flipreport") T::flipreport_all();
