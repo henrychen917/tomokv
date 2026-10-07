@@ -46,7 +46,10 @@ def quiet(out, prior=None):
 
 def server_digest():
     server = ROOT / "build/tomokv"
-    return hashlib.file_digest(server.open("rb"), "sha256").hexdigest() if server.exists() else None
+    if not server.exists():
+        return None
+    with server.open("rb") as binary:
+        return hashlib.file_digest(binary, "sha256").hexdigest()
 
 
 def run(out, command, env=None, gate=False):
@@ -95,18 +98,20 @@ def main():
     command = ["taskset", "-c", "112-127", "tests/gate.sh", "iteration",
                "--server-cores", "112-119", "--load-cores", "120-127",
                "--server-smt", "", "--load-smt", "", "--ports", "18340-18342"]
-    write(base / "request.json", dict(stage=args.stage, command=command,
+    build_command = ["taskset", "-c", "112-127", "make", "-j16"]
+    write(base / "request.json", dict(stage=args.stage,
+        command=build_command if args.stage == "build" else command,
         repetitions=6 if args.stage == "selected" else 1,
         jobs=(ROOT / "docs/flakeaudit2/jobs.txt").read_text().splitlines()
              if args.stage == "selected" else None))
     if not quiet(base, args.prior_screen):
         return 3
     if args.stage == "build":
-        return run(base, ["taskset", "-c", "112-127", "make", "-j16"])
+        return run(base, build_command)
     if server_digest() is None:
         out = base / "build"
         out.mkdir()
-        rc = run(out, ["taskset", "-c", "112-127", "make", "-j16"])
+        rc = run(out, build_command)
         if rc:
             return rc
     for index in range(1, 7 if args.stage == "selected" else 2):
