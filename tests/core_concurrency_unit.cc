@@ -958,7 +958,7 @@ struct CoreConcurrencyTest {
     }
 
     template <bool Fused>
-    static void deadcode2_info(uint32_t databases) {
+    static void deadcode2_info(uint32_t databases, bool legacy_schema = false) {
         Fixture<Fused> f(false, 8, 16, databases);
         f.server.cfg_.enable_debug_command = DebugCommandMode::Yes;
         f.server.lb_client_moves_.store(11);
@@ -969,6 +969,11 @@ struct CoreConcurrencyTest {
         f.server.lb_client_weight_spread_after_.store(29 * 1024);
         f.server.flipctl_.rate_surge_triggers_ = 31;
         f.server.flipctl_.rate_collapse_triggers_ = 37;
+        for (uint32_t tid = 0; tid < 8; ++tid) {
+            auto& sig = f.server.thread(tid).sig();
+            sig.ops = tid < 6 ? 4 : 5;
+            sig.busy_ns = tid < 6 ? 400 : 1500;
+        }
         command_bind_server(&f.server);
         Op info; info.push_arg(Slice("INFO")); info.push_arg(Slice("ALL"));
         command_lookup(Slice("INFO"))->handler(f.server.shard(0), info);
@@ -978,14 +983,26 @@ struct CoreConcurrencyTest {
                                "tomokv_clientlb_weight_spread_current:19.000",
                                "tomokv_clientlb_weight_spread_before:23.000",
                                "tomokv_clientlb_weight_spread_after:29.000"}) {
-            const std::string wire = std::string("\r\n") + row + "\r\n";
+            std::string key(row);
+            if (legacy_schema) key.replace(0, std::strlen("tomokv_clientlb_"), "tomokv_keylb_client_");
+            const std::string wire = std::string("\r\n") + key + "\r\n";
             const size_t at = body.find(wire);
             require(at != std::string::npos && body.find(wire, at + 1) == std::string::npos,
                     "deadcode2 INFO: exactly one client counter with its seeded value");
         }
-        for (const char* removed : {"tomokv_keylb_client_", "lb_ratio_star_io_frac:",
-                                    "flipctl_surge_triggers:", "flipctl_collapse_triggers:"})
-            require(body.find(removed) == std::string::npos, "deadcode2 INFO: retired publication");
+        if (!legacy_schema) {
+            for (const char* removed : {"tomokv_keylb_client_", "lb_ratio_star_io_frac:",
+                                       "flipctl_surge_triggers:", "flipctl_collapse_triggers:"})
+                require(body.find(removed) == std::string::npos, "deadcode2 INFO: retired publication");
+        } else {
+            require(body.find("tomokv_clientlb_moves:") == std::string::npos,
+                    "deadcode2 PAD: PRE client schema only");
+            if constexpr (!Fused)
+                require(body.find("lb_ratio_star_io_frac:0.2500\r\n") != std::string::npos &&
+                        body.find("flipctl_surge_triggers:31\r\n") != std::string::npos &&
+                        body.find("flipctl_collapse_triggers:37\r\n") != std::string::npos,
+                        "deadcode2 PAD: actual PRE ratio and duplicate trigger values");
+        }
         if constexpr (!Fused) {
             require(body.find("flipctl_rate_surge_triggers:31\r\n") != std::string::npos &&
                     body.find("flipctl_rate_collapse_triggers:37\r\n") != std::string::npos,
@@ -996,17 +1013,19 @@ struct CoreConcurrencyTest {
         const std::string derived(debug.reply.data(), debug.reply.size());
         require(derived.find("derived ") != std::string::npos &&
                 derived.find("owner_threads ") != std::string::npos &&
-                derived.find("ratio_star") == std::string::npos,
-                "deadcode2 DEBUG: actual topology survives without rejected ratio estimates");
+                ((legacy_schema && !Fused)
+                    ? derived.find("ratio_star_io_frac 0.250000 ratio_star_io 2 ratio_star_ex 6") != std::string::npos
+                    : derived.find("ratio_star") == std::string::npos),
+                "deadcode2 DEBUG: actual topology and requested diagnostic schema");
         command_bind_server(nullptr);
-        std::printf("PASS deadcode2 INFO/DEBUG schema mode=%s databases=%u\n",
-                    Fused ? "1s" : "2s", databases);
+        std::printf("PASS deadcode2 INFO/DEBUG schema=%s mode=%s databases=%u\n",
+                    legacy_schema ? "PRE" : "POST", Fused ? "1s" : "2s", databases);
     }
 
-    static void deadcode2_info_all() {
+    static void deadcode2_info_all(bool legacy_schema = false) {
         for (uint32_t databases : {1u, 4u}) {
-            deadcode2_info<false>(databases);
-            deadcode2_info<true>(databases);
+            deadcode2_info<false>(databases, legacy_schema);
+            deadcode2_info<true>(databases, legacy_schema);
         }
     }
 
@@ -1163,6 +1182,7 @@ int main(int argc, char** argv) {
     const std::string row = argv[1];
 #ifdef TOMO_LANEFULL_ONLY
     if (row == "lanefull") T::lanefull_all();
+    else if (row == "deadcode2-info-pre") T::deadcode2_info_all(true);
     else if (row == "deadcode2-info") T::deadcode2_info_all();
     else if (row == "lanefull-info") T::lanefull_info_all();
     else if (row == "lanefull-info-pre") T::lanefull_info_all(true);
@@ -1180,6 +1200,7 @@ int main(int argc, char** argv) {
     }
     else if (row == "deadfused-info-pad") T::deadfused_info_pad();
     else if (row == "lanefull") T::lanefull_all();
+    else if (row == "deadcode2-info-pre") T::deadcode2_info_all(true);
     else if (row == "deadcode2-info") T::deadcode2_info_all();
     else if (row == "lanefull-info") T::lanefull_info_all();
     else if (row == "lanefull-info-pre") T::lanefull_info_all(true);
