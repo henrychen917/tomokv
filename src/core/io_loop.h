@@ -660,7 +660,7 @@ private:
                 if (__builtin_expect(client_cron_armed &&
                                      cached_now_ms_ >= client_cron_beat_ms_, false)) {
                     did += client_cron_pass();
-                    client_cron_beat_ms_ = cached_now_ms_ + 100;
+                    client_cron_beat_ms_ = cached_now_ms_ + 1000 / kClientCronBeatsPerSecond;
                 }
                 if (__builtin_expect(save_cron_armed &&
                                      cached_now_ms_ >= save_cron_beat_ms_, false)) {
@@ -734,13 +734,13 @@ private:
 #ifdef TOMO_SIGNALACCT_WITNESS
                         tenure.park();
 #endif
-                        epoll_pass<HasUnix, HasTls, Fused, Pipeline>(50);
+                        epoll_pass<HasUnix, HasTls, Fused, Pipeline>(Ring::kWaitTimeoutMs);
                     }
                 } else if (!self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
-                    epoll_pass<HasUnix, HasTls, false, Pipeline>(50);
+                    epoll_pass<HasUnix, HasTls, false, Pipeline>(Ring::kWaitTimeoutMs);
                 }
             } else {
                 if constexpr (Fused) {
@@ -4714,7 +4714,7 @@ ordinary_shard_ready:
                 if (op.state.load(std::memory_order_acquire) != OpState::Done) break;
                 if (!op.zc_ptr || op.zc_shard < 0 || !op.zc_len) continue;
                 const uint32_t bytes = std::min(op.zc_len, kIoPipeWbBorrowPrefetchBytes);
-                for (uint32_t pos = 0; pos < bytes; pos += kIoPipeCacheLineBytes)
+                for (uint32_t pos = 0; pos < bytes; pos += kCacheLine)
                     __builtin_prefetch(op.zc_ptr + pos, 0, 1);
             }
         }
@@ -5697,7 +5697,7 @@ ordinary_shard_ready:
         uint64_t epochs[kMaxThreads] = {};
     };
     ThreadCtx* self_ = nullptr;
-    static constexpr uint32_t kFlushBackstopEvery = 64;
+    static constexpr uint32_t kFlushBackstopEvery = kIoPipeWbBackstopTurns;
     // IO-owned writeback FIFO. Each composite pass visits its captured entries once;
     // deferred entries retain serve_pending as a lifetime/deduplication pin. The
     // overlap schedule carries the captured visit count across fixed scratch chunks.

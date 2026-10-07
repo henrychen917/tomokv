@@ -36,7 +36,7 @@ def main():
     before = (pre / 'src/core/io_loop.h').read_text()
     after = (ROOT / 'src/core/io_loop.h').read_text()
     assert idle_tokens(before) == idle_tokens(after), 'IO idle boundaries/callback ordering changed'
-    assert idle_tokens(before) != idle_tokens(after.replace('epoll_pass<HasUnix, HasTls, Fused, Pipeline>(50)',
+    assert idle_tokens(before) != idle_tokens(after.replace('epoll_pass<HasUnix, HasTls, Fused, Pipeline>(Ring::kWaitTimeoutMs)',
                                                          'epoll_pass<HasUnix, HasTls, Fused, Pipeline>(0)', 1)), 'idle classification checker missed control'
     old_ex = (pre / 'src/core/ex_loop.h').read_bytes()
     new_ex = (ROOT / 'src/core/ex_loop.h').read_bytes()

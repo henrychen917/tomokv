@@ -894,7 +894,7 @@ void IoLoop::r7_run_loop() {
             if (__builtin_expect(client_cron_armed &&
                                  cached_now_ms_ >= client_cron_beat_ms_, false)) {
                 did += client_cron_pass();
-                client_cron_beat_ms_ = cached_now_ms_ + 100;
+                client_cron_beat_ms_ = cached_now_ms_ + 1000 / kClientCronBeatsPerSecond;
             }
             if (__builtin_expect(save_cron_armed &&
                                  cached_now_ms_ >= save_cron_beat_ms_, false)) {
@@ -968,13 +968,13 @@ void IoLoop::r7_run_loop() {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
-                    r7_epoll_pass<HasUnix, HasTls, Fused, Pipeline>(50);
+                    r7_epoll_pass<HasUnix, HasTls, Fused, Pipeline>(Ring::kWaitTimeoutMs);
                 }
             } else if (!self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                 tenure.park();
 #endif
-                r7_epoll_pass<HasUnix, HasTls, false, Pipeline>(50);
+                r7_epoll_pass<HasUnix, HasTls, false, Pipeline>(Ring::kWaitTimeoutMs);
             }
         } else {
             if constexpr (Fused) {
