@@ -248,6 +248,9 @@ class DeadlineReplies(unittest.TestCase):
             file.seek(position)
         sock = Mock()
         sock.makefile.return_value = file
+        timeout = [30]
+        sock.gettimeout.side_effect = lambda: timeout[0]
+        sock.settimeout.side_effect = lambda value: timeout.__setitem__(0, value)
         sock.sendall.side_effect = send
         return sock, file
 
@@ -332,6 +335,8 @@ class DeadlineReplies(unittest.TestCase):
                     state['config'] = argv[-1].lower()
                     return b'+OK\r\n'
                 if argv[0] == b'INFO':
+                    if argv[1] == b'memory':
+                        return bulk(b'used_memory:536870912\r\n')
                     busy = state['busy'] > 0
                     if busy:
                         state['busy'] -= 1
@@ -351,6 +356,8 @@ class DeadlineReplies(unittest.TestCase):
                                 'save was issued before BOTH peers completed prior jobs')
                 commands.append((side, argv[0]))
                 if argv[0] == b'SAVE':
+                    self.assertGreaterEqual(peers[side][0].gettimeout(), 94,
+                                            '512 MiB SAVE must outlive the ordinary 30 s timeout')
                     state['saves'] += increment
                     return b'+OK\r\n'
                 state.update(busy=3, pending=increment)

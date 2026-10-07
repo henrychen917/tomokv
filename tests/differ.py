@@ -8,6 +8,7 @@
 # nondeterministic and must be compared as sets rather than byte streams.
 import socket, sys, random, re, time, hashlib, select
 from _differ_history import coverage
+from _save_timeout import save_reply_timeout
 
 LIST_GENERATORS = sys.argv[1:] == ["--list-generators"]
 if LIST_GENERATORS:
@@ -6256,10 +6257,19 @@ def run_psfix_suite():
 
         for index, (label, peer) in enumerate(zip(("target", "oracle"), peers)):
             assert persistence(peer)[b"loading"] == b"0", (label, "loading after boot")
+            memory = parse_reply(issue(peer, ["INFO", "memory"]))
+            assert isinstance(memory, bytes), (label, "INFO memory", memory)
+            sizes = re.findall(rb"^used_memory:([0-9]+)\r?$", memory, re.MULTILINE)
+            assert len(sizes) == 1, (label, "missing/invalid used_memory", memory)
+            save_bytes = int(sizes[0])
             for command in ("SAVE", "SAVE", "BGSAVE"):
                 idle = psfix_wait_idle(peers, persistence, "before %s %s" % (label, command))
                 before = int(idle[index][b"rdb_saves"])
-                reply = issue(peer, [command])
+                if command == "SAVE":
+                    with save_reply_timeout(peer[0], save_bytes):
+                        reply = issue(peer, [command])
+                else:
+                    reply = issue(peer, [command])
                 psfix_check_save_reply(label, command, reply)
                 fields = psfix_wait_idle(peers, persistence, "after %s %s" % (label, command))[index]
                 assert int(fields[b"rdb_saves"]) == before + 1, (label, command, before, fields)

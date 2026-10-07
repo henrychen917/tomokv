@@ -10,6 +10,7 @@ import time
 
 from _lib import Conn, RespError, encode, info, wait_ready
 from persistfix import check_port_owner, guard_port
+from _save_timeout import save_reply_timeout, save_timeout_seconds
 
 
 @contextlib.contextmanager
@@ -50,7 +51,7 @@ def seed_save_load(peers, keys):
     print('PSFIX save-load seeded %d keys / %d value bytes per peer' % (keys, keys * 4096), flush=True)
 
 
-def run_differ(command, log_path, load_peers):
+def run_differ(command, log_path, load_peers, save_bytes=0):
     if load_peers:
         # Start one independent save on EACH peer, then run the differential leg while
         # those jobs are active. Further injections inside rdb_saves' exact +1 interval
@@ -63,7 +64,10 @@ def run_differ(command, log_path, load_peers):
         for label, peer in zip(('target', 'oracle'), load_peers):
             assert info(peer, 'persistence')['rdb_bgsave_in_progress'] == '1', (
                 'PSFIX save-load never armed for >100 ms on %s; increase --bgsave-load-keys' % label)
-    result = subprocess.run(command, capture_output=True, text=True, timeout=90)
+    # Four synchronous saves per differential leg. The process watchdog must
+    # contain their socket budgets plus the unchanged both-peer idle barriers.
+    timeout = 90 + 4 * save_timeout_seconds(save_bytes) if save_bytes else 90
+    result = subprocess.run(command, capture_output=True, text=True, timeout=timeout)
     output = result.stdout + result.stderr
     log_path.write_text(output)
     print(output, end='', flush=True)
@@ -136,7 +140,8 @@ def main():
                         name = 'differ-resp3' if protocol else 'differ-resp2'
                         if args.repeats != 1 or args.seeds != [7]:
                             name += '-r%d-s%d' % (repeat, seed)
-                        status, output = run_differ(command + protocol, args.root / (name + '.log'), load_peers)
+                        status, output = run_differ(command + protocol, args.root / (name + '.log'),
+                                                   load_peers, args.bgsave_load_keys * 4096)
                         if args.expect_pre_failure:
                             assert status != 0 and 'immutable' in output, output
                             print('PSFIX PRE CONTROL: differential rejected immutable aof-load-truncated')
@@ -157,13 +162,15 @@ def main():
                 assert int(info(conn, 'persistence')['rdb_saves']) == before
             finally:
                 moved.rename(target_dir)
-            conn.must('SAVE')
+            with save_reply_timeout(conn.sock, args.bgsave_load_keys * 4096):
+                conn.must('SAVE')
             assert int(info(conn, 'persistence')['rdb_saves']) == before + 1
             print('PSFIX failed SAVE leaves count unchanged; successful retry increments once')
             before = int(info(conn, 'persistence')['rdb_saves'])
             rewrites = int(info(conn, 'persistence')['aof_rewrites'])
             conn.must('BGREWRITEAOF')
-            deadline = time.monotonic() + 15
+            rewrite_timeout = save_timeout_seconds(args.bgsave_load_keys * 4096) if args.bgsave_load_keys else 15
+            deadline = time.monotonic() + rewrite_timeout
             while True:
                 fields = info(conn, 'persistence')
                 if int(fields['aof_rewrites']) == rewrites + 1 and fields['aof_rewrite_in_progress'] == '0':

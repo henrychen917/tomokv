@@ -45,8 +45,20 @@ struct DatabaseMap::State {
     std::atomic<uint64_t> oldest_since_ms{0};
     std::atomic<uint64_t> supervision_since_ms{0};
     std::atomic<uint32_t> exited{0};
+    // Cold watchdog state only. A snapshot can hold a worker inside SAVE rather
+    // than at its next database safe point. Leave one ordinary grace after the
+    // last observed persistence work, without restarting the caller's deadline.
+    std::atomic<uint64_t> persistence_seen_ms{0};
     std::mutex wait_mutex;
     std::condition_variable changed;
+
+    uint64_t wait_bound_ms(uint64_t ordinary_ms, uint64_t now) {
+        if (server && (server->snapshot().in_progress() || server->aof().rewrite_in_progress()))
+            persistence_seen_ms.store(now, std::memory_order_relaxed);
+        const uint64_t seen = persistence_seen_ms.load(std::memory_order_relaxed);
+        return seen && (now <= seen || now - seen <= ordinary_ms)
+            ? std::max(ordinary_ms, Server::kShutdownSaveWaitNs / 1000000) : ordinary_ms;
+    }
 };
 
 DatabaseMap::DatabaseMap() noexcept = default;
@@ -229,12 +241,12 @@ void DatabaseMap::monitor(Server& server) {
     const uint64_t cut = now_ns() / 1000000;
     const uint64_t supervised = state_->supervision_since_ms.load(std::memory_order_acquire);
     const uint64_t age = cut - std::max(oldest, supervised);
-    if (reclamation_pending() && oldest && age > grace_bound_ms() &&
+    if (reclamation_pending() && oldest && age > state_->wait_bound_ms(grace_bound_ms(), cut) &&
         state_->oldest_since_ms.load(std::memory_order_acquire) == oldest && !stopping(server))
         overdue(server, "retire acknowledgement", age);
     const uint64_t since = state_->boundary_since_ms.load(std::memory_order_acquire);
     const uint64_t now = now_ns() / 1000000;
-    if (since && now - since > 3 * grace_bound_ms() &&
+    if (since && now - since > state_->wait_bound_ms(3 * grace_bound_ms(), now) &&
         state_->boundary_since_ms.load(std::memory_order_acquire) == since && !stopping(server))
         overdue(server, "namespace drain", now - since);
 }
@@ -266,12 +278,17 @@ void DatabaseMap::join_workers(Server& server, std::vector<std::thread>& workers
         if (state_) {
             auto& s = *state_;
             uint64_t stop_since = 0;
+            uint64_t stop_bound = 3 * grace_bound_ms();
             while (s.exited.load(std::memory_order_acquire) < workers.size()) {
                 monitor(server); // also supervises a stalled physical t0
                 const uint64_t now = now_ns() / 1000000;
                 if (stopping(server)) {
                     if (!stop_since) stop_since = now;
-                    if (now - stop_since > 3 * grace_bound_ms())
+                    // Latch the extended grace: finalization becoming Idle must
+                    // not instantly expire a worker still leaving its save stack.
+                    // stop_since never moves, including across save/rewrite epochs.
+                    stop_bound = std::max(stop_bound, s.wait_bound_ms(3 * grace_bound_ms(), now));
+                    if (now - stop_since > stop_bound)
                         overdue(server, "worker shutdown", now - stop_since);
                 }
                 std::unique_lock lock(s.wait_mutex);
@@ -382,8 +399,9 @@ void DatabaseMap::reclaim([[maybe_unused]] Server& server) {
     if (s.retired.empty()) grace_work_.store(0, std::memory_order_relaxed);
     else if (s.server) {
         const uint64_t supervised = s.supervision_since_ms.load(std::memory_order_acquire);
-        const uint64_t age = now_ns() / 1000000 - std::max(s.retired.front().since_ms, supervised);
-        if (supervised && age > grace_bound_ms() && !stopping(server))
+        const uint64_t now = now_ns() / 1000000;
+        const uint64_t age = now - std::max(s.retired.front().since_ms, supervised);
+        if (supervised && age > s.wait_bound_ms(grace_bound_ms(), now) && !stopping(server))
             overdue(server, "retire acknowledgement", age);
     }
 }

@@ -244,6 +244,24 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     const uint64_t next_epoch = epoch_.fetch_add(1, std::memory_order_relaxed) + 1;
     const uint64_t shutdown_deadline = shutdown ? now_ns() + Server::kShutdownSaveWaitNs : 0;
     auto shutdown_expired = [&] {
+        // NOSAVE (including a signal with save disabled) stops the producers.
+        // Waiting for their ready/frozen/finished acknowledgements after that
+        // stop deadlocks SAVE and, with AOF enabled, every worker's teardown.
+        // Mark the epoch failed before returning; no later completion may rename
+        // a partial file. Retain chunks/owner state until post-join destruction.
+        if (server.shutting_down().load(std::memory_order_relaxed)) {
+            error = "snapshot cancelled by shutdown";
+            fail(next_epoch, error.c_str());
+            // Own requests may still name file/chunk buffers. Reap them without
+            // waiting for stopped producers; Failed completions never resubmit.
+            while (io_inflight_) {
+                writer_ring.submit_and_reap();
+                pump_io_completions(writer, writer_ring);
+                std::this_thread::yield();
+            }
+            abort_file();
+            return true;
+        }
         if (!shutdown_deadline || now_ns() < shutdown_deadline) return false;
         error = "shutdown snapshot coordination timed out; server remains running";
         fail(next_epoch, error.c_str());
@@ -343,6 +361,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
             (void)shutdown_expired();
             return StartResult::Failed;
         }
+        if (shutdown_expired()) return StartResult::Failed;
         phase_.store(Phase::Freeze, std::memory_order_release);
         for (uint32_t tid : server.placement().ex_threads())
             if (Ring* target = server.thread(tid).ring())
