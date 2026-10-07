@@ -23,3 +23,11 @@ shipped values, not claims that the proposed derivations were applied or measure
 
 IO11 changes spellings only. The byte-audit receipt in the lane report decides
 whether the compiled ordinary command, parse, and dispatch bodies are preserved.
+
+| Constant | File | Shipped value / unit | Ledger verdict | As shipped / derivation and evidence |
+|---|---|---|---|---|
+| `kGenthreadIfidBatchOps` | `src/core/genthread_pipeline.h` | **32 operations** | **OPEN: ROB-depth derivation unapplied** | The prior `DERIVE = ROB depth` verdict is a proposal. `kRobWindow` is 64; the shipped parse quantum remains 32, not 64. Changing it requires a separate performance comparison. |
+| `kGenthreadExBatchOps` | same | **32 tasks** | **OPEN: wider-chunk derivation unapplied** | The live fused executor uses 32. The old `KEEP 128` verdict does not describe shipping code; 128 is not applied by this cleanup. |
+| `kGenthreadPipelineExBatchOps` | retired from same before this lane | absent | DELETE already landed | Deadfused removed the preset and reduced notification storage separately. It is not a live 128-task fused quantum in this baseline. |
+
+IO12 changes this ledger only. Neither fused quantum is changed by this lane.
