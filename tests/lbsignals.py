@@ -89,13 +89,9 @@ ok("derived client count matches client-serving rows",
    int(der1["client_threads"]) == (len(t1) if FUSED else sum(
        1 for r in t1 if r["role"] == "io")), str(der1))
 ok("cpu_ns live on every thread", all(r["cpu_ns"] > 0 for r in t1))
-if FUSED:
-    ok("1s: split ratio fields are absent",
-       "ratio_star_io_frac" not in der1 and "ratio_star_io" not in der1, str(der1))
-else:
-    ok("ratio_star fields present", "ratio_star_io_frac" in der1 and "ratio_star_io" in der1)
-    f = float(der1["ratio_star_io_frac"])
-    ok("ratio_star_io_frac in (0,1)", 0.0 <= f <= 1.0, str(f))
+ok("unsupported ratio estimates are absent",
+   all(field not in der1 for field in ("ratio_star_io_frac", "ratio_star_io", "ratio_star_ex")),
+   str(der1))
 ok("idle age exports are sane",
    all(0 <= r[field] <= SANE_AGE_US for r in t1 for field in AGE_FIELDS))
 
@@ -173,6 +169,7 @@ ok("clean pinning: zero foreign ops", sum(x["foreign"] for x in sh_b) == 0,
 
 # ---- leg 3: INFO # LB carries the derived block --------------------------------------------------
 lb = _lib.info(s, "LB")
+ok("INFO omits unsupported ratio estimate", "lb_ratio_star_io_frac" not in lb, str(lb))
 if FUSED:
     fused_fields = (
         "lb_thread_mode", "lb_fused_threads", "lb_client_threads", "lb_owner_threads",
@@ -197,7 +194,7 @@ if FUSED:
 else:
     split_fields = (
         "lb_io_threads", "lb_ex_threads", "lb_io_busy_frac", "lb_ex_busy_frac",
-        "lb_io_ns_per_op", "lb_ex_ns_per_op", "lb_ratio_star_io_frac",
+        "lb_io_ns_per_op", "lb_ex_ns_per_op",
         "lb_foreign_op_frac", "lb_io_queue_delay_samples", "lb_ex_queue_delay_samples",
         "lb_io_queue_delay_ewma_us", "lb_ex_queue_delay_ewma_us",
         "lb_io_oldest_age_min_us", "lb_io_oldest_age_max_us", "lb_io_oldest_age_ewma_us",

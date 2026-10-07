@@ -24,7 +24,6 @@ inline constexpr uint32_t kIoPipeIfidBatchClients = 64;
 inline constexpr uint32_t kIoPipeWbBatchClients = 64;
 inline constexpr uint32_t kIoPipeWbPrefetchOpsPerClient = 64;
 inline constexpr uint32_t kIoPipeWbBorrowPrefetchBytes = 512;
-inline constexpr uint32_t kIoPipeCacheLineBytes = 64;
 
 // The ready mask is the ordinary WB selector. Once per this many rotations, IFID also nominates
 // the clients it visits as the mask-independent completion backstop. This is the existing cadence,

@@ -57,10 +57,21 @@ def source_proof():
         ('lb_should_pause_pad', old_server, server, 'lb_should_pause'),
         ('lb_client_move_pad', old_server, server, 'lb_client_move'),
     ]:
-        a = normalized(body(old, old_name))
+        reference = body(old, old_name)
+        cleanup = None
+        if name == 'lb_controller_tick_pad':
+            # CT19: release = 0.8 * max(2*jitter, sampling_floor(owners)) > 0.
+            # Only this proved redundant disjunct is removed from the frozen reference;
+            # do not normalize candidate text or accept any other body drift.
+            needle = 'ratio < release || ratio == 0'
+            assert reference.count(needle) == 1, 'missing frozen CT19 disjunct'
+            reference = reference.replace(needle, 'ratio < release')
+            cleanup = 'CT19: zero ratio is already below the strictly positive release band'
+        a = normalized(reference)
         b = normalized(body(new, name).replace('lb_client_move_pad()', 'lb_client_move()'))
         assert a == b, ('PAD PRE body changed', name)
-        proofs.append(dict(function=name, sha256=hashlib.sha256(a.encode()).hexdigest()))
+        proofs.append(dict(function=name, sha256=hashlib.sha256(a.encode()).hexdigest(),
+                           reference_cleanup=cleanup))
     start = old_io.index('                if (__builtin_expect(lb_controller_armed &&')
     end = old_io.index('                did += lb_wake_all_pass();', start)
     cron = old_io[start:end].replace('lb_controller_armed &&', 'lb_controller_armed_ &&')
@@ -84,7 +95,7 @@ def source_proof():
         end = old.index('\n    }', start) + len('\n    }')
         block = old[start:end].replace('srv.databases().monitor(srv)', 'databases().monitor(*this)').replace('srv.', '')
         assert normalized(block) == normalized(monitor), ('PAD PRE monitor changed', path)
-    return dict(base=BASE, exact_pre_bodies=proofs, cron_and_all_four_monitors_equal=True,
+    return dict(base=BASE, pre_bodies_with_declared_cleanup=proofs, cron_and_all_four_monitors_equal=True,
                 repeated_move_cap='Frozen PRE loop condition is retained literally, including both atomic reads.')
 
 
