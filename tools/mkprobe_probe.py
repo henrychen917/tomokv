@@ -22,7 +22,6 @@ import os
 from pathlib import Path
 import random
 import re
-import select
 import shlex
 import shutil
 import signal
@@ -36,7 +35,7 @@ sys.path.insert(0, str(ROOT / "tests"))
 from _lib import Conn
 from abbagate import (Runner, read_cells, load_layout, info, require_unbound_port,
                       generator_cpu_endpoint, generator_cpu_between, memtier_totals)
-from abba_workloads import command_stat, memtier_workload_counts
+from abba_workloads import command_stat
 from abba_profile import EVENTS
 from abba_saturation import parse_snapshot, bottleneck_saturation
 from gate_quiet import QuietMonitor, QuietViolation
@@ -66,7 +65,11 @@ MEMORY_EVENTS = (
     "ls_l1_d_tlb_miss.all", "ls_l1_d_tlb_miss.all_l2_miss")
 MEMORY_NAMES = ("any_fills", "demand_fills", "store_buffer_stall_cycles", "dtlb_misses", "table_walk_requests")
 SYMBOLS = {
-    "allocator": r"(?:^|::)(?:malloc|free|realloc|je_\w+)(?:\b|$)|\b(?:malloc|free|realloc|je_\w+)\b",
+    "allocator": r"\b(?:(?:__GI_)?(?:__libc_)?(?:malloc|free|realloc)|je_\w+)\b",
+    "malloc": r"\b(?:__GI_)?(?:__libc_)?malloc\b",
+    "free": r"\b(?:__GI_)?(?:__libc_)?free\b",
+    "realloc": r"\b(?:__GI_)?(?:__libc_)?realloc\b",
+    "je_*": r"\bje_\w+\b",
     "SmallBuf::grow": r"SmallBuf.*::grow\(",
     "refresh_snapshot_floor": r"ScatterArenaPool::refresh_snapshot_floor\(",
     "active_snapshot_floor": r"active_snapshot_floor\(",
