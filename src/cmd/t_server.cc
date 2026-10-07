@@ -2087,7 +2087,8 @@ void cmd_info(Shard&, Op& op) {
         appendf(body, "# Server\r\nredis_version:%s\r\ntomokv_version:%s\r\nredis_mode:standalone\r\n"
                       "thread_mode:%s\r\nshards:%u\r\noverlap:%u\r\noverlap_enabled:%u\r\nreorder:%d\r\nreorder_retired:%u\r\nread_local:%u\r\natomic:%u\r\n"
                       "arch_bits:%zu\r\nmultiplexing_api:%s\r\nprocess_id:%lld\r\n"
-                      "tcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n",
+                      "run_id:%s\r\ntcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n"
+                      "executable:%s\r\nconfig_file:%s\r\nio_threads_active:1\r\n",
                 kVersion, kVersion, g_server ? g_server->thread_mode_name() : "2s",
                 g_server ? g_server->nshards() : 0u,
                 g_server ? g_server->cfg().overlap : 0u,
@@ -2099,10 +2100,11 @@ void cmd_info(Shard&, Op& op) {
                 g_server && g_server->atomic_enabled() ? 1u : 0u,
                 sizeof(void*) * 8,
                 g_ring_epoll_mode ? "epoll" : "io_uring",
-                static_cast<long long>(::getpid()),
+                static_cast<long long>(::getpid()), info_run_id(),
                 static_cast<unsigned>(g_server ? g_server->cfg().port : 0),
                 static_cast<unsigned long long>(uptime),
-                static_cast<unsigned long long>(uptime / 86400));
+                static_cast<unsigned long long>(uptime / 86400),
+                info_executable(), info_config_file());
         appendf(body, "key_lb:%u\r\nclient_lb:%u\r\nflip_auto:%u\r\n"
                       "flip_fingerprint_window:%u\r\nnet_io:%s\r\nhash:%s\r\nzc_min:%s\r\n"
                       "pin_threads:%u\r\n",
@@ -2243,6 +2245,14 @@ void cmd_info(Shard&, Op& op) {
         // allocated but hold no key, so they are reported here and deliberately left out of
         // used_memory / used_memory_dataset / the maxmemory budget: every figure above keeps the
         // same basis it had before the cache existed.
+        std::string maxmemory = "0", policy = "noeviction";
+        {
+            std::lock_guard<std::mutex> lock(g_config_mu);
+            for (const ConfigValue& item : g_config) {
+                if (!std::strcmp(item.name, "maxmemory")) maxmemory = item.value;
+                if (!std::strcmp(item.name, "maxmemory-policy")) policy = item.value;
+            }
+        }
         uint64_t block_cache = 0;
         if (g_server)
             for (uint32_t t = 0; t < g_server->nthreads(); t++)
@@ -2250,14 +2260,16 @@ void cmd_info(Shard&, Op& op) {
         appendf(body, "# Memory\r\nused_memory:%llu\r\nused_memory_dataset:%llu\r\n"
                       "used_memory_rss:%llu\r\nused_memory_peak:%llu\r\n"
                       "mem_allocator:%s\r\nallocator_allocated:%llu\r\nallocator_resident:%llu\r\n"
-                      "mem_block_cache:%llu\r\n",
+                      "mem_block_cache:%llu\r\nmaxmemory:%s\r\nmaxmemory_policy:%s\r\n"
+                      "mem_fragmentation_ratio:%.2f\r\n",
                 static_cast<unsigned long long>(used_memory),
                 static_cast<unsigned long long>(obj_bytes),
                 static_cast<unsigned long long>(resident),
                 static_cast<unsigned long long>(used_memory_peak),
                 alloc_backend(), static_cast<unsigned long long>(allocated),
                 static_cast<unsigned long long>(resident),
-                static_cast<unsigned long long>(block_cache));
+                static_cast<unsigned long long>(block_cache), maxmemory.c_str(), policy.c_str(),
+                allocated && resident ? double(resident) / double(allocated) : 1.0);
     }
     if (info_section(op, "PERSISTENCE")) {
         uint64_t preimages = 0;
@@ -2266,7 +2278,8 @@ void cmd_info(Shard&, Op& op) {
                 preimages += g_server->shard(static_cast<int32_t>(i)).store().snapshot_preimages();
         appendf(body,
                 "# Persistence\r\nloading:%u\r\nrdb_changes_since_last_save:%llu\r\n"
-                "rdb_bgsave_in_progress:%u\r\nrdb_last_save_time:%lld\r\nrdb_saves:%llu\r\n"
+                "rdb_bgsave_in_progress:%u\r\nrdb_last_save_time:%lld\r\n"
+                "rdb_last_bgsave_status:%s\r\nrdb_saves:%llu\r\n"
                 "rdb_scheduled_saves:%llu\r\n"
                 "rdb_save_cron_checks:%llu\r\n"
                 "snapshot_preimages:%llu\r\n"
@@ -2292,6 +2305,7 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->save_changes_since_last_save() : 0),
                 g_server && g_server->snapshot().in_progress() ? 1u : 0u,
                 static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
+                snapshot_last_bgsave_ok() ? "ok" : "err",
                 static_cast<unsigned long long>(snapshot_completed_saves()),
                 static_cast<unsigned long long>(
                     g_server ? g_server->scheduled_save_triggers() : 0),
@@ -2331,11 +2345,13 @@ void cmd_info(Shard&, Op& op) {
         const ScriptStats scripting = script_stats();
         const FunctionStats functions = function_stats();
         const AtomicTripwireCounts tripwire = atomic_tripwire_counts();
-        const uint64_t sampled_rate = info_stats_sample_ops(sampled_ops);
+        const auto sampled_rates = info_stats_rates();
         appendf(body, "# Stats\r\ntotal_connections_received:%llu\r\nrejected_connections:%llu\r\n"
                       "total_commands_processed:%llu\r\nkeyspace_hits:%llu\r\nkeyspace_misses:%llu\r\n"
                       "expired_keys:%llu\r\nactive_expire_reap_lag_ms_max:%llu\r\n"
                       "evicted_keys:%llu\r\ninstantaneous_ops_per_sec:%llu\r\n"
+                      "instantaneous_input_kbps:%.2f\r\ninstantaneous_output_kbps:%.2f\r\n"
+                      "latest_fork_usec:0\r\n"
                       "expired_hash_fields:%llu\r\nhash_field_expires:%llu\r\n"
                       "keyspace_rehashes:%llu\r\n"
                       "total_net_input_bytes:%llu\r\ntotal_net_output_bytes:%llu\r\n"
@@ -2426,7 +2442,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(misses), static_cast<unsigned long long>(expired),
                 static_cast<unsigned long long>(active_expire_reap_lag_ms_max),
                 static_cast<unsigned long long>(evicted),
-                static_cast<unsigned long long>(sampled_rate),
+                static_cast<unsigned long long>(sampled_rates[0]),
+                double(float(sampled_rates[1]) / 1024),
+                double(float(sampled_rates[2]) / 1024),
                 static_cast<unsigned long long>(expired_hash_fields),
                 static_cast<unsigned long long>(hash_field_expires),
                 static_cast<unsigned long long>(keyspace_rehashes),
@@ -2700,6 +2718,7 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(read_local.mget_fallback_seq_churn),
                 static_cast<unsigned long long>(read_local.mget_fallback_generation));
     }
+    if (info_section(op, "REPLICATION")) body += "# Replication\r\nrole:master\r\n";
     if (info_section(op, "COMMANDSTATS", false)) {
         body += "# Commandstats\r\n";
         for (uint32_t id = 0; id < command_registry_size(); id++) {
@@ -2723,6 +2742,7 @@ void cmd_info(Shard&, Op& op) {
                     static_cast<unsigned long long>(rejected_calls));
         }
     }
+    if (info_section(op, "CLUSTER")) body += "# Cluster\r\ncluster_enabled:0\r\n";
     if (info_section(op, "KEYSPACE")) {
         body += "# Keyspace\r\n";
         if (g_database_stats && g_server) {
@@ -3102,8 +3122,9 @@ void command_config_resetstat() {
     // cross-thread reads INFO already performs on every call, so no new sharing is introduced.
     StatBaseline baseline;
     collect_stat_totals(baseline);
-    info_stats_reset(baseline.sampled_ops,
-                     accounted_memory_bytes(baseline.object_bytes, baseline.keys));
+    info_stats_reset(baseline.total_ops,
+                     accounted_memory_bytes(baseline.object_bytes, baseline.keys),
+                     baseline.net_input_bytes, baseline.net_output_bytes);
     std::lock_guard<std::mutex> lock(g_stat_baseline_mu);
     g_stat_baseline = baseline;
 }
@@ -3112,7 +3133,7 @@ void command_bind_server(Server* server) {
     g_server = server;
     scripting_bind_server(server);
     g_started_monotonic_ns = now_ns();
-    info_stats_reset(0, 0);
+    info_stats_init(server);
     if (server) { init_config(server->cfg()); slowlog_configure(server->cfg()); }
 }
 

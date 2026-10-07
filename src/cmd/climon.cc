@@ -12,6 +12,7 @@
 //   per-connection lane state (ClimonConn) plus its arming counters.
 
 #include "../core/io_loop.h"
+#include "cmdmeta.h"
 
 #include <cinttypes>
 
@@ -650,9 +651,9 @@ void IoLoop::climon_monitor_format(Client* client, Op& op, std::string& out) {
 }
 
 void IoLoop::climon_monitor_feed(Client* client, Op& op) {
-    // MONITOR itself is never fed (oracle-confirmed), but a monitor DOES see its own ordinary
-    // traffic -- verified against redis 7.4, which emits the reply first and the feed line after.
-    if (op.cmd_name().eq_icase("monitor")) return;
+    // Redis excludes both admin and skip_monitor, including container subcommands.
+    // MONITOR itself is admin; ordinary commands from a monitor are still visible.
+    if (command_metadata_skip_monitor(op)) return;
     std::string line;
     climon_monitor_format(client, op, line);
     srv_->climon_note_monitor_line();

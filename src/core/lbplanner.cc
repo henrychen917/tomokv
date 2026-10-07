@@ -3,6 +3,7 @@
 #include "server.h"
 #include "signal_doorbell.h"
 #include "io_loop.h"
+#include "../cmd/info_stats.h"
 
 namespace tomo {
 bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
@@ -316,8 +317,8 @@ bool Server::lb_consume_plan(uint32_t coordinator) {
 }
 
 void Server::monitor_controllers() {
-    if (!lb_controller_enabled() && !flipctl_enabled()) return;
-    uint64_t next_lb_ms = 0, next_flip_ms = 0;
+    // INFO sampling also needs this existing cold thread when both controllers are off.
+    uint64_t next_lb_ms = 0, next_flip_ms = 0, next_info_ms = 0;
     for (;;) {
         if (shutting_down().load(std::memory_order_relaxed)) break;
         // Also covers a worker's boot failure, before it could publish normal shutdown.
@@ -327,6 +328,10 @@ void Server::monitor_controllers() {
         if (stopped) break;
         databases().monitor(*this);
         const uint64_t now_ms = now_ns() / 1000000;
+        if (now_ms >= next_info_ms) {
+            info_stats_tick(*this);
+            next_info_ms = now_ms + 100;
+        }
         if (lb_controller_enabled() && now_ms >= next_lb_ms) {
             next_lb_ms = now_ms + lb_tick_ms();
             for (uint32_t tid = 0; tid < nthreads(); ++tid) {
@@ -346,6 +351,7 @@ void Server::monitor_controllers() {
             ? (next_flip_ms > finished_ms ? next_flip_ms - finished_ms : 0) : lb_tick_ms();
         if (lb_controller_enabled())
             wait_ms = std::min<uint64_t>(wait_ms, next_lb_ms > finished_ms ? next_lb_ms - finished_ms : 0);
+        wait_ms = std::min<uint64_t>(wait_ms, next_info_ms > finished_ms ? next_info_ms - finished_ms : 0);
         // Preserve multi-DB reclamation supervision at the existing worker-wait cadence.
         if constexpr (!kSingleDatabase) wait_ms = std::min(wait_ms, Ring::kWaitTimeoutMs);
         (void)signal_doorbell_wait(wait_ms);

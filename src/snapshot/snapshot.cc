@@ -144,6 +144,10 @@ SnapshotIoContext snapshot_io_context() { return tls_io_context; }
 // The snapshot coordinator is process-wide. Keep its cold telemetry out of Server's
 // constructor and layouts so adding INFO fields cannot perturb ordinary execution.
 static std::atomic<uint64_t> completed_saves{0};
+static std::atomic<bool> last_bgsave_ok{true};
+bool snapshot_last_bgsave_ok() {
+    return last_bgsave_ok.load(std::memory_order_relaxed);
+}
 uint64_t snapshot_completed_saves() {
     return completed_saves.load(std::memory_order_relaxed);
 }
@@ -169,6 +173,7 @@ void SnapshotManager::init(uint32_t nthreads, uint32_t nshards, uint32_t executo
     // Redis defines LASTSAVE before the first successful save as the server start time.
     last_save_time_.store(now_realtime_ms() / 1000, std::memory_order_relaxed);
     completed_saves.store(0, std::memory_order_relaxed);
+    last_bgsave_ok.store(true, std::memory_order_relaxed);
     nthreads_ = nthreads;
     nshards_ = nshards;
     executor_count_ = executor_count;
@@ -731,7 +736,10 @@ bool SnapshotManager::finish_file_metadata(Ring* ring) {
 
 bool SnapshotManager::complete_file_success() {
     if (rewrite_ && !rewrite_->rewrite_complete(final_path_, epoch())) return false;
-    if (!rewrite_) completed_saves.fetch_add(1, std::memory_order_relaxed);
+    if (!rewrite_) {
+        completed_saves.fetch_add(1, std::memory_order_relaxed);
+        last_bgsave_ok.store(true, std::memory_order_relaxed);
+    }
     if (!rewrite_ && server_) server_->snapshot_save_succeeded(save_change_cut_);
     if (server_ && server_->shutdown_snapshot_active()) server_->finish_shutdown();
     last_save_time_.store(now_realtime_ms() / 1000, std::memory_order_relaxed);
@@ -827,6 +835,8 @@ uint32_t SnapshotManager::pump_io_completions(ThreadCtx& writer, Ring& ring) {
 }
 
 void SnapshotManager::abort_file() {
+    // Only an admitted RDB save owns this status. AOF rewrites and teardown do not.
+    if (server_ && !rewrite_) last_bgsave_ok.store(false, std::memory_order_relaxed);
     if (fd_ >= 0) { ::close(fd_); fd_ = -1; }
     if (directory_fd_ >= 0) { ::close(directory_fd_); directory_fd_ = -1; }
     if (!temp_path_.empty()) (void)::unlink(temp_path_.c_str());

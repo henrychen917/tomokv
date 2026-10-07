@@ -9,6 +9,7 @@
 #include "../base/exbatch_control.h"
 
 #include <algorithm>
+#include <bit>
 #include <array>
 #include <cstring>
 #include <limits>
@@ -300,6 +301,21 @@ bool command_metadata_no_multi(Op& op) {
         return uint64_t{0};
     }();
     static_assert(mask, "generated COMMAND metadata must contain no_multi");
+    const auto* metadata = command_metadata_resolve(op, 0);
+    return metadata && (metadata->flags & mask);
+}
+
+bool command_metadata_skip_monitor(Op& op) {
+    static constexpr uint64_t mask = [] {
+        uint64_t result = 0;
+        for (size_t i = 0; i < std::size(kGeneratedCommandFlagNames); ++i) {
+            const std::string_view flag(kGeneratedCommandFlagNames[i]);
+            if (flag == "admin" || flag == "skip_monitor") result |= uint64_t{1} << i;
+        }
+        return result;
+    }();
+    static_assert(std::popcount(mask) == 2, "generated metadata must contain both MONITOR exclusions");
+    // Containers such as CONFIG have no flags. Redis checks the resolved subcommand.
     const auto* metadata = command_metadata_resolve(op, 0);
     return metadata && (metadata->flags & mask);
 }

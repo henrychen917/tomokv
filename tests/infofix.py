@@ -269,19 +269,10 @@ def wire_bytes_and_rate():
     check("output counter exact after PING", as_int(second, "total_net_output_bytes"), expected_output)
 
     def idle_rate():
-        # INFO is excluded from sampled_ops. Polling only INFO advances the eight 100ms sample
-        # slots without feeding the meter. A RESETSTAT command can itself finish after the
-        # reset baseline; wait for that residual sample to age out instead of sleeping once.
-        # Induce failure by retaining a nonzero published rate when the idle window has drained.
-        deadline = time.monotonic() + 5.0
-        trace = []
-        while True:
-            value = as_int(info(c, "stats"), "instantaneous_ops_per_sec")
-            trace.append(value)
-            if value == 0 or value < 0 or time.monotonic() >= deadline:
-                print("  idle sampled rates: %r" % trace)
-                return value
-            time.sleep(0.11)
+        # The cron counts INFO too. Stop adding observer traffic for a complete
+        # sixteen-sample ring, then require an exact zero on the first poll.
+        time.sleep(2.0)
+        return as_int(info(c, "stats"), "instantaneous_ops_per_sec")
 
     c.cmd("CONFIG", "RESETSTAT")
     control = idle_rate()
