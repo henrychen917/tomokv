@@ -110,9 +110,6 @@
 
     // ---- MONITOR --------------------------------------------------------------------------------
     void climon_monitor_feed(Client* client, Op& op);
-    static bool climon_monitor_feed(const Client& client, Op& op, uint8_t security);
-    static void climon_monitor_feed(Shard& shard, Op& op);
-    static void climon_monitor_feed(Shard& shard, Op& nested, const Op& parent);
     void climon_monitor_format(Client* client, Op& op, std::string& out);
     void climon_monitor_deliver(const std::string& line);
     ClimonStartResult climon_start_monitor(Client* client, Op& op);

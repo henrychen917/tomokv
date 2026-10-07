@@ -303,7 +303,6 @@ static_assert(sizeof(ReadLocalThreadState) == 376,
               "dead retry counter removed only from the armed sidecar, never ThreadCtx");
 
 class ThreadCtx {
-    friend class IoLoop; // Armed MONITOR uses its own fused IO to drain cold inbox markers.
 public:
     using RolePrepareFn = bool (*)(void*);
     using RoleCancelFn = void (*)(void*);

@@ -18,11 +18,6 @@
 
 namespace tomo {
 
-// Reuse the linked ordinary retire bodies; do not instantiate another IO parser
-// graph in this cold TU merely to service MONITOR's fused backpressure.
-extern template uint32_t IoLoop::collect_retire_work<true, false>(bool);
-extern template uint32_t IoLoop::collect_retire_work<true, true>(bool);
-
 namespace {
 
 // Redis quotes MONITOR arguments with the same escaping sdscatrepr uses for DEBUG output.
@@ -656,28 +651,10 @@ void IoLoop::climon_monitor_format(Client* client, Op& op, std::string& out) {
 }
 
 void IoLoop::climon_monitor_feed(Client* client, Op& op) {
-    // Repeat the dispatch verdict only in the already-armed MONITOR call. The
-    // ordinary dispatch and its authorization ordering stay byte-identical.
-    if (!climon_monitor_feed(*client, op, srv_->security_flags())) return;
     // Redis excludes both admin and skip_monitor, including container subcommands.
     // MONITOR itself is admin; ordinary commands from a monitor are still visible.
     if (op.cmd_name().eq_icase("monitor")) return;
     if (command_metadata_skip_monitor(op)) return;
-    if (op.spec->flags & CmdFlags::ScriptRoute) {
-        // Preserve the selected notification/TLS handler in the shadow's spare
-        // handler_notify slot. No allocation or lookup is added to unarmed calls.
-        static std::mutex mutex;
-        static const CommandSpec* shadows[512] = {};
-        const unsigned slot = op.spec->id * 2 + unsigned(op.no_borrow());
-        std::lock_guard<std::mutex> lock(mutex);
-        if (!shadows[slot]) {
-            auto* shadow = new CommandSpec(*op.spec);
-            shadow->handler_notify = op.spec->handler;
-            shadow->handler = static_cast<CmdHandler>(&IoLoop::climon_monitor_feed);
-            shadows[slot] = shadow;
-        }
-        op.spec = shadows[slot];
-    }
     std::string line;
     climon_monitor_format(client, op, line);
     srv_->climon_note_monitor_line();
@@ -700,60 +677,6 @@ void IoLoop::climon_monitor_feed(Client* client, Op& op) {
         event->route_mask = mask;
         event->blob = blob;
         pubsub_post(io, event);
-    }
-}
-
-// Nested commands are fed only after Lua's arity, script, readonly and OOM gates.
-// The executor owns the script's shard; delivery still belongs to each monitor's IO.
-__attribute__((noinline)) void IoLoop::climon_monitor_feed(Shard& shard, Op& nested, const Op& parent) {
-    Server& server = *shard.server();
-    const ClimonIoMask mask = server.climon_monitor_io_mask();
-    if (!server.climon_monitors() || command_metadata_skip_monitor(nested)) return;
-    struct timespec ts;
-    ::clock_gettime(CLOCK_REALTIME, &ts);
-    char header[96];
-    std::snprintf(header, sizeof(header), "+%lld.%06lld [%u lua]",
-                  static_cast<long long>(ts.tv_sec),
-                  static_cast<long long>(ts.tv_nsec / 1000), parent.db);
-    std::string line(header);
-    for (uint32_t i = 0; i < nested.argc(); ++i) {
-        line.push_back(' ');
-        climon_quote_arg(multidb_display_argument(nested, i), line);
-    }
-    line += "\r\n";
-    auto blob = std::make_shared<const std::string>(std::move(line));
-    server.climon_note_monitor_line();
-    ThreadCtx& producer = server.thread(server.worker_of_shard(shard.id()));
-    IoLoop* local = producer.role() == Role::Ifid
-        ? static_cast<IoLoop*>(producer.io_role_context_) : nullptr;
-    for (uint32_t io : server.placement().ifid_threads()) {
-        if (!mask.contains(io)) continue;
-        auto* event = new PubSubEvent;
-        event->kind = PubSubEventKind::MonitorFeed;
-        event->target_io = io;
-        event->origin_io = producer.id();
-        event->route_mask = mask;
-        event->blob = blob;
-        server.pubsub_event_created();
-        if (io == producer.id()) {
-            local->pubsub_local_events_.push_back(event);
-            local->pubsub_pass_pending_ = true;
-            local->pubsub_drain_events();
-            continue;
-        }
-        while (!server.thread(io).post_pubsub_event_nonblocking(
-                producer.id(), event, *producer.ring(), producer.sig())) {
-            // Two fused script owners can both fill each other's completion lane.
-            // Drain our own markers while backpressured, using the existing retire
-            // path; no producer mutates another IO's connection state.
-            if (local) {
-                uint32_t (IoLoop::* volatile retire)(bool) = producer.ring()->wake_fd() >= 0
-                    ? &IoLoop::collect_retire_work<true, true>
-                    : &IoLoop::collect_retire_work<true, false>;
-                (local->*retire)(true);
-            }
-            __builtin_ia32_pause();
-        }
     }
 }
 

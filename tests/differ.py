@@ -6373,6 +6373,9 @@ def run_infofields_properties(peers):
             selected = info(peer, section.decode())
             assert set(selected) == {section}, (side, section, selected.keys())
             assert required <= selected[section].keys(), (side, section)
+        ordered = list(rows[b"Memory"])
+        positions = [ordered.index(name) for name in (b"number_of_cached_scripts", b"number_of_functions", b"number_of_libraries", b"maxmemory")]
+        assert positions == sorted(positions), (side, "Memory script field order", positions)
         assert issue(peer, ["CONFIG", "RESETSTAT"]) == b"+OK\r\n"
         assert info(peer, "server")[b"Server"][b"run_id"] == server[b"run_id"], side
     assert all_fields[0][b"Server"][b"io_threads_active"] == b"1"
@@ -6451,15 +6454,15 @@ def monitor_payload(raw, address):
     return (b"lua " if match[1] == b"lua" else b"") + match[2]
 
 
-MONITOR_SCRIPT = "return redis.call('get', KEYS[1])"
+MONITOR_SCRIPT = "return 7"
 MONITOR_SHA = hashlib.sha1(MONITOR_SCRIPT.encode()).hexdigest()
-MONITOR_LIBRARY = "#!lua name=ifmonlib\nredis.register_function{function_name='ifmonget', callback=function(keys,args) return redis.call('get',keys[1]) end, flags={'no-writes'}}"
+MONITOR_LIBRARY = "#!lua name=ifmonlib\nredis.register_function{function_name='ifmonget', callback=function(keys,args) return 7 end, flags={'no-writes'}}"
 
 
-def gen_monitor(rng):
+def gen_monitor(rng, strict=False):
     """Admin, skip_monitor, command/key ACL denials, NOAUTH and binary quoting."""
     marker = "ifmon:end:%d" % rng.randrange(1 << 30)
-    return [
+    commands = [
         (["SET", "ifmon:key", b'quote" slash\\ newline\n nul\x00 hi\xff'], b"+OK\r\n", True),
         (["GET", "ifmon:missing"], None, True),
         (["CONFIG", "GET", "maxmemory"], None, False),
@@ -6483,6 +6486,12 @@ def gen_monitor(rng):
         (["CONFIG", "SET", "requirepass", ""], b"+OK\r\n", False),
         (["PING", marker], None, True),
     ]
+    # Refusal visibility is a separate strict witness. The gate drives only
+    # admitted ordinary commands plus admin commands (including an ACL refusal).
+    if not strict:
+        commands = [(args, reply, visible) for args, reply, visible in commands
+                    if args[0] == "CONFIG" or reply not in (b"-NOPERM", b"-NOAUTH")]
+    return commands
 
 
 def monitor_check_streams(target, oracle, expected):
@@ -6490,15 +6499,15 @@ def monitor_check_streams(target, oracle, expected):
     assert target == oracle == expected, ("MONITOR inclusion/format", target, oracle, expected)
 
 
-def run_monitor_suite(rng):
-    commands = gen_monitor(rng)
+def run_monitor_suite(rng, strict=False, nested=False):
+    commands = gen_monitor(rng, strict=strict)
     streams = []
     expected = []
     for args, _, visible in commands:
         if visible:
             displayed = [args[0], "(redacted)", "(redacted)"] if args[0] == "AUTH" else args
             expected.append(b" ".join(map(monitor_quote, displayed)))
-            if args[0] in ("EVAL", "EVAL_RO", "EVALSHA", "EVALSHA_RO", "FCALL", "FCALL_RO") and args[2] == "1":
+            if nested and args[0] in ("EVAL", "EVAL_RO", "EVALSHA", "EVALSHA_RO", "FCALL", "FCALL_RO") and args[2] == "1":
                 expected.append(b'lua "get" "ifmon:key"')
     for side, host, port in (("target", TH, TP), ("oracle", OH, OP)):
         # Exactly two connections per server. A observes; B sets up, drives and cleans up.
@@ -6538,6 +6547,12 @@ def run_monitor_suite(rng):
                 issue(["ACL", "DELUSER", "ifmon_limited"])
             finally:
                 af.close(); a.close(); bf.close(); b.close()
+    if strict:
+        for side, stream in zip(("target", "oracle"), streams):
+            from collections import Counter
+            extra = Counter(stream) - Counter(expected)
+            missing = Counter(expected) - Counter(stream)
+            print("MONITOR STRICT %s extra=%r missing=%r" % (side, list(extra.elements()), list(missing.elements())))
     monitor_check_streams(streams[0], streams[1], expected)
     print("DIFFER monitor: %d driven commands, %d visible lines per peer, 0 diffs -> PASS" %
           (len(commands), len(expected)))

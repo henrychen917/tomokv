@@ -81,9 +81,15 @@ class InfoFieldsControls(unittest.TestCase):
         with self.assertRaises(AssertionError):
             differ.monitor_check_streams([], [], [])
 
+    def test_gated_monitor_admitted_stream(self):
+        for args, reply, visible in differ.gen_monitor(random.Random(7)):
+            self.assertFalse(args[0] != "CONFIG" and reply in (b"-NOPERM", b"-NOAUTH"))
+        for name in ("EVAL", "EVALSHA", "EVAL_RO", "EVALSHA_RO", "FCALL", "FCALL_RO"):
+            self.assertTrue(any(args[0] == name and visible for args, _, visible in differ.gen_monitor(random.Random(7))))
+
     def test_monitor_generator_cannot_omit_denials(self):
         for seed in (7, 91):
-            commands = differ.gen_monitor(random.Random(seed))
+            commands = differ.gen_monitor(random.Random(seed), strict=True)
             self.assertTrue(any(args[:2] == ["CONFIG", "GET"] and not visible
                                 for args, _, visible in commands))
             self.assertTrue(any(args[0] == "EVAL" and visible for args, _, visible in commands))

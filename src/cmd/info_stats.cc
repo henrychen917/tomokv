@@ -1,4 +1,5 @@
 #include "info_stats.h"
+#include "scripting.h"
 
 #include "../core/server.h"
 
@@ -148,9 +149,16 @@ void info_stats_memory_fields(std::string& body, uint64_t allocated, uint64_t re
     }
     // Compare jemalloc resident/allocated on the same process-wide basis. The
     // dataset-only admission budget is not an allocator fragmentation denominator.
-    char fields[192];
+    const auto scripting = script_stats();
+    const auto functions = function_stats();
+    char fields[384];
     const int count = std::snprintf(fields, sizeof(fields),
+        "number_of_cached_scripts:%llu\r\nnumber_of_functions:%llu\r\n"
+        "number_of_libraries:%llu\r\n"
         "maxmemory:%s\r\nmaxmemory_policy:%s\r\nmem_fragmentation_ratio:%.2f\r\n",
+        static_cast<unsigned long long>(scripting.cached_scripts),
+        static_cast<unsigned long long>(functions.functions),
+        static_cast<unsigned long long>(functions.libraries),
         maxmemory, policy, allocated && resident ? double(resident) / double(allocated) : 1.0);
     if (count > 0 && static_cast<size_t>(count) < sizeof(fields)) body.append(fields, count);
 }

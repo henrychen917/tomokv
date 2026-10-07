@@ -1,0 +1,297 @@
+diff --git a/src/cmd/acl.inc b/src/cmd/acl.inc
+index f4eba40fc..37554cf95 100644
+--- a/src/cmd/acl.inc
++++ b/src/cmd/acl.inc
+@@ -1184,6 +1184,21 @@ bool acl_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
+     return acl_finish_dispatch_denial(loop, client, op, consumed, denied, denied_arg);
+ }
+ 
++// Pure duplicate verdict for the existing armed MONITOR branch. Dispatch still
++// performs its own authorization, accounting and denial reply in its original place.
++__attribute__((cold, noinline)) bool IoLoop::climon_monitor_feed(
++        const Client& client, Op& op, uint8_t security) {
++    const Slice name = op.cmd_name();
++    if ((security & Server::kSecurityAuth) && !client.authenticated() &&
++        !name.eq_icase("auth") && !name.eq_icase("hello") &&
++        !name.eq_icase("reset") && !name.eq_icase("quit")) return false;
++    if (!(security & Server::kSecurityAcl) || (op.spec->flags & CmdFlags::AclExempt))
++        return true;
++    std::vector<std::string> argv(op.argc());
++    for (uint32_t i = 0; i < op.argc(); ++i) argv[i].assign(op.arg(i).p, op.arg(i).n);
++    return acl_check_queued(client.acl_user_idx(), *op.spec, argv) == AclDeniedReason::None;
++}
++
+ AclDeniedReason acl_check_queued(uint32_t user_index, const CommandSpec& spec,
+                                  const std::vector<std::string>& argv,
+                                  uint32_t* denied_arg) {
+diff --git a/src/cmd/climon.cc b/src/cmd/climon.cc
+index a37c996b7..ffb7ce0e3 100644
+--- a/src/cmd/climon.cc
++++ b/src/cmd/climon.cc
+@@ -651,10 +651,28 @@ void IoLoop::climon_monitor_format(Client* client, Op& op, std::string& out) {
+ }
+ 
+ void IoLoop::climon_monitor_feed(Client* client, Op& op) {
++    // Repeat the dispatch verdict only in the already-armed MONITOR call. The
++    // ordinary dispatch and its authorization ordering stay byte-identical.
++    if (!climon_monitor_feed(*client, op, srv_->security_flags())) return;
+     // Redis excludes both admin and skip_monitor, including container subcommands.
+     // MONITOR itself is admin; ordinary commands from a monitor are still visible.
+     if (op.cmd_name().eq_icase("monitor")) return;
+     if (command_metadata_skip_monitor(op)) return;
++    if (op.spec->flags & CmdFlags::ScriptRoute) {
++        // Preserve the selected notification/TLS handler in the shadow's spare
++        // handler_notify slot. No allocation or lookup is added to unarmed calls.
++        static std::mutex mutex;
++        static const CommandSpec* shadows[512] = {};
++        const unsigned slot = op.spec->id * 2 + unsigned(op.no_borrow());
++        std::lock_guard<std::mutex> lock(mutex);
++        if (!shadows[slot]) {
++            auto* shadow = new CommandSpec(*op.spec);
++            shadow->handler_notify = op.spec->handler;
++            shadow->handler = static_cast<CmdHandler>(&IoLoop::climon_monitor_feed);
++            shadows[slot] = shadow;
++        }
++        op.spec = shadows[slot];
++    }
+     std::string line;
+     climon_monitor_format(client, op, line);
+     srv_->climon_note_monitor_line();
+@@ -680,6 +698,7 @@ void IoLoop::climon_monitor_feed(Client* client, Op& op) {
+     }
+ }
+ 
++
+ void IoLoop::climon_monitor_deliver(const std::string& line) {
+     for (auto& entry : climon_conn_) {
+         ClimonConn& state = entry.second;
+diff --git a/src/cmd/climon.inc b/src/cmd/climon.inc
+index 114c587e7..9ba12076e 100644
+--- a/src/cmd/climon.inc
++++ b/src/cmd/climon.inc
+@@ -110,6 +110,9 @@
+ 
+     // ---- MONITOR --------------------------------------------------------------------------------
+     void climon_monitor_feed(Client* client, Op& op);
++    static bool climon_monitor_feed(const Client& client, Op& op, uint8_t security);
++    static void climon_monitor_feed(Shard& shard, Op& op);
++    static void climon_monitor_feed(Shard& shard, const Op& parent, void* vm, uint32_t argc);
+     void climon_monitor_format(Client* client, Op& op, std::string& out);
+     void climon_monitor_deliver(const std::string& line);
+     ClimonStartResult climon_start_monitor(Client* client, Op& op);
+diff --git a/src/cmd/scripting.cc b/src/cmd/scripting.cc
+index 99c735c98..644e5e8ac 100644
+--- a/src/cmd/scripting.cc
++++ b/src/cmd/scripting.cc
+@@ -25,6 +25,7 @@
+ #include <vector>
+ 
+ #include "../core/server.h"
++#include "../core/io_loop.h"
+ #include "../core/shard.h"
+ #include "../exec/op.h"
+ #include "../net/resp.h"
+@@ -362,7 +363,7 @@ bool command_name_is(const CommandSpec& spec, const char* expected) {
+     return std::strcmp(spec.name, expected) == 0;
+ }
+ 
+-bool script_name_whitelisted(const CommandSpec& spec) {
++__attribute__((always_inline)) inline bool script_name_whitelisted(const CommandSpec& spec) {
+     // Deliberately explicit: command-table shape alone does not prove determinism (SPOP and
+     // HRANDFIELD are both single-key). New commands remain unavailable until this list is audited.
+     static constexpr const char* allowed[] = {
+@@ -385,7 +386,7 @@ bool script_name_whitelisted(const CommandSpec& spec) {
+     return false;
+ }
+ 
+-bool script_command_allowed(const CommandSpec& spec, uint32_t argc) {
++__attribute__((always_inline)) inline bool script_command_allowed(const CommandSpec& spec, uint32_t argc) {
+     const uint32_t forbidden = CmdFlags::Admin | CmdFlags::ConnLocal | CmdFlags::AllShards |
+         CmdFlags::RandomShard | CmdFlags::CursorShard | CmdFlags::ConfigRoute |
+         CmdFlags::ScriptRoute | CmdFlags::NoScript;
+@@ -1061,6 +1062,80 @@ lua_State* script_thread_state() {
+     return engine.state;
+ }
+ 
++// Selected only by the already-armed IO MONITOR feed. The clean Lua closures
++// and every ordinary command body remain the original implementation.
++__attribute__((cold, noinline)) void IoLoop::climon_monitor_feed(Shard& shard, Op& op) {
++    lua_State* state = script_thread_state();
++    if (!state) {
++        op.spec->handler_notify(shard, op);
++        return;
++    }
++    lua_getglobal(state, "redis");
++    int saved[2];
++    const char* names[] = {"call", "pcall"};
++    for (int i = 0; i != 2; ++i) {
++        lua_getfield(state, -1, names[i]);
++        saved[i] = luaL_ref(state, LUA_REGISTRYINDEX);
++        lua_pushlightuserdata(state, &t_lua_engine.current);
++        lua_pushboolean(state, i != 0);
++        lua_pushcclosure(state, [](lua_State* state) __attribute__((cold, noinline)) -> int {
++            const bool protected_call = lua_toboolean(state, lua_upvalueindex(2));
++            ScriptContext* context = t_lua_engine.current;
++            const uint32_t argc = static_cast<uint32_t>(lua_gettop(state));
++            bool admitted = context && argc;
++            for (uint32_t i = 1; i <= argc && admitted; ++i) {
++                const int type = lua_type(state, i);
++                admitted = type == LUA_TSTRING || type == LUA_TNUMBER;
++            }
++            const CommandSpec* spec = nullptr;
++            if (admitted) {
++                size_t length = 0;
++                const char* name = lua_tolstring(state, 1, &length);
++                spec = command_lookup(Slice(name, length));
++                admitted = spec && command_arity_ok(*spec, argc) &&
++                    script_command_allowed(*spec, argc) &&
++                    !(context->readonly && (spec->flags & CmdFlags::Write));
++            }
++            if (admitted) {
++                size_t length = 0;
++                const char* value = lua_tolstring(state, spec->first_key + 1, &length);
++                Slice key(value, length);
++                key.set_namespace(context->parent->physical_db);
++                bool declared = false;
++                for (uint32_t i = 0; i < context->key_count; ++i)
++                    declared |= context->parent->arg(context->key_first + i) == key;
++                admitted = declared && (!(spec->flags & CmdFlags::DenyOom) ||
++                    context->shard->store().budget_admit(key));
++            }
++            // Use the same dispatcher, protected so executed errors can also be
++            // fed. Re-raise its unchanged error table for redis.call afterwards.
++            int (* volatile dispatch)(lua_State*, bool) = redis_dispatch;
++            dispatch(state, true);
++            if (admitted)
++                climon_monitor_feed(*context->shard, *context->parent, state, argc);
++            if (!protected_call && lua_istable(state, -1)) {
++                lua_getfield(state, -1, "err");
++                const bool error = !lua_isnil(state, -1);
++                lua_pop(state, 1);
++                if (error) return lua_error(state);
++            }
++            return 1;
++        }, 2);
++        lua_setfield(state, -2, names[i]);
++    }
++    lua_pop(state, 1);
++    op.spec->handler_notify(shard, op);
++    // The handler leaves the same persistent interpreter alive and its stack empty.
++    lua_getglobal(state, "redis");
++    for (int i = 0; i != 2; ++i) {
++        lua_rawgeti(state, LUA_REGISTRYINDEX, saved[i]);
++        lua_setfield(state, -2, names[i]);
++        void (* volatile unref)(lua_State*, int, int) = luaL_unref;
++        unref(state, LUA_REGISTRYINDEX, saved[i]);
++    }
++    lua_pop(state, 1);
++}
++
+ lua_State* script_new_sandbox_state() {
+     static ScriptContext* null_slot = nullptr;
+     lua_State* state = luaL_newstate();
+diff --git a/src/core/thread.h b/src/core/thread.h
+index 0b3845dde..49ceb51a1 100644
+--- a/src/core/thread.h
++++ b/src/core/thread.h
+@@ -303,6 +303,7 @@ static_assert(sizeof(ReadLocalThreadState) == 376,
+               "dead retry counter removed only from the armed sidecar, never ThreadCtx");
+ 
+ class ThreadCtx {
++    friend class IoLoop; // Armed MONITOR uses its own fused IO to drain cold inbox markers.
+ public:
+     using RolePrepareFn = bool (*)(void*);
+     using RoleCancelFn = void (*)(void*);
+diff --git a/src/main.cc b/src/main.cc
+index 9824df975..329f5e5da 100644
+--- a/src/main.cc
++++ b/src/main.cc
+@@ -592,3 +592,88 @@ int main(int argc, char** argv) {
+     report_graceful_shutdown();
+     return io_boot_failed.load(std::memory_order_relaxed) ? 1 : 0;
+ }
++
++extern "C" {
++#include "../third_party/lua/lua.h"
++}
++
++namespace tomo {
++
++// MONITOR-only executor-to-IO bridge. This TU already owns the retire templates.
++// Nested commands are fed only after Lua's arity, script, readonly and OOM gates.
++// The executor owns the script's shard; delivery still belongs to each monitor's IO.
++__attribute__((cold, noinline)) void IoLoop::climon_monitor_feed(Shard& shard, const Op& parent, void* vm, uint32_t argc) {
++    Server& server = *shard.server();
++    const ClimonIoMask mask = server.climon_monitor_io_mask();
++    if (!server.climon_monitors()) return;
++    auto* state = static_cast<lua_State*>(vm);
++    struct timespec ts;
++    ::clock_gettime(CLOCK_REALTIME, &ts);
++    char header[96];
++    std::snprintf(header, sizeof(header), "+%lld.%06lld [%u lua]",
++                  static_cast<long long>(ts.tv_sec),
++                  static_cast<long long>(ts.tv_nsec / 1000), parent.db);
++    std::string line(header);
++    for (uint32_t i = 0; i < argc; ++i) {
++        line.push_back(' ');
++        size_t length = 0;
++        const char* value = lua_tolstring(state, i + 1, &length);
++        const Slice arg(value, length);
++        line.push_back('"');
++        for (uint32_t j = 0; j < arg.n; ++j) {
++            const unsigned char c = arg.p[j];
++            switch (c) {
++                case '\\': line += "\\\\"; break;
++                case '"': line += "\\\""; break;
++                case '\n': line += "\\n"; break;
++                case '\r': line += "\\r"; break;
++                case '\t': line += "\\t"; break;
++                case '\a': line += "\\a"; break;
++                case '\b': line += "\\b"; break;
++                default:
++                    if (c >= 32 && c <= 126) line.push_back(c);
++                    else {
++                        static constexpr char hex[] = "0123456789abcdef";
++                        line += "\\x";
++                        line.push_back(hex[c >> 4]); line.push_back(hex[c & 15]);
++                    }
++            }
++        }
++        line.push_back('"');
++    }
++    line += "\r\n";
++    auto blob = std::make_shared<const std::string>(std::move(line));
++    server.climon_note_monitor_line();
++    ThreadCtx& producer = server.thread(server.worker_of_shard(shard.id()));
++    IoLoop* local = producer.role() == Role::Ifid
++        ? static_cast<IoLoop*>(producer.io_role_context_) : nullptr;
++    for (uint32_t io : server.placement().ifid_threads()) {
++        if (!mask.contains(io)) continue;
++        auto* event = new PubSubEvent;
++        event->kind = PubSubEventKind::MonitorFeed;
++        event->target_io = io;
++        event->origin_io = producer.id();
++        event->route_mask = mask;
++        event->blob = blob;
++        server.pubsub_event_created();
++        if (io == producer.id()) {
++            local->pubsub_local_events_.push_back(event);
++            local->pubsub_pass_pending_ = true;
++            local->pubsub_drain_events();
++            continue;
++        }
++        while (!server.thread(io).post_pubsub_event_nonblocking(
++                producer.id(), event, *producer.ring(), producer.sig())) {
++            // Two fused script owners can both fill each other's completion lane.
++            // Drain our own markers while backpressured, using the existing retire
++            // path; no producer mutates another IO's connection state.
++            if (local) {
++                if (producer.ring()->wake_fd() >= 0) local->collect_retire_work<true, true>(true);
++                else local->collect_retire_work<true, false>(true);
++            }
++            __builtin_ia32_pause();
++        }
++    }
++}
++
++} // namespace tomo

@@ -1,0 +1,26 @@
+src/cmd/scripting.o changed 14 unexplained 11
+3292 3285 tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool)
+240 240 tomo::(anonymous namespace)::redis_dispatch(lua_State*, bool) [clone .cold]
+1405 1501 tomo::(anonymous namespace)::create_sandbox_static(lua_State*, tomo::(anonymous namespace)::ScriptContext**)
+2197 2182 tomo::(anonymous namespace)::run_eval(tomo::Shard&, tomo::Op&, tomo::Slice, bool, tomo::Slice, bool, bool) [clone .constprop.0] [clone .isra.0]
+1532 1545 tomo::command_validate_script_route(tomo::Op&, unsigned int&, unsigned int&)
+74 76 tomo::command_validate_script_route(tomo::Op&, unsigned int&, unsigned int&) [clone .cold]
+1990 2086 tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+2799 2840 tomo::FlatStore::erase(unsigned long, tomo::Slice)
+56 0 tomo::FlatStore::deadline(unsigned long, tomo::KvObj const*) const [clone .isra.0]
+4838 4829 chunk
+440 458 luaB_setfenv
+db0/src/cmd/scripting.o changed 16 unexplained 13
+3385 3385 tomo_db0::(anonymous namespace)::cmd_script(tomo_db0::Shard&, tomo_db0::Op&)
+1237 1509 tomo_db0::(anonymous namespace)::ScriptCache::store(tomo_db0::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0]
+170 169 tomo_db0::(anonymous namespace)::ScriptCache::store(tomo_db0::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) [clone .constprop.0] [clone .isra.0] [clone .cold]
+3104 2990 tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool)
+232 228 tomo_db0::(anonymous namespace)::redis_dispatch(lua_State*, bool) [clone .cold]
+1582 1550 tomo_db0::(anonymous namespace)::run_eval(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::Slice, bool, tomo_db0::Slice, bool, bool) [clone .constprop.0] [clone .isra.0]
+61 61 tomo_db0::(anonymous namespace)::run_eval(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::Slice, bool, tomo_db0::Slice, bool, bool) [clone .constprop.0] [clone .isra.0] [clone .cold]
+3473 4009 tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&)
+183 183 tomo_db0::script_execute(tomo_db0::Shard&, tomo_db0::Op&, tomo_db0::ScriptInvocation const&) [clone .cold]
+1088 315 tomo_db0::FlatStore::maybe_start_shrink()
+0 873 tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0]
+0 5 tomo_db0::FlatStore::start_rehash_read_local(unsigned int) [clone .isra.0] [clone .cold]
+1883 2219 tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)
