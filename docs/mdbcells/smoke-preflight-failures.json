@@ -1,0 +1,328 @@
+[
+  {
+    "attempt": "smoke-run",
+    "started_utc": "2026-10-07T02:09:19Z",
+    "reason": "QuietViolation: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 0.660000s > 0.480000s per 20s",
+    "elapsed_seconds": 12.442605349235237,
+    "cells": [],
+    "quiet_box": {
+      "policy": "selected-core-port-budget-v1",
+      "started_at": 1791338962.156959,
+      "finished_at": 1791338972.1709428,
+      "complete": false,
+      "samples": 11,
+      "cpu_samples": 11,
+      "sample_interval_seconds": 1.0,
+      "tick_seconds": 0.01,
+      "cpus": [
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ],
+      "requested_cpus": [
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ],
+      "ports": [
+        8876
+      ],
+      "listener_checks": 1,
+      "interference": {
+        "observed_at": 1791338972.170378,
+        "cpu_seconds": 0.66,
+        "cpu_budget_seconds": 0.48,
+        "error": "selected-core CPU screening budget exceeded: 0.660000s > 0.480000s per 20s",
+        "cpus": [
+          {
+            "cpu": 112,
+            "total_ticks": 99,
+            "busy_ticks": 1
+          },
+          {
+            "cpu": 113,
+            "total_ticks": 100,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 114,
+            "total_ticks": 100,
+            "busy_ticks": 3
+          },
+          {
+            "cpu": 115,
+            "total_ticks": 99,
+            "busy_ticks": 1
+          },
+          {
+            "cpu": 116,
+            "total_ticks": 99,
+            "busy_ticks": 19
+          },
+          {
+            "cpu": 117,
+            "total_ticks": 101,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 118,
+            "total_ticks": 100,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 119,
+            "total_ticks": 99,
+            "busy_ticks": 1
+          },
+          {
+            "cpu": 120,
+            "total_ticks": 99,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 121,
+            "total_ticks": 101,
+            "busy_ticks": 1
+          },
+          {
+            "cpu": 122,
+            "total_ticks": 99,
+            "busy_ticks": 5
+          },
+          {
+            "cpu": 123,
+            "total_ticks": 100,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 124,
+            "total_ticks": 101,
+            "busy_ticks": 4
+          },
+          {
+            "cpu": 125,
+            "total_ticks": 100,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 126,
+            "total_ticks": 100,
+            "busy_ticks": 3
+          },
+          {
+            "cpu": 127,
+            "total_ticks": 100,
+            "busy_ticks": 9
+          }
+        ]
+      },
+      "sample_artifact": "/home/user/Projects/cx-mdbcells/build/mdbcells/smoke-run/quiet-samples.jsonl",
+      "generic_cpu_screening": {
+        "scope": "preflight",
+        "server_physical_cores": 8,
+        "sampled_physical_cores": 16,
+        "capacity_fraction": 0.0015,
+        "window_seconds": 20,
+        "cpu_budget_seconds": 0.48,
+        "preflight_seconds": null,
+        "peak_rolling": {
+          "cpu_ticks": 66,
+          "cpu_seconds": 0.66
+        },
+        "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload"
+      },
+      "limitation": "preflight detects existing contention; runtime CPU counters cannot distinguish owned work"
+    },
+    "archived_report": "docs/mdbcells/smoke-run-results.json.gz",
+    "source_sha256": "fce1ff61e4573a116a951ceec04227db14f3ef0976c62540396331c2b39b6e2c"
+  },
+  {
+    "attempt": "smoke-final",
+    "started_utc": "2026-10-07T02:15:06Z",
+    "reason": "QuietViolation: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 0.810000s > 0.480000s per 20s",
+    "elapsed_seconds": 17.441390350926667,
+    "cells": [],
+    "quiet_box": {
+      "policy": "selected-core-port-budget-v1",
+      "started_at": 1791339308.8632338,
+      "finished_at": 1791339323.8805745,
+      "complete": false,
+      "samples": 16,
+      "cpu_samples": 16,
+      "sample_interval_seconds": 1.0,
+      "tick_seconds": 0.01,
+      "cpus": [
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ],
+      "requested_cpus": [
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ],
+      "ports": [
+        8876
+      ],
+      "listener_checks": 1,
+      "interference": {
+        "observed_at": 1791339323.8799849,
+        "cpu_seconds": 0.81,
+        "cpu_budget_seconds": 0.48,
+        "error": "selected-core CPU screening budget exceeded: 0.810000s > 0.480000s per 20s",
+        "cpus": [
+          {
+            "cpu": 112,
+            "total_ticks": 101,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 113,
+            "total_ticks": 100,
+            "busy_ticks": 1
+          },
+          {
+            "cpu": 114,
+            "total_ticks": 101,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 115,
+            "total_ticks": 100,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 116,
+            "total_ticks": 99,
+            "busy_ticks": 1
+          },
+          {
+            "cpu": 117,
+            "total_ticks": 101,
+            "busy_ticks": 3
+          },
+          {
+            "cpu": 118,
+            "total_ticks": 101,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 119,
+            "total_ticks": 100,
+            "busy_ticks": 19
+          },
+          {
+            "cpu": 120,
+            "total_ticks": 100,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 121,
+            "total_ticks": 101,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 122,
+            "total_ticks": 100,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 123,
+            "total_ticks": 100,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 124,
+            "total_ticks": 100,
+            "busy_ticks": 2
+          },
+          {
+            "cpu": 125,
+            "total_ticks": 100,
+            "busy_ticks": 8
+          },
+          {
+            "cpu": 126,
+            "total_ticks": 99,
+            "busy_ticks": 1
+          },
+          {
+            "cpu": 127,
+            "total_ticks": 101,
+            "busy_ticks": 2
+          }
+        ]
+      },
+      "sample_artifact": "/home/user/Projects/cx-mdbcells/build/mdbcells/smoke-final/quiet-samples.jsonl",
+      "generic_cpu_screening": {
+        "scope": "preflight",
+        "server_physical_cores": 8,
+        "sampled_physical_cores": 16,
+        "capacity_fraction": 0.0015,
+        "window_seconds": 20,
+        "cpu_budget_seconds": 0.48,
+        "preflight_seconds": null,
+        "peak_rolling": {
+          "cpu_ticks": 81,
+          "cpu_seconds": 0.81
+        },
+        "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload"
+      },
+      "limitation": "preflight detects existing contention; runtime CPU counters cannot distinguish owned work"
+    },
+    "archived_report": "docs/mdbcells/smoke-final-results.json.gz",
+    "source_sha256": "b320440eb4c5bfda537ed7864ec30e7a0ef7981de1910fe871c8877afc54897d"
+  }
+]

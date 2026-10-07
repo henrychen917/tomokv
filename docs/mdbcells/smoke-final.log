@@ -1,0 +1,3 @@
+ABBA UNTRUSTED: standing null unavailable: /home/user/Projects/cx-mdbcells/tests/standing-null/current.json: null instrument differs; recollect with the current fingerprint (archived null remains historical); all measurements still run
+ABBA FAIL: QuietViolation: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 0.810000s > 0.480000s per 20s
+ABBA elapsed=17.4s; /home/user/Projects/cx-mdbcells/build/mdbcells/smoke-final/results.json
