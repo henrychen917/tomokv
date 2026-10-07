@@ -63,8 +63,8 @@ def emit(root, output):
                 code.append('static_assert(' + name + '<' + str(fused).lower() + ',' + str(local).lower() +
                             '>(), "' + ('r7: ' if prefix else 'fifo: ') + name + ' preserves SplitLocal and prebuild policy");')
         loop = method(source, prefix + 'run_loop')
-        polls = re.findall(r'\b' + prefix + r'epoll_pass<([^>]+)>\((0|50)\)', loop)
-        assert len(polls) == 3 and [p[1] for p in polls] == ['0', '50', '50'], 'epoll callback inventory'
+        polls = re.findall(r'\b' + prefix + r'epoll_pass<([^>]+)>\((0|Ring::kWaitTimeoutMs)\)', loop)
+        assert len(polls) == 3 and [p[1] for p in polls] == ['0', 'Ring::kWaitTimeoutMs', 'Ring::kWaitTimeoutMs'], 'epoll callback inventory'
         code.append('template<bool U, bool T, bool F, uint8_t P> consteval bool ' + prefix +
                     'epoll_pass(int) { return F; }\n'
                     'template<bool HasUnix, bool HasTls, bool Fused, uint8_t Pipeline, bool SplitLocal>\n'
