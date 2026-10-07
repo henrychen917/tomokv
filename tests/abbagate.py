@@ -314,6 +314,18 @@ def selected_cells(cells, subset, only=""):
     return selected
 
 
+def selected_split_ratio(args, threads):
+    measurements = load_measurements()
+    if str(threads) not in measurements["geometries"]["abba"]:
+        cells = selected_cells(read_cells(args.cells, measurements=measurements), args.subset, args.only)
+        if all(cell.mode == "1s" for cell in cells):
+            # A fused-only diagnostic has no IO/ex split to invent or calibrate.
+            # Preserve the reviewed ratio in existing geometries and still refuse
+            # an unknown geometry if even one selected cell actually boots split.
+            return "not-applicable (1s only)"
+    return measured_ratio("abba", threads, measurements)
+
+
 def coverage(cells):
     result = {"count": len(cells), "ids": [cell.id for cell in cells],
             "modes": sorted({cell.mode for cell in cells}),
@@ -2220,7 +2232,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
         # The driver also generates control traffic and collects counters. Keep it on load CPUs
         # even when invoked from a shell that was pinned to a correctness worker's server slot.
         os.sched_setaffinity(0, load_cpus)
-        split_ratio = measured_ratio("abba", len(server_cpus))
+        split_ratio = selected_split_ratio(args, len(server_cpus))
         placement = dict(server_physical=server_physical, server_smt=server_smt,
                          load_physical=load_physical, load_smt=load_smt, split_ratio=split_ratio)
         cells = read_cells(args.cells, placement=placement)
@@ -2763,6 +2775,15 @@ def self_test():
                     command = children.start.call_args.args[0]
                     self.assertEqual(command[-2:], ["--databases", "16"])
                     self.assertEqual(command[3], runner.binaries[arm])
+
+        def test_fused_only_smoke_needs_no_unmeasured_split_ratio(self):
+            from types import SimpleNamespace
+            args = SimpleNamespace(cells=ROOT / "docs/lbplanner/multidb-cells.txt", subset="full", only="h06m")
+            self.assertEqual(selected_split_ratio(args, 8), "not-applicable (1s only)")
+            self.assertEqual(selected_split_ratio(args, 32), measured_ratio("abba", 32))
+            args.only = "d32gm_l1"
+            with self.assertRaisesRegex(ValueError, "no reviewed abba io:ex ratio"):
+                selected_split_ratio(args, 8)
 
         def test_info_poller_cadence_bad_replies_and_throughput_exclusion(self):
             import copy

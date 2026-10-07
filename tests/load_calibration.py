@@ -153,7 +153,7 @@ def main(args):
         server_cpus, load_cpus = sorted(server_physical + server_smt), sorted(load_physical + load_smt)
         args.port, permitted_ports = abba.select_port(args.ports, args.port)
         os.sched_setaffinity(0, load_cpus)
-        split_ratio = abba.measured_ratio("abba", len(server_cpus))
+        split_ratio = abba.selected_split_ratio(args, len(server_cpus))
         placement = dict(server_physical=server_physical, server_smt=server_smt,
             load_physical=load_physical, load_smt=load_smt, split_ratio=split_ratio)
         inventory = abba.read_cells(args.cells, placement=placement)
