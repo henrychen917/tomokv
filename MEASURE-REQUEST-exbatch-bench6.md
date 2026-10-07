@@ -3,7 +3,8 @@
 Branch `cx-exbatch3`, worktree `/home/user/Projects/cx-exbatch3`, 2026-10-07.
 Implementation: `680bfde55`. Initial merge `468cc9f5c` incorporates
 `origin/cpp` at `f053e5930`. Fetched and merged `origin/cpp` again before the
-final proofs: already up to date. No push. Changes are confined to the directed
+final proofs, and again before the last proof window: already up to date.
+No push. Changes are confined to the directed
 tool, its embedded tests, and this report. **Gate rows +0 quick / +0 full**;
 no gate registration, expectation edits, production edits, or layout changes.
 
@@ -101,18 +102,41 @@ Evidence in `build/exbatch-bench6/`:
   over `tests/` and `tools/` for changed string literals, raw lines, JSON and
   Python escape encodings (99 distinct patterns). No `rg` used.
 
-The requested live proof command is:
+**Live proof remains blocked; no live row or measured cyc/op is claimed.**
+The command below is ready for an idle window and names a fresh output
+directory. The four attempted invocations used the same arguments with the
+output directories in the table below.
 
 ```bash
-taskset -c 112-127 python3 tools/exbatch_directed.py --score matched-only --matched-load 438272 --cores 112-119,120-127 --arms docs/exbatch/mainline-arms.json --cell exbatch_xgroup32 --regime s0 --blocks 1 --output build/exbatch-bench6/live-headline-s0-quiet
+taskset -c 112-127 python3 tools/exbatch_directed.py --score matched-only --matched-load 438272 --cores 112-119,120-127 --arms docs/exbatch/mainline-arms.json --cell exbatch_xgroup32 --regime s0 --blocks 1 --output build/exbatch-bench6/live-headline-s0-proof
 ```
 
-Live proof is pending a quiet window. Two attempts refused in quiet preflight
-before starting a server: `live-headline-s0` observed 16.13 CPU-seconds against
-the 0.48-second budget (a concurrent sixteen-way compile), and
-`live-headline-s0-quiet` observed 0.90 against 0.48 after compilation finished.
-Their logs and incomplete receipts are preserved. No measurement bound was
-relaxed and no scored row is claimed for either refusal.
+Every attempt refused in the unchanged quiet preflight before starting a
+server. The selected sixteen physical CPUs have a budget of
+`0.0015 * 16 * 20 = 0.48` CPU-seconds per twenty-second screen.
+
+| Directory under `build/exbatch-bench6/` | Observed CPU-seconds | Refused after |
+| --- | ---: | ---: |
+| `live-headline-s0` | 16.13 | 1.010 s |
+| `live-headline-s0-quiet` | 0.90 | 20.002 s |
+| `live-headline-s0-idle` | 1.09 | 16.018 s |
+| `live-headline-s0-final` | 1.08 | 7.012 s |
+
+The first screen overlapped a sixteen-way compile. A separate iteration gate
+from `/home/user/Projects/cx-flakeaudit` then occupied server CPUs 112–119 and
+load CPUs 120–127. No gate/server/compiler process remained at 11:52:51 UTC;
+the last two attempts followed that check and still exceeded the CPU screening budget.
+An idle window was requested; none was confirmed during this lane.
+`live-attempts.json` records all four errors and receipt hashes. Each retained
+`results.json` has `complete: false` and zero rows; each failure has no owned
+children, no server log, and no measured frame count. All logs and raw quiet
+samples remain in their respective directories. No measurement bound was
+relaxed, and another lane's processes were not stopped or moved.
+
+The requested scored s0 live row is therefore **outstanding**, not a successful
+proof. The code and serverless proofs are complete; this requirement needs
+about eight minutes with CPUs 112–127 idle. The previously observed bench4
+44,547 / 9,289 cyc/op values are reference context, not new measurements.
 
 After landing the tool, MAINLINE runs these three previously refused cells
 sequentially at the original geometry, using fresh output directories:
