@@ -2,8 +2,11 @@
 
 Both causes are identified and fixed. A is a resettable-counter witness bug;
 B is a pre-existing DEBUG geometry bug after SWAPDB. Neither is a read-local
-eligibility regression in the CC11 classifier. Final matrix repetitions are
-running; their receipts will be recorded below. This is not yet a landing receipt.
+eligibility regression in the CC11 classifier. All ccfix legs and read-local
+witnesses pass across three armed executions. Two complete armed matrices pass;
+the other found a separate GEO fixture race, retained as a failed run and then
+corrected with bounded fresh-state rearming. Split and all five instruction
+witnesses pass. This is not a full landing-gate or performance receipt.
 
 ## Frozen source and binaries
 
@@ -232,15 +235,16 @@ These are fresh merged-arm receipts; they do not rewrite ccfix4's recorded 0/11.
 
 ## Final matrix receipts
 
-Three armed executions were requested. Runs 1 and 2 are complete; run 3 is
-running. **Run 2 is a retained failed full matrix**, despite every ccfix leg and
-pending-source window passing. It found the GEO placement-fixture issue below.
+All three armed executions are complete. **Run 2 is a retained failed full
+matrix**, despite every ccfix leg and pending-source window passing. It found
+the GEO placement-fixture issue below; the expanded final run passes after that
+fixture correction. This is two fully green matrices, not three.
 
 | Run | Atomic=0 | Atomic=1 | Read-local peak hits (0 / 1) | Pending windows | Gate exit |
 |---|---|---|---|---|---|
 | [armed 1](docs/ccfix5/matrices/armed-1/receipt.json) | 216/216 | 220/220 | 981 / 981 | 15/15 | 0 |
 | [armed 2](docs/ccfix5/matrices/armed-2/receipt.json) | 216/216 | 218/219 comparison legs; GEO seed 28 failed | 981 / 981 | 15/15 | 1 |
-| armed 3 | running | running | pending | pending | pending |
+| [armed 3](docs/ccfix5/matrices/armed-3/receipt.json) | 259/259 | 263/263 | 981 / 981 | 18/18 | 0 |
 | [split](docs/ccfix5/matrices/split/receipt.json) | 220/220 | 224/224 | read-local not armed | 15/15 | 0 |
 
 Split additionally passes all **32 mode-equivalence cells**. Rows in the armed
@@ -252,7 +256,10 @@ No failed run is relabelled as PASS. The complete archives preserve each frozen
 plan, journal, coverage artifact, ccfix leg and counter observation.
 
 The final run automatically retains failed seed 28, so its inventory expands
-to six seeds. Harness commits and relevant file hashes are recorded in
+to six seeds: 7, 19, 20, 23, 28 and 29. Its final counters are 0/21 hits
+for atomic=0/1 after the resets, while the sampled peaks are 981/981.
+Across the three armed runs, all **32 ccfix legs** pass and all **48 pending
+windows** open; split adds ten passing ccfix legs and 15 held windows. Harness commits and relevant file hashes are recorded in
 [matrix sources](docs/ccfix5/matrix-source-manifests.json). There are three serial
 armed-fused repetitions plus one overlapping split repetition,
 using the full discovered suite/seed matrix in each part. Armed servers use
@@ -296,7 +303,10 @@ movement: the old property fails all three verbs before STORE, the fix re-arms
 and passes all three, and a window that never opens fails all three after the
 bounded attempts. See [before failure](docs/ccfix5/geo-window-before.log) and
 [two passing controls](docs/ccfix5/geo-window-test.log). The final matrix uses
-this correction; it does not make the earlier failed matrix a pass.
+this correction and passes GEO seed 28 in both atomic modes; it does not make
+the earlier failed matrix a pass. The controlled-movement test is the proof that
+rearming actually executes; no spontaneous movement is required for a green
+wire run.
 
 The release/footprint prerequisite runs with each selected gate part. These are
 partial correctness receipts, not a full 517-row gate or an ABBA result.
@@ -313,3 +323,14 @@ Rows remain **+0 quick / +0 full**. `tests/gate.sh` is unmodified; EXPECT values
 stay 500/517. Differential collections are at lines 3392 and 3403, both after
 the quick-tier exit at line 3364. No row was added or retired and no count change
 is requested.
+
+## Acceptance limits and handoff
+
+The requested three armed executions have positive read-local witnesses and all
+ccfix legs passing. They are **not three clean full-matrix receipts**: run 2 is
+red on the separately corrected GEO fixture. Only run 3 uses the final GEO
+fixture; two additional armed repetitions would establish three fully green
+runs of that final harness. They are left to the maintainer within the lane's
+90-minute limit. The strict ccfix4 writeback-body exception also remains for the
+maintainer's explicit null/acceptance decision. No EXPECT value was changed,
+no failing artifact was discarded, and nothing was pushed.
