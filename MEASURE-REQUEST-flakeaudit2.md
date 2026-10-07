@@ -5,7 +5,7 @@ Test-side changes are committed on `cx-flakeaudit2`; no push. Production is unch
 Rows +0/+0; EXPECT remains **500 quick / 517 full**. Public names/order/multiplicity match the first audit exactly; [row-count receipt](docs/flakeaudit2/evidence/row-counts.txt). [Production diff receipt](docs/flakeaudit2/evidence/production.diff) is empty. [Final merge receipt](docs/flakeaudit2/evidence/final-merge.txt).
 
 Selected proof: REFUSED (`selected-20261007T222606Z`, four quiet admissions; no gate run id). Run ids: none.
-Full `tests/gate.sh iteration`: PENDING (`full-20261007T223724Z`; 0/1 completed). Run id: none.
+Full `tests/gate.sh iteration`: REFUSED (`full-20261007T223724Z`, four quiet admissions; no gate run id). Run id: none.
 
 The extension [proof.py](docs/flakeaudit2/proof.py) follows `docs/flakeaudit/repeat.sh`: whole jobs, six serial runs, fail on any failed run/FAIL row, compare server SHA before/after, preserve raw logs/ledgers and textual job artifacts in committed evidence. Selected runs are deliberately partial and never labeled full gate receipts. Each admission uses the unchanged quiet monitor, one initial screen plus at most three retries at 200-second spacing. Refusal is recorded and does not launch a compiler, server or load generator. Failed tests are never retried to obtain a pass. Server CPUs 112-119, load CPUs 120-127, build affinity 112-127, ports 18340-18342.
 

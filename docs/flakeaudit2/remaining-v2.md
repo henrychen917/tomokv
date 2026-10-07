@@ -5,7 +5,7 @@ This table preserves all 42 mechanisms and 117 distinct public row occurrences f
 FIXED-TEST-SIDE means the test change is implemented, **not a live proof claim**. Each changed occurrence requires the selected campaign and its complete battery. The category is the disposition of the registered mechanism; other retained checks are called out, and no entire battery is claimed lottery-free without its proof.
 
 Selected proof: REFUSED (`selected-20261007T222606Z`, four quiet admissions; no gate run id). Run ids: none.
-Full iteration: PENDING (`full-20261007T223724Z`; 0/1 completed). Run id: none.
+Full iteration: REFUSED (`full-20261007T223724Z`, four quiet admissions; no gate run id). Run id: none.
 
 Original-register occurrences: A=42, B=51, C=22, D=2 (117). Including GT16: A=43, B=51, C=22, D=2 (118).
 
