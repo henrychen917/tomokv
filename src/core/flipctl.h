@@ -198,6 +198,10 @@ public:
 private:
     void update_band();
 
+    // Keep the former selector's eight-byte slot as padding: shrinking this cold detector
+    // moves hot Server fields and changes ordinary command/dispatch operands. No live mode,
+    // named member, load or store remains in this slot.
+    uint64_t : 64;
     FlipSignature smoothed_{};
     FlipSignature previous_{};
     FlipSignature learning_origin_{};
@@ -214,6 +218,8 @@ private:
     bool have_jitter_ = false;
     bool anchored_ = false;
 };
+
+static_assert(sizeof(FlipShiftDetector) == 560, "preserve hot Server offsets");
 
 enum class FlipctlTriggerReason : uint8_t {
     None = 0,
