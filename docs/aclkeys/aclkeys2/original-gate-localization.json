@@ -1,0 +1,306 @@
+{
+  "source_revision": "70a299bcf",
+  "reason": "20 admission-phase PING calls plus two PING calls per completed park/wake; 28 means four of five wakes completed. The fifth XADD pair was issued before the saved read_reply timeout.",
+  "rows": [
+    {
+      "geometry": "armed",
+      "atomic": 0,
+      "seed": 7,
+      "path": "build/gate-run.OPRDHt/jobs/differ-armed-0/differ/aclkeys-a0-s7.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "armed",
+      "atomic": 0,
+      "seed": 19,
+      "path": "build/gate-run.OPRDHt/jobs/differ-armed-0/differ/aclkeys-a0-s19.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "armed",
+      "atomic": 0,
+      "seed": 20,
+      "path": "build/gate-run.OPRDHt/jobs/differ-armed-0/differ/aclkeys-a0-s20.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "armed",
+      "atomic": 0,
+      "seed": 23,
+      "path": "build/gate-run.OPRDHt/jobs/differ-armed-0/differ/aclkeys-a0-s23.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "armed",
+      "atomic": 0,
+      "seed": 21,
+      "path": "build/gate-run.OPRDHt/jobs/differ-armed-0/differ/aclkeys-a0-s21.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 30,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "PASS"
+    },
+    {
+      "geometry": "armed",
+      "atomic": 1,
+      "seed": 7,
+      "path": "build/gate-run.OPRDHt/jobs/differ-armed-1/differ/aclkeys-a1-s7.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "armed",
+      "atomic": 1,
+      "seed": 19,
+      "path": "build/gate-run.OPRDHt/jobs/differ-armed-1/differ/aclkeys-a1-s19.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "armed",
+      "atomic": 1,
+      "seed": 20,
+      "path": "build/gate-run.OPRDHt/jobs/differ-armed-1/differ/aclkeys-a1-s20.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "armed",
+      "atomic": 1,
+      "seed": 23,
+      "path": "build/gate-run.OPRDHt/jobs/differ-armed-1/differ/aclkeys-a1-s23.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "armed",
+      "atomic": 1,
+      "seed": 21,
+      "path": "build/gate-run.OPRDHt/jobs/differ-armed-1/differ/aclkeys-a1-s21.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 30,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "PASS"
+    },
+    {
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 7,
+      "path": "build/gate-run.OPRDHt/jobs/differ-split-0/differ/aclkeys-a0-s7.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 19,
+      "path": "build/gate-run.OPRDHt/jobs/differ-split-0/differ/aclkeys-a0-s19.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 20,
+      "path": "build/gate-run.OPRDHt/jobs/differ-split-0/differ/aclkeys-a0-s20.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 23,
+      "path": "build/gate-run.OPRDHt/jobs/differ-split-0/differ/aclkeys-a0-s23.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 21,
+      "path": "build/gate-run.OPRDHt/jobs/differ-split-0/differ/aclkeys-a0-s21.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 30,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "PASS"
+    },
+    {
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 7,
+      "path": "build/gate-run.OPRDHt/jobs/differ-split-1/differ/aclkeys-a1-s7.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 19,
+      "path": "build/gate-run.OPRDHt/jobs/differ-split-1/differ/aclkeys-a1-s19.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 20,
+      "path": "build/gate-run.OPRDHt/jobs/differ-split-1/differ/aclkeys-a1-s20.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 23,
+      "path": "build/gate-run.OPRDHt/jobs/differ-split-1/differ/aclkeys-a1-s23.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 28,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "TIMEOUT during XREAD wake reply"
+    },
+    {
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 21,
+      "path": "build/gate-run.OPRDHt/jobs/differ-split-1/differ/aclkeys-a1-s21.txt.coverage.json",
+      "commands": {
+        "LPUSH": 18,
+        "ZADD": 6,
+        "XADD": 6,
+        "PING": 30,
+        "DEL": 32,
+        "CLIENT": 20
+      },
+      "verdict": "PASS"
+    }
+  ]
+}
