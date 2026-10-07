@@ -1,0 +1,61 @@
+GATE(quick): 16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA full: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads
+  artifacts: /home/user/Projects/cx-ccfix/build/gate-run.ck9gow
+PARTIAL jobs (including prerequisites): release production_units netcmd_units acl_recheck auth notify
+PARTIAL jobs (including prerequisites): release production_units netcmd_units acl_recheck auth notify
+  row budget: 900s; median=0s; correctness-plan-fallback; release build (+footprint locks)
+  release build (+footprint locks)                     ok
+  row budget: 900s; median=0s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); netcmd regression build
+  netcmd regression build                              ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd streams regression
+  netcmd streams regression                            ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd zpop regression
+  netcmd zpop regression                               ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd notify-oom regression
+  netcmd notify-oom regression                         ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd notify-retry regression
+  netcmd notify-retry regression                       ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd flush regression
+  netcmd flush regression                              ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd output regression
+  netcmd output regression                             ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd pubsub regression
+  netcmd pubsub regression                             ok
+  row budget: 900s; median=0s; correctness-plan-fallback; netcmd receive regression
+  netcmd receive regression                            ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; netcmd config regression
+  netcmd config regression                             ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; netcmd hexpire-oom regression
+  netcmd hexpire-oom regression                        ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; NET1 serverless bounds + scan + reclamation
+  NET1 serverless bounds + scan + reclamation          ok
+  row budget: 900s; median=43.75s; correctness-plan-fallback; ACL recheck one-reply battery (2s)
+  ACL recheck one-reply battery (2s)                   ok
+  row budget: 900s; median=43.76s; correctness-plan-fallback; ACL recheck one-reply battery (1s)
+  ACL recheck one-reply battery (1s)                   ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject bad protected-mode
+  reject bad protected-mode                            ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject bad enable-debug-command
+  reject bad enable-debug-command                      ok
+  row budget: 900s; median=0.17s; correctness-plan-fallback; AUTH/HELLO/protected state machine
+  AUTH/HELLO/protected state machine                   ok
+  row budget: 900s; median=0.3s; correctness-plan-fallback; ACL battery (atomic off)
+  ACL battery (atomic off)                             ok
+  row budget: 900s; median=0.29s; correctness-plan-fallback; ACL battery (atomic on)
+  ACL battery (atomic on)                              ok
+  row budget: 900s; median=1.1s; correctness-plan-fallback; DEBUG toggle/reload battery
+  DEBUG toggle/reload battery                          ok
+  row budget: 900s; median=0.17s; correctness-plan-fallback; typed snapshot round-trip incl stream
+  typed snapshot round-trip incl stream                ok
+  row budget: 900s; median=2.08s; correctness-plan-fallback; MULTI feature battery
+  MULTI feature battery                                ok
+  row budget: 900s; median=1.54s; correctness-plan-fallback; blocking feature battery
+  blocking feature battery                             ok
+  row budget: 900s; median=0.96s; correctness-plan-fallback; pubsub feature battery
+  pubsub feature battery                               ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; Lua feature battery
+  Lua feature battery                                  ok
+  row budget: 900s; median=22.72s; correctness-plan-fallback; keyspace notification battery (atomic 0/1)
+  keyspace notification battery (atomic 0/1)           ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; feature battery shutdown invariants
+  feature battery shutdown invariants                  ok
+GATE(PARTIAL): 28 ok, 0 FAIL; no EXPECT tally, ABBA, NIC or receipt; ledger: /home/user/Projects/cx-ccfix/build/gate-run.ck9gow/ledger.partial

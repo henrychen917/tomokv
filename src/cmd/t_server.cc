@@ -1050,7 +1050,12 @@ void cmd_debug_impl(Shard& shard, Op& op) {
     // This is the geometry oracle those batteries gate on.
     if (eq_icase(subcommand, "shard") && op.argc() == 3) {
         if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
-        reply_int(op.sink(), g_server->router().shard_of(FlatStore::hash_key(op.arg(2))));
+        // DEBUG has no key metadata, so multidb_stamp leaves its argv unnamespaced.
+        // Use the operation's captured physical DB, including SELECT/SWAPDB mapping,
+        // exactly as the real key commands whose geometry this oracle reports.
+        Slice key = op.arg(2);
+        key.set_namespace(op.physical_db);
+        reply_int(op.sink(), g_server->router().shard_of(FlatStore::hash_key(key)));
         return;
     }
     // Batched geometry oracle. Each pair is truthful at the point it is read and preserves the
@@ -1062,7 +1067,9 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         auto sink = op.sink();
         reply_array_header(sink, op.argc() - 2);
         for (uint32_t i = 2; i < op.argc(); i++) {
-            const int32_t sid = g_server->router().shard_of(FlatStore::hash_key(op.arg(i)));
+            Slice key = op.arg(i);
+            key.set_namespace(op.physical_db);
+            const int32_t sid = g_server->router().shard_of(FlatStore::hash_key(key));
             reply_array_header(sink, 2);
             reply_int(sink, sid);
             reply_int(sink, g_server->worker_of_shard(sid));
@@ -1074,7 +1081,9 @@ void cmd_debug_impl(Shard& shard, Op& op) {
     // its name alone. Expose only the deterministic cell mapping, never the live cell contents;
     // the actual GET/MGET result and read-local counters remain the mechanism oracle.
     if (eq_icase(subcommand, "atomic-filter-cell") && op.argc() == 3) {
-        const uint64_t hash = FlatStore::hash_key(op.arg(2));
+        Slice key = op.arg(2);
+        key.set_namespace(op.physical_db);
+        const uint64_t hash = FlatStore::hash_key(key);
         reply_int(op.sink(), FlatStore::foreign_read_filter_index(hash));
         return;
     }
@@ -1666,6 +1675,7 @@ struct StatBaseline {
     uint64_t acl_denied_cmd = 0, acl_denied_key = 0, acl_denied_channel = 0, acl_denied_auth = 0;
     ReadLocalStats read_local;
     std::vector<uint64_t> command_calls;
+    std::vector<uint64_t> rejected_calls, failed_calls;
 };
 
 std::mutex g_stat_baseline_mu;
@@ -1727,11 +1737,15 @@ void collect_stat_totals(StatBaseline& out) {
         out.object_bytes += sh.published_obj_bytes();
     }
     out.command_calls.assign(command_registry_size(), 0);
+    out.rejected_calls.assign(command_registry_size(), 0);
+    out.failed_calls.assign(command_registry_size(), 0);
     for (uint32_t t = 0; t < g_server->nthreads(); t++) {
         ThreadCtx& thread = g_server->thread(t);
         for (uint32_t id = 0; id < command_registry_size(); id++) {
             const uint64_t calls = thread.command_calls(id);
             out.command_calls[id] += calls;
+            out.rejected_calls[id] += thread.command_rejected_calls(id);
+            out.failed_calls[id] += thread.command_failed_calls(id);
             out.total_ops += calls;
             if (std::strcmp(command_registry_at(id)->name, "INFO")) out.sampled_ops += calls;
         }
@@ -2689,15 +2703,24 @@ void cmd_info(Shard&, Op& op) {
     if (info_section(op, "COMMANDSTATS", false)) {
         body += "# Commandstats\r\n";
         for (uint32_t id = 0; id < command_registry_size(); id++) {
-            uint64_t calls = 0;
-            for (uint32_t t = 0; g_server && t < g_server->nthreads(); t++)
+            uint64_t calls = 0, rejected_calls = 0, failed_calls = 0;
+            for (uint32_t t = 0; g_server && t < g_server->nthreads(); t++) {
                 calls += g_server->thread(t).command_calls(id);
+                rejected_calls += g_server->thread(t).command_rejected_calls(id);
+                failed_calls += g_server->thread(t).command_failed_calls(id);
+            }
             if (id < baseline.command_calls.size())
                 calls = minus_baseline(calls, baseline.command_calls[id]);
-            if (!calls) continue;
+            if (id < baseline.rejected_calls.size())
+                rejected_calls = minus_baseline(rejected_calls, baseline.rejected_calls[id]);
+            if (id < baseline.failed_calls.size())
+                failed_calls = minus_baseline(failed_calls, baseline.failed_calls[id]);
+            if (!calls && !rejected_calls && !failed_calls) continue;
             const std::string name = lower_name(command_registry_at(id)->name);
-            appendf(body, "cmdstat_%s:calls=%llu\r\n",
-                    name.c_str(), static_cast<unsigned long long>(calls));
+            // Omit unmeasured timing and unimplemented failed_calls; never invent counters.
+            appendf(body, "cmdstat_%s:calls=%llu,rejected_calls=%llu\r\n",
+                    name.c_str(), static_cast<unsigned long long>(calls),
+                    static_cast<unsigned long long>(rejected_calls));
         }
     }
     if (info_section(op, "KEYSPACE")) {

@@ -1,0 +1,71 @@
+{
+  "candidate_sha256": "b9ff988dff0eb7224c0668f3b946ef0e6e61838e130b6cb34e2d6ca72446f212",
+  "geometries": {
+    "split": {
+      "oracle": "redis_version:7.4.10",
+      "rows": [
+        {
+          "atomic": 0,
+          "seed": 7,
+          "comparisons": 210,
+          "sha256": "3d047908d800e49e500ac57a5aced5b35fa3e9896f8921e2aff9532b98b4f94e",
+          "passed": true
+        },
+        {
+          "atomic": 0,
+          "seed": 19,
+          "comparisons": 210,
+          "sha256": "3d047908d800e49e500ac57a5aced5b35fa3e9896f8921e2aff9532b98b4f94e",
+          "passed": true
+        },
+        {
+          "atomic": 1,
+          "seed": 7,
+          "comparisons": 222,
+          "sha256": "79bd7785b6b708db5075f717ca3eaa6206b95897e1ce02fa9f2d8f2a23a7b2d2",
+          "passed": true
+        },
+        {
+          "atomic": 1,
+          "seed": 19,
+          "comparisons": 222,
+          "sha256": "79bd7785b6b708db5075f717ca3eaa6206b95897e1ce02fa9f2d8f2a23a7b2d2",
+          "passed": true
+        }
+      ]
+    },
+    "fused": {
+      "oracle": "redis_version:7.4.10",
+      "rows": [
+        {
+          "atomic": 0,
+          "seed": 7,
+          "comparisons": 210,
+          "sha256": "3d047908d800e49e500ac57a5aced5b35fa3e9896f8921e2aff9532b98b4f94e",
+          "passed": true
+        },
+        {
+          "atomic": 0,
+          "seed": 19,
+          "comparisons": 210,
+          "sha256": "3d047908d800e49e500ac57a5aced5b35fa3e9896f8921e2aff9532b98b4f94e",
+          "passed": true
+        },
+        {
+          "atomic": 1,
+          "seed": 7,
+          "comparisons": 222,
+          "sha256": "79bd7785b6b708db5075f717ca3eaa6206b95897e1ce02fa9f2d8f2a23a7b2d2",
+          "passed": true
+        },
+        {
+          "atomic": 1,
+          "seed": 19,
+          "comparisons": 222,
+          "sha256": "79bd7785b6b708db5075f717ca3eaa6206b95897e1ce02fa9f2d8f2a23a7b2d2",
+          "passed": true
+        }
+      ]
+    }
+  }
+}

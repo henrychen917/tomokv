@@ -1,0 +1,5 @@
+FAIL: 0 of 11 complete serial runs had exact PRE/POST equality in both namespaces.
+See instruction-status.json, instructions-attempt1/2/3, and instructions-stability/.
+Top-level instruction-comparison.json and CSVs are the last complete run; no rows mixed.
+The measured calls/notifications loop assembly comparison passes separately.
+No tolerance, rounding, loop change or counter correction was used.

@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "part": "armed-1",
+  "run": "iteration:gate-run.J8JtMK",
+  "seeds": [
+    7,
+    19,
+    20,
+    23,
+    26
+  ],
+  "comparisons": 219,
+  "complete": true
+}

@@ -1,0 +1,201 @@
+{
+  "value": 146575,
+  "pre_sha256": "c8bd8b7ea9332b1db8cc1cfea965e7cc0d67a050602254463e97fad051575557",
+  "source_tree": "e3f3039421aca2eb4e8e538b7efb8fb4a2214bd3",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=146575",
+    "-c",
+    "src/main.cc",
+    "-o",
+    "/home/user/Projects/cx-ccfix/build/ccfix4/budgets/146575.o"
+  ],
+  "seconds": 28.95280776033178,
+  "object_sha256": "baf8249f3a52ee51bcf02bebc13b6292353654d43c83847dcf7e4b79c72a6d63",
+  "total": 826,
+  "hot": 129,
+  "changed": 18,
+  "hot_changed": 4,
+  "hot_differing_bytes": 8554,
+  "rows": [
+    {
+      "symbol": "_ZN8tomo_db011AofProducerD1Ev",
+      "name": "tomo_db0::AofProducer::~AofProducer()",
+      "hot": false,
+      "pre_size": 2721,
+      "post_size": 2832,
+      "differing_bytes": 1555,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db011AofProducerD2Ev",
+      "name": "tomo_db0::AofProducer::~AofProducer()",
+      "hot": false,
+      "pre_size": 2721,
+      "post_size": 2832,
+      "differing_bytes": 1555,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop19pubsub_delete_eventEPNS_11PubSubEventE",
+      "name": "tomo_db0::IoLoop::pubsub_delete_event(tomo_db0::PubSubEvent*)",
+      "hot": false,
+      "pre_size": 800,
+      "post_size": 800,
+      "differing_bytes": 66,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop30quiesce_accepts_for_conversionEv",
+      "name": "tomo_db0::IoLoop::quiesce_accepts_for_conversion()",
+      "hot": false,
+      "pre_size": 664,
+      "post_size": 677,
+      "differing_bytes": 287,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06IoLoop8run_loopILb0ELb1ELb0ELb0ELh0ELb0EEEvv",
+      "name": "void tomo_db0::IoLoop::run_loop<false, true, false, false, (unsigned char)0, false>()",
+      "hot": true,
+      "pre_size": 4231,
+      "post_size": 4391,
+      "differing_bytes": 2289,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06Server4initERKNS_6ConfigEPKNS_13AofReplayPlanE",
+      "name": "tomo_db0::Server::init(tomo_db0::Config const&, tomo_db0::AofReplayPlan const*)",
+      "hot": false,
+      "pre_size": 11945,
+      "post_size": 12459,
+      "differing_bytes": 8913,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db07ExLoopTILb0EE21snapshot_control_passILj32ELb0EEEjv",
+      "name": "unsigned int tomo_db0::ExLoopT<false>::snapshot_control_pass<32u, false>()",
+      "hot": false,
+      "pre_size": 3192,
+      "post_size": 3163,
+      "differing_bytes": 815,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "name": "tomo_db0::ExLoopT<false>::run()",
+      "hot": true,
+      "pre_size": 7094,
+      "post_size": 7174,
+      "differing_bytes": 5181,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db09FlatStore12budget_admitENS_5SliceE",
+      "name": "tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)",
+      "hot": false,
+      "pre_size": 947,
+      "post_size": 963,
+      "differing_bytes": 504,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db09FlatStore19retire_detached_objEPNS_5KvObjE",
+      "name": "tomo_db0::FlatStore::retire_detached_obj(tomo_db0::KvObj*)",
+      "hot": false,
+      "pre_size": 838,
+      "post_size": 881,
+      "differing_bytes": 562,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db09FlatStore8hash_keyENS_5SliceE.isra.0",
+      "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+      "hot": false,
+      "pre_size": 781,
+      "post_size": 776,
+      "differing_bytes": 758,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_5Shard20lb_scan_bucket_bytesEjEUlPNS_5KvObjEE_EEjijRT_b",
+      "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_db0::KvObj*)#1}&, bool)",
+      "hot": false,
+      "pre_size": 968,
+      "post_size": 1036,
+      "differing_bytes": 277,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNK8tomo_db09FlatStore12find_hash_inEim",
+      "name": "tomo_db0::FlatStore::find_hash_in(int, unsigned long) const",
+      "hot": true,
+      "pre_size": 425,
+      "post_size": 428,
+      "differing_bytes": 299,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNSt6vectorIdSaIdEE14_M_fill_assignEmRKd",
+      "name": "std::vector<double, std::allocator<double> >::_M_fill_assign(unsigned long, double const&)",
+      "hot": false,
+      "pre_size": 420,
+      "post_size": 0,
+      "differing_bytes": 420,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb0ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "name": "tomo_db0::WbEngine::serve_impl<false, true, false, false, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "hot": true,
+      "pre_size": 537,
+      "post_size": 824,
+      "differing_bytes": 785,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZN8tomo_db09FlatStore13active_expireEjENKUlmE_clEm",
+      "name": "tomo_db0::FlatStore::active_expire(unsigned int)::{lambda(unsigned long)#1}::operator()(unsigned long) const",
+      "hot": false,
+      "pre_size": 960,
+      "post_size": 944,
+      "differing_bytes": 722,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZN8tomo_db09FlatStore20active_expire_fieldsEjENKUlmE_clEm",
+      "name": "tomo_db0::FlatStore::active_expire_fields(unsigned int)::{lambda(unsigned long)#1}::operator()(unsigned long) const",
+      "hot": false,
+      "pre_size": 1314,
+      "post_size": 1338,
+      "differing_bytes": 193,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZZN8tomo_db09siphash12EPKcmENKUlvE_clEv.isra.0",
+      "name": "tomo_db0::siphash12(char const*, unsigned long)::{lambda()#1}::operator()() const [clone .isra.0]",
+      "hot": false,
+      "pre_size": 93,
+      "post_size": 0,
+      "differing_bytes": 93,
+      "targets_equal": false
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+ok: CD1 HEXPIRE:lazy compact/expanded clean/notify
+ok: CD1 HEXPIRE:active compact/expanded clean/notify
+ok: CD1 HPEXPIRE:lazy compact/expanded clean/notify
+ok: CD1 HPEXPIRE:active compact/expanded clean/notify
+ok: CD1 HEXPIREAT:lazy compact/expanded clean/notify
+ok: CD1 HEXPIREAT:active compact/expanded clean/notify
+ok: CD1 HPEXPIREAT:lazy compact/expanded clean/notify
+ok: CD1 HPEXPIREAT:active compact/expanded clean/notify
+ok: CD1 104 deterministic hash-field TTL cases
+ok: netcmd hexpire-oom

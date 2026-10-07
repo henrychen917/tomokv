@@ -1,0 +1,2 @@
+PRE production flag serializer rejected by the SAME exact expectations; SIGABRT as expected.
+flags-control: tests/ccfix_unit.cc:22: int main(): Assertion `serialize_notify_flags(mask) == expected' failed.

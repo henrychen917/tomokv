@@ -1,0 +1,2 @@
+Function: unsigned int tomo::IoLoop::collect_retire_work<false, true>(bool)
+Occurrence: 0

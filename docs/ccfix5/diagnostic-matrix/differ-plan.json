@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "manifest": {
+    "run": "iteration:gate-run.C13Mg5",
+    "permanent": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "failed": [
+      7,
+      19,
+      23
+    ],
+    "rotating": 24,
+    "seeds": [
+      7,
+      19,
+      20,
+      23,
+      24
+    ],
+    "history": "/home/user/Projects/cx-ccfix/.gate-history/differ"
+  },
+  "suites": [
+    "string",
+    "list",
+    "set",
+    "zset",
+    "hash",
+    "hexpire",
+    "edgetime",
+    "xshard",
+    "xmove",
+    "bitmap",
+    "hll",
+    "bitfield",
+    "cgaps",
+    "stream",
+    "script",
+    "streamgrp",
+    "zsetops",
+    "geo",
+    "doubles",
+    "scan",
+    "multi",
+    "edgeenc",
+    "edgeproto",
+    "cmdgap",
+    "cmdgap2",
+    "sort",
+    "servertail",
+    "arity",
+    "storeorder",
+    "infofix",
+    "multidb",
+    "blocking",
+    "pubsub",
+    "fanout",
+    "spubsub",
+    "notify",
+    "wiredump",
+    "climon",
+    "compatintro",
+    "aclsel",
+    "cmdmeta",
+    "s6fix",
+    "ccfix",
+    "psfix"
+  ],
+  "repeats": 4,
+  "equivalence_seeds": [
+    24
+  ]
+}

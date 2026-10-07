@@ -1,0 +1,22 @@
+{
+  "src/cmd/notify.h": {
+    "round1_equal": true,
+    "sha256": "5a934b5fe063cb129eaafb2a88ed08b21572db9fd0eab901327cf3e509b66ee4"
+  },
+  "src/cmd/notify.inc": {
+    "round1_equal": true,
+    "sha256": "b53f75fdef5d9fd0bed988dc27e4f431d04eb0334fb74b7b3d3605394a3ba2a8"
+  },
+  "src/cmd/acl.inc": {
+    "round1_equal": true,
+    "sha256": "2c42c930a1bfe56182d0a14c34a7bb1a2872465581a66f00363d4745fe82f4e7"
+  },
+  "src/cmd/auth.inc": {
+    "round1_equal": true,
+    "sha256": "6c24dba74dcfcdd69a9b38cdad5947bc58d6519512b200eb36f8dee51db4075b"
+  },
+  "src/core/thread.h": {
+    "round1_equal": true,
+    "sha256": "8922cc64961d6aa6548841881c25e14352e64a7c91cc0e8509d5070d4df8bad5"
+  }
+}

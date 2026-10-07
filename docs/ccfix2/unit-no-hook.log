@@ -1,0 +1,3 @@
+unit-no-hook: /home/user/Projects/cx-ccfix/tests/ccfix_unit.cc:80: main()::<lambda(std::initializer_list<const char*>, bool)>: Assertion `thread.command_failed_calls(op.spec->id) == before + (error && !rejected)' failed.
+
+exit=-6

@@ -1,0 +1,14 @@
+{
+  "source_commit": "f103d127b9747965e28f20615ef790332661fc68",
+  "version": "7.4.10",
+  "binaries": {
+    "redis-server": {
+      "path": "/home/user/Projects/redis/src/redis-server",
+      "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+    },
+    "redis-cli": {
+      "path": "/home/user/Projects/redis/src/redis-cli",
+      "sha256": "da8b5b5001a481a8fe9e7be07f30cca872bafb9a15be2eeee5a82ccccd41ff9e"
+    }
+  }
+}

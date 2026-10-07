@@ -1,0 +1,16 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "python3",
+    "tools/gen_cmdmeta.py",
+    "--redis-root",
+    "/home/user/Projects/redis",
+    "--check",
+    "src/cmd/cmdmeta_generated.inc"
+  ],
+  "returncode": 0,
+  "stdout": "",
+  "stderr": ""
+}

@@ -1,0 +1,221 @@
+{
+  "PRE": [
+    {
+      "boot": "r1-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": []
+    },
+    {
+      "boot": "r1-a1",
+      "windows": 24,
+      "opened": 23,
+      "misses": [
+        {
+          "attempt": 23,
+          "keys": [
+            "ccfix5:23:1791330440871467098:0000",
+            "ccfix5:23:1791330440871467098:0002"
+          ],
+          "owners": [
+            2,
+            7
+          ],
+          "pending": [
+            "0",
+            "0"
+          ],
+          "localfast": [
+            "0",
+            "1"
+          ],
+          "writer_ready": true
+        }
+      ]
+    },
+    {
+      "boot": "r2-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": []
+    },
+    {
+      "boot": "r2-a1",
+      "windows": 24,
+      "opened": 22,
+      "misses": [
+        {
+          "attempt": 10,
+          "keys": [
+            "ccfix5:10:1791330446762960386:0000",
+            "ccfix5:10:1791330446762960386:0001"
+          ],
+          "owners": [
+            6,
+            7
+          ],
+          "pending": [
+            "0",
+            "0"
+          ],
+          "localfast": [
+            "0",
+            "1"
+          ],
+          "writer_ready": true
+        },
+        {
+          "attempt": 18,
+          "keys": [
+            "ccfix5:18:1791330451994979543:0000",
+            "ccfix5:18:1791330451994979543:0001"
+          ],
+          "owners": [
+            7,
+            6
+          ],
+          "pending": [
+            "0",
+            "0"
+          ],
+          "localfast": [
+            "2",
+            "3"
+          ],
+          "writer_ready": true
+        }
+      ]
+    },
+    {
+      "boot": "r3-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": []
+    },
+    {
+      "boot": "r3-a1",
+      "windows": 24,
+      "opened": 20,
+      "misses": [
+        {
+          "attempt": 6,
+          "keys": [
+            "ccfix5:6:1791330457782348103:0002",
+            "ccfix5:6:1791330457782348103:0003"
+          ],
+          "owners": [
+            2,
+            0
+          ],
+          "pending": [
+            "0",
+            "0"
+          ],
+          "localfast": [
+            "0",
+            "1"
+          ],
+          "writer_ready": true
+        },
+        {
+          "attempt": 11,
+          "keys": [
+            "ccfix5:11:1791330462849374527:0000",
+            "ccfix5:11:1791330462849374527:0001"
+          ],
+          "owners": [
+            0,
+            6
+          ],
+          "pending": [
+            "0",
+            "0"
+          ],
+          "localfast": [
+            "1",
+            "2"
+          ],
+          "writer_ready": true
+        },
+        {
+          "attempt": 14,
+          "keys": [
+            "ccfix5:14:1791330467912911074:0000",
+            "ccfix5:14:1791330467912911074:0002"
+          ],
+          "owners": [
+            5,
+            3
+          ],
+          "pending": [
+            "0",
+            "0"
+          ],
+          "localfast": [
+            "2",
+            "3"
+          ],
+          "writer_ready": true
+        },
+        {
+          "attempt": 21,
+          "keys": [
+            "ccfix5:21:1791330473140207863:0000",
+            "ccfix5:21:1791330473140207863:0002"
+          ],
+          "owners": [
+            7,
+            0
+          ],
+          "pending": [
+            "0",
+            "0"
+          ],
+          "localfast": [
+            "3",
+            "4"
+          ],
+          "writer_ready": true
+        }
+      ]
+    }
+  ],
+  "POST": [
+    {
+      "boot": "r1-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": []
+    },
+    {
+      "boot": "r1-a1",
+      "windows": 24,
+      "opened": 24,
+      "misses": []
+    },
+    {
+      "boot": "r2-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": []
+    },
+    {
+      "boot": "r2-a1",
+      "windows": 24,
+      "opened": 24,
+      "misses": []
+    },
+    {
+      "boot": "r3-a0",
+      "windows": 0,
+      "opened": 0,
+      "misses": []
+    },
+    {
+      "boot": "r3-a1",
+      "windows": 24,
+      "opened": 24,
+      "misses": []
+    }
+  ]
+}

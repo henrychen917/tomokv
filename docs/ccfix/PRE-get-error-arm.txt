@@ -1,0 +1,13 @@
+    3069:	00 
+    306a:	80 38 00             	cmpb   $0x0,(%rax)
+    306d:	48 89 2c 24          	mov    %rbp,(%rsp)
+    3071:	c6 44 24 08 00       	movb   $0x0,0x8(%rsp)
+    3076:	74 38                	je     30b0 <void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)+0xc0>
+    3078:	48 89 e7             	mov    %rsp,%rdi
+    307b:	ba 44 00 00 00       	mov    $0x44,%edx
+    3080:	48 8d 35 00 00 00 00 	lea    0x0(%rip),%rsi        # 3087 <void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)+0x97>
+			3083: R_X86_64_PC32	.LC11-0x4
+    3087:	e8 00 00 00 00       	call   308c <void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)+0x9c>
+			3088: R_X86_64_PLT32	tomo::Op::Sink::append(char const*, unsigned long)-0x4
+    308c:	48 8b 44 24 38       	mov    0x38(%rsp),%rax
+    3091:	64 48 2b 04 25 28 00 	sub    %fs:0x28,%rax
