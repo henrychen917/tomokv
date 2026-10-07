@@ -1,0 +1,40 @@
+diff --git a/src/cmd/t_server.cc b/src/cmd/t_server.cc
+index b11d64c7e..a7a337908 100644
+--- a/src/cmd/t_server.cc
++++ b/src/cmd/t_server.cc
+@@ -1050,7 +1050,12 @@ void cmd_debug_impl(Shard& shard, Op& op) {
+     // This is the geometry oracle those batteries gate on.
+     if (eq_icase(subcommand, "shard") && op.argc() == 3) {
+         if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+-        reply_int(op.sink(), g_server->router().shard_of(FlatStore::hash_key(op.arg(2))));
++        // DEBUG has no key metadata, so multidb_stamp leaves its argv unnamespaced.
++        // Use the operation's captured physical DB, including SELECT/SWAPDB mapping,
++        // exactly as the real key commands whose geometry this oracle reports.
++        Slice key = op.arg(2);
++        key.set_namespace(op.physical_db);
++        reply_int(op.sink(), g_server->router().shard_of(FlatStore::hash_key(key)));
+         return;
+     }
+     // Batched geometry oracle. Each pair is truthful at the point it is read and preserves the
+@@ -1062,7 +1067,9 @@ void cmd_debug_impl(Shard& shard, Op& op) {
+         auto sink = op.sink();
+         reply_array_header(sink, op.argc() - 2);
+         for (uint32_t i = 2; i < op.argc(); i++) {
+-            const int32_t sid = g_server->router().shard_of(FlatStore::hash_key(op.arg(i)));
++            Slice key = op.arg(i);
++            key.set_namespace(op.physical_db);
++            const int32_t sid = g_server->router().shard_of(FlatStore::hash_key(key));
+             reply_array_header(sink, 2);
+             reply_int(sink, sid);
+             reply_int(sink, g_server->worker_of_shard(sid));
+@@ -1074,7 +1081,9 @@ void cmd_debug_impl(Shard& shard, Op& op) {
+     // its name alone. Expose only the deterministic cell mapping, never the live cell contents;
+     // the actual GET/MGET result and read-local counters remain the mechanism oracle.
+     if (eq_icase(subcommand, "atomic-filter-cell") && op.argc() == 3) {
+-        const uint64_t hash = FlatStore::hash_key(op.arg(2));
++        Slice key = op.arg(2);
++        key.set_namespace(op.physical_db);
++        const uint64_t hash = FlatStore::hash_key(key);
+         reply_int(op.sink(), FlatStore::foreign_read_filter_index(hash));
+         return;
+     }

@@ -199,11 +199,24 @@ def self_test():
         # Identical fake reply streams are enough to test coverage plumbing. In particular the
         # FLUSHALL setup reply is drained but never diffed, so it MUST NOT become command coverage.
         class FakeSocket:
+            def __init__(self): self.replies = io.BytesIO()
             def setsockopt(self, *args): pass
-            def sendall(self, _payload): pass
+            def sendall(self, payload):
+                commands = io.BytesIO(payload)
+                position = self.replies.tell()
+                self.replies.seek(0, io.SEEK_END)
+                while commands.tell() < len(payload):
+                    args = []
+                    for _ in range(int(commands.readline()[1:-2])):
+                        size = int(commands.readline()[1:-2])
+                        args.append(commands.read(size))
+                        assert commands.read(2) == b'\r\n'
+                    # TTL replies now require real integer framing, even when equal.
+                    self.replies.write(b':-2\r\n' if args[0] == b'TTL' else b'+OK\r\n')
+                self.replies.seek(position)
             def close(self): pass
-            def makefile(self, _mode): return self
-            def readline(self): return b'+OK\r\n'
+            def makefile(self, _mode, buffering=-1): return self
+            def readline(self): return self.replies.readline()
         old_connection, old_argv = socket.create_connection, sys.argv
         old_module = sys.modules.get('_differ_history')
         old_path, old_counts, old_kinds = coverage.path, coverage.counts, coverage.kinds

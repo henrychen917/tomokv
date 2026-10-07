@@ -11,6 +11,7 @@ rate exists only to exercise the controller's work/rate windows.
 """
 
 import argparse
+import math
 import socket
 import threading
 import time
@@ -21,9 +22,12 @@ BOOT_JITTER_FACTORS = (0.8, 0.95, 1.1, 1.2, 1.05, 0.9)
 # The stable hold states a property of the CONTROLLER ("it does not move while the offered load
 # stays inside the band it derives"), so the load has to be MEASURED, not assumed. Each attempt
 # spends PRE_HOLD_SECONDS proving the driver's own command rate is stationary by the controller's
-# own rule before the hold's assertion window opens; an attempt whose load leaves that band is
-# re-rolled, up to STABLE_HOLD_ATTEMPTS, and then the hold FAILS with its numbers. A move
-# while the load is provably stationary is a real move and still fails.
+# own rule before the hold's assertion window opens. EVERY hold sample must then stay inside
+# the published band around BOTH the fixed driver anchor and the controller's saved anchor.
+# Reacquiring a driver anchor on retry must not hide drift from the controller (GT16b).
+# An invalid window is re-rolled, up to
+# STABLE_HOLD_ATTEMPTS, and exhaustion FAILS with its numbers. A move during a stationary
+# window is a real move and still fails.
 STABLE_HOLD_ATTEMPTS = 3
 PRE_HOLD_SECONDS = 8
 
@@ -150,6 +154,51 @@ def rate_rule_fires(rates, band):
                      reference, band,
                      max(relative_distance(r, reference) for r in readings)))
     return ""
+
+
+def classify_stable_hold(rates, anchor, band, moved, controller_anchor):
+    """Return (PASS | FAIL | INVALID, reason) for the assertion window's driver trace.
+
+    Freeze the driver's pre-hold mean and the controller's published anchor/band at arming. Recentring
+    on the hold's own mean or averaging adjacent seconds can hide a load-generator dip (GT16).
+    Any out-of-band second invalidates the premise, even if the controller did not move. A
+    stationary trace never excuses movement, regardless of the controller's trigger reason.
+    A retry's fresh driver mean must not erase a step away from the controller's reference.
+    """
+    if not math.isfinite(anchor) or anchor <= 0 or not math.isfinite(band) or band < 0:
+        return "INVALID", "invalid driver anchor/band: anchor=%r band=%r" % (anchor, band)
+    if not math.isfinite(controller_anchor) or controller_anchor <= 0:
+        return "INVALID", "invalid controller anchor: %r" % controller_anchor
+    if not rates:
+        return "INVALID", "assertion window has no driver samples"
+    deviations = []
+    controller_deviations = []
+    for second, rate in enumerate(rates, 1):
+        if not math.isfinite(rate) or rate < 0:
+            return "INVALID", "invalid driver rate at hold sample %d: %r" % (second, rate)
+        deviation = abs(rate / anchor - 1.0)
+        deviations.append(deviation)
+        if deviation > band:
+            return "INVALID", (
+                "driver left the controller's published band at hold sample %d: "
+                "rate=%.3f/s anchor=%.3f/s deviation=%.6f > band=%.6f" %
+                (second, rate, anchor, deviation, band))
+        controller_deviation = abs(rate / controller_anchor - 1.0)
+        controller_deviations.append(controller_deviation)
+        if controller_deviation > band:
+            return "INVALID", (
+                "driver left the controller anchor's published band at hold sample %d: "
+                "rate=%.3f/s driver anchor=%.3f/s controller anchor=%.3f/s "
+                "deviation=%.6f > band=%.6f" %
+                (second, rate, anchor, controller_anchor, controller_deviation, band))
+    stationary = ("driver stationary for %d samples: anchor=%.3f/s "
+                  "max deviation=%.6f; controller anchor=%.3f/s max deviation=%.6f "
+                  "<= band=%.6f for both anchors" %
+                  (len(rates), anchor, max(deviations), controller_anchor,
+                   max(controller_deviations), band))
+    if moved:
+        return "FAIL", stationary + "; controller moved during the stable hold"
+    return "PASS", stationary + "; no controller movement"
 
 
 def wait_for(control, description, predicate, timeout, poll_interval=1):
@@ -336,7 +385,11 @@ def main():
         # the offered load stays inside the band it derives". That is a claim about the controller
         # only if the load really was stationary, so each attempt first spends PRE_HOLD_SECONDS
         # measuring the DRIVER's own command rate and replays the controller's own rate rule over
-        # it (rate_rule_fires). Only then does the assertion window open.
+        # it (rate_rule_fires). Only then does the assertion window open, with a fixed driver
+        # anchor. The pre-hold and hold must also stay inside the band around the controller's
+        # published anchor: a retry cannot declare a different offered rate stationary (GT16b).
+        # Inside that window classify_stable_hold checks EVERY second against both anchors,
+        # both when the controller moves and when the entire hold completes without movement.
         #   * load provably stationary + controller moved  -> FAIL, with flipctl_last_trigger, the
         #     controller's own DEBUG dump and the per-second split/rate trace, so a real move is
         #     distinguishable from a driver artefact in the log.
@@ -353,11 +406,14 @@ def main():
             base_triggers = int(anchored_row["flipctl_triggers"])
             base_split = (anchored_row["flipctl_anchor_io"], anchored_row["flipctl_anchor_ex"])
             band = float(anchored_row["flipctl_rate_band"])
+            controller_anchor = float(anchored_row["flipctl_anchor_rate"])
             if band < 0:
                 raise AssertionError("controller reported a negative derived rate band")
             rates = []
+            hold_rates = []
             trace = []
             hold_started = None
+            driver_anchor = None
             row = anchored_row
             previous_commands = driver_commands()
             previous_time = time.monotonic()
@@ -371,6 +427,8 @@ def main():
                 rate = (commands - previous_commands) / max(now - previous_time, 1e-9)
                 previous_commands, previous_time = commands, now
                 rates.append(rate)
+                if hold_started is not None:
+                    hold_rates.append(rate)
                 row = info(control)
                 live = info(control, "SERVER")
                 trace.append(
@@ -386,7 +444,18 @@ def main():
                     int(row["flipctl_triggers"]) != base_triggers or \
                     (row["flipctl_anchor_io"], row["flipctl_anchor_ex"]) != base_split
                 if moved:
-                    unstable = rate_rule_fires(rates, band)
+                    if hold_started is not None:
+                        verdict, reason = classify_stable_hold(
+                            hold_rates, driver_anchor, band, moved=True,
+                            controller_anchor=controller_anchor)
+                        unstable = reason if verdict == "INVALID" else ""
+                    else:
+                        unstable = rate_rule_fires(rates, band)
+                        if not unstable:
+                            verdict, reason = classify_stable_hold(
+                                rates, sum(rates) / len(rates), band, moved=True,
+                                controller_anchor=controller_anchor)
+                            unstable = reason if verdict == "INVALID" else ""
                     try:
                         dump = control.command("DEBUG", "FLIPCTL").decode(errors="replace")
                     except Exception as error:
@@ -403,7 +472,10 @@ def main():
                          ", ".join("%.0f" % value for value in rates),
                          "\n    ".join(trace), dump.replace("\n", "\n    ")))
                     if unstable:
-                        return ("reroll", "%s -- %s" % (unstable, evidence))
+                        return ("reroll", "INVALID: %s -- %s" % (unstable, evidence))
+                    if hold_started is not None:
+                        # No trigger-specific exemption during a stationary assertion window.
+                        return ("moved", "%s: %s -- %s" % (verdict, reason, evidence))
                     # The load was stationary in the signal the DRIVER controls -- rate, mix,
                     # connection set, key and value shapes are all fixed here. Which of the
                     # controller's two detectors moved decides whether this row can adjudicate it.
@@ -437,6 +509,12 @@ def main():
                     return ("moved", evidence)
                 if hold_started is None and len(rates) >= PRE_HOLD_SECONDS:
                     unstable = rate_rule_fires(rates, band)
+                    driver_anchor = sum(rates) / len(rates)
+                    verdict, reason = classify_stable_hold(
+                        rates, driver_anchor, band, moved=False,
+                        controller_anchor=controller_anchor)
+                    if verdict == "INVALID":
+                        unstable = reason
                     if unstable:
                         return ("reroll",
                                 "pre-hold window is not stationary: %s\n  per-second trace:\n"
@@ -445,17 +523,28 @@ def main():
                     # The assertion window is a full `seconds` of wall time from HERE, not
                     # whatever is left of a budget the pre-hold measurement already spent.
                     deadline = now + seconds
-                    print("stable hold: %ds pre-hold window stationary (driver %s/s, band %.4f); "
+                    print("stable hold: %ds pre-hold window stationary "
+                          "(driver %s/s, driver anchor %.3f/s, controller anchor %.3f/s, band %.6f); "
                           "assertion window open for %ds" %
                           (PRE_HOLD_SECONDS,
-                           ",".join("%.0f" % value for value in rates), band, seconds),
+                           ",".join("%.0f" % value for value in rates), driver_anchor,
+                           controller_anchor, band, seconds),
                           flush=True)
             if hold_started is None:
                 # The assertion window never opened, so nothing was asserted. Never report this
                 # as a hold: a row that turns green without opening its window is the vacuity
                 # this lane exists to remove.
-                return ("reroll", "the assertion window never opened (only %d samples in %ds)" %
-                        (len(rates), PRE_HOLD_SECONDS + seconds))
+                return ("reroll", "INVALID: the assertion window never opened "
+                        "(only %d samples in %ds)\n  per-second trace:\n    %s" %
+                        (len(rates), PRE_HOLD_SECONDS + seconds, "\n    ".join(trace)))
+            verdict, reason = classify_stable_hold(
+                hold_rates, driver_anchor, band, moved=False, controller_anchor=controller_anchor)
+            evidence = ("%s: %s\n  driver per-second rates: %s\n  per-second trace:\n    %s" %
+                        (verdict, reason, ", ".join("%.0f" % value for value in hold_rates),
+                         "\n    ".join(trace)))
+            if verdict == "INVALID":
+                return ("reroll", evidence)
+            print("stable hold %s" % evidence, flush=True)
             return ("held", row)
 
         held_row = None

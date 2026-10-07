@@ -1,0 +1,173 @@
+{
+  "total": 16940,
+  "equal": 16858,
+  "changed": 82,
+  "handlers": 1213,
+  "handlers_equal": 1208,
+  "hot": 1492,
+  "hot_equal": 1490,
+  "changed_handlers": [
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 16177,
+      "post_size": 16015,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 349,
+      "post_size": 344,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 7671,
+      "post_size": 7629,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 16215,
+      "post_size": 16047,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 353,
+      "post_size": 347,
+      "classification": "other"
+    }
+  ],
+  "changed_hot": [
+    {
+      "object": "db0/src/main.o",
+      "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "name": "tomo_db0::WbEngine::serve_impl<false, true, false, true, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 537,
+      "post_size": 824,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/main.o",
+      "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "name": "tomo_db0::WbEngine::serve_impl<false, true, true, true, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 824,
+      "post_size": 537,
+      "classification": "other"
+    }
+  ],
+  "hot_nonerror_equal": 1490,
+  "handlers_nonerror_equal": 1208,
+  "other_handlers": [
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 16177,
+      "post_size": 16015,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 349,
+      "post_size": 344,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 7671,
+      "post_size": 7629,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 16215,
+      "post_size": 16047,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 353,
+      "post_size": 347,
+      "classification": "other"
+    }
+  ],
+  "other_hot": [
+    {
+      "object": "db0/src/main.o",
+      "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "name": "tomo_db0::WbEngine::serve_impl<false, true, false, true, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 537,
+      "post_size": 824,
+      "classification": "other"
+    },
+    {
+      "object": "db0/src/main.o",
+      "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "name": "tomo_db0::WbEngine::serve_impl<false, true, true, true, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 824,
+      "post_size": 537,
+      "classification": "other"
+    }
+  ]
+}

@@ -12,6 +12,7 @@
 #include <string>
 #include <thread>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "src/store/flatstore.h"
@@ -84,6 +85,17 @@ struct FlatStoreRegressionTest {
     }
     static KvObj* candidate(FlatStore& s, const std::string& protected_key = "") {
         return s.choose_victim(slice(protected_key));
+    }
+    static std::pair<KvObj*, KvObj*> first_lru_candidates(FlatStore& s, uint64_t seed) {
+        // Observe the REAL random sampler, then rewind. The first eligible candidate consumes
+        // one tie-break draw before the second sample. No victim scoring is reproduced here.
+        s.random_state_ = seed; s.sample_cursor_ = 0;
+        KvObj* first = s.random_allkeys_candidate();
+        require(first != nullptr, "first LRU sample exists");
+        s.next_random();
+        KvObj* second = s.random_allkeys_candidate();
+        s.random_state_ = seed; s.sample_cursor_ = 0;
+        return {first, second};
     }
     static bool capturing_record(const FlatStore& s, const KvObj* o) {
         return s.snapshot_record_.active && s.snapshot_record_.value.object == o;
@@ -326,7 +338,44 @@ static void flags() {
     reader.join(); require(touches == 100000, "foreign touches executed"); kvobj_free(o);
 }
 
+static void lru_sample_order() {
+    for (bool armed : {false, true}) for (uint8_t clock : {uint8_t{8}, uint8_t{0}}) {
+        FlatStore s(64); arm(s, armed);
+        s.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::AllKeysLru, 64);
+        s.set_cached_lru_clock(clock);
+        std::vector<KvObj*> objects;
+        for (uint32_t i = 0; i < 32; i++) objects.push_back(put(s, "lru-" + std::to_string(i)));
+        std::pair<KvObj*, KvObj*> pair;
+        uint64_t seed = 1;
+        for (; seed <= 64; seed++) {
+            pair = FlatStoreRegressionTest::first_lru_candidates(s, seed);
+            if (pair.first && pair.second && pair.first != pair.second) break;
+        }
+        require(seed <= 64, "bounded seed construction yields two distinct sampled keys");
+        const uint8_t older = (clock - 1) & 31;
+        // Both orders matter: selecting the first sample unconditionally must fail too.
+        for (KvObj* cold : {pair.first, pair.second}) {
+            for (KvObj* o : objects) o->set_eviction_meta(clock);
+            cold->set_eviction_meta(older);
+            auto replay = FlatStoreRegressionTest::first_lru_candidates(s, seed);
+            require(replay == pair, "candidate membership fixed before testing the chooser");
+            require(FlatStoreRegressionTest::candidate(s) == cold,
+                    "64-sample LRU must select the older key when it is in the sample");
+        }
+        // A newer victim is legitimate if the sample contains no older key. With N=1 the
+        // observed first draw is that exact case, even though older keys remain in the store.
+        for (KvObj* o : objects) o->set_eviction_meta(older);
+        pair.first->set_eviction_meta(clock);
+        s.configure_maxmemory(true, 1 << 20, MaxmemoryPolicy::AllKeysLru, 1);
+        require(FlatStoreRegressionTest::first_lru_candidates(s, seed) == pair,
+                "newer-only sample constructed");
+        require(FlatStoreRegressionTest::candidate(s) == pair.first,
+                "sampled LRU can evict a newer key while older keys exist outside its sample");
+    }
+}
+
 static void aof_eviction() {
+    lru_sample_order();
     for (bool armed : {false, true}) {
         FlatStore s(64); arm(s, armed); KvObj* old = put(s, "victim");
         KvObj* incoming = string_object("new");

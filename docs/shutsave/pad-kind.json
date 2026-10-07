@@ -1,0 +1,132 @@
+{
+  "kind": "A: behaviour twin",
+  "behavior": "PRE",
+  "layout": "POST cold DatabaseMap::State and total .text size; function addresses may differ",
+  "padding_bytes": 784,
+  "text_bytes": 7812565,
+  "state_layouts": {
+    "PRE": {
+      "tomo": {
+        "fields": {
+          "boundary_since_ms": 576,
+          "changed": 1152,
+          "count": 320,
+          "exited": 768,
+          "live": 0,
+          "oldest_since_ms": 640,
+          "participants": 256,
+          "requested": 384,
+          "retired": 64,
+          "server": 448,
+          "stopping": 512,
+          "supervision_since_ms": 704,
+          "wait_mutex": 832
+        },
+        "size": 192
+      },
+      "tomo_db0": {
+        "fields": {
+          "boundary_since_ms": 576,
+          "changed": 1152,
+          "count": 320,
+          "exited": 768,
+          "live": 0,
+          "oldest_since_ms": 640,
+          "participants": 256,
+          "requested": 384,
+          "retired": 64,
+          "server": 448,
+          "stopping": 512,
+          "supervision_since_ms": 704,
+          "wait_mutex": 832
+        },
+        "size": 192
+      }
+    },
+    "POST": {
+      "tomo": {
+        "fields": {
+          "boundary_since_ms": 576,
+          "changed": 1216,
+          "count": 320,
+          "exited": 768,
+          "live": 0,
+          "oldest_since_ms": 640,
+          "participants": 256,
+          "persistence_seen_ms": 832,
+          "requested": 384,
+          "retired": 64,
+          "server": 448,
+          "stopping": 512,
+          "supervision_since_ms": 704,
+          "wait_mutex": 896
+        },
+        "size": 200
+      },
+      "tomo_db0": {
+        "fields": {
+          "boundary_since_ms": 576,
+          "changed": 1216,
+          "count": 320,
+          "exited": 768,
+          "live": 0,
+          "oldest_since_ms": 640,
+          "participants": 256,
+          "persistence_seen_ms": 832,
+          "requested": 384,
+          "retired": 64,
+          "server": 448,
+          "stopping": 512,
+          "supervision_since_ms": 704,
+          "wait_mutex": 896
+        },
+        "size": 200
+      }
+    },
+    "PAD": {
+      "tomo": {
+        "fields": {
+          "boundary_since_ms": 576,
+          "changed": 1216,
+          "count": 320,
+          "exited": 768,
+          "live": 0,
+          "oldest_since_ms": 640,
+          "participants": 256,
+          "persistence_seen_ms": 832,
+          "requested": 384,
+          "retired": 64,
+          "server": 448,
+          "stopping": 512,
+          "supervision_since_ms": 704,
+          "wait_mutex": 896
+        },
+        "size": 200
+      },
+      "tomo_db0": {
+        "fields": {
+          "boundary_since_ms": 576,
+          "changed": 1216,
+          "count": 320,
+          "exited": 768,
+          "live": 0,
+          "oldest_since_ms": 640,
+          "participants": 256,
+          "persistence_seen_ms": 832,
+          "requested": 384,
+          "retired": 64,
+          "server": 448,
+          "stopping": 512,
+          "supervision_since_ms": 704,
+          "wait_mutex": 896
+        },
+        "size": 200
+      }
+    }
+  },
+  "sha256": "1a4ec753a58861de81b92ff40592896344cc21e06168e519421d7871d6d2b220",
+  "pre_behavior_control": {
+    "returncode": -6,
+    "expected_fatal_reproduced": true
+  }
+}

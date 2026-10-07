@@ -1,0 +1,301 @@
+grep literal audit: 79 plain/JSON/escaped variants
+PATTERN '+Background saving started'
+tests/differ_test.py:312:        self.differ.psfix_check_save_reply('oracle', 'BGSAVE', b'+Background saving started\r\n')
+tests/differ_test.py:314:            self.differ.psfix_check_save_reply('target', 'SAVE', b'+Background saving started\r\n')
+tests/differ_test.py:357:                return b'+Background saving started\r\n'
+tests/differ.py:6184:    assert reply == (b"+OK\r\n" if command == "SAVE" else b"+Background saving started\r\n"), (
+tests/snap_typed_race.py:213:    if reply != b"+Background saving started":
+PATTERN '--bgsave-load-keys'
+tests/psfix.py:65:                'PSFIX save-load never armed for >100 ms on %s; increase --bgsave-load-keys' % label)
+tests/psfix.py:74:            'increase --bgsave-load-keys; see ' + str(log_path))
+tests/psfix.py:91:    parser.add_argument('--bgsave-load-keys', type=int, default=0,
+tests/psfix.py:96:        parser.error('--repeats must be positive; --bgsave-load-keys must be nonnegative')
+PATTERN '--expect-pre-failure cannot use the save-load proof'
+tests/psfix.py:98:        parser.error('--expect-pre-failure cannot use the save-load proof')
+PATTERN '--repeats must be positive; --bgsave-load-keys must be nonnegative'
+tests/psfix.py:96:        parser.error('--repeats must be positive; --bgsave-load-keys must be nonnegative')
+PATTERN '-ERR Background save already in progress'
+tests/differ_test.py:310:                        label, command, b'-ERR Background save already in progress\r\n')
+tests/differ.py:6180:    if reply == b"-ERR Background save already in progress\r\n":
+PATTERN "-ERR CONFIG SET failed (possibly related to argument 'AOF-LOAD-TRUNCATED') - duplicate parameter"
+tests/differ.py:6230:                             b"-ERR CONFIG SET failed (possibly related to argument 'AOF-LOAD-TRUNCATED') - duplicate parameter\r\n")
+PATTERN '-ERR invalid boolean'
+tests/differ_test.py:331:                        return b'-ERR invalid boolean\r\n'
+PATTERN '0 disables; directed overlap proof uses 4096-byte values per key'
+tests/psfix.py:92:                        help='0 disables; directed overlap proof uses 4096-byte values per key')
+PATTERN "A retry's fresh driver mean must not erase a step away from the controller's reference."
+tests/flipctl.py:166:    A retry's fresh driver mean must not erase a step away from the controller's reference.
+PATTERN 'Any out-of-band second invalidates the premise, even if the controller did not move. A'
+tests/flipctl.py:164:    Any out-of-band second invalidates the premise, even if the controller did not move. A
+PATTERN 'Background saving started'
+tests/psfix.py:61:            assert peer.must('BGSAVE') == b'Background saving started'
+tests/differ_test.py:312:        self.differ.psfix_check_save_reply('oracle', 'BGSAVE', b'+Background saving started\r\n')
+tests/differ_test.py:314:            self.differ.psfix_check_save_reply('target', 'SAVE', b'+Background saving started\r\n')
+tests/differ_test.py:357:                return b'+Background saving started\r\n'
+tests/differ.py:6184:    assert reply == (b"+OK\r\n" if command == "SAVE" else b"+Background saving started\r\n"), (
+tests/snap_typed_race.py:213:    if reply != b"+Background saving started":
+tests/psfix_test.py:23:            peer.must.return_value = b'Background saving started'
+PATTERN 'Both peers must be idle before a save/count baseline; 10 s total, 1 ms polls.'
+tests/differ.py:6136:    """Both peers must be idle before a save/count baseline; 10 s total, 1 ms polls."""
+PATTERN 'DIFFER psfix: PASS'
+tests/psfix_test.py:48:        for output in ('DIFFER psfix: PASS',
+PATTERN 'Distinct incompressible values keep the directed BGSAVE overlap measurable.'
+tests/psfix.py:39:    """Distinct incompressible values keep the directed BGSAVE overlap measurable."""
+PATTERN "Freeze the driver's pre-hold mean and the controller's published anchor/band at arming. Recentring"
+tests/flipctl.py:162:    Freeze the driver's pre-hold mean and the controller's published anchor/band at arming. Recentring
+PATTERN "Freeze the driver's pre-hold mean and the controller's published band at arming. Recentring"
+(no remaining encoding)
+PATTERN 'PSFIX harness error.*within 10 s'
+tests/differ_test.py:285:                    self.assertRaisesRegex(AssertionError, 'PSFIX harness error.*within 10 s'):
+tests/differ_test.py:298:        with self.assertRaisesRegex(AssertionError, 'PSFIX harness error.*within 10 s'):
+PATTERN 'PSFIX harness error:'
+tests/differ_test.py:308:                        self.assertRaisesRegex(AssertionError, 'PSFIX harness error: ' + label):
+tests/differ.py:6154:                    "PSFIX harness error: %s %s invalid rdb_bgsave_in_progress=%r" %
+tests/differ.py:6172:            "PSFIX harness error: %s: both peers did not become save-idle within 10 s; "
+tests/differ.py:6182:            "PSFIX harness error: %s %s raced a background save after the both-peer "
+PATTERN 'PSFIX harness error: %s %s invalid rdb_bgsave_in_progress=%r'
+tests/differ.py:6154:                    "PSFIX harness error: %s %s invalid rdb_bgsave_in_progress=%r" %
+PATTERN 'PSFIX harness error: %s %s raced a background save after the both-peer idle barrier; reply must not be compared: %r'
+(no remaining encoding)
+PATTERN 'PSFIX harness error: %s: both peers did not become save-idle within 10 s; rdb_bgsave_in_progress=%r'
+(no remaining encoding)
+PATTERN 'PSFIX idle barrier %s: polls=%d busy_peers=%s'
+tests/differ.py:6165:                    print("  PSFIX idle barrier %s: polls=%d busy_peers=%s" %
+PATTERN 'PSFIX idle barrier after target BGSAVE: polls=2 busy_peers=target,oracle'
+tests/psfix_test.py:50:                       'PSFIX idle barrier after target BGSAVE: polls=2 busy_peers=target,oracle'):
+PATTERN 'PSFIX idle barrier before target SAVE:'
+tests/psfix.py:71:        assert any('PSFIX idle barrier before target SAVE:' in line and
+tests/psfix_test.py:30:        output = 'PSFIX idle barrier before target SAVE: polls=102 busy_peers=target,oracle\n'
+tests/psfix_test.py:49:                       'PSFIX idle barrier before target SAVE: polls=2 busy_peers=target',
+PATTERN 'PSFIX idle barrier before target SAVE: polls=102 busy_peers=target,oracle'
+tests/psfix_test.py:30:        output = 'PSFIX idle barrier before target SAVE: polls=102 busy_peers=target,oracle\n'
+PATTERN 'PSFIX idle barrier before target SAVE: polls=2 busy_peers=target'
+tests/psfix_test.py:49:                       'PSFIX idle barrier before target SAVE: polls=2 busy_peers=target',
+PATTERN 'PSFIX save-load did not overlap the real before-save barrier on BOTH peers; increase --bgsave-load-keys; see'
+(no remaining encoding)
+PATTERN 'PSFIX save-load never armed for >100 ms on %s; increase --bgsave-load-keys'
+tests/psfix.py:65:                'PSFIX save-load never armed for >100 ms on %s; increase --bgsave-load-keys' % label)
+PATTERN 'PSFIX save-load seeded %d keys / %d value bytes per peer'
+tests/psfix.py:50:    print('PSFIX save-load seeded %d keys / %d value bytes per peer' % (keys, keys * 4096), flush=True)
+PATTERN "Return (PASS | FAIL | INVALID, reason) for the assertion window's driver trace."
+tests/flipctl.py:160:    """Return (PASS | FAIL | INVALID, reason) for the assertion window's driver trace.
+PATTERN 'Serverless controls for the directed background-save overlap proof.'
+tests/psfix_test.py:2:"""Serverless controls for the directed background-save overlap proof."""
+PATTERN 'Serverless negative controls for the actual lruclock battery section.'
+tests/evict_battery_test.py:2:"""Serverless negative controls for the actual lruclock battery section."""
+PATTERN 'all 50 re-read keys reset'
+tests/evict_battery_test.py:93:        self.assertTrue(any('all 50 re-read keys reset' in name for name, _ in checks))
+tests/evict_battery_test.py:98:        self.assertIn('lruclock: all 50 re-read keys reset IDLETIME before eviction', failed)
+tests/evict_battery.py:316:    check("lruclock: all 50 re-read keys reset IDLETIME before eviction",
+PATTERN 'aof-load-truncated'
+tests/config_parser_test.cc:251:    if (tomo::parse_config_args({"--unixsocketperm", "0600", "--aof-load-truncated", "No",
+tests/config_parser_test.cc:256:        tomo::parse_config_args({"--unixsocketperm", "0", "--aof-load-truncated", "YES",
+tests/config_parser_test.cc:265:             {"--aof-load-truncated", "1"}, {"--aof-load-truncated", "true"},
+tests/config_parser_test.cc:266:             {"--aof-load-truncated", ""}, {"--hll-sparse-max-bytes", "-1"},
+tests/config_parser_test.cc:269:    for (const char* flag : {"--unixsocketperm", "--aof-load-truncated", "--hll-sparse-max-bytes"})
+tests/redisgap.py:154:        assert get(c, 'aof-load-truncated') == 'yes'
+tests/redisgap.py:159:            assert c.command('CONFIG', 'SET', 'aof-load-truncated', policy) == 'OK'
+tests/redisgap.py:160:            assert get(c, 'aof-load-truncated') == policy
+tests/redisgap.py:251:                               ('aof-load-truncated', '1', 'wants yes or no')]:
+tests/redisgap.py:284:        h.reject(mode, ['--appendonly', 'yes', '--aof-load-truncated', 'no'],
+tests/redisgap.py:287:        with h.server(mode, ['--appendonly', 'yes', '--aof-load-truncated', 'yes'],
+tests/aof.py:610:    for name in ("dir", "appenddirname", "appendfilename", "aof-load-truncated"):
+tests/aof.py:627:        expect(("CONFIG", "SET", "aof-load-truncated", "no"), b"+OK\r\n")
+tests/aof.py:637:        expect(("CONFIG", "SET", "aof-load-truncated", "yes"), b"+OK\r\n")
+tests/aof.py:643:        expect(("CONFIG", "SET", "aof-load-truncated", config["aof-load-truncated"]), b"+OK\r\n")
+tests/netcmd_unit.cc:392:                                 "--unixsocketperm", "0600", "--aof-load-truncated", "no",
+tests/psfix.py:142:                            print('PSFIX PRE CONTROL: differential rejected immutable aof-load-truncated')
+tests/netcmd_config_unit.cc:53:    get("aof-load-truncated", "no");
+tests/netcmd_config_unit.cc:55:        set({"CONFIG", "SET", "aof-load-truncated", value}, true);
+tests/netcmd_config_unit.cc:56:        get("aof-load-truncated", value);
+tests/netcmd_config_unit.cc:59:            get("aof-load-truncated", value);
+tests/netcmd_config_unit.cc:60:            check(execute(shard, values) == error, "aof-load-truncated exact SET error");
+tests/netcmd_config_unit.cc:61:            get("aof-load-truncated", value);
+tests/netcmd_config_unit.cc:64:            reject({"CONFIG", "SET", "aof-load-truncated", invalid},
+tests/netcmd_config_unit.cc:65:                   "-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated')"
+tests/netcmd_config_unit.cc:68:        for (const char* duplicate : {"aof-load-truncated", "AOF-LOAD-TRUNCATED"})
+tests/netcmd_config_unit.cc:69:            reject({"CONFIG", "SET", "aof-load-truncated", changed, duplicate, changed},
+tests/netcmd_config_unit.cc:207:    for (const char* directive : {"hll-sparse-max-bytes 1024\n", "aof-load-truncated no\n",
+tests/differ_test.py:326:                        return b'*2\r\n' + bulk(b'aof-load-truncated') + bulk(state['config'])
+tests/differ.py:6218:        saved = [parse_reply(issue(peer, ["CONFIG", "GET", "aof-load-truncated"]))[1]
+tests/differ.py:6222:                assert both(["CONFIG", "SET", "aof-load-truncated", value]) == b"+OK\r\n"
+tests/differ.py:6223:                both(["CONFIG", "GET", "aof-load-truncated"])
+tests/differ.py:6225:                assert both(["CONFIG", "SET", "aof-load-truncated", value]).startswith(b"-ERR ")
+tests/differ.py:6226:                both(["CONFIG", "GET", "aof-load-truncated"])
+tests/differ.py:6228:            assert both(["CONFIG", "SET", "aof-load-truncated", "no",
+tests/differ.py:6231:            both(["CONFIG", "GET", "aof-load-truncated"])
+tests/differ.py:6234:                assert issue(peer, ["CONFIG", "SET", "aof-load-truncated", value]) == b"+OK\r\n"
+tests/knobs.py:79:        conn.must("CONFIG", "SET", "aof-load-truncated", policy)
+tests/knobs.py:80:        if conn.must("CONFIG", "GET", "aof-load-truncated") != [b"aof-load-truncated", policy.encode()]:
+tests/knobs.py:82:    conn.must("CONFIG", "SET", "aof-load-truncated", values[b"aof-load-truncated"])
+PATTERN 'before %s %s'
+tests/differ.py:6256:                idle = psfix_wait_idle(peers, persistence, "before %s %s" % (label, command))
+PATTERN 'before BGSAVE'
+tests/differ_test.py:286:                self.differ.psfix_wait_idle(peers, persistence, 'before BGSAVE')
+PATTERN 'busy_peers=target,oracle'
+tests/psfix.py:72:                   'busy_peers=target,oracle' in line for line in output.splitlines()), (
+tests/psfix_test.py:30:        output = 'PSFIX idle barrier before target SAVE: polls=102 busy_peers=target,oracle\n'
+tests/psfix_test.py:50:                       'PSFIX idle barrier after target BGSAVE: polls=2 busy_peers=target,oracle'):
+PATTERN 'controller anchor=6000.000/s'
+tests/flipctl_test.py:95:            self.assertIn("controller anchor=6000.000/s", reason)
+PATTERN 'did not overlap.*BOTH peers'
+tests/psfix_test.py:55:                    self.assertRaisesRegex(AssertionError, 'did not overlap.*BOTH peers'):
+PATTERN 'differ-resp2'
+tests/psfix.py:136:                        name = 'differ-resp3' if protocol else 'differ-resp2'
+PATTERN 'differ-resp2.log'
+(no remaining encoding)
+PATTERN 'differ-resp3'
+tests/psfix.py:136:                        name = 'differ-resp3' if protocol else 'differ-resp2'
+PATTERN 'differ-resp3.log'
+(no remaining encoding)
+PATTERN "driver left the controller anchor's published band at hold sample %d: rate=%.3f/s driver anchor=%.3f/s controller anchor=%.3f/s deviation=%.6f > band=%.6f"
+(no remaining encoding)
+PATTERN 'driver stationary for %d samples: anchor=%.3f/s max deviation=%.6f <= band=%.6f'
+(no remaining encoding)
+PATTERN 'driver stationary for %d samples: anchor=%.3f/s max deviation=%.6f; controller anchor=%.3f/s max deviation=%.6f <= band=%.6f for both anchors'
+(no remaining encoding)
+PATTERN 'evict_battery.py'
+tests/evict_battery_test.py:15:        tree = ast.parse(Path(__file__).with_name('evict_battery.py').read_text())
+tests/evict_battery_test.py:20:        code = compile(ast.Module(body=section.body, type_ignores=[]), 'evict_battery.py', 'exec')
+tests/gate.sh:226:# 313 -> 321 quick, 326 -> 334 full: eviction accounting rows. tests/evict_battery.py had no gate
+tests/gate.sh:883:      py tests/evict_battery.py "$PORT" "$section" >"$TMPDIR/battery.log" 2>&1 \
+tests/gate.sh:3265:# tests/evict_battery.py needs one FRESH boot per section (it sets maxmemory itself and has no
+tests/evict_battery.py:5:#   python3 evict_battery.py <port> <section>
+PATTERN 'evicted_keys'
+tests/evict_battery_test.py:72:            if field == 'evicted_keys' and pressure:
+tests/evict_battery_test.py:76:                    'evicted_keys': 1514 if pressure else 0}[field]
+tests/notify.py:491:    before_evicted = info_stats()["evicted_keys"]
+tests/notify.py:504:    if stats["evicted_keys"] <= before_evicted or stats["notify_events_fired"] <= before_fired:
+tests/redisgap_atomic.py:35:            if k.startswith('atomic_') or k == 'evicted_keys'}
+tests/redisgap_atomic.py:193:                           evicted_delta=after['evicted_keys']-before['evicted_keys'])
+tests/evict_battery.py:95:    check("disabled: evicted_keys==0", info_num("evicted_keys") == 0)
+tests/evict_battery.py:107:    check("noeviction: evicted_keys stays 0", info_num("evicted_keys") == 0)
+tests/evict_battery.py:116:    ev = info_num("evicted_keys")
+tests/evict_battery.py:143:    check("volatile-lru: zero evictions without volatiles", info_num("evicted_keys") == 0)
+tests/evict_battery.py:152:    ev = info_num("evicted_keys")
+tests/evict_battery.py:197:    ev = info_num("evicted_keys")
+tests/evict_battery.py:333:    ev = info_num("evicted_keys")
+tests/evict_battery.py:342:        ev = info_num("evicted_keys")
+tests/evict_battery.py:372:    ev = info_num("evicted_keys")
+PATTERN 'harness error'
+tests/writer_atomic_campaign.py:271:            raise RuntimeError(f"harness error rc={completed.returncode}: {result.get('errors')}")
+tests/differ_test.py:285:                    self.assertRaisesRegex(AssertionError, 'PSFIX harness error.*within 10 s'):
+tests/differ_test.py:292:            with self.subTest(state=state), self.assertRaisesRegex(AssertionError, 'harness error'):
+tests/differ_test.py:298:        with self.assertRaisesRegex(AssertionError, 'PSFIX harness error.*within 10 s'):
+tests/differ_test.py:308:                        self.assertRaisesRegex(AssertionError, 'PSFIX harness error: ' + label):
+tests/differ.py:6154:                    "PSFIX harness error: %s %s invalid rdb_bgsave_in_progress=%r" %
+tests/differ.py:6172:            "PSFIX harness error: %s: both peers did not become save-idle within 10 s; "
+tests/differ.py:6182:            "PSFIX harness error: %s %s raced a background save after the both-peer "
+PATTERN 'invalid controller anchor: %r'
+tests/flipctl.py:171:        return "INVALID", "invalid controller anchor: %r" % controller_anchor
+PATTERN 'live=%d evicted=%s rejected=%d offered=9002'
+tests/evict_battery.py:345:          "live=%d evicted=%s rejected=%d offered=9002" % (live, ev, ooms))
+PATTERN 'lruc:no-touch'
+tests/evict_battery_test.py:58:            self.assertEqual(args, ('GET', 'lruc:no-touch'))
+tests/evict_battery.py:252:    must("SET", "lruc:no-touch", "v")
+tests/evict_battery.py:280:        cmd_on(nt, ntf, "GET", "lruc:no-touch")
+tests/evict_battery.py:282:    idle = as_int(cmd("OBJECT", "IDLETIME", "lruc:no-touch"))
+PATTERN 'lruclock: INVALID touch arm %d/3: lane hits %d/%d; fresh cohort next'
+tests/evict_battery.py:312:        print("  lruclock: INVALID touch arm %d/3: lane hits %d/%d; fresh cohort next" %
+PATTERN 'lruclock: all 50 re-read keys reset IDLETIME before eviction'
+tests/evict_battery_test.py:98:        self.assertIn('lruclock: all 50 re-read keys reset IDLETIME before eviction', failed)
+tests/evict_battery.py:316:    check("lruclock: all 50 re-read keys reset IDLETIME before eviction",
+PATTERN 'lruclock: all measured re-reads were lane-served'
+tests/evict_battery.py:324:        check("lruclock: all measured re-reads were lane-served", lane_hot == reads,
+PATTERN 'lruclock: every pressure write is accounted for'
+tests/evict_battery_test.py:124:        self.assertEqual(failed, ['lruclock: every pressure write is accounted for'])
+tests/evict_battery.py:344:    check("lruclock: every pressure write is accounted for", live + (ev or 0) + ooms == 9002,
+PATTERN 'lruclock: fresh re-read cohort never armed in an old bucket'
+tests/evict_battery.py:303:            "lruclock: fresh re-read cohort never armed in an old bucket", old_ages)
+PATTERN 'lruclock: no fully lane-served touch window in 3 fresh cohorts'
+tests/evict_battery.py:315:        raise AssertionError("lruclock: no fully lane-served touch window in 3 fresh cohorts")
+PATTERN 'lruclock: sampled survival (diagnostic): untouched %d/50, re-read %d/50'
+tests/evict_battery.py:346:    print("  lruclock: sampled survival (diagnostic): untouched %d/50, re-read %d/50" % (cold, hot))
+PATTERN 'lruclock: the 50 re-read old keys ALL survive'
+(no remaining encoding)
+PATTERN 'lruclock: the re-reads were lane-served'
+(no remaining encoding)
+PATTERN 'lruclock: untouched keys are in an older bucket than all 50 re-reads'
+tests/evict_battery.py:320:    check("lruclock: untouched keys are in an older bucket than all 50 re-reads",
+PATTERN 'lruclock: untouched old keys went first'
+(no remaining encoding)
+PATTERN 'never armed for >100 ms on oracle'
+tests/psfix_test.py:43:                self.assertRaisesRegex(AssertionError, 'never armed for >100 ms on oracle'):
+PATTERN 'never armed in an old bucket'
+tests/evict_battery_test.py:114:        with self.assertRaisesRegex(AssertionError, 'never armed in an old bucket'):
+tests/evict_battery.py:303:            "lruclock: fresh re-read cohort never armed in an old bucket", old_ages)
+PATTERN 'no fully lane-served touch window in 3'
+tests/evict_battery_test.py:110:        with self.assertRaisesRegex(AssertionError, 'no fully lane-served touch window in 3'):
+tests/evict_battery.py:315:        raise AssertionError("lruclock: no fully lane-served touch window in 3 fresh cohorts")
+PATTERN "on the hold's own mean or averaging adjacent seconds can hide a load-generator dip (GT16)."
+tests/flipctl.py:163:    on the hold's own mean or averaging adjacent seconds can hide a load-generator dip (GT16).
+PATTERN 'psfix:save-load:%d'
+tests/psfix.py:43:        payload = b''.join(encode('SET', 'psfix:save-load:%d' % index, rng.randbytes(4096))
+PATTERN 'psfix_wait_idle'
+tests/differ_test.py:265:            result = self.differ.psfix_wait_idle(peers, persistence, 'before SAVE')
+tests/differ_test.py:286:                self.differ.psfix_wait_idle(peers, persistence, 'before BGSAVE')
+tests/differ_test.py:293:                self.differ.psfix_wait_idle(peers, lambda peer: {b'rdb_bgsave_in_progress': state},
+tests/differ_test.py:299:            self.differ.psfix_wait_idle(peers, Mock(side_effect=TimeoutError), 'before SAVE')
+tests/differ_test.py:363:                    patch.object(self.differ, 'psfix_wait_idle', wraps=self.differ.psfix_wait_idle) as wait:
+tests/differ.py:6135:def psfix_wait_idle(peers, persistence, phase):
+tests/differ.py:6256:                idle = psfix_wait_idle(peers, persistence, "before %s %s" % (label, command))
+tests/differ.py:6260:                fields = psfix_wait_idle(peers, persistence, "after %s %s" % (label, command))[index]
+PATTERN 'rdb_bgsave_in_progress'
+tests/snap_cut_battery.py:285:    while info_field("rdb_bgsave_in_progress") != b"0" and time.time()-t0 < 90: time.sleep(0.2)
+tests/flush_capture.py:29:    while info("rdb_bgsave_in_progress")!=b"0" and time.time()-t0<120: time.sleep(0.1)
+tests/psfix.py:59:            assert info(peer, 'persistence')['rdb_bgsave_in_progress'] == '0'
+tests/psfix.py:64:            assert info(peer, 'persistence')['rdb_bgsave_in_progress'] == '1', (
+tests/differ_test.py:263:            return {b'rdb_bgsave_in_progress': next(states)}
+tests/differ_test.py:267:        self.assertEqual(result, [{b'rdb_bgsave_in_progress': b'0'}] * 2)
+tests/differ_test.py:281:                return {b'rdb_bgsave_in_progress': b'1' if peer is peers[busy] else b'0'}
+tests/differ_test.py:293:                self.differ.psfix_wait_idle(peers, lambda peer: {b'rdb_bgsave_in_progress': state},
+tests/differ_test.py:342:                                  rdb_bgsave_in_progress=int(busy), rdb_last_save_time=0,
+tests/differ.py:6151:                state = row.get(b"rdb_bgsave_in_progress")
+tests/differ.py:6154:                    "PSFIX harness error: %s %s invalid rdb_bgsave_in_progress=%r" %
+tests/differ.py:6173:            "rdb_bgsave_in_progress=%r" % (phase, states)) from error
+tests/differ.py:6238:        shared = set(b"loading rdb_changes_since_last_save rdb_bgsave_in_progress "
+tests/snap_typed_race.py:171:    while info_int(client, "rdb_bgsave_in_progress") != 0:
+tests/psfix_test.py:31:        with patch.object(psfix, 'info', side_effect=[{'rdb_bgsave_in_progress': state}
+tests/psfix_test.py:40:        with patch.object(psfix, 'info', side_effect=[{'rdb_bgsave_in_progress': state}
+tests/psfix_test.py:52:                    patch.object(psfix, 'info', side_effect=[{'rdb_bgsave_in_progress': state}
+PATTERN 'read_local_keyspace_hits'
+tests/evict_battery_test.py:75:            return {'read_local': 1, 'read_local_keyspace_hits': lane_hits,
+tests/gate.sh:818:      | awk -F: '/^read_local_keyspace_hits:|^read_local_mget_local_hits:/{s+=$2} END{print s+0}')
+tests/climon2.py:13:    (read_local_keyspace_hits) -- a row that passed by demotion would prove nothing about the
+tests/climon2.py:229:    # (read_local_keyspace_hits), so it cannot pass by the lane quietly demoting them to the owner
+tests/climon2.py:244:    base, local_base = st["client_no_touch_ops"], st.get("read_local_keyspace_hits", 0)
+tests/climon2.py:249:    local = st.get("read_local_keyspace_hits", 0) - local_base
+tests/climon2.py:256:            f"(read_local_keyspace_hits moved {local} of 20)")
+tests/bplus.py:137:    "read_local_keyspace_hits",
+tests/bplus.py:431:        if after_b["read_local_keyspace_hits"] != opened["read_local_keyspace_hits"] + 1:
+tests/evict_battery.py:169:    lane0 = info_num("read_local_keyspace_hits") or 0
+tests/evict_battery.py:196:    lane_hot = (info_num("read_local_keyspace_hits") or 0) - lane0
+tests/evict_battery.py:212:        check("allkeys-lfu: the hot reads were lane-served (read_local_keyspace_hits)",
+tests/evict_battery.py:223:    lane1 = info_num("read_local_keyspace_hits") or 0
+tests/evict_battery.py:226:    lane_nt = (info_num("read_local_keyspace_hits") or 0) - lane1
+tests/evict_battery.py:229:    lane2 = info_num("read_local_keyspace_hits") or 0
+tests/evict_battery.py:232:    lane_plain = (info_num("read_local_keyspace_hits") or 0) - lane2
+tests/evict_battery.py:270:    lane0 = info_num("read_local_keyspace_hits") or 0
+tests/evict_battery.py:274:    lane_probe = (info_num("read_local_keyspace_hits") or 0) - lane0
+tests/evict_battery.py:278:    lane1 = info_num("read_local_keyspace_hits") or 0
+tests/evict_battery.py:281:    lane_nt = (info_num("read_local_keyspace_hits") or 0) - lane1
+tests/evict_battery.py:304:        lane2 = info_num("read_local_keyspace_hits") or 0
+tests/evict_battery.py:308:        lane_hot = (info_num("read_local_keyspace_hits") or 0) - lane2
+tests/lanefull_checks.inc:171:        {"read_local_keyspace_hits", 8, false, false},
+PATTERN 'save did not complete'
+(no remaining encoding)
+PATTERN 'save was issued before BOTH peers completed prior jobs'
+tests/differ_test.py:351:                                'save was issued before BOTH peers completed prior jobs')
+PATTERN 'save-load seed write failed'
+tests/psfix.py:49:                assert peer.read() == b'OK', 'save-load seed write failed'
+PATTERN 'stable hold: %ds pre-hold window stationary (driver %s/s, driver anchor %.3f/s, band %.6f); assertion window open for %ds'
+(no remaining encoding)
+PATTERN 'stable hold: %ds pre-hold window stationary (driver %s/s, driver anchor %.3f/s, controller anchor %.3f/s, band %.6f); assertion window open for %ds'
+(no remaining encoding)
+PATTERN "stationary trace never excuses movement, regardless of the controller's trigger reason."
+tests/flipctl.py:165:    stationary trace never excuses movement, regardless of the controller's trigger reason.
+PATTERN 'unexpected command %r'
+tests/evict_battery_test.py:52:            self.fail('unexpected command %r' % (args,))
+tests/aof_frame_order_test.py:61:        raise AssertionError("unexpected command %r" % (args,))
+PATTERN 'untouched %d/50 alive, re-read %d/50'
+(no remaining encoding)

@@ -276,8 +276,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=497
-EXPECT_FULL=514                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+EXPECT_QUICK=500
+EXPECT_FULL=517                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1000,7 +1000,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap boot_grammar wait_units readonly
+              core_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1171,7 +1171,7 @@ reject_boot(){
 store_build(){
   local variant=${1:-} flags=${CXXFLAGS-'-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread'}
   # Match the three Makefile recipes, including the later -O1 override for TSan. Their former
-  # single compiler invocation serialized three large translation units on every cache miss.
+  # single compiler invocation serialized the large translation units on every cache miss.
   # Reuse the header-aware cache and keep compilation on this slot while other batteries run.
   if [ "$variant" = tsan ]; then
     flags+=' -O1 -fsanitize=thread -fno-omit-frame-pointer -no-pie'
@@ -1183,7 +1183,7 @@ store_build(){
       "$PWD/build/store-regression${variant:+-$variant}" \
       "$PWD/build/gate-cache/store${variant:+-$variant}-objects" \
       "$flags" '-Wl,--gc-sections' \
-      tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc
+      tests/store_regression.cc src/cmd/t_hash.cc src/cmd/t_hash_ttl.cc src/cmd/storesize.cc
 }
 
 job_release(){
@@ -1582,7 +1582,27 @@ unit_ready multidb-boundary-unit && taskset -c "$CORES" ./build/multidb-boundary
     && python3 tests/multidb_serial.py --self-test >>"$TMPDIR/multidb-boundary-unit.log" 2>&1 \
     && ok "multidb global namespace boundary" \
     || bad "multidb global namespace boundary" "see $TMPDIR/multidb-boundary-unit.log"
+# ST2: one serverless row before the quick-tier exit. The owner changes EXPECT.
+# Both database images share this equality and bounded-work witness.
+row_begin "storesize published monitoring"
+unit_ready storesize-unit && taskset -c "$CORES" python3 tests/storesize_checks.py check-all build/storesize-unit \
+    >"$TMPDIR/storesize-unit.log" 2>&1 \
+    && ok "storesize published monitoring" \
+    || bad "storesize published monitoring" "see $TMPDIR/storesize-unit.log"
 # One serverless EXECABORT/WATCH row, collected BEFORE the quick exit (+1/+1).
+# AT15: one serverless row before the quick exit (+1/+1); EXPECT/fixtures are owner-owned.
+row_begin "MULTI admin command replies"
+at15_ok=1
+for variant in at15-unit at15-db0-unit; do
+  if ! unit_ready "$variant"; then at15_ok=0; continue; fi
+  for mode in 1s 2s; do
+    taskset -c "$CORES" "./build/$variant" "$mode" \
+        >"$TMPDIR/$variant-$mode.log" 2>&1 || at15_ok=0
+  done
+done
+[ "$at15_ok" = 1 ] && ok "MULTI admin command replies" \
+    || bad "MULTI admin command replies" "see $TMPDIR/at15-*.log"
+
 # EXPECT_* and the ledger-label fixture remain maintainer-owned.
 row_begin "EXECABORT releases WATCH reservation"
 execabort_ok=1
@@ -1667,6 +1687,65 @@ for mode in 1s 2s; do for engine in uring epoll; do
 done; done
 }
 
+job_respcompat(){
+# NET13/14/15/16: one aggregate row, both differential geometries and atomic modes.
+# Raw protocol cases own this row and its Redis oracle, outside the valid-command
+# fan-out plan. Keep its shell pass total exactly equal to the planned comparisons.
+local mode atomic compatible=1 booted oracle_ready=0 oracle_port=$((PORT+1))
+local oracle_bin=${GATE_DIFFER_ORACLE_BIN:-$REDIS74_ROOT/src/redis-server} oracle_dir
+row_begin "RESP protocol error compatibility"
+guard_port "$oracle_port"
+oracle_dir=$(mktemp -d "$TMPDIR/respcompat-oracle.XXXXXX") || compatible=0
+if [ "$compatible" = 1 ] && [ -x "$oracle_bin" ]; then
+  taskset -c "${GATE_DIFFER_ORACLE_CORES:-$CORES}" "$oracle_bin" \
+      --port "$oracle_port" --bind 127.0.0.1 --save '' --appendonly no --dir "$oracle_dir" \
+      >"$TMPDIR/gate-respcompat-oracle.txt" 2>&1 &
+  # The gate's existing oracle slot is included in normal and watchdog cleanup.
+  GLOBCASE_ORACLE=$!
+  for _ in $(seq 100); do
+    kill -0 "$GLOBCASE_ORACLE" 2>/dev/null || break
+    if [ "$(port_listeners "$oracle_port")" = "$GLOBCASE_ORACLE" ] &&
+       (exec 3<>/dev/tcp/127.0.0.1/"$oracle_port") 2>/dev/null; then
+      oracle_ready=1
+      break
+    fi
+    sleep 0.1
+  done
+fi
+if [ "$oracle_ready" = 1 ]; then
+for atomic in 0 1; do for mode in 1s 2s; do
+  booted=0
+  if [ "$mode" = 1s ]; then
+    boot_fused "$CANDIDATE_BINARY" --read-local 1 --atomic "$atomic" --save '' && booted=1
+  else
+    boot "$CANDIDATE_BINARY" --thread-mode 2s --atomic "$atomic" --save '' && booted=1
+  fi
+  if [ "$booted" != 1 ] || ! py tests/respcompat.py 127.0.0.1 "$PORT" \
+      --oracle 127.0.0.1 "$oracle_port" >"$TMPDIR/gate-respcompat-$mode-a$atomic.txt" 2>&1; then
+    compatible=0
+  fi
+  stop
+done; done
+else
+  compatible=0
+fi
+if [ "$GLOBCASE_ORACLE" -gt 0 ]; then
+  kill -TERM "$GLOBCASE_ORACLE" 2>/dev/null
+  if ! timeout --kill-after=1 10 tail --sleep-interval=.1 --pid="$GLOBCASE_ORACLE" -f /dev/null; then
+    compatible=0
+    kill -KILL "$GLOBCASE_ORACLE" 2>/dev/null
+  fi
+  wait "$GLOBCASE_ORACLE" 2>/dev/null || compatible=0
+  GLOBCASE_ORACLE=0
+fi
+[ -z "$(port_listeners "$oracle_port")" ] || compatible=0
+if [ "$compatible" = 1 ]; then
+  ok "RESP protocol error compatibility"
+else
+  bad "RESP protocol error compatibility" "see $TMPDIR/gate-respcompat-*.txt and $SRVLOG"
+fi
+}
+
 job_acl_metadata(){
 if [ "$ORACLE_OK" = 1 ]; then
   row_begin "generated Redis 7.4 ACL categories"
@@ -1704,7 +1783,7 @@ job_cmd_metadata(){
 # server then refuses to boot at all -- every row below goes red at once with no indication which
 # command is at fault. Static, so it fires before any server starts.
 row_begin "cmdmeta covers every registered command"
-py tests/cmdmeta_coverage.py >$TMPDIR/gate-cmdmeta-coverage.txt 2>&1 \
+py tests/cmdmeta_coverage.py --redis-root "$REDIS74_ROOT" >$TMPDIR/gate-cmdmeta-coverage.txt 2>&1 \
     && ok "cmdmeta covers every registered command" \
     || bad "cmdmeta covers every registered command" "see $TMPDIR/gate-cmdmeta-coverage.txt"
 }
@@ -2553,18 +2632,23 @@ job_aof_frame(){
 # writer flushed a ready GCMT at the top of a writer pass without checking that a large record
 # still held the physical stream. Recovery truncates the file from that large record's first byte,
 # so a control frame inside it is discardable -- and the loader refuses to start on the whole file.
-# Syscall persistence under epoll: that is where the defect was demonstrated (11 of 114 runs of the AOF
-# battery, 0 of 117 on uring) and where the window is entered reliably enough for the row to prove
-# its mechanism fired. The battery FAILS on a build with the guard removed (6 of 6).
+# Syscall persistence under epoll is where the defect was demonstrated. The existing rewrite
+# pause now queues a complete group before LargeBegin on the last producer; the record exceeds
+# both writer budgets. Stable owners and connection placement keep that schedule deterministic.
 for AOF_FRAME_ATOMIC in 0 1; do
 AOF_FRAME_DIR=$(mktemp -d "$TMPDIR/gate-aof-frameorder-atomic${AOF_FRAME_ATOMIC}.XXXXXX")
 boot "$CANDIDATE_BINARY" --protected-mode no --atomic "$AOF_FRAME_ATOMIC" --appendonly yes \
     --appendfsync no --net-io epoll --auto-aof-rewrite-percentage 0 \
+    --aof-timestamp-enabled no --key-lb 0 --client-lb 0 --flip-auto 0 \
     --enable-debug-command yes --dir "$AOF_FRAME_DIR" \
     || bad "AOF frame-order purpose boot (atomic $AOF_FRAME_ATOMIC)"
 row_begin "AOF control frame never inside a large record (atomic $AOF_FRAME_ATOMIC)"
-py tests/aof_frame_order.py 127.0.0.1 $PORT "$AOF_FRAME_DIR/appendonlydir" \
+unit_ready persistfix-units \
+    && taskset -c "$CORES" ./build/persistfix-unit frameorder \
     >$TMPDIR/gate-aof-frameorder-$AOF_FRAME_ATOMIC.txt 2>&1 \
+    && py tests/aof_frame_order_test.py >>$TMPDIR/gate-aof-frameorder-$AOF_FRAME_ATOMIC.txt 2>&1 \
+    && py tests/aof_frame_order.py 127.0.0.1 $PORT "$AOF_FRAME_DIR/appendonlydir" \
+    >>$TMPDIR/gate-aof-frameorder-$AOF_FRAME_ATOMIC.txt 2>&1 \
     && ok "AOF control frame never inside a large record (atomic $AOF_FRAME_ATOMIC)" \
     || bad "AOF control frame never inside a large record (atomic $AOF_FRAME_ATOMIC)" \
            "see $TMPDIR/gate-aof-frameorder-$AOF_FRAME_ATOMIC.txt"
@@ -2972,12 +3056,12 @@ job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
-      build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
-      build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit \
+      build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
+      build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit \
       build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
+  for target in at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -3038,7 +3122,7 @@ job_dependencies(){
     core_units) echo 'production_units core_tsan_build';;
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
-    debug-*) echo 'release production_units';;
+    debug-*|aof_frame) echo 'release production_units';;
     lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
     asan_batteries) echo asan;;
     zc) echo 'release asan';;
@@ -3149,6 +3233,10 @@ collect_job netcmd_units
 # EXPECT_QUICK / EXPECT_FULL remain maintainer-owned.
 collect_job netcap
 
+# respcompat: +1 quick / +1 full, counted here before the quick-tier exit.
+# EXPECT counts and ledger fixtures are maintained by the owner.
+collect_job respcompat
+
 collect_job acl_metadata
 
 # ---- 2. boot matrix: deleted flags stay dead; live grammar boots ------------------------------
@@ -3176,7 +3264,8 @@ for AT in 0 1; do collect_job "feature-armed-$AT"; done
 # ---- eviction accounting on both read paths: owner-served (split) and lane-served (fused+armed) --
 # tests/evict_battery.py needs one FRESH boot per section (it sets maxmemory itself and has no
 # FLUSHALL). lfu proves OBJECT FREQ rises for ordinary reads and stays put for CLIENT NO-TOUCH
-# reads, plus hot-set survival under pressure; lruclock ages all cohorts across one fixed 256 s
+# reads, plus LFU hot-set survival and exact LRU touch/accounting checks under pressure;
+# lruclock ages all cohorts across one fixed 256 s
 # production bucket (a bounded wait of up to 260 s per boot) before testing the read paths.
 # On the armed boot both sections also assert the reads they measure were LANE-served -- a key
 # kept hot only by lane reads was never touched before ExLoopT::note_local_read_access and so was

@@ -1,0 +1,20 @@
+{
+  "inherited-audit": {
+    "historical_inventory": 1486,
+    "present": 1486,
+    "equal_or_error_callee": 1447,
+    "missing": []
+  },
+  "measured-base-audit": {
+    "historical_inventory": 1486,
+    "present": 1486,
+    "equal_or_error_callee": 1434,
+    "missing": []
+  },
+  "final-audit": {
+    "historical_inventory": 1486,
+    "present": 1486,
+    "equal_or_error_callee": 1453,
+    "missing": []
+  }
+}

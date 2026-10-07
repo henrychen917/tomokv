@@ -1,0 +1,5 @@
+Events disabled
+Events enabled
+ready True ack b'ack\n\x00'
+[ perf record: Woken up 1 times to write data ]
+[ perf record: Captured and wrote 1.305 MB build/at15c/control-probe.data (24 samples) ]

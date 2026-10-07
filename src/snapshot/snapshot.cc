@@ -141,6 +141,13 @@ const SnapshotTypeHooks& snapshot_type_hooks(Type type) {
 void snapshot_bind_io(ThreadCtx* thread, Ring* ring) { tls_io_context = {thread, ring}; }
 SnapshotIoContext snapshot_io_context() { return tls_io_context; }
 
+// The snapshot coordinator is process-wide. Keep its cold telemetry out of Server's
+// constructor and layouts so adding INFO fields cannot perturb ordinary execution.
+static std::atomic<uint64_t> completed_saves{0};
+uint64_t snapshot_completed_saves() {
+    return completed_saves.load(std::memory_order_relaxed);
+}
+
 SnapshotManager::~SnapshotManager() {
     // Server (the only owner) is mid-destruction here: members declared after snapshot_ -- the
     // atomic snapshot barrier among them -- are already gone, so the barrier reset abort_file()
@@ -161,6 +168,7 @@ void SnapshotManager::init(uint32_t nthreads, uint32_t nshards, uint32_t executo
                            PersistIoEngine engine) {
     // Redis defines LASTSAVE before the first successful save as the server start time.
     last_save_time_.store(now_realtime_ms() / 1000, std::memory_order_relaxed);
+    completed_saves.store(0, std::memory_order_relaxed);
     nthreads_ = nthreads;
     nshards_ = nshards;
     executor_count_ = executor_count;
@@ -236,6 +244,24 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
     const uint64_t next_epoch = epoch_.fetch_add(1, std::memory_order_relaxed) + 1;
     const uint64_t shutdown_deadline = shutdown ? now_ns() + Server::kShutdownSaveWaitNs : 0;
     auto shutdown_expired = [&] {
+        // NOSAVE (including a signal with save disabled) stops the producers.
+        // Waiting for their ready/frozen/finished acknowledgements after that
+        // stop deadlocks SAVE and, with AOF enabled, every worker's teardown.
+        // Mark the epoch failed before returning; no later completion may rename
+        // a partial file. Retain chunks/owner state until post-join destruction.
+        if (server.shutting_down().load(std::memory_order_relaxed)) {
+            error = "snapshot cancelled by shutdown";
+            fail(next_epoch, error.c_str());
+            // Own requests may still name file/chunk buffers. Reap them without
+            // waiting for stopped producers; Failed completions never resubmit.
+            while (io_inflight_) {
+                writer_ring.submit_and_reap();
+                pump_io_completions(writer, writer_ring);
+                std::this_thread::yield();
+            }
+            abort_file();
+            return true;
+        }
         if (!shutdown_deadline || now_ns() < shutdown_deadline) return false;
         error = "shutdown snapshot coordination timed out; server remains running";
         fail(next_epoch, error.c_str());
@@ -335,6 +361,7 @@ SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& w
             (void)shutdown_expired();
             return StartResult::Failed;
         }
+        if (shutdown_expired()) return StartResult::Failed;
         phase_.store(Phase::Freeze, std::memory_order_release);
         for (uint32_t tid : server.placement().ex_threads())
             if (Ring* target = server.thread(tid).ring())
@@ -704,6 +731,7 @@ bool SnapshotManager::finish_file_metadata(Ring* ring) {
 
 bool SnapshotManager::complete_file_success() {
     if (rewrite_ && !rewrite_->rewrite_complete(final_path_, epoch())) return false;
+    if (!rewrite_) completed_saves.fetch_add(1, std::memory_order_relaxed);
     if (!rewrite_ && server_) server_->snapshot_save_succeeded(save_change_cut_);
     if (server_ && server_->shutdown_snapshot_active()) server_->finish_shutdown();
     last_save_time_.store(now_realtime_ms() / 1000, std::memory_order_relaxed);

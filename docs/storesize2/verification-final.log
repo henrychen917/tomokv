@@ -1,0 +1,9 @@
+db0: GET 3 emitted handler copies, all relocation-resolved equal
+db0: SET 2 emitted handler copies, all relocation-resolved equal
+multi: GET 3 emitted handler copies, all relocation-resolved equal
+multi: SET 2 emitted handler copies, all relocation-resolved equal
+No standalone MGET/MSET handler bodies in the selected handler audit; no vacuous equality claim.
+Shell syntax tests/gate.sh: PASS
+git diff --check: PASS
+Exactly one storesize row before the quick-tier exit: +1/+1
+Lane diff against origin/cpp contains no EXPECT constant or tests/fixtures edit.

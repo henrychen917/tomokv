@@ -1,0 +1,662 @@
+[
+  {
+    "name": "POST-join",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "join"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-rewrite",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "rewrite"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-retire",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "retire"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-boundary",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "boundary"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-hang",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "hang"
+    ],
+    "returncode": -6,
+    "expected_fatal": "fatal: database worker shutdown timeout elapsed_ms=10000",
+    "passed": true
+  },
+  {
+    "name": "POST-hung-worker",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "hung-worker"
+    ],
+    "returncode": -6,
+    "expected_fatal": "fatal: database worker shutdown timeout elapsed_ms=3000",
+    "passed": true
+  },
+  {
+    "name": "POST-retire-hang",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "retire-hang"
+    ],
+    "returncode": -6,
+    "expected_fatal": "fatal: database retire acknowledgement timeout elapsed_ms=11000",
+    "passed": true
+  },
+  {
+    "name": "PRE-join",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/PRE/shutsave-unit",
+      "join"
+    ],
+    "returncode": -6,
+    "expected_fatal": "fatal: database worker shutdown timeout elapsed_ms=3000",
+    "passed": true
+  },
+  {
+    "name": "PRE-rewrite",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/PRE/shutsave-unit",
+      "rewrite"
+    ],
+    "returncode": -6,
+    "expected_fatal": "fatal: database worker shutdown timeout elapsed_ms=3000",
+    "passed": true
+  },
+  {
+    "name": "PRE-retire",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/PRE/shutsave-unit",
+      "retire"
+    ],
+    "returncode": -6,
+    "expected_fatal": "fatal: database retire acknowledgement timeout elapsed_ms=3000",
+    "passed": true
+  },
+  {
+    "name": "PRE-save-2s-sigterm-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/PRE/shutsave-unit",
+      "save",
+      "2s",
+      "sigterm",
+      "131072"
+    ],
+    "returncode": -6,
+    "expected_fatal": "fatal: database worker shutdown timeout",
+    "passed": true
+  },
+  {
+    "name": "PRE-finalize-2s-sigterm-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/PRE/shutsave-unit",
+      "finalize",
+      "2s",
+      "sigterm",
+      "131072"
+    ],
+    "returncode": -6,
+    "expected_fatal": "fatal: database worker shutdown timeout",
+    "passed": true
+  },
+  {
+    "name": "POST-save-2s-sigterm-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "2s",
+      "sigterm",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-bgsave-2s-sigterm-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "bgsave",
+      "2s",
+      "sigterm",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-finalize-2s-sigterm-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "finalize",
+      "2s",
+      "sigterm",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-2s-sigterm-131072-4-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "2s",
+      "sigterm",
+      "131072",
+      "4",
+      "uring"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-2s-nosave-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "2s",
+      "nosave",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-bgsave-2s-nosave-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "bgsave",
+      "2s",
+      "nosave",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-finalize-2s-nosave-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "finalize",
+      "2s",
+      "nosave",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-2s-nosave-131072-4-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "2s",
+      "nosave",
+      "131072",
+      "4",
+      "uring"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-2s-shutdown-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "2s",
+      "shutdown",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-bgsave-2s-shutdown-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "bgsave",
+      "2s",
+      "shutdown",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-finalize-2s-shutdown-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "finalize",
+      "2s",
+      "shutdown",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-2s-shutdown-131072-4-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "2s",
+      "shutdown",
+      "131072",
+      "4",
+      "uring"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-2s-nosave-32-1",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "2s",
+      "nosave",
+      "32",
+      "1"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-2s-nosave-32-2",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "2s",
+      "nosave",
+      "32",
+      "2"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-2s-nosave-32-3",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "2s",
+      "nosave",
+      "32",
+      "3"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-1s-sigterm-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "1s",
+      "sigterm",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-bgsave-1s-sigterm-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "bgsave",
+      "1s",
+      "sigterm",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-finalize-1s-sigterm-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "finalize",
+      "1s",
+      "sigterm",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-1s-sigterm-131072-4-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "1s",
+      "sigterm",
+      "131072",
+      "4",
+      "uring"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-1s-nosave-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "1s",
+      "nosave",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-bgsave-1s-nosave-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "bgsave",
+      "1s",
+      "nosave",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-finalize-1s-nosave-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "finalize",
+      "1s",
+      "nosave",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-1s-nosave-131072-4-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "1s",
+      "nosave",
+      "131072",
+      "4",
+      "uring"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-1s-shutdown-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "1s",
+      "shutdown",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-bgsave-1s-shutdown-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "bgsave",
+      "1s",
+      "shutdown",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-finalize-1s-shutdown-131072",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "finalize",
+      "1s",
+      "shutdown",
+      "131072"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-1s-shutdown-131072-4-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "1s",
+      "shutdown",
+      "131072",
+      "4",
+      "uring"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-1s-nosave-32-1",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "1s",
+      "nosave",
+      "32",
+      "1"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-1s-nosave-32-2",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "1s",
+      "nosave",
+      "32",
+      "2"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  },
+  {
+    "name": "POST-save-1s-nosave-32-3",
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/shutsave/POST/shutsave-unit",
+      "save",
+      "1s",
+      "nosave",
+      "32",
+      "3"
+    ],
+    "returncode": 0,
+    "expected_fatal": null,
+    "passed": true
+  }
+]

@@ -1,0 +1,93 @@
+{
+  "cpu": 112,
+  "binary_sha256": {
+    "PRE": "7c4f684b2df224f42d965f3a937c0b3c294916729f0443f5c323445398618e81",
+    "POST": "21f8aaab643029cb42500a995281221dc3164d6a35bbc7583e97d639ab1a1ba4",
+    "PRE-db0": "1ad964a248daa7c405f30d2df0eb3b6cfda06da0e4cf57b3715a01f8f279640b",
+    "POST-db0": "6baee39860817cbbb0e5f70f2b117fee7fa5cec4ff3b21ff4d9afb6c65e79f12"
+  },
+  "requested_complete_repeats": 8,
+  "runs": [
+    {
+      "attempt": 1,
+      "equal": false,
+      "rows": {
+        "PRE": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700039\n",
+        "POST": "off/keymiss,100000,1800054\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "PRE-db0": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000054\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "POST-db0": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n"
+      }
+    },
+    {
+      "attempt": 2,
+      "equal": false,
+      "rows": {
+        "PRE": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400054\nnote_command,100000,700038\n",
+        "POST": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "PRE-db0": "off/keymiss,100000,1800054\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "POST-db0": "off/keymiss,100000,1800054\noff/string,100000,1800053\nsave-only/keymiss,100000,2000054\nsave-only/string,100000,2400053\nnote_command,100000,700038\n"
+      }
+    },
+    {
+      "attempt": 3,
+      "equal": false,
+      "rows": {
+        "PRE": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "POST": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000054\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "PRE-db0": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000054\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "POST-db0": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n"
+      }
+    },
+    {
+      "attempt": 4,
+      "equal": false,
+      "rows": {
+        "PRE": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "POST": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "PRE-db0": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "POST-db0": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700039\n"
+      }
+    },
+    {
+      "attempt": 5,
+      "equal": false,
+      "rows": {
+        "PRE": "off/keymiss,100000,1800053\noff/string,100000,1800054\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400054\nnote_command,100000,700038\n",
+        "POST": "off/keymiss,100000,1800053\noff/string,100000,1800054\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400054\nnote_command,100000,700038\n",
+        "PRE-db0": "off/keymiss,100000,1800053\noff/string,100000,1800054\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "POST-db0": "off/keymiss,100000,1800053\noff/string,100000,1800054\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400054\nnote_command,100000,700038\n"
+      }
+    },
+    {
+      "attempt": 6,
+      "equal": false,
+      "rows": {
+        "PRE": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "POST": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400054\nnote_command,100000,700038\n",
+        "PRE-db0": "off/keymiss,100000,1800053\noff/string,100000,1800054\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400054\nnote_command,100000,700038\n",
+        "POST-db0": "off/keymiss,100000,1800053\noff/string,100000,1800054\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400054\nnote_command,100000,700038\n"
+      }
+    },
+    {
+      "attempt": 7,
+      "equal": false,
+      "rows": {
+        "PRE": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "POST": "off/keymiss,100000,1800054\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "PRE-db0": "off/keymiss,100000,1800054\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "POST-db0": "off/keymiss,100000,1800054\noff/string,100000,1800053\nsave-only/keymiss,100000,2000054\nsave-only/string,100000,2400053\nnote_command,100000,700038\n"
+      }
+    },
+    {
+      "attempt": 8,
+      "equal": false,
+      "rows": {
+        "PRE": "off/keymiss,100000,1800054\noff/string,100000,1800053\nsave-only/keymiss,100000,2000054\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "POST": "off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000054\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "PRE-db0": "off/keymiss,100000,1800054\noff/string,100000,1800053\nsave-only/keymiss,100000,2000054\nsave-only/string,100000,2400053\nnote_command,100000,700038\n",
+        "POST-db0": "off/keymiss,100000,1800054\noff/string,100000,1800053\nsave-only/keymiss,100000,2000054\nsave-only/string,100000,2400053\nnote_command,100000,700038\n"
+      }
+    }
+  ],
+  "exact_equal_runs": []
+}

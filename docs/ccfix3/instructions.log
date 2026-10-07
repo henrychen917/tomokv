@@ -1,0 +1,5 @@
+instructions-PRE PASS
+instructions-POST PASS
+instructions-PRE-db0 PASS
+instructions-POST-db0 PASS
+PASS all five 100,000-call intervals byte-equal in both namespaces

@@ -1,0 +1,794 @@
+  CLOCK TOLERANCE count=1 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599999\r\n'
+    oracle: b':600000\r\n'
+  CLOCK TOLERANCE count=2 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599999\r\n'
+    oracle: b':599998\r\n'
+  CLOCK TOLERANCE count=3 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599996\r\n'
+    oracle: b':599995\r\n'
+  CLOCK TOLERANCE count=4 integers=1 command=['PTTL', 'wd:restore']
+    target: b':600000\r\n'
+    oracle: b':599999\r\n'
+  CLOCK TOLERANCE count=5 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599992\r\n'
+    oracle: b':599991\r\n'
+  CLOCK TOLERANCE count=6 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599998\r\n'
+    oracle: b':599999\r\n'
+  CLOCK TOLERANCE count=7 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599993\r\n'
+    oracle: b':599992\r\n'
+  CLOCK TOLERANCE count=8 integers=1 command=['PTTL', 'wd:restore']
+    target: b':600000\r\n'
+    oracle: b':599999\r\n'
+  CLOCK TOLERANCE count=9 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599998\r\n'
+    oracle: b':599997\r\n'
+  CLOCK TOLERANCE count=10 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599998\r\n'
+    oracle: b':599999\r\n'
+  CLOCK TOLERANCE count=11 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599998\r\n'
+    oracle: b':599999\r\n'
+  CLOCK TOLERANCE count=12 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599998\r\n'
+    oracle: b':599999\r\n'
+  CLOCK TOLERANCE count=13 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599998\r\n'
+    oracle: b':599999\r\n'
+  CLOCK TOLERANCE count=14 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599998\r\n'
+    oracle: b':599999\r\n'
+  CLOCK TOLERANCE count=15 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599997\r\n'
+    oracle: b':599998\r\n'
+  CLOCK TOLERANCE count=16 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599997\r\n'
+    oracle: b':599998\r\n'
+  CLOCK TOLERANCE count=17 integers=1 command=['PTTL', 'wd:restore']
+    target: b':600000\r\n'
+    oracle: b':599999\r\n'
+  CLOCK TOLERANCE count=18 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599999\r\n'
+    oracle: b':600000\r\n'
+  CLOCK TOLERANCE count=19 integers=1 command=['PTTL', 'wd:restore']
+    target: b':600000\r\n'
+    oracle: b':599999\r\n'
+  CLOCK TOLERANCE count=20 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599999\r\n'
+    oracle: b':599998\r\n'
+  CLOCK TOLERANCE count=21 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599998\r\n'
+    oracle: b':599997\r\n'
+  CLOCK TOLERANCE count=22 integers=1 command=['PTTL', 'wd:restore']
+    target: b':600000\r\n'
+    oracle: b':599999\r\n'
+  CLOCK TOLERANCE count=23 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599999\r\n'
+    oracle: b':600000\r\n'
+  CLOCK TOLERANCE count=24 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599999\r\n'
+    oracle: b':600000\r\n'
+  CLOCK TOLERANCE count=25 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599999\r\n'
+    oracle: b':600000\r\n'
+  CLOCK TOLERANCE count=26 integers=1 command=['PTTL', 'wd:restore']
+    target: b':600000\r\n'
+    oracle: b':599999\r\n'
+  CLOCK TOLERANCE count=27 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599999\r\n'
+    oracle: b':600000\r\n'
+  CLOCK TOLERANCE count=28 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599999\r\n'
+    oracle: b':600000\r\n'
+  CLOCK TOLERANCE count=29 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599999\r\n'
+    oracle: b':600000\r\n'
+  CLOCK TOLERANCE count=30 integers=1 command=['PTTL', 'wd:restore']
+    target: b':600000\r\n'
+    oracle: b':599999\r\n'
+  CLOCK TOLERANCE count=31 integers=1 command=['PTTL', 'wd:restore']
+    target: b':600000\r\n'
+    oracle: b':599999\r\n'
+  CLOCK TOLERANCE count=32 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599999\r\n'
+    oracle: b':599998\r\n'
+  CLOCK TOLERANCE count=33 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599997\r\n'
+    oracle: b':599996\r\n'
+  CLOCK TOLERANCE count=34 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599999\r\n'
+    oracle: b':600000\r\n'
+  CLOCK TOLERANCE count=35 integers=1 command=['PTTL', 'wd:restore']
+    target: b':600000\r\n'
+    oracle: b':599999\r\n'
+  WIREDUMP DIFF op 3551 action=4 key=wd:string-lzf
+  WIREDUMP DIFF op 3552 action=3 key=wd:zset-large
+  WIREDUMP DIFF op 3553 action=3 key=wd:hash-large
+  WIREDUMP DIFF op 3554 action=3 key=wd:zset
+  WIREDUMP DIFF op 3555 action=4 key=wd:list
+  WIREDUMP DIFF op 3556 action=3 key=wd:list-large
+  WIREDUMP DIFF op 3557 action=2 key=wd:string
+  WIREDUMP DIFF op 3558 action=0 key=wd:zset-large
+  WIREDUMP DIFF op 3559 action=2 key=wd:set-int
+  WIREDUMP DIFF op 3560 action=3 key=wd:list-large
+  WIREDUMP DIFF op 3561 action=4 key=wd:string-lzf
+  WIREDUMP DIFF op 3562 action=0 key=wd:list-large
+  WIREDUMP DIFF op 3563 action=2 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3564 action=1 key=wd:hash
+  WIREDUMP DIFF op 3565 action=2 key=wd:zset-large
+  WIREDUMP DIFF op 3566 action=4 key=wd:list-large
+  WIREDUMP DIFF op 3567 action=0 key=wd:list-large
+  WIREDUMP DIFF op 3568 action=0 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3569 action=2 key=wd:string
+  WIREDUMP DIFF op 3570 action=2 key=wd:set
+  WIREDUMP DIFF op 3571 action=3 key=wd:set
+  WIREDUMP DIFF op 3572 action=2 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3573 action=4 key=wd:list
+  WIREDUMP DIFF op 3574 action=2 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3575 action=1 key=wd:set
+  WIREDUMP DIFF op 3576 action=0 key=wd:hash-large
+  WIREDUMP DIFF op 3577 action=4 key=wd:set
+  WIREDUMP DIFF op 3578 action=1 key=wd:zset-large
+  CLOCK TOLERANCE count=36 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599999\r\n'
+    oracle: b':600000\r\n'
+  WIREDUMP DIFF op 3579 action=4 key=wd:string
+  WIREDUMP DIFF op 3580 action=3 key=wd:zset-large
+  WIREDUMP DIFF op 3581 action=3 key=wd:list-large
+  CLOCK TOLERANCE count=37 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599998\r\n'
+    oracle: b':599999\r\n'
+  WIREDUMP DIFF op 3582 action=4 key=wd:zset-large
+  CLOCK TOLERANCE count=38 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599998\r\n'
+    oracle: b':599999\r\n'
+  WIREDUMP DIFF op 3583 action=4 key=wd:zset
+  WIREDUMP DIFF op 3584 action=1 key=wd:string
+  WIREDUMP DIFF op 3585 action=0 key=wd:string
+  WIREDUMP DIFF op 3586 action=3 key=wd:string
+  WIREDUMP DIFF op 3587 action=1 key=wd:string-lzf
+  WIREDUMP DIFF op 3588 action=0 key=wd:zset
+  WIREDUMP DIFF op 3589 action=4 key=wd:string
+  WIREDUMP DIFF op 3590 action=3 key=wd:zset-large
+  WIREDUMP DIFF op 3591 action=3 key=wd:hash
+  WIREDUMP DIFF op 3592 action=1 key=wd:set
+  WIREDUMP DIFF op 3593 action=3 key=wd:list-large
+  WIREDUMP DIFF op 3594 action=4 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3595 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 3596 action=3 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3597 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 3598 action=2 key=wd:list
+  WIREDUMP DIFF op 3599 action=0 key=wd:set-int
+  WIREDUMP DIFF op 3600 action=2 key=wd:hash-large
+  WIREDUMP DIFF op 3601 action=0 key=wd:list
+  WIREDUMP DIFF op 3602 action=2 key=wd:hash-large
+  WIREDUMP DIFF op 3603 action=3 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3604 action=0 key=wd:string
+  WIREDUMP DIFF op 3605 action=1 key=wd:set
+  WIREDUMP DIFF op 3606 action=3 key=wd:set
+  WIREDUMP DIFF op 3607 action=1 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3608 action=1 key=wd:zset
+  WIREDUMP DIFF op 3609 action=3 key=wd:zset-large
+  CLOCK TOLERANCE count=39 integers=1 command=['PTTL', 'wd:restore']
+    target: b':600000\r\n'
+    oracle: b':599999\r\n'
+  WIREDUMP DIFF op 3610 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 3611 action=2 key=wd:zset
+  WIREDUMP DIFF op 3612 action=3 key=wd:list
+  WIREDUMP DIFF op 3613 action=0 key=wd:list
+  WIREDUMP DIFF op 3614 action=3 key=wd:zset
+  WIREDUMP DIFF op 3615 action=0 key=wd:zset-large
+  WIREDUMP DIFF op 3616 action=1 key=wd:list
+  WIREDUMP DIFF op 3617 action=4 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3618 action=3 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3619 action=0 key=wd:zset
+  WIREDUMP DIFF op 3620 action=4 key=wd:hash
+  WIREDUMP DIFF op 3621 action=2 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3622 action=0 key=wd:list-large
+  WIREDUMP DIFF op 3623 action=0 key=wd:set
+  WIREDUMP DIFF op 3624 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3625 action=2 key=wd:zset-large
+  WIREDUMP DIFF op 3626 action=2 key=wd:hash-large
+  WIREDUMP DIFF op 3627 action=3 key=wd:set-int
+  WIREDUMP DIFF op 3628 action=1 key=wd:string
+  WIREDUMP DIFF op 3629 action=0 key=wd:zset-large
+  WIREDUMP DIFF op 3630 action=2 key=wd:string
+  WIREDUMP DIFF op 3631 action=2 key=wd:string
+  WIREDUMP DIFF op 3632 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 3633 action=4 key=wd:string
+  WIREDUMP DIFF op 3634 action=4 key=wd:list
+  WIREDUMP DIFF op 3635 action=2 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3636 action=0 key=wd:string-lzf
+  WIREDUMP DIFF op 3637 action=1 key=wd:list
+  WIREDUMP DIFF op 3638 action=2 key=wd:zset
+  WIREDUMP DIFF op 3639 action=3 key=wd:string-lzf
+  WIREDUMP DIFF op 3640 action=2 key=wd:set-int
+  WIREDUMP DIFF op 3641 action=2 key=wd:set-int
+  WIREDUMP DIFF op 3642 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 3643 action=3 key=wd:string-lzf
+  WIREDUMP DIFF op 3644 action=2 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3645 action=0 key=wd:hash
+  WIREDUMP DIFF op 3646 action=2 key=wd:zset
+  WIREDUMP DIFF op 3647 action=3 key=wd:list-large
+  WIREDUMP DIFF op 3648 action=3 key=wd:zset-large
+  WIREDUMP DIFF op 3649 action=3 key=wd:zset
+  WIREDUMP DIFF op 3650 action=4 key=wd:list-large
+  WIREDUMP DIFF op 3651 action=4 key=wd:string-lzf
+  WIREDUMP DIFF op 3652 action=0 key=wd:list
+  WIREDUMP DIFF op 3653 action=3 key=wd:hash-large
+  WIREDUMP DIFF op 3654 action=2 key=wd:string
+  WIREDUMP DIFF op 3655 action=1 key=wd:hash
+  WIREDUMP DIFF op 3656 action=0 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3657 action=1 key=wd:zset
+  WIREDUMP DIFF op 3658 action=4 key=wd:set-int
+  WIREDUMP DIFF op 3659 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3660 action=2 key=wd:hash-large
+  WIREDUMP DIFF op 3661 action=0 key=wd:string
+  WIREDUMP DIFF op 3662 action=1 key=wd:list
+  WIREDUMP DIFF op 3663 action=1 key=wd:string-lzf
+  WIREDUMP DIFF op 3664 action=2 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3665 action=3 key=wd:hash-large
+  WIREDUMP DIFF op 3666 action=2 key=wd:zset-large
+  WIREDUMP DIFF op 3667 action=3 key=wd:hash-large
+  WIREDUMP DIFF op 3668 action=0 key=wd:list
+  WIREDUMP DIFF op 3669 action=0 key=wd:string
+  WIREDUMP DIFF op 3670 action=3 key=wd:set-int
+  WIREDUMP DIFF op 3671 action=3 key=wd:list
+  WIREDUMP DIFF op 3672 action=2 key=wd:zset
+  WIREDUMP DIFF op 3673 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 3674 action=2 key=wd:list-large
+  WIREDUMP DIFF op 3675 action=3 key=wd:list-large
+  WIREDUMP DIFF op 3676 action=2 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3677 action=2 key=wd:list-large
+  WIREDUMP DIFF op 3678 action=4 key=wd:set-int
+  WIREDUMP DIFF op 3679 action=3 key=wd:list
+  WIREDUMP DIFF op 3680 action=3 key=wd:zset-large
+  WIREDUMP DIFF op 3681 action=2 key=wd:hash
+  WIREDUMP DIFF op 3682 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 3683 action=2 key=wd:list
+  WIREDUMP DIFF op 3684 action=3 key=wd:set
+  WIREDUMP DIFF op 3685 action=0 key=wd:zset-large
+  WIREDUMP DIFF op 3686 action=1 key=wd:set-int
+  WIREDUMP DIFF op 3687 action=3 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3688 action=3 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3689 action=0 key=wd:zset-large
+  WIREDUMP DIFF op 3690 action=1 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3691 action=0 key=wd:set
+  WIREDUMP DIFF op 3692 action=2 key=wd:string
+  WIREDUMP DIFF op 3693 action=3 key=wd:set-int
+  CLOCK TOLERANCE count=40 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599984\r\n'
+    oracle: b':599983\r\n'
+  WIREDUMP DIFF op 3694 action=4 key=wd:zset-large
+  WIREDUMP DIFF op 3695 action=3 key=wd:set
+  WIREDUMP DIFF op 3696 action=1 key=wd:zset
+  WIREDUMP DIFF op 3697 action=1 key=wd:set
+  WIREDUMP DIFF op 3698 action=0 key=wd:set
+  WIREDUMP DIFF op 3699 action=2 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3700 action=0 key=wd:zset
+  WIREDUMP DIFF op 3701 action=4 key=wd:string-lzf
+  WIREDUMP DIFF op 3702 action=3 key=wd:string-lzf
+  WIREDUMP DIFF op 3703 action=1 key=wd:string-lzf
+  WIREDUMP DIFF op 3704 action=4 key=wd:hash
+  WIREDUMP DIFF op 3705 action=1 key=wd:zset
+  WIREDUMP DIFF op 3706 action=2 key=wd:zset
+  WIREDUMP DIFF op 3707 action=1 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3708 action=4 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3709 action=1 key=wd:zset-large
+  WIREDUMP DIFF op 3710 action=4 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3711 action=2 key=wd:zset-large
+  WIREDUMP DIFF op 3712 action=2 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3713 action=4 key=wd:string
+  WIREDUMP DIFF op 3714 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 3715 action=0 key=wd:hash-large
+  CLOCK TOLERANCE count=41 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599990\r\n'
+    oracle: b':599989\r\n'
+  WIREDUMP DIFF op 3716 action=4 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3717 action=3 key=wd:hash-ttl-some
+  CLOCK TOLERANCE count=42 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599989\r\n'
+    oracle: b':599988\r\n'
+  WIREDUMP DIFF op 3718 action=4 key=wd:string-lzf
+  WIREDUMP DIFF op 3719 action=0 key=wd:string-lzf
+  WIREDUMP DIFF op 3720 action=4 key=wd:hash
+  WIREDUMP DIFF op 3721 action=1 key=wd:set
+  WIREDUMP DIFF op 3722 action=2 key=wd:zset-large
+  CLOCK TOLERANCE count=43 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599997\r\n'
+    oracle: b':599996\r\n'
+  WIREDUMP DIFF op 3723 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 3724 action=1 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3725 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 3726 action=4 key=wd:zset
+  WIREDUMP DIFF op 3727 action=3 key=wd:string
+  WIREDUMP DIFF op 3728 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 3729 action=0 key=wd:zset-large
+  WIREDUMP DIFF op 3730 action=2 key=wd:set
+  WIREDUMP DIFF op 3731 action=3 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3732 action=2 key=wd:string
+  WIREDUMP DIFF op 3733 action=1 key=wd:zset-large
+  WIREDUMP DIFF op 3734 action=0 key=wd:set-int
+  WIREDUMP DIFF op 3735 action=1 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3736 action=0 key=wd:list
+  WIREDUMP DIFF op 3737 action=2 key=wd:hash
+  WIREDUMP DIFF op 3738 action=0 key=wd:zset-large
+  WIREDUMP DIFF op 3739 action=3 key=wd:list-large
+  WIREDUMP DIFF op 3740 action=2 key=wd:set
+  WIREDUMP DIFF op 3741 action=0 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3742 action=3 key=wd:zset
+  WIREDUMP DIFF op 3743 action=4 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3744 action=0 key=wd:zset
+  WIREDUMP DIFF op 3745 action=0 key=wd:list-large
+  WIREDUMP DIFF op 3746 action=3 key=wd:hash
+  WIREDUMP DIFF op 3747 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3748 action=3 key=wd:hash-large
+  CLOCK TOLERANCE count=44 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599921\r\n'
+    oracle: b':599922\r\n'
+  WIREDUMP DIFF op 3749 action=4 key=wd:hash
+  WIREDUMP DIFF op 3750 action=1 key=wd:set
+  WIREDUMP DIFF op 3751 action=4 key=wd:string-lzf
+  WIREDUMP DIFF op 3752 action=4 key=wd:string
+  WIREDUMP DIFF op 3753 action=4 key=wd:hash
+  WIREDUMP DIFF op 3754 action=4 key=wd:string-lzf
+  WIREDUMP DIFF op 3755 action=2 key=wd:hash-large
+  WIREDUMP DIFF op 3756 action=1 key=wd:string
+  WIREDUMP DIFF op 3757 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3758 action=0 key=wd:string-lzf
+  WIREDUMP DIFF op 3759 action=1 key=wd:zset-large
+  WIREDUMP DIFF op 3760 action=3 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3761 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 3762 action=4 key=wd:string
+  WIREDUMP DIFF op 3763 action=4 key=wd:list-large
+  WIREDUMP DIFF op 3764 action=3 key=wd:zset-large
+  WIREDUMP DIFF op 3765 action=3 key=wd:zset
+  WIREDUMP DIFF op 3766 action=1 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3767 action=3 key=wd:list
+  WIREDUMP DIFF op 3768 action=3 key=wd:set
+  WIREDUMP DIFF op 3769 action=3 key=wd:hash
+  WIREDUMP DIFF op 3770 action=4 key=wd:string
+  WIREDUMP DIFF op 3771 action=1 key=wd:set
+  WIREDUMP DIFF op 3772 action=2 key=wd:zset
+  WIREDUMP DIFF op 3773 action=3 key=wd:string-lzf
+  WIREDUMP DIFF op 3774 action=2 key=wd:hash
+  WIREDUMP DIFF op 3775 action=3 key=wd:hash-large
+  WIREDUMP DIFF op 3776 action=0 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3777 action=1 key=wd:hash-large
+  WIREDUMP DIFF op 3778 action=2 key=wd:zset
+  WIREDUMP DIFF op 3779 action=3 key=wd:string
+  WIREDUMP DIFF op 3780 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 3781 action=4 key=wd:zset
+  WIREDUMP DIFF op 3782 action=3 key=wd:list-large
+  WIREDUMP DIFF op 3783 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3784 action=1 key=wd:zset-large
+  WIREDUMP DIFF op 3785 action=1 key=wd:set-int
+  WIREDUMP DIFF op 3786 action=1 key=wd:set-int
+  WIREDUMP DIFF op 3787 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 3788 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 3789 action=4 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3790 action=0 key=wd:list-large
+  WIREDUMP DIFF op 3791 action=3 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3792 action=3 key=wd:set
+  WIREDUMP DIFF op 3793 action=1 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3794 action=2 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3795 action=2 key=wd:set-int
+  WIREDUMP DIFF op 3796 action=1 key=wd:zset
+  WIREDUMP DIFF op 3797 action=0 key=wd:list-large
+  WIREDUMP DIFF op 3798 action=3 key=wd:hash-large
+  WIREDUMP DIFF op 3799 action=4 key=wd:set-int
+  WIREDUMP DIFF op 3800 action=4 key=wd:list
+  WIREDUMP DIFF op 3801 action=4 key=wd:string-lzf
+  WIREDUMP DIFF op 3802 action=4 key=wd:hash
+  WIREDUMP DIFF op 3803 action=2 key=wd:set
+  WIREDUMP DIFF op 3804 action=0 key=wd:set
+  WIREDUMP DIFF op 3805 action=3 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3806 action=0 key=wd:zset
+  WIREDUMP DIFF op 3807 action=1 key=wd:set
+  WIREDUMP DIFF op 3808 action=1 key=wd:set-int
+  WIREDUMP DIFF op 3809 action=1 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3810 action=1 key=wd:hash
+  WIREDUMP DIFF op 3811 action=1 key=wd:hash-large
+  WIREDUMP DIFF op 3812 action=4 key=wd:zset-large
+  WIREDUMP DIFF op 3813 action=2 key=wd:zset-large
+  WIREDUMP DIFF op 3814 action=0 key=wd:set-int
+  WIREDUMP DIFF op 3815 action=0 key=wd:zset
+  WIREDUMP DIFF op 3816 action=0 key=wd:zset-large
+  WIREDUMP DIFF op 3817 action=4 key=wd:string
+  WIREDUMP DIFF op 3818 action=3 key=wd:set
+  WIREDUMP DIFF op 3819 action=4 key=wd:zset
+  WIREDUMP DIFF op 3820 action=3 key=wd:string
+  WIREDUMP DIFF op 3821 action=0 key=wd:set
+  WIREDUMP DIFF op 3822 action=3 key=wd:list
+  WIREDUMP DIFF op 3823 action=1 key=wd:string
+  WIREDUMP DIFF op 3824 action=1 key=wd:list-large
+  WIREDUMP DIFF op 3825 action=1 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3826 action=1 key=wd:set-int
+  WIREDUMP DIFF op 3827 action=4 key=wd:set-int
+  WIREDUMP DIFF op 3828 action=0 key=wd:set
+  WIREDUMP DIFF op 3829 action=1 key=wd:zset
+  WIREDUMP DIFF op 3830 action=3 key=wd:string
+  WIREDUMP DIFF op 3831 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 3832 action=2 key=wd:set
+  WIREDUMP DIFF op 3833 action=2 key=wd:list-large
+  WIREDUMP DIFF op 3834 action=3 key=wd:string
+  WIREDUMP DIFF op 3835 action=0 key=wd:hash
+  WIREDUMP DIFF op 3836 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3837 action=0 key=wd:set
+  WIREDUMP DIFF op 3838 action=4 key=wd:hash
+  WIREDUMP DIFF op 3839 action=1 key=wd:string-lzf
+  WIREDUMP DIFF op 3840 action=2 key=wd:hash
+  WIREDUMP DIFF op 3841 action=2 key=wd:hash-large
+  WIREDUMP DIFF op 3842 action=4 key=wd:list
+  WIREDUMP DIFF op 3843 action=4 key=wd:zset-large
+  WIREDUMP DIFF op 3844 action=3 key=wd:set
+  WIREDUMP DIFF op 3845 action=1 key=wd:string
+  WIREDUMP DIFF op 3846 action=1 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3847 action=1 key=wd:list
+  WIREDUMP DIFF op 3848 action=0 key=wd:hash-large
+  WIREDUMP DIFF op 3849 action=4 key=wd:list
+  WIREDUMP DIFF op 3850 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3851 action=2 key=wd:list-large
+  WIREDUMP DIFF op 3852 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3853 action=2 key=wd:zset-large
+  WIREDUMP DIFF op 3854 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 3855 action=3 key=wd:hash-large
+  WIREDUMP DIFF op 3856 action=1 key=wd:string-lzf
+  WIREDUMP DIFF op 3857 action=2 key=wd:list
+  WIREDUMP DIFF op 3858 action=4 key=wd:set-int
+  WIREDUMP DIFF op 3859 action=3 key=wd:string-lzf
+  WIREDUMP DIFF op 3860 action=4 key=wd:set
+  WIREDUMP DIFF op 3861 action=1 key=wd:hash
+  WIREDUMP DIFF op 3862 action=4 key=wd:list-large
+  WIREDUMP DIFF op 3863 action=4 key=wd:zset
+  WIREDUMP DIFF op 3864 action=4 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3865 action=1 key=wd:set-int
+  WIREDUMP DIFF op 3866 action=0 key=wd:zset
+  WIREDUMP DIFF op 3867 action=2 key=wd:zset
+  WIREDUMP DIFF op 3868 action=2 key=wd:hash
+  WIREDUMP DIFF op 3869 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 3870 action=3 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3871 action=1 key=wd:set
+  WIREDUMP DIFF op 3872 action=0 key=wd:list-large
+  WIREDUMP DIFF op 3873 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 3874 action=1 key=wd:hash-large
+  WIREDUMP DIFF op 3875 action=4 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3876 action=1 key=wd:set
+  WIREDUMP DIFF op 3877 action=3 key=wd:hash
+  WIREDUMP DIFF op 3878 action=4 key=wd:set
+  WIREDUMP DIFF op 3879 action=2 key=wd:hash-large
+  WIREDUMP DIFF op 3880 action=2 key=wd:hash-large
+  WIREDUMP DIFF op 3881 action=3 key=wd:zset-large
+  WIREDUMP DIFF op 3882 action=1 key=wd:list
+  WIREDUMP DIFF op 3883 action=2 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3884 action=3 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3885 action=2 key=wd:hash
+  WIREDUMP DIFF op 3886 action=1 key=wd:set-int
+  WIREDUMP DIFF op 3887 action=3 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3888 action=3 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3889 action=0 key=wd:list
+  WIREDUMP DIFF op 3890 action=2 key=wd:set
+  WIREDUMP DIFF op 3891 action=2 key=wd:string
+  WIREDUMP DIFF op 3892 action=3 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3893 action=0 key=wd:zset-large
+  WIREDUMP DIFF op 3894 action=2 key=wd:zset-large
+  WIREDUMP DIFF op 3895 action=0 key=wd:string
+  WIREDUMP DIFF op 3896 action=4 key=wd:set-int
+  WIREDUMP DIFF op 3897 action=4 key=wd:string
+  WIREDUMP DIFF op 3898 action=4 key=wd:hash
+  WIREDUMP DIFF op 3899 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 3900 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 3901 action=4 key=wd:string
+  WIREDUMP DIFF op 3902 action=4 key=wd:string-lzf
+  WIREDUMP DIFF op 3903 action=0 key=wd:zset
+  WIREDUMP DIFF op 3904 action=4 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3905 action=3 key=wd:list-large
+  WIREDUMP DIFF op 3906 action=3 key=wd:string
+  WIREDUMP DIFF op 3907 action=4 key=wd:zset
+  WIREDUMP DIFF op 3908 action=3 key=wd:zset
+  WIREDUMP DIFF op 3909 action=2 key=wd:set
+  WIREDUMP DIFF op 3910 action=1 key=wd:zset-large
+  WIREDUMP DIFF op 3911 action=2 key=wd:hash
+  WIREDUMP DIFF op 3912 action=4 key=wd:string-lzf
+  WIREDUMP DIFF op 3913 action=3 key=wd:zset
+  WIREDUMP DIFF op 3914 action=1 key=wd:hash
+  WIREDUMP DIFF op 3915 action=1 key=wd:list
+  WIREDUMP DIFF op 3916 action=0 key=wd:hash
+  WIREDUMP DIFF op 3917 action=3 key=wd:zset
+  WIREDUMP DIFF op 3918 action=1 key=wd:set-int
+  WIREDUMP DIFF op 3919 action=2 key=wd:string
+  WIREDUMP DIFF op 3920 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 3921 action=4 key=wd:string
+  WIREDUMP DIFF op 3922 action=2 key=wd:zset
+  WIREDUMP DIFF op 3923 action=4 key=wd:zset
+  WIREDUMP DIFF op 3924 action=0 key=wd:string
+  WIREDUMP DIFF op 3925 action=3 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3926 action=4 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3927 action=1 key=wd:zset-large
+  WIREDUMP DIFF op 3928 action=4 key=wd:set-int
+  WIREDUMP DIFF op 3929 action=1 key=wd:set-int
+  WIREDUMP DIFF op 3930 action=1 key=wd:zset
+  WIREDUMP DIFF op 3931 action=0 key=wd:set-int
+  WIREDUMP DIFF op 3932 action=4 key=wd:zset
+  WIREDUMP DIFF op 3933 action=3 key=wd:hash
+  WIREDUMP DIFF op 3934 action=1 key=wd:zset
+  WIREDUMP DIFF op 3935 action=2 key=wd:zset
+  WIREDUMP DIFF op 3936 action=0 key=wd:string
+  WIREDUMP DIFF op 3937 action=1 key=wd:zset-large
+  WIREDUMP DIFF op 3938 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 3939 action=4 key=wd:string
+  WIREDUMP DIFF op 3940 action=3 key=wd:zset
+  WIREDUMP DIFF op 3941 action=4 key=wd:set
+  WIREDUMP DIFF op 3942 action=4 key=wd:list-large
+  WIREDUMP DIFF op 3943 action=1 key=wd:hash
+  WIREDUMP DIFF op 3944 action=2 key=wd:zset
+  WIREDUMP DIFF op 3945 action=4 key=wd:zset
+  WIREDUMP DIFF op 3946 action=2 key=wd:set-int
+  WIREDUMP DIFF op 3947 action=2 key=wd:hash
+  CLOCK TOLERANCE count=45 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599997\r\n'
+    oracle: b':599996\r\n'
+  WIREDUMP DIFF op 3948 action=4 key=wd:set
+  WIREDUMP DIFF op 3949 action=2 key=wd:string
+  WIREDUMP DIFF op 3950 action=4 key=wd:set
+  WIREDUMP DIFF op 3951 action=4 key=wd:set-int
+  WIREDUMP DIFF op 3952 action=1 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3953 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 3954 action=2 key=wd:list-large
+  WIREDUMP DIFF op 3955 action=1 key=wd:hash-large
+  WIREDUMP DIFF op 3956 action=1 key=wd:list-large
+  WIREDUMP DIFF op 3957 action=3 key=wd:list
+  WIREDUMP DIFF op 3958 action=3 key=wd:zset-large
+  WIREDUMP DIFF op 3959 action=1 key=wd:zset
+  WIREDUMP DIFF op 3960 action=4 key=wd:string-lzf
+  WIREDUMP DIFF op 3961 action=0 key=wd:zset-large
+  WIREDUMP DIFF op 3962 action=2 key=wd:zset
+  WIREDUMP DIFF op 3963 action=2 key=wd:hash
+  WIREDUMP DIFF op 3964 action=3 key=wd:string
+  WIREDUMP DIFF op 3965 action=0 key=wd:hash
+  WIREDUMP DIFF op 3966 action=0 key=wd:zset-large
+  WIREDUMP DIFF op 3967 action=0 key=wd:string
+  WIREDUMP DIFF op 3968 action=2 key=wd:set-int
+  WIREDUMP DIFF op 3969 action=4 key=wd:set-int
+  WIREDUMP DIFF op 3970 action=1 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3971 action=2 key=wd:hash-large
+  WIREDUMP DIFF op 3972 action=3 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3973 action=3 key=wd:zset-large
+  CLOCK TOLERANCE count=46 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599998\r\n'
+    oracle: b':599997\r\n'
+  WIREDUMP DIFF op 3974 action=4 key=wd:zset-large
+  WIREDUMP DIFF op 3975 action=0 key=wd:string
+  WIREDUMP DIFF op 3976 action=0 key=wd:hash-large
+  WIREDUMP DIFF op 3977 action=0 key=wd:string
+  WIREDUMP DIFF op 3978 action=4 key=wd:set-int
+  WIREDUMP DIFF op 3979 action=4 key=wd:list-large
+  WIREDUMP DIFF op 3980 action=4 key=wd:zset
+  WIREDUMP DIFF op 3981 action=3 key=wd:set
+  WIREDUMP DIFF op 3982 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3983 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 3984 action=3 key=wd:list-large
+  WIREDUMP DIFF op 3985 action=3 key=wd:zset
+  WIREDUMP DIFF op 3986 action=0 key=wd:list-large
+  WIREDUMP DIFF op 3987 action=2 key=wd:hash
+  WIREDUMP DIFF op 3988 action=4 key=wd:string
+  WIREDUMP DIFF op 3989 action=3 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3990 action=1 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3991 action=1 key=wd:set
+  WIREDUMP DIFF op 3992 action=1 key=wd:set
+  WIREDUMP DIFF op 3993 action=2 key=wd:zset
+  WIREDUMP DIFF op 3994 action=2 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 3995 action=1 key=wd:hash
+  WIREDUMP DIFF op 3996 action=2 key=wd:list-large
+  WIREDUMP DIFF op 3997 action=4 key=wd:set-int
+  WIREDUMP DIFF op 3998 action=3 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 3999 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 4000 action=2 key=wd:list
+  WIREDUMP DIFF op 4001 action=3 key=wd:hash
+  WIREDUMP DIFF op 4002 action=1 key=wd:list-large
+  WIREDUMP DIFF op 4003 action=1 key=wd:list
+  WIREDUMP DIFF op 4004 action=3 key=wd:hash
+  WIREDUMP DIFF op 4005 action=0 key=wd:hash-large
+  WIREDUMP DIFF op 4006 action=0 key=wd:list
+  WIREDUMP DIFF op 4007 action=0 key=wd:hash-large
+  WIREDUMP DIFF op 4008 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4009 action=1 key=wd:set-int
+  WIREDUMP DIFF op 4010 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4011 action=3 key=wd:list
+  WIREDUMP DIFF op 4012 action=2 key=wd:list-large
+  WIREDUMP DIFF op 4013 action=3 key=wd:string-lzf
+  WIREDUMP DIFF op 4014 action=3 key=wd:zset-large
+  WIREDUMP DIFF op 4015 action=4 key=wd:zset-large
+  WIREDUMP DIFF op 4016 action=3 key=wd:hash-large
+  WIREDUMP DIFF op 4017 action=4 key=wd:set-int
+  WIREDUMP DIFF op 4018 action=0 key=wd:zset-large
+  WIREDUMP DIFF op 4019 action=1 key=wd:list
+  WIREDUMP DIFF op 4020 action=0 key=wd:list-large
+  WIREDUMP DIFF op 4021 action=3 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 4022 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4023 action=1 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4024 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4025 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 4026 action=4 key=wd:hash
+  WIREDUMP DIFF op 4027 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 4028 action=0 key=wd:set-int
+  WIREDUMP DIFF op 4029 action=1 key=wd:set-int
+  WIREDUMP DIFF op 4030 action=2 key=wd:zset
+  WIREDUMP DIFF op 4031 action=1 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4032 action=4 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4033 action=4 key=wd:zset
+  WIREDUMP DIFF op 4034 action=2 key=wd:string
+  WIREDUMP DIFF op 4035 action=0 key=wd:hash
+  WIREDUMP DIFF op 4036 action=0 key=wd:string
+  WIREDUMP DIFF op 4037 action=4 key=wd:list-large
+  WIREDUMP DIFF op 4038 action=3 key=wd:zset-large
+  WIREDUMP DIFF op 4039 action=0 key=wd:zset
+  WIREDUMP DIFF op 4040 action=2 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4041 action=4 key=wd:set
+  WIREDUMP DIFF op 4042 action=1 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4043 action=2 key=wd:set
+  WIREDUMP DIFF op 4044 action=3 key=wd:hash-large
+  WIREDUMP DIFF op 4045 action=1 key=wd:set-int
+  WIREDUMP DIFF op 4046 action=2 key=wd:set-int
+  WIREDUMP DIFF op 4047 action=0 key=wd:set
+  WIREDUMP DIFF op 4048 action=1 key=wd:zset-large
+  WIREDUMP DIFF op 4049 action=4 key=wd:string
+  WIREDUMP DIFF op 4050 action=3 key=wd:hash
+  WIREDUMP DIFF op 4051 action=3 key=wd:set
+  WIREDUMP DIFF op 4052 action=2 key=wd:list
+  WIREDUMP DIFF op 4053 action=3 key=wd:zset-large
+  WIREDUMP DIFF op 4054 action=0 key=wd:hash
+  WIREDUMP DIFF op 4055 action=3 key=wd:string-lzf
+  WIREDUMP DIFF op 4056 action=1 key=wd:string
+  WIREDUMP DIFF op 4057 action=0 key=wd:list-large
+  WIREDUMP DIFF op 4058 action=3 key=wd:set
+  WIREDUMP DIFF op 4059 action=2 key=wd:zset
+  WIREDUMP DIFF op 4060 action=1 key=wd:hash-large
+  WIREDUMP DIFF op 4061 action=2 key=wd:hash-large
+  WIREDUMP DIFF op 4062 action=4 key=wd:set-int
+  WIREDUMP DIFF op 4063 action=1 key=wd:hash-large
+  WIREDUMP DIFF op 4064 action=1 key=wd:set-int
+  WIREDUMP DIFF op 4065 action=0 key=wd:string-lzf
+  WIREDUMP DIFF op 4066 action=1 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4067 action=2 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 4068 action=1 key=wd:zset-large
+  WIREDUMP DIFF op 4069 action=4 key=wd:list-large
+  WIREDUMP DIFF op 4070 action=1 key=wd:string
+  WIREDUMP DIFF op 4071 action=1 key=wd:set-int
+  WIREDUMP DIFF op 4072 action=3 key=wd:list
+  WIREDUMP DIFF op 4073 action=2 key=wd:set
+  WIREDUMP DIFF op 4074 action=4 key=wd:hash
+  WIREDUMP DIFF op 4075 action=1 key=wd:string
+  WIREDUMP DIFF op 4076 action=3 key=wd:list-large
+  WIREDUMP DIFF op 4077 action=3 key=wd:list
+  WIREDUMP DIFF op 4078 action=3 key=wd:set-int
+  WIREDUMP DIFF op 4079 action=3 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 4080 action=1 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 4081 action=4 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 4082 action=0 key=wd:list
+  WIREDUMP DIFF op 4083 action=4 key=wd:list-large
+  WIREDUMP DIFF op 4084 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 4085 action=4 key=wd:string-lzf
+  WIREDUMP DIFF op 4086 action=4 key=wd:list-large
+  WIREDUMP DIFF op 4087 action=1 key=wd:list-large
+  WIREDUMP DIFF op 4088 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 4089 action=2 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4090 action=2 key=wd:string-lzf
+  WIREDUMP DIFF op 4091 action=3 key=wd:string
+  WIREDUMP DIFF op 4092 action=0 key=wd:string
+  WIREDUMP DIFF op 4093 action=4 key=wd:zset
+  WIREDUMP DIFF op 4094 action=2 key=wd:string
+  WIREDUMP DIFF op 4095 action=2 key=wd:string
+  WIREDUMP DIFF op 4096 action=4 key=wd:set
+  WIREDUMP DIFF op 4097 action=4 key=wd:list
+  WIREDUMP DIFF op 4098 action=4 key=wd:list
+  WIREDUMP DIFF op 4099 action=2 key=wd:zset-large
+  WIREDUMP DIFF op 4100 action=2 key=wd:hash-large
+  WIREDUMP DIFF op 4101 action=1 key=wd:list
+  WIREDUMP DIFF op 4102 action=3 key=wd:zset
+  WIREDUMP DIFF op 4103 action=0 key=wd:list-large
+  WIREDUMP DIFF op 4104 action=0 key=wd:set
+  WIREDUMP DIFF op 4105 action=0 key=wd:string-lzf
+  WIREDUMP DIFF op 4106 action=0 key=wd:zset
+  WIREDUMP DIFF op 4107 action=3 key=wd:list-large
+  WIREDUMP DIFF op 4108 action=3 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 4109 action=0 key=wd:zset
+  WIREDUMP DIFF op 4110 action=2 key=wd:set
+  WIREDUMP DIFF op 4111 action=0 key=wd:string-lzf
+  WIREDUMP DIFF op 4112 action=0 key=wd:zset
+  WIREDUMP DIFF op 4113 action=3 key=wd:string
+  WIREDUMP DIFF op 4114 action=4 key=wd:hash
+  WIREDUMP DIFF op 4115 action=3 key=wd:string
+  WIREDUMP DIFF op 4116 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 4117 action=1 key=wd:list-large
+  WIREDUMP DIFF op 4118 action=1 key=wd:hash
+  WIREDUMP DIFF op 4119 action=1 key=wd:zset-large
+  WIREDUMP DIFF op 4120 action=2 key=wd:set-int
+  WIREDUMP DIFF op 4121 action=2 key=wd:list-large
+  WIREDUMP DIFF op 4122 action=2 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 4123 action=2 key=wd:string
+  WIREDUMP DIFF op 4124 action=2 key=wd:hash
+  WIREDUMP DIFF op 4125 action=4 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4126 action=0 key=wd:zset-large
+  WIREDUMP DIFF op 4127 action=0 key=wd:zset
+  WIREDUMP DIFF op 4128 action=0 key=wd:string
+  WIREDUMP DIFF op 4129 action=3 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 4130 action=2 key=wd:set-int
+  WIREDUMP DIFF op 4131 action=4 key=wd:string-lzf
+  WIREDUMP DIFF op 4132 action=1 key=wd:hash
+  WIREDUMP DIFF op 4133 action=1 key=wd:zset-large
+  WIREDUMP DIFF op 4134 action=2 key=wd:set-int
+  WIREDUMP DIFF op 4135 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 4136 action=3 key=wd:list
+  WIREDUMP DIFF op 4137 action=1 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4138 action=3 key=wd:list
+  WIREDUMP DIFF op 4139 action=1 key=wd:set-int
+  WIREDUMP DIFF op 4140 action=0 key=wd:zset
+  WIREDUMP DIFF op 4141 action=2 key=wd:set-int
+  WIREDUMP DIFF op 4142 action=0 key=wd:set
+  WIREDUMP DIFF op 4143 action=4 key=wd:string
+  WIREDUMP DIFF op 4144 action=4 key=wd:list-large
+  WIREDUMP DIFF op 4145 action=0 key=wd:hash
+  WIREDUMP DIFF op 4146 action=4 key=wd:string-lzf
+  WIREDUMP DIFF op 4147 action=3 key=wd:hash
+  WIREDUMP DIFF op 4148 action=0 key=wd:set-int
+  WIREDUMP DIFF op 4149 action=2 key=wd:hash
+  WIREDUMP DIFF op 4150 action=1 key=wd:zset
+  WIREDUMP DIFF op 4151 action=4 key=wd:string
+  WIREDUMP DIFF op 4152 action=3 key=wd:hash-large
+  WIREDUMP DIFF op 4153 action=1 key=wd:hash
+  WIREDUMP DIFF op 4154 action=3 key=wd:hash
+  WIREDUMP DIFF op 4155 action=4 key=wd:hash
+  WIREDUMP DIFF op 4156 action=0 key=wd:list
+  WIREDUMP DIFF op 4157 action=3 key=wd:zset-large
+  WIREDUMP DIFF op 4158 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4159 action=2 key=wd:hash
+  WIREDUMP DIFF op 4160 action=3 key=wd:set-int
+  WIREDUMP DIFF op 4161 action=2 key=wd:hash-large
+  WIREDUMP DIFF op 4162 action=1 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4163 action=1 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 4164 action=1 key=wd:hash-large
+  WIREDUMP DIFF op 4165 action=3 key=wd:hash
+  WIREDUMP DIFF op 4166 action=4 key=wd:hash-ttl-some
+  WIREDUMP DIFF op 4167 action=0 key=wd:string-lzf
+  WIREDUMP DIFF op 4168 action=0 key=wd:list
+  WIREDUMP DIFF op 4169 action=1 key=wd:list
+  WIREDUMP DIFF op 4170 action=0 key=wd:hash
+  WIREDUMP DIFF op 4171 action=0 key=wd:string-lzf
+  WIREDUMP DIFF op 4172 action=2 key=wd:hash-large
+  WIREDUMP DIFF op 4173 action=1 key=wd:string-lzf
+  WIREDUMP DIFF op 4174 action=4 key=wd:zset-large
+  WIREDUMP DIFF op 4175 action=4 key=wd:set-int
+  WIREDUMP DIFF op 4176 action=0 key=wd:string
+  WIREDUMP DIFF op 4177 action=2 key=wd:set
+  WIREDUMP DIFF op 4178 action=1 key=wd:string-lzf
+  WIREDUMP DIFF op 4179 action=0 key=wd:hash
+  WIREDUMP DIFF op 4180 action=1 key=wd:set-int
+  WIREDUMP DIFF op 4181 action=3 key=wd:set-int
+  CLOCK TOLERANCE count=47 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599999\r\n'
+    oracle: b':600000\r\n'
+  WIREDUMP DIFF op 4182 action=4 key=wd:list-large
+  WIREDUMP DIFF op 4183 action=2 key=wd:zset
+  WIREDUMP DIFF op 4184 action=4 key=wd:hash-large
+  WIREDUMP DIFF op 4185 action=0 key=wd:hash-large
+  WIREDUMP DIFF op 4186 action=0 key=wd:hash-ttl-all
+  WIREDUMP DIFF op 4187 action=3 key=wd:zset
+  WIREDUMP DIFF op 4188 action=3 key=wd:zset-large
+  WIREDUMP DIFF op 4189 action=3 key=wd:set-int
+  WIREDUMP DIFF op 4190 action=3 key=wd:string
+  WIREDUMP DIFF op 4191 action=0 key=wd:hash
+  WIREDUMP DIFF op 4192 action=3 key=wd:set-int
+  WIREDUMP DIFF op 4193 action=0 key=wd:list
+  WIREDUMP DIFF op 4194 action=3 key=wd:zset
+  WIREDUMP DIFF op 4195 action=2 key=wd:string
+  CLOCK TOLERANCE count=48 integers=1 command=['PTTL', 'wd:restore']
+    target: b':599989\r\n'
+    oracle: b':599990\r\n'
+  WIREDUMP DIFF op 4196 action=4 key=wd:list
+  WIREDUMP DIFF op 4197 action=2 key=wd:zset-large
+  WIREDUMP DIFF op 4198 action=0 key=wd:hash
+  WIREDUMP DIFF op 4199 action=2 key=wd:set
+DIFFER wiredump: 4200 ops, 4 diffs, 48 clock tolerances -> FAIL

@@ -137,7 +137,7 @@ def placeholder_and_commandstats(c):
     ping = commandstats.get("cmdstat_ping", "")
     members = dict(item.split("=", 1) for item in ping.split(",") if "=" in item)
     check("cmdstat PING fired", int(members.get("calls", "0")), lambda value: value >= 4)
-    check("cmdstat emits only measured members", set(members), {"calls"})
+    check("cmdstat emits only measured members", set(members), {"calls", "rejected_calls"})
 
 
 def memory_peak(c):

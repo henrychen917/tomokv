@@ -1,0 +1,4 @@
+  CD13b GEO FAIL target STORE: AssertionError(((0, 0, 0), (1, 0, 1)))
+  CD13b GEO FAIL target STOREDIST: AssertionError(((0, 0, 0), (1, 0, 1)))
+  CD13b GEO FAIL target GEOSEARCHSTORE: AssertionError(((0, 0, 0), (1, 0, 1)))
+EXPECTED FAILURE: before fixture has 3 failures and no STORE; corrected property passes.

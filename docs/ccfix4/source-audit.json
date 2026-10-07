@@ -1,0 +1,39 @@
+{
+  "base": "08a68fcba20e3b33015f19e9157818083a6e6519",
+  "merge": "adcd6c34f7346f839098d980fd3a260999fc265f",
+  "files": [
+    {
+      "path": "src/cmd/acl.inc",
+      "round1_equal": true,
+      "sha256": "2c42c930a1bfe56182d0a14c34a7bb1a2872465581a66f00363d4745fe82f4e7"
+    },
+    {
+      "path": "src/cmd/auth.inc",
+      "round1_equal": true,
+      "sha256": "6c24dba74dcfcdd69a9b38cdad5947bc58d6519512b200eb36f8dee51db4075b"
+    },
+    {
+      "path": "src/cmd/notify.h",
+      "round1_equal": true,
+      "sha256": "5a934b5fe063cb129eaafb2a88ed08b21572db9fd0eab901327cf3e509b66ee4"
+    },
+    {
+      "path": "src/cmd/notify.inc",
+      "round1_equal": true,
+      "sha256": "b53f75fdef5d9fd0bed988dc27e4f431d04eb0334fb74b7b3d3605394a3ba2a8"
+    },
+    {
+      "path": "src/cmd/t_server.cc",
+      "round1_equal": false,
+      "sha256": "a2a569253d439ea2de8223cc69774f9a6a26d17a17e4f2ebc584eb5ffc3947d1"
+    },
+    {
+      "path": "src/core/thread.h",
+      "round1_equal": true,
+      "sha256": "8922cc64961d6aa6548841881c25e14352e64a7c91cc0e8509d5070d4df8bad5"
+    }
+  ],
+  "production_after_merge_changes": [],
+  "gate_and_fixture_equal_base": true,
+  "db0_main_override_count": 1
+}

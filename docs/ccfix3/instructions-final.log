@@ -1,0 +1,11 @@
+instructions-PRE PASS
+instructions-POST PASS
+instructions-PRE-db0 PASS
+instructions-POST-db0 PASS
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-ccfix/tools/ccfix3_prove.py", line 114, in <module>
+    {'units': units, 'instructions': instructions, 'layouts': layouts}[args.proof]()
+  File "/home/user/Projects/cx-ccfix/tools/ccfix3_prove.py", line 82, in instructions
+    assert rows['PRE' + suffix] == rows['POST' + suffix], rows
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'PRE': 'off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n', 'POST': 'off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000064\nsave-only/string,100000,2400120\nnote_command,100000,700048\n', 'PRE-db0': 'off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n', 'POST-db0': 'off/keymiss,100000,1800053\noff/string,100000,1800053\nsave-only/keymiss,100000,2000053\nsave-only/string,100000,2400053\nnote_command,100000,700038\n'}

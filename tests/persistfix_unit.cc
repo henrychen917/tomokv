@@ -13,6 +13,7 @@ static void require(bool ok, const char* why) {
 static std::atomic<bool> waited{false};
 
 namespace tomo {
+bool aof_debug_frame_state(const std::string&, uint32_t, uint64_t, uint64_t) noexcept;
 struct PersistFixTest {
     Server server;
     AofManager& aof = server.aof();
@@ -120,6 +121,120 @@ struct PersistFixTest {
                 "refused post appears in persistence report");
         std::puts("PASS persistfix refusal: retained chunk, counter and log line");
     }
+    void frame_state() {
+        char directory[] = "build/persistfix/frame-state-XXXXXX";
+        require(::mkdtemp(directory), "create disposable DEBUG state directory");
+        const std::string path = std::string(directory) + "/debug-aof-frame-state";
+        auto contents = [&] {
+            const int fd = ::open(path.c_str(), O_RDONLY | O_CLOEXEC);
+            require(fd >= 0, "DEBUG state was published");
+            char text[80];
+            const ssize_t count = ::read(fd, text, sizeof(text));
+            ::close(fd);
+            require(count > 0, "DEBUG state is complete");
+            return std::string(text, static_cast<size_t>(count));
+        };
+        require(aof_debug_frame_state(directory, 5, 0, 100), "initial DEBUG state publication");
+        require(contents() == "5 0 100\n", "initial counters are exact");
+        require(aof_debug_frame_state(directory, 5, 4, 104), "replace DEBUG state publication");
+        require(contents() == "5 4 104\n", "queued-window counters are exact");
+        require(::access((path + ".tmp").c_str(), F_OK) != 0, "temporary file was renamed");
+        require(aof_debug_frame_state(directory, UINT32_MAX, UINT64_MAX, UINT64_MAX),
+                "full-width counters fit the publication buffer");
+        require(contents() == "4294967295 18446744073709551615 18446744073709551615\n",
+                "full-width counters are not truncated");
+        ::unlink(path.c_str());
+        aof.directory_path_ = directory;
+        aof.maybe_pause_rewrite(AofRewriteDebugStage::AfterManifest);
+        require(::access(path.c_str(), F_OK) != 0, "unarmed DEBUG pause publishes nothing");
+        aof.posted_sequence_.store(100);
+        aof.debug_rewrite_pause_.store(AofRewriteDebugStage::AfterManifest);
+        std::thread paused([&] { aof.maybe_pause_rewrite(AofRewriteDebugStage::AfterManifest); });
+        auto observe = [&](const std::string& expected) {
+            const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+            while (std::chrono::steady_clock::now() < deadline) {
+                if (::access(path.c_str(), F_OK) == 0 && contents() == expected) return;
+                std::this_thread::yield();
+            }
+            require(false, "armed DEBUG pause must publish actual queue counters");
+        };
+        observe("0 0 100\n");
+        aof.pending_chunks_.store(4);
+        aof.posted_sequence_.store(104);
+        observe("0 4 104\n");
+        aof.debug_rewrite_pause_.store(AofRewriteDebugStage::None);
+        paused.join();
+        aof.pending_chunks_.store(0);
+        require(::access(path.c_str(), F_OK) != 0 &&
+                ::access((std::string(directory) + "/debug-aof-rewrite-stage").c_str(), F_OK) != 0,
+                "DEBUG release removes both observations");
+        ::rmdir(directory);
+        require(!aof_debug_frame_state(directory, 5, 4, 104),
+                "publication failure is not reported as a witness");
+        std::puts("PASS frame-state: unarmed/armed/released pause, exact counters, atomic rename, failed publication");
+    }
+    void frame_order(bool drain_all, uint32_t committer, bool break_guard) {
+        // Drive the actual production writer without a listener, worker, or initialized Ring.
+        // Producer 0's fragment, producer 1's fragment/large record, GCMT on either producer.
+        char path[] = "build/persistfix/frameorder-XXXXXX";
+        aof.fd_ = ::mkstemp(path);
+        require(aof.fd_ >= 0, "create disposable frame-order file");
+        ::unlink(path);
+        aof.nshards_ = 2;
+        aof.next_sequence_.assign(2, 0);
+        aof.fsync_policy_.store(AppendFsyncPolicy::No);
+        ThreadCtx writer;
+        Ring ring;
+        LoopSignals signals;
+        auto group = aof_create_group(aof, {0, 1});
+        require(bool(group), "create real group decision");
+        group->ticket.store(1);
+        auto post = [&](uint32_t producer, uint32_t sequence, uint32_t flags,
+                        bool fragment = false) {
+            auto chunk = std::make_unique<AofChunk>();
+            chunk->sid = static_cast<int32_t>(producer);
+            chunk->sequence = sequence;
+            chunk->flags = flags;
+            chunk->bytes.assign(8, 'L'); // physical-framing unit; no logical replay claim
+            if (fragment) { chunk->group = group; chunk->group_fragment_last = true; }
+            require(aof.post_chunk(producer, chunk, ring, signals), "post scheduled frame");
+        };
+        post(0, 0, 0, true);
+        post(1, 0, 0, true);
+        AofOwnerContext context{committer, &ring, &signals};
+        require(aof_commit_group(aof, group, 1, context), "post GCMT after both fragments");
+        require(aof.pending_chunks() == 3, "complete group is queued before LargeBegin");
+        post(1, 1, AofFrameLargeBegin);
+        require(aof.pending_chunks() == 4, "LargeBegin is queued before writer release");
+        aof.writer_pass(writer, ring, drain_all);
+        require(aof.stream_owner_.large_token() && aof.pending_commits_.size() == 1 &&
+                aof.group_dependencies_ready(*group), "ready GCMT and OPEN large record coexist");
+        if (break_guard) {
+            // Throwaway negative control: bypass writer_pass's large-token guard using an
+            // unrelated open token. The exact next assertion must reject the premature GCMT.
+            AofStreamOwner unrelated;
+            uint32_t budget = 1;
+            io_uring_sqe* last_write = nullptr;
+            aof.drain_pending_commits(*unrelated.open_token(), budget, ring, last_write);
+        }
+        require(aof.control_defers() > 0 && aof.groups_committed() == 0,
+                "ready GCMT MUST stay outside the open large record");
+        // More frames than either writer budget. Feed a bounded producer channel in batches,
+        // preserving the live test's source order even across partial/idle drain passes.
+        for (uint32_t sequence = 2; sequence <= 273; ++sequence) {
+            post(1, sequence, sequence == 273 ? uint32_t{AofFrameLargeEnd} : 0u);
+            if (sequence % 32 == 0 || sequence == 273) {
+                while (aof.chunk_in_[1].depth()) aof.writer_pass(writer, ring, drain_all);
+                if (sequence < 273)
+                    require(aof.groups_committed() == 0, "no GCMT in any large-record continuation");
+            }
+        }
+        aof.writer_pass(writer, ring, drain_all);
+        require(!aof.failed() && aof.pending_chunks() == 0 && aof.groups_committed() == 1 &&
+                aof.stream_owner_.open_token(), "GCMT commits only after LargeEnd");
+        std::printf("PASS frame-order: drain_all=%u committer=%u deferrals=%llu\n",
+                    drain_all, committer, static_cast<unsigned long long>(aof.control_defers()));
+    }
 };
 }
 
@@ -128,9 +243,18 @@ static_assert(sizeof(Shard) == 1440 && sizeof(FlatStore) == 944 && sizeof(Rob<64
 static_assert(sizeof(AtomicEntry) == 144 && sizeof(Config) == 624);
 
 int main(int argc, char** argv) {
-    require(argc == 2, "usage: persistfix-unit ack|remote|shutdown|refusal");
-    PersistFixTest test;
+    require(argc == 2, "usage: persistfix-unit ack|remote|shutdown|refusal|frameorder|frameorder-no-guard");
     const std::string mode(argv[1]);
+    if (mode == "frameorder" || mode == "frameorder-no-guard") {
+        { PersistFixTest test; test.frame_state(); }
+        for (bool drain_all : {false, true})
+            for (uint32_t committer : {0u, 1u}) {
+                PersistFixTest test;
+                test.frame_order(drain_all, committer, mode == "frameorder-no-guard");
+            }
+        return 0;
+    }
+    PersistFixTest test;
     if (mode == "ack") test.ack_window();
     else if (mode == "remote") test.remote_window();
     else if (mode == "shutdown") test.shutdown_window();

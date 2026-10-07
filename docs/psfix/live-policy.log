@@ -1,0 +1,4 @@
+build/gate-run.JYVsRP/jobs/aof-epoll/gate-aof-epoll-0.txt: AOF LIVE POLICY PASS: armed 3 tail bytes; no refused unchanged; yes recovered and truncated
+build/gate-run.JYVsRP/jobs/aof-epoll/gate-aof-epoll-1.txt: AOF LIVE POLICY PASS: armed 3 tail bytes; no refused unchanged; yes recovered and truncated
+build/gate-run.JYVsRP/jobs/aof-uring/gate-aof-uring-0.txt: AOF LIVE POLICY PASS: armed 3 tail bytes; no refused unchanged; yes recovered and truncated
+build/gate-run.JYVsRP/jobs/aof-uring/gate-aof-uring-1.txt: AOF LIVE POLICY PASS: armed 3 tail bytes; no refused unchanged; yes recovered and truncated

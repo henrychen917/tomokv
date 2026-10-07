@@ -1,0 +1,5 @@
+PASS: only unknown-category expectation changed; other 110 checks and all plumbing unchanged
+PASS: git diff 8c8ffd6f0c8a0b4243a3706f4b8a1dd4ffedbd94..HEAD -- src Makefile is EMPTY
+PASS: git diff f86eb0ecbfee6170c77fb155873cf83f1b76d5fc..HEAD -- src Makefile is EMPTY
+PASS: git diff f86eb0ecbfee6170c77fb155873cf83f1b76d5fc..HEAD -- tests/gate.sh tests/fixtures is EMPTY
+PASS: AST syntax check

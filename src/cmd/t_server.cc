@@ -356,7 +356,7 @@ void init_config(const Config& cfg) {
     g_config.push_back({"aof-timestamp-enabled", ConfigKind::Bool,
                         cfg.aof_timestamp_enabled ? "yes" : "no"});
     g_config.push_back({"aof-load-truncated", ConfigKind::Bool,
-                        cfg.aof_load_truncated ? "yes" : "no", true});
+                        cfg.aof_load_truncated ? "yes" : "no"});
     add_config("maxmemory", ConfigKind::Bytes, cfg.maxmemory);
     g_config.push_back({"maxmemory-policy", ConfigKind::Policy,
                         maxmemory_policy_name(cfg.maxmemory_policy)});
@@ -508,6 +508,10 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
         case ConfigKind::Bool:
             if (eq_icase(input, "yes")) { out = "yes"; return true; }
             if (eq_icase(input, "no")) { out = "no"; return true; }
+            if (!std::strcmp(entry.name, "aof-load-truncated")) {
+                error = "argument must be 'yes' or 'no'";
+                return false;
+            }
             if (input == Slice("1", 1)) { out = "yes"; return true; }
             if (input == Slice("0", 1)) { out = "no"; return true; }
             return false;
@@ -607,10 +611,18 @@ bool collect_config_updates(Op& op,
         // Redis rejects a repeated spelling but accepts canonical + historical aliases in
         // argument order (last value wins). The original TomoKV aliases allowed repetition.
         if ((item->kind == ConfigKind::Encoding && !legacy_compact) ||
+            !std::strcmp(item->name, "aof-load-truncated") ||
             !std::strcmp(item->name, "client-query-buffer-limit")) {
             const std::string requested(op.arg(i).p, op.arg(i).n);
             for (uint32_t previous = 2; previous < i; previous += 2) {
                 if (!eq_icase(op.arg(previous), requested.c_str())) continue;
+                if (!std::strcmp(item->name, "aof-load-truncated")) {
+                    std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
+                    msg += requested;
+                    msg += "') - duplicate parameter";
+                    reply_err(op.sink(), msg.c_str());
+                    return false;
+                }
                 reply_err(op.sink(), "ERR duplicate configuration parameter");
                 return false;
             }
@@ -939,13 +951,8 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_ok(op.sink());
         return;
     }
-    // NO DEBUG SLEEP BRANCH HERE, AND THAT IS THE POINT. Direct DEBUG SLEEP is intercepted by
-    // IoLoop before this handler, and an EXEC child never arrives either: MULTI execution has no
-    // MultiCommandKind for it, so assemble_cross_reply answers "command is not supported by MULTI
-    // execution" first. Measured on all three geometries (--shards 1, 2s 16 shards, 1s read-local
-    // 64 shards) -- every one returns the generic rejection, so a guard here only ever pretended to
-    // reject a shape that cannot reach it. Falling through to the unknown-subcommand reply is the
-    // honest behaviour if a future route does deliver one; nothing here can block an IO thread.
+    // Direct DEBUG SLEEP is intercepted by IoLoop; EXEC uses multi.inc's deferred owner tasks.
+    // Both routes share debug_sleep_prepare, so this handler never sleeps a worker thread.
 #ifndef NDEBUG
     // Fail the next N FlatStore/ExpireIndex table calloc calls. This is deliberately reachable only
     // through the already-gated DEBUG command and is compiled out of assertion-disabled builds.
@@ -1043,7 +1050,12 @@ void cmd_debug_impl(Shard& shard, Op& op) {
     // This is the geometry oracle those batteries gate on.
     if (eq_icase(subcommand, "shard") && op.argc() == 3) {
         if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
-        reply_int(op.sink(), g_server->router().shard_of(FlatStore::hash_key(op.arg(2))));
+        // DEBUG has no key metadata, so multidb_stamp leaves its argv unnamespaced.
+        // Use the operation's captured physical DB, including SELECT/SWAPDB mapping,
+        // exactly as the real key commands whose geometry this oracle reports.
+        Slice key = op.arg(2);
+        key.set_namespace(op.physical_db);
+        reply_int(op.sink(), g_server->router().shard_of(FlatStore::hash_key(key)));
         return;
     }
     // Batched geometry oracle. Each pair is truthful at the point it is read and preserves the
@@ -1055,7 +1067,9 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         auto sink = op.sink();
         reply_array_header(sink, op.argc() - 2);
         for (uint32_t i = 2; i < op.argc(); i++) {
-            const int32_t sid = g_server->router().shard_of(FlatStore::hash_key(op.arg(i)));
+            Slice key = op.arg(i);
+            key.set_namespace(op.physical_db);
+            const int32_t sid = g_server->router().shard_of(FlatStore::hash_key(key));
             reply_array_header(sink, 2);
             reply_int(sink, sid);
             reply_int(sink, g_server->worker_of_shard(sid));
@@ -1067,7 +1081,9 @@ void cmd_debug_impl(Shard& shard, Op& op) {
     // its name alone. Expose only the deterministic cell mapping, never the live cell contents;
     // the actual GET/MGET result and read-local counters remain the mechanism oracle.
     if (eq_icase(subcommand, "atomic-filter-cell") && op.argc() == 3) {
-        const uint64_t hash = FlatStore::hash_key(op.arg(2));
+        Slice key = op.arg(2);
+        key.set_namespace(op.physical_db);
+        const uint64_t hash = FlatStore::hash_key(key);
         reply_int(op.sink(), FlatStore::foreign_read_filter_index(hash));
         return;
     }
@@ -1659,6 +1675,7 @@ struct StatBaseline {
     uint64_t acl_denied_cmd = 0, acl_denied_key = 0, acl_denied_channel = 0, acl_denied_auth = 0;
     ReadLocalStats read_local;
     std::vector<uint64_t> command_calls;
+    std::vector<uint64_t> rejected_calls, failed_calls;
 };
 
 std::mutex g_stat_baseline_mu;
@@ -1720,11 +1737,15 @@ void collect_stat_totals(StatBaseline& out) {
         out.object_bytes += sh.published_obj_bytes();
     }
     out.command_calls.assign(command_registry_size(), 0);
+    out.rejected_calls.assign(command_registry_size(), 0);
+    out.failed_calls.assign(command_registry_size(), 0);
     for (uint32_t t = 0; t < g_server->nthreads(); t++) {
         ThreadCtx& thread = g_server->thread(t);
         for (uint32_t id = 0; id < command_registry_size(); id++) {
             const uint64_t calls = thread.command_calls(id);
             out.command_calls[id] += calls;
+            out.rejected_calls[id] += thread.command_rejected_calls(id);
+            out.failed_calls[id] += thread.command_failed_calls(id);
             out.total_ops += calls;
             if (std::strcmp(command_registry_at(id)->name, "INFO")) out.sampled_ops += calls;
         }
@@ -2244,8 +2265,9 @@ void cmd_info(Shard&, Op& op) {
             for (uint32_t i = 0; i < g_server->nshards(); i++)
                 preimages += g_server->shard(static_cast<int32_t>(i)).store().snapshot_preimages();
         appendf(body,
-                "# Persistence\r\nrdb_bgsave_in_progress:%u\r\nrdb_last_save_time:%lld\r\n"
-                "rdb_changes_since_last_save:%llu\r\nrdb_scheduled_saves:%llu\r\n"
+                "# Persistence\r\nloading:%u\r\nrdb_changes_since_last_save:%llu\r\n"
+                "rdb_bgsave_in_progress:%u\r\nrdb_last_save_time:%lld\r\nrdb_saves:%llu\r\n"
+                "rdb_scheduled_saves:%llu\r\n"
                 "rdb_save_cron_checks:%llu\r\n"
                 "snapshot_preimages:%llu\r\n"
                 "snapshot_cuts_armed:%llu\r\nsnapshot_cuts_waited:%llu\r\n"
@@ -2253,21 +2275,24 @@ void cmd_info(Shard&, Op& op) {
                 "snapshot_cut_ticket:%llu\r\n"
                 "aof_enabled:%u\r\naof_rewrite_in_progress:%u\r\n"
                 "aof_rewrite_scheduled:%u\r\naof_last_bgrewrite_status:%s\r\n"
-                "aof_last_write_status:%s\r\naof_base_size:%llu\r\n"
-                "aof_current_size:%llu\r\naof_pending_rewrite:%u\r\n"
+                "aof_rewrites:%llu\r\naof_rewrites_consecutive_failures:%u\r\n"
+                "aof_last_write_status:%s\r\naof_current_size:%llu\r\n"
+                "aof_base_size:%llu\r\naof_pending_rewrite:%u\r\n"
                 "aof_records_written:%llu\r\n"
                 "aof_replayed_records:%llu\r\naof_groups_committed:%llu\r\n"
                 "aof_groups_skipped_on_replay:%llu\r\naof_fsyncs:%llu\r\n"
                 "aof_send_gate_waits:%llu\r\naof_control_frames_deferred:%llu\r\n"
                 "aof_rewrite_base_size:%llu\r\n"
-                "aof_rewrite_requests:%llu\r\naof_rewrite_completions:%llu\r\n"
+                "aof_rewrite_requests:%llu\r\n"
                 "aof_auto_rewrite_triggers:%llu\r\naof_history_unlinks:%llu\r\n"
-                "aof_rewrite_failures:%llu\r\naof_rewrite_consecutive_failures:%u\r\n"
+                "aof_rewrite_failures:%llu\r\n"
                 "aof_auto_rewrite_backoff_skips:%llu\r\n",
-                g_server && g_server->snapshot().in_progress() ? 1u : 0u,
-                static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
+                g_server && g_server->loading() ? 1u : 0u,
                 static_cast<unsigned long long>(
                     g_server ? g_server->save_changes_since_last_save() : 0),
+                g_server && g_server->snapshot().in_progress() ? 1u : 0u,
+                static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
+                static_cast<unsigned long long>(snapshot_completed_saves()),
                 static_cast<unsigned long long>(
                     g_server ? g_server->scheduled_save_triggers() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->save_cron_checks() : 0),
@@ -2282,9 +2307,11 @@ void cmd_info(Shard&, Op& op) {
                 g_server && g_server->aof().rewrite_in_progress() ? 1u : 0u,
                 g_server && g_server->aof().rewrite_scheduled() ? 1u : 0u,
                 g_server && g_server->aof().last_rewrite_ok() ? "ok" : "err",
+                static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_completions() : 0),
+                g_server ? g_server->aof().consecutive_rewrite_failures() : 0,
                 g_server && g_server->aof().failed() ? "err" : "ok",
-                static_cast<unsigned long long>(g_server ? g_server->aof().base_size() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().current_size() : 0),
+                static_cast<unsigned long long>(g_server ? g_server->aof().base_size() : 0),
                 g_server && g_server->aof().rewrite_scheduled() ? 1u : 0u,
                 static_cast<unsigned long long>(g_server ? g_server->aof().records_written() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().replayed_records() : 0),
@@ -2295,11 +2322,9 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(g_server ? g_server->aof().control_defers() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_base_size() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_requests() : 0),
-                static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_completions() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().auto_rewrite_triggers() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().history_unlinks() : 0),
                 static_cast<unsigned long long>(g_server ? g_server->aof().rewrite_failures() : 0),
-                g_server ? g_server->aof().consecutive_rewrite_failures() : 0,
                 static_cast<unsigned long long>(g_server ? g_server->aof().auto_rewrite_backoff_skips() : 0));
     }
     if (info_section(op, "STATS")) {
@@ -2678,15 +2703,24 @@ void cmd_info(Shard&, Op& op) {
     if (info_section(op, "COMMANDSTATS", false)) {
         body += "# Commandstats\r\n";
         for (uint32_t id = 0; id < command_registry_size(); id++) {
-            uint64_t calls = 0;
-            for (uint32_t t = 0; g_server && t < g_server->nthreads(); t++)
+            uint64_t calls = 0, rejected_calls = 0, failed_calls = 0;
+            for (uint32_t t = 0; g_server && t < g_server->nthreads(); t++) {
                 calls += g_server->thread(t).command_calls(id);
+                rejected_calls += g_server->thread(t).command_rejected_calls(id);
+                failed_calls += g_server->thread(t).command_failed_calls(id);
+            }
             if (id < baseline.command_calls.size())
                 calls = minus_baseline(calls, baseline.command_calls[id]);
-            if (!calls) continue;
+            if (id < baseline.rejected_calls.size())
+                rejected_calls = minus_baseline(rejected_calls, baseline.rejected_calls[id]);
+            if (id < baseline.failed_calls.size())
+                failed_calls = minus_baseline(failed_calls, baseline.failed_calls[id]);
+            if (!calls && !rejected_calls && !failed_calls) continue;
             const std::string name = lower_name(command_registry_at(id)->name);
-            appendf(body, "cmdstat_%s:calls=%llu\r\n",
-                    name.c_str(), static_cast<unsigned long long>(calls));
+            // Omit unmeasured timing and unimplemented failed_calls; never invent counters.
+            appendf(body, "cmdstat_%s:calls=%llu,rejected_calls=%llu\r\n",
+                    name.c_str(), static_cast<unsigned long long>(calls),
+                    static_cast<unsigned long long>(rejected_calls));
         }
     }
     if (info_section(op, "KEYSPACE")) {
@@ -2696,10 +2730,52 @@ void cmd_info(Shard&, Op& op) {
             for (uint32_t db = 0; db < g_server->cfg().databases; ++db) {
                 const auto& row = (*g_database_stats)[map[db]];
                 if (!row.keys) continue;
-                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu\r\n", db,
+                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu,subexpiry=%llu\r\n", db,
                         static_cast<unsigned long long>(row.keys),
                         static_cast<unsigned long long>(row.expires),
-                        static_cast<unsigned long long>(row.expires ? row.ttl / row.expires : 0));
+                        static_cast<unsigned long long>(row.expires ? row.ttl / row.expires : 0),
+                        static_cast<unsigned long long>(row.subexpiry));
+            }
+        } else if (kSingleDatabase && g_server && keys) {
+            unsigned __int128 ttl_sum = 0;
+            const uint64_t now = now_realtime_ms();
+            for (uint32_t i = 0; i < g_server->nshards(); ++i) {
+                const Shard& shard = g_server->shard(static_cast<int32_t>(i));
+                const uint64_t deadline = shard.store().published_avg_deadline();
+                if (deadline > now)
+                    ttl_sum += static_cast<unsigned __int128>(deadline - now) * shard.published_expires();
+            }
+            appendf(body, "db0:keys=%llu,expires=%llu,avg_ttl=%llu,subexpiry=0\r\n",
+                    static_cast<unsigned long long>(keys),
+                    static_cast<unsigned long long>(expires),
+                    static_cast<unsigned long long>(expires ? ttl_sum / expires : 0));
+        } else if (!kSingleDatabase && g_server) {
+            const uint64_t now = now_realtime_ms();
+            DatabaseMap::Read map(g_server->databases());
+            for (uint32_t db = 0; db < g_server->cfg().databases; ++db) {
+                uint64_t dbkeys = 0, dbexpires = 0;
+                unsigned __int128 ttl_sum = 0;
+                for (uint32_t i = 0; i < g_server->nshards(); ++i) {
+                    const Shard& shard = g_server->shard(static_cast<int32_t>(i));
+                    uint64_t count, expiring;
+                    if constexpr (kSingleDatabase) {
+                        count = shard.published_size();
+                        expiring = shard.published_expires();
+                    } else {
+                        const auto packed = shard.store().published_database_counts(map[db]);
+                        count = static_cast<uint32_t>(packed);
+                        expiring = packed >> 32;
+                    }
+                    dbkeys += count; dbexpires += expiring;
+                    const uint64_t deadline = shard.store().published_avg_deadline(map[db]);
+                    if (deadline > now)
+                        ttl_sum += static_cast<unsigned __int128>(deadline - now) * expiring;
+                }
+                if (!dbkeys) continue;
+                appendf(body, "db%u:keys=%llu,expires=%llu,avg_ttl=%llu,subexpiry=%llu\r\n", db,
+                        static_cast<unsigned long long>(dbkeys),
+                        static_cast<unsigned long long>(dbexpires),
+                        static_cast<unsigned long long>(dbexpires ? ttl_sum / dbexpires : 0), 0ULL);
             }
         }
     }
@@ -2714,8 +2790,11 @@ void cmd_dbsize(Shard&, Op& op) {
         return;
     }
     uint64_t keys = 0;
-    if (g_server) for (uint32_t i = 0; i < g_server->nshards(); i++)
-        keys += g_server->shard(static_cast<int32_t>(i)).published_size();
+    if (g_server) for (uint32_t i = 0; i < g_server->nshards(); i++) {
+        const auto& shard = g_server->shard(static_cast<int32_t>(i));
+        if constexpr (kSingleDatabase) keys += shard.published_size();
+        else keys += static_cast<uint32_t>(shard.store().published_database_counts(op.physical_db));
+    }
     reply_int(op.sink(), static_cast<long long>(keys));
 }
 
@@ -3002,12 +3081,19 @@ uint64_t command_proto_max_bulk_len() {
     return g_proto_max_bulk_len.load(std::memory_order_relaxed);
 }
 ThreadCtx* command_local_thread() { return g_thread; }
+Client* command_local_client() { return g_client; }
 
 void command_config_snapshot(std::vector<std::pair<std::string, std::string>>& out) {
     std::lock_guard<std::mutex> lock(g_config_mu);
     out.clear();
     out.reserve(g_config.size());
     for (const ConfigValue& item : g_config) out.emplace_back(item.name, item.value);
+}
+
+bool command_aof_load_truncated(bool boot_value) {
+    std::lock_guard<std::mutex> lock(g_config_mu);
+    const ConfigValue* item = find_config(Slice("aof-load-truncated", 18));
+    return item ? item->value == "yes" : boot_value;
 }
 
 void command_config_resetstat() {
@@ -3268,13 +3354,18 @@ bool command_validate_all_shards(Op& op) {
     return false;
 }
 
-bool command_config_routes_all_shards(Op& op) {
+bool command_config_routes_all_shards(Op& op, bool execution_boundary) {
     // The conditional-scatter route: CONFIG SET fans out; DBSIZE NOW (owner request 2026-08-25)
     // is the exact-on-demand variant -- each owner counts its own store at execution time, so the
     // reply reflects everything already dispatched ahead of it on every shard, with none of the
     // batch-boundary publication lag the plain DBSIZE reads.
-    if (op.cmd_name().eq_icase("info")) return info_section(op, "KEYSPACE", true);
-    if (op.cmd_name().eq_icase("dbsize")) return op.argc() == 1 || (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
+    if (op.cmd_name().eq_icase("info"))
+        return info_section(op, "KEYSPACE", true) &&
+            // INFO queued in EXEC must census the transaction-visible images at its
+            // command position, even when no published field-TTL attention is set.
+            (execution_boundary || !storesize_published_route() ||
+             (g_server && storesize_field_census(*g_server)));
+    if (op.cmd_name().eq_icase("dbsize")) return (op.argc() == 1 && !storesize_published_route()) || (op.argc() == 2 && eq_icase(op.arg(1), "NOW"));
     if (op.cmd_name().eq_icase("debug"))
         return op.argc() == 2 &&
                (eq_icase(op.arg(1), "reload") || eq_icase(op.arg(1), "loadaof") ||

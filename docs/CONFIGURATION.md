@@ -149,7 +149,7 @@ by CONFIG SET even though their table entries lack the immutable flag
 | Name | Kind | Type / grammar | Default | Change | INFO field | Semantics / parser anchor |
 | --- | --- | --- | --- | --- | --- | --- |
 | `dir` | R | Nonempty directory path | `.` | Boot/GET | — | Persistence directory; `src/core/config.h:953`, `:1211`. |
-| `dbfilename` | R | Nonempty filename without `/` | `dump.tomo` | Boot/GET | — | Snapshot filename, also selected automatically at boot; `src/core/config.h:954`, `src/main.cc:249`. |
+| `dbfilename` | R | Nonempty filename without `/` | `dump.tomo` | Boot/GET | — | Snapshot filename; `<dir>/<dbfilename>` auto-loads at boot when AOF recovery supplied no base or increment plan; `src/core/config.h:954`, `src/main.cc:249`. |
 | `save` | R | Repeatable positive seconds / u64 changes pairs; empty string disables | `3600 1 300 100 60 10000` | Live | Related: `rdb_changes_since_last_save`, `rdb_scheduled_saves` | Periodic snapshot clauses; first clause in a new source replaces prior source's schedule; `src/core/config.h:145`, `:905`. |
 | `appendonly` | R | `yes` or `no` (case-insensitive) | `no` | Boot/GET | `aof_enabled` | Enable multipart AOF; runtime toggle unsupported; `src/core/config.h:955`. |
 | `appendfsync` | R | `always`, `everysec`, `no` (case-insensitive) | `everysec` | Live | Related: `aof_fsyncs` | AOF batch sync policy; `src/core/config.h:964`, `tomokv.conf:273`. |
@@ -159,7 +159,7 @@ by CONFIG SET even though their table entries lack the immutable flag
 | `auto-aof-rewrite-min-size` | R | Memory, u64 bytes | `64mb` (67108864) | Live | Related: `aof_current_size` | Minimum size for automatic rewrite; `src/core/config.h:991`. |
 | `aof-use-rdb-preamble` | R | Only `yes` (case-insensitive) | `yes` | Live, fixed value | — | Base is a TomoKV snapshot, not a Redis RDB; `no` refused; `src/core/config.h:997`, `src/cmd/t_server.cc:609`. |
 | `aof-timestamp-enabled` | R | `yes` or `no` (case-insensitive) | `no` | Live | — | Write AOF timestamp annotations; `src/core/config.h:1004`. |
-| `aof-load-truncated` | R | `yes` or `no` (case-insensitive) | `yes` | Boot/GET | — | Discard only an incomplete final increment tail, or refuse recovery; older increments remain strict; `src/core/config.h:1013`, `tomokv.conf:287`. |
+| `aof-load-truncated` | R | `yes` or `no` (case-insensitive) | `yes` | Live, next AOF load | — | Discard only an incomplete final increment tail, or refuse recovery; older increments remain strict. CONFIG SET stores the next-load policy and CONFIG REWRITE persists it; `src/core/config.h:1048`, `tomokv.conf:287`. |
 | `databases` | R | Integer 1..256 | `1` | Boot/GET | Related: `dbN` (Keyspace) | Logical namespaces in the shared store; SELECT 0..N−1; `src/core/config.h:933`, `src/cmd/t_server.cc:395`. |
 | `proto-max-bulk-len` | R | Memory, 1048576..4294901759 bytes | `512mb` (536870912) | Live | — | Request bulk-length bound, capped by TomoKV's Slice ABI; `src/core/config.h:140`, `:941`. |
 | `client-query-buffer-limit` | R | Memory syntax, 1048576..9223372036854775807; zero is rejected | `1gb` (1073741824) | Live | — | Bound on pending input plus queued MULTI arguments; overflow closes the connection without a reply, before AUTH too; `src/core/config.h:965`, `tomokv.conf:306`. |
@@ -172,6 +172,38 @@ plan exists, startup tries `<dir>/<dbfilename>`. Missing snapshot means empty st
 snapshot fails startup (`src/main.cc:236`, `:249`). Choose a fresh directory for
 an empty example. The save schedule describes periodic saves; it alone does not
 establish shutdown durability (see `src/cmd/server_tail.cc:249`, `src/main.cc:65`).
+
+### DBSIZE and INFO keyspace publication
+
+In both database images, plain `DBSIZE` and INFO's keyspace section read
+per-shard published counters. Each owner publishes at an executor batch boundary:
+the count can lag its owner's mutations by **one batch boundary**, with no fixed
+wall-clock bound while an owner is busy. A pipeline can observe the preceding
+batch's count. `DBSIZE NOW` is TomoKV's exact-on-demand extension; it scatters to
+all owners and counts the selected logical database after earlier dispatched
+work. Neither mode reaps expired-but-resident keys merely to count them.
+
+INFO emits `dbN:keys=K,expires=E,avg_ttl=T` for each nonempty logical database. `keys` and
+`expires` have the same one-boundary publication lag. `avg_ttl` is a nonnegative
+millisecond estimate: with `databases 1`, at publication the owner samples at most 16 expiry-index
+slots, using a cursor separate from active expiry, then INFO subtracts the current
+wall clock from that sample's mean deadline. It is zero when no keys have an
+expiry or no sample has been recorded; an empty sample retains the preceding
+estimate. It is an estimate, not an exact average
+over every deadline; polling INFO visits no objects. All existing structure-size
+locks remain unchanged; each store has a 16-byte cold sampling sidecar.
+
+With `databases > 1`, each shard has 256 owner-private physical-namespace rows
+and separate published key/expiry pairs and mean deadlines. Key and deadline
+mutations update only owner-private rows; the batch boundary publishes dirty
+rows. DBSIZE sums the selected physical row over the shards. INFO reads the
+configured logical-to-physical map once, then the corresponding published rows.
+This costs O(shards × configured databases), independent of the key population.
+The multi-DB TTL estimate subtracts wall time from the published mean deadline,
+clamping at zero. SWAPDB relabels the same physical counters; MOVE and FLUSHDB
+account only for their affected namespaces. See [the ST2 completion report](../MEASURE-REQUEST-storesize2.md).
+
+The INFO field definitions and section routing are in [INFO.md](INFO.md).
 
 ## Collection encodings
 

@@ -54,7 +54,7 @@ def select_calibration_floor(cell, rounds, *, ceiling=None):
                 math.isfinite(run["window_seconds"]) and run["window_seconds"] >= WINDOW,
                 "shortened calibration observation")
         layout = run.get("load_layout")
-        require(isinstance(layout, list) and len(layout) == n, "missing calibration load layout")
+        require(isinstance(layout, list) and len(layout) == max(n, cell.dbs), "missing calibration load layout")
         workers, connections, assigned = 0, 0, []
         for placement in layout:
             threads, clients, cpus = (placement.get(key) for key in ("threads", "clients", "cpus"))
@@ -64,8 +64,9 @@ def select_calibration_floor(cell, rounds, *, ceiling=None):
             workers += threads
             connections += threads * clients
             assigned += cpus
-        require(connections == cell.conns and len(assigned) == len(set(assigned)),
-                "calibration changed total connections or overlapped load CPUs")
+        require(connections == cell.conns and (layout == abba.load_layout(sorted(set(assigned)), n, cell.conns, cell.dbs)
+                if cell.dbs else len(assigned) == len(set(assigned))),
+                "calibration changed total connections or the assigned CPU/database plan")
         if rows:
             require(set(assigned) == set(rows[0]["assigned_cpus"]), "calibration changed assigned load CPUs")
         rows.append(dict(instances=n, rate=run["rate"], worker_threads=workers,
@@ -152,7 +153,7 @@ def main(args):
         server_cpus, load_cpus = sorted(server_physical + server_smt), sorted(load_physical + load_smt)
         args.port, permitted_ports = abba.select_port(args.ports, args.port)
         os.sched_setaffinity(0, load_cpus)
-        split_ratio = abba.measured_ratio("abba", len(server_cpus))
+        split_ratio = abba.selected_split_ratio(args, len(server_cpus))
         placement = dict(server_physical=server_physical, server_smt=server_smt,
             load_physical=load_physical, load_smt=load_smt, split_ratio=split_ratio)
         inventory = abba.read_cells(args.cells, placement=placement)
@@ -176,7 +177,7 @@ def main(args):
         runner.binary_store = store
         report["environment"] = dict(uname=list(os.uname()), **placement, server_cpus=server_cpus,
             load_cpus=load_cpus, load_instance_ceiling=min(args.max_instances, len(load_physical)),
-            port=args.port, permitted_ports=permitted_ports, keys=abba.KEYS,
+            port=args.port, permitted_ports=permitted_ports, keys=abba.workload_keys(cells),
             data_bytes=abba.workload_data_bytes(cells), key_pattern="P:P",
             atomic="per-cell", split_flip_auto=0, population_by_arm={"B": "wire"},
             python_runtime=report["instrument_fingerprint"]["python"], memtier_path=args.memtier,

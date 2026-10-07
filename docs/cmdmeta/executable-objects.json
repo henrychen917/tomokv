@@ -1,0 +1,442 @@
+[
+  {
+    "object": "db0/src/cmd/acl.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 179530
+  },
+  {
+    "object": "db0/src/cmd/climon.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 125258
+  },
+  {
+    "object": "db0/src/cmd/cmdgap.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 1792
+  },
+  {
+    "object": "db0/src/cmd/cmdmeta.o",
+    "executable_sections_equal": false,
+    "executable_bytes": 18376
+  },
+  {
+    "object": "db0/src/cmd/commands.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 11668
+  },
+  {
+    "object": "db0/src/cmd/functions.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 73153
+  },
+  {
+    "object": "db0/src/cmd/geo.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 84112
+  },
+  {
+    "object": "db0/src/cmd/glob.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 985
+  },
+  {
+    "object": "db0/src/cmd/hll.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 8685
+  },
+  {
+    "object": "db0/src/cmd/info_stats.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 752
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 60221
+  },
+  {
+    "object": "db0/src/cmd/lbsignals.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 9816
+  },
+  {
+    "object": "db0/src/cmd/lcs.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 9616
+  },
+  {
+    "object": "db0/src/cmd/multi_admin.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 9979
+  },
+  {
+    "object": "db0/src/cmd/multidb.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 42078
+  },
+  {
+    "object": "db0/src/cmd/pfdebug.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 27423
+  },
+  {
+    "object": "db0/src/cmd/scripting.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 66534
+  },
+  {
+    "object": "db0/src/cmd/serialize.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 63839
+  },
+  {
+    "object": "db0/src/cmd/server_tail.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 68151
+  },
+  {
+    "object": "db0/src/cmd/slowlog.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 45897
+  },
+  {
+    "object": "db0/src/cmd/t_hash.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 124203
+  },
+  {
+    "object": "db0/src/cmd/t_hash_ttl.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 56130
+  },
+  {
+    "object": "db0/src/cmd/t_list.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 123184
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 155534
+  },
+  {
+    "object": "db0/src/cmd/t_set.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 116849
+  },
+  {
+    "object": "db0/src/cmd/t_sort.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 32673
+  },
+  {
+    "object": "db0/src/cmd/t_stream.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 152068
+  },
+  {
+    "object": "db0/src/cmd/t_stream_groups.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 117512
+  },
+  {
+    "object": "db0/src/cmd/t_string.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 83921
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 81192
+  },
+  {
+    "object": "db0/src/cmd/t_zset.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 171279
+  },
+  {
+    "object": "db0/src/cmd/t_zset_ops.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 17
+  },
+  {
+    "object": "db0/src/cmd/tracking.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 61583
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 633038
+  },
+  {
+    "object": "db0/src/core/flipctl.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 53382
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 638968
+  },
+  {
+    "object": "db0/src/core/lbplanner.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 54102
+  },
+  {
+    "object": "db0/src/core/lbstall.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 5047
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 731361
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 805516
+  },
+  {
+    "object": "db0/src/main.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 717053
+  },
+  {
+    "object": "db0/src/net/tls.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 17043
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 159465
+  },
+  {
+    "object": "db0/src/snapshot/snapshot.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 63900
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 178197
+  },
+  {
+    "object": "src/cmd/climon.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 125138
+  },
+  {
+    "object": "src/cmd/cmdgap.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 1792
+  },
+  {
+    "object": "src/cmd/cmdmeta.o",
+    "executable_sections_equal": false,
+    "executable_bytes": 18392
+  },
+  {
+    "object": "src/cmd/commands.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 11668
+  },
+  {
+    "object": "src/cmd/functions.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 72751
+  },
+  {
+    "object": "src/cmd/geo.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 82980
+  },
+  {
+    "object": "src/cmd/glob.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 985
+  },
+  {
+    "object": "src/cmd/hll.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 8685
+  },
+  {
+    "object": "src/cmd/info_stats.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 752
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 60481
+  },
+  {
+    "object": "src/cmd/lbsignals.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 9540
+  },
+  {
+    "object": "src/cmd/lcs.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 9616
+  },
+  {
+    "object": "src/cmd/multi_admin.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 10715
+  },
+  {
+    "object": "src/cmd/multidb.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 55087
+  },
+  {
+    "object": "src/cmd/pfdebug.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 25972
+  },
+  {
+    "object": "src/cmd/scripting.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 207249
+  },
+  {
+    "object": "src/cmd/serialize.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 64098
+  },
+  {
+    "object": "src/cmd/server_tail.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 67551
+  },
+  {
+    "object": "src/cmd/slowlog.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 45897
+  },
+  {
+    "object": "src/cmd/t_hash.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 122294
+  },
+  {
+    "object": "src/cmd/t_hash_ttl.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 60916
+  },
+  {
+    "object": "src/cmd/t_list.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 122433
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 154664
+  },
+  {
+    "object": "src/cmd/t_set.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 114786
+  },
+  {
+    "object": "src/cmd/t_sort.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 32673
+  },
+  {
+    "object": "src/cmd/t_stream.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 151125
+  },
+  {
+    "object": "src/cmd/t_stream_groups.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 117698
+  },
+  {
+    "object": "src/cmd/t_string.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 82526
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 79873
+  },
+  {
+    "object": "src/cmd/t_zset.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 170810
+  },
+  {
+    "object": "src/cmd/t_zset_ops.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 17
+  },
+  {
+    "object": "src/cmd/tracking.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 60654
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 631956
+  },
+  {
+    "object": "src/core/flipctl.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 53122
+  },
+  {
+    "object": "src/core/genthread.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 636196
+  },
+  {
+    "object": "src/core/lbplanner.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 53877
+  },
+  {
+    "object": "src/core/lbstall.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 4771
+  },
+  {
+    "object": "src/core/reorder.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 724909
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 799915
+  },
+  {
+    "object": "src/main.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 715518
+  },
+  {
+    "object": "src/net/tls.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 17043
+  },
+  {
+    "object": "src/persist/aof.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 159683
+  },
+  {
+    "object": "src/snapshot/snapshot.o",
+    "executable_sections_equal": true,
+    "executable_bytes": 64797
+  }
+]

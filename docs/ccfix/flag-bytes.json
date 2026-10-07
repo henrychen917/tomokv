@@ -1,0 +1,98 @@
+[
+  {
+    "input": "",
+    "PRE": "",
+    "POST": "",
+    "Redis": "",
+    "PRE_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$0\r\n\r\n",
+    "POST_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$0\r\n\r\n"
+  },
+  {
+    "input": "AKE",
+    "PRE": "AKE",
+    "POST": "AKE",
+    "Redis": "AKE",
+    "PRE_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$3\r\nAKE\r\n",
+    "POST_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$3\r\nAKE\r\n"
+  },
+  {
+    "input": "AKEn",
+    "PRE": "AKEn",
+    "POST": "AKE",
+    "Redis": "AKE",
+    "PRE_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$4\r\nAKEn\r\n",
+    "POST_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$3\r\nAKE\r\n"
+  },
+  {
+    "input": "gnK",
+    "PRE": "gKn",
+    "POST": "gnK",
+    "Redis": "gnK",
+    "PRE_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$3\r\ngKn\r\n",
+    "POST_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$3\r\ngnK\r\n"
+  },
+  {
+    "input": "gKn",
+    "PRE": "gKn",
+    "POST": "gnK",
+    "Redis": "gnK",
+    "PRE_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$3\r\ngKn\r\n",
+    "POST_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$3\r\ngnK\r\n"
+  },
+  {
+    "input": "Em",
+    "PRE": "Em",
+    "POST": "Em",
+    "Redis": "Em",
+    "PRE_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$2\r\nEm\r\n",
+    "POST_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$2\r\nEm\r\n"
+  },
+  {
+    "input": "KEA",
+    "PRE": "AKE",
+    "POST": "AKE",
+    "Redis": "AKE",
+    "PRE_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$3\r\nAKE\r\n",
+    "POST_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$3\r\nAKE\r\n"
+  },
+  {
+    "input": "$lshzxe",
+    "PRE": "$lshzxe",
+    "POST": "$lshzxe",
+    "Redis": "$lshzxe",
+    "PRE_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$7\r\n$lshzxe\r\n",
+    "POST_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$7\r\n$lshzxe\r\n"
+  },
+  {
+    "input": "g$lshzxetdnKEm",
+    "PRE": "AKEmn",
+    "POST": "AKEm",
+    "Redis": "AKEm",
+    "PRE_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$5\r\nAKEmn\r\n",
+    "POST_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$4\r\nAKEm\r\n"
+  },
+  {
+    "input": "n",
+    "PRE": "n",
+    "POST": "n",
+    "Redis": "n",
+    "PRE_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$1\r\nn\r\n",
+    "POST_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$1\r\nn\r\n"
+  },
+  {
+    "input": "nKmE",
+    "PRE": "KEmn",
+    "POST": "nKEm",
+    "Redis": "nKEm",
+    "PRE_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$4\r\nKEmn\r\n",
+    "POST_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$4\r\nnKEm\r\n"
+  },
+  {
+    "input": "AEmn",
+    "PRE": "AEmn",
+    "POST": "AEm",
+    "Redis": "AEm",
+    "PRE_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$4\r\nAEmn\r\n",
+    "POST_wire": "*2\r\n$22\r\nnotify-keyspace-events\r\n$3\r\nAEm\r\n"
+  }
+]

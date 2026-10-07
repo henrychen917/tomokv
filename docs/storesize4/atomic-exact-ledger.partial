@@ -1,0 +1,25 @@
+PARTIAL	0	GATE_ONLY_JOBS=atomic_units; NOT A RECEIPT
+ok	0.020000	release build (+footprint locks)
+ok	2.250000	flushfix flush witnesses
+ok	0.050000	flushfix headers witnesses
+ok	3.280000	multidb serverless owners
+ok	0.040000	multidb global namespace boundary
+ok	10.120000	storesize published monitoring
+ok	0.070000	EXECABORT releases WATCH reservation
+ok	0.000000	atomic survivors unit build
+ok	0.020000	atomic survivor: admission
+ok	0.010000	atomic survivor: closure
+ok	0.000000	atomic survivor: script_keys
+ok	0.000000	atomic survivor: rename_overlay
+ok	0.010000	atomic survivor: write_latest
+ok	0.010000	atomic survivor: script_apply
+ok	0.010000	atomic survivor: post_apply_probe
+ok	0.010000	atomic survivor: lua_conversion
+ok	0.010000	atomic survivor: watch_parent
+ok	0.000000	atomic survivor: watch_cycle
+ok	0.000000	atomic survivor: mset_arity
+ok	0.010000	atomic survivor: watch_oom
+ok	0.010000	atomic survivor: lua_lines
+ok	0.010000	atomic survivor: library_limit
+ok	0.020000	atomic survivor: stage_flag
+ok	0.010000	atomic survivor: instruction_limit

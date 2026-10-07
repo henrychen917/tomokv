@@ -46,7 +46,7 @@ void scan() {
     c.commit_read(1); uint32_t pos = 0;
     check(resp_parse_inline(c.rbuf(), c.rlen(), pos, op, &error, c.inline_scanned()) == ParseResult::Ok,
           "split CRLF completes boundary inline");
-    check(netcap_scan_bytes == 65536, "NET1: every CRLF candidate scanned once despite retries");
+    check(netcap_scan_bytes == 65537, "NET1: every byte scanned once for LF despite retries");
     check(pos == 65537 && op.argc() == 1 && op.arg(0).n == 65535, "boundary argument intact");
     op.reset(); pos = 0;
     check(resp_parse_inline(c.rbuf(), c.rlen(), pos, op, &error, c.inline_scanned()) == ParseResult::Ok,
@@ -126,8 +126,13 @@ void framing() {
     }
     for (unsigned byte = 0; byte != 256; ++byte) {
         if (byte == '$') continue;
-        const char input[] = {'*', '1', '\r', '\n', static_cast<char>(byte)};
+        const char input[] = {'*', '1', '\r', '\n', static_cast<char>(byte), '\r', '\n'};
         Op op; uint32_t pos = 0; const char* error = nullptr;
+        if (byte == 0) {
+            check(resp_parse(input, sizeof(input), pos, op, &error) == ParseResult::Incomplete,
+                  "Redis count-line search stops at NUL before the CR");
+            continue;
+        }
         check(resp_parse(input, sizeof(input), pos, op, &error) == ParseResult::Error,
               "every non-dollar bulk prefix rejected");
         std::string expected = "-ERR Protocol error: expected '$', got '";

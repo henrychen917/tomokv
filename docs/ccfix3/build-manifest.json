@@ -1,0 +1,50 @@
+{
+  "PRE_commit": "9d957b9fbb7a6eadace068b9615eef81b0dd6686",
+  "POST_source_commit": "ca316d37e73bc872acc82a36529eb6dfa81e11d2",
+  "compiler": "13.3.0",
+  "binaries": {
+    "PRE": {
+      "path": "build/ccfix3/PRE/tomokv",
+      "sha256": "c9d0b98dc4c26449a60313db0378eae30e013297a649c0e6fed006bc3742a180",
+      "text": 8816785,
+      "data": 89720,
+      "bss": 1146456,
+      ".text": 7797900
+    },
+    "POST": {
+      "path": "build/ccfix3/POST/tomokv",
+      "sha256": "b61beaedf67259aafb3de40c610b1ecff2831f06fe40f378c417732dc5fbbfdd",
+      "text": 8818557,
+      "data": 89720,
+      "bss": 1146584,
+      ".text": 7799068
+    },
+    "review": {
+      "path": "build/tomokv",
+      "sha256": "b61beaedf67259aafb3de40c610b1ecff2831f06fe40f378c417732dc5fbbfdd",
+      "text": 8818557,
+      "data": 89720,
+      "bss": 1146584,
+      ".text": 7799068
+    },
+    "initial_POST": {
+      "path": "build/ccfix3/initial-POST/tomokv",
+      "sha256": "750eb07c77108db403c59145f41de533c615d4632e0d53e0015e08ab6a671e9c",
+      "text": 8818525,
+      "data": 89720,
+      "bss": 1146584,
+      ".text": 7799020
+    },
+    "measured_round1": {
+      "path": "build/ccfix/POST/tomokv",
+      "sha256": "ff58fe0503a9032bf754d4714078f9f9760b4b62b15e40659b60dca0ec852084",
+      "text": 8800229,
+      "data": 89704,
+      "bss": 1146584,
+      ".text": 7784460
+    }
+  },
+  "source_tree": "c375a049f7a3c9a539eeb0ea660861f72548c03e",
+  "Makefile_sha256": "f3ce2f6e2a28045804efc224b17678f7c1310937adbf78ff9b7d81ef15762a59",
+  "production_object_count": 88
+}

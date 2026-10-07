@@ -1,0 +1,83 @@
+In file included from /usr/include/x86_64-linux-gnu/bits/types/stack_t.h:23,
+                 from /usr/include/signal.h:313,
+                 from /usr/include/liburing.h:17,
+                 from /home/user/Projects/cx-ccfix/build/ccfix4/pre-src/src/core/../store/../persist/../core/../net/uring.h:40,
+                 from /home/user/Projects/cx-ccfix/build/ccfix4/pre-src/src/core/../store/../persist/../core/signal.h:29,
+                 from /home/user/Projects/cx-ccfix/build/ccfix4/pre-src/src/core/../store/../persist/aof.h:19,
+                 from /home/user/Projects/cx-ccfix/build/ccfix4/pre-src/src/core/../store/flatstore.h:86,
+                 from /home/user/Projects/cx-ccfix/build/ccfix4/pre-src/src/core/shard.h:37,
+                 from /home/user/Projects/cx-ccfix/build/ccfix4/pre-src/src/core/server.h:26,
+                 from /home/user/Projects/cx-ccfix/tests/multidb_layout.cc:3:
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc: In static member function ‘static constexpr auto tomo::CoreConcurrencyTest::layout()’:
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:12:22: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   12 |             offsetof(Server, cfg_), offsetof(Server, placement_), offsetof(Server, router_),
+      |                      ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:12:46: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   12 |             offsetof(Server, cfg_), offsetof(Server, placement_), offsetof(Server, router_),
+      |                                              ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:12:76: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   12 |             offsetof(Server, cfg_), offsetof(Server, placement_), offsetof(Server, router_),
+      |                                                                            ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:13:22: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   13 |             offsetof(Server, threads_), offsetof(Server, aof_), offsetof(Server, snapshot_),
+      |                      ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:13:50: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   13 |             offsetof(Server, threads_), offsetof(Server, aof_), offsetof(Server, snapshot_),
+      |                                                  ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:13:74: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   13 |             offsetof(Server, threads_), offsetof(Server, aof_), offsetof(Server, snapshot_),
+      |                                                                          ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:14:22: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   14 |             offsetof(Server, flipctl_), offsetof(Server, shard_owner_),
+      |                      ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:14:50: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   14 |             offsetof(Server, flipctl_), offsetof(Server, shard_owner_),
+      |                                                  ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:15:22: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   15 |             offsetof(Server, flip_stage_), offsetof(Server, lb_stage_),
+      |                      ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:15:53: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   15 |             offsetof(Server, flip_stage_), offsetof(Server, lb_stage_),
+      |                                                     ^
+In file included from /usr/include/x86_64-linux-gnu/bits/types/stack_t.h:23,
+                 from /usr/include/signal.h:313,
+                 from /usr/include/liburing.h:17,
+                 from /home/user/Projects/cx-ccfix/src/core/../store/../persist/../core/../net/uring.h:40,
+                 from /home/user/Projects/cx-ccfix/src/core/../store/../persist/../core/signal.h:29,
+                 from /home/user/Projects/cx-ccfix/src/core/../store/../persist/aof.h:19,
+                 from /home/user/Projects/cx-ccfix/src/core/../store/flatstore.h:86,
+                 from /home/user/Projects/cx-ccfix/src/core/shard.h:37,
+                 from /home/user/Projects/cx-ccfix/src/core/server.h:26,
+                 from /home/user/Projects/cx-ccfix/tests/multidb_layout.cc:3:
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc: In static member function ‘static constexpr auto tomo::CoreConcurrencyTest::layout()’:
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:12:22: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   12 |             offsetof(Server, cfg_), offsetof(Server, placement_), offsetof(Server, router_),
+      |                      ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:12:46: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   12 |             offsetof(Server, cfg_), offsetof(Server, placement_), offsetof(Server, router_),
+      |                                              ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:12:76: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   12 |             offsetof(Server, cfg_), offsetof(Server, placement_), offsetof(Server, router_),
+      |                                                                            ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:13:22: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   13 |             offsetof(Server, threads_), offsetof(Server, aof_), offsetof(Server, snapshot_),
+      |                      ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:13:50: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   13 |             offsetof(Server, threads_), offsetof(Server, aof_), offsetof(Server, snapshot_),
+      |                                                  ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:13:74: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   13 |             offsetof(Server, threads_), offsetof(Server, aof_), offsetof(Server, snapshot_),
+      |                                                                          ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:14:22: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   14 |             offsetof(Server, flipctl_), offsetof(Server, shard_owner_),
+      |                      ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:14:50: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   14 |             offsetof(Server, flipctl_), offsetof(Server, shard_owner_),
+      |                                                  ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:15:22: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   15 |             offsetof(Server, flip_stage_), offsetof(Server, lb_stage_),
+      |                      ^
+/home/user/Projects/cx-ccfix/tests/multidb_layout.cc:15:53: warning: ‘offsetof’ within non-standard-layout type ‘tomo::Server’ is conditionally-supported [-Winvalid-offsetof]
+   15 |             offsetof(Server, flip_stage_), offsetof(Server, lb_stage_),
+      |                                                     ^
+PASS all exported layouts match PRE in both namespaces

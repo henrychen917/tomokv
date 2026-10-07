@@ -1,0 +1,4 @@
+EXPECTED-DEVIATION CC18: executed errors do not increment failed_calls
+PASS ccfix serverless assertions
+
+exit=0

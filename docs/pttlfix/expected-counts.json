@@ -1,0 +1,104 @@
+[
+  {
+    "seed": 7,
+    "edgetime": {
+      "generated_queries": 77,
+      "error_replies": 0,
+      "expected_integer_checks": 77
+    },
+    "hexpire": {
+      "generated_queries": 302,
+      "error_replies": 3,
+      "expected_integer_checks": 299
+    },
+    "wiredump": {
+      "expected_integer_checks": 789,
+      "source": "count-only in-memory transport; not live server evidence"
+    }
+  },
+  {
+    "seed": 19,
+    "edgetime": {
+      "generated_queries": 73,
+      "error_replies": 0,
+      "expected_integer_checks": 73
+    },
+    "hexpire": {
+      "generated_queries": 294,
+      "error_replies": 3,
+      "expected_integer_checks": 291
+    },
+    "wiredump": {
+      "expected_integer_checks": 801,
+      "source": "count-only in-memory transport; not live server evidence"
+    }
+  },
+  {
+    "seed": 20,
+    "edgetime": {
+      "generated_queries": 64,
+      "error_replies": 0,
+      "expected_integer_checks": 64
+    },
+    "hexpire": {
+      "generated_queries": 283,
+      "error_replies": 3,
+      "expected_integer_checks": 280
+    },
+    "wiredump": {
+      "expected_integer_checks": 822,
+      "source": "count-only in-memory transport; not live server evidence"
+    }
+  },
+  {
+    "seed": 23,
+    "edgetime": {
+      "generated_queries": 61,
+      "error_replies": 0,
+      "expected_integer_checks": 61
+    },
+    "hexpire": {
+      "generated_queries": 330,
+      "error_replies": 3,
+      "expected_integer_checks": 327
+    },
+    "wiredump": {
+      "expected_integer_checks": 824,
+      "source": "count-only in-memory transport; not live server evidence"
+    }
+  },
+  {
+    "seed": 21,
+    "edgetime": {
+      "generated_queries": 74,
+      "error_replies": 0,
+      "expected_integer_checks": 74
+    },
+    "hexpire": {
+      "generated_queries": 268,
+      "error_replies": 3,
+      "expected_integer_checks": 265
+    },
+    "wiredump": {
+      "expected_integer_checks": 830,
+      "source": "count-only in-memory transport; not live server evidence"
+    }
+  },
+  {
+    "seed": 22,
+    "edgetime": {
+      "generated_queries": 64,
+      "error_replies": 0,
+      "expected_integer_checks": 64
+    },
+    "hexpire": {
+      "generated_queries": 260,
+      "error_replies": 3,
+      "expected_integer_checks": 257
+    },
+    "wiredump": {
+      "expected_integer_checks": 851,
+      "source": "count-only in-memory transport; not live server evidence"
+    }
+  }
+]

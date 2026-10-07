@@ -1540,6 +1540,7 @@ bool finish_phase1(ScatterState& state, Op& op) {
                 state.final_error = WorkError::Oom;
                 return true;
             }
+            state.apply[0].preserve_eviction_meta = true;
             state.final_integer = static_cast<long long>(encoded.size());
             state.hop2[0] = 0;
             state.hop2_count = 1;
@@ -1909,6 +1910,7 @@ void assemble_final(Client& client, Op& op, ScatterState& state, void* release_c
                     const auto& row = (*state.groups[i].aux->database_stats)[db];
                     stats[db].keys += row.keys; stats[db].expires += row.expires;
                     stats[db].ttl += row.ttl;
+                    stats[db].subexpiry += row.subexpiry;
                 }
             command_info_with_databases(*state.server, op, stats);
             break;

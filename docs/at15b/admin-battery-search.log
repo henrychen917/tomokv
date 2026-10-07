@@ -1,0 +1,635 @@
+tests/abba_workloads.py:73:    # INFO COMMANDSTATS in this server counts calls but does not expose handler
+tests/abba_workloads.py:76:    original = conn.must("CONFIG", "GET", "slowlog-log-slower-than")[1]
+tests/abba_workloads.py:85:    armed = conn.must("CONFIG", "GET", "read-local")[1] not in (b"0", "0")
+tests/abba_workloads.py:87:        conn.must("CONFIG", "SET", "slowlog-log-slower-than", "0")
+tests/abba_workloads.py:114:        conn.must("CONFIG", "SET", "slowlog-log-slower-than", original)
+tests/acl.py:108:    body = conn.command("INFO", "STATS")
+tests/acl.py:133:is_tomokv = b"tomokv_version:" in admin.command("INFO", "SERVER")
+tests/acl.py:136:              "specify users via the ACL SETUSER command and then issue a CONFIG REWRITE "
+tests/acl.py:150:expect(admin.command("CONFIG", "GET", "acl-pubsub-default"),
+tests/acl.py:155:expect(admin.command("CONFIG", "SET", "acl-pubsub-default", "allchannels"), b"OK",
+tests/acl.py:162:expect(admin.command("CONFIG", "SET", "acl-pubsub-default", "resetchannels"), b"OK",
+tests/acl.py:332:expect(admin.command("CONFIG", "SET", "acllog-max-len", 0), b"OK", "disable ACL LOG")
+tests/acl.py:335:expect(admin.command("CONFIG", "SET", "acllog-max-len", 128), b"OK", "restore ACL LOG")
+tests/aclsel.py:99:    body = conn.command("INFO", "STATS")
+tests/aclsel.py:125:is_tomokv = b"tomokv_version:" in admin.command("INFO", "SERVER")
+tests/aclsel.py:155:expect(admin.command("CONFIG", "SET", "acl-pubsub-default", "allchannels"), b"OK",
+tests/aclsel.py:164:expect(admin.command("CONFIG", "SET", "acl-pubsub-default", "resetchannels"), b"OK",
+tests/aof_torn_group.py:65:    body = client.cmd("INFO", "Persistence").decode()
+tests/aof_torn_group.py:84:    if client.cmd("CONFIG", "GET", "appendonly") != [b"appendonly", b"yes"]:
+tests/aof_torn_group.py:86:    if client.cmd("CONFIG", "GET", "atomic") != [b"atomic", b"1"]:
+tests/aof_torn_group.py:88:    if client.cmd("CONFIG", "GET", "enable-debug-command") not in (
+tests/aof_torn_group.py:98:        shard = client.cmd("DEBUG", "SHARD", key)
+tests/aof_torn_group.py:100:            raise AssertionError("DEBUG SHARD failed for %s" % key)
+tests/aof_torn_group.py:197:    reply = client.cmd("DEBUG", "AOF-STOP-AFTER-GROUP-FRAGMENTS", "1")
+tests/at15.py:51:    """Dynamic INFO contents may differ; RESP type, length and section identity may not."""
+tests/at15.py:53:    assert wire.startswith(prefix), ('INFO EXEC element type', wire[:100])
+tests/at15.py:57:    assert len(body) == count + 2 and body.endswith(b'\r\n'), 'INFO exact frame length'
+tests/at15.py:60:        assert body.startswith(b'txt:'), 'INFO verbatim tag'
+tests/at15.py:74:    for command in (['INFO'], ['INFO', 'server'], ['INFO', 'all'], ['INFO', 'keyspace'],
+tests/at15.py:75:                    ['INFO', 'server', 'keyspace'], ['INFO', 'no-such-section']):
+tests/at15.py:88:        # INFO has server-specific sections and counters. The above validates required sections
+tests/at15.py:91:    out.append(('sleep', transaction(connection, [['DEBUG', 'SLEEP', '0']])))
+tests/at15.py:109:    result = transaction(connection, [['CONFIG', 'GET', 'at15-no-such-setting'],
+tests/at15.py:110:                                      ['CONFIG', 'RESETSTAT'], ['DEBUG', 'SLEEP', '0']])
+tests/at15.py:141:    print('  AT15: INFO sections, DEBUG SLEEP, controls and admin replies agree (RESP%d)' % (3 if resp3 else 2))
+tests/at15_unit.cc:114:    require(wire.starts_with(prefix), "INFO must be one bulk/verbatim element inside EXEC");
+tests/at15_unit.cc:116:    require(end != std::string::npos, "INFO length line");
+tests/at15_unit.cc:119:    require(wire.size() == start + length + 2 && wire.ends_with("\r\n"), "exact INFO frame length");
+tests/at15_unit.cc:122:        require(body.starts_with("txt:"), "INFO verbatim format");
+tests/at15_unit.cc:145:        Request info({"INFO", "keyspace"});
+tests/at15_unit.cc:148:        require(info.reply() == bulk(expected, resp3), "ordinary INFO exact subexpiry census");
+tests/at15_unit.cc:149:        begin(f); queue(f, {"INFO", "keyspace"});
+tests/at15_unit.cc:155:    queue(f, {"INFO", "keyspace"});
+tests/at15_unit.cc:158:    queue(f, {"INFO", "keyspace"});
+tests/at15_unit.cc:160:    queue(f, {"INFO", "keyspace"});
+tests/at15_unit.cc:162:    queue(f, {"INFO", "keyspace"});
+tests/at15_unit.cc:164:    queue(f, {"INFO", "keyspace"});
+tests/at15_unit.cc:182:        queue(f, {"INFO", "keyspace"});
+tests/at15_unit.cc:184:        queue(f, {"INFO", "keyspace"});
+tests/at15_unit.cc:203:            std::vector<std::string> args{"INFO"};
+tests/at15_unit.cc:209:                        body.find("# Keyspace\r\n") != std::string::npos, "default/all INFO sections");
+tests/at15_unit.cc:212:                        "INFO server section selection");
+tests/at15_unit.cc:214:            if (std::string(section) == "no-such-section") require(body.empty(), "unknown INFO section");
+tests/at15_unit.cc:216:                require(body.starts_with("# "), "requested INFO section is present");
+tests/at15_unit.cc:218:        begin(f); queue(f, {"INFO", "server", "keyspace"});
+tests/at15_unit.cc:221:                "multiple INFO sections");
+tests/at15_unit.cc:226:        queue(f, {"INFO", "keyspace"});
+tests/at15_unit.cc:228:        queue(f, {"INFO", "keyspace"});
+tests/at15_unit.cc:231:                ":1\r\n" + bulk("# Keyspace\r\n", resp3), "INFO observes own inserts and deletes");
+tests/at15_unit.cc:235:        begin(f); queue(f, {"DEBUG", "SLEEP", "0"});
+tests/at15_unit.cc:236:        require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "DEBUG SLEEP 0 EXEC element");
+tests/at15_unit.cc:237:        begin(f); queue(f, {"DEBUG", "SLEEP", "0.01"});
+tests/at15_unit.cc:239:        require(f.multi({"EXEC"}) == "*1\r\n+OK\r\n", "DEBUG SLEEP positive EXEC element");
+tests/at15_unit.cc:267:        Request info({"INFO", "server"});
+tests/at15_unit.cc:272:        require(exec_bulk(f.multi({"EXEC"}), resp3).starts_with("# Server\r\n"), "metadata-admitted INFO executes");
+tests/at15_unit.cc:276:        queue(f, {"CONFIG", "GET", "maxmemory"});
+tests/at15_unit.cc:277:        queue(f, {"CONFIG", "SET", "maxmemory", "123456"});
+tests/at15_unit.cc:278:        queue(f, {"CONFIG", "GET", "maxmemory"});
+tests/at15_unit.cc:279:        queue(f, {"CONFIG", "SET", "maxmemory", "0"});
+tests/at15_unit.cc:283:                "CONFIG GET/SET executes in transaction order");
+tests/at15_unit.cc:284:        begin(f); queue(f, {"CONFIG", "RESETSTAT"}); queue(f, {"DEBUG", "BORROWCOUNT"});
+tests/at15_unit.cc:295:    for (const char* name : {"INFO", "DEBUG", "SUBSCRIBE", "SSUBSCRIBE", "MULTI", "WATCH", "SAVE", "FLIP"}) {
+tests/atomic_hazards.py:4:Boot: --atomic 1 --enable-debug-command yes.  The armed arms need DEBUG SHARD (geometry),
+tests/atomic_hazards.py:5:DEBUG ATOMIC-FANOUT-DEFER (floor pin) and DEBUG ATOMIC-COMMIT-DELAY (commit window); without
+tests/atomic_hazards.py:10:S1  FLUSH READ-CUT LEAK.  FlatStore::atomic_tombstone_all (FLUSHDB/FLUSHALL/DEBUG RELOAD on a
+tests/atomic_hazards.py:30:    DEBUG ATOMIC-COMMIT-DELAY holds exactly that interval open.
+tests/atomic_hazards.py:34:- GEOMETRY.  Keys are picked with DEBUG SHARD on THIS boot's hash seed so every group really is
+tests/atomic_hazards.py:127:note("enable atomic lane", ADMIN.cmd("CONFIG", "SET", "atomic", "1") == b"OK")
+tests/atomic_hazards.py:131:    text = ADMIN.cmd("INFO")
+tests/atomic_hazards.py:144:    return ADMIN.cmd("DEBUG", name, str(value)) == b"OK"
+tests/atomic_hazards.py:148:    reply = ADMIN.cmd("DEBUG", "SHARD", key)
+tests/atomic_hazards.py:156:    DEBUG SHARD returns a shard id, not a thread id: the gate has sixteen shards but
+tests/atomic_hazards.py:179:HAVE_DEBUG = shard_of("ahz:probe") is not None
+tests/atomic_hazards.py:180:note("DEBUG command available (geometry + window hooks)", HAVE_DEBUG,
+tests/atomic_hazards.py:181:     "" if HAVE_DEBUG else "boot with --enable-debug-command yes")
+tests/atomic_hazards.py:269:if HAVE_DEBUG:
+tests/atomic_hazards.py:296:    note("S1 FLUSH read-cut leak", False, "needs DEBUG")
+tests/atomic_hazards.py:360:if HAVE_DEBUG:
+tests/atomic_hazards.py:389:    note("S2 XREAD touched-key fence", False, "needs DEBUG")
+tests/atomic_plain.py:7:These settings are verified with CONFIG GET; the battery never changes configuration.
+tests/atomic_plain.py:40:    raw = conn.must("INFO", section)
+tests/atomic_plain.py:41:    require(isinstance(raw, bytes), "INFO returns a bulk string")
+tests/atomic_plain.py:48:    require(field in rows, f"INFO {section} must expose {field}")
+tests/atomic_plain.py:53:    expect(conn.must("DEBUG", name, value), b"OK", "DEBUG " + name)
+tests/atomic_plain.py:70:    expect(admin.must("DEBUG", "ATOMIC-PLAIN-STALE-CUTS"), 0,
+tests/atomic_plain.py:77:        reply = admin.must("CONFIG", "GET", knob)
+tests/atomic_plain.py:79:                "CONFIG GET " + knob)
+tests/atomic_plain.py:97:            print(f"DEBUG cleanup failed: {error}", file=sys.stderr)
+tests/atomic_plain.py:303:            if command[:2] == ("CONFIG", "GET"):
+tests/atomic_plain.py:305:            if command[:2] == ("CONFIG", "SET"):
+tests/atomic_plain.py:307:            if command == ("DEBUG", "ATOMIC-PLAIN-STALE-CUTS"):
+tests/atomic_plain.py:309:            if command[0] == "DEBUG" and not self.reject_debug:
+tests/atomic_plain.py:311:            raise _lib.RespError("injected DEBUG cleanup failure")
+tests/atomic_plain.py:331:                self.assertFalse(any(c[:2] == ("CONFIG", "SET") for c in admin.calls))
+tests/atomic_plain.py:358:            self.assertEqual(errors.getvalue().count("DEBUG cleanup failed:"), 3)
+tests/atomic_plain.py:453:                                if command[0] == "DEBUG":
+tests/atomicwindow.py:3:Arm, release the DEBUG hold, THEN demand completion. Only a clean, fully drained witness miss
+tests/atomicwindow.py:9:is released BEFORE CONFIG. A faster MSET drain cannot remove that identified old-generation lease.
+tests/atomicwindow.py:49:                # The control connection's IO placement also orders CONFIG relative to writers.
+tests/atomicwindow.py:128:                        # MSET commit batches. Releasing their queue before CONFIG can let the
+tests/atomicwindow.py:131:                        # copied its deadline, BEFORE CONFIG (which also takes the read fan-out
+tests/atomicwindow.py:142:                            # INFO omits commands with zero calls on a fresh boot.
+tests/atomicwindow.py:147:                        if admin.must("DEBUG", "ATOMIC-FANOUT-DEFER",
+tests/atomicwindow.py:159:                        if admin.must("DEBUG", "ATOMIC-FANOUT-DEFER", "0") != b"OK":
+tests/atomicwindow.py:163:                    if admin.must("DEBUG", "ATOMIC-COMMIT-HOLD", "1") != b"OK":
+tests/atomicwindow.py:177:                            # before CONFIG; the independently parked EXEC retains its lease.
+tests/atomicwindow.py:178:                            if admin.must("DEBUG", "ATOMIC-COMMIT-HOLD", "0") != b"OK":
+tests/atomicwindow.py:179:                                raise AssertionError("commit hold did not release before CONFIG")
+tests/atomicwindow.py:182:                            if admin.must("CONFIG", "SET", "atomic", "1") != b"OK":
+tests/atomicwindow.py:183:                                raise AssertionError("CONFIG SET atomic 1 failed")
+tests/atomicwindow.py:186:                                raise AssertionError("CONFIG exceeded the lease hold's arm budget")
+tests/atomicwindow.py:189:                                raise AssertionError("old-generation lease holder completed during CONFIG")
+tests/atomicwindow.py:208:                    if admin.must("DEBUG", "ATOMIC-COMMIT-HOLD", "0") != b"OK":
+tests/atomicwindow.py:213:                        if admin.must("DEBUG", "ATOMIC-FANOUT-DEFER", "0") != b"OK":
+tests/atomicwindow.py:224:                        # MSETs admitted after CONFIG may return credits to the holder's IO
+tests/atomicwindow.py:240:                            if admin.must("CONFIG", "SET", "atomic", "1") != b"OK":
+tests/atomicwindow.py:247:                            if admin.must("CONFIG", "SET", "atomic", "1") != b"OK":
+tests/blockmulti.py:95:    raw = conn.cmd("INFO", "CLIENTS")
+tests/blockmulti.py:98:        raise AssertionError("INFO CLIENTS omitted blocked_clients: %r" % raw[:160])
+tests/cmdmeta_coverage.py:6:red at once and none of them says which command is missing. That is exactly how PFDEBUG landed: the
+tests/debug.py:2:"""Directed boot-gated DEBUG and snapshot reload test. Usage: tests/debug.py HOST PORT"""
+tests/debug.py:65:    body = client.command("INFO", section)
+tests/debug.py:71:mode = client.command("CONFIG", "GET", "enable-debug-command")
+tests/debug.py:74:    raise AssertionError("DEBUG test was not purpose-booted; toggle reply=%r" % (mode,))
+tests/debug.py:75:expect(client.command("CONFIG", "SET", "enable-debug-command", "no"),
+tests/debug.py:77:expect(client.command("DEBUG", "SLEEP", "0"), b"OK", "DEBUG SLEEP")
+tests/debug.py:82:owner = client.command("DEBUG", "IO-THREAD")
+tests/debug.py:87:    if candidate.command("DEBUG", "IO-THREAD") == owner:
+tests/debug.py:92:    raise AssertionError("could not place DEBUG SLEEP probe on IO owner %r" % (owner,))
+tests/debug.py:99:sleep_client.sock.sendall(frame("DEBUG", "SLEEP", ".5") + frame("PING"))
+tests/debug.py:105:    raise AssertionError("same-owner connection did not make progress while DEBUG SLEEP parked")
+tests/debug.py:106:expect(client.command("PING"), b"PONG", "same-owner progress during DEBUG SLEEP")
+tests/debug.py:107:expect(sleep_client.read(), b"OK", "deferred DEBUG SLEEP reply")
+tests/debug.py:109:    raise AssertionError("DEBUG SLEEP deadline fired too early")
+tests/debug.py:110:expect(sleep_client.read(), b"PONG", "pipelined PING stayed behind DEBUG SLEEP")
+tests/debug.py:112:    raise AssertionError("DEBUG SLEEP did not restore blocked_clients")
+tests/debug.py:117:cancel_client.sock.sendall(frame("DEBUG", "SLEEP", ".5"))
+tests/debug.py:131:    raise AssertionError("disconnect did not cancel DEBUG SLEEP")
+tests/debug.py:134:timeout_reply = client.command("CONFIG", "GET", "timeout")
+tests/debug.py:136:expect(client.command("DEBUG", "SLEEP", str(sleep_cap + 1)),
+tests/debug.py:137:       "ERR value is not a valid float", "DEBUG SLEEP timeout-derived ceiling")
+tests/debug.py:138:expect(client.command("MULTI"), b"OK", "MULTI before DEBUG SLEEP")
+tests/debug.py:139:expect(client.command("DEBUG", "SLEEP", ".01"), b"QUEUED", "queue DEBUG SLEEP")
+tests/debug.py:140:# Redis queues DEBUG SLEEP and returns its OK as an EXEC array element. The
+tests/debug.py:142:expect(client.command("EXEC"), [b"OK"], "DEBUG SLEEP inside EXEC")
+tests/debug.py:146:expect(client.command("DEBUG", "LOADAOF"),
+tests/debug.py:147:       "ERR appendonly is disabled", "DEBUG LOADAOF appendonly-off guard")
+tests/debug.py:148:expect(client.command("DEBUG", "JMAP"),
+tests/debug.py:150:       "DEBUG JMAP intentionally absent")
+tests/debug.py:152:# DEBUG SHARDS preserves input order and reports the live owner, not a sid-derived guess. This
+tests/debug.py:155:signals = client.command("DEBUG", "LBSIGNALS")
+tests/debug.py:157:    raise AssertionError("DEBUG LBSIGNALS geometry reply: %r" % (signals,))
+tests/debug.py:166:    raise AssertionError("DEBUG LBSIGNALS reported no shard ownership rows")
+tests/debug.py:169:geometry = client.command("DEBUG", "SHARDS", *geometry_keys)
+tests/debug.py:171:    raise AssertionError("DEBUG SHARDS outer reply: %r" % (geometry,))
+tests/debug.py:175:        raise AssertionError("DEBUG SHARDS row %d: %r" % (index, pair))
+tests/debug.py:176:    sid = client.command("DEBUG", "SHARD", key)
+tests/debug.py:177:    expect(pair, [sid, shard_owners[sid]], "DEBUG SHARDS row %d" % index)
+tests/debug.py:181:expect(client.command("DEBUG", "SET-ACTIVE-EXPIRE", "0"), b"OK", "expire toggle off reply")
+tests/debug.py:187:expect(client.command("DEBUG", "SET-ACTIVE-EXPIRE", "1"), b"OK", "expire toggle on reply")
+tests/debug.py:195:    expect(client.command("CONFIG", "SET", "atomic", str(atomic)), b"OK",
+tests/debug.py:210:    expect(client.command("DEBUG", "RELOAD"), b"OK", "reload atomic=%d" % atomic)
+tests/differ.py:69:    """Target-only mechanism counters; DEBUG/INFO is never sent to the Redis oracle."""
+tests/differ.py:72:        sock.sendall(enc(["INFO", "STATS"]))
+tests/differ.py:75:            raise RuntimeError("target INFO STATS did not return a bulk string")
+tests/differ.py:136:    """MEMORY USAGE, ROLE and COMMAND INFO are compared for MEANING, not bytes.
+tests/differ.py:139:    COMMAND INFO: the flag names, ACL category list and key-spec map are redis-internal; the name,
+tests/differ.py:152:    if cmdname == "COMMAND" and len(argv) > 1 and argv[1].upper() == "INFO":
+tests/differ.py:164:        return b"CMDINFO:" + b";".join(out)
+tests/differ.py:1050:    * ACTIVE EXPIRY IS OFF for the whole suite (`DEBUG SET-ACTIVE-EXPIRE 0`, which both servers
+tests/differ.py:1056:    Deliberately not in the stream: DBSIZE and INFO (batch-published on TomoKV by design,
+tests/differ.py:1084:    ops = [["DEBUG", "SET-ACTIVE-EXPIRE", "0"]]
+tests/differ.py:1243:        ["DEBUG", "SET-ACTIVE-EXPIRE", "1"],
+tests/differ.py:1566:    # INFO keyspace has deterministic bytes here (no TTLs). Exercise its owner fan-out between
+tests/differ.py:1568:    ops += [["MULTI"], ["INFO", "keyspace"], ["DEL", strkeys[0]], ["INFO", "keyspace"],
+tests/differ.py:1569:            ["DEBUG", "SLEEP", "0"], ["EXEC"],
+tests/differ.py:1730:      * XINFO STREAM. radix-tree-keys/radix-tree-nodes are counters of a structure this tree does
+tests/differ.py:1957:      - MEMORY USAGE values, and COMMAND INFO flag/acl/key-spec arrays. Normalized in normalize().
+tests/differ.py:2049:    # COMMAND INFO shapes for a fixed list (normalized to name/arity/key-range).
+tests/differ.py:2056:        ops.append(["COMMAND", "INFO", name])
+tests/differ.py:2096:        ["CONFIG", "GET"], ["CONFIG", "SET", "maxmemory"],
+tests/differ.py:2097:        ["CONFIG", "REWRITE", "x"], ["CONFIG", "RESETSTAT", "x"],
+tests/differ.py:2098:        ["CONFIG", "HELP", "x"], ["CONFIG", "BOGUS"],
+tests/differ.py:2739:        sock.sendall(enc(["INFO", "CLIENTS"]))
+tests/differ.py:2742:            raise RuntimeError("INFO CLIENTS returned an unexpected shape: %r" % (body,))
+tests/differ.py:2745:            raise RuntimeError("INFO CLIENTS omitted blocked_clients")
+tests/differ.py:3096:        ["XINFO", "CONSUMERS", "ep:x"], ["XINFO", "CONSUMERS", "ep:x", "g", "extra"],
+tests/differ.py:3097:        ["XINFO", "GROUPS", "ep:x", "extra"], ["OBJECT", "ENCODING"],
+tests/differ.py:3258:    generated stream, the runner below walks DEBUG SHARD candidates and fails unless concrete BY
+tests/differ.py:3566:            ops.append(["PFDEBUG", "ENCODING", key])
+tests/differ.py:3568:            ops.append(["PFDEBUG", "DECODE", key])
+tests/differ.py:3570:            ops.append(["PFDEBUG", "TODENSE", key])
+tests/differ.py:3572:            ops.append(["PFDEBUG", "GETREG", key])
+tests/differ.py:3580:            ops.append(["PFDEBUG", "ENCODING", "cmdgap2:missing"])
+tests/differ.py:3582:            ops.append(["PFDEBUG", "ENCODING", wrong])
+tests/differ.py:3584:            ops.append(["PFDEBUG", "ENCODING", bad])
+tests/differ.py:3586:            ops.append(["PFDEBUG", rng.choice(["ENCODING", "DECODE", "GETREG", "TODENSE"]),
+tests/differ.py:3589:            ops.append(["PFDEBUG", "NOPE", stable])
+tests/differ.py:3591:            ops.append(["PFDEBUG", "ENCODING"])
+tests/differ.py:3593:            ops.append(["PFDEBUG", "ENCODING", stable, "extra"])
+tests/differ.py:3595:            ops.append(["PFDEBUG", rng.choice(["ENCODING", "DECODE", "GETREG"]), stable])
+tests/differ.py:3603:        ["PFDEBUG", "ENCODING", direct], ["PFDEBUG", "DECODE", direct],
+tests/differ.py:3605:        ["PFDEBUG", "TODENSE", direct], ["PFDEBUG", "ENCODING", direct],
+tests/differ.py:3606:        ["GET", direct], ["PFDEBUG", "GETREG", direct],
+tests/differ.py:3607:        ["PFDEBUG", "DECODE", direct], ["PFDEBUG", "TODENSE", direct],
+tests/differ.py:3609:        ["PFDEBUG", "ENCODING", direct_getreg],
+tests/differ.py:3610:        ["PFDEBUG", "GETREG", direct_getreg],
+tests/differ.py:3611:        ["PFDEBUG", "ENCODING", direct_getreg], ["GET", direct_getreg],
+tests/differ.py:3612:        ["PFDEBUG", "NOPE", direct],
+tests/differ.py:3613:        ["PFDEBUG", "ENCODING", "cmdgap2:missing"],
+tests/differ.py:3614:        ["PFDEBUG", "ENCODING", wrong], ["PFDEBUG", "ENCODING", bad],
+tests/differ.py:3615:        ["PFDEBUG", "ENCODING", corrupt_key], ["PFDEBUG", "DECODE", corrupt_key],
+tests/differ.py:3616:        ["PFDEBUG", "GETREG", corrupt_key], ["PFDEBUG", "TODENSE", corrupt_key],
+tests/differ.py:3617:        ["PFDEBUG", "ENCODING", truncated_key], ["PFDEBUG", "DECODE", truncated_key],
+tests/differ.py:3618:        ["PFDEBUG", "GETREG", truncated_key], ["PFDEBUG", "TODENSE", truncated_key],
+tests/differ.py:3620:        ["PFDEBUG", "DECODE", "cmdgap2:decode-zero"],
+tests/differ.py:3621:        ["PFDEBUG", "GETREG", "cmdgap2:decode-zero"],
+tests/differ.py:3622:        ["PFDEBUG", "ENCODING", "cmdgap2:decode-zero"],
+tests/differ.py:3623:        ["PFDEBUG", "ENCODING"], ["PFDEBUG", "ENCODING", stable, "extra"],
+tests/differ.py:4302:        sock.sendall(enc(["CONFIG", "SET", "notify-keyspace-events", ""]))
+tests/differ.py:4305:        sock.sendall(enc(["CONFIG", "SET", "notify-keyspace-events", "EA"]))
+tests/differ.py:4378:        sock.sendall(enc(["CONFIG", "SET", "notify-keyspace-events", ""]))
+tests/differ.py:4597:        elif c == 3: grammar.append(["CLIENT", "TRACKINGINFO"])
+tests/differ.py:4623:                ["CLIENT", "GETREDIR", "X"], ["CLIENT", "TRACKINGINFO", "X"],
+tests/differ.py:4785:        raw_command(sock, file, ["CONFIG", "SET", "notify-keyspace-events", ""])
+tests/differ.py:4862:    # COMMAND INFO's name/arity/legacy key range is the declared compatibility boundary.
+tests/differ.py:4863:    info = ["COMMAND", "INFO", "GET", "MGET", "ZADD", "not-a-command"]
+tests/differ.py:4866:    semantic("COMMAND INFO routing fields", target, oracle)
+tests/differ.py:4873:    # CONFIG: maps are order-independent, but every name and rendered value remains byte-exact. --
+tests/differ.py:4885:        argv = ["CONFIG", "GET"] + patterns
+tests/differ.py:4896:            config_get(names, "CONFIG GET %d" % iteration)
+tests/differ.py:4900:            both(["CONFIG", "SET", "timeout", timeout, "tcp-keepalive", keepalive],
+tests/differ.py:4901:                 "CONFIG SET multi %d" % iteration)
+tests/differ.py:4902:            config_get(["timeout", "tcp-keepalive"], "CONFIG SET verify %d" % iteration)
+tests/differ.py:4905:            config_get(["timeout"], "CONFIG invalid before %d" % iteration)
+tests/differ.py:4906:            both(["CONFIG", "SET", "timeout", "17", "ci-no-such-knob", "x"],
+tests/differ.py:4907:                 "CONFIG invalid multi %d" % iteration)
+tests/differ.py:4908:            config_get(["timeout"], "CONFIG invalid after %d" % iteration)
+tests/differ.py:4910:            both(["CONFIG", "RESETSTAT"], "CONFIG RESETSTAT %d" % iteration)
+tests/differ.py:4911:    both(["CONFIG", "SET", "timeout", "0", "tcp-keepalive", "300"], "CONFIG restore")
+tests/differ.py:4912:    config_get(["no-such-config-*", "still-no-such-*"], "CONFIG unknown multi")
+tests/differ.py:4914:    # CLIENT: exact grammar plus normalized INFO/LIST field names and stable state values. --------
+tests/differ.py:4931:        target_raw = raw_command(ts, tf, ["CLIENT", "INFO"])
+tests/differ.py:4932:        oracle_raw = raw_command(os_, of, ["CLIENT", "INFO"])
+tests/differ.py:4975:            both(["CLIENT", "SETINFO", "LIB-NAME", lib_name], "CLIENT SETINFO name")
+tests/differ.py:4978:            both(["CLIENT", "SETINFO", "LIB-VER", lib_ver], "CLIENT SETINFO version")
+tests/differ.py:4980:            verify_client_info("CLIENT INFO %d" % iteration)
+tests/differ.py:5004:    verify_client_info("CLIENT INFO final")
+tests/differ.py:5005:    if not client_fields_seen: mismatch("CLIENT INFO fired", b"none", b"fields")
+tests/differ.py:5052:        both(["CONFIG", "SET", "notify-keyspace-events", flags], "notify flags " + flags)
+tests/differ.py:5165:        ["XGROUP", "CREATE", "x", "g", "$"], ["XINFO", "STREAM", "x"],
+tests/differ.py:5244:            compare(["COMMAND", "INFO", requested], "INFO %d %s" % (iteration, requested))
+tests/differ.py:5253:    compare(["COMMAND", "INFO", "nope|nope"], "unknown INFO zero control")
+tests/differ.py:5406:        configured = parse_reply(command(sock, file, ["CONFIG", "GET", "appendonly"]))
+tests/differ.py:5538:    """Stable byte stream surrounding INFO's non-byte-comparable telemetry properties."""
+tests/differ.py:5566:    # Unequal populations make both map directions observable; INFO must use the map at its
+tests/differ.py:5570:            ["INFO", "keyspace"], ["SWAPDB", "0", "1"], ["INFO", "keyspace"],
+tests/differ.py:5571:            ["SWAPDB", "0", "1"], ["INFO", "keyspace"], ["EXEC"], ["FLUSHALL"]]
+tests/differ.py:5643:    # Resolve geometry from the target on every boot: its hash seed is randomized. DEBUG is never
+tests/differ.py:5658:            ts.sendall(enc(["DEBUG", "SHARD", key]))
+tests/differ.py:5661:                raise RuntimeError("script differ requires target DEBUG SHARD, got %r" %
+tests/differ.py:5675:    # Exact lane geometry, checked on the target only. DEBUG SHARD reports shard IDs; the gate uses
+tests/differ.py:5678:    ts.sendall(enc(["INFO", "LB"]))
+tests/differ.py:5681:        raise RuntimeError("sort differ requires target INFO LB")
+tests/differ.py:5693:            ts.sendall(enc(["DEBUG", "SHARD", key]))
+tests/differ.py:5696:                raise RuntimeError("sort differ requires target DEBUG SHARD, got %r" % reply)
+tests/differ.py:5810:    # INFO contains process-specific values; this directed leg validates exact RESP framing,
+tests/differ.py:5817:    alignment = [["CONFIG", "SET", "hash-max-listpack-entries", "512"],
+tests/differ.py:5818:                 ["CONFIG", "SET", "hash-max-listpack-value", "64"],
+tests/differ.py:5819:                 ["CONFIG", "SET", "set-max-listpack-entries", "128"],
+tests/differ.py:5820:                 ["CONFIG", "SET", "set-max-listpack-value", "64"],
+tests/differ.py:5821:                 ["CONFIG", "SET", "set-max-intset-entries", "128"],
+tests/differ.py:5822:                 ["CONFIG", "SET", "zset-max-listpack-entries", "128"],
+tests/differ.py:5823:                 ["CONFIG", "SET", "zset-max-listpack-value", "64"],
+tests/differ.py:5824:                 ["CONFIG", "SET", "list-max-listpack-size", "-2"]]
+tests/differ.py:5901:                        ps.sendall(enc(["INFO", "STATS"]))
+tests/differ.py:6005:    # INFO is telemetry, so its values cannot be byte-compared across two implementations. Keep
+tests/differ.py:6012:        parsed = parse_reply(issue(sock, file, ["INFO", section]))
+tests/differ.py:6024:        print("  INFOFIX PROPERTY FAIL %s: %s" % (label, detail))
+tests/differ.py:6026:    # RESETSTAT byte baselines: before the INFO reply itself is sent, the only post-reset output is
+tests/differ.py:6027:    # +OK and the only input is this exact INFO request. This is the zero-delta control for both
+tests/differ.py:6029:    info_request_bytes = len(enc(["INFO", "STATS"]))
+tests/differ.py:6031:        reset = issue(sock, file, ["CONFIG", "RESETSTAT"])
+tests/differ.py:6066:        issue(sock, file, ["CONFIG", "RESETSTAT"])
+tests/differ.py:6079:    issue(ts, tf, ["CONFIG", "RESETSTAT"])
+tests/differ.py:6085:    # The same sampled-rate contract as infofix.py: INFO-only polls let residual samples drain,
+tests/differ.py:6100:        issue(sock, file, ["CONFIG", "RESETSTAT"])
+tests/differ.py:6122:    issue(ts, tf, ["CONFIG", "RESETSTAT"])
+tests/edgeproto.py:16:  4  arity: minimum arity of PFADD/GEOPOS/GEOHASH, truncated HSET arity text, XINFO/XGROUP subarity
+tests/edgeproto.py:253:    # XGROUP/XINFO enforced the container arity only, so a wrong-arity subcommand EXECUTED.
+tests/edgeproto.py:265:    for argv in (["XINFO", "CONSUMERS", "ep:x"],
+tests/edgeproto.py:266:                 ["XINFO", "CONSUMERS", "ep:x", "g", "extra"],
+tests/edgeproto.py:267:                 ["XINFO", "GROUPS", "ep:x", "extra"]):
+tests/edgeproto.py:271:    # An unknown ARM is not a missing key: XINFO looked the key up first and answered
+tests/edgeproto.py:272:    # "no such key" for "XINFO NOPE somekey", and XGROUP answered NOGROUP.
+tests/edgeproto.py:273:    expect(c, ["XINFO", "NOPE", "ep:x"], b"-ERR unknown subcommand 'NOPE'. Try XINFO HELP.\r\n")
+tests/edgeproto.py:274:    expect(c, ["XINFO", "NOPE", "ep:nosuchkey"],
+tests/edgeproto.py:275:           b"-ERR unknown subcommand 'NOPE'. Try XINFO HELP.\r\n")
+tests/edgetime.py:14:runs -- otherwise the case proves nothing about lazy expiry.  ``expired_keys`` from INFO is the
+tests/edgetime.py:147:    body = conn.cmd("INFO", "stats")
+tests/edgetime.py:153:    raise AssertionError("INFO counter %s is absent" % name)
+tests/edgetime.py:157:    check("DEBUG SET-ACTIVE-EXPIRE %d" % enabled,
+tests/edgetime.py:158:          conn.cmd("DEBUG", "SET-ACTIVE-EXPIRE", str(enabled)), b"OK")
+tests/edgetime.py:529:        shard = conn.cmd("DEBUG", "SHARD", key)
+tests/edgetime.py:535:        raise AssertionError("DEBUG SHARD found only %d distinct shards" % len(by_shard))
+tests/edgetime.py:608:    check("commit-delay hook armed", conn.cmd("DEBUG", "ATOMIC-COMMIT-DELAY", "2000"), b"OK")
+tests/edgetime.py:638:    check("commit-delay hook disarmed", conn.cmd("DEBUG", "ATOMIC-COMMIT-DELAY", "0"), b"OK")
+tests/edgetime.py:662:    Widen the fan-out with the tree's own DEBUG hook and give every key one shared deadline inside
+tests/edgetime.py:678:        if conn.cmd("DEBUG", "ATOMIC-FANOUT-DEFER", str(defer_us)) != b"OK":
+tests/edgetime.py:683:        conn.cmd("DEBUG", "ATOMIC-FANOUT-DEFER", "0")
+tests/edgetime.py:766:    if conn.cmd("DEBUG", "SET-ACTIVE-EXPIRE", "0") != b"OK":
+tests/edgetime.py:767:        raise AssertionError("DEBUG SET-ACTIVE-EXPIRE 0 rejected")
+tests/edgetime.py:825:                conn.cmd("DEBUG", "ATOMIC-FANOUT-DEFER", "0")
+tests/edgetime.py:826:                conn.cmd("DEBUG", "SET-ACTIVE-EXPIRE", "1")
+tests/exbatch.py:19:        actual = conn.must('DBSIZE'), keyspace(conn.must('INFO', 'keyspace'))
+tests/exbatch.py:40:        # DEBUG proof, not the spelling, establishes the non-last shard coverage.
+tests/exbatch_unit.cc:267:            Request req({"COMMAND", "INFO", spelling});
+tests/exbatch_unit.cc:278:                     {"XINFO", "STREAM", "k"}, {"HSET", std::string(1024, 'k'), "f", "v"},
+tests/execatomic.py:28:  DEBUG SHARD for the real owner of every key and refuses to pass unless the read spans more than
+tests/execatomic.py:30:- DETERMINISM.  DEBUG ATOMIC-FANOUT-DEFER parks every fragment of a cross-shard read except the one
+tests/execatomic.py:134:    text = ADMIN.cmd("INFO", "stats")
+tests/execatomic.py:144:    return ADMIN.cmd("CONFIG", "SET", "atomic", str(value)) == b"OK"
+tests/execatomic.py:148:    return ADMIN.cmd("DEBUG", "ATOMIC-FANOUT-DEFER", str(microseconds)) == b"OK"
+tests/execatomic.py:162:HAVE_DEBUG = not isinstance(ADMIN.cmd("DEBUG", "SHARD", KEYS[0]), (RespError, Exception))
+tests/execatomic.py:166:if HAVE_DEBUG:
+tests/execatomic.py:172:        owner = int(ADMIN.cmd("DEBUG", "SHARD", key))
+tests/execatomic.py:187:        owner = int(ADMIN.cmd("DEBUG", "SHARD", key))
+tests/execatomic.py:195:     HAVE_DEBUG and len(SPAN) > 1 and len(WALK_SPAN) > 1 and WALK_SPAN[0] == 0,
+tests/execatomic.py:197:     % (len(KEYS), SPAN, len(WALK_KEYS), WALK_SPAN, "" if HAVE_DEBUG else " (DEBUG disabled)"))
+tests/execatomic.py:203:    if not HAVE_DEBUG:
+tests/execatomic.py:276:    if not HAVE_DEBUG:
+tests/execatomic.py:297:    if not HAVE_DEBUG:
+tests/execatomic.py:406:    note("CONFIG SET atomic %d" % atomic_mode, set_atomic(atomic_mode))
+tests/execatomic.py:415:if HAVE_DEBUG:
+tests/execfix.py:4:Boot requirement: --enable-debug-command yes (DEBUG SHARD is the geometry oracle; without it every
+tests/execfix.py:6:`atomic` itself with CONFIG SET, so either boot mode covers both.
+tests/execfix.py:36:  * `DEBUG SHARD` proves each "two-owner" transaction really spans two owners on THIS boot's hash
+tests/execfix.py:135:    raw = conn.command("INFO", "STATS")
+tests/execfix.py:137:        raise AssertionError(f"INFO STATS returned {raw!r}")
+tests/execfix.py:150:            f"INFO STATS has no {name}: this build cannot prove the mechanism, so every arm that "
+tests/execfix.py:156:    reply = conn.command("DEBUG", "SHARD", key)
+tests/execfix.py:159:            "DEBUG SHARD is unavailable: boot with --enable-debug-command yes.  Without the "
+tests/execfix.py:178:    return conn.command("CONFIG", "SET", "atomic", str(value)) == b"OK"
+tests/execfix.py:508:                FAILURES.append(f"CONFIG SET atomic {mode}")
+tests/execfix.py:509:                print(f"  FAIL CONFIG SET atomic {mode}", flush=True)
+tests/execfix.py:511:            ok(f"CONFIG SET atomic {mode}")
+tests/execiso.py:31:- GEOMETRY.  The hash seed is drawn from the kernel at every boot, so this battery asks DEBUG SHARD
+tests/execiso.py:33:- DETERMINISM.  DEBUG ATOMIC-FANOUT-DEFER now parks MULTI-child fragments as well as ordinary
+tests/execiso.py:139:READ_LOCAL = b"\r\nread_local:1\r\n" in ADMIN.cmd("INFO", "server")
+tests/execiso.py:143:    text = ADMIN.cmd("INFO", "stats")
+tests/execiso.py:153:    return ADMIN.cmd("CONFIG", "SET", "atomic", str(value)) == b"OK"
+tests/execiso.py:157:    return ADMIN.cmd("DEBUG", "ATOMIC-FANOUT-DEFER", str(microseconds)) == b"OK"
+tests/execiso.py:187:HAVE_DEBUG = not isinstance(ADMIN.cmd("DEBUG", "SHARD", KEYS[0]), (RespError, Exception))
+tests/execiso.py:189:if HAVE_DEBUG:
+tests/execiso.py:194:            owner = int(ADMIN.cmd("DEBUG", "SHARD", key))
+tests/execiso.py:202:    # DEBUG SHARD returns a shard ID, not an executor ID. Prove the participating owners.
+tests/execiso.py:221:        owner = int(ADMIN.cmd("DEBUG", "SHARD", key))
+tests/execiso.py:227:     HAVE_DEBUG and len(SPAN) > 1 and len(SET_SPAN) > 1 and len(SAME) == 8,
+tests/execiso.py:230:        "" if HAVE_DEBUG else " (DEBUG disabled)"))
+tests/execiso.py:241:    if not HAVE_DEBUG:
+tests/execiso.py:331:    if not HAVE_DEBUG:
+tests/execiso.py:336:    # debt can keep tracking on even after CONFIG atomic 0. Its delta is diagnostic.
+tests/execiso.py:390:    if not HAVE_DEBUG:
+tests/execiso.py:409:    if not HAVE_DEBUG:
+tests/execiso.py:548:    note("CONFIG SET atomic %d" % atomic_mode, set_atomic(atomic_mode))
+tests/execiso.py:560:if HAVE_DEBUG:
+tests/expwide.py:14:                     Sections needing TomoKV's own DEBUG hooks announce themselves as skipped.
+tests/expwide.py:116:    text = conn.cmd("INFO", "stats")
+tests/expwide.py:126:    """One INFO field as text, or None when the server (the redis oracle) has no such field."""
+tests/expwide.py:127:    text = conn.cmd("INFO", section)
+tests/expwide.py:141:    return isinstance(conn.cmd("DEBUG", "SHARD", "expwide:probe"), int)
+tests/expwide.py:151:        shard = conn.cmd("DEBUG", "SHARD", key)
+tests/expwide.py:157:        raise AssertionError("DEBUG SHARD found only %d distinct owners" % len(by_shard))
+tests/expwide.py:162:    """Find a destination that DEBUG SHARD proves is not owned with `source`.
+tests/expwide.py:164:    Redis has one keyspace and no DEBUG SHARD route, so its oracle leg uses an arbitrary distinct
+tests/expwide.py:170:    source_owner = conn.cmd("DEBUG", "SHARD", source)
+tests/expwide.py:172:        raise AssertionError("DEBUG SHARD failed for source %r: %r" % (source, source_owner))
+tests/expwide.py:175:        owner = conn.cmd("DEBUG", "SHARD", candidate)
+tests/expwide.py:178:    raise AssertionError("DEBUG SHARD found no cross-owner destination for %r" % source)
+tests/expwide.py:182:    conn.cmd("DEBUG", "SET-ACTIVE-EXPIRE", str(enabled))
+tests/expwide.py:216:# S1. The bare cross-shard fan-out, widened by the tree's own DEBUG ATOMIC-FANOUT-DEFER.
+tests/expwide.py:241:        if conn.cmd("DEBUG", "ATOMIC-FANOUT-DEFER", str(defer_us)) != b"OK":
+tests/expwide.py:248:        conn.cmd("DEBUG", "ATOMIC-FANOUT-DEFER", "0")
+tests/expwide.py:295:        shard = conn.cmd("DEBUG", "SHARD", key)
+tests/expwide.py:529:        base = conn.cmd("DEBUG", "SHARD", base_key)
+tests/expwide.py:533:            shard = conn.cmd("DEBUG", "SHARD", key)
+tests/expwide.py:700:            conn.cmd("DEBUG", "ATOMIC-FANOUT-DEFER", "0")
+tests/expwide.py:701:            conn.cmd("DEBUG", "SET-ACTIVE-EXPIRE", "1")
+tests/flip.py:91:    body = c.cmd("INFO", section)
+tests/flip.py:141:    metadata = control.cmd("COMMAND", "INFO", "FLIP")[0]
+tests/flip.py:368:        check("INFO live io split", int(server["io_threads"]), live_io)
+tests/flip.py:369:        check("INFO live ex split", int(server["ex_threads"]), live_ex)
+tests/gates_test.py:1446:                self.assertEqual(peer.cmd.call_args_list, [(('INFO', 'Server'),), (('PING',),)])
+tests/gates_test.py:1461:                        peer.cmd.assert_called_once_with('INFO', 'Server')
+tests/limits.py:4:The purpose boot must enable DEBUG commands for the deterministic blocked-timeout ordering arm.
+tests/limits.py:100:    value = conn.command("CONFIG", "GET", name)
+tests/limits.py:102:        raise AssertionError(f"CONFIG GET {name}: {value!r}")
+tests/limits.py:107:    raw = conn.command("INFO", "STATS")
+tests/limits.py:109:        raise AssertionError(f"INFO STATS returned {raw!r}")
+tests/limits.py:161:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit", value),
+tests/limits.py:167:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:183:            expect_error(admin.command("CONFIG", "SET", "client-output-buffer-limit", bad),
+tests/limits.py:188:        expect_error(admin.command("CONFIG", "SET", "tcp-backlog", "10"),
+tests/limits.py:190:        expect(admin.command("CONFIG", "SET", "tcp-keepalive", "1"), b"OK",
+tests/limits.py:193:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:198:        expect(admin.command("CONFIG", "SET", "maxclients", "3"), b"OK",
+tests/limits.py:217:        expect(admin.command("CONFIG", "SET", "maxclients", "10000"), b"OK",
+tests/limits.py:223:        server_info = admin.command("INFO", "SERVER")
+tests/limits.py:225:            raise AssertionError(f"INFO SERVER returned {server_info!r}")
+tests/limits.py:232:        expect(admin.command("CONFIG", "SET", "maxclients", "20"), b"OK",
+tests/limits.py:283:        expect(admin.command("CONFIG", "SET", "maxclients", "10000"), b"OK",
+tests/limits.py:288:        expect(admin.command("CONFIG", "SET", "timeout", "1"), b"OK", "timeout live enable")
+tests/limits.py:317:        reap_before = admin.command("DEBUG", "BLOCKING-TIMEOUT-REAP")
+tests/limits.py:330:        expect(admin.command("DEBUG", "BLOCKING-TIMEOUT-REAP", "1"), b"OK",
+tests/limits.py:335:        expect(admin.command("DEBUG", "BLOCKING-TIMEOUT-REAP"), reap_before + 1,
+tests/limits.py:345:        expect(admin.command("CONFIG", "SET", "timeout", "0"), b"OK", "timeout disable")
+tests/limits.py:353:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:361:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:380:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:385:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:392:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:432:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:434:        expect(admin.command("CONFIG", "SET", "zc-min", "1"), b"OK", "enable borrow path")
+tests/limits.py:440:        expect(admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/limits.py:459:            admin.command("CONFIG", "SET", "maxclients", original["maxclients"])
+tests/limits.py:460:            admin.command("CONFIG", "SET", "timeout", original["timeout"])
+tests/limits.py:461:            admin.command("CONFIG", "SET", "tcp-keepalive", original["tcp-keepalive"])
+tests/limits.py:462:            admin.command("CONFIG", "SET", "zc-min", original["zc-min"])
+tests/limits.py:463:            admin.command("CONFIG", "SET", "client-output-buffer-limit",
+tests/mdbstamp_checks.cc:225:    {"xinfo-help", {"XINFO", "HELP"}, {}},
+tests/mdbstamp_checks.cc:226:    {"xinfo-key", {"XINFO", "STREAM", "key"}, {2}},
+tests/mdbstamp_checks.cc:237:        " XREAD XGROUP XREADGROUP XINFO MOVE KEYS SORT"
+tests/mode_equivalence.py:16:Clock/expiry replies, random-member commands, hash/set iteration order, SCAN cursors, INFO and
+tests/mode_equivalence.py:44:            'SCAN cursors', 'INFO telemetry', 'connection/process identifiers']
+tests/multi_exec.py:82:        return client.cmd("CONFIG", "SET", "atomic", str(value)) == b"OK"
+tests/multi_exec.py:194:        ok &= c.cmd("CONFIG", "GET", "atomic") == b"QUEUED"
+tests/multi_exec.py:213:            owner = writer.cmd("DEBUG", "SHARD", key)
+tests/multi_exec.py:215:                # Needs the DEBUG SHARD hook. Refuse loudly instead of failing so a
+tests/multi_exec.py:218:                print("  SKIP script WATCH declared-key detector: DEBUG SHARD "
+tests/multi_exec.py:251:             (writer.cmd("DEBUG", "SHARD", declared), quiet, fired))
+tests/multi_exec.py:304:        text = client.cmd("INFO", "stats")
+tests/multi_exec.py:321:    # version of this window lives in tests/execatomic.py (DEBUG ATOMIC-FANOUT-DEFER).
+tests/multi_exec.py:445:note("force atomic contract with --atomic/CONFIG off", set_atomic(0))
+tests/multidb.py:27:    return dict(line.split(b":", 1) for line in c.must("INFO", section).splitlines()
+tests/multidb.py:48:        expect(admin.cmd("CONFIG", "GET", "databases"), [b"databases", b"16"], "configured count")
+tests/multidb.py:135:            expect(int(parts[b"keys"]), 6, "INFO keys")
+tests/multidb.py:136:            expect(int(parts[b"expires"]), 1, "INFO expires")
+tests/multidb.py:137:            assert 0 < int(parts[b"avg_ttl"]) <= 600000, "INFO avg_ttl"
+tests/multidb.py:138:        assert b"db=3" in c.must("CLIENT", "INFO"), "CLIENT database"
+tests/multidb.py:167:        assert b"db=1" in c.must("CLIENT", "INFO"), "aborted EXEC applied SELECT"
+tests/multidb.py:190:                owners.append(shard_owner[c.must("DEBUG", "SHARD", key)])
+tests/multidb.py:260:        expect(admin.cmd("CONFIG", "SET", "notify-keyspace-events", "Eg$"), b"OK", "notification config")
+tests/multidb.py:270:        expect(admin.cmd("CONFIG", "SET", "notify-keyspace-events", ""), b"OK", "notification reset")
+tests/multidb.py:273:            # DEBUG RELOAD invokes the native snapshot save/load path. LOADAOF replays the
+tests/multidb.py:298:            expect(admin.cmd("DEBUG", "RELOAD"), b"OK", "snapshot reload")
+tests/multidb.py:300:            expect(admin.cmd("DEBUG", "LOADAOF"), b"OK", "AOF replay")
+tests/multidb_unit.cc:189:            "INFO retains elapsed physical record");
+tests/multidb_unit.cc:213:    for (const char* command : {"INFO", "DBSIZE"}) {
+tests/multidb_unit.cc:219:                "INFO cannot delay the pinned-window witness; data census still arms");
+tests/multidb_unit.cc:547:    const auto keyspace = scatter(server, 0, {"INFO", "keyspace"});
+tests/multidb_unit.cc:550:            keyspace.find("db1:") == std::string::npos, "INFO uses logical nonempty DBs");
+tests/multirace.py:38:DEBUG SHARDS and LBSIGNALS prove the owner separation; distinct shard IDs alone do not prove it.
+tests/multirace.py:61:BOTH MODES RUN FROM ONE BOOT, driven by this battery through CONFIG SET (restored at exit). The
+tests/multirace.py:66:Boot requirement: --enable-debug-command yes for DEBUG SHARD, so the key set provably spans
+tests/multirace.py:161:    raw = conn.command("INFO", "STATS")
+tests/multirace.py:163:        raise AssertionError(f"INFO STATS returned {raw!r}")
+tests/multirace.py:175:        raise AssertionError("INFO STATS has no atomic_exec_order_holds counter")
+tests/multirace.py:180:    """INFO atomic_exec_order_late -- the install-time ordering violations the dispatch park is
+tests/multirace.py:193:    reply = conn.command("CONFIG", "GET", "atomic")
+tests/multirace.py:195:        raise AssertionError(f"CONFIG GET atomic returned {reply!r}")
+tests/multirace.py:206:    reply = conn.command("CONFIG", "SET", "atomic", value)
+tests/multirace.py:208:        raise AssertionError(f"CONFIG SET atomic {value} refused: {reply}")
+tests/multirace.py:211:        raise AssertionError(f"CONFIG SET atomic {value} did not take (reads {live})")
+tests/multirace.py:532:        print("  FAIL INFO STATS has no atomic_exec_order_late counter, so this build cannot show "
+tests/multirace.py:565:                admin.command("CONFIG", "SET", "atomic", booted)
+tests/multires.py:40:Boot requirement: --enable-debug-command yes for DEBUG SHARD, so the key set provably spans
+tests/multires.py:129:    raw = conn.command("INFO", "STATS")
+tests/multires.py:131:        raise AssertionError(f"INFO STATS returned {raw!r}")
+tests/multires.py:143:        raise AssertionError("INFO STATS has no atomic_exec_order_holds counter")
+tests/multires.py:148:    """INFO atomic_exec_order_late -- install-time ordering violations. Must read zero: the park
+tests/multires.py:152:        raise AssertionError("INFO STATS has no atomic_exec_order_late counter")
+tests/multires.py:157:    reply = conn.command("CONFIG", "GET", "atomic")
+tests/multires.py:170:        shard = admin.command("DEBUG", "SHARD", key)
+tests/multires.py:173:                f"DEBUG SHARD refused ({shard}); boot with --enable-debug-command yes")
+tests/netcap.py:64:    require(admin.must("CONFIG", "GET", "client-lb") == [b"client-lb", b"0"],
+tests/netcap.py:66:    require(admin.must("CONFIG", "GET", "requirepass") == [b"requirepass", b""],
+tests/netcap.py:68:    owner = admin.must("DEBUG", "IO-THREAD")
+tests/netcap.py:72:        if candidate.must("DEBUG", "IO-THREAD") == owner:
+tests/netcap.py:83:        admin.must("CONFIG", "SET", "requirepass", password)
+tests/netcap.py:118:        require(admin.must("DEBUG", "IO-THREAD") == owner, "observer ownership changed")
+tests/netcap.py:126:        admin.must("CONFIG", "SET", "requirepass", "")
+tests/netcap.py:131:    original = admin.must("CONFIG", "GET", "client-query-buffer-limit")
+tests/netcap.py:133:    pending = _lib.Conn(host, port, timeout=3)  # Exists before CONFIG SET publication.
+tests/netcap.py:135:        admin.must("CONFIG", "SET", "client-query-buffer-limit", "1mb")
+tests/netcap.py:136:        require(admin.must("CONFIG", "GET", "client-query-buffer-limit") ==
+tests/netcap.py:141:        admin.must("CONFIG", "SET", "client-query-buffer-limit", "2mb")
+tests/netcap.py:145:        admin.must("CONFIG", "SET", "client-query-buffer-limit", "1mb")
+tests/netcap.py:155:        admin.must("CONFIG", "SET", "client-query-buffer-limit", original[1])
+tests/netcap_unit.cc:170:        auto get = [&] { return command(shard, {"CONFIG", "GET", "client-query-buffer-limit"}); };
+tests/netcap_unit.cc:171:        check(get() == "*2\r\n$25\r\nclient-query-buffer-limit\r\n$10\r\n1073741824\r\n", "CONFIG query limit default");
+tests/netcap_unit.cc:172:        check(command(shard, {"CONFIG", "SET", "client-query-buffer-limit", "2mb"}).empty(), "CONFIG query limit accepted");
+tests/netcap_unit.cc:174:        check(loop.client_query_buffer_limit_ == 2097152, "NET1: CONFIG SET reaches IO committed snapshot");
+tests/netcap_unit.cc:175:        check(get() == "*2\r\n$25\r\nclient-query-buffer-limit\r\n$7\r\n2097152\r\n", "CONFIG query limit normalized GET");
+tests/netcap_unit.cc:177:        const auto rejected = command(shard, {"CONFIG", "SET", "client-query-buffer-limit", "0"});
+tests/netcap_unit.cc:178:        check(rejected == "-ERR CONFIG SET failed (possibly related to argument 'client-query-buffer-limit') - argument must be between 1048576 and 9223372036854775807 inclusive\r\n",
+tests/netcap_unit.cc:179:              "CONFIG query limit exact range error");
+tests/netcap_unit.cc:180:        check(get() == before, "rejected CONFIG SET leaves published value intact");
+tests/netcap_unit.cc:181:        check(command(shard, {"CONFIG", "GET", "proto-max-inline"}) == "*0\r\n", "Redis has no proto-max-inline knob");
+tests/pubsub.py:119:    raw = conn.command("INFO", "STATS")
+tests/pubsub.py:121:        raise AssertionError(f"INFO STATS returned {raw!r}")
+tests/pubsub.py:290:    client_info = reset_conn.command("CLIENT", "INFO").decode()
+tests/pubsub.py:292:        raise AssertionError(f"CLIENT INFO shard count: {client_info!r}")
+tests/pubsub.py:439:    # There is no applicable deterministic DEBUG hook: SLEEP stops the connection before the
+tests/pubsub.py:502:            "pubsub: SKIP: parked-delivery check; no DEBUG hook can park pub/sub ack "
+tests/pubsub.py:522:    # The number of requests coalesced into one IO pass is scheduler-shaped, and no DEBUG hook
+tests/pubsub.py:596:            "pubsub: SKIP: fanout batching-ratio check; no DEBUG hook widens the pub/sub pass "
+tests/pubsub.py:668:    saved_limits = admin.command("CONFIG", "GET", "client-output-buffer-limit")[1]
+tests/pubsub.py:669:    expect(admin.command("CONFIG", "SET", "client-output-buffer-limit", "pubsub 1048576 0 0"),
+tests/pubsub.py:693:    expect(admin.command("CONFIG", "SET", "client-output-buffer-limit", saved_limits.decode()),
+tests/reorder_unit.cc:37:constexpr auto admin = spec("DEBUG", CommandLengthClass::Point, CmdFlags::Admin);
+tests/replyschema.py:569:        info = victim.command("CLIENT", "INFO")
+tests/replyschema.py:651:add("info", "INFO", "SERVER")
+tests/replyschema.py:1021:add("xinfo|consumers", "XINFO", "CONSUMERS", "{p}:x", "g", setup=PENDING)
+tests/replyschema.py:1022:add("xinfo|groups", "XINFO", "GROUPS", "{p}:x", setup=GROUP)
+tests/replyschema.py:1023:add("xinfo|help", "XINFO", "HELP")
+tests/replyschema.py:1024:add("xinfo|stream", "XINFO", "STREAM", "{p}:x", setup=STREAM, arm=0)
+tests/replyschema.py:1025:add("xinfo|stream", "XINFO", "STREAM", "{p}:x", "FULL", "COUNT", "10", setup=PENDING, arm=1)
+tests/replyschema.py:1075:add("client|info", "CLIENT", "INFO")
+tests/replyschema.py:1083:add("client|setinfo", "CLIENT", "SETINFO", "LIB-NAME", "replyschema")
+tests/replyschema.py:1086:add("client|trackinginfo", "CLIENT", "TRACKINGINFO")
+tests/replyschema.py:1092:# COMMAND and CONFIG metadata maps are especially useful RESP2-map projection probes.
+tests/replyschema.py:1098:add("command|info", "COMMAND", "INFO", "GET", "replyschema-no-such")
+tests/replyschema.py:1100:add("config|get", "CONFIG", "GET", "maxmemory")
+tests/replyschema.py:1101:add("config|help", "CONFIG", "HELP")
+tests/replyschema.py:1102:add("config|resetstat", "CONFIG", "RESETSTAT")
+tests/replyschema.py:1103:add("config|set", "CONFIG", "SET", "notify-keyspace-events", "")
+tests/replyschema.py:1140:    setup=(("CONFIG", "SET", "maxmemory-policy", "allkeys-lfu"), ("SET", "{p}:k", "v")))
+tests/replyschema.py:1143:    setup=(("CONFIG", "SET", "maxmemory-policy", "noeviction"), ("SET", "{p}:k", "v")))
+tests/replyschema.py:1151:add("script|debug", "SCRIPT", "DEBUG", "NO")
+tests/replyschema.py:1176:            reply = connection.command("COMMAND", "INFO", *names)
+tests/replyschema.py:1178:                raise AssertionError("COMMAND INFO inventory returned %s" % reply.shape())
+tests/replyschema.py:1219:        mismatches.append(("inventory", "COMMAND INFO <all Redis commands>",
+tests/resp3.py:148:    expect(client.command("CONFIG", "GET", "maxmemory").kind == b"%", "CONFIG GET map")
+tests/resp3.py:152:    info = client.command("CLIENT", "INFO")
+tests/resp3.py:153:    expect(info.kind == b"=" and info.value.startswith(b"txt:"), "CLIENT INFO verbatim", info)
+tests/resp3.py:157:    server_info = client.command("INFO", "SERVER")
+tests/resp3.py:159:           "INFO verbatim", server_info)
+tests/resp3.py:327:    publisher.command("CONFIG", "SET", "notify-keyspace-events", "KEA")
+tests/resp3.py:334:    publisher.command("CONFIG", "SET", "notify-keyspace-events", "")
+tests/rlcache_churn.py:35:block, proves nothing about either. Both are asserted from INFO deltas over this battery's own
+tests/session_monotonic.py:22:   DEBUG ATOMIC-READ-DELAY, which holds a plain read on its owner before it resolves.
+tests/session_monotonic.py:28:   DEBUG ATOMIC-COMMIT-DELAY, which holds the group between the draw and the store.
+tests/session_monotonic.py:32:- GEOMETRY. DEBUG SHARD identifies shards, not owners. Fresh keys are selected from two proven
+tests/session_monotonic.py:107:    raw = conn.command("INFO", "STATS")
+tests/session_monotonic.py:249:    mode = admin.command("CONFIG", "GET", "atomic")
+tests/session_monotonic.py:253:    local_mode = admin.command("CONFIG", "GET", "read-local")
+tests/session_monotonic.py:257:    probe = admin.command("DEBUG", "SHARD", PROBE)
+tests/session_monotonic.py:275:            print("geometry %s: DEBUG unavailable; owner span unproven" % label)
+tests/session_monotonic.py:283:        reply = admin.command("DEBUG", name, str(value))
+tests/session_monotonic.py:303:                notes.append("%s skipped: DEBUG window hooks unavailable" % label)
+tests/snap_cut_battery.py:22:    t = cmd("INFO")
+tests/snap_cut_battery.py:40:#   * DEBUG SHARD proves every group really spans >1 shard (the hash seed is drawn at boot, so a
+tests/snap_cut_battery.py:44:#   * INFO snapshot_cuts_waited must advance: a group drain that never actually blocks is
+tests/snap_cut_battery.py:109:    atomic = cmd("CONFIG", "GET", "atomic")
+tests/snap_cut_battery.py:120:    spans = [len({cmd("DEBUG", "SHARD", ag_key(g, sl)) for sl in range(AG_SLOTS)})
+tests/snap_typed_race.py:11:classified against INFO snapshot_cut_ticket.  This test puts every classified typed mutation in a
+tests/snap_typed_race.py:91:    payload = client.cmd("INFO", "PERSISTENCE")
+tests/snap_typed_race.py:93:        raise AssertionError("INFO PERSISTENCE returned %r" % (payload,))
+tests/snap_typed_race.py:98:    raise AssertionError("INFO PERSISTENCE has no %s" % field)
+tests/snap_typed_race.py:103:    reply = client.cmd("DEBUG", "SHARDS", *candidates)
+tests/snap_typed_race.py:106:            "DEBUG SHARDS unavailable; boot with --enable-debug-command yes: %r" % (reply,))
+tests/snap_typed_race.py:110:            raise AssertionError("DEBUG SHARDS malformed row for %s: %r" % (key, row))
+tests/snap_typed_race.py:191:    if client.cmd("CONFIG", "GET", "atomic") != [b"atomic", b"0"]:
+tests/snap_typed_race.py:193:    if client.cmd("CONFIG", "GET", "save") != [b"save", b""]:
+tests/sort.py:11:slot `sid % 2`; the test walks candidate names and asks DEBUG SHARD for every source/derived key. It
+tests/sort.py:17:resolved to nothing. The explicit DEBUG SHARD geometry plus INFO's sort_deref_lookups and
+tests/sort.py:102:    text = c.cmd("INFO", "stats")
+tests/sort.py:114:    for line in str(c.cmd("INFO", "LB")).split("\r\n"):
+tests/sort.py:119:        raise AssertionError("INFO LB did not report I/O and executor thread counts")
+tests/sort.py:124:    shard = c.cmd("DEBUG", "SHARD", key)
+tests/sort.py:126:        raise AssertionError("DEBUG SHARD is required, got %r for %s" % (shard, key))
+tests/sort.py:155:        "DEBUG SHARD found no cross-owner %s pattern after 4096 candidates; source shard=%d, "
+tests/sort.py:170:        "DEBUG SHARD found no cross-owner %s key after 4096 candidates; source shard=%d, "
+tests/sort.py:340:    print("-- DEBUG SHARD-proven cross-owner BY/GET/STORE --")
+tests/watchlive.py:35:- GEOMETRY.  Keys are chosen so the transaction and the wide write overlap, and (when DEBUG is
+tests/wbland_unit.cc:73:                "INFO contains only the selected static policy");
+tests/writer_atomic.py:8:The workload is portable RESP2.  TomoKV-only CONFIG/INFO checks are enabled only
+tests/writer_atomic.py:113:    reply = client.command("INFO", "STATS")
+tests/writer_atomic.py:766:            config = admin.command("CONFIG", "GET", "atomic")
+tests/writer_atomic.py:768:                raise AssertionError(f"CONFIG GET atomic returned {config!r}")
+tests/writer_atomic.py:775:                raise AssertionError("TomoKV INFO STATS lacks atomic_groups")
+tests/writer_atomic.py:872:                errors.append("TomoKV INFO STATS disappeared")
+tests/xacct.py:5:DEBUG RELOAD is the cold full-recomputation oracle for stream-group accounting.
+tests/xacct.py:185:# every group-accounting mutation family, including both reassignment sites. DEBUG RELOAD rebuilds
+tests/xacct.py:188:debug_mode = admin.cmd("CONFIG", "GET", "enable-debug-command")
+tests/xacct.py:189:note("DEBUG recomputation oracle is armed",
+tests/xacct.py:221:reload_reply = admin.cmd("DEBUG", "RELOAD")
+tests/xscript.py:86:        owner = client.cmd("DEBUG", "SHARD", key)
+tests/xscript.py:88:            raise AssertionError("DEBUG SHARD is required, got %r" % (owner,))
+tests/xscript.py:100:        owner = client.cmd("DEBUG", "SHARD", key)
+tests/xscript.py:102:            raise AssertionError("DEBUG SHARD is required, got %r" % (owner,))
+tests/xscript.py:114:    raw = client.cmd("INFO", "STATS")
+tests/xscript.py:116:        raise AssertionError("INFO STATS returned %r" % (raw,))
+tests/xscript.py:208:        armed = admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "400000") == b"OK"
+tests/xscript.py:224:        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+tests/xscript.py:255:        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+tests/xscript.py:308:        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "400000")
+tests/xscript.py:317:        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+tests/xscript.py:338:        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+tests/xscript.py:349:    info = dict(line.split(":", 1) for line in admin.cmd("INFO", "SERVER").decode().splitlines()
+tests/xscript.py:353:        raise AssertionError("INFO server omitted the serving thread count")
+tests/xscript.py:378:            admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "500000")
+tests/xscript.py:382:            admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+tests/xscript.py:410:        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+tests/xscript.py:474:                 "owners=%r" % [admin.cmd("DEBUG", "SHARD", key) for key in keys])
+tests/xscript.py:605:        if admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "1000000") != b"OK":
+tests/xscript.py:624:        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+tests/xscript.py:640:        admin.cmd("DEBUG", "SCRIPT-STAGE-DEFER", "0")
+tests/xscript.py:732:        client.cmd("CONFIG", "SET", "maxmemory", "0")
+tests/xscript.py:733:        client.cmd("CONFIG", "SET", "maxmemory-policy", "noeviction")
+tests/xscript.py:751:        client.cmd("CONFIG", "SET", "maxmemory", "1048576")
+tests/xscript.py:755:        target_owner = client.cmd("DEBUG", "SHARD", keys[0])
+tests/xscript.py:758:            if client.cmd("DEBUG", "SHARD", filler_key) != target_owner:
+tests/xscript.py:787:        client.cmd("CONFIG", "SET", "maxmemory", "0")
+tests/xscript.py:800:        if client.cmd("CONFIG", "GET", "maxmemory") != [b"maxmemory", b"0"]:

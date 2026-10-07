@@ -1,0 +1,9 @@
+{
+  "kind": "A: behaviour twin",
+  "behavior": "PRE monitoring census routes; POST text sizes, symbol addresses and counter-maintenance code",
+  "changed_bytes": 2,
+  "source": "build/storesize5/POST/tomokv",
+  "output": "build/storesize5/PAD-A/tomokv",
+  "source_sha256": "472b2806b880931f11dbbe738d3c81a82bd81e6b0afbefb87c8a8c7e44819599",
+  "sha256": "4639f5566c3d4c5790e78f3f44268117eae7ae8d13974489cbd9d58ff81f4aac"
+}

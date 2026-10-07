@@ -1,0 +1,28 @@
+{
+  "armed-1,armed-2,split": {
+    "commit": "4b825cf5a405645b82a1f7f794d8c5bfb3321f91",
+    "files": {
+      "tests/differ_gate.sh": "de24c8bd2cd8d56fe63647fda42e7081974dc93954dbd7dc7129f57795cc9af7",
+      "tests/differ.py": "9da75ac8bc40d991c4a6fcc48673d11c31d51e222fd0bd42bca92e45a10abe6d",
+      "tests/_differ_ccfix.py": "41ea94fcf9fd51a68e5d6300305bd09893ec4c947c84de02edca8a2afe07624b",
+      "tests/differ_fanout.py": "d06b6f9b7018a115a22176a6c9484c9bfa71822e9bd6ef40bddc3d793e3fce0a",
+      "tests/cd13b_wire.py": "139e9aa394d4d249d6ce8ab13278b74a87665abe1c4e4450ea2bf8e322acaad8",
+      "tests/_lib.py": "8d9abeec8b229816a08fb9de07eb3801f38361bd44207aa6518d6ce5d21b3195",
+      "tests/mode_equivalence.py": "3d0cd69d1882ad32567ba9067d5f43ffe584810e4849af78c0a56a65534cb192",
+      "src/cmd/t_server.cc": "8dc3cfceedeec17b9190fb1522af5545f69cf87a2bc9fd391e55b6d99b5ce9c4"
+    }
+  },
+  "armed-3": {
+    "commit": "7bcfdfe9bf71d607c922a536f360ed32fde3b421",
+    "files": {
+      "tests/differ_gate.sh": "de24c8bd2cd8d56fe63647fda42e7081974dc93954dbd7dc7129f57795cc9af7",
+      "tests/differ.py": "9da75ac8bc40d991c4a6fcc48673d11c31d51e222fd0bd42bca92e45a10abe6d",
+      "tests/_differ_ccfix.py": "41ea94fcf9fd51a68e5d6300305bd09893ec4c947c84de02edca8a2afe07624b",
+      "tests/differ_fanout.py": "d06b6f9b7018a115a22176a6c9484c9bfa71822e9bd6ef40bddc3d793e3fce0a",
+      "tests/cd13b_wire.py": "be6028987a0435c7d56ab115d833a0ce44029c847b1d73be22af70663b92eb69",
+      "tests/_lib.py": "8d9abeec8b229816a08fb9de07eb3801f38361bd44207aa6518d6ce5d21b3195",
+      "tests/mode_equivalence.py": "3d0cd69d1882ad32567ba9067d5f43ffe584810e4849af78c0a56a65534cb192",
+      "src/cmd/t_server.cc": "8dc3cfceedeec17b9190fb1522af5545f69cf87a2bc9fd391e55b6d99b5ce9c4"
+    }
+  }
+}

@@ -3,6 +3,7 @@
 
 import socket
 import sys
+from cmdmeta_coverage import registered_commands
 
 
 HOST = sys.argv[1]
@@ -10,7 +11,7 @@ PORT = int(sys.argv[2])
 checks = 0
 failures = []
 
-PIPE_NAMES = set("""
+REDIS_PIPE_NAMES = set("""
 acl|cat acl|deluser acl|dryrun acl|genpass acl|getuser acl|help acl|list acl|load acl|log
 acl|save acl|setuser acl|users acl|whoami client|caching client|getname client|getredir
 client|help client|id client|info client|kill client|list client|no-evict client|no-touch
@@ -33,6 +34,10 @@ script|exists script|flush script|help script|kill script|load slowlog|get slowl
 slowlog|len slowlog|reset xgroup|create xgroup|createconsumer xgroup|delconsumer
 xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help xinfo|stream
 """.split())
+ABSENT_PIPES = {name for name in REDIS_PIPE_NAMES if name.startswith(("cluster|", "module|"))}
+PIPE_NAMES = REDIS_PIPE_NAMES - ABSENT_PIPES
+REGISTRY = {name.lower() for name in registered_commands()}
+assert len(ABSENT_PIPES) == 33 and len(PIPE_NAMES) == 96
 
 
 def frame(*arguments):
@@ -110,6 +115,21 @@ def flagged(connection, argv, expected):
            [[key.encode(), [flag.encode() for flag in flags]] for key, flags in expected])
 
 
+def absent_families(connection, protocol):
+    for pattern in ("cluster*", "module*", "CLUSTER*", "MODULE*"):
+        expect(protocol + " absent family PATTERN " + pattern,
+               connection.cmd("COMMAND", "LIST", "FILTERBY", "PATTERN", pattern), [])
+    for name in sorted(ABSENT_PIPES | {"cluster", "module"}):
+        expect(protocol + " absent INFO " + name,
+               connection.cmd("COMMAND", "INFO", name), [None])
+        expect(protocol + " absent DOCS " + name,
+               connection.cmd("COMMAND", "DOCS", name), [])
+    for category in connection.cmd("ACL", "CAT"):
+        names = connection.cmd("ACL", "CAT", category)
+        expect(protocol + " no orphan ACL names " + category.decode(), names,
+               lambda value: not any(name.startswith((b"cluster|", b"module|")) for name in value))
+
+
 def run():
     connection = Connection()
     listing = connection.cmd("COMMAND", "LIST")
@@ -117,11 +137,14 @@ def run():
     pipes = {name for name in names if "|" in name}
     top = names - pipes
     count = connection.cmd("COMMAND", "COUNT")
-    expect("all 129 pipe-qualified names", pipes, PIPE_NAMES)
-    expect("pipe-qualified count fired", len(pipes), 129)
-    expect("COUNT remains top-level count", count, len(top))
-    expect("LIST contains top plus subcommands", len(names), count + 129)
+    expect("all 96 implemented pipe-qualified names", pipes, PIPE_NAMES)
+    expect("pipe-qualified count fired", len(pipes), 96)
+    expect("top-level LIST matches registry", top, REGISTRY)
+    expect("COUNT remains registry count", count, len(REGISTRY))
+    expect("LIST contains top plus subcommands", len(names), count + 96)
+    expect("LIST has no duplicates", len(listing), len(names))
     expect("all metadata names lowercase", names, lambda value: all(x == x.lower() for x in value))
+    absent_families(connection, "RESP2")
 
     config_get = connection.cmd("COMMAND", "INFO", "config|get")
     expect("config|get exact rich row", config_get, [[
@@ -208,6 +231,7 @@ def run():
     connection.close()
 
     resp3 = Connection(resp3=True)
+    absent_families(resp3, "RESP3")
     resp3_object = resp3.cmd("COMMAND", "INFO", "object|encoding")
     resp3_row = (resp3_object[0] if isinstance(resp3_object, list) and resp3_object and
                  isinstance(resp3_object[0], list) else [])

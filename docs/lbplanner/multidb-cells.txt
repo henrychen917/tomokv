@@ -1,0 +1,11 @@
+# Optional fields follow the existing 15 fields. keys=0/default is 2M TOTAL keys.
+# N=8 CPU groups become 16 fixed-DB memtier processes; logical connection i SELECTs i % 16.
+# The d32*_l1 cells deliberately use 2s, as requested for this multi-DB study.
+h05m | 1s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16
+h06m | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16
+p8gm | 1s | rl=0 | ov=1 | ro=0 | GET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16
+p8sm | 1s | rl=0 | ov=1 | ro=0 | SET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16
+d32gm_l1 | 2s | rl=1 | ov=1 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16
+d32sm_l1 | 2s | rl=1 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16
+x9m_32_l0 | 1s | rl=0 | ov=1 | ro=0 | MIX | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=9:1 | smoke=0 | srv=--databases 16 | dbs=16
+m8gm_l0 | 1s | rl=0 | ov=1 | ro=0 | MGET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16

@@ -1,0 +1,12 @@
+src/cmd/xshard_commands.inc:1906:            DatabaseStatsTable stats{};
+src/cmd/xshard_commands.inc:1912:                    stats[db].subexpiry += row.subexpiry;
+src/cmd/multi_admin.cc:3:#include "t_hash_ttl.h"
+src/cmd/multi_admin.cc:7:void multi_database_stats(Shard& shard, DatabaseStatsTable& stats,
+src/cmd/multi_admin.cc:19:            row.subexpiry += slot && *slot && !(*slot)->empty();
+src/cmd/multidb.cc:13:#include "t_hash_ttl.h"
+src/cmd/multidb.cc:733:void multidb_stats(Shard& shard, DatabaseStatsTable& stats) {
+src/cmd/multidb.cc:739:                row.subexpiry += slot && *slot && !(*slot)->empty();
+src/cmd/multidb.h:215:struct DatabaseStats { uint64_t keys = 0, expires = 0, ttl = 0, subexpiry = 0; };
+src/cmd/multidb.h:216:using DatabaseStatsTable = std::array<DatabaseStats, 256>;
+src/cmd/multidb.h:217:void multidb_stats(Shard& shard, DatabaseStatsTable& stats);
+src/cmd/multidb.h:218:void command_info_with_databases(Server& server, Op& op, const DatabaseStatsTable& stats);

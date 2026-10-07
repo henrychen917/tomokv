@@ -1,0 +1,13 @@
+$ taskset -c 112-127 ./build/atomic-survivors-unit plain_0
+  PASS AT2 six blocking pop kinds, atomic=0
+  PASS AT1 SMOVE
+  PASS AT1 LMOVE
+  PASS AT1 RPOPLPUSH
+  PASS AT1 LMPOP
+  PASS AT1 ZMPOP
+  PASS AT1 MSET
+  PASS AT1 DEL
+  PASS AT1 UNLINK
+PASS plain_0
+
+exit=0

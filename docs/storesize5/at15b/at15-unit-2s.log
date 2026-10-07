@@ -1,0 +1,7 @@
+$ taskset -c 112-127 ./build/at15-unit 2s
+PASS at15 db=namespaced mode=2s atomic=0 resp=2 case=all
+PASS at15 db=namespaced mode=2s atomic=0 resp=3 case=all
+PASS at15 db=namespaced mode=2s atomic=1 resp=2 case=all
+PASS at15 db=namespaced mode=2s atomic=1 resp=3 case=all
+
+exit=0

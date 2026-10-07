@@ -1,0 +1,19 @@
+test_banner_without_owned_listener_is_not_ready (__main__.self_test.<locals>.IdentityTests.test_banner_without_owned_listener_is_not_ready) ... ok
+test_both_boots_guard_and_record_distinct_identities (__main__.self_test.<locals>.IdentityTests.test_both_boots_guard_and_record_distinct_identities) ... ok
+test_empty_and_wrong_logs_never_probe (__main__.self_test.<locals>.IdentityTests.test_empty_and_wrong_logs_never_probe) ... ok
+test_exercise_wraps_boot_get_and_report_failures (__main__.self_test.<locals>.IdentityTests.test_exercise_wraps_boot_get_and_report_failures) ... ok
+test_foreign_arrival_after_handshake_is_fatal (__main__.self_test.<locals>.IdentityTests.test_foreign_arrival_after_handshake_is_fatal) ... ok
+test_foreign_info_is_fatal_without_ping_or_retry (__main__.self_test.<locals>.IdentityTests.test_foreign_info_is_fatal_without_ping_or_retry) ... ok
+test_foreign_listener_fails_before_connection (__main__.self_test.<locals>.IdentityTests.test_foreign_listener_fails_before_connection) ... ok
+test_half_open_and_reset_probes_never_count_as_ready (__main__.self_test.<locals>.IdentityTests.test_half_open_and_reset_probes_never_count_as_ready) ... ok
+test_live_assertion_and_reaped_report_failures_keep_original_reason (__main__.self_test.<locals>.IdentityTests.test_live_assertion_and_reaped_report_failures_keep_original_reason) ... ok
+test_missing_identity_and_bad_ping_fail (__main__.self_test.<locals>.IdentityTests.test_missing_identity_and_bad_ping_fail) ... ok
+test_own_banner_and_info_ping_keep_the_same_connection (__main__.self_test.<locals>.IdentityTests.test_own_banner_and_info_ping_keep_the_same_connection) ... ok
+test_preflight_foreign_owner_never_spawns_at_either_boot (__main__.self_test.<locals>.IdentityTests.test_preflight_foreign_owner_never_spawns_at_either_boot) ... ok
+test_real_socket_owner_reports_pid_cmdline_and_refuses_boot (__main__.self_test.<locals>.IdentityTests.test_real_socket_owner_reports_pid_cmdline_and_refuses_boot) ... ok
+test_reload_crashes_show_status_and_tail_even_when_exit_is_delayed (__main__.self_test.<locals>.IdentityTests.test_reload_crashes_show_status_and_tail_even_when_exit_is_delayed) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.130s
+
+OK

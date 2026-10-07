@@ -1,0 +1,15 @@
+{
+  "source_unchanged_since_merge": true,
+  "gate_and_fixtures_equal_base": true,
+  "db0_main_overrides": 1,
+  "db0_server_overrides": 1,
+  "release_hashes_verified": true,
+  "makefile_hash_verified": true,
+  "budget_trials": 502,
+  "wire_legs_passed": 8,
+  "gate_rows_passed": 13,
+  "gate_failures": 0,
+  "instruction_complete_runs": 11,
+  "instruction_equal_runs": 0,
+  "status": "WIP: strict instruction equality outstanding; main hot-body null decision pending"
+}

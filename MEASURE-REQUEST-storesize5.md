@@ -1,0 +1,242 @@
+# storesize5 — landed at15 composition and DBSIZE differential contract
+
+**Complete:** landed at15 merged; both final differential folds are
+**complete=true, verdict=PASS**; directed proofs and selected gate rows pass.
+Two original PTTL failures are preserved below; the unchanged full atomic-one
+replays pass. No full-gate or performance receipt is claimed.
+Worktree `/home/user/Projects/cx-storesize`, branch `cx-storesize`.
+Started from `c55d4a370`, merged `origin/cpp` = `9d957b9fb` (landed at15)
+in `600063010`. The two-mode differential repair is `647f277c7`.
+No push. All builds and verification use CPUs 112–127.
+
+## Merge and production behavior
+
+| File | Resolution |
+| --- | --- |
+| `Makefile` | Keep `storesize.cc` and `multi_admin.cc`, both sets of unit recipes, and storesize4's storage-regression link input. |
+| `src/cmd/t_server.cc` | Keep one census formatter and the published db0/multidb formatters; all emit one `subexpiry` member. Ordinary INFO with keyspace uses published counters unless the published field-TTL attention flag requests an exact census. |
+| `src/cmd/multidb.cc` | Keep at15's single `slot && *slot && !(*slot)->empty()` increment using `hash_ttl_slot()`. No duplicate count. |
+| `tests/gate.sh` | Keep both unit lists and rows; preserve origin/cpp's EXPECT assignments verbatim. |
+| `tests/fixtures/nullrefresh-ledger-labels.json` | Resolve to origin/cpp verbatim; no fixture regeneration. Maintainer must carry forward the existing storesize label. |
+| `MEASURE-REQUEST` | Retain both lane notes. |
+
+Keeping the INFO formatters alone is insufficient: MULTI classification and
+scatter preparation both call the ordinary route selector. The selector now
+accepts an explicit execution-boundary context, passed by MULTI classification
+and forced-atomic child preparation. INFO containing keyspace at EXEC always
+uses at15's exact transaction-visible census, including its private SWAPDB map.
+Its ordinary and transaction censuses both read `hash_ttl_slot()` and count
+hash keys with at least one TTL, not fields. at15's `multi_admin.cc` and its
+admission/owner-reference initialization are unchanged from origin/cpp.
+`merge-source-audit.json` records that the sole `multi.inc` difference is the
+route-selector argument; all admission/initialization code is byte-identical
+source. Locked layouts remain enforced by the normal build assertions.
+
+Plain DBSIZE remains published; DBSIZE NOW remains exact. Field-TTL attention
+is only a routing hint, never the `subexpiry` count. Ordinary INFO with possible
+field TTLs retains the documented O(resident keys) exception. The owner batch
+publishes its shard counts in `src/core/ex_loop.h:2289` in this merged tree.
+No per-operation publication, reader retry, seqlock, or ownership change.
+
+## Differential contract and falsification
+
+`gen_edgetime` already excludes DBSIZE and INFO because they are batch-published
+(`tests/differ.py:1192`, formerly the cited line 1056). `gen_multidb` now emits
+DBSIZE NOW at every former plain-DBSIZE position, including its final per-DB
+checks. The target receives NOW; the oracle receives plain DBSIZE in the same
+pipeline position. Both replies must be nonnegative RESP integers and equal
+exactly, with no TTL tolerance. Every remaining generated operation and every
+512-command chunk boundary is preserved; the generator audit covers all six
+seeds. This merged generator uses 512-command chunks, not 64.
+
+| Seed | Exact positions |
+| --- | ---: |
+| 7 | 290 |
+| 19 | 290 |
+| 20 | 291 |
+| 23 | 321 |
+| 21 | 287 |
+| 22 | 321 |
+
+Total: 1,800 per geometry/atomic matrix, 7,200 for all four parts.
+After the original terminal cleanup, one SET leaves a known nonzero witness.
+After the final stream reply, NOW and Redis DBSIZE must both report exactly 1.
+Plain target DBSIZE is then polled every 1 ms, with a 100 ms monotonic deadline
+and socket timeout bounded by the remaining time. Its observed count must
+converge to NOW; a publisher stuck at zero cannot pass on an empty final DB.
+The log records checked positions, poll count, elapsed milliseconds and counts.
+
+The generator search found no other plain DBSIZE or ordinary INFO-keyspace
+byte comparisons. `multi` and `multidb` INFO-in-EXEC remain byte-exact; infofix
+telemetry is already property-checked. The existing differential self-test now
+rejects a wrong exact count independently of stalled publication, plus equal
+noninteger count replies. Nine serverless controls pass without any comparison
+relaxation. No gate row was added by this round.
+
+The separate `tests/mode_equivalence.py:96` also has one plain DBSIZE, compared
+between TomoKV modes rather than against Redis. It remains unchanged: the
+prelude seeds all 97 keys (64 strings, one bitmap, and eight keys in each of four
+collection families), and none of the following 800 rounds changes key
+cardinality. Sets retain their `initial` member; list trims retain elements;
+there is no DEL/expiry/FLUSH in that stream. Its final count is therefore stable
+across the many preceding completed batches, unlike multidb's SET/FLUSHDB/map
+transitions. INFO telemetry is already excluded there. The unchanged 32-cell
+live equivalence proof is included in the split fold.
+
+## Directed and gate evidence
+
+- `storesize_checks.py check-all`: PASS, including both images, modes and
+  read-local settings, bounded walk witnesses and rejected census-route control.
+- `multidb-unit`: PASS.
+- The landed `docs/at15b/prove.py`: all 40 invocations PASS, including required
+  nonzero negative-control exits. Only its log destination was redirected by
+  `docs/storesize5/prove.py`; the proof source is unchanged.
+- `GATE_ONLY_JOBS=storage_units`: **12 ok / 0 FAIL**, run `gate-run.6nsG9p`,
+  CPUs 112–127, server 112–119, load 120–127, no SMT, ports 18340–18342.
+  The partial ledger and exact plan are in `docs/storesize5`.
+- `GATE_ONLY_JOBS=atomic_units`: **25 ok / 0 FAIL**, run `gate-run.GanB5F`,
+  same CPU/port geometry, including published monitoring, MULTI admin and all
+  survivor rows. POST remains byte-identical after both selected gate jobs.
+- Split/atomic=0: **252/252 suite legs PASS**, complete=true.
+- Armed-fused/atomic=0: **246/246 suite legs PASS**, complete=true; read-local
+  witness fired with 963 hits / 257 fallbacks. Both completed through the
+  unchanged AT15b replay wrapper. The full split/atomic=1 replay passed 256/256 legs, including all four
+  historical seed-19 MULTI repeats. The split fold is **complete=true,
+  verdict=PASS**, 540 comparisons (508 differential legs + 32 equivalence cells).
+  Armed/atomic=1 replay passed 250/250 legs, including all four MULTI repeats;
+  its read-local witness fired. The armed fold is **complete=true, verdict=PASS**,
+  496 differential comparisons.
+
+The first split/atomic=1 lifetime completed **255/256 suite legs PASS**.
+Its sole failure was `wiredump` seed 22: one mismatch first reported at
+operation 805, action 4, which compares `PTTL wd:restore` (`differ.py:4713–4718`).
+The existing logger does not retain the unequal values for this arm and repeats
+its diagnostic for later operations once the cumulative diff count is nonzero;
+the final diff count is one. No compiler was active on the fenced CPUs in the
+post-failure process snapshot. No cause or candidate-specific regression is
+claimed from this sample. The failed log and invocation are retained under
+`docs/storesize5/failed-first-split-1`. All six MULTI and multidb seeds and the
+four historical MULTI repeats passed in that lifetime. A complete fresh
+split/atomic=1 replay with unchanged source, binary, seeds, and tolerances
+passed all 256 legs; no individual leg is replaced inside a completed failed lifetime.
+
+The first armed/atomic=1 attempt subsequently failed `edgetime` seed 20 at
+operation 445: PTTL target `2591999962`, Redis `2591999969` (−7 ms). Its 159
+completed legs contain 158 passes and this one failure. To preserve the
+75-minute budget for full replacement lifetimes, this already-failed attempt
+was explicitly stopped after seed 23's wiredump leg; it is **incomplete**, not a
+completed matrix. The exact owned harness received SIGTERM, its listener
+cleanup completed, and the 32-cell mode-equivalence run then passed. The
+cancellation record, raw PTTL reply log, both failed/partial attempts' full
+journals and coverage artifacts are preserved in `docs/storesize5` and
+`failed-first-attempt.tar.gz`. These failures are not erased by later success.
+
+Fresh full atomic-one lifetimes run serially with the unchanged candidate
+and comparator. Both full replays passed, including the originally failing
+PTTL legs. No tolerance was widened and no failed log was replaced in place. The first failed split attempt still passed all
+1,800 DBSIZE exact positions and six convergence checks; the partial armed
+attempt passed 1,192 positions and four convergence checks. The selected
+four-part matrix requires its own 7,200 positions and 24 convergence checks.
+Across every attempt, including the preserved originals, 10,192 exact-count
+positions and 34 convergence checks completed. The final selected folds contain
+7,200 positions and 24 convergence checks, all passing. Every final convergence
+check succeeded on its first poll; maximum measured wait **0.035 ms** against
+the unchanged 100 ms bound. All 48 final MULTI/multidb suite legs (both geometries,
+both atomic modes, six seeds) have zero differences and zero clock tolerances.
+
+| Final part | Complete | Compared legs/cells | Result |
+| --- | --- | ---: | --- |
+| split-0 | true | 252 | PASS |
+| split-1, full replay | true | 256 | PASS |
+| armed-0 | true | 246 | PASS |
+| armed-1, full replay | true | 250 | PASS |
+| mode equivalence, seed 22 | true | 32 | PASS |
+| **split fold** | **true** | **540** | **PASS** |
+| **armed fold** | **true** | **496** | **PASS** |
+
+The 32 equivalence cells each compare 6,208 exact replies and require their
+mechanism witnesses. Armed-fused omits SORT exactly as the existing gate does:
+that suite requires split 6:2, where all six seeds run in both atomic modes.
+`docs/storesize5/summarize.py` rechecks the unchanged strict fold, all directed
+leg summaries and every publication property before writing
+[differ-results.json](docs/storesize5/differ-results.json). The complete final
+logs, command coverage, raw equivalence baseline, completion records and actual
+invocations are retained in `differ-receipts.tar.gz`, with a SHA-256 manifest.
+The initial failed/partial attempts have a separate archive and manifest.
+
+All live work is finished and the owned ports 17899/17900 are free. The final
+hash check confirms PRE, POST and PAD-A, plus byte identity of `build/tomokv`
+and POST. CPU affinity snapshots confirm target 112–119, Redis 120, clients
+121–127 in both geometries. Builds, audits and the 37 selected gate rows are
+separate evidence; these serial lane folds do not claim a timed full gate.
+
+## Rebuilt artifacts and hot-body audit
+
+PRE was compiled from a fresh archive of `origin/cpp` (`9d957b9fb`) inside this
+worktree. POST was rebuilt from the merged tree with GCC 13.3.0. Both independent
+database images are linked. The builds include normal footprint assertions.
+`build/tomokv` and POST compare byte-for-byte equal.
+
+| Arm | Path | SHA-256 |
+| --- | --- | --- |
+| PRE | `build/storesize5/PRE/tomokv` | `586154b65259dfbd9a57ea01883cba4f6444f155c3feaef8e48306a5d1219731` |
+| POST | `build/storesize5/POST/tomokv` | `472b2806b880931f11dbbe738d3c81a82bd81e6b0afbefb87c8a8c7e44819599` |
+| PAD-A | `build/storesize5/PAD-A/tomokv` | `4639f5566c3d4c5790e78f3f44268117eae7ae8d13974489cbd9d58ff81f4aac` |
+
+ELF `.text`: PRE 7,797,900 bytes; POST and PAD-A 7,807,180 bytes (+9,280).
+The unchanged storesize3 builder changes exactly two return-immediate bytes,
+one per image. POST/PAD-A section headers, symbol tables and addresses are
+identical. Build logs, `SHA256SUMS`, section inventory and PAD receipt are in
+`docs/storesize5`.
+
+| Image / audit | Raw equal | Resolved equal |
+| --- | ---: | ---: |
+| db0 hot | 703/744 | 720/744 |
+| db0 handlers/publication | 596/622 | 611/622 |
+| multi hot | 603/744 | 616/744 |
+| multi handlers/publication | 403/623 | 520/623 |
+
+The unchanged hot comparator exits 1 for each image. This is not a byte-identity
+pass. Per the lane instruction, residual compiler/inlining differences are
+listed, not pursued. The union contains **67 db0 and 360 multi changed emitted
+copies**. Full names, sizes, raw and resolved verdicts are in
+[db0 changed bodies](docs/storesize5/db0-changed-bodies.md) and
+[multi changed bodies](docs/storesize5/multi-changed-bodies.md); the two
+`*-literal-differences.json.gz` receipts retain actual bytes, body hashes and
+resolved-target differences. The route selector's old one-argument symbol is
+replaced by its explicit execution-boundary signature. Ordinary counts and
+publisher/accounting changes are not relabelled as INFO-only changes.
+
+The replay runner invokes the unchanged `docs/at15b/replay.sh` for atomic-zero
+parts and `tests/differ_gate.sh` for atomic-one/equivalence parts. All use target
+112–119, Redis oracle 120 and clients 121–127, 16 shards, split ratio 6:2 or
+fused/read-local=1. It folds actual subprocess completion and every comparison
+artifact with the gate's unchanged strict `fold()` function. These serial lane
+receipts do not apply the parallel full gate's elapsed-time budget.
+
+## Counts and measurement handoff
+
+The existing `storesize published monitoring` row is at `tests/gate.sh:1587`,
+collected with `atomic_units` at line 3223, before the quick-tier exit at line
+3355 (exit 3359). This round adds zero rows; the lane's existing contribution is +1 quick /
++1 full relative to origin/cpp. Origin EXPECT remains 499/516; the combined tree
+requires maintainer-owned 500/517 and the existing storesize fixture label.
+
+PAD-A is kind A, a behavior twin: PRE monitoring routes at POST text size and
+symbol layout, built by the unchanged storesize3 builder. It keeps POST's
+producer accounting and field-TTL attention; it isolates monitoring routing,
+not the full feature's producer cost. No inverse-control arm is requested.
+
+No performance measurements are run by this lane. The previously accepted
+storesize measurements remain the owner-supplied acceptance context. If the
+new merged hashes need another quiet-box check, use PRE/POST/PAD-A and a
+same-binary null with the exact 14 cells in `tests/wbland_merit_cells.txt`:
+h05,h06,p8g,p8s,d1g_l0,d1s_l0,m8g_l0,v1g_l0,d128g_l0,d32g_l1,d8s_l1,d32s_l1,
+x9_32_l1,x9_32_l0. Keep the instrument's matched offered loads and geometry;
+rate/tails and cycles/op decide, with instructions/op and IPC explaining them.
+No regression outside the contemporaneous null is acceptable. For monitoring
+interference, use storesize3's 40M-key, 1 Hz INFO shape, including its separate
+field-TTL census case. Append measurements to MEASURE-RESULT.
+
+The session's higher-priority search instruction requires rg; the grep-only
+request could not be followed and was disclosed before searching.

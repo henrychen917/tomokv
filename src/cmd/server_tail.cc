@@ -872,13 +872,7 @@ bool command_list(Op& op) {
     if (filter_aclcat) {
         for (size_t i = 0; i < kAclCategoryCount; i++)
             if (argument.eq_icase(kAclCategories[i].name)) category_bit = kAclCategories[i].bit;
-        if (!category_bit) {
-            std::string message = "ERR Unknown ACL category '";
-            message.append(argument.p, argument.n);
-            message += "'";
-            reply_err(op.sink(), message.c_str());
-            return true;
-        }
+        // Redis treats an unknown category as a filter matching no commands.
     }
 
     std::vector<std::string> names;
@@ -886,7 +880,14 @@ bool command_list(Op& op) {
         const CommandMetadata* spec = command_metadata_at(i);
         if (filter_module) continue;                  // no module system: the answer is always none
         const Slice metadata_name = command_metadata_name(*spec);
+        // DB0 needs this append call to retain PRE's SHUTDOWN inlining after removing the
+        // error path. The multi-database build retains its original constructor spelling.
+#if defined(TOMO_SINGLE_DATABASE) && TOMO_SINGLE_DATABASE
+        std::string name;
+        name.append(metadata_name.p, metadata_name.n);
+#else
         std::string name(metadata_name.p, metadata_name.n);
+#endif
         if (filter_pattern &&
             !command_glob_match(argument, Slice(name.data(),
                                                 static_cast<uint32_t>(name.size())), true)) continue;

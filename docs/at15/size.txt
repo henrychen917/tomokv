@@ -1,0 +1,4 @@
+   text	   data	    bss	    dec	    hex	filename
+8798261	  89704	1146456	10034421	 991cf5	build/at15-pre/tomokv
+8811157	  89720	1146456	10047333	 994f65	build/at15-post
+8804981	  89704	1146456	10041141	 993735	build/at15-pad-a

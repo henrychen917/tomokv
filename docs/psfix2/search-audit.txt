@@ -1,0 +1,79 @@
+Command (tests): grep -rInI -iE --exclude-dir=__pycache__ 'aof[-_]load[-_]truncated|aof_rewrite_completions|aof_rewrite_consecutive_failures' tests
+tests/config_parser_test.cc:251:    if (tomo::parse_config_args({"--unixsocketperm", "0600", "--aof-load-truncated", "No",
+tests/config_parser_test.cc:254:        redisgap.unixsocketperm != 0600 || redisgap.aof_load_truncated ||
+tests/config_parser_test.cc:256:        tomo::parse_config_args({"--unixsocketperm", "0", "--aof-load-truncated", "YES",
+tests/config_parser_test.cc:259:        redisgap.unixsocketperm != 0 || !redisgap.aof_load_truncated ||
+tests/config_parser_test.cc:265:             {"--aof-load-truncated", "1"}, {"--aof-load-truncated", "true"},
+tests/config_parser_test.cc:266:             {"--aof-load-truncated", ""}, {"--hll-sparse-max-bytes", "-1"},
+tests/config_parser_test.cc:269:    for (const char* flag : {"--unixsocketperm", "--aof-load-truncated", "--hll-sparse-max-bytes"})
+tests/redisgap.py:154:        assert get(c, 'aof-load-truncated') == 'yes'
+tests/redisgap.py:159:            assert c.command('CONFIG', 'SET', 'aof-load-truncated', policy) == 'OK'
+tests/redisgap.py:160:            assert get(c, 'aof-load-truncated') == policy
+tests/redisgap.py:251:                               ('aof-load-truncated', '1', 'wants yes or no')]:
+tests/redisgap.py:284:        h.reject(mode, ['--appendonly', 'yes', '--aof-load-truncated', 'no'],
+tests/redisgap.py:287:        with h.server(mode, ['--appendonly', 'yes', '--aof-load-truncated', 'yes'],
+tests/aof.py:610:    for name in ("dir", "appenddirname", "appendfilename", "aof-load-truncated"):
+tests/aof.py:627:        expect(("CONFIG", "SET", "aof-load-truncated", "no"), b"+OK\r\n")
+tests/aof.py:637:        expect(("CONFIG", "SET", "aof-load-truncated", "yes"), b"+OK\r\n")
+tests/aof.py:643:        expect(("CONFIG", "SET", "aof-load-truncated", config["aof-load-truncated"]), b"+OK\r\n")
+tests/netcmd_unit.cc:392:                                 "--unixsocketperm", "0600", "--aof-load-truncated", "no",
+tests/psfix.py:70:                assert 'aof_rewrite_completions' in fields and 'aof_rewrite_consecutive_failures' in fields
+tests/psfix.py:83:                print('PSFIX PRE CONTROL: differential rejected immutable aof-load-truncated')
+tests/netcmd_config_unit.cc:53:    get("aof-load-truncated", "no");
+tests/netcmd_config_unit.cc:55:        set({"CONFIG", "SET", "aof-load-truncated", value}, true);
+tests/netcmd_config_unit.cc:56:        get("aof-load-truncated", value);
+tests/netcmd_config_unit.cc:59:            get("aof-load-truncated", value);
+tests/netcmd_config_unit.cc:60:            check(execute(shard, values) == error, "aof-load-truncated exact SET error");
+tests/netcmd_config_unit.cc:61:            get("aof-load-truncated", value);
+tests/netcmd_config_unit.cc:64:            reject({"CONFIG", "SET", "aof-load-truncated", invalid},
+tests/netcmd_config_unit.cc:65:                   "-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated')"
+tests/netcmd_config_unit.cc:68:        for (const char* duplicate : {"aof-load-truncated", "AOF-LOAD-TRUNCATED"})
+tests/netcmd_config_unit.cc:69:            reject({"CONFIG", "SET", "aof-load-truncated", changed, duplicate, changed},
+tests/netcmd_config_unit.cc:207:    for (const char* directive : {"hll-sparse-max-bytes 1024\n", "aof-load-truncated no\n",
+tests/differ.py:5833:        saved = [parse_reply(issue(peer, ["CONFIG", "GET", "aof-load-truncated"]))[1]
+tests/differ.py:5837:                assert both(["CONFIG", "SET", "aof-load-truncated", value]) == b"+OK\r\n"
+tests/differ.py:5838:                both(["CONFIG", "GET", "aof-load-truncated"])
+tests/differ.py:5840:                assert both(["CONFIG", "SET", "aof-load-truncated", value]).startswith(b"-ERR ")
+tests/differ.py:5841:                both(["CONFIG", "GET", "aof-load-truncated"])
+tests/differ.py:5842:            assert both(["CONFIG", "SET", "AOF-LOAD-TRUNCATED", "0"]).startswith(b"-ERR ")
+tests/differ.py:5843:            assert both(["CONFIG", "SET", "aof-load-truncated", "no",
+tests/differ.py:5844:                         "AOF-LOAD-TRUNCATED", "yes"]) == (
+tests/differ.py:5845:                             b"-ERR CONFIG SET failed (possibly related to argument 'AOF-LOAD-TRUNCATED') - duplicate parameter\r\n")
+tests/differ.py:5846:            both(["CONFIG", "GET", "aof-load-truncated"])
+tests/differ.py:5849:                assert issue(peer, ["CONFIG", "SET", "aof-load-truncated", value]) == b"+OK\r\n"
+tests/differ.py:5863:        assert not {b"aof_rewrite_completions", b"aof_rewrite_consecutive_failures"} & target.keys()
+tests/knobs.py:79:        conn.must("CONFIG", "SET", "aof-load-truncated", policy)
+tests/knobs.py:80:        if conn.must("CONFIG", "GET", "aof-load-truncated") != [b"aof-load-truncated", policy.encode()]:
+tests/knobs.py:82:    conn.must("CONFIG", "SET", "aof-load-truncated", values[b"aof-load-truncated"])
+
+Command (calib): grep -rInI -iE --exclude-dir=.git --exclude-dir=__pycache__ 'aof[-_]load[-_]truncated|aof_rewrite_completions|aof_rewrite_consecutive_failures' /home/user/Projects/calib
+No calib/ directory exists in this worktree. Searched the external tree read-only.
+Total calib matches: 628
+harness-60: 43 text matches
+harness-bigkeys: 43 text matches
+harness-bo: 43 text matches
+harness-bo4: 43 text matches
+harness-cmduR: 43 text matches
+harness-gen4: 43 text matches
+harness-h12: 43 text matches
+harness-h12v6: 43 text matches
+harness-l4i4: 43 text matches
+harness-nolb: 43 text matches
+harness-ol4: 43 text matches
+harness-openloop: 43 text matches
+harness-uniform: 43 text matches
+harness-warm: 43 text matches
+harness60: 26 text matches
+All calib matches are in historical harness source copies; no top-level/current calibration consumer matched.
+Old expectations there include tests/{knobs.py,redisgap.py,netcmd_config_unit.cc} and old INFO spellings in tests/{aof_rewrite_triggers.py,edgetime_persist.sh}.
+Those external copies were not edited: the lane is restricted to its own worktree.
+Full external grep: build/psfix2/calib-grep.txt
+
+Disposition in this worktree:
+- netcmd_config_unit.cc: boot-latched expectation replaced by mutable round trip, exact errors and unchanged-value checks.
+- knobs.py and redisgap.py: live yes/no checks already correct.
+- aof_rewrite_triggers.py and edgetime_persist.sh: already use aof_rewrites/aof_rewrites_consecutive_failures.
+- config_parser_test.cc and netcmd_unit.cc: startup parsing/setup remains valid.
+- aof.py: mutable policy and load recovery checks remain valid.
+- psfix.py: old INFO names/immutability deliberately identify a PRE negative control.
+- differ.py: old INFO names deliberately prohibited on the candidate.

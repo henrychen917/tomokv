@@ -1,0 +1,55 @@
+{
+  "subset": "full",
+  "count": 4,
+  "ids": [
+    "h06m",
+    "h06m_info",
+    "h06m_40m",
+    "h06m_40m_info"
+  ],
+  "modes": [
+    "1s"
+  ],
+  "operations": [
+    "SET"
+  ],
+  "commands": [
+    "SET"
+  ],
+  "depths": [
+    32
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "rate"
+  ],
+  "pending_pins": [],
+  "server_flags": {
+    "h06m": "--databases 16",
+    "h06m_info": "--databases 16",
+    "h06m_40m": "--databases 16",
+    "h06m_40m_info": "--databases 16"
+  },
+  "dbs": {
+    "h06m": 16,
+    "h06m_info": 16,
+    "h06m_40m": 16,
+    "h06m_40m_info": 16
+  },
+  "poll": {
+    "h06m_info": "info1hz",
+    "h06m_40m_info": "info1hz"
+  },
+  "keys": {
+    "h06m_40m": 40000000,
+    "h06m_40m_info": 40000000
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "condition": "contended",
+      "lifetime": 1,
+      "geometry": "split",
+      "rc": 0,
+      "legs": 36,
+      "failed_legs": 0,
+      "ttl_checks": {
+        "edgetime": 826,
+        "hexpire": 3438,
+        "wiredump": 9834
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "condition": "contended",
+      "lifetime": 1,
+      "geometry": "armed-fused",
+      "rc": 0,
+      "legs": 36,
+      "failed_legs": 0,
+      "ttl_checks": {
+        "edgetime": 826,
+        "hexpire": 3438,
+        "wiredump": 9834
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "condition": "contended",
+      "lifetime": 2,
+      "geometry": "split",
+      "rc": 0,
+      "legs": 36,
+      "failed_legs": 0,
+      "ttl_checks": {
+        "edgetime": 826,
+        "hexpire": 3438,
+        "wiredump": 9834
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "condition": "contended",
+      "lifetime": 2,
+      "geometry": "armed-fused",
+      "rc": 0,
+      "legs": 36,
+      "failed_legs": 0,
+      "ttl_checks": {
+        "edgetime": 826,
+        "hexpire": 3438,
+        "wiredump": 9834
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "condition": "contended",
+      "lifetime": 3,
+      "geometry": "split",
+      "rc": 0,
+      "legs": 36,
+      "failed_legs": 0,
+      "ttl_checks": {
+        "edgetime": 826,
+        "hexpire": 3438,
+        "wiredump": 9834
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "condition": "contended",
+      "lifetime": 3,
+      "geometry": "armed-fused",
+      "rc": 0,
+      "legs": 36,
+      "failed_legs": 0,
+      "ttl_checks": {
+        "edgetime": 826,
+        "hexpire": 3438,
+        "wiredump": 9834
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "condition": "quiet",
+      "lifetime": 1,
+      "geometry": "split",
+      "rc": 0,
+      "legs": 36,
+      "failed_legs": 0,
+      "ttl_checks": {
+        "edgetime": 826,
+        "hexpire": 3438,
+        "wiredump": 9834
+      },
+      "errors": [],
+      "passed": true
+    },
+    {
+      "condition": "quiet",
+      "lifetime": 1,
+      "geometry": "armed-fused",
+      "rc": 0,
+      "legs": 36,
+      "failed_legs": 0,
+      "ttl_checks": {
+        "edgetime": 826,
+        "hexpire": 3438,
+        "wiredump": 9834
+      },
+      "errors": [],
+      "passed": true
+    }
+  ],
+  "legs": 288,
+  "failed_legs": 0,
+  "ttl_checks": {
+    "edgetime": 6608,
+    "hexpire": 27504,
+    "wiredump": 78672
+  }
+}

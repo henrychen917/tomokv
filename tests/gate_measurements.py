@@ -137,6 +137,11 @@ def shape(cell):
     # or share a pin across sizes, even with an unchanged instrument and cell ID.
     if cell.get("data_bytes", 64) != 64:
         result["data_bytes"] = cell["data_bytes"]
+    # Database selection, boot flags and monitoring change the experiment even
+    # with the same cell ID. Never borrow a db0/no-poller calibration for them.
+    for key in ("server_flags", "dbs", "poll", "keys"):
+        if cell.get(key):
+            result[key] = cell[key]
     return result
 
 

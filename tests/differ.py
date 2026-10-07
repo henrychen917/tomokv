@@ -8,6 +8,7 @@
 # nondeterministic and must be compared as sets rather than byte streams.
 import socket, sys, random, re, time, hashlib, select
 from _differ_history import coverage
+from _save_timeout import save_reply_timeout
 
 LIST_GENERATORS = sys.argv[1:] == ["--list-generators"]
 if LIST_GENERATORS:
@@ -181,11 +182,12 @@ def normalize(cmdname, r):
     return r
 
 
-CLOCK_SCALAR_REPLIES = {"EXPIRETIME", "PEXPIRETIME", "TTL", "PTTL"}
-CLOCK_ARRAY_REPLIES = {"HEXPIRETIME", "HPEXPIRETIME", "HTTL", "HPTTL"}
-clock_tolerances = 0
+TTL_SCALAR_REPLIES = {"TTL", "PTTL"}
+TTL_ARRAY_REPLIES = {"HTTL", "HPTTL"}
+deadline_bounded_ttl_checks = 0
+NS_PER_MS = 1000000
 
-def clock_integers(reply, array):
+def ttl_integers(reply, array):
     # Inspect the wire types, not parse_reply(): a bulk string containing ":123" decodes
     # to the same bytes as an integer there. Array lengths and integer grammar stay exact.
     integer = rb":(0|-?[1-9][0-9]*)\r\n"
@@ -203,34 +205,221 @@ def clock_integers(reply, array):
         values = [int(match[1])]
     return values if all(-(1 << 63) <= value < (1 << 63) for value in values) else None
 
-def replies_equal(argv, target, oracle):
-    """Compare normalized replies, allowing only one native unit of clock skew.
+def command_bytes(argv):
+    return [arg.encode() if isinstance(arg, str) else arg for arg in argv]
 
-    No bucketing: +/-2 ms must fail even when both values land in the same second.
-    Missing-key/field and persistent sentinels are semantic results, so stay exact.
-    LASTSAVE has a separate per-server property check; stream generators exclude idle
-    times (XPENDING compares its summary counts). Neither needs integer relaxation here.
+
+class ReplyWindow:
+    """This server's batch send -> this reply's completed read, in wall-clock ns.
+
+    A server's integer millisecond time cut must lie in this interval. The single
+    extra millisecond covers clock quantization; scheduling delay is measured,
+    never guessed from a fixed tolerance or from the other server's reply.
     """
-    global clock_tolerances
-    if target == oracle:
-        return True
-    name = argv[0].upper()
-    if isinstance(name, bytes):
-        name = name.decode('ascii')
-    array = name in CLOCK_ARRAY_REPLIES
-    if not (array or name in CLOCK_SCALAR_REPLIES or
-            (name == "OBJECT" and len(argv) > 1 and argv[1].upper() in ("IDLETIME", b"IDLETIME"))):
-        return False
-    a, b = clock_integers(target, array), clock_integers(oracle, array)
+    def __init__(self, sent_ms, elapsed_ns):
+        self.start = sent_ms * NS_PER_MS
+        self.end = self.start + elapsed_ns + NS_PER_MS
+
+
+def timed_send(sock, payload):
+    started = time.monotonic_ns()
+    sent_ms = time.time_ns() // NS_PER_MS
+    sock.sendall(payload)
+    return sent_ms, started
+
+
+def timed_read(file, sent):
+    reply = read_reply(file)
+    window = ReplyWindow(sent[0], time.monotonic_ns() - sent[1])
+    return reply, window
+
+
+class TtlDeadlines:
+    """Deadlines from successful generated mutations, never inferred from TTL replies.
+
+    Absolute setters name a point. Relative setters necessarily name an interval:
+    duration + that setter's independently measured execution window. Retaining
+    this uncertainty preserves EX/PEXPIRE/RESTORE coverage without pretending the
+    two servers installed the same absolute deadline. Values are wall-clock ns.
+    """
+    def __init__(self):
+        self.db = 0
+        self.keys = {}
+        self.fields = {}
+
+    def forget(self, key):
+        self.keys.pop(key, None)
+        self.fields.pop(key, None)
+
+    def expected(self, argv):
+        args = command_bytes(argv)
+        key = (self.db, args[1])
+        if args[0].upper() in (b"HTTL", b"HPTTL"):
+            return [self.fields.get(key, {}).get(field) for field in args[4:]]
+        return [self.keys.get(key)]
+
+    @staticmethod
+    def deadline(value, seconds, absolute, window):
+        duration = int(value) * (1000 if seconds else 1) * NS_PER_MS
+        if absolute:
+            return duration, duration
+        return window.start + duration, window.end + duration
+
+    def observe(self, argv, reply, window):
+        if reply.startswith(b"-") or reply == b"+QUEUED\r\n":
+            return
+        args = command_bytes(argv)
+        name = args[0].upper()
+        if name == b"FLUSHALL":
+            self.keys.clear(); self.fields.clear()
+            return
+        if name == b"FLUSHDB":
+            for key in list(self.keys.keys() | self.fields.keys()):
+                if key[0] == self.db: self.forget(key)
+            return
+        if name == b"SELECT":
+            self.db = int(args[1])
+            return
+        if len(args) < 2:
+            return
+        key = (self.db, args[1])
+        # A past deadline cannot survive recreation by a later write. Do this on
+        # access, just as edgetime's disabled active-expiry stream does.
+        if key in self.keys and self.keys[key][1] < window.start:
+            self.forget(key)
+        if key in self.fields:
+            self.fields[key] = {f: d for f, d in self.fields[key].items()
+                                if d[1] >= window.start}
+        if name in (b"EXPIRE", b"PEXPIRE", b"EXPIREAT", b"PEXPIREAT"):
+            if reply == b":1\r\n":
+                self.keys[key] = self.deadline(args[2], not name.startswith(b"P"),
+                                               name.endswith(b"AT"), window)
+        elif name in (b"HEXPIRE", b"HPEXPIRE", b"HEXPIREAT", b"HPEXPIREAT"):
+            results = ttl_integers(reply, True)
+            if results is not None:
+                at = next(i for i in range(3, len(args)) if args[i].upper() == b"FIELDS")
+                deadline = self.deadline(args[2], not name.startswith(b"HP"),
+                                         name.endswith(b"AT"), window)
+                fields = self.fields.setdefault(key, {})
+                for field, result in zip(args[at + 2:], results):
+                    if result == 1: fields[field] = deadline
+                    elif result == 2: fields.pop(field, None)
+        elif name in (b"SET", b"GETEX", b"SETEX", b"PSETEX"):
+            if name in (b"SETEX", b"PSETEX"):
+                self.forget(key)
+                self.keys[key] = self.deadline(args[2], name == b"SETEX", False, window)
+                return
+            options = [arg.upper() for arg in args[3 if name == b"SET" else 2:]]
+            nil = reply in (b"$-1\r\n", b"_\r\n")
+            if name == b"SET":
+                if b"GET" in options:
+                    if (b"NX" in options and not nil) or (b"XX" in options and nil): return
+                elif nil:
+                    return
+                self.fields.pop(key, None)
+                if b"KEEPTTL" not in options: self.keys.pop(key, None)
+            elif nil:
+                return
+            if b"PERSIST" in options:
+                self.keys.pop(key, None)
+            for i, option in enumerate(options):
+                if option in (b"EX", b"PX", b"EXAT", b"PXAT"):
+                    self.keys[key] = self.deadline(options[i + 1], option.startswith(b"EX"),
+                                                   option.endswith(b"AT"), window)
+        elif name in (b"RESTORE", b"RESTORE-ASKING"):
+            self.forget(key)
+            if int(args[2]):
+                self.keys[key] = self.deadline(args[2], False,
+                    b"ABSTTL" in [a.upper() for a in args[4:]], window)
+        elif name == b"PERSIST" and reply == b":1\r\n":
+            self.keys.pop(key, None)
+        elif name in (b"DEL", b"UNLINK"):
+            for arg in args[1:]: self.forget((self.db, arg))
+        elif name in (b"GETDEL", b"GETSET") or (name == b"SETNX" and reply == b":1\r\n"):
+            self.forget(key)
+        elif name == b"MSET" or (name == b"MSETNX" and reply == b":1\r\n"):
+            for arg in args[1::2]: self.forget((self.db, arg))
+        elif name in (b"RENAME", b"RENAMENX", b"COPY"):
+            if name != b"RENAME" and reply != b":1\r\n": return
+            destination_db = self.db
+            if name == b"COPY":
+                for i in range(3, len(args) - 1):
+                    if args[i].upper() == b"DB": destination_db = int(args[i + 1])
+            destination = (destination_db, args[2])
+            if key == destination: return
+            self.forget(destination)
+            if key in self.keys: self.keys[destination] = self.keys[key]
+            if key in self.fields: self.fields[destination] = self.fields[key].copy()
+            if name != b"COPY": self.forget(key)
+        elif name in (b"HSET", b"HMSET", b"HDEL", b"HSETNX", b"HPERSIST"):
+            fields = self.fields.get(key, {})
+            if name == b"HPERSIST":
+                results = ttl_integers(reply, True)
+                if results is not None:
+                    for field, result in zip(args[4:], results):
+                        if result == 1: fields.pop(field, None)
+            elif name != b"HSETNX" or reply == b":1\r\n":
+                for field in (args[2:] if name == b"HDEL" else args[2::2]):
+                    fields.pop(field, None)
+        elif name in (b"SINTERSTORE", b"SUNIONSTORE", b"SDIFFSTORE", b"ZUNIONSTORE",
+                       b"ZINTERSTORE", b"ZDIFFSTORE", b"ZRANGESTORE", b"BITOP"):
+            self.forget((self.db, args[2]) if name == b"BITOP" else key)
+
+
+def ttl_within_deadline(name, value, deadline, window):
+    if deadline is None or window is None:
+        return False  # Missing instrumentation must never become a passing check.
+    # Invert each command's actual integer rounding, rather than allowing an
+    # arbitrary second of error. TTL rounds nearest; HTTL rounds upward.
+    if name == "TTL":
+        low, high = max(0, value * 1000 - 500), value * 1000 + 499
+    elif name == "HTTL":
+        low, high = max(0, value * 1000 - 999), value * 1000
+    else:
+        low = high = value
+    cut_low = deadline[0] - high * NS_PER_MS
+    cut_high = deadline[1] - low * NS_PER_MS
+    return cut_low <= window.end and cut_high >= window.start
+
+
+def replies_equal(argv, target, oracle, deadlines=None, windows=None):
+    """Non-TTL replies stay exact; relative TTLs validate each server independently.
+
+    deadline - remaining_TTL reconstructs a command-time cut. Its offset from
+    this request's send must lie in [0, measured send->read latency + 1 ms].
+    Check even equal positive replies: agreement cannot hide a shared TTL bug.
+    Absolute expiry probes and error replies never receive clock relaxation.
+    """
+    global deadline_bounded_ttl_checks
+    name = command_bytes(argv)[0].decode('ascii').upper()
+    array = name in TTL_ARRAY_REPLIES
+    if not (array or name in TTL_SCALAR_REPLIES):
+        return target == oracle
+    if target.startswith(b"-") or oracle.startswith(b"-"):
+        return target == oracle
+    a, b = ttl_integers(target, array), ttl_integers(oracle, array)
     if a is None or b is None or len(a) != len(b):
         return False
-    if any(x != y and (x < 0 or y < 0 or abs(x - y) != 1) for x, y in zip(a, b)):
+    if array:
+        args = command_bytes(argv)
+        try:
+            if (len(args) < 5 or args[2].upper() != b"FIELDS" or
+                    int(args[3]) != len(a) or len(a) != len(args) - 4):
+                return False
+        except ValueError:
+            return False
+    deadline_bounded_ttl_checks += 1
+    if any((x < 0 or y < 0) and (x != y or x not in (-1, -2)) for x, y in zip(a, b)):
         return False
-    clock_tolerances += 1
-    # Every use is visible, including its running per-leg reply count and raw operands;
-    # a consistently biased arithmetic result must not disappear into a green verdict.
-    print("  CLOCK TOLERANCE count=%d integers=%d command=%r\n    target: %r\n    oracle: %r" %
-          (clock_tolerances, sum(x != y for x, y in zip(a, b)), argv, target, oracle), flush=True)
+    for side, values in enumerate((a, b)):
+        expected = deadlines[side].expected(argv) if deadlines is not None else [None] * len(values)
+        window = windows[side] if windows is not None else None
+        for value, deadline in zip(values, expected):
+            if value >= 0 and not ttl_within_deadline(name, value, deadline, window):
+                print("  TTL DEADLINE FAIL side=%s command=%r reply=%d deadline_ns=%r window_ns=%r" %
+                      (("target", "oracle")[side], argv, value, deadline,
+                       (window.start, window.end) if window is not None else None), flush=True)
+                return False
     return True
 
 
@@ -614,6 +803,42 @@ def gen_geo(rng):
     ]
     units = ["m", "km", "ft", "mi"]
     ops = []
+    # CD7: byte-compare the complete RESP frame, including bulk lengths / RESP3 doubles.
+    # Every invocation (the inventory runs RESP2 and RESP3) covers 256 fresh random points.
+    for i in range(256):
+        lon = format(rng.uniform(-180, 180), ".17g")
+        lat = format(rng.uniform(-85.05112878, 85.05112878), ".17g")
+        member = "spread:%03d" % i
+        ops += [["GEOADD", "geo:spread", lon, lat, member],
+                ["GEOPOS", "geo:spread", member]]
+
+    # CD8: each STORE word replaces BOTH the destination and score mode. Exercise both verbs,
+    # both orders, absent destinations, and overwriting a destination of a different type.
+    ops.append(["GEOADD", "geo:stores", "13", "38", "a", "13.01", "38.01", "b"])
+    for verb, center in (("GEORADIUS", ["13", "38"]),
+                         ("GEORADIUSBYMEMBER", ["a"])):
+        for first, last in (("STORE", "STOREDIST"), ("STOREDIST", "STORE")):
+            for existing in (False, True):
+                ops.append(["DEL", "geo:first", "geo:last"])
+                if existing:
+                    ops += [["SET", "geo:first", "keep-first"],
+                            ["SET", "geo:last", "replace-last"]]
+                ops.append([verb, "geo:stores"] + center +
+                           ["10", "km", first, "geo:first", last, "geo:last"])
+                for dest in ("geo:first", "geo:last"):
+                    ops += [["EXISTS", dest], ["TYPE", dest],
+                            ["ZRANGE", dest, "0", "-1", "WITHSCORES"]]
+
+    # CD13: expansion is one-way for GEOADD, including an expanded zset that has shrunk.
+    # A radius STORE is a replacement and CAN become listpack again, even when dest == source.
+    for i in range(160):
+        ops.append(["ZADD", "geo:expanded", str(i), "m%d" % i])
+    ops += [["ZREM", "geo:expanded"] + ["m%d" % i for i in range(2, 160)],
+            ["OBJECT", "ENCODING", "geo:expanded"],
+            ["GEOADD", "geo:expanded", "13", "38", "m0"],
+            ["OBJECT", "ENCODING", "geo:expanded"],
+            ["GEORADIUS", "geo:expanded", "13", "38", "40000", "km", "STORE", "geo:expanded"],
+            ["OBJECT", "ENCODING", "geo:expanded"]]
     for _ in range(4200):
         c = rng.randrange(19)
         key = rng.choice(keys)
@@ -681,6 +906,106 @@ def gen_geo(rng):
         else:
             ops.append(["ZCARD", rng.choice(destinations)])
     return ops
+
+
+def geo_lfu_property(sides):
+    """CD13 uses independent LFU witnesses: counters are stochastic, reply types are exact.
+
+    Reuse the differ harness's existing connections and vanilla oracle. Restore each server's
+    policy/budget even on failure; a cold counter is a failure to arm, never a skipped check.
+    """
+    failures = 0
+    saved = []
+
+    def issue(sock, file, argv):
+        sock.sendall(enc(argv))
+        coverage.note(argv, "CD13 LFU property")
+        return read_reply(file)
+
+    def integer(sock, file, argv):
+        raw = issue(sock, file, argv)
+        if not re.fullmatch(rb":[0-9]+\r\n", raw):
+            raise RuntimeError("CD13 expected integer: %r -> %r" % (argv, raw))
+        return int(raw[1:-2])
+
+    def check(ok, detail):
+        nonlocal failures
+        if not ok:
+            failures += 1
+            print("  GEO-LFU FAIL " + detail)
+
+    try:
+        for label, sock, file in sides:
+            settings = []
+            saved.append((sock, file, settings))
+            for name, value in (("maxmemory", "1073741824"),
+                                ("maxmemory-policy", "allkeys-lfu")):
+                old = parse_reply(issue(sock, file, ["CONFIG", "GET", name]))
+                if not isinstance(old, list) or len(old) != 2 or old[0] != name.encode():
+                    raise RuntimeError("CD13 cannot save %s: %r" % (name, old))
+                settings.append((name, old[1]))
+                if issue(sock, file, ["CONFIG", "SET", name, value]) != b"+OK\r\n":
+                    raise RuntimeError("CD13 cannot set " + name)
+
+            # Each attempt starts with a fresh key and its own measured initial counter.
+            armed = False
+            for attempt in range(3):
+                key = "geo:lfu:%d" % attempt
+                integer(sock, file, ["DEL", key])
+                for i in range(160):
+                    integer(sock, file, ["ZADD", key, str(i), "m%d" % i])
+                integer(sock, file, ["ZREM", key] + ["m%d" % i for i in range(2, 160)])
+                # The seed writes themselves are touches; use a separate newly-created key
+                # to measure the policy's initial counter without assuming either width.
+                fresh = key + ":initial"
+                integer(sock, file, ["DEL", fresh])
+                integer(sock, file, ["GEOADD", fresh, "0", "0", "m"])
+                initial = integer(sock, file, ["OBJECT", "FREQ", fresh])
+                integer(sock, file, ["DEL", fresh])
+                for burst in range(32):
+                    for _ in range(128):
+                        sock.sendall(enc(["ZCARD", key]))
+                    for _ in range(128):
+                        if read_reply(file) != b":2\r\n":
+                            raise RuntimeError("CD13 touch lost the seeded zset")
+                    before = integer(sock, file, ["OBJECT", "FREQ", key])
+                    if before >= initial + 3:
+                        armed = True
+                        break
+                if armed:
+                    break
+                integer(sock, file, ["DEL", key])
+            check(armed, "%s counter never rose above initial" % label)
+            if not armed:
+                continue
+            encoding = issue(sock, file, ["OBJECT", "ENCODING", key])
+            check(encoding == b"$8\r\nskiplist\r\n", label + " seed did not expand")
+            check(integer(sock, file, ["GEOADD", key, "13", "38", "m0"]) == 0,
+                  label + " GEOADD must update the existing member")
+            after = integer(sock, file, ["OBJECT", "FREQ", key])
+            check(after > initial,
+                  "%s GEOADD initial=%d before=%d after=%d" % (label, initial, before, after))
+            check(issue(sock, file, ["OBJECT", "ENCODING", key]) == encoding,
+                  label + " GEOADD demoted an expanded zset")
+            # Same-key STORE forces the local replacement path in every shard geometry.
+            for mode in ("STORE", "STOREDIST"):
+                before = integer(sock, file, ["OBJECT", "FREQ", key])
+                check(integer(sock, file, ["GEORADIUS", key, "13", "38", "40000", "km",
+                                          mode, key]) > 0, label + " empty STORE witness")
+                after = integer(sock, file, ["OBJECT", "FREQ", key])
+                check(after > initial,
+                      "%s %s initial=%d before=%d after=%d" %
+                      (label, mode, initial, before, after))
+                check(issue(sock, file, ["OBJECT", "ENCODING", key]) == b"$8\r\nlistpack\r\n",
+                      label + " STORE must choose the small result encoding")
+            integer(sock, file, ["DEL", key])
+            print("  GEO-LFU %s: initial=%d GEOADD/STORE/STOREDIST checked" % (label, initial))
+    finally:
+        for sock, file, settings in saved:
+            for name, value in reversed(settings):
+                if issue(sock, file, ["CONFIG", "SET", name, value]) != b"+OK\r\n":
+                    raise RuntimeError("CD13 failed to restore " + name)
+    return failures
 
 
 def gen_doubles(rng):
@@ -903,7 +1228,7 @@ def gen_hash(rng):
 def gen_hexpire(rng):
     # Hash-field TTLs.  Every deadline is ABSOLUTE and either far in the future or definitively in
     # the past, so expiry state is deterministic on both servers. Remaining TTL replies still
-    # read separate clocks; replies_equal handles their one-unit boundary skew. The "already
+    # read separate clocks; replies_equal checks their known deadlines independently. The "already
     # past" deadlines exercise the immediate-delete return code (2) reproducibly.
     keys = ["hx%d" % i for i in range(10)]
     fields = ["f%d" % i for i in range(14)] + ["", "bin\x00fld", "L" * 70]
@@ -1219,6 +1544,11 @@ def gen_edgetime(rng):
         ops.append(["SET", edge, "v"])
         ops.append(["GETEX", edge] + options)
         ops.append(["TTL", edge])
+        if options == ["EX", "600", "EX", "1200"]:
+            # The relative setter is checked above against its own request window.
+            # Install a shared deadline before byte-comparing an absolute probe:
+            # two relative setters need not have installed identical timestamps.
+            ops.append(["PEXPIREAT", edge, str(future_ms)])
         ops.append(["PEXPIRETIME", edge])
     ops += [
         ["SET", edge, "v"], ["PEXPIRE", edge, "0"], ["EXISTS", edge],
@@ -1458,6 +1788,67 @@ def gen_storeorder(rng):
         ops.append(["EXISTS", dst])
     return ops[:4600]
 
+def sscan_churn_property(sock, file, label):
+    """Bounded SSCAN with a permanent population and fresh growth/tombstone churn per page."""
+    def issue(argv):
+        sock.sendall(enc(argv))
+        coverage.note(argv, "CD6 SSCAN churn property")
+        raw = read_reply(file)
+        if raw.startswith(b"-"):
+            raise RuntimeError("SSCAN churn %s: %r -> %r" % (label, argv[:4], raw))
+        return parse_reply(raw)
+
+    def mutate(verb, key, members):
+        for start in range(0, len(members), 64):
+            result = issue([verb, key] + members[start:start + 64])
+            if result != b":" + str(len(members[start:start + 64])).encode():
+                raise RuntimeError("SSCAN churn mutation did not change every requested member")
+
+    # Re-arm on fresh state if the first call did not actually paginate. Exhaustion fails.
+    for attempt in range(4):
+        key = "s:churn:%d" % attempt
+        permanent = ["steady:%d:%03d" % (attempt, i) for i in range(192)]
+        issue(["DEL", key])
+        mutate("SADD", key, permanent)
+        first = issue(["SSCAN", key, "0", "COUNT", "7", "MATCH", "steady:*"])
+        if not isinstance(first, list) or len(first) != 2 or not isinstance(first[1], list):
+            raise RuntimeError("SSCAN churn malformed first page: %r" % (first,))
+        if first[0] != b"0":
+            break
+        issue(["DEL", key])
+    else:
+        raise RuntimeError("SSCAN churn %s never paginated on fresh state" % label)
+
+    cursor, batch = first
+    seen = set(batch)
+    transient = []
+    # Population alternates 192 <-> 704. TomoKV grows to 1024 slots, then fresh members
+    # repeatedly force same-size tombstone rehashes. Redis may resize incrementally.
+    # 2048 calls exceeds a complete one-home-per-call cycle at either maximum table size.
+    for calls in range(2, 2049):
+        if transient:
+            mutate("SREM", key, transient)
+            transient = []
+        else:
+            transient = ["transient:%d:%03d" % (calls, i) for i in range(512)]
+            mutate("SADD", key, transient)
+        reply = issue(["SSCAN", key, cursor, "COUNT", "7", "MATCH", "steady:*"])
+        if not isinstance(reply, list) or len(reply) != 2 or not isinstance(reply[1], list):
+            raise RuntimeError("SSCAN churn malformed page: %r" % (reply,))
+        cursor, batch = reply
+        seen.update(batch)
+        if cursor == b"0":
+            expected = {member.encode() for member in permanent}
+            if seen != expected:
+                raise RuntimeError("SSCAN churn %s coverage: missing=%r unexpected=%r" %
+                                   (label, sorted(expected - seen)[:8], sorted(seen - expected)[:8]))
+            issue(["DEL", key])
+            print("  SSCAN-CHURN %s: %d calls, %d permanent members covered" %
+                  (label, calls, len(seen)))
+            return
+    raise RuntimeError("SSCAN churn %s did not terminate within 2048 calls" % label)
+
+
 def gen_scan(rng):
     """SCAN family. The diffed stream is the OPTION SURFACE plus the mutations that shape the
     tables; the completeness property itself cannot be byte-compared (cursor values and emission
@@ -1563,6 +1954,14 @@ def gen_multi(rng):
 
     for key in strkeys: ops.append(["SET", key, rng.choice(values)])
     for key in listkeys: ops.append(["RPUSH", key, "seed"])
+    # INFO keyspace has deterministic bytes here (no TTLs). Exercise its owner fan-out between
+    # transaction-private writes, plus the newly admitted singleton random-element handlers.
+    ops += [["MULTI"], ["INFO", "keyspace"], ["DEL", strkeys[0]], ["INFO", "keyspace"],
+            ["DEBUG", "SLEEP", "0"], ["EXEC"],
+            ["SADD", "mx:at15:set", "only"], ["HSET", "mx:at15:hash", "only", "value"],
+            ["ZADD", "mx:at15:zset", "1", "only"], ["MULTI"],
+            ["SRANDMEMBER", "mx:at15:set"], ["SPOP", "mx:at15:set"],
+            ["HRANDFIELD", "mx:at15:hash"], ["ZRANDMEMBER", "mx:at15:zset"], ["EXEC"]]
 
     def make():
         c = rng.randrange(21)
@@ -4374,6 +4773,10 @@ def run_notify_suite(rng):
           (len(stream), events, diffs, "PASS" if diffs == 0 else "FAIL"))
     return diffs
 
+if SUITE == "ccfix":
+    from _differ_ccfix import run as run_ccfix
+    sys.exit(run_ccfix(globals()))
+
 if SUITE == "notify":
     sys.exit(1 if run_notify_suite(rng) else 0)
 
@@ -4382,10 +4785,15 @@ if SUITE == "notify":
 # suite cross-RESTOREs each side's payload into the other side and then byte-compares full reads.
 def run_wiredump_suite(rng):
     ts, tf = conn(TH, TP); os_, of = conn(OH, OP)
+    deadlines = (TtlDeadlines(), TtlDeadlines())
+    windows = [None, None]
 
     def command(sock, file, args):
-        sock.sendall(enc(args))
-        return read_reply(file)
+        side = 0 if sock is ts else 1
+        sent = timed_send(sock, enc(args))
+        reply, windows[side] = timed_read(file, sent)
+        deadlines[side].observe(args, reply, windows[side])
+        return reply
 
     def payload(reply):
         value = parse_reply(reply)
@@ -4464,6 +4872,7 @@ def run_wiredump_suite(rng):
         cached.append((key, kind, target_dump, oracle_dump, ttl_fields))
 
     for iteration in range(4200):
+        before_diffs = diffs
         key, kind, target_seed, oracle_seed, ttl_fields = rng.choice(cached)
         action = rng.randrange(5)
         if action == 0:
@@ -4509,15 +4918,18 @@ def run_wiredump_suite(rng):
             target_reply = command(ts, tf, ["PTTL", "wd:restore"])
             oracle_reply = command(os_, of, ["PTTL", "wd:restore"])
             coverage.note('PTTL')
-            if not replies_equal(["PTTL", "wd:restore"], target_reply, oracle_reply):
+            if not replies_equal(["PTTL", "wd:restore"], target_reply, oracle_reply,
+                                 deadlines, windows):
                 diffs += 1
+                if diffs <= 12:
+                    print("    PTTL target: %r oracle: %r" % (target_reply, oracle_reply))
         checks += 1
-        if diffs and diffs <= 12:
+        if diffs > before_diffs and diffs <= 12:
             print("  WIREDUMP DIFF op %d action=%d key=%s" % (iteration, action, key))
 
     ts.close(); os_.close()
-    print("DIFFER wiredump: %d ops, %d diffs, %d clock tolerances -> %s" %
-          (checks, diffs, clock_tolerances, "PASS" if diffs == 0 else "FAIL"))
+    print("DIFFER wiredump: %d ops, %d diffs, %d deadline-bounded TTL checks -> %s" %
+          (checks, diffs, deadline_bounded_ttl_checks, "PASS" if diffs == 0 else "FAIL"))
     return diffs
 
 if SUITE == "wiredump":
@@ -5108,7 +5520,15 @@ if SUITE == "compatintro":
 
 # ---- Lane t-aclsel: ACL selector grammar/reporting/enforcement differential -------------------
 def run_cmdmeta_suite(rng):
-    """Cold command metadata: 4,200 byte comparisons plus inventory/category properties."""
+    """Cold metadata: 4,200 byte comparisons plus the complete implemented Redis surface."""
+    from cmdmeta_coverage import registered_commands
+    from fnmatch import fnmatchcase
+
+    registry = {name.lower().encode() for name in registered_commands()}
+    # Explicit compatibility boundaries, never inferred by subtracting a faulty target reply.
+    absent_top = {b"cluster", b"migrate", b"module", b"psync", b"replconf", b"sync"}
+    local_only = {b"flip"}  # Mainline 3ca2c450e; named in every relevant receipt below.
+    local_categories = {b"write", b"admin", b"slow", b"dangerous"}
     subcommands = """
 acl|cat acl|deluser acl|dryrun acl|genpass acl|getuser acl|help acl|list acl|load acl|log
 acl|save acl|setuser acl|users acl|whoami client|caching client|getname client|getredir
@@ -5132,6 +5552,9 @@ script|exists script|flush script|help script|kill script|load slowlog|get slowl
 slowlog|len slowlog|reset xgroup|create xgroup|createconsumer xgroup|delconsumer
 xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help xinfo|stream
 """.split()
+    removed = {name.encode() for name in subcommands if name.split("|", 1)[0].encode() not in registry}
+    assert len(removed) == 33 and {name.split(b"|", 1)[0] for name in removed} == {b"cluster", b"module"}
+    subcommands = [name for name in subcommands if name.encode() not in removed]
     key_cases = [
         ["GET", "k"], ["MGET", "a", "b"], ["EXISTS", "a", "b"], ["DEL", "a", "b"],
         ["SET", "k", "v"], ["SET", "k", "v", "GET"], ["SETNX", "k", "v"],
@@ -5163,7 +5586,8 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
     diffs = 0
     compared = 0
     fired = {"info": 0, "intent": 0, "pipes": 0, "categories": 0,
-             "docs_boundary": 0, "zero_controls": 0}
+             "docs_boundary": 0, "zero_controls": 0, "absent_info_docs": 0,
+             "patterns": 0, "module_filters": 0}
 
     def command(sock, file, argv):
         sock.sendall(enc(argv))
@@ -5185,36 +5609,114 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
         if target != oracle:
             mismatch(label, target, oracle)
 
-    # Compare the pipe-qualified inventory as a set: raw order is explicitly unordered.
+    def query(sock, file, argv):
+        nonlocal compared
+        compared += 1
+        return parse_reply(command(sock, file, argv))
+
+    def names(sock, file, argv):
+        value = query(sock, file, argv)
+        if not isinstance(value, list) or not all(isinstance(name, bytes) for name in value):
+            mismatch("name-list shape " + repr(argv), repr(value).encode(), b"array of names")
+            return set()
+        result = set(value)
+        if len(result) != len(value):
+            mismatch("duplicate names " + repr(argv), repr(value).encode(), b"unique names")
+        return result
+
+    def same_set(label, actual, expected):
+        if actual != expected:
+            mismatch(label, repr(sorted(actual)).encode(), repr(sorted(expected)).encode())
+
+    version = query(os_, of, ["INFO", "SERVER"])
+    if not isinstance(version, bytes) or b"redis_version:7.4.10\r\n" not in version:
+        mismatch("pinned vanilla oracle", repr(version).encode(), b"Redis 7.4.10")
+
+    # Check the WHOLE target set, not an intersection that could hide phantom target names.
+    # The independent registry determines which Redis families are implemented.
     lists = []
     for sock, file in ((ts, tf), (os_, of)):
-        value = parse_reply(command(sock, file, ["COMMAND", "LIST"]))
-        lists.append({item for item in value if b"|" in item} if isinstance(value, list) else set())
-    expected = {name.encode() for name in subcommands}
-    if lists[0] != expected or lists[1] != expected:
-        mismatch("129 pipe-qualified LIST rows", repr(sorted(lists[0])).encode(),
-                 repr(sorted(lists[1])).encode())
-    fired["pipes"] = len(lists[0])
+        lists.append(names(sock, file, ["COMMAND", "LIST"]))
+    target_names, oracle_names = lists
+    oracle_top = {name for name in oracle_names if b"|" not in name}
+    same_set("explicit absent top-level families", oracle_top - registry, absent_top)
+    same_set("explicit TomoKV-only commands", registry - oracle_top, local_only)
+    implemented = {name for name in oracle_names if name.split(b"|", 1)[0] in registry}
+    same_set("COMMAND LIST registry + implemented subcommands", target_names, implemented | local_only)
+    same_set("NO unexpected Redis-unknown advertisements", target_names - oracle_names, local_only)
+    same_set("COMMAND LIST top-level registry", {n for n in target_names if b"|" not in n}, registry)
+    expected_pipes = {name.encode() for name in subcommands}
+    same_set("96 implemented pipe-qualified LIST rows", {n for n in target_names if b"|" in n}, expected_pipes)
+    same_set("129 oracle pipe-qualified LIST rows", {n for n in oracle_names if b"|" in n}, expected_pipes | removed)
+    fired["pipes"] = len(target_names & expected_pipes)
+    print("  EXPECTED Redis-only names:", ", ".join(n.decode() for n in sorted(oracle_names - implemented)))
+    print("  EXPLICIT existing TomoKV-only exception: flip (not claimed as Redis parity)")
 
-    for category in ("stream", "pubsub", "admin", "connection"):
-        values = []
+    categories = names(os_, of, ["ACL", "CAT"])
+    same_set("ACL CAT category names", names(ts, tf, ["ACL", "CAT"]), categories)
+    if len(categories) != 21:
+        mismatch("ACL CAT category coverage", str(len(categories)).encode(), b"21")
+    for category in sorted(categories):
+        oracle_cat = names(os_, of, ["ACL", "CAT", category])
+        expected = oracle_cat & implemented
+        local = local_only if category in local_categories else set()
+        target_cat = names(ts, tf, ["ACL", "CAT", category])
+        same_set("ACL CAT " + category.decode(), target_cat, expected | local)
+        coverage.note(["ACL", "CAT", category])  # Both peers have replied and the sets were compared.
+        same_set("ACL CAT no unexpected names " + category.decode(), target_cat - oracle_cat, local)
+        oracle_filter = names(os_, of, ["COMMAND", "LIST", "FILTERBY", "ACLCAT", category])
+        same_set("oracle ACLCAT filter " + category.decode(), oracle_filter, oracle_cat)
+        same_set("COMMAND LIST FILTERBY ACLCAT " + category.decode(),
+                 names(ts, tf, ["COMMAND", "LIST", "FILTERBY", "ACLCAT", category]), expected | local)
+        print("  EXPECTED Redis-only ACL CAT %s: %s" %
+              (category.decode(), ", ".join(n.decode() for n in sorted(oracle_cat - implemented)) or "(none)"))
+        fired["categories"] += 1
+
+    for pattern in ("*", "*|*", "cluster*", "module*", "CLUSTER*", "MODULE*", "get*", "FLIP*"):
+        oracle_pattern = names(os_, of, ["COMMAND", "LIST", "FILTERBY", "PATTERN", pattern])
+        local = {name for name in local_only if fnmatchcase(name.decode(), pattern.lower())}
+        same_set("COMMAND LIST FILTERBY PATTERN " + pattern,
+                 names(ts, tf, ["COMMAND", "LIST", "FILTERBY", "PATTERN", pattern]),
+                 (oracle_pattern & implemented) | local)
+        if pattern.lower() in ("cluster*", "module*") and not oracle_pattern:
+            mismatch("nonempty oracle family " + pattern, b"empty", b"parent plus children")
+        fired["patterns"] += 1
+    for module in ("cmdmeta-no-such-module", "cluster", "module"):
         for sock, file in ((ts, tf), (os_, of)):
-            parsed = parse_reply(command(sock, file, ["ACL", "CAT", category]))
-            values.append(sorted(item for item in parsed if b"|" in item))
-        if values[0] != values[1]:
-            mismatch("ACL CAT %s pipe rows" % category,
-                     repr(values[0]).encode(), repr(values[1]).encode())
-        fired["categories"] += len(values[0])
+            same_set("COMMAND LIST FILTERBY MODULE " + module,
+                     names(sock, file, ["COMMAND", "LIST", "FILTERBY", "MODULE", module]), set())
+        fired["module_filters"] += 1
 
-    # COUNT excludes subcommands on both servers. The unrelated nine top-level command gaps are
-    # outside this lane, so compare each side against its own non-pipe LIST cardinality.
+    # COUNT is anchored to the independent source registry, not just a second server reply.
     for side, sock, file in (("target", ts, tf), ("oracle", os_, of)):
-        listing = parse_reply(command(sock, file, ["COMMAND", "LIST"]))
-        count = parse_reply(command(sock, file, ["COMMAND", "COUNT"]))
+        count = query(sock, file, ["COMMAND", "COUNT"])
         value = int(count[1:]) if isinstance(count, bytes) and count[:1] == b":" else -1
-        top = sum(b"|" not in name for name in listing)
+        top = len(registry) if side == "target" else len(oracle_top)
         if value != top:
             mismatch("COUNT top-level property " + side, str(value).encode(), str(top).encode())
+
+    # Compare absent names to a genuinely unknown name on BOTH servers. Redis knows the removed
+    # names, so also require populated oracle INFO/DOCS; missing oracle coverage cannot pass.
+    for verb, expected in (("INFO", [None]), ("DOCS", [])):
+        unknown = query(os_, of, ["COMMAND", verb, "cmdmeta-no-such-command"])
+        if unknown != expected:
+            mismatch("oracle unknown " + verb, repr(unknown).encode(), repr(expected).encode())
+        target_unknown = query(ts, tf, ["COMMAND", verb, "cmdmeta-no-such-command"])
+        if target_unknown != unknown:
+            mismatch("target unknown " + verb, repr(target_unknown).encode(), repr(unknown).encode())
+        for name in sorted(absent_top | removed):
+            target = query(ts, tf, ["COMMAND", verb, name])
+            oracle = query(os_, of, ["COMMAND", verb, name])
+            if target != unknown:
+                mismatch("absent " + verb + " " + name.decode(), repr(target).encode(), repr(unknown).encode())
+            populated = (isinstance(oracle, list) and
+                         ((verb == "INFO" and len(oracle) == 1 and isinstance(oracle[0], list) and
+                           len(oracle[0]) == 10 and oracle[0][0] == name) or
+                          (verb == "DOCS" and len(oracle) == 2 and oracle[0] == name and
+                           isinstance(oracle[1], list) and bool(oracle[1]))))
+            if not populated:
+                mismatch("known oracle " + verb + " " + name.decode(), repr(oracle).encode(), b"populated metadata")
+            fired["absent_info_docs"] += 1
 
     # The prose corpus is intentionally not embedded. Prove the boundary actually differs and
     # that both sides returned documentation rather than letting a vacuous omission pass.
@@ -5247,8 +5749,9 @@ xgroup|destroy xgroup|help xgroup|setid xinfo|consumers xinfo|groups xinfo|help 
     fired["zero_controls"] = 2
     ts.close()
     os_.close()
-    if fired["pipes"] != 129 or fired["info"] < 1900 or fired["intent"] < 1900 or \
-            fired["categories"] < 40 or fired["docs_boundary"] != 1:
+    if fired["pipes"] != 96 or fired["info"] < 1900 or fired["intent"] < 1900 or \
+            fired["categories"] != 21 or fired["docs_boundary"] != 1 or \
+            fired["absent_info_docs"] != 78 or fired["patterns"] != 8 or fired["module_filters"] != 3:
         mismatch("cmdmeta non-vacuity", repr(fired).encode(), b"required counters")
     print("DIFFER cmdmeta: %d ops, %d diffs -> %s (%s)" %
           (compared, diffs, "PASS" if diffs == 0 else "FAIL",
@@ -5551,10 +6054,50 @@ def gen_infofix(rng):
             ops.append(["PING"])
     return ops
 
+def dbsize_integer(reply):
+    """DBSIZE counts are exact nonnegative RESP integers."""
+    if re.fullmatch(br":(0|[1-9][0-9]*)\r\n", reply) is None:
+        raise ValueError("DBSIZE did not return a count: %r" % reply)
+    return int(reply[1:-2])
+
+
+def wait_published_dbsize(sock, file, expected):
+    """Observe batch publication every 1 ms, with a hard 100 ms reply deadline."""
+    started = time.monotonic()
+    deadline = started + 0.100
+    polls = 0
+    value = None
+    timeout = sock.gettimeout()
+    try:
+        while time.monotonic() < deadline:
+            sock.settimeout(max(0.000001, deadline - time.monotonic()))
+            sock.sendall(enc(["DBSIZE"]))
+            value = dbsize_integer(read_reply(file))
+            coverage.note(["DBSIZE"], "bounded batch-publication property")
+            polls += 1
+            elapsed = time.monotonic() - started
+            if value == expected and elapsed <= 0.100:
+                return True, polls, elapsed, value
+            remaining = deadline - time.monotonic()
+            if remaining > 0:
+                time.sleep(min(0.001, remaining))
+    except TimeoutError:
+        pass
+    finally:
+        sock.settimeout(timeout)
+    return False, polls, time.monotonic() - started, value
+
+
 def gen_multidb(rng):
     """One deep pipeline switches namespaces while older owner work is still in flight."""
     keys = ["mdb:%d" % i for i in range(24)] + ["mdb:\0binary", "mdb:" + "k" * 255]
     ops = [["SELECT", "0"], ["FLUSHALL"]]
+    # Unequal populations make both map directions observable; INFO must use the map at its
+    # position in EXEC while the live map is still unpublished until the final decision.
+    ops += [["SET", "mdb:at15:a", "a"], ["SELECT", "1"],
+            ["SET", "mdb:at15:a", "a"], ["SET", "mdb:at15:b", "b"], ["MULTI"],
+            ["INFO", "keyspace"], ["SWAPDB", "0", "1"], ["INFO", "keyspace"],
+            ["SWAPDB", "0", "1"], ["INFO", "keyspace"], ["EXEC"], ["FLUSHALL"]]
     for db in range(4):
         ops += [["SELECT", str(db)], ["SET", "mdb:same", "db%d" % db]]
     for bad in ("bad", "+1", "01", "-0", "-1", "16", "2147483648", "-2147483649"):
@@ -5575,7 +6118,10 @@ def gen_multidb(rng):
         elif choice == 7:
             ops.append(["FLUSHDB"])
         elif choice == 8:
-            ops.append(["DBSIZE"])
+            # gen_edgetime deliberately excludes batch-published DBSIZE/INFO.
+            # Preserve this command position, but compare NOW to Redis DBSIZE
+            # as an exact-count property in the runner below.
+            ops.append(["DBSIZE", "NOW"])
         elif choice == 9:
             ops.append(["KEYS", "mdb:*"])
         elif choice == 10:
@@ -5584,9 +6130,166 @@ def gen_multidb(rng):
             ops += [["MULTI"], ["SELECT", str(rng.randrange(4))], ["SET", key, "txn"],
                     ["GET", key], ["SELECT", str(rng.randrange(4))], ["GET", key], ["EXEC"]]
     for db in range(4):
-        ops += [["SELECT", str(db)], ["KEYS", "*"], ["DBSIZE"]]
-    ops += [["SELECT", "0"], ["FLUSHALL"]]
+        ops += [["SELECT", str(db)], ["KEYS", "*"], ["DBSIZE", "NOW"]]
+    # Leave a known nonzero population for the publication check after the last
+    # reply. A publisher stuck at zero must fail, even if the random tail is empty.
+    ops += [["SELECT", "0"], ["FLUSHALL"], ["SET", "mdb:publication", "live"]]
     return ops
+
+
+def psfix_wait_idle(peers, persistence, phase):
+    """Both peers must be idle before a save/count baseline; 10 s total, 1 ms polls."""
+    deadline = time.monotonic() + 10
+    states = {}
+    busy = set()
+    polls = 0
+    timeouts = [sock.gettimeout() for sock, _ in peers]
+    try:
+        while True:
+            fields = []
+            for label, peer in zip(("target", "oracle"), peers):
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError
+                peer[0].settimeout(remaining)
+                row = persistence(peer)
+                state = row.get(b"rdb_bgsave_in_progress")
+                states[label] = state
+                assert state in (b"0", b"1"), (
+                    "PSFIX harness error: %s %s invalid rdb_bgsave_in_progress=%r" %
+                    (phase, label, state))
+                if state == b"1":
+                    busy.add(label)
+                fields.append(row)
+            polls += 1
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError
+            if all(state == b"0" for state in states.values()):
+                if busy:
+                    print("  PSFIX idle barrier %s: polls=%d busy_peers=%s" %
+                          (phase, polls, ",".join(label for label in ("target", "oracle")
+                                                if label in busy)), flush=True)
+                return fields
+            time.sleep(min(0.001, remaining))
+    except TimeoutError as error:
+        raise AssertionError(
+            "PSFIX harness error: %s: both peers did not become save-idle within 10 s; "
+            "rdb_bgsave_in_progress=%r" % (phase, states)) from error
+    finally:
+        for (sock, _), timeout in zip(peers, timeouts):
+            sock.settimeout(timeout)
+
+
+def psfix_check_save_reply(label, command, reply):
+    if reply == b"-ERR Background save already in progress\r\n":
+        raise AssertionError(
+            "PSFIX harness error: %s %s raced a background save after the both-peer "
+            "idle barrier; reply must not be compared: %r" % (label, command, reply))
+    assert reply == (b"+OK\r\n" if command == "SAVE" else b"+Background saving started\r\n"), (
+        label, command, reply)
+
+
+def run_psfix_suite():
+    """PS5/PS7: exact CONFIG bytes, INFO names/order, and completed-save properties."""
+    peers = [conn(TH, TP), conn(OH, OP)]
+    checks = 0
+
+    def issue(peer, argv):
+        sock, file = peer
+        sock.sendall(enc(argv))
+        return read_reply(file)
+
+    def both(argv):
+        nonlocal checks
+        replies = [issue(peer, argv) for peer in peers]
+        coverage.note(argv)
+        checks += 1
+        assert replies[0] == replies[1], (argv, replies)
+        print("  PSFIX exact %r -> %r" % (argv, replies[0]))
+        return replies[0]
+
+    def persistence(peer):
+        body = parse_reply(issue(peer, ["INFO", "persistence"]))
+        assert isinstance(body, bytes), body
+        rows = [line.split(b":", 1) for line in body.split(b"\r\n")
+                if line and not line.startswith(b"#")]
+        assert all(len(row) == 2 for row in rows), rows
+        fields = dict(rows)
+        assert len(fields) == len(rows), "duplicate INFO Persistence field"
+        return fields
+
+    try:
+        saved = [parse_reply(issue(peer, ["CONFIG", "GET", "aof-load-truncated"]))[1]
+                 for peer in peers]
+        try:
+            for value in ("no", "yes", "NO", "YeS"):
+                assert both(["CONFIG", "SET", "aof-load-truncated", value]) == b"+OK\r\n"
+                both(["CONFIG", "GET", "aof-load-truncated"])
+            for value in ("0", "1", "true", "", "yes "):
+                assert both(["CONFIG", "SET", "aof-load-truncated", value]).startswith(b"-ERR ")
+                both(["CONFIG", "GET", "aof-load-truncated"])
+            assert both(["CONFIG", "SET", "AOF-LOAD-TRUNCATED", "0"]).startswith(b"-ERR ")
+            assert both(["CONFIG", "SET", "aof-load-truncated", "no",
+                         "AOF-LOAD-TRUNCATED", "yes"]) == (
+                             b"-ERR CONFIG SET failed (possibly related to argument 'AOF-LOAD-TRUNCATED') - duplicate parameter\r\n")
+            both(["CONFIG", "GET", "aof-load-truncated"])
+        finally:
+            for peer, value in zip(peers, saved):
+                assert issue(peer, ["CONFIG", "SET", "aof-load-truncated", value]) == b"+OK\r\n"
+
+        # This explicit inventory makes omissions fail. Intersecting the two observed
+        # sets alone would silently accept a missing/misspelled field on the target.
+        shared = set(b"loading rdb_changes_since_last_save rdb_bgsave_in_progress "
+                     b"rdb_last_save_time rdb_saves aof_enabled aof_rewrite_in_progress "
+                     b"aof_rewrite_scheduled aof_last_bgrewrite_status aof_rewrites "
+                     b"aof_rewrites_consecutive_failures aof_last_write_status".split())
+        conditional = set(b"aof_current_size aof_base_size aof_pending_rewrite".split())
+        target, oracle = [persistence(peer) for peer in peers]
+        assert shared <= oracle.keys(), ("oracle inventory", shared - oracle.keys())
+        expected = shared | (conditional & oracle.keys())
+        assert target.keys() & expected == expected, ("missing target fields", expected - target.keys())
+        assert conditional <= target.keys(), "existing target fields disappeared"
+        assert not {b"aof_rewrite_completions", b"aof_rewrite_consecutive_failures"} & target.keys()
+        assert [name for name in target if name in expected] == [name for name in oracle if name in expected]
+        coverage.note(["INFO", "persistence"], "field-name set/order; values intentionally differ")
+        print("  PSFIX field names/order: %s" % b" ".join(name for name in oracle if name in expected).decode())
+
+        for index, (label, peer) in enumerate(zip(("target", "oracle"), peers)):
+            assert persistence(peer)[b"loading"] == b"0", (label, "loading after boot")
+            memory = parse_reply(issue(peer, ["INFO", "memory"]))
+            assert isinstance(memory, bytes), (label, "INFO memory", memory)
+            sizes = re.findall(rb"^used_memory:([0-9]+)\r?$", memory, re.MULTILINE)
+            assert len(sizes) == 1, (label, "missing/invalid used_memory", memory)
+            save_bytes = int(sizes[0])
+            for command in ("SAVE", "SAVE", "BGSAVE"):
+                idle = psfix_wait_idle(peers, persistence, "before %s %s" % (label, command))
+                before = int(idle[index][b"rdb_saves"])
+                if command == "SAVE":
+                    with save_reply_timeout(peer[0], save_bytes) as timeout:
+                        print("  PSFIX %s SAVE timeout=%.3f s used_memory=%d" %
+                              (label, timeout, save_bytes), flush=True)
+                        reply = issue(peer, [command])
+                else:
+                    reply = issue(peer, [command])
+                psfix_check_save_reply(label, command, reply)
+                fields = psfix_wait_idle(peers, persistence, "after %s %s" % (label, command))[index]
+                assert int(fields[b"rdb_saves"]) == before + 1, (label, command, before, fields)
+                assert int(persistence(peer)[b"rdb_saves"]) == before + 1, "INFO advanced save count"
+                assert fields[b"loading"] == b"0"
+                coverage.note([command], "rdb_saves advances exactly once after completion")
+                checks += 1
+                print("  PSFIX %s %s rdb_saves %d -> %d; loading:0" % (label, command, before, before + 1))
+    finally:
+        for sock, file in peers:
+            file.close()
+            sock.close()
+    print("DIFFER psfix: %d exact/property checks, 0 diffs -> PASS" % checks)
+
+
+if SUITE == "psfix":
+    run_psfix_suite()
+    sys.exit(0)
 
 
 gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset,
@@ -5605,8 +6308,21 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
 if LIST_GENERATORS:
     # This is the single suite inventory. Property suites live outside `gens` because their
     # replies are not byte-comparable, but the gate discovers them from this same list.
-    print("\n".join(list(gens) + ["blocking", "pubsub", "fanout", "spubsub", "notify",
-                                   "wiredump", "climon", "compatintro", "aclsel", "cmdmeta", "s6fix"]))
+    print("\n".join(list(gens) + [
+        'blocking',
+        'pubsub',
+        'fanout',
+        'spubsub',
+        'notify',
+        'wiredump',
+        'climon',
+        'compatintro',
+        'aclsel',
+        'cmdmeta',
+        's6fix',
+        'ccfix',
+        'psfix',
+    ]))
     sys.exit(0)
 ops = gens[SUITE](rng)
 
@@ -5792,6 +6508,11 @@ for cs, cf in ((ts, tf), (os_, of)):
     cs.sendall(enc(["FLUSHALL"]))
     if read_reply(cf)[:1] != b"+": raise RuntimeError("FLUSHALL failed on clean-slate")
 script_stats_before = target_stats() if SUITE == "script" else None
+if SUITE == "multi":
+    # INFO contains process-specific values; this directed leg validates exact RESP framing,
+    # required sections, and the deterministic transaction replies on both independent servers.
+    from at15 import compare as compare_at15
+    compare_at15(TH, TP, OH, OP, RESP3)
 # OBJECT ENCODING compares hash/set/zset only at matched promotion limits. TomoKV's limits
 # are fixed; configure the oracle to those values. These setup replies are drained, not diffed.
 if SUITE in ("servertail", "edgeenc"):
@@ -5818,38 +6539,62 @@ diffs = 0
 BATCH = (1 if SUITE == "script" else
          16 if SUITE in ("hll", "cgaps", "cmdgap2") else
          512 if SUITE in ("storeorder", "multidb") else 64)
+dbsize_positions_checked = 0
+ttl_deadlines = (TtlDeadlines(), TtlDeadlines())
 for i in range(0, len(ops), BATCH):
     chunk = ops[i:i + BATCH]
     if chunk[0][0] == "SECOND":
         command = chunk[0][1:]
         (tss, tsf), (oss, osf) = secondary
-        tss.sendall(enc(command)); oss.sendall(enc(command))
-        a = normalize(command[0], read_reply(tsf))
-        b = normalize(command[0], read_reply(osf))
+        target_sent = timed_send(tss, enc(command))
+        oracle_sent = timed_send(oss, enc(command))
+        a, target_window = timed_read(tsf, target_sent)
+        b, oracle_window = timed_read(osf, oracle_sent)
+        a, b = normalize(command[0], a), normalize(command[0], b)
         coverage.note(command)
-        if not replies_equal(command, a, b):
+        for state, reply, window in zip(ttl_deadlines, (a, b), (target_window, oracle_window)):
+            state.observe(command, reply, window)
+        if not replies_equal(command, a, b, ttl_deadlines, (target_window, oracle_window)):
             diffs += 1
             if diffs <= 12:
                 print("  DIFF op %d secondary %r\n    target: %r\n    oracle: %r" %
                       (i, command[:4], a[:256], b[:256]))
         continue
     payload = b"".join(enc(o) for o in chunk)
-    ts.sendall(payload); os_.sendall(payload)
+    oracle_payload = (b"".join(enc(["DBSIZE"] if o == ["DBSIZE", "NOW"] else o)
+                               for o in chunk) if SUITE == "multidb" else payload)
+    target_sent = timed_send(ts, payload)
+    oracle_sent = timed_send(os_, oracle_payload)
     for j, o in enumerate(chunk):
         try:
-            a = normalize(o[0], read_reply(tf))
+            a, target_window = timed_read(tf, target_sent)
+            a = normalize(o[0], a)
         except TimeoutError:
             print("  TIMEOUT target op %d: %r" % (i + j, o[:8]), flush=True)
             raise
         try:
-            b = normalize(o[0], read_reply(of))
+            b, oracle_window = timed_read(of, oracle_sent)
+            b = normalize(o[0], b)
         except TimeoutError:
             print("  TIMEOUT oracle op %d: %r" % (i + j, o[:8]), flush=True)
             raise
         a = normalize_introspection(o[0].upper(), o, a)
         b = normalize_introspection(o[0].upper(), o, b)
         coverage.note(o)
-        if not replies_equal(o, a, b):
+        for state, reply, window in zip(ttl_deadlines, (a, b), (target_window, oracle_window)):
+            state.observe(o, reply, window)
+        if SUITE == "multidb" and o == ["DBSIZE", "NOW"]:
+            dbsize_positions_checked += 1
+            try:
+                equal = dbsize_integer(a) == dbsize_integer(b)
+            except ValueError:
+                equal = False
+            if not equal:
+                diffs += 1
+                print("  DBSIZE EXACT PROPERTY FAIL op %d: target NOW=%r oracle DBSIZE=%r" %
+                      (i + j, a, b))
+            continue
+        if not replies_equal(o, a, b, ttl_deadlines, (target_window, oracle_window)):
             diffs += 1
             if diffs <= 12:
                 shown_a = a if o[0].upper() == "KEYS" else a[:256]
@@ -5890,6 +6635,27 @@ for i in range(0, len(ops), BATCH):
                     except Exception as probe_err:
                         print("    PROBE error: %r" % (probe_err,), flush=True)
 
+if SUITE == "multidb":
+    expected_positions = sum(o == ["DBSIZE", "NOW"] for o in ops)
+    if not expected_positions or dbsize_positions_checked != expected_positions:
+        raise RuntimeError("DBSIZE exact-count positions were not all checked")
+    ts.sendall(enc(["DBSIZE", "NOW"])); os_.sendall(enc(["DBSIZE"]))
+    exact = dbsize_integer(read_reply(tf))
+    oracle = dbsize_integer(read_reply(of))
+    coverage.note(["DBSIZE", "NOW"], "final publication reference")
+    if exact != 1 or oracle != 1:
+        diffs += 1
+        print("  DBSIZE EXACT PROPERTY FAIL final witness: target=%d oracle=%d expected=1" %
+              (exact, oracle))
+    converged, polls, elapsed, published = wait_published_dbsize(ts, tf, exact)
+    if not converged:
+        diffs += 1
+        print("  DBSIZE PUBLICATION PROPERTY FAIL: published=%r exact=%d polls=%d elapsed_ms=%.3f" %
+              (published, exact, polls, elapsed * 1000))
+    print("  multidb DBSIZE properties: exact_positions=%d publication_polls=%d "
+          "publication_ms=%.3f published=%r exact=%d converged=%s" %
+          (dbsize_positions_checked, polls, elapsed * 1000, published, exact, converged))
+
 if SUITE == "stream":
     # Auto IDs are clock-derived, and TomoKV intentionally refreshes its owner clock more
     # coarsely. Validate each server structurally and monotonically instead of hiding the entire
@@ -5927,6 +6693,30 @@ if SUITE == "stream":
         if length < 25:
             diffs += 1
             print("  APPROX-TRIM PROPERTY FAIL reply=%r" % length_reply)
+if SUITE == "geo":
+    diffs += geo_lfu_property((("target", ts, tf), ("oracle", os_, of)))
+    from cd13b_wire import aclcat_property, geo_store_property, ownership
+    def cd13b_call(sock, file, argv):
+        coverage.note(argv, "CD13b GEO/ACLCAT property")
+        sock.sendall(enc(argv))
+        return read_reply(file)
+    # Keep the raw-wire ACLCAT checks here so cmdmeta's parsed-reply fixture stays intact.
+    # Both RESP versions must return the exact empty array and case-insensitive string set.
+    cd13b_fired = {"aclcat_filters": 0}
+    def cd13b_aclcat_call(sock, file, argv):
+        cd13b_fired["aclcat_filters"] += 1
+        return cd13b_call(sock, file, argv)
+    diffs += aclcat_property(
+        (("target", lambda argv: cd13b_aclcat_call(ts, tf, argv)),
+         ("oracle", lambda argv: cd13b_aclcat_call(os_, of, argv))))
+    if cd13b_fired["aclcat_filters"] != 8:
+        diffs += 1
+        print("  CD13b ACLCAT non-vacuity FAIL: %r (expected 8 probes)" % cd13b_fired)
+    cd13b_target = lambda argv: cd13b_call(ts, tf, argv)
+    diffs += geo_store_property(
+        (("target", cd13b_target), ("oracle", lambda argv: cd13b_call(os_, of, argv))),
+        lambda keys: ownership(cd13b_target, keys))
+
 if SUITE == "scan":
     # Cursor VALUES and emission ORDER are implementation-defined, so the walk cannot be byte
     # diffed. What is contractual, and what this checks, is the SET a completed walk yields: with
@@ -5982,6 +6772,9 @@ if SUITE == "scan":
                 print("  SCAN-COMPLETENESS FAIL %s COUNT=%d: both sides empty, the check is "
                       "vacuous" % (label, count))
 
+    sscan_churn_property(ts, tf, "target")
+    sscan_churn_property(os_, of, "oracle")
+
 if SUITE == "infofix":
     # INFO is telemetry, so its values cannot be byte-compared across two implementations. Keep
     # the 4200-command state stream byte-exact above, then validate the same invariants on each side.
@@ -6017,12 +6810,12 @@ if SUITE == "infofix":
         if got != want: property_fail(side + " byte control", "got=%r want=%r" % (got, want))
     print("  infofix byte controls: target+oracle exact")
 
-    # Commandstats deliberately exposes only the one member TomoKV measures.
+    # Commandstats exposes measured counters; timing fields remain deliberately absent.
     issue(ts, tf, ["PING"])
     commandstats = fields(ts, tf, "commandstats")
     members = dict(item.split("=", 1)
                    for item in commandstats.get("cmdstat_ping", "").split(",") if "=" in item)
-    if int(members.get("calls", "0")) < 1 or set(members) != {"calls"}:
+    if int(members.get("calls", "0")) < 1 or set(members) != {"calls", "rejected_calls"}:
         property_fail("commandstats members", repr(members))
 
     # Unsupported telemetry is absent, while the useful sampled and byte counters stay present.
@@ -6152,6 +6945,6 @@ if SUITE == "script":
     else:
         print("  script mechanism generated_cross=%d deltas=%r live=%d" %
               (script_cross_generated, deltas, live))
-print("DIFFER %s: %d ops, %d diffs, %d clock tolerances -> %s" %
-      (SUITE, len(ops), diffs, clock_tolerances, "PASS" if diffs == 0 else "FAIL"))
+print("DIFFER %s: %d ops, %d diffs, %d deadline-bounded TTL checks -> %s" %
+      (SUITE, len(ops), diffs, deadline_bounded_ttl_checks, "PASS" if diffs == 0 else "FAIL"))
 sys.exit(1 if diffs else 0)

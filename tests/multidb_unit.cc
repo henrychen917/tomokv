@@ -210,13 +210,18 @@ static void records_done(Server& server) {
 static void diagnostic_hook(Server& server) {
     server.set_debug_atomic_fanout_defer(600000);
     ScatterArenaPool pool;
-    for (const char* command : {"INFO", "DBSIZE"}) {
-        Request request(server, 0, {command});
+    for (auto args : {std::initializer_list<std::string>{"INFO"}, {"DBSIZE"}, {"DBSIZE", "NOW"}}) {
+        Request request(server, 0, args);
+        if (args.size() == 1) {
+            require(!command_config_routes_all_shards(request.op),
+                    "published monitors cannot arm the fanout diagnostic");
+            continue;
+        }
         ScatterDispatch dispatch;
         require(xshard_prepare(server, request.op, pool, 0, 71, dispatch) == ScatterPrepare::Ready,
                 "diagnostic scatter prepared");
-        require((dispatch.state->debug_fanout_deadline != 0) == (std::string(command) == "DBSIZE"),
-                "INFO cannot delay the pinned-window witness; data census still arms");
+        require(dispatch.state->debug_fanout_deadline != 0,
+                "DBSIZE NOW still arms the data-census diagnostic");
         xshard_abandon_unpublished(dispatch.state, pool, 0);
     }
     server.set_debug_atomic_fanout_defer(0);
@@ -242,6 +247,14 @@ static std::string scatter(Server& server, uint8_t db,
                            std::initializer_list<std::string> args, bool atomic = true) {
     Client client(-1); client.set_id(71);
     Request r(server, db, args);
+    if ((r.op.spec->flags & CmdFlags::ConfigRoute) &&
+        !command_config_routes_all_shards(r.op)) {
+        // This serverless driver has no executor loop: explicitly finish the
+        // publication boundary before checking quiescent monitoring replies.
+        for (unsigned sid = 0; sid < server.nshards(); ++sid) server.shard(sid).publish_size();
+        r.op.spec->handler(server.shard(0), r.op);
+        return r.reply();
+    }
     ScatterArenaPool pool;
     ScatterDispatch dispatch;
     const auto prepared = xshard_prepare(server, r.op, pool, 0, client.id(), dispatch, atomic);
@@ -545,8 +558,8 @@ static void owners() {
     require(scatter(server, 0, {"RANDOMKEY"}) == "$1\r\nk\r\n", "scoped RANDOMKEY");
     require(scatter(server, 1, {"RANDOMKEY"}) == "$-1\r\n", "empty RANDOMKEY");
     const auto keyspace = scatter(server, 0, {"INFO", "keyspace"});
-    require(keyspace.find("db0:keys=1,expires=0,avg_ttl=0\r\n") != std::string::npos &&
-            keyspace.find("db2:keys=1,expires=0,avg_ttl=0\r\n") != std::string::npos &&
+    require(keyspace.find("db0:keys=1,expires=0,avg_ttl=0,subexpiry=0\r\n") != std::string::npos &&
+            keyspace.find("db2:keys=1,expires=0,avg_ttl=0,subexpiry=0\r\n") != std::string::npos &&
             keyspace.find("db1:") == std::string::npos, "INFO uses logical nonempty DBs");
     for (bool atomic : {false, true}) {
         server.set_atomic_enabled(atomic);

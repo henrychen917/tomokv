@@ -1,0 +1,460 @@
+{
+  "cases": 311,
+  "steps": 343,
+  "failures": [
+    {
+      "case": "array b'01'",
+      "step": 0,
+      "expected_terminal": 1,
+      "actual_terminal": 0,
+      "unsupported_argv": false,
+      "expected": "2d4552522050726f746f636f6c206572726f723a20696e76616c6964206d756c746962756c6b206c656e6774680d0a",
+      "actual": ""
+    },
+    {
+      "case": "bulk b'00'",
+      "step": 0,
+      "expected_terminal": 1,
+      "actual_terminal": 0,
+      "unsupported_argv": false,
+      "expected": "2d4552522050726f746f636f6c206572726f723a20696e76616c69642062756c6b206c656e6774680d0a",
+      "actual": ""
+    },
+    {
+      "case": "bulk b'04'",
+      "step": 0,
+      "expected_terminal": 1,
+      "actual_terminal": 0,
+      "unsupported_argv": false,
+      "expected": "2d4552522050726f746f636f6c206572726f723a20696e76616c69642062756c6b206c656e6774680d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'0'",
+      "step": 0,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "",
+      "actual": "2d4552522050726f746f636f6c206572726f723a20696e76616c6964206d756c746962756c6b206c656e6774680d0a"
+    },
+    {
+      "case": "empty array b'0'",
+      "step": 1,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'0'",
+      "step": 2,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'0'",
+      "step": 3,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'-1'",
+      "step": 0,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "",
+      "actual": "2d4552522050726f746f636f6c206572726f723a20696e76616c6964206d756c746962756c6b206c656e6774680d0a"
+    },
+    {
+      "case": "empty array b'-1'",
+      "step": 1,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'-1'",
+      "step": 2,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'-1'",
+      "step": 3,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'-2'",
+      "step": 0,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "",
+      "actual": "2d4552522050726f746f636f6c206572726f723a20696e76616c6964206d756c746962756c6b206c656e6774680d0a"
+    },
+    {
+      "case": "empty array b'-2'",
+      "step": 1,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'-2'",
+      "step": 2,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'-2'",
+      "step": 3,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'-2147483649'",
+      "step": 0,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "",
+      "actual": "2d4552522050726f746f636f6c206572726f723a20696e76616c6964206d756c746962756c6b206c656e6774680d0a"
+    },
+    {
+      "case": "empty array b'-2147483649'",
+      "step": 1,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'-2147483649'",
+      "step": 2,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'-2147483649'",
+      "step": 3,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'-9223372036854775808'",
+      "step": 0,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "",
+      "actual": "2d4552522050726f746f636f6c206572726f723a20696e76616c6964206d756c746962756c6b206c656e6774680d0a"
+    },
+    {
+      "case": "empty array b'-9223372036854775808'",
+      "step": 1,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'-9223372036854775808'",
+      "step": 2,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "empty array b'-9223372036854775808'",
+      "step": 3,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "inline b'PING\\n'",
+      "step": 0,
+      "expected_terminal": 0,
+      "actual_terminal": 0,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "inline b'PING\\n'",
+      "step": 1,
+      "expected_terminal": 0,
+      "actual_terminal": 0,
+      "unsupported_argv": true,
+      "expected": "2b504f4e470d0a",
+      "actual": "2b504f4e470d0a"
+    },
+    {
+      "case": "inline b' \\tPING\\n'",
+      "step": 0,
+      "expected_terminal": 0,
+      "actual_terminal": 0,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "inline b' \\tPING\\n'",
+      "step": 1,
+      "expected_terminal": 0,
+      "actual_terminal": 0,
+      "unsupported_argv": true,
+      "expected": "2b504f4e470d0a",
+      "actual": "2b504f4e470d0a"
+    },
+    {
+      "case": "empty inline",
+      "step": 0,
+      "expected_terminal": 0,
+      "actual_terminal": 0,
+      "unsupported_argv": true,
+      "expected": "2b504f4e470d0a",
+      "actual": "2b504f4e470d0a"
+    },
+    {
+      "case": "split array count",
+      "step": 1,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "",
+      "actual": "2d4552522050726f746f636f6c206572726f723a20696e76616c6964206d756c746962756c6b206c656e6774680d0a"
+    },
+    {
+      "case": "split array count",
+      "step": 2,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "split invalid count",
+      "step": 0,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "",
+      "actual": "2d4552522050726f746f636f6c206572726f723a20696e76616c6964206d756c746962756c6b206c656e6774680d0a"
+    },
+    {
+      "case": "split invalid count",
+      "step": 1,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "case": "split invalid count",
+      "step": 2,
+      "expected_terminal": 1,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2d4552522050726f746f636f6c206572726f723a20696e76616c6964206d756c746962756c6b206c656e6774680d0a",
+      "actual": ""
+    },
+    {
+      "case": "split bulk prefix",
+      "step": 0,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "",
+      "actual": "2d4552522050726f746f636f6c206572726f723a206578706563746564202724272c20676f74202721270d0a"
+    },
+    {
+      "case": "split bulk prefix",
+      "step": 1,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "case": "split bulk prefix",
+      "step": 2,
+      "expected_terminal": 1,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2d4552522050726f746f636f6c206572726f723a206578706563746564202724272c20676f74202721270d0a",
+      "actual": ""
+    },
+    {
+      "case": "incomplete b'*2147483647\\r\\n'",
+      "step": 0,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "",
+      "actual": "2d4552522050726f746f636f6c206572726f723a20696e76616c6964206d756c746962756c6b206c656e6774680d0a"
+    },
+    {
+      "case": "incomplete b'*1048577\\r\\n'",
+      "step": 0,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "",
+      "actual": "2d4552522050726f746f636f6c206572726f723a20696e76616c6964206d756c746962756c6b206c656e6774680d0a"
+    },
+    {
+      "case": "incomplete b'*1\\r\\n\\x00\\r\\n'",
+      "step": 0,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "",
+      "actual": "2d4552522050726f746f636f6c206572726f723a206578706563746564202724272c20676f74202700270d0a"
+    },
+    {
+      "case": "quotes b'ECHO \"a\\n'",
+      "step": 0,
+      "expected_terminal": 1,
+      "actual_terminal": 0,
+      "unsupported_argv": false,
+      "expected": "2d4552522050726f746f636f6c206572726f723a20756e62616c616e6365642071756f74657320696e20726571756573740d0a",
+      "actual": ""
+    },
+    {
+      "case": "quotes b\"ECHO 'a\\r\\n\"",
+      "step": 0,
+      "expected_terminal": 1,
+      "actual_terminal": 0,
+      "unsupported_argv": false,
+      "expected": "2d4552522050726f746f636f6c206572726f723a20756e62616c616e6365642071756f74657320696e20726571756573740d0a",
+      "actual": "24320d0a27610d0a"
+    },
+    {
+      "case": "quotes b'ECHO \"a\"x\\n'",
+      "step": 0,
+      "expected_terminal": 1,
+      "actual_terminal": 0,
+      "unsupported_argv": false,
+      "expected": "2d4552522050726f746f636f6c206572726f723a20756e62616c616e6365642071756f74657320696e20726571756573740d0a",
+      "actual": ""
+    },
+    {
+      "case": "quotes b\"ECHO 'a'x\\n\"",
+      "step": 0,
+      "expected_terminal": 1,
+      "actual_terminal": 0,
+      "unsupported_argv": false,
+      "expected": "2d4552522050726f746f636f6c206572726f723a20756e62616c616e6365642071756f74657320696e20726571756573740d0a",
+      "actual": ""
+    },
+    {
+      "case": "quotes b'ECHO \"a\\\\\"\\n'",
+      "step": 0,
+      "expected_terminal": 1,
+      "actual_terminal": 0,
+      "unsupported_argv": false,
+      "expected": "2d4552522050726f746f636f6c206572726f723a20756e62616c616e6365642071756f74657320696e20726571756573740d0a",
+      "actual": ""
+    },
+    {
+      "case": "quotes b\"ECHO 'a\\\\'\\n\"",
+      "step": 0,
+      "expected_terminal": 1,
+      "actual_terminal": 0,
+      "unsupported_argv": false,
+      "expected": "2d4552522050726f746f636f6c206572726f723a20756e62616c616e6365642071756f74657320696e20726571756573740d0a",
+      "actual": ""
+    },
+    {
+      "case": "array incomplete 64 KiB boundary",
+      "step": 1,
+      "expected_terminal": 1,
+      "actual_terminal": 0,
+      "unsupported_argv": false,
+      "expected": "2d4552522050726f746f636f6c206572726f723a20746f6f20626967206d62756c6b20636f756e7420737472696e670d0a",
+      "actual": ""
+    },
+    {
+      "case": "bulk incomplete 64 KiB boundary",
+      "step": 1,
+      "expected_terminal": 1,
+      "actual_terminal": 0,
+      "unsupported_argv": false,
+      "expected": "2d4552522050726f746f636f6c206572726f723a20746f6f206269672062756c6b20636f756e7420737472696e670d0a",
+      "actual": ""
+    },
+    {
+      "case": "Redis unchecked terminator bytes",
+      "step": 0,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": "2d4552522050726f746f636f6c206572726f723a20696e76616c6964206d756c746962756c6b206c656e6774680d0a"
+    },
+    {
+      "case": "Redis unchecked terminator bytes",
+      "step": 1,
+      "expected_terminal": 0,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a",
+      "actual": ""
+    },
+    {
+      "case": "reply order then error then close",
+      "step": 0,
+      "expected_terminal": 1,
+      "actual_terminal": 1,
+      "unsupported_argv": false,
+      "expected": "2b504f4e470d0a2d4552522050726f746f636f6c206572726f723a20696e76616c6964206d756c746962756c6b206c656e6774680d0a",
+      "actual": "2b504f4e470d0a2d4552522050726f746f636f6c206572726f723a206578706563746564202724272c20676f7420272a270d0a"
+    }
+  ],
+  "include_root": "/home/user/Projects/cx-respcompat/build/respcompat/pre-source",
+  "sockets_opened": 0,
+  "checks_live_tcp_close": false,
+  "checks_redis_differential": false
+}

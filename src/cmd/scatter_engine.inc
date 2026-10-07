@@ -45,6 +45,9 @@ struct ObjectImage {
     bool expanded = false;
     Type type = Type::String;
     uint8_t encoding = 0;
+    // GEO STORE replaces the value like Redis setKey: retain the destination's LRU/LFU.
+    // Read it only on the applying owner, never from a coordinator snapshot.
+    bool preserve_eviction_meta = false;
     uint32_t entries = 0;
     int64_t expire_at_ms = -1;
     std::vector<uint8_t> payload;
@@ -365,6 +368,8 @@ WorkError apply_image(Shard& shard, Slice key, uint64_t hash, const ObjectImage&
     const SnapshotHookStatus loaded = load_object_image(key, image, shard.type_limits(), object);
     if (loaded == SnapshotHookStatus::Oom) return WorkError::Oom;
     if (loaded != SnapshotHookStatus::Ok || !object) return WorkError::Corrupt;
+    if (image.preserve_eviction_meta)
+        geo_store_preserve_metadata(shard, key, hash, object);
     const FlatStore::InsertResult result = shard.store_insert<kNotify>(hash, object);
     if (result == FlatStore::InsertResult::Inserted) {
         shard.store().note_loaded_object(hash, object);
@@ -1488,7 +1493,7 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
                               Client* origin_client) {
     const bool all_shards = (op.spec->flags & CmdFlags::AllShards) ||
                             ((op.spec->flags & CmdFlags::ConfigRoute) &&
-                             command_config_routes_all_shards(op));
+                             command_config_routes_all_shards(op, force_atomic));
     Kind kind;
     if (all_shards)
         kind = op.cmd_name().eq_icase("randomkey") ? Kind::RandomKey :

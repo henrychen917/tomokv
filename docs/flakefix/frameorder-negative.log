@@ -1,0 +1,2 @@
+PASS frame-state: unarmed/armed/released pause, exact counters, atomic rename, failed publication
+FAIL persistfix: ready GCMT MUST stay outside the open large record

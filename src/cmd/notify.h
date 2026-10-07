@@ -98,14 +98,13 @@ inline std::string serialize_notify_flags(uint32_t flags) {
             {NOTIFY_GENERIC, 'g'}, {NOTIFY_STRING, '$'}, {NOTIFY_LIST, 'l'},
             {NOTIFY_SET, 's'}, {NOTIFY_HASH, 'h'}, {NOTIFY_ZSET, 'z'},
             {NOTIFY_EXPIRED, 'x'}, {NOTIFY_EVICTED, 'e'}, {NOTIFY_STREAM, 't'},
-            {NOTIFY_MODULE, 'd'},
+            {NOTIFY_MODULE, 'd'}, {NOTIFY_NEW, 'n'},
         };
         for (const auto& entry : classes) if (flags & entry.bit) out.push_back(entry.flag);
     }
     if (flags & NOTIFY_KEYSPACE) out.push_back('K');
     if (flags & NOTIFY_KEYEVENT) out.push_back('E');
     if (flags & NOTIFY_KEY_MISS) out.push_back('m');
-    if (flags & NOTIFY_NEW) out.push_back('n');
     return out;
 }
 

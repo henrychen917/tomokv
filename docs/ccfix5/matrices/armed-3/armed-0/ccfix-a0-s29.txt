@@ -1,0 +1,15 @@
+  CC18 read-local suite-entry: thread_mode=1s read_local=1 read_local_hits=931 read_local_fallbacks=274 read_local_arms=3
+  CC11 local source/destination lookups: exact
+  CC11 cross source/destination lookups: exact
+  CC18 read-local before-reset: thread_mode=1s read_local=1 read_local_hits=931 read_local_fallbacks=276 read_local_arms=4
+  CC18 read-local after-reset: thread_mode=1s read_local=1 read_local_hits=0 read_local_fallbacks=0 read_local_arms=0
+  EXPECTED-DEVIATION CC18 executed WRONGTYPE: failed_calls omitted; Redis reports 1
+  EXPECTED-DEVIATION CC18 MULTI member: failed_calls omitted; Redis reports 2
+  EXPECTED-DEVIATION CC18 EXEC own error: failed_calls omitted; Redis reports 1
+  EXPECTED-DEVIATION CC18 Lua error array: failed_calls omitted; Redis reports 1
+  EXPECTED-DEVIATION CC18 Lua forwarded error: failed_calls omitted; Redis reports 2
+  CC18 read-local before-reset: thread_mode=1s read_local=1 read_local_hits=0 read_local_fallbacks=3 read_local_arms=1
+  CC18 read-local after-reset: thread_mode=1s read_local=1 read_local_hits=0 read_local_fallbacks=0 read_local_arms=0
+  CC18 read-local before-reset: thread_mode=1s read_local=1 read_local_hits=0 read_local_fallbacks=0 read_local_arms=1
+  CC18 read-local after-reset: thread_mode=1s read_local=1 read_local_hits=0 read_local_fallbacks=0 read_local_arms=0
+DIFFER ccfix: 210 exact comparisons -> PASS

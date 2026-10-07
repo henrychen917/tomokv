@@ -1,0 +1,211 @@
+--- a/src/store/flatstore.h
++++ b/src/store/flatstore.h
+@@ -87,13 +87,8 @@
+ 
+ namespace tomo {
+ 
+-// Cold monitor-only state. The definition is visible so GCC can prove that
+-// publication does not modify any executor/parser state; the sampler stays out
+-// of line. Per-operation storage/command bodies remain independently auditable.
+-struct StoreSizeState {
+-    uint64_t sample_cursor = 0;
+-    std::atomic<uint64_t> avg_deadline{0};
+-};
++// Defined with the sampler in the cold monitoring translation unit.
++struct StoreSizeState;
+ 
+ // Fault injection for the cold table-allocation paths. It is compiled in whenever NDEBUG is not
+ // defined -- which is every build the Makefile produces, release included -- and costs one relaxed
+@@ -249,23 +244,9 @@
+         return checked;
+     }
+ 
+-    // Monitoring's owner-side sample has its own cursor. It neither advances
+-    // active expiry's cursor nor migrates/reaps anything, and counts empty slots
+-    // against its budget. INFO itself never enters this function.
++    // Instantiated only by the cold monitoring sampler.
+     template <typename Fn>
+-    void sample_readonly(uint64_t& cursor, uint32_t budget, Fn&& fn) const {
+-        const size_t old_left = cap_[0] - migrate_;
+-        const size_t total = old_left + cap_[1];
+-        for (size_t n = 0; n < std::min<size_t>(budget, total); ++n) {
+-            if (cursor >= total) cursor = 0;
+-            const size_t pos = cursor++;
+-            if (pos < old_left) {
+-                if (states(0)[migrate_ + pos] == kLive) fn(hashes_[0][migrate_ + pos]);
+-            } else if (states(1)[pos - old_left] == kLive) {
+-                fn(hashes_[1][pos - old_left]);
+-            }
+-        }
+-    }
++    void sample_readonly(uint64_t& cursor, uint32_t budget, Fn&& fn) const;
+ 
+     // Best-effort random live hash selection. Both the random probes and sparse-table cursor
+     // fallback are bounded; callers count a miss as part of their sampling budget.
+@@ -728,33 +709,8 @@
+         return fits;
+     }
+ 
+-    explicit FlatStore(uint32_t initial_cap = 1024) {
+-        const uint32_t cap = round_pow2(initial_cap);
+-        if (!cap || !alloc_table(0, cap)) throw std::bad_alloc();
+-        if (!init_storesize()) {
+-            std::free(tab_[0]);
+-            throw std::bad_alloc();
+-        }
+-    }
+-    ~FlatStore() {
+-        // At process teardown no reader survives. Collapse pending entries first so the ordinary
+-        // table destructor below remains the unique owner of each promoted winner.
+-        read_local_enabled_ = false;  // shutdown promotion/free is direct; no callback may outlive us
+-        atomic_promote_all_for_shutdown();
+-        expires_.clear();
+-        if (snapshot_new_tab_) std::free(snapshot_new_tab_);
+-        for (int t = 0; t < 2; t++)
+-            if (tab_[t]) {
+-                for (uint32_t i = 0; i < cap_[t]; i++)
+-                    if (KvObj* o = ptr_of(tab_[t][i])) kvobj_free(o);
+-                std::free(tab_[t]);
+-            }
+-        // Retired objects no longer appear in either table. They remain here only because an io
+-        // thread may still be handing their value bytes to the kernel.
+-        for (const Borrow& b : borrows_)
+-            if (b.retired) kvobj_free(b.retired);
+-        destroy_storesize();
+-    }
++    [[gnu::noinline, gnu::cold]] explicit FlatStore(uint32_t initial_cap = 1024);
++    [[gnu::noinline, gnu::cold]] ~FlatStore();
+     FlatStore(const FlatStore&) = delete;
+     FlatStore& operator=(const FlatStore&) = delete;
+ 
+@@ -1023,29 +979,11 @@
+     size_t   object_bytes() const { return obj_bytes_ + atomic_version_bytes_; }
+     uint32_t expire_count() const { return expires_.size(); }
+     // Cold batch-boundary publication. No key/TTL mutation publishes counters.
+-    bool init_storesize();
+-    __attribute__((noinline)) void publish_keyspace_sample() const {
+-        auto* storesize_ = storesize_state();
+-        unsigned __int128 sum = 0;
+-        uint32_t count = 0;
+-        // Two migration steps cover the index's initial 16 slots. Work remains
+-        // bounded even at millions of volatile keys; this is an estimate, as in Redis.
+-        expires_.sample_readonly(storesize_->sample_cursor, 2 * kRehashSlotsPerOp,
+-            [&](uint64_t hash) {
+-                const KvObj* object = find_hash_in(0, hash);
+-                if (!object && rehashing()) object = find_hash_in(1, hash);
+-                if (!object) return;
+-                const int64_t at = deadline(hash, object);
+-                if (at <= cached_now_ms_) return;
+-                sum += static_cast<uint64_t>(at);
+-                ++count;
+-            });
+-        if (count) storesize_->avg_deadline.store(sum / count, std::memory_order_relaxed);
+-    }
+-
++    [[gnu::noinline, gnu::cold]] bool init_storesize();
++    [[gnu::noinline, gnu::cold]] void publish_keyspace_sample() const;
+     uint64_t published_avg_deadline(uint8_t physical = 0) const;
+     uint64_t published_database_counts(uint8_t physical) const;
+-    void publish_database_counts() const;
++    [[gnu::noinline]] void publish_database_counts() const;
+     // Hashes in this shard carrying at least one field deadline. THE gate for the whole hash-field
+     // TTL feature: a shard that has never seen HEXPIRE reads zero here and every hash command pays
+     // one predicted-false test, with all field-TTL machinery out of line behind it.
+@@ -1977,12 +1915,8 @@
+     }
+ 
+ private:
+-    void destroy_storesize();
+-    StoreSizeState* storesize_state() const {
+-        StoreSizeState* state;
+-        std::memcpy(&state, reader_owner_gap_ + 4, sizeof(state));
+-        return state;
+-    }
++    [[gnu::noinline, gnu::cold]] void destroy_storesize();
++    StoreSizeState* storesize_state() const;
+     void storesize_replace(const KvObj* before, const KvObj* after);
+     void storesize_deadline(const KvObj* object, int64_t deadline);
+     void storesize_clear();
+--- a/src/cmd/storesize.cc
++++ b/src/cmd/storesize.cc
+@@ -4,6 +4,80 @@
+ 
+ namespace tomo {
+ __attribute__((noipa)) bool storesize_published_route() { return true; }
++
++FlatStore::FlatStore(uint32_t initial_cap) {
++        const uint32_t cap = round_pow2(initial_cap);
++        if (!cap || !alloc_table(0, cap)) throw std::bad_alloc();
++        if (!init_storesize()) {
++            std::free(tab_[0]);
++            throw std::bad_alloc();
++        }
++    }
++FlatStore::~FlatStore() {
++        // At process teardown no reader survives. Collapse pending entries first so the ordinary
++        // table destructor below remains the unique owner of each promoted winner.
++        read_local_enabled_ = false;  // shutdown promotion/free is direct; no callback may outlive us
++        atomic_promote_all_for_shutdown();
++        expires_.clear();
++        if (snapshot_new_tab_) std::free(snapshot_new_tab_);
++        for (int t = 0; t < 2; t++)
++            if (tab_[t]) {
++                for (uint32_t i = 0; i < cap_[t]; i++)
++                    if (KvObj* o = ptr_of(tab_[t][i])) kvobj_free(o);
++                std::free(tab_[t]);
++            }
++        // Retired objects no longer appear in either table. They remain here only because an io
++        // thread may still be handing their value bytes to the kernel.
++        for (const Borrow& b : borrows_)
++            if (b.retired) kvobj_free(b.retired);
++        destroy_storesize();
++    }
++
++struct StoreSizeState {
++    uint64_t sample_cursor = 0;
++    std::atomic<uint64_t> avg_deadline{0};
++};
++
++StoreSizeState* FlatStore::storesize_state() const {
++        StoreSizeState* state;
++        std::memcpy(&state, reader_owner_gap_ + 4, sizeof(state));
++        return state;
++    }
++
++template <typename Fn>
++void ExpireIndex::sample_readonly(uint64_t& cursor, uint32_t budget, Fn&& fn) const {
++        const size_t old_left = cap_[0] - migrate_;
++        const size_t total = old_left + cap_[1];
++        for (size_t n = 0; n < std::min<size_t>(budget, total); ++n) {
++            if (cursor >= total) cursor = 0;
++            const size_t pos = cursor++;
++            if (pos < old_left) {
++                if (states(0)[migrate_ + pos] == kLive) fn(hashes_[0][migrate_ + pos]);
++            } else if (states(1)[pos - old_left] == kLive) {
++                fn(hashes_[1][pos - old_left]);
++            }
++        }
++    }
++
++
++void FlatStore::publish_keyspace_sample() const {
++        auto* storesize_ = storesize_state();
++        unsigned __int128 sum = 0;
++        uint32_t count = 0;
++        // Two migration steps cover the index's initial 16 slots. Work remains
++        // bounded even at millions of volatile keys; this is an estimate, as in Redis.
++        expires_.sample_readonly(storesize_->sample_cursor, 2 * kRehashSlotsPerOp,
++            [&](uint64_t hash) {
++                const KvObj* object = find_hash_in(0, hash);
++                if (!object && rehashing()) object = find_hash_in(1, hash);
++                if (!object) return;
++                const int64_t at = deadline(hash, object);
++                if (at <= cached_now_ms_) return;
++                sum += static_cast<uint64_t>(at);
++                ++count;
++            });
++        if (count) storesize_->avg_deadline.store(sum / count, std::memory_order_relaxed);
++    }
+ 
+ struct StoreSizePublished {
+     // The key/expiry pair is one atomic observation; an INFO row never combines

@@ -1,0 +1,58 @@
+Audit negative controls: opcode and resolved-target changes rejected
+Functions: 16838; raw bytes equal: 16540; bytes + resolved targets equal: 16794
+CHANGED db0/src/cmd/geo.o 4661 4788 void tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)
+CHANGED db0/src/cmd/geo.o 239 254 void tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+CHANGED db0/src/cmd/geo.o 4833 5018 void tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&)
+CHANGED db0/src/cmd/geo.o 243 243 void tomo_db0::(anonymous namespace)::cmd_geoadd<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+CHANGED db0/src/cmd/geo.o 3418 3412 tomo_db0::(anonymous namespace)::parse_search(tomo_db0::Op&, tomo_db0::(anonymous namespace)::GeoSearchOptions&) [clone .constprop.0]
+CHANGED db0/src/cmd/geo.o 483 633 tomo_db0::(anonymous namespace)::reply_coordinate(tomo_db0::Op&, double)
+CHANGED db0/src/cmd/geo.o 1904 1932 tomo_db0::(anonymous namespace)::reply_geo_results(tomo_db0::Op&, tomo_db0::(anonymous namespace)::GeoSearchOptions const&, std::vector<tomo_db0::(anonymous namespace)::GeoResult, std::allocator<tomo_db0::(anonymous namespace)::GeoResult> > const&)
+CHANGED db0/src/cmd/geo.o 1274 1719 tomo_db0::cmd_geo_xshard_local(tomo_db0::Shard&, tomo_db0::Op&, bool)
+CHANGED db0/src/cmd/geo.o 51 51 tomo_db0::cmd_geo_xshard_local(tomo_db0::Shard&, tomo_db0::Op&, bool) [clone .cold]
+CHANGED db0/src/cmd/geo.o 0 108 tomo_db0::FlatStore::find_resident(unsigned long, tomo_db0::Slice) const
+CHANGED db0/src/cmd/geo.o 0 554 tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const
+CHANGED db0/src/cmd/geo.o 2954 3151 void std::__introsort_loop<__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, __gnu_cxx::__normal_iterator<tomo_db0::ZsetEntry*, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > >, long, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::cmd_geoadd<false>(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::ZsetEntry const&, tomo_db0::ZsetEntry const&)#1}>)
+CHANGED db0/src/cmd/t_set.o 3126 2858 void tomo_db0::(anonymous namespace)::cmd_sscan<false>(tomo_db0::Shard&, tomo_db0::Op&)
+CHANGED db0/src/cmd/t_set.o 115 115 void tomo_db0::(anonymous namespace)::cmd_sscan<false>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+CHANGED db0/src/cmd/t_set.o 3126 2858 void tomo_db0::(anonymous namespace)::cmd_sscan<true>(tomo_db0::Shard&, tomo_db0::Op&)
+CHANGED db0/src/cmd/t_set.o 117 115 void tomo_db0::(anonymous namespace)::cmd_sscan<true>(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]
+CHANGED db0/src/cmd/t_set.o 306 595 tomo_db0::CollectionRef::replace_compact(tomo_db0::Compact&&)
+CHANGED db0/src/cmd/t_set.o 0 19 tomo_db0::SetMemberTable::scan(unsigned long, unsigned long, std::vector<unsigned int, std::allocator<unsigned int> >&) const
+CHANGED db0/src/cmd/t_set.o 0 1072 tomo_db0::SetMemberTable::scan(unsigned long, unsigned long, std::vector<unsigned int, std::allocator<unsigned int> >&) const [clone .part.0]
+CHANGED db0/src/cmd/t_zset.o 1030 0 tomo_db0::zset_owner_replace(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > const&, long, bool)
+CHANGED db0/src/cmd/t_zset.o 0 1126 tomo_db0::zset_owner_replace(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > const&, long, unsigned char, bool, bool)
+CHANGED db0/src/cmd/t_zset.o 0 16 tomo_db0::zset_owner_replace(tomo_db0::Shard&, tomo_db0::Slice, unsigned long, bool, std::vector<tomo_db0::ZsetEntry, std::allocator<tomo_db0::ZsetEntry> > const&, long, unsigned char, bool, bool)::{lambda(tomo_db0::KvObj*, unsigned char)#1}::operator()(tomo_db0::KvObj*, unsigned char) const [clone .isra.0]
+CHANGED src/cmd/geo.o 4682 4821 void tomo::(anonymous namespace)::cmd_geoadd<false>(tomo::Shard&, tomo::Op&)
+CHANGED src/cmd/geo.o 243 250 void tomo::(anonymous namespace)::cmd_geoadd<false>(tomo::Shard&, tomo::Op&) [clone .cold]
+CHANGED src/cmd/geo.o 4873 5051 void tomo::(anonymous namespace)::cmd_geoadd<true>(tomo::Shard&, tomo::Op&)
+CHANGED src/cmd/geo.o 235 246 void tomo::(anonymous namespace)::cmd_geoadd<true>(tomo::Shard&, tomo::Op&) [clone .cold]
+CHANGED src/cmd/geo.o 3380 3368 tomo::(anonymous namespace)::parse_search(tomo::Op&, tomo::(anonymous namespace)::GeoSearchOptions&) [clone .constprop.0]
+CHANGED src/cmd/geo.o 483 633 tomo::(anonymous namespace)::reply_coordinate(tomo::Op&, double)
+CHANGED src/cmd/geo.o 1932 1904 tomo::(anonymous namespace)::reply_geo_results(tomo::Op&, tomo::(anonymous namespace)::GeoSearchOptions const&, std::vector<tomo::(anonymous namespace)::GeoResult, std::allocator<tomo::(anonymous namespace)::GeoResult> > const&)
+CHANGED src/cmd/geo.o 1290 1719 tomo::cmd_geo_xshard_local(tomo::Shard&, tomo::Op&, bool)
+CHANGED src/cmd/geo.o 0 108 tomo::FlatStore::find_resident(unsigned long, tomo::Slice) const
+CHANGED src/cmd/geo.o 0 630 tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const
+CHANGED src/cmd/geo.o 1858 1661 void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo::ZsetEntry*, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > >, long, tomo::ZsetEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >&)::{lambda(tomo::ZsetEntry const&, tomo::ZsetEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::ZsetEntry*, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > >, long, long, tomo::ZsetEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> >&)::{lambda(tomo::ZsetEntry const&, tomo::ZsetEntry const&)#1}>)
+CHANGED src/cmd/geo.o 2742 2451 void std::__insertion_sort<__gnu_cxx::__normal_iterator<tomo::ZsetEntry*, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::cmd_geoadd<false>(tomo::Shard&, tomo::Op&)::{lambda(tomo::ZsetEntry const&, tomo::ZsetEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo::ZsetEntry*, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > >, __gnu_cxx::__normal_iterator<tomo::ZsetEntry*, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > >, __gnu_cxx::__ops::_Iter_comp_iter<tomo::(anonymous namespace)::cmd_geoadd<false>(tomo::Shard&, tomo::Op&)::{lambda(tomo::ZsetEntry const&, tomo::ZsetEntry const&)#1}>)
+CHANGED src/cmd/t_set.o 3713 3395 void tomo::(anonymous namespace)::cmd_sscan<false>(tomo::Shard&, tomo::Op&)
+CHANGED src/cmd/t_set.o 117 117 void tomo::(anonymous namespace)::cmd_sscan<false>(tomo::Shard&, tomo::Op&) [clone .cold]
+CHANGED src/cmd/t_set.o 3713 3395 void tomo::(anonymous namespace)::cmd_sscan<true>(tomo::Shard&, tomo::Op&)
+CHANGED src/cmd/t_set.o 117 117 void tomo::(anonymous namespace)::cmd_sscan<true>(tomo::Shard&, tomo::Op&) [clone .cold]
+CHANGED src/cmd/t_set.o 806 774 tomo::FlatStore::find(unsigned long, tomo::Slice)
+CHANGED src/cmd/t_set.o 0 19 tomo::SetMemberTable::scan(unsigned long, unsigned long, std::vector<unsigned int, std::allocator<unsigned int> >&) const
+CHANGED src/cmd/t_set.o 0 1072 tomo::SetMemberTable::scan(unsigned long, unsigned long, std::vector<unsigned int, std::allocator<unsigned int> >&) const [clone .part.0]
+CHANGED src/cmd/t_zset.o 941 0 tomo::zset_owner_replace(tomo::Shard&, tomo::Slice, unsigned long, bool, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, long, bool)
+CHANGED src/cmd/t_zset.o 0 1053 tomo::zset_owner_replace(tomo::Shard&, tomo::Slice, unsigned long, bool, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, long, unsigned char, bool, bool)
+CHANGED src/cmd/t_zset.o 0 16 tomo::zset_owner_replace(tomo::Shard&, tomo::Slice, unsigned long, bool, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > const&, long, unsigned char, bool, bool)::{lambda(tomo::KvObj*, unsigned char)#1}::operator()(tomo::KvObj*, unsigned char) const [clone .isra.0]
+Protected bodies: 52; equal: 52; unexpected changes: 3
+DISCARDED db0/src/cmd/geo.o tomo_db0::FlatStore::find_in(int, unsigned long, tomo_db0::Slice) const retained equal copy: db0/src/main.o
+DISCARDED db0/src/cmd/t_set.o tomo_db0::CollectionRef::replace_compact(tomo_db0::Compact&&) retained equal copy: db0/src/cmd/t_list.o
+DISCARDED src/cmd/geo.o tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const retained equal copy: src/main.o
+DISCARDED src/cmd/t_set.o tomo::FlatStore::find(unsigned long, tomo::Slice) retained equal copy: src/cmd/xshard.o
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-cdfix/tests/cdfix_checks.py", line 244, in <module>
+    (build if args.action == "build" else compare)(args)
+  File "/home/user/Projects/cx-cdfix/tests/cdfix_checks.py", line 232, in compare
+    assert not unexpected, "unexpected changed body; see audit output"
+           ^^^^^^^^^^^^^^
+AssertionError: unexpected changed body; see audit output

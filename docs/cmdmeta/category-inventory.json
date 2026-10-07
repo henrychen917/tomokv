@@ -1,0 +1,351 @@
+{
+  "keyspace": {
+    "pre": 33,
+    "post": 33,
+    "redis": 34,
+    "removed": [],
+    "redis_only": [
+      "migrate"
+    ],
+    "tomokv_only": []
+  },
+  "read": {
+    "pre": 91,
+    "post": 91,
+    "redis": 91,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "write": {
+    "pre": 113,
+    "post": 113,
+    "redis": 113,
+    "removed": [],
+    "redis_only": [
+      "migrate"
+    ],
+    "tomokv_only": [
+      "flip"
+    ]
+  },
+  "set": {
+    "pre": 19,
+    "post": 19,
+    "redis": 19,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "sortedset": {
+    "pre": 37,
+    "post": 37,
+    "redis": 37,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "list": {
+    "pre": 24,
+    "post": 24,
+    "redis": 24,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "hash": {
+    "pre": 25,
+    "post": 25,
+    "redis": 25,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "string": {
+    "pre": 22,
+    "post": 22,
+    "redis": 22,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "bitmap": {
+    "pre": 7,
+    "post": 7,
+    "redis": 7,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "hyperloglog": {
+    "pre": 5,
+    "post": 5,
+    "redis": 5,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "geo": {
+    "pre": 10,
+    "post": 10,
+    "redis": 10,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "stream": {
+    "pre": 23,
+    "post": 23,
+    "redis": 23,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "pubsub": {
+    "pre": 13,
+    "post": 13,
+    "redis": 13,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "admin": {
+    "pre": 63,
+    "post": 42,
+    "redis": 65,
+    "removed": [
+      "cluster|addslots",
+      "cluster|addslotsrange",
+      "cluster|bumpepoch",
+      "cluster|count-failure-reports",
+      "cluster|delslots",
+      "cluster|delslotsrange",
+      "cluster|failover",
+      "cluster|flushslots",
+      "cluster|forget",
+      "cluster|meet",
+      "cluster|replicas",
+      "cluster|replicate",
+      "cluster|reset",
+      "cluster|saveconfig",
+      "cluster|set-config-epoch",
+      "cluster|setslot",
+      "cluster|slaves",
+      "module|list",
+      "module|load",
+      "module|loadex",
+      "module|unload"
+    ],
+    "redis_only": [
+      "cluster|addslots",
+      "cluster|addslotsrange",
+      "cluster|bumpepoch",
+      "cluster|count-failure-reports",
+      "cluster|delslots",
+      "cluster|delslotsrange",
+      "cluster|failover",
+      "cluster|flushslots",
+      "cluster|forget",
+      "cluster|meet",
+      "cluster|replicas",
+      "cluster|replicate",
+      "cluster|reset",
+      "cluster|saveconfig",
+      "cluster|set-config-epoch",
+      "cluster|setslot",
+      "cluster|slaves",
+      "module|list",
+      "module|load",
+      "module|loadex",
+      "module|unload",
+      "psync",
+      "replconf",
+      "sync"
+    ],
+    "tomokv_only": [
+      "flip"
+    ]
+  },
+  "fast": {
+    "pre": 108,
+    "post": 108,
+    "redis": 108,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "slow": {
+    "pre": 266,
+    "post": 233,
+    "redis": 271,
+    "removed": [
+      "cluster|addslots",
+      "cluster|addslotsrange",
+      "cluster|bumpepoch",
+      "cluster|count-failure-reports",
+      "cluster|countkeysinslot",
+      "cluster|delslots",
+      "cluster|delslotsrange",
+      "cluster|failover",
+      "cluster|flushslots",
+      "cluster|forget",
+      "cluster|getkeysinslot",
+      "cluster|help",
+      "cluster|info",
+      "cluster|keyslot",
+      "cluster|links",
+      "cluster|meet",
+      "cluster|myid",
+      "cluster|myshardid",
+      "cluster|nodes",
+      "cluster|replicas",
+      "cluster|replicate",
+      "cluster|reset",
+      "cluster|saveconfig",
+      "cluster|set-config-epoch",
+      "cluster|setslot",
+      "cluster|shards",
+      "cluster|slaves",
+      "cluster|slots",
+      "module|help",
+      "module|list",
+      "module|load",
+      "module|loadex",
+      "module|unload"
+    ],
+    "redis_only": [
+      "cluster",
+      "cluster|addslots",
+      "cluster|addslotsrange",
+      "cluster|bumpepoch",
+      "cluster|count-failure-reports",
+      "cluster|countkeysinslot",
+      "cluster|delslots",
+      "cluster|delslotsrange",
+      "cluster|failover",
+      "cluster|flushslots",
+      "cluster|forget",
+      "cluster|getkeysinslot",
+      "cluster|help",
+      "cluster|info",
+      "cluster|keyslot",
+      "cluster|links",
+      "cluster|meet",
+      "cluster|myid",
+      "cluster|myshardid",
+      "cluster|nodes",
+      "cluster|replicas",
+      "cluster|replicate",
+      "cluster|reset",
+      "cluster|saveconfig",
+      "cluster|set-config-epoch",
+      "cluster|setslot",
+      "cluster|shards",
+      "cluster|slaves",
+      "cluster|slots",
+      "migrate",
+      "module",
+      "module|help",
+      "module|list",
+      "module|load",
+      "module|loadex",
+      "module|unload",
+      "psync",
+      "replconf",
+      "sync"
+    ],
+    "tomokv_only": [
+      "flip"
+    ]
+  },
+  "blocking": {
+    "pre": 12,
+    "post": 12,
+    "redis": 12,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "dangerous": {
+    "pre": 72,
+    "post": 51,
+    "redis": 75,
+    "removed": [
+      "cluster|addslots",
+      "cluster|addslotsrange",
+      "cluster|bumpepoch",
+      "cluster|count-failure-reports",
+      "cluster|delslots",
+      "cluster|delslotsrange",
+      "cluster|failover",
+      "cluster|flushslots",
+      "cluster|forget",
+      "cluster|meet",
+      "cluster|replicas",
+      "cluster|replicate",
+      "cluster|reset",
+      "cluster|saveconfig",
+      "cluster|set-config-epoch",
+      "cluster|setslot",
+      "cluster|slaves",
+      "module|list",
+      "module|load",
+      "module|loadex",
+      "module|unload"
+    ],
+    "redis_only": [
+      "cluster|addslots",
+      "cluster|addslotsrange",
+      "cluster|bumpepoch",
+      "cluster|count-failure-reports",
+      "cluster|delslots",
+      "cluster|delslotsrange",
+      "cluster|failover",
+      "cluster|flushslots",
+      "cluster|forget",
+      "cluster|meet",
+      "cluster|replicas",
+      "cluster|replicate",
+      "cluster|reset",
+      "cluster|saveconfig",
+      "cluster|set-config-epoch",
+      "cluster|setslot",
+      "cluster|slaves",
+      "migrate",
+      "module|list",
+      "module|load",
+      "module|loadex",
+      "module|unload",
+      "psync",
+      "replconf",
+      "sync"
+    ],
+    "tomokv_only": [
+      "flip"
+    ]
+  },
+  "connection": {
+    "pre": 38,
+    "post": 38,
+    "redis": 38,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "transaction": {
+    "pre": 5,
+    "post": 5,
+    "redis": 5,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  },
+  "scripting": {
+    "pre": 21,
+    "post": 21,
+    "redis": 21,
+    "removed": [],
+    "redis_only": [],
+    "tomokv_only": []
+  }
+}

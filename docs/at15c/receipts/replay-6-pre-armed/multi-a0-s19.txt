@@ -1,0 +1,5 @@
+  AT15: INFO sections, DEBUG SLEEP, controls and admin replies agree (RESP2)
+  DIFF op 29 ['EXEC']
+    target: b'*4\r\n$45\r\n# Keyspace\r\ndb0:keys=24,expires=0,avg_ttl=0\r\n\r\n:1\r\n$45\r\n# Keyspace\r\ndb0:keys=23,expires=0,avg_ttl=0\r\n\r\n+OK\r\n'
+    oracle: b'*4\r\n$57\r\n# Keyspace\r\ndb0:keys=24,expires=0,avg_ttl=0,subexpiry=0\r\n\r\n:1\r\n$57\r\n# Keyspace\r\ndb0:keys=23,expires=0,avg_ttl=0,subexpiry=0\r\n\r\n+OK\r\n'
+DIFFER multi: 4272 ops, 1 diffs, 0 clock tolerances -> FAIL

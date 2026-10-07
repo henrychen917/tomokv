@@ -122,16 +122,18 @@ class LiveHarnessTests(unittest.TestCase):
 
     def test_readiness_deadline_reports_log_and_reaps_child(self):
         proc = self.launch_fixture(None, 'listener never became ready')
-        self.conn.side_effect = ConnectionRefusedError('not listening')
-        with patch.object(live.time, 'monotonic',
-                          side_effect=[0, 0, live.WORKERS * live.SHUTDOWN]), \
-                patch.object(live.time, 'sleep'), self.assertRaises(live.BootFailure) as caught:
+        with patch.object(live, 'wait_ready', side_effect=TimeoutError(
+                'server readiness timed out: ready banner absent')) as ready, \
+                self.assertRaises(live.BootFailure) as caught:
             live.run_case('/unused/tomokv', arguments(output=self.output), 'idle', 'no-wake', 0)
         message = str(caught.exception)
-        self.assertIn('boot deadline expired', message)
+        self.assertIn('server readiness timed out', message)
         self.assertIn('listener never became ready', message)
         self.assert_boot_receipt('no-wake', message)
-        self.conn.assert_called_once()
+        self.conn.assert_not_called()
+        ready.assert_called_once_with('127.0.0.1', 7900,
+                                      timeout=live.WORKERS * live.SHUTDOWN, process=proc,
+                                      log_path=self.output / 'idle-no-wake-0/server.log')
         proc.kill.assert_called_once()
         proc.wait.assert_called_once_with(timeout=live.SHUTDOWN)
 

@@ -1,0 +1,7 @@
+normalizer self-checks PASS
+DIFF 077.diff tomo::xshard_execute(tomo::Task const&, tomo::Shard&, tomo::Op&, unsigned int)
+DIFF 138.diff tomo_db0::xshard_execute(tomo_db0::Task const&, tomo_db0::Shard&, tomo_db0::Op&, unsigned int)
+DIFF 356.diff void tomo_db0::IoLoop::run_loop<false, false, false, false, (unsigned char)0, false>()
+DIFF 361.diff void tomo_db0::IoLoop::run_loop<false, false, true, false, (unsigned char)0, false>()
+DIFF 376.diff void tomo_db0::IoLoop::run_loop<true, false, false, false, (unsigned char)0, false>()
+strict_noop=False: 391/396 identical bodies

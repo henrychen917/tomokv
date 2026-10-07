@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "part": "split-0",
+  "run": "iteration:gate-run.zkfX3A",
+  "seeds": [
+    7,
+    19,
+    20,
+    23,
+    21,
+    22
+  ],
+  "comparisons": 252,
+  "complete": true
+}

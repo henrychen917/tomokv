@@ -1,0 +1,5 @@
+$ taskset -c 112-127 ./build/atomic-survivors-unit admission
+PASS atomic collapse: all (both arms; mode/database variants exercised)
+PASS admission
+
+exit=0

@@ -58,15 +58,20 @@ boot() {   # boot <extra server args...>
     if [ -n "$(listener_pids)" ]; then echo "  FAIL listener already on $PORT"; return 1; fi
     taskset -c "$CORES" "$BIN" --port "$PORT" --enable-debug-command yes "$@" \
         >"$LOG/server.log" 2>&1 &
-    local i pids
-    for i in $(seq 1 120); do
-        pids=$(listener_pids)
-        [ -n "$pids" ] && break
-        sleep 0.1
-    done
+    local owned_pid=$! pids
+    PYTHONPATH="$HERE" python3 - "$PORT" "$LOG/server.log" "$owned_pid" <<'PYREADY'
+import sys
+from _lib import wait_ready
+ready = wait_ready('127.0.0.1', int(sys.argv[1]), timeout=12,
+                   log_path=sys.argv[2], pid=int(sys.argv[3]))
+ready.close()
+PYREADY
+    [ "$?" = 0 ] || return 1
     pids=$(listener_pids)
-    if [ -z "$pids" ]; then echo "  FAIL server did not come up on $PORT"; return 1; fi
-    if [ "$(echo "$pids" | wc -l)" -ne 1 ]; then echo "  FAIL $(echo "$pids" | wc -l) listeners on $PORT"; return 1; fi
+    if [ "$pids" != "$owned_pid" ]; then
+        echo "  FAIL readiness listener PID differs from owned child $owned_pid: $pids"
+        return 1
+    fi
     return 0
 }
 

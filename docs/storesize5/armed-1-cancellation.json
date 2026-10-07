@@ -1,0 +1,7 @@
+{
+  "pid": 3641950,
+  "command": "/bin/bash tests/differ_gate.sh /home/user/Projects/cx-storesize/build/storesize5/POST/tomokv 17899 17900 112-119 6:2 ",
+  "signal": "SIGTERM",
+  "timestamp": 1791290245.1547425,
+  "reason": "Preserve already-failed armed-1 attempt and replay the full lifetime within the 75-minute lane budget"
+}
