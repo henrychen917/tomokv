@@ -27,7 +27,7 @@ def main():
     p.add_argument('--deltas', nargs='+', type=int, required=True)
     p.add_argument('--jobs', type=int, default=8)
     a = p.parse_args()
-    out = ROOT / 'build/deadcode2/budgets'
+    out = ROOT / 'build/deadcode2/budgets-release'
     out.mkdir(parents=True, exist_ok=True)
     baseline = {name: inventory(ROOT / 'build/deadcode2/PRE' / name) for name in a.objects}
     tree = subprocess.check_output(['git', 'rev-parse', 'HEAD:src'], text=True).strip()
@@ -42,7 +42,7 @@ def main():
             data = json.loads(receipt.read_text())
             assert data['tree'] == tree, 'stale budget trial'
             return data
-        cmd = ['g++', '-std=c++20', '-O2', '-g0', '-Wall', '-Wextra', '-march=native',
+        cmd = ['g++', '-std=c++20', '-O2', '-g', '-Wall', '-Wextra', '-march=native',
                '-pthread', '-DTOMO_JEMALLOC', '--param', 'inline-unit-growth=0', '--param',
                f'large-unit-insns={budget}', '-I.']
         if name.startswith('db0/'):

@@ -97,7 +97,7 @@ $(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-in
 # for every ordinary command and storage body; tools/psfix_artifacts.py audits both variants.
 $(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31261
 # CC18 composes with PS5/PS7: 31582 retains all ordinary merged-PRE handlers.
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31582
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31582 --param max-inline-insns-auto=16
 $(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14554
 $(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14427
 # CD6/CD13 add cold scan/replacement work. Preserve GCC 13's ordinary set/zset bodies in
