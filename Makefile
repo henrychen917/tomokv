@@ -102,7 +102,7 @@ $(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-in
 $(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31290
 # SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31630 --param max-inline-insns-auto=16
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31632 --param max-inline-insns-auto=16
 # SV9 publishes save status only on cold completion/abort edges.
 $(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14584
 $(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14457

@@ -2257,6 +2257,17 @@ void cmd_info(Shard&, Op& op) {
                 alloc_backend(), static_cast<unsigned long long>(allocated),
                 static_cast<unsigned long long>(resident),
                 static_cast<unsigned long long>(block_cache));
+#if TOMO_SINGLE_DATABASE
+        // Keep each compiler variant's ordinary inlining decisions: the db0
+        // renderer remains here; the multi-DB renderer is in info_stats.cc.
+        const ScriptStats scripting = script_stats();
+        const FunctionStats functions = function_stats();
+        appendf(body, "number_of_cached_scripts:%llu\r\nnumber_of_functions:%llu\r\n"
+                      "number_of_libraries:%llu\r\n",
+                static_cast<unsigned long long>(scripting.cached_scripts),
+                static_cast<unsigned long long>(functions.functions),
+                static_cast<unsigned long long>(functions.libraries));
+#endif
         info_stats_memory_fields(body, allocated, resident);
     }
     if (info_section(op, "PERSISTENCE")) {
