@@ -1,0 +1,140 @@
+C++ shutdown controls
+Command/result output, all CPUs within 112-127
+POST-join: PASS
+POST-rewrite: PASS
+POST-retire: PASS
+POST-boundary: PASS
+POST-hang: PASS
+POST-hung-worker: PASS
+POST-retire-hang: PASS
+PRE-join: PASS
+PRE-rewrite: PASS
+PRE-retire: PASS
+PRE-save-2s-sigterm-131072: PASS
+PRE-finalize-2s-sigterm-131072: PASS
+POST-save-2s-sigterm-131072: PASS
+POST-bgsave-2s-sigterm-131072: PASS
+POST-finalize-2s-sigterm-131072: PASS
+POST-save-2s-sigterm-131072-4-uring: PASS
+POST-save-2s-nosave-131072: PASS
+POST-bgsave-2s-nosave-131072: PASS
+POST-finalize-2s-nosave-131072: PASS
+POST-save-2s-nosave-131072-4-uring: PASS
+POST-save-2s-shutdown-131072: PASS
+POST-bgsave-2s-shutdown-131072: PASS
+POST-finalize-2s-shutdown-131072: PASS
+POST-save-2s-shutdown-131072-4-uring: PASS
+POST-save-2s-nosave-32-1: PASS
+POST-save-2s-nosave-32-2: PASS
+POST-save-2s-nosave-32-3: PASS
+POST-save-1s-sigterm-131072: PASS
+POST-bgsave-1s-sigterm-131072: PASS
+POST-finalize-1s-sigterm-131072: PASS
+POST-save-1s-sigterm-131072-4-uring: PASS
+POST-save-1s-nosave-131072: PASS
+POST-bgsave-1s-nosave-131072: PASS
+POST-finalize-1s-nosave-131072: PASS
+POST-save-1s-nosave-131072-4-uring: PASS
+POST-save-1s-shutdown-131072: PASS
+POST-bgsave-1s-shutdown-131072: PASS
+POST-finalize-1s-shutdown-131072: PASS
+POST-save-1s-shutdown-131072-4-uring: PASS
+POST-save-1s-nosave-32-1: PASS
+POST-save-1s-nosave-32-2: PASS
+POST-save-1s-nosave-32-3: PASS
+shutsave serverless controls: 42/42 PASS; value_bytes=536870912
+
+Existing shutdown policy unit
+Command/result output, all CPUs within 112-127
+Errors trying to SHUTDOWN: injected snapshot refusal; server remains running
+Errors trying to SHUTDOWN: shutdown timed out waiting for snapshot/placement; retry SHUTDOWN; server remains running
+shutdown saving owner 2s phase=0 completion: PASS
+shutdown saving owner 1s phase=0 completion: PASS
+shutdown saving owner 2s phase=1 timeout/retry: PASS
+shutdown saving owner 1s phase=1 timeout/retry: PASS
+shutdown saving owner 2s phase=2 timeout/retry: PASS
+shutdown saving owner 1s phase=2 timeout/retry: PASS
+shutdown saving owner 2s phase=3 timeout/retry: PASS
+shutdown saving owner 1s phase=3 timeout/retry: PASS
+shutdown saving owner 2s phase=4 timeout/retry: PASS
+shutdown saving owner 1s phase=4 timeout/retry: PASS
+shutdown saving owner 2s phase=0 BGSAVE/signal: PASS
+shutdown saving owner 1s phase=0 BGSAVE/signal: PASS
+shutdown policy, signal handoff, failure and owner hold: PASS
+
+Differential harness controls
+Command/result output, all CPUs within 112-127
+test_absolute_probes_and_all_non_ttl_replies_stay_exact (__main__.DeadlineReplies.test_absolute_probes_and_all_non_ttl_replies_stay_exact) ... ok
+test_all_setter_forms_record_generator_intent (__main__.DeadlineReplies.test_all_setter_forms_record_generator_intent) ... ok
+test_boundaries_and_negative_control_reject_identical_wrong_ttls (__main__.DeadlineReplies.test_boundaries_and_negative_control_reject_identical_wrong_ttls) ... ok
+test_conditional_writes_persistence_renames_copies_and_resets (__main__.DeadlineReplies.test_conditional_writes_persistence_renames_copies_and_resets) ... ok
+test_dbsize_rejects_equal_noninteger_replies (__main__.DeadlineReplies.test_dbsize_rejects_equal_noninteger_replies) ... ok
+test_each_server_needs_its_own_bound (__main__.DeadlineReplies.test_each_server_needs_its_own_bound) ... ok
+test_hash_deadline_mutations_keep_field_identity_and_order (__main__.DeadlineReplies.test_hash_deadline_mutations_keep_field_identity_and_order) ... ok
+test_independent_seven_ms_cuts_and_equal_positive_replies (__main__.DeadlineReplies.test_independent_seven_ms_cuts_and_equal_positive_replies) ... ok
+test_missing_deadline_or_timing_is_a_failure_even_for_equal_replies (__main__.DeadlineReplies.test_missing_deadline_or_timing_is_a_failure_even_for_equal_replies) ... ok
+test_multidb_exact_positions_and_publication_fail_independently (__main__.DeadlineReplies.test_multidb_exact_positions_and_publication_fail_independently) ... ok
+test_old_thirty_second_save_timeout_fails_the_real_psfix_sequence (__main__.DeadlineReplies.test_old_thirty_second_save_timeout_fails_the_real_psfix_sequence) ... ok
+test_psfix_background_save_collision_is_a_harness_error_on_either_peer (__main__.DeadlineReplies.test_psfix_background_save_collision_is_a_harness_error_on_either_peer) ... ok
+test_psfix_missing_or_invalid_busy_field_never_means_idle (__main__.DeadlineReplies.test_psfix_missing_or_invalid_busy_field_never_means_idle) ... ok
+test_psfix_slow_info_is_bounded_and_restores_socket_timeout (__main__.DeadlineReplies.test_psfix_slow_info_is_bounded_and_restores_socket_timeout) ... ok
+test_psfix_stuck_peer_has_one_ten_second_deadline (__main__.DeadlineReplies.test_psfix_stuck_peer_has_one_ten_second_deadline) ... ok
+test_psfix_waits_for_both_peers_in_the_same_poll (__main__.DeadlineReplies.test_psfix_waits_for_both_peers_in_the_same_poll) ... ok
+test_real_pipeline_checks_equal_wrong_replies_and_preserves_failure_exit (__main__.DeadlineReplies.test_real_pipeline_checks_equal_wrong_replies_and_preserves_failure_exit) ... ok
+test_real_psfix_sequence_barriers_and_save_counts_stay_exact (__main__.DeadlineReplies.test_real_psfix_sequence_barriers_and_save_counts_stay_exact) ... ok
+test_relative_setter_uncertainty_is_measured_separately (__main__.DeadlineReplies.test_relative_setter_uncertainty_is_measured_separately) ... ok
+test_request_timing_starts_before_send_and_ends_after_each_read (__main__.DeadlineReplies.test_request_timing_starts_before_send_and_ends_after_each_read) ... ok
+test_seconds_rounding_is_inverted_not_tolerated (__main__.DeadlineReplies.test_seconds_rounding_is_inverted_not_tolerated) ... ok
+test_sentinels_zero_and_arrays (__main__.DeadlineReplies.test_sentinels_zero_and_arrays) ... ok
+test_wire_types_and_lengths_do_not_receive_deadline_relaxation (__main__.DeadlineReplies.test_wire_types_and_lengths_do_not_receive_deadline_relaxation) ... ok
+test_wiredump_tracks_relative_restore_and_keeps_absolute_probes_exact (__main__.DeadlineReplies.test_wiredump_tracks_relative_restore_and_keeps_absolute_probes_exact) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 5.455s
+
+OK
+
+PSFIX harness controls
+Command/result output, all CPUs within 112-127
+test_existing_long_timeout_is_preserved_and_bad_size_rejected (__main__.SaveLoadProof.test_existing_long_timeout_is_preserved_and_bad_size_rejected) ... ok
+test_large_save_budgets_cover_four_saves_and_restore_on_error (__main__.SaveLoadProof.test_large_save_budgets_cover_four_saves_and_restore_on_error) ... ok
+test_load_off_preserves_plain_differential_failures (__main__.SaveLoadProof.test_load_off_preserves_plain_differential_failures) ... ok
+test_missing_or_one_peer_barrier_is_not_a_proof (__main__.SaveLoadProof.test_missing_or_one_peer_barrier_is_not_a_proof) ... ok
+test_process_budget_includes_larger_peers_memory_overhead (__main__.SaveLoadProof.test_process_budget_includes_larger_peers_memory_overhead) ... ok
+test_requires_two_live_jobs_and_the_real_before_save_wait (__main__.SaveLoadProof.test_requires_two_live_jobs_and_the_real_before_save_wait) ... ok
+test_short_save_never_starts_a_vacuous_leg (__main__.SaveLoadProof.test_short_save_never_starts_a_vacuous_leg) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.006s
+
+OK
+
+Live-driver serverless guards
+Command/result output, all CPUs within 112-127
+test_clean_pre_exit_does_not_prove_the_old_bug (__main__.ShutdownWitness.test_clean_pre_exit_does_not_prove_the_old_bug) ... ok
+test_completed_save_without_a_partial_window_is_not_a_pass (__main__.ShutdownWitness.test_completed_save_without_a_partial_window_is_not_a_pass) ... ok
+test_exact_pre_fatal_with_a_written_prefix_is_accepted (__main__.ShutdownWitness.test_exact_pre_fatal_with_a_written_prefix_is_accepted) ... ok
+test_missing_window_rearms_on_three_distinct_fresh_directories_then_fails (__main__.ShutdownWitness.test_missing_window_rearms_on_three_distinct_fresh_directories_then_fails) ... ok
+test_pre_requires_the_specific_worker_shutdown_fatal (__main__.ShutdownWitness.test_pre_requires_the_specific_worker_shutdown_fatal) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.007s
+
+OK
+
+Final source checks
+Python compilation: PASS
+git diff --check: PASS
+build/tomokv vs POST cmp: PASS
+Grep audit: 210 raw/decoded/JSON/escaped spellings
+
+PAD A PRE-behavior control
+fatal: database worker shutdown timeout elapsed_ms=3000 grace_bound_ms=900 stage=0 request=0
+  participant=t0 os_tid=141239 ack=0 exited=0
+  participant=t1 os_tid=141239 ack=0 exited=0
+  participant=t2 os_tid=141239 ack=0 exited=0
+  participant=t3 os_tid=141239 ack=0 exited=0
+  participant=t4 os_tid=141239 ack=0 exited=0
+  participant=t5 os_tid=141239 ack=0 exited=0
+  participant=t6 os_tid=141239 ack=0 exited=0
+  participant=t7 os_tid=141239 ack=0 exited=0
