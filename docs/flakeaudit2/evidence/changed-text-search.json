@@ -1,0 +1,35 @@
+{
+  "command": [
+    "grep",
+    "-RFnI",
+    "--exclude-dir=__pycache__",
+    "-f",
+    "/home/user/Projects/cx-flakeaudit2/docs/flakeaudit2/evidence/changed-text-patterns.txt",
+    "tests/"
+  ],
+  "rc": 0,
+  "changed_files": [
+    "tests/aclreply.py",
+    "tests/concur.py",
+    "tests/differ.py",
+    "tests/edgetime.py",
+    "tests/flip_ttl.py",
+    "tests/flip_under_load.py",
+    "tests/flipctl.py",
+    "tests/flipctl_test.py",
+    "tests/gate.sh",
+    "tests/hexpire.py",
+    "tests/multi_exec.py",
+    "tests/multires.py",
+    "tests/notify.py",
+    "tests/pipeorder.py",
+    "tests/pushtear.py",
+    "tests/ryow.py",
+    "tests/torture.py",
+    "tests/tracking.py"
+  ],
+  "patterns": 1485,
+  "matched_source_lines": 34729,
+  "full_output_sha256": "49c4449245da3f5e4869075ab69b3a0abcb0449408c90f7437d0103992501d18",
+  "method": "Changed source text plus decoded, unicode_escape, JSON-escaped and repr literal spellings; old and new versions."
+}
