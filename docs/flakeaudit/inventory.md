@@ -6,7 +6,7 @@ The 517 public row occurrences below match the independently maintained ledger f
 
 DETERMINISTIC: forced by hook/construction. BOUNDED-WITNESSED: requires the actual state before a finite bound. LOTTERY: residual timing, probabilistic coverage, or sampled performance/clock stimulus; see the mechanism and remaining-work register.
 
-DETERMINISTIC: **228**; BOUNDED-WITNESSED: **175**; LOTTERY: **114**. Total: **517**.
+DETERMINISTIC: **229**; BOUNDED-WITNESSED: **175**; LOTTERY: **113**. Total: **517**.
 
 | # | Row | Script:line (and gate declaration) | Class | Stimulus / residual mechanism |
 |---:|---|---|---|---|
@@ -128,7 +128,7 @@ DETERMINISTIC: **228**; BOUNDED-WITNESSED: **175**; LOTTERY: **114**. Total: **5
 | 116 | read-only resize fused read-local=0 | tests/rehash_readonly.py:1; tests/gate.sh:1812 | BOUNDED-WITNESSED | Constructs an unfinished resize, then requires read-only progress to drain before the bound. |
 | 117 | read-only resize fused read-local=1 | tests/rehash_readonly.py:1; tests/gate.sh:1812 | BOUNDED-WITNESSED | Constructs an unfinished resize, then requires read-only progress to drain before the bound. |
 | 118 | torture battery | tests/torture.py:109; tests/gate.sh:1838 | LOTTERY | RST churn sends unacknowledged writes then requires at least one landed key after a fixed sleep. Needs a witness that the intended in-flight workload reached execution before disconnect. |
-| 119 | RYOW battery | tests/ryow.py:64; tests/gate.sh:1841 | LOTTERY | Contention workers have no started/work witness and swallow exceptions; fixed 2000 foreground rounds can miss contention. Needs acknowledged background progress on the intended keys. |
+| 119 | RYOW battery | tests/ryow.py:64; tests/gate.sh:1841 | LOTTERY | Background writers use rk* while the foreground uses own*, have no progress witness, and swallow errors. The advertised same-key contention never occurs. Needs an explicit conflict schedule with a valid RYOW oracle, since conflicting overwrites are allowed. |
 | 120 | ACL category runtime table | tests/acl_categories.py:1; tests/gate.sh:1844 | DETERMINISTIC | Build/generated-table equality; no concurrent stimulus or sampled clock oracle. |
 | 121 | ACL LOAD/SAVE no-file errors | tests/acl.py:256; tests/gate.sh:1847 | DETERMINISTIC | No-file ACL LOAD/SAVE error selection returns before blocked revocation cases. |
 | 122 | idle loop ceiling (LBSIGNALS, 1s) | tests/spinprobe.py:31; tests/gate.sh:1853 | LOTTERY | 200ms assumes partial frame reached parser; one-second counter ceilings and three sampled attempts can race wakes. Needs parser-park publication plus bounded stationary counter windows. |
@@ -447,7 +447,7 @@ DETERMINISTIC: **228**; BOUNDED-WITNESSED: **175**; LOTTERY: **114**. Total: **5
 | 435 | reject invalid tls-ciphers | tests/gate.sh:2688 | DETERMINISTIC | Build/generated metadata, explicit grammar refusal, or synchronous DEBUG arm/disarm replies. |
 | 436 | TLS client-auth yes matrix | tests/tls.py:288; tests/gate.sh:2717 | DETERMINISTIC | Certificate generation or complete auth handshakes; full partial-handshake timing legs are not selected. |
 | 437 | TLS yes shutdown invariants | tests/gate.sh:2722 | BOUNDED-WITNESSED | Observed boot/drain/transport state and required positive counters; bounded process completion, no sleep-only acceptance. |
-| 438 | TLS client-auth optional matrix | tests/tls.py:288; tests/gate.sh:2729 | LOTTERY | Full partial-handshake/teardown legs assume progress after sleeps; auth-only selections are classified separately. Needs explicit handshake/teardown witnesses. |
+| 438 | TLS client-auth optional matrix | tests/tls.py:288; tests/gate.sh:2729 | DETERMINISTIC | Certificate generation or complete auth handshakes; full partial-handshake timing legs are not selected. |
 | 439 | kTLS TLS 1.2 engaged live (default boot) | tests/gate.sh:2736 | LOTTERY | Single recv after 400ms must contain the complete INFO field; TCP fragmentation can hide the gauge. Needs a framed RESP read, preserving the positive gauge assertion. |
 | 440 | TLS 1.3 KeyUpdate survives (NET2) | tests/ktls_keyupdate.cc:1; tests/gate.sh:2752 | BOUNDED-WITNESSED | Complete SSL command/reply and explicit KeyUpdate path counters; bounded drain/handshake progress. |
 | 441 | TLS 1.3 userspace KeyUpdate survives (NET2) | tests/ktls_keyupdate.cc:1; tests/gate.sh:2758 | BOUNDED-WITNESSED | Complete SSL command/reply and explicit KeyUpdate path counters; bounded drain/handshake progress. |
@@ -511,7 +511,7 @@ DETERMINISTIC: **228**; BOUNDED-WITNESSED: **175**; LOTTERY: **114**. Total: **5
 | 499 | multidb (2s, read-local 1, atomic 1) SWAPDB serial order | tests/multidb_serial.py:1; tests/gate.sh:3093 | DETERMINISTIC | Serializability checker uses invocation/response intervals and exact data; self-test uses synthetic histories. |
 | 500 | tailgen client-lb outstanding bound | tests/tailgen_stall.py:1; tests/gate_history.py:1; tests/gate.sh:3349 | BOUNDED-WITNESSED | Held fake-server responses and outstanding-work witnesses; missing stalled client fails. |
 | 501 | torture under ASAN | tests/torture.py:109; tests/gate.sh:2845 | LOTTERY | RST churn sends unacknowledged writes then requires at least one landed key after a fixed sleep. Needs a witness that the intended in-flight workload reached execution before disconnect. |
-| 502 | RYOW under ASAN | tests/ryow.py:64; tests/gate.sh:2848 | LOTTERY | Contention workers have no started/work witness and swallow exceptions; fixed 2000 foreground rounds can miss contention. Needs acknowledged background progress on the intended keys. |
+| 502 | RYOW under ASAN | tests/ryow.py:64; tests/gate.sh:2848 | LOTTERY | Background writers use rk* while the foreground uses own*, have no progress witness, and swallow errors. The advertised same-key contention never occurs. Needs an explicit conflict schedule with a valid RYOW oracle, since conflicting overwrites are allowed. |
 | 503 | atomic torn/window under ASAN | tests/atomic_torn.py:289; tests/gate.sh:2853 | LOTTERY | Directed GT14 RENAME hold is retained; other fixed-duration negative hammers/cut counters and the release promotion budget remain timing stimuli. Needs directed controls for those separate windows. |
 | 504 | atomic RYOW under ASAN | tests/atomic_ryow.py:238; tests/gate.sh:2863 | LOTTERY | 24-command pipeline/serial timing comparison and fixed-duration positive worker floors. Needs a held/acknowledged overlap plus independent performance instrument. |
 | 505 | ASAN clean | tests/gate.sh:2870 | BOUNDED-WITNESSED | Observed boot/drain/transport state and required positive counters; bounded process completion, no sleep-only acceptance. |
@@ -524,6 +524,57 @@ DETERMINISTIC: **228**; BOUNDED-WITNESSED: **175**; LOTTERY: **114**. Total: **5
 | 512 | read-local ownership-invariant build | tests/parbuild.sh:1; tests/gate.sh:2939 | DETERMINISTIC | Build/generated-table equality; no concurrent stimulus or sampled clock oracle. |
 | 513 | armed block-cache churn battery | tests/rlcache_churn.py:211; tests/gate.sh:2956 | BOUNDED-WITNESSED | Bounded observation of cache/hit/move counters; hot keys are re-armed after owner movement and missing movement fails (GT13 retained). |
 | 514 | read-local ownership invariants | tests/gate.sh:2962 | BOUNDED-WITNESSED | Observed boot/drain/transport state and required positive counters; bounded process completion, no sleep-only acceptance. |
-| 515 | Redis 7.4 differential matrix | tests/differ_gate.sh:1; tests/gate.sh:865 | LOTTERY | 44-suite matrix retains s6fix finite random-key coverage; see differential expansion below. Landed TTL deadline windows, RESETSTAT rebasing and both-peer SAVE barriers are retained. |
-| 516 | Redis 7.4 differential matrix (armed fused + read-local) | tests/differ_gate.sh:1; tests/gate.sh:865 | LOTTERY | 44-suite matrix retains s6fix finite random-key coverage; see differential expansion below. Landed TTL deadline windows, RESETSTAT rebasing and both-peer SAVE barriers are retained. |
+| 515 | Redis 7.4 differential matrix | tests/differ_gate.sh:1; tests/gate.sh:865 | LOTTERY | 44-suite matrix retains s6fix random-key coverage, WAIT deadline sampling, stream auto-ID wall-clock allowance and climon push idle delimiters; see differential expansion below. Landed TTL windows, RESETSTAT rebasing and both-peer SAVE barriers are retained. |
+| 516 | Redis 7.4 differential matrix (armed fused + read-local) | tests/differ_gate.sh:1; tests/gate.sh:865 | LOTTERY | 44-suite matrix retains s6fix random-key coverage, WAIT deadline sampling, stream auto-ID wall-clock allowance and climon push idle delimiters; see differential expansion below. Landed TTL windows, RESETSTAT rebasing and both-peer SAVE barriers are retained. |
 | 517 | glob/scan grammar parity vs Redis 7.4 | tests/globcase.py:1; tests/gate.sh:2993 | DETERMINISTIC | Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave. |
+
+## Differential expansion (inside rows 515 and 516)
+
+These are the 44 discovered suites, one per line, not additional public gate rows. The gate runs each selected seed in RESP2 and RESP3, both atomic settings. The split-only mode-equivalence child uses exact streams across 32 configurations and the bounded feature witnesses (tests/mode_equivalence.py:294). Differential RESETSTAT high-water sampling is at tests/differ_gate.sh:259; the multidb stream returns to DB 0 and flushes data before its publication witness. Ordinary namespace cleanup does not restore arbitrary server configuration; the fanout wrapper explicitly carries the intended intset limit into the next atomic part.
+
+| Suite | Source | Class | Stimulus / residual mechanism |
+|---|---|---|---|
+| string | tests/differ.py:426 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| list | tests/differ.py:521 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| set | tests/differ.py:484 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| zset | tests/differ.py:692 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| hash | tests/differ.py:1176 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| hexpire | tests/differ.py:1228 | DETERMINISTIC | Absolute deadlines are far future or already past; TTL replies are checked against each peer's measured request interval. |
+| edgetime | tests/differ.py:1369 | DETERMINISTIC | Past/far-future deadlines and independent request/reply clock brackets; no cross-peer fixed TTL tolerance. |
+| xshard | tests/differ.py:1578 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| xmove | tests/differ.py:2016 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| bitmap | tests/differ.py:2517 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| hll | tests/differ.py:2676 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| bitfield | tests/differ.py:2603 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| cgaps | tests/differ.py:2746 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| stream | tests/differ.py:554 | LOTTERY | Auto-ID property at differ.py:6664 samples wall time once, then requires every ID within 10 seconds; needs per-request server-clock bracketing. |
+| script | tests/differ.py:2876 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| streamgrp | tests/differ.py:625 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| zsetops | tests/differ.py:737 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| geo | tests/differ.py:793 | BOUNDED-WITNESSED | Fresh-key bounded LFU arming, required metadata deltas, and observed cross-owner placement; policy and budget are restored. |
+| doubles | tests/differ.py:1011 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| scan | tests/differ.py:1852 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| multi | tests/differ.py:1915 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| edgeenc | tests/differ.py:2101 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| edgeproto | tests/differ.py:3394 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| cmdgap | tests/differ.py:3866 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| cmdgap2 | tests/differ.py:3923 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| sort | tests/differ.py:3645 | DETERMINISTIC | Actual generated BY/GET keys must cross known owners before the exact reply stream is run; fused geometry explicitly excludes this suite. |
+| servertail | tests/differ.py:2337 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| arity | tests/differ.py:2472 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| storeorder | tests/differ.py:1660 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| infofix | tests/differ.py:6032 | BOUNDED-WITNESSED | Every RESETSTAT establishes a new baseline; positive/idle published rates and final reset are bounded required observations. |
+| multidb | tests/differ.py:6091 | BOUNDED-WITNESSED | SWAPDB and SELECT are ordered; final SELECT 0/FLUSHALL creates an exact nonzero population, followed by required published-DBSIZE convergence. |
+| blocking | tests/differ.py:3088 | LOTTERY | Collection blockers use required parked/drained gauges, but WAIT 200 sleeps 50 ms and then requires wire silence. Descheduling across the deadline fails; needs fresh deadline arming. |
+| pubsub | tests/differ.py:4153 | BOUNDED-WITNESSED | Subscription acknowledgements precede exact delivery/count assertions and bounded receipt; absent delivery fails. |
+| fanout | tests/differ.py:4513 | BOUNDED-WITNESSED | Acknowledged subscriber topology precedes required per-peer delivery; socket bounds are liveness bounds. |
+| spubsub | tests/differ.py:4021 | BOUNDED-WITNESSED | Shard subscription acknowledgements precede the exact publish and delivery oracle; missing messages fail. |
+| notify | tests/differ.py:4689 | BOUNDED-WITNESSED | Acknowledged subscription and config precede the exact expected event count; no live expiry-window lottery in this selection. |
+| wiredump | tests/differ.py:4786 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| climon | tests/differ.py:4968 | LOTTERY | Tracking pushes at differ.py:5076 are delimited by 1.2-second/200-ms idle reads, not an ordered fence; late pushes can move between legs. Needs a delivery fence. |
+| compatintro | tests/differ.py:5151 | BOUNDED-WITNESSED | Directed introspection/config/ACL cases and exact notification counts; expiry sleep follows an armed 1-ms deadline and has no upper live-window condition. |
+| aclsel | tests/differ.py:5762 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| cmdmeta | tests/differ.py:5522 | DETERMINISTIC | Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness. |
+| s6fix | tests/differ.py:5864 | LOTTERY | Each peer must cover all 200 keys in 20,000 RANDOMKEY draws; finite sampling cannot guarantee coverage. Needs a controllable sampler witness. |
+| ccfix | tests/_differ_ccfix.py:1 | BOUNDED-WITNESSED | Source/predecessor overlap is held by existing DEBUG controls and requires pending/read counters; notification batches are fenced; RESETSTAT baselines are refreshed. |
+| psfix | tests/differ.py:6193 | BOUNDED-WITNESSED | Both peers must report save idle in the same bounded polling round before each SAVE/BGSAVE and counter baseline; exact +1 counters retained. |

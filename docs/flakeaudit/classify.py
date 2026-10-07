@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import re
 import build_inventory
+import differ_reviews
 
 ROOT = build_inventory.ROOT
 REVIEWS = {}
@@ -49,7 +50,7 @@ review("wb_policy.py", D, "", "Gate's 22 standard trace fixtures force policy cl
 review("atomfix.py", D, "ATOMIC-DIRECT-DEFER",
        "Owner-pass defer forces scan/order overlap; positive hold counter and unarmed control are mandatory.")
 review("ryow.py", L, "def hammer():",
-       "Contention workers have no started/work witness and swallow exceptions; fixed 2000 foreground rounds can miss contention. Needs acknowledged background progress on the intended keys.")
+       "Background writers use rk* while the foreground uses own*, have no progress witness, and swallow errors. The advertised same-key contention never occurs. Needs an explicit conflict schedule with a valid RYOW oracle, since conflicting overwrites are allowed.")
 review("pipeorder.py", L, "", "400 pipeline rolls do not prove the hazardous owner order occurred. Needs a held predecessor plus a window witness, preserving every value assertion.")
 review("shutdown_persist.py", B, "",
        "Owned process, acknowledged writes, exact snapshot recovery and bounded shutdown witnesses.")
@@ -125,7 +126,7 @@ review("tls.py", L, "time.sleep", "Full partial-handshake/teardown legs assume p
 review("xacct.py", L, "stream_ratio <", "Median stream/EXEC elapsed ratios are correctness-row thresholds; DEBUG reload itself is safe with all placement controllers disabled in debug jobs. Needs matched performance/work instrumentation.")
 review("xmove.py", L, "time.sleep(0.0005)", "Atomic-off assumes a 500k-entry LREM stays in flight across two 500us sleeps, plus size-ratio timing. Reuse ATOMIC-OFF-HOP-HOLD for the LMOVE family after checking hook coverage; preserve the edge oracle.")
 review("expireindex.py borrow_registry.py xshard_dispatch_scale.sh", L, "", "Size-scaling decisions use sampled elapsed-time ratios/rates. Needs a matched workload/stationarity measurement protocol without relaxing existing bounds.")
-review("differ_gate.sh", L, "", "44-suite matrix retains s6fix finite random-key coverage; see differential expansion below. Landed TTL deadline windows, RESETSTAT rebasing and both-peer SAVE barriers are retained.")
+review("differ_gate.sh", L, "", "44-suite matrix retains s6fix random-key coverage, WAIT deadline sampling, stream auto-ID wall-clock allowance and climon push idle delimiters; see differential expansion below. Landed TTL windows, RESETSTAT rebasing and both-peer SAVE barriers are retained.")
 
 
 def classify(row):
@@ -136,7 +137,7 @@ def classify(row):
         return D, "Invalid fused plus flip-auto combination is rejected at boot by construction."
     if site in (2185, 2195):
         return B, "Concurrent-cut mode now requires save idle before BGSAVE, exact acceptance, and bounded completion; reload verifies the exact saved cut."
-    if site in (2663, 2717, 2727):
+    if site in (2663, 2717, 2729):
         return D, "Certificate generation or complete auth handshakes; full partial-handshake timing legs are not selected."
     if site == 1287:
         return D, "Serverless fence state driver plus synthetic live-harness negative controls."
@@ -197,9 +198,25 @@ def main():
         cells = [str(row["ordinal"]), row["name"], "; ".join(row["sites"]),
                  row["class"], row["mechanism"]]
         output.append("| " + " | ".join(cell.replace("|", "\\|") for cell in cells) + " |")
+    differential = differ_reviews.reviews(ROOT)
+    output += ["", "## Differential expansion (inside rows 515 and 516)", "",
+               "These are the 44 discovered suites, one per line, not additional public gate rows. "
+               "The gate runs each selected seed in RESP2 and RESP3, both atomic settings. "
+               "The split-only mode-equivalence child uses exact streams across 32 configurations "
+               "and the bounded feature witnesses (tests/mode_equivalence.py:294). "
+               "Differential RESETSTAT high-water sampling is at tests/differ_gate.sh:259; "
+               "the multidb stream returns to DB 0 and flushes data before its publication witness. "
+               "Ordinary namespace cleanup does not restore arbitrary server configuration; "
+               "the fanout wrapper explicitly carries the intended intset limit into the next atomic part.", "",
+               "| Suite | Source | Class | Stimulus / residual mechanism |",
+               "|---|---|---|---|"]
+    for suite in differential:
+        output.append("| " + " | ".join(suite[k].replace("|", "\\|")
+                                       for k in ("name", "site", "kind", "mechanism")) + " |")
     (ROOT / "docs/flakeaudit/inventory.md").write_text("\n".join(output) + "\n")
     (ROOT / "docs/flakeaudit/rows.json").write_text(json.dumps(rows, indent=2) + "\n")
     (ROOT / "docs/flakeaudit/source-reviews.json").write_text(json.dumps(REVIEWS, indent=2, sort_keys=True) + "\n")
+    (ROOT / "docs/flakeaudit/differ-reviews.json").write_text(json.dumps(differential, indent=2) + "\n")
     print(dict(counts))
 
 

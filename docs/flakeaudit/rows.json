@@ -1759,7 +1759,7 @@
     ],
     "ordinal": 119,
     "class": "LOTTERY",
-    "mechanism": "Contention workers have no started/work witness and swallow exceptions; fixed 2000 foreground rounds can miss contention. Needs acknowledged background progress on the intended keys.",
+    "mechanism": "Background writers use rk* while the foreground uses own*, have no progress witness, and swallow errors. The advertised same-key contention never occurs. Needs an explicit conflict schedule with a valid RYOW oracle, since conflicting overwrites are allowed.",
     "sites": [
       "tests/ryow.py:64",
       "tests/gate.sh:1841"
@@ -6450,8 +6450,8 @@
       "tests/tls.py"
     ],
     "ordinal": 438,
-    "class": "LOTTERY",
-    "mechanism": "Full partial-handshake/teardown legs assume progress after sleeps; auth-only selections are classified separately. Needs explicit handshake/teardown witnesses.",
+    "class": "DETERMINISTIC",
+    "mechanism": "Certificate generation or complete auth handshakes; full partial-handshake timing legs are not selected.",
     "sites": [
       "tests/tls.py:288",
       "tests/gate.sh:2729"
@@ -7437,7 +7437,7 @@
     ],
     "ordinal": 502,
     "class": "LOTTERY",
-    "mechanism": "Contention workers have no started/work witness and swallow exceptions; fixed 2000 foreground rounds can miss contention. Needs acknowledged background progress on the intended keys.",
+    "mechanism": "Background writers use rk* while the foreground uses own*, have no progress witness, and swallow errors. The advertised same-key contention never occurs. Needs an explicit conflict schedule with a valid RYOW oracle, since conflicting overwrites are allowed.",
     "sites": [
       "tests/ryow.py:64",
       "tests/gate.sh:2848"
@@ -7620,7 +7620,7 @@
     ],
     "ordinal": 515,
     "class": "LOTTERY",
-    "mechanism": "44-suite matrix retains s6fix finite random-key coverage; see differential expansion below. Landed TTL deadline windows, RESETSTAT rebasing and both-peer SAVE barriers are retained.",
+    "mechanism": "44-suite matrix retains s6fix random-key coverage, WAIT deadline sampling, stream auto-ID wall-clock allowance and climon push idle delimiters; see differential expansion below. Landed TTL windows, RESETSTAT rebasing and both-peer SAVE barriers are retained.",
     "sites": [
       "tests/differ_gate.sh:1",
       "tests/gate.sh:865"
@@ -7635,7 +7635,7 @@
     ],
     "ordinal": 516,
     "class": "LOTTERY",
-    "mechanism": "44-suite matrix retains s6fix finite random-key coverage; see differential expansion below. Landed TTL deadline windows, RESETSTAT rebasing and both-peer SAVE barriers are retained.",
+    "mechanism": "44-suite matrix retains s6fix random-key coverage, WAIT deadline sampling, stream auto-ID wall-clock allowance and climon push idle delimiters; see differential expansion below. Landed TTL windows, RESETSTAT rebasing and both-peer SAVE barriers are retained.",
     "sites": [
       "tests/differ_gate.sh:1",
       "tests/gate.sh:865"

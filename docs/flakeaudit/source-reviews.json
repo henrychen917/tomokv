@@ -207,7 +207,7 @@
   "tests/differ_gate.sh": {
     "kind": "LOTTERY",
     "line": 1,
-    "mechanism": "44-suite matrix retains s6fix finite random-key coverage; see differential expansion below. Landed TTL deadline windows, RESETSTAT rebasing and both-peer SAVE barriers are retained."
+    "mechanism": "44-suite matrix retains s6fix random-key coverage, WAIT deadline sampling, stream auto-ID wall-clock allowance and climon push idle delimiters; see differential expansion below. Landed TTL windows, RESETSTAT rebasing and both-peer SAVE barriers are retained."
   },
   "tests/docs_drift.py": {
     "kind": "DETERMINISTIC",
@@ -592,7 +592,7 @@
   "tests/ryow.py": {
     "kind": "LOTTERY",
     "line": 64,
-    "mechanism": "Contention workers have no started/work witness and swallow exceptions; fixed 2000 foreground rounds can miss contention. Needs acknowledged background progress on the intended keys."
+    "mechanism": "Background writers use rk* while the foreground uses own*, have no progress witness, and swallow errors. The advertised same-key contention never occurs. Needs an explicit conflict schedule with a valid RYOW oracle, since conflicting overwrites are allowed."
   },
   "tests/s6.py": {
     "kind": "LOTTERY",
