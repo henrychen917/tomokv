@@ -35,8 +35,11 @@ including ordinary parse/dispatch in main, genthread, rl2s and reorder:
 
 This lane also tried a pure duplicate verdict only inside the armed feed, first
 through `acl_check_queued` in that feed, then through an isolated overload in the
-ACL TU. The first complete audit retained 4,826 of 4,828 ordinary bodies, rather
-than all 4,828. Later isolated trials also changed unrelated emitted bodies.
+ACL TU. The first complete audit found 53 unexplained changed climon bodies (28 multi-DB,
+25 db0). Its two changed ordinary bodies were INFO-related db0 HELLO compiler
+changes, subsequently fixed in the retained delivery; they are not attributed to
+the MONITOR predicate. Later isolated ACL trials also changed unrelated emitted
+bodies.
 Receipts are in [the trial proof](../infofields2/top-level-proof/summary.json) and
 [the subsequent body audit](../infofields2/rejected-armed-body-audit.txt).
 No global authorization reorder was retained. No runtime selector was added.
