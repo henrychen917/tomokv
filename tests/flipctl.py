@@ -597,8 +597,8 @@ def main():
             control, "one rate-surge trigger on the invariant workload",
             rate_surge_triggered, 30)
         if int(surged["flipctl_rate_collapse_triggers"]) != collapse_before or \
-                int(surged["flipctl_surge_triggers"]) != surge_base + 1 or \
-                int(surged["flipctl_collapse_triggers"]) != collapse_before:
+                int(surged["flipctl_rate_surge_triggers"]) != surge_base + 1 or \
+                int(surged["flipctl_rate_collapse_triggers"]) != collapse_before:
             raise AssertionError("rate trigger counters/aliases disagree on surge: %r" % surged)
 
         def rate_surge_reanchored(row):
