@@ -333,8 +333,14 @@ elif SECTION == "lruclock":
     ev = info_num("evicted_keys")
     hot = alive("lruold", hot_indices)
     cold = alive("lruold", range(150, 3000, 57))
-    check("lruclock: eviction FIRED", ev and ev > 0, "evicted=%s" % ev)
     live = int(cmd("DBSIZE", "NOW")[1:])
+    # INFO's eviction counter is batch-published. With all writes acknowledged, NOW is an
+    # exact census; wait for the counter to catch up to that identity without any count slack.
+    deadline = time.monotonic() + 1
+    while live + (ev or 0) + ooms != 9002 and time.monotonic() < deadline:
+        time.sleep(.001)
+        ev = info_num("evicted_keys")
+    check("lruclock: eviction FIRED", ev and ev > 0, "evicted=%s" % ev)
     check("lruclock: every pressure write is accounted for", live + (ev or 0) + ooms == 9002,
           "live=%d evicted=%s rejected=%d offered=9002" % (live, ev, ooms))
     print("  lruclock: sampled survival (diagnostic): untouched %d/50, re-read %d/50" % (cold, hot))

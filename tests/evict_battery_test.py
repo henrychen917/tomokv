@@ -10,7 +10,8 @@ from unittest.mock import Mock
 
 
 class LruClockBattery(unittest.TestCase):
-    def run_section(self, broken_key=None, fallback_attempts=0, clock_advanced=True):
+    def run_section(self, broken_key=None, fallback_attempts=0, clock_advanced=True,
+                    publication_lag=0):
         tree = ast.parse(Path(__file__).with_name('evict_battery.py').read_text())
         section = next(node for node in ast.walk(tree) if isinstance(node, ast.If)
                        and isinstance(node.test, ast.Compare)
@@ -21,6 +22,7 @@ class LruClockBattery(unittest.TestCase):
         lane_hits = pressure = 0
         no_touch = False
         elapsed = [0.0]
+        eviction_polls = 0
         tick = int(clock_advanced)
 
         def cmd(*args):
@@ -66,6 +68,10 @@ class LruClockBattery(unittest.TestCase):
             return 0
 
         def info_num(field):
+            nonlocal eviction_polls
+            if field == 'evicted_keys' and pressure:
+                eviction_polls += 1
+                return 1513 if eviction_polls <= publication_lag else 1514
             return {'read_local': 1, 'read_local_keyspace_hits': lane_hits,
                     'evicted_keys': 1514 if pressure else 0}[field]
 
@@ -107,6 +113,15 @@ class LruClockBattery(unittest.TestCase):
     def test_unchanged_clock_cannot_arm(self):
         with self.assertRaisesRegex(AssertionError, 'never armed in an old bucket'):
             self.run_section(clock_advanced=False)
+
+    def test_eviction_counter_publication_can_lag_but_count_must_converge(self):
+        checks, _ = self.run_section(publication_lag=3)
+        self.assertTrue(all(ok for _, ok in checks), checks)
+
+    def test_one_unaccounted_write_fails_after_bounded_publication_wait(self):
+        checks, _ = self.run_section(publication_lag=10000)
+        failed = [name for name, ok in checks if not ok]
+        self.assertEqual(failed, ['lruclock: every pressure write is accounted for'])
 
 
 if __name__ == '__main__':
