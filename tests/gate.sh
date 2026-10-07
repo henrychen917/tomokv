@@ -2167,7 +2167,7 @@ py tests/debug.py 127.0.0.1 $PORT >$TMPDIR/gate-debug.txt 2>&1 \
 row_begin "typed snapshot round-trip incl stream"
 { redis_cli_expect_ok FLUSHALL \
     && py tests/snap_typed_roundtrip.py $PORT build_save \
-    && redis_cli_expect_ok DEBUG RELOAD \
+    && py tests/debug_load.py 127.0.0.1 "$PORT" RELOAD \
     && py tests/snap_typed_roundtrip.py $PORT verify; } \
     >$TMPDIR/gate-snap-typed.txt 2>&1 \
     && ok "typed snapshot round-trip incl stream" \

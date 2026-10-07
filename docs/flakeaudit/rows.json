@@ -1,0 +1,3953 @@
+[
+  {
+    "name": "release build (+footprint locks)",
+    "job": "release",
+    "gate_line": 1191,
+    "scripts": []
+  },
+  {
+    "name": "ASAN build",
+    "job": "asan",
+    "gate_line": 1218,
+    "scripts": [
+      "tests/parbuild.sh"
+    ]
+  },
+  {
+    "name": "configuration docs match parser",
+    "job": "config_unit",
+    "gate_line": 1228,
+    "scripts": [
+      "tests/docs_drift.py"
+    ]
+  },
+  {
+    "name": "Redis config quoting + mid-value #",
+    "job": "config_unit",
+    "gate_line": 1234,
+    "scripts": [
+      "tests/config_parser_test.cc"
+    ]
+  },
+  {
+    "name": "flip controller model unit",
+    "job": "flip_unit",
+    "gate_line": 1243,
+    "scripts": [
+      "tests/flipctl_unit.cc"
+    ]
+  },
+  {
+    "name": "B+ counting-fingerprint filter unit",
+    "job": "filter_unit",
+    "gate_line": 1252,
+    "scripts": [
+      "tests/foreign_read_safety_test.cc"
+    ]
+  },
+  {
+    "name": "read-local write ring + arming transient unit",
+    "job": "ring_unit",
+    "gate_line": 1269,
+    "scripts": [
+      "tests/read_local_write_ring_unit.cc"
+    ]
+  },
+  {
+    "name": "climon 128-owner delivery mask",
+    "job": "ring_unit",
+    "gate_line": 1276,
+    "scripts": []
+  },
+  {
+    "name": "read-local MGET fence symmetry unit",
+    "job": "ring_unit",
+    "gate_line": 1287,
+    "scripts": [
+      "tests/read_local_lane.py"
+    ]
+  },
+  {
+    "name": "shutdown policy + signal handoff serverless",
+    "job": "climonfix",
+    "gate_line": 1298,
+    "scripts": []
+  },
+  {
+    "name": "shutdown persistence (1s, command)",
+    "job": "climonfix",
+    "gate_line": 1307,
+    "scripts": [
+      "tests/shutdown_persist.py"
+    ]
+  },
+  {
+    "name": "shutdown persistence (1s, sigterm)",
+    "job": "climonfix",
+    "gate_line": 1307,
+    "scripts": [
+      "tests/shutdown_persist.py"
+    ]
+  },
+  {
+    "name": "shutdown persistence (1s, sigint)",
+    "job": "climonfix",
+    "gate_line": 1307,
+    "scripts": [
+      "tests/shutdown_persist.py"
+    ]
+  },
+  {
+    "name": "shutdown persistence (2s, command)",
+    "job": "climonfix",
+    "gate_line": 1307,
+    "scripts": [
+      "tests/shutdown_persist.py"
+    ]
+  },
+  {
+    "name": "shutdown persistence (2s, sigterm)",
+    "job": "climonfix",
+    "gate_line": 1307,
+    "scripts": [
+      "tests/shutdown_persist.py"
+    ]
+  },
+  {
+    "name": "shutdown persistence (2s, sigint)",
+    "job": "climonfix",
+    "gate_line": 1307,
+    "scripts": [
+      "tests/shutdown_persist.py"
+    ]
+  },
+  {
+    "name": "LB sampler exceptional cleanup + negative control",
+    "job": "lbplanner_units",
+    "gate_line": 1319,
+    "scripts": [
+      "tests/connreset_harness_test.py"
+    ]
+  },
+  {
+    "name": "LB monitor plan handoff + negative controls",
+    "job": "lbplanner_units",
+    "gate_line": 1328,
+    "scripts": [
+      "tests/lbplanner_checks.py"
+    ]
+  },
+  {
+    "name": "exbatch publication unit + negative controls",
+    "job": "exbatch_units",
+    "gate_line": 1352,
+    "scripts": [
+      "tests/exbatch_checks.py"
+    ]
+  },
+  {
+    "name": "exbatch watch unit + negative controls",
+    "job": "exbatch_units",
+    "gate_line": 1352,
+    "scripts": [
+      "tests/exbatch_checks.py"
+    ]
+  },
+  {
+    "name": "exbatch metadata unit + negative controls",
+    "job": "exbatch_units",
+    "gate_line": 1352,
+    "scripts": [
+      "tests/exbatch_checks.py"
+    ]
+  },
+  {
+    "name": "exbatch publication and WATCH lifecycle (1s)",
+    "job": "exbatch_live",
+    "gate_line": 1367,
+    "scripts": [
+      "tests/exbatch.py"
+    ]
+  },
+  {
+    "name": "exbatch publication and WATCH lifecycle (2s)",
+    "job": "exbatch_live",
+    "gate_line": 1367,
+    "scripts": [
+      "tests/exbatch.py"
+    ]
+  },
+  {
+    "name": "AOF publication/shutdown witnesses + negative controls",
+    "job": "persistfix_units",
+    "gate_line": 1339,
+    "scripts": [
+      "tests/persistfix_checks.py"
+    ]
+  },
+  {
+    "name": "core concurrency watch",
+    "job": "core_units",
+    "gate_line": 1388,
+    "scripts": []
+  },
+  {
+    "name": "core concurrency lifetime",
+    "job": "core_units",
+    "gate_line": 1388,
+    "scripts": []
+  },
+  {
+    "name": "core concurrency drain",
+    "job": "core_units",
+    "gate_line": 1388,
+    "scripts": []
+  },
+  {
+    "name": "core concurrency route",
+    "job": "core_units",
+    "gate_line": 1388,
+    "scripts": []
+  },
+  {
+    "name": "core concurrency snapshot",
+    "job": "core_units",
+    "gate_line": 1388,
+    "scripts": []
+  },
+  {
+    "name": "core concurrency config",
+    "job": "core_units",
+    "gate_line": 1388,
+    "scripts": []
+  },
+  {
+    "name": "core concurrency notify",
+    "job": "core_units",
+    "gate_line": 1388,
+    "scripts": []
+  },
+  {
+    "name": "read-local topology demotion (1s)",
+    "job": "core_units",
+    "gate_line": 1404,
+    "scripts": []
+  },
+  {
+    "name": "read-local topology demotion (2s)",
+    "job": "core_units",
+    "gate_line": 1404,
+    "scripts": []
+  },
+  {
+    "name": "writeback c12 policy witnesses + negative controls",
+    "job": "wb_rule_units",
+    "gate_line": 1422,
+    "scripts": [
+      "tests/wb_rule_checks.py"
+    ]
+  },
+  {
+    "name": "writeback c12 phase witnesses + negative controls",
+    "job": "wb_rule_units",
+    "gate_line": 1422,
+    "scripts": [
+      "tests/wb_rule_checks.py"
+    ]
+  },
+  {
+    "name": "writeback c12 stages witnesses + negative controls",
+    "job": "wb_rule_units",
+    "gate_line": 1422,
+    "scripts": [
+      "tests/wb_rule_checks.py"
+    ]
+  },
+  {
+    "name": "writeback c12 split-phase witnesses + negative controls",
+    "job": "wb_rule_units",
+    "gate_line": 1422,
+    "scripts": [
+      "tests/wb_rule_checks.py"
+    ]
+  },
+  {
+    "name": "writeback c12 split-overlap witnesses + negative controls",
+    "job": "wb_rule_units",
+    "gate_line": 1422,
+    "scripts": [
+      "tests/wb_rule_checks.py"
+    ]
+  },
+  {
+    "name": "writeback policy clauses witnesses + negative controls",
+    "job": "wbland_units",
+    "gate_line": 1436,
+    "scripts": [
+      "tests/wbland_checks.py"
+    ]
+  },
+  {
+    "name": "writeback policy paths witnesses + negative controls",
+    "job": "wbland_units",
+    "gate_line": 1436,
+    "scripts": [
+      "tests/wbland_checks.py"
+    ]
+  },
+  {
+    "name": "R7 generated envelope parity",
+    "job": "reorder_sync",
+    "gate_line": 1448,
+    "scripts": [
+      "tests/r7shadow_sync.py",
+      "tests/r7shadow_sync_test.py"
+    ]
+  },
+  {
+    "name": "R7 production engagement (both database runtimes)",
+    "job": "reorder_engagement",
+    "gate_line": 1455,
+    "scripts": [
+      "tests/reorder_receipt.py"
+    ]
+  },
+  {
+    "name": "R7 FIFO twin off-path identity + negative controls",
+    "job": "reorder_identity",
+    "gate_line": 1466,
+    "scripts": [
+      "tests/reorder_receipt.py"
+    ]
+  },
+  {
+    "name": "writeback policies 0/1: 22 standard fixtures",
+    "job": "wb_policy",
+    "gate_line": 1474,
+    "scripts": [
+      "tests/wb_policy.py"
+    ]
+  },
+  {
+    "name": "stationary balanced LB holds still (1s)",
+    "job": "lb-stationary-1s",
+    "gate_line": 1503,
+    "scripts": [
+      "tests/lb_stationary.py"
+    ]
+  },
+  {
+    "name": "stationary balanced LB holds still (2s)",
+    "job": "lb-stationary-2s",
+    "gate_line": 1503,
+    "scripts": [
+      "tests/lb_stationary.py"
+    ]
+  },
+  {
+    "name": "epoll directed correctness (1s)",
+    "job": "netio-1s",
+    "gate_line": 1492,
+    "scripts": [
+      "tests/netio.py"
+    ]
+  },
+  {
+    "name": "epoll directed correctness (2s)",
+    "job": "netio-2s",
+    "gate_line": 1492,
+    "scripts": [
+      "tests/netio.py"
+    ]
+  },
+  {
+    "name": "splitlocal template forwarding + old-argument controls",
+    "job": "splitlocal_units",
+    "gate_line": 1513,
+    "scripts": [
+      "tests/splitlocal_checks.py"
+    ]
+  },
+  {
+    "name": "storage unlinked regression",
+    "job": "storage_units",
+    "gate_line": 1534,
+    "scripts": []
+  },
+  {
+    "name": "storage randomkey regression",
+    "job": "storage_units",
+    "gate_line": 1534,
+    "scripts": []
+  },
+  {
+    "name": "storage rehash regression",
+    "job": "storage_units",
+    "gate_line": 1534,
+    "scripts": []
+  },
+  {
+    "name": "storage rollback regression",
+    "job": "storage_units",
+    "gate_line": 1534,
+    "scripts": []
+  },
+  {
+    "name": "storage snapshot-eviction regression",
+    "job": "storage_units",
+    "gate_line": 1534,
+    "scripts": []
+  },
+  {
+    "name": "storage flags regression",
+    "job": "storage_units",
+    "gate_line": 1534,
+    "scripts": []
+  },
+  {
+    "name": "storage aof-eviction regression",
+    "job": "storage_units",
+    "gate_line": 1534,
+    "scripts": []
+  },
+  {
+    "name": "storage intents regression",
+    "job": "storage_units",
+    "gate_line": 1534,
+    "scripts": []
+  },
+  {
+    "name": "storage imported-hash regression",
+    "job": "storage_units",
+    "gate_line": 1534,
+    "scripts": []
+  },
+  {
+    "name": "storage field-index-failure regression",
+    "job": "storage_units",
+    "gate_line": 1534,
+    "scripts": []
+  },
+  {
+    "name": "storage hash-bytes regression",
+    "job": "storage_units",
+    "gate_line": 1534,
+    "scripts": []
+  },
+  {
+    "name": "storage deadline-sidecar regression",
+    "job": "storage_units",
+    "gate_line": 1553,
+    "scripts": []
+  },
+  {
+    "name": "flushfix flush witnesses",
+    "job": "atomic_units",
+    "gate_line": 1564,
+    "scripts": [
+      "tests/flushfix_checks.py"
+    ]
+  },
+  {
+    "name": "flushfix headers witnesses",
+    "job": "atomic_units",
+    "gate_line": 1564,
+    "scripts": [
+      "tests/flushfix_checks.py"
+    ]
+  },
+  {
+    "name": "multidb serverless owners",
+    "job": "atomic_units",
+    "gate_line": 1572,
+    "scripts": [
+      "tests/mdbqsbr_checks.py"
+    ]
+  },
+  {
+    "name": "multidb global namespace boundary",
+    "job": "atomic_units",
+    "gate_line": 1579,
+    "scripts": [
+      "tests/multidb_serial.py"
+    ]
+  },
+  {
+    "name": "storesize published monitoring",
+    "job": "atomic_units",
+    "gate_line": 1587,
+    "scripts": [
+      "tests/storesize_checks.py"
+    ]
+  },
+  {
+    "name": "MULTI admin command replies",
+    "job": "atomic_units",
+    "gate_line": 1594,
+    "scripts": []
+  },
+  {
+    "name": "EXECABORT releases WATCH reservation",
+    "job": "atomic_units",
+    "gate_line": 1607,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivors unit build",
+    "job": "atomic_units",
+    "gate_line": 1629,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: admission",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: closure",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: script_keys",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: rename_overlay",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: write_latest",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: script_apply",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: post_apply_probe",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: lua_conversion",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: watch_parent",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: watch_cycle",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: mset_arity",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: watch_oom",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: lua_lines",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: library_limit",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: stage_flag",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "atomic survivor: instruction_limit",
+    "job": "atomic_units",
+    "gate_line": 1637,
+    "scripts": []
+  },
+  {
+    "name": "netcmd regression build",
+    "job": "netcmd_units",
+    "gate_line": 1649,
+    "scripts": []
+  },
+  {
+    "name": "netcmd streams regression",
+    "job": "netcmd_units",
+    "gate_line": 1654,
+    "scripts": []
+  },
+  {
+    "name": "netcmd zpop regression",
+    "job": "netcmd_units",
+    "gate_line": 1654,
+    "scripts": []
+  },
+  {
+    "name": "netcmd notify-oom regression",
+    "job": "netcmd_units",
+    "gate_line": 1654,
+    "scripts": []
+  },
+  {
+    "name": "netcmd notify-retry regression",
+    "job": "netcmd_units",
+    "gate_line": 1654,
+    "scripts": []
+  },
+  {
+    "name": "netcmd flush regression",
+    "job": "netcmd_units",
+    "gate_line": 1654,
+    "scripts": []
+  },
+  {
+    "name": "netcmd output regression",
+    "job": "netcmd_units",
+    "gate_line": 1654,
+    "scripts": []
+  },
+  {
+    "name": "netcmd pubsub regression",
+    "job": "netcmd_units",
+    "gate_line": 1654,
+    "scripts": []
+  },
+  {
+    "name": "netcmd receive regression",
+    "job": "netcmd_units",
+    "gate_line": 1654,
+    "scripts": []
+  },
+  {
+    "name": "netcmd config regression",
+    "job": "netcmd_units",
+    "gate_line": 1654,
+    "scripts": []
+  },
+  {
+    "name": "netcmd hexpire-oom regression",
+    "job": "netcmd_units",
+    "gate_line": 1654,
+    "scripts": []
+  },
+  {
+    "name": "NET1 serverless bounds + scan + reclamation",
+    "job": "netcmd_units",
+    "gate_line": 1659,
+    "scripts": []
+  },
+  {
+    "name": "NET1 inline + query cap (1s, uring)",
+    "job": "netcap",
+    "gate_line": 1671,
+    "scripts": [
+      "tests/netcap.py"
+    ]
+  },
+  {
+    "name": "NET1 inline + query cap (1s, epoll)",
+    "job": "netcap",
+    "gate_line": 1671,
+    "scripts": [
+      "tests/netcap.py"
+    ]
+  },
+  {
+    "name": "NET1 inline + query cap (2s, uring)",
+    "job": "netcap",
+    "gate_line": 1671,
+    "scripts": [
+      "tests/netcap.py"
+    ]
+  },
+  {
+    "name": "NET1 inline + query cap (2s, epoll)",
+    "job": "netcap",
+    "gate_line": 1671,
+    "scripts": [
+      "tests/netcap.py"
+    ]
+  },
+  {
+    "name": "RESP protocol error compatibility",
+    "job": "respcompat",
+    "gate_line": 1696,
+    "scripts": [
+      "tests/respcompat.py"
+    ]
+  },
+  {
+    "name": "generated Redis 7.4 ACL categories",
+    "job": "acl_metadata",
+    "gate_line": 1751,
+    "scripts": []
+  },
+  {
+    "name": "reject --mode (flag deleted)",
+    "job": "boot_grammar",
+    "gate_line": 1761,
+    "scripts": []
+  },
+  {
+    "name": "reject --spread",
+    "job": "boot_grammar",
+    "gate_line": 1763,
+    "scripts": []
+  },
+  {
+    "name": "reject --nodes",
+    "job": "boot_grammar",
+    "gate_line": 1765,
+    "scripts": []
+  },
+  {
+    "name": "reject 3-part ratio",
+    "job": "boot_grammar",
+    "gate_line": 1767,
+    "scripts": []
+  },
+  {
+    "name": "reject missing conf",
+    "job": "boot_grammar",
+    "gate_line": 1769,
+    "scripts": []
+  },
+  {
+    "name": "reject bad conf key",
+    "job": "boot_grammar",
+    "gate_line": 1772,
+    "scripts": []
+  },
+  {
+    "name": "reject aclfile + conf user lines",
+    "job": "boot_grammar",
+    "gate_line": 1775,
+    "scripts": []
+  },
+  {
+    "name": "cmdmeta covers every registered command",
+    "job": "cmd_metadata",
+    "gate_line": 1785,
+    "scripts": [
+      "tests/cmdmeta_coverage.py"
+    ]
+  },
+  {
+    "name": "waits config publication + admission unit",
+    "job": "wait_units",
+    "gate_line": 1795,
+    "scripts": []
+  },
+  {
+    "name": "reads never wait for retirement quiescence",
+    "job": "wait_units",
+    "gate_line": 1801,
+    "scripts": []
+  },
+  {
+    "name": "read-only resize split read-local=0",
+    "job": "readonly",
+    "gate_line": 1812,
+    "scripts": [
+      "tests/rehash_readonly.py"
+    ]
+  },
+  {
+    "name": "read-only resize split read-local=1",
+    "job": "readonly",
+    "gate_line": 1812,
+    "scripts": [
+      "tests/rehash_readonly.py"
+    ]
+  },
+  {
+    "name": "read-only resize fused read-local=0",
+    "job": "readonly",
+    "gate_line": 1812,
+    "scripts": [
+      "tests/rehash_readonly.py"
+    ]
+  },
+  {
+    "name": "read-only resize fused read-local=1",
+    "job": "readonly",
+    "gate_line": 1812,
+    "scripts": [
+      "tests/rehash_readonly.py"
+    ]
+  },
+  {
+    "name": "torture battery",
+    "job": "release_batteries",
+    "gate_line": 1838,
+    "scripts": [
+      "tests/torture.py"
+    ]
+  },
+  {
+    "name": "RYOW battery",
+    "job": "release_batteries",
+    "gate_line": 1841,
+    "scripts": [
+      "tests/ryow.py"
+    ]
+  },
+  {
+    "name": "ACL category runtime table",
+    "job": "release_batteries",
+    "gate_line": 1844,
+    "scripts": [
+      "tests/acl_categories.py"
+    ]
+  },
+  {
+    "name": "ACL LOAD/SAVE no-file errors",
+    "job": "release_batteries",
+    "gate_line": 1847,
+    "scripts": [
+      "tests/acl.py"
+    ]
+  },
+  {
+    "name": "idle loop ceiling (LBSIGNALS, 1s)",
+    "job": "release_batteries",
+    "gate_line": 1853,
+    "scripts": [
+      "tests/spinprobe.py"
+    ]
+  },
+  {
+    "name": "shutdown invariants (nothing stuck)",
+    "job": "release_batteries",
+    "gate_line": 1859,
+    "scripts": [
+      "tests/lbsignals.py"
+    ]
+  },
+  {
+    "name": "direct-reply fired (direct=N)",
+    "job": "release_batteries",
+    "gate_line": 1862,
+    "scripts": []
+  },
+  {
+    "name": "dispatched==executed (N)",
+    "job": "release_batteries",
+    "gate_line": 1865,
+    "scripts": []
+  },
+  {
+    "name": "atomic torn/window battery",
+    "job": "atomic_batteries",
+    "gate_line": 1875,
+    "scripts": [
+      "tests/atomic_torn.py"
+    ]
+  },
+  {
+    "name": "atomic RYOW/mixed-write battery",
+    "job": "atomic_batteries",
+    "gate_line": 1878,
+    "scripts": [
+      "tests/atomic_ryow.py"
+    ]
+  },
+  {
+    "name": "atomic owner-local hazard battery",
+    "job": "atomic_batteries",
+    "gate_line": 1881,
+    "scripts": [
+      "tests/atomic_hazards.py"
+    ]
+  },
+  {
+    "name": "atomic shutdown invariants",
+    "job": "atomic_batteries",
+    "gate_line": 1886,
+    "scripts": []
+  },
+  {
+    "name": "s6 battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/s6.py"
+    ]
+  },
+  {
+    "name": "multi_exec battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/multi_exec.py"
+    ]
+  },
+  {
+    "name": "blocking battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/blocking.py"
+    ]
+  },
+  {
+    "name": "blockmulti battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/blockmulti.py"
+    ]
+  },
+  {
+    "name": "stream battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/stream.py"
+    ]
+  },
+  {
+    "name": "streamgroups battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/streamgroups.py"
+    ]
+  },
+  {
+    "name": "pubsub battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/pubsub.py"
+    ]
+  },
+  {
+    "name": "lua_scripting battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/lua_scripting.py"
+    ]
+  },
+  {
+    "name": "scriptsurf battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/scriptsurf.py"
+    ]
+  },
+  {
+    "name": "limits battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/limits.py"
+    ]
+  },
+  {
+    "name": "resp3 battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/resp3.py"
+    ]
+  },
+  {
+    "name": "bitfield battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/bitfield.py"
+    ]
+  },
+  {
+    "name": "dumprestore battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/dumprestore.py"
+    ]
+  },
+  {
+    "name": "zsetops battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/zsetops.py"
+    ]
+  },
+  {
+    "name": "geo battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/geo.py"
+    ]
+  },
+  {
+    "name": "climon battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/climon.py"
+    ]
+  },
+  {
+    "name": "climon2 battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/climon2.py"
+    ]
+  },
+  {
+    "name": "tracking battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/tracking.py"
+    ]
+  },
+  {
+    "name": "hexpire battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/hexpire.py"
+    ]
+  },
+  {
+    "name": "servertail battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/servertail.py"
+    ]
+  },
+  {
+    "name": "lcs battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/lcs.py"
+    ]
+  },
+  {
+    "name": "concur battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/concur.py"
+    ]
+  },
+  {
+    "name": "edgeproto battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/edgeproto.py"
+    ]
+  },
+  {
+    "name": "edgeenc battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/edgeenc.py"
+    ]
+  },
+  {
+    "name": "edgetime battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/edgetime.py"
+    ]
+  },
+  {
+    "name": "arity battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/arity.py"
+    ]
+  },
+  {
+    "name": "contarity battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/contarity.py"
+    ]
+  },
+  {
+    "name": "cmdgap battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/cmdgap.py"
+    ]
+  },
+  {
+    "name": "aclsel battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/aclsel.py"
+    ]
+  },
+  {
+    "name": "expwide battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/expwide.py"
+    ]
+  },
+  {
+    "name": "infofix battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/infofix.py"
+    ]
+  },
+  {
+    "name": "pushtear battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/pushtear.py"
+    ]
+  },
+  {
+    "name": "netcmd battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/netcmd.py"
+    ]
+  },
+  {
+    "name": "feature shutdown invariants (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 782,
+    "scripts": []
+  },
+  {
+    "name": "s6 battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/s6.py"
+    ]
+  },
+  {
+    "name": "multi_exec battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/multi_exec.py"
+    ]
+  },
+  {
+    "name": "blocking battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/blocking.py"
+    ]
+  },
+  {
+    "name": "blockmulti battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/blockmulti.py"
+    ]
+  },
+  {
+    "name": "stream battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/stream.py"
+    ]
+  },
+  {
+    "name": "streamgroups battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/streamgroups.py"
+    ]
+  },
+  {
+    "name": "pubsub battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/pubsub.py"
+    ]
+  },
+  {
+    "name": "lua_scripting battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/lua_scripting.py"
+    ]
+  },
+  {
+    "name": "scriptsurf battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/scriptsurf.py"
+    ]
+  },
+  {
+    "name": "limits battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/limits.py"
+    ]
+  },
+  {
+    "name": "resp3 battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/resp3.py"
+    ]
+  },
+  {
+    "name": "bitfield battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/bitfield.py"
+    ]
+  },
+  {
+    "name": "dumprestore battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/dumprestore.py"
+    ]
+  },
+  {
+    "name": "zsetops battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/zsetops.py"
+    ]
+  },
+  {
+    "name": "geo battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/geo.py"
+    ]
+  },
+  {
+    "name": "climon battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/climon.py"
+    ]
+  },
+  {
+    "name": "climon2 battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/climon2.py"
+    ]
+  },
+  {
+    "name": "tracking battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/tracking.py"
+    ]
+  },
+  {
+    "name": "hexpire battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/hexpire.py"
+    ]
+  },
+  {
+    "name": "servertail battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/servertail.py"
+    ]
+  },
+  {
+    "name": "lcs battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/lcs.py"
+    ]
+  },
+  {
+    "name": "concur battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/concur.py"
+    ]
+  },
+  {
+    "name": "edgeproto battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/edgeproto.py"
+    ]
+  },
+  {
+    "name": "edgeenc battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/edgeenc.py"
+    ]
+  },
+  {
+    "name": "edgetime battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/edgetime.py"
+    ]
+  },
+  {
+    "name": "arity battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/arity.py"
+    ]
+  },
+  {
+    "name": "contarity battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/contarity.py"
+    ]
+  },
+  {
+    "name": "cmdgap battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/cmdgap.py"
+    ]
+  },
+  {
+    "name": "aclsel battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/aclsel.py"
+    ]
+  },
+  {
+    "name": "expwide battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/expwide.py"
+    ]
+  },
+  {
+    "name": "infofix battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/infofix.py"
+    ]
+  },
+  {
+    "name": "pushtear battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/pushtear.py"
+    ]
+  },
+  {
+    "name": "netcmd battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/netcmd.py"
+    ]
+  },
+  {
+    "name": "feature shutdown invariants (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 782,
+    "scripts": []
+  },
+  {
+    "name": "fused boot line (atomic 0)",
+    "job": "fused-0",
+    "gate_line": 1894,
+    "scripts": []
+  },
+  {
+    "name": "fused s6 battery (atomic 0)",
+    "job": "fused-0",
+    "gate_line": 1907,
+    "scripts": [
+      "tests/s6.py"
+    ]
+  },
+  {
+    "name": "fused multi_exec battery (atomic 0)",
+    "job": "fused-0",
+    "gate_line": 1907,
+    "scripts": [
+      "tests/multi_exec.py"
+    ]
+  },
+  {
+    "name": "fused edgeproto battery (atomic 0)",
+    "job": "fused-0",
+    "gate_line": 1907,
+    "scripts": [
+      "tests/edgeproto.py"
+    ]
+  },
+  {
+    "name": "fused atomfix battery (atomic 0)",
+    "job": "fused-0",
+    "gate_line": 1907,
+    "scripts": [
+      "tests/atomfix.py"
+    ]
+  },
+  {
+    "name": "fused spinprobe battery (atomic 0)",
+    "job": "fused-0",
+    "gate_line": 1912,
+    "scripts": [
+      "tests/spinprobe.py"
+    ]
+  },
+  {
+    "name": "fused shutdown report (atomic 0)",
+    "job": "fused-0",
+    "gate_line": 1917,
+    "scripts": []
+  },
+  {
+    "name": "fused boot line (atomic 1)",
+    "job": "fused-1",
+    "gate_line": 1894,
+    "scripts": []
+  },
+  {
+    "name": "fused s6 battery (atomic 1)",
+    "job": "fused-1",
+    "gate_line": 1907,
+    "scripts": [
+      "tests/s6.py"
+    ]
+  },
+  {
+    "name": "fused multi_exec battery (atomic 1)",
+    "job": "fused-1",
+    "gate_line": 1907,
+    "scripts": [
+      "tests/multi_exec.py"
+    ]
+  },
+  {
+    "name": "fused edgeproto battery (atomic 1)",
+    "job": "fused-1",
+    "gate_line": 1907,
+    "scripts": [
+      "tests/edgeproto.py"
+    ]
+  },
+  {
+    "name": "fused atomfix battery (atomic 1)",
+    "job": "fused-1",
+    "gate_line": 1907,
+    "scripts": [
+      "tests/atomfix.py"
+    ]
+  },
+  {
+    "name": "fused spinprobe battery (atomic 1)",
+    "job": "fused-1",
+    "gate_line": 1912,
+    "scripts": [
+      "tests/spinprobe.py"
+    ]
+  },
+  {
+    "name": "fused shutdown report (atomic 1)",
+    "job": "fused-1",
+    "gate_line": 1917,
+    "scripts": []
+  },
+  {
+    "name": "fused+armed boot line (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 796,
+    "scripts": []
+  },
+  {
+    "name": "fused+armed s6 battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/s6.py"
+    ]
+  },
+  {
+    "name": "fused+armed multi_exec battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/multi_exec.py"
+    ]
+  },
+  {
+    "name": "fused+armed blocking battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/blocking.py"
+    ]
+  },
+  {
+    "name": "fused+armed blockmulti battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/blockmulti.py"
+    ]
+  },
+  {
+    "name": "fused+armed stream battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/stream.py"
+    ]
+  },
+  {
+    "name": "fused+armed streamgroups battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/streamgroups.py"
+    ]
+  },
+  {
+    "name": "fused+armed pubsub battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/pubsub.py"
+    ]
+  },
+  {
+    "name": "fused+armed lua_scripting battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/lua_scripting.py"
+    ]
+  },
+  {
+    "name": "fused+armed scriptsurf battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/scriptsurf.py"
+    ]
+  },
+  {
+    "name": "fused+armed limits battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/limits.py"
+    ]
+  },
+  {
+    "name": "fused+armed resp3 battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/resp3.py"
+    ]
+  },
+  {
+    "name": "fused+armed bitfield battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/bitfield.py"
+    ]
+  },
+  {
+    "name": "fused+armed dumprestore battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/dumprestore.py"
+    ]
+  },
+  {
+    "name": "fused+armed zsetops battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/zsetops.py"
+    ]
+  },
+  {
+    "name": "fused+armed geo battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/geo.py"
+    ]
+  },
+  {
+    "name": "fused+armed climon battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/climon.py"
+    ]
+  },
+  {
+    "name": "fused+armed climon2 battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/climon2.py"
+    ]
+  },
+  {
+    "name": "fused+armed tracking battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/tracking.py"
+    ]
+  },
+  {
+    "name": "fused+armed hexpire battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/hexpire.py"
+    ]
+  },
+  {
+    "name": "fused+armed servertail battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/servertail.py"
+    ]
+  },
+  {
+    "name": "fused+armed lcs battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/lcs.py"
+    ]
+  },
+  {
+    "name": "fused+armed concur battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/concur.py"
+    ]
+  },
+  {
+    "name": "fused+armed edgeproto battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/edgeproto.py"
+    ]
+  },
+  {
+    "name": "fused+armed edgeenc battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/edgeenc.py"
+    ]
+  },
+  {
+    "name": "fused+armed edgetime battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/edgetime.py"
+    ]
+  },
+  {
+    "name": "fused+armed arity battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/arity.py"
+    ]
+  },
+  {
+    "name": "fused+armed contarity battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/contarity.py"
+    ]
+  },
+  {
+    "name": "fused+armed cmdgap battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/cmdgap.py"
+    ]
+  },
+  {
+    "name": "fused+armed aclsel battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/aclsel.py"
+    ]
+  },
+  {
+    "name": "fused+armed expwide battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/expwide.py"
+    ]
+  },
+  {
+    "name": "fused+armed infofix battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/infofix.py"
+    ]
+  },
+  {
+    "name": "fused+armed pushtear battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/pushtear.py"
+    ]
+  },
+  {
+    "name": "fused+armed netcmd battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/netcmd.py"
+    ]
+  },
+  {
+    "name": "fused+armed shutdown report + lane fired (hits=N, atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 816,
+    "scripts": []
+  },
+  {
+    "name": "fused+armed boot line (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 796,
+    "scripts": []
+  },
+  {
+    "name": "fused+armed s6 battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/s6.py"
+    ]
+  },
+  {
+    "name": "fused+armed multi_exec battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/multi_exec.py"
+    ]
+  },
+  {
+    "name": "fused+armed blocking battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/blocking.py"
+    ]
+  },
+  {
+    "name": "fused+armed blockmulti battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/blockmulti.py"
+    ]
+  },
+  {
+    "name": "fused+armed stream battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/stream.py"
+    ]
+  },
+  {
+    "name": "fused+armed streamgroups battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/streamgroups.py"
+    ]
+  },
+  {
+    "name": "fused+armed pubsub battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/pubsub.py"
+    ]
+  },
+  {
+    "name": "fused+armed lua_scripting battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/lua_scripting.py"
+    ]
+  },
+  {
+    "name": "fused+armed scriptsurf battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/scriptsurf.py"
+    ]
+  },
+  {
+    "name": "fused+armed limits battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/limits.py"
+    ]
+  },
+  {
+    "name": "fused+armed resp3 battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/resp3.py"
+    ]
+  },
+  {
+    "name": "fused+armed bitfield battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/bitfield.py"
+    ]
+  },
+  {
+    "name": "fused+armed dumprestore battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/dumprestore.py"
+    ]
+  },
+  {
+    "name": "fused+armed zsetops battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/zsetops.py"
+    ]
+  },
+  {
+    "name": "fused+armed geo battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/geo.py"
+    ]
+  },
+  {
+    "name": "fused+armed climon battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/climon.py"
+    ]
+  },
+  {
+    "name": "fused+armed climon2 battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/climon2.py"
+    ]
+  },
+  {
+    "name": "fused+armed tracking battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/tracking.py"
+    ]
+  },
+  {
+    "name": "fused+armed hexpire battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/hexpire.py"
+    ]
+  },
+  {
+    "name": "fused+armed servertail battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/servertail.py"
+    ]
+  },
+  {
+    "name": "fused+armed lcs battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/lcs.py"
+    ]
+  },
+  {
+    "name": "fused+armed concur battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/concur.py"
+    ]
+  },
+  {
+    "name": "fused+armed edgeproto battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/edgeproto.py"
+    ]
+  },
+  {
+    "name": "fused+armed edgeenc battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/edgeenc.py"
+    ]
+  },
+  {
+    "name": "fused+armed edgetime battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/edgetime.py"
+    ]
+  },
+  {
+    "name": "fused+armed arity battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/arity.py"
+    ]
+  },
+  {
+    "name": "fused+armed contarity battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/contarity.py"
+    ]
+  },
+  {
+    "name": "fused+armed cmdgap battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/cmdgap.py"
+    ]
+  },
+  {
+    "name": "fused+armed aclsel battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/aclsel.py"
+    ]
+  },
+  {
+    "name": "fused+armed expwide battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/expwide.py"
+    ]
+  },
+  {
+    "name": "fused+armed infofix battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/infofix.py"
+    ]
+  },
+  {
+    "name": "fused+armed pushtear battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/pushtear.py"
+    ]
+  },
+  {
+    "name": "fused+armed netcmd battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/netcmd.py"
+    ]
+  },
+  {
+    "name": "fused+armed shutdown report + lane fired (hits=N, atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 816,
+    "scripts": []
+  },
+  {
+    "name": "eviction lfu battery (split, atomic 0)",
+    "job": "evict-lfu-split-0",
+    "gate_line": 882,
+    "scripts": [
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "eviction lfu battery (fused+armed, atomic 0)",
+    "job": "evict-lfu-armed-0",
+    "gate_line": 882,
+    "scripts": [
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "eviction lruclock battery (split, atomic 0)",
+    "job": "evict-lruclock-split-0",
+    "gate_line": 882,
+    "scripts": [
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "eviction lruclock battery (fused+armed, atomic 0)",
+    "job": "evict-lruclock-armed-0",
+    "gate_line": 882,
+    "scripts": [
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "eviction lfu battery (split, atomic 1)",
+    "job": "evict-lfu-split-1",
+    "gate_line": 882,
+    "scripts": [
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "eviction lfu battery (fused+armed, atomic 1)",
+    "job": "evict-lfu-armed-1",
+    "gate_line": 882,
+    "scripts": [
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "eviction lruclock battery (split, atomic 1)",
+    "job": "evict-lruclock-split-1",
+    "gate_line": 882,
+    "scripts": [
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "eviction lruclock battery (fused+armed, atomic 1)",
+    "job": "evict-lruclock-armed-1",
+    "gate_line": 882,
+    "scripts": [
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "B+ held-group GET/MGET filter battery",
+    "job": "bplus",
+    "gate_line": 1935,
+    "scripts": [
+      "tests/bplus.py"
+    ]
+  },
+  {
+    "name": "read-local lane admission battery",
+    "job": "bplus",
+    "gate_line": 1943,
+    "scripts": [
+      "tests/read_local_lane.py"
+    ]
+  },
+  {
+    "name": "read-local MGET fence battery (1s)",
+    "job": "bplus",
+    "gate_line": 1949,
+    "scripts": [
+      "tests/read_local_lane.py"
+    ]
+  },
+  {
+    "name": "read-local MGET fence battery (2s)",
+    "job": "bplus",
+    "gate_line": 1955,
+    "scripts": [
+      "tests/read_local_lane.py"
+    ]
+  },
+  {
+    "name": "ACL recheck one-reply battery (2s)",
+    "job": "acl_recheck",
+    "gate_line": 1975,
+    "scripts": [
+      "tests/aclreply.py"
+    ]
+  },
+  {
+    "name": "ACL recheck one-reply battery (1s)",
+    "job": "acl_recheck",
+    "gate_line": 1981,
+    "scripts": [
+      "tests/aclreply.py",
+      "tests/sort.py"
+    ]
+  },
+  {
+    "name": "cross-owner SORT battery (atomic 0)",
+    "job": "sort",
+    "gate_line": 1996,
+    "scripts": [
+      "tests/sort.py"
+    ]
+  },
+  {
+    "name": "cross-owner SORT battery (atomic 1)",
+    "job": "sort",
+    "gate_line": 1996,
+    "scripts": [
+      "tests/sort.py"
+    ]
+  },
+  {
+    "name": "plain-write lost updates (atomic 0)",
+    "job": "debug-0",
+    "gate_line": 2014,
+    "scripts": [
+      "tests/atomic_plain.py"
+    ]
+  },
+  {
+    "name": "lbsignals battery (atomic 0)",
+    "job": "debug-0",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/lbsignals.py"
+    ]
+  },
+  {
+    "name": "slowlog battery (atomic 0)",
+    "job": "debug-0",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/slowlog.py"
+    ]
+  },
+  {
+    "name": "atomfix battery (atomic 0)",
+    "job": "debug-0",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/atomfix.py"
+    ]
+  },
+  {
+    "name": "scriptatomic battery (atomic 0)",
+    "job": "debug-0",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/scriptatomic.py"
+    ]
+  },
+  {
+    "name": "execatomic battery (atomic 0)",
+    "job": "debug-0",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/execatomic.py"
+    ]
+  },
+  {
+    "name": "execiso battery (atomic 0)",
+    "job": "debug-0",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/execiso.py"
+    ]
+  },
+  {
+    "name": "execfix battery (atomic 0)",
+    "job": "debug-0",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/execfix.py"
+    ]
+  },
+  {
+    "name": "multires battery (atomic 0)",
+    "job": "debug-0",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/multires.py"
+    ]
+  },
+  {
+    "name": "multirace battery (atomic 0)",
+    "job": "debug-0",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/multirace.py"
+    ]
+  },
+  {
+    "name": "session_monotonic battery (atomic 0)",
+    "job": "debug-0",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/session_monotonic.py"
+    ]
+  },
+  {
+    "name": "xacct battery (atomic 0)",
+    "job": "debug-0",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/xacct.py"
+    ]
+  },
+  {
+    "name": "xmove battery (atomic 0)",
+    "job": "debug-0",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/xmove.py"
+    ]
+  },
+  {
+    "name": "xscript battery (atomic 0)",
+    "job": "debug-0",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/xscript.py"
+    ]
+  },
+  {
+    "name": "plain-write lost updates (atomic 1)",
+    "job": "debug-1",
+    "gate_line": 2014,
+    "scripts": [
+      "tests/atomic_plain.py"
+    ]
+  },
+  {
+    "name": "lbsignals battery (atomic 1)",
+    "job": "debug-1",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/lbsignals.py"
+    ]
+  },
+  {
+    "name": "slowlog battery (atomic 1)",
+    "job": "debug-1",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/slowlog.py"
+    ]
+  },
+  {
+    "name": "atomfix battery (atomic 1)",
+    "job": "debug-1",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/atomfix.py"
+    ]
+  },
+  {
+    "name": "scriptatomic battery (atomic 1)",
+    "job": "debug-1",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/scriptatomic.py"
+    ]
+  },
+  {
+    "name": "execatomic battery (atomic 1)",
+    "job": "debug-1",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/execatomic.py"
+    ]
+  },
+  {
+    "name": "execiso battery (atomic 1)",
+    "job": "debug-1",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/execiso.py"
+    ]
+  },
+  {
+    "name": "execfix battery (atomic 1)",
+    "job": "debug-1",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/execfix.py"
+    ]
+  },
+  {
+    "name": "multires battery (atomic 1)",
+    "job": "debug-1",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/multires.py"
+    ]
+  },
+  {
+    "name": "multirace battery (atomic 1)",
+    "job": "debug-1",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/multirace.py"
+    ]
+  },
+  {
+    "name": "session_monotonic battery (atomic 1)",
+    "job": "debug-1",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/session_monotonic.py"
+    ]
+  },
+  {
+    "name": "xacct battery (atomic 1)",
+    "job": "debug-1",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/xacct.py"
+    ]
+  },
+  {
+    "name": "xmove battery (atomic 1)",
+    "job": "debug-1",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/xmove.py"
+    ]
+  },
+  {
+    "name": "xscript battery (atomic 1)",
+    "job": "debug-1",
+    "gate_line": 2057,
+    "scripts": [
+      "tests/xscript.py"
+    ]
+  },
+  {
+    "name": "xscript limit control",
+    "job": "script_bounds",
+    "gate_line": 2069,
+    "scripts": [
+      "tests/xscript.py"
+    ]
+  },
+  {
+    "name": "xscript window control",
+    "job": "script_bounds",
+    "gate_line": 2069,
+    "scripts": [
+      "tests/xscript.py"
+    ]
+  },
+  {
+    "name": "expire-index growth bound",
+    "job": "efficiency",
+    "gate_line": 2084,
+    "scripts": [
+      "tests/expireindex.py"
+    ]
+  },
+  {
+    "name": "borrow-registry growth bound",
+    "job": "efficiency",
+    "gate_line": 2093,
+    "scripts": [
+      "tests/borrow_registry.py"
+    ]
+  },
+  {
+    "name": "cross-shard dispatch scaling",
+    "job": "efficiency",
+    "gate_line": 2101,
+    "scripts": [
+      "tests/xshard_dispatch_scale.sh"
+    ]
+  },
+  {
+    "name": "DUMP/RESTORE prepare + native SAVE",
+    "job": "dump_restore",
+    "gate_line": 2112,
+    "scripts": [
+      "tests/dumprestore.py"
+    ]
+  },
+  {
+    "name": "DUMP/RESTORE cross-restart round-trip",
+    "job": "dump_restore",
+    "gate_line": 2121,
+    "scripts": [
+      "tests/dumprestore.py"
+    ]
+  },
+  {
+    "name": "DUMP/RESTORE restart shutdown invariants",
+    "job": "dump_restore",
+    "gate_line": 2127,
+    "scripts": []
+  },
+  {
+    "name": "reject bad protected-mode",
+    "job": "auth",
+    "gate_line": 2135,
+    "scripts": []
+  },
+  {
+    "name": "reject bad enable-debug-command",
+    "job": "auth",
+    "gate_line": 2138,
+    "scripts": []
+  },
+  {
+    "name": "AUTH/HELLO/protected state machine",
+    "job": "auth",
+    "gate_line": 2142,
+    "scripts": [
+      "tests/auth.py"
+    ]
+  },
+  {
+    "name": "ACL battery (atomic off)",
+    "job": "auth",
+    "gate_line": 2150,
+    "scripts": [
+      "tests/acl.py"
+    ]
+  },
+  {
+    "name": "ACL battery (atomic on)",
+    "job": "auth",
+    "gate_line": 2157,
+    "scripts": [
+      "tests/acl.py"
+    ]
+  },
+  {
+    "name": "DEBUG toggle/reload battery",
+    "job": "auth",
+    "gate_line": 2164,
+    "scripts": [
+      "tests/debug.py"
+    ]
+  },
+  {
+    "name": "typed snapshot round-trip incl stream",
+    "job": "auth",
+    "gate_line": 2167,
+    "scripts": [
+      "tests/snap_typed_roundtrip.py"
+    ]
+  },
+  {
+    "name": "snapshot concurrent cut (epoll)",
+    "job": "snapshot-epoll",
+    "gate_line": 2185,
+    "scripts": [
+      "tests/snap_cut_battery.py"
+    ]
+  },
+  {
+    "name": "snapshot cut reload (epoll)",
+    "job": "snapshot-epoll",
+    "gate_line": 2195,
+    "scripts": [
+      "tests/snap_cut_battery.py"
+    ]
+  },
+  {
+    "name": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)",
+    "job": "snapshot-epoll",
+    "gate_line": 2212,
+    "scripts": [
+      "tests/snap_cut_battery.py"
+    ]
+  },
+  {
+    "name": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)",
+    "job": "snapshot-epoll",
+    "gate_line": 2225,
+    "scripts": [
+      "tests/snap_cut_battery.py"
+    ]
+  },
+  {
+    "name": "typed snapshot save (epoll)",
+    "job": "snapshot-epoll",
+    "gate_line": 2238,
+    "scripts": [
+      "tests/snap_typed_roundtrip.py"
+    ]
+  },
+  {
+    "name": "typed snapshot reload (epoll)",
+    "job": "snapshot-epoll",
+    "gate_line": 2248,
+    "scripts": [
+      "tests/snap_typed_roundtrip.py"
+    ]
+  },
+  {
+    "name": "typed snapshot preimage race (epoll)",
+    "job": "snapshot-epoll",
+    "gate_line": 2260,
+    "scripts": [
+      "tests/snap_typed_race.py"
+    ]
+  },
+  {
+    "name": "typed snapshot race reload (epoll)",
+    "job": "snapshot-epoll",
+    "gate_line": 2272,
+    "scripts": [
+      "tests/snap_typed_race.py"
+    ]
+  },
+  {
+    "name": "snapshot concurrent cut (uring)",
+    "job": "snapshot-uring",
+    "gate_line": 2185,
+    "scripts": [
+      "tests/snap_cut_battery.py"
+    ]
+  },
+  {
+    "name": "snapshot cut reload (uring)",
+    "job": "snapshot-uring",
+    "gate_line": 2195,
+    "scripts": [
+      "tests/snap_cut_battery.py"
+    ]
+  },
+  {
+    "name": "snapshot never tears a cross-shard MSET group (uring, atomic 1)",
+    "job": "snapshot-uring",
+    "gate_line": 2212,
+    "scripts": [
+      "tests/snap_cut_battery.py"
+    ]
+  },
+  {
+    "name": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)",
+    "job": "snapshot-uring",
+    "gate_line": 2225,
+    "scripts": [
+      "tests/snap_cut_battery.py"
+    ]
+  },
+  {
+    "name": "typed snapshot save (uring)",
+    "job": "snapshot-uring",
+    "gate_line": 2238,
+    "scripts": [
+      "tests/snap_typed_roundtrip.py"
+    ]
+  },
+  {
+    "name": "typed snapshot reload (uring)",
+    "job": "snapshot-uring",
+    "gate_line": 2248,
+    "scripts": [
+      "tests/snap_typed_roundtrip.py"
+    ]
+  },
+  {
+    "name": "typed snapshot preimage race (uring)",
+    "job": "snapshot-uring",
+    "gate_line": 2260,
+    "scripts": [
+      "tests/snap_typed_race.py"
+    ]
+  },
+  {
+    "name": "typed snapshot race reload (uring)",
+    "job": "snapshot-uring",
+    "gate_line": 2272,
+    "scripts": [
+      "tests/snap_typed_race.py"
+    ]
+  },
+  {
+    "name": "MULTI feature battery",
+    "job": "notify",
+    "gate_line": 2287,
+    "scripts": [
+      "tests/multi_exec.py"
+    ]
+  },
+  {
+    "name": "blocking feature battery",
+    "job": "notify",
+    "gate_line": 2290,
+    "scripts": [
+      "tests/blocking.py"
+    ]
+  },
+  {
+    "name": "pubsub feature battery",
+    "job": "notify",
+    "gate_line": 2293,
+    "scripts": [
+      "tests/pubsub.py"
+    ]
+  },
+  {
+    "name": "Lua feature battery",
+    "job": "notify",
+    "gate_line": 2296,
+    "scripts": [
+      "tests/lua_scripting.py"
+    ]
+  },
+  {
+    "name": "keyspace notification battery (atomic 0/1)",
+    "job": "notify",
+    "gate_line": 2299,
+    "scripts": [
+      "tests/notify.py"
+    ]
+  },
+  {
+    "name": "feature battery shutdown invariants",
+    "job": "notify",
+    "gate_line": 2304,
+    "scripts": []
+  },
+  {
+    "name": "FLIP state battery",
+    "job": "flip",
+    "gate_line": 2319,
+    "scripts": [
+      "tests/flip.py"
+    ]
+  },
+  {
+    "name": "FLIP under verified load",
+    "job": "flip",
+    "gate_line": 2322,
+    "scripts": [
+      "tests/flip_under_load.py"
+    ]
+  },
+  {
+    "name": "FLIP TTL + expiry events",
+    "job": "flip",
+    "gate_line": 2325,
+    "scripts": [
+      "tests/flip_ttl.py"
+    ]
+  },
+  {
+    "name": "partial-frame conn parks (no io spin)",
+    "job": "flip",
+    "gate_line": 2328,
+    "scripts": [
+      "tests/spinprobe.py"
+    ]
+  },
+  {
+    "name": "flip controller: ramp gate, hold, surge + mix re-maneuvers",
+    "job": "flipctl",
+    "gate_line": 890,
+    "scripts": [
+      "tests/flipctl.py",
+      "tests/differ_fanout.py",
+      "tests/parbuild.sh",
+      "tests/store_regression.cc"
+    ]
+  },
+  {
+    "name": "FLIP applies under saturated load",
+    "job": "flip_saturated",
+    "gate_line": 2337,
+    "scripts": []
+  },
+  {
+    "name": "flip battery shutdown invariants",
+    "job": "flip_saturated",
+    "gate_line": 2368,
+    "scripts": []
+  },
+  {
+    "name": "atomic MGET/MSET floor (N/s >= 120k)",
+    "job": "atomic_floor",
+    "gate_line": 2387,
+    "scripts": []
+  },
+  {
+    "name": "tripwire arm/disarm round-trip",
+    "job": "atomic_floor",
+    "gate_line": 2407,
+    "scripts": []
+  },
+  {
+    "name": "pipelined same-conn program order (400 rolls)",
+    "job": "atomic_floor",
+    "gate_line": 2415,
+    "scripts": [
+      "tests/pipeorder.py"
+    ]
+  },
+  {
+    "name": "configuration reduction + actual geometry (epoll, atomic 0)",
+    "job": "aof-epoll",
+    "gate_line": 2432,
+    "scripts": [
+      "tests/knobs.py"
+    ]
+  },
+  {
+    "name": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)",
+    "job": "aof-epoll",
+    "gate_line": 2437,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF writer fired (records=N)",
+    "job": "aof-epoll",
+    "gate_line": 2443,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF process-restart script replay (epoll, atomic 0)",
+    "job": "aof-epoll",
+    "gate_line": 2456,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF native snapshot streams byte-exact",
+    "job": "aof-epoll",
+    "gate_line": 2461,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF replay fired (records=N skipped=N)",
+    "job": "aof-epoll",
+    "gate_line": 2465,
+    "scripts": []
+  },
+  {
+    "name": "configuration reduction + actual geometry (epoll, atomic 1)",
+    "job": "aof-epoll",
+    "gate_line": 2432,
+    "scripts": [
+      "tests/knobs.py"
+    ]
+  },
+  {
+    "name": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)",
+    "job": "aof-epoll",
+    "gate_line": 2437,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF writer fired (records=N)",
+    "job": "aof-epoll",
+    "gate_line": 2443,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF process-restart script replay (epoll, atomic 1)",
+    "job": "aof-epoll",
+    "gate_line": 2456,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF native snapshot streams byte-exact",
+    "job": "aof-epoll",
+    "gate_line": 2461,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF replay fired (records=N skipped=N)",
+    "job": "aof-epoll",
+    "gate_line": 2465,
+    "scripts": []
+  },
+  {
+    "name": "AOF directed group interruption fired",
+    "job": "aof-epoll",
+    "gate_line": 2481,
+    "scripts": [
+      "tests/aof_torn_group.py"
+    ]
+  },
+  {
+    "name": "AOF atomic-group recovery + writer order",
+    "job": "aof-epoll",
+    "gate_line": 2491,
+    "scripts": [
+      "tests/aof_torn_group.py"
+    ]
+  },
+  {
+    "name": "AOF group shutdown invariants",
+    "job": "aof-epoll",
+    "gate_line": 2500,
+    "scripts": []
+  },
+  {
+    "name": "AOF always sync + reply gate fired",
+    "job": "aof-epoll",
+    "gate_line": 2510,
+    "scripts": [
+      "tests/aof_fsync.py"
+    ]
+  },
+  {
+    "name": "AOF always recovery after quiescent SIGKILL",
+    "job": "aof-epoll",
+    "gate_line": 2521,
+    "scripts": [
+      "tests/aof_fsync.py"
+    ]
+  },
+  {
+    "name": "AOF in-window kill recovery (2s, epoll)",
+    "job": "aof-epoll",
+    "gate_line": 2535,
+    "scripts": [
+      "tests/persistfix.py"
+    ]
+  },
+  {
+    "name": "AOF in-window term recovery (2s, epoll)",
+    "job": "aof-epoll",
+    "gate_line": 2535,
+    "scripts": [
+      "tests/persistfix.py"
+    ]
+  },
+  {
+    "name": "AOF in-window kill recovery (1s, epoll)",
+    "job": "aof-epoll",
+    "gate_line": 2535,
+    "scripts": [
+      "tests/persistfix.py"
+    ]
+  },
+  {
+    "name": "AOF in-window term recovery (1s, epoll)",
+    "job": "aof-epoll",
+    "gate_line": 2535,
+    "scripts": [
+      "tests/persistfix.py"
+    ]
+  },
+  {
+    "name": "AOF everysec write gate + idle sync fired",
+    "job": "aof-epoll",
+    "gate_line": 2555,
+    "scripts": [
+      "tests/aof_fsync.py"
+    ]
+  },
+  {
+    "name": "AOF everysec durability window + tail warning",
+    "job": "aof-epoll",
+    "gate_line": 2572,
+    "scripts": [
+      "tests/aof_fsync.py"
+    ]
+  },
+  {
+    "name": "AOF no-sync bypassed sync + reply gate",
+    "job": "aof-epoll",
+    "gate_line": 2584,
+    "scripts": [
+      "tests/aof_fsync.py"
+    ]
+  },
+  {
+    "name": "AOF rewrite atomic/stage/corruption matrix",
+    "job": "aof-epoll",
+    "gate_line": 2592,
+    "scripts": [
+      "tests/aof_rewrite_matrix.sh"
+    ]
+  },
+  {
+    "name": "AOF rewrite triggers + observability matrix",
+    "job": "aof-epoll",
+    "gate_line": 2599,
+    "scripts": [
+      "tests/aof_rewrite_trigger_matrix.sh"
+    ]
+  },
+  {
+    "name": "AOF-off negative-control seed landed",
+    "job": "aof-epoll",
+    "gate_line": 2609,
+    "scripts": []
+  },
+  {
+    "name": "AOF-off negative control lost data",
+    "job": "aof-epoll",
+    "gate_line": 2622,
+    "scripts": []
+  },
+  {
+    "name": "configuration reduction + actual geometry (uring, atomic 0)",
+    "job": "aof-uring",
+    "gate_line": 2432,
+    "scripts": [
+      "tests/knobs.py"
+    ]
+  },
+  {
+    "name": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)",
+    "job": "aof-uring",
+    "gate_line": 2437,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF writer fired (records=N)",
+    "job": "aof-uring",
+    "gate_line": 2443,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF process-restart script replay (uring, atomic 0)",
+    "job": "aof-uring",
+    "gate_line": 2456,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF native snapshot streams byte-exact",
+    "job": "aof-uring",
+    "gate_line": 2461,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF replay fired (records=N skipped=N)",
+    "job": "aof-uring",
+    "gate_line": 2465,
+    "scripts": []
+  },
+  {
+    "name": "configuration reduction + actual geometry (uring, atomic 1)",
+    "job": "aof-uring",
+    "gate_line": 2432,
+    "scripts": [
+      "tests/knobs.py"
+    ]
+  },
+  {
+    "name": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)",
+    "job": "aof-uring",
+    "gate_line": 2437,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF writer fired (records=N)",
+    "job": "aof-uring",
+    "gate_line": 2443,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF process-restart script replay (uring, atomic 1)",
+    "job": "aof-uring",
+    "gate_line": 2456,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF native snapshot streams byte-exact",
+    "job": "aof-uring",
+    "gate_line": 2461,
+    "scripts": [
+      "tests/aof.py"
+    ]
+  },
+  {
+    "name": "AOF replay fired (records=N skipped=N)",
+    "job": "aof-uring",
+    "gate_line": 2465,
+    "scripts": []
+  },
+  {
+    "name": "AOF directed group interruption fired",
+    "job": "aof-uring",
+    "gate_line": 2481,
+    "scripts": [
+      "tests/aof_torn_group.py"
+    ]
+  },
+  {
+    "name": "AOF atomic-group recovery + writer order",
+    "job": "aof-uring",
+    "gate_line": 2491,
+    "scripts": [
+      "tests/aof_torn_group.py"
+    ]
+  },
+  {
+    "name": "AOF group shutdown invariants",
+    "job": "aof-uring",
+    "gate_line": 2500,
+    "scripts": []
+  },
+  {
+    "name": "AOF always sync + reply gate fired",
+    "job": "aof-uring",
+    "gate_line": 2510,
+    "scripts": [
+      "tests/aof_fsync.py"
+    ]
+  },
+  {
+    "name": "AOF always recovery after quiescent SIGKILL",
+    "job": "aof-uring",
+    "gate_line": 2521,
+    "scripts": [
+      "tests/aof_fsync.py"
+    ]
+  },
+  {
+    "name": "AOF in-window kill recovery (2s, uring)",
+    "job": "aof-uring",
+    "gate_line": 2535,
+    "scripts": [
+      "tests/persistfix.py"
+    ]
+  },
+  {
+    "name": "AOF in-window term recovery (2s, uring)",
+    "job": "aof-uring",
+    "gate_line": 2535,
+    "scripts": [
+      "tests/persistfix.py"
+    ]
+  },
+  {
+    "name": "AOF in-window kill recovery (1s, uring)",
+    "job": "aof-uring",
+    "gate_line": 2535,
+    "scripts": [
+      "tests/persistfix.py"
+    ]
+  },
+  {
+    "name": "AOF in-window term recovery (1s, uring)",
+    "job": "aof-uring",
+    "gate_line": 2535,
+    "scripts": [
+      "tests/persistfix.py"
+    ]
+  },
+  {
+    "name": "AOF everysec write gate + idle sync fired",
+    "job": "aof-uring",
+    "gate_line": 2555,
+    "scripts": [
+      "tests/aof_fsync.py"
+    ]
+  },
+  {
+    "name": "AOF everysec durability window + tail warning",
+    "job": "aof-uring",
+    "gate_line": 2572,
+    "scripts": [
+      "tests/aof_fsync.py"
+    ]
+  },
+  {
+    "name": "AOF no-sync bypassed sync + reply gate",
+    "job": "aof-uring",
+    "gate_line": 2584,
+    "scripts": [
+      "tests/aof_fsync.py"
+    ]
+  },
+  {
+    "name": "AOF rewrite atomic/stage/corruption matrix",
+    "job": "aof-uring",
+    "gate_line": 2592,
+    "scripts": [
+      "tests/aof_rewrite_matrix.sh"
+    ]
+  },
+  {
+    "name": "AOF rewrite triggers + observability matrix",
+    "job": "aof-uring",
+    "gate_line": 2599,
+    "scripts": [
+      "tests/aof_rewrite_trigger_matrix.sh"
+    ]
+  },
+  {
+    "name": "AOF-off negative-control seed landed",
+    "job": "aof-uring",
+    "gate_line": 2609,
+    "scripts": []
+  },
+  {
+    "name": "AOF-off negative control lost data",
+    "job": "aof-uring",
+    "gate_line": 2622,
+    "scripts": []
+  },
+  {
+    "name": "AOF control frame never inside a large record (atomic 0)",
+    "job": "aof_frame",
+    "gate_line": 2645,
+    "scripts": [
+      "tests/aof_frame_order_test.py",
+      "tests/aof_frame_order.py"
+    ]
+  },
+  {
+    "name": "AOF control frame never inside a large record (atomic 1)",
+    "job": "aof_frame",
+    "gate_line": 2645,
+    "scripts": [
+      "tests/aof_frame_order_test.py",
+      "tests/aof_frame_order.py"
+    ]
+  },
+  {
+    "name": "TLS ephemeral CA/server/client certificates",
+    "job": "tls",
+    "gate_line": 2663,
+    "scripts": [
+      "tests/tls.py"
+    ]
+  },
+  {
+    "name": "NET2 serverless RX policy and KeyUpdate controls",
+    "job": "tls",
+    "gate_line": 2668,
+    "scripts": []
+  },
+  {
+    "name": "reject TLS listener without certificate",
+    "job": "tls",
+    "gate_line": 2679,
+    "scripts": []
+  },
+  {
+    "name": "reject invalid tls-protocols",
+    "job": "tls",
+    "gate_line": 2683,
+    "scripts": []
+  },
+  {
+    "name": "reject invalid tls-ciphers",
+    "job": "tls",
+    "gate_line": 2688,
+    "scripts": []
+  },
+  {
+    "name": "TLS client-auth yes matrix",
+    "job": "tls",
+    "gate_line": 2717,
+    "scripts": [
+      "tests/tls.py"
+    ]
+  },
+  {
+    "name": "TLS yes shutdown invariants",
+    "job": "tls",
+    "gate_line": 2722,
+    "scripts": []
+  },
+  {
+    "name": "TLS client-auth optional matrix",
+    "job": "tls",
+    "gate_line": 2729,
+    "scripts": [
+      "tests/tls.py"
+    ]
+  },
+  {
+    "name": "kTLS TLS 1.2 engaged live (default boot)",
+    "job": "tls",
+    "gate_line": 2736,
+    "scripts": []
+  },
+  {
+    "name": "TLS 1.3 KeyUpdate survives (NET2)",
+    "job": "tls",
+    "gate_line": 2752,
+    "scripts": []
+  },
+  {
+    "name": "TLS 1.3 userspace KeyUpdate survives (NET2)",
+    "job": "tls",
+    "gate_line": 2758,
+    "scripts": []
+  },
+  {
+    "name": "TLS optional shutdown invariants",
+    "job": "tls",
+    "gate_line": 2765,
+    "scripts": []
+  },
+  {
+    "name": "TLS pipeline/torn-record/coexistence battery",
+    "job": "tls",
+    "gate_line": 2774,
+    "scripts": [
+      "tests/tls.py"
+    ]
+  },
+  {
+    "name": "TLS shutdown invariants",
+    "job": "tls",
+    "gate_line": 2780,
+    "scripts": []
+  },
+  {
+    "name": "TLS application send path error-free",
+    "job": "tls",
+    "gate_line": 2783,
+    "scripts": []
+  },
+  {
+    "name": "TLS connection slots all freed (N/N)",
+    "job": "tls",
+    "gate_line": 2786,
+    "scripts": []
+  },
+  {
+    "name": "TLS zc borrow gates fired (suppressed=N)",
+    "job": "tls",
+    "gate_line": 2793,
+    "scripts": []
+  },
+  {
+    "name": "feature 1s-0-0-0-0",
+    "job": "feature-cell-1s-0-0-0-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-0-0-0-1",
+    "job": "feature-cell-1s-0-0-0-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-0-0-1-0",
+    "job": "feature-cell-1s-0-0-1-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-0-0-1-1",
+    "job": "feature-cell-1s-0-0-1-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-0-1-0-0",
+    "job": "feature-cell-1s-0-1-0-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-0-1-0-1",
+    "job": "feature-cell-1s-0-1-0-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-0-1-1-0",
+    "job": "feature-cell-1s-0-1-1-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-0-1-1-1",
+    "job": "feature-cell-1s-0-1-1-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-1-0-0-0",
+    "job": "feature-cell-1s-1-0-0-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-1-0-0-1",
+    "job": "feature-cell-1s-1-0-0-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-1-0-1-0",
+    "job": "feature-cell-1s-1-0-1-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-1-0-1-1",
+    "job": "feature-cell-1s-1-0-1-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-1-1-0-0",
+    "job": "feature-cell-1s-1-1-0-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-1-1-0-1",
+    "job": "feature-cell-1s-1-1-0-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-1-1-1-0",
+    "job": "feature-cell-1s-1-1-1-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 1s-1-1-1-1",
+    "job": "feature-cell-1s-1-1-1-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-0-0-0-0",
+    "job": "feature-cell-2s-0-0-0-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-0-0-0-1",
+    "job": "feature-cell-2s-0-0-0-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-0-0-1-0",
+    "job": "feature-cell-2s-0-0-1-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-0-0-1-1",
+    "job": "feature-cell-2s-0-0-1-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-0-1-0-0",
+    "job": "feature-cell-2s-0-1-0-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-0-1-0-1",
+    "job": "feature-cell-2s-0-1-0-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-0-1-1-0",
+    "job": "feature-cell-2s-0-1-1-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-0-1-1-1",
+    "job": "feature-cell-2s-0-1-1-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-1-0-0-0",
+    "job": "feature-cell-2s-1-0-0-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-1-0-0-1",
+    "job": "feature-cell-2s-1-0-0-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-1-0-1-0",
+    "job": "feature-cell-2s-1-0-1-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-1-0-1-1",
+    "job": "feature-cell-2s-1-0-1-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-1-1-0-0",
+    "job": "feature-cell-2s-1-1-0-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-1-1-0-1",
+    "job": "feature-cell-2s-1-1-0-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-1-1-1-0",
+    "job": "feature-cell-2s-1-1-1-0",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature 2s-1-1-1-1",
+    "job": "feature-cell-2s-1-1-1-1",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature split-home-min",
+    "job": "feature-cell-split-home-min",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature fused-home-max-nopin",
+    "job": "feature-cell-fused-home-max-nopin",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "feature split-shards-auto",
+    "job": "feature-cell-split-shards-auto",
+    "gate_line": 2800,
+    "scripts": [
+      "tests/feature_gate.py"
+    ]
+  },
+  {
+    "name": "ABBA comparison + saturation negative controls",
+    "job": "abba_selftest",
+    "gate_line": 2823,
+    "scripts": [
+      "tests/abbagate.py",
+      "tests/gate_quiet.py",
+      "tests/gate_measurements.py",
+      "tests/gate_receipt.py",
+      "tests/abba_instrument.py",
+      "tests/background_environment_test.py",
+      "tests/gate_history.py",
+      "tests/gate_process_test.py",
+      "tests/gates_test.py",
+      "tests/gate_subset_test.py",
+      "tests/wb_policy.py",
+      "tests/lb_stationary.py",
+      "tests/netio.py",
+      "tests/tailgen_stall.py"
+    ]
+  },
+  {
+    "name": "multidb (1s, read-local 0, atomic 0)",
+    "job": "multidb-1s-0-0",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ]
+  },
+  {
+    "name": "multidb (1s, read-local 0, atomic 0) SWAPDB serial order",
+    "job": "multidb-1s-0-0",
+    "gate_line": 3093,
+    "scripts": [
+      "tests/multidb_serial.py",
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "multidb (1s, read-local 0, atomic 1)",
+    "job": "multidb-1s-0-1",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ]
+  },
+  {
+    "name": "multidb (1s, read-local 0, atomic 1) SWAPDB serial order",
+    "job": "multidb-1s-0-1",
+    "gate_line": 3093,
+    "scripts": [
+      "tests/multidb_serial.py",
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "multidb (1s, read-local 1, atomic 0)",
+    "job": "multidb-1s-1-0",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ]
+  },
+  {
+    "name": "multidb (1s, read-local 1, atomic 0) SWAPDB serial order",
+    "job": "multidb-1s-1-0",
+    "gate_line": 3093,
+    "scripts": [
+      "tests/multidb_serial.py",
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "multidb (1s, read-local 1, atomic 1)",
+    "job": "multidb-1s-1-1",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ]
+  },
+  {
+    "name": "multidb (1s, read-local 1, atomic 1) SWAPDB serial order",
+    "job": "multidb-1s-1-1",
+    "gate_line": 3093,
+    "scripts": [
+      "tests/multidb_serial.py",
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "multidb (2s, read-local 0, atomic 0)",
+    "job": "multidb-2s-0-0",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ]
+  },
+  {
+    "name": "multidb (2s, read-local 0, atomic 0) SWAPDB serial order",
+    "job": "multidb-2s-0-0",
+    "gate_line": 3093,
+    "scripts": [
+      "tests/multidb_serial.py",
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "multidb (2s, read-local 0, atomic 1)",
+    "job": "multidb-2s-0-1",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ]
+  },
+  {
+    "name": "multidb (2s, read-local 0, atomic 1) SWAPDB serial order",
+    "job": "multidb-2s-0-1",
+    "gate_line": 3093,
+    "scripts": [
+      "tests/multidb_serial.py",
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "multidb (2s, read-local 1, atomic 0)",
+    "job": "multidb-2s-1-0",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ]
+  },
+  {
+    "name": "multidb (2s, read-local 1, atomic 0) SWAPDB serial order",
+    "job": "multidb-2s-1-0",
+    "gate_line": 3093,
+    "scripts": [
+      "tests/multidb_serial.py",
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "multidb (2s, read-local 1, atomic 1)",
+    "job": "multidb-2s-1-1",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ]
+  },
+  {
+    "name": "multidb (2s, read-local 1, atomic 1) SWAPDB serial order",
+    "job": "multidb-2s-1-1",
+    "gate_line": 3093,
+    "scripts": [
+      "tests/multidb_serial.py",
+      "tests/evict_battery.py"
+    ]
+  },
+  {
+    "name": "tailgen client-lb outstanding bound",
+    "job": "coordinator",
+    "gate_line": 3349,
+    "scripts": [
+      "tests/tailgen_stall.py",
+      "tests/abbagate.py",
+      "tests/gate_history.py"
+    ]
+  },
+  {
+    "name": "torture under ASAN",
+    "job": "asan_batteries",
+    "gate_line": 2845,
+    "scripts": [
+      "tests/torture.py"
+    ]
+  },
+  {
+    "name": "RYOW under ASAN",
+    "job": "asan_batteries",
+    "gate_line": 2848,
+    "scripts": [
+      "tests/ryow.py"
+    ]
+  },
+  {
+    "name": "atomic torn/window under ASAN",
+    "job": "asan_batteries",
+    "gate_line": 2853,
+    "scripts": [
+      "tests/atomic_torn.py"
+    ]
+  },
+  {
+    "name": "atomic RYOW under ASAN",
+    "job": "asan_batteries",
+    "gate_line": 2863,
+    "scripts": [
+      "tests/atomic_ryow.py"
+    ]
+  },
+  {
+    "name": "ASAN clean",
+    "job": "asan_batteries",
+    "gate_line": 2870,
+    "scripts": []
+  },
+  {
+    "name": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)",
+    "job": "replyoff",
+    "gate_line": 2881,
+    "scripts": [
+      "tests/replyoff_xshard.py"
+    ]
+  },
+  {
+    "name": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)",
+    "job": "replyoff",
+    "gate_line": 2881,
+    "scripts": [
+      "tests/replyoff_xshard.py"
+    ]
+  },
+  {
+    "name": "zc borrow battery",
+    "job": "zc",
+    "gate_line": 2910,
+    "scripts": [
+      "tests/zc.py"
+    ]
+  },
+  {
+    "name": "zc fired (zc_sends=N)",
+    "job": "zc",
+    "gate_line": 2913,
+    "scripts": []
+  },
+  {
+    "name": "zc borrow battery under ASAN",
+    "job": "zc",
+    "gate_line": 2917,
+    "scripts": [
+      "tests/zc.py"
+    ]
+  },
+  {
+    "name": "zc ASAN clean",
+    "job": "zc",
+    "gate_line": 2920,
+    "scripts": []
+  },
+  {
+    "name": "read-local ownership-invariant build",
+    "job": "rldbg",
+    "gate_line": 2939,
+    "scripts": [
+      "tests/parbuild.sh"
+    ]
+  },
+  {
+    "name": "armed block-cache churn battery",
+    "job": "rlcache",
+    "gate_line": 2956,
+    "scripts": [
+      "tests/rlcache_churn.py"
+    ]
+  },
+  {
+    "name": "read-local ownership invariants",
+    "job": "rlcache",
+    "gate_line": 2962,
+    "scripts": []
+  },
+  {
+    "name": "Redis 7.4 differential matrix",
+    "job": "differ-split",
+    "gate_line": 865,
+    "scripts": [
+      "tests/differ_gate.sh"
+    ]
+  },
+  {
+    "name": "Redis 7.4 differential matrix (armed fused + read-local)",
+    "job": "differ-armed",
+    "gate_line": 865,
+    "scripts": [
+      "tests/differ_gate.sh"
+    ]
+  },
+  {
+    "name": "glob/scan grammar parity vs Redis 7.4",
+    "job": "globcase",
+    "gate_line": 2993,
+    "scripts": [
+      "tests/globcase.py",
+      "tests/parbuild.sh",
+      "tests/core_concurrency_unit.cc",
+      "tests/waits_unit.cc"
+    ]
+  }
+]
