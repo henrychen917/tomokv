@@ -1,0 +1,38 @@
+[
+  {
+    "framing": "mainline",
+    "regime": "f0",
+    "samples": 16,
+    "unavailable_rows": 6,
+    "output_created": false,
+    "log": "build/exbatch-bench4/mainline-f0-dry-run.log",
+    "sha256": "054013ebbc52687284a0670f2f862694b293a015d59d088501a7f67009e9e770"
+  },
+  {
+    "framing": "mainline",
+    "regime": "s0",
+    "samples": 16,
+    "unavailable_rows": 6,
+    "output_created": false,
+    "log": "build/exbatch-bench4/mainline-s0-dry-run.log",
+    "sha256": "19d6da74ca3ef9286a0597f7a8b73de2ea4265012e157688bfb9d61cbea8ba1b"
+  },
+  {
+    "framing": "lane",
+    "regime": "f0",
+    "samples": 40,
+    "unavailable_rows": 0,
+    "output_created": false,
+    "log": "build/exbatch-bench4/lane-f0-dry-run.log",
+    "sha256": "b865aed9ec044d32982b5a8103c065e11defdf81419c091dcde2bdb2266b6f0e"
+  },
+  {
+    "framing": "lane",
+    "regime": "s0",
+    "samples": 40,
+    "unavailable_rows": 0,
+    "output_created": false,
+    "log": "build/exbatch-bench4/lane-s0-dry-run.log",
+    "sha256": "8c9341ad4a05e2a1d44b92265f8dbaf5b911641db03507eddd8549fd894a526e"
+  }
+]
