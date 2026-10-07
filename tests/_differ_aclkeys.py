@@ -17,6 +17,22 @@ def cases(timeout, key):
     )
 
 
+def wake_cases(key):
+    """The five original wakes plus resumed moves and consumer-group delivery."""
+    rows = [(args, keys, wake, []) for args, keys, wake in cases("0", key)]
+    for verb in ("BLMOVE", "BRPOPLPUSH"):
+        source, destination = key + ":source", key + ":destination"
+        args = ([verb, source, destination, "LEFT", "RIGHT", "0"] if verb == "BLMOVE"
+                else [verb, source, destination, "0"])
+        rows.append((args, [source, destination], ["LPUSH", source, "value"], []))
+    stream = key + ":group"
+    rows.append((["XREADGROUP", "GROUP", "aclkeys-group", "consumer", "BLOCK", "0",
+                  "STREAMS", stream, ">"], [stream],
+                 ["XADD", stream, "1-0", "field", "value"],
+                 [["XGROUP", "CREATE", stream, "aclkeys-group", "0", "MKSTREAM"]]))
+    return rows
+
+
 def wait_blocked(admin, blocked, client_id, issue, parse, read_reply, timeout=5.0):
     """An early NOPERM, missing client, or an unobserved window is a failure."""
     deadline = time.monotonic() + timeout
@@ -67,6 +83,11 @@ def run(api):
     try:
         info = parse(issue(admins[1], ["INFO", "SERVER"]))
         assert b"redis_version:7.4.10\r\n" in info, info
+        # The focused armed-fused proof also requires a real read-local hit.
+        # Complete the write, then issue two clean point reads before arming ACLs.
+        equal(admins, ["SET", "block:aclkeys:read", "value"], b"+OK\r\n")
+        for _ in range(2):
+            equal(admins, ["GET", "block:aclkeys:read"], b"$5\r\nvalue\r\n")
         equal(admins, ["ACL", "SETUSER", username, "reset", "on", "nopass",
                        "~block:*", "+@all"], b"+OK\r\n")
         workers = [connect(endpoint) for endpoint in endpoints]
@@ -95,23 +116,36 @@ def run(api):
                 counters["denied"] += 1
                 equal(workers, ["PING"], b"+PONG\r\n")
 
-        # All five commands must actually park and wake, not merely accept ready data.
+        # Every command must actually park and wake, not merely accept ready data.
         # The revoke/wake denial is the separate strict witness in acl.py.
-        for args, keys, wake in cases("0", "block:aclkeys"):
+        for args, keys, wake, setup in wake_cases("block:aclkeys"):
             equal(admins, ["DEL", *keys])
+            for command in setup:
+                equal(admins, command, b"+OK\r\n")
             ids = [int(parse(issue(worker, ["CLIENT", "ID"]))[1:]) for worker in workers]
             for worker in workers:
                 worker[0].sendall(enc(args))
             for admin, worker, client_id in zip(admins, workers, ids):
                 wait_blocked(admin, worker, client_id, issue, parse, read_reply)
                 counters["parked"] += 1
-            equal(admins, wake)
-            replies = [read_reply(worker[1]) for worker in workers]
+            equal(admins, wake, b"$3\r\n1-0\r\n" if wake[0] == "XADD" else b":1\r\n")
+            replies = []
+            for label, worker in zip(("TomoKV", "Redis"), workers):
+                try:
+                    replies.append(read_reply(worker[1]))
+                except TimeoutError as error:
+                    raise AssertionError("%s admitted wake timed out: command=%r wake=%r replies=%r" %
+                                         (label, args, wake, replies)) from error
             assert replies[0] == replies[1], (args, replies)
             assert b"value" in replies[0], (args, replies)
+            if args[0] in ("BLMOVE", "BRPOPLPUSH"):
+                assert replies[0] == b"$5\r\nvalue\r\n", (args, replies)
+                equal(admins, ["LLEN", keys[0]], b":0\r\n")
+                equal(admins, ["LRANGE", keys[1], "0", "-1"], b"*1\r\n$5\r\nvalue\r\n")
             # Require exactly one reply and an intact connection after completion.
             equal(workers, ["PING"], b"+PONG\r\n")
-        assert counters == dict(admitted=10, denied=10, getkeys=20, parked=10), counters
+            print("DIFFER aclkeys wake %s: both parked, reply=%r" % (args[0], replies[0]), flush=True)
+        assert counters == dict(admitted=10, denied=10, getkeys=20, parked=16), counters
         print("DIFFER aclkeys: PASS %s" % counters)
         return 0
     finally:
@@ -122,7 +156,9 @@ def run(api):
         for admin in admins:
             try:
                 issue(admin, ["ACL", "DELUSER", username])
-                issue(admin, ["DEL", "block:aclkeys"])
+                issue(admin, ["DEL", "block:aclkeys", "block:aclkeys:source",
+                              "block:aclkeys:destination", "block:aclkeys:group",
+                              "block:aclkeys:read"])
             finally:
                 admin[1].close()
                 admin[0].close()

@@ -9,6 +9,7 @@
 #include "src/cmd/command.h"
 #include "src/cmd/cmdmeta.h"
 #include "src/core/server.h"
+#include "src/net/conn.h"
 
 namespace witness {
 enum class BeginType : uint8_t { Index, Keyword, Unknown };
@@ -69,6 +70,46 @@ static unsigned registry_ranges() {
 }
 
 static unsigned checks = 0;
+static unsigned retire_checks = 0;
+
+static void retired_reply(uint32_t user, const std::vector<std::string>& argv,
+                          const std::vector<uint32_t>& key_indexes, const char* reply) {
+    Client client(-1);
+    client.set_acl_user_idx(user);
+    ThreadCtx thread;
+    Op op;
+    for (const auto& value : argv)
+        require(op.push_arg(Slice(value.data(), value.size())), "push retained argument");
+    op.spec = command_lookup(op.cmd_name());
+    require(op.spec, "retained command registered");
+    op.state.store(OpState::Done, std::memory_order_release);
+    op.reply.append(reply);
+    acl_recheck_blocking(client, op, thread);
+    require(std::string(op.reply.data(), op.reply.size()) == reply,
+            "admitted retirement must preserve the completed reply");
+    require(op.state.load(std::memory_order_acquire) == OpState::Done,
+            "ACL retirement must not repark the completed operation");
+    require(op.argc() == argv.size(), "ACL retirement changed retained argc");
+    for (uint32_t i = 0; i < argv.size(); ++i)
+        require(op.arg(i).p == argv[i].data() && op.arg(i).n == argv[i].size(),
+                "ACL retirement changed the retained argument view");
+    ++retire_checks;
+    // Make the allowed-reply check non-vacuous: the same retirement entry must
+    // replace the reply when any retained key falls outside the current ACL.
+    for (const auto index : key_indexes) {
+        const Slice original = op.arg(index);
+        op.replace_arg(index, Slice("outside:denied", 14));
+        op.clear_reply();
+        op.reply.append(reply);
+        acl_recheck_blocking(client, op, thread);
+        require(std::string(op.reply.data(), op.reply.size()) ==
+                    "-NOPERM No permissions to access a key\r\n",
+                "retirement must replace the reply for a forbidden retained key");
+        op.replace_arg(index, original);
+        ++retire_checks;
+    }
+}
+
 static void keys(uint32_t user, const std::vector<std::string>& argv,
                  const std::vector<uint32_t>& expected) {
     Op op;
@@ -110,6 +151,26 @@ static void permissions() {
     require(acl_initialize(server, cfg, error), error.c_str());
     uint32_t user = 0;
     require(acl_find_user(Slice("aclkeys", 7), user), "ACL user exists");
+    require(server.acl_active(), "retirement ACL checks must be armed");
+    for (const auto* verb : {"BLPOP", "BRPOP"})
+        retired_reply(user, {verb, "block:a", "0"}, {1},
+                      "*2\r\n$7\r\nblock:a\r\n$5\r\nvalue\r\n");
+    retired_reply(user, {"BLMPOP", "0", "1", "block:a", "LEFT"}, {3},
+                  "*2\r\n$7\r\nblock:a\r\n*1\r\n$5\r\nvalue\r\n");
+    retired_reply(user, {"BZPOPMIN", "block:a", "0"}, {1},
+                  "*3\r\n$7\r\nblock:a\r\n$5\r\nvalue\r\n$1\r\n1\r\n");
+    constexpr const char* stream_reply =
+        "*1\r\n*2\r\n$7\r\nblock:a\r\n*1\r\n*2\r\n$3\r\n1-0\r\n"
+        "*2\r\n$5\r\nfield\r\n$5\r\nvalue\r\n";
+    retired_reply(user, {"XREAD", "BLOCK", "0", "STREAMS", "block:a", "0"}, {4}, stream_reply);
+    // XREADGROUP exceeds Op's eight inline arguments, covering the heap view too.
+    retired_reply(user, {"XREADGROUP", "GROUP", "group", "consumer", "BLOCK", "0",
+                        "STREAMS", "block:a", ">"}, {7}, stream_reply);
+    // Moves retire through scatter in production; this verifies their extraction
+    // only. The differential suite exercises the actual resumed-move lifecycle.
+    retired_reply(user, {"BLMOVE", "block:a", "block:b", "LEFT", "RIGHT", "0"}, {1, 2},
+                  "$5\r\nvalue\r\n");
+    retired_reply(user, {"BRPOPLPUSH", "block:a", "block:b", "0"}, {1, 2}, "$5\r\nvalue\r\n");
     for (const auto* timeout : {"0", "1"}) {
         for (const auto* verb : {"BLPOP", "BRPOP", "BZPOPMIN", "BZPOPMAX"})
             keys(user, {verb, "block:a", "block:b", timeout}, {1, 2});
@@ -148,6 +209,7 @@ static void permissions() {
     keys(user, {"SPUBLISH", "outside:channel", "payload"}, {});
     keys(user, {"MSET", "block:a", "outside:value", "block:b", "other-value"}, {1, 3});
     std::printf("permissions: %u admission/denial assertions PASS\n", checks);
+    std::printf("retirement: %u admitted/denied reply assertions PASS\n", retire_checks);
     acl_shutdown();
 }
 
