@@ -1,0 +1,1 @@
+AOF SYNC POPULATE PASS: policy=no keys=128 syncs=0 waits=0

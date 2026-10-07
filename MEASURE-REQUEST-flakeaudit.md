@@ -1,9 +1,10 @@
 # flakeaudit — gate stimulus audit and test-only repairs
 
 Worktree `/home/user/Projects/cx-flakeaudit`, branch `cx-flakeaudit`.
-The resume recovered and committed the existing audit, then started the
-requested six-run campaign. Live results are being collected below; a
-partial gate is not a full 517-row landing receipt or a performance result.
+The resume recovered and committed the audit and ran **five consecutive
+clean selected-job proofs**. **The sixth proof remains incomplete:** the
+campaign was stopped to respect the 60-minute resume budget. A partial gate
+is not a full 517-row landing receipt or a performance result.
 
 ## Scope and inventory
 
@@ -120,7 +121,7 @@ ratio 6:2 for split boots, and one correctness slot. No ABBA/NIC measurement
 is requested or claimed.
 
 <!-- PROOF_RESULTS_BEGIN -->
-Six-run live campaign: **4/6 complete; IN PROGRESS**.
+Six-run live campaign: **5/6 complete; sixth PENDING (resume budget)**.
 
 Every completed clean selection includes all 34 changed row occurrences. The table counts complete selected jobs and prerequisites; it is not a full-gate receipt.
 
@@ -130,9 +131,27 @@ Every completed clean selection includes all 34 changed row occurrences. The tab
 | 2 | `gate-run.mSjyJU` | 21:26:16–21:37:44 | 236 / 0 | 34 / 34 |
 | 3 | `gate-run.1NgDk6` | 21:37:45–21:49:22 | 236 / 0 | 34 / 34 |
 | 4 | `gate-run.m2TTqt` | 21:49:23–22:00:55 | 236 / 0 | 34 / 34 |
+| 5 | `gate-run.XGq51P` | 22:00:56–22:12:42 | 236 / 0 | 34 / 34 |
 
 Tracked [results and provenance](docs/flakeaudit/evidence/proof/results.json) link each run to its revision, unchanged server hash, ledger, phase timestamps and geometry. The adjacent run directories retain the complete gate log and the relevant battery logs. `archive_proof.py` refuses changed executable sources and cross-checks every changed row's multiplicity.
 <!-- PROOF_RESULTS_END -->
+
+The fifth selection completed at 22:12:42 Asia/Taipei. The runner immediately
+started selection 6; its owned gate was stopped with TERM at 22:13:17 before
+it could complete (exit 130). All gate-owned children were reaped. This is a
+budget interruption, not a sixth pass. The interrupted log, partial ledger,
+plan and job logs are retained under `evidence/proof/interrupted-run-6/`,
+with the exact PID/identity-controlled stop recorded in `budget-stop.json`.
+The 60-minute budget began at 21:13:39; the measured complete selections take
+about 11.5 minutes each. An extension was requested but not received.
+
+Remaining proof: one complete selection of the same 19 jobs, or a fresh
+six-run sequence if mainline changes executable sources. Preserve the
+interrupted `build/flakeaudit/proof/run-6*` files before using
+`bash docs/flakeaudit/repeat.sh 6 6`; append output to
+`build/flakeaudit/resume-campaign.log`, then run `archive_proof.py`.
+No six-run success is claimed by this delivery.
+
 
 The pre-resume campaign is preserved under
 `build/flakeaudit/proof-before-resume`: its first run reported 242 ok / 2

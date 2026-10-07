@@ -1,0 +1,2 @@
+  row budget: 900s; median=2.92s; correctness-plan-fallback; epoll directed correctness (2s)
+  epoll directed correctness (2s)                      ok

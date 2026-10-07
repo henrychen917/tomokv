@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=auth netio-1s netio-2s snapshot-epoll snapshot-uring aof-epoll aof-uring multidb-1s-0-0 multidb-1s-0-1 multidb-1s-1-0 multidb-1s-1-1 multidb-2s-0-0 multidb-2s-0-1 multidb-2s-1-0 multidb-2s-1-1 feature-split-0 feature-split-1 feature-armed-0 feature-armed-1; NOT A RECEIPT

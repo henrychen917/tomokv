@@ -1,0 +1,14 @@
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject bad protected-mode
+  reject bad protected-mode                            ok
+  row budget: 900s; median=0.01s; correctness-plan-fallback; reject bad enable-debug-command
+  reject bad enable-debug-command                      ok
+  row budget: 900s; median=0.15s; correctness-plan-fallback; AUTH/HELLO/protected state machine
+  AUTH/HELLO/protected state machine                   ok
+  row budget: 900s; median=0.285s; correctness-plan-fallback; ACL battery (atomic off)
+  ACL battery (atomic off)                             ok
+  row budget: 900s; median=0.285s; correctness-plan-fallback; ACL battery (atomic on)
+  ACL battery (atomic on)                              ok
+  row budget: 900s; median=0.965s; correctness-plan-fallback; DEBUG toggle/reload battery
+  DEBUG toggle/reload battery                          ok
+  row budget: 900s; median=0.12s; correctness-plan-fallback; typed snapshot round-trip incl stream
+  typed snapshot round-trip incl stream                ok
