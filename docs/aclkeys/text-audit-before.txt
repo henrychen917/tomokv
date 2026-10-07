@@ -1,0 +1,307 @@
+tests/_client_wait.py:7:def wait_client_state(observer, client_id, state, timeout=5.0):
+tests/_differ_ccfix.py:302:              b"-NOPERM User ccfix_denied has no permissions to run the 'get' command\r\n", denied)
+tests/abbagate.py:3091:            self.assertFalse(any("BLPOP" in arg or "MGET" in arg for arg in args))
+tests/acl.py:15:from _client_wait import wait_client_state
+tests/acl.py:209:       "NOPERM User alice has no permissions to run the 'acl' command", "ACL command bit")
+tests/acl.py:220:expect(alice.command("GET", "b:1"), "NOPERM No permissions to access a key", "denied GET")
+tests/acl.py:222:       "NOPERM No permissions to access a key", "denied key inside MGET")
+tests/acl.py:224:       "NOPERM No permissions to access a key", "denied key inside MSET")
+tests/acl.py:227:       "NOPERM User alice has no permissions to run the 'eval' command", "Lua v1 deny")
+tests/acl.py:231:expect(alice.command("GET", "b:1"), "NOPERM No permissions to access a key",
+tests/acl.py:246:       "NOPERM ACLs rules changed between the moment the transaction was accumulated and the EXEC call. This command is no longer allowed for the following reason: no permission to touch the specified keys",
+tests/acl.py:253:expect(admin.command("EXISTS", "block:k"), 0, "blocking key clean slate")
+tests/acl.py:259:    blocked.command("BLPOP", "block:k", 0)))
+tests/acl.py:262:    wait_client_state(admin, blocked_id, "blocked")
+tests/acl.py:264:    raise AssertionError("%s; early BLPOP replies=%r" % (exc, blocking_reply)) from exc
+tests/acl.py:269:expect(blocking_reply[0], "NOPERM No permissions to access a key", "blocking recheck")
+tests/acl.py:275:       "NOPERM No permissions to access a channel", "PUBLISH channel check")
+tests/acl.py:277:       "NOPERM No permissions to access a channel", "SPUBLISH channel check")
+tests/acl.py:293:       "NOPERM No permissions to access a channel", "PSUBSCRIBE literal deny")
+tests/acl.py:313:expect(alice.command("GET", "b:1"), "NOPERM No permissions to access a key", "log repeat one")
+tests/acl.py:314:expect(alice.command("GET", "b:1"), "NOPERM No permissions to access a key", "log repeat two")
+tests/acl.py:341:expect(alice.command("GET", "b:1"), "NOPERM No permissions to access a key", "denial with log off")
+tests/aclreply.py:11:denies, the reply the command already produced is DISCARDED and a NOPERM error
+tests/aclreply.py:15:    BLPOP k 1        ->  times out  ->  "*-1\\r\\n"   (RESP2)
+tests/aclreply.py:24:reply_code_ standing.  Retire then emits the coded reply AND the NOPERM behind
+tests/aclreply.py:32:    b"*-1\\r\\n-NOPERM User u has no permissions to run the 'blpop' command\\r\\n"
+tests/aclreply.py:33:    b"_\\r\\n-NOPERM User u has no permissions to run the 'blpop' command\\r\\n"
+tests/aclreply.py:133:    noperm_cmd = (b"-NOPERM User u has no permissions to run the '%s' command\r\n")
+tests/aclreply.py:137:    trial("BLPOP timeout, command revoked (RESP2)",
+tests/aclreply.py:138:          ("BLPOP", "aclr:list", "1"), ("ACL", "SETUSER", "u", "-blpop"), None,
+tests/aclreply.py:140:    trial("BLPOP timeout, command revoked (RESP3)",
+tests/aclreply.py:141:          ("BLPOP", "aclr:list", "1"), ("ACL", "SETUSER", "u", "-blpop"), None,
+tests/aclreply.py:143:    trial("BZPOPMIN timeout, command revoked (RESP2)",
+tests/aclreply.py:144:          ("BZPOPMIN", "aclr:zset", "1"), ("ACL", "SETUSER", "u", "-bzpopmin"), None,
+tests/aclreply.py:146:    trial("BLMPOP timeout, command revoked (RESP3)",
+tests/aclreply.py:147:          ("BLMPOP", "1", "1", "aclr:list", "LEFT"),
+tests/aclreply.py:155:    trial("BLPOP woken then command revoked (RESP2)",
+tests/aclreply.py:156:          ("BLPOP", "aclr:list", "0"), ("ACL", "SETUSER", "u", "-blpop"),
+tests/aclreply.py:158:    trial("BLPOP woken then command revoked (RESP3)",
+tests/aclreply.py:159:          ("BLPOP", "aclr:list", "0"), ("ACL", "SETUSER", "u", "-blpop"),
+tests/aclreply.py:161:    trial("BZPOPMIN woken then command revoked",
+tests/aclreply.py:162:          ("BZPOPMIN", "aclr:zset", "0"), ("ACL", "SETUSER", "u", "-bzpopmin"),
+tests/aclreply.py:164:    trial("BLPOP woken then KEY revoked",
+tests/aclreply.py:165:          ("BLPOP", "aclr:list", "0"),
+tests/aclreply.py:168:          b"-NOPERM No permissions to access a key\r\n")
+tests/aclreply.py:171:    trial("BLPOP timeout, still permitted (RESP2)",
+tests/aclreply.py:172:          ("BLPOP", "aclr:list", "1"), ("ACL", "SETUSER", "u", "+@all"), None,
+tests/aclreply.py:174:    trial("BLPOP timeout, still permitted (RESP3)",
+tests/aclreply.py:175:          ("BLPOP", "aclr:list", "1"), ("ACL", "SETUSER", "u", "+@all"), None,
+tests/aclreply.py:177:    trial("BLPOP woken, still permitted",
+tests/aclreply.py:178:          ("BLPOP", "aclr:list", "0"), ("ACL", "SETUSER", "u", "+@all"),
+tests/aclsel.py:13:from _client_wait import wait_client_state
+tests/aclsel.py:221:expect(user.command("GET", "sel:b:1"), "NOPERM No permissions to access a key",
+tests/aclsel.py:223:expect(user.command("SET", "sel:a:2", "A2"), "NOPERM No permissions to access a key",
+tests/aclsel.py:226:       "NOPERM User aclsel has no permissions to run the 'del' command",
+tests/aclsel.py:230:       "NOPERM No permissions to access a key", "selector MGET key denial")
+tests/aclsel.py:233:       "NOPERM No permissions to access a channel", "selector channel denial")
+tests/aclsel.py:241:       "NOPERM No permissions to access a channel", "root channel cannot mix with selector command")
+tests/aclsel.py:246:       "NOPERM No permissions to access a key", "multi-key request cannot mix selectors")
+tests/aclsel.py:254:       "NOPERM User aclsel has no permissions to run the 'set' command",
+tests/aclsel.py:256:expect(user.command("GET", "sel:a:1"), "NOPERM No permissions to access a key",
+tests/aclsel.py:271:       "NOPERM ACLs rules changed between the moment the transaction was accumulated and the EXEC "
+tests/aclsel.py:281:expect(admin.command("EXISTS", "sel:block:k"), 0, "blocking key clean slate")
+tests/aclsel.py:287:    blocked.command("BLPOP", "sel:block:k", 0)))
+tests/aclsel.py:289:wait_client_state(admin, blocked_id, "blocked")
+tests/aclsel.py:292:expect(admin.command("LPUSH", "sel:block:k", "value"), 1, "wake selector BLPOP")
+tests/aclsel.py:295:    raise AssertionError("selector BLPOP did not finish")
+tests/aclsel.py:296:expect(blocking_reply[0], "NOPERM No permissions to access a key", "selector blocking recheck")
+tests/aclsel.py:352:print("aclsel: PASS (%d checks; parsing/reporting/root+selector/key/channel/command/EXEC/BLPOP/revocation fired)" % CHECKS)
+tests/atomic_plain.py:196:        is_list = verb in ("BLPOP", "BRPOP", "BLMPOP")
+tests/atomic_plain.py:197:        high = verb in ("BRPOP", "BZPOPMAX")
+tests/atomic_plain.py:206:                       if verb in ("BLMPOP", "BZMPOP") else (verb, key, 2))
+tests/atomic_plain.py:222:            wanted = ([key.encode(), [consumed]] if verb == "BLMPOP" else
+tests/atomic_plain.py:223:                      [key.encode(), [[consumed, score]]] if verb == "BZMPOP" else
+tests/atomic_plain.py:273:                      ("BLPOP", "BRPOP", "BLMPOP", "BZPOPMIN", "BZPOPMAX", "BZMPOP")]
+tests/atomic_plain.py:421:                    ("blocking", ("BLPOP", "BRPOP", "BLMPOP", "BZPOPMIN", "BZPOPMAX", "BZMPOP"),
+tests/atomic_plain.py:442:                            high = verb in ("BRPOP", "BZPOPMAX")
+tests/atomic_plain.py:447:                                [b"source", [consumed]] if verb == "BLMPOP" else
+tests/atomic_plain.py:448:                                [b"source", [[consumed, score]]] if verb == "BZMPOP" else
+tests/atomic_plain.py:449:                                [b"source", consumed] if verb in ("BLPOP", "BRPOP") else
+tests/barrier.py:284:        if kind == "BLPOP":
+tests/barrier.py:287:            want("BLPOP cleanup", admin.command("DEL", key), 0)
+tests/barrier.py:288:            command = ("BLPOP", key, "0")
+tests/barrier.py:320:    for kind in ("BLPOP", "BLMOVE"):
+tests/barrier.py:340:    return "BLPOP+cross-owner BLMOVE probes passed; counters +0/+0"
+tests/barrier.py:347:    for kind in ("BLPOP", "BLMOVE"):
+tests/benchfeat.py:3:MULTI/EXEC transactions, BLPOP producer/consumer serves, pub/sub fanout delivery.
+tests/benchfeat.py:99:                s.sendall(enc("BLPOP", "bf:q:%d" % (cid % PRODS), 1))
+tests/benchfeat.py:135:    print("BLPOP served/s: %.0f  (pushed/s: %.0f, consumers %d)" %
+tests/blocking.py:110:note("BLPOP follows argument-order priority",
+tests/blocking.py:111:     admin.cmd("BLPOP", "block:first", "block:second", "1") ==
+tests/blocking.py:113:note("BRPOP pops the right edge",
+tests/blocking.py:114:     admin.cmd("BRPOP", "block:second", "1") == [b"block:second", b"s"])
+tests/blocking.py:120:    client, thread, result, errors = start_wait(("BLPOP", "block:fifo", "3"))
+tests/blocking.py:136:timed = admin.cmd("BRPOP", "block:timeout", "0.15")
+tests/blocking.py:148:    ("BRPOP", "block:behind", "0"))
+tests/blocking.py:151:behind = admin.cmd("BRPOP", "block:behind", "0.15")
+tests/blocking.py:162:# BLMPOP and all blocking zset reply shapes.
+tests/blocking.py:164:    ("BLMPOP", "2", "2", "block:ma", "block:mb", "LEFT", "COUNT", "2"))
+tests/blocking.py:168:note("BLMPOP wakes with key and count payload",
+tests/blocking.py:173:    ("BZMPOP", "2", "2", "block:za", "block:zb", "MAX", "COUNT", "2"))
+tests/blocking.py:177:note("BZMPOP wakes with ordered score/member payload",
+tests/blocking.py:184:note("BZPOPMIN reply shape", admin.cmd("BZPOPMIN", "block:zmin", "1") ==
+tests/blocking.py:186:note("BZPOPMAX reply shape", admin.cmd("BZPOPMAX", "block:zmax", "1") ==
+tests/blocking.py:191:barrier.send("BLPOP", "block:barrier", "3")
+tests/blocking.py:207:    ("BRPOPLPUSH", "block:move-mid", "block:move-out", "3"))
+tests/blocking.py:209:    ("BLPOP", "block:move-out", "3"))
+tests/blocking.py:214:note("BLMOVE/BRPOPLPUSH publication chain",
+tests/blocking.py:241:    client, thread, result, errors = start_wait(("BLPOP", destination, "3"))
+tests/blocking.py:294:    sock.sendall(frame("BRPOP", "block:leak:%d" % (index % 7), "0"))
+tests/blockmulti.py:126:        ("BLPOP", "bm:list", "0"),
+tests/blockmulti.py:127:        ("BRPOP", "bm:list", "0"),
+tests/blockmulti.py:128:        ("BLMPOP", "0", "1", "bm:list", "LEFT"),
+tests/blockmulti.py:129:        ("BZPOPMIN", "bm:zset", "0"),
+tests/blockmulti.py:130:        ("BZPOPMAX", "bm:zset", "0"),
+tests/blockmulti.py:131:        ("BZMPOP", "0", "1", "bm:zset", "MIN"),
+tests/blockmulti.py:142:        (("RPUSH", "bm:list", "v"), ("BLPOP", "bm:list", "0"),
+tests/blockmulti.py:144:        (("RPUSH", "bm:list", "left", "right"), ("BRPOP", "bm:list", "0"),
+tests/blockmulti.py:147:         ("BLMPOP", "0", "1", "bm:list", "LEFT", "COUNT", "2"),
+tests/blockmulti.py:149:        (("ZADD", "bm:zset", "1", "low"), ("BZPOPMIN", "bm:zset", "0"),
+tests/blockmulti.py:151:        (("ZADD", "bm:zset", "1", "high"), ("BZPOPMAX", "bm:zset", "0"),
+tests/blockmulti.py:154:         ("BZMPOP", "0", "1", "bm:zset", "MAX", "COUNT", "2"),
+tests/blockmulti.py:170:        (("BLPOP", "bm:list", "bad"), b"ERR timeout is not a float or out of range"),
+tests/blockmulti.py:171:        (("BLMPOP", "bad", "1", "bm:list", "LEFT"),
+tests/blockmulti.py:173:        (("BLMPOP", "0", "bad", "bm:list", "LEFT"),
+tests/blockmulti.py:175:        (("BZMPOP", "0", "1", "bm:zset", "BAD"), b"ERR syntax error"),
+tests/climon2.py:25:from _client_wait import wait_client_state
+tests/climon2.py:349:    blocker.send("BLPOP", "cl2:nolist", "30")
+tests/climon2.py:350:    wait_client_state(admin, bid, "blocked")
+tests/climon2.py:353:    blocker.send("BLPOP", "cl2:nolist", "30")
+tests/climon2.py:354:    wait_client_state(admin, bid, "blocked")
+tests/cmdmeta.py:114:           connection.cmd("COMMAND", "GETKEYSANDFLAGS", *argv),
+tests/cmdmeta.py:212:           connection.cmd("COMMAND", "GETKEYSANDFLAGS", "OBJECT", "BOGUS", "k"),
+tests/cmdmeta.py:239:    expect("RESP3 key flags", resp3.cmd("COMMAND", "GETKEYSANDFLAGS", "RENAME", "a", "b"),
+tests/cmdmeta_test.py:90:        if sub == b"GETKEYSANDFLAGS":
+tests/differ.py:1166:                    [rng.choice(["BLPOP", "BRPOP"]), "db:t", timeout],
+tests/differ.py:1171:                    [rng.choice(["BZPOPMIN", "BZPOPMAX"]), "db:tz", timeout],
+tests/differ.py:2448:    ops.append(["COMMAND", "GETKEYS", "MSET", "a", "1", "b", "2"])
+tests/differ.py:2449:    ops.append(["COMMAND", "GETKEYS", "GET", "k"])
+tests/differ.py:2450:    ops.append(["COMMAND", "GETKEYS", "LCS", "k1", "k2"])
+tests/differ.py:2451:    ops.append(["COMMAND", "GETKEYS", "PING"])
+tests/differ.py:2452:    ops.append(["COMMAND", "GETKEYS", "NOSUCHCOMMAND", "k"])
+tests/differ.py:3170:            both(["BLPOP", a, b, timeout], "random %d BLPOP" % iteration)
+tests/differ.py:3176:            both(["BRPOP", a, b, timeout], "random %d BRPOP" % iteration)
+tests/differ.py:3187:            both(["BLMPOP", timeout, "2", a, b, rng.choice(directions), "COUNT",
+tests/differ.py:3188:                  str(1 + rng.randrange(3))], "random %d BLMPOP" % iteration)
+tests/differ.py:3194:            both(["BZPOPMIN", a, b, timeout], "random %d BZPOPMIN" % iteration)
+tests/differ.py:3200:            both(["BZPOPMAX", a, b, timeout], "random %d BZPOPMAX" % iteration)
+tests/differ.py:3206:            both(["BZMPOP", timeout, "2", a, b, rng.choice(["MIN", "MAX"]), "COUNT",
+tests/differ.py:3207:                  str(1 + rng.randrange(3))], "random %d BZMPOP" % iteration)
+tests/differ.py:3215:        ["BLPOP", "cbd:timeout:l", ".01"],
+tests/differ.py:3216:        ["BRPOP", "cbd:timeout:l", "1e-2"],
+tests/differ.py:3218:        ["BRPOPLPUSH", "cbd:timeout:src", "cbd:timeout:dst", ".01"],
+tests/differ.py:3219:        ["BLMPOP", ".01", "1", "cbd:timeout:l", "LEFT", "COUNT", "2"],
+tests/differ.py:3220:        ["BZPOPMIN", "cbd:timeout:z", ".01"],
+tests/differ.py:3221:        ["BZPOPMAX", "cbd:timeout:z", "1e-2"],
+tests/differ.py:3222:        ["BZMPOP", ".01", "1", "cbd:timeout:z", "MIN", "COUNT", "2"],
+tests/differ.py:3231:        (["BLPOP", "cbd:forever:blpop", "0"],
+tests/differ.py:3233:        (["BRPOP", "cbd:forever:brpop", "0"],
+tests/differ.py:3237:        (["BRPOPLPUSH", "cbd:forever:brpoplpush", "cbd:forever:legacy-dst", "0"],
+tests/differ.py:3239:        (["BLMPOP", "0", "1", "cbd:forever:blmpop", "LEFT", "COUNT", "2"],
+tests/differ.py:3241:        (["BZPOPMIN", "cbd:forever:bzmin", "0"],
+tests/differ.py:3243:        (["BZPOPMAX", "cbd:forever:bzmax", "0"],
+tests/differ.py:3245:        (["BZMPOP", "0", "1", "cbd:forever:bzmpop", "MAX", "COUNT", "2"],
+tests/differ.py:3280:        command = ["BLPOP", "cbd:fifo", "0"]
+tests/differ.py:3290:        coverage.note('BLPOP')
+tests/differ.py:3297:    # control: a leaked waiter would consume it and make the immediate BLPOP return null.
+tests/differ.py:3301:    tw.sendall(enc(["BLPOP", "cbd:disconnect", "0"]))
+tests/differ.py:3302:    ow.sendall(enc(["BLPOP", "cbd:disconnect", "0"])); logical_ops += 1
+tests/differ.py:3309:    target, oracle = both(["BLPOP", "cbd:disconnect", ".1"], "disconnect control pop")
+tests/differ.py:3325:        ["BLPOP", "cbd:multi:l", "0"],
+tests/differ.py:3326:        ["BRPOP", "cbd:multi:l", "0"],
+tests/differ.py:3327:        ["BLMPOP", "0", "1", "cbd:multi:l", "LEFT"],
+tests/differ.py:3328:        ["BZPOPMIN", "cbd:multi:z", "0"],
+tests/differ.py:3329:        ["BZPOPMAX", "cbd:multi:z", "0"],
+tests/differ.py:3330:        ["BZMPOP", "0", "1", "cbd:multi:z", "MIN"],
+tests/differ.py:3574:        ["LMPOP", "1", "ep:miss", "LEFT"], ["BLPOP", "ep:miss", "0.01"],
+tests/differ.py:3575:        ["BRPOPLPUSH", "ep:miss", "ep:dst", "0.01"],
+tests/differ.py:3577:        ["BLMPOP", "0.01", "1", "ep:miss", "LEFT"], ["BZPOPMIN", "ep:miss", "0.01"],
+tests/differ.py:3578:        ["BZMPOP", "0.01", "1", "ep:miss", "MIN"],
+tests/differ.py:3851:        ["COMMAND", "GETKEYS", "SORT", "so:t", "BY", "so:tw_*", "GET", "so:td_*",
+tests/differ.py:5193:    # COMMAND: randomized exact GETKEYS coverage, especially movable-key forms. ----------------
+tests/differ.py:5210:        elif choice == 9: cmd = ["BLMPOP", "0", str(n)] + ks + ["RIGHT", "COUNT", "2"]
+tests/differ.py:5212:        elif choice == 11: cmd = ["BZMPOP", "0", str(n)] + ks + ["MAX", "COUNT", "2"]
+tests/differ.py:5232:        return ["COMMAND", "GETKEYS"] + cmd
+tests/differ.py:5236:        both(argv, "GETKEYS randomized %d %s" % (iteration, argv[2]))
+tests/differ.py:5240:        ["COMMAND", "GETKEYS", "EVAL", "return 1", "0", "not-a-key"],
+tests/differ.py:5241:        ["COMMAND", "GETKEYS", "EVAL", "return 1", "-1"],
+tests/differ.py:5242:        ["COMMAND", "GETKEYS", "LMPOP", "0", "k", "LEFT"],
+tests/differ.py:5243:        ["COMMAND", "GETKEYS", "ZMPOP", "garbage", "k", "MIN"],
+tests/differ.py:5244:        ["COMMAND", "GETKEYS", "GET"],
+tests/differ.py:5245:        ["COMMAND", "GETKEYS", "PING"],
+tests/differ.py:5248:        both(rng.choice(directed_getkeys), "GETKEYS validation %d" % iteration)
+tests/differ.py:5251:        both(["COMMAND", "GETKEYSANDFLAGS", "MGET"] + ks,
+tests/differ.py:5252:             "GETKEYSANDFLAGS readonly %d" % iteration)
+tests/differ.py:5568:        ["BRPOP", "a", "b", "0"], ["LMPOP", "2", "a", "b", "LEFT"],
+tests/differ.py:5569:        ["BLMPOP", "0", "2", "a", "b", "LEFT"], ["ZUNION", "2", "a", "b"],
+tests/differ.py:5743:            compare(["COMMAND", "GETKEYSANDFLAGS"] + case,
+tests/differ.py:5748:    compare(["COMMAND", "GETKEYSANDFLAGS", "GET", "k"], "RO/access zero control")
+tests/differ.py:5833:        if target.startswith(b"-NOPERM"):
+tests/doubles.py:441:        expect(c.command("BLPOP", "d:t", value), b"*2\r\n$3\r\nd:t\r\n$1\r\nv\r\n",
+tests/doubles.py:442:               "BLPOP accepts %s" % label)
+tests/doubles.py:459:        expect(c.command("BLPOP", "d:t", value), wanted, "BLPOP answers %s correctly" % label)
+tests/doubles.py:464:    expect(c.command("BLMPOP", "0x10", "1", "d:t", "LEFT"),
+tests/doubles.py:465:           b"*2\r\n$3\r\nd:t\r\n*1\r\n$1\r\nv\r\n", "BLMPOP shares the timeout grammar")
+tests/doubles.py:470:    expect(c.command("BRPOPLPUSH", "d:t", "d:td", "0x10"), b"$1\r\nv\r\n",
+tests/doubles.py:471:           "BRPOPLPUSH shares the timeout grammar")
+tests/doubles.py:474:    expect(c.command("BZPOPMIN", "d:tz", "0x1p-2"),
+tests/doubles.py:475:           b"*3\r\n$4\r\nd:tz\r\n$1\r\nm\r\n$1\r\n1\r\n", "BZPOPMIN shares the timeout grammar")
+tests/doubles.py:478:    expect(c.command("BZMPOP", "+5", "1", "d:tz", "MIN"),
+tests/doubles.py:480:           "BZMPOP shares the timeout grammar")
+tests/doubles.py:498:        c.send_only("BLPOP", "d:empty", timeout_text)
+tests/edgeproto.py:380:    # BRPOPLPUSH/BLMOVE answer a timeout with a null ARRAY in RESP2.
+tests/edgeproto.py:381:    expect(c, ["BRPOPLPUSH", "ep:nl", "ep:nd", "0.01"], b"*-1\r\n")
+tests/edgeproto.py:385:    expect(c, ["BLPOP", "ep:nl", "0.01"], b"*-1\r\n")
+tests/edgeproto.py:402:    expect(c3, ["BRPOPLPUSH", "ep:nl", "ep:nd", "0.01"], b"_\r\n")
+tests/flakeaudit_test.py:61:        _client_wait.wait_client_state(observer, 7, "blocked")
+tests/flakeaudit_test.py:67:        _client_wait.wait_client_state(observer, 7, "gone")
+tests/flakeaudit_test.py:77:                    _client_wait.wait_client_state(observer, 7, state, timeout=.02)
+tests/flakeaudit_test.py:86:                    _client_wait.wait_client_state(observer, 7, "blocked")
+tests/flakeaudit_test.py:96:            _client_wait.wait_client_state(observer, 7, "blocked")
+tests/flakeaudit_test.py:104:            _client_wait.wait_client_state(observer, 7, "gone")
+tests/globcase.py:117:if tc != b"ERRCLASS:NOPERM":
+tests/limits.py:14:from _client_wait import wait_client_state
+tests/limits.py:215:        wait_client_state(admin, first_id, "gone")
+tests/limits.py:325:        blocked.send("BLPOP", blocked_key, "0")
+tests/limits.py:329:        # Force the formerly racy order: BLPOP retirement clears `blocked`, then this client's
+tests/mdbqsbr_live.py:2:"""Real boots: parked SWAPDB, load, BLPOP, disconnects, and bounded shutdown.
+tests/mdbqsbr_live.py:247:            waiter.send('BLPOP', 'mdbqsbr:block', 0)
+tests/mdbqsbr_live.py:250:                require(time.monotonic() < deadline, 'BLPOP never parked')
+tests/mdbqsbr_live.py:287:                require(admin.cmd('RPUSH', 'mdbqsbr:block', 'after-swap') == 1, 'BLPOP wake source')
+tests/mdbqsbr_live.py:293:        # Signal stop while the connections are still open, including a BLPOP
+tests/multidb.py:252:        waiter.send("BLPOP", "md:wake", 5)
+tests/multidb.py:255:            assert time.monotonic() < deadline, "BLPOP never parked"
+tests/netio.py:26:  E  cross-thread doorbell   BLPOP parks on one connection and is woken by a push from another. Under
+tests/netio.py:40:from _client_wait import wait_client_state
+tests/netio.py:213:# BLPOP parks on a connection owned by one io thread; the LPUSH lands on an executor which must wake
+tests/netio.py:224:    waiter.send("BLPOP", key, "0")
+tests/netio.py:225:    wait_client_state(admin, waiter_id, "blocked")
+tests/netio.py:232:    check(reply == [key.encode(), b"woke"], "E1 BLPOP woken with the pushed value", reply)
+tests/notify.py:427:    expect_e("lg", ("BLPOP", "blocking:list", "1"),
+tests/notify.py:428:             [("lpop", "blocking:list"), ("del", "blocking:list")], "BLPOP")
+tests/notify.py:429:    expect_e("zg", ("BZPOPMIN", "blocking:z", "1"),
+tests/notify.py:430:             [("zpopmin", "blocking:z"), ("del", "blocking:z")], "BZPOPMIN")
+tests/notify.py:437:    expect_e("lg", ("BRPOP", "blocking:rpop", "1"),
+tests/notify.py:438:             [("rpop", "blocking:rpop"), ("del", "blocking:rpop")], "BRPOP")
+tests/notify.py:439:    expect_e("lg", ("BLMPOP", "1", "1", "blocking:lmpop", "LEFT", "COUNT", "2"),
+tests/notify.py:440:             [("lpop", "blocking:lmpop"), ("del", "blocking:lmpop")], "BLMPOP")
+tests/notify.py:445:    expect_e("lg", ("BRPOPLPUSH", "blocking:rpoplpush",
+tests/notify.py:448:              ("lpush", "blocking:rpoplpush:dest")], "BRPOPLPUSH")
+tests/notify.py:449:    expect_e("zg", ("BZPOPMAX", "blocking:zmax", "1"),
+tests/notify.py:450:             [("zpopmax", "blocking:zmax"), ("del", "blocking:zmax")], "BZPOPMAX")
+tests/notify.py:451:    expect_e("zg", ("BZMPOP", "1", "1", "blocking:zmpop", "MIN", "COUNT", "1"),
+tests/notify.py:452:             [("zpopmin", "blocking:zmpop"), ("del", "blocking:zmpop")], "BZMPOP")
+tests/pushtear.py:49:head-holder. BLPOP sets scatter_barrier and the parse loop refuses to parse
+tests/pushtear.py:624:    """ITEM 2 -- a push landing on a parked BLPOP must not swallow its timeout reply.
+tests/pushtear.py:644:        b.send(*("BLPOP", "pt:nokey", "1"))
+tests/pushtear.py:659:            bad(tag, "SWALLOWED: BLPOP timeout reply missing after a push landed on it: %r"
+tests/pushtear.py:666:            bad(tag, "delivery did not take the immediate segment route while BLPOP was parked")
+tests/pushtear.py:668:        ok(tag, "push delivered immediately (seg+%d) and BLPOP timeout still emitted" % segmented)
+tests/replyschema.py:587:        blocked.socket.sendall(frame("BLPOP", prefix + ":never", "0"))
+tests/replyschema.py:798:add("blmpop", "BLMPOP", "0.001", "1", "{p}:missing", "LEFT",
+tests/replyschema.py:800:add("blmpop", "BLMPOP", "0.001", "1", "{p}:l", "LEFT", "COUNT", "2", setup=LIST, arm=1)
+tests/replyschema.py:801:add("blpop", "BLPOP", "{p}:missing", "0.001", setup=(("DEL", "{p}:missing"),), arm=0)
+tests/replyschema.py:802:add("blpop", "BLPOP", "{p}:l", "0.001", setup=LIST, arm=1)
+tests/replyschema.py:803:add("brpop", "BRPOP", "{p}:missing", "0.001", setup=(("DEL", "{p}:missing"),), arm=0)
+tests/replyschema.py:804:add("brpop", "BRPOP", "{p}:l", "0.001", setup=LIST, arm=1)
+tests/replyschema.py:805:add("brpoplpush", "BRPOPLPUSH", "{p}:missing", "{p}:dst", "0.001",
+tests/replyschema.py:807:add("brpoplpush", "BRPOPLPUSH", "{p}:l", "{p}:dst", "0.001",
+tests/replyschema.py:880:add("bzmpop", "BZMPOP", "0.001", "1", "{p}:missing", "MIN",
+tests/replyschema.py:882:add("bzmpop", "BZMPOP", "0.001", "1", "{p}:z", "MIN", "COUNT", "2", setup=ZSET, arm=1)
+tests/replyschema.py:883:for name, command in (("bzpopmax", "BZPOPMAX"), ("bzpopmin", "BZPOPMIN")):
+tests/replyschema.py:1095:add("command|getkeys", "COMMAND", "GETKEYS", "MSET", "{p}:a", "1", "{p}:b", "2")
+tests/replyschema.py:1096:add("command|getkeysandflags", "COMMAND", "GETKEYSANDFLAGS", "MSET", "{p}:a", "1", "{p}:b", "2")
+tests/servertail.py:7:SHUTDOWN), scope B (CONFIG REWRITE/RESETSTAT/HELP, COMMAND COUNT/LIST/INFO/DOCS/GETKEYS/
+tests/servertail.py:8:GETKEYSANDFLAGS/HELP) and scope C (OBJECT, MEMORY).
+tests/servertail.py:192:          lambda v: isinstance(v, list) and any("GETKEYSANDFLAGS" in line for line in v))
+tests/servertail.py:222:    check("GETKEYS single", c.cmd("COMMAND", "GETKEYS", "GET", "foo"), ["foo"])
+tests/servertail.py:223:    check("GETKEYS multi", c.cmd("COMMAND", "GETKEYS", "MSET", "a", "1", "b", "2"), ["a", "b"])
+tests/servertail.py:224:    check("GETKEYS two-key", c.cmd("COMMAND", "GETKEYS", "LCS", "a", "b"), ["a", "b"])
+tests/servertail.py:225:    check("GETKEYS keyless", c.cmd("COMMAND", "GETKEYS", "PING"),
+tests/servertail.py:227:    check("GETKEYS bad arity", c.cmd("COMMAND", "GETKEYS", "GET"),
+tests/servertail.py:229:    check("GETKEYS unknown command", c.cmd("COMMAND", "GETKEYS", "NOSUCHCMD", "a"),
+tests/servertail.py:231:    flags = c.cmd("COMMAND", "GETKEYSANDFLAGS", "SET", "foo", "bar")
+tests/servertail.py:232:    check("GETKEYSANDFLAGS shape", flags,
+tests/servertail.py:234:    ro = c.cmd("COMMAND", "GETKEYSANDFLAGS", "GET", "foo")
+tests/servertail.py:235:    check("GETKEYSANDFLAGS readonly", ro, lambda v: v[0][1] == ["RO", "access"])
+tests/sortstore.py:27:            for _, _, argv in cases() for verb in ("GETKEYS", "GETKEYSANDFLAGS")]
+tests/sortstore.py:43:        for verb, expected in (("GETKEYS", wanted), ("GETKEYSANDFLAGS", flags)):
+tests/tracking.py:18:from _client_wait import wait_client_state
+tests/tracking.py:473:    wait_client_state(admin, tid, "gone")
+tests/aclkeys_unit.cc:114:        for (const auto* verb : {"BLPOP", "BRPOP", "BZPOPMIN", "BZPOPMAX"})
+tests/aclkeys_unit.cc:116:        keys(user, {"BLMPOP", timeout, "2", "block:a", "block:b", "LEFT", "COUNT", "2"}, {3, 4});
+tests/aclkeys_unit.cc:117:        keys(user, {"BZMPOP", timeout, "2", "block:a", "block:b", "MIN", "COUNT", "2"}, {3, 4});
+tests/aclkeys_unit.cc:119:        keys(user, {"BRPOPLPUSH", "block:a", "block:b", timeout}, {1, 2});
+tests/ccfix_unit.cc:73:            reply_err(op.sink(), "NOPERM fixture denial");
+tests/exbatch_unit.cc:260:            Request nested({"COMMAND", "GETKEYS", spelling.substr(0, pipe), spelling.substr(pipe + 1), "key"});
+tests/exbatch_unit.cc:264:            check(command_metadata_resolve(nested.op, 2) == row, "nested COMMAND GETKEYS resolver");
+tests/mdbstamp_checks.cc:210:    {"bzmpop", {"BZMPOP", "1.5", "2", "a", "b", "MAX", "COUNT", "2"}, {3,4}},
+tests/mdbstamp_checks.cc:211:    {"blmpop", {"BLMPOP", "1.5", "2", "a", "b", "RIGHT", "COUNT", "2"}, {3,4}},
+tests/mdbstamp_checks.cc:212:    {"blpop", {"BLPOP", "a", "b", "0"}, {1,2}},
+tests/mdbstamp_checks.cc:213:    {"brpop", {"BRPOP", "a", "b", "0"}, {1,2}},
+tests/mdbstamp_checks.cc:214:    {"bzpopmin", {"BZPOPMIN", "a", "b", "0"}, {1,2}},
+tests/mdbstamp_checks.cc:215:    {"bzpopmax", {"BZPOPMAX", "a", "b", "0"}, {1,2}},
+tests/mdbstamp_checks.cc:233:        " BITOP RENAME RENAMENX COPY BLPOP BRPOP BLMPOP BLMOVE BRPOPLPUSH LMPOP LMOVE RPOPLPUSH"
+tests/mdbstamp_checks.cc:234:        " SMOVE SINTERCARD BZPOPMIN BZPOPMAX BZMPOP ZMPOP ZRANGESTORE"
+tests/netcmd_unit.cc:334:            note({"BLPOP", "a", "b", "0"});

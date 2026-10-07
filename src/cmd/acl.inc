@@ -534,42 +534,25 @@ AclDeniedReason acl_check_keys(const AclSelector& perm, const CommandSpec& spec,
             }
         }
     }
-    if (spec.flags & CmdFlags::ScriptRoute) {
-        if (argc < 3) return AclDeniedReason::None;
-        uint64_t count = 0;
-        const Slice text = get_arg(2);
-        if (!text.n) return AclDeniedReason::None;
-        for (uint32_t i = 0; i < text.n; i++) {
-            if (text.p[i] < '0' || text.p[i] > '9') return AclDeniedReason::None;
-            count = count * 10 + static_cast<uint64_t>(text.p[i] - '0');
-        }
-        for (uint32_t arg = 3; arg < argc && arg < 3 + count; arg++)
-            if (!acl_pattern_allowed(perm, get_arg(arg))) {
-                if (denied_arg) *denied_arg = arg;
-                return AclDeniedReason::Key;
-            }
-        return AclDeniedReason::None;
+    // Use precisely the same subcommand resolution and rich key specs as COMMAND GETKEYS.
+    // Legacy routing ranges cannot describe timeouts, key counts, or keyless HELP arms.
+    // This scratch view borrows argument bytes; it exists only for restricted ACL users.
+    Op arguments;
+    arguments.spec = &spec;
+    for (uint32_t arg = 0; arg < argc; ++arg)
+        if (!arguments.push_arg(get_arg(arg))) return AclDeniedReason::Key;
+    const auto* metadata = command_metadata_resolve(arguments, 0);
+    // Unknown/malformed subcommands are rejected by their command parser, as before.
+    if (!metadata) return AclDeniedReason::None;
+    std::vector<CommandKeyMetadata> keys;
+    try {
+        command_metadata_collect_keys(arguments, 0, *metadata, keys);
+    } catch (const std::bad_alloc&) {
+        return AclDeniedReason::Key;  // Never admit unchecked keys on allocation failure.
     }
-    if (spec.flags & CmdFlags::StreamRoute) {
-        uint32_t streams = 1;
-        while (streams < argc && !get_arg(streams).eq_icase("streams")) streams++;
-        if (streams == argc || ((argc - streams - 1) & 1u)) return AclDeniedReason::None;
-        const uint32_t count = (argc - streams - 1) / 2;
-        for (uint32_t arg = streams + 1; arg < streams + 1 + count; arg++)
-            if (!acl_pattern_allowed(perm, get_arg(arg))) {
-                if (denied_arg) *denied_arg = arg;
-                return AclDeniedReason::Key;
-            }
-        return AclDeniedReason::None;
-    }
-    if (spec.first_key <= 0 || spec.key_step <= 0 || argc == 0)
-        return AclDeniedReason::None;
-    const uint32_t last = spec.last_key < 0 ? argc - 1 :
-        std::min<uint32_t>(static_cast<uint32_t>(spec.last_key), argc - 1);
-    for (uint32_t arg = static_cast<uint32_t>(spec.first_key); arg <= last;
-         arg += static_cast<uint32_t>(spec.key_step))
-        if (!acl_pattern_allowed(perm, get_arg(arg))) {
-            if (denied_arg) *denied_arg = arg;
+    for (const auto& key : keys)
+        if (!acl_pattern_allowed(perm, get_arg(key.argument))) {
+            if (denied_arg) *denied_arg = key.argument;
             return AclDeniedReason::Key;
         }
     return AclDeniedReason::None;

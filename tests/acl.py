@@ -12,6 +12,8 @@ import sys
 import threading
 import time
 
+from _client_wait import wait_client_state
+
 
 HOST, PORT, ACLFILE = sys.argv[1], int(sys.argv[2]), sys.argv[3]
 
@@ -247,13 +249,19 @@ expect(exec_reply[1],
 # Blocking completion must consult the current immutable permission blob, not its admission copy.
 expect(admin.command("ACL", "SETUSER", "alice", "resetkeys", "~block:*"), b"OK",
        "allow blocking key")
+admin.command("DEL", "block:k")
+expect(admin.command("EXISTS", "block:k"), 0, "blocking key clean slate")
 blocked = Conn()
+blocked_id = blocked.command("CLIENT", "ID")
 expect(blocked.command("AUTH", "alice", password), b"OK", "blocking AUTH")
 blocking_reply = []
 thread = threading.Thread(target=lambda: blocking_reply.append(
     blocked.command("BLPOP", "block:k", 0)))
 thread.start()
-time.sleep(0.25)
+try:
+    wait_client_state(admin, blocked_id, "blocked")
+except AssertionError as exc:
+    raise AssertionError("%s; early BLPOP replies=%r" % (exc, blocking_reply)) from exc
 expect(admin.command("ACL", "SETUSER", "alice", "resetkeys", "~other:*"), b"OK",
        "revoke blocked key")
 expect(admin.command("LPUSH", "block:k", "value"), 1, "wake blocked command")

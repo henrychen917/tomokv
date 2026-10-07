@@ -258,6 +258,9 @@ unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flip
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
 DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
+# ACL range audit and real permission checks; never starts the server.
+$(BUILD_ROOT)/aclkeys-unit: tests/aclkeys_unit.cc $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ))
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # ST2 cost witness: only the two cold census walks are instrumented. The fixture
 # dispatches real commands and counts work; it never boots a listener or workers.
 STORESIZE_CORE_OBJ := $(filter-out build/src/cmd/xshard.o build/src/cmd/multidb.o build/db0/src/cmd/xshard.o build/db0/src/cmd/multidb.o,$(CORE_TEST_OBJ) $(DB0_TEST_OBJ))
