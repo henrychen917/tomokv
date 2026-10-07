@@ -1,0 +1,14 @@
+{
+  "base": "6a3c90acb9f811a569b7bbe6358fb8f69199b214",
+  "implementation_commit": "68fd3cd7f12e3247e913e2d2a921b1509a63faf2",
+  "origin_cpp": "6a3c90acb9f811a569b7bbe6358fb8f69199b214",
+  "gate_unchanged": true,
+  "gate_sha256": "144ccf9092f531ff7c522bc3c7b2468f4b4f20cc1b9f2c7510deb9fbcac00c1d",
+  "gate_row_delta": {
+    "quick": 0,
+    "full": 0
+  },
+  "no_server_benchmark_or_gate_executed": true,
+  "unit_cores": "112-127; new C++ snapshot matrix on 112-119",
+  "build_cores": "112-127"
+}
