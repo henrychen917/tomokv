@@ -11,6 +11,8 @@ and retains failed samples. See MEASURE-REQUEST-exbatch-bench.md for scopes.
 --arms replaces the frozen table with a path+SHA256 receipt; PRE and POST are
 required, while absent controls are reported as not available. See
 MEASURE-REQUEST-exbatch-bench4.md for lane versus landed-mainline framing.
+--score matched-only requires --matched-load (aggregate offered frames/s),
+skips plateau passes, and checks PRE matched cyc/op repeatability instead.
 """
 from __future__ import annotations
 
@@ -53,6 +55,7 @@ PARTIAL = dict(zip(BASES, ("EX3-OLD", "EX3-OLD", "EX6-OLD", "EX6-OLD", "EX1-OLD"
 WINDOW, WARMUP, TAIL = 20, 3, 5
 CONNECTIONS, PIPELINE = 512, 32
 BOUND = CONNECTIONS * PIPELINE
+DEFAULT_CORES = ("0-7", "8-111")
 REQUIRED_OPTIONS = ("command", "command-ratio", "command-key-pattern", "transaction",
                     "rate-limiting", "json-out-file", "distinct-client-seed",
                     "pipeline", "test-time", "key-minimum", "key-maximum")
@@ -229,24 +232,24 @@ int main(int argc, char **argv) {
 '''
 
 
-def guard_build_argv(folder, unit=False):
+def guard_build_argv(folder, unit=False, cores=DEFAULT_CORES):
     name = "guard-unit" if unit else "zero-reply"
-    return ["taskset", "-c", "8-23", "cc", "-std=c11", "-O2", *([] if unit else ["-shared", "-fPIC"]),
+    return ["taskset", "-c", "8-23" if cores == DEFAULT_CORES else cores[1], "cc", "-std=c11", "-O2", *([] if unit else ["-shared", "-fPIC"]),
             "-Wall", "-Wextra", "-Werror", "-o", str(folder / (name if unit else name + ".so")),
             str(folder / (name + ".c")), "-ldl"]
 
 
-def prepare_guard(folder):
+def prepare_guard(folder, cores=DEFAULT_CORES):
     folder.mkdir()
     (folder / "zero-reply.c").write_text(ZERO_REPLY_GUARD)
     (folder / "guard-unit.c").write_text(ZERO_REPLY_GUARD + ZERO_REPLY_UNIT)
     with (folder / "build.log").open("wb") as log:
-        subprocess.run(guard_build_argv(folder), check=True, stdout=log, stderr=subprocess.STDOUT)
-        subprocess.run(guard_build_argv(folder, unit=True), check=True, stdout=log, stderr=subprocess.STDOUT)
+        subprocess.run(guard_build_argv(folder, cores=cores), check=True, stdout=log, stderr=subprocess.STDOUT)
+        subprocess.run(guard_build_argv(folder, unit=True, cores=cores), check=True, stdout=log, stderr=subprocess.STDOUT)
     controls = []
     for mode in ("good", "bad", "error", "partial", "empty"):
         receipt = folder / (mode + ".json")
-        proc = subprocess.run(["taskset", "-c", "8", str(folder / "guard-unit"), mode],
+        proc = subprocess.run(["taskset", "-c", str(cpu_ids(cores[1]).start), str(folder / "guard-unit"), mode],
                               env={**os.environ, "EXBATCH_ZERO_RECEIPT": str(receipt)},
                               capture_output=True, text=True, timeout=10)
         require(proc.returncode == (0 if mode == "good" else 86), "native guard positive/negative control failed: " + mode)
@@ -257,7 +260,7 @@ def prepare_guard(folder):
         controls.append(dict(mode=mode, exit_status=proc.returncode, stderr=proc.stderr))
     save(folder / "unit-checks.json", controls)
     return dict(path=str(folder / "zero-reply.so"), sha256=digest(folder / "zero-reply.so"),
-                source_sha256=digest(folder / "zero-reply.c"), build_argv=guard_build_argv(folder),
+                source_sha256=digest(folder / "zero-reply.c"), build_argv=guard_build_argv(folder, cores=cores),
                 unit_sha256=digest(folder / "guard-unit"), unit_checks=controls)
 
 
@@ -341,6 +344,48 @@ class Diagnostics:
                            f"partial evidence={json.dumps(detail['evidence'], sort_keys=True)}; receipt={path}")
 
 
+def cpu_ids(spec):
+    low, high = map(int, spec.split("-"))
+    return range(low, high + 1)
+
+
+def parse_cores(value):
+    if not re.fullmatch(r"\d+-\d+,\d+-\d+", value):
+        raise argparse.ArgumentTypeError("--cores requires SERVER_RANGE,LOAD_RANGE (e.g. 112-119,120-127)")
+    server, load = value.split(",")
+    s0, s1 = map(int, server.split("-"))
+    l0, l1 = map(int, load.split("-"))
+    if s1 - s0 != 7 or l1 - l0 < 7 or max(s0, l0) <= min(s1, l1):
+        raise argparse.ArgumentTypeError("--cores requires 8 server CPUs and at least 8 disjoint load CPUs")
+    return (f"{s0}-{s1}", f"{l0}-{l1}")
+
+
+def cell_cores(cell):
+    return tuple(cell.get("cores", DEFAULT_CORES))
+
+
+def configure_cores(cells, cores):
+    if cores == DEFAULT_CORES:
+        return  # Keep the frozen default recipes byte-for-byte.
+    for cell in cells.values():
+        cell["cores"] = cores
+        cell["server_argv"][2] = cores[0]
+        cpus = cpu_ids(cores[1])
+        # Keep a dedicated poll CPU when possible; with eight load CPUs the
+        # observer shares the final instance's CPU. Client/thread counts stay fixed.
+        if cell["id"].startswith(BASES[-1]) and len(cpus) > 8:
+            cpus = cpus[:-1]
+        for i, item in enumerate(cell["memtier_instances"]):
+            part = cpus[i * len(cpus) // 8:(i + 1) * len(cpus) // 8]
+            item["argv"][2] = str(part[0]) if len(part) == 1 else f"{part[0]}-{part[-1]}"
+
+
+def matched_q(load):
+    q = math.floor(load / CONNECTIONS)
+    require(q > 0, "matched load too low for a positive common q (at least 512 frames/s)")
+    return q
+
+
 def inventory():
     document = json.loads(INVENTORY.read_text())
     cells = {c["id"]: c for c in document["custom"]}
@@ -409,15 +454,17 @@ def probe_argv(cell, folder):
 
 
 def worker_argv(kind, cell, folder, index=None):
-    cpu = "111" if kind == "poll" else (cell["memtier_instances"][index]["argv"][2] if index is not None else "8")
+    cores = cell_cores(cell)
+    cpu = str(cpu_ids(cores[1])[-1]) if kind == "poll" else (cell["memtier_instances"][index]["argv"][2] if index is not None else str(cpu_ids(cores[1])[0]))
     result = ["taskset", "-c", cpu, sys.executable, str(Path(__file__).resolve()),
               "--worker", kind, "--cell", cell["id"], "--output", str(folder)]
-    return result + (["--instance", str(index)] if index is not None else [])
+    return (result + (["--instance", str(index)] if index is not None else []) +
+            (["--cores", ",".join(cores)] if cores != DEFAULT_CORES else []))
 
 
-def perf_argv(folder):
+def perf_argv(folder, cores=DEFAULT_CORES):
     # IPC is instructions / cycles from this group, never a separately sampled metric.
-    return ["taskset", "-c", "8", "perf", "stat", "-a", "-A", "-C", "0-7", "-x", ",",
+    return ["taskset", "-c", str(cpu_ids(cores[1])[0]), "perf", "stat", "-a", "-A", "-C", cores[0], "-x", ",",
             "--no-big-num", "--no-scale", "-e", "{cycles,instructions}", "--delay=-1",
             f"--control=fifo:{folder / 'perf.ctl'},{folder / 'perf.ack'}",
             "--timeout", "40000", "-o", str(folder / "perf.csv")]
@@ -503,7 +550,7 @@ def parse_memtier(path, cell, log):
     return result
 
 
-def parse_perf(text):
+def parse_perf(text, server_cpus=range(8)):
     cpus = {}
     for line in text.splitlines():
         if not line.strip() or line.lstrip().startswith("#"):
@@ -524,7 +571,7 @@ def parse_perf(text):
         require(event not in row, "duplicate perf event")
         row[event] = count
         row[event + "_runtime_ns"] = runtime
-    require(set(cpus) == set(range(8)), "perf lacks one or more server CPUs")
+    require(set(cpus) == set(server_cpus), "perf lacks one or more server CPUs")
     for row in cpus.values():
         require("cycles" in row and "instructions" in row, "missing grouped perf event")
         require(row["cycles_runtime_ns"] == row["instructions_runtime_ns"], "PMU numerator scopes differ")
@@ -594,7 +641,7 @@ def arm_kind(arm):
             "A: selected old item at POST layout" if arm.endswith("OLD") else "source build")
 
 
-def prepare_arms(dry=False, table=None):
+def prepare_arms(dry=False, table=None, cores=DEFAULT_CORES):
     if table is not None:
         identities = {}
         for arm, entry in table.items():
@@ -610,15 +657,16 @@ def prepare_arms(dry=False, table=None):
     paths = arm_paths()
     expected = {r["arm"]: r["sha256"] for r in manifest["artifacts"]}
     identities = {}
+    build_cpus = "0-15" if cores == DEFAULT_CORES else cores[1]
     for arm in ("PRE", "POST", "PAD-A", "EX1-OLD", "EX3-OLD", "EX6-OLD"):
         path = paths[arm]
         if not path.is_file():
             if dry:
                 if arm == "PRE":
                     print(f"# git archive {manifest['pre_commit']} | tar -x -C {path.parent.parent}")
-                    print(shlex.join(["taskset", "-c", "0-15", "make", "-C", str(path.parent.parent), "-j16"]))
+                    print(shlex.join(["taskset", "-c", build_cpus, "make", "-C", str(path.parent.parent), "-j16"]))
                 elif arm == "POST":
-                    print(shlex.join(["taskset", "-c", "0-15", "make", "-C", str(ROOT), "-j16"]))
+                    print(shlex.join(["taskset", "-c", build_cpus, "make", "-C", str(ROOT), "-j16"]))
                 else:
                     print(f"# reconstruct {arm} from POST and docs/exbatch/{'pad-a' if arm == 'PAD-A' else arm.lower()}/planned-retargets.json; verify frozen SHA256")
             elif arm in ("PRE", "POST"):
@@ -630,7 +678,7 @@ def prepare_arms(dry=False, table=None):
                     subprocess.run(["git", "archive", "-o", str(archive), manifest["pre_commit"]], cwd=ROOT, check=True)
                     with tarfile.open(archive) as stream:
                         stream.extractall(source, filter="data")
-                subprocess.run(["taskset", "-c", "0-15", "make", "-C", str(source), "-j16"], check=True)
+                subprocess.run(["taskset", "-c", build_cpus, "make", "-C", str(source), "-j16"], check=True)
             else:
                 receipt = ROOT / "docs/exbatch" / ("pad-a" if arm == "PAD-A" else arm.lower())
                 plan = json.loads((receipt / "planned-retargets.json").read_text())
@@ -832,10 +880,10 @@ def validate_wire(cell, frames):
     return dict(frames=frames, rotation_suffixes=rotations, complete=True)
 
 
-def poll_worker(folder):
+def poll_worker(folder, cpu=111):
     rows, missed = [], 0
     with contextlib.closing(Conn("127.0.0.1", 18179)) as conn:
-        save(folder / "poll-ready.json", dict(pid=os.getpid(), cpu=111))
+        save(folder / "poll-ready.json", dict(pid=os.getpid(), cpu=cpu))
         while not (folder / "poll-start.json").exists():
             time.sleep(.002)
         start = json.loads((folder / "poll-start.json").read_text())["start"]
@@ -891,13 +939,14 @@ class Children:
 class PerfWindow:
     ACK_TIMEOUT = 5.0
 
-    def __init__(self, folder, children):
+    def __init__(self, folder, children, cores=DEFAULT_CORES):
         self.folder, self.children = folder, children
+        self.cores = cores
         for name in ("perf.ctl", "perf.ack"):
             os.mkfifo(folder / name)
         self.ctl = os.open(folder / "perf.ctl", os.O_RDWR | os.O_NONBLOCK)
         self.ack = os.open(folder / "perf.ack", os.O_RDWR | os.O_NONBLOCK)
-        self.process = children.start(perf_argv(folder), folder / "perf.log", folder)
+        self.process = children.start(perf_argv(folder, cores), folder / "perf.log", folder)
         try:
             self.command("disable")  # ACK proves perf is listening before any timed work.
             self.identity = dict(path=os.readlink(f"/proc/{self.process.pid}/exe"),
@@ -945,7 +994,7 @@ class PerfWindow:
 
     def finish(self):
         self.children.stop(self.process, signal.SIGINT)
-        return parse_perf((self.folder / "perf.csv").read_text())
+        return parse_perf((self.folder / "perf.csv").read_text(), cpu_ids(self.cores[0]))
 
     def close(self):
         self.children.stop(self.process, signal.SIGINT)
@@ -977,14 +1026,14 @@ def command_counts(cell, before, after):
     return result
 
 
-def role_cpus(snapshot, regime, boot):
+def role_cpus(snapshot, regime, boot, server_cpus=range(8)):
     placement = {int(t): int(cpu) for t, cpu in (part.split(":") for part in boot["thread_cpus"].split(","))}
     require(set(placement) == set(snapshot.threads), "INFO/LBSIGNALS thread inventory differs")
     roles = {}
     for tid, row in snapshot.threads.items():
         # LBSIGNALS 'cpu' is CPU TIME, not a placement ID. Use INFO's map.
         roles.setdefault(row["role"], []).append(placement[tid])
-    require(sorted(c for cpus in roles.values() for c in cpus) == list(range(8)), "server CPU geometry changed")
+    require(sorted(c for cpus in roles.values() for c in cpus) == list(server_cpus), "server CPU geometry changed")
     expected = {"io": 6, "ex": 2} if regime == "s0" else {"fused": 8}
     require({r: len(v) for r, v in roles.items()} == expected, "server roles changed")
     return roles
@@ -1041,9 +1090,11 @@ def check_mix(cell, counts, bound):
 
 def run_sample(cell, arm, identities, folder, q, guard=None):
     folder.mkdir(parents=True, exist_ok=False)
+    cores = cell_cores(cell)
+    server_cpus, load_cpus = map(cpu_ids, cores)
     record = dict(cell=cell["id"], arm=arm, arm_identity=identities[arm], complete=False,
                   matched=q if q is not None else "plateau", argv={}, artifacts=str(folder),
-                  numerator_scope="perf stat system-wide on CPUs 0-7, grouped cycles+instructions; includes observer server work",
+                  numerator_scope=f"perf stat system-wide on CPUs {cores[0]}, grouped cycles+instructions; includes observer server work",
                   denominator_scope="central top-level workload frames; excludes MEMORY/INFO/DEBUG and counts queued SET once",
                   latency_scope="pooled completed-response HDR across all eight full 28-second runs, including warmup/tail",
                   startup_allowance_seconds=0, server_boot_timeout_seconds=30)
@@ -1053,7 +1104,7 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
     try:
         diagnostic.step("quiet preflight")
         quiet_file_guard()
-        monitor = QuietMonitor(range(8), range(8, 112), ports=[18179],
+        monitor = QuietMonitor(server_cpus, load_cpus, ports=[18179],
                                sample_artifact=folder / "quiet-samples.jsonl").start()
         record["quiet"] = monitor.evidence()
         diagnostic.step("server launch and boot", timeout_seconds=30)
@@ -1119,8 +1170,8 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
         before_full = info(conn, "commandstats")
         record["whole_commandstats_before"] = before_full
         diagnostic.step("perf startup/disable ACK")
-        perf = PerfWindow(folder, children)
-        record["argv"]["perf"] = perf_argv(folder)
+        perf = PerfWindow(folder, children, cores)
+        record["argv"]["perf"] = perf_argv(folder, cores)
         poller = None
         if base == BASES[-1]:
             diagnostic.step("observer ready", timeout_seconds=10)
@@ -1148,7 +1199,7 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
         lb0raw = conn.must("DEBUG", "LBSIGNALS")
         (folder / "lb-before.txt").write_bytes(lb0raw)
         lb0 = parse_snapshot(lb0raw)
-        roles = role_cpus(lb0, regime, boot)
+        roles = role_cpus(lb0, regime, boot, server_cpus)
         diagnostic.step("perf enable ACK / initial commandstats")
         enable = perf.command("enable")
         before_at = time.monotonic()
@@ -1181,7 +1232,7 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
         lb1raw = conn.must("DEBUG", "LBSIGNALS")
         (folder / "lb-after.txt").write_bytes(lb1raw)
         lb1 = parse_snapshot(lb1raw)
-        require(role_cpus(lb1, regime, info(conn, "server")) == roles, "thread roles/CPU placement changed during sample")
+        require(role_cpus(lb1, regime, info(conn, "server"), server_cpus) == roles, "thread roles/CPU placement changed during sample")
         stats1 = info(conn, "stats")
         require(int(stats1["keyspace_misses"]) == int(stats0["keyspace_misses"]), "scored workload missed warm state")
         require(all(p.poll() is None for p in loads), "generator ended inside central window")
@@ -1219,7 +1270,7 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
             require(abs(memory_calls - len(central)) <= 2, "observer/server MEMORY accounting differs")
             record["observer"] = dict(successful=polls["successful"], central_successful=len(central),
                                        central_memory_calls=memory_calls, missed_deadlines=0,
-                                       scope="one persistent connection, CPU111, 100Hz; workload denominator excludes MEMORY")
+                                       scope=f"one persistent connection, CPU{load_cpus[-1]}, 100Hz; workload denominator excludes MEMORY")
         diagnostic.step("whole-run HDR/guard accounting")
         after_full = info(conn, "commandstats")
         record["whole_commandstats_after"] = after_full
@@ -1328,13 +1379,25 @@ def endgame(cell, a, b, left, right, q, framing=None):
             framing_suffix(framing))
 
 
-def block_checks(samples, q):
+def block_checks(samples, q, matched_pre=False):
     require(len(samples) == 4, "ABBA block incomplete")
     sides = ([samples[0], samples[3]], [samples[1], samples[2]])
     if q is not None:
         rate_check([s["rate"] for s in samples], q)
         receipt = rate_check([statistics.mean(s["rate"] for s in side) for side in sides], q)
         require(receipt["inter_arm_spread_pct"] <= .5, "matched arm means differ >0.5%; recollect common target")
+        if matched_pre:
+            require(all(s["arm"] == "PRE" for s in samples), "matched precondition requires PRE null samples")
+            costs = [s["cycles"] / s["frames"] for s in samples]
+            require(all(math.isfinite(c) and c > 0 for c in costs), "invalid matched cyc/op")
+            # All four samples are PRE. Check both repeats and both null sides,
+            # so equal within-side costs cannot conceal a displaced null pair.
+            low, high = min(costs), max(costs)
+            ratio = high / low
+            require(ratio <= 1.02,
+                    f"same-arm matched repeats differ >2%; arm=PRE cyc/op={low:.6f}/{high:.6f} "
+                    f"spread={100 * (ratio - 1):.6f}%; "
+                    f"samples={[s.get('artifacts') for s in samples]}; recollect quiet block")
     else:
         for side in sides:
             require(statistics.mean(s["saturation"]["score_pct"] for s in side) >= SATURATION_FLOOR and
@@ -1352,37 +1415,55 @@ def block_checks(samples, q):
                 min(s["observer"]["central_successful"] for s in samples) <= 2, "poll cadence differs across arms")
 
 
-def dry_run(cells, identities, output, blocks, receipt=None, framing=None):
+def validate_score(score, matched_load):
+    require(score in ("plateau-then-matched", "matched-only"), "unknown score mode")
+    if score == "matched-only":
+        require(type(matched_load) is int, "--score matched-only requires --matched-load (aggregate offered frames/s)")
+        return matched_q(matched_load)
+    require(matched_load is None, "--matched-load requires --score matched-only")
+    return None
+
+
+def dry_run(cells, identities, output, blocks, receipt=None, framing=None,
+            score="plateau-then-matched", matched_load=None):
+    fixed_q = validate_score(score, matched_load)
+    cores = cell_cores(cells[0])
+    suffix = " plateau=skipped" if score == "matched-only" else ""
     identities = {a: dict(entry) for a, entry in identities.items()}
     print("# DRY RUN: only memtier --help was executed. No server, load, perf, socket, build or output directory is created.")
     print("# arm SHA256 identities " + json.dumps(identities, sort_keys=True))
     print("# arms receipt " + json.dumps(receipt, sort_keys=True))
     print("# measurement framing " + json.dumps(framing, sort_keys=True))
+    if fixed_q is not None:
+        print(f"# score=matched-only plateau=skipped; requested={matched_load} frames/s; "
+              f"q=floor({matched_load}/512)={fixed_q}; offered={CONNECTIONS * fixed_q} frames/s; "
+              "PRE matched cyc/op repeats must agree within 2% in every null ABBA block")
     print(shlex.join([MEMTIER, "--help"]) + " # already checked; SHA-bound grammar receipt")
     print("git rev-parse HEAD")
     guard = dict(path=str(output / "guard/zero-reply.so"))
     if any(c["id"].startswith(BASES[3]) for c in cells):
         print("# write embedded zero-reply C source; compile and SHA-bind before quiet preflight")
-        print(shlex.join(guard_build_argv(output / "guard")))
-        print(shlex.join(guard_build_argv(output / "guard", unit=True)))
+        print(shlex.join(guard_build_argv(output / "guard", cores=cores)))
+        print(shlex.join(guard_build_argv(output / "guard", unit=True, cores=cores)))
         for mode in ("good", "bad", "error", "partial", "empty"):
             print(shlex.join(["env", f"EXBATCH_ZERO_RECEIPT={output / 'guard' / (mode + '.json')}",
-                              "taskset", "-c", "8", str(output / "guard/guard-unit"), mode]))
+                              "taskset", "-c", str(cpu_ids(cores[1])[0]), str(output / "guard/guard-unit"), mode]))
     for arm, identity in identities.items():
         source = identity["path"]
         identity["path"] = str(output / "arms" / arm / "tomokv")
         print(f"# freeze copy {shlex.quote(source)} -> {shlex.quote(identity['path'])}; chmod 0555; verify SHA256")
     for cell in cells:
         base, _ = cell["id"].rsplit("_", 1)
-        for phase, q in (("plateau", None), ("matched", "Q_" + cell["id"])):
-            if q:
+        phases = (("matched", fixed_q),) if fixed_q is not None else (("plateau", None), ("matched", "Q_" + cell["id"]))
+        for phase, q in phases:
+            if q and fixed_q is None:
                 primary = "/".join(a for a in ("PRE", "PAD-A", "POST") if a in identities)
                 print(f"# {q}=floor(0.8*min(mean {primary} primary plateau frames/s)/512)")
             pairs = [("PRE", "PRE")] + comparisons(cell)
             for pair_index, (a, b) in enumerate(pairs):
                 unavailable = unavailable_comparison(a, b, identities)
                 if unavailable:
-                    print("# " + unavailable_row(cell, unavailable, q, framing))
+                    print("# " + unavailable_row(cell, unavailable, q, framing) + suffix)
                     continue
                 for block in range(blocks):
                     for index, arm in enumerate((a, b, b, a)):
@@ -1403,7 +1484,7 @@ def dry_run(cells, identities, output, blocks, receipt=None, framing=None):
                             else:
                                 print(shlex.join(argv))
                         display_load(probe_argv(cell, folder), "wire-probe")
-                        print(shlex.join(perf_argv(folder)))
+                        print(shlex.join(perf_argv(folder, cores)))
                         if base == BASES[-1]:
                             print(shlex.join(worker_argv("poll", cell, folder)))
                         for i in range(8):
@@ -1415,13 +1496,18 @@ def dry_run(cells, identities, output, blocks, receipt=None, framing=None):
                         print("# verify exact whole-run server/HDR counts, replies/mix/state, rate target, PMU coverage; terminate/reap owned server")
 
 
-def run(cells, identities, output, blocks, memtier, receipt=None, framing=None):
+def run(cells, identities, output, blocks, memtier, receipt=None, framing=None,
+        score="plateau-then-matched", matched_load=None):
+    fixed_q = validate_score(score, matched_load)
+    cores = cell_cores(cells[0])
+    suffix = " plateau=skipped" if score == "matched-only" else ""
     require(not output.exists(), "output already exists; never overwrite/reuse prior samples")
     receipt = receipt or bind_arms()[1]
     verify_receipt(receipt)
     framing = framing or measurement_framing(identities, receipt)
-    require(set(range(112)) <= os.sched_getaffinity(0), "mainline launch must permit CPUs 0-111")
-    os.sched_setaffinity(0, {8})
+    require(set(cpu_ids(cores[0])) | set(cpu_ids(cores[1])) <= os.sched_getaffinity(0),
+            f"launch must permit server CPUs {cores[0]} and load CPUs {cores[1]}")
+    os.sched_setaffinity(0, {cpu_ids(cores[1])[0]})
     output.mkdir(parents=True)
     instrument_files = [Path(__file__).resolve(), INVENTORY, RECEIPTS, MAINLINE_RECEIPT,
                         *[ROOT / "tests" / n for n in ("_lib.py", "abba_workloads.py", "abba_saturation.py", "gate_quiet.py", "gateplan.py")]]
@@ -1433,9 +1519,16 @@ def run(cells, identities, output, blocks, memtier, receipt=None, framing=None):
                   regimes=sorted({c["id"].rsplit("_", 1)[1] for c in cells}), cells={}, rows=[],
                   bands="Same-binary nulls collected before each pass; no regression band inferred/widened by this tool. Mainline freezes bands and judges.",
                   capacity="Fixed requested 8-instance geometry. Productive occupancy and repeatability checked; higher-generator-capacity plateau proof remains mainline's calibration.")
+    if fixed_q is not None:
+        report.update(score=score, plateau="skipped", matched_load=dict(source="--matched-load",
+                      requested_frames_per_second=matched_load, q=fixed_q,
+                      offered_frames_per_second=CONNECTIONS * fixed_q),
+                      capacity="Plateau skipped. Matched PRE cyc/op repeatability and achieved-rate checks required; no capacity claim.")
+    if cores != DEFAULT_CORES:
+        report["cores"] = dict(server=cores[0], load=cores[1])
     started = time.monotonic()
     try:
-        guard = prepare_guard(output / "guard") if any(c["id"].startswith(BASES[3]) for c in cells) else None
+        guard = prepare_guard(output / "guard", cores) if any(c["id"].startswith(BASES[3]) for c in cells) else None
         report["zero_reply_guard"] = guard
         # Frozen copies prevent a concurrent rebuild replacing a measured arm.
         for arm, identity in identities.items():
@@ -1447,14 +1540,16 @@ def run(cells, identities, output, blocks, memtier, receipt=None, framing=None):
             identity["source_path"], identity["path"] = identity["path"], str(target)
         for cell in cells:
             entry = report["cells"][cell["id"]] = dict(recipe=cell, passes={})
-            q = None
-            for phase in ("plateau", "matched"):
+            q = fixed_q
+            if fixed_q is not None:
+                entry.update(plateau="skipped", matched_q=q)
+            for phase in (("matched",) if fixed_q is not None else ("plateau", "matched")):
                 pass_entry = entry["passes"][phase] = dict(q=q, null=[], comparisons=[], blocks=[])
                 for pair_index, (a, b) in enumerate([("PRE", "PRE")] + comparisons(cell)):
                     unavailable = unavailable_comparison(a, b, identities)
                     if unavailable:
                         pass_entry["comparisons"].append(unavailable)
-                        row = unavailable_row(cell, unavailable, q, framing)
+                        row = unavailable_row(cell, unavailable, q, framing) + suffix
                         report["rows"].append(row)
                         print(row, flush=True)
                         save(output / "results.json", report)
@@ -1472,7 +1567,7 @@ def run(cells, identities, output, blocks, memtier, receipt=None, framing=None):
                             sample = run_sample(cell, arm, identities, folder, q, guard)
                             samples.append(sample)
                             groups[0 if i in (0, 3) else 1].append(sample)
-                        block_checks(samples, q)
+                        block_checks(samples, q, matched_pre=fixed_q is not None and pair_index == 0)
                         block_record["accepted"] = True
                     left, right = map(aggregate, groups)
                     comparison = dict(A=a, B=b, status="measured", left=left, right=right,
@@ -1483,7 +1578,7 @@ def run(cells, identities, output, blocks, memtier, receipt=None, framing=None):
                         save(output / "results.json", report)
                     else:
                         pass_entry["comparisons"].append(comparison)
-                        row = endgame(cell, a, b, left, right, q, framing)
+                        row = endgame(cell, a, b, left, right, q, framing) + suffix
                         report["rows"].append(row)
                         print(row, flush=True)
                     save(output / "results.json", report)
@@ -2012,7 +2107,147 @@ def self_test():
                 self.assertTrue(all(a in table for a, _ in calls))
                 self.assertEqual(len(result["rows"]), 8)
                 self.assertEqual(sum("not available;" in row for row in result["rows"]), skipped)
-                self.assertEqual((output / "endgame.txt").read_text().splitlines(), result["rows"])
+                self.assertEqual((output / "endgame.txt").read_text(), "\n".join(result["rows"]) + "\n")
+
+        def test_matched_only_cli_validation_and_quantization(self):
+            import io
+            self.assertEqual(validate_score("plateau-then-matched", None), None)
+            self.assertEqual(validate_score("matched-only", 433147), 845)
+            self.assertEqual(validate_score("matched-only", 438272), 856)
+            for score, load in (("matched-only", None), ("matched-only", 0), ("matched-only", -1),
+                                ("matched-only", 511), ("plateau-then-matched", 438272)):
+                with self.subTest(score=score, load=load), self.assertRaises(RuntimeError):
+                    validate_score(score, load)
+            for extra in (["--score", "wrong"], ["--matched-load", "nan"],
+                          ["--matched-load", "1.5"], ["--cores", "112-127"]):
+                with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as caught:
+                    main(["--dry-run", "--output", str(self.folder / "unused"), *extra])
+                self.assertEqual(caught.exception.code, 2)
+            for extra in (["--score", "matched-only"], ["--matched-load", "438272"],
+                          ["--score", "matched-only", "--matched-load", "511"], ["--blocks", "0"]):
+                with self.assertRaises(RuntimeError):
+                    main(["--dry-run", "--output", str(self.folder / "unused"), *extra])
+            self.assertFalse((self.folder / "unused").exists())
+
+        def test_matched_only_dry_cli_has_only_matched_blocks_on_selected_cores(self):
+            import io
+            receipt, _ = self.arms_fixture()
+            output = self.folder / "matched-dry"
+            stream = io.StringIO()
+            with mock.patch.dict(globals(), memtier_identity=mock.Mock(return_value={})), \
+                 contextlib.redirect_stdout(stream):
+                self.assertEqual(main(["--dry-run", "--score", "matched-only", "--matched-load", "433147",
+                    "--cores", "112-119,120-127", "--arms", str(receipt), "--cell", BASES[3],
+                    "--regime", "s0", "--blocks", "2", "--output", str(output)]), 0)
+            text = stream.getvalue()
+            self.assertEqual(text.count("# warmup 3s;"), 16)
+            self.assertEqual(text.count("not available;"), 3)
+            self.assertIn("offered=432640 frames/s", text)
+            self.assertIn("--rate-limiting=845", text)
+            self.assertIn("plateau=skipped", text)
+            self.assertNotIn("/plateau/", text)
+            self.assertNotIn("primary plateau", text)
+            for line in text.splitlines():
+                argv = shlex.split(line)
+                if "taskset" in argv and not line.startswith("#"):
+                    at = argv.index("taskset")
+                    spec = argv[at + 2]
+                    cpus = set(cpu_ids(spec)) if "-" in spec else {int(spec)}
+                    self.assertLessEqual(cpus, set(range(112, 128)))
+            self.assertFalse(output.exists())
+
+        def test_matched_only_campaign_scores_agreeing_pre_and_refuses_disagreeing_pre(self):
+            import io
+            cases = (("agree", [100, 101, 100.5, 100], None),
+                     ("boundary", [100, 102, 100, 100], None),
+                     ("bad-repeat", [100, 100, 104, 100], 4),
+                     ("bad-sides", [100, 104, 104, 100], 4),
+                     ("bad-later-block", [100] * 4 + [100, 104, 100, 100], 8))
+            for name, costs, refused_after in cases:
+                receipt_path, _ = self.arms_fixture()
+                output = self.folder / name
+                calls = []
+                def sample(cell, arm, identities, folder, q, guard):
+                    self.assertEqual(q, 856, "matched-only launched an unlimited plateau")
+                    calls.append((arm, q))
+                    cost = costs[(len(calls) - 1) % len(costs)] if arm == "PRE" else 20
+                    return dict(arm=arm, complete=True, rate=CONNECTIONS * q, frames=100,
+                                cycles=100 * cost, instructions=200 * cost, histogram={1: 100},
+                                artifacts=str(folder))  # No saturation witness: matched-only must not require one.
+                with mock.patch.dict(globals(), run_sample=sample, prepare_guard=mock.Mock(return_value=None),
+                                     memtier_identity=mock.Mock(return_value={}), quiet_file_guard=lambda: None), \
+                     mock.patch.object(os, "sched_getaffinity", return_value=set(range(112, 128))), \
+                     mock.patch.object(os, "sched_setaffinity") as affinity, \
+                     mock.patch.object(subprocess, "check_output", return_value="synthetic-commit\n"), \
+                     contextlib.redirect_stdout(io.StringIO()):
+                    argv = ["--score", "matched-only", "--matched-load", "438272", "--cores", "112-119,120-127",
+                            "--arms", str(receipt_path), "--cell", BASES[3], "--regime", "s0",
+                            "--blocks", "2", "--output", str(output)]
+                    if refused_after:
+                        with self.assertRaisesRegex(RuntimeError,
+                                r"same-arm matched repeats differ >2%; arm=PRE cyc/op=100.000000/104.000000"):
+                            main(argv)
+                    else:
+                        self.assertEqual(main(argv), 0)
+                    affinity.assert_called_once_with(0, {120})
+                result = json.loads((output / "results.json").read_text())
+                entry = result["cells"][BASES[3] + "_s0"]
+                self.assertEqual(set(entry["passes"]), {"matched"})
+                self.assertEqual(entry["plateau"], "skipped")
+                self.assertEqual(entry["matched_q"], 856)
+                self.assertEqual(result["matched_load"]["offered_frames_per_second"], 438272)
+                if refused_after:
+                    self.assertFalse(result["complete"])
+                    self.assertEqual(len(calls), refused_after)
+                    self.assertTrue(all(arm == "PRE" for arm, _ in calls))
+                    self.assertEqual(result["rows"], [])
+                    self.assertFalse(entry["passes"]["matched"]["blocks"][-1]["accepted"])
+                else:
+                    self.assertTrue(result["complete"])
+                    self.assertEqual(len(calls), 16)  # two null blocks, two comparison blocks
+                    self.assertEqual(len(entry["passes"]["matched"]["blocks"]), 4)
+                    self.assertEqual(len(result["rows"]), 4)
+                    self.assertEqual(sum("not available;" in row for row in result["rows"]), 3)
+                    self.assertTrue(all(row.endswith(" plateau=skipped") for row in result["rows"]))
+                    self.assertRegex(result["rows"][0], r"^EXBATCH-DIRECTED exbatch_xgroup32 s0 PRE->POST rate=.*cyc/op=.*instr/op=.*ipc=.*matched=856")
+                self.assertEqual((output / "endgame.txt").read_text(), "\n".join(result["rows"]) + "\n")
+
+        def test_core_override_routes_helpers_and_validates_pmu_and_roles(self):
+            self.assertEqual(parse_cores("0-7,8-111"), DEFAULT_CORES)
+            for bad in ("0-7,7-14", "0-6,8-15", "0-8,9-16", "112-119,120-126",
+                        "119-112,120-127", "-1-6,8-15", "0-7,16-8", "0-7,8-9,10-11"):
+                with self.assertRaises(argparse.ArgumentTypeError):
+                    parse_cores(bad)
+            original = copy.deepcopy(self.cells)
+            configure_cores(self.cells, DEFAULT_CORES)
+            self.assertEqual(original, self.cells)
+            cores = parse_cores("112-119,120-127")
+            configure_cores(self.cells, cores)
+            for cell in self.cells.values():
+                self.assertEqual(server_argv(cell, "/arm", self.folder)[2], "112-119")
+                for i in range(8):
+                    self.assertEqual(load_argv(cell, i, self.folder)[2], str(120 + i))
+                    for kind in ("warm", "verify"):
+                        argv = worker_argv(kind, cell, self.folder, i)
+                        self.assertEqual(argv[2], str(120 + i))
+                        self.assertEqual(argv[-2:], ["--cores", "112-119,120-127"])
+                self.assertEqual(worker_argv("poll", cell, self.folder)[2], "127")
+            self.assertEqual(guard_build_argv(self.folder, cores=cores)[2], "120-127")
+            argv = perf_argv(self.folder, cores)
+            self.assertEqual(argv[2], "120")
+            self.assertEqual(argv[argv.index("-C") + 1], "112-119")
+            raw = "".join(f"CPU{cpu},{count},,{name},20000000000,100.00,,\n"
+                          for cpu in range(112, 120) for name, count in (("cycles", 200), ("instructions", 300)))
+            self.assertEqual(parse_perf(raw, range(112, 120))["cycles"], 1600)
+            with self.assertRaisesRegex(RuntimeError, "server CPUs"):
+                parse_perf(raw)
+            signals = b"lbver 1 stamp_ns 1000000000\n" + b"".join(
+                f"thread {i} {'io' if i < 6 else 'ex'} 0 {1 if i < 6 else 0} 1 1 1000 1000 99999999\n".encode() for i in range(8))
+            boot = {"thread_cpus": ",".join(f"{i}:{112 + i}" for i in range(8))}
+            self.assertEqual(role_cpus(parse_snapshot(signals), "s0", boot, range(112, 120)),
+                             {"io": list(range(112, 118)), "ex": [118, 119]})
+            with self.assertRaisesRegex(RuntimeError, "geometry changed"):
+                role_cpus(parse_snapshot(signals), "s0", boot)
 
         def test_mainline_framing_is_sha_bound_and_explains_landing_scope_in_rows(self):
             headline = json.loads(MAINLINE_RECEIPT.read_text())
@@ -2169,6 +2404,26 @@ def self_test():
             with self.assertRaisesRegex(RuntimeError, "occupancy"):
                 block_checks(samples, None)
 
+        def test_matched_precondition_preserves_rate_checks_and_default_mode(self):
+            samples = [dict(arm="PRE", rate=51200, cycles=100, frames=1) for _ in range(4)]
+            block_checks(samples, 100, matched_pre=True)
+            samples[3]["cycles"] = 102.0001
+            block_checks(samples, 100)  # Existing matched scoring keeps its old acceptance rules.
+            with self.assertRaisesRegex(RuntimeError, "same-arm matched repeats differ >2%"):
+                block_checks(samples, 100, matched_pre=True)
+            samples[3]["cycles"] = 100
+            for cost in (0, float("nan"), float("inf")):
+                samples[0]["cycles"] = cost
+                with self.assertRaisesRegex(RuntimeError, "invalid matched cyc/op"):
+                    block_checks(samples, 100, matched_pre=True)
+            samples[0]["cycles"] = 100
+            samples[1]["rate"] = samples[2]["rate"] = 51712
+            with self.assertRaisesRegex(RuntimeError, "matched arm means differ >0.5%"):
+                block_checks(samples, 100, matched_pre=True)
+            samples[1]["rate"] = samples[2]["rate"] = 53000
+            with self.assertRaisesRegex(RuntimeError, "achieved rate outside 2%"):
+                block_checks(samples, 100, matched_pre=True)
+
         def test_plateau_rejection_keeps_two_percent_limit_and_reports_both_repeats(self):
             samples = [dict(arm="PRE", rate=100, saturation={"score_pct": 99}, artifacts=f"sample-{i}")
                        for i in range(4)]
@@ -2188,8 +2443,9 @@ def self_test():
             result = aggregate([sample, sample])
             self.assertEqual((result["p50"], result["p99"], result["cycles_per_op"], result["ipc"]), (1., 9., 10., 1.5))
             row = endgame(self.cells[BASES[0] + "_f0"], "PRE", "POST", result, result, 17)
-            self.assertTrue(row.startswith("EXBATCH-DIRECTED exbatch_watch_w32 f0 PRE->POST rate="))
-            self.assertTrue(row.endswith("matched=17"))
+            self.assertEqual(row, "EXBATCH-DIRECTED exbatch_watch_w32 f0 PRE->POST rate=5.00/5.00 (+0.00%) "
+                             "p50=1.000/1.000 p99=9.000/9.000 cyc/op=10.000/10.000 (+0.00%) "
+                             "instr/op=15.000/15.000 ipc=1.5000/1.5000 matched=17")
 
     class NativeGuardControl(unittest.TestCase):
         def test_preload_survives_taskset_exec_and_still_rejects_bad_or_missing_replies(self):
@@ -2260,8 +2516,8 @@ int main(int argc, char **argv) {
 
             production_argv = perf_argv
 
-            def interval_argv(path):
-                argv = production_argv(path)
+            def interval_argv(path, cores=DEFAULT_CORES):
+                argv = production_argv(path, cores)
                 argv[2], argv[argv.index("-C") + 1] = "120", "112"
                 # perf disallows --timeout with -I. Owned-child cleanup bounds
                 # this serverless test; the production argv remains unchanged.
@@ -2365,6 +2621,12 @@ def main(argv=None):
     parser.add_argument("--regime", choices=REGIMES, action="append", help="repeatable; default all three")
     parser.add_argument("--cell", action="append", help="base ID or full cell ID; default all directed cells")
     parser.add_argument("--blocks", type=int, default=1, help="ABBA blocks per comparison/pass (default 1), including same-binary null")
+    parser.add_argument("--score", choices=("plateau-then-matched", "matched-only"), default="plateau-then-matched",
+                        help="default plateau then matched; matched-only skips plateau and checks PRE matched cyc/op")
+    parser.add_argument("--matched-load", type=int,
+                        help="required for matched-only: aggregate offered frames/s; rounded down to 512 * integer per-connection q")
+    parser.add_argument("--cores", type=parse_cores, default=DEFAULT_CORES, metavar="SERVER_RANGE,LOAD_RANGE",
+                        help="8 server CPUs and >=8 disjoint load CPUs (default 0-7,8-111)")
     parser.add_argument("--output", type=Path, help="fresh run directory; contains results.json, endgame.txt and raw samples")
     parser.add_argument("--arms", type=Path, help="replace frozen arms with PRE/POST path+sha256 JSON; optional PAD-A/EX*-OLD")
     parser.add_argument("--instance", type=int, help=argparse.SUPPRESS)
@@ -2373,14 +2635,16 @@ def main(argv=None):
         return self_test()
     require(args.output is not None, "--output is required")
     require(args.blocks > 0, "--blocks must be positive")
+    validate_score(args.score, args.matched_load)
     cells = inventory()
+    configure_cores(cells, args.cores)
     output = args.output.resolve()
     require(output.is_relative_to(ROOT), "output must stay inside this worktree")
     if args.worker:
         require(args.cell and len(args.cell) == 1 and args.cell[0] in cells, "worker requires one full cell ID")
         cell = cells[args.cell[0]]
         if args.worker == "poll":
-            poll_worker(output)
+            poll_worker(output, cpu_ids(args.cores[1])[-1])
         else:
             require(args.instance is not None and 0 <= args.instance < 8, "worker instance missing")
             warm_worker(cell, args.instance, output, verify_only=args.worker == "verify")
@@ -2395,14 +2659,14 @@ def main(argv=None):
     verify_receipt(receipt)
     if not args.dry_run:
         quiet_file_guard()
-    identities = prepare_arms(dry=args.dry_run, table=table)
+    identities = prepare_arms(dry=args.dry_run, table=table, cores=args.cores)
     verify_receipt(receipt)
     framing = measurement_framing(identities, receipt)
     memtier = memtier_identity()
     if args.dry_run:
-        dry_run(selected, identities, output, args.blocks, receipt, framing)
+        dry_run(selected, identities, output, args.blocks, receipt, framing, args.score, args.matched_load)
     else:
-        run(selected, identities, output, args.blocks, memtier, receipt, framing)
+        run(selected, identities, output, args.blocks, memtier, receipt, framing, args.score, args.matched_load)
     return 0
 
 
