@@ -68,8 +68,10 @@ def rows():
     fixture.check(gate, labels)
     for row in records:
         number = row["gate_line"]
-        end = next((i for i in range(number, len(lines)) if re.match(r"\s*row_begin\s", lines[i])), len(lines))
-        body = "\n".join(lines[number:end])
+        end = next((i for i in range(number, len(lines))
+                    if re.match(r"\s*row_begin\s|^}|^job_\w+\(\)", lines[i])), len(lines))
+        body = "\n".join(line for line in lines[number:end]
+                         if not line.lstrip().startswith("#"))
         paths = re.findall(r"tests/[\w$./{}-]+\.(?:py|sh|cc)", body)
         resolved = []
         for path in paths:
@@ -80,6 +82,26 @@ def rows():
             if (ROOT / path).is_file() and path not in resolved:
                 resolved.append(path)
         row["scripts"] = resolved
+        native = {
+            1276: "climon_mask_unit.cc", 1287: "rlfence_unit.cc",
+            1298: "shutdown_unit.cc", 1388: "core_concurrency_unit.cc",
+            1404: "rltopo_unit.cc", 1534: "store_regression.cc",
+            1553: "store_regression.cc", 1572: "multidb_unit.cc",
+            1579: "multidb_boundary_unit.cc", 1594: "at15_unit.cc",
+            1607: "execabort_watch_unit.cc", 1629: "atomic_survivors_unit.cc",
+            1637: "atomic_survivors_unit.cc", 1649: "netcmd_unit.cc",
+            1654: "netcmd_unit.cc", 1659: "netcap_unit.cc",
+            1795: "waits_unit.cc", 1801: "rehash_waits_unit.cc",
+            2668: "ktls_keyupdate_unit.cc", 2752: "ktls_keyupdate.cc",
+            2758: "ktls_keyupdate.cc",
+        }
+        if number in native:
+            row["scripts"].insert(0, "tests/" + native[number])
+        # A helper called between row_begin and its verdict is a dependency too.
+        if number == 2167:
+            row["scripts"].append("tests/debug_load.py")
+        if number == 2599:
+            row["scripts"].append("tests/aof_rewrite_triggers.py")
         del row["values"]
     return records
 

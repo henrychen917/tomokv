@@ -1,0 +1,757 @@
+{
+  "tests/abba_instrument.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Gate invokes serverless self-tests/fixtures here, including rejected measurements and process controls."
+  },
+  "tests/abbagate.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Gate invokes serverless self-tests/fixtures here, including rejected measurements and process controls."
+  },
+  "tests/acl.py": {
+    "kind": "LOTTERY",
+    "line": 256,
+    "mechanism": "Restricted BLPOP is denied before parking: acl_check_keys treats its timeout as a key. The same NOPERM passes the supposed post-wake recheck. Strict witness patch and two failure logs retained; requires production ACL key-range correction outside this lane."
+  },
+  "tests/acl_categories.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Build/generated-table equality; no concurrent stimulus or sampled clock oracle."
+  },
+  "tests/aclreply.py": {
+    "kind": "LOTTERY",
+    "line": 121,
+    "mechanism": "One-second blockers must remain parked through sleep/drain/revocation; coded-timeout reply is the actual regression oracle. Needs exact parking plus fresh timeout-window arming."
+  },
+  "tests/aclsel.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "TomoKV rejects selectors and returns before Redis-only selector blocking cases; no live blocking window selected on this server."
+  },
+  "tests/aof.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 199,
+    "mechanism": "Waits for placement idle before raw LOADAOF; only exact FLIP refusal is retried; success/corruption bytes remain exact."
+  },
+  "tests/aof_frame_order.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Forced multi-chunk record and ordered control frames; exact parser and path counters reject vacuous execution."
+  },
+  "tests/aof_frame_order_test.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed unit/static identity checks with explicit negative controls; no live sampling race."
+  },
+  "tests/aof_fsync.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 88,
+    "mechanism": "Everysec retains 1.25s policy age then requires actual fsync progress before a deadline; always/no use exact counter controls."
+  },
+  "tests/aof_rewrite_matrix.sh": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 93,
+    "mechanism": "Published rewrite pause files force every interruption stage; LOADAOF admission uses the common placement witness."
+  },
+  "tests/aof_rewrite_trigger_matrix.sh": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "DEBUG AOF-REWRITE-PAUSE and published rewrite state; bounded trigger/completion observation."
+  },
+  "tests/aof_rewrite_triggers.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "DEBUG AOF-REWRITE-PAUSE and published rewrite state; bounded trigger/completion observation."
+  },
+  "tests/aof_torn_group.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed group interruption plus exact replay/order checks; interruption is explicitly armed."
+  },
+  "tests/arity.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave."
+  },
+  "tests/at15_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless dispatch/state driver; failure states and required witnesses are constructed."
+  },
+  "tests/atomfix.py": {
+    "kind": "DETERMINISTIC",
+    "line": 15,
+    "mechanism": "Owner-pass defer forces scan/order overlap; positive hold counter and unarmed control are mandatory."
+  },
+  "tests/atomic_hazards.py": {
+    "kind": "LOTTERY",
+    "line": 325,
+    "mechanism": "Unarmed XREAD control must finish inside half the configured delay; other arms infer an open window from elapsed time. Needs a published command-stage witness."
+  },
+  "tests/atomic_plain.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Directed defer/hold plus required counters; missed arming is bounded and retried on fresh state, never accepted as success."
+  },
+  "tests/atomic_ryow.py": {
+    "kind": "LOTTERY",
+    "line": 238,
+    "mechanism": "24-command pipeline/serial timing comparison and fixed-duration positive worker floors. Needs a held/acknowledged overlap plus independent performance instrument."
+  },
+  "tests/atomic_survivors_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless dispatch/state driver; failure states and required witnesses are constructed."
+  },
+  "tests/atomic_torn.py": {
+    "kind": "LOTTERY",
+    "line": 289,
+    "mechanism": "Directed GT14 RENAME hold is retained; other fixed-duration negative hammers/cut counters and the release promotion budget remain timing stimuli. Needs directed controls for those separate windows."
+  },
+  "tests/auth.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Subscription/blocked-state/EOF acknowledgements and bounded delivery waits; absent required state fails."
+  },
+  "tests/background_environment_test.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Gate invokes serverless self-tests/fixtures here, including rejected measurements and process controls."
+  },
+  "tests/bitfield.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave."
+  },
+  "tests/blocking.py": {
+    "kind": "LOTTERY",
+    "line": 82,
+    "mechanism": "Finite blocker deadlines and config-propagation sleep are setup assumptions; elapsed upper bounds also remain. Needs owner config acknowledgement and explicit blocker lifecycle controls."
+  },
+  "tests/blockmulti.py": {
+    "kind": "LOTTERY",
+    "line": 103,
+    "mechanism": "Immediate WAIT/EXEC checks include 100/250ms elapsed ceilings. Needs a completion-state oracle separating liveness from performance."
+  },
+  "tests/borrow_registry.py": {
+    "kind": "LOTTERY",
+    "line": 1,
+    "mechanism": "Size-scaling decisions use sampled elapsed-time ratios/rates. Needs a matched workload/stationarity measurement protocol without relaxing existing bounds."
+  },
+  "tests/bplus.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Directed defer/hold plus required counters; missed arming is bounded and retried on fresh state, never accepted as success."
+  },
+  "tests/climon.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "CLIENT scatter acknowledgements and bounded EOF; MAXAGE sleep establishes a minimum age, not a narrow live window."
+  },
+  "tests/climon2.py": {
+    "kind": "LOTTERY",
+    "line": 375,
+    "mechanism": "CLIENT UNBLOCK now observes the exact parked client; CLIENT PAUSE arms still use short elapsed deadlines/latency bounds. Needs a published pause latch."
+  },
+  "tests/climon_mask_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless directed states, synthetic time or held interleavings; exact state assertions."
+  },
+  "tests/cmdgap.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave."
+  },
+  "tests/cmdmeta_coverage.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Build/generated-table equality; no concurrent stimulus or sampled clock oracle."
+  },
+  "tests/concur.py": {
+    "kind": "LOTTERY",
+    "line": 176,
+    "mechanism": "Fixed SCAN/churn runs require a growth/interleave to have happened. Needs held scan cursor plus witnessed concurrent growth on the same state."
+  },
+  "tests/config_parser_test.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless directed states, synthetic time or held interleavings; exact state assertions."
+  },
+  "tests/connreset_harness_test.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed unit/static identity checks with explicit negative controls; no live sampling race."
+  },
+  "tests/contarity.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave."
+  },
+  "tests/core_concurrency_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless directed states, synthetic time or held interleavings; exact state assertions."
+  },
+  "tests/debug.py": {
+    "kind": "LOTTERY",
+    "line": 123,
+    "mechanism": "Reload admission is fixed; independent progress during DEBUG SLEEP still has 300ms timing windows. Needs a published sleep-stage latch and release control."
+  },
+  "tests/debug_load.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 5,
+    "mechanism": "Existing wait_flip_idle and exact FLIP-only refusal retry; all other errors fail."
+  },
+  "tests/differ_gate.sh": {
+    "kind": "LOTTERY",
+    "line": 1,
+    "mechanism": "44-suite matrix retains s6fix finite random-key coverage; see differential expansion below. Landed TTL deadline windows, RESETSTAT rebasing and both-peer SAVE barriers are retained."
+  },
+  "tests/docs_drift.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Build/generated-table equality; no concurrent stimulus or sampled clock oracle."
+  },
+  "tests/dumprestore.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Exact serialized values, ordered SAVE and restart; live deadlines are distant and expired deadlines are already past."
+  },
+  "tests/edgeenc.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 34,
+    "mechanism": "Representation boundaries are constructed; successful reload waits for stable placement with the existing bounded helper."
+  },
+  "tests/edgeproto.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Exact parser/reply sequences; disconnect pause precedes health checks without a narrow positive-state requirement."
+  },
+  "tests/edgetime.py": {
+    "kind": "LOTTERY",
+    "line": 299,
+    "mechanism": "Small TTL live-before/expired-after setup and time windows depend on scheduling. Needs fresh-state arming with server deadline evidence."
+  },
+  "tests/evict_battery.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Gate selects lfu/lruclock only: real hot-touch metadata and bounded steady ranking/decay witnesses (GT18 fixes retained)."
+  },
+  "tests/exbatch.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Polls publication/lifecycle state under a bound; missing publication fails."
+  },
+  "tests/exbatch_checks.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed unit/static identity checks with explicit negative controls; no live sampling race."
+  },
+  "tests/execabort_watch_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless dispatch/state driver; failure states and required witnesses are constructed."
+  },
+  "tests/execatomic.py": {
+    "kind": "LOTTERY",
+    "line": 232,
+    "mechanism": "50ms lead-fragment wait inside a finite defer plus fixed-duration cut/read/commit floors. Needs a held fragment and positive stage/cut witness."
+  },
+  "tests/execfix.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave."
+  },
+  "tests/execiso.py": {
+    "kind": "LOTTERY",
+    "line": 282,
+    "mechanism": "50ms lead-fragment wait inside a finite defer plus fixed-duration cut/read/commit floors. Needs a held fragment and positive stage/cut witness."
+  },
+  "tests/expireindex.py": {
+    "kind": "LOTTERY",
+    "line": 1,
+    "mechanism": "Size-scaling decisions use sampled elapsed-time ratios/rates. Needs a matched workload/stationarity measurement protocol without relaxing existing bounds."
+  },
+  "tests/expwide.py": {
+    "kind": "LOTTERY",
+    "line": 211,
+    "mechanism": "Deadline-crossing batches and elapsed-time bounds require the intended expiry window. Needs a held dispatch/cut or controllable clock."
+  },
+  "tests/feature_gate.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 223,
+    "mechanism": "Fresh workload attempts require every configured path's counter; absent engagement fails. Invalid fused/flip-auto cells are deterministic refusals."
+  },
+  "tests/flip.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "FLIP command/report conservation and placement checks; transition completion is witnessed."
+  },
+  "tests/flip_ttl.py": {
+    "kind": "LOTTERY",
+    "line": 165,
+    "mechanism": "Fixed TTL must span all key setup and the owner move, but no witness proves expiry occurred after migration. Needs a held expiry/migration boundary."
+  },
+  "tests/flip_under_load.py": {
+    "kind": "LOTTERY",
+    "line": 266,
+    "mechanism": "Fixed-duration worker/flipper run requires at least one accepted flip, without a witnessed load/flip interval. Needs a bounded until-witnessed phase preserving all data checks."
+  },
+  "tests/flipctl.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Dual-anchor complete stationary windows and fresh attempts; losing either anchor rejects the window."
+  },
+  "tests/flipctl_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless directed states, synthetic time or held interleavings; exact state assertions."
+  },
+  "tests/flushfix_checks.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed unit/static identity checks with explicit negative controls; no live sampling race."
+  },
+  "tests/foreign_read_safety_test.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless directed states, synthetic time or held interleavings; exact state assertions."
+  },
+  "tests/gate_history.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Gate invokes serverless self-tests/fixtures here, including rejected measurements and process controls."
+  },
+  "tests/gate_measurements.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Gate invokes serverless self-tests/fixtures here, including rejected measurements and process controls."
+  },
+  "tests/gate_process_test.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Gate invokes serverless self-tests/fixtures here, including rejected measurements and process controls."
+  },
+  "tests/gate_quiet.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Gate invokes serverless self-tests/fixtures here, including rejected measurements and process controls."
+  },
+  "tests/gate_receipt.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Gate invokes serverless self-tests/fixtures here, including rejected measurements and process controls."
+  },
+  "tests/gate_subset_test.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Gate invokes serverless self-tests/fixtures here, including rejected measurements and process controls."
+  },
+  "tests/gates_test.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Gate invokes serverless self-tests/fixtures here, including rejected measurements and process controls."
+  },
+  "tests/geo.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave."
+  },
+  "tests/globcase.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave."
+  },
+  "tests/hexpire.py": {
+    "kind": "LOTTERY",
+    "line": 374,
+    "mechanism": "Short live field TTL must survive setup/counter sampling before expiry. Needs bounded fresh-field arming or a controllable expiry clock; do not widen tolerances."
+  },
+  "tests/infofix.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Polls ops-rate idle/active witnesses; RESETSTAT's own assertions use a new baseline."
+  },
+  "tests/knobs.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave."
+  },
+  "tests/ktls_keyupdate.cc": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Complete SSL command/reply and explicit KeyUpdate path counters; bounded drain/handshake progress."
+  },
+  "tests/ktls_keyupdate_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless dispatch/state driver; failure states and required witnesses are constructed."
+  },
+  "tests/lb_stationary.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Fresh stationarity attempts use actual assigned owners and bounded counter witnesses; absent stable baseline fails."
+  },
+  "tests/lbplanner_checks.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed unit/static identity checks with explicit negative controls; no live sampling race."
+  },
+  "tests/lbsignals.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Owner-published counter progress is polled; shutdown selection checks a completed drain report."
+  },
+  "tests/lcs.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave."
+  },
+  "tests/limits.py": {
+    "kind": "LOTTERY",
+    "line": 313,
+    "mechanism": "CLIENT close admission is now witnessed; idle-timeout heartbeats and soft-output limits still depend on timed pauses. Needs controlled timeout/owner-state progression."
+  },
+  "tests/lua_scripting.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave."
+  },
+  "tests/mdbqsbr_checks.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed unit/static identity checks with explicit negative controls; no live sampling race."
+  },
+  "tests/mdbqsbr_live.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Owns its processes, observes parked/disconnected clients and load progress, and requires shutdown/SWAPDB completion under liveness bounds."
+  },
+  "tests/multi_exec.py": {
+    "kind": "LOTTERY",
+    "line": 383,
+    "mechanism": "Fixed-duration concurrent writer/readers must exceed count/cut floors. Needs a directed held atomic cut and acknowledged writer/reader progress."
+  },
+  "tests/multidb.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 6,
+    "mechanism": "Namespace/value checks plus placement-idle reload/LOADAOF; each restore keeps its exact reply oracle."
+  },
+  "tests/multidb_boundary_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless dispatch/state driver; failure states and required witnesses are constructed."
+  },
+  "tests/multidb_serial.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serializability checker uses invocation/response intervals and exact data; self-test uses synthetic histories."
+  },
+  "tests/multidb_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless dispatch/state driver; failure states and required witnesses are constructed."
+  },
+  "tests/multirace.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Directed defer/hold plus required counters; missed arming is bounded and retried on fresh state, never accepted as success."
+  },
+  "tests/multires.py": {
+    "kind": "LOTTERY",
+    "line": 298,
+    "mechanism": "Atomic-on requires at least one ordering hold among fixed pipeline probes; no bounded fresh-state arming. Needs a forced undecided predecessor."
+  },
+  "tests/netcap.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Directed inline/query caps, known connection owner and bounded EOF/reclamation witnesses."
+  },
+  "tests/netcap_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless dispatch/state driver; failure states and required witnesses are constructed."
+  },
+  "tests/netcmd.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave."
+  },
+  "tests/netcmd_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless dispatch/state driver; failure states and required witnesses are constructed."
+  },
+  "tests/netio.py": {
+    "kind": "LOTTERY",
+    "line": 217,
+    "mechanism": "Blocked-reader setup now witnesses CLIENT ID; the unchanged 25ms wake-latency assertion remains a scheduler/performance threshold."
+  },
+  "tests/notify.py": {
+    "kind": "LOTTERY",
+    "line": 474,
+    "mechanism": "Lazy-expiry key has 20ms TTL while notification config is being changed; it can expire while notifications are disabled. Needs expiry/config arming with an actual deadline witness."
+  },
+  "tests/parbuild.sh": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Build/generated-table equality; no concurrent stimulus or sampled clock oracle."
+  },
+  "tests/persistfix.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Published held AOF stage and exact owned PID precede kill/term; missing marker fails."
+  },
+  "tests/persistfix_checks.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed unit/static identity checks with explicit negative controls; no live sampling race."
+  },
+  "tests/pipeorder.py": {
+    "kind": "LOTTERY",
+    "line": 1,
+    "mechanism": "400 pipeline rolls do not prove the hazardous owner order occurred. Needs a held predecessor plus a window witness, preserving every value assertion."
+  },
+  "tests/pubsub.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Subscription/blocked-state/EOF acknowledgements and bounded delivery waits; absent required state fails."
+  },
+  "tests/pushtear.py": {
+    "kind": "LOTTERY",
+    "line": 645,
+    "mechanism": "A finite BLPOP is assumed parked after 150ms before a push; null/push ordering depends on the remaining deadline. Needs exact parking plus bounded fresh-state timeout arming."
+  },
+  "tests/r7shadow_sync.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed unit/static identity checks with explicit negative controls; no live sampling race."
+  },
+  "tests/r7shadow_sync_test.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed unit/static identity checks with explicit negative controls; no live sampling race."
+  },
+  "tests/read_local_lane.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Directed defer/hold plus required counters; missed arming is bounded and retried on fresh state, never accepted as success."
+  },
+  "tests/read_local_write_ring_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless directed states, synthetic time or held interleavings; exact state assertions."
+  },
+  "tests/rehash_readonly.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Constructs an unfinished resize, then requires read-only progress to drain before the bound."
+  },
+  "tests/rehash_waits_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless dispatch/state driver; failure states and required witnesses are constructed."
+  },
+  "tests/reorder_receipt.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed unit/static identity checks with explicit negative controls; no live sampling race."
+  },
+  "tests/replyoff_xshard.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Owner-spanning large MGET borrows are constructed; PING fences the exact silent wire stream and counters prove the path."
+  },
+  "tests/resp3.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave."
+  },
+  "tests/respcompat.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave."
+  },
+  "tests/rlcache_churn.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 211,
+    "mechanism": "Bounded observation of cache/hit/move counters; hot keys are re-armed after owner movement and missing movement fails (GT13 retained)."
+  },
+  "tests/rlfence_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless directed states, synthetic time or held interleavings; exact state assertions."
+  },
+  "tests/rltopo_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless directed states, synthetic time or held interleavings; exact state assertions."
+  },
+  "tests/ryow.py": {
+    "kind": "LOTTERY",
+    "line": 64,
+    "mechanism": "Contention workers have no started/work witness and swallow exceptions; fixed 2000 foreground rounds can miss contention. Needs acknowledged background progress on the intended keys."
+  },
+  "tests/s6.py": {
+    "kind": "LOTTERY",
+    "line": 7,
+    "mechanism": "20,000 random draws must cover all 200 keys; no finite sample guarantees that coverage. Needs a controllable sampler/traversal witness, not more draws."
+  },
+  "tests/scriptatomic.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Owner placement is queried; ordered operations force the asserted scatter/effect counters and exact data."
+  },
+  "tests/scriptsurf.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Busy-script state is observed before kill; exact script replies and bounded completion."
+  },
+  "tests/servertail.py": {
+    "kind": "LOTTERY",
+    "line": 309,
+    "mechanism": "Live maxmemory-policy publication is assumed after 50ms before OBJECT metadata checks; also wall-clock TIME allowance. Needs per-owner config acknowledgement/clock bracketing."
+  },
+  "tests/session_monotonic.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Directed defer/hold plus required counters; missed arming is bounded and retried on fresh state, never accepted as success."
+  },
+  "tests/shutdown_persist.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Owned process, acknowledged writes, exact snapshot recovery and bounded shutdown witnesses."
+  },
+  "tests/shutdown_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless directed states, synthetic time or held interleavings; exact state assertions."
+  },
+  "tests/slowlog.py": {
+    "kind": "LOTTERY",
+    "line": 132,
+    "mechanism": "Assumes every executor sees live-config changes after 200ms before recorder/latency assertions. Needs per-owner configuration acknowledgement."
+  },
+  "tests/snap_cut_battery.py": {
+    "kind": "LOTTERY",
+    "line": 231,
+    "mechanism": "Atomic-group submodes rely on fixed writer warmup, N saves and positive cut/read/write counts. Concurrent-cut save mode is fixed separately. Group overlap needs a held pending group at the cut."
+  },
+  "tests/snap_typed_race.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Published snapshot cut ticket establishes ordering; required preimage/capture witnesses and bounded save completion."
+  },
+  "tests/snap_typed_roundtrip.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered typed seed/SAVE/reload; exact values and long-lived TTLs."
+  },
+  "tests/sort.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Owner placement is queried; ordered operations force the asserted scatter/effect counters and exact data."
+  },
+  "tests/spinprobe.py": {
+    "kind": "LOTTERY",
+    "line": 31,
+    "mechanism": "200ms assumes partial frame reached parser; one-second counter ceilings and three sampled attempts can race wakes. Needs parser-park publication plus bounded stationary counter windows."
+  },
+  "tests/splitlocal_checks.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed unit/static identity checks with explicit negative controls; no live sampling race."
+  },
+  "tests/store_regression.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless directed states, synthetic time or held interleavings; exact state assertions."
+  },
+  "tests/storesize_checks.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed unit/static identity checks with explicit negative controls; no live sampling race."
+  },
+  "tests/stream.py": {
+    "kind": "LOTTERY",
+    "line": 262,
+    "mechanism": "Fixed sampled stream cost/latency limits remain despite witnessed blocking. Needs matched performance instrumentation or a constructed work-count oracle."
+  },
+  "tests/streamgroups.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Subscription/blocked-state/EOF acknowledgements and bounded delivery waits; absent required state fails."
+  },
+  "tests/tailgen_stall.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Held fake-server responses and outstanding-work witnesses; missing stalled client fails."
+  },
+  "tests/tls.py": {
+    "kind": "LOTTERY",
+    "line": 288,
+    "mechanism": "Full partial-handshake/teardown legs assume progress after sleeps; auth-only selections are classified separately. Needs explicit handshake/teardown witnesses."
+  },
+  "tests/torture.py": {
+    "kind": "LOTTERY",
+    "line": 109,
+    "mechanism": "RST churn sends unacknowledged writes then requires at least one landed key after a fixed sleep. Needs a witness that the intended in-flight workload reached execution before disconnect."
+  },
+  "tests/tracking.py": {
+    "kind": "LOTTERY",
+    "line": 291,
+    "mechanism": "Redirect disconnect now witnesses removal; 400ms TTL followed by a 300ms drain must leave the key alive for tracking registration. Needs fresh-state bounded TTL arming and an exact delivery fence."
+  },
+  "tests/waits_unit.cc": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Serverless dispatch/state driver; failure states and required witnesses are constructed."
+  },
+  "tests/wb_policy.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Gate's 22 standard trace fixtures force policy clauses; this row is serverless."
+  },
+  "tests/wb_rule_checks.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed unit/static identity checks with explicit negative controls; no live sampling race."
+  },
+  "tests/wbland_checks.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Directed unit/static identity checks with explicit negative controls; no live sampling race."
+  },
+  "tests/xacct.py": {
+    "kind": "LOTTERY",
+    "line": 118,
+    "mechanism": "Median stream/EXEC elapsed ratios are correctness-row thresholds; DEBUG reload itself is safe with all placement controllers disabled in debug jobs. Needs matched performance/work instrumentation."
+  },
+  "tests/xmove.py": {
+    "kind": "LOTTERY",
+    "line": 274,
+    "mechanism": "Atomic-off assumes a 500k-entry LREM stays in flight across two 500us sleeps, plus size-ratio timing. Reuse ATOMIC-OFF-HOP-HOLD for the LMOVE family after checking hook coverage; preserve the edge oracle."
+  },
+  "tests/xscript.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Directed defer/hold plus required counters; missed arming is bounded and retried on fresh state, never accepted as success."
+  },
+  "tests/xshard_dispatch_scale.sh": {
+    "kind": "LOTTERY",
+    "line": 1,
+    "mechanism": "Size-scaling decisions use sampled elapsed-time ratios/rates. Needs a matched workload/stationarity measurement protocol without relaxing existing bounds."
+  },
+  "tests/zc.py": {
+    "kind": "BOUNDED-WITNESSED",
+    "line": 1,
+    "mechanism": "Large borrowed reply/backpressure by construction; positive send/completion witnesses and exact data."
+  },
+  "tests/zsetops.py": {
+    "kind": "DETERMINISTIC",
+    "line": 1,
+    "mechanism": "Ordered command/reply or constructed geometry/value oracle; randomized inputs do not require a lucky interleave."
+  }
+}
