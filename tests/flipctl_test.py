@@ -3,8 +3,10 @@
 
 import math
 import unittest
+from unittest.mock import patch
 
-from flipctl import PRE_HOLD_SECONDS, classify_stable_hold, rate_rule_fires
+from flipctl import (PRE_HOLD_SECONDS, classify_stable_hold, rate_rule_fires,
+                     stable_hold, stable_hold_attempt)
 
 
 class StableHoldClassifier(unittest.TestCase):
@@ -115,6 +117,82 @@ class StableHoldClassifier(unittest.TestCase):
     def test_invalid_controller_anchor_cannot_pass(self):
         for anchor in (0, -1, math.nan, math.inf):
             self.assertEqual(self.classify([6000], False, controller_anchor=anchor)[0], "INVALID")
+
+
+class StableHoldSchedule(unittest.TestCase):
+    """Drive the live observer with published state, including deliberately broken moves."""
+
+    def setUp(self):
+        self.now = 0.0
+        self.settles = 0.0
+        self.move_at = math.inf
+        self.move_kind = "trigger"
+        self.patches = [patch("flipctl.time.monotonic", lambda: self.now),
+                        patch("flipctl.time.sleep", self.sleep),
+                        patch("flipctl.info", self.info), patch("builtins.print")]
+        for mock in self.patches:
+            mock.start()
+            self.addCleanup(mock.stop)
+
+    def sleep(self, seconds):
+        self.now += seconds
+
+    def info(self, control, section="FLIPCTL"):
+        row = dict(flipctl_state="maneuvering" if self.now < self.settles else "anchored",
+                   flipctl_triggers="1", flipctl_anchor_io="6", flipctl_anchor_ex="2",
+                   flipctl_rate_band="0.04", flipctl_anchor_rate="6000")
+        if self.now >= self.move_at:
+            if self.move_kind == "trigger":
+                row["flipctl_triggers"] = "2"
+            elif self.move_kind == "state":
+                row["flipctl_state"] = "maneuvering"
+            else:
+                row["flipctl_anchor_io"], row["flipctl_anchor_ex"] = "5", "3"
+        return row
+
+    def commands(self):
+        return 6000 * self.now
+
+    def test_settling_does_not_consume_the_hold_window(self):
+        self.settles = 90
+        self.assertEqual(stable_hold_attempt(None, 30, 180, self.commands, [])[0], "held")
+        self.assertGreaterEqual(self.now, 90 + PRE_HOLD_SECONDS + 30)
+
+    def test_never_quiescent_cannot_pass(self):
+        self.settles = math.inf
+        self.assertEqual(stable_hold_attempt(None, 30, 180, self.commands, [])[0], "reroll")
+        self.assertEqual(self.now, 180)
+
+    def test_budget_cannot_shorten_the_hold(self):
+        self.assertEqual(stable_hold_attempt(None, 30, 20, self.commands, [])[0], "reroll")
+
+    def test_deliberate_movement_during_valid_hold_fails_without_retry(self):
+        for self.move_kind in ("trigger", "state", "split"):
+            with self.subTest(mutation=self.move_kind):
+                self.now = 0
+                self.move_at = PRE_HOLD_SECONDS + 2
+                with self.assertRaisesRegex(AssertionError, "controller moved during"):
+                    stable_hold(None, 30, self.commands, [])
+                self.assertEqual(self.now, self.move_at)
+
+    def test_more_than_three_invalid_arms_can_reach_a_full_hold(self):
+        def attempt(*args):
+            self.sleep(1)
+            if self.now <= 4:
+                return "reroll", "INVALID: injected driver excursion"
+            return stable_hold_attempt(*args)
+        with patch("flipctl.stable_hold_attempt", side_effect=attempt) as observer:
+            self.assertEqual(stable_hold(None, 30, self.commands, [])["flipctl_triggers"], "1")
+        self.assertEqual(observer.call_count, 5)
+        self.assertGreaterEqual(self.now, 5 + PRE_HOLD_SECONDS + 30)
+
+    def test_invalid_budget_exhaustion_never_passes(self):
+        def attempt(*args):
+            self.sleep(10)
+            return "reroll", "INVALID: injected driver excursion"
+        with patch("flipctl.stable_hold_attempt", side_effect=attempt):
+            with self.assertRaisesRegex(AssertionError, "never opened and completed"):
+                stable_hold(None, 30, self.commands, [])
 
 
 if __name__ == "__main__":

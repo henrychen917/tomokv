@@ -25,10 +25,8 @@ BOOT_JITTER_FACTORS = (0.8, 0.95, 1.1, 1.2, 1.05, 0.9)
 # own rule before the hold's assertion window opens. EVERY hold sample must then stay inside
 # the published band around BOTH the fixed driver anchor and the controller's saved anchor.
 # Reacquiring a driver anchor on retry must not hide drift from the controller (GT16b).
-# An invalid window is re-rolled, up to
-# STABLE_HOLD_ATTEMPTS, and exhaustion FAILS with its numbers. A move during a stationary
-# window is a real move and still fails.
-STABLE_HOLD_ATTEMPTS = 3
+# Invalid windows are re-armed within a wall budget, never a fixed attempt count.
+# Exhaustion cannot PASS. A move during a stationary hold fails immediately.
 PRE_HOLD_SECONDS = 8
 
 
@@ -212,6 +210,193 @@ def wait_for(control, description, predicate, timeout, poll_interval=1):
     raise AssertionError("timeout waiting for %s; last=%r" % (description, last))
 
 
+def stable_hold_attempt(control, seconds, budget, driver_commands, errors):
+    """-> ("held", row) | ("reroll", reason) | ("moved", evidence)."""
+    # No pre-hold samples are collected while the controller is still settling.
+    # The common deadline bounds this phase too; expiry only invalidates the attempt.
+    anchored_row = None
+    while time.monotonic() < budget:
+        if errors:
+            raise AssertionError("load driver failed: %s" % errors[0])
+        anchored_row = info(control)
+        if anchored_row.get("flipctl_state") == "anchored":
+            break
+        time.sleep(min(0.2, max(0, budget - time.monotonic())))
+    else:
+        return "reroll", "INVALID: controller never quiesced before deadline: %r" % anchored_row
+    base_triggers = int(anchored_row["flipctl_triggers"])
+    base_split = (anchored_row["flipctl_anchor_io"], anchored_row["flipctl_anchor_ex"])
+    band = float(anchored_row["flipctl_rate_band"])
+    controller_anchor = float(anchored_row["flipctl_anchor_rate"])
+    if band < 0:
+        raise AssertionError("controller reported a negative derived rate band")
+    rates = []
+    hold_rates = []
+    trace = []
+    hold_started = None
+    driver_anchor = None
+    row = anchored_row
+    previous_commands = driver_commands()
+    previous_time = time.monotonic()
+    while time.monotonic() < budget:
+        time.sleep(min(1, max(0, budget - time.monotonic())))
+        if errors:
+            raise AssertionError("load driver failed: %s" % errors[0])
+        now = time.monotonic()
+        commands = driver_commands()
+        rate = (commands - previous_commands) / max(now - previous_time, 1e-9)
+        previous_commands, previous_time = commands, now
+        rates.append(rate)
+        if hold_started is not None:
+            hold_rates.append(rate)
+        row = info(control)
+        live = info(control, "SERVER")
+        trace.append(
+            "%s t=%+6.1fs %-14s %-10s driver=%8.0f/s live=%s:%s anchor=%s:%s "
+            "triggers=%s last=%s" %
+            ("hold  " if hold_started is not None else "prehold",
+             now - (hold_started if hold_started is not None else now),
+             row.get("flipctl_state"), row.get("flipctl_phase"), rate,
+             live.get("io_threads"), live.get("ex_threads"),
+             row.get("flipctl_anchor_io"), row.get("flipctl_anchor_ex"),
+             row.get("flipctl_triggers"), row.get("flipctl_last_trigger")))
+        moved = row.get("flipctl_state") != "anchored" or \
+            int(row["flipctl_triggers"]) != base_triggers or \
+            (row["flipctl_anchor_io"], row["flipctl_anchor_ex"]) != base_split
+        if hold_started is not None:
+            verdict, reason = classify_stable_hold(
+                hold_rates, driver_anchor, band, moved,
+                controller_anchor=controller_anchor)
+            if verdict == "INVALID":
+                return "reroll", "INVALID: %s; trace=%r" % (reason, trace)
+        if moved:
+            if hold_started is not None:
+                verdict, reason = classify_stable_hold(
+                    hold_rates, driver_anchor, band, moved=True,
+                    controller_anchor=controller_anchor)
+                unstable = reason if verdict == "INVALID" else ""
+            else:
+                unstable = rate_rule_fires(rates, band)
+                if not unstable:
+                    verdict, reason = classify_stable_hold(
+                        rates, sum(rates) / len(rates), band, moved=True,
+                        controller_anchor=controller_anchor)
+                    unstable = reason if verdict == "INVALID" else ""
+            try:
+                dump = control.command("DEBUG", "FLIPCTL").decode(errors="replace")
+            except Exception as error:
+                dump = "DEBUG FLIPCTL unavailable: %r" % (error,)
+            evidence = (
+                "controller moved %s stable hold: %r\n"
+                "  last_trigger=%s  band=%.6f  anchor_rate=%s\n"
+                "  driver per-second rates: %s\n"
+                "  per-second trace:\n    %s\n"
+                "  DEBUG FLIPCTL at the move:\n    %s" %
+                ("during the" if hold_started is not None
+                 else "during the pre-hold measurement window of the", row,
+                 row.get("flipctl_last_trigger"), band, row.get("flipctl_anchor_rate"),
+                 ", ".join("%.0f" % value for value in rates),
+                 "\n    ".join(trace), dump.replace("\n", "\n    ")))
+            if unstable:
+                return ("reroll", "INVALID: %s -- %s" % (unstable, evidence))
+            if hold_started is not None:
+                # No trigger-specific exemption during a stationary assertion window.
+                return ("moved", "%s: %s -- %s" % (verdict, reason, evidence))
+            # The load was stationary in the signal the DRIVER controls -- rate, mix,
+            # connection set, key and value shapes are all fixed here. Which of the
+            # controller's two detectors moved decides whether this row can adjudicate it.
+            fields = parse_debug_dump(dump)
+            trigger = row.get("flipctl_last_trigger", "unknown")
+            if trigger == "fingerprint-shift":
+                distance = float(fields.get("last_shift_distance", "0") or 0)
+                shift_band = float(fields.get("last_shift_band", "0") or 0)
+                if shift_band > 0 and distance <= shift_band:
+                    # The detector fired INSIDE its own band. Nothing about the box can
+                    # explain that; it is a controller defect and it fails.
+                    return ("moved",
+                            "fingerprint shift fired INSIDE its own band (distance "
+                            "%.6f <= band %.6f) -- %s" % (distance, shift_band, evidence))
+                # The controller's OWN signature detector reports the workload changed,
+                # and by a wide margin, while the rate the driver offered did not move.
+                # The signature also counts PASS DEPTH -- how many frames an io thread
+                # happened to batch into one parse pass -- which is a property of how the
+                # box scheduled this load, not of the load. The driver cannot hold that
+                # still and this row cannot adjudicate it: re-roll, and if it recurs, fail
+                # with these numbers, which is exactly the report the controller lane
+                # needs. Every other trigger on a stationary load still fails below.
+                return ("reroll",
+                        "the controller's own signature detector reports the workload "
+                        "changed (last_shift_distance %.6f against last_shift_band %.6f, "
+                        "%.1fx) while the driver's rate held inside %.4f -- pass depth is "
+                        "a scheduling outcome the driver does not control -- %s" %
+                        (distance, shift_band,
+                         distance / shift_band if shift_band > 0 else 0.0, band,
+                         evidence))
+            return ("moved", evidence)
+        if hold_started is None and len(rates) >= PRE_HOLD_SECONDS:
+            unstable = rate_rule_fires(rates, band)
+            driver_anchor = sum(rates) / len(rates)
+            verdict, reason = classify_stable_hold(
+                rates, driver_anchor, band, moved=False,
+                controller_anchor=controller_anchor)
+            if verdict == "INVALID":
+                unstable = reason
+            if unstable:
+                return ("reroll",
+                        "pre-hold window is not stationary: %s\n  per-second trace:\n"
+                        "    %s" % (unstable, "\n    ".join(trace)))
+            hold_started = now
+            # The assertion window is a full `seconds` of wall time from HERE, not
+            # whatever is left of a budget the pre-hold measurement already spent.
+            print("stable hold: %ds pre-hold window stationary "
+                  "(driver %s/s, driver anchor %.3f/s, controller anchor %.3f/s, band %.6f); "
+                  "assertion window open for %ds" %
+                  (PRE_HOLD_SECONDS,
+                   ",".join("%.0f" % value for value in rates), driver_anchor,
+                   controller_anchor, band, seconds),
+                  flush=True)
+        if hold_started is not None and now - hold_started >= seconds:
+            break
+    if hold_started is None or previous_time - hold_started < seconds:
+        # The assertion window never opened, so nothing was asserted. Never report this
+        # as a hold: a row that turns green without opening its window is the vacuity
+        # this lane exists to remove.
+        return ("reroll", "INVALID: the assertion window never opened "
+                "(pre/hold samples=%d/%d, required hold=%ds)\n  per-second trace:\n    %s" %
+                (len(rates), len(hold_rates), seconds, "\n    ".join(trace)))
+    verdict, reason = classify_stable_hold(
+        hold_rates, driver_anchor, band, moved=False, controller_anchor=controller_anchor)
+    evidence = ("%s: %s\n  driver per-second rates: %s\n  per-second trace:\n    %s" %
+                (verdict, reason, ", ".join("%.0f" % value for value in hold_rates),
+                 "\n    ".join(trace)))
+    if verdict == "INVALID":
+        return ("reroll", evidence)
+    print("stable hold %s" % evidence, flush=True)
+    return ("held", row)
+
+
+def stable_hold(control, seconds, driver_commands, errors):
+    """Re-arm invalid stimulus only. A valid movement is never retried."""
+    budget = time.monotonic() + 4 * seconds + 60
+    rerolls = []
+    attempt = 0
+    while time.monotonic() < budget:
+        attempt += 1
+        verdict, payload = stable_hold_attempt(control, seconds, budget, driver_commands, errors)
+        if verdict == "moved":
+            raise AssertionError(payload)
+        if verdict == "held":
+            print("stable hold: %ds on a measured-stationary load, no trigger or split "
+                  "movement (attempt %d)" % (seconds, attempt), flush=True)
+            return payload
+        assert verdict == "reroll", (verdict, payload)
+        rerolls.append("attempt %d: %s" % (attempt, payload))
+        print("stable hold RE-ROLL %d (%.1fs budget left): %s" %
+              (attempt, max(0, budget - time.monotonic()), payload), flush=True)
+    raise AssertionError("INVALID: stable hold never opened and completed before deadline: " +
+                         "\n".join(rerolls))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="127.0.0.1")
@@ -393,183 +578,12 @@ def main():
         #   * load provably stationary + controller moved  -> FAIL, with flipctl_last_trigger, the
         #     controller's own DEBUG dump and the per-second split/rate trace, so a real move is
         #     distinguishable from a driver artefact in the log.
-        #   * load left the band                           -> RE-ROLL (up to STABLE_HOLD_ATTEMPTS,
-        #     inside a wall budget), then FAIL with the numbers. A move can be judged only during
+        #   * load left the band                           -> RE-ROLL inside a wall budget,
+        #     then INVALID with the numbers (never PASS). A move can be judged only during
         #     stationary load; this row failed about
         #     one full-gate run in five that way, always straight after the torture/ASAN phase,
         #     while passing 6 of 6 interleaved in a quiet window on the same binary.
-        def stable_hold_attempt(seconds):
-            """-> ("held", row) | ("reroll", reason) | ("moved", evidence)."""
-            anchored_row = wait_for(
-                control, "controller anchored before the stable hold",
-                lambda row: row.get("flipctl_state") == "anchored", 60)
-            base_triggers = int(anchored_row["flipctl_triggers"])
-            base_split = (anchored_row["flipctl_anchor_io"], anchored_row["flipctl_anchor_ex"])
-            band = float(anchored_row["flipctl_rate_band"])
-            controller_anchor = float(anchored_row["flipctl_anchor_rate"])
-            if band < 0:
-                raise AssertionError("controller reported a negative derived rate band")
-            rates = []
-            hold_rates = []
-            trace = []
-            hold_started = None
-            driver_anchor = None
-            row = anchored_row
-            previous_commands = driver_commands()
-            previous_time = time.monotonic()
-            deadline = previous_time + PRE_HOLD_SECONDS + seconds
-            while time.monotonic() < deadline:
-                time.sleep(1)
-                if errors:
-                    raise AssertionError("load driver failed: %s" % errors[0])
-                now = time.monotonic()
-                commands = driver_commands()
-                rate = (commands - previous_commands) / max(now - previous_time, 1e-9)
-                previous_commands, previous_time = commands, now
-                rates.append(rate)
-                if hold_started is not None:
-                    hold_rates.append(rate)
-                row = info(control)
-                live = info(control, "SERVER")
-                trace.append(
-                    "%s t=%+6.1fs %-14s %-10s driver=%8.0f/s live=%s:%s anchor=%s:%s "
-                    "triggers=%s last=%s" %
-                    ("hold  " if hold_started is not None else "prehold",
-                     now - (hold_started if hold_started is not None else now),
-                     row.get("flipctl_state"), row.get("flipctl_phase"), rate,
-                     live.get("io_threads"), live.get("ex_threads"),
-                     row.get("flipctl_anchor_io"), row.get("flipctl_anchor_ex"),
-                     row.get("flipctl_triggers"), row.get("flipctl_last_trigger")))
-                moved = row.get("flipctl_state") != "anchored" or \
-                    int(row["flipctl_triggers"]) != base_triggers or \
-                    (row["flipctl_anchor_io"], row["flipctl_anchor_ex"]) != base_split
-                if moved:
-                    if hold_started is not None:
-                        verdict, reason = classify_stable_hold(
-                            hold_rates, driver_anchor, band, moved=True,
-                            controller_anchor=controller_anchor)
-                        unstable = reason if verdict == "INVALID" else ""
-                    else:
-                        unstable = rate_rule_fires(rates, band)
-                        if not unstable:
-                            verdict, reason = classify_stable_hold(
-                                rates, sum(rates) / len(rates), band, moved=True,
-                                controller_anchor=controller_anchor)
-                            unstable = reason if verdict == "INVALID" else ""
-                    try:
-                        dump = control.command("DEBUG", "FLIPCTL").decode(errors="replace")
-                    except Exception as error:
-                        dump = "DEBUG FLIPCTL unavailable: %r" % (error,)
-                    evidence = (
-                        "controller moved %s stable hold: %r\n"
-                        "  last_trigger=%s  band=%.6f  anchor_rate=%s\n"
-                        "  driver per-second rates: %s\n"
-                        "  per-second trace:\n    %s\n"
-                        "  DEBUG FLIPCTL at the move:\n    %s" %
-                        ("during the" if hold_started is not None
-                         else "during the pre-hold measurement window of the", row,
-                         row.get("flipctl_last_trigger"), band, row.get("flipctl_anchor_rate"),
-                         ", ".join("%.0f" % value for value in rates),
-                         "\n    ".join(trace), dump.replace("\n", "\n    ")))
-                    if unstable:
-                        return ("reroll", "INVALID: %s -- %s" % (unstable, evidence))
-                    if hold_started is not None:
-                        # No trigger-specific exemption during a stationary assertion window.
-                        return ("moved", "%s: %s -- %s" % (verdict, reason, evidence))
-                    # The load was stationary in the signal the DRIVER controls -- rate, mix,
-                    # connection set, key and value shapes are all fixed here. Which of the
-                    # controller's two detectors moved decides whether this row can adjudicate it.
-                    fields = parse_debug_dump(dump)
-                    trigger = row.get("flipctl_last_trigger", "unknown")
-                    if trigger == "fingerprint-shift":
-                        distance = float(fields.get("last_shift_distance", "0") or 0)
-                        shift_band = float(fields.get("last_shift_band", "0") or 0)
-                        if shift_band > 0 and distance <= shift_band:
-                            # The detector fired INSIDE its own band. Nothing about the box can
-                            # explain that; it is a controller defect and it fails.
-                            return ("moved",
-                                    "fingerprint shift fired INSIDE its own band (distance "
-                                    "%.6f <= band %.6f) -- %s" % (distance, shift_band, evidence))
-                        # The controller's OWN signature detector reports the workload changed,
-                        # and by a wide margin, while the rate the driver offered did not move.
-                        # The signature also counts PASS DEPTH -- how many frames an io thread
-                        # happened to batch into one parse pass -- which is a property of how the
-                        # box scheduled this load, not of the load. The driver cannot hold that
-                        # still and this row cannot adjudicate it: re-roll, and if it recurs, fail
-                        # with these numbers, which is exactly the report the controller lane
-                        # needs. Every other trigger on a stationary load still fails below.
-                        return ("reroll",
-                                "the controller's own signature detector reports the workload "
-                                "changed (last_shift_distance %.6f against last_shift_band %.6f, "
-                                "%.1fx) while the driver's rate held inside %.4f -- pass depth is "
-                                "a scheduling outcome the driver does not control -- %s" %
-                                (distance, shift_band,
-                                 distance / shift_band if shift_band > 0 else 0.0, band,
-                                 evidence))
-                    return ("moved", evidence)
-                if hold_started is None and len(rates) >= PRE_HOLD_SECONDS:
-                    unstable = rate_rule_fires(rates, band)
-                    driver_anchor = sum(rates) / len(rates)
-                    verdict, reason = classify_stable_hold(
-                        rates, driver_anchor, band, moved=False,
-                        controller_anchor=controller_anchor)
-                    if verdict == "INVALID":
-                        unstable = reason
-                    if unstable:
-                        return ("reroll",
-                                "pre-hold window is not stationary: %s\n  per-second trace:\n"
-                                "    %s" % (unstable, "\n    ".join(trace)))
-                    hold_started = now
-                    # The assertion window is a full `seconds` of wall time from HERE, not
-                    # whatever is left of a budget the pre-hold measurement already spent.
-                    deadline = now + seconds
-                    print("stable hold: %ds pre-hold window stationary "
-                          "(driver %s/s, driver anchor %.3f/s, controller anchor %.3f/s, band %.6f); "
-                          "assertion window open for %ds" %
-                          (PRE_HOLD_SECONDS,
-                           ",".join("%.0f" % value for value in rates), driver_anchor,
-                           controller_anchor, band, seconds),
-                          flush=True)
-            if hold_started is None:
-                # The assertion window never opened, so nothing was asserted. Never report this
-                # as a hold: a row that turns green without opening its window is the vacuity
-                # this lane exists to remove.
-                return ("reroll", "INVALID: the assertion window never opened "
-                        "(only %d samples in %ds)\n  per-second trace:\n    %s" %
-                        (len(rates), PRE_HOLD_SECONDS + seconds, "\n    ".join(trace)))
-            verdict, reason = classify_stable_hold(
-                hold_rates, driver_anchor, band, moved=False, controller_anchor=controller_anchor)
-            evidence = ("%s: %s\n  driver per-second rates: %s\n  per-second trace:\n    %s" %
-                        (verdict, reason, ", ".join("%.0f" % value for value in hold_rates),
-                         "\n    ".join(trace)))
-            if verdict == "INVALID":
-                return ("reroll", evidence)
-            print("stable hold %s" % evidence, flush=True)
-            return ("held", row)
-
-        held_row = None
-        rerolls = []
-        # Bounded so three re-rolls cannot outrun the gate row's own timeout.
-        budget = time.monotonic() + 4 * args.stable_seconds + 60
-        for attempt in range(1, STABLE_HOLD_ATTEMPTS + 1):
-            verdict, payload = stable_hold_attempt(args.stable_seconds)
-            if verdict == "moved":
-                raise AssertionError(payload)
-            if verdict == "held":
-                held_row = payload
-                print("stable hold: %ds on a measured-stationary load, no trigger or split "
-                      "movement (attempt %d of %d)" %
-                      (args.stable_seconds, attempt, STABLE_HOLD_ATTEMPTS), flush=True)
-                break
-            rerolls.append("attempt %d: %s" % (attempt, payload))
-            print("stable hold RE-ROLL %d/%d: %s" %
-                  (attempt, STABLE_HOLD_ATTEMPTS, payload), flush=True)
-            if time.monotonic() > budget:
-                rerolls.append("wall budget for re-rolls exhausted")
-                break
-        if held_row is None:
-            raise AssertionError("stable hold never opened and completed after bounded re-arms: " +
-                                 "\n".join(rerolls))
+        held_row = stable_hold(control, args.stable_seconds, driver_commands, errors)
 
         # Every counter the surge phase compares against is re-read HERE rather than assumed to be
         # at its boot value: a re-rolled hold may legitimately have spent a rate
