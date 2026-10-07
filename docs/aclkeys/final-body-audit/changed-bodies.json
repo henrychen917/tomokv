@@ -1,0 +1,233 @@
+[
+  {
+    "object": "db0/src/cmd/acl.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_114acl_check_keysIRZNS_16acl_check_queuedEjRKNS_11CommandSpecERKSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaISB_EEPjEUljE_EENS_15AclDeniedReasonERKNS_11AclSelectorES4_jOT_SG_.constprop.0",
+    "name": "tomo_db0::AclDeniedReason tomo_db0::(anonymous namespace)::acl_check_keys<tomo_db0::acl_check_queued(unsigned int, tomo_db0::CommandSpec const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, unsigned int*)::{lambda(unsigned int)#1}&>(tomo_db0::AclSelector const&, tomo_db0::CommandSpec const&, unsigned int, tomo_db0::acl_check_queued(unsigned int, tomo_db0::CommandSpec const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, unsigned int*)::{lambda(unsigned int)#1}&, unsigned int*) [clone .constprop.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1296,
+    "post_size": 568,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/acl.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_114acl_check_keysIRZNS_18acl_dispatch_entryERNS_6IoLoopERNS_6ClientERNS_2OpEjhEUljE_EENS_15AclDeniedReasonERKNS_11AclSelectorERKNS_11CommandSpecEjOT_Pj.constprop.0",
+    "name": "tomo_db0::AclDeniedReason tomo_db0::(anonymous namespace)::acl_check_keys<tomo_db0::acl_dispatch_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&, unsigned int, unsigned char)::{lambda(unsigned int)#1}&>(tomo_db0::AclSelector const&, tomo_db0::CommandSpec const&, unsigned int, tomo_db0::acl_dispatch_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&, unsigned int, unsigned char)::{lambda(unsigned int)#1}&, unsigned int*) [clone .constprop.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1393,
+    "post_size": 609,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/acl.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_114acl_check_keysIRZNS_20acl_recheck_blockingERNS_6ClientERNS_2OpERNS_9ThreadCtxEEUljE_EENS_15AclDeniedReasonERKNS_11AclSelectorERKNS_11CommandSpecEjOT_Pj.constprop.0",
+    "name": "tomo_db0::AclDeniedReason tomo_db0::(anonymous namespace)::acl_check_keys<tomo_db0::acl_recheck_blocking(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ThreadCtx&)::{lambda(unsigned int)#1}&>(tomo_db0::AclSelector const&, tomo_db0::CommandSpec const&, unsigned int, tomo_db0::acl_recheck_blocking(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ThreadCtx&)::{lambda(unsigned int)#1}&, unsigned int*) [clone .constprop.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1393,
+    "post_size": 609,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/acl.o",
+    "symbol": "_ZN8tomo_db012_GLOBAL__N_119acl_pattern_allowedERKNS_11AclSelectorENS_5SliceE",
+    "name": "tomo_db0::(anonymous namespace)::acl_pattern_allowed(tomo_db0::AclSelector const&, tomo_db0::Slice)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 93,
+    "post_size": 0,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/acl.o",
+    "symbol": "_ZN8tomo_db06IoLoop21pubsub_finish_pendingEm",
+    "name": "tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 3398,
+    "post_size": 3398,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/acl.o",
+    "symbol": "_ZSt13__adjust_heapIN9__gnu_cxx17__normal_iteratorIPN8tomo_db012_GLOBAL__N_111AclLogEntryESt6vectorIS4_SaIS4_EEEElS4_NS0_5__ops15_Iter_comp_iterIZNS3_13acl_reply_logERNS2_2OpEEUlRKS4_SF_E_EEEvT_T0_SJ_T1_T2_.isra.0",
+    "name": "void std::__adjust_heap<__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::AclLogEntry*, std::vector<tomo_db0::(anonymous namespace)::AclLogEntry, std::allocator<tomo_db0::(anonymous namespace)::AclLogEntry> > >, long, tomo_db0::(anonymous namespace)::AclLogEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::acl_reply_log(tomo_db0::Op&)::{lambda(tomo_db0::(anonymous namespace)::AclLogEntry const&, tomo_db0::(anonymous namespace)::AclLogEntry const&)#1}> >(__gnu_cxx::__normal_iterator<tomo_db0::(anonymous namespace)::AclLogEntry*, std::vector<tomo_db0::(anonymous namespace)::AclLogEntry, std::allocator<tomo_db0::(anonymous namespace)::AclLogEntry> > >, long, long, tomo_db0::(anonymous namespace)::AclLogEntry, __gnu_cxx::__ops::_Iter_comp_iter<tomo_db0::(anonymous namespace)::acl_reply_log(tomo_db0::Op&)::{lambda(tomo_db0::(anonymous namespace)::AclLogEntry const&, tomo_db0::(anonymous namespace)::AclLogEntry const&)#1}>) [clone .isra.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 2816,
+    "post_size": 2815,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/acl.o",
+    "symbol": "_ZZN8tomo_db012_GLOBAL__N_114acl_check_keysIRZNS_16acl_check_queuedEjRKNS_11CommandSpecERKSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaISB_EEPjEUljE_EENS_15AclDeniedReasonERKNS_11AclSelectorES4_jOT_SG_ENUlPKvjE_4_FUNESQ_j",
+    "name": "tomo_db0::(anonymous namespace)::acl_check_keys<tomo_db0::acl_check_queued(unsigned int, tomo_db0::CommandSpec const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, unsigned int*)::{lambda(unsigned int)#1}&>(tomo_db0::AclSelector const&, tomo_db0::CommandSpec const&, unsigned int, tomo_db0::acl_check_queued(unsigned int, tomo_db0::CommandSpec const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, unsigned int*)::{lambda(unsigned int)#1}&, unsigned int*)::{lambda(void const*, unsigned int)#1}::_FUN(void const*, unsigned int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 0,
+    "post_size": 23,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/acl.o",
+    "symbol": "_ZZN8tomo_db012_GLOBAL__N_114acl_check_keysIRZNS_18acl_dispatch_entryERNS_6IoLoopERNS_6ClientERNS_2OpEjhEUljE_EENS_15AclDeniedReasonERKNS_11AclSelectorERKNS_11CommandSpecEjOT_PjENUlPKvjE_4_FUNESL_j",
+    "name": "tomo_db0::(anonymous namespace)::acl_check_keys<tomo_db0::acl_dispatch_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&, unsigned int, unsigned char)::{lambda(unsigned int)#1}&>(tomo_db0::AclSelector const&, tomo_db0::CommandSpec const&, unsigned int, tomo_db0::acl_dispatch_entry(tomo_db0::IoLoop&, tomo_db0::Client&, tomo_db0::Op&, unsigned int, unsigned char)::{lambda(unsigned int)#1}&, unsigned int*)::{lambda(void const*, unsigned int)#1}::_FUN(void const*, unsigned int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 0,
+    "post_size": 70,
+    "classification": "other"
+  },
+  {
+    "object": "db0/src/cmd/acl.o",
+    "symbol": "_ZZN8tomo_db012_GLOBAL__N_114acl_check_keysIRZNS_20acl_recheck_blockingERNS_6ClientERNS_2OpERNS_9ThreadCtxEEUljE_EENS_15AclDeniedReasonERKNS_11AclSelectorERKNS_11CommandSpecEjOT_PjENUlPKvjE_4_FUNESL_j",
+    "name": "tomo_db0::(anonymous namespace)::acl_check_keys<tomo_db0::acl_recheck_blocking(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ThreadCtx&)::{lambda(unsigned int)#1}&>(tomo_db0::AclSelector const&, tomo_db0::CommandSpec const&, unsigned int, tomo_db0::acl_recheck_blocking(tomo_db0::Client&, tomo_db0::Op&, tomo_db0::ThreadCtx&)::{lambda(unsigned int)#1}&, unsigned int*)::{lambda(void const*, unsigned int)#1}::_FUN(void const*, unsigned int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 0,
+    "post_size": 70,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_114acl_check_keysIRZNS_16acl_check_queuedEjRKNS_11CommandSpecERKSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaISB_EEPjEUljE_EENS_15AclDeniedReasonERKNS_11AclSelectorES4_jOT_SG_.constprop.0",
+    "name": "tomo::AclDeniedReason tomo::(anonymous namespace)::acl_check_keys<tomo::acl_check_queued(unsigned int, tomo::CommandSpec const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, unsigned int*)::{lambda(unsigned int)#1}&>(tomo::AclSelector const&, tomo::CommandSpec const&, unsigned int, tomo::acl_check_queued(unsigned int, tomo::CommandSpec const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, unsigned int*)::{lambda(unsigned int)#1}&, unsigned int*) [clone .constprop.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1101,
+    "post_size": 513,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_114acl_check_keysIRZNS_18acl_dispatch_entryERNS_6IoLoopERNS_6ClientERNS_2OpEjhEUljE_EENS_15AclDeniedReasonERKNS_11AclSelectorERKNS_11CommandSpecEjOT_Pj.constprop.0",
+    "name": "tomo::AclDeniedReason tomo::(anonymous namespace)::acl_check_keys<tomo::acl_dispatch_entry(tomo::IoLoop&, tomo::Client&, tomo::Op&, unsigned int, unsigned char)::{lambda(unsigned int)#1}&>(tomo::AclSelector const&, tomo::CommandSpec const&, unsigned int, tomo::acl_dispatch_entry(tomo::IoLoop&, tomo::Client&, tomo::Op&, unsigned int, unsigned char)::{lambda(unsigned int)#1}&, unsigned int*) [clone .constprop.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1261,
+    "post_size": 577,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_114acl_check_keysIRZNS_20acl_recheck_blockingERNS_6ClientERNS_2OpERNS_9ThreadCtxEEUljE_EENS_15AclDeniedReasonERKNS_11AclSelectorERKNS_11CommandSpecEjOT_Pj.constprop.0",
+    "name": "tomo::AclDeniedReason tomo::(anonymous namespace)::acl_check_keys<tomo::acl_recheck_blocking(tomo::Client&, tomo::Op&, tomo::ThreadCtx&)::{lambda(unsigned int)#1}&>(tomo::AclSelector const&, tomo::CommandSpec const&, unsigned int, tomo::acl_recheck_blocking(tomo::Client&, tomo::Op&, tomo::ThreadCtx&)::{lambda(unsigned int)#1}&, unsigned int*) [clone .constprop.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1261,
+    "post_size": 577,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_119acl_pattern_allowedERKNS_11AclSelectorENS_5SliceE",
+    "name": "tomo::(anonymous namespace)::acl_pattern_allowed(tomo::AclSelector const&, tomo::Slice)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 93,
+    "post_size": 0,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_122acl_apply_command_ruleERNS_11AclSelectorENS_5SliceERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEb.constprop.0.isra.0",
+    "name": "tomo::(anonymous namespace)::acl_apply_command_rule(tomo::AclSelector&, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, bool) [clone .constprop.0] [clone .isra.0]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 2234,
+    "post_size": 2253,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_122acl_apply_command_ruleERNS_11AclSelectorENS_5SliceERNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEb.constprop.0.isra.0.cold",
+    "name": "tomo::(anonymous namespace)::acl_apply_command_rule(tomo::AclSelector&, tomo::Slice, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, bool) [clone .constprop.0] [clone .isra.0] [clone .cold]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 63,
+    "post_size": 63,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "symbol": "_ZN4tomo17acl_command_entryERNS_6IoLoopERNS_6ClientERNS_2OpE",
+    "name": "tomo::acl_command_entry(tomo::IoLoop&, tomo::Client&, tomo::Op&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 12700,
+    "post_size": 12700,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "symbol": "_ZN4tomo17acl_command_entryERNS_6IoLoopERNS_6ClientERNS_2OpE.cold",
+    "name": "tomo::acl_command_entry(tomo::IoLoop&, tomo::Client&, tomo::Op&) [clone .cold]",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 685,
+    "post_size": 685,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "symbol": "_ZSt4swapIN4tomo12_GLOBAL__N_111AclLogEntryEENSt9enable_ifIXsrSt6__and_IJSt6__not_ISt15__is_tuple_likeIT_EESt21is_move_constructibleIS7_ESt18is_move_assignableIS7_EEE5valueEvE4typeERS7_SH_",
+    "name": "std::enable_if<std::__and_<std::__not_<std::__is_tuple_like<tomo::(anonymous namespace)::AclLogEntry> >, std::is_move_constructible<tomo::(anonymous namespace)::AclLogEntry>, std::is_move_assignable<tomo::(anonymous namespace)::AclLogEntry> >::value, void>::type std::swap<tomo::(anonymous namespace)::AclLogEntry>(tomo::(anonymous namespace)::AclLogEntry&, tomo::(anonymous namespace)::AclLogEntry&)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 851,
+    "post_size": 851,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "symbol": "_ZZN4tomo12_GLOBAL__N_114acl_check_keysIRZNS_16acl_check_queuedEjRKNS_11CommandSpecERKSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaISB_EEPjEUljE_EENS_15AclDeniedReasonERKNS_11AclSelectorES4_jOT_SG_ENUlPKvjE_4_FUNESQ_j",
+    "name": "tomo::(anonymous namespace)::acl_check_keys<tomo::acl_check_queued(unsigned int, tomo::CommandSpec const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, unsigned int*)::{lambda(unsigned int)#1}&>(tomo::AclSelector const&, tomo::CommandSpec const&, unsigned int, tomo::acl_check_queued(unsigned int, tomo::CommandSpec const&, std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&, unsigned int*)::{lambda(unsigned int)#1}&, unsigned int*)::{lambda(void const*, unsigned int)#1}::_FUN(void const*, unsigned int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 0,
+    "post_size": 23,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "symbol": "_ZZN4tomo12_GLOBAL__N_114acl_check_keysIRZNS_18acl_dispatch_entryERNS_6IoLoopERNS_6ClientERNS_2OpEjhEUljE_EENS_15AclDeniedReasonERKNS_11AclSelectorERKNS_11CommandSpecEjOT_PjENUlPKvjE_4_FUNESL_j",
+    "name": "tomo::(anonymous namespace)::acl_check_keys<tomo::acl_dispatch_entry(tomo::IoLoop&, tomo::Client&, tomo::Op&, unsigned int, unsigned char)::{lambda(unsigned int)#1}&>(tomo::AclSelector const&, tomo::CommandSpec const&, unsigned int, tomo::acl_dispatch_entry(tomo::IoLoop&, tomo::Client&, tomo::Op&, unsigned int, unsigned char)::{lambda(unsigned int)#1}&, unsigned int*)::{lambda(void const*, unsigned int)#1}::_FUN(void const*, unsigned int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 0,
+    "post_size": 68,
+    "classification": "other"
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "symbol": "_ZZN4tomo12_GLOBAL__N_114acl_check_keysIRZNS_20acl_recheck_blockingERNS_6ClientERNS_2OpERNS_9ThreadCtxEEUljE_EENS_15AclDeniedReasonERKNS_11AclSelectorERKNS_11CommandSpecEjOT_PjENUlPKvjE_4_FUNESL_j",
+    "name": "tomo::(anonymous namespace)::acl_check_keys<tomo::acl_recheck_blocking(tomo::Client&, tomo::Op&, tomo::ThreadCtx&)::{lambda(unsigned int)#1}&>(tomo::AclSelector const&, tomo::CommandSpec const&, unsigned int, tomo::acl_recheck_blocking(tomo::Client&, tomo::Op&, tomo::ThreadCtx&)::{lambda(unsigned int)#1}&, unsigned int*)::{lambda(void const*, unsigned int)#1}::_FUN(void const*, unsigned int)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 0,
+    "post_size": 68,
+    "classification": "other"
+  }
+]

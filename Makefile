@@ -41,6 +41,7 @@ SRC      += src/core/reorder.cc
 SRC      += src/cmd/geo_store.cc
 # Cold DEBUG observer links after existing objects to preserve weak-symbol selection.
 SRC      += src/persist/aof_frame_debug.cc
+SRC      += src/cmd/aclkeys.cc
 LDLIBS   += -lssl -lcrypto
 BUILD_ROOT ?= build
 BIN      := $(BUILD_ROOT)/tomokv
@@ -119,6 +120,10 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 $(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127628
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
 $(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=126223
+# ACL key extraction is isolated from the IO templates. Keep the merged baseline's
+# ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
+$(BUILD_ROOT)/src/cmd/acl.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34630
+$(BUILD_ROOT)/db0/src/cmd/acl.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34550
 # The isolated prebuild TU reuses the string parser text without emitting its public handlers.
 $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 

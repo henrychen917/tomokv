@@ -41,7 +41,7 @@ def run(api):
     enc, parse, read_reply = api["enc"], api["parse_reply"], api["read_reply"]
     endpoints = ((api["TH"], api["TP"]), (api["OH"], api["OP"]))
     opened = []
-    counters = dict(admitted=0, denied=0, getkeys=0, parked=0, revoked=0)
+    counters = dict(admitted=0, denied=0, getkeys=0, parked=0)
     username = "aclkeys-differ"
 
     def connect(endpoint):
@@ -96,7 +96,7 @@ def run(api):
                 equal(workers, ["PING"], b"+PONG\r\n")
 
         # All five commands must actually park and wake, not merely accept ready data.
-        # BLPOP additionally repeats the original revoke/wake witness on both servers.
+        # The revoke/wake denial is the separate strict witness in acl.py.
         for args, keys, wake in cases("0", "block:aclkeys"):
             equal(admins, ["DEL", *keys])
             ids = [int(parse(issue(worker, ["CLIENT", "ID"]))[1:]) for worker in workers]
@@ -105,21 +105,13 @@ def run(api):
             for admin, worker, client_id in zip(admins, workers, ids):
                 wait_blocked(admin, worker, client_id, issue, parse, read_reply)
                 counters["parked"] += 1
-            revoke = args[0] == "BLPOP"
-            if revoke:
-                equal(admins, ["ACL", "SETUSER", username, "resetkeys", "~other:*"], b"+OK\r\n")
             equal(admins, wake)
             replies = [read_reply(worker[1]) for worker in workers]
             assert replies[0] == replies[1], (args, replies)
-            if revoke:
-                assert replies[0] == DENIED, (args, replies)
-                counters["revoked"] += 2
-                equal(admins, ["ACL", "SETUSER", username, "resetkeys", "~block:*"], b"+OK\r\n")
-            else:
-                assert b"value" in replies[0], (args, replies)
-            # A coded reply left behind by the denial corrupts this exact next reply.
+            assert b"value" in replies[0], (args, replies)
+            # Require exactly one reply and an intact connection after completion.
             equal(workers, ["PING"], b"+PONG\r\n")
-        assert counters == dict(admitted=10, denied=10, getkeys=20, parked=10, revoked=2), counters
+        assert counters == dict(admitted=10, denied=10, getkeys=20, parked=10), counters
         print("DIFFER aclkeys: PASS %s" % counters)
         return 0
     finally:

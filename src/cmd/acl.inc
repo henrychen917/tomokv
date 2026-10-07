@@ -1,6 +1,13 @@
-// acl.inc -- Redis 7.4 ACL machinery, textually included once by xshard.cc.
+// acl.inc -- Redis 7.4 ACL machinery, textually included once by acl.cc.
 
 namespace tomo {
+
+bool acl_pattern_allowed(const AclSelector& perm, Slice value);
+__attribute__((noinline)) AclDeniedReason acl_check_metadata_keys(
+    const AclSelector& perm, const CommandSpec& spec, uint32_t argc,
+    const void* argument_context, Slice (*argument_at)(const void*, uint32_t),
+    uint32_t* denied_arg);
+
 namespace {
 
 constexpr uint32_t kAclMaxUsers = 65536;
@@ -493,12 +500,6 @@ AclUser* acl_create_locked(AclUserImage&& image, uint32_t requested_index = UINT
     return user;
 }
 
-bool acl_pattern_allowed(const AclSelector& perm, Slice value) {
-    for (const std::string& pattern : perm.key_patterns)
-        if (command_glob_match(Slice(pattern.data(), static_cast<uint32_t>(pattern.size())), value))
-            return true;
-    return false;
-}
 
 bool acl_channel_allowed(const AclSelector& perm, Slice value, bool literal_pattern) {
     for (const std::string& pattern : perm.channel_patterns) {
@@ -534,28 +535,11 @@ AclDeniedReason acl_check_keys(const AclSelector& perm, const CommandSpec& spec,
             }
         }
     }
-    // Use precisely the same subcommand resolution and rich key specs as COMMAND GETKEYS.
-    // Legacy routing ranges cannot describe timeouts, key counts, or keyless HELP arms.
-    // This scratch view borrows argument bytes; it exists only for restricted ACL users.
-    Op arguments;
-    arguments.spec = &spec;
-    for (uint32_t arg = 0; arg < argc; ++arg)
-        if (!arguments.push_arg(get_arg(arg))) return AclDeniedReason::Key;
-    const auto* metadata = command_metadata_resolve(arguments, 0);
-    // Unknown/malformed subcommands are rejected by their command parser, as before.
-    if (!metadata) return AclDeniedReason::None;
-    std::vector<CommandKeyMetadata> keys;
-    try {
-        command_metadata_collect_keys(arguments, 0, *metadata, keys);
-    } catch (const std::bad_alloc&) {
-        return AclDeniedReason::Key;  // Never admit unchecked keys on allocation failure.
-    }
-    for (const auto& key : keys)
-        if (!acl_pattern_allowed(perm, get_arg(key.argument))) {
-            if (denied_arg) *denied_arg = key.argument;
-            return AclDeniedReason::Key;
-        }
-    return AclDeniedReason::None;
+    using Arguments = std::remove_reference_t<GetArg>;
+    return acl_check_metadata_keys(perm, spec, argc, &get_arg,
+        [](const void* arguments, uint32_t arg) {
+            return (*static_cast<const Arguments*>(arguments))(arg);
+        }, denied_arg);
 }
 
 template <typename GetArg>
