@@ -682,15 +682,6 @@ public:
     }
     bool in_active() const { return in_active_; }
     void set_in_active(bool v) { in_active_ = v; }
-    // IOFUSED IFID readiness is owner-local and shares the connection flag byte instead of
-    // growing the footprint-locked hot scalar run. Ordinary Op consumers ignore bit 6; the
-    // overlap-0 read-local parser masks it before reusing that bit for a classified slot.
-    bool ifid_pending() const { return connection_flags_ & kIfidPending; }
-    void set_ifid_pending(bool value) {
-        if (value) connection_flags_ |= kIfidPending;
-        else connection_flags_ &= static_cast<uint8_t>(~kIfidPending);
-    }
-
     // MULTI/WATCH state is cold and allocated only on first use.  These fields consume padding in
     // the executor-facing tail; the signed 1984-byte Client footprint remains unchanged.
     MultiSession* multi_session() const { return multi_session_; }
@@ -820,7 +811,6 @@ private:
     static constexpr uint8_t kBlocked = 1u << 7;
     static constexpr uint8_t kResp3 = 1u << 2;
     static constexpr uint8_t kNoTouch = 1u << 4;
-    static constexpr uint8_t kIfidPending = 1u << 6;
     uint8_t   connection_flags_ = 0;
     // Output accounting is rewritten on every reply append while a client output limit is armed.
     // It sits here, on the io-private hot line, so that write never invalidates the executor-
