@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <memory>
 #include <vector>
-#include "src/core/reorder.h"
+#include "reorder_batch_fixture.h"
 #include "src/core/config.h"
 
 namespace tomo { void multi_session_destroy(MultiSession* p) { if (p) std::abort(); } }
@@ -53,7 +53,7 @@ void three_pipes() {
     for (uint32_t i = 0; i < 5; ++i) tasks[n++] = c.add(i == 3 ? long_op : short_op, 30 + i);
     require(shadow_bit(tasks[4]) && shadow_id(tasks[4]) == 3 &&
             shadow_bit(tasks[7]) && shadow_id(tasks[7]) == 0, "own-pipe shadows were not armed");
-    const auto witness = ex_schedule_batch<B, true>(tasks, n);
+    const auto witness = test::schedule_test_batch<B, true>(tasks, n);
     constexpr uint32_t expected[] = {10,30,11,31,12,32,20,13,33,21,14,34,22,15,23,24};
     require(witness.permuted_runs != 0, "three-pipe permutation did not engage");
     for (uint32_t i = 0; i < n; ++i)
@@ -71,7 +71,7 @@ void long_only_scope() {
             "long-only scope never contained pending blockers");
     // The owner population after clean GETs take the read-local lane can be
     // entirely Long. Different clients and pending blockers still imply no pick.
-    auto result = ex_schedule_batch<kGenthreadExBatchOps, true>(tasks, 2);
+    auto result = test::schedule_test_batch<kGenthreadExBatchOps, true>(tasks, 2);
     require(result.permuted_runs == 0 && tasks[0].enqueue_us_low == 0 &&
             tasks[1].enqueue_us_low == 1, "homogeneous Long scope invented a permutation");
     std::puts("PASS pending Long-only scope: FIFO and zero permutations are correct");
@@ -91,7 +91,7 @@ void completion_and_newest() {
     Task tasks[kGenthreadExBatchOps];
     tasks[0] = b.add(long_op, 10);
     tasks[1] = last; // Its prior tasks are on another executor in this test.
-    ex_schedule_batch<kGenthreadExBatchOps, true>(tasks, 2);
+    test::schedule_test_batch<kGenthreadExBatchOps, true>(tasks, 2);
     require(tasks[0].enqueue_us_low == 4 && !shadow_bit(tasks[0]), "Done shadow was not promoted");
     a.done(first.op_id);
     a.done(middle.op_id);
@@ -123,7 +123,7 @@ void successor_completion() {
     tasks[2] = a.add(short_op, 2);
     require(shadow_pending(tasks[1]) && shadow_pending(tasks[2]), "successor window never armed");
     a.done(0);
-    ex_schedule_batch<kGenthreadExBatchOps, true>(tasks, 3);
+    test::schedule_test_batch<kGenthreadExBatchOps, true>(tasks, 3);
     require(tasks[0].enqueue_us_low == 1 && tasks[1].enqueue_us_low == 2 &&
                 tasks[2].enqueue_us_low == 3, "newly eligible follower retained a completed shadow");
     std::puts("PASS completion probe when a hidden follower becomes eligible");
@@ -207,7 +207,7 @@ void all_barriers() {
         tasks[6] = c.add(short_op, 6);
         uint8_t length;
         require(!candidate(tasks[3], length), "special did not arm a barrier");
-        ex_schedule_batch<kGenthreadExBatchOps, true>(tasks, 7);
+        test::schedule_test_batch<kGenthreadExBatchOps, true>(tasks, 7);
         constexpr uint32_t expected[] = {2,0,1,3,6,4,5};
         for (uint32_t i = 0; i < 7; ++i)
             require(tasks[i].enqueue_us_low == expected[i], "shadow crossed a special barrier");
@@ -220,7 +220,7 @@ void all_barriers() {
     uint8_t length;
     require(candidate(tasks[0], length) && length == static_cast<uint8_t>(CommandLengthClass::Long),
             "atomic pending hazard lost the inherited long classification");
-    ex_schedule_batch<kGenthreadExBatchOps, true>(tasks, 2);
+    test::schedule_test_batch<kGenthreadExBatchOps, true>(tasks, 2);
     require(tasks[0].enqueue_us_low == 1, "atomic hazard classification did not affect selection");
     std::puts("PASS all thirteen special barriers and inherited atomic hazard classification");
 }
