@@ -3,11 +3,12 @@
 import argparse
 import contextlib
 from pathlib import Path
+import random
 import subprocess
 import sys
 import time
 
-from _lib import Conn, RespError, info, wait_ready
+from _lib import Conn, RespError, encode, info, wait_ready
 from persistfix import check_port_owner, guard_port
 
 
@@ -34,6 +35,46 @@ def boot(argv, cores, port, log_path):
             assert child.returncode == 0, log_path.read_text()
 
 
+def seed_save_load(peers, keys):
+    """Distinct incompressible values keep the directed BGSAVE overlap measurable."""
+    rng = random.Random(7)
+    for start in range(0, keys, 128):
+        count = min(128, keys - start)
+        payload = b''.join(encode('SET', 'psfix:save-load:%d' % index, rng.randbytes(4096))
+                           for index in range(start, start + count))
+        for peer in peers:
+            peer.raw(payload)
+        for peer in peers:
+            for _ in range(count):
+                assert peer.read() == b'OK', 'save-load seed write failed'
+    print('PSFIX save-load seeded %d keys / %d value bytes per peer' % (keys, keys * 4096), flush=True)
+
+
+def run_differ(command, log_path, load_peers):
+    if load_peers:
+        # Start one independent save on EACH peer, then run the differential leg while
+        # those jobs are active. Further injections inside rdb_saves' exact +1 interval
+        # would invalidate the count premise and race even a correct pre-save barrier.
+        for peer in load_peers:
+            assert info(peer, 'persistence')['rdb_bgsave_in_progress'] == '0'
+        for peer in load_peers:
+            assert peer.must('BGSAVE') == b'Background saving started'
+        time.sleep(.101)
+        for label, peer in zip(('target', 'oracle'), load_peers):
+            assert info(peer, 'persistence')['rdb_bgsave_in_progress'] == '1', (
+                'PSFIX save-load never armed for >100 ms on %s; increase --bgsave-load-keys' % label)
+    result = subprocess.run(command, capture_output=True, text=True, timeout=90)
+    output = result.stdout + result.stderr
+    log_path.write_text(output)
+    print(output, end='', flush=True)
+    if load_peers and result.returncode == 0:
+        assert any('PSFIX idle barrier before target SAVE:' in line and
+                   'busy_peers=target,oracle' in line for line in output.splitlines()), (
+            'PSFIX save-load did not overlap the real before-save barrier on BOTH peers; '
+            'increase --bgsave-load-keys; see ' + str(log_path))
+    return result.returncode, output
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', type=Path, required=True)
@@ -44,8 +85,17 @@ def main():
     parser.add_argument('--port', type=int, default=24810)
     parser.add_argument('--mode', choices=('1s', '2s'), default='2s')
     parser.add_argument('--databases', type=int, choices=(1, 16), default=1)
+    parser.add_argument('--atomic', type=int, choices=(0, 1), default=0)
+    parser.add_argument('--seeds', type=int, nargs='+', default=[7])
+    parser.add_argument('--repeats', type=int, default=1)
+    parser.add_argument('--bgsave-load-keys', type=int, default=0,
+                        help='0 disables; directed overlap proof uses 4096-byte values per key')
     parser.add_argument('--expect-pre-failure', action='store_true')
     args = parser.parse_args()
+    if args.repeats < 1 or args.bgsave_load_keys < 0:
+        parser.error('--repeats must be positive; --bgsave-load-keys must be nonnegative')
+    if args.expect_pre_failure and args.bgsave_load_keys:
+        parser.error('--expect-pre-failure cannot use the save-load proof')
     args.root = args.root.resolve()
     args.root.mkdir(parents=True, exist_ok=False)
     target_dir, oracle_dir = args.root / 'target', args.root / 'oracle'
@@ -53,7 +103,8 @@ def main():
     oracle_dir.mkdir()
     target = [str(args.binary.resolve()), '--bind', '127.0.0.1', '--port', str(args.port),
               '--shards', '16', '--thread-mode', args.mode,
-              '--databases', str(args.databases), '--dir', str(target_dir), '--save', '',
+              '--databases', str(args.databases), '--atomic', str(args.atomic),
+              '--dir', str(target_dir), '--save', '',
               '--appendonly', 'yes', '--appendfsync', 'no', '--auto-aof-rewrite-percentage', '0']
     if args.mode == '2s':
         target += ['--ratio', '6:2']
@@ -71,18 +122,29 @@ def main():
                 print('PSFIX PRE INFO:', ' '.join(fields), flush=True)
             finally:
                 client.close()
-        command = ['taskset', '-c', args.load_cores, sys.executable, 'tests/differ.py',
-                   '127.0.0.1', str(args.port), '127.0.0.1', str(args.port + 1), 'psfix', '7']
-        for protocol in ([], ['-3']):
-            result = subprocess.run(command + protocol, capture_output=True, text=True, timeout=90)
-            output = result.stdout + result.stderr
-            (args.root / ('differ-resp3.log' if protocol else 'differ-resp2.log')).write_text(output)
-            print(output, end='', flush=True)
-            if args.expect_pre_failure:
-                assert result.returncode != 0 and 'immutable' in output, output
-                print('PSFIX PRE CONTROL: differential rejected immutable aof-load-truncated')
-                return
-            assert result.returncode == 0, result.returncode
+        load_peers = []
+        try:
+            if args.bgsave_load_keys:
+                for port in (args.port, args.port + 1):
+                    load_peers.append(Conn('127.0.0.1', port))
+                seed_save_load(load_peers, args.bgsave_load_keys)
+            for repeat in range(1, args.repeats + 1):
+                for seed in args.seeds:
+                    command = ['taskset', '-c', args.load_cores, sys.executable, 'tests/differ.py',
+                               '127.0.0.1', str(args.port), '127.0.0.1', str(args.port + 1), 'psfix', str(seed)]
+                    for protocol in ([], ['-3']):
+                        name = 'differ-resp3' if protocol else 'differ-resp2'
+                        if args.repeats != 1 or args.seeds != [7]:
+                            name += '-r%d-s%d' % (repeat, seed)
+                        status, output = run_differ(command + protocol, args.root / (name + '.log'), load_peers)
+                        if args.expect_pre_failure:
+                            assert status != 0 and 'immutable' in output, output
+                            print('PSFIX PRE CONTROL: differential rejected immutable aof-load-truncated')
+                            return
+                        assert status == 0, status
+        finally:
+            for peer in load_peers:
+                peer.close()
 
         conn = Conn('127.0.0.1', args.port)
         try:

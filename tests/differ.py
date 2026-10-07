@@ -6136,6 +6136,8 @@ def psfix_wait_idle(peers, persistence, phase):
     """Both peers must be idle before a save/count baseline; 10 s total, 1 ms polls."""
     deadline = time.monotonic() + 10
     states = {}
+    busy = set()
+    polls = 0
     timeouts = [sock.gettimeout() for sock, _ in peers]
     try:
         while True:
@@ -6151,11 +6153,18 @@ def psfix_wait_idle(peers, persistence, phase):
                 assert state in (b"0", b"1"), (
                     "PSFIX harness error: %s %s invalid rdb_bgsave_in_progress=%r" %
                     (phase, label, state))
+                if state == b"1":
+                    busy.add(label)
                 fields.append(row)
+            polls += 1
             remaining = deadline - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError
             if all(state == b"0" for state in states.values()):
+                if busy:
+                    print("  PSFIX idle barrier %s: polls=%d busy_peers=%s" %
+                          (phase, polls, ",".join(label for label in ("target", "oracle")
+                                                if label in busy)), flush=True)
                 return fields
             time.sleep(min(0.001, remaining))
     except TimeoutError as error:

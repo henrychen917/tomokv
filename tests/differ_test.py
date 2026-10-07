@@ -313,6 +313,65 @@ class DeadlineReplies(unittest.TestCase):
         with self.assertRaises(AssertionError):
             self.differ.psfix_check_save_reply('target', 'SAVE', b'+Background saving started\r\n')
 
+    def test_real_psfix_sequence_barriers_and_save_counts_stay_exact(self):
+        def bulk(value):
+            return b'$%d\r\n' % len(value) + value + b'\r\n'
+        for increment in (1, 2):
+            states = [dict(saves=0, busy=20, pending=1, config=b'yes') for _ in range(2)]
+            commands = []
+            def answer(side, argv):
+                state = states[side]
+                if argv[0] == b'CONFIG':
+                    if argv[1] == b'GET':
+                        return b'*2\r\n' + bulk(b'aof-load-truncated') + bulk(state['config'])
+                    if len(argv) == 6:
+                        return (b"-ERR CONFIG SET failed (possibly related to argument 'AOF-LOAD-TRUNCATED') "
+                                b"- duplicate parameter\r\n")
+                    if argv[-1].lower() not in (b'yes', b'no'):
+                        return b'-ERR invalid boolean\r\n'
+                    state['config'] = argv[-1].lower()
+                    return b'+OK\r\n'
+                if argv[0] == b'INFO':
+                    busy = state['busy'] > 0
+                    if busy:
+                        state['busy'] -= 1
+                    elif state['pending']:
+                        state['saves'] += state['pending']
+                        state['pending'] = 0
+                    fields = dict(loading=0, rdb_changes_since_last_save=0,
+                                  rdb_bgsave_in_progress=int(busy), rdb_last_save_time=0,
+                                  rdb_saves=state['saves'], aof_enabled=0, aof_rewrite_in_progress=0,
+                                  aof_rewrite_scheduled=0, aof_last_bgrewrite_status='ok',
+                                  aof_rewrites=0, aof_rewrites_consecutive_failures=0,
+                                  aof_last_write_status='ok', aof_current_size=0,
+                                  aof_base_size=0, aof_pending_rewrite=0)
+                    return bulk(''.join('%s:%s\r\n' % item for item in fields.items()).encode())
+                self.assertIn(argv[0], (b'SAVE', b'BGSAVE'))
+                self.assertTrue(all(s['busy'] == 0 and s['pending'] == 0 for s in states),
+                                'save was issued before BOTH peers completed prior jobs')
+                commands.append((side, argv[0]))
+                if argv[0] == b'SAVE':
+                    state['saves'] += increment
+                    return b'+OK\r\n'
+                state.update(busy=3, pending=increment)
+                return b'+Background saving started\r\n'
+            peers = [self.connection(lambda argv: answer(0, argv)),
+                     self.connection(lambda argv: answer(1, argv))]
+            with self.subTest(increment=increment), \
+                    patch.object(self.differ, 'conn', side_effect=peers), \
+                    patch.object(self.differ.time, 'sleep'), \
+                    patch.object(self.differ, 'psfix_wait_idle', wraps=self.differ.psfix_wait_idle) as wait:
+                if increment == 2:
+                    with self.assertRaises(AssertionError):
+                        self.differ.run_psfix_suite()
+                else:
+                    self.differ.run_psfix_suite()
+                    self.assertEqual(commands, [(side, command) for side in (0, 1)
+                                               for command in (b'SAVE', b'SAVE', b'BGSAVE')])
+                    phases = [call.args[2] for call in wait.call_args_list]
+                    self.assertEqual(sum(phase.startswith('before ') for phase in phases), 6)
+                    self.assertEqual(sum(phase.startswith('after ') for phase in phases), 6)
+
     def test_real_pipeline_checks_equal_wrong_replies_and_preserves_failure_exit(self):
         source = ROOT / 'tests/differ.py'
         tree = ast.parse(source.read_text())
