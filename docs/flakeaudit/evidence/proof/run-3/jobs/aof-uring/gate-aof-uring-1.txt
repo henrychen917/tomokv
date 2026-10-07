@@ -1,0 +1,8 @@
+AOF SCRIPT BYTES PASS: write_keys=7 groups=5 readonly_absent=3
+AOF LARGE RECORD PASS: key=70000 value=70000 aof_last_write_status:ok
+AOF DATASET CAPTURED: 54 static replies, PTTL=3599773 ms
+AOF LIVE POLICY PASS: armed 3 tail bytes; no refused unchanged; yes recovered and truncated
+AOF SCRIPT RECOVERY PASS: values=7 readonly_absent=3
+AOF BYTE-EXACT PASS: 54 static replies + live monotonic PTTL
+AOF SCRIPT RECOVERY PASS: values=7 readonly_absent=3
+AOF BYTE-EXACT PASS: 54 static replies + live monotonic PTTL
