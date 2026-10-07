@@ -3264,7 +3264,8 @@ for AT in 0 1; do collect_job "feature-armed-$AT"; done
 # ---- eviction accounting on both read paths: owner-served (split) and lane-served (fused+armed) --
 # tests/evict_battery.py needs one FRESH boot per section (it sets maxmemory itself and has no
 # FLUSHALL). lfu proves OBJECT FREQ rises for ordinary reads and stays put for CLIENT NO-TOUCH
-# reads, plus hot-set survival under pressure; lruclock ages all cohorts across one fixed 256 s
+# reads, plus LFU hot-set survival and exact LRU touch/accounting checks under pressure;
+# lruclock ages all cohorts across one fixed 256 s
 # production bucket (a bounded wait of up to 260 s per boot) before testing the read paths.
 # On the armed boot both sections also assert the reads they measure were LANE-served -- a key
 # kept hot only by lane reads was never touched before ExLoopT::note_local_read_access and so was
