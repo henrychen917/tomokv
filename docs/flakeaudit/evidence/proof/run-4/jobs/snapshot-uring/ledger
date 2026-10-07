@@ -1,0 +1,8 @@
+ok	0.630000	snapshot concurrent cut (uring)
+ok	0.160000	snapshot cut reload (uring)
+ok	2.720000	snapshot never tears a cross-shard MSET group (uring, atomic 1)
+ok	5.170000	snapshot never tears a MULTI/EXEC group (uring, default atomic 0)
+ok	0.050000	typed snapshot save (uring)
+ok	0.040000	typed snapshot reload (uring)
+ok	0.170000	typed snapshot preimage race (uring)
+ok	0.050000	typed snapshot race reload (uring)

@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+"""Read-only gate inventory; never execute shell declarations or a battery."""
+from collections import Counter
+import json
+from pathlib import Path
+import re
+import shlex
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tests"))
+import gate_ledger_fixture as fixture
+
+
+def rows():
+    gate = (ROOT / "tests/gate.sh").read_text()
+    lines = gate.splitlines()
+    annotated = []
+    for number, line in enumerate(lines, 1):
+        if re.match(r"\s*row_begin\s", line) and not 1190 <= number <= 1200:
+            annotated.append("_audit_line=" + str(number))
+        annotated.append(line)
+    records, jobs = [], []
+
+    def evaluate(nodes, values, collect):
+        labels = []
+        for kind, *args in nodes:
+            if kind == "for":
+                name, words, children = args
+                if fixture.emits(children):
+                    for word in shlex.split(fixture.expand(words, values)):
+                        labels += evaluate(children, dict(values, **{name: word}), collect)
+            elif kind == "assign":
+                try:
+                    values[args[0]] = fixture.expand(args[1], values)
+                except ValueError:
+                    values[args[0]] = None
+            elif kind == "split":
+                names, expression = args
+                values.update(zip(names, fixture.expand(expression, values).split("-", len(names) - 1)))
+            elif kind == "collect_job":
+                name = fixture.expand(args[0], values)
+                jobs.append(name)
+                start = len(records)
+                result = collect(name)
+                if len(records) == start:
+                    site = 865 if name.startswith("differ-") else 882 if name.startswith("evict-") else 890
+                    for label in result:
+                        records.append(dict(name=label, job=name, gate_line=site, values={}))
+                jobs.pop()
+                labels += result
+            elif kind == "row_begin":
+                label = re.sub(r"suppressed=\$TLS_ZC\b", "suppressed=N", args[0])
+                label = fixture.canonical_label(fixture.expand(label, values))
+                labels.append(label)
+                records.append(dict(name=label, job=jobs[-1] if jobs else "coordinator",
+                                    gate_line=int(values.get("_audit_line") or 1191), values=dict(values)))
+        return labels
+
+    original = fixture.evaluate
+    try:
+        fixture.evaluate = evaluate
+        labels = fixture.source_labels("\n".join(annotated))
+    finally:
+        fixture.evaluate = original
+    expected = fixture.source_labels(gate)
+    assert labels == expected == [r["name"] for r in records]
+    fixture.check(gate, labels)
+    for row in records:
+        number = row["gate_line"]
+        end = next((i for i in range(number, len(lines))
+                    if re.match(r"\s*row_begin\s|^}|^job_\w+\(\)", lines[i])), len(lines))
+        body = "\n".join(line for line in lines[number:end]
+                         if not line.lstrip().startswith("#"))
+        paths = re.findall(r"tests/[\w$./{}-]+\.(?:py|sh|cc)", body)
+        resolved = []
+        for path in paths:
+            try:
+                path = fixture.expand(path, row["values"])
+            except ValueError:
+                continue
+            if (ROOT / path).is_file() and path not in resolved:
+                resolved.append(path)
+        row["scripts"] = resolved
+        native = {
+            1276: "climon_mask_unit.cc", 1287: "rlfence_unit.cc",
+            1298: "shutdown_unit.cc", 1388: "core_concurrency_unit.cc",
+            1404: "rltopo_unit.cc", 1534: "store_regression.cc",
+            1553: "store_regression.cc", 1572: "multidb_unit.cc",
+            1579: "multidb_boundary_unit.cc", 1594: "at15_unit.cc",
+            1607: "execabort_watch_unit.cc", 1629: "atomic_survivors_unit.cc",
+            1637: "atomic_survivors_unit.cc", 1649: "netcmd_unit.cc",
+            1654: "netcmd_unit.cc", 1659: "netcap_unit.cc",
+            1795: "waits_unit.cc", 1801: "rehash_waits_unit.cc",
+            2668: "ktls_keyupdate_unit.cc", 2752: "ktls_keyupdate.cc",
+            2758: "ktls_keyupdate.cc",
+        }
+        if number in native:
+            row["scripts"].insert(0, "tests/" + native[number])
+        # A helper called between row_begin and its verdict is a dependency too.
+        if number == 2167:
+            row["scripts"].append("tests/debug_load.py")
+        if number == 2599:
+            row["scripts"].append("tests/aof_rewrite_triggers.py")
+        del row["values"]
+    return records
+
+
+if __name__ == "__main__":
+    result = rows()
+    (ROOT / "docs/flakeaudit/rows.json").write_text(json.dumps(result, indent=2) + "\n")
+    print("Gate rows:", len(result), "jobs:", len(set(r["job"] for r in result)))
+    print("\n".join(sorted(set(p for r in result for p in r["scripts"]))))

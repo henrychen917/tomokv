@@ -1,0 +1,266 @@
+[
+  {
+    "name": "string",
+    "site": "tests/differ.py:426",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "list",
+    "site": "tests/differ.py:521",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "set",
+    "site": "tests/differ.py:484",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "zset",
+    "site": "tests/differ.py:692",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "hash",
+    "site": "tests/differ.py:1176",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "hexpire",
+    "site": "tests/differ.py:1228",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Absolute deadlines are far future or already past; TTL replies are checked against each peer's measured request interval."
+  },
+  {
+    "name": "edgetime",
+    "site": "tests/differ.py:1369",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Past/far-future deadlines and independent request/reply clock brackets; no cross-peer fixed TTL tolerance."
+  },
+  {
+    "name": "xshard",
+    "site": "tests/differ.py:1578",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "xmove",
+    "site": "tests/differ.py:2016",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "bitmap",
+    "site": "tests/differ.py:2517",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "hll",
+    "site": "tests/differ.py:2676",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "bitfield",
+    "site": "tests/differ.py:2603",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "cgaps",
+    "site": "tests/differ.py:2746",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "stream",
+    "site": "tests/differ.py:554",
+    "kind": "LOTTERY",
+    "mechanism": "Auto-ID property at differ.py:6664 samples wall time once, then requires every ID within 10 seconds; needs per-request server-clock bracketing."
+  },
+  {
+    "name": "script",
+    "site": "tests/differ.py:2876",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "streamgrp",
+    "site": "tests/differ.py:625",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "zsetops",
+    "site": "tests/differ.py:737",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "geo",
+    "site": "tests/differ.py:793",
+    "kind": "BOUNDED-WITNESSED",
+    "mechanism": "Fresh-key bounded LFU arming, required metadata deltas, and observed cross-owner placement; policy and budget are restored."
+  },
+  {
+    "name": "doubles",
+    "site": "tests/differ.py:1011",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "scan",
+    "site": "tests/differ.py:1852",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "multi",
+    "site": "tests/differ.py:1915",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "edgeenc",
+    "site": "tests/differ.py:2101",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "edgeproto",
+    "site": "tests/differ.py:3394",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "cmdgap",
+    "site": "tests/differ.py:3866",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "cmdgap2",
+    "site": "tests/differ.py:3923",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "sort",
+    "site": "tests/differ.py:3645",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Actual generated BY/GET keys must cross known owners before the exact reply stream is run; fused geometry explicitly excludes this suite."
+  },
+  {
+    "name": "servertail",
+    "site": "tests/differ.py:2337",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "arity",
+    "site": "tests/differ.py:2472",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "storeorder",
+    "site": "tests/differ.py:1660",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "infofix",
+    "site": "tests/differ.py:6032",
+    "kind": "BOUNDED-WITNESSED",
+    "mechanism": "Every RESETSTAT establishes a new baseline; positive/idle published rates and final reset are bounded required observations."
+  },
+  {
+    "name": "multidb",
+    "site": "tests/differ.py:6091",
+    "kind": "BOUNDED-WITNESSED",
+    "mechanism": "SWAPDB and SELECT are ordered; final SELECT 0/FLUSHALL creates an exact nonzero population, followed by required published-DBSIZE convergence."
+  },
+  {
+    "name": "blocking",
+    "site": "tests/differ.py:3088",
+    "kind": "LOTTERY",
+    "mechanism": "Collection blockers use required parked/drained gauges, but WAIT 200 sleeps 50 ms and then requires wire silence. Descheduling across the deadline fails; needs fresh deadline arming."
+  },
+  {
+    "name": "pubsub",
+    "site": "tests/differ.py:4153",
+    "kind": "BOUNDED-WITNESSED",
+    "mechanism": "Subscription acknowledgements precede exact delivery/count assertions and bounded receipt; absent delivery fails."
+  },
+  {
+    "name": "fanout",
+    "site": "tests/differ.py:4513",
+    "kind": "BOUNDED-WITNESSED",
+    "mechanism": "Acknowledged subscriber topology precedes required per-peer delivery; socket bounds are liveness bounds."
+  },
+  {
+    "name": "spubsub",
+    "site": "tests/differ.py:4021",
+    "kind": "BOUNDED-WITNESSED",
+    "mechanism": "Shard subscription acknowledgements precede the exact publish and delivery oracle; missing messages fail."
+  },
+  {
+    "name": "notify",
+    "site": "tests/differ.py:4689",
+    "kind": "BOUNDED-WITNESSED",
+    "mechanism": "Acknowledged subscription and config precede the exact expected event count; no live expiry-window lottery in this selection."
+  },
+  {
+    "name": "wiredump",
+    "site": "tests/differ.py:4786",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "climon",
+    "site": "tests/differ.py:4968",
+    "kind": "LOTTERY",
+    "mechanism": "Tracking pushes at differ.py:5076 are delimited by 1.2-second/200-ms idle reads, not an ordered fence; late pushes can move between legs. Needs a delivery fence."
+  },
+  {
+    "name": "compatintro",
+    "site": "tests/differ.py:5151",
+    "kind": "BOUNDED-WITNESSED",
+    "mechanism": "Directed introspection/config/ACL cases and exact notification counts; expiry sleep follows an armed 1-ms deadline and has no upper live-window condition."
+  },
+  {
+    "name": "aclsel",
+    "site": "tests/differ.py:5762",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "cmdmeta",
+    "site": "tests/differ.py:5522",
+    "kind": "DETERMINISTIC",
+    "mechanism": "Ordered exact replies on clean namespaces; seeded command diversity is not a required race witness."
+  },
+  {
+    "name": "s6fix",
+    "site": "tests/differ.py:5864",
+    "kind": "LOTTERY",
+    "mechanism": "Each peer must cover all 200 keys in 20,000 RANDOMKEY draws; finite sampling cannot guarantee coverage. Needs a controllable sampler witness."
+  },
+  {
+    "name": "ccfix",
+    "site": "tests/_differ_ccfix.py:1",
+    "kind": "BOUNDED-WITNESSED",
+    "mechanism": "Source/predecessor overlap is held by existing DEBUG controls and requires pending/read counters; notification batches are fenced; RESETSTAT baselines are refreshed."
+  },
+  {
+    "name": "psfix",
+    "site": "tests/differ.py:6193",
+    "kind": "BOUNDED-WITNESSED",
+    "mechanism": "Both peers must report save idle in the same bounded polling round before each SAVE/BGSAVE and counter baseline; exact +1 counters retained."
+  }
+]

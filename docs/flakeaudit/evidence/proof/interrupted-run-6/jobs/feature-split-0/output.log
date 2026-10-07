@@ -1,0 +1,38 @@
+  row budget: 900s; median=2.455s; correctness-plan-fallback; s6 battery (atomic 0)
+  s6 battery (atomic 0)                                ok
+  row budget: 900s; median=2.07s; correctness-plan-fallback; multi_exec battery (atomic 0)
+  multi_exec battery (atomic 0)                        ok
+  row budget: 900s; median=1.52s; correctness-plan-fallback; blocking battery (atomic 0)
+  blocking battery (atomic 0)                          ok
+  row budget: 900s; median=0.48s; correctness-plan-fallback; blockmulti battery (atomic 0)
+  blockmulti battery (atomic 0)                        ok
+  row budget: 900s; median=0.49s; correctness-plan-fallback; stream battery (atomic 0)
+  stream battery (atomic 0)                            ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; streamgroups battery (atomic 0)
+  streamgroups battery (atomic 0)                      ok
+  row budget: 900s; median=0.89s; correctness-plan-fallback; pubsub battery (atomic 0)
+  pubsub battery (atomic 0)                            ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; lua_scripting battery (atomic 0)
+  lua_scripting battery (atomic 0)                     ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; scriptsurf battery (atomic 0)
+  scriptsurf battery (atomic 0)                        ok
+  row budget: 900s; median=15.075s; correctness-plan-fallback; limits battery (atomic 0)
+  limits battery (atomic 0)                            ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; resp3 battery (atomic 0)
+  resp3 battery (atomic 0)                             ok
+  row budget: 900s; median=0.03s; correctness-plan-fallback; bitfield battery (atomic 0)
+  bitfield battery (atomic 0)                          ok
+  row budget: 900s; median=0.06s; correctness-plan-fallback; dumprestore battery (atomic 0)
+  dumprestore battery (atomic 0)                       ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; zsetops battery (atomic 0)
+  zsetops battery (atomic 0)                           ok
+  row budget: 900s; median=0.02s; correctness-plan-fallback; geo battery (atomic 0)
+  geo battery (atomic 0)                               ok
+  row budget: 900s; median=1.125s; correctness-plan-fallback; climon battery (atomic 0)
+  climon battery (atomic 0)                            ok
+  row budget: 900s; median=3.32s; correctness-plan-fallback; climon2 battery (atomic 0)
+  climon2 battery (atomic 0)                           ok
+  row budget: 900s; median=13.71s; correctness-plan-fallback; tracking battery (atomic 0)
+  tracking battery (atomic 0)                          FAIL (family exited 130 before this row produced a verdict)
+Terminated
+  s6 battery (atomic 0)                                FAIL (owned process teardown did not complete)

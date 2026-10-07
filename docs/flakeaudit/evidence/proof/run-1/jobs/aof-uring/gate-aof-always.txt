@@ -1,0 +1,2 @@
+AOF SYNC POPULATE PASS: policy=always keys=512 syncs=20 waits=74
+AOF SYNC RECOVERY PASS: policy=always keys=512 replayed=528

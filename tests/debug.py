@@ -6,6 +6,8 @@ import socket
 import sys
 import time
 
+from _lib import debug_load
+
 
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 
@@ -207,7 +209,7 @@ for atomic in (0, 1):
     expect(client.command("SADD", prefix + "set", "m", "n"), 2, "set")
     expect(client.command("ZADD", prefix + "zset", "1", "one", "2", "two"), 2, "zset")
     before = client.command("DBSIZE", "NOW")
-    expect(client.command("DEBUG", "RELOAD"), b"OK", "reload atomic=%d" % atomic)
+    expect(debug_load(client), b"OK", "reload atomic=%d" % atomic)
     expect(client.command("DBSIZE", "NOW"), before, "dbsize round trip atomic=%d" % atomic)
     for name, value in expected.items():
         expect(client.command("GET", name), value, "string round trip")

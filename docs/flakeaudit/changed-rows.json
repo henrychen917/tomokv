@@ -1,0 +1,532 @@
+[
+  {
+    "name": "epoll directed correctness (1s)",
+    "job": "netio-1s",
+    "gate_line": 1492,
+    "scripts": [
+      "tests/netio.py"
+    ],
+    "ordinal": 47,
+    "class": "LOTTERY",
+    "mechanism": "Blocked-reader setup now witnesses CLIENT ID; the unchanged 25ms wake-latency assertion remains a scheduler/performance threshold.",
+    "sites": [
+      "tests/netio.py:217",
+      "tests/gate.sh:1492"
+    ]
+  },
+  {
+    "name": "epoll directed correctness (2s)",
+    "job": "netio-2s",
+    "gate_line": 1492,
+    "scripts": [
+      "tests/netio.py"
+    ],
+    "ordinal": 48,
+    "class": "LOTTERY",
+    "mechanism": "Blocked-reader setup now witnesses CLIENT ID; the unchanged 25ms wake-latency assertion remains a scheduler/performance threshold.",
+    "sites": [
+      "tests/netio.py:217",
+      "tests/gate.sh:1492"
+    ]
+  },
+  {
+    "name": "limits battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/limits.py"
+    ],
+    "ordinal": 139,
+    "class": "LOTTERY",
+    "mechanism": "CLIENT close admission is now witnessed; idle-timeout heartbeats and soft-output limits still depend on timed pauses. Needs controlled timeout/owner-state progression.",
+    "sites": [
+      "tests/limits.py:313",
+      "tests/gate.sh:777"
+    ]
+  },
+  {
+    "name": "climon2 battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/climon2.py"
+    ],
+    "ordinal": 146,
+    "class": "LOTTERY",
+    "mechanism": "CLIENT UNBLOCK now observes the exact parked client; CLIENT PAUSE arms still use short elapsed deadlines/latency bounds. Needs a published pause latch.",
+    "sites": [
+      "tests/climon2.py:375",
+      "tests/gate.sh:777"
+    ]
+  },
+  {
+    "name": "tracking battery (atomic 0)",
+    "job": "feature-split-0",
+    "gate_line": 777,
+    "scripts": [
+      "tests/tracking.py"
+    ],
+    "ordinal": 147,
+    "class": "LOTTERY",
+    "mechanism": "Redirect disconnect now witnesses removal; 400ms TTL followed by a 300ms drain must leave the key alive for tracking registration. Needs fresh-state bounded TTL arming and an exact delivery fence.",
+    "sites": [
+      "tests/tracking.py:291",
+      "tests/gate.sh:777"
+    ]
+  },
+  {
+    "name": "limits battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/limits.py"
+    ],
+    "ordinal": 173,
+    "class": "LOTTERY",
+    "mechanism": "CLIENT close admission is now witnessed; idle-timeout heartbeats and soft-output limits still depend on timed pauses. Needs controlled timeout/owner-state progression.",
+    "sites": [
+      "tests/limits.py:313",
+      "tests/gate.sh:777"
+    ]
+  },
+  {
+    "name": "climon2 battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/climon2.py"
+    ],
+    "ordinal": 180,
+    "class": "LOTTERY",
+    "mechanism": "CLIENT UNBLOCK now observes the exact parked client; CLIENT PAUSE arms still use short elapsed deadlines/latency bounds. Needs a published pause latch.",
+    "sites": [
+      "tests/climon2.py:375",
+      "tests/gate.sh:777"
+    ]
+  },
+  {
+    "name": "tracking battery (atomic 1)",
+    "job": "feature-split-1",
+    "gate_line": 777,
+    "scripts": [
+      "tests/tracking.py"
+    ],
+    "ordinal": 181,
+    "class": "LOTTERY",
+    "mechanism": "Redirect disconnect now witnesses removal; 400ms TTL followed by a 300ms drain must leave the key alive for tracking registration. Needs fresh-state bounded TTL arming and an exact delivery fence.",
+    "sites": [
+      "tests/tracking.py:291",
+      "tests/gate.sh:777"
+    ]
+  },
+  {
+    "name": "fused+armed limits battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/limits.py"
+    ],
+    "ordinal": 222,
+    "class": "LOTTERY",
+    "mechanism": "CLIENT close admission is now witnessed; idle-timeout heartbeats and soft-output limits still depend on timed pauses. Needs controlled timeout/owner-state progression.",
+    "sites": [
+      "tests/limits.py:313",
+      "tests/gate.sh:811"
+    ]
+  },
+  {
+    "name": "fused+armed climon2 battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/climon2.py"
+    ],
+    "ordinal": 229,
+    "class": "LOTTERY",
+    "mechanism": "CLIENT UNBLOCK now observes the exact parked client; CLIENT PAUSE arms still use short elapsed deadlines/latency bounds. Needs a published pause latch.",
+    "sites": [
+      "tests/climon2.py:375",
+      "tests/gate.sh:811"
+    ]
+  },
+  {
+    "name": "fused+armed tracking battery (atomic 0)",
+    "job": "feature-armed-0",
+    "gate_line": 811,
+    "scripts": [
+      "tests/tracking.py"
+    ],
+    "ordinal": 230,
+    "class": "LOTTERY",
+    "mechanism": "Redirect disconnect now witnesses removal; 400ms TTL followed by a 300ms drain must leave the key alive for tracking registration. Needs fresh-state bounded TTL arming and an exact delivery fence.",
+    "sites": [
+      "tests/tracking.py:291",
+      "tests/gate.sh:811"
+    ]
+  },
+  {
+    "name": "fused+armed limits battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/limits.py"
+    ],
+    "ordinal": 257,
+    "class": "LOTTERY",
+    "mechanism": "CLIENT close admission is now witnessed; idle-timeout heartbeats and soft-output limits still depend on timed pauses. Needs controlled timeout/owner-state progression.",
+    "sites": [
+      "tests/limits.py:313",
+      "tests/gate.sh:811"
+    ]
+  },
+  {
+    "name": "fused+armed climon2 battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/climon2.py"
+    ],
+    "ordinal": 264,
+    "class": "LOTTERY",
+    "mechanism": "CLIENT UNBLOCK now observes the exact parked client; CLIENT PAUSE arms still use short elapsed deadlines/latency bounds. Needs a published pause latch.",
+    "sites": [
+      "tests/climon2.py:375",
+      "tests/gate.sh:811"
+    ]
+  },
+  {
+    "name": "fused+armed tracking battery (atomic 1)",
+    "job": "feature-armed-1",
+    "gate_line": 811,
+    "scripts": [
+      "tests/tracking.py"
+    ],
+    "ordinal": 265,
+    "class": "LOTTERY",
+    "mechanism": "Redirect disconnect now witnesses removal; 400ms TTL followed by a 300ms drain must leave the key alive for tracking registration. Needs fresh-state bounded TTL arming and an exact delivery fence.",
+    "sites": [
+      "tests/tracking.py:291",
+      "tests/gate.sh:811"
+    ]
+  },
+  {
+    "name": "DEBUG toggle/reload battery",
+    "job": "auth",
+    "gate_line": 2164,
+    "scripts": [
+      "tests/debug.py"
+    ],
+    "ordinal": 339,
+    "class": "LOTTERY",
+    "mechanism": "Reload admission is fixed; independent progress during DEBUG SLEEP still has 300ms timing windows. Needs a published sleep-stage latch and release control.",
+    "sites": [
+      "tests/debug.py:123",
+      "tests/gate.sh:2164"
+    ]
+  },
+  {
+    "name": "typed snapshot round-trip incl stream",
+    "job": "auth",
+    "gate_line": 2167,
+    "scripts": [
+      "tests/snap_typed_roundtrip.py",
+      "tests/debug_load.py",
+      "tests/debug_load.py"
+    ],
+    "ordinal": 340,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Existing wait_flip_idle and exact FLIP-only refusal retry; all other errors fail.",
+    "sites": [
+      "tests/snap_typed_roundtrip.py:1",
+      "tests/debug_load.py:5",
+      "tests/debug_load.py:5",
+      "tests/gate.sh:2167"
+    ]
+  },
+  {
+    "name": "snapshot concurrent cut (epoll)",
+    "job": "snapshot-epoll",
+    "gate_line": 2185,
+    "scripts": [
+      "tests/snap_cut_battery.py"
+    ],
+    "ordinal": 341,
+    "class": "LOTTERY",
+    "mechanism": "Save acceptance/completion now require witnesses, but capture may finish before the first post-cut mutation; the log claims overlap without proving it. Reload inherits that stimulus. Needs a held capture stage plus a required concurrent-mutation witness.",
+    "sites": [
+      "tests/snap_cut_battery.py:277",
+      "tests/gate.sh:2185"
+    ]
+  },
+  {
+    "name": "snapshot concurrent cut (uring)",
+    "job": "snapshot-uring",
+    "gate_line": 2185,
+    "scripts": [
+      "tests/snap_cut_battery.py"
+    ],
+    "ordinal": 349,
+    "class": "LOTTERY",
+    "mechanism": "Save acceptance/completion now require witnesses, but capture may finish before the first post-cut mutation; the log claims overlap without proving it. Reload inherits that stimulus. Needs a held capture stage plus a required concurrent-mutation witness.",
+    "sites": [
+      "tests/snap_cut_battery.py:277",
+      "tests/gate.sh:2185"
+    ]
+  },
+  {
+    "name": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)",
+    "job": "aof-epoll",
+    "gate_line": 2437,
+    "scripts": [
+      "tests/aof.py"
+    ],
+    "ordinal": 374,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Waits for placement idle before raw LOADAOF; only exact FLIP refusal is retried; success/corruption bytes remain exact.",
+    "sites": [
+      "tests/aof.py:199",
+      "tests/gate.sh:2437"
+    ]
+  },
+  {
+    "name": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)",
+    "job": "aof-epoll",
+    "gate_line": 2437,
+    "scripts": [
+      "tests/aof.py"
+    ],
+    "ordinal": 380,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Waits for placement idle before raw LOADAOF; only exact FLIP refusal is retried; success/corruption bytes remain exact.",
+    "sites": [
+      "tests/aof.py:199",
+      "tests/gate.sh:2437"
+    ]
+  },
+  {
+    "name": "AOF everysec write gate + idle sync fired",
+    "job": "aof-epoll",
+    "gate_line": 2555,
+    "scripts": [
+      "tests/aof_fsync.py"
+    ],
+    "ordinal": 394,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Everysec retains 1.25s policy age then requires actual fsync progress before a deadline; always/no use exact counter controls.",
+    "sites": [
+      "tests/aof_fsync.py:88",
+      "tests/gate.sh:2555"
+    ]
+  },
+  {
+    "name": "AOF rewrite atomic/stage/corruption matrix",
+    "job": "aof-epoll",
+    "gate_line": 2592,
+    "scripts": [
+      "tests/aof_rewrite_matrix.sh"
+    ],
+    "ordinal": 397,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Published rewrite pause files force every interruption stage; LOADAOF admission uses the common placement witness.",
+    "sites": [
+      "tests/aof_rewrite_matrix.sh:93",
+      "tests/gate.sh:2592"
+    ]
+  },
+  {
+    "name": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)",
+    "job": "aof-uring",
+    "gate_line": 2437,
+    "scripts": [
+      "tests/aof.py"
+    ],
+    "ordinal": 402,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Waits for placement idle before raw LOADAOF; only exact FLIP refusal is retried; success/corruption bytes remain exact.",
+    "sites": [
+      "tests/aof.py:199",
+      "tests/gate.sh:2437"
+    ]
+  },
+  {
+    "name": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)",
+    "job": "aof-uring",
+    "gate_line": 2437,
+    "scripts": [
+      "tests/aof.py"
+    ],
+    "ordinal": 408,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Waits for placement idle before raw LOADAOF; only exact FLIP refusal is retried; success/corruption bytes remain exact.",
+    "sites": [
+      "tests/aof.py:199",
+      "tests/gate.sh:2437"
+    ]
+  },
+  {
+    "name": "AOF everysec write gate + idle sync fired",
+    "job": "aof-uring",
+    "gate_line": 2555,
+    "scripts": [
+      "tests/aof_fsync.py"
+    ],
+    "ordinal": 422,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Everysec retains 1.25s policy age then requires actual fsync progress before a deadline; always/no use exact counter controls.",
+    "sites": [
+      "tests/aof_fsync.py:88",
+      "tests/gate.sh:2555"
+    ]
+  },
+  {
+    "name": "AOF rewrite atomic/stage/corruption matrix",
+    "job": "aof-uring",
+    "gate_line": 2592,
+    "scripts": [
+      "tests/aof_rewrite_matrix.sh"
+    ],
+    "ordinal": 425,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Published rewrite pause files force every interruption stage; LOADAOF admission uses the common placement witness.",
+    "sites": [
+      "tests/aof_rewrite_matrix.sh:93",
+      "tests/gate.sh:2592"
+    ]
+  },
+  {
+    "name": "multidb (1s, read-local 0, atomic 0)",
+    "job": "multidb-1s-0-0",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ],
+    "ordinal": 484,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Owns its processes, observes parked/disconnected clients and load progress, and requires shutdown/SWAPDB completion under liveness bounds.",
+    "sites": [
+      "tests/mdbqsbr_live.py:1",
+      "tests/multidb.py:6",
+      "tests/gate.sh:3075"
+    ]
+  },
+  {
+    "name": "multidb (1s, read-local 0, atomic 1)",
+    "job": "multidb-1s-0-1",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ],
+    "ordinal": 486,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Owns its processes, observes parked/disconnected clients and load progress, and requires shutdown/SWAPDB completion under liveness bounds.",
+    "sites": [
+      "tests/mdbqsbr_live.py:1",
+      "tests/multidb.py:6",
+      "tests/gate.sh:3075"
+    ]
+  },
+  {
+    "name": "multidb (1s, read-local 1, atomic 0)",
+    "job": "multidb-1s-1-0",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ],
+    "ordinal": 488,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Owns its processes, observes parked/disconnected clients and load progress, and requires shutdown/SWAPDB completion under liveness bounds.",
+    "sites": [
+      "tests/mdbqsbr_live.py:1",
+      "tests/multidb.py:6",
+      "tests/gate.sh:3075"
+    ]
+  },
+  {
+    "name": "multidb (1s, read-local 1, atomic 1)",
+    "job": "multidb-1s-1-1",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ],
+    "ordinal": 490,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Owns its processes, observes parked/disconnected clients and load progress, and requires shutdown/SWAPDB completion under liveness bounds.",
+    "sites": [
+      "tests/mdbqsbr_live.py:1",
+      "tests/multidb.py:6",
+      "tests/gate.sh:3075"
+    ]
+  },
+  {
+    "name": "multidb (2s, read-local 0, atomic 0)",
+    "job": "multidb-2s-0-0",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ],
+    "ordinal": 492,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Owns its processes, observes parked/disconnected clients and load progress, and requires shutdown/SWAPDB completion under liveness bounds.",
+    "sites": [
+      "tests/mdbqsbr_live.py:1",
+      "tests/multidb.py:6",
+      "tests/gate.sh:3075"
+    ]
+  },
+  {
+    "name": "multidb (2s, read-local 0, atomic 1)",
+    "job": "multidb-2s-0-1",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ],
+    "ordinal": 494,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Owns its processes, observes parked/disconnected clients and load progress, and requires shutdown/SWAPDB completion under liveness bounds.",
+    "sites": [
+      "tests/mdbqsbr_live.py:1",
+      "tests/multidb.py:6",
+      "tests/gate.sh:3075"
+    ]
+  },
+  {
+    "name": "multidb (2s, read-local 1, atomic 0)",
+    "job": "multidb-2s-1-0",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ],
+    "ordinal": 496,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Owns its processes, observes parked/disconnected clients and load progress, and requires shutdown/SWAPDB completion under liveness bounds.",
+    "sites": [
+      "tests/mdbqsbr_live.py:1",
+      "tests/multidb.py:6",
+      "tests/gate.sh:3075"
+    ]
+  },
+  {
+    "name": "multidb (2s, read-local 1, atomic 1)",
+    "job": "multidb-2s-1-1",
+    "gate_line": 3075,
+    "scripts": [
+      "tests/mdbqsbr_live.py",
+      "tests/multidb.py"
+    ],
+    "ordinal": 498,
+    "class": "BOUNDED-WITNESSED",
+    "mechanism": "Owns its processes, observes parked/disconnected clients and load progress, and requires shutdown/SWAPDB completion under liveness bounds.",
+    "sites": [
+      "tests/mdbqsbr_live.py:1",
+      "tests/multidb.py:6",
+      "tests/gate.sh:3075"
+    ]
+  }
+]

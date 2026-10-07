@@ -1,0 +1,28 @@
+ok	0.090000	configuration reduction + actual geometry (uring, atomic 0)
+ok	0.470000	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)
+ok	0.040000	AOF writer fired (records=N)
+ok	0.040000	AOF process-restart script replay (uring, atomic 0)
+ok	0.040000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=N skipped=N)
+ok	0.090000	configuration reduction + actual geometry (uring, atomic 1)
+ok	0.470000	AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)
+ok	0.040000	AOF writer fired (records=N)
+ok	0.040000	AOF process-restart script replay (uring, atomic 1)
+ok	0.030000	AOF native snapshot streams byte-exact
+ok	0.010000	AOF replay fired (records=N skipped=N)
+ok	0.360000	AOF directed group interruption fired
+ok	0.050000	AOF atomic-group recovery + writer order
+ok	0.020000	AOF group shutdown invariants
+ok	0.990000	AOF always sync + reply gate fired
+ok	0.030000	AOF always recovery after quiescent SIGKILL
+ok	4.140000	AOF in-window kill recovery (2s, uring)
+ok	4.740000	AOF in-window term recovery (2s, uring)
+ok	3.790000	AOF in-window kill recovery (1s, uring)
+ok	6.600000	AOF in-window term recovery (1s, uring)
+ok	2.290000	AOF everysec write gate + idle sync fired
+ok	0.020000	AOF everysec durability window + tail warning
+ok	0.020000	AOF no-sync bypassed sync + reply gate
+ok	9.470000	AOF rewrite atomic/stage/corruption matrix
+ok	8.740000	AOF rewrite triggers + observability matrix
+ok	0.010000	AOF-off negative-control seed landed
+ok	0.010000	AOF-off negative control lost data

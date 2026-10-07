@@ -1,0 +1,4 @@
+  row budget: 900s; median=4.31s; correctness-plan-fallback; multidb (2s, read-local 1, atomic 0)
+  multidb (2s, read-local 1, atomic 0)                 ok
+  row budget: 900s; median=0.1s; correctness-plan-fallback; multidb (2s, read-local 1, atomic 0) SWAPDB serial order
+  multidb (2s, read-local 1, atomic 0) SWAPDB serial order ok

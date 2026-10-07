@@ -1,0 +1,4 @@
+AOF DIRECTED SCRIPT GROUP STOP FIRED: committed=10
+tests/gate.sh: line 644: 1380470 Killed                  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --dir "$boot_dir" --save '' "$@" > "$SRVLOG" 2>&1
+AOF INCOMPLETE GROUP RECOVERY PASS: present=0/16 committed=10 skipped=16
+AOF GCMT ORDER PASS: 10 commits, every dependency at lower byte offset

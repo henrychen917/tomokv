@@ -90,7 +90,7 @@ for atomic in 0 1; do
   boot_server "$directory" "$atomic" yes "$directory/server-2.log"
   python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" verify "$state" >/dev/null
   python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" manifest "$directory" >/dev/null
-  [ "$("$CLI" -h 127.0.0.1 -p "$PORT" DEBUG LOADAOF)" = OK ]
+  python3 tests/debug_load.py 127.0.0.1 "$PORT" LOADAOF
   python3 tests/aof_rewrite.py 127.0.0.1 "$PORT" verify "$state" >/dev/null
   if [ "$atomic" = 1 ]; then
     before=$("$CLI" -h 127.0.0.1 -p "$PORT" info persistence | tr -d '\r' |

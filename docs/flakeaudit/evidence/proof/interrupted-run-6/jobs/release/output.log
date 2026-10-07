@@ -1,0 +1,2 @@
+  row budget: 900s; median=0.025s; correctness-plan-fallback; mechanism-floor=900s (cold cache state not distinguished); release build (+footprint locks)
+  release build (+footprint locks)                     ok

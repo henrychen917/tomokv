@@ -1,0 +1,386 @@
+"""Bounded CLIENT LIST witnesses for gate-owned connections."""
+"""Load only real helpers; the batteries' module bodies open live sockets."""
+"""Preserve the raw wire oracle, including the intentional corrupt-tail error."""
+"""Require this exact client to be blocked or gone; never infer it from a sleep."""
+"""Serverless controls: absent, wrong and late client witnesses must stay red."""
+"""Shell entry point for the shared, witnessed DEBUG load admission barrier."""
+"DEBUG", "LOADAOF"
+"DEBUG", "RELOAD"
+# INFO stays on the same connection and is decoded for the existing barrier.
+# Retain the policy-age lower bound, but elapsed time is not evidence that the
+# idle writer ran. The same exact counter assertion must also be witnessed.
+#!/usr/bin/env python3
+&& py tests/debug_load.py 127.0.0.1 "$PORT" RELOAD \
+&& py tests/debug_load.py 127.0.0.1 "$PORT" RELOAD \\
+&& py tests/debug_load.py 127.0.0.1 \"$PORT\" RELOAD \\
+&& redis_cli_expect_ok DEBUG RELOAD \
+&& redis_cli_expect_ok DEBUG RELOAD \\
+'DEBUG', 'LOADAOF'
+'DEBUG', 'RELOAD'
+("gone", b"id=7 flags=N\\n")):
+("gone", b"id=7 flags=N\n")):
+(\"gone\", b\"id=7 flags=N\\n\")):
+DEBUG LOADAOF
+DEBUG RELOAD
+[ "$("$CLI" -h 127.0.0.1 -p "$PORT" DEBUG LOADAOF)" = OK ]
+[ \"$(\"$CLI\" -h 127.0.0.1 -p \"$PORT\" DEBUG LOADAOF)\" = OK ]
+\"\"\"Bounded CLIENT LIST witnesses for gate-owned connections.\"\"\"
+\"\"\"Load only real helpers; the batteries' module bodies open live sockets.\"\"\"
+\"\"\"Preserve the raw wire oracle, including the intentional corrupt-tail error.\"\"\"
+\"\"\"Require this exact client to be blocked or gone; never infer it from a sleep.\"\"\"
+\"\"\"Serverless controls: absent, wrong and late client witnesses must stay red.\"\"\"
+\"\"\"Shell entry point for the shared, witnessed DEBUG load admission barrier.\"\"\"
+_client_wait.wait_client_state(observer, 7, "blocked")
+_client_wait.wait_client_state(observer, 7, "gone")
+_client_wait.wait_client_state(observer, 7, \"blocked\")
+_client_wait.wait_client_state(observer, 7, \"gone\")
+_client_wait.wait_client_state(observer, 7, state, timeout=.02)
+active = info_field("rdb_bgsave_in_progress")
+active = info_field(\"rdb_bgsave_in_progress\")
+after = info(client)
+after = wait_idle_sync(client, before)
+aof_fsyncs
+args = parser.parse_args()
+assert {node.name for node in tree.body} == set(names)
+b"id=7 flags=b\\nid=8 flags=b\\n", b"garbage"):
+b"id=7 flags=b\nid=8 flags=b\n", b"garbage"):
+b\"id=7 flags=b\\nid=8 flags=b\\n\", b\"garbage\"):
+class ClientWitnessTests(unittest.TestCase):
+class Clock:
+class Observer:
+class PersistenceWitnessTests(unittest.TestCase):
+client = Observer([refusal, expected])
+client = Observer([reply])
+client.command = client.cmd
+client.replies = deque([b"$3\\r\\nx:y\\r\\n"])
+client.replies = deque([b"$3\r\nx:y\r\n"])
+client.replies = deque([b\"$3\\r\\nx:y\\r\\n\"])
+client_id = str(client_id)
+clock = Clock()
+clock.now = 0
+conn = Conn(args.host, args.port, timeout=30)
+conn.close()
+corrupt = b"-ERR Error trying to load the AOF, check server logs.\\r\\n"
+corrupt = b"-ERR Error trying to load the AOF, check server logs.\r\n"
+corrupt = b\"-ERR Error trying to load the AOF, check server logs.\\r\\n\"
+deadline = started + timeout
+deadline = time.monotonic() + 30
+deadline = time.monotonic() + timeout
+debug_load(conn, args.subcommand)
+def __init__(self, replies):
+def closed():
+def cmd(self, *args):
+def command(self, *args):
+def definitions(filename, names, namespace):
+def expect_loadaof(expected):
+def gettimeout(self):
+def info(_):
+def late():
+def main():
+def monotonic(self):
+def setUp(self):
+def settimeout(self, value):
+def sleep(self, delay):
+def test_absent_sync_fails(self):
+def test_blocked_requires_this_clients_flag(self):
+def test_gone_requires_empty_client_list(self):
+def test_idle_sync_waits_for_counter_and_preserves_policy_age(self):
+def test_late_success_is_not_a_witness(self):
+def test_malformed_wrong_client_and_errors_fail_immediately(self):
+def test_missing_window_never_passes(self):
+def test_raw_load_keeps_exact_success_and_corruption_oracles(self):
+def test_raw_load_never_retries_data_errors_or_accepts_two_refusals(self):
+def test_save_must_finish_and_publish_valid_state(self):
+def test_transport_failure_is_not_retried(self):
+def wait_client_state(observer, client_id, state, timeout=5.0):
+def wait_idle_sync(client, before, timeout=10.0):
+def wait_save_idle(timeout=90):
+dict(c=client, time=Clock(), wait_flip_idle=lambda *args: None))
+dict(c=client, time=Clock(), wait_flip_idle=lambda *args: waits.append(args)))
+dict(time=clock, info=lambda _: {"aof_fsyncs": 4}))
+dict(time=clock, info=lambda _: {\"aof_fsyncs\": 4}))
+dict(time=clock, info_field=lambda _: values.popleft()))
+exec(compile(tree, filename, "exec"), namespace)
+exec(compile(tree, filename, \"exec\"), namespace)
+expect(("DEBUG", "LOADAOF"), b"+OK\\r\\n")
+expect(("DEBUG", "LOADAOF"), b"+OK\r\n")
+expect(("DEBUG", "LOADAOF"), b"-ERR Error trying to load the AOF, check server logs.\\r\\n")
+expect(("DEBUG", "LOADAOF"), b"-ERR Error trying to load the AOF, check server logs.\r\n")
+expect((\"DEBUG\", \"LOADAOF\"), b\"+OK\\r\\n\")
+expect((\"DEBUG\", \"LOADAOF\"), b\"-ERR Error trying to load the AOF, check server logs.\\r\\n\")
+expect(admin.cmd("DEBUG", "LOADAOF"), b"OK", "AOF replay")
+expect(admin.cmd("DEBUG", "RELOAD"), b"OK", "snapshot reload")
+expect(admin.cmd(\"DEBUG\", \"LOADAOF\"), b\"OK\", \"AOF replay\")
+expect(admin.cmd(\"DEBUG\", \"RELOAD\"), b\"OK\", \"snapshot reload\")
+expect(client.command("DEBUG", "RELOAD"), b"OK", "reload atomic=%d" % atomic)
+expect(client.command(\"DEBUG\", \"RELOAD\"), b\"OK\", \"reload atomic=%d\" % atomic)
+expect(debug_load(admin), b"OK", "snapshot reload")
+expect(debug_load(admin), b\"OK\", \"snapshot reload\")
+expect(debug_load(admin, "LOADAOF"), b"OK", "AOF replay")
+expect(debug_load(admin, \"LOADAOF\"), b\"OK\", \"AOF replay\")
+expect(debug_load(client), b"OK", "reload atomic=%d" % atomic)
+expect(debug_load(client), b\"OK\", \"reload atomic=%d\" % atomic)
+expect_loadaof(b"+OK\\r\\n")
+expect_loadaof(b"+OK\r\n")
+expect_loadaof(b"-ERR Error trying to load the AOF, check server logs.\\r\\n")
+expect_loadaof(b"-ERR Error trying to load the AOF, check server logs.\r\n")
+expect_loadaof(b\"+OK\\r\\n\")
+expect_loadaof(b\"-ERR Error trying to load the AOF, check server logs.\\r\\n\")
+fields = dict(item.split("=", 1) for item in rows[0].split()) if rows else {}
+fields = dict(item.split(\"=\", 1) for item in rows[0].split()) if rows else {}
+first_id = first.command("CLIENT", "ID")
+first_id = first.command(\"CLIENT\", \"ID\")
+for attempt in range(2):
+for expected in (b"+OK\\r\\n", corrupt):
+for expected in (b"+OK\r\n", corrupt):
+for expected in (b\"+OK\\r\\n\", corrupt):
+for reply in (b"id=8 flags=b\\n", b"id=7\\n", b"flags=b\\n", RuntimeError("ERR"),
+for reply in (b"id=8 flags=b\n", b"id=7\n", b"flags=b\n", RuntimeError("ERR"),
+for reply in (b\"id=8 flags=b\\n\", b\"id=7\\n\", b\"flags=b\\n\", RuntimeError(\"ERR\"),
+for reply, calls in ((b"-ERR corruption\\r\\n", 1), (refusal, 2), (b"+OK\\n", 1)):
+for reply, calls in ((b"-ERR corruption\r\n", 1), (refusal, 2), (b"+OK\n", 1)):
+for reply, calls in ((b\"-ERR corruption\\r\\n\", 1), (refusal, 2), (b\"+OK\\n\", 1)):
+for state, reply in (("blocked", b""), ("blocked", b"id=7 flags=N\\n"),
+for state, reply in (("blocked", b""), ("blocked", b"id=7 flags=N\n"),
+for state, reply in ((\"blocked\", b\"\"), (\"blocked\", b\"id=7 flags=N\\n\"),
+for value in (None, b"bad", b"1"):
+for value in (None, b\"bad\", b\"1\"):
+from _client_wait import wait_client_state
+from _lib import Conn, RespError, debug_load, encode, topology
+from _lib import Conn, RespError, encode, topology
+from _lib import Conn, debug_load
+from _lib import call
+from _lib import debug_load
+from _lib import wait_flip_idle
+from collections import deque
+from pathlib import Path
+from unittest.mock import patch
+got = c.command("DEBUG", "LOADAOF")
+got = c.command(\"DEBUG\", \"LOADAOF\")
+if (state == "gone" and not rows) or (state == "blocked" and "b" in fields.get("flags", "")):
+if (state == \"gone\" and not rows) or (state == \"blocked\" and \"b\" in fields.get(\"flags\", \"\")):
+if __name__ == "__main__":
+if __name__ == \"__main__\":
+if active == b"0":
+if active == b\"0\":
+if active not in (b"0", b"1"):
+if active not in (b\"0\", b\"1\"):
+if attempt == 0 and got == b"-ERR loading is not allowed while FLIP is in progress\\r\\n":
+if attempt == 0 and got == b"-ERR loading is not allowed while FLIP is in progress\r\n":
+if attempt == 0 and got == b\"-ERR loading is not allowed while FLIP is in progress\\r\\n\":
+if fields and (fields.get("id") != client_id or "flags" not in fields):
+if fields and (fields.get(\"id\") != client_id or \"flags\" not in fields):
+if got != expected:
+if isinstance(last, bytes):
+if left <= 0:
+if len(rows) > 1:
+if len(self.replies) > 1:
+if not client_id.isdecimal():
+if not isinstance(last, str):
+if now - started >= 1.25 and after["aof_fsyncs"] > before["aof_fsyncs"]:
+if now - started >= 1.25 and after[\"aof_fsyncs\"] > before[\"aof_fsyncs\"]:
+if now >= deadline:
+if save_reply != b"+Background saving started":
+if save_reply != b\"+Background saving started\":
+if state not in ("blocked", "gone"):
+if state not in (\"blocked\", \"gone\"):
+if time.monotonic() >= deadline:
+import _client_wait
+import argparse
+import ast
+import time
+import unittest
+last = None
+last = call(observer, "CLIENT", "LIST", "ID", client_id)
+last = call(observer, \"CLIENT\", \"LIST\", \"ID\", client_id)
+last = last.decode()
+left = deadline - time.monotonic()
+loading is not allowed while FLIP is in progress
+now = time.monotonic()
+ns = definitions("aof.py", ["bulk_payload", "expect_loadaof"],
+ns = definitions("aof.py", ["expect_loadaof"],
+ns = definitions("aof_fsync.py", ["wait_idle_sync"],
+ns = definitions("aof_fsync.py", ["wait_idle_sync"], dict(time=clock, info=info))
+ns = definitions("snap_cut_battery.py", ["wait_save_idle"],
+ns = definitions(\"aof.py\", [\"bulk_payload\", \"expect_loadaof\"],
+ns = definitions(\"aof.py\", [\"expect_loadaof\"],
+ns = definitions(\"aof_fsync.py\", [\"wait_idle_sync\"],
+ns = definitions(\"aof_fsync.py\", [\"wait_idle_sync\"], dict(time=clock, info=info))
+ns = definitions(\"snap_cut_battery.py\", [\"wait_save_idle\"],
+ns["expect_loadaof"](b"+OK\\r\\n")
+ns["expect_loadaof"](b"+OK\r\n")
+ns["info"] = lambda _: {"aof_fsyncs": 5}
+ns["info_field"] = lambda _, v=value: v
+ns["wait_idle_sync"](None, {"aof_fsyncs": 4})
+ns["wait_idle_sync"](None, {"aof_fsyncs": 4}, timeout=2)
+ns["wait_save_idle"]()
+ns["wait_save_idle"](timeout=1)
+ns[\"expect_loadaof\"](b\"+OK\\r\\n\")
+ns[\"info\"] = lambda _: {\"aof_fsyncs\": 5}
+ns[\"info_field\"] = lambda _, v=value: v
+ns[\"wait_idle_sync\"](None, {\"aof_fsyncs\": 4})
+ns[\"wait_idle_sync\"](None, {\"aof_fsyncs\": 4}, timeout=2)
+ns[\"wait_save_idle\"]()
+ns[\"wait_save_idle\"](timeout=1)
+observer = Observer([b"id=7 flags=N\\n", b""])
+observer = Observer([b"id=7 flags=N\\n", b"id=7 flags=b\\n"])
+observer = Observer([b"id=7 flags=N\n", b""])
+observer = Observer([b"id=7 flags=N\n", b"id=7 flags=b\n"])
+observer = Observer([b\"id=7 flags=N\\n\", b\"\"])
+observer = Observer([b\"id=7 flags=N\\n\", b\"id=7 flags=b\\n\"])
+observer = Observer([closed])
+observer = Observer([late])
+observer = Observer([reply])
+observer.sock.settimeout(left if original is None else min(left, original))
+observer.sock.settimeout(original)
+original = observer.sock.gettimeout()
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("host")
+parser.add_argument("port", type=int)
+parser.add_argument("subcommand", choices=("RELOAD", "LOADAOF"))
+parser.add_argument(\"host\")
+parser.add_argument(\"port\", type=int)
+parser.add_argument(\"subcommand\", choices=(\"RELOAD\", \"LOADAOF\"))
+patcher = patch.object(_client_wait, "time", self.clock)
+patcher = patch.object(_client_wait, \"time\", self.clock)
+patcher.start()
+print("BGSAVE:", cmd("BGSAVE"))
+print("BGSAVE:", save_reply)
+print("OK")
+print("bgsave done in %.1fs (mutation storm raced the capture)" % (time.monotonic()-t0))
+print("bgsave done in %.1fs (mutation storm raced the capture)" % (time.time()-t0))
+print(\"BGSAVE:\", cmd(\"BGSAVE\"))
+print(\"BGSAVE:\", save_reply)
+print(\"OK\")
+print(\"bgsave done in %.1fs (mutation storm raced the capture)\" % (time.monotonic()-t0))
+print(\"bgsave done in %.1fs (mutation storm raced the capture)\" % (time.time()-t0))
+python3 tests/debug_load.py 127.0.0.1 "$PORT" LOADAOF
+python3 tests/debug_load.py 127.0.0.1 \"$PORT\" LOADAOF
+raise AssertionError("BGSAVE did not finish within %ds" % timeout)
+raise AssertionError("BGSAVE failed: %r" % (save_reply,))
+raise AssertionError("CLIENT LIST ID returned malformed witness: %r" % last)
+raise AssertionError("CLIENT LIST ID returned multiple clients: %r" % last)
+raise AssertionError("CLIENT LIST did not return text: %r" % (last,))
+raise AssertionError("DEBUG LOADAOF: expected %r, got %r" % (expected, got))
+raise AssertionError("client %s never became %s: %r" % (client_id, state, last))
+raise AssertionError("client %s observation exceeded deadline: %r" % (client_id, last))
+raise AssertionError("idle data-sync was not witnessed: %r" % after)
+raise AssertionError("missing/invalid BGSAVE state: %r" % (active,))
+raise AssertionError(\"BGSAVE did not finish within %ds\" % timeout)
+raise AssertionError(\"BGSAVE failed: %r\" % (save_reply,))
+raise AssertionError(\"CLIENT LIST ID returned malformed witness: %r\" % last)
+raise AssertionError(\"CLIENT LIST ID returned multiple clients: %r\" % last)
+raise AssertionError(\"CLIENT LIST did not return text: %r\" % (last,))
+raise AssertionError(\"DEBUG LOADAOF: expected %r, got %r\" % (expected, got))
+raise AssertionError(\"client %s never became %s: %r\" % (client_id, state, last))
+raise AssertionError(\"client %s observation exceeded deadline: %r\" % (client_id, last))
+raise AssertionError(\"idle data-sync was not witnessed: %r\" % after)
+raise AssertionError(\"missing/invalid BGSAVE state: %r\" % (active,))
+raise EOFError("closed")
+raise EOFError(\"closed\")
+raise ValueError("client ID must be a decimal integer")
+raise ValueError("client state must be blocked or gone")
+raise ValueError(\"client ID must be a decimal integer\")
+raise ValueError(\"client state must be blocked or gone\")
+rdb_bgsave_in_progress
+refusal = b"-ERR loading is not allowed while FLIP is in progress\\r\\n"
+refusal = b"-ERR loading is not allowed while FLIP is in progress\r\n"
+refusal = b\"-ERR loading is not allowed while FLIP is in progress\\r\\n\"
+reply = self.replies[0]
+return after
+return b"id=7 flags=b\\n"
+return b"id=7 flags=b\n"
+return b\"id=7 flags=b\\n\"
+return bulk_payload(c.command(*args))
+return got
+return namespace
+return reply() if callable(reply) else reply
+return self.now
+return self.timeout
+return {"aof_fsyncs": 4 if clock.now < 1.8 else 5}
+return {\"aof_fsyncs\": 4 if clock.now < 1.8 else 5}
+rows = last.splitlines()
+save_reply = cmd("BGSAVE")
+save_reply = cmd(\"BGSAVE\")
+self.addCleanup(patcher.stop)
+self.assertEqual(client.commands, [("DEBUG", "LOADAOF")] * 2)
+self.assertEqual(client.commands, [(\"DEBUG\", \"LOADAOF\")] * 2)
+self.assertEqual(len(client.commands), calls)
+self.assertEqual(len(observer.commands), 1)
+self.assertEqual(len(observer.commands), 2)
+self.assertEqual(len(waits), 2)
+self.assertEqual(ns["expect_loadaof"](expected), expected)
+self.assertEqual(ns["wait_idle_sync"](None, {"aof_fsyncs": 4}), {"aof_fsyncs": 5})
+self.assertEqual(ns[\"expect_loadaof\"](expected), expected)
+self.assertEqual(ns[\"wait_idle_sync\"](None, {\"aof_fsyncs\": 4}), {\"aof_fsyncs\": 5})
+self.assertEqual(observer.commands, [("CLIENT", "LIST", "ID", "7")] * 2)
+self.assertEqual(observer.commands, [(\"CLIENT\", \"LIST\", \"ID\", \"7\")] * 2)
+self.assertEqual(observer.timeout, 30.0)
+self.assertEqual(waits[0][0].command("INFO", "SERVER", "LB"), b"x:y")
+self.assertEqual(waits[0][0].command(\"INFO\", \"SERVER\", \"LB\"), b\"x:y\")
+self.assertFalse(values)
+self.assertGreaterEqual(clock.now, 1.25)
+self.assertGreaterEqual(clock.now, 1.8)
+self.assertIs(waits[0][0].sock, client.sock)
+self.clock = Clock()
+self.clock.sleep(6)
+self.commands = []
+self.commands.append(args)
+self.now += delay
+self.replies = deque(replies)
+self.replies.popleft()
+self.sock = self
+self.timeout = 30.0
+self.timeout = value
+sock = c.sock
+started = time.monotonic()
+t0=time.monotonic()
+t0=time.time()
+time.sleep(.02)
+time.sleep(0.05)
+time.sleep(0.05)                      # let it actually park
+time.sleep(0.1)
+time.sleep(0.25)
+time.sleep(0.3)
+time.sleep(0.4)
+time.sleep(1.25)
+time.sleep(min(.005, left))
+time.sleep(min(.02, deadline - now))
+tree = ast.parse((Path(__file__).parent / filename).read_text())
+tree.body = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name in names]
+unittest.main()
+values = deque([b"1", b"1", b"0"])
+values = deque([b\"1\", b\"1\", b\"0\"])
+wait_client_state
+wait_client_state(admin, bid, "blocked")
+wait_client_state(admin, bid, \"blocked\")
+wait_client_state(admin, first_id, "gone")
+wait_client_state(admin, first_id, \"gone\")
+wait_client_state(admin, tid, "gone")
+wait_client_state(admin, tid, \"gone\")
+wait_client_state(admin, waiter_id, "blocked")
+wait_client_state(admin, waiter_id, \"blocked\")
+wait_flip_idle(Observer(), max(0.0, deadline - time.monotonic()))
+wait_save_idle()
+waiter.send("BLPOP", key, "0")
+waiter.send("BLPOP", key, "5")
+waiter.send(\"BLPOP\", key, \"0\")
+waiter.send(\"BLPOP\", key, \"5\")
+waiter_id = waiter.cmd("CLIENT", "ID")[1:].decode()
+waiter_id = waiter.cmd(\"CLIENT\", \"ID\")[1:].decode()
+waits = []
+while True:
+while info_field("rdb_bgsave_in_progress") != b"0" and time.time()-t0 < 90: time.sleep(0.2)
+while info_field(\"rdb_bgsave_in_progress\") != b\"0\" and time.time()-t0 < 90: time.sleep(0.2)
+with self.assertRaises((AssertionError, ValueError)):
+with self.assertRaises(AssertionError):
+with self.assertRaises(EOFError):
+with self.assertRaisesRegex(AssertionError, "exceeded deadline"):
+with self.assertRaisesRegex(AssertionError, "never became"):
+with self.assertRaisesRegex(AssertionError, "not witnessed"):
+with self.assertRaisesRegex(AssertionError, \"exceeded deadline\"):
+with self.assertRaisesRegex(AssertionError, \"never became\"):
+with self.assertRaisesRegex(AssertionError, \"not witnessed\"):
+with self.subTest(expected=expected):
+with self.subTest(reply=reply):
+with self.subTest(state=state, reply=reply):
