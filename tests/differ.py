@@ -6132,6 +6132,50 @@ def gen_multidb(rng):
     return ops
 
 
+def psfix_wait_idle(peers, persistence, phase):
+    """Both peers must be idle before a save/count baseline; 10 s total, 1 ms polls."""
+    deadline = time.monotonic() + 10
+    states = {}
+    timeouts = [sock.gettimeout() for sock, _ in peers]
+    try:
+        while True:
+            fields = []
+            for label, peer in zip(("target", "oracle"), peers):
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError
+                peer[0].settimeout(remaining)
+                row = persistence(peer)
+                state = row.get(b"rdb_bgsave_in_progress")
+                states[label] = state
+                assert state in (b"0", b"1"), (
+                    "PSFIX harness error: %s %s invalid rdb_bgsave_in_progress=%r" %
+                    (phase, label, state))
+                fields.append(row)
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError
+            if all(state == b"0" for state in states.values()):
+                return fields
+            time.sleep(min(0.001, remaining))
+    except TimeoutError as error:
+        raise AssertionError(
+            "PSFIX harness error: %s: both peers did not become save-idle within 10 s; "
+            "rdb_bgsave_in_progress=%r" % (phase, states)) from error
+    finally:
+        for (sock, _), timeout in zip(peers, timeouts):
+            sock.settimeout(timeout)
+
+
+def psfix_check_save_reply(label, command, reply):
+    if reply == b"-ERR Background save already in progress\r\n":
+        raise AssertionError(
+            "PSFIX harness error: %s %s raced a background save after the both-peer "
+            "idle barrier; reply must not be compared: %r" % (label, command, reply))
+    assert reply == (b"+OK\r\n" if command == "SAVE" else b"+Background saving started\r\n"), (
+        label, command, reply)
+
+
 def run_psfix_suite():
     """PS5/PS7: exact CONFIG bytes, INFO names/order, and completed-save properties."""
     peers = [conn(TH, TP), conn(OH, OP)]
@@ -6197,19 +6241,14 @@ def run_psfix_suite():
         coverage.note(["INFO", "persistence"], "field-name set/order; values intentionally differ")
         print("  PSFIX field names/order: %s" % b" ".join(name for name in oracle if name in expected).decode())
 
-        for label, peer in zip(("target", "oracle"), peers):
+        for index, (label, peer) in enumerate(zip(("target", "oracle"), peers)):
             assert persistence(peer)[b"loading"] == b"0", (label, "loading after boot")
             for command in ("SAVE", "SAVE", "BGSAVE"):
-                before = int(persistence(peer)[b"rdb_saves"])
+                idle = psfix_wait_idle(peers, persistence, "before %s %s" % (label, command))
+                before = int(idle[index][b"rdb_saves"])
                 reply = issue(peer, [command])
-                assert reply == (b"+OK\r\n" if command == "SAVE" else b"+Background saving started\r\n"), reply
-                deadline = time.monotonic() + 10
-                while True:
-                    fields = persistence(peer)
-                    if fields[b"rdb_bgsave_in_progress"] == b"0":
-                        break
-                    assert time.monotonic() < deadline, (label, "save did not complete")
-                    time.sleep(.005)
+                psfix_check_save_reply(label, command, reply)
+                fields = psfix_wait_idle(peers, persistence, "after %s %s" % (label, command))[index]
                 assert int(fields[b"rdb_saves"]) == before + 1, (label, command, before, fields)
                 assert int(persistence(peer)[b"rdb_saves"]) == before + 1, "INFO advanced save count"
                 assert fields[b"loading"] == b"0"
