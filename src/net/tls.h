@@ -2,8 +2,8 @@
 //
 // A kTLS attempt starts with a non-blocking socket BIO so OpenSSL can install the kernel record
 // layer. For TLS 1.2, once both directions engage, SSL becomes a cold lifetime holder and ordinary
-// io_uring recv/send owns application data.  Forced fallback uses the original BIO-pair engine;
-// automatic fallback uses it when neither direction engaged and retains the socket BIO when a
+// io_uring recv/send owns application data. Automatic fallback uses the BIO-pair engine
+// when neither direction engaged and retains the socket BIO when a
 // direction is already irreversible, preserving a valid userspace transport in either case.
 // TLS 1.3 always retains OpenSSL on RX for post-handshake messages and KeyUpdate.
 // OpenSSL 3.0/3.1 TX key updates are installed by the keylog callback (Linux re-key support needed).
@@ -62,7 +62,7 @@ public:
     TlsConn(const TlsConn&) = delete;
     TlsConn& operator=(const TlsConn&) = delete;
 
-    bool init(const TlsContext& context, TlsAuthClients auth, int fd, bool try_ktls,
+    bool init(const TlsContext& context, TlsAuthClients auth, int fd,
               std::string& error);
 
     bool handshaking() const { return state_ == State::Handshaking; }

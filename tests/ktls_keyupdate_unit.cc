@@ -48,7 +48,7 @@ struct Fixture {
     SSL_CTX* client_context = nullptr;
     SSL* client = nullptr;
     int fds[2]{-1, -1};
-    Fixture(const std::string& dir, int version, bool attempt, bool tx, bool rx,
+    Fixture(const std::string& dir, int version, bool tx, bool rx,
             const char* suite = "TLS_AES_128_GCM_SHA256", bool small_fragment = false) {
         fake_tx = tx; fake_rx = rx; rx_installs = tx_installs = 0;
         installed_keys.clear(); peer_secrets.clear();
@@ -62,7 +62,7 @@ struct Fixture {
         require(context != nullptr, error.c_str());
         require(socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0, fds) == 0,
                 "local socketpair");
-        require(server.init(*context, TlsAuthClients::No, fds[0], attempt, error), error.c_str());
+        require(server.init(*context, TlsAuthClients::No, fds[0], error), error.c_str());
         observed_bio = SSL_get_wbio(server.*member(SslAccess{}));
         client_context = SSL_CTX_new(TLS_client_method());
         require(client_context && SSL_CTX_set_min_proto_version(client_context, version) == 1 &&
@@ -245,7 +245,7 @@ int main(int argc, char** argv) {
     current_case = argv[2];
     if (current_case == "rx-policy") {
         for (bool native_rx : {false, true}) {
-            Fixture f(argv[1], TLS1_3_VERSION, true, true, native_rx);
+            Fixture f(argv[1], TLS1_3_VERSION, true, native_rx);
             require(rx_installs == 0, "TLS13_RX_DECLINED: no initial-secret TLS_RX install");
             require(f.server.socket_userspace() && !f.server.ktls(),
                     "TLS13_RX_DECLINED: OpenSSL retains control-record ownership");
@@ -254,7 +254,7 @@ int main(int argc, char** argv) {
     } else if (current_case == "tx-rekey") {
         for (auto suite : {"TLS_AES_128_GCM_SHA256", "TLS_AES_256_GCM_SHA384",
                            "TLS_CHACHA20_POLY1305_SHA256", "TLS_AES_128_CCM_SHA256"}) {
-            Fixture f(argv[1], TLS1_3_VERSION, true, true, false, suite);
+            Fixture f(argv[1], TLS1_3_VERSION, true, false, suite);
             f.updates();
             require(tx_installs == 2, "TLS13_TX_REKEY: both requested updates reinstall TX");
             switch (SSL_CIPHER_get_protocol_id(SSL_get_current_cipher(f.client))) {
@@ -266,7 +266,7 @@ int main(int argc, char** argv) {
             }
         }
     } else if (current_case == "tx-failure") {
-        Fixture f(argv[1], TLS1_3_VERSION, true, true, false);
+        Fixture f(argv[1], TLS1_3_VERSION, true, false);
         f.exchange();
         reject_tx = true;
         require(SSL_key_update(f.client, SSL_KEY_UPDATE_REQUESTED) == 1 &&
@@ -279,16 +279,14 @@ int main(int argc, char** argv) {
         require(f.server.last_error().find("kTLS TX re-key failed") != std::string::npos,
                 "failed re-key has a diagnostic");
     } else if (current_case == "tls12") {
-        Fixture f(argv[1], TLS1_2_VERSION, true, true, true);
+        Fixture f(argv[1], TLS1_2_VERSION, true, true);
         require(f.server.ktls() && f.server.was_ktls(), "TLS12_KTLS: both directions retained");
         require(rx_installs == 0, "TLS12_KTLS: no manual key install");
     } else if (current_case == "userspace") {
-        for (bool attempt : {false, true}) {
-            Fixture f(argv[1], TLS1_3_VERSION, attempt, false, false, "TLS_AES_128_GCM_SHA256", attempt);
-            require(f.server.memory_userspace(), "userspace fallback stays on the BIO pair");
-            f.updates();
-            require(rx_installs == 0 && tx_installs == 0, "userspace never installs kernel keys");
-        }
+        Fixture f(argv[1], TLS1_3_VERSION, false, false, "TLS_AES_128_GCM_SHA256", true);
+        require(f.server.memory_userspace(), "automatic userspace fallback stays on the BIO pair");
+        f.updates();
+        require(rx_installs == 0 && tx_installs == 0, "userspace never installs kernel keys");
     } else require(false, "unknown case");
     std::printf("ok: NET2 %s (TlsConn=%zu)\n", current_case.c_str(), sizeof(TlsConn));
 }
