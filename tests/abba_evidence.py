@@ -339,12 +339,14 @@ def instrument(environment):
 
 
 def validate_workload_evidence(cell, run, *, report=None):
+    from abbagate import require_cell_options_evidence
     from abba_workloads import require_workload_accounting, require_workload_witness
     from abba_reorder_control import validate_proof, refusal_hint
     require(run.get("data_bytes") == cell.data_bytes, f"{cell.id}: measured workload value size differs")
     raw = run.get("workload_raw")
     require(isinstance(raw, dict), f"{cell.id}: missing raw workload witness")
     try:
+        require_cell_options_evidence(cell, run)
         proof = raw.get("read_local_control")
         if proof is not None:
             binary = (report["candidate" if run["arm"] == "B" else "reference"]["sha256"]
@@ -390,7 +392,7 @@ def validate_campaign_evidence(report):
         require(report.get("run_kind") == "null-holdout" or not row.get("holdout_repeats"),
                 "comparison cannot borrow holdout repeats")
         for block in row["rounds"] + row.get("null_repeats", []) + row.get("holdout_repeats", []):
-            key = (block["instances"], cell.conns)
+            key = (block["instances"], cell.conns, cell.dbs)
             if key not in layouts:
                 layouts[key] = load_layout(report["environment"]["load_cpus"], *key)
             for run in block["runs"]:

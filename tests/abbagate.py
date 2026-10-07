@@ -52,6 +52,7 @@ collects its own null verdict without a prior control; its outer PARTIAL/3 canno
 --self-test is serverless. All other runs own and reap only their subprocess PIDs.
 """
 import argparse
+from contextlib import nullcontext
 from dataclasses import asdict, dataclass, replace
 import hashlib
 import json
@@ -60,12 +61,14 @@ import os
 from pathlib import Path
 import re
 import shutil
+import shlex
 import signal
 import socket
 import subprocess
 import sys
 import tarfile
 import tempfile
+import threading
 import time
 
 from _lib import Conn
@@ -161,6 +164,10 @@ class Cell:
     pin_required: bool = False
     data_bytes: int = 64
     ceiling_status: str = ""  # Fixed-load identical-arm control; never a saturated peak.
+    server_flags: str = ""  # Optional srv= argv, shared by BOTH arms; never passed to a shell.
+    dbs: int = 0            # 0: existing db0 workload; N: logical connection i selects i % N.
+    poll: str = ""          # Optional bare INFO once per second on a dedicated connection.
+    keys: int = 0           # 0: existing KEYS; otherwise TOTAL resident keys across databases.
 
     def __post_init__(self):
         # The tail instrument needs 16 independent generators to avoid arrival bursts.
@@ -173,6 +180,60 @@ class Cell:
         return ("latency_ms" if self.depth == 1 else "rate") if self.score == "auto" else {
             "rate": "rate", "latency": "latency_ms", "p999": "p999_ms"}[self.score]
 
+    @property
+    def key_count(self):
+        return self.keys or KEYS
+
+    def database_keys(self, database=0):
+        count = self.dbs or 1
+        return (self.key_count + count - 1 - database) // count
+
+
+def server_arguments(flags):
+    argv = shlex.split(flags)
+    managed = {"port", "bind", "atomic", "enable-debug-command", "save", "appendonly", "dir",
+               "ratio", "flip-auto", "shards", "thread-mode", "read-local", "overlap", "reorder",
+               "x-overlap", "x-ex-sched", "help", "version", "daemonize"}
+    if argv and not argv[0].startswith("--"):
+        raise ValueError("srv= must contain server options")
+    if any(arg.split("=", 1)[0] in {"--" + name for name in managed} for arg in argv):
+        raise ValueError("srv= cannot override harness-owned boot/geometry/workload flags")
+    return argv
+
+
+def cell_options(fields):
+    options = {}
+    for field in fields:
+        name, sep, value = field.partition("=")
+        if not sep or name not in ("srv", "dbs", "poll", "keys") or name in options:
+            raise ValueError(f"unknown/duplicate cell option: {field}")
+        options[name] = value
+    flags = options.get("srv", "")
+    argv = server_arguments(flags)
+    configured = []
+    for index, arg in enumerate(argv):
+        if arg == "--databases":
+            configured.append(argv[index + 1] if index + 1 < len(argv) else "")
+        elif arg.startswith("--databases="):
+            configured.append(arg.split("=", 1)[1])
+    if len(configured) > 1 or any(not re.fullmatch(r"[1-9][0-9]*", value) for value in configured):
+        raise ValueError("srv= requires one positive --databases value")
+    dbs = options.get("dbs", "0")
+    keys = options.get("keys", "0")
+    if not re.fullmatch(r"-1|0|[1-9][0-9]*", dbs) or not re.fullmatch(r"0|[1-9][0-9]*", keys):
+        raise ValueError("dbs= requires 0, -1 (auto), or N; keys= requires 0 or N")
+    dbs = int(dbs)
+    if dbs == -1:
+        if not configured:
+            raise ValueError("dbs=-1 needs srv=--databases N")
+        dbs = int(configured[0])
+    if dbs and (not configured or dbs > int(configured[0])):
+        raise ValueError("dbs= exceeds the explicit srv=--databases N")
+    poll = options.get("poll", "0")
+    if poll not in ("0", "info1hz"):
+        raise ValueError("poll= requires 0 or info1hz")
+    return dict(server_flags=flags, dbs=dbs, poll="" if poll == "0" else poll, keys=int(keys))
+
 
 def read_cells(path, *, placement=None, measurements=None, instrument_sha256=None):
     cells = []
@@ -183,15 +244,15 @@ def read_cells(path, *, placement=None, measurements=None, instrument_sha256=Non
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         fields = [x.strip() for x in line.split("|")]
-        if len(fields) not in (11, 15):
-            raise ValueError(f"{path}:{lineno}: expected 11 legacy or 15 extended pipe-separated fields")
+        if len(fields) != 11 and len(fields) < 15:
+            raise ValueError(f"{path}:{lineno}: expected 11 legacy or 15 extended pipe-separated fields plus options")
         ident, mode, rl, ov, ro, op, depth, conns, _measured, _busy, pinned = fields[:11]
         data_bytes = 64
         if ":" in op:
             # Private studies retain the headline's 15 fields. Encoding the size in
             # the operation makes older instruments fail instead of silently using 64 B.
             sized = re.fullmatch(r"(GET|SET|MGET|MSET|MSETNX):([1-9][0-9]*)", op)
-            if (not sized or len(fields) != 15 or
+            if (not sized or len(fields) < 15 or
                     path.resolve() == (ROOT / "tests/headline_cells.txt").resolve()):
                 raise ValueError(f"{path}:{lineno}: OP:BYTES requires a private 15-field cell")
             op, data_bytes = sized[1], int(sized[2])
@@ -207,8 +268,8 @@ def read_cells(path, *, placement=None, measurements=None, instrument_sha256=Non
         if path.resolve() == (ROOT / "tests/headline_cells.txt").resolve() and fields[8:11] != ["-"] * 3:
             raise ValueError(f"{path}:{lineno}: measurements belong in gate_measurements.json")
         extra = {}
-        if len(fields) == 15:
-            atomic, score, mix, smoke = fields[11:]
+        if len(fields) >= 15:
+            atomic, score, mix, smoke = fields[11:15]
             if (not re.fullmatch(r"atomic=[01]", atomic)
                     or score not in ("score=rate", "score=latency", "score=p999")
                     or not re.fullmatch(r"mix=(-|[1-9][0-9]*:[1-9][0-9]*)", mix)
@@ -217,10 +278,18 @@ def read_cells(path, *, placement=None, measurements=None, instrument_sha256=Non
                 raise ValueError(f"{path}:{lineno}: malformed extended workload fields")
             extra = dict(atomic=int(atomic[-1]), score=score[6:], mix=mix[4:],
                          smoke=smoke[-1] == "1", pin_required=int(depth[1:]) > 1)
+            try:
+                extra.update(cell_options(fields[15:]))
+            except ValueError as error:
+                raise ValueError(f"{path}:{lineno}: {error}") from error
         cell = Cell(ident, mode, int(rl[-1]), int(ov[-1]), int(ro[-1]),
                     op, int(depth[1:]), int(conns),
                     int(pinned) if re.fullmatch(r"[1-9][0-9]*", pinned) else 0,
                     data_bytes=data_bytes, **extra)
+        if cell.dbs and (cell.dbs > min(cell.conns, cell.key_count) or cell.op == "REORDER"):
+            raise ValueError(f"{path}:{lineno}: dbs= needs a key and connection per DB; REORDER is unsupported")
+        if cell.keys and cell.op == "REORDER":
+            raise ValueError(f"{path}:{lineno}: keys= is unsupported for REORDER")
         if ((cell.op in ("MIX", "MIX8", "REORDER")) != (cell.mix != "-")
                 or (cell.op == "REORDER") != (cell.metric == "p999_ms")
                 or (cell.depth == 1 and cell.metric == "rate")):
@@ -246,7 +315,7 @@ def selected_cells(cells, subset, only=""):
 
 
 def coverage(cells):
-    return {"count": len(cells), "ids": [cell.id for cell in cells],
+    result = {"count": len(cells), "ids": [cell.id for cell in cells],
             "modes": sorted({cell.mode for cell in cells}),
             "operations": sorted({cell.op for cell in cells}),
             "commands": sorted({command for cell in cells for command in workload_command_names(cell)}),
@@ -256,11 +325,22 @@ def coverage(cells):
             "atomic": sorted({cell.atomic for cell in cells}),
             "scores": sorted({cell.metric for cell in cells}),
             "pending_pins": [cell.id for cell in cells if not saturation_exempt(cell) and not cell.instances]}
+    # Keep the existing --list-cells JSON byte-for-byte unchanged when no option is used.
+    for name in ("server_flags", "dbs", "poll", "keys"):
+        values = {cell.id: getattr(cell, name) for cell in cells if getattr(cell, name)}
+        if values:
+            result[name] = values
+    return result
 
 
 def workload_data_bytes(cells):
     sizes = {cell.data_bytes for cell in cells}
     return next(iter(sizes)) if len(sizes) == 1 else {cell.id: cell.data_bytes for cell in cells}
+
+
+def workload_keys(cells):
+    counts = {cell.key_count for cell in cells}
+    return next(iter(counts)) if len(counts) == 1 else {cell.id: cell.key_count for cell in cells}
 
 
 def sha256(path):
@@ -355,8 +435,10 @@ def select_port(ports, port):
     return chosen, (first, last)
 
 
-def load_layout(load_cpus, n, conns):
+def load_layout(load_cpus, n, conns, dbs=0):
     """Keep the cell's TOTAL connections fixed; partition physical/SMT pairs together."""
+    if dbs:
+        return multidb_layout(load_cpus, n, conns, dbs)
     if not 1 <= n <= conns:
         raise ValueError("every load instance needs at least one connection")
     groups, seen = [], set()
@@ -394,6 +476,164 @@ def load_layout(load_cpus, n, conns):
                       if per_instance % t == 0)
         result.append({"cpus": assigned, "threads": threads, "clients": per_instance // threads})
     return result
+
+
+def multidb_layout(load_cpus, n, conns, dbs):
+    """Memtier SELECT is process-wide: subdivide the N CPU groups by database.
+
+    At least one process per database, with max(N, dbs) processes in total.
+    Logical connection indices are explicit; their union is exactly range(conns)
+    and every index selects index % dbs. Small CPU budgets must share CPU groups.
+    """
+    if not 1 <= dbs <= conns:
+        raise ValueError("every database needs at least one connection")
+    base = load_layout(load_cpus, n, conns)
+    processes = max(n, dbs)
+    result = []
+    for index in range(processes):
+        database, group = index % dbs, index % n
+        shares = len(range(database, processes, dbs))
+        rank = index // dbs
+        first, stride = database + rank * dbs, dbs * shares
+        connections = len(range(first, conns, stride))
+        if not connections:
+            raise ValueError("load plan has an empty database process")
+        assigned = base[group]["cpus"]
+        groups, seen = [], set()
+        for cpu in assigned:
+            if cpu in seen:
+                continue
+            path = Path(f"/sys/devices/system/cpu/cpu{cpu}/topology/thread_siblings_list")
+            siblings = set(cpus(path.read_text().strip())) if path.exists() else {cpu}
+            pair = sorted(siblings.intersection(assigned))
+            groups.append(pair)
+            seen.update(pair)
+        parts, part = len(range(group, processes, n)), index // n
+        selected = groups[part * len(groups) // parts:(part + 1) * len(groups) // parts]
+        assigned = sorted(cpu for pair in (selected or [groups[part % len(groups)]]) for cpu in pair)
+        threads = max(t for t in range(1, min(16, len(assigned), connections) + 1)
+                      if connections % t == 0)
+        result.append(dict(cpus=assigned, threads=threads, clients=connections // threads,
+                           database=database, connection_start=first, connection_stride=stride))
+    return result
+
+
+def database_counts(conn, cell):
+    counts = {}
+    try:
+        for database in range(cell.dbs):
+            if conn.must("SELECT", database) != b"OK":
+                raise RuntimeError(f"SELECT {database} failed")
+            counts[str(database)] = conn.must("DBSIZE")
+    finally:
+        conn.must("SELECT", 0)
+    expected = {str(database): cell.database_keys(database) for database in range(cell.dbs)}
+    if counts != expected:
+        raise RuntimeError(f"per-DB population differs: expected {expected}, observed {counts}")
+    return counts
+
+
+class InfoPoller:
+    """One persistent bare-INFO client, active from load launch through drain.
+
+    The lock also brackets the harness's central INFO STATS endpoints: no poll
+    can straddle an endpoint, so its completed command is subtracted exactly.
+    """
+    def __init__(self, port):
+        self.conn = Conn("127.0.0.1", port, timeout=10)
+        self.lock = threading.Lock()
+        self.stopping = threading.Event()
+        self.record = dict(command="INFO", period_seconds=1, polls=[], error=None,
+                           started_monotonic=time.monotonic())
+        self.thread = threading.Thread(target=self.run, name="abba-info1hz", daemon=True)
+        self.thread.start()
+
+    def run(self):
+        target = self.record["started_monotonic"]
+        try:
+            while not self.stopping.wait(max(0, target - time.monotonic())):
+                with self.lock:
+                    sent = time.monotonic()
+                    if sent - target >= 1:
+                        raise RuntimeError("INFO poller missed an entire 1 Hz period")
+                    body = self.conn.must("INFO")
+                    finished = time.monotonic()
+                    if not isinstance(body, bytes) or b"# Keyspace\r\n" not in body:
+                        raise RuntimeError("bare INFO poll lacks its keyspace section")
+                    self.record["polls"].append(dict(scheduled_monotonic=target,
+                        sent_monotonic=sent, finished_monotonic=finished,
+                        latency_ms=1000 * (finished - sent), reply_bytes=len(body)))
+                target += 1
+        except Exception as error:
+            self.record["error"] = f"{type(error).__name__}: {error}"
+
+    def count(self):
+        # Caller holds lock while reading a central server counter endpoint.
+        self.check()
+        return len(self.record["polls"])
+
+    def check(self):
+        if self.record["error"]:
+            raise RuntimeError(self.record["error"])
+
+    def close(self):
+        if self.stopping.is_set():
+            return
+        self.record["stopped_monotonic"] = time.monotonic()
+        self.stopping.set()
+        self.thread.join(timeout=11)
+        if self.thread.is_alive():
+            self.record["error"] = "INFO poller did not stop"
+        self.conn.close()
+        self.record["completed_polls"] = len(self.record["polls"])
+        duration = self.record["stopped_monotonic"] - self.record["started_monotonic"]
+        if len(self.record["polls"]) < max(1, math.floor(duration)):
+            self.record["error"] = self.record["error"] or "INFO poller has incomplete period coverage"
+
+
+def require_cell_options_evidence(cell, run):
+    flags = server_arguments(cell.server_flags)
+    if flags and run.get("server_argv", [])[-len(flags):] != flags:
+        raise RuntimeError("server argv did not retain the cell's srv= flags")
+    if cell.dbs:
+        expected = {str(database): cell.database_keys(database) for database in range(cell.dbs)}
+        if (run.get("population", {}).get("database_counts") != expected or
+                run.get("database_counts_after") != expected or
+                run.get("configured_databases", 0) < cell.dbs):
+            raise RuntimeError("missing or incorrect multi-DB population/boot evidence")
+        layout, commands = run.get("load_layout", []), run.get("load_argv", [])
+        if not layout or len(layout) != len(commands):
+            raise RuntimeError("missing multi-DB generator argv")
+        indices = []
+        for placement, argv in zip(layout, commands):
+            database = placement["database"]
+            assigned = [placement["connection_start"] + i * placement["connection_stride"]
+                        for i in range(placement["threads"] * placement["clients"])]
+            if ([arg for arg in argv if arg.startswith("--select-db=")] != [f"--select-db={database}"] or
+                    [arg for arg in argv if arg.startswith("--key-maximum=")] !=
+                    [f"--key-maximum={cell.database_keys(database)}"] or
+                    any(i % cell.dbs != database for i in assigned)):
+                raise RuntimeError("generator did not SELECT logical connection i % dbs")
+            indices.extend(assigned)
+        if sorted(indices) != list(range(cell.conns)):
+            raise RuntimeError("multi-DB layout changed the total connection inventory")
+    if cell.poll:
+        record = run.get("info_poller", {})
+        polls = record.get("polls", [])
+        central = run.get("central_info_polls", {})
+        if (record.get("error") or not polls or record.get("completed_polls") != len(polls) or
+                central.get("subtracted") != central.get("after", 0) - central.get("before", 0) or
+                not math.floor(run["window_seconds"]) <= central.get("subtracted", 0) <= math.ceil(run["window_seconds"])):
+            raise RuntimeError("incomplete INFO polling evidence")
+        for index, poll in enumerate(polls):
+            if (poll["scheduled_monotonic"] != record["started_monotonic"] + index or
+                    not 0 <= poll["sent_monotonic"] - poll["scheduled_monotonic"] < 1 or
+                    poll["finished_monotonic"] < poll["sent_monotonic"] or poll["reply_bytes"] <= 0):
+                raise RuntimeError("INFO polling missed a period or returned invalid timing")
+        expected_commands = (int(run["info_after"]["total_commands_processed"]) -
+                             int(run["info_before"]["total_commands_processed"]) - 1 - central["subtracted"])
+        if run["commands"] != expected_commands:
+            raise RuntimeError("INFO polling leaked into workload throughput")
 
 
 def spread(a, b):
@@ -505,7 +745,7 @@ def load_block_evidence(cell, block, bounds=None):
         except (ValueError, TypeError) as error:
             reasons.append(f"run {index}:{run.get('arm', '?')}: {error}")
     layout = runs[0].get("load_layout")
-    if not isinstance(layout, list) or len(layout) != n or any(
+    if not isinstance(layout, list) or len(layout) != max(n, cell.dbs) or any(
             run.get("load_layout") != layout for run in runs):
         reasons.append("missing or inconsistent generator layouts across ABBA arms")
         workers = None
@@ -525,8 +765,12 @@ def load_block_evidence(cell, block, bounds=None):
             workers += threads
             connections += threads * clients
             assigned.extend(cpus_)
-        if workers is not None and (connections != cell.conns or len(assigned) != len(set(assigned))):
-            reasons.append("generator layout changes total connections or shares assigned CPUs")
+        if workers is not None:
+            if cell.dbs:
+                if layout != load_layout(sorted(set(assigned)), n, cell.conns, cell.dbs):
+                    reasons.append("generator layout differs from the exact multi-DB plan")
+            elif connections != cell.conns or len(assigned) != len(set(assigned)):
+                reasons.append("generator layout changes total connections or shares assigned CPUs")
     return {"instances": n, "valid": not reasons, "validation_reasons": reasons,
             "minimum_busy_pct": min(run["busy_pct"] for run in runs),
             "minimum_saturation_pct": min(saturation) if len(saturation) == 4 else None,
@@ -1364,12 +1608,17 @@ class Runner:
         return {"population_by_arm": {"A": "wire", "B": "wire"}}
 
     def memtier(self, layout, *, cell=None):
+        key_count = cell.database_keys(layout.get("database", 0)) if cell is not None else KEYS
         argv = ["taskset", "-c", cpu_string(layout["cpus"]), self.args.memtier,
                 "-s", "127.0.0.1", "-p", str(self.args.port), "--protocol=redis",
                 "-t", str(layout["threads"]), "-c", str(layout["clients"]),
-                "--key-minimum=1", f"--key-maximum={KEYS}",
+                "--key-minimum=1", f"--key-maximum={key_count}",
                 "-d", str(cell.data_bytes if cell is not None else 64),
                 "--distinct-client-seed", "--hide-histogram"]
+        if cell is not None and cell.dbs:
+            if "database" not in layout:
+                raise ValueError("multi-DB generator needs an explicit SELECT assignment")
+            argv += [f"--select-db={layout['database']}"]
         # memtier rejects its built-in SET:GET pattern whenever --command is
         # present. Those workloads carry a P pattern on EACH command instead;
         # population and built-in GET/SET/MIX retain the original P:P geometry.
@@ -1383,6 +1632,38 @@ class Runner:
         pass
 
     def populate(self, cell, arm, conn, folder):
+        if cell.dbs:
+            populations, commands = [], []
+            try:
+                for database in range(cell.dbs):
+                    # One sequential client per DB covers every key, even when
+                    # its key count does not divide the usual 64 population clients.
+                    placement = dict(cpus=self.load_cpus, threads=1, clients=1, database=database)
+                    argv = self.memtier(placement, cell=replace(cell, op="SET", mix="-"))
+                    argv += ["--pipeline=32", "--ratio=1:0", "-n", "allkeys"]
+                    commands.append(argv)
+                    populations.append(self.children.start(argv, folder / f"populate-db{database}.log", folder))
+                for process in populations:
+                    if process.wait(timeout=180):
+                        raise RuntimeError("multi-DB key population failed")
+            finally:
+                for process in populations:
+                    self.children.stop(process)
+            counts = database_counts(conn, cell)
+            samples = {}
+            try:
+                for database in range(cell.dbs):
+                    conn.must("SELECT", database)
+                    samples[str(database)] = [conn.must("STRLEN", f"memtier-{number}")
+                        for number in (1, cell.database_keys(database))]
+                    if samples[str(database)] != [cell.data_bytes] * 2:
+                        raise RuntimeError(f"DB {database} population value size differs: {samples}")
+                    if cell.op == "MSETNX" and conn.must("MSETNX", "memtier-1", "unchanged") != 0:
+                        raise RuntimeError("populated-key MSETNX control did not reject")
+            finally:
+                conn.must("SELECT", 0)
+            return dict(total_keys=cell.key_count, database_counts=counts, sampled_lengths=samples,
+                        argv=commands)
         # Populate with the same bytes as the scored command, using the native SET
         # pattern even when the measurement itself uses arbitrary-command mode.
         population = self.memtier({"cpus": self.load_cpus, "threads": 8, "clients": 8},
@@ -1392,8 +1673,8 @@ class Runner:
         if pop.wait(timeout=180):
             raise RuntimeError("key population failed")
         self.children.stop(pop)
-        if conn.must("DBSIZE") != KEYS:
-            raise RuntimeError(f"population did not create exactly {KEYS} keys")
+        if conn.must("DBSIZE") != cell.key_count:
+            raise RuntimeError(f"population did not create exactly {cell.key_count} keys")
         if cell.op == "REORDER":
             extra = prepare_long_keys(conn)
             if conn.must("DBSIZE") != KEYS + extra["keys"]:
@@ -1401,7 +1682,7 @@ class Runner:
             return extra
         if cell.data_bytes != 64 or cell.op == "MSETNX":
             sampled = {f"memtier-{number}": conn.must("STRLEN", f"memtier-{number}")
-                       for number in (1, KEYS)}
+                       for number in (1, cell.key_count)}
             if any(length != cell.data_bytes for length in sampled.values()):
                 raise RuntimeError(f"population value size differs from cell: {sampled}")
             extra = dict(data_bytes=cell.data_bytes, sampled_lengths=sampled)
@@ -1428,11 +1709,12 @@ class Runner:
         self.verify_binary(cell, arm)
         profile = None
         worker_affinity = None
+        poller = None
         legacy_control = self.legacy_reorder_control(cell, arm, knobs)
         read_local_control = self.read_local_reorder_control(cell, arm, knobs)
         folder = self.out / cell.id / f"n{instances}-{sequence}-{arm}"
         folder.mkdir(parents=True)
-        layout = load_layout(self.load_cpus, instances, cell.conns)
+        layout = load_layout(self.load_cpus, instances, cell.conns, cell.dbs)
         # Never connect to or terminate an existing listener, even if it speaks TomoKV.
         if not reused:
             require_unbound_port(self.args.port)
@@ -1449,6 +1731,7 @@ class Runner:
         command += ["--shards", str(min(8 * (ex if cell.mode == "2s" else len(self.server_cpus)), 256))]
         for name, value in knobs.items():
             command += [f"--{name}", str(value)]
+        command += server_arguments(cell.server_flags)
         started = time.monotonic()
         srv, conn, generators = None, None, []
         log = folder / "server.log"
@@ -1468,6 +1751,8 @@ class Runner:
                 result.update(pid=srv.pid, boot_info=_calibration["boot_info"],
                     server_argv=_calibration["server_argv"], population=_calibration["population"],
                     populate_seconds=0.)
+                if cell.dbs:
+                    result["configured_databases"] = _calibration["configured_databases"]
             else:
                 self.prepare_data(cell, arm, folder)
                 self.verify_binary(cell, arm)
@@ -1518,16 +1803,27 @@ class Runner:
                     actual = conn.must("CONFIG", "GET", name)
                     if actual != [name.encode(), str(value).encode()]:
                         raise RuntimeError(f"boot did not apply {name}={value}: {actual!r}")
+                if cell.dbs:
+                    configured = conn.must("CONFIG", "GET", "databases")
+                    if (len(configured) != 2 or configured[0] != b"databases"
+                            or int(configured[1]) < cell.dbs):
+                        raise RuntimeError(f"boot cannot serve {cell.dbs} databases: {configured!r}")
+                    result["configured_databases"] = int(configured[1])
                 result["population"] = self.populate(cell, arm, conn, folder)
                 result["populate_seconds"] = time.monotonic() - started
                 if _calibration is not None:
                     _calibration.update(srv=srv, conn=conn, cell=asdict(cell), boot_info=identity,
                         server_argv=result["server_argv"], population=result["population"])
+                    if cell.dbs:
+                        _calibration["configured_databases"] = result["configured_databases"]
             # Bracket ALL generators, after wire/snapshot population and any service-
             # cost probes. Only the named workload command counters enter accounting;
             # INFO/DEBUG and client protocol setup never become phantom workload ops.
             result["whole_run_commandstats_before"] = info(conn, "commandstats")
             result["whole_run_clients_before"] = info(conn, "clients")
+            if cell.poll:
+                poller = InfoPoller(self.args.port)
+                result["info_poller"] = poller.record
             load_lifetime = self.load_startup_seconds + WARMUP + window + TAIL
             load_launch = time.monotonic() if self.load_startup_seconds else None
             if self.load_startup_seconds:
@@ -1554,7 +1850,7 @@ class Runner:
                 worker_affinity.verify("after-fresh-warmup")
             if any(p.poll() is not None for p in generators):
                 raise RuntimeError("load generator exited before the measurement window")
-            if int(info(conn, "clients")["connected_clients"]) != cell.conns + 1:
+            if int(info(conn, "clients")["connected_clients"]) != cell.conns + 1 + bool(poller):
                 raise RuntimeError("not all requested load connections are active")
             before_lb = lb_snapshot(conn, folder / "lb-before.txt")
             before_lb_at = time.monotonic()
@@ -1587,8 +1883,10 @@ class Runner:
                 profile.begin(srv, generators)
             if worker_affinity is not None:
                 worker_affinity.verify("before-central-window")
-            before = info(conn, "stats")
-            before_cpu, t0 = cpu_seconds(srv.pid), time.monotonic()
+            with poller.lock if poller else nullcontext():
+                before = info(conn, "stats")
+                before_cpu, t0 = cpu_seconds(srv.pid), time.monotonic()
+                poll_before = poller.count() if poller else 0
             if self.load_startup_seconds:
                 # Use the earliest possible generator expiry. Setup consumes its
                 # allowance, never the central window or the reserved tail. Both
@@ -1599,13 +1897,21 @@ class Runner:
                 if remaining < window + TAIL:
                     raise RuntimeError("insufficient diagnostic load lifetime for full central window and tail")
             time.sleep(window)
-            after = info(conn, "stats")
-            t1, after_cpu = time.monotonic(), cpu_seconds(srv.pid)
+            with poller.lock if poller else nullcontext():
+                after = info(conn, "stats")
+                t1, after_cpu = time.monotonic(), cpu_seconds(srv.pid)
+                poll_after = poller.count() if poller else 0
+            commands = (int(after["total_commands_processed"]) -
+                        int(before["total_commands_processed"]) - 1 - (poll_after - poll_before))
+            if poller:
+                result["central_info_polls"] = dict(before=poll_before, after=poll_after,
+                                                     subtracted=poll_after - poll_before)
+                if not math.floor(t1 - t0) <= poll_after - poll_before <= math.ceil(t1 - t0):
+                    raise RuntimeError("INFO poller did not cover the whole central window at 1 Hz")
             if profile is not None:
                 # The same unmodified central command count/window remains the rate.
                 # PMCs encompass it; every wider endpoint offset is retained explicitly.
-                profile.finish(t0, t1, int(after["total_commands_processed"]) -
-                               int(before["total_commands_processed"]) - 1)
+                profile.finish(t0, t1, commands)
             if worker_affinity is not None:
                 worker_affinity.finish()
             generator_cpu.update(central_start_monotonic=t0, central_end_monotonic=t1,
@@ -1622,9 +1928,8 @@ class Runner:
             result.update(mode_after=after_mode, commandstats_after=after_commands)
             if any(p.poll() is not None for p in generators):
                 raise RuntimeError(f"load generator ended inside the {window}-second window")
-            if int(info(conn, "clients")["connected_clients"]) != cell.conns + 1:
+            if int(info(conn, "clients")["connected_clients"]) != cell.conns + 1 + bool(poller):
                 raise RuntimeError("load connections disappeared during measurement")
-            commands = int(after["total_commands_processed"]) - int(before["total_commands_processed"]) - 1
             if commands <= 0:
                 raise RuntimeError("no commands completed")
             misses = int(after["keyspace_misses"]) - int(before["keyspace_misses"])
@@ -1655,11 +1960,16 @@ class Runner:
             for i, p in enumerate(generators):
                 if p.wait(timeout=30):
                     raise RuntimeError(f"load generator {i} failed; see {folder}")
+            if poller:
+                poller.close()
+                poller.check()
             # All processes have drained and exited before the second endpoint.
             # Keep the central WINDOW calculation above unchanged: these wider
             # endpoints establish counter integrity, not a second throughput rate.
             result["whole_run_commandstats_after"] = info(conn, "commandstats")
             result["whole_run_clients_after"] = info(conn, "clients")
+            if cell.dbs:
+                result["database_counts_after"] = database_counts(conn, cell)
             for i, placement in enumerate(layout):
                 totals.append(memtier_totals(folder / f"load-{i}.json", cell,
                                             placement["threads"] * placement["clients"]))
@@ -1676,6 +1986,7 @@ class Runner:
                     limitation="exclude startup pause from scored latency or pin before traffic before any production adoption")
             result["whole_run_accounting"] = require_workload_accounting(
                 cell, result["whole_run_commandstats_before"], result["whole_run_commandstats_after"], totals)
+            require_cell_options_evidence(cell, result)
             total_rate = sum(t["rate"] for t in totals)
             self.verify_binary(cell, arm)
             result.update(complete=True, memtier=totals, memtier_rate=total_rate,
@@ -1708,6 +2019,8 @@ class Runner:
                 raise
             finally:
                 # A failed counter/artifact close must never strand owned children.
+                if poller is not None:
+                    poller.close()
                 keep_server = _calibration is not None and result.get("complete") is True
                 if conn and not keep_server:
                     conn.close()
@@ -2016,7 +2329,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
                                  "load_physical": load_physical, "load_smt": load_smt,
                                  "load_instance_ceiling": min(args.max_instances, len(load_physical)),
                                  "load_cpus": load_cpus, "port": args.port,
-                                 "permitted_ports": permitted_ports, "keys": KEYS,
+                                 "permitted_ports": permitted_ports, "keys": workload_keys(cells),
                                  "data_bytes": workload_data_bytes(cells),
                                  "key_pattern": "P:P", "atomic": "per-cell",
                                  "split_ratio": split_ratio,
@@ -2335,6 +2648,160 @@ def self_test():
             patcher = mock.patch(__name__ + ".QuietMonitor", return_value=self.quiet)
             self.quiet_factory = patcher.start()
             self.addCleanup(patcher.stop)
+
+        def test_optional_cell_fields_are_strict_and_part_of_calibration_shape(self):
+            from gate_measurements import shape
+            original = read_cells(ROOT / "docs/lbplanner/generic-cells.txt")
+            self.assertEqual(len(original), 14)
+            self.assertTrue(all(not (c.server_flags or c.dbs or c.poll or c.keys) for c in original))
+            self.assertNotIn("dbs", coverage(original))
+            template = (ROOT / "docs/lbplanner/generic-cells.txt").read_text().splitlines()[0]
+            with tempfile.TemporaryDirectory(dir=ROOT / "build") as directory:
+                source = Path(directory) / "cells.txt"
+                source.write_text(template + " | srv=--databases 16 | dbs=-1 | poll=info1hz | keys=40000000\n")
+                cell = read_cells(source)[0]
+                self.assertEqual((cell.dbs, cell.poll, cell.key_count, cell.database_keys(15)),
+                                 (16, "info1hz", 40000000, 2500000))
+                self.assertNotEqual(shape(cell), shape(original[0]))
+                for option in ("srv=--databases 16 | dbs=17", "dbs=-1", "dbs=16", "dbs=x",
+                               "srv=--databases 16 | srv=--databases 32", "poll=info2hz", "keys=-1",
+                               "srv=--port 8000", "srv=--read-local=0", 'srv=--databases "16',
+                               "srv=--databases 0", "srv=--databases", "unknown=1", ""):
+                    source.write_text(template + " | " + option + "\n")
+                    with self.subTest(option=option), self.assertRaises(ValueError):
+                        read_cells(source)
+                source.write_text(template + " | dbs=0 | keys=0 | poll=0\n")
+                self.assertEqual(read_cells(source)[0], original[0])
+            # Literal argv parsing, never shell expansion.
+            self.assertEqual(server_arguments('--logfile "literal $(touch nope)"'),
+                             ["--logfile", "literal $(touch nope)"])
+
+        def test_multidb_cell_inventory_and_exact_connection_assignment(self):
+            cells = read_cells(ROOT / "docs/lbplanner/multidb-cells.txt")
+            self.assertEqual([c.id for c in cells],
+                ["h05m", "h06m", "p8gm", "p8sm", "d32gm_l1", "d32sm_l1", "x9m_32_l0", "m8gm_l0"])
+            self.assertEqual([(c.mode, c.read_local) for c in cells[4:6]], [("2s", 1)] * 2)
+            self.assertEqual(cells[6].mix, "9:1")
+            self.assertTrue(all((c.dbs, c.conns, c.instances, c.metric) == (16, 512, 8, "rate") for c in cells))
+            self.assertTrue(all(sum(c.database_keys(d) for d in range(16)) == KEYS for c in cells))
+            for n in (1, 2, 4, 8, 12, 16, 24):
+                for conns in (512, 513):
+                    layout = load_layout(list(range(32, 112)), n, conns, 16)
+                    indices, assigned_cpus = [], []
+                    for placement in layout:
+                        assigned = [placement["connection_start"] + i * placement["connection_stride"]
+                                    for i in range(placement["threads"] * placement["clients"])]
+                        self.assertTrue(all(i % 16 == placement["database"] for i in assigned))
+                        indices.extend(assigned)
+                        assigned_cpus.extend(placement["cpus"])
+                    self.assertEqual(sorted(indices), list(range(conns)))
+                    self.assertEqual(len(layout), max(n, 16))
+                    self.assertEqual(sorted(assigned_cpus), list(range(32, 112)))
+            mainline = load_layout(list(range(32, 112)), 8, 512, 16)
+            smoke = load_layout(list(range(120, 128)), 8, 512, 16)
+            self.assertEqual(sum(p["threads"] for p in mainline), 64)
+            self.assertEqual(sum(p["threads"] for p in smoke), 16)
+            self.assertTrue(all(p["threads"] * p["clients"] == 32 for p in mainline + smoke))
+
+        def test_multidb_population_and_select_witness_reject_db0_only_load(self):
+            import copy
+            from types import SimpleNamespace
+            cell = read_cells(ROOT / "docs/lbplanner/multidb-cells.txt")[1]
+            selected = [0]
+            def reply(*args):
+                if args[0] == "SELECT":
+                    selected[0] = args[1]
+                    return b"OK"
+                if args[0] == "DBSIZE":
+                    return cell.database_keys(selected[0])
+                if args[0] == "STRLEN":
+                    return 64
+                self.fail(args)
+            conn = mock.Mock()
+            conn.must.side_effect = reply
+            children = mock.Mock()
+            children.start.return_value.wait.return_value = 0
+            runner = Runner(SimpleNamespace(server_cores="112-119", server_smt="", load_cores="120-127",
+                load_smt="", port=9090, memtier="never-executed-memtier"), Path("/unused"), {}, children)
+            population = runner.populate(cell, "A", conn, Path("/unused"))
+            self.assertEqual(population["database_counts"], {str(d): 125000 for d in range(16)})
+            self.assertEqual(selected[0], 0)
+            self.assertEqual(children.start.call_count, 16)
+            self.assertEqual(children.stop.call_count, 16)
+            layout = load_layout(runner.load_cpus, 8, 512, 16)
+            argv = [runner.memtier(p, cell=cell) + workload_arguments(cell) for p in layout]
+            run = dict(population=population, configured_databases=16,
+                       database_counts_after=population["database_counts"], load_layout=layout, load_argv=argv,
+                       server_argv=["server", "--databases", "16"])
+            require_cell_options_evidence(cell, run)
+            for mutate in (lambda r: r["database_counts_after"].update({"7": 0}),
+                           lambda r: r.update(configured_databases=1),
+                           lambda r: r["server_argv"].pop(),
+                           lambda r: r["load_argv"][7].remove("--select-db=7"),
+                           lambda r: r["load_layout"][7].update(connection_start=0)):
+                broken = copy.deepcopy(run)
+                mutate(broken)
+                with self.assertRaises(RuntimeError):
+                    require_cell_options_evidence(cell, broken)
+            conn.must.side_effect = lambda *args: 0 if args[0] == "DBSIZE" and selected[0] == 7 else reply(*args)
+            with self.assertRaisesRegex(RuntimeError, "per-DB population differs"):
+                database_counts(conn, cell)
+            self.assertEqual(selected[0], 0)
+
+        def test_server_flags_reach_both_arm_boots(self):
+            from types import SimpleNamespace
+            cell = read_cells(ROOT / "docs/lbplanner/multidb-cells.txt")[1]
+            with tempfile.TemporaryDirectory(dir=ROOT / "build") as directory:
+                children = mock.Mock()
+                children.start.side_effect = RuntimeError("intercepted before boot")
+                runner = Runner(SimpleNamespace(server_cores="112-119", server_smt="", load_cores="120-127",
+                    load_smt="", port=9090), Path(directory), {"A": Path("pre"), "B": Path("post")}, children)
+                for sequence, arm in enumerate(("A", "B"), 1):
+                    with mock.patch(__name__ + ".require_unbound_port"), contextlib.redirect_stdout(io.StringIO()), \
+                            self.assertRaisesRegex(RuntimeError, "intercepted before boot"):
+                        runner.measure(cell, arm, sequence, 8, {})
+                    command = children.start.call_args.args[0]
+                    self.assertEqual(command[-2:], ["--databases", "16"])
+                    self.assertEqual(command[3], runner.binaries[arm])
+
+        def test_info_poller_cadence_bad_replies_and_throughput_exclusion(self):
+            import copy
+            from types import SimpleNamespace
+            records = []
+            for corrupt in ("", "late", "reply"):
+                poller = InfoPoller.__new__(InfoPoller)
+                tick = [10.]
+                poller.record = dict(started_monotonic=10., polls=[], error=None)
+                poller.lock = threading.Lock()
+                def wait(delay):
+                    tick[0] += delay + (1.1 if corrupt == "late" else 0)
+                    return len(poller.record["polls"]) == 3
+                poller.stopping = SimpleNamespace(wait=wait)
+                poller.conn = mock.Mock()
+                poller.conn.must.return_value = b"bad" if corrupt == "reply" else b"# Keyspace\r\ndb0:keys=1\r\n"
+                with mock.patch.object(time, "monotonic", side_effect=lambda: tick[0]):
+                    poller.run()
+                if corrupt:
+                    with self.assertRaises(RuntimeError):
+                        poller.check()
+                else:
+                    poller.check()
+                    self.assertEqual(len(poller.record["polls"]), 3)
+                    records.append(poller.record)
+            cell = replace(self.cell, poll="info1hz")
+            record = dict(records[0], completed_polls=3, stopped_monotonic=13.)
+            run = dict(info_poller=record, window_seconds=2., commands=100,
+                central_info_polls=dict(before=1, after=3, subtracted=2),
+                info_before=dict(total_commands_processed="100"), info_after=dict(total_commands_processed="203"))
+            require_cell_options_evidence(cell, run)
+            for mutate in (lambda r: r["info_poller"].update(error="missed period"),
+                           lambda r: r["info_poller"]["polls"].pop(),
+                           lambda r: r["central_info_polls"].update(subtracted=0),
+                           lambda r: r.update(commands=102)):
+                broken = copy.deepcopy(run)
+                mutate(broken)
+                with self.assertRaises(RuntimeError):
+                    require_cell_options_evidence(cell, broken)
 
         def pin_fixture(self, lower=1, trials=()):
             serial = 0
