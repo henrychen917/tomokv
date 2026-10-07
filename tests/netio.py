@@ -37,6 +37,8 @@ import struct
 import sys
 import time
 
+from _client_wait import wait_client_state
+
 
 def engine_checks(expected, engine, events, recvs):
     yield engine == expected, 'A1 CONFIG GET net-io', (engine, expected)
@@ -216,10 +218,11 @@ LAT_BUDGET_MS = 25.0
 worst = 0.0
 for round_ in range(20):
     waiter = Conn(timeout=10)
+    waiter_id = waiter.cmd("CLIENT", "ID")[1:].decode()
     key = "netio:blk:%d" % round_
     waiter.cmd("DEL", key)
-    waiter.send("BLPOP", key, "5")
-    time.sleep(0.05)                      # let it actually park
+    waiter.send("BLPOP", key, "0")
+    wait_client_state(admin, waiter_id, "blocked")
     pusher = Conn(timeout=10)
     t0 = time.monotonic()
     pusher.cmd("LPUSH", key, "woke")

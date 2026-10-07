@@ -1,0 +1,8 @@
+ok	0.630000	snapshot concurrent cut (epoll)
+ok	0.190000	snapshot cut reload (epoll)
+ok	2.710000	snapshot never tears a cross-shard MSET group (epoll, atomic 1)
+ok	5.260000	snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)
+ok	0.050000	typed snapshot save (epoll)
+ok	0.050000	typed snapshot reload (epoll)
+ok	0.160000	typed snapshot preimage race (epoll)
+ok	0.050000	typed snapshot race reload (epoll)

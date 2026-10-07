@@ -1,0 +1,1716 @@
+tests/aof_rewrite_matrix.sh:93:  python3 tests/debug_load.py 127.0.0.1 "$PORT" LOADAOF
+tests/mutants.py:1:#!/usr/bin/env python3
+tests/mutants.py:13:import argparse
+tests/mutants.py:19:from pathlib import Path
+tests/mutants.py:26:import time
+tests/mutants.py:228:    while True:
+tests/mutants.py:718:from pathlib import Path
+tests/mutants.py:810:        spectator = subprocess.Popen([sys.executable, '-c', 'import time; print("ready",flush=True); time.sleep(90)'],
+tests/mutants.py:852:def main():
+tests/mutants.py:853:    parser = argparse.ArgumentParser(description=__doc__)
+tests/mutants.py:869:    args = parser.parse_args()
+tests/aof_frames.py:1:#!/usr/bin/env python3
+tests/aof_frames.py:232:if __name__ == "__main__":
+tests/acl.py:1:#!/usr/bin/env python3
+tests/acl.py:13:import time
+tests/acl.py:53:    def command(self, *args):
+tests/acl.py:256:time.sleep(0.25)
+tests/dumpttl.py:1:#!/usr/bin/env python3
+tests/dumpttl.py:12:import time
+tests/dumpttl.py:58:    def cmd(self, *args):
+tests/dumpttl.py:185:    expect("DEBUG RELOAD snapshot round-trip", target.cmd("DEBUG", "RELOAD"), b"OK")
+tests/dumpttl.py:237:def main():
+tests/dumpttl.py:253:if __name__ == "__main__":
+tests/respcompat_pad.py:1:#!/usr/bin/env python3
+tests/respcompat_pad.py:7:import argparse
+tests/respcompat_pad.py:10:from pathlib import Path
+tests/respcompat_pad.py:25:def main():
+tests/respcompat_pad.py:26:    parser = argparse.ArgumentParser(description=__doc__)
+tests/respcompat_pad.py:31:    args = parser.parse_args()
+tests/respcompat_pad.py:97:if __name__ == "__main__":
+tests/xshard_dispatch_scale.py:1:#!/usr/bin/env python3
+tests/xshard_dispatch_scale.py:16:import time
+tests/xshard_dispatch_scale.py:82:def main():
+tests/xshard_dispatch_scale.py:142:if __name__ == "__main__":
+tests/cmdgap2.py:1:#!/usr/bin/env python3
+tests/cmdgap2.py:70:    def cmd(self, *args):
+tests/r7shadow_sync_test.py:1:#!/usr/bin/env python3
+tests/r7shadow_sync_test.py:3:from pathlib import Path
+tests/r7shadow_sync_test.py:9:def main():
+tests/_gate_process.py:9:from pathlib import Path
+tests/_gate_process.py:13:import time
+tests/_gate_process.py:125:        left = deadline - time.monotonic()
+tests/_gate_process.py:132:        while True:
+tests/_gate_process.py:183:                conn.close()
+tests/snap_cut_battery.py:28:def wait_save_idle(timeout=90):
+tests/snap_cut_battery.py:29:    deadline = time.monotonic() + timeout
+tests/snap_cut_battery.py:30:    while True:
+tests/snap_cut_battery.py:31:        active = info_field("rdb_bgsave_in_progress")
+tests/snap_cut_battery.py:32:        if active not in (b"0", b"1"):
+tests/snap_cut_battery.py:33:            raise AssertionError("missing/invalid BGSAVE state: %r" % (active,))
+tests/snap_cut_battery.py:34:        if time.monotonic() >= deadline:
+tests/snap_cut_battery.py:35:            raise AssertionError("BGSAVE did not finish within %ds" % timeout)
+tests/snap_cut_battery.py:36:        if active == b"0":
+tests/snap_cut_battery.py:38:        time.sleep(.02)
+tests/snap_cut_battery.py:290:    wait_save_idle()
+tests/snap_cut_battery.py:291:    save_reply = cmd("BGSAVE")
+tests/snap_cut_battery.py:292:    if save_reply != b"+Background saving started":
+tests/snap_cut_battery.py:293:        raise AssertionError("BGSAVE failed: %r" % (save_reply,))
+tests/snap_cut_battery.py:294:    print("BGSAVE:", save_reply)
+tests/snap_cut_battery.py:301:    t0=time.monotonic()
+tests/snap_cut_battery.py:302:    wait_save_idle()
+tests/snap_cut_battery.py:303:    print("bgsave done in %.1fs (mutation storm raced the capture)" % (time.monotonic()-t0))
+tests/signalacct_source_checks.py:1:#!/usr/bin/env python3
+tests/signalacct_source_checks.py:3:import argparse
+tests/signalacct_source_checks.py:7:from pathlib import Path
+tests/signalacct_source_checks.py:26:def main():
+tests/signalacct_source_checks.py:28:    parser = argparse.ArgumentParser(description=__doc__)
+tests/signalacct_source_checks.py:31:    args = parser.parse_args()
+tests/multidb.py:1:#!/usr/bin/env python3
+tests/multidb.py:3:import argparse
+tests/multidb.py:5:import time
+tests/multidb.py:6:from _lib import Conn, RespError, debug_load, encode, topology
+tests/multidb.py:31:def main():
+tests/multidb.py:33:    parser.add_argument("host")
+tests/multidb.py:34:    parser.add_argument("port", type=int)
+tests/multidb.py:37:    args = parser.parse_args()
+tests/multidb.py:273:            # DEBUG RELOAD invokes the native snapshot save/load path. LOADAOF replays the
+tests/multidb.py:298:            expect(debug_load(admin), b"OK", "snapshot reload")
+tests/multidb.py:300:            expect(debug_load(admin, "LOADAOF"), b"OK", "AOF replay")
+tests/multidb.py:308:if __name__ == "__main__":
+tests/deadfused_checks.py:1:#!/usr/bin/env python3
+tests/deadfused_checks.py:4:from pathlib import Path
+tests/deadfused_checks.py:11:def main():
+tests/multi_exec.py:1:#!/usr/bin/env python3
+tests/multi_exec.py:7:import time
+tests/multi_exec.py:74:    def cmd(self, *args):
+tests/execabort_watch_gate_test.py:1:#!/usr/bin/env python3
+tests/execabort_watch_gate_test.py:4:from pathlib import Path
+tests/execabort_watch_gate_test.py:7:import unittest
+tests/execabort_watch_gate_test.py:62:    unittest.main()
+tests/abba_evidence.py:1:#!/usr/bin/env python3
+tests/arity.py:1:#!/usr/bin/env python3
+tests/arity.py:153:    if got != expected:
+tests/arity.py:167:    if got != expected:
+tests/gate_subset_test.py:1:#!/usr/bin/env python3
+tests/gate_subset_test.py:3:from pathlib import Path
+tests/gate_subset_test.py:7:import unittest
+tests/gate_subset_test.py:91:    unittest.main()
+tests/gate_history.py:1:#!/usr/bin/env python3
+tests/gate_history.py:12:import argparse
+tests/gate_history.py:19:from pathlib import Path
+tests/gate_history.py:26:import time
+tests/gate_history.py:27:import unittest
+tests/gate_history.py:690:    while True:
+tests/gate_history.py:702:            if time.monotonic() >= deadline:
+tests/gate_history.py:735:    def setUp(self):
+tests/gate_history.py:974:from pathlib import Path
+tests/gate_history.py:995:from pathlib import Path
+tests/gate_history.py:1075:        outsider = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+tests/gate_history.py:1138:                deadline = time.monotonic() + timeout
+tests/gate_history.py:1149:                while True:
+tests/gate_history.py:1307:    exec /usr/bin/python3 -c 'import os,signal,time; from pathlib import Path; signal.signal(signal.SIGTERM,signal.SIG_IGN); Path(os.environ["FIXTURE"]+"/stalled-ready").touch(); time.sleep(60)'
+tests/gate_history.py:1343:        from unittest.mock import patch
+tests/gate_history.py:1359:        from unittest.mock import patch
+tests/gate_history.py:1433:    python3 -c 'import os,signal,time; from pathlib import Path; signal.signal(signal.SIGTERM,signal.SIG_IGN); Path(os.environ["RUN_DIR"]+"/child").write_text(str(os.getpid())); time.sleep(60)' &
+tests/gate_history.py:1439:        outsider = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+tests/gate_history.py:1496:        started = time.monotonic()
+tests/gate_history.py:1573:    def setUp(self):
+tests/gate_history.py:1725:    parser = argparse.ArgumentParser(description=__doc__)
+tests/gate_history.py:1839:if __name__ == "__main__":
+tests/flip_ttl.py:1:#!/usr/bin/env python3
+tests/flip_ttl.py:22:import time
+tests/flip_ttl.py:178:        time.sleep(0.1)
+tests/flipctl_test.py:1:#!/usr/bin/env python3
+tests/flipctl_test.py:5:import unittest
+tests/flipctl_test.py:120:if __name__ == "__main__":
+tests/flipctl_test.py:121:    unittest.main()
+tests/flipctl.py:1:#!/usr/bin/env python3
+tests/flipctl.py:13:import argparse
+tests/flipctl.py:17:import time
+tests/flipctl.py:61:        while True:
+tests/flipctl.py:205:    deadline = time.monotonic() + timeout
+tests/flipctl.py:206:    last = None
+tests/flipctl.py:215:def main():
+tests/flipctl.py:226:    args = parser.parse_args()
+tests/flipctl.py:357:        jitter_started = time.monotonic()
+tests/flipctl.py:425:                now = time.monotonic()
+tests/flipctl.py:655:if __name__ == "__main__":
+tests/abba_reorder_control.py:12:from pathlib import Path
+tests/abba_reorder_control.py:15:import time
+tests/edgeproto.py:1:#!/usr/bin/env python3
+tests/edgeproto.py:28:import time
+tests/edgeproto.py:72:    def cmd(self, *args):
+tests/edgeproto.py:498:            time.sleep(0.1)
+tests/edgeproto.py:503:def main():
+tests/edgeproto.py:532:if __name__ == "__main__":
+tests/gate_measurements.py:1:#!/usr/bin/env python3
+tests/gate_measurements.py:9:import argparse
+tests/gate_measurements.py:15:from pathlib import Path
+tests/gate_measurements.py:18:import time
+tests/gate_measurements.py:460:    import unittest
+tests/gate_measurements.py:463:        def setUp(self):
+tests/gate_measurements.py:759:def main():
+tests/gate_measurements.py:760:    parser = argparse.ArgumentParser(description=__doc__)
+tests/gate_measurements.py:765:    args = parser.parse_args()
+tests/gate_measurements.py:781:if __name__ == "__main__":
+tests/abba_aslr.py:1:#!/usr/bin/env python3
+tests/abba_aslr.py:17:import argparse
+tests/abba_aslr.py:21:from pathlib import Path
+tests/abba_aslr.py:27:import time
+tests/abba_aslr.py:286:    parser = argparse.ArgumentParser(description=__doc__)
+tests/abba_aslr.py:405:    import unittest
+tests/abba_aslr.py:609:if __name__ == "__main__":
+tests/mode_equivalence.py:1:#!/usr/bin/env python3
+tests/mode_equivalence.py:22:import argparse
+tests/mode_equivalence.py:29:from pathlib import Path
+tests/mode_equivalence.py:33:import time
+tests/mode_equivalence.py:228:    parser = argparse.ArgumentParser(description=__doc__)
+tests/rlcache_churn.py:1:#!/usr/bin/env python3
+tests/rlcache_churn.py:41:import time
+tests/rlcache_churn.py:113:        conn.close()
+tests/rlcache_churn.py:159:        conn.close()
+tests/rlcache_churn.py:164:def main():
+tests/rlcache_churn.py:212:        time.sleep(0.25)
+tests/rlcache_churn.py:263:if __name__ == "__main__":
+tests/connreset_harness_test.py:1:#!/usr/bin/env python3
+tests/connreset_harness_test.py:10:from pathlib import Path
+tests/connreset_harness_test.py:14:import unittest
+tests/connreset_harness_test.py:15:from unittest.mock import patch
+tests/connreset_harness_test.py:140:if __name__ == "__main__":
+tests/connreset_harness_test.py:144:    unittest.main()
+tests/r7shadow_sync.py:1:#!/usr/bin/env python3
+tests/r7shadow_sync.py:8:import argparse
+tests/r7shadow_sync.py:9:from pathlib import Path
+tests/r7shadow_sync.py:193:    parser = argparse.ArgumentParser(description=__doc__)
+tests/r7shadow_sync.py:195:    args = parser.parse_args()
+tests/cmdmeta_test.py:1:#!/usr/bin/env python3
+tests/cmdmeta_test.py:7:import ast
+tests/cmdmeta_test.py:12:from pathlib import Path
+tests/cmdmeta_test.py:16:import unittest
+tests/cmdmeta_test.py:17:from unittest.mock import patch
+tests/cmdmeta_test.py:188:if __name__ == "__main__":
+tests/at15_gate_test.py:5:import unittest
+tests/at15_gate_test.py:48:    unittest.main()
+tests/spscmask_flip.py:1:#!/usr/bin/env python3
+tests/spscmask_flip.py:20:import time
+tests/spscmask_flip.py:56:    def command(self, *args):
+tests/spscmask_flip.py:116:            conn.close()
+tests/spscmask_flip.py:121:            conn.close()
+tests/spscmask_flip.py:186:def main():
+tests/spscmask_flip.py:242:        if got != expected:
+tests/spscmask_flip.py:251:        conn.close()
+tests/spscmask_flip.py:255:if __name__ == "__main__":
+tests/geo.py:1:#!/usr/bin/env python3
+tests/geo.py:26:    def command(self, *args):
+tests/geo.py:64:def main():
+tests/geo.py:164:if __name__ == "__main__": main()
+tests/climonfix_artifacts.py:1:#!/usr/bin/env python3
+tests/climonfix_artifacts.py:3:import argparse
+tests/climonfix_artifacts.py:5:from pathlib import Path
+tests/climonfix_artifacts.py:180:    parser = argparse.ArgumentParser(description=__doc__)
+tests/climonfix_artifacts.py:184:    args = parser.parse_args()
+tests/netcmd.py:1:#!/usr/bin/env python3
+tests/netcmd.py:97:if __name__ == "__main__":
+tests/stream.py:1:#!/usr/bin/env python3
+tests/stream.py:8:import time
+tests/stream.py:74:    def cmd(self, *args):
+tests/stream.py:89:    deadline = time.monotonic() + timeout
+tests/stream.py:262:started = time.monotonic()
+tests/nullpublish_refreeze_test.py:1:#!/usr/bin/env python3
+tests/nullpublish_refreeze_test.py:8:from pathlib import Path
+tests/nullpublish_refreeze_test.py:14:import unittest
+tests/xmove.py:1:#!/usr/bin/env python3
+tests/xmove.py:7:import time
+tests/xmove.py:37:    def command(self, *args):
+tests/xmove.py:307:def main():
+tests/xmove.py:322:if __name__ == "__main__":
+tests/_differ_history.py:1:#!/usr/bin/env python3
+tests/_differ_history.py:9:import argparse
+tests/_differ_history.py:17:from pathlib import Path
+tests/_differ_history.py:248:def main():
+tests/_differ_history.py:249:    parser = argparse.ArgumentParser(description=__doc__)
+tests/_differ_history.py:264:    args = parser.parse_args()
+tests/reorder_flip.py:1:#!/usr/bin/env python3
+tests/reorder_flip.py:10:import argparse
+tests/reorder_flip.py:15:from pathlib import Path
+tests/reorder_flip.py:19:import time
+tests/reorder_flip.py:61:def main():
+tests/reorder_flip.py:62:    parser = argparse.ArgumentParser(description=__doc__)
+tests/reorder_flip.py:74:    args = parser.parse_args()
+tests/reorder_flip.py:117:        started = time.monotonic()
+tests/reorder_flip.py:188:            now = time.monotonic()
+tests/reorder_flip.py:200:if __name__ == "__main__":
+tests/perf_gate.py:1:#!/usr/bin/env python3
+tests/perf_gate.py:8:import argparse
+tests/perf_gate.py:15:from pathlib import Path
+tests/perf_gate.py:22:import time
+tests/perf_gate.py:202:    started = time.monotonic()
+tests/perf_gate.py:225:            while True:
+tests/perf_gate.py:231:                time.sleep(.02)
+tests/perf_gate.py:452:def main():
+tests/aof_rewrite_triggers.py:1:#!/usr/bin/env python3
+tests/aof_rewrite_triggers.py:8:import time
+tests/aof_rewrite_triggers.py:68:    def command(self, *args):
+tests/aof_rewrite_triggers.py:89:    deadline = time.monotonic() + timeout
+tests/aof_rewrite_triggers.py:145:    deadline = time.monotonic() + timeout
+tests/tracking.py:1:#!/usr/bin/env python3
+tests/tracking.py:16:import time
+tests/tracking.py:18:from _client_wait import wait_client_state
+tests/tracking.py:50:    def command(self, *args):
+tests/tracking.py:99:        while True:
+tests/tracking.py:101:            if left <= 0:
+tests/tracking.py:473:    wait_client_state(admin, tid, "gone")
+tests/tracking.py:475:    time.sleep(0.4)
+tests/multidb_serial.py:1:#!/usr/bin/env python3
+tests/multidb_serial.py:11:import argparse
+tests/multidb_serial.py:15:import time
+tests/multidb_serial.py:61:def main():
+tests/multidb_serial.py:62:    parser = argparse.ArgumentParser(description=__doc__)
+tests/multidb_serial.py:67:    args = parser.parse_args()
+tests/servertail.py:1:#!/usr/bin/env python3
+tests/servertail.py:24:import time
+tests/servertail.py:80:    def cmd(self, *args):
+tests/servertail.py:309:    time.sleep(0.05)
+tests/servertail.py:315:    time.sleep(0.05)
+tests/servertail.py:440:            time.sleep(0.1)
+tests/servertail.py:501:def main():
+tests/servertail.py:521:if __name__ == "__main__":
+tests/connreset_repro.py:1:#!/usr/bin/env python3
+tests/connreset_repro.py:10:import argparse
+tests/connreset_repro.py:17:from pathlib import Path
+tests/connreset_repro.py:23:import time
+tests/connreset_repro.py:115:                self.conn.close()
+tests/connreset_repro.py:189:    first, last = None, None
+tests/connreset_repro.py:379:def main():
+tests/connreset_repro.py:380:    parser = argparse.ArgumentParser(description=__doc__)
+tests/connreset_repro.py:398:    args = parser.parse_args()
+tests/connreset_repro.py:457:if __name__ == "__main__":
+tests/shutsave_test.py:1:#!/usr/bin/env python3
+tests/shutsave_test.py:5:from pathlib import Path
+tests/shutsave_test.py:9:import unittest
+tests/shutsave_test.py:16:    def setUp(self):
+tests/shutsave_test.py:54:        with self.assertRaises(AssertionError):
+tests/shutsave_test.py:67:        with self.assertRaises(AssertionError):
+tests/shutsave_test.py:84:    unittest.main()
+tests/shutdown_persist.py:1:#!/usr/bin/env python3
+tests/shutdown_persist.py:3:import argparse
+tests/shutdown_persist.py:7:from pathlib import Path
+tests/shutdown_persist.py:11:import time
+tests/shutdown_persist.py:47:                conn.close()
+tests/shutdown_persist.py:125:def main():
+tests/shutdown_persist.py:126:    parser = argparse.ArgumentParser(description=__doc__)
+tests/shutdown_persist.py:135:    args = parser.parse_args()
+tests/signalacct_core_controls.py:1:#!/usr/bin/env python3
+tests/signalacct_core_controls.py:5:from pathlib import Path
+tests/signalacct_core_controls.py:18:def main():
+tests/cmdgap.py:1:#!/usr/bin/env python3
+tests/cmdgap.py:69:    def cmd(self, *args):
+tests/abba_experiments.py:1:#!/usr/bin/env python3
+tests/abba_experiments.py:21:import argparse
+tests/abba_experiments.py:26:from pathlib import Path
+tests/abba_experiments.py:32:import time
+tests/abba_experiments.py:468:    parser = argparse.ArgumentParser(description=__doc__)
+tests/abba_experiments.py:486:    import unittest
+tests/abba_experiments.py:966:    started = time.monotonic()
+tests/abba_experiments.py:1041:if __name__ == "__main__":
+tests/wiredump.py:1:#!/usr/bin/env python3
+tests/wiredump.py:12:import argparse
+tests/wiredump.py:20:import time
+tests/wiredump.py:73:    def cmd(self, *args):
+tests/wiredump.py:392:def main():
+tests/wiredump.py:394:    parser.add_argument("host")
+tests/wiredump.py:402:    args = parser.parse_args()
+tests/wiredump.py:414:if __name__ == "__main__":
+tests/aof_torn_group.py:1:#!/usr/bin/env python3
+tests/aof_torn_group.py:16:import time
+tests/aof_torn_group.py:59:    def cmd(self, *args):
+tests/aof_torn_group.py:75:    deadline = time.monotonic() + timeout
+tests/borrow_registry.py:1:#!/usr/bin/env python3
+tests/borrow_registry.py:36:import time
+tests/borrow_registry.py:155:    deadline = time.monotonic() + timeout
+tests/borrow_registry.py:158:        time.sleep(0.05)
+tests/borrow_registry.py:163:def main():
+tests/borrow_registry.py:309:if __name__ == "__main__":
+tests/evict_battery_test.py:1:#!/usr/bin/env python3
+tests/evict_battery_test.py:3:import ast
+tests/evict_battery_test.py:6:from pathlib import Path
+tests/evict_battery_test.py:8:import unittest
+tests/evict_battery_test.py:128:    unittest.main()
+tests/abba_instrument.py:1:#!/usr/bin/env python3
+tests/abba_instrument.py:15:import ast
+tests/abba_instrument.py:20:from pathlib import Path
+tests/abba_instrument.py:169:    import unittest
+tests/abba_instrument.py:177:        def setUp(self):
+tests/abba_instrument.py:286:if __name__ == "__main__":
+tests/cd13b_wire.py:1:#!/usr/bin/env python3
+tests/mdbqsbr_live_test.py:1:#!/usr/bin/env python3
+tests/mdbqsbr_live_test.py:4:from pathlib import Path
+tests/mdbqsbr_live_test.py:8:import unittest
+tests/mdbqsbr_live_test.py:29:    def setUp(self):
+tests/mdbqsbr_live_test.py:181:    unittest.main()
+tests/signalacct_live_test.py:1:#!/usr/bin/env python3
+tests/signalacct_live_test.py:3:import argparse
+tests/signalacct_live_test.py:6:from pathlib import Path
+tests/signalacct_live_test.py:8:import unittest
+tests/signalacct_live_test.py:147:    unittest.main()
+tests/flush_capture.py:25:    print("BGSAVE:", cmd("BGSAVE"))
+tests/flush_capture.py:28:    t0=time.time()
+tests/flush_capture.py:29:    while info("rdb_bgsave_in_progress")!=b"0" and time.time()-t0<120: time.sleep(0.1)
+tests/push_tear_repro.py:13:import time; time.sleep(0.3); c.recv(65536)
+tests/push_tear_repro.py:15:c.sendall(enc("SUBSCRIBE","ch")); time.sleep(0.3); c.recv(65536)
+tests/push_tear_repro.py:22:    while True:
+tests/multirace.py:1:#!/usr/bin/env python3
+tests/multirace.py:72:import time
+tests/multirace.py:115:    def command(self, *args):
+tests/multirace.py:304:        conn.close()
+tests/multirace.py:430:        conn.close()
+tests/multirace.py:446:    while True:
+tests/multirace.py:547:def main():
+tests/multirace.py:574:if __name__ == "__main__":
+tests/benchfeat.py:1:#!/usr/bin/env python3
+tests/benchfeat.py:98:            while True:
+tests/benchfeat.py:178:            while True:
+tests/legacy_reorder_witness.py:1:#!/usr/bin/env python3
+tests/legacy_reorder_witness.py:40:import argparse
+tests/legacy_reorder_witness.py:44:from pathlib import Path
+tests/legacy_reorder_witness.py:51:import time
+tests/legacy_reorder_witness.py:147:        while True:
+tests/legacy_reorder_witness.py:371:    parser = argparse.ArgumentParser(description=__doc__)
+tests/legacy_reorder_witness.py:440:    import unittest
+tests/legacy_reorder_witness.py:443:        def setUp(self):
+tests/legacy_reorder_witness.py:669:if __name__ == "__main__":
+tests/reorder_scope.py:1:#!/usr/bin/env python3
+tests/reorder_scope.py:16:import argparse
+tests/reorder_scope.py:21:from pathlib import Path
+tests/reorder_scope.py:25:import time
+tests/reorder_scope.py:393:def main():
+tests/reorder_scope.py:394:    parser = argparse.ArgumentParser(description=__doc__)
+tests/reorder_scope.py:399:    args = parser.parse_args()
+tests/reorder_scope.py:416:if __name__ == "__main__":
+tests/execatomic.py:1:#!/usr/bin/env python3
+tests/execatomic.py:49:import time
+tests/execatomic.py:125:    def cmd(self, *args):
+tests/execatomic.py:232:        time.sleep(0.05)                     # the lead fragment has answered; the rest are parked
+tests/climon.py:1:#!/usr/bin/env python3
+tests/climon.py:10:import time
+tests/climon.py:35:    def command(self, *args):
+tests/climon.py:184:                conn.close()
+tests/climon.py:304:        conn.close()
+tests/climon.py:310:            conn.close()
+tests/redisgap.py:1:#!/usr/bin/env python3
+tests/redisgap.py:8:import argparse
+tests/redisgap.py:12:from pathlib import Path
+tests/redisgap.py:17:import time
+tests/redisgap.py:51:    def command(self, *args):
+tests/redisgap.py:269:                    time.sleep(.02)
+tests/redisgap.py:294:def main():
+tests/redisgap.py:295:    parser = argparse.ArgumentParser(description=__doc__)
+tests/redisgap.py:300:    args = parser.parse_args()
+tests/at15.py:1:#!/usr/bin/env python3
+tests/at15.py:3:import argparse
+tests/at15.py:160:    parser = argparse.ArgumentParser(description=__doc__)
+tests/at15.py:165:    args = parser.parse_args()
+tests/debug_load_test.py:1:#!/usr/bin/env python3
+tests/debug_load_test.py:10:from collections import deque
+tests/debug_load_test.py:12:import unittest
+tests/debug_load_test.py:13:from unittest.mock import patch
+tests/debug_load_test.py:21:FLIP_ERROR = "ERR loading is not allowed while FLIP is in progress"
+tests/debug_load_test.py:23:RELOAD = ("DEBUG", "RELOAD")
+tests/debug_load_test.py:35:class Clock:
+tests/debug_load_test.py:39:    def monotonic(self):
+tests/debug_load_test.py:40:        return self.now
+tests/debug_load_test.py:55:        self.commands = []
+tests/debug_load_test.py:56:        self.sock = self
+tests/debug_load_test.py:60:    def gettimeout(self):
+tests/debug_load_test.py:61:        return self.timeout
+tests/debug_load_test.py:63:    def settimeout(self, value):
+tests/debug_load_test.py:64:        self.timeout = value
+tests/debug_load_test.py:67:    def cmd(self, *args):
+tests/debug_load_test.py:68:        self.commands.append(args)
+tests/debug_load_test.py:77:        return reply() if callable(reply) else reply
+tests/debug_load_test.py:85:        self.replies = deque(replies)
+tests/debug_load_test.py:87:    def cmd(self, *args):
+tests/debug_load_test.py:88:        self.commands.append(args)
+tests/debug_load_test.py:93:            return self.replies.popleft() if self.replies else "OK"
+tests/debug_load_test.py:100:    def setUp(self):
+tests/debug_load_test.py:101:        self.clock = Clock()
+tests/debug_load_test.py:104:            patcher.start()
+tests/debug_load_test.py:105:            self.addCleanup(patcher.stop)
+tests/debug_load_test.py:142:            with self.subTest(reply=reply):
+tests/debug_load_test.py:144:                with self.assertRaisesRegex(AssertionError, "DEBUG RELOAD required"):
+tests/debug_load_test.py:151:                self.clock.now = 0.0
+tests/debug_load_test.py:199:                with self.assertRaises(AssertionError):
+tests/debug_load_test.py:209:        with self.assertRaises(EOFError):
+tests/debug_load_test.py:240:if __name__ == "__main__":
+tests/debug_load_test.py:241:    unittest.main()
+tests/concur.py:1:#!/usr/bin/env python3
+tests/concur.py:30:import time
+tests/concur.py:77:    def cmd(self, *args):
+tests/concur.py:128:    while True:
+tests/concur.py:176:        time.sleep(0.05)
+tests/concur.py:261:    conn.close()
+tests/concur.py:354:    conn.close()
+tests/concur.py:395:    time.sleep(0.05)
+tests/concur.py:434:def main():
+tests/concur.py:464:if __name__ == "__main__":
+tests/loading_ready_test.py:1:#!/usr/bin/env python3
+tests/loading_ready_test.py:11:import unittest
+tests/loading_ready_test.py:12:from pathlib import Path
+tests/loading_ready_test.py:136:            with self.subTest(reply=reply):
+tests/loading_ready_test.py:139:                    with self.assertRaises(AssertionError):
+tests/loading_ready_test.py:271:    unittest.main()
+tests/abba_calibration.py:1:#!/usr/bin/env python3
+tests/abba_calibration.py:25:import argparse
+tests/abba_calibration.py:30:from pathlib import Path
+tests/abba_calibration.py:331:    import unittest
+tests/abba_calibration.py:461:if __name__ == "__main__":
+tests/s6.py:1:#!/usr/bin/env python3
+tests/s6.py:18:import time
+tests/s6.py:52:    def command(self, *args):
+tests/s6.py:94:    while True:
+tests/s6.py:109:def main():
+tests/s6.py:182:if __name__ == "__main__":
+tests/atomic_torn.py:1:#!/usr/bin/env python3
+tests/atomic_torn.py:8:import time
+tests/atomic_torn.py:97:    def cmd(self, *args):
+tests/atomic_torn.py:439:        hold_started = time.monotonic()
+tests/atomic_torn.py:628:            while True:
+tests/atomic_torn.py:800:promotion_started = time.monotonic()
+tests/atomic_torn.py:803:    time.sleep(0.05)
+tests/atomic_torn.py:1058:    time.sleep(0.05)
+tests/gate.sh:115:from pathlib import Path
+tests/gate.sh:578:while True:
+tests/gate.sh:2170:    && py tests/debug_load.py 127.0.0.1 "$PORT" RELOAD \
+tests/gate.sh:2423:# ---- AOF boot/replay + non-vacuous DEBUG LOADAOF ---------------------------------------------
+tests/gate.sh:2437:row_begin "AOF byte-exact + script groups + DEBUG LOADAOF ($NET_IO, atomic $AOF_ATOMIC)"
+tests/gate.sh:2440:    && ok "AOF byte-exact + script groups + DEBUG LOADAOF ($NET_IO, atomic $AOF_ATOMIC)" \
+tests/gate.sh:2441:    || bad "AOF byte-exact + script groups + DEBUG LOADAOF ($NET_IO, atomic $AOF_ATOMIC)" \
+tests/gate.sh:2745:s.sendall(b"INFO STATS\r\n"); time.sleep(0.4)
+tests/gate.sh:3422:from pathlib import Path
+tests/gate.sh:3511:from pathlib import Path
+tests/cmdmeta.py:1:#!/usr/bin/env python3
+tests/climon_128.py:1:#!/usr/bin/env python3
+tests/climon_128.py:7:import argparse
+tests/climon_128.py:38:                conn.close()
+tests/climon_128.py:44:            conn.close()
+tests/climon_128.py:91:def main():
+tests/climon_128.py:92:    parser = argparse.ArgumentParser(description=__doc__)
+tests/climon_128.py:95:    args = parser.parse_args()
+tests/notify.py:1:#!/usr/bin/env python3
+tests/notify.py:9:import time
+tests/notify.py:36:    def command(self, *args):
+tests/notify.py:141:    deadline = time.monotonic() + timeout
+tests/notify.py:571:            conn.close()
+tests/notify.py:585:    while True:
+tests/notify.py:592:        if time.monotonic() >= deadline:
+tests/aof_frame_order_test.py:1:#!/usr/bin/env python3
+tests/aof_frame_order_test.py:4:import unittest
+tests/aof_frame_order_test.py:6:from pathlib import Path
+tests/aof_frame_order_test.py:7:from unittest.mock import patch
+tests/aof_frame_order_test.py:12:class Clock:
+tests/aof_frame_order_test.py:15:    def monotonic(self):
+tests/aof_frame_order_test.py:17:        return self.now
+tests/aof_frame_order_test.py:32:        self.commands = []
+tests/aof_frame_order_test.py:34:    def cmd(self, *args):
+tests/aof_frame_order_test.py:76:    def setUp(self):
+tests/aof_frame_order_test.py:78:        clock = Clock()
+tests/aof_frame_order_test.py:157:            def cmd(self, *args):
+tests/aof_frame_order_test.py:180:if __name__ == "__main__":
+tests/aof_frame_order_test.py:181:    unittest.main()
+tests/resp3.py:1:#!/usr/bin/env python3
+tests/resp3.py:65:    def command(self, *args):
+tests/tls.py:1:#!/usr/bin/env python3
+tests/tls.py:11:import argparse
+tests/tls.py:19:import time
+tests/tls.py:107:    def command(self, *args):
+tests/tls.py:147:        conn.close()
+tests/tls.py:212:        while True:
+tests/tls.py:236:    while True:
+tests/tls.py:319:        time.sleep(0.05)
+tests/tls.py:340:    time.sleep(0.1)
+tests/tls.py:461:    time.sleep(0.3)
+tests/tls.py:484:def main():
+tests/tls.py:494:    args = parser.parse_args()
+tests/tls.py:509:if __name__ == "__main__":
+tests/abba_workloads.py:1:#!/usr/bin/env python3
+tests/abba_workloads.py:14:import time
+tests/multires.py:1:#!/usr/bin/env python3
+tests/multires.py:83:    def command(self, *args):
+tests/multires.py:210:        conn.close()
+tests/multires.py:248:def main():
+tests/multires.py:333:if __name__ == "__main__":
+tests/edgetime.py:1:#!/usr/bin/env python3
+tests/edgetime.py:21:import time
+tests/edgetime.py:65:    def cmd(self, *args):
+tests/edgetime.py:280:    while True:
+tests/edgetime.py:375:    time.sleep(0.25)
+tests/edgetime.py:804:def main():
+tests/edgetime.py:829:        conn.close()
+tests/edgetime.py:838:if __name__ == "__main__":
+tests/pubsub.py:1:#!/usr/bin/env python3
+tests/pubsub.py:10:import time
+tests/pubsub.py:35:    def command(self, *args):
+tests/pubsub.py:105:    while True:
+tests/pubsub.py:135:    deadline = time.monotonic() + timeout
+tests/pubsub.py:136:    while True:
+tests/pubsub.py:140:        if time.monotonic() >= deadline:
+tests/pubsub.py:145:def main():
+tests/pubsub.py:297:    reset_conn.close()
+tests/pubsub.py:371:        conn.close()
+tests/pubsub.py:433:        conn.close()
+tests/pubsub.py:469:                conn.close()
+tests/pubsub.py:552:                conn.close()
+tests/pubsub.py:660:        conn.close()
+tests/pubsub.py:732:        conn.close()
+tests/pubsub.py:734:        conn.close()
+tests/pubsub.py:744:    while True:
+tests/pubsub.py:748:        if time.monotonic() >= deadline:
+tests/pubsub.py:763:if __name__ == "__main__":
+tests/gate_process_test.py:1:#!/usr/bin/env python3
+tests/gate_process_test.py:5:from pathlib import Path
+tests/gate_process_test.py:8:import unittest
+tests/gate_process_test.py:9:from unittest.mock import patch
+tests/gate_process_test.py:14:class Clock:
+tests/gate_process_test.py:17:    def monotonic(self):
+tests/gate_process_test.py:18:        return self.now
+tests/gate_process_test.py:32:        self.sock = self
+tests/gate_process_test.py:34:    def gettimeout(self):
+tests/gate_process_test.py:35:        return self.timeout
+tests/gate_process_test.py:95:        clock = Clock()
+tests/gate_process_test.py:203:    unittest.main()
+tests/tailgen_stall.py:1:#!/usr/bin/env python3
+tests/tailgen_stall.py:3:import argparse
+tests/tailgen_stall.py:6:from pathlib import Path
+tests/tailgen_stall.py:41:    conn = Conn(args.host, args.port, timeout=30)
+tests/tailgen_stall.py:75:        conn.close()
+tests/tailgen_stall.py:79:    import unittest
+tests/tailgen_stall.py:175:def main():
+tests/tailgen_stall.py:176:    parser = argparse.ArgumentParser(description=__doc__)
+tests/tailgen_stall.py:184:    args = parser.parse_args()
+tests/tailgen_stall.py:197:if __name__ == "__main__":
+tests/climon2.py:1:#!/usr/bin/env python3
+tests/climon2.py:23:import time
+tests/climon2.py:25:from _client_wait import wait_client_state
+tests/climon2.py:53:    def command(self, *args):
+tests/climon2.py:101:        while True:
+tests/climon2.py:103:            if left <= 0:
+tests/climon2.py:350:    wait_client_state(admin, bid, "blocked")
+tests/climon2.py:354:    wait_client_state(admin, bid, "blocked")
+tests/climon2.py:387:    time.sleep(0.3)
+tests/abba_simple.py:1:#!/usr/bin/env python3
+tests/abba_simple.py:99:    from pathlib import Path
+tests/abba_simple.py:160:if __name__ == "__main__":
+tests/atomic_ryow.py:1:#!/usr/bin/env python3
+tests/atomic_ryow.py:7:import time
+tests/atomic_ryow.py:79:    def cmd(self, *args):
+tests/r7shadow_pad.py:1:#!/usr/bin/env python3
+tests/r7shadow_pad.py:3:import argparse
+tests/r7shadow_pad.py:6:from pathlib import Path
+tests/r7shadow_pad.py:60:    parser = argparse.ArgumentParser(description=__doc__)
+tests/r7shadow_pad.py:65:    args = parser.parse_args()
+tests/acl_categories.py:1:#!/usr/bin/env python3
+tests/atomic_hazards.py:1:#!/usr/bin/env python3
+tests/atomic_hazards.py:10:S1  FLUSH READ-CUT LEAK.  FlatStore::atomic_tombstone_all (FLUSHDB/FLUSHALL/DEBUG RELOAD on a
+tests/atomic_hazards.py:45:import time
+tests/atomic_hazards.py:114:    def cmd(self, *args):
+tests/atomic_hazards.py:197:        started = time.monotonic()
+tests/atomic_hazards.py:198:        time.sleep(0.05)                 # lead fragment answered; the rest are parked with the cut
+tests/ryow.py:1:#!/usr/bin/env python3
+tests/shutdown_report.py:1:#!/usr/bin/env python3
+tests/shutdown_report.py:113:def main():
+tests/shutdown_report.py:147:if __name__ == "__main__":
+tests/atomiccollapse_controls.py:1:#!/usr/bin/env python3
+tests/atomiccollapse_controls.py:8:import argparse
+tests/atomiccollapse_controls.py:12:from pathlib import Path
+tests/atomiccollapse_controls.py:176:    parser = argparse.ArgumentParser(description=__doc__)
+tests/atomiccollapse_controls.py:179:    args = parser.parse_args()
+tests/atomicwindow.py:14:import time
+tests/atomicwindow.py:54:                if time.monotonic() >= deadline:
+tests/atomicwindow.py:81:            started = time.monotonic()
+tests/atomicwindow.py:169:                    started = time.monotonic()
+tests/atomicwindow.py:172:                    while True:
+tests/atomicwindow.py:199:                        if time.monotonic() >= deadline:
+tests/atomicwindow.py:220:                while True:
+tests/atomicwindow.py:265:                    if time.monotonic() >= deadline:
+tests/atomicwindow.py:274:                while True:
+tests/atomicwindow.py:278:                    if time.monotonic() >= deadline:
+tests/splitlocal_live.py:1:#!/usr/bin/env python3
+tests/splitlocal_live.py:7:import argparse
+tests/splitlocal_live.py:9:from pathlib import Path
+tests/splitlocal_live.py:11:import time
+tests/splitlocal_live.py:115:        finally: conn.close()
+tests/abba_saturation_controls.py:1:#!/usr/bin/env python3
+tests/abba_saturation_controls.py:14:import argparse
+tests/abba_saturation_controls.py:19:from pathlib import Path
+tests/abba_saturation_controls.py:22:import time
+tests/abba_saturation_controls.py:415:    import unittest
+tests/abba_saturation_controls.py:606:                    class Observer:
+tests/abba_saturation_controls.py:662:def main():
+tests/abba_saturation_controls.py:663:    parser = argparse.ArgumentParser(description=__doc__)
+tests/abba_saturation_controls.py:679:    args = parser.parse_args()
+tests/abba_saturation_controls.py:691:if __name__ == "__main__":
+tests/docs_drift.py:1:#!/usr/bin/env python3
+tests/docs_drift.py:10:import argparse
+tests/docs_drift.py:12:from pathlib import Path
+tests/docs_drift.py:121:def main():
+tests/docs_drift.py:122:    parser = argparse.ArgumentParser(description=__doc__)
+tests/docs_drift.py:126:    args = parser.parse_args()
+tests/docs_drift.py:138:if __name__ == "__main__":
+tests/pipeorder.py:1:#!/usr/bin/env python3
+tests/overlap.py:1:#!/usr/bin/env python3
+tests/overlap.py:11:import time
+tests/overlap.py:36:def main():
+tests/overlap.py:142:if __name__ == "__main__":
+tests/background_environment_test.py:1:#!/usr/bin/env python3
+tests/background_environment_test.py:10:import unittest
+tests/background_environment_test.py:17:    def setUp(self):
+tests/background_environment_test.py:101:if __name__ == "__main__":
+tests/background_environment_test.py:102:    unittest.main()
+tests/persistfix.py:1:#!/usr/bin/env python3
+tests/persistfix.py:10:import argparse
+tests/persistfix.py:14:from pathlib import Path
+tests/persistfix.py:21:import time
+tests/persistfix.py:57:    def cmd(self, *args):
+tests/persistfix.py:435:    import unittest
+tests/persistfix.py:444:        def setUp(self):
+tests/aof.py:1:#!/usr/bin/env python3
+tests/aof.py:2:"""AOF restart/DEBUG LOADAOF typed-dataset gate.
+tests/aof.py:24:import time
+tests/aof.py:26:from _lib import wait_flip_idle
+tests/aof.py:31:    import argparse
+tests/aof.py:32:    from pathlib import Path
+tests/aof.py:44:    args = parser.parse_args()
+tests/aof.py:164:    def command(self, *args):
+tests/aof.py:176:    return got
+tests/aof.py:183:    return got
+tests/aof.py:199:def expect_loadaof(expected):
+tests/aof.py:200:    """Preserve the raw wire oracle, including the intentional corrupt-tail error."""
+tests/aof.py:201:    class Observer:
+tests/aof.py:202:        sock = c.sock
+tests/aof.py:204:        def command(self, *args):
+tests/aof.py:205:            return bulk_payload(c.command(*args))
+tests/aof.py:207:    deadline = time.monotonic() + 30
+tests/aof.py:208:    for attempt in range(2):
+tests/aof.py:209:        wait_flip_idle(Observer(), max(0.0, deadline - time.monotonic()))
+tests/aof.py:210:        got = c.command("DEBUG", "LOADAOF")
+tests/aof.py:211:        if attempt == 0 and got == b"-ERR loading is not allowed while FLIP is in progress\r\n":
+tests/aof.py:213:        if got != expected:
+tests/aof.py:214:            raise AssertionError("DEBUG LOADAOF: expected %r, got %r" % (expected, got))
+tests/aof.py:215:        return got
+tests/aof.py:239:    # This exact reply prevents a vacuous DEBUG LOADAOF validation on a server
+tests/aof.py:477:    while True:
+tests/aof.py:629:    expect_loadaof(b"+OK\r\n")
+tests/aof.py:655:        expect_loadaof(b"-ERR Error trying to load the AOF, check server logs.\r\n")
+tests/aof.py:659:        expect_loadaof(b"+OK\r\n")
+tests/gate_receipt.py:1:#!/usr/bin/env python3
+tests/gate_receipt.py:9:import argparse
+tests/gate_receipt.py:17:from pathlib import Path
+tests/gate_receipt.py:23:import time
+tests/gate_receipt.py:796:    import unittest
+tests/gate_receipt.py:814:        def setUp(self):
+tests/gate_receipt.py:1004:                    with self.assertRaises(AssertionError):
+tests/gate_receipt.py:1185:                with self.assertRaises(AssertionError):
+tests/gate_receipt.py:1346:def main():
+tests/gate_receipt.py:1347:    parser = argparse.ArgumentParser(description=__doc__)
+tests/gate_receipt.py:1411:    args = parser.parse_args()
+tests/gate_receipt.py:1453:if __name__ == "__main__":
+tests/feature_gate.py:1:#!/usr/bin/env python3
+tests/feature_gate.py:16:import argparse
+tests/feature_gate.py:21:from pathlib import Path
+tests/feature_gate.py:23:import time
+tests/feature_gate.py:330:def main():
+tests/feature_gate.py:331:    parser = argparse.ArgumentParser(description=__doc__)
+tests/feature_gate.py:341:    args = parser.parse_args()
+tests/read_local_lane.py:1:#!/usr/bin/env python3
+tests/read_local_lane.py:53:import time
+tests/read_local_lane.py:169:                        while True:
+tests/read_local_lane.py:191:                    if got != expected:
+tests/read_local_lane.py:215:    from unittest.mock import patch
+tests/read_local_lane.py:227:            self.sock = self
+tests/read_local_lane.py:232:        def cmd(self, *args):
+tests/read_local_lane.py:360:        while True:
+tests/read_local_lane.py:366:            now = time.monotonic()
+tests/read_local_lane.py:367:            if now >= deadline:
+tests/read_local_lane.py:397:def main():
+tests/read_local_lane.py:497:    from unittest.mock import patch
+tests/read_local_lane.py:511:            self.sock = self
+tests/read_local_lane.py:514:        def gettimeout(self):
+tests/read_local_lane.py:515:            return self.timeout
+tests/read_local_lane.py:520:        def cmd(self, *args):
+tests/read_local_lane.py:595:if __name__ == "__main__":
+tests/barrier.py:1:#!/usr/bin/env python3
+tests/barrier.py:24:import time
+tests/barrier.py:118:    def command(self, *args):
+tests/barrier.py:175:    deadline = time.monotonic() + timeout
+tests/barrier.py:187:    deadline = time.monotonic() + timeout
+tests/barrier.py:453:def main():
+tests/barrier.py:522:if __name__ == "__main__":
+tests/watchlive.py:1:#!/usr/bin/env python3
+tests/watchlive.py:40:import argparse
+tests/watchlive.py:44:import time
+tests/watchlive.py:112:    def cmd(self, *args):
+tests/watchlive.py:373:def main():
+tests/watchlive.py:423:if __name__ == "__main__":
+tests/limits.py:1:#!/usr/bin/env python3
+tests/limits.py:12:import time
+tests/limits.py:14:from _client_wait import wait_client_state
+tests/limits.py:45:    def command(self, *args):
+tests/limits.py:121:    deadline = time.monotonic() + timeout
+tests/limits.py:148:def main():
+tests/limits.py:203:        first_id = first.command("CLIENT", "ID")
+tests/limits.py:215:        wait_client_state(admin, first_id, "gone")
+tests/limits.py:285:        time.sleep(0.1)
+tests/limits.py:292:        started = time.monotonic()
+tests/limits.py:313:            time.sleep(0.4)
+tests/limits.py:327:            time.sleep(0.4)
+tests/limits.py:475:if __name__ == "__main__":
+tests/storesize_checks.py:1:#!/usr/bin/env python3
+tests/storesize_checks.py:3:import argparse
+tests/storesize_checks.py:6:from pathlib import Path
+tests/storesize_checks.py:42:    parser = argparse.ArgumentParser(description=__doc__)
+tests/storesize_checks.py:45:    args = parser.parse_args()
+tests/abba_worker_affinity.py:1:#!/usr/bin/env python3
+tests/abba_worker_affinity.py:5:from pathlib import Path
+tests/abba_worker_affinity.py:7:import time
+tests/abba_worker_affinity.py:115:            while True:
+tests/abba_worker_affinity.py:134:            while True:
+tests/abba_worker_affinity.py:306:    import unittest
+tests/abba_worker_affinity.py:471:if __name__ == "__main__":
+tests/abba_worker_affinity.py:472:    import argparse
+tests/abba_worker_affinity.py:473:    parser = argparse.ArgumentParser(description=__doc__)
+tests/abba_worker_affinity.py:479:    args = parser.parse_args()
+tests/sort.py:1:#!/usr/bin/env python3
+tests/sort.py:46:    def cmd(self, *args):
+tests/sort.py:526:def main():
+tests/sort.py:555:if __name__ == "__main__":
+tests/gateplan.py:1:#!/usr/bin/env python3
+tests/gateplan.py:4:import argparse
+tests/gateplan.py:7:from pathlib import Path
+tests/gateplan.py:336:    import unittest
+tests/gateplan.py:546:def main():
+tests/gateplan.py:563:if __name__ == "__main__":
+tests/_differ_ccfix.py:2:from pathlib import Path
+tests/_differ_ccfix.py:4:import time
+tests/_differ_ccfix.py:177:                while True:
+tests/_differ_ccfix.py:253:                        while True:
+tests/_differ_ccfix.py:271:                        while True:
+tests/flatstore_alloc_fail.py:1:#!/usr/bin/env python3
+tests/flatstore_alloc_fail.py:66:def main():
+tests/flatstore_alloc_fail.py:96:if __name__ == "__main__":
+tests/flip_close_controls.py:1:#!/usr/bin/env python3
+tests/flip_close_controls.py:5:from pathlib import Path
+tests/flip_close_controls.py:13:def main():
+tests/psfix.py:1:#!/usr/bin/env python3
+tests/psfix.py:3:import argparse
+tests/psfix.py:5:from pathlib import Path
+tests/psfix.py:9:import time
+tests/psfix.py:66:            assert info(peer, 'persistence')['rdb_bgsave_in_progress'] == '0'
+tests/psfix.py:71:            assert info(peer, 'persistence')['rdb_bgsave_in_progress'] == '1', (
+tests/psfix.py:88:def main():
+tests/psfix.py:89:    parser = argparse.ArgumentParser(description=__doc__)
+tests/psfix.py:104:    args = parser.parse_args()
+tests/psfix.py:180:            while True:
+tests/psfix.py:189:            conn.close()
+tests/zsetops.py:1:#!/usr/bin/env python3
+tests/zsetops.py:28:    def command(self, *args):
+tests/zsetops.py:514:def main():
+tests/zsetops.py:589:if __name__ == "__main__":
+tests/gates_test.py:1:#!/usr/bin/env python3
+tests/gates_test.py:14:from pathlib import Path
+tests/gates_test.py:20:import time
+tests/gates_test.py:23:import unittest
+tests/gates_test.py:24:from unittest.mock import patch
+tests/gates_test.py:77:        with self.assertRaises(AssertionError):
+tests/gates_test.py:565:        foreign = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+tests/gates_test.py:579:        owned = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+tests/gates_test.py:580:        foreign = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+tests/gates_test.py:627:from pathlib import Path
+tests/gates_test.py:639:    child=children.start([sys.executable, '-c', 'import time; time.sleep(60)'], out/'child.log', out)
+tests/gates_test.py:641:    while True: signal.pause()
+tests/gates_test.py:662:            foreign = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+tests/gates_test.py:1941:    unittest.main()
+tests/respcompat_replay.py:1:#!/usr/bin/env python3
+tests/respcompat_replay.py:8:import argparse
+tests/respcompat_replay.py:10:from pathlib import Path
+tests/respcompat_replay.py:70:def main():
+tests/respcompat_replay.py:71:    parser = argparse.ArgumentParser(description=__doc__)
+tests/respcompat_replay.py:74:    args = parser.parse_args()
+tests/respcompat_replay.py:107:if __name__ == "__main__":
+tests/netcap.py:1:#!/usr/bin/env python3
+tests/netcap.py:8:import argparse
+tests/netcap.py:12:import time
+tests/netcap.py:171:def main():
+tests/netcap.py:172:    parser = argparse.ArgumentParser(description=__doc__)
+tests/netcap.py:173:    parser.add_argument("host")
+tests/netcap.py:174:    parser.add_argument("port", type=int)
+tests/netcap.py:175:    args = parser.parse_args()
+tests/netcap.py:183:if __name__ == "__main__":
+tests/r7shadow_noop.py:1:#!/usr/bin/env python3
+tests/r7shadow_noop.py:9:import argparse
+tests/r7shadow_noop.py:14:from pathlib import Path
+tests/r7shadow_noop.py:105:    parser = argparse.ArgumentParser(description=__doc__)
+tests/r7shadow_noop.py:111:    args = parser.parse_args()
+tests/rl2s.py:1:#!/usr/bin/env python3
+tests/rl2s.py:13:import time
+tests/rl2s.py:116:                    conn.close()
+tests/rl2s.py:138:            conn.close()
+tests/rl2s.py:141:def main():
+tests/rl2s.py:184:if __name__ == "__main__":
+tests/session_monotonic.py:1:#!/usr/bin/env python3
+tests/session_monotonic.py:49:import time
+tests/session_monotonic.py:78:    def command(self, *args):
+tests/session_monotonic.py:243:def main():
+tests/session_monotonic.py:377:if __name__ == "__main__":
+tests/rehash_readonly.py:1:#!/usr/bin/env python3
+tests/rehash_readonly.py:15:import time
+tests/rehash_readonly.py:159:            conn.close()
+tests/rehash_readonly.py:162:if __name__ == "__main__":
+tests/flip_cost_gate.py:1:#!/usr/bin/env python3
+tests/flip_cost_gate.py:30:import argparse
+tests/flip_cost_gate.py:33:import time
+tests/flip_cost_gate.py:65:        while True:
+tests/flip_cost_gate.py:131:    deadline = time.monotonic() + timeout
+tests/flip_cost_gate.py:132:    last = None
+tests/flip_cost_gate.py:145:def main():
+tests/flip_cost_gate.py:153:    args = parser.parse_args()
+tests/flip_cost_gate.py:318:if __name__ == "__main__":
+tests/flip_multikey_hold.py:1:#!/usr/bin/env python3
+tests/flip_multikey_hold.py:43:import argparse
+tests/flip_multikey_hold.py:46:import time
+tests/flip_multikey_hold.py:78:        while True:
+tests/flip_multikey_hold.py:167:    deadline = time.monotonic() + timeout
+tests/flip_multikey_hold.py:168:    last = None
+tests/flip_multikey_hold.py:177:def main():
+tests/flip_multikey_hold.py:193:    args = parser.parse_args()
+tests/flip_multikey_hold.py:266:        while True:
+tests/flip_multikey_hold.py:276:            if time.monotonic() >= deadline:
+tests/flip_multikey_hold.py:306:                time.sleep(0.25)
+tests/flip_multikey_hold.py:341:            time.sleep(0.1)
+tests/flip_multikey_hold.py:363:if __name__ == "__main__":
+tests/scriptatomic.py:1:#!/usr/bin/env python3
+tests/scriptatomic.py:75:    def cmd(self, *args):
+tests/scriptatomic.py:451:    conn.close()
+tests/torture.py:1:#!/usr/bin/env python3
+tests/torture.py:24:    if not line: raise EOFError("closed")
+tests/atomic_plain.py:1:#!/usr/bin/env python3
+tests/atomic_plain.py:17:import argparse
+tests/atomic_plain.py:21:import time
+tests/atomic_plain.py:61:    deadline = time.monotonic() + timeout
+tests/atomic_plain.py:249:    parser = argparse.ArgumentParser(description=__doc__)
+tests/atomic_plain.py:289:    import unittest
+tests/atomic_plain.py:317:        def setUp(self):
+tests/atomic_plain.py:481:if __name__ == "__main__":
+tests/aof_frame_order.py:1:#!/usr/bin/env python3
+tests/aof_frame_order.py:28:import time
+tests/aof_frame_order.py:29:from pathlib import Path
+tests/aof_frame_order.py:88:    def cmd(self, *args):
+tests/aof_frame_order.py:154:    last = None
+tests/aof_frame_order.py:372:if __name__ == "__main__":
+tests/debug.py:1:#!/usr/bin/env python3
+tests/debug.py:7:import time
+tests/debug.py:9:from _lib import debug_load
+tests/debug.py:30:    def command(self, *args):
+tests/debug.py:100:started = time.monotonic()
+tests/debug.py:148:expect(client.command("DEBUG", "LOADAOF"),
+tests/debug.py:149:       "ERR appendonly is disabled", "DEBUG LOADAOF appendonly-off guard")
+tests/debug.py:212:    expect(debug_load(client), b"OK", "reload atomic=%d" % atomic)
+tests/lbsignals.py:1:#!/usr/bin/env python3
+tests/lbsignals.py:18:import time
+tests/aof_rewrite.py:1:#!/usr/bin/env python3
+tests/aof_rewrite.py:9:import time
+tests/gate_ledger_fixture.py:12:from pathlib import Path
+tests/gate_ledger_fixture.py:16:import unittest
+tests/gate_ledger_fixture.py:214:    def setUp(self):
+tests/gate_ledger_fixture.py:298:if __name__ == "__main__":
+tests/xscript.py:1:#!/usr/bin/env python3
+tests/xscript.py:8:import time
+tests/xscript.py:69:    def cmd(self, *args):
+tests/xscript.py:694:            while True:
+tests/reordertrim.py:1:#!/usr/bin/env python3
+tests/reordertrim.py:7:import argparse
+tests/reordertrim.py:10:from pathlib import Path
+tests/reordertrim.py:226:    parser = argparse.ArgumentParser(description=__doc__)
+tests/reordertrim.py:233:    args = parser.parse_args()
+tests/abba_profile.py:1:#!/usr/bin/env python3
+tests/abba_profile.py:15:from pathlib import Path
+tests/abba_profile.py:19:import time
+tests/abba_profile.py:370:    import unittest
+tests/abba_profile.py:564:if __name__ == "__main__":
+tests/abba_profile.py:565:    import argparse
+tests/abba_profile.py:566:    parser = argparse.ArgumentParser(description=__doc__)
+tests/abba_profile.py:569:    args = parser.parse_args()
+tests/persistfix_checks.py:1:#!/usr/bin/env python3
+tests/persistfix_checks.py:4:from pathlib import Path
+tests/persistfix_checks.py:12:def main():
+tests/splitlocal_checks.py:1:#!/usr/bin/env python3
+tests/splitlocal_checks.py:7:import argparse
+tests/splitlocal_checks.py:9:from pathlib import Path
+tests/infofix.py:1:#!/usr/bin/env python3
+tests/infofix.py:12:import time
+tests/infofix.py:41:    def cmd(self, *args):
+tests/infofix.py:278:        while True:
+tests/infofix.py:292:    while True:
+tests/mdbqsbr_checks.py:1:#!/usr/bin/env python3
+tests/mdbqsbr_checks.py:4:from pathlib import Path
+tests/writer_atomic_campaign.py:1:#!/usr/bin/env python3
+tests/writer_atomic_campaign.py:15:import argparse
+tests/writer_atomic_campaign.py:20:from pathlib import Path
+tests/writer_atomic_campaign.py:28:import time
+tests/writer_atomic_campaign.py:164:        deadline = time.monotonic() + 30
+tests/writer_atomic_campaign.py:175:            time.sleep(0.05)
+tests/writer_atomic_campaign.py:196:                time.sleep(0.05)
+tests/writer_atomic_campaign.py:210:            ["taskset", "-c", str(cpu), sys.executable, "-c", "while True: pass"],
+tests/writer_atomic_campaign.py:237:    started = time.monotonic()
+tests/writer_atomic_campaign.py:279:    parser = argparse.ArgumentParser(description=__doc__)
+tests/writer_atomic_campaign.py:299:    args = parser.parse_args()
+tests/writer_atomic_campaign.py:375:if __name__ == "__main__":
+tests/execfix.py:1:#!/usr/bin/env python3
+tests/execfix.py:79:    def command(self, *args):
+tests/execfix.py:502:def main():
+tests/execfix.py:529:        conn.close()
+tests/execfix.py:536:if __name__ == "__main__":
+tests/dumprestore.py:1:#!/usr/bin/env python3
+tests/dumprestore.py:7:import time
+tests/dumprestore.py:48:    def cmd(self, *args):
+tests/auth.py:1:#!/usr/bin/env python3
+tests/auth.py:6:import time
+tests/auth.py:31:    def command(self, *args):
+tests/auth.py:219:time.sleep(0.1)
+tests/differ_fanout.py:1:#!/usr/bin/env python3
+tests/differ_fanout.py:9:import argparse
+tests/differ_fanout.py:12:from pathlib import Path
+tests/differ_fanout.py:233:def main():
+tests/flakeaudit_test.py:1:#!/usr/bin/env python3
+tests/flakeaudit_test.py:2:"""Serverless controls: absent, wrong and late client witnesses must stay red."""
+tests/flakeaudit_test.py:3:from collections import deque
+tests/flakeaudit_test.py:4:import ast
+tests/flakeaudit_test.py:5:from pathlib import Path
+tests/flakeaudit_test.py:6:import unittest
+tests/flakeaudit_test.py:7:from unittest.mock import patch
+tests/flakeaudit_test.py:9:import _client_wait
+tests/flakeaudit_test.py:12:def definitions(filename, names, namespace):
+tests/flakeaudit_test.py:13:    """Load only real helpers; the batteries' module bodies open live sockets."""
+tests/flakeaudit_test.py:14:    tree = ast.parse((Path(__file__).parent / filename).read_text())
+tests/flakeaudit_test.py:15:    tree.body = [node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name in names]
+tests/flakeaudit_test.py:16:    assert {node.name for node in tree.body} == set(names)
+tests/flakeaudit_test.py:17:    exec(compile(tree, filename, "exec"), namespace)
+tests/flakeaudit_test.py:18:    return namespace
+tests/flakeaudit_test.py:21:class Clock:
+tests/flakeaudit_test.py:24:    def monotonic(self):
+tests/flakeaudit_test.py:25:        return self.now
+tests/flakeaudit_test.py:27:    def sleep(self, delay):
+tests/flakeaudit_test.py:28:        self.now += delay
+tests/flakeaudit_test.py:31:class Observer:
+tests/flakeaudit_test.py:32:    def __init__(self, replies):
+tests/flakeaudit_test.py:33:        self.replies = deque(replies)
+tests/flakeaudit_test.py:34:        self.commands = []
+tests/flakeaudit_test.py:35:        self.sock = self
+tests/flakeaudit_test.py:36:        self.timeout = 30.0
+tests/flakeaudit_test.py:38:    def gettimeout(self):
+tests/flakeaudit_test.py:39:        return self.timeout
+tests/flakeaudit_test.py:41:    def settimeout(self, value):
+tests/flakeaudit_test.py:42:        self.timeout = value
+tests/flakeaudit_test.py:44:    def cmd(self, *args):
+tests/flakeaudit_test.py:45:        self.commands.append(args)
+tests/flakeaudit_test.py:46:        reply = self.replies[0]
+tests/flakeaudit_test.py:47:        if len(self.replies) > 1:
+tests/flakeaudit_test.py:48:            self.replies.popleft()
+tests/flakeaudit_test.py:49:        return reply() if callable(reply) else reply
+tests/flakeaudit_test.py:52:class ClientWitnessTests(unittest.TestCase):
+tests/flakeaudit_test.py:53:    def setUp(self):
+tests/flakeaudit_test.py:54:        self.clock = Clock()
+tests/flakeaudit_test.py:55:        patcher = patch.object(_client_wait, "time", self.clock)
+tests/flakeaudit_test.py:56:        patcher.start()
+tests/flakeaudit_test.py:57:        self.addCleanup(patcher.stop)
+tests/flakeaudit_test.py:59:    def test_blocked_requires_this_clients_flag(self):
+tests/flakeaudit_test.py:60:        observer = Observer([b"id=7 flags=N\n", b"id=7 flags=b\n"])
+tests/flakeaudit_test.py:61:        _client_wait.wait_client_state(observer, 7, "blocked")
+tests/flakeaudit_test.py:62:        self.assertEqual(observer.commands, [("CLIENT", "LIST", "ID", "7")] * 2)
+tests/flakeaudit_test.py:63:        self.assertEqual(observer.timeout, 30.0)
+tests/flakeaudit_test.py:65:    def test_gone_requires_empty_client_list(self):
+tests/flakeaudit_test.py:66:        observer = Observer([b"id=7 flags=N\n", b""])
+tests/flakeaudit_test.py:67:        _client_wait.wait_client_state(observer, 7, "gone")
+tests/flakeaudit_test.py:68:        self.assertEqual(len(observer.commands), 2)
+tests/flakeaudit_test.py:69:        self.assertEqual(observer.timeout, 30.0)
+tests/flakeaudit_test.py:71:    def test_missing_window_never_passes(self):
+tests/flakeaudit_test.py:72:        for state, reply in (("blocked", b""), ("blocked", b"id=7 flags=N\n"),
+tests/flakeaudit_test.py:73:                             ("gone", b"id=7 flags=N\n")):
+tests/flakeaudit_test.py:74:            with self.subTest(state=state, reply=reply):
+tests/flakeaudit_test.py:75:                observer = Observer([reply])
+tests/flakeaudit_test.py:76:                with self.assertRaisesRegex(AssertionError, "never became"):
+tests/flakeaudit_test.py:77:                    _client_wait.wait_client_state(observer, 7, state, timeout=.02)
+tests/flakeaudit_test.py:78:                self.assertEqual(observer.timeout, 30.0)
+tests/flakeaudit_test.py:80:    def test_malformed_wrong_client_and_errors_fail_immediately(self):
+tests/flakeaudit_test.py:81:        for reply in (b"id=8 flags=b\n", b"id=7\n", b"flags=b\n", RuntimeError("ERR"),
+tests/flakeaudit_test.py:82:                      b"id=7 flags=b\nid=8 flags=b\n", b"garbage"):
+tests/flakeaudit_test.py:83:            with self.subTest(reply=reply):
+tests/flakeaudit_test.py:84:                observer = Observer([reply])
+tests/flakeaudit_test.py:85:                with self.assertRaises((AssertionError, ValueError)):
+tests/flakeaudit_test.py:86:                    _client_wait.wait_client_state(observer, 7, "blocked")
+tests/flakeaudit_test.py:87:                self.assertEqual(len(observer.commands), 1)
+tests/flakeaudit_test.py:88:                self.assertEqual(observer.timeout, 30.0)
+tests/flakeaudit_test.py:90:    def test_late_success_is_not_a_witness(self):
+tests/flakeaudit_test.py:91:        def late():
+tests/flakeaudit_test.py:92:            self.clock.sleep(6)
+tests/flakeaudit_test.py:93:            return b"id=7 flags=b\n"
+tests/flakeaudit_test.py:94:        observer = Observer([late])
+tests/flakeaudit_test.py:95:        with self.assertRaisesRegex(AssertionError, "exceeded deadline"):
+tests/flakeaudit_test.py:96:            _client_wait.wait_client_state(observer, 7, "blocked")
+tests/flakeaudit_test.py:97:        self.assertEqual(observer.timeout, 30.0)
+tests/flakeaudit_test.py:99:    def test_transport_failure_is_not_retried(self):
+tests/flakeaudit_test.py:100:        def closed():
+tests/flakeaudit_test.py:101:            raise EOFError("closed")
+tests/flakeaudit_test.py:102:        observer = Observer([closed])
+tests/flakeaudit_test.py:103:        with self.assertRaises(EOFError):
+tests/flakeaudit_test.py:104:            _client_wait.wait_client_state(observer, 7, "gone")
+tests/flakeaudit_test.py:105:        self.assertEqual(len(observer.commands), 1)
+tests/flakeaudit_test.py:106:        self.assertEqual(observer.timeout, 30.0)
+tests/flakeaudit_test.py:109:class PersistenceWitnessTests(unittest.TestCase):
+tests/flakeaudit_test.py:110:    def test_idle_sync_waits_for_counter_and_preserves_policy_age(self):
+tests/flakeaudit_test.py:111:        clock = Clock()
+tests/flakeaudit_test.py:112:        def info(_):
+tests/flakeaudit_test.py:113:            return {"aof_fsyncs": 4 if clock.now < 1.8 else 5}
+tests/flakeaudit_test.py:114:        ns = definitions("aof_fsync.py", ["wait_idle_sync"], dict(time=clock, info=info))
+tests/flakeaudit_test.py:115:        self.assertEqual(ns["wait_idle_sync"](None, {"aof_fsyncs": 4}), {"aof_fsyncs": 5})
+tests/flakeaudit_test.py:116:        self.assertGreaterEqual(clock.now, 1.8)
+tests/flakeaudit_test.py:117:        clock.now = 0
+tests/flakeaudit_test.py:118:        ns["info"] = lambda _: {"aof_fsyncs": 5}
+tests/flakeaudit_test.py:119:        ns["wait_idle_sync"](None, {"aof_fsyncs": 4})
+tests/flakeaudit_test.py:120:        self.assertGreaterEqual(clock.now, 1.25)
+tests/flakeaudit_test.py:122:    def test_absent_sync_fails(self):
+tests/flakeaudit_test.py:123:        clock = Clock()
+tests/flakeaudit_test.py:124:        ns = definitions("aof_fsync.py", ["wait_idle_sync"],
+tests/flakeaudit_test.py:125:                         dict(time=clock, info=lambda _: {"aof_fsyncs": 4}))
+tests/flakeaudit_test.py:126:        with self.assertRaisesRegex(AssertionError, "not witnessed"):
+tests/flakeaudit_test.py:127:            ns["wait_idle_sync"](None, {"aof_fsyncs": 4}, timeout=2)
+tests/flakeaudit_test.py:129:    def test_save_must_finish_and_publish_valid_state(self):
+tests/flakeaudit_test.py:130:        clock = Clock()
+tests/flakeaudit_test.py:131:        values = deque([b"1", b"1", b"0"])
+tests/flakeaudit_test.py:132:        ns = definitions("snap_cut_battery.py", ["wait_save_idle"],
+tests/flakeaudit_test.py:133:                         dict(time=clock, info_field=lambda _: values.popleft()))
+tests/flakeaudit_test.py:134:        ns["wait_save_idle"]()
+tests/flakeaudit_test.py:135:        self.assertFalse(values)
+tests/flakeaudit_test.py:136:        for value in (None, b"bad", b"1"):
+tests/flakeaudit_test.py:137:            ns["info_field"] = lambda _, v=value: v
+tests/flakeaudit_test.py:138:            with self.assertRaises(AssertionError):
+tests/flakeaudit_test.py:139:                ns["wait_save_idle"](timeout=1)
+tests/flakeaudit_test.py:141:    def test_raw_load_keeps_exact_success_and_corruption_oracles(self):
+tests/flakeaudit_test.py:142:        refusal = b"-ERR loading is not allowed while FLIP is in progress\r\n"
+tests/flakeaudit_test.py:143:        corrupt = b"-ERR Error trying to load the AOF, check server logs.\r\n"
+tests/flakeaudit_test.py:144:        for expected in (b"+OK\r\n", corrupt):
+tests/flakeaudit_test.py:145:            with self.subTest(expected=expected):
+tests/flakeaudit_test.py:146:                client = Observer([refusal, expected])
+tests/flakeaudit_test.py:147:                client.command = client.cmd
+tests/flakeaudit_test.py:148:                waits = []
+tests/flakeaudit_test.py:149:                ns = definitions("aof.py", ["bulk_payload", "expect_loadaof"],
+tests/flakeaudit_test.py:150:                                 dict(c=client, time=Clock(), wait_flip_idle=lambda *args: waits.append(args)))
+tests/flakeaudit_test.py:151:                self.assertEqual(ns["expect_loadaof"](expected), expected)
+tests/flakeaudit_test.py:152:                self.assertEqual(len(waits), 2)
+tests/flakeaudit_test.py:153:                self.assertEqual(client.commands, [("DEBUG", "LOADAOF")] * 2)
+tests/flakeaudit_test.py:154:                self.assertIs(waits[0][0].sock, client.sock)
+tests/flakeaudit_test.py:155:                # INFO stays on the same connection and is decoded for the existing barrier.
+tests/flakeaudit_test.py:156:                client.replies = deque([b"$3\r\nx:y\r\n"])
+tests/flakeaudit_test.py:157:                self.assertEqual(waits[0][0].command("INFO", "SERVER", "LB"), b"x:y")
+tests/flakeaudit_test.py:159:    def test_raw_load_never_retries_data_errors_or_accepts_two_refusals(self):
+tests/flakeaudit_test.py:160:        refusal = b"-ERR loading is not allowed while FLIP is in progress\r\n"
+tests/flakeaudit_test.py:161:        for reply, calls in ((b"-ERR corruption\r\n", 1), (refusal, 2), (b"+OK\n", 1)):
+tests/flakeaudit_test.py:162:            client = Observer([reply])
+tests/flakeaudit_test.py:163:            client.command = client.cmd
+tests/flakeaudit_test.py:164:            ns = definitions("aof.py", ["expect_loadaof"],
+tests/flakeaudit_test.py:165:                             dict(c=client, time=Clock(), wait_flip_idle=lambda *args: None))
+tests/flakeaudit_test.py:166:            with self.assertRaises(AssertionError):
+tests/flakeaudit_test.py:167:                ns["expect_loadaof"](b"+OK\r\n")
+tests/flakeaudit_test.py:168:            self.assertEqual(len(client.commands), calls)
+tests/flakeaudit_test.py:171:if __name__ == "__main__":
+tests/flakeaudit_test.py:172:    unittest.main()
+tests/_client_wait.py:1:"""Bounded CLIENT LIST witnesses for gate-owned connections."""
+tests/_client_wait.py:2:import time
+tests/_client_wait.py:4:from _lib import call
+tests/_client_wait.py:7:def wait_client_state(observer, client_id, state, timeout=5.0):
+tests/_client_wait.py:8:    """Require this exact client to be blocked or gone; never infer it from a sleep."""
+tests/_client_wait.py:9:    if state not in ("blocked", "gone"):
+tests/_client_wait.py:10:        raise ValueError("client state must be blocked or gone")
+tests/_client_wait.py:11:    client_id = str(client_id)
+tests/_client_wait.py:12:    if not client_id.isdecimal():
+tests/_client_wait.py:13:        raise ValueError("client ID must be a decimal integer")
+tests/_client_wait.py:14:    deadline = time.monotonic() + timeout
+tests/_client_wait.py:15:    original = observer.sock.gettimeout()
+tests/_client_wait.py:16:    last = None
+tests/_client_wait.py:18:        while True:
+tests/_client_wait.py:19:            left = deadline - time.monotonic()
+tests/_client_wait.py:20:            if left <= 0:
+tests/_client_wait.py:21:                raise AssertionError("client %s never became %s: %r" % (client_id, state, last))
+tests/_client_wait.py:22:            observer.sock.settimeout(left if original is None else min(left, original))
+tests/_client_wait.py:23:            last = call(observer, "CLIENT", "LIST", "ID", client_id)
+tests/_client_wait.py:24:            if isinstance(last, bytes):
+tests/_client_wait.py:25:                last = last.decode()
+tests/_client_wait.py:26:            if not isinstance(last, str):
+tests/_client_wait.py:27:                raise AssertionError("CLIENT LIST did not return text: %r" % (last,))
+tests/_client_wait.py:28:            rows = last.splitlines()
+tests/_client_wait.py:29:            if len(rows) > 1:
+tests/_client_wait.py:30:                raise AssertionError("CLIENT LIST ID returned multiple clients: %r" % last)
+tests/_client_wait.py:31:            fields = dict(item.split("=", 1) for item in rows[0].split()) if rows else {}
+tests/_client_wait.py:32:            if fields and (fields.get("id") != client_id or "flags" not in fields):
+tests/_client_wait.py:33:                raise AssertionError("CLIENT LIST ID returned malformed witness: %r" % last)
+tests/_client_wait.py:34:            left = deadline - time.monotonic()
+tests/_client_wait.py:35:            if left <= 0:
+tests/_client_wait.py:36:                raise AssertionError("client %s observation exceeded deadline: %r" % (client_id, last))
+tests/_client_wait.py:37:            if (state == "gone" and not rows) or (state == "blocked" and "b" in fields.get("flags", "")):
+tests/_client_wait.py:39:            time.sleep(min(.005, left))
+tests/_client_wait.py:41:        observer.sock.settimeout(original)
+tests/resizefix.py:8:import argparse
+tests/resizefix.py:12:from pathlib import Path
+tests/resizefix.py:17:import time
+tests/resizefix.py:165:            conn.close()
+tests/resizefix.py:174:def main():
+tests/blockmulti.py:1:#!/usr/bin/env python3
+tests/blockmulti.py:7:import time
+tests/blockmulti.py:56:    def cmd(self, *args):
+tests/blockmulti.py:103:    deadline = time.monotonic() + timeout
+tests/blockmulti.py:116:    started = time.monotonic()
+tests/blockmulti.py:180:    conn.close()
+tests/blockmulti.py:188:    started = time.monotonic()
+tests/blockmulti.py:193:    started = time.monotonic()
+tests/blockmulti.py:206:    started = time.monotonic()
+tests/blockmulti.py:227:    started = time.monotonic()
+tests/replyoff_xshard.py:1:#!/usr/bin/env python3
+tests/replyoff_xshard.py:131:        return got, extra
+tests/replyoff_xshard.py:167:def main():
+tests/replyoff_xshard.py:268:if __name__ == "__main__":
+tests/cd13b_oracle.sh:20:from pathlib import Path
+tests/replyschema.py:1:#!/usr/bin/env python3
+tests/replyschema.py:19:import time
+tests/replyschema.py:1295:if __name__ == "__main__":
+tests/streamgroups.py:1:#!/usr/bin/env python3
+tests/streamgroups.py:7:import time
+tests/streamgroups.py:54:    def cmd(self, *args):
+tests/streamgroups.py:69:    deadline = time.monotonic() + timeout
+tests/abba_saturation.py:1:#!/usr/bin/env python3
+tests/abba_saturation.py:11:from pathlib import Path
+tests/abba_saturation.py:256:    import unittest
+tests/abba_saturation.py:380:if __name__ == "__main__":
+tests/abba_saturation.py:381:    import argparse
+tests/abba_saturation.py:382:    parser = argparse.ArgumentParser(description=__doc__)
+tests/abba_saturation.py:386:    args = parser.parse_args()
+tests/differ_fanout_test.py:1:#!/usr/bin/env python3
+tests/differ_fanout_test.py:9:from pathlib import Path
+tests/differ_fanout_test.py:14:import unittest
+tests/differ_fanout_test.py:15:from unittest.mock import patch
+tests/differ_fanout_test.py:62:        with self.assertRaises(EOFError):
+tests/differ_fanout_test.py:73:    def setUp(self):
+tests/differ_fanout_test.py:122:from pathlib import Path
+tests/differ_fanout_test.py:269:    def setUp(self):
+tests/differ_fanout_test.py:428:    unittest.main()
+tests/respcompat_test.py:1:#!/usr/bin/env python3
+tests/respcompat_test.py:4:import unittest
+tests/respcompat_test.py:5:from unittest.mock import patch
+tests/respcompat_test.py:52:        with self.assertRaises(AssertionError):
+tests/respcompat_test.py:60:        with self.assertRaises(AssertionError):
+tests/respcompat_test.py:71:        with self.assertRaises(AssertionError):
+tests/respcompat_test.py:85:if __name__ == "__main__":
+tests/respcompat_test.py:86:    unittest.main()
+tests/cmdmeta_coverage.py:1:#!/usr/bin/env python3
+tests/cmdmeta_coverage.py:14:import argparse
+tests/cmdmeta_coverage.py:51:def main():
+tests/cmdmeta_coverage.py:52:    parser = argparse.ArgumentParser(description=__doc__)
+tests/cmdmeta_coverage.py:55:    args = parser.parse_args()
+tests/cmdmeta_coverage.py:103:if __name__ == "__main__":
+tests/expireindex.py:1:#!/usr/bin/env python3
+tests/expireindex.py:27:import time
+tests/expireindex.py:272:        time.sleep(0.25)
+tests/expireindex.py:313:def main():
+tests/expireindex.py:330:if __name__ == "__main__":
+tests/atomfix.py:1:#!/usr/bin/env python3
+tests/atomfix.py:27:import time
+tests/atomfix.py:64:    def command(self, *args):
+tests/atomfix.py:241:def main():
+tests/atomfix.py:291:        conn.close()
+tests/atomfix.py:298:if __name__ == "__main__":
+tests/abba_standing_null.py:11:from pathlib import Path
+tests/abba_standing_null.py:13:import time
+tests/r7shadow_split_witness.py:1:#!/usr/bin/env python3
+tests/r7shadow_split_witness.py:3:import argparse
+tests/r7shadow_split_witness.py:7:from pathlib import Path
+tests/r7shadow_split_witness.py:26:def main():
+tests/r7shadow_split_witness.py:27:    parser = argparse.ArgumentParser(description=__doc__)
+tests/r7shadow_split_witness.py:30:    args = parser.parse_args()
+tests/xacct.py:1:#!/usr/bin/env python3
+tests/xacct.py:5:DEBUG RELOAD is the cold full-recomputation oracle for stream-group accounting.
+tests/xacct.py:11:import time
+tests/xacct.py:58:    def cmd(self, *args):
+tests/xacct.py:185:# every group-accounting mutation family, including both reassignment sites. DEBUG RELOAD rebuilds
+tests/xacct.py:221:reload_reply = admin.cmd("DEBUG", "RELOAD")
+tests/hexpire.py:1:#!/usr/bin/env python3
+tests/hexpire.py:5:  all          the full in-process battery, including DEBUG RELOAD snapshot round-trip when the
+tests/hexpire.py:18:import time
+tests/hexpire.py:20:from _lib import debug_load, wait_flip_idle
+tests/hexpire.py:53:    def cmd(self, *args):
+tests/hexpire.py:402:    time.sleep(0.4)
+tests/hexpire.py:422:        time.sleep(0.25)
+tests/hexpire.py:599:def main():
+tests/hexpire.py:636:if __name__ == "__main__":
+tests/exbatch.py:1:#!/usr/bin/env python3
+tests/exbatch.py:4:import time
+tests/exbatch.py:18:    while True:
+tests/scriptsurf.py:1:#!/usr/bin/env python3
+tests/scriptsurf.py:19:import time
+tests/scriptsurf.py:85:    def cmd(self, *args):
+tests/scriptsurf.py:153:        return got
+tests/scriptsurf.py:156:    return got
+tests/scriptsurf.py:596:                conn.close()
+tests/boot_failures.py:1:#!/usr/bin/env python3
+tests/boot_failures.py:7:import argparse
+tests/boot_failures.py:11:from pathlib import Path
+tests/boot_failures.py:17:import time
+tests/boot_failures.py:362:                    while True:
+tests/boot_failures.py:402:def main():
+tests/reorder_scope_test.py:1:#!/usr/bin/env python3
+tests/reorder_scope_test.py:4:from pathlib import Path
+tests/reorder_scope_test.py:7:import unittest
+tests/reorder_scope_test.py:102:if __name__ == "__main__":
+tests/reorder_scope_test.py:103:    unittest.main()
+tests/reorder_receipt.py:1:#!/usr/bin/env python3
+tests/reorder_receipt.py:9:import argparse
+tests/reorder_receipt.py:12:from pathlib import Path
+tests/reorder_receipt.py:71:    parser = argparse.ArgumentParser(description=__doc__)
+tests/reorder_receipt.py:75:    args = parser.parse_args()
+tests/writer_atomic.py:1:#!/usr/bin/env python3
+tests/writer_atomic.py:16:import argparse
+tests/writer_atomic.py:23:import time
+tests/writer_atomic.py:235:        deadline = time.monotonic() + timeout
+tests/writer_atomic.py:688:    deadline = time.monotonic() + timeout
+tests/writer_atomic.py:699:    parser = argparse.ArgumentParser(description=__doc__)
+tests/writer_atomic.py:700:    parser.add_argument("host")
+tests/writer_atomic.py:701:    parser.add_argument("port", type=int)
+tests/writer_atomic.py:720:    args = parser.parse_args()
+tests/writer_atomic.py:754:    started = time.monotonic()
+tests/writer_atomic.py:815:            if time.monotonic() >= deadline:
+tests/writer_atomic.py:946:if __name__ == "__main__":
+tests/cdfix_checks.py:1:#!/usr/bin/env python3
+tests/cdfix_checks.py:7:import argparse
+tests/cdfix_checks.py:11:from pathlib import Path
+tests/cdfix_checks.py:235:if __name__ == "__main__":
+tests/cdfix_checks.py:236:    parser = argparse.ArgumentParser(description=__doc__)
+tests/cdfix_checks.py:243:    args = parser.parse_args()
+tests/edgeenc.py:1:#!/usr/bin/env python3
+tests/edgeenc.py:15:  * DUMP/RESTORE and DEBUG RELOAD, which must round-trip a value ACROSS every one of the above
+tests/edgeenc.py:34:from _lib import debug_load
+tests/edgeenc.py:104:    def cmd(self, *args):
+tests/edgeenc.py:261:while True:
+tests/edgeenc.py:656:print("== 9. snapshot round-trip across the same boundaries (DEBUG RELOAD)")
+tests/edgeenc.py:659:    SKIPPED.append("DEBUG RELOAD round-trip: server was booted without --enable-debug-command")
+tests/edgeenc.py:666:    check("DEBUG RELOAD", debug_load(c), b"OK")
+tests/shutsave.py:1:#!/usr/bin/env python3
+tests/shutsave.py:3:import argparse
+tests/shutsave.py:7:from pathlib import Path
+tests/shutsave.py:11:import time
+tests/shutsave.py:41:                conn.close()
+tests/shutsave.py:130:def main():
+tests/shutsave.py:131:    parser = argparse.ArgumentParser(description=__doc__)
+tests/shutsave.py:142:    args = parser.parse_args()
+tests/redisgap_atomic.py:1:#!/usr/bin/env python3
+tests/redisgap_atomic.py:16:import time
+tests/redisgap_atomic.py:39:    while True:
+tests/redisgap_atomic.py:78:            while True:
+tests/redisgap_atomic.py:82:                if time.monotonic() >= deadline:
+tests/redisgap_atomic.py:125:            started = time.monotonic()
+tests/orthog.py:1:#!/usr/bin/env python3
+tests/orthog.py:8:import argparse
+tests/orthog.py:12:import time
+tests/orthog.py:34:def main():
+tests/orthog.py:35:    parser = argparse.ArgumentParser(description=__doc__)
+tests/orthog.py:36:    parser.add_argument("host")
+tests/orthog.py:37:    parser.add_argument("port", type=int)
+tests/orthog.py:42:    args = parser.parse_args()
+tests/orthog.py:115:            conn.close()
+tests/orthog.py:149:                    conn.close()
+tests/orthog.py:202:            conn.close()
+tests/orthog.py:210:if __name__ == "__main__":
+tests/signalacct_controls.py:1:#!/usr/bin/env python3
+tests/signalacct_controls.py:9:from pathlib import Path
+tests/signalacct_controls.py:64:def main():
+tests/storeorder.py:1:#!/usr/bin/env python3
+tests/storeorder.py:300:def main():
+tests/storeorder.py:351:if __name__ == "__main__":
+tests/slowlog.py:1:#!/usr/bin/env python3
+tests/slowlog.py:21:import time
+tests/slowlog.py:43:    def cmd(self, *args):
+tests/slowlog.py:121:def main():
+tests/slowlog.py:308:if __name__ == "__main__":
+tests/bplus.py:1:#!/usr/bin/env python3
+tests/bplus.py:18:import time
+tests/bplus.py:280:    deadline = time.monotonic() + timeout
+tests/bplus.py:330:        started = time.monotonic()
+tests/bplus.py:525:def main():
+tests/bplus.py:578:if __name__ == "__main__":
+tests/_lib.py:1:#!/usr/bin/env python3
+tests/_lib.py:34:import time
+tests/_lib.py:130:            if left <= 0:
+tests/_lib.py:160:        while True:
+tests/_lib.py:199:    def cmd(self, *args):
+tests/_lib.py:222:    from pathlib import Path
+tests/_lib.py:223:    deadline = time.monotonic() + timeout
+tests/_lib.py:252:        left = deadline - time.monotonic()
+tests/_lib.py:253:        if left <= 0:
+tests/_lib.py:289:                if time.monotonic() >= deadline:
+tests/_lib.py:305:                conn.close()
+tests/_lib.py:529:    deadline = time.monotonic() + timeout
+tests/_lib.py:534:        left = deadline - time.monotonic()
+tests/_lib.py:535:        if left <= 0:
+tests/_lib.py:541:        while True:
+tests/_lib.py:564:    """Require DEBUG RELOAD/LOADAOF to succeed; retry one exact placement-race refusal once.
+tests/_lib.py:572:    deadline = time.monotonic() + timeout
+tests/_lib.py:573:    for attempt in range(2):
+tests/_lib.py:577:                str(reply) == "ERR loading is not allowed while FLIP is in progress"):
+tests/_lib.py:587:    deadline = time.monotonic() + timeout
+tests/netio.py:1:#!/usr/bin/env python3
+tests/netio.py:38:import time
+tests/netio.py:40:from _client_wait import wait_client_state
+tests/netio.py:127:    def cmd(self, *args):
+tests/netio.py:221:    waiter_id = waiter.cmd("CLIENT", "ID")[1:].decode()
+tests/netio.py:224:    waiter.send("BLPOP", key, "0")
+tests/netio.py:225:    wait_client_state(admin, waiter_id, "blocked")
+tests/snap_typed_roundtrip.py:1:import ast, os, socket, sys, random, tempfile
+tests/lbplanner_checks.py:1:#!/usr/bin/env python3
+tests/lbplanner_checks.py:3:from pathlib import Path
+tests/abba_binaries.py:1:#!/usr/bin/env python3
+tests/abba_binaries.py:9:import argparse
+tests/abba_binaries.py:13:from pathlib import Path
+tests/abba_binaries.py:216:    import unittest
+tests/abba_binaries.py:223:        def setUp(self):
+tests/abba_binaries.py:446:def main():
+tests/abba_binaries.py:449:    parser = argparse.ArgumentParser(description=__doc__)
+tests/abba_binaries.py:453:    args = parser.parse_args()
+tests/abba_binaries.py:468:if __name__ == "__main__":
+tests/globcase.py:1:#!/usr/bin/env python3
+tests/globcase.py:30:    def cmd(self, *args):
+tests/globcase.py:76:    while True:
+tests/globcase.py:138:        while True:
+tests/reorder_noop.py:1:#!/usr/bin/env python3
+tests/reorder_noop.py:3:import argparse, bisect, difflib, hashlib, json, re, struct, subprocess
+tests/reorder_noop.py:5:from pathlib import Path
+tests/doubles.py:1:#!/usr/bin/env python3
+tests/doubles.py:76:    def command(self, *args):
+tests/doubles.py:544:def main():
+tests/wb_policy.py:1:#!/usr/bin/env python3
+tests/wb_policy.py:8:import argparse
+tests/wb_policy.py:11:from pathlib import Path
+tests/wb_policy.py:135:    parser = argparse.ArgumentParser(description=__doc__)
+tests/wb_policy.py:143:    args = parser.parse_args()
+tests/load_calibration.py:1:#!/usr/bin/env python3
+tests/load_calibration.py:17:from pathlib import Path
+tests/load_calibration.py:21:import time
+tests/load_calibration.py:115:                conn.close()
+tests/load_calibration.py:275:    import unittest
+tests/load_calibration.py:280:        def setUp(self):
+tests/load_calibration.py:556:if __name__ == "__main__":
+tests/wbland_checks.py:1:#!/usr/bin/env python3
+tests/wbland_checks.py:3:import argparse
+tests/wbland_checks.py:6:from pathlib import Path
+tests/differ_test.py:1:#!/usr/bin/env python3
+tests/differ_test.py:3:import ast
+tests/differ_test.py:8:from pathlib import Path
+tests/differ_test.py:12:import unittest
+tests/differ_test.py:40:    def setUp(self):
+tests/differ_test.py:266:            return {b'rdb_bgsave_in_progress': next(states)}
+tests/differ_test.py:270:        self.assertEqual(result, [{b'rdb_bgsave_in_progress': b'0'}] * 2)
+tests/differ_test.py:284:                return {b'rdb_bgsave_in_progress': b'1' if peer is peers[busy] else b'0'}
+tests/differ_test.py:296:                self.differ.psfix_wait_idle(peers, lambda peer: {b'rdb_bgsave_in_progress': state},
+tests/differ_test.py:316:        with self.assertRaises(AssertionError):
+tests/differ_test.py:347:                                  rdb_bgsave_in_progress=int(busy), rdb_last_save_time=0,
+tests/differ_test.py:372:                    with self.assertRaises(AssertionError):
+tests/differ_test.py:485:    unittest.main()
+tests/pushtear.py:1:#!/usr/bin/env python3
+tests/pushtear.py:59:import time
+tests/pushtear.py:193:        while True:
+tests/pushtear.py:341:        conn.close()
+tests/pushtear.py:397:        conn.close()
+tests/pushtear.py:696:        conn.close()
+tests/pushtear.py:699:def main():
+tests/pushtear.py:784:if __name__ == "__main__":
+tests/_nullrefresh_test.py:6:import argparse
+tests/_nullrefresh_test.py:16:from pathlib import Path
+tests/_nullrefresh_test.py:20:import time
+tests/_nullrefresh_test.py:21:import unittest
+tests/_nullrefresh_test.py:285:    def setUp(self):
+tests/_nullrefresh_test.py:506:            with self.assertRaises(AssertionError):
+tests/_nullrefresh_test.py:682:                    with self.assertRaises(AssertionError):
+tests/_nullrefresh_test.py:693:                with self.assertRaises(AssertionError):
+tests/_nullrefresh_test.py:713:            with self.assertRaises(AssertionError): self.assertEqual(self.standing.read_bytes(), before)
+tests/_nullrefresh_test.py:827:                    with self.assertRaises(AssertionError):
+tests/_nullrefresh_test.py:859:                with self.assertRaises(AssertionError):
+tests/_nullrefresh_test.py:881:            with self.assertRaises(AssertionError):
+tests/_nullrefresh_test.py:929:            with self.assertRaises(AssertionError):
+tests/_nullrefresh_test.py:987:            with self.assertRaises(AssertionError): assertion()
+tests/_nullrefresh_test.py:1003:            with self.assertRaises(AssertionError): assertion()
+tests/_nullrefresh_test.py:1017:                with self.assertRaises(AssertionError):
+tests/_nullrefresh_test.py:1031:            with self.assertRaises(AssertionError): assertion()
+tests/_nullrefresh_test.py:1040:            with self.assertRaises(AssertionError): loss_assertion()
+tests/_nullrefresh_test.py:1065:                with self.assertRaises(AssertionError): self.assertFalse(receipt.replay_null(path)['promotable'])
+tests/_nullrefresh_test.py:1108:                    with self.assertRaises(AssertionError):
+tests/_nullrefresh_test.py:1152:            with self.assertRaises(AssertionError): assertion()
+tests/aclreply.py:1:#!/usr/bin/env python3
+tests/aclreply.py:48:import time
+tests/aclreply.py:98:def main():
+tests/aclreply.py:124:        time.sleep(0.25)
+tests/aclreply.py:194:if __name__ == "__main__":
+tests/torn_mset.py:1:#!/usr/bin/env python3
+tests/torn_mset.py:21:import time
+tests/respcompat_audit.py:1:#!/usr/bin/env python3
+tests/respcompat_audit.py:8:import argparse
+tests/respcompat_audit.py:13:from pathlib import Path
+tests/respcompat_audit.py:85:def main():
+tests/respcompat_audit.py:86:    parser = argparse.ArgumentParser(description=__doc__)
+tests/respcompat_audit.py:90:    args = parser.parse_args()
+tests/respcompat_audit.py:94:if __name__ == "__main__":
+tests/flip.py:1:#!/usr/bin/env python3
+tests/flip.py:55:    def cmd(self, *args):
+tests/flip.py:128:def main():
+tests/flip.py:381:if __name__ == "__main__":
+tests/zc.py:1:#!/usr/bin/env python3
+tests/zc.py:34:    time.sleep(0.05)
+tests/aof_fsync.py:1:#!/usr/bin/env python3
+tests/aof_fsync.py:12:import time
+tests/aof_fsync.py:60:    def cmd(self, *args):
+tests/aof_fsync.py:88:def wait_idle_sync(client, before, timeout=10.0):
+tests/aof_fsync.py:89:    # Retain the policy-age lower bound, but elapsed time is not evidence that the
+tests/aof_fsync.py:90:    # idle writer ran. The same exact counter assertion must also be witnessed.
+tests/aof_fsync.py:91:    started = time.monotonic()
+tests/aof_fsync.py:92:    deadline = started + timeout
+tests/aof_fsync.py:93:    while True:
+tests/aof_fsync.py:94:        after = info(client)
+tests/aof_fsync.py:95:        now = time.monotonic()
+tests/aof_fsync.py:96:        if now >= deadline:
+tests/aof_fsync.py:97:            raise AssertionError("idle data-sync was not witnessed: %r" % after)
+tests/aof_fsync.py:98:        if now - started >= 1.25 and after["aof_fsyncs"] > before["aof_fsyncs"]:
+tests/aof_fsync.py:99:            return after
+tests/aof_fsync.py:100:        time.sleep(min(.02, deadline - now))
+tests/aof_fsync.py:120:        after = wait_idle_sync(client, before)
+tests/aof_fsync.py:122:        after = info(client)
+tests/aof_fsync.py:124:        if after.get("aof_fsyncs", -1) != 0:
+tests/aof_fsync.py:129:        if after.get("aof_fsyncs", 0) <= before.get("aof_fsyncs", 0):
+tests/aof_fsync.py:142:        POLICY, COUNT, after.get("aof_fsyncs", 0), after.get("aof_send_gate_waits", 0)))
+tests/respcompat.py:1:#!/usr/bin/env python3
+tests/respcompat.py:8:import argparse
+tests/respcompat.py:135:def main():
+tests/respcompat.py:136:    parser = argparse.ArgumentParser(description=__doc__)
+tests/respcompat.py:137:    parser.add_argument("host")
+tests/respcompat.py:138:    parser.add_argument("port", type=int)
+tests/respcompat.py:140:    args = parser.parse_args()
+tests/respcompat.py:161:if __name__ == "__main__":
+tests/lcs.py:1:#!/usr/bin/env python3
+tests/lcs.py:39:    def cmd(self, *args):
+tests/lcs.py:133:def main():
+tests/lcs.py:254:if __name__ == "__main__":
+tests/abbagate.py:1:#!/usr/bin/env python3
+tests/abbagate.py:54:import argparse
+tests/abbagate.py:61:from pathlib import Path
+tests/abbagate.py:72:import time
+tests/abbagate.py:604:        self.conn.close()
+tests/abbagate.py:1462:    read_started = time.monotonic()
+tests/abbagate.py:1765:        started = time.monotonic()
+tests/abbagate.py:1794:                deadline = time.monotonic() + 30
+tests/abbagate.py:1795:                while True:
+tests/abbagate.py:1809:                            conn.close()
+tests/abbagate.py:1811:                        if time.monotonic() >= deadline:
+tests/abbagate.py:1813:                        time.sleep(0.1)
+tests/abbagate.py:2056:                    conn.close()
+tests/abbagate.py:2637:    import unittest
+tests/abbagate.py:2645:        while True:
+tests/abbagate.py:2656:        while True:
+tests/abbagate.py:2669:        def setUp(self):
+tests/abbagate.py:2679:            self.quiet_factory = patcher.start()
+tests/abbagate.py:2680:            self.addCleanup(patcher.stop)
+tests/abbagate.py:3487:                        now = time.monotonic()
+tests/abbagate.py:4583:            while True:
+tests/abbagate.py:4932:                outsider = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+tests/abbagate.py:4934:                    child = children.start([sys.executable, "-c", "import time; time.sleep(60)"],
+tests/abbagate.py:4946:            outsider = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+tests/abbagate.py:4952:                    script = ("import os,subprocess,sys,time; from pathlib import Path; "
+tests/abbagate.py:4953:                              "p=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)']); "
+tests/abbagate.py:4981:                script = ("import os,sys,time; from pathlib import Path; "
+tests/abbagate.py:4990:                    while True:
+tests/abbagate.py:5052:if __name__ == "__main__":
+tests/gate_quiet.py:1:#!/usr/bin/env python3
+tests/gate_quiet.py:15:from pathlib import Path
+tests/gate_quiet.py:18:import time
+tests/gate_quiet.py:109:        now = time.monotonic()
+tests/gate_quiet.py:213:    import unittest
+tests/gate_quiet.py:290:if __name__ == "__main__":
+tests/execiso.py:1:#!/usr/bin/env python3
+tests/execiso.py:56:import time
+tests/execiso.py:133:    def cmd(self, *args):
+tests/execiso.py:282:        time.sleep(0.05)                     # the lead fragment has answered; the rest are parked
+tests/execiso.py:359:        time.sleep(0.05)
+tests/rlcache_churn_test.py:1:#!/usr/bin/env python3
+tests/rlcache_churn_test.py:5:import unittest
+tests/rlcache_churn_test.py:83:    unittest.main()
+tests/differ.py:1:#!/usr/bin/env python3
+tests/differ.py:3140:        deadline = time.monotonic() + timeout
+tests/differ.py:3359:        started = time.monotonic()
+tests/differ.py:3361:        time.sleep(0.05)
+tests/differ.py:5050:        while True:
+tests/differ.py:5078:            while True:
+tests/differ.py:5080:                if left <= 0: break
+tests/differ.py:5944:        while True:
+tests/differ.py:6066:    started = time.monotonic()
+tests/differ.py:6148:        while True:
+tests/differ.py:6156:                state = row.get(b"rdb_bgsave_in_progress")
+tests/differ.py:6159:                    "PSFIX harness error: %s %s invalid rdb_bgsave_in_progress=%r" %
+tests/differ.py:6178:            "rdb_bgsave_in_progress=%r" % (phase, states)) from error
+tests/differ.py:6243:        shared = set(b"loading rdb_changes_since_last_save rdb_bgsave_in_progress "
+tests/differ.py:6743:        while True:
+tests/differ.py:6867:        while True:
+tests/differ.py:6879:    while True:
+tests/wb_rule_checks.py:1:#!/usr/bin/env python3
+tests/wb_rule_checks.py:8:import argparse
+tests/wb_rule_checks.py:11:from pathlib import Path
+tests/wb_rule_checks.py:142:if __name__ == "__main__":
+tests/wb_rule_checks.py:143:    parser = argparse.ArgumentParser(description=__doc__)
+tests/wb_rule_checks.py:152:    args = parser.parse_args()
+tests/maskflood.py:1:#!/usr/bin/env python3
+tests/cd13b_window_test.py:1:#!/usr/bin/env python3
+tests/cd13b_window_test.py:5:import unittest
+tests/cd13b_window_test.py:92:    unittest.main()
+tests/exbatch_checks.py:1:#!/usr/bin/env python3
+tests/exbatch_checks.py:3:import argparse
+tests/exbatch_checks.py:6:from pathlib import Path
+tests/exbatch_checks.py:87:    parser = argparse.ArgumentParser(description=__doc__)
+tests/blocking.py:1:#!/usr/bin/env python3
+tests/blocking.py:7:import time
+tests/blocking.py:65:    def cmd(self, *args):
+tests/blocking.py:76:    deadline = time.monotonic() + timeout
+tests/blocking.py:135:started = time.monotonic()
+tests/blocking.py:140:started = time.monotonic()
+tests/blocking.py:150:started = time.monotonic()
+tests/signalacct_byte_checks.py:1:#!/usr/bin/env python3
+tests/signalacct_byte_checks.py:5:from pathlib import Path
+tests/signalacct_byte_checks.py:14:def main():
+tests/cd13b_checks.py:1:#!/usr/bin/env python3
+tests/cd13b_checks.py:6:import argparse
+tests/cd13b_checks.py:8:from pathlib import Path
+tests/cd13b_checks.py:102:def main():
+tests/cd13b_checks.py:103:    parser = argparse.ArgumentParser(description=__doc__)
+tests/cd13b_checks.py:113:    args = parser.parse_args()
+tests/cd13b_checks.py:124:if __name__ == "__main__":
+tests/bitfield.py:1:#!/usr/bin/env python3
+tests/bitfield.py:45:    def cmd(self, *args):
+tests/expwide.py:1:#!/usr/bin/env python3
+tests/expwide.py:28:import time
+tests/expwide.py:89:    def cmd(self, *args):
+tests/expwide.py:104:    return got == want
+tests/expwide.py:211:        time.sleep(0.25)
+tests/expwide.py:640:            time.sleep(0.05)
+tests/expwide.py:686:def main():
+tests/expwide.py:705:        conn.close()
+tests/expwide.py:716:if __name__ == "__main__":
+tests/sortstore_controls.py:1:#!/usr/bin/env python3
+tests/sortstore_controls.py:7:import argparse
+tests/sortstore_controls.py:11:from pathlib import Path
+tests/sortstore_controls.py:30:def main():
+tests/sortstore_controls.py:31:    parser = argparse.ArgumentParser(description=__doc__)
+tests/sortstore_controls.py:33:    args = parser.parse_args()
+tests/sortstore_controls.py:92:if __name__ == "__main__":
+tests/flushfix_checks.py:1:#!/usr/bin/env python3
+tests/flushfix_checks.py:3:import argparse
+tests/flushfix_checks.py:6:from pathlib import Path
+tests/flushfix_checks.py:95:    import time
+tests/flushfix_checks.py:161:if __name__ == "__main__":
+tests/flushfix_checks.py:162:    parser = argparse.ArgumentParser(description=__doc__)
+tests/flushfix_checks.py:183:    args = parser.parse_args()
+tests/mdbqsbr_live.py:1:#!/usr/bin/env python3
+tests/mdbqsbr_live.py:11:import argparse
+tests/mdbqsbr_live.py:12:from collections import deque
+tests/mdbqsbr_live.py:15:from pathlib import Path
+tests/mdbqsbr_live.py:23:import time
+tests/mdbqsbr_live.py:321:            conn.close()
+tests/mdbqsbr_live.py:325:def main():
+tests/mdbqsbr_live.py:331:    parser = argparse.ArgumentParser(description=__doc__)
+tests/mdbqsbr_live.py:342:    args = parser.parse_args()
+tests/contarity.py:1:#!/usr/bin/env python3
+tests/contarity.py:159:def main():
+tests/signalacct_live.py:1:#!/usr/bin/env python3
+tests/signalacct_live.py:9:import argparse
+tests/signalacct_live.py:12:from pathlib import Path
+tests/signalacct_live.py:16:import time
+tests/signalacct_live.py:189:def main():
+tests/signalacct_live.py:190:    parser = argparse.ArgumentParser(description=__doc__)
+tests/signalacct_live.py:203:    args = parser.parse_args()
+tests/mdbstamp_controls.py:1:#!/usr/bin/env python3
+tests/mdbstamp_controls.py:9:from pathlib import Path
+tests/sortstore.py:1:#!/usr/bin/env python3
+tests/sortstore.py:3:import argparse
+tests/sortstore.py:5:from pathlib import Path
+tests/sortstore.py:7:from _lib import Conn, RespError, encode, topology
+tests/sortstore.py:102:def main():
+tests/sortstore.py:103:    parser = argparse.ArgumentParser(description=__doc__)
+tests/sortstore.py:104:    parser.add_argument("host")
+tests/sortstore.py:105:    parser.add_argument("port", type=int)
+tests/sortstore.py:110:    args = parser.parse_args()
+tests/sortstore.py:128:if __name__ == "__main__":
+tests/cd13b_audit.py:1:#!/usr/bin/env python3
+tests/cd13b_audit.py:3:import argparse
+tests/cd13b_audit.py:7:from pathlib import Path
+tests/cd13b_audit.py:261:if __name__ == "__main__":
+tests/cd13b_audit.py:262:    parser = argparse.ArgumentParser(description=__doc__)
+tests/evict_battery.py:1:#!/usr/bin/env python3
+tests/evict_battery.py:262:        time.sleep(0.1)
+tests/spinprobe.py:1:#!/usr/bin/env python3
+tests/spinprobe.py:27:import time
+tests/snap_typed_race.py:28:import time
+tests/snap_typed_race.py:70:    def cmd(self, *args):
+tests/snap_typed_race.py:171:    while info_int(client, "rdb_bgsave_in_progress") != 0:
+tests/snap_typed_race.py:173:            raise AssertionError("BGSAVE did not finish within %ds" % timeout)
+tests/snap_typed_race.py:174:        time.sleep(0.05)
+tests/knobs.py:1:#!/usr/bin/env python3
+tests/knobs.py:259:    conn.close()
+tests/psfix_test.py:1:#!/usr/bin/env python3
+tests/psfix_test.py:5:from pathlib import Path
+tests/psfix_test.py:8:import unittest
+tests/psfix_test.py:16:    def setUp(self):
+tests/psfix_test.py:32:        with patch.object(psfix, 'info', side_effect=[{'rdb_bgsave_in_progress': state}
+tests/psfix_test.py:41:        with patch.object(psfix, 'info', side_effect=[{'rdb_bgsave_in_progress': state}
+tests/psfix_test.py:53:                    patch.object(psfix, 'info', side_effect=[{'rdb_bgsave_in_progress': state}
+tests/psfix_test.py:85:        replies += [{'rdb_bgsave_in_progress': state} for state in ('0', '0', '1', '1')]
+tests/psfix_test.py:102:    unittest.main()
+tests/debug_load.py:1:#!/usr/bin/env python3
+tests/debug_load.py:2:"""Shell entry point for the shared, witnessed DEBUG load admission barrier."""
+tests/debug_load.py:3:import argparse
+tests/debug_load.py:5:from _lib import Conn, debug_load
+tests/debug_load.py:8:def main():
+tests/debug_load.py:9:    parser = argparse.ArgumentParser(description=__doc__)
+tests/debug_load.py:10:    parser.add_argument("host")
+tests/debug_load.py:11:    parser.add_argument("port", type=int)
+tests/debug_load.py:12:    parser.add_argument("subcommand", choices=("RELOAD", "LOADAOF"))
+tests/debug_load.py:13:    args = parser.parse_args()
+tests/debug_load.py:14:    conn = Conn(args.host, args.port, timeout=30)
+tests/debug_load.py:16:        debug_load(conn, args.subcommand)
+tests/debug_load.py:17:        print("OK")
+tests/debug_load.py:19:        conn.close()
+tests/debug_load.py:22:if __name__ == "__main__":
+tests/lua_scripting.py:1:#!/usr/bin/env python3
+tests/lua_scripting.py:67:    def cmd(self, *args):
+tests/differ_gate.sh:191:from pathlib import Path
+tests/differ_gate.sh:216:from pathlib import Path
+tests/flip_under_load.py:1:#!/usr/bin/env python3
+tests/flip_under_load.py:34:import time
+tests/lb_stationary.py:1:#!/usr/bin/env python3
+tests/lb_stationary.py:9:import argparse
+tests/lb_stationary.py:13:from pathlib import Path
+tests/lb_stationary.py:14:import time
+tests/lb_stationary.py:140:                conn.close()
+tests/lb_stationary.py:167:            now = time.monotonic()
+tests/lb_stationary.py:216:    from unittest.mock import patch
+tests/lb_stationary.py:246:                return after if samples > 1 else snap
+tests/lb_stationary.py:296:    parser = argparse.ArgumentParser(description=__doc__)
+tests/lb_stationary.py:302:    args = parser.parse_args()
+tests/nullpublish4_test.py:1:#!/usr/bin/env python3
+tests/nullpublish4_test.py:7:from pathlib import Path
+tests/nullpublish4_test.py:9:import unittest
+tests/aclsel.py:1:#!/usr/bin/env python3
+tests/aclsel.py:11:import time
+tests/aclsel.py:36:    def command(self, *args):
+tests/aclsel.py:286:time.sleep(0.25)
+tests/r7shadow_mutants.py:1:#!/usr/bin/env python3
+tests/r7shadow_mutants.py:4:from pathlib import Path

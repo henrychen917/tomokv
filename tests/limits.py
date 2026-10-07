@@ -11,6 +11,8 @@ import sys
 import threading
 import time
 
+from _client_wait import wait_client_state
+
 
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 
@@ -198,6 +200,7 @@ def main():
         expect(admin.command("CONFIG", "SET", "maxclients", "3"), b"OK",
                "maxclients live lower")
         first, second = Conn(), Conn()
+        first_id = first.command("CLIENT", "ID")
         expect(first.command("PING"), b"PONG", "maxclients admitted slot one")
         expect(second.command("PING"), b"PONG", "maxclients admitted slot two")
         rejected_before = int(stats(admin)["rejected_connections"])
@@ -209,7 +212,7 @@ def main():
         expect_stat(admin, "rejected_connections", rejected_before + 1,
                     "rejected_connections advances")
         first.close()
-        time.sleep(0.1)
+        wait_client_state(admin, first_id, "gone")
         replacement = Conn()
         expect(replacement.command("PING"), b"PONG", "disconnect returns admission slot")
         replacement.close()

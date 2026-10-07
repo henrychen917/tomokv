@@ -1,0 +1,8 @@
+{
+  "reason": "Stop after five complete proofs to respect the 60-minute resume budget; sixth not proven.",
+  "utc": "2026-10-07T14:13:17.528316+00:00",
+  "campaign_pid": 678544,
+  "gate_pids": [
+    824291
+  ]
+}

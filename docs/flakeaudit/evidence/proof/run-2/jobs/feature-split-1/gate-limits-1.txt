@@ -1,0 +1,89 @@
+  ok   COBL fresh defaults
+  ok   COBL multi-clause grammar
+  ok   COBL units and replica->slave serialization
+  ok   COBL partial merge
+  ok   COBL unmentioned classes retained
+  ok   COBL rejects wrong group width
+  ok   COBL rejection atomic: wrong group width
+  ok   COBL rejects master class
+  ok   COBL rejection atomic: master class
+  ok   COBL rejects unknown class
+  ok   COBL rejection atomic: unknown class
+  ok   COBL rejects negative seconds
+  ok   COBL rejection atomic: negative seconds
+  ok   COBL rejects trailing seconds garbage
+  ok   COBL rejection atomic: trailing seconds garbage
+  ok   COBL rejects overflow with garbage suffix
+  ok   COBL rejection atomic: overflow with garbage suffix
+  ok   COBL rejects all-or-nothing
+  ok   COBL rejection atomic: all-or-nothing
+  ok   tcp-backlog is boot-only
+  ok   tcp-keepalive live knob
+  ok   tcp-keepalive round-trip
+  ok   disable enforced COBL classes for lifecycle arms
+  ok   maxclients live lower
+  ok   maxclients admitted slot one
+  ok   maxclients admitted slot two
+  ok   maxclients exact error
+  ok   maxclients reject closes synchronously
+  ok   rejected_connections advances
+  ok   disconnect returns admission slot
+  ok   maxclients live raise
+  ok   maxclients storm setup
+  ok   maxclients storm slop bound (admitted=19)
+  ok   maxclients storm rejection counter
+  ok   maxclients storm restore
+  ok   timeout live enable
+  ok   idle timeout closes (1.20s)
+  ok   MULTI opened
+  ok   idle MULTI is not timeout-exempt
+  ok   subscriber timeout setup
+  ok   admin timeout heartbeat
+  ok   admin timeout heartbeat
+  ok   admin timeout heartbeat
+  ok   admin timeout heartbeat
+  ok   admin timeout heartbeat
+  ok   admin timeout heartbeat
+  ok   subscriber timeout exemption
+  ok   blocked timeout heartbeat
+  ok   blocked timeout heartbeat
+  ok   blocked timeout heartbeat
+  ok   blocked timeout heartbeat
+  ok   blocked timeout heartbeat
+  ok   blocked timeout heartbeat
+  ok   blocked timeout deterministic ordering arm
+  ok   blocked timeout wake
+  ok   blocked timeout exemption
+  ok   blocked timeout post-wake alive
+  ok   blocked timeout deterministic ordering fired
+  ok   recv/send refreshes idle clock
+  ok   admin timeout heartbeat
+  ok   recv/send refreshes idle clock
+  ok   admin timeout heartbeat
+  ok   recv/send refreshes idle clock
+  ok   admin timeout heartbeat
+  ok   recv/send refreshes idle clock
+  ok   admin timeout heartbeat
+  ok   recv/send refreshes idle clock
+  ok   admin timeout heartbeat
+  ok   timeout disable
+  ok   timeout zero keeps idle client
+  ok   hard-limit setup
+  ok   normal hard limit disabled
+  ok   normal hard limit counter
+  ok   pubsub hard-limit setup
+  ok   pubsub class hard limit counter
+  ok   contiguous accounting setup
+  ok   contiguous reply drains
+  ok   contiguous accounting lower
+  ok   contiguous accounting returns to zero
+  ok   soft-limit setup
+  ok   soft limit continuous-window counter
+  ok   borrow accounting setup
+  ok   enable borrow path
+  ok   borrow value setup
+  ok   borrow reply drains
+  ok   borrow hard-limit setup
+  ok   borrow accounting returns to zero
+  ok   borrow hard limit counter
+limits: PASS

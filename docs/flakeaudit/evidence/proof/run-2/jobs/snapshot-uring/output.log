@@ -1,0 +1,16 @@
+  row budget: 900s; median=0.63s; correctness-plan-fallback; snapshot concurrent cut (uring)
+  snapshot concurrent cut (uring)                      ok
+  row budget: 900s; median=0.165s; correctness-plan-fallback; snapshot cut reload (uring)
+  snapshot cut reload (uring)                          ok
+  row budget: 900s; median=2.73s; correctness-plan-fallback; snapshot never tears a cross-shard MSET group (uring, atomic 1)
+  snapshot never tears a cross-shard MSET group (uring, atomic 1) ok
+  row budget: 900s; median=5.21s; correctness-plan-fallback; snapshot never tears a MULTI/EXEC group (uring, default atomic 0)
+  snapshot never tears a MULTI/EXEC group (uring, default atomic 0) ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot save (uring)
+  typed snapshot save (uring)                          ok
+  row budget: 900s; median=0.045s; correctness-plan-fallback; typed snapshot reload (uring)
+  typed snapshot reload (uring)                        ok
+  row budget: 900s; median=0.165s; correctness-plan-fallback; typed snapshot preimage race (uring)
+  typed snapshot preimage race (uring)                 ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot race reload (uring)
+  typed snapshot race reload (uring)                   ok

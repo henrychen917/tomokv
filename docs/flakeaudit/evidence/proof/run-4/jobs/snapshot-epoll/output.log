@@ -1,0 +1,16 @@
+  row budget: 900s; median=0.635s; correctness-plan-fallback; snapshot concurrent cut (epoll)
+  snapshot concurrent cut (epoll)                      ok
+  row budget: 900s; median=0.19s; correctness-plan-fallback; snapshot cut reload (epoll)
+  snapshot cut reload (epoll)                          ok
+  row budget: 900s; median=2.725s; correctness-plan-fallback; snapshot never tears a cross-shard MSET group (epoll, atomic 1)
+  snapshot never tears a cross-shard MSET group (epoll, atomic 1) ok
+  row budget: 900s; median=5.16s; correctness-plan-fallback; snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)
+  snapshot never tears a MULTI/EXEC group (epoll, default atomic 0) ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot save (epoll)
+  typed snapshot save (epoll)                          ok
+  row budget: 900s; median=0.04s; correctness-plan-fallback; typed snapshot reload (epoll)
+  typed snapshot reload (epoll)                        ok
+  row budget: 900s; median=0.16s; correctness-plan-fallback; typed snapshot preimage race (epoll)
+  typed snapshot preimage race (epoll)                 ok
+  row budget: 900s; median=0.05s; correctness-plan-fallback; typed snapshot race reload (epoll)
+  typed snapshot race reload (epoll)                   ok

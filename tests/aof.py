@@ -23,6 +23,8 @@ import socket
 import sys
 import time
 
+from _lib import wait_flip_idle
+
 
 def self_test():
     """Run this battery in owned, fresh processes; no benchmark or gate runner."""
@@ -192,6 +194,25 @@ def bulk_payload(reply):
     if len(payload) != size:
         raise AssertionError("truncated bulk reply")
     return payload
+
+
+def expect_loadaof(expected):
+    """Preserve the raw wire oracle, including the intentional corrupt-tail error."""
+    class Observer:
+        sock = c.sock
+
+        def command(self, *args):
+            return bulk_payload(c.command(*args))
+
+    deadline = time.monotonic() + 30
+    for attempt in range(2):
+        wait_flip_idle(Observer(), max(0.0, deadline - time.monotonic()))
+        got = c.command("DEBUG", "LOADAOF")
+        if attempt == 0 and got == b"-ERR loading is not allowed while FLIP is in progress\r\n":
+            continue
+        if got != expected:
+            raise AssertionError("DEBUG LOADAOF: expected %r, got %r" % (expected, got))
+        return got
 
 
 def persistence_info():
@@ -605,7 +626,7 @@ elif MODE == "loadaof":
     # PS5: changing CONFIG must affect the next load, not merely CONFIG GET.
     # This row owns a quiescent, freshly populated AOF with automatic rewrite off
     # (or below its size floor). Append an incomplete frame, never a valid record.
-    expect(("DEBUG", "LOADAOF"), b"+OK\r\n")
+    expect_loadaof(b"+OK\r\n")
     config = {}
     for name in ("dir", "appenddirname", "appendfilename", "aof-load-truncated"):
         pair = flat_bulk_array(c.command("CONFIG", "GET", name))
@@ -631,11 +652,11 @@ elif MODE == "loadaof":
             os.fsync(output.fileno())
         if os.path.getsize(path) != original_size + 3:
             raise AssertionError("incomplete AOF tail was not armed")
-        expect(("DEBUG", "LOADAOF"), b"-ERR Error trying to load the AOF, check server logs.\r\n")
+        expect_loadaof(b"-ERR Error trying to load the AOF, check server logs.\r\n")
         if os.path.getsize(path) != original_size + 3:
             raise AssertionError("strict runtime policy modified the incomplete tail")
         expect(("CONFIG", "SET", "aof-load-truncated", "yes"), b"+OK\r\n")
-        expect(("DEBUG", "LOADAOF"), b"+OK\r\n")
+        expect_loadaof(b"+OK\r\n")
         if os.path.getsize(path) != original_size:
             raise AssertionError("permissive runtime policy did not truncate the armed tail")
         print("AOF LIVE POLICY PASS: armed 3 tail bytes; no refused unchanged; yes recovered and truncated")

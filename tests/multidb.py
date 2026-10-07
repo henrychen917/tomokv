@@ -3,7 +3,7 @@
 import argparse
 import threading
 import time
-from _lib import Conn, RespError, encode, topology
+from _lib import Conn, RespError, debug_load, encode, topology
 from sortstore import check_namespace as check_sortstore_namespace
 
 
@@ -295,9 +295,9 @@ def main():
                 return rows
             before = dataset()
             assert sum(map(len, before)) > 20, "persistence dataset never populated"
-            expect(admin.cmd("DEBUG", "RELOAD"), b"OK", "snapshot reload")
+            expect(debug_load(admin), b"OK", "snapshot reload")
             expect(dataset(), before, "multi-DB snapshot round trip")
-            expect(admin.cmd("DEBUG", "LOADAOF"), b"OK", "AOF replay")
+            expect(debug_load(admin, "LOADAOF"), b"OK", "AOF replay")
             expect(dataset(), before, "multi-DB AOF round trip")
         print("multidb PASS: namespace commands, transactions, WATCH, SWAPDB, blocking, notifications and persistence", flush=True)
     finally:
