@@ -28,8 +28,8 @@
     "tests/torture.py",
     "tests/tracking.py"
   ],
-  "patterns": 1485,
-  "matched_source_lines": 34729,
-  "full_output_sha256": "49c4449245da3f5e4869075ab69b3a0abcb0449408c90f7437d0103992501d18",
+  "patterns": 1498,
+  "matched_source_lines": 34742,
+  "full_output_sha256": "b99815af2ec49bf38d818fc7b970bca97fab666f29c3b1ed7221796b700ade11",
   "method": "Changed source text plus decoded, unicode_escape, JSON-escaped and repr literal spellings; old and new versions."
 }

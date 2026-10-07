@@ -217,7 +217,7 @@
       ],
       "category": "A",
       "name": "hexpire",
-      "detail": "Recreate only clock-invalid short-field setup, with TIME/HPEXPIRETIME and pre-expiry counters/HLEN. Lazy arm explicitly disables active expiry, then requires the exact lazy reap delta; active arm takes its baseline before TTL installation. Numeric tolerances elsewhere in the battery are unchanged.",
+      "detail": "Recreate only clock-invalid short-field setup; HPEXPIRE and HPEXPIRETIME share one EXEC cut so the actual installed deadline is captured before it can expire. TIME bounds subsequent counters/HLEN. Lazy arm disables active expiry and requires the exact reap delta; active baseline precedes TTL installation. Other numeric tolerances are unchanged.",
       "witnesses": []
     },
     {
@@ -258,7 +258,7 @@
       ],
       "category": "A",
       "name": "edgetime",
-      "detail": "Fresh 70/80 ms queue/WATCH setup must complete before the server deadline; missed setups DISCARD/UNWATCH and recreate state within a budget. Wait for the actual PEXPIRETIME before EXEC; exact null/abort/reap and negative controls remain.",
+      "detail": "Fresh 70/80 ms absolute-deadline queue/WATCH setup must complete before that deadline; missed setups DISCARD/UNWATCH and recreate state within a budget. PEXPIRETIME must equal the armed deadline; wait for it before EXEC. Exact null/abort/reap and negative controls remain.",
       "witnesses": []
     },
     {
@@ -466,7 +466,7 @@
       ],
       "category": "A",
       "name": "flip TTL",
-      "detail": "Fresh 96-key cohorts retain 700 ms TTL. DEBUG SHARDS proves at least one owner changed, TIME proves all keys remain alive after that move, then every cohort key must emit its expired event and be absent. Missed live windows alone re-arm under a 30 s budget.",
+      "detail": "Fresh 96-key cohorts share an absolute deadline 700 ms after arm, avoiding an inference about owners' relative clock cuts. DEBUG SHARDS proves an owner changed and TIME bounds the post-move live read. Every key must emit its expired event and be absent; only missed live windows re-arm under a 30 s budget.",
       "witnesses": []
     },
     {

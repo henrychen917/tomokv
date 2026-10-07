@@ -73,9 +73,12 @@
 # A materially different split: swap-heavy, clamped to a legal shape.
 # A positive framed push is the delivery witness. No idle recv interval can
 # A scheduling miss gets an entirely new connection and no stale ACL/key state.
+# An IO TIME lower bound need not equal the owner's cached clock.
+# An absolute deadline avoids assuming that IO TIME and the owner's
 # An invalid window is re-rolled, up to
 # An observed in-window early reply is a failure, never a fresh-state retry.
 # Bounded so three re-rolls cannot outrun the gate row's own timeout.
+# Capture the exact installed deadline under the same transaction cut.
 # Configure delivery before arming the deadline. Keep the active reaper out
 # Exhaustion cannot PASS. A move during a stationary hold fails immediately.
 # Explicit SAME-KEY conflicts. A read may return this connection's acknowledged
@@ -94,12 +97,14 @@
 # STABLE_HOLD_ATTEMPTS, and exhaustion FAILS with its numbers. A move during a stationary
 # The assertion window is a full `seconds` of wall time from HERE, not
 # The assertion window never opened, so nothing was asserted. Never report this
+# The cohort shares an explicit deadline, so the liveness witness
 # The common deadline bounds this phase too; expiry only invalidates the attempt.
 # The controller's OWN signature detector reports the workload changed,
 # The detector fired INSIDE its own band. Nothing about the box can
 # The earliest key cannot have expired during setup/migration. A late driver
 # The load was stationary in the signal the DRIVER controls -- rate, mix,
 # The signature also counts PASS DEPTH -- how many frames an io thread
+# already-cached clock came from the same loop pass.
 # and by a wide margin, while the rate the driver offered did not move.
 # as a hold: a row that turns green without opening its window is the vacuity
 # barrier both want. Pipelining it would change the geometry.
@@ -107,6 +112,7 @@
 # complete this assertion before the required frame actually arrives.
 # connection set, key and value shapes are all fixed here. Which of the
 # controller's two detectors moved decides whether this row can adjudicate it.
+# does not infer a relative TTL from a different owner's clock.
 # execution before RST; a unique key prevents prior runs from supplying it.
 # explain that; it is a controller defect and it fails.
 # happened to batch into one parse pass -- which is a property of how the
@@ -214,7 +220,9 @@ $%d\r\n%s\r\n
 'PEXPIRETIME'
 'PING'
 'PUBLISH'
+'PXAT'
 'Preserve one complete RESP frame; buffered reads may span any TCP split.'
+'QUEUED'
 'RYOW under 4-writer contention x2000'
 'RYOW under 4-writer pressure x2000'
 'Re-arm invalid stimulus only. A valid movement is never retried.'
@@ -498,6 +506,7 @@ PEXPIRE
 PEXPIRETIME
 PING
 PUBLISH
+PXAT
 Preserve one complete RESP frame; buffered reads may span any TCP split.
 QUEUED
 RYOW under 4-writer contention x2000
@@ -572,7 +581,7 @@ arm_budget = time.monotonic() + 10
 armed = False
 armed = True
 armed = [False, False]
-armed = c.cmd("HPEXPIRE", key, str(ttl_ms), "FIELDS", str(len(fields)), *fields)
+armed, deadlines = captured
 armed, registered, size, before, expiry = arm_live_fields(
 armed[side] = any(int(row[b"id"]) == ids[side] and
 armed_at = time.monotonic()
@@ -588,19 +597,23 @@ assert admin.cmd(*revoke_argv) == b"OK"
 assert admin.command("DEBUG", "ATOMIC-COMMIT-HOLD", "0") == b"OK"
 assert admin.command("DEBUG", "ATOMIC-COMMIT-HOLD", "1") == b"OK"
 assert all(armed), "WAIT never parked both exact clients before deadline"
-assert all(isinstance(t, int) and t >= earliest for t in deadlines), deadlines
+assert all(isinstance(t, int) and t > 0 for t in deadlines), deadlines
 assert armed == [1] * len(fields), ("HPEXPIRE arm failed", armed)
 assert body[-2:] == b"\r\n", body
 assert c.cmd("DEBUG", "SET-ACTIVE-EXPIRE", "0") == "OK"
 assert c.cmd("DEBUG", "SET-ACTIVE-EXPIRE", "1") == "OK"
+assert c.cmd("HPEXPIRE", key, str(ttl_ms), "FIELDS", str(len(fields)), *fields) == "QUEUED"
+assert c.cmd("HPEXPIRETIME", key, "FIELDS", str(len(fields)), *fields) == "QUEUED"
 assert c.cmd("HSET", key, *contents) == len(contents) // 2
+assert c.cmd("MULTI") == "OK"
 assert conn.cmd("DISCARD" if queued else "UNWATCH") == b"OK"
-assert conn.cmd("SET", key, "v", "PX", str(ttl_ms)) == b"OK"
+assert conn.cmd("SET", key, "v", "PXAT", str(earliest)) == b"OK"
 assert conn.command("SET", key, "before") == b"OK"
+assert expiry == earliest, expiry
 assert header.startswith(b"$") and header.endswith(b"\r\n"), header
 assert int(_lib.info(admin, "stats")["atomic_pending_entries"]) > 0
 assert int(stats(admin)["atomic_pending_entries"]) > 0
-assert isinstance(expiry, int) and expiry >= earliest, expiry
+assert isinstance(captured, list) and len(captured) == 2, captured
 assert isinstance(listing, bytes), listing
 assert isinstance(reply, int) and reply > 0, reply
 assert kind in (b"+", b"-", b":", b"_", b"#"), line
@@ -720,6 +733,7 @@ c.cmd("DEL", key)
 c.cmd("HPEXPIRE", "solo", "200", "FIELDS", "1", "f")
 c.cmd("HSET", "k", "a", "1", "b", "2", "c", "3")
 c.cmd("HSET", "solo", "f", "v")
+captured = c.cmd("EXEC")
 check("GET queued before expiry", conn.cmd("GET", "multi:queued"), b"QUEUED")
 check("GET queued before expiry", replies[1], b"QUEUED")
 check("HPEXPIRE armed", armed, [1, 1])
@@ -792,7 +806,6 @@ deadline = time.monotonic() + max(10, seconds)
 deadline = time.time() + 0.3
 deadline = time.time() + 10
 deadline = time.time() + quiet
-deadlines = c.cmd("HPEXPIRETIME", key, "FIELDS", str(len(fields)), *fields)
 def arm_before_deadline(conn, observer, key, ttl_ms, commands, expected, queued=False):
 def arm_live_fields(c, key, contents, fields, ttl_ms):
 def attempt(*args):
@@ -840,7 +853,6 @@ dump = "DEBUG FLIPCTL unavailable: %r" % (error,)
 dump = control.command("DEBUG", "FLIPCTL").decode(errors="replace")
 during the
 during the pre-hold measurement window of the
-earliest = server_ms(c) + ttl_ms
 earliest = server_ms(observer) + ttl_ms
 earliest_expiry_ms = int(stamp[0]) * 1000 + int(stamp[1]) // 1000 + TTL_MS
 elif all(now > then for now, then in zip(progress, post_flip)):
@@ -1031,7 +1043,7 @@ if resp3:
 if self.move_kind == "trigger":
 if self.now <= 4:
 if self.now >= self.move_at:
-if server_ms(c) >= earliest:
+if server_ms(c) >= min(deadlines):
 if server_ms(observer) < earliest:
 if shift_band > 0 and distance <= shift_band:
 if size >= 0:
@@ -1337,6 +1349,7 @@ send(w, "DEBUG", "SHARDS", *keys)
 send(w, "FLIP", str(tio), str(tex))
 send(w, "MGET", *keys)
 send(w, "SET", k, "v", "PX", str(TTL_MS))
+send(w, "SET", k, "v", "PXAT", str(earliest_expiry_ms))
 send(w, "TIME")
 server clock never reached the armed expiry
 server expiry clock did not advance

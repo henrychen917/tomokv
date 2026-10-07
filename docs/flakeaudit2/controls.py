@@ -217,5 +217,75 @@ class AtomicControls(unittest.TestCase):
             self.observe(escape=True)
 
 
+class DifferentialWaitControls(unittest.TestCase):
+    def observe(self, *, late_first=False, never_parked=False, early_reply=False):
+        clock = Clock()
+        opened = []
+        mismatches = []
+        class Fake:
+            def __init__(self, admin=False):
+                self.admin = admin
+                self.id = len(opened) + 1
+                if not admin:
+                    opened.append(self)
+                self.args = None
+            def sendall(self, args):
+                self.args = args
+            def close(self):
+                pass
+        admins = [Fake(True), Fake(True)]
+        late = [late_first]
+        def read(sock):
+            if sock.args[:2] == ["CLIENT", "ID"]:
+                return b":%d\r\n" % sock.id
+            if sock.args[:2] == ["CLIENT", "LIST"]:
+                if late[0]:
+                    clock.now += .25
+                    late[0] = False
+                if never_parked:
+                    clock.now += .05
+                return b"id=%s flags=%s cmd=wait\n" % (
+                    sock.args[-1].encode(), b"N" if never_parked else b"b")
+            assert sock.args[0] == "WAIT"
+            clock.now += .2
+            return b":0\r\n"
+        def compare(label, actual, wanted):
+            if actual != wanted:
+                mismatches.append((label, actual, wanted))
+        tree = ast.parse((ROOT / "tests/differ.py").read_text())
+        function = next(n for n in tree.body if isinstance(n, ast.FunctionDef)
+                        and n.name == "run_blocking_differ")
+        block = next(n for n in function.body if isinstance(n, ast.For)
+                     and isinstance(n.target, ast.Name) and n.target.id == "timeout")
+        namespace = dict(time=clock, conn_mode=lambda *a: (lambda c: (c, c))(Fake()),
+            TH="fake", TP=0, OH="fake", OP=0, RESP3=False,
+            ts=admins[0], tf=admins[0], os_=admins[1], of=admins[1],
+            enc=lambda args: args, read_reply=read, parse_reply=lambda raw: raw,
+            logical_ops=0, property_check=compare, compare=compare,
+            select=SimpleNamespace(select=lambda *a: ([a[0][0]] if early_reply else [], [], [])))
+        with patch("builtins.print"):
+            exec(compile(ast.Module(body=[block], type_ignores=[]), "WAIT arm", "exec"), namespace)
+        return opened, mismatches
+
+    def test_valid_parked_deadlines_pass(self):
+        opened, wrong = self.observe()
+        self.assertEqual(len(opened), 4)
+        self.assertEqual(wrong, [])
+
+    def test_missed_deadline_rearms_fresh_clients(self):
+        opened, wrong = self.observe(late_first=True)
+        self.assertEqual(len(opened), 6)
+        self.assertEqual(wrong, [])
+
+    def test_never_parked_cannot_pass(self):
+        with self.assertRaisesRegex(AssertionError, "window never opened"):
+            self.observe(never_parked=True)
+
+    def test_early_reply_fails_without_rearming(self):
+        opened, wrong = self.observe(early_reply=True)
+        self.assertEqual(len(opened), 4)
+        self.assertEqual(len(wrong), 4)  # Both peers, finite and timeout-zero arms.
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
