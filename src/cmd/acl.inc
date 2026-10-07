@@ -1184,6 +1184,21 @@ bool acl_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed,
     return acl_finish_dispatch_denial(loop, client, op, consumed, denied, denied_arg);
 }
 
+// Pure duplicate verdict for the existing armed MONITOR branch. Dispatch still
+// performs its own authorization, accounting and denial reply in its original place.
+__attribute__((noinline)) bool IoLoop::climon_monitor_feed(
+        const Client& client, Op& op, uint8_t security) {
+    const Slice name = op.cmd_name();
+    if ((security & Server::kSecurityAuth) && !client.authenticated() &&
+        !name.eq_icase("auth") && !name.eq_icase("hello") &&
+        !name.eq_icase("reset") && !name.eq_icase("quit")) return false;
+    if (!(security & Server::kSecurityAcl) || (op.spec->flags & CmdFlags::AclExempt))
+        return true;
+    std::vector<std::string> argv(op.argc());
+    for (uint32_t i = 0; i < op.argc(); ++i) argv[i].assign(op.arg(i).p, op.arg(i).n);
+    return acl_check_queued(client.acl_user_idx(), *op.spec, argv) == AclDeniedReason::None;
+}
+
 AclDeniedReason acl_check_queued(uint32_t user_index, const CommandSpec& spec,
                                  const std::vector<std::string>& argv,
                                  uint32_t* denied_arg) {

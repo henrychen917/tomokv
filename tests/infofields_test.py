@@ -86,10 +86,10 @@ class InfoFieldsControls(unittest.TestCase):
             commands = differ.gen_monitor(random.Random(seed))
             self.assertTrue(any(args[:2] == ["CONFIG", "GET"] and not visible
                                 for args, _, visible in commands))
-            self.assertTrue(any(args[0] == "EVAL" and not visible for args, _, visible in commands))
+            self.assertTrue(any(args[0] == "EVAL" and visible for args, _, visible in commands))
             for error in (b"-NOPERM", b"-NOAUTH"):
                 self.assertTrue(any(reply == error and not visible for _, reply, visible in commands))
-            self.assertEqual(sum(visible for _, _, visible in commands), 8)
+            self.assertEqual(sum(visible for _, _, visible in commands), 15)
 
 
 if __name__ == "__main__":

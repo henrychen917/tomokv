@@ -1,0 +1,250 @@
+
+PATTERN '6e756d6265725f6f665f6361636865645f73637269707473'
+
+PATTERN '\\x6e\\x75\\x6d\\x62\\x65\\x72\\x5f\\x6f\\x66\\x5f\\x63\\x61\\x63\\x68\\x65\\x64\\x5f\\x73\\x63\\x72\\x69\\x70\\x74\\x73'
+
+PATTERN 'number_of_cached_scripts'
+tests/scriptsurf.py:214:    note("number_of_cached_scripts counts the store", counters["number_of_cached_scripts"] >= 1,
+tests/scriptsurf.py:215:         counters["number_of_cached_scripts"])
+tests/scriptsurf.py:224:    note("store emptied", after["number_of_cached_scripts"] == 0)
+
+PATTERN '6e756d6265725f6f665f66756e6374696f6e73'
+
+PATTERN '\\x6e\\x75\\x6d\\x62\\x65\\x72\\x5f\\x6f\\x66\\x5f\\x66\\x75\\x6e\\x63\\x74\\x69\\x6f\\x6e\\x73'
+
+PATTERN 'number_of_functions'
+tests/scriptsurf.py:371:         gen_after["number_of_libraries"] == 2 and gen_after["number_of_functions"] == 5,
+tests/scriptsurf.py:373:                             gen_after["number_of_functions"]))
+tests/scriptsurf.py:536:         c.cmd("FUNCTION", "LIST") == [] and info_counters(c)["number_of_functions"] == 0)
+tests/scriptsurf.py:542:         info_counters(c)["number_of_functions"] == 5)
+
+PATTERN '6e756d6265725f6f665f6c6962726172696573'
+
+PATTERN '\\x6e\\x75\\x6d\\x62\\x65\\x72\\x5f\\x6f\\x66\\x5f\\x6c\\x69\\x62\\x72\\x61\\x72\\x69\\x65\\x73'
+
+PATTERN 'number_of_libraries'
+tests/scriptsurf.py:371:         gen_after["number_of_libraries"] == 2 and gen_after["number_of_functions"] == 5,
+tests/scriptsurf.py:372:         "libs=%d fns=%d" % (gen_after["number_of_libraries"],
+tests/scriptsurf.py:492:         info_counters(c)["number_of_libraries"] == 2,
+tests/scriptsurf.py:493:         info_counters(c)["number_of_libraries"])
+tests/scriptsurf.py:521:         info_counters(c)["number_of_libraries"] == 2)
+tests/scriptsurf.py:541:         info_counters(c)["number_of_libraries"] == 2 and
+tests/scriptsurf.py:551:         info_counters(c)["number_of_libraries"] == 1)
+
+PATTERN '# Stats'
+
+PATTERN '23205374617473'
+
+PATTERN '\\x23\\x20\\x53\\x74\\x61\\x74\\x73'
+
+PATTERN '# Memory'
+tests/infofix.py:244:    check("variadic INFO stays selective", "# Memory\r\n" in selected, False)
+
+PATTERN '23204d656d6f7279'
+
+PATTERN '\\x23\\x20\\x4d\\x65\\x6d\\x6f\\x72\\x79'
+
+PATTERN '4556414c'
+
+PATTERN 'EVAL'
+tests/atomic_survivors_unit.cc:190:    for (const char* verb : {"EVAL", "EVALSHA", "FCALL"}) {
+tests/atomic_survivors_unit.cc:198:    Request r({"EVAL", "return 42", "0", arg});
+tests/atomic_survivors_unit.cc:246:    ScatterRun run(server, {"EVAL", "redis.call('GET',KEYS[2]); return redis.call('APPEND',KEYS[1],'S')",
+tests/atomic_survivors_unit.cc:312:        ScatterRun run(server, {"EVAL", "redis.call('APPEND',KEYS[2],'T'); return redis.call('APPEND',KEYS[1],'S')",
+tests/atomic_survivors_unit.cc:434:            require(call({"EVAL", "return " + table, "0"}) == "*0\r\n", "reply conversion never invokes __index");
+tests/atomic_survivors_unit.cc:435:            require(call({"EVAL", "error(" + table + ")", "0"}).starts_with("-ERR"),
+tests/atomic_survivors_unit.cc:439:        require(call({"EVAL", "return {ok='OK\\r\\n:42'}", "0"}) == "+OK  :42\r\n", "status has exactly one frame");
+tests/atomic_survivors_unit.cc:440:        require(call({"EVAL", "return {err='ERR bad\\r\\n:42'}", "0"}) == "-ERR bad  :42\r\n", "error has exactly one frame");
+tests/atomic_survivors_unit.cc:451:        require(call({"EVAL", "local ok=pcall(function() while true do end end); return 42", "0"}).starts_with("-BUSY"),
+tests/atomic_survivors_unit.cc:454:    require(call({"EVAL", "return 7", "0"}) == ":7\r\n", "interpreter remains usable");
+tests/atomic_survivors_unit.cc:462:    ScatterRun run(server, {"EVAL", "return redis.call('GET',KEYS[1])", "2", a, b});
+tests/acl.py:224:expect(alice.command("EVAL", "return redis.call('GET',KEYS[1])", 1, "a:1"),
+tests/infofields_test.py:89:            self.assertTrue(any(args[0] == "EVAL" and not visible for args, _, visible in commands))
+tests/ccfix2_atomic_unit.cc:74:    const auto eval = command_lookup(Slice("EVAL", 4))->id;
+tests/ccfix2_atomic_unit.cc:98:    require(local(server, {"EVAL", "return {{err='ERR one'},{err='ERR two'}}",
+tests/ccfix2_atomic_unit.cc:102:    // for EVAL. Give this real handler its declared key's shard, as dispatch does.
+tests/ccfix2_atomic_unit.cc:103:    Request nested({"EVAL", "return redis.pcall('GET',KEYS[1])", "1", "ccfix2:wrongtype"});
+tests/multi_exec.py:231:            "EVAL", "return redis.call('SET',KEYS[1],ARGV[1])",
+tests/multi_exec.py:242:            "EVAL", "return redis.call('SET',KEYS[1],ARGV[1])",
+tests/ccfix_unit.cc:87:    assert(run({"EVALSHA", "0000000000000000000000000000000000000000", "0"}));
+tests/mode_equivalence.py:89:            operations.extend([['EVAL', script, '2', key, other], ['BITCOUNT', 'eq:bitmap']])
+tests/mode_equivalence.py:145:        if operations[first][0] != 'EVAL':
+tests/mode_equivalence.py:146:            while end < min(first + pipeline, len(operations)) and operations[end][0] != 'EVAL':
+tests/mode_equivalence.py:196:    scripted = [['PING']] * 35 + [['EVAL', 'return 1', '0']] + [['PING']] * 35
+tests/mode_equivalence.py:206:               [['EVAL', 'return 1', '0']])
+tests/mode_equivalence.py:267:                    script_drain_boundaries=sum(op[0] == 'EVAL' for op in operations),
+tests/netcmd.py:40:            c.raw(encode("EVAL", source, 0) + encode("PING", "lua-framing"))
+tests/netcmd.py:46:            require(c.cmd("EVAL", source, 0) == [], "conversion uses raw table fields without executing __index")
+tests/netcmd.py:47:        require(isinstance(c.cmd("EVAL", "local ok=pcall(function() while true do end end); return 42", 0), RespError),
+tests/aof_rewrite_triggers.py:137:            commands.append(("EVAL", source, "1", key, value))
+tests/aof_rewrite_triggers.py:141:                raise AssertionError("EVAL SET pipeline failed")
+tests/aof_torn_group.py:203:    args = ["EVAL", source, str(len(state["torn_keys"]))] + state["torn_keys"] + values
+tests/mdbstamp_checks.cc:188:    {"eval", {"EVAL", "return ARGV[1]", "2", "a", "b", "arg1", "arg2"}, {3,4}},
+tests/mdbstamp_checks.cc:189:    {"eval-ro", {"EVAL_RO", "return ARGV[1]", "1", "a", "arg1"}, {3}},
+tests/mdbstamp_checks.cc:190:    {"evalsha", {"EVALSHA", "sha", "1", "a", "arg1"}, {3}},
+tests/mdbstamp_checks.cc:191:    {"evalsha-ro", {"EVALSHA_RO", "sha", "1", "a", "arg1"}, {3}},
+tests/mdbstamp_checks.cc:194:    {"eval-zero", {"EVAL", "return ARGV[1]", "0", "arg1"}, {}},
+tests/mdbstamp_checks.cc:195:    {"eval-overcount", {"EVAL", "return 1", "9", "a", "arg1"}, {}},
+tests/mdbstamp_checks.cc:196:    {"eval-bad-count", {"EVAL", "return 1", "bad", "a"}, {}},
+tests/mdbstamp_checks.cc:238:        " EVAL EVALSHA EVAL_RO EVALSHA_RO FCALL FCALL_RO SORT_RO OBJECT MEMORY LCS ";
+tests/notify.py:508:    # Lua redis.call uses the nested command's class/name while retiring on the parent EVAL Op.
+tests/notify.py:510:    expect_e("$", ("EVAL", "return redis.call('SET', KEYS[1], 'v')", "1", "lua:key"),
+tests/aof_frame_order_test.py:52:        if args[0] == "EVAL":
+tests/aof_frame_order_test.py:97:        self.assertLess(verbs.index("EVAL"), verbs.index("SET"))
+tests/aof_frame_order_test.py:98:        self.assertEqual(sum(row[0] == "EVAL" for row in schedule.commands), 1)
+tests/aof_frame_order_test.py:122:                self.assertEqual(sum(row[0] == "EVAL" for row in schedule.commands), 1)
+tests/resp3.py:289:        result = client.command("EVAL", source, "0")
+tests/resp3.py:291:    default_nested = client.command("EVAL", "return redis.call('ZSCORE',KEYS[1],'m')", "1", "resp3:mz")
+tests/resp3.py:294:        "EVAL", "redis.setresp(3); return redis.call('ZSCORE',KEYS[1],'m')", "1", "resp3:mz")
+tests/aof.py:270:    expect(("EVAL", eval_source, "1", "aof:script:eval", values["aof:script:eval"]),
+tests/aof.py:276:    expect(("EVALSHA", evalsha, "1", "aof:script:evalsha",
+tests/aof.py:295:    expect(("EVAL", multi_source, "2", multi_keys[0], multi_keys[1],
+tests/aof.py:302:        "EVAL", "redis.call('SET',KEYS[1],ARGV[1]); "
+tests/aof.py:312:    expect(("EVAL_RO", ro_source, "1", readonly_keys[0]), b"$-1\r\n")
+tests/aof.py:315:    expect(("EVALSHA_RO", ro_sha, "1", readonly_keys[1]), b"$-1\r\n")
+tests/aof.py:510:        raise AssertionError("multi-key EVAL post-images do not share one group ticket")
+tests/_differ_ccfix.py:319:        equal(["EVAL", "return {{err='ERR one'},{err='ERR two'}}", "0"],
+tests/_differ_ccfix.py:322:        equal(["EVAL", "return redis.pcall('GET',KEYS[1])", "1", "ccfix:wrongtype"],
+tests/scriptatomic.py:186:    observed["a_error"] = "boom" in (error_text(conn.cmd("EVAL", WRITE_THEN_RAISE, 1, k)) or "")
+tests/scriptatomic.py:191:    observed["b_error"] = "boom" in (error_text(conn.cmd("EVAL", CREATE_THEN_RAISE, 1, k)) or "")
+tests/scriptatomic.py:197:    observed["c_error"] = "nosuchglobal" in (error_text(conn.cmd("EVAL", APPEND_THEN_GLOBAL, 1, k)) or "")
+tests/scriptatomic.py:202:    observed["d_error"] = "boom" in (error_text(conn.cmd("EVAL", DEL_THEN_RAISE, 1, k)) or "")
+tests/scriptatomic.py:207:    observed["e_error"] = "WRONGTYPE" in (error_text(conn.cmd("EVAL", WRITE_THEN_WRONGTYPE, 1, k)) or "")
+tests/scriptatomic.py:212:    observed["f_error"] = error_text(conn.cmd("EVAL", WRITE_THEN_BAD_REPLY, 1, k)) is not None
+tests/scriptatomic.py:217:    busy = error_text(conn.cmd("EVAL", WRITE_THEN_RUNAWAY, 1, k)) or ""
+tests/scriptatomic.py:224:    observed["h_error"] = error_text(conn.cmd("EVAL", PCALL_INDEX_NUMBER, 1, k)) is not None
+tests/scriptatomic.py:231:    observed["i_error"] = "boom" in (error_text(conn.cmd("EVAL", two, 2, k1, k2)) or "")
+tests/scriptatomic.py:238:    ro = conn.pipeline([["EVAL", "return redis.call('INCR', KEYS[1])", "1", k],
+tests/scriptatomic.py:239:                        ["EVAL_RO", RO_WRITE, "1", k],
+tests/scriptatomic.py:252:    observed["k_error"] = "boom" in (error_text(conn.cmd("EVAL", READ_THEN_RAISE, 1, k)) or "")
+tests/scriptatomic.py:260:    observed["l_reply"] = conn.cmd("EVAL", "return redis.call('INCR', KEYS[1])", 1, k)
+tests/scriptatomic.py:354:            ["EVAL", WRITE_THEN_RAISE, "1", g1],
+tests/scriptatomic.py:356:            ["EVAL", CREATE_THEN_RAISE, "1", g2],
+tests/aof_frame_order.py:150:    return ["EVAL", GROUP_SCRIPT, "2", left, right, "%s-l" % tag, "%s-r" % tag]
+tests/xscript.py:133:    return client.cmd("EVAL", source, str(len(keys)), *keys, *values)
+tests/xscript.py:188:        quiet = runner.cmd("EVAL", source, "2", coordinator, other)
+tests/xscript.py:213:            observed.append(runner.cmd("EVAL", source, "2", coordinator, other))
+tests/xscript.py:281:            "EVAL", "redis.call('SET',KEYS[1],'kept'); error('boom')", "2", *pair)
+tests/xscript.py:287:            "EVAL", "redis.call('GET',KEYS[1]); while true do end", "2", *pair)
+tests/xscript.py:293:            "EVAL", "return redis.call('GET','xscript:release:undeclared')", "2", *pair)
+tests/xscript.py:302:        compile_error = admin.cmd("EVAL", "this is not lua", "2", *pair)
+tests/xscript.py:312:        dropper.sock.sendall(frame("EVAL", "return redis.call('GET',KEYS[2])", "2", *pair))
+tests/xscript.py:365:        control = [client.cmd("EVAL", source_ro, "2", *pair) for client in clients]
+tests/xscript.py:380:                client.sock.sendall(frame("EVAL", source_ro, "2", *pair))
+tests/xscript.py:424:            "EVAL", "return redis.call('SET',KEYS[1],ARGV[1])",
+tests/xscript.py:433:            "EVAL", "return redis.call('SET',KEYS[1],ARGV[1])",
+tests/xscript.py:486:            "EVAL",
+tests/xscript.py:494:            "EVAL", "redis.call('SET',KEYS[1],'kept'); error('after write')",
+tests/xscript.py:505:            "EVAL", "return redis.call('GET',ARGV[1])", "2",
+tests/xscript.py:519:        evalsha = admin.cmd("EVALSHA", sha, "2", *pair, "sha-left", "sha-right")
+tests/xscript.py:533:        note("EVALSHA and FCALL cross-owner write forms",
+tests/xscript.py:542:        eval_ro = admin.cmd("EVAL_RO", ro_source, "2", *pair)
+tests/xscript.py:543:        evalsha_ro = admin.cmd("EVALSHA_RO", ro_sha, "2", *pair)
+tests/xscript.py:547:        note("EVAL_RO, EVALSHA_RO, and FCALL_RO cross-owner forms",
+tests/xscript.py:572:        queued &= admin.cmd("EVAL", "return redis.call('MSET',KEYS[1],'x',KEYS[2],'y')",
+tests/xscript.py:610:                observed.append(runner.cmd("EVAL", source, str(len(keys)), *keys))
+tests/xscript.py:625:        raced = rival.cmd("EVAL", source, str(len(keys)), *reversed(keys))
+tests/xscript.py:660:                reply = client.cmd("EVAL", source, str(len(ordered)), *ordered)
+tests/xscript.py:695:                reply = script_writer.cmd("EVAL", script_source, str(len(keys)), *keys, "S")
+tests/xscript.py:738:            "EVAL", "redis.call('SET',KEYS[1],'control-a'); "
+tests/xscript.py:767:            "EVAL", "redis.call('SET',KEYS[1],ARGV[1]); "
+tests/xscript.py:799:        small = client.cmd("EVAL", "return #KEYS", "2", *keys)
+tests/xscript.py:805:            "EVAL", "redis.call('SET',KEYS[1],'changed'); return 1", "2", *keys)
+tests/replyschema.py:612:add("eval", "EVAL", "return {KEYS[1],ARGV[1],7}", "1", "{p}:k", "arg")
+tests/replyschema.py:615:add("evalsha", "EVALSHA", LUA_SHA, "1", "{p}:k", "arg",
+tests/replyschema.py:617:add("eval_ro", "EVAL_RO", "return redis.call('GET',KEYS[1])", "1", "{p}:k", setup=STRING)
+tests/replyschema.py:618:add("evalsha_ro", "EVALSHA_RO", LUA_SHA, "1", "{p}:k", "arg",
+tests/scriptsurf.py:2:"""Scripting-surface gate: SCRIPT family, EVAL_RO/EVALSHA_RO, FUNCTION library, FCALL/FCALL_RO.
+tests/scriptsurf.py:202:        reply = c2.cmd("EVALSHA", sha, 1, key)
+tests/scriptsurf.py:204:            note("EVALSHA on shard-spread key %s" % key, False, reply)
+tests/scriptsurf.py:207:    note("EVALSHA from a second connection over 32 shard-spread keys", owners == 32, owners)
+tests/scriptsurf.py:227:    note("EVALSHA after flush is NOSCRIPT",
+tests/scriptsurf.py:228:         str(c2.cmd("EVALSHA", sha, 0)).startswith("NOSCRIPT "))
+tests/scriptsurf.py:229:    # The interpreter state itself must rebuild, and EVAL must still work afterwards.
+tests/scriptsurf.py:231:    note("EVAL still works after flush", c2.cmd("EVAL", "return 7", 0) == 7)
+tests/scriptsurf.py:255:    shape(c, "EVAL compile error", "EVAL", "return (", "0")
+tests/scriptsurf.py:256:    shape(c, "EVAL nonexistent global", "EVAL", "return sszzz", "0")
+tests/scriptsurf.py:257:    shape(c, "EVAL error(string)", "EVAL", "error('boom')", "0")
+tests/scriptsurf.py:258:    shape(c, "EVAL error(table)", "EVAL", "error({err='My Error'})", "0")
+tests/scriptsurf.py:259:    shape(c, "EVAL numkeys negative", "EVAL", "return 1", "-1")
+tests/scriptsurf.py:260:    shape(c, "EVAL numkeys > argc", "EVAL", "return 1", "5", "a")
+tests/scriptsurf.py:261:    shape(c, "EVAL numkeys not a number", "EVAL", "return 1", "x")
+tests/scriptsurf.py:262:    shape(c, "EVALSHA unknown sha", "EVALSHA", "0" * 40, "0")
+tests/scriptsurf.py:265:    print("[4] EVAL_RO / EVALSHA_RO read-only gate")
+tests/scriptsurf.py:303:        reply = c.raw("EVAL_RO", body, "1", rw)
+tests/scriptsurf.py:307:    note("EVAL_RO refuses every write form (%d)" % len(writes), not refused, refused[:3])
+tests/scriptsurf.py:334:    read_failures = [(name, c.cmd("EVAL_RO", body, "1", key)) for name, body, key in reads
+tests/scriptsurf.py:335:                     if isinstance(c.cmd("EVAL_RO", body, "1", key), Err)]
+tests/scriptsurf.py:336:    note("EVAL_RO allows every read form (negative control)", not read_failures, read_failures[:3])
+tests/scriptsurf.py:339:    note("EVALSHA_RO enforces the same gate",
+tests/scriptsurf.py:340:         c.raw("EVALSHA_RO", ro_sha, "1", rw).startswith(
+tests/scriptsurf.py:342:    note("EVALSHA (not _RO) of the same sha still writes",
+tests/scriptsurf.py:343:         c.cmd("EVALSHA", ro_sha, "1", rw) == b"OK" and c.cmd("GET", rw) == b"w")
+tests/scriptsurf.py:344:    note("EVALSHA_RO unknown sha is NOSCRIPT",
+tests/scriptsurf.py:345:         str(c.cmd("EVALSHA_RO", "0" * 40, 0)).startswith("NOSCRIPT "))
+tests/scriptsurf.py:347:         c.cmd("EVAL_RO", "local r = redis.pcall('SET', KEYS[1], 'x') return r.err", "1", rw)
+tests/scriptsurf.py:349:    shape(c, "EVAL_RO write rejection", "EVAL_RO",
+tests/reorder_scope_test.py:41:                self.row("EVAL", "barrier", ns_log2=14, count=4)]
+tests/reorder_scope_test.py:50:        self.assertEqual(by_command["EVAL"]["path"], "barrier")
+tests/differ_test.py:141:                    'HEXPIRE', 'HPERSIST', 'EXEC', 'EVAL', 'FCALL')
+tests/multidb_unit.cc:499:    require(local(server, 1, {"EVAL", "return redis.call('GET',KEYS[1])", "1", "k"}) ==
+tests/differ.py:2877:    # Scripting surface: EVAL / EVALSHA / EVAL_RO / EVALSHA_RO / SCRIPT LOAD|EXISTS|FLUSH and the
+tests/differ.py:2979:            ops.append(keyed("EVAL", src, declared, rng.choice(values)))
+tests/differ.py:2982:            ops.append(["EVAL", src, "0", rng.choice(values)])
+tests/differ.py:2990:            ops.append(keyed("EVALSHA", sha(src), declared, rng.choice(values)))
+tests/differ.py:2996:            ops.append(keyed("EVAL_RO", rng.choice(scripts), declared, rng.choice(values)))
+tests/differ.py:2999:            ops.append(keyed("EVAL_RO", rng.choice(ro_writes), declared))
+tests/differ.py:3003:            ops.append(keyed("EVALSHA_RO", sha(src), declared, rng.choice(values)))
+tests/differ.py:3006:            ops.append(keyed("EVAL", rng.choice(broken), declared))
+tests/differ.py:3039:            ops.append(keyed("EVAL", src, declared, rng.choice(values)))
+tests/differ.py:3062:            ops.append(keyed("EVAL", rng.choice(write_fail), declared, rng.choice(values)))
+tests/differ.py:5203:        elif choice == 3: cmd = ["EVAL", "return 1", str(n)] + ks + ["arg"]
+tests/differ.py:5204:        elif choice == 4: cmd = ["EVALSHA", "0" * 40, str(n)] + ks + ["arg"]
+tests/differ.py:5240:        ["COMMAND", "GETKEYS", "EVAL", "return 1", "0", "not-a-key"],
+tests/differ.py:5241:        ["COMMAND", "GETKEYS", "EVAL", "return 1", "-1"],
+tests/differ.py:5574:        ["EVAL", "return 1", "2", "a", "b"], ["EVAL_RO", "return 1", "2", "a", "b"],
+tests/differ.py:6460:        (["EVAL", "return 7", "0"], b":7\r\n", False),
+tests/differ.py:6573:        if command[0].upper() not in ("EVAL", "EVALSHA", "EVAL_RO", "EVALSHA_RO",
+tests/differ.py:6592:        if command[0].upper() not in ("EVAL", "EVALSHA", "EVAL_RO", "EVALSHA_RO",
+tests/expwide.py:546:        return conn.cmd("DBSIZE"), conn.cmd("EVAL", SCRIPT_TWO, "2", *pair)
+tests/lua_scripting.py:2:"""Directed EVAL/EVALSHA/SCRIPT single-owner scripting gate.
+tests/lua_scripting.py:85:    status = c.cmd("EVAL", "return redis.call('SET',KEYS[1],ARGV[1])", 1, keys[0], "bulk")
+tests/lua_scripting.py:86:    integer = c.cmd("EVAL", "return redis.call('INCR',KEYS[1])", 1, keys[1])
+tests/lua_scripting.py:87:    bulk = c.cmd("EVAL", "return redis.call('GET',KEYS[1])", 1, keys[0])
+tests/lua_scripting.py:89:    array = c.cmd("EVAL", "return redis.call('LRANGE',KEYS[1],0,-1)", 1, keys[2])
+tests/lua_scripting.py:90:    nil = c.cmd("EVAL", "return redis.call('GET',KEYS[1])", 1, keys[3])
+tests/lua_scripting.py:91:    note("EVAL status/int/bulk/array/nil conversions",
+tests/lua_scripting.py:98:    first = c.cmd("EVAL", source, 0, "armed")
+tests/lua_scripting.py:100:    replay = c.cmd("EVALSHA", sha, 0, "replayed")
+tests/lua_scripting.py:103:    loaded = c.cmd("EVALSHA", loaded_sha, 0, "loaded")
+tests/lua_scripting.py:104:    note("EVAL and SCRIPT LOAD arm EVALSHA cache",
+tests/lua_scripting.py:110:    declared_pair = c.cmd("EVAL", "return {KEYS[1],KEYS[2]}", 2, anchor, candidate)
+tests/lua_scripting.py:116:    runaway = error_of(c, "EVAL", "while true do end", 0)
+tests/lua_scripting.py:121:    propagated = error_of(c, "EVAL", "return redis.call('LPUSH',KEYS[1],'x')", 1, keys[0])
+tests/lua_scripting.py:122:    undeclared = error_of(c, "EVAL", "return redis.call('GET',ARGV[1])", 0, keys[0])
+tests/lua_scripting.py:136:        partial = error_of(c, "EVAL",
+tests/lua_scripting.py:143:        killed = error_of(c, "EVAL",
+tests/lua_scripting.py:152:    noscript = error_of(c, "EVALSHA", sha, 0)
+
+PATTERN '\\x45\\x56\\x41\\x4c'
+
+PATTERN '736b69705f6d6f6e69746f72'
+
+PATTERN '\\x73\\x6b\\x69\\x70\\x5f\\x6d\\x6f\\x6e\\x69\\x74\\x6f\\x72'
+
+PATTERN 'skip_monitor'
+tests/differ.py:6454:    """Admin, skip_monitor, command/key ACL denials, NOAUTH and binary quoting."""
+
+PATTERN '69666d6f6e3a64656e696564'
+
+PATTERN '\\x69\\x66\\x6d\\x6f\\x6e\\x3a\\x64\\x65\\x6e\\x69\\x65\\x64'
+
+PATTERN 'ifmon:denied'
+tests/differ.py:6463:        (["SET", "ifmon:denied", "v"], b"-NOPERM", False),
+
+PATTERN '69666d6f6e3a6e6f61757468'
+
+PATTERN '\\x69\\x66\\x6d\\x6f\\x6e\\x3a\\x6e\\x6f\\x61\\x75\\x74\\x68'
+
+PATTERN 'ifmon:noauth'
+tests/differ.py:6469:        (["GET", "ifmon:noauth"], b"-NOAUTH", False),

@@ -2257,6 +2257,13 @@ void cmd_info(Shard&, Op& op) {
                 alloc_backend(), static_cast<unsigned long long>(allocated),
                 static_cast<unsigned long long>(resident),
                 static_cast<unsigned long long>(block_cache));
+        const ScriptStats scripting = script_stats();
+        const FunctionStats functions = function_stats();
+        appendf(body, "number_of_cached_scripts:%llu\r\nnumber_of_functions:%llu\r\n"
+                      "number_of_libraries:%llu\r\n",
+                static_cast<unsigned long long>(scripting.cached_scripts),
+                static_cast<unsigned long long>(functions.functions),
+                static_cast<unsigned long long>(functions.libraries));
         info_stats_memory_fields(body, allocated, resident);
     }
     if (info_section(op, "PERSISTENCE")) {
@@ -2406,8 +2413,6 @@ void cmd_info(Shard&, Op& op) {
                       "tls_ktls_active:%llu\r\ntls_ktls_fallback:%llu\r\n"
                       "tls_ktls_rx_declined_13:%llu\r\ntls_ktls_tx_rekeys:%llu\r\n"
                       "blocking_waiters:%llu\r\n"
-                      "number_of_cached_scripts:%llu\r\nnumber_of_libraries:%llu\r\n"
-                      "number_of_functions:%llu\r\n"
                       "script_flush_generation:%llu\r\nscript_interpreter_builds:%llu\r\n"
                       "script_chunk_cache_hits:%llu\r\nscript_chunk_cache_misses:%llu\r\n"
                       "script_readonly_rejections:%llu\r\n"
@@ -2553,9 +2558,6 @@ void cmd_info(Shard&, Op& op) {
                 static_cast<unsigned long long>(tls_ktls_rx_declined_13()),
                 static_cast<unsigned long long>(tls_ktls_tx_rekeys()),
                 static_cast<unsigned long long>(blocking_waiters),
-                static_cast<unsigned long long>(scripting.cached_scripts),
-                static_cast<unsigned long long>(functions.libraries),
-                static_cast<unsigned long long>(functions.functions),
                 static_cast<unsigned long long>(scripting.flush_generation),
                 static_cast<unsigned long long>(scripting.state_rebuilds),
                 static_cast<unsigned long long>(scripting.compile_hits),

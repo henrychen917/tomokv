@@ -306,6 +306,9 @@ bool command_metadata_no_multi(Op& op) {
 }
 
 bool command_metadata_skip_monitor(Op& op) {
+    // evalCommand/evalShaCommand/fcallCommandGeneric feed explicitly before Lua;
+    // skip_monitor only suppresses the subsequent generic call() feed.
+    if (op.spec && (op.spec->flags & CmdFlags::ScriptRoute)) return false;
     static constexpr uint64_t mask = [] {
         uint64_t result = 0;
         for (size_t i = 0; i < std::size(kGeneratedCommandFlagNames); ++i) {

@@ -6302,7 +6302,8 @@ INFOFIELDS_REQUIRED = {
     b"Stats": {b"instantaneous_ops_per_sec", b"instantaneous_input_kbps",
                b"instantaneous_output_kbps", b"latest_fork_usec"},
     b"Memory": {b"used_memory_peak", b"maxmemory", b"maxmemory_policy",
-                b"mem_fragmentation_ratio"},
+                b"mem_fragmentation_ratio", b"number_of_cached_scripts",
+                b"number_of_functions", b"number_of_libraries"},
 }
 
 
@@ -6446,8 +6447,13 @@ def monitor_quote(value):
 def monitor_payload(raw, address):
     match = re.fullmatch(br'\+[0-9]+\.[0-9]{6} \[0 ([^\]\r\n]+)\] (.+)\r\n', raw)
     assert match is not None, ("MONITOR line format", raw)
-    assert match[1] == address, ("MONITOR source address", match[1], address)
-    return match[2]
+    assert match[1] in (address, b"lua"), ("MONITOR source address", match[1], address)
+    return (b"lua " if match[1] == b"lua" else b"") + match[2]
+
+
+MONITOR_SCRIPT = "return redis.call('get', KEYS[1])"
+MONITOR_SHA = hashlib.sha1(MONITOR_SCRIPT.encode()).hexdigest()
+MONITOR_LIBRARY = "#!lua name=ifmonlib\nredis.register_function{function_name='ifmonget', callback=function(keys,args) return redis.call('get',keys[1]) end, flags={'no-writes'}}"
 
 
 def gen_monitor(rng):
@@ -6457,7 +6463,13 @@ def gen_monitor(rng):
         (["SET", "ifmon:key", b'quote" slash\\ newline\n nul\x00 hi\xff'], b"+OK\r\n", True),
         (["GET", "ifmon:missing"], None, True),
         (["CONFIG", "GET", "maxmemory"], None, False),
-        (["EVAL", "return 7", "0"], b":7\r\n", False),
+        (["EVAL", "return 7", "0"], b":7\r\n", True),
+        (["EVAL", MONITOR_SCRIPT, "1", "ifmon:key"], None, True),
+        (["EVAL_RO", MONITOR_SCRIPT, "1", "ifmon:key"], None, True),
+        (["EVALSHA", MONITOR_SHA, "1", "ifmon:key"], None, True),
+        (["EVALSHA_RO", MONITOR_SHA, "1", "ifmon:key"], None, True),
+        (["FCALL", "ifmonget", "1", "ifmon:key"], None, True),
+        (["FCALL_RO", "ifmonget", "1", "ifmon:key"], None, True),
         (["AUTH", "ifmon_limited", "ifmon_password"], b"+OK\r\n", True),
         (["PING"], b"+PONG\r\n", True),
         (["SET", "ifmon:denied", "v"], b"-NOPERM", False),
@@ -6486,6 +6498,8 @@ def run_monitor_suite(rng):
         if visible:
             displayed = [args[0], "(redacted)", "(redacted)"] if args[0] == "AUTH" else args
             expected.append(b" ".join(map(monitor_quote, displayed)))
+            if args[0] in ("EVAL", "EVAL_RO", "EVALSHA", "EVALSHA_RO", "FCALL", "FCALL_RO") and args[2] == "1":
+                expected.append(b'lua "get" "ifmon:key"')
     for side, host, port in (("target", TH, TP), ("oracle", OH, OP)):
         # Exactly two connections per server. A observes; B sets up, drives and cleans up.
         a, af = conn_mode(host, port, RESP3, buffering=0)
@@ -6497,6 +6511,8 @@ def run_monitor_suite(rng):
             setup = ["ACL", "SETUSER", "ifmon_limited", "reset", "on", ">ifmon_password",
                      "~ifmon:*", "+get", "+ping", "+auth", "+reset"]
             assert issue(setup) == b"+OK\r\n", side
+            assert parse_reply(issue(["SCRIPT", "LOAD", MONITOR_SCRIPT])) == MONITOR_SHA.encode(), side
+            assert parse_reply(issue(["FUNCTION", "LOAD", "REPLACE", MONITOR_LIBRARY])) == b"ifmonlib", side
             a.sendall(enc(["MONITOR"]))
             assert read_reply(af) == b"+OK\r\n", side
             for args, reply, _ in commands:
@@ -6511,7 +6527,7 @@ def run_monitor_suite(rng):
             lines = []
             while not lines or lines[-1] != expected[-1]:
                 lines.append(monitor_payload(read_reply(af), address))
-                assert len(lines) <= len(commands) + 2, (side, "unbounded monitor stream", lines)
+                assert len(lines) <= len(expected) + len(commands), (side, "unbounded monitor stream", lines)
             streams.append(lines)
             assert issue(["ACL", "DELUSER", "ifmon_limited"]) == b":1\r\n", side
         finally:
