@@ -1,0 +1,88 @@
+{
+  "name": "armed-3",
+  "source": "/home/user/Projects/cx-ccfix/build/gate-run.2vmPJr",
+  "group": "armed",
+  "gate_exit_code": 0,
+  "private_correctness_complete": true,
+  "folded": {
+    "schema": 1,
+    "group": "armed",
+    "parts": [
+      "armed-0",
+      "armed-1"
+    ],
+    "start": 1791330676.8421538,
+    "end": 1791331769.6182392,
+    "seconds": 1092.7760853767395,
+    "comparisons": 520,
+    "complete": true
+  },
+  "parts": {
+    "armed-0": {
+      "schema": 1,
+      "part": "armed-0",
+      "run": "iteration:gate-run.2vmPJr",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        28,
+        29
+      ],
+      "comparisons": 258,
+      "complete": true,
+      "verdicts": [
+        "differ ccfix (atomic=0 seed=7)                             ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+        "differ ccfix (atomic=0 seed=19)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+        "differ ccfix (atomic=0 seed=20)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+        "differ ccfix (atomic=0 seed=23)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+        "differ ccfix (atomic=0 seed=28)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+        "differ ccfix (atomic=0 seed=29)                            ok (DIFFER ccfix: 210 exact comparisons -> PASS)",
+        "read-local lane fired (atomic=0)                           ok (hits=981 fallbacks=276 at peak; final_hits=0 final_fallbacks=0)",
+        "DIFFER GATE: pass=259 fail=0 runtime=9m04s"
+      ],
+      "pending_windows": 0,
+      "read_local": {
+        "peak_hits": 981,
+        "peak_fallbacks": 276,
+        "final_hits": 0,
+        "final_fallbacks": 0
+      }
+    },
+    "armed-1": {
+      "schema": 1,
+      "part": "armed-1",
+      "run": "iteration:gate-run.2vmPJr",
+      "seeds": [
+        7,
+        19,
+        20,
+        23,
+        28,
+        29
+      ],
+      "comparisons": 262,
+      "complete": true,
+      "verdicts": [
+        "differ ccfix (atomic=1 seed=7)                             ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+        "differ ccfix (atomic=1 seed=19)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+        "differ ccfix (atomic=1 seed=20)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+        "differ ccfix (atomic=1 seed=23)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+        "differ ccfix (atomic=1 seed=28)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+        "differ ccfix (atomic=1 seed=29)                            ok (DIFFER ccfix: 222 exact comparisons -> PASS)",
+        "read-local lane fired (atomic=1)                           ok (hits=981 fallbacks=276 at peak; final_hits=21 final_fallbacks=239)",
+        "DIFFER GATE: pass=263 fail=0 runtime=9m07s"
+      ],
+      "pending_windows": 18,
+      "read_local": {
+        "peak_hits": 981,
+        "peak_fallbacks": 276,
+        "final_hits": 21,
+        "final_fallbacks": 239
+      }
+    }
+  },
+  "outer_ledger": "PARTIAL\t0\tGATE_ONLY_JOBS=differ-armed; NOT A RECEIPT\nok\t0.000000\trelease build (+footprint locks)\nok\t544.850000\tRedis 7.4 differential part (armed fused, atomic 0)\nok\t547.110000\tRedis 7.4 differential part (armed fused, atomic 1)\n",
+  "archive_sha256": "ba45a75553ba75a98a6500809f6174a44e2a887e5cde04ab6b83ed459e6b87a7"
+}

@@ -1,0 +1,21 @@
+{
+  "production_commit": "4b825cf5a405645b82a1f7f794d8c5bfb3321f91",
+  "final_matrix_harness_commit": "7bcfdfe9b",
+  "armed_gate_exit_codes": [
+    0,
+    1,
+    0
+  ],
+  "armed_ccfix_legs_passed": 32,
+  "armed_pending_windows": 48,
+  "split_ccfix_legs_passed": 10,
+  "split_pending_windows": 15,
+  "split_mode_equivalence_cells": 32,
+  "instruction_witnesses": "all five exactly equal in both namespaces",
+  "strict_hot_audit": "FAIL: inherited ccfix4 writeback lambda; no new hot change",
+  "rows_delta": [
+    0,
+    0
+  ],
+  "remaining": "Two more armed runs if three fully green final-harness matrices are required; maintainer writeback/null acceptance"
+}

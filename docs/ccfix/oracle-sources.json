@@ -1,0 +1,44 @@
+[
+  {
+    "file": "/home/user/Projects/redis/src/notify.c",
+    "sha256": "e3f079fb6338e6f20fc2a4825d4f9870b7799693f1eeaa0702296491cece497a",
+    "functions": "keyspaceEventsFlagsToString",
+    "revision": "f103d127b9747965e28f20615ef790332661fc68"
+  },
+  {
+    "file": "/home/user/Projects/redis/src/db.c",
+    "sha256": "eee5b6618aebea4e45157556fbf7c1a4a33dcea58ca4f440fe0a0e4da99c5561",
+    "functions": "lookupKey, lookupKeyRead, lookupKeyWrite, copyCommand",
+    "revision": "f103d127b9747965e28f20615ef790332661fc68"
+  },
+  {
+    "file": "/home/user/Projects/redis/src/networking.c",
+    "sha256": "0ed207f003c35589f97e6375bcf589c5fb22a1f905b3c2e9ec6a08d67984893c",
+    "functions": "addReplyErrorLength, afterErrorReply, addReplyError",
+    "revision": "f103d127b9747965e28f20615ef790332661fc68"
+  },
+  {
+    "file": "/home/user/Projects/redis/src/server.c",
+    "sha256": "9d1f0f0bdc25ed6ebb2efcfce50bd4e678301567507ac6d6c67f1d85e0e6c58e",
+    "functions": "incrCommandStatsOnError, call, rejectCommand, rejectCommandSds, genRedisInfoStringCommandStats",
+    "revision": "f103d127b9747965e28f20615ef790332661fc68"
+  },
+  {
+    "file": "/home/user/Projects/redis/src/acl.c",
+    "sha256": "b4eecbb04562fa100488ad7be714d04ec7d3e3c8d8d0f76684bbcadf6aaf9cc4",
+    "functions": "ACLLoadFromFile",
+    "revision": "f103d127b9747965e28f20615ef790332661fc68"
+  },
+  {
+    "file": "/home/user/Projects/redis/src/t_set.c",
+    "sha256": "ab63519961480da1deb156e415f80e8f93cf2fbc6dad9d26c19f0395bdae8b02",
+    "functions": "sinterGenericCommand, sunionDiffGenericCommand",
+    "revision": "f103d127b9747965e28f20615ef790332661fc68"
+  },
+  {
+    "file": "/home/user/Projects/redis/src/bitops.c",
+    "sha256": "24d8ac2a7e1f0d441057cb5070dcdca5fadb346d64f2bd9e9e883e7d0690c1fd",
+    "functions": "bitopCommand",
+    "revision": "f103d127b9747965e28f20615ef790332661fc68"
+  }
+]

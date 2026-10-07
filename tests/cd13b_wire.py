@@ -103,14 +103,21 @@ def geo_store_property(sides, route):
                         for _ in range(4096):
                             assert call(["ZCARD", destination]) == b":2\r\n"
                         before = integer(call, ["OBJECT", "FREQ", destination])
-                        if before >= initial + 3:
+                        # Priming can move the hot destination. Arm both witnesses on
+                        # the same fresh state; an earlier placement is not evidence
+                        # that STORE will still cross owners after 4096 reads.
+                        witness = route([source, destination])
+                        cross_owner = (witness[0][0] != witness[1][0] and
+                                       witness[0][1] != witness[1][1])
+                        if before >= initial + 3 and cross_owner:
                             armed = True
                             break
+                        print("  CD13b GEO rearm %s %s attempt=%d initial=%d before=%d route=%r" %
+                              (label, verb, attempt, initial, before, witness))
                         integer(call, ["DEL", source])
                         integer(call, ["DEL", destination])
-                    assert armed, "LFU counter never armed on three fresh destinations"
-                    witness = route([source, destination])
-                    assert witness[0][0] != witness[1][0] and witness[0][1] != witness[1][1], witness
+                    assert armed, ("LFU/cross-owner window never armed on three fresh destinations",
+                                   initial, before, witness)
                     if verb == "GEOSEARCHSTORE":
                         args = [verb, destination, source, "FROMLONLAT", "13", "38", "BYRADIUS", "10", "km"]
                     else:

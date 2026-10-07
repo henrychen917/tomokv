@@ -1,0 +1,29 @@
+PARTIAL	0	GATE_ONLY_JOBS=netcmd_units auth acl_recheck notify; NOT A RECEIPT
+ok	0.000000	release build (+footprint locks)
+ok	0.000000	netcmd regression build
+ok	0.010000	netcmd streams regression
+ok	0.000000	netcmd zpop regression
+ok	0.010000	netcmd notify-oom regression
+ok	0.000000	netcmd notify-retry regression
+ok	0.010000	netcmd flush regression
+ok	0.010000	netcmd output regression
+ok	0.010000	netcmd pubsub regression
+ok	0.010000	netcmd receive regression
+ok	0.040000	netcmd config regression
+ok	0.010000	netcmd hexpire-oom regression
+ok	0.010000	NET1 serverless bounds + scan + reclamation
+ok	43.740000	ACL recheck one-reply battery (2s)
+ok	43.740000	ACL recheck one-reply battery (1s)
+ok	0.010000	reject bad protected-mode
+ok	0.010000	reject bad enable-debug-command
+ok	0.150000	AUTH/HELLO/protected state machine
+ok	0.280000	ACL battery (atomic off)
+ok	0.290000	ACL battery (atomic on)
+ok	1.020000	DEBUG toggle/reload battery
+ok	0.100000	typed snapshot round-trip incl stream
+ok	2.070000	MULTI feature battery
+ok	1.520000	blocking feature battery
+ok	0.930000	pubsub feature battery
+ok	0.030000	Lua feature battery
+ok	22.730000	keyspace notification battery (atomic 0/1)
+ok	0.020000	feature battery shutdown invariants

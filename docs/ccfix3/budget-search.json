@@ -1,0 +1,343 @@
+[
+  {
+    "receipt": "budget-146214-db0.json",
+    "changed": 4,
+    "checked_ordinary_changes": 2,
+    "ordinary_symbols": [
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-initial-db0.json",
+    "changed": 4,
+    "checked_ordinary_changes": 2,
+    "ordinary_symbols": [
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146213-db0.json",
+    "changed": 6,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146216-db0.json",
+    "changed": 4,
+    "checked_ordinary_changes": 2,
+    "ordinary_symbols": [
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146217-db0.json",
+    "changed": 4,
+    "checked_ordinary_changes": 2,
+    "ordinary_symbols": [
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146218-db0.json",
+    "changed": 5,
+    "checked_ordinary_changes": 2,
+    "ordinary_symbols": [
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146219-db0.json",
+    "changed": 5,
+    "checked_ordinary_changes": 2,
+    "ordinary_symbols": [
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146220-db0.json",
+    "changed": 5,
+    "checked_ordinary_changes": 2,
+    "ordinary_symbols": [
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146221-db0.json",
+    "changed": 5,
+    "checked_ordinary_changes": 2,
+    "ordinary_symbols": [
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146222-db0.json",
+    "changed": 7,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146223-db0.json",
+    "changed": 7,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146224-db0.json",
+    "changed": 7,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146225-db0.json",
+    "changed": 7,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146226-db0.json",
+    "changed": 8,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146227-db0.json",
+    "changed": 8,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146228-db0.json",
+    "changed": 8,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146229-db0.json",
+    "changed": 8,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146230-db0.json",
+    "changed": 6,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146231-db0.json",
+    "changed": 6,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146232-db0.json",
+    "changed": 6,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146233-db0.json",
+    "changed": 6,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146234-db0.json",
+    "changed": 7,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146235-db0.json",
+    "changed": 7,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146236-db0.json",
+    "changed": 7,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146237-db0.json",
+    "changed": 6,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146238-db0.json",
+    "changed": 7,
+    "checked_ordinary_changes": 4,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZN8tomo_db07ExLoopTILb0EE7executeILb0ELb0EEEbRKNS_4TaskE",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146239-db0.json",
+    "changed": 5,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146240-db0.json",
+    "changed": 5,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-main-146270-db0.json",
+    "changed": 5,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb0ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_"
+    ]
+  },
+  {
+    "receipt": "budget-server-31400-db0.json",
+    "changed": 22,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db012_GLOBAL__N_113cmd_randomkeyERNS_5ShardERNS_2OpE",
+      "_ZN8tomo_db012_GLOBAL__N_19cmd_helloERNS_5ShardERNS_2OpE",
+      "_ZN8tomo_db012_GLOBAL__N_19cmd_helloERNS_5ShardERNS_2OpE.cold"
+    ]
+  },
+  {
+    "receipt": "budget-server-31520-db0.json",
+    "changed": 12,
+    "checked_ordinary_changes": 0,
+    "ordinary_symbols": []
+  },
+  {
+    "receipt": "budget-server-31540-db0.json",
+    "changed": 15,
+    "checked_ordinary_changes": 1,
+    "ordinary_symbols": [
+      "_ZN8tomo_db09FlatStore9scan_homeIZNS_12_GLOBAL__N_19cmd_flushERNS_5ShardERNS_2OpEEUlPNS_5KvObjEE_EEjijRT_b.isra.0"
+    ]
+  },
+  {
+    "receipt": "budget-server-31560-db0.json",
+    "changed": 18,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db012_GLOBAL__N_113cmd_randomkeyERNS_5ShardERNS_2OpE",
+      "_ZN8tomo_db012_GLOBAL__N_19cmd_helloERNS_5ShardERNS_2OpE",
+      "_ZN8tomo_db012_GLOBAL__N_19cmd_helloERNS_5ShardERNS_2OpE.cold"
+    ]
+  },
+  {
+    "receipt": "budget-server-31580-db0.json",
+    "changed": 14,
+    "checked_ordinary_changes": 0,
+    "ordinary_symbols": []
+  },
+  {
+    "receipt": "budget-server-31600-db0.json",
+    "changed": 16,
+    "checked_ordinary_changes": 1,
+    "ordinary_symbols": [
+      "_ZN8tomo_db09FlatStore9scan_homeIZNS_12_GLOBAL__N_19cmd_flushERNS_5ShardERNS_2OpEEUlPNS_5KvObjEE_EEjijRT_b.isra.0"
+    ]
+  },
+  {
+    "receipt": "budget-server-default-db0.json",
+    "changed": 26,
+    "checked_ordinary_changes": 3,
+    "ordinary_symbols": [
+      "_ZN8tomo_db012_GLOBAL__N_113cmd_randomkeyERNS_5ShardERNS_2OpE",
+      "_ZN8tomo_db012_GLOBAL__N_19cmd_helloERNS_5ShardERNS_2OpE",
+      "_ZN8tomo_db012_GLOBAL__N_19cmd_helloERNS_5ShardERNS_2OpE.cold"
+    ]
+  }
+]

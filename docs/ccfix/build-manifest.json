@@ -1,0 +1,28 @@
+{
+  "PRE_commit": "b1d931ee2a271f28c9c9c91e2556c8fa36000a4d",
+  "POST_source_commit": "bd4a20ebfc093341532cdcb8eb4901ae80456baf",
+  "binaries": {
+    "build/ccfix/PRE/tomokv": "23b3df7e63aaec6316ec12f3bc563f0a1c7acf2b51ebd8c74c9dba0b2c8f9062",
+    "build/ccfix/POST/tomokv": "ff58fe0503a9032bf754d4714078f9f9760b4b62b15e40659b60dca0ec852084",
+    "build/tomokv": "ff58fe0503a9032bf754d4714078f9f9760b4b62b15e40659b60dca0ec852084"
+  },
+  "headline_cells_sha256": "d5c2b906668e4f49b4e6bed7aeee7c9610dadae3a239e333a9a2fd0f43dc1350",
+  "generic14_sha256": "e762a136c88081ac5e3ef3b3fac4d77ab698e105afe76ca42820aabd156589fb",
+  "text": {
+    "PRE": 8798261,
+    "POST": 8800229
+  },
+  "data": {
+    "PRE": 89704,
+    "POST": 89704
+  },
+  "bss": {
+    "PRE": 1146456,
+    "POST": 1146584
+  },
+  "compiler": "13.3.0",
+  "ELF_text_section": {
+    "PRE": 7782988,
+    "POST": 7784460
+  }
+}

@@ -4772,6 +4772,10 @@ def run_notify_suite(rng):
           (len(stream), events, diffs, "PASS" if diffs == 0 else "FAIL"))
     return diffs
 
+if SUITE == "ccfix":
+    from _differ_ccfix import run as run_ccfix
+    sys.exit(run_ccfix(globals()))
+
 if SUITE == "notify":
     sys.exit(1 if run_notify_suite(rng) else 0)
 
@@ -6244,8 +6248,21 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
 if LIST_GENERATORS:
     # This is the single suite inventory. Property suites live outside `gens` because their
     # replies are not byte-comparable, but the gate discovers them from this same list.
-    print("\n".join(list(gens) + ["blocking", "pubsub", "fanout", "spubsub", "notify",
-                                   "wiredump", "climon", "compatintro", "aclsel", "cmdmeta", "s6fix", "psfix"]))
+    print("\n".join(list(gens) + [
+        'blocking',
+        'pubsub',
+        'fanout',
+        'spubsub',
+        'notify',
+        'wiredump',
+        'climon',
+        'compatintro',
+        'aclsel',
+        'cmdmeta',
+        's6fix',
+        'ccfix',
+        'psfix',
+    ]))
     sys.exit(0)
 ops = gens[SUITE](rng)
 
@@ -6733,12 +6750,12 @@ if SUITE == "infofix":
         if got != want: property_fail(side + " byte control", "got=%r want=%r" % (got, want))
     print("  infofix byte controls: target+oracle exact")
 
-    # Commandstats deliberately exposes only the one member TomoKV measures.
+    # Commandstats exposes measured counters; timing fields remain deliberately absent.
     issue(ts, tf, ["PING"])
     commandstats = fields(ts, tf, "commandstats")
     members = dict(item.split("=", 1)
                    for item in commandstats.get("cmdstat_ping", "").split(",") if "=" in item)
-    if int(members.get("calls", "0")) < 1 or set(members) != {"calls"}:
+    if int(members.get("calls", "0")) < 1 or set(members) != {"calls", "rejected_calls"}:
         property_fail("commandstats members", repr(members))
 
     # Unsupported telemetry is absent, while the useful sampled and byte counters stay present.

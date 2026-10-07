@@ -1,0 +1,56 @@
+{
+  "total": 827,
+  "changed": 7,
+  "hot_changed": 3,
+  "rows": [
+    {
+      "symbol": "_ZN8tomo_db06IoLoop30quiesce_accepts_for_conversionEv",
+      "name": "tomo_db0::IoLoop::quiesce_accepts_for_conversion()",
+      "pre_size": 664,
+      "post_size": 677,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db06Server4initERKNS_6ConfigEPKNS_13AofReplayPlanE",
+      "name": "tomo_db0::Server::init(tomo_db0::Config const&, tomo_db0::AofReplayPlan const*)",
+      "pre_size": 11945,
+      "post_size": 11993,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db07ExLoopTILb0EE21snapshot_control_passILj32ELb0EEEjv",
+      "name": "unsigned int tomo_db0::ExLoopT<false>::snapshot_control_pass<32u, false>()",
+      "pre_size": 3192,
+      "post_size": 3163,
+      "hot": false
+    },
+    {
+      "symbol": "_ZN8tomo_db07ExLoopTILb0EE3runEv",
+      "name": "tomo_db0::ExLoopT<false>::run()",
+      "pre_size": 7094,
+      "post_size": 7174,
+      "hot": true
+    },
+    {
+      "symbol": "_ZN8tomo_db09FlatStore26atomic_collapse_read_localEmm",
+      "name": "tomo_db0::FlatStore::atomic_collapse_read_local(unsigned long, unsigned long)",
+      "pre_size": 6796,
+      "post_size": 6835,
+      "hot": false
+    },
+    {
+      "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "name": "tomo_db0::WbEngine::serve_impl<false, true, false, true, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "pre_size": 537,
+      "post_size": 824,
+      "hot": true
+    },
+    {
+      "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "name": "tomo_db0::WbEngine::serve_impl<false, true, true, true, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "pre_size": 824,
+      "post_size": 537,
+      "hot": true
+    }
+  ]
+}

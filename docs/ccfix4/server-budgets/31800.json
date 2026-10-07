@@ -1,0 +1,262 @@
+{
+  "value": 31800,
+  "pre_sha256": "d966e2c137d92e72867e37cc36681d7ab02769a617e9d1d42348de13b69719b5",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=31800",
+    "-c",
+    "src/cmd/t_server.cc",
+    "-o",
+    "/home/user/Projects/cx-ccfix/build/ccfix4/server-budgets/31800.o"
+  ],
+  "object_sha256": "5a4fd65cafb6b67ba43f0816b1d0c976b9dcca2681a7006910e1bf941878aacb",
+  "total": 230,
+  "hot": 33,
+  "changed": 25,
+  "hot_changed": 1,
+  "hot_differing_bytes": 306,
+  "rows": [
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "pre_size": 7553,
+      "post_size": 7566,
+      "differing_bytes": 3062,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 123,
+      "post_size": 123,
+      "differing_bytes": 86,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_112StatBaselineD1Ev",
+      "name": "tomo_db0::(anonymous namespace)::StatBaseline::~StatBaseline()",
+      "hot": false,
+      "pre_size": 49,
+      "post_size": 98,
+      "differing_bytes": 89,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_112StatBaselineD2Ev",
+      "name": "tomo_db0::(anonymous namespace)::StatBaseline::~StatBaseline()",
+      "hot": false,
+      "pre_size": 49,
+      "post_size": 98,
+      "differing_bytes": 89,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_116snapshot_commandERNS_2OpEb",
+      "name": "tomo_db0::(anonymous namespace)::snapshot_command(tomo_db0::Op&, bool)",
+      "hot": false,
+      "pre_size": 1027,
+      "post_size": 1059,
+      "differing_bytes": 294,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_122collect_config_updatesERNS_2OpERSt6vectorISt4pairIPNS0_11ConfigValueENSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEESaISD_EE",
+      "name": "tomo_db0::(anonymous namespace)::collect_config_updates(tomo_db0::Op&, std::vector<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&)",
+      "hot": false,
+      "pre_size": 8848,
+      "post_size": 8880,
+      "differing_bytes": 4386,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_122collect_config_updatesERNS_2OpERSt6vectorISt4pairIPNS0_11ConfigValueENSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEESaISD_EE.cold",
+      "name": "tomo_db0::(anonymous namespace)::collect_config_updates(tomo_db0::Op&, std::vector<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<tomo_db0::(anonymous namespace)::ConfigValue*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >&) [clone .cold]",
+      "hot": false,
+      "pre_size": 181,
+      "post_size": 184,
+      "differing_bytes": 111,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "pre_size": 16669,
+      "post_size": 16371,
+      "differing_bytes": 14832,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 349,
+      "post_size": 336,
+      "differing_bytes": 301,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db022serialize_notify_flagsB5cxx11Ej",
+      "name": "tomo_db0::serialize_notify_flags[abi:cxx11](unsigned int)",
+      "hot": false,
+      "pre_size": 634,
+      "post_size": 586,
+      "differing_bytes": 423,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db023cfg_parse_save_scheduleEPKcmRSt6vectorINS_10SaveClauseESaIS3_EE",
+      "name": "tomo_db0::cfg_parse_save_schedule(char const*, unsigned long, std::vector<tomo_db0::SaveClause, std::allocator<tomo_db0::SaveClause> >&)",
+      "hot": false,
+      "pre_size": 1928,
+      "post_size": 2056,
+      "differing_bytes": 1903,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db024command_client_connectedEPNS_6ClientEPKcS3_bm",
+      "name": "tomo_db0::command_client_connected(tomo_db0::Client*, char const*, char const*, bool, unsigned long)",
+      "hot": false,
+      "pre_size": 1668,
+      "post_size": 1812,
+      "differing_bytes": 777,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db024command_config_resetstatEv",
+      "name": "tomo_db0::command_config_resetstat()",
+      "hot": false,
+      "pre_size": 2029,
+      "post_size": 2199,
+      "differing_bytes": 2111,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db024command_config_resetstatEv.cold",
+      "name": "tomo_db0::command_config_resetstat() [clone .cold]",
+      "hot": false,
+      "pre_size": 64,
+      "post_size": 61,
+      "differing_bytes": 37,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db032command_client_migration_extractEPNS_6ClientE",
+      "name": "tomo_db0::command_client_migration_extract(tomo_db0::Client*)",
+      "hot": false,
+      "pre_size": 656,
+      "post_size": 864,
+      "differing_bytes": 648,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db032command_client_migration_installEPv",
+      "name": "tomo_db0::command_client_migration_install(void*)",
+      "hot": false,
+      "pre_size": 485,
+      "post_size": 645,
+      "differing_bytes": 408,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db032command_client_migration_installEPv.cold",
+      "name": "tomo_db0::command_client_migration_install(void*) [clone .cold]",
+      "hot": false,
+      "pre_size": 43,
+      "post_size": 44,
+      "differing_bytes": 30,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db09FlatStore23atomic_resolve_internalEmNS_5SliceEmb",
+      "name": "tomo_db0::FlatStore::atomic_resolve_internal(unsigned long, tomo_db0::Slice, unsigned long, bool)",
+      "hot": false,
+      "pre_size": 2863,
+      "post_size": 3098,
+      "differing_bytes": 2505,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db09FlatStore9scan_homeIZNS_12_GLOBAL__N_19cmd_flushERNS_5ShardERNS_2OpEEUlPNS_5KvObjEE_EEjijRT_b.isra.0",
+      "name": "unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}>(int, unsigned int, tomo_db0::(anonymous namespace)::cmd_flush(tomo_db0::Shard&, tomo_db0::Op&)::{lambda(tomo_db0::KvObj*)#1}&, bool) [clone .isra.0]",
+      "hot": true,
+      "pre_size": 601,
+      "post_size": 658,
+      "differing_bytes": 306,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db09reply_errINS_2Op4SinkEEEvOT_PKc",
+      "name": "void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)",
+      "hot": false,
+      "pre_size": 813,
+      "post_size": 973,
+      "differing_bytes": 658,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db09reply_intINS_2Op4SinkEEEvOT_x",
+      "name": "void tomo_db0::reply_int<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, long long)",
+      "hot": false,
+      "pre_size": 462,
+      "post_size": 673,
+      "differing_bytes": 650,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNSt12_Vector_baseImSaImEED1Ev",
+      "name": "std::_Vector_base<unsigned long, std::allocator<unsigned long> >::~_Vector_base()",
+      "hot": false,
+      "pre_size": 33,
+      "post_size": 0,
+      "differing_bytes": 33,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNSt12_Vector_baseImSaImEED2Ev",
+      "name": "std::_Vector_base<unsigned long, std::allocator<unsigned long> >::~_Vector_base()",
+      "hot": false,
+      "pre_size": 33,
+      "post_size": 0,
+      "differing_bytes": 33,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZNSt6vectorImSaImEEaSERKS1_.isra.0",
+      "name": "std::vector<unsigned long, std::allocator<unsigned long> >::operator=(std::vector<unsigned long, std::allocator<unsigned long> > const&) [clone .isra.0]",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 453,
+      "differing_bytes": 453,
+      "targets_equal": false
+    },
+    {
+      "symbol": "__tls_init",
+      "name": "__tls_init",
+      "hot": false,
+      "pre_size": 152,
+      "post_size": 0,
+      "differing_bytes": 152,
+      "targets_equal": false
+    }
+  ]
+}

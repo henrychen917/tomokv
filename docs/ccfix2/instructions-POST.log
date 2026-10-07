@@ -1,0 +1,7 @@
+off/keymiss,100000,1800053
+off/string,100000,1800053
+save-only/keymiss,100000,2000053
+save-only/string,100000,2400053
+note_command,100000,700039
+
+exit=0

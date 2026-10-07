@@ -1,0 +1,11 @@
+  CC11 local source/destination lookups: exact
+  CC11 cross source/destination lookups: exact
+  EXPECTED-DEVIATION CC11 pending COPY: no keymiss; source records and predecessor reads witnessed, Redis emits 1
+  EXPECTED-DEVIATION CC11 pending SINTERSTORE: no keymiss; source records and predecessor reads witnessed, Redis emits 2
+  EXPECTED-DEVIATION CC11 pending BITOP: no keymiss; source records and predecessor reads witnessed, Redis emits 2
+  EXPECTED-DEVIATION CC18 executed WRONGTYPE: failed_calls omitted; Redis reports 1
+  EXPECTED-DEVIATION CC18 MULTI member: failed_calls omitted; Redis reports 2
+  EXPECTED-DEVIATION CC18 EXEC own error: failed_calls omitted; Redis reports 1
+  EXPECTED-DEVIATION CC18 Lua error array: failed_calls omitted; Redis reports 1
+  EXPECTED-DEVIATION CC18 Lua forwarded error: failed_calls omitted; Redis reports 2
+DIFFER ccfix: 222 exact comparisons -> PASS
