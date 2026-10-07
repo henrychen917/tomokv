@@ -517,9 +517,9 @@ build/reorderscan-unit-asan: tests/reorderscan_unit.cc $(wildcard src/*/*.h) Mak
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@
 
-build/reorder-unit: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
+build/reorder-unit: tests/reorder_unit.cc tests/reorder_batch_fixture.h $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
-build/reorder-unit-asan: tests/reorder_unit.cc $(wildcard src/*/*.h) Makefile
+build/reorder-unit-asan: tests/reorder_unit.cc tests/reorder_batch_fixture.h $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@
 
 build/reorder-engagement-unit: tests/reorder_engagement_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
@@ -557,9 +557,9 @@ build/r7shadow-split-unit-db0: tests/r7shadow_split_unit.cc tests/reorder_engage
 	  -include tests/r7shadow_witness.h -I. $< build/r7shadow3/reorder-witness-db0.o \
 	  $(filter-out build/db0/src/core/reorder.o,$(DB0_TEST_OBJ)) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
-build/r7shadow-unit: tests/r7shadow_unit.cc $(wildcard src/*/*.h) Makefile
+build/r7shadow-unit: tests/r7shadow_unit.cc tests/reorder_batch_fixture.h $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
-build/r7shadow-unit-asan: tests/r7shadow_unit.cc $(wildcard src/*/*.h) Makefile
+build/r7shadow-unit-asan: tests/r7shadow_unit.cc tests/reorder_batch_fixture.h $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@
 
 # Instructions only, no rate/timing benchmark and no server. Run on compile CPUs.
