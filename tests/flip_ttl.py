@@ -150,35 +150,66 @@ def sub_messages(deadline):
 
 checks = 0
 for rnd in range(ROUNDS):
-    rep = flip_report(w, wf)
-    io, ex = as_int(rep["live_io"]), as_int(rep["live_ex"])
-    total = io + ex
-    # A materially different split: swap-heavy, clamped to a legal shape.
-    tio = max(2, min(total - 2, ex + (2 if rnd == 0 else -2)))
-    tex = total - tio
-    if tio == io:
-        tio = max(2, min(total - 2, io + 2))
-        tex = total - tio
-
-    keys = ["ft:%d:%d" % (rnd, i) for i in range(NKEYS)]
-    for k in keys:
-        send(w, "SET", k, "v", "PX", str(TTL_MS))
-        rd(wf)
-
-    send(w, "FLIP", str(tio), str(tex))
-    if rd(wf) != b"OK":
-        print("FAIL: FLIP %d %d refused on a lightly loaded server" % (tio, tex))
-        sys.exit(1)
-    deadline = time.time() + 10
-    while time.time() < deadline:
+    budget = time.monotonic() + 30
+    attempt = 0
+    while True:
+        assert time.monotonic() < budget, "live TTLs never spanned an observed owner move"
+        attempt += 1
         rep = flip_report(w, wf)
-        if (as_int(rep["live_io"]) == tio and as_int(rep["live_ex"]) == tex and
-                str(rep.get("moving", b"0")) in ("b'0'", "0", "b'false'")):
-            break
-        time.sleep(0.1)
-    else:
-        print("FAIL: flip to %d:%d never landed" % (tio, tex))
-        sys.exit(1)
+        io, ex = as_int(rep["live_io"]), as_int(rep["live_ex"])
+        total = io + ex
+        # A materially different split: swap-heavy, clamped to a legal shape.
+        tio = max(2, min(total - 2, ex + (2 if rnd == 0 else -2)))
+        tex = total - tio
+        if tio == io:
+            tio = max(2, min(total - 2, io + 2))
+            tex = total - tio
+
+        prefix = "ft:%d:%d:" % (rnd, attempt)
+        keys = [prefix + str(i) for i in range(NKEYS)]
+        send(w, "TIME")
+        stamp = rd(wf)
+        earliest_expiry_ms = int(stamp[0]) * 1000 + int(stamp[1]) // 1000 + TTL_MS
+        armed_at = time.monotonic()
+        for k in keys:
+            send(w, "SET", k, "v", "PX", str(TTL_MS))
+            assert rd(wf) == b"OK", "TTL seed failed"
+        send(w, "DEBUG", "SHARDS", *keys)
+        owners_before = rd(wf)
+
+        send(w, "FLIP", str(tio), str(tex))
+        if rd(wf) != b"OK":
+            print("FAIL: FLIP %d %d refused on a lightly loaded server" % (tio, tex))
+            sys.exit(1)
+        deadline = time.time() + 10
+        while time.time() < deadline:
+            rep = flip_report(w, wf)
+            if (as_int(rep["live_io"]) == tio and as_int(rep["live_ex"]) == tex and
+                    str(rep.get("moving", b"0")) in ("b'0'", "0", "b'false'")):
+                break
+            time.sleep(0.1)
+        else:
+            print("FAIL: flip to %d:%d never landed" % (tio, tex))
+            sys.exit(1)
+        send(w, "DEBUG", "SHARDS", *keys)
+        owners_after = rd(wf)
+        assert len(owners_before) == len(owners_after) == NKEYS
+        moved = any(before[1] != after[1] for before, after in zip(owners_before, owners_after))
+        # The earliest key cannot have expired during setup/migration. A late driver
+        # only invalidates this fresh cohort; it never excuses a lost key/event.
+        if time.monotonic() - armed_at >= TTL_MS / 1000 or not moved:
+            print("INVALID TTL/FLIP cohort: elapsed=%.3fs moved=%r" %
+                  (time.monotonic() - armed_at, moved), flush=True)
+            continue
+        send(w, "MGET", *keys)
+        values = rd(wf)
+        send(w, "TIME")
+        stamp = rd(wf)
+        if int(stamp[0]) * 1000 + int(stamp[1]) // 1000 >= earliest_expiry_ms:
+            print("INVALID TTL/FLIP cohort: live read crossed the deadline", flush=True)
+            continue
+        assert values == [b"v"] * NKEYS, "live TTL values did not survive migration"
+        break
     checks += 1
 
     # Every key set BEFORE the flip must now expire on whatever executor owns its shard AFTER it,
@@ -189,7 +220,7 @@ for rnd in range(ROUNDS):
         for frame in sub_messages(deadline):
             if isinstance(frame, list) and len(frame) == 3 and frame[0] == b"message":
                 key = frame[2].decode()
-                if key.startswith("ft:%d:" % rnd):
+                if key in keys:
                     got.add(key)
                     if len(got) == NKEYS:
                         break

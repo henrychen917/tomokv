@@ -417,6 +417,9 @@ def torn_arm(seconds=2.0):
         with lock:
             enough = reads > 100 and commits > 10
             failed = bool(errors)
+        if enough:
+            enough = ((info_field("atomic_fanout_cuts") or 0) > (before_cuts or 0) or
+                      (info_field("read_local_fallback_atomic_pending") or 0) > (before_pend or 0))
         if enough or failed:
             break
         if time.monotonic() >= deadline:

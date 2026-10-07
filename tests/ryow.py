@@ -59,19 +59,31 @@ for r in range(200):
         if read_reply(f) != b"r%d.%d" % (r, k): ok = False
 note("cross-shard interleave 200 rounds x %d keys" % K, ok)
 
-# ---- 3. RYOW under contention: 4 writer threads on the same keys; my conn must still see MY writes ----
+# ---- 3. Exact RYOW under independently acknowledged background write pressure ----
 stop = threading.Event()
-def hammer():
+noise_errors = []
+noise_ready = [threading.Event() for _ in range(4)]
+noise_ops = [0] * 4
+def hammer(wid):
+    h = hf = None
     try:
         h = conn(); hf = h.makefile("rb")
         i = 0
         while not stop.is_set():
-            h.sendall(cmd("SET", "rk%d" % (i % K), "noise%d" % i)); read_reply(hf)
+            h.sendall(cmd("SET", "rk%d" % (i % K), "noise%d" % i))
+            assert read_reply(hf) == b"OK", "background SET did not acknowledge"
             i += 1
-        h.close()
-    except Exception: pass
-threads = [threading.Thread(target=hammer, daemon=True) for _ in range(4)]
+            noise_ops[wid] = i
+            noise_ready[wid].set()
+    except Exception as error:
+        noise_errors.append(repr(error))
+    finally:
+        if hf is not None: hf.close()
+        if h is not None: h.close()
+threads = [threading.Thread(target=hammer, args=(wid,), daemon=True) for wid in range(4)]
 for t in threads: t.start()
+for ready in noise_ready:
+    assert ready.wait(5), "background writer never acknowledged progress"
 ok = True
 for r in range(2000):
     k = "own%d" % (r % 8)
@@ -79,9 +91,42 @@ for r in range(2000):
     s.sendall(cmd("SET", k, v) + cmd("GET", k))
     if read_reply(f) != b"OK": ok = False
     if read_reply(f) != v: ok = False
-note("RYOW under 4-writer contention x2000", ok)
+note("RYOW under 4-writer pressure x2000", ok)
 stop.set()
 for t in threads: t.join(timeout=3)
+note("all background writers acknowledged and stopped",
+     all(noise_ops) and not noise_errors and not any(t.is_alive() for t in threads),
+     "ops=%r errors=%r" % (noise_ops, noise_errors))
+
+# Explicit SAME-KEY conflicts. A read may return this connection's acknowledged
+# write or one of the four concurrent overwrites, never an unrelated/older value.
+# Once all four writes acknowledge, the next unconflicted SET/GET must be exact.
+peers = [conn() for _ in range(4)]
+files = [peer.makefile("rb") for peer in peers]
+conflicts_ok = True
+conflict_epoch = os.urandom(8).hex()
+try:
+    for round_id in range(64):
+        key = "ryow:conflict:%s:%d" % (conflict_epoch, round_id)
+        mine = ("mine:%d" % round_id).encode()
+        s.sendall(cmd("SET", key, mine))
+        assert read_reply(f) == b"OK"
+        noise = [("other:%d:%d" % (round_id, wid)).encode() for wid in range(4)]
+        for peer, value in zip(peers, noise):
+            peer.sendall(cmd("SET", key, value))
+        s.sendall(cmd("GET", key))
+        got = read_reply(f)
+        conflicts_ok &= got in [mine] + noise
+        for file in files:
+            conflicts_ok &= read_reply(file) == b"OK"
+        settled = ("settled:%d" % round_id).encode()
+        s.sendall(cmd("SET", key, settled) + cmd("GET", key))
+        conflicts_ok &= read_reply(f) == b"OK"
+        conflicts_ok &= read_reply(f) == settled
+    note("same-key overwrite replies + unconflicted RYOW x64", conflicts_ok)
+finally:
+    for file in files: file.close()
+    for peer in peers: peer.close()
 
 # ---- 4. DEL visibility: SET;DEL;GET pipelined must see nil; SET;GET;DEL;GET mixed ----
 burst = b""
