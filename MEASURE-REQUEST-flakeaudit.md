@@ -69,7 +69,7 @@ revoked and the list is pushed. Both saved runs fail that requirement:
 
 The client stays `flags=N`, `cmd=blpop`; its early reply is
 `NOPERM No permissions to access a key`. This is **a production admission
-defect, not an unlucky park race**. `src/cmd/acl.inc:565` expands every
+defect, not an unlucky park race**. `src/cmd/acl.inc:567` expands every
 negative `last_key` to `argc - 1`, and the runtime BLPOP command spec at
 `src/cmd/t_list.cc:952` uses `last_key=-1`. Thus `BLPOP block:k 0` checks the
 timeout `0` as a key against `~block:*`. The old test's expected post-wake
@@ -116,7 +116,15 @@ ratio 6:2 for split boots, and one correctness slot. No ABBA/NIC measurement
 is requested or claimed.
 
 <!-- PROOF_RESULTS_BEGIN -->
-Six-run live campaign: **IN PROGRESS**. No six-run success is claimed yet.
+Six-run live campaign: **1/6 complete; IN PROGRESS**.
+
+Every completed clean selection includes all 34 changed row occurrences. The table counts complete selected jobs and prerequisites; it is not a full-gate receipt.
+
+| Run | Gate artifact | Start–end (Asia/Taipei) | Rows ok / FAIL | Changed rows passed |
+|---:|---|---|---:|---:|
+| 1 | `gate-run.vuf9be` | 21:14:52–21:26:15 | 236 / 0 | 34 / 34 |
+
+Tracked [results and provenance](docs/flakeaudit/evidence/proof/results.json) link each run to its revision, unchanged server hash, ledger, phase timestamps and geometry. The adjacent run directories retain the complete gate log and the relevant battery logs. `archive_proof.py` refuses changed executable sources and cross-checks every changed row's multiplicity.
 <!-- PROOF_RESULTS_END -->
 
 The pre-resume campaign is preserved under
