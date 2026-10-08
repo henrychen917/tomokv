@@ -4,6 +4,8 @@ This table preserves all 42 mechanisms and 117 distinct public row occurrences f
 
 FIXED-TEST-SIDE means the test change is implemented, **not a live proof claim**. Each changed occurrence requires the selected campaign and its complete battery. The category is the disposition of the registered mechanism; other retained checks are called out, and no entire battery is claimed lottery-free without its proof.
 
+**2026-10-08 flakeaudit2b:** multi_exec is reverted to the original battery and classified B/W16. The [follow-up proof summary](evidence/flakeaudit2b-20261008T034854Z/proof-summary.json) records the new admission outcomes; the older campaign statuses below remain historical.
+
 Selected proof: REFUSED (`selected-20261007T222606Z`, four quiet admissions; no gate run id). Run ids: none.
 Full iteration: REFUSED (`full-20261007T223724Z`, four quiet admissions; no gate run id). Run id: none.
 

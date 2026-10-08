@@ -2,6 +2,8 @@
 
 Test-side changes are committed on `cx-flakeaudit2`; no push. Production is unchanged relative to the final fetched/merged `origin/cpp`. **No live pass is claimed without the receipts below.**
 
+The dated **flakeaudit2b** section below supersedes the multi_exec repair claim. Original flakeaudit2 campaign statuses are retained here as history.
+
 Rows +0/+0; EXPECT remains **500 quick / 517 full**. Public names/order/multiplicity match the first audit exactly; [row-count receipt](docs/flakeaudit2/evidence/row-counts.txt). [Production diff receipt](docs/flakeaudit2/evidence/production.diff) is empty. [Final merge receipt](docs/flakeaudit2/evidence/final-merge.txt).
 
 Selected proof: REFUSED (`selected-20261007T222606Z`, four quiet admissions; no gate run id). Run ids: none.
@@ -103,6 +105,25 @@ Used the explicitly authorized fallback: `tests/multi_exec.py` is byte-identical
 
 Evidence directory: [flakeaudit2b-20261008T034854Z](docs/flakeaudit2/evidence/flakeaudit2b-20261008T034854Z/). `proof_b.py` reproduces all six mode/atomic boots using the saved rejected battery and contrasts EXEC with a held two-owner MSET. It then runs the six requested whole jobs six times serially, plus a separate full iteration; each gate records its revision, server SHA, raw ledger and logs. Failed runs stop the campaign and are retained. Quiet admission uses the unchanged 20-second / 0.48 CPU-second screen, initially plus three retries at 200-second spacing.
 
-Current proof status: reproduction and six-run selected proof both REFUSED after an initial screen plus three retries over ten minutes each. No build, server or gate job was launched; no new passing ledger is claimed. Reproduction CPU totals were 1.06/0.66/1.19/1.30 seconds and selected totals were 0.61/0.92/0.97/0.55, each exceeding the unchanged 0.48-second budget. Full-iteration admission is pending. Fetched and merged origin/cpp again (already up to date) before the selected proof and again before the full proof; merge transcripts are retained.
+Final proof status: **REFUSED / NOT RUN**, not a green gate. Each phase exhausted its initial admission screen plus three retries over ten minutes. No compiler, server, load generator or gate job started. Gate rc and FAIL-row counts are unavailable because no new ledger exists; the wrapper admission rc is 3, not a gate verdict.
+
+| Phase | Required / completed | CPU-seconds at the four refused screens (budget 0.48) | Result |
+|---|---:|---|---|
+| Original-battery reproduction across six boots | 6 / 0 | 1.06, 0.66, 1.19, 1.30 | REFUSED |
+| Six selected jobs × six serial gate runs | 6 / 0 runs | 0.61, 0.92, 0.97, 0.55 | REFUSED; no ledgers |
+| Full iteration | 1 / 0 | 0.63, 0.69, 0.79, 0.75 | REFUSED; no ledger |
+
+[Machine-readable proof summary](docs/flakeaudit2/evidence/flakeaudit2b-20261008T034854Z/proof-summary.json), [reproduction log](docs/flakeaudit2/evidence/flakeaudit2b-20261008T034854Z/reproduce-driver.log), [selected log](docs/flakeaudit2/evidence/flakeaudit2b-20261008T034854Z/selected-driver.log), [full log](docs/flakeaudit2/evidence/flakeaudit2b-20261008T034854Z/full-driver.log). All 12 raw quiet-screen records are committed. Fresh live reproduction and the required six-run/full ledgers remain outstanding for the maintainer's quiet box; the supplied mainline seven-failure logs are the existing live evidence, not a new lane run.
+
+Fetched and merged `origin/cpp` again before the selected proof and again before the full proof; both were already up to date at `9b3cab67b`. [Pre-full merge transcript](docs/flakeaudit2/evidence/flakeaudit2b-20261008T034854Z/pre-full-merge.txt). Static verification passed: byte-identical restored battery, 15 serverless controls, unchanged production and gate source, all 517 original public labels/order/multiplicity, Python syntax and `git diff --check`. The grep audit covered 89 changed-text encodings and 5,561 matching test-source lines. The test revert is commit `72cb9c060`.
+
+The evidence driver requires fresh output directories so refusals cannot be overwritten. After merging mainline, re-proof on the assigned idle cores with fresh names:
+
+```sh
+python3 docs/flakeaudit2/proof_b.py reproduce docs/flakeaudit2/evidence/flakeaudit2b-20261008T034854Z/reproduce-idle
+python3 docs/flakeaudit2/proof_b.py selected docs/flakeaudit2/evidence/flakeaudit2b-20261008T034854Z/selected-idle
+python3 docs/flakeaudit2/proof_b.py full docs/flakeaudit2/evidence/flakeaudit2b-20261008T034854Z/full-idle
+```
+
 
 Rows **+0/+0**; `EXPECT_QUICK=500` / `EXPECT_FULL=517` untouched. No production edits, no throughput claim, no PRE/POST/PAD arms, no push.

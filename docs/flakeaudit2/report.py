@@ -115,6 +115,9 @@ def main():
         "Each changed occurrence requires the selected campaign and its complete battery. "
         "The category is the disposition of the registered mechanism; other retained checks are called out, "
         "and no entire battery is claimed lottery-free without its proof.", "",
+        "**2026-10-08 flakeaudit2b:** multi_exec is reverted to the original battery and classified "
+        "B/W16. The [follow-up proof summary](evidence/flakeaudit2b-20261008T034854Z/proof-summary.json) "
+        "records the new admission outcomes; the older campaign statuses below remain historical.", "",
         "Selected proof: " + selected + ". Run ids: " + (", ".join(run_ids) or "none") + ".",
         "Full iteration: " + full + ". Run id: " + (", ".join(full_ids) or "none") + ".", "",
         "Original-register occurrences: A=%d, B=%d, C=%d, D=%d (117). Including GT16: A=%d, "
@@ -207,6 +210,8 @@ def main():
     report = ["# flakeaudit2 measurement and proof request", "",
         "Test-side changes are committed on `cx-flakeaudit2`; no push. Production is unchanged relative "
         "to the final fetched/merged `origin/cpp`. **No live pass is claimed without the receipts below.**", "",
+        "The dated **flakeaudit2b** section below supersedes the multi_exec repair claim. "
+        "Original flakeaudit2 campaign statuses are retained here as history.", "",
         "Rows +0/+0; EXPECT remains **500 quick / 517 full**. Public names/order/multiplicity match the "
         "first audit exactly; [row-count receipt](docs/flakeaudit2/evidence/row-counts.txt). "
         "[Production diff receipt](docs/flakeaudit2/evidence/production.diff) is empty. "

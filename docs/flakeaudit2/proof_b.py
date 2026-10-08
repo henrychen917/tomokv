@@ -122,7 +122,8 @@ def main():
     args = parser.parse_args()
     os.chdir(ROOT)
     base = args.output.resolve()
-    base.mkdir(parents=True, exist_ok=True)
+    # Never turn a refused/failed campaign into a pass by overwriting its files.
+    base.mkdir(parents=True, exist_ok=args.prior_screen is not None)
     proof.write(base / "request.json", dict(stage=args.stage,
         jobs=JOBS if args.stage == "selected" else None,
         command=GATE, repetitions=6 if args.stage == "selected" else 1,
