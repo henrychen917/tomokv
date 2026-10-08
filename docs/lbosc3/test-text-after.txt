@@ -1,0 +1,6 @@
+tests/config_parser_test.cc:561:        if (tomo::parse_config_args({"--key-lb-damping", value}, lb, state, 1, "conf") !=
+tests/config_parser_test.cc:564:        if (tomo::parse_config_args({"--key-lb-damping", "0"}, lb, state, 2, "cli") !=
+tests/config_parser_test.cc:569:        if (!rejects({"--key-lb-damping", value})) fail("invalid key damping grammar accepted");
+tests/config_parser_test.cc:570:    if (!rejects({"--key-lb-damping"})) fail("missing key damping level accepted");
+tests/knobs.py:68:                           ("wb-policy", "1"), ("key-lb-damping", "-1")):
+tests/knobs.py:71:    for name in ("read-local", "key-lb", "client-lb", "key-lb-damping", "flip-auto", "net-io", "overlap", "reorder", "wb-policy",
