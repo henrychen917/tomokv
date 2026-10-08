@@ -1,0 +1,37 @@
+SEARCH 'atomic_exec_order_holds'
+tests/multirace.py:44:Non-vacuity: `atomic_exec_order_holds` counts a transaction meeting an undecided same-connection
+tests/multirace.py:174:    if "atomic_exec_order_holds" not in table:
+tests/multirace.py:175:        raise AssertionError("INFO STATS has no atomic_exec_order_holds counter")
+tests/multirace.py:176:    return int(table["atomic_exec_order_holds"])
+tests/multirace.py:507:        print(f"  FAIL the armed cases recorded atomic_exec_order_holds={armed_deltas} across "
+tests/gate.sh:2070:  # the wrong reason. Its armed cases assert atomic_exec_order_holds advanced, so the row cannot
+tests/multires.py:27:Every case also proves its mechanism FIRED: `atomic_exec_order_holds` counts a transaction
+tests/multires.py:144:    if "atomic_exec_order_holds" not in table:
+tests/multires.py:145:        raise AssertionError("INFO STATS has no atomic_exec_order_holds counter")
+tests/multires.py:146:    return int(table["atomic_exec_order_holds"])
+tests/multires.py:324:            print("  FAIL the armed cases recorded 0 atomic_exec_order_holds: no EXEC write ever "
+tests/pipeorder.py:39:    before = int(_lib.info(admin, "stats")["atomic_exec_order_holds"])
+tests/pipeorder.py:45:        while int(_lib.info(admin, "stats")["atomic_exec_order_holds"]) == before:
+SEARCH 'EXEC one-ticket torn-read arm'
+tests/multi_exec.py:432:    note("EXEC one-ticket torn-read arm",
+SEARCH 'time.sleep(0.05)'
+tests/servertail.py:309:    time.sleep(0.05)
+tests/servertail.py:315:    time.sleep(0.05)
+tests/borrow_registry.py:158:        time.sleep(0.05)
+tests/execatomic.py:232:        time.sleep(0.05)                     # the lead fragment has answered; the rest are parked
+tests/atomic_torn.py:803:    time.sleep(0.05)
+tests/atomic_torn.py:1058:    time.sleep(0.05)
+tests/tls.py:319:        time.sleep(0.05)
+tests/atomic_hazards.py:198:        time.sleep(0.05)                 # lead fragment answered; the rest are parked with the cut
+tests/writer_atomic_campaign.py:175:            time.sleep(0.05)
+tests/writer_atomic_campaign.py:196:                time.sleep(0.05)
+tests/zc.py:34:    time.sleep(0.05)
+tests/execiso.py:282:        time.sleep(0.05)                     # the lead fragment has answered; the rest are parked
+tests/execiso.py:359:        time.sleep(0.05)
+tests/differ.py:3361:        time.sleep(0.05)
+tests/expwide.py:640:            time.sleep(0.05)
+tests/snap_typed_race.py:174:        time.sleep(0.05)
+SEARCH 'cardinality never grew'
+tests/concur.py:358:               "cardinality never grew past %d: no rebuild, the arm proves nothing" % card_before)
+SEARCH 'churn batch was not acknowledged'
+tests/concur.py:147:        raise AssertionError("churn batch was not acknowledged while cursor was open")

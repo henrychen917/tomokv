@@ -3354,20 +3354,57 @@ def run_blocking_differ(rng):
     # means forever, so the harness closes both sockets after proving silence and never performs a
     # blocking read on that case.
     for timeout in ("200", "0"):
-        tw, twf = conn_mode(TH, TP, RESP3); ow, owf = conn_mode(OH, OP, RESP3)
         command = ["WAIT", "1", timeout]
-        started = time.monotonic()
-        tw.sendall(enc(command)); ow.sendall(enc(command)); logical_ops += 1
-        time.sleep(0.05)
-        tready = bool(select.select([tw], [], [], 0)[0])
-        oready = bool(select.select([ow], [], [], 0)[0])
-        property_check("WAIT 1 %s readiness parity" % timeout, tready, oready)
-        property_check("target WAIT 1 %s silence control" % timeout, tready, False)
-        property_check("oracle WAIT 1 %s silence control" % timeout, oready, False)
-        if timeout != "0":
-            compare("WAIT finite final reply", read_reply(twf), read_reply(owf))
-            property_check("WAIT finite deadline fired", time.monotonic() - started >= 0.15, True)
-        tw.close(); ow.close(); twf.close(); owf.close()
+        budget = time.monotonic() + 10
+        while time.monotonic() < budget:
+            tw, twf = conn_mode(TH, TP, RESP3); ow, owf = conn_mode(OH, OP, RESP3)
+            try:
+                ids = []
+                for sock, file in ((tw, twf), (ow, owf)):
+                    sock.sendall(enc(["CLIENT", "ID"]))
+                    raw_id = read_reply(file)
+                    assert raw_id.startswith(b":"), raw_id
+                    ids.append(int(raw_id[1:-2]))
+                started = time.monotonic()
+                tw.sendall(enc(command)); ow.sendall(enc(command)); logical_ops += 1
+                armed = [False, False]
+                while time.monotonic() < budget:
+                    for side, (sock, file) in enumerate(((ts, tf), (os_, of))):
+                        sock.sendall(enc(["CLIENT", "LIST", "ID", str(ids[side])]))
+                        listing = parse_reply(read_reply(file))
+                        assert isinstance(listing, bytes), listing
+                        rows = [dict(part.split(b"=", 1) for part in line.split()
+                                     if b"=" in part) for line in listing.splitlines()]
+                        armed[side] = any(int(row[b"id"]) == ids[side] and
+                                          b"b" in row.get(b"flags", b"") for row in rows)
+                    if all(armed) or (timeout != "0" and time.monotonic() - started >= .2):
+                        break
+                    time.sleep(.001)
+                if timeout != "0" and time.monotonic() - started >= .2:
+                    print("  INVALID WAIT arm elapsed before both exact clients parked", flush=True)
+                    continue
+                assert all(armed), "WAIT never parked both exact clients before deadline"
+                time.sleep(.05)
+                tready = bool(select.select([tw], [], [], 0)[0])
+                oready = bool(select.select([ow], [], [], 0)[0])
+                if timeout != "0" and time.monotonic() - started >= .2:
+                    print("  INVALID WAIT silence observation crossed the finite deadline", flush=True)
+                    continue
+                # An observed in-window early reply is a failure, never a fresh-state retry.
+                property_check("WAIT 1 %s readiness parity" % timeout, tready, oready)
+                property_check("target WAIT 1 %s silence control" % timeout, tready, False)
+                property_check("oracle WAIT 1 %s silence control" % timeout, oready, False)
+                if timeout != "0":
+                    target, oracle = read_reply(twf), read_reply(owf)
+                    compare("WAIT finite final reply", target, oracle)
+                    property_check("target WAIT finite reply", target, b":0\r\n")
+                    property_check("oracle WAIT finite reply", oracle, b":0\r\n")
+                    property_check("WAIT finite deadline fired", time.monotonic() - started >= 0.15, True)
+                break
+            finally:
+                twf.close(); owf.close(); tw.close(); ow.close()
+        else:
+            raise AssertionError("WAIT silence window never opened before arming deadline")
 
     # Closing a WAIT socket does not synchronously retire its blocked-client registration on
     # either server. Compare settled values, never two independently moving gauges. The bounded

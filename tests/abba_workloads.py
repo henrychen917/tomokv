@@ -9,13 +9,16 @@ The retired knob is identified explicitly; old reference binaries retain their w
 import base64
 from collections import Counter
 import math
+import os
 import struct
 import statistics
 import time
 import zlib
 
 
-MULTI_KEYS = 8
+MULTI_KEYS = int(os.environ.get("TOMO_MULTI_KEYS", "8"))
+if MULTI_KEYS <= 0:
+    raise ValueError("TOMO_MULTI_KEYS must be a positive integer")
 LONG_KEYS = 65536
 LONG_BYTES = 256 * 1024
 

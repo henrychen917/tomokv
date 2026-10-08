@@ -470,13 +470,30 @@ try:
     expect(got, ("__keyevent@0__:expired", "expire:active"), "active expiry")
     if info_stats()["notify_events_fired"] <= before:
         raise AssertionError("active expiry fired counter did not advance")
-    config("")
-    driver.command("SET", "expire:lazy", "v", "PX", "20")
-    config("Ex")
-    time.sleep(0.025)
-    driver.command("GET", "expire:lazy")
-    expect(frame_event(receive(1, 5)[0]),
-           ("__keyevent@0__:expired", "expire:lazy"), "lazy expiry")
+    # Configure delivery before arming the deadline. Keep the active reaper out
+    # of this lazy-expiry cell; otherwise an active event could pass this oracle.
+    expect(admin.command("DEBUG", "SET-ACTIVE-EXPIRE", "0"), b"OK", "hold active expiry")
+    try:
+        config("Ex")
+        before = info_stats()["notify_events_fired"]
+        expect(driver.command("SET", "expire:lazy", "v", "PX", "20"), b"OK", "lazy seed")
+        clock = driver.command("TIME")
+        after_arm_ms = int(clock[0]) * 1000 + int(clock[1]) // 1000
+        deadline = time.monotonic() + 5
+        while True:
+            clock = driver.command("TIME")
+            now_ms = int(clock[0]) * 1000 + int(clock[1]) // 1000
+            if now_ms >= after_arm_ms + 20:
+                break
+            assert time.monotonic() < deadline, "server expiry clock did not advance"
+            time.sleep(.001)
+        expect(info_stats()["notify_events_fired"], before, "lazy event not fired before access")
+        expect(driver.command("GET", "expire:lazy"), None, "lazy access reaps key")
+        expect(frame_event(receive(1, 5)[0]),
+               ("__keyevent@0__:expired", "expire:lazy"), "lazy expiry")
+        expect(info_stats()["notify_events_fired"], before + 1, "lazy event fired once")
+    finally:
+        expect(admin.command("DEBUG", "SET-ACTIVE-EXPIRE", "1"), b"OK", "restore active expiry")
 
     # Maxmemory eviction uses the same keyless copied-key lane with the e class/name.
     setup()

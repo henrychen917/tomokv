@@ -1,0 +1,16 @@
+[
+  {
+    "source": "/home/user/Projects/cx-aclkeys/build/gate-run.OPRDHt/jobs/flipctl/battery.log",
+    "receipt": "gt16-OPRDHt-original.log",
+    "available": true,
+    "bytes": 19910,
+    "sha256": "c665fb480f0c0deb41a9778bccae08cc694e64cf059469b1f9ba653ee10a6a87"
+  },
+  {
+    "source": "/home/user/Projects/cx-infofields/build/infofields/differ2-POST-split/psfix-a0-s91.txt",
+    "receipt": "psfix-a0-s91-original.txt",
+    "available": true,
+    "bytes": 3580,
+    "sha256": "46f4137a1feda9f915678dc6c183a111dd5b3674638fb0c857b2df366459ad56"
+  }
+]

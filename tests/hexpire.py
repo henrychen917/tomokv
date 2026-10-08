@@ -359,6 +359,45 @@ def test_immediate_delete(c):
 # ---------------------------------------------------------------------------------------------
 # 6. lazy expiry on access -- with the FIRED proof and its negative control
 # ---------------------------------------------------------------------------------------------
+def server_ms(c):
+    seconds, micros = c.cmd("TIME")
+    return int(seconds) * 1000 + int(micros) // 1000
+
+
+def wait_expired(c, expiry):
+    deadline = time.monotonic() + 5
+    while server_ms(c) < expiry:
+        assert time.monotonic() < deadline, "server expiry deadline never elapsed"
+        time.sleep(.001)
+
+
+def arm_live_fields(c, key, contents, fields, ttl_ms):
+    """Recreate only a clock-invalid setup; never retry an in-window bad reply."""
+    budget = time.monotonic() + 5
+    while True:
+        assert time.monotonic() < budget, "live hash-field window never opened"
+        c.cmd("DEL", key)
+        assert c.cmd("HSET", key, *contents) == len(contents) // 2
+        before = info_counter(c, "expired_hash_fields")
+        # Capture the exact installed deadline under the same transaction cut.
+        # An IO TIME lower bound need not equal the owner's cached clock.
+        assert c.cmd("MULTI") == "OK"
+        assert c.cmd("HPEXPIRE", key, str(ttl_ms), "FIELDS", str(len(fields)), *fields) == "QUEUED"
+        assert c.cmd("HPEXPIRETIME", key, "FIELDS", str(len(fields)), *fields) == "QUEUED"
+        captured = c.cmd("EXEC")
+        assert isinstance(captured, list) and len(captured) == 2, captured
+        armed, deadlines = captured
+        assert armed == [1] * len(fields), ("HPEXPIRE arm failed", armed)
+        assert len(deadlines) == len(fields), deadlines
+        assert all(isinstance(t, int) and t > 0 for t in deadlines), deadlines
+        registered = info_counter(c, "hash_field_expires")
+        size = c.cmd("HLEN", key)
+        if server_ms(c) >= min(deadlines):
+            print("  INVALID hash-field arm expired during setup: " + key, flush=True)
+            continue
+        return armed, registered, size, before, max(deadlines)
+
+
 def test_lazy_expiry(c):
     c.cmd("FLUSHALL")
     # negative control first: a hash with no field TTLs must not arm anything
@@ -370,13 +409,13 @@ def test_lazy_expiry(c):
     check("TTL-free traffic expires nothing", info_counter(c, "expired_hash_fields"),
           before_plain)
 
-    c.cmd("HSET", "k", "a", "1", "b", "2", "c", "3")
-    check("HPEXPIRE armed", c.cmd("HPEXPIRE", "k", "250", "FIELDS", "2", "a", "b"), [1, 1])
-    check_true("registration visible", info_counter(c, "hash_field_expires") >= 1,
+    armed, registered, size, before, expiry = arm_live_fields(
+        c, "k", ("a", "1", "b", "2", "c", "3"), ("a", "b"), 250)
+    check("HPEXPIRE armed", armed, [1, 1])
+    check_true("registration visible", registered >= 1,
                "hash_field_expires is 0 with a live field deadline")
-    check("still present before the deadline", c.cmd("HLEN", "k"), 3)
-    before = info_counter(c, "expired_hash_fields")
-    time.sleep(0.45)
+    check("still present before the deadline", size, 3)
+    wait_expired(c, expiry)
 
     # the first access is what reaps; every read must agree the fields are gone
     check("HGET filters", c.cmd("HGET", "k", "a"), None)
@@ -395,11 +434,9 @@ def test_lazy_expiry(c):
     check("lazy reap FIRED (2 fields)", after - before, 2)
 
     # last live field expires -> the key itself goes on the next access
-    c.cmd("DEL", "solo")
-    c.cmd("HSET", "solo", "f", "v")
-    c.cmd("HPEXPIRE", "solo", "200", "FIELDS", "1", "f")
-    before = info_counter(c, "expired_hash_fields")
-    time.sleep(0.4)
+    _, registered, size, before, expiry = arm_live_fields(c, "solo", ("f", "v"), ("f",), 200)
+    assert registered >= 1 and size == 1
+    wait_expired(c, expiry)
     check("lapsed hash reports empty", c.cmd("HLEN", "solo"), 0)
     check("lapsed hash is gone", [c.cmd("EXISTS", "solo"), c.cmd("TYPE", "solo")], [0, "none"])
     check("lazy key removal FIRED", info_counter(c, "expired_hash_fields") - before, 1)
@@ -412,9 +449,9 @@ def test_active_expiry(c):
     c.cmd("FLUSHALL")
     c.cmd("HSET", "act", "a", "1")
     c.cmd("HSET", "keep", "a", "1")
-    check("active setup", c.cmd("HPEXPIRE", "act", "200", "FIELDS", "1", "a"), [1])
     before = info_counter(c, "expired_hash_fields")
     size_before = c.cmd("DBSIZE")
+    check("active setup", c.cmd("HPEXPIRE", "act", "200", "FIELDS", "1", "a"), [1])
     # Nothing below reads "act": DBSIZE and INFO are keyspace-wide, so any removal is the ex
     # thread's own cycle rather than a lazy reap disguised as one.
     deadline = time.time() + 6.0
@@ -614,7 +651,14 @@ def main():
                          ("representations", test_representations),
                          ("value-transport", test_value_transport)):
             start = len(FAILURES)
-            fn(c)
+            if name == "lazy-expiry":
+                assert c.cmd("DEBUG", "SET-ACTIVE-EXPIRE", "0") == "OK"
+                try:
+                    fn(c)
+                finally:
+                    assert c.cmd("DEBUG", "SET-ACTIVE-EXPIRE", "1") == "OK"
+            else:
+                fn(c)
             print("  %-20s %s" % (name, "ok" if len(FAILURES) == start else "FAIL"))
         c.cmd("FLUSHALL")
 

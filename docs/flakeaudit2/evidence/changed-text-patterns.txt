@@ -1,0 +1,1498 @@
+                                        "_\r\n"     (RESP3)
+    %s
+    BLPOP k 1        ->  times out  ->  "*-1\r\n"   (RESP2)
+    b"*-1\r\n-NOPERM User u has no permissions to run the 'blpop' command\r\n"
+    b"_\r\n-NOPERM User u has no permissions to run the 'blpop' command\r\n"
+    op.reply.clear();
+  DEBUG FLIPCTL at the move:
+  INVALID WAIT arm elapsed before both exact clients parked
+  INVALID WAIT silence observation crossed the finite deadline
+  INVALID fresh timeout arm: 
+  INVALID hash-field arm expired during setup: 
+  INVALID live expiry setup; re-arming fresh state
+  INVALID push/timeout arm: parking missed the deadline
+  INVALID push/timeout arm: publication missed the deadline
+  INVALID timeout elapsed before revocation acknowledgement: 
+  driver per-second rates: %s
+  last_trigger=%s  band=%.6f  anchor_rate=%s
+  ok   held EXEC cut: predecessors=%d, exact old/new replies
+  per-second trace:
+"    %s" % (unstable, "\n    ".join(trace)))
+"  DEBUG FLIPCTL at the move:\n    %s" %
+"  driver per-second rates: %s\n"
+"  last_trigger=%s  band=%.6f  anchor_rate=%s\n"
+"  per-second trace:\n    %s\n"
+"""-> ("held", row) | ("reroll", reason) | ("moved", evidence)."""
+"""Drive the live observer with published state, including deliberately broken moves."""
+"""Keep a force-atomic EXEC undecided until an actual MGET reads its preimages."""
+"""Keep the scan cursor open until this other connection acknowledges its batch."""
+"""Preserve one complete RESP frame; buffered reads may span any TCP split."""
+"""Re-arm invalid stimulus only. A valid movement is never retried."""
+"""Re-arm only a missed live setup, never an EXEC result or a wrong reply."""
+"""Read one whole push, preserving its exact bytes across TCP fragments."""
+"""Read until the socket has been silent for a beat; returns everything seen."""
+"""Recreate only a clock-invalid setup; never retry an in-window bad reply."""
+"%.1fx) while the driver's rate held inside %.4f -- pass depth is "
+"%.6f <= band %.6f) -- %s" % (distance, shift_band, evidence))
+"%s t=%+6.1fs %-14s %-10s driver=%8.0f/s live=%s:%s anchor=%s:%s "
+"(driver %s/s, driver anchor %.3f/s, controller anchor %.3f/s, band %.6f); "
+"(only %d samples in %ds)\n  per-second trace:\n    %s" %
+"(pre/hold samples=%d/%d, required hold=%ds)\n  per-second trace:\n    %s" %
+", ".join("%.0f" % value for value in rates),
+",".join("%.0f" % value for value in rates), driver_anchor,
+"\n    ".join(trace)))
+"\n    ".join(trace), dump.replace("\n", "\n    ")))
+"\n".join(rerolls))
+"a scheduling outcome the driver does not control -- %s" %
+"assertion window open for %ds" %
+"b'0'"
+"b'false'"
+"changed (last_shift_distance %.6f against last_shift_band %.6f, "
+"controller moved %s stable hold: %r\n"
+"fingerprint shift fired INSIDE its own band (distance "
+"mode=$ARMED_REPORT_MODE kind=$ARMED_REPORT_KIND hits=$ARMED_HITS; see $SRVLOG"
+"mode=$ARMED_REPORT_MODE kind=$ARMED_REPORT_KIND peak_hits=$ARMED_HITS sample_failed=$ARMED_SAMPLE_FAILED; see $SRVLOG"
+"movement (attempt %d of %d)" %
+"movement (attempt %d)" % (seconds, attempt), flush=True)
+"never became blocked" in str(error)):
+"no completed FLIP bracketed by every worker's verified progress before deadline"
+"ops=%r errors=%r" % (noise_ops, noise_errors))
+"pre-hold window is not stationary: %s\n  per-second trace:\n"
+"resetchannels", "&*", "+@all") == b"OK"
+"resetkeys", "~*", "resetchannels", "&*", "+@all"))
+"the controller's own signature detector reports the workload "
+"the controller's own signature detector reports the workload changed (last_shift_distance %.6f against last_shift_band %.6f, %.1fx) while the driver's rate held inside %.4f -- pass depth is a scheduling outcome the driver does not control -- %s"
+"triggers=%s last=%s" %
+#     inside a wall budget), then FAIL with the numbers. A move can be judged only during
+#     then INVALID with the numbers (never PASS). A move can be judged only during
+#   * load left the band                           -> RE-ROLL (up to STABLE_HOLD_ATTEMPTS,
+#   * load left the band                           -> RE-ROLL inside a wall budget,
+# ---- 3. Exact RYOW under independently acknowledged background write pressure ----
+# ---- 3. RYOW under contention: 4 writer threads on the same keys; my conn must still see MY writes ----
+# A held DEL supplies the dangerous predecessor deterministically. Keep the
+# A materially different split: swap-heavy, clamped to a legal shape.
+# A positive framed push is the delivery witness. No idle recv interval can
+# A scheduling miss gets an entirely new connection and no stale ACL/key state.
+# An IO TIME lower bound need not equal the owner's cached clock.
+# An absolute deadline avoids assuming that IO TIME and the owner's
+# An invalid window is re-rolled, up to
+# An observed in-window early reply is a failure, never a fresh-state retry.
+# Bounded so three re-rolls cannot outrun the gate row's own timeout.
+# Capture the exact installed deadline under the same transaction cut.
+# Configure delivery before arming the deadline. Keep the active reaper out
+# Exhaustion cannot PASS. A move during a stationary hold fails immediately.
+# Explicit SAME-KEY conflicts. A read may return this connection's acknowledged
+# Fresh client/key on every scheduling miss: stale registrations and
+# From here, a wrong reply is a failure, never an excuse to retry.
+# Full reset, not just +@all: an earlier row revokes KEYS, and leaving that in
+# Invalid windows are re-armed within a wall budget, never a fixed attempt count.
+# Leave this connection's reply unread. A separate connection witnesses
+# No pre-hold samples are collected while the controller is still settling.
+# No synthetic reads: witness the actual battery, and latch malformed INFO as a failure.
+# No trigger-specific exemption during a stationary assertion window.
+# Once all four writes acknowledge, the next unconflicted SET/GET must be exact.
+# Quiesce first: the command must be the head of its own parse pass with
+# RESETSTAT in a later battery must not erase an observed execution of this lane.
+# Retain the empty-key rounds too; this directed round gives DEL/UNLINK
+# STABLE_HOLD_ATTEMPTS, and exhaustion FAILS with its numbers. A move during a stationary
+# The assertion window is a full `seconds` of wall time from HERE, not
+# The assertion window never opened, so nothing was asserted. Never report this
+# The cohort shares an explicit deadline, so the liveness witness
+# The common deadline bounds this phase too; expiry only invalidates the attempt.
+# The controller's OWN signature detector reports the workload changed,
+# The detector fired INSIDE its own band. Nothing about the box can
+# The earliest key cannot have expired during setup/migration. A late driver
+# The load was stationary in the signal the DRIVER controls -- rate, mix,
+# The signature also counts PASS DEPTH -- how many frames an io thread
+# already-cached clock came from the same loop pass.
+# and by a wide margin, while the rate the driver offered did not move.
+# as a hold: a row that turns green without opening its window is the vacuity
+# barrier both want. Pipelining it would change the geometry.
+# box scheduled this load, not of the load. The driver cannot hold that
+# complete this assertion before the required frame actually arrives.
+# connection set, key and value shapes are all fixed here. Which of the
+# controller's two detectors moved decides whether this row can adjudicate it.
+# does not infer a relative TTL from a different owner's clock.
+# execution before RST; a unique key prevents prior runs from supplying it.
+# explain that; it is a controller defect and it fails.
+# happened to batch into one parse pass -- which is a property of how the
+# needs. Every other trigger on a stationary load still fails below.
+# nothing staged, which is the state the direct region and the ROB-head
+# of this lazy-expiry cell; otherwise an active event could pass this oracle.
+# only invalidates this fresh cohort; it never excuses a lost key/event.
+# original 400 complete pipeline rolls below as additional breadth.
+# place made every later row read a key denial instead of the reply under test.
+# real records on which the following transaction must wait.
+# still and this row cannot adjudicate it: re-roll, and if it recurs, fail
+# their eventual pushes cannot contaminate the successful arm.
+# this lane exists to remove.
+# whatever is left of a budget the pre-hold measurement already spent.
+# window is a real move and still fails.
+# with these numbers, which is exactly the report the controller lane
+# write or one of the four concurrent overwrites, never an unrelated/older value.
+$%d
+$%d\r\n%s\r\n
+%.0f
+%s t=%+6.1fs %-14s %-10s driver=%8.0f/s live=%s:%s anchor=%s:%s triggers=%s last=%s
+%s: %s
+%s: %s -- %s
+%s: %s\n  driver per-second rates: %s\n  per-second trace:\n    %s
+&& [ "$ARMED_SAMPLE_FAILED" -eq 0 ] && [ "$ARMED_HITS" -gt 0 ] \
+&& [ -n "$ARMED_HITS" ] && [ "$ARMED_HITS" -gt 0 ] \
+'  INVALID WAIT arm elapsed before both exact clients parked'
+'  INVALID WAIT silence observation crossed the finite deadline'
+'  INVALID fresh timeout arm: '
+'  INVALID hash-field arm expired during setup: '
+'  INVALID live expiry setup; re-arming fresh state'
+'  INVALID push/timeout arm: parking missed the deadline'
+'  INVALID push/timeout arm: publication missed the deadline'
+'  INVALID timeout elapsed before revocation acknowledgement: '
+'  ok   held EXEC cut: predecessors=%d, exact old/new replies'
+'%.0f'
+'%s t=%+6.1fs %-14s %-10s driver=%8.0f/s live=%s:%s anchor=%s:%s triggers=%s last=%s'
+'%s: %s -- %s'
+'%s: %s\n  driver per-second rates: %s\n  per-second trace:\n    %s'
+'+@all'
+'-> ("held", row) | ("reroll", reason) | ("moved", evidence).'
+'0.04'
+'127.0.0.1'
+'200'
+'250'
+'400'
+'6000'
+'ACL recheck over a CODED reply: exactly one reply per blocking command.\n\nUsage: aclreply.py HOST PORT\n\nWHAT THIS COVERS\n----------------\nA blocking command is rechecked against the live ACL when it retires\n(blocking.inc blocking_retire -> acl.inc acl_recheck_blocking), because the\nuser\'s permissions can change while the client is parked.  When the recheck\ndenies, the reply the command already produced is DISCARDED and a NOPERM error\nis put in its place.  "Discarded" has to mean every representation of that\nreply, and reply codes added a second one.\n\n    BLPOP k 1        ->  times out  ->  "*-1\\r\\n"   (RESP2)\n                                        "_\\r\\n"     (RESP3)\n\nBoth are ReplyCode-carried (src/exec/op.h): the executor records a code and the\nconnection\'s owner formats the bytes at retire.  A discard written as\n\n    op.reply.clear();\n\nempties the byte buffer, which for a coded reply was already empty, and leaves\nreply_code_ standing.  Retire then emits the coded reply AND the NOPERM behind\nit -- two replies for one command, which shifts every later reply on that\nconnection by one.  The fix is Op::clear_reply(), which drops the bytes, the\ndirect length and the code together.\n\nVerified against a negative-control build (this tree with that one line reverted\nto op.reply.clear()): the two timeout rows below fail there with\n\n    b"*-1\\r\\n-NOPERM User u has no permissions to run the \'blpop\' command\\r\\n"\n    b"_\\r\\n-NOPERM User u has no permissions to run the \'blpop\' command\\r\\n"\n\nand every other row passes, so this test discriminates exactly the defect.\n\nNote this shape does NOT exist before reply codes: the blocking dispatch branch\nin io_loop.h returns before the direct-reply arming, so a blocking op always has\ndirect_len == 0 and the byte-only discard was sufficient.  The coded reply is\nthe first representation op.reply.clear() could miss.\n\nTHE ORACLE IS THE BYTES.  Each row reads the victim\'s socket through an ECHO fence and\ncompares the whole stream to the single expected error frame, so a second reply\nfails as trailing garbage rather than being averaged away.\n'
+'ACL recheck over a CODED reply: exactly one reply per blocking command.\n\nUsage: aclreply.py HOST PORT\n\nWHAT THIS COVERS\n----------------\nA blocking command is rechecked against the live ACL when it retires\n(blocking.inc blocking_retire -> acl.inc acl_recheck_blocking), because the\nuser\'s permissions can change while the client is parked.  When the recheck\ndenies, the reply the command already produced is DISCARDED and a NOPERM error\nis put in its place.  "Discarded" has to mean every representation of that\nreply, and reply codes added a second one.\n\n    BLPOP k 1        ->  times out  ->  "*-1\\r\\n"   (RESP2)\n                                        "_\\r\\n"     (RESP3)\n\nBoth are ReplyCode-carried (src/exec/op.h): the executor records a code and the\nconnection\'s owner formats the bytes at retire.  A discard written as\n\n    op.reply.clear();\n\nempties the byte buffer, which for a coded reply was already empty, and leaves\nreply_code_ standing.  Retire then emits the coded reply AND the NOPERM behind\nit -- two replies for one command, which shifts every later reply on that\nconnection by one.  The fix is Op::clear_reply(), which drops the bytes, the\ndirect length and the code together.\n\nVerified against a negative-control build (this tree with that one line reverted\nto op.reply.clear()): the two timeout rows below fail there with\n\n    b"*-1\\r\\n-NOPERM User u has no permissions to run the \'blpop\' command\\r\\n"\n    b"_\\r\\n-NOPERM User u has no permissions to run the \'blpop\' command\\r\\n"\n\nand every other row passes, so this test discriminates exactly the defect.\n\nNote this shape does NOT exist before reply codes: the blocking dispatch branch\nin io_loop.h returns before the direct-reply arming, so a blocking op always has\ndirect_len == 0 and the byte-only discard was sufficient.  The coded reply is\nthe first representation op.reply.clear() could miss.\n\nTHE ORACLE IS THE BYTES.  Each row reads the victim\'s socket to quiescence and\ncompares the whole stream to the single expected error frame, so a second reply\nfails as trailing garbage rather than being averaged away.\n'
+'ACL'
+'APPEND'
+'ATOMIC-COMMIT-HOLD'
+'AUTH'
+'BLMPOP'
+'BLPOP'
+'CLIENT'
+'CONFIG'
+'DEBUG FLIPCTL unavailable: %r'
+'DEBUG'
+'DEL escaped commit hold'
+'DEL'
+'DELUSER'
+'DISCARD'
+'Drive the live observer with published state, including deliberately broken moves.'
+'ECHO'
+'EXEC completed before release'
+'EXEC escaped commit hold'
+'EXEC never installed held records'
+'EXEC never met the held DEL'
+'EXEC never met the held predecessor'
+'EXEC'
+'FAIL: FLIP %d %d refused on a lightly loaded server'
+'FAIL: flip to %d:%d never landed'
+'FIELDS'
+'FLIP'
+'FLIPCTL'
+'GET queued before expiry'
+'GET'
+'HELLO'
+'HLEN'
+'HPEXPIRE arm failed'
+'HPEXPIRE armed'
+'HPEXPIRE'
+'HPEXPIRETIME'
+'HSET'
+'INVALID TTL/FLIP cohort: elapsed=%.3fs moved=%r'
+'INVALID TTL/FLIP cohort: live read crossed the deadline'
+'INVALID'
+'INVALID: %s -- %s'
+'INVALID: %s; trace=%r'
+'INVALID: controller never quiesced before deadline: %r'
+'INVALID: injected driver excursion'
+'INVALID: stable hold never opened and completed before deadline: '
+'INVALID: the assertion window never opened (only %d samples in %ds)\n  per-second trace:\n    %s'
+'INVALID: the assertion window never opened (pre/hold samples=%d/%d, required hold=%ds)\n  per-second trace:\n    %s'
+'Keep a force-atomic EXEC undecided until an actual MGET reads its preimages.'
+'Keep the scan cursor open until this other connection acknowledges its batch.'
+'LIST'
+'MGET did not read the held predecessors'
+'MGET'
+'MSET'
+'MULTI before queued expiry'
+'MULTI'
+'PEXPIRE'
+'PEXPIRETIME'
+'PING'
+'PUBLISH'
+'PXAT'
+'Preserve one complete RESP frame; buffered reads may span any TCP split.'
+'QUEUED'
+'RYOW under 4-writer contention x2000'
+'RYOW under 4-writer pressure x2000'
+'Re-arm invalid stimulus only. A valid movement is never retried.'
+'Re-arm only a missed live setup, never an EXEC result or a wrong reply.'
+'Read one whole push, preserving its exact bytes across TCP fragments.'
+'Read until the socket has been silent for a beat; returns everything seen.'
+'Recreate only a clock-invalid setup; never retry an in-window bad reply.'
+'SCAN'
+'SERVER'
+'SET'
+'SET-ACTIVE-EXPIRE'
+'SETUSER'
+'SHARDS'
+'SUBSCRIBE never acknowledged'
+'SUBSCRIBE'
+'TIME'
+'TRACKING'
+'TTL seed failed'
+'TYPE'
+'UNLINK'
+'UNWATCH'
+'WAIT 1 %s readiness parity'
+'WAIT finite deadline fired'
+'WAIT finite final reply'
+'WAIT never parked both exact clients before deadline'
+'WAIT silence window never opened before arming deadline'
+'WATCH elapsed setup'
+'WATCH'
+'\n    '
+'__keyevent@0__:expired'
+'aclr:list'
+'aclr:zset'
+'aclreply-fence:%d'
+'act'
+'active setup'
+'all background writers acknowledged and stopped'
+'anchored'
+'atomic'
+'atomic_exec_order_holds'
+'atomic_fanout_cuts'
+'atomic_pending_entries'
+'atomic_predecessor_reads'
+'attempt %d: %s'
+'background SET did not acknowledge'
+'background writer never acknowledged progress'
+'before'
+'blocked'
+'blocking/revocation window never opened: '
+'builtins.print'
+'churn SET never reached execution'
+'churn batch was not acknowledged while cursor was open'
+'churn execution witness'
+'churn worker failed: %r'
+'churn%d'
+'churn:%06d'
+'churn:%d:'
+'controller anchored before the stable hold'
+'controller moved %s stable hold: %r\n  last_trigger=%s  band=%.6f  anchor_rate=%s\n  driver per-second rates: %s\n  per-second trace:\n    %s\n  DEBUG FLIPCTL at the move:\n    %s'
+'controller moved during'
+'controller reported a negative derived rate band'
+'during the pre-hold measurement window of the'
+'during the'
+'ex_threads'
+'expire:lazy'
+'expired key is absent'
+'expired_hash_fields'
+'expired_keys'
+'expiry deadline arm'
+'expiry invalidation'
+'expiry registration window never opened'
+'expiry seed'
+'expiry tracking arm'
+'fingerprint shift fired INSIDE its own band (distance %.6f <= band %.6f) -- %s'
+'fingerprint-shift'
+'flip_completed'
+'flipctl.info'
+'flipctl.stable_hold_attempt'
+'flipctl.time.monotonic'
+'flipctl.time.sleep'
+'flipctl_anchor_ex'
+'flipctl_anchor_io'
+'flipctl_anchor_rate'
+'flipctl_last_trigger'
+'flipctl_phase'
+'flipctl_rate_band'
+'flipctl_state'
+'flipctl_triggers'
+'ft:%d:%d'
+'ft:%d:%d:'
+'ft:%d:'
+'hash_field_expires'
+'held EXEC exposed private values'
+'held'
+'hello'
+'hold  '
+'hold active expiry'
+'io_threads'
+'last_shift_band'
+'last_shift_distance'
+'lazy access reaps key'
+'lazy event fired once'
+'lazy event not fired before access'
+'lazy expiry'
+'lazy seed'
+'lazy-expiry'
+'live TTL values did not survive migration'
+'live TTLs never spanned an observed owner move'
+'live hash-field window never opened'
+'live_ex'
+'live_io'
+'load driver failed: %s'
+'load/FLIP worker did not stop'
+'maneuvering'
+'mine:%d'
+'moved'
+'moving'
+'multi:queued'
+'multi:torn'
+'multi:torn:%d'
+'never became blocked'
+'never opened and completed'
+'no acknowledged load before FLIP deadline'
+'no invalidation before registering'
+'no live expiry setup witnessed within the arming budget'
+'noise%d'
+'notify_events_fired'
+'ops=%r errors=%r'
+'oracle WAIT 1 %s silence control'
+'oracle WAIT finite reply'
+'other:%d:%d'
+'parked push/timeout window never opened'
+'pipeorder: held DEL/EXEC window witnessed; exact replies intact'
+'po:held'
+'pre-hold window is not stationary: %s\n  per-second trace:\n    %s'
+'predecessor escaped hold'
+'prehold'
+'pt:blk'
+'pt:nokey'
+'push did not precede the one timeout reply: %r'
+'read_local_fallback_atomic_pending'
+'register while still alive'
+'registration visible'
+'replace'
+'reroll'
+'resetchannels'
+'resetkeys'
+'restore active expiry'
+'rk%d'
+'ryow:conflict:%s:%d'
+'same-key overwrite replies + unconflicted RYOW x64'
+'server clock never reached the armed expiry'
+'server expiry clock did not advance'
+'server expiry deadline never elapsed'
+'settled:%d'
+'solo'
+'split'
+'stable hold %s'
+'stable hold RE-ROLL %d (%.1fs budget left): %s'
+'stable hold RE-ROLL %d/%d: %s'
+'stable hold never opened and completed after bounded re-arms: '
+'stable hold: %ds on a measured-stationary load, no trigger or split movement (attempt %d of %d)'
+'stable hold: %ds on a measured-stationary load, no trigger or split movement (attempt %d)'
+'stable hold: %ds pre-hold window stationary (driver %s/s, driver anchor %.3f/s, controller anchor %.3f/s, band %.6f); assertion window open for %ds'
+'state'
+'stats'
+'still present before the deadline'
+'target WAIT 1 %s silence control'
+'target WAIT finite reply'
+'trigger'
+'trk:exp'
+'trk:exp:%d'
+'truncated RESP line'
+'truncated bulk'
+'unknown'
+'wake'
+'wall budget for re-rolls exhausted'
+'watch:elapsed'
+'writer/readers never reached the required progress before deadline'
+("__keyevent@0__:expired", "expire:lazy"), "lazy expiry")
+("during the" if hold_started is not None
+("hold  " if hold_started is not None else "prehold",
+(PRE_HOLD_SECONDS,
+(args.stable_seconds, attempt, STABLE_HOLD_ATTEMPTS), flush=True)
+(attempt, STABLE_HOLD_ATTEMPTS, payload), flush=True)
+(attempt, max(0, budget - time.monotonic()), payload), flush=True)
+(blocking.inc blocking_retire -> acl.inc acl_recheck_blocking), because the
+(distance, shift_band,
+(info_field("read_local_fallback_atomic_pending") or 0) > (before_pend or 0))
+(len(rates), PRE_HOLD_SECONDS + seconds, "\n    ".join(trace)))
+(len(rates), len(hold_rates), seconds, "\n    ".join(trace)))
+(row["flipctl_anchor_io"], row["flipctl_anchor_ex"]) != base_split
+(time.monotonic() - armed_at, moved), flush=True)
+(verdict, reason, ", ".join("%.0f" % value for value in hold_rates),
++@all
++OK
++OK\r\n
++QUEUED
++QUEUED\r\n
++none
++none\r\n
+----------------
+-> ("held", row) | ("reroll", reason) | ("moved", evidence).
+-> (\"held\", row) | (\"reroll\", reason) | (\"moved\", evidence).
+0.04
+127.0.0.1
+200
+250
+400
+6000
+:0\r\n
+:1\r\n
+:2\r\n
+A blocking command is rechecked against the live ACL when it retires
+ACL
+ACL recheck over a CODED reply: exactly one reply per blocking command.
+ACL recheck over a CODED reply: exactly one reply per blocking command.\n\nUsage: aclreply.py HOST PORT\n\nWHAT THIS COVERS\n----------------\nA blocking command is rechecked against the live ACL when it retires\n(blocking.inc blocking_retire -> acl.inc acl_recheck_blocking), because the\nuser's permissions can change while the client is parked.  When the recheck\ndenies, the reply the command already produced is DISCARDED and a NOPERM error\nis put in its place.  "Discarded" has to mean every representation of that\nreply, and reply codes added a second one.\n\n    BLPOP k 1        ->  times out  ->  "*-1\\r\\n"   (RESP2)\n                                        "_\\r\\n"     (RESP3)\n\nBoth are ReplyCode-carried (src/exec/op.h): the executor records a code and the\nconnection's owner formats the bytes at retire.  A discard written as\n\n    op.reply.clear();\n\nempties the byte buffer, which for a coded reply was already empty, and leaves\nreply_code_ standing.  Retire then emits the coded reply AND the NOPERM behind\nit -- two replies for one command, which shifts every later reply on that\nconnection by one.  The fix is Op::clear_reply(), which drops the bytes, the\ndirect length and the code together.\n\nVerified against a negative-control build (this tree with that one line reverted\nto op.reply.clear()): the two timeout rows below fail there with\n\n    b"*-1\\r\\n-NOPERM User u has no permissions to run the 'blpop' command\\r\\n"\n    b"_\\r\\n-NOPERM User u has no permissions to run the 'blpop' command\\r\\n"\n\nand every other row passes, so this test discriminates exactly the defect.\n\nNote this shape does NOT exist before reply codes: the blocking dispatch branch\nin io_loop.h returns before the direct-reply arming, so a blocking op always has\ndirect_len == 0 and the byte-only discard was sufficient.  The coded reply is\nthe first representation op.reply.clear() could miss.\n\nTHE ORACLE IS THE BYTES.  Each row reads the victim's socket through an ECHO fence and\ncompares the whole stream to the single expected error frame, so a second reply\nfails as trailing garbage rather than being averaged away.\n
+ACL recheck over a CODED reply: exactly one reply per blocking command.\n\nUsage: aclreply.py HOST PORT\n\nWHAT THIS COVERS\n----------------\nA blocking command is rechecked against the live ACL when it retires\n(blocking.inc blocking_retire -> acl.inc acl_recheck_blocking), because the\nuser's permissions can change while the client is parked.  When the recheck\ndenies, the reply the command already produced is DISCARDED and a NOPERM error\nis put in its place.  "Discarded" has to mean every representation of that\nreply, and reply codes added a second one.\n\n    BLPOP k 1        ->  times out  ->  "*-1\\r\\n"   (RESP2)\n                                        "_\\r\\n"     (RESP3)\n\nBoth are ReplyCode-carried (src/exec/op.h): the executor records a code and the\nconnection's owner formats the bytes at retire.  A discard written as\n\n    op.reply.clear();\n\nempties the byte buffer, which for a coded reply was already empty, and leaves\nreply_code_ standing.  Retire then emits the coded reply AND the NOPERM behind\nit -- two replies for one command, which shifts every later reply on that\nconnection by one.  The fix is Op::clear_reply(), which drops the bytes, the\ndirect length and the code together.\n\nVerified against a negative-control build (this tree with that one line reverted\nto op.reply.clear()): the two timeout rows below fail there with\n\n    b"*-1\\r\\n-NOPERM User u has no permissions to run the 'blpop' command\\r\\n"\n    b"_\\r\\n-NOPERM User u has no permissions to run the 'blpop' command\\r\\n"\n\nand every other row passes, so this test discriminates exactly the defect.\n\nNote this shape does NOT exist before reply codes: the blocking dispatch branch\nin io_loop.h returns before the direct-reply arming, so a blocking op always has\ndirect_len == 0 and the byte-only discard was sufficient.  The coded reply is\nthe first representation op.reply.clear() could miss.\n\nTHE ORACLE IS THE BYTES.  Each row reads the victim's socket to quiescence and\ncompares the whole stream to the single expected error frame, so a second reply\nfails as trailing garbage rather than being averaged away.\n
+ACL recheck over a CODED reply: exactly one reply per blocking command.\n\nUsage: aclreply.py HOST PORT\n\nWHAT THIS COVERS\n----------------\nA blocking command is rechecked against the live ACL when it retires\n(blocking.inc blocking_retire -> acl.inc acl_recheck_blocking), because the\nuser's permissions can change while the client is parked.  When the recheck\ndenies, the reply the command already produced is DISCARDED and a NOPERM error\nis put in its place.  \"Discarded\" has to mean every representation of that\nreply, and reply codes added a second one.\n\n    BLPOP k 1        ->  times out  ->  \"*-1\\r\\n\"   (RESP2)\n                                        \"_\\r\\n\"     (RESP3)\n\nBoth are ReplyCode-carried (src/exec/op.h): the executor records a code and the\nconnection's owner formats the bytes at retire.  A discard written as\n\n    op.reply.clear();\n\nempties the byte buffer, which for a coded reply was already empty, and leaves\nreply_code_ standing.  Retire then emits the coded reply AND the NOPERM behind\nit -- two replies for one command, which shifts every later reply on that\nconnection by one.  The fix is Op::clear_reply(), which drops the bytes, the\ndirect length and the code together.\n\nVerified against a negative-control build (this tree with that one line reverted\nto op.reply.clear()): the two timeout rows below fail there with\n\n    b\"*-1\\r\\n-NOPERM User u has no permissions to run the 'blpop' command\\r\\n\"\n    b\"_\\r\\n-NOPERM User u has no permissions to run the 'blpop' command\\r\\n\"\n\nand every other row passes, so this test discriminates exactly the defect.\n\nNote this shape does NOT exist before reply codes: the blocking dispatch branch\nin io_loop.h returns before the direct-reply arming, so a blocking op always has\ndirect_len == 0 and the byte-only discard was sufficient.  The coded reply is\nthe first representation op.reply.clear() could miss.\n\nTHE ORACLE IS THE BYTES.  Each row reads the victim's socket through an ECHO fence and\ncompares the whole stream to the single expected error frame, so a second reply\nfails as trailing garbage rather than being averaged away.\n
+ACL recheck over a CODED reply: exactly one reply per blocking command.\n\nUsage: aclreply.py HOST PORT\n\nWHAT THIS COVERS\n----------------\nA blocking command is rechecked against the live ACL when it retires\n(blocking.inc blocking_retire -> acl.inc acl_recheck_blocking), because the\nuser's permissions can change while the client is parked.  When the recheck\ndenies, the reply the command already produced is DISCARDED and a NOPERM error\nis put in its place.  \"Discarded\" has to mean every representation of that\nreply, and reply codes added a second one.\n\n    BLPOP k 1        ->  times out  ->  \"*-1\\r\\n\"   (RESP2)\n                                        \"_\\r\\n\"     (RESP3)\n\nBoth are ReplyCode-carried (src/exec/op.h): the executor records a code and the\nconnection's owner formats the bytes at retire.  A discard written as\n\n    op.reply.clear();\n\nempties the byte buffer, which for a coded reply was already empty, and leaves\nreply_code_ standing.  Retire then emits the coded reply AND the NOPERM behind\nit -- two replies for one command, which shifts every later reply on that\nconnection by one.  The fix is Op::clear_reply(), which drops the bytes, the\ndirect length and the code together.\n\nVerified against a negative-control build (this tree with that one line reverted\nto op.reply.clear()): the two timeout rows below fail there with\n\n    b\"*-1\\r\\n-NOPERM User u has no permissions to run the 'blpop' command\\r\\n\"\n    b\"_\\r\\n-NOPERM User u has no permissions to run the 'blpop' command\\r\\n\"\n\nand every other row passes, so this test discriminates exactly the defect.\n\nNote this shape does NOT exist before reply codes: the blocking dispatch branch\nin io_loop.h returns before the direct-reply arming, so a blocking op always has\ndirect_len == 0 and the byte-only discard was sufficient.  The coded reply is\nthe first representation op.reply.clear() could miss.\n\nTHE ORACLE IS THE BYTES.  Each row reads the victim's socket to quiescence and\ncompares the whole stream to the single expected error frame, so a second reply\nfails as trailing garbage rather than being averaged away.\n
+APPEND
+ARMED_HITS=$(redis-cli -h 127.0.0.1 -p "$PORT" INFO stats 2>/dev/null | tr -d '\r' \
+ARMED_HITS=0
+ARMED_SAMPLE_FAILED=1
+ATOMIC-COMMIT-HOLD
+AUTH
+BLMPOP
+BLPOP
+Both are ReplyCode-carried (src/exec/op.h): the executor records a code and the
+CLIENT
+CONFIG
+DEBUG
+DEBUG FLIPCTL unavailable: %r
+DEL
+DEL escaped commit hold
+DELUSER
+DISCARD
+Drive the live observer with published state, including deliberately broken moves.
+ECHO
+EXEC
+EXEC completed before release
+EXEC escaped commit hold
+EXEC never installed held records
+EXEC never met the held DEL
+EXEC never met the held predecessor
+FAIL: FLIP %d %d refused on a lightly loaded server
+FAIL: flip to %d:%d never landed
+FIELDS
+FLIP
+FLIPCTL
+GET
+GET queued before expiry
+HELLO
+HLEN
+HPEXPIRE
+HPEXPIRE arm failed
+HPEXPIRE armed
+HPEXPIRETIME
+HSET
+INVALID
+INVALID TTL/FLIP cohort: elapsed=%.3fs moved=%r
+INVALID TTL/FLIP cohort: live read crossed the deadline
+INVALID: %s -- %s
+INVALID: %s; trace=%r
+INVALID: controller never quiesced before deadline: %r
+INVALID: injected driver excursion
+INVALID: stable hold never opened and completed before deadline: 
+INVALID: the assertion window never opened (only %d samples in %ds)
+INVALID: the assertion window never opened (only %d samples in %ds)\n  per-second trace:\n    %s
+INVALID: the assertion window never opened (pre/hold samples=%d/%d, required hold=%ds)
+INVALID: the assertion window never opened (pre/hold samples=%d/%d, required hold=%ds)\n  per-second trace:\n    %s
+Keep a force-atomic EXEC undecided until an actual MGET reads its preimages.
+Keep the scan cursor open until this other connection acknowledges its batch.
+LIST
+MGET
+MGET did not read the held predecessors
+MSET
+MULTI
+MULTI before queued expiry
+Note this shape does NOT exist before reply codes: the blocking dispatch branch
+PEXPIRE
+PEXPIRETIME
+PING
+PUBLISH
+PXAT
+Preserve one complete RESP frame; buffered reads may span any TCP split.
+QUEUED
+RYOW under 4-writer contention x2000
+RYOW under 4-writer pressure x2000
+Re-arm invalid stimulus only. A valid movement is never retried.
+Re-arm only a missed live setup, never an EXEC result or a wrong reply.
+Read one whole push, preserving its exact bytes across TCP fragments.
+Read until the socket has been silent for a beat; returns everything seen.
+Recreate only a clock-invalid setup; never retry an in-window bad reply.
+SCAN
+SERVER
+SET
+SET-ACTIVE-EXPIRE
+SETUSER
+SHARDS
+STABLE_HOLD_ATTEMPTS = 3
+SUBSCRIBE
+SUBSCRIBE never acknowledged
+THE ORACLE IS THE BYTES.  Each row reads the victim's socket through an ECHO fence and
+THE ORACLE IS THE BYTES.  Each row reads the victim's socket to quiescence and
+TIME
+TRACKING
+TTL seed failed
+TYPE
+UNLINK
+UNWATCH
+Usage: aclreply.py HOST PORT
+Verified against a negative-control build (this tree with that one line reverted
+WAIT 1 %s readiness parity
+WAIT finite deadline fired
+WAIT finite final reply
+WAIT never parked both exact clients before deadline
+WAIT silence window never opened before arming deadline
+WATCH
+WATCH elapsed setup
+WHAT THIS COVERS
+[ "$hits" -le "$ARMED_HITS" ] || ARMED_HITS=$hits
+["APPEND", a, "v"], ["EXEC"]]
+[("MULTI",), ("GET", "multi:queued")], [b"OK", b"QUEUED"], queued=True)
+[b"+none\r\n", b":1\r\n"]], replies
+\n    
+_, expiry, _ = arm_before_deadline(
+_, registered, size, before, expiry = arm_live_fields(c, "solo", ("f", "v"), ("f",), 200)
+__keyevent@0__:expired
+a, x, y = first[:3]
+ack = b.command("SUBSCRIBE", "pt:blk", wait=0.6)
+acknowledged.clear()
+acknowledged.set()
+aclr:list
+aclr:zset
+aclreply-fence:%d
+act
+active setup
+admin = Conn(HOST, PORT, timeout=10)
+admin = connect()
+admin.cmd("DEL", "aclr:list", "aclr:zset")
+admin.sendall(encode("ACL", "DELUSER", "u"))
+admin.sendall(encode("ACL", "SETUSER", "u", "on", ">p",
+admin.sendall(encode("ACL", "SETUSER", "u", "on", ">p", "~*", "&*", "+@all"))
+admin.sendall(encode("DEL", "aclr:list", "aclr:zset"))
+admin.sendall(encode(*revoke_argv))  # revoke while parked
+admin.sendall(encode(*wake_argv))
+after_arm_ms = int(clock[0]) * 1000 + int(clock[1]) // 1000
+all background writers acknowledged and stopped
+all(noise_ops) and not noise_errors and not any(t.is_alive() for t in threads),
+anchored
+anchored_row = None
+anchored_row = info(control)
+anchored_row = wait_for(
+and every other row passes, so this test discriminates exactly the defect.
+arm_budget = time.monotonic() + 10
+armed = False
+armed = True
+armed = [False, False]
+armed, deadlines = captured
+armed, registered, size, before, expiry = arm_live_fields(
+armed[side] = any(int(row[b"id"]) == ids[side] and
+armed_at = time.monotonic()
+assert admin.cmd("ACL", "DELUSER", "u") == 1
+assert admin.cmd("ACL", "SETUSER", "u", "on", ">p", "resetkeys", "~*",
+assert admin.cmd("ACL", "SETUSER", "u", "on", ">p", "~*", "&*", "+@all") == b"OK"
+assert admin.cmd("CONFIG", "GET", "atomic") == [b"atomic", b"1"]
+assert admin.cmd("MGET", *keys) == [b"0"] * len(keys), "held EXEC exposed private values"
+assert admin.cmd("MGET", *keys) == [b"held"] * len(keys)
+assert admin.cmd("MSET", k, "v", a, "42", m, "hello") == b"OK"
+assert admin.cmd("SET", key, "0") == b"OK"
+assert admin.cmd(*revoke_argv) == b"OK"
+assert admin.command("DEBUG", "ATOMIC-COMMIT-HOLD", "0") == b"OK"
+assert admin.command("DEBUG", "ATOMIC-COMMIT-HOLD", "1") == b"OK"
+assert all(armed), "WAIT never parked both exact clients before deadline"
+assert all(isinstance(t, int) and t > 0 for t in deadlines), deadlines
+assert armed == [1] * len(fields), ("HPEXPIRE arm failed", armed)
+assert body[-2:] == b"\r\n", body
+assert c.cmd("DEBUG", "SET-ACTIVE-EXPIRE", "0") == "OK"
+assert c.cmd("DEBUG", "SET-ACTIVE-EXPIRE", "1") == "OK"
+assert c.cmd("HPEXPIRE", key, str(ttl_ms), "FIELDS", str(len(fields)), *fields) == "QUEUED"
+assert c.cmd("HPEXPIRETIME", key, "FIELDS", str(len(fields)), *fields) == "QUEUED"
+assert c.cmd("HSET", key, *contents) == len(contents) // 2
+assert c.cmd("MULTI") == "OK"
+assert conn.cmd("DISCARD" if queued else "UNWATCH") == b"OK"
+assert conn.cmd("SET", key, "v", "PXAT", str(earliest)) == b"OK"
+assert conn.command("SET", key, "before") == b"OK"
+assert expiry == earliest, expiry
+assert header.startswith(b"$") and header.endswith(b"\r\n"), header
+assert int(_lib.info(admin, "stats")["atomic_pending_entries"]) > 0
+assert int(stats(admin)["atomic_pending_entries"]) > 0
+assert isinstance(captured, list) and len(captured) == 2, captured
+assert isinstance(listing, bytes), listing
+assert isinstance(reply, int) and reply > 0, reply
+assert kind in (b"+", b"-", b":", b"_", b"#"), line
+assert len(body) == size + 2 and body[-2:] == b"\r\n", "truncated bulk"
+assert len(body) == size and wire.read(2) == b"\r\n", "truncated INFO bulk reply"
+assert len(client_id_frame) == 1 and client_id_frame[0][0] == b":", client_id_frame
+assert len(deadlines) == len(fields), deadlines
+assert len(owners_before) == len(owners_after) == NKEYS
+assert len(published) == 1 and published[0][0] == b":" and int(published[0][1]) > 0
+assert line and line.endswith(b"\r\n"), ("truncated RESP line", line)
+assert line.endswith(b"\r\n"), (prefix, line)
+assert not select.select([conn.sock], [], [], 0)[0], "predecessor escaped hold"
+assert not select.select([s], [], [], 0)[0], "DEL escaped commit hold"
+assert not select.select([writer.sock], [], [], 0)[0], "EXEC completed before release"
+assert not select.select([writer.sock], [], [], 0)[0], "EXEC escaped commit hold"
+assert prefix in (b"+", b"-", b":", b"_"), prefix
+assert raw_id.startswith(b":"), raw_id
+assert rd(wf) == b"OK", "TTL seed failed"
+assert read_reply(f) == b"OK"
+assert read_reply(hf) == b"OK", "background SET did not acknowledge"
+assert ready.wait(5), "background writer never acknowledged progress"
+assert registered >= 1 and size == 1
+assert replies == [b":2\r\n", b"+OK\r\n", b"+QUEUED\r\n", b"+QUEUED\r\n",
+assert replies == expected, (commands, replies)
+assert seen >= len(keys), ("MGET did not read the held predecessors", seen)
+assert size >= 0, header
+assert time.monotonic() < arm_budget, "expiry registration window never opened"
+assert time.monotonic() < budget, "blocking/revocation window never opened: " + name
+assert time.monotonic() < budget, "live TTLs never spanned an observed owner move"
+assert time.monotonic() < budget, "live hash-field window never opened"
+assert time.monotonic() < budget, "parked push/timeout window never opened"
+assert time.monotonic() < deadline, "EXEC never installed held records"
+assert time.monotonic() < deadline, "EXEC never met the held DEL"
+assert time.monotonic() < deadline, "EXEC never met the held predecessor"
+assert time.monotonic() < deadline, "churn SET never reached execution"
+assert time.monotonic() < deadline, "server expiry clock did not advance"
+assert time.monotonic() < deadline, "server expiry deadline never elapsed"
+assert value is None, (key, value)
+assert values == [b"v"] * NKEYS, "live TTL values did not survive migration"
+assert verdict == "reroll", (verdict, payload)
+assert victim.cmd("AUTH", "u", "p") == b"OK"
+assert writer.cmd("MULTI") == b"OK"
+assert writer.cmd("SET", key, "held") == b"QUEUED"
+assert writer.read() == [b"OK"] * len(keys)
+atomic
+atomic_exec_order_holds
+atomic_fanout_cuts
+atomic_pending_entries
+atomic_predecessor_reads
+attempt %d: %s
+attempt += 1
+attempt = 0
+b = Conn(timeout=12)
+b = None
+b"b" in row.get(b"flags", b"") for row in rows)
+b'$%d\r\n%s\r\n'
+b'+OK\r\n'
+b'+QUEUED\r\n'
+b'+none\r\n'
+b'0'
+b':0\r\n'
+b':1\r\n'
+b':2\r\n'
+b'QUEUED'
+b'atomic'
+b'false'
+b'flags'
+b'held'
+b'subscribe'
+b'trk:exp'
+b.close()
+b.command("HELLO", "3", wait=0.5)
+b.send("BLPOP", "pt:nokey", "1")
+b.send(*("BLPOP", "pt:nokey", "1"))
+background SET did not acknowledge
+background writer never acknowledged progress
+bad(tag, "SUBSCRIBE never acknowledged")
+bad(tag, "push did not precede the one timeout reply: %r" % (frames,))
+band = float(anchored_row["flipctl_rate_band"])
+base_split = (anchored_row["flipctl_anchor_io"], anchored_row["flipctl_anchor_ex"])
+base_triggers = int(anchored_row["flipctl_triggers"])
+batches += 1
+batches = 0
+batches, calls = walk_scan(walker, ["SCAN"], 20)
+batches, calls = walk_scan(walker, ["SCAN"], 20,
+batches, calls = walk_scan(walker, [scanner, key], 20)
+batches, calls = walk_scan(walker, [scanner, key], 20,
+before
+before = holds(admin)
+before = info_counter(c, "expired_hash_fields")
+before = info_counter(conn, "expired_keys")
+before = info_counter(observer, "expired_keys")
+before = info_stats()["notify_events_fired"]
+before = int(_lib.info(admin, "stats")["atomic_exec_order_holds"])
+before = int(_lib.info(admin, "stats")["atomic_predecessor_reads"])
+before, expiry, replies = arm_before_deadline(
+between=lambda _: churn_step(request, acknowledged, errors))
+blocked
+blocking/revocation window never opened: 
+body = file.read(size + 2)
+body = self.exact(size + 2)
+body = wire.read(size)
+break
+buckets = _lib.owner_buckets(geometry, "multi:torn", per_owner=4)
+budget = time.monotonic() + 10
+budget = time.monotonic() + 30
+budget = time.monotonic() + 4 * args.stable_seconds + 60
+budget = time.monotonic() + 4 * seconds + 60
+budget = time.monotonic() + 5
+buf += chunk
+buf = b""
+builtins.print
+burst = [["DEL", a, x, y, z, m], ["MULTI"], ["TYPE", m],
+c, "k", ("a", "1", "b", "2", "c", "3"), ("a", "b"), 250)
+c.cmd("DEL", "solo")
+c.cmd("DEL", key)
+c.cmd("HPEXPIRE", "solo", "200", "FIELDS", "1", "f")
+c.cmd("HSET", "k", "a", "1", "b", "2", "c", "3")
+c.cmd("HSET", "solo", "f", "v")
+captured = c.cmd("EXEC")
+check("GET queued before expiry", conn.cmd("GET", "multi:queued"), b"QUEUED")
+check("GET queued before expiry", replies[1], b"QUEUED")
+check("HPEXPIRE armed", armed, [1, 1])
+check("HPEXPIRE armed", c.cmd("HPEXPIRE", "k", "250", "FIELDS", "2", "a", "b"), [1, 1])
+check("MULTI before queued expiry", conn.cmd("MULTI"), b"OK")
+check("MULTI before queued expiry", replies[0], b"OK")
+check("WATCH elapsed setup", conn.cmd("WATCH", "watch:elapsed"), b"OK")
+check("WATCH elapsed setup", replies[0], b"OK")
+check("active setup", c.cmd("HPEXPIRE", "act", "200", "FIELDS", "1", "a"), [1])
+check("still present before the deadline", c.cmd("HLEN", "k"), 3)
+check("still present before the deadline", size, 3)
+check(name, got, expect)
+check_true("registration visible", info_counter(c, "hash_field_expires") >= 1,
+check_true("registration visible", registered >= 1,
+chunk = sock.recv(65536)
+churn SET never reached execution
+churn batch was not acknowledged while cursor was open
+churn execution witness
+churn worker failed: %r
+churn%d
+churn:%06d
+churn:%d:
+churn_prefix = "churn:%d:" % time.time_ns()
+class StableHoldSchedule(unittest.TestCase):
+client_id = int(client_id_frame[0][1])
+client_id = victim.cmd("CLIENT", "ID")
+client_id_frame = parse_all(b.command("CLIENT", "ID"))
+clock = driver.command("TIME")
+commands = driver_commands()
+compare("WAIT finite final reply", read_reply(twf), read_reply(owf))
+compare("WAIT finite final reply", target, oracle)
+compares the whole stream to the single expected error frame, so a second reply
+config("")
+config("Ex")
+conflict_epoch = os.urandom(8).hex()
+conflicts_ok &= got in [mine] + noise
+conflicts_ok &= read_reply(f) == b"OK"
+conflicts_ok &= read_reply(f) == settled
+conflicts_ok &= read_reply(file) == b"OK"
+conflicts_ok = True
+conn, other, "multi:queued", 70,
+conn, other, "watch:elapsed", 70, [("WATCH", "watch:elapsed")], [b"OK"])
+conn, other, keys[2], 80, [("WATCH", *keys)], [b"OK"])
+conn.cmd("DEL", key)
+conn.cmd("PEXPIRE", keys[2], "80")
+conn.cmd("SET", "multi:queued", "v", "PX", "70")
+conn.cmd("SET", "watch:elapsed", "v", "PX", "70")
+conn.cmd("WATCH", *keys)
+connection by one.  The fix is Op::clear_reply(), which drops the bytes, the
+connection's owner formats the bytes at retire.  A discard written as
+continue
+control, "controller anchored before the stable hold",
+controller anchored before the stable hold
+controller moved %s stable hold: %r
+controller moved %s stable hold: %r\n  last_trigger=%s  band=%.6f  anchor_rate=%s\n  driver per-second rates: %s\n  per-second trace:\n    %s\n  DEBUG FLIPCTL at the move:\n    %s
+controller moved during
+controller reported a negative derived rate band
+controller_anchor = float(anchored_row["flipctl_anchor_rate"])
+controller_anchor, band, seconds),
+controller_anchor=controller_anchor)
+count = max(0, int(line[1:-2])) * (2 if kind == b"%" else 1)
+d = body.decode(errors="replace")
+d = s.recv(1 << 20).decode(errors="replace")
+deadline = now + seconds
+deadline = previous_time + PRE_HOLD_SECONDS + seconds
+deadline = time.monotonic() + 10
+deadline = time.monotonic() + 5
+deadline = time.monotonic() + SECONDS
+deadline = time.monotonic() + max(10, seconds)
+deadline = time.time() + 0.3
+deadline = time.time() + 10
+deadline = time.time() + quiet
+def arm_before_deadline(conn, observer, key, ttl_ms, commands, expected, queued=False):
+def arm_live_fields(c, key, contents, fields, ttl_ms):
+def attempt(*args):
+def churn_step(request, acknowledged, errors):
+def commands(self):
+def connect(resp3=False):
+def drain(sock, quiet=1.2):
+def hammer():
+def hammer(wid):
+def held_exec_cut(keys):
+def info(self, control, section="FLIPCTL"):
+def raw_reply(file):
+def raw_reply(self):
+def round_trip(keys, witness, group, second_conn=False, probes=0):
+def round_trip(keys, witness, group, second_conn=False, probes=0, admin=None, force=False):
+def server_ms(c):
+def server_ms(conn):
+def setUp(self):
+def sleep(self, seconds):
+def stable_hold(control, seconds, driver_commands, errors):
+def stable_hold_attempt(control, seconds, budget, driver_commands, errors):
+def stable_hold_attempt(seconds):
+def test_budget_cannot_shorten_the_hold(self):
+def test_deliberate_movement_during_valid_hold_fails_without_retry(self):
+def test_invalid_budget_exhaustion_never_passes(self):
+def test_more_than_three_invalid_arms_can_reach_a_full_hold(self):
+def test_never_quiescent_cannot_pass(self):
+def test_settling_does_not_consume_the_hold_window(self):
+def wait_deadline(observer, expiry):
+def wait_expired(c, expiry):
+denies, the reply the command already produced is DISCARDED and a NOPERM error
+direct length and the code together.
+direct_len == 0 and the byte-only discard was sufficient.  The coded reply is
+distance / shift_band if shift_band > 0 else 0.0, band,
+distance = float(fields.get("last_shift_distance", "0") or 0)
+drain(admin, 0.5)
+drain(admin, 0.6)
+drain(s, 0.6)
+drain(victim, 0.5)
+driver.command("GET", "expire:lazy")
+driver.command("SET", "expire:lazy", "v", "PX", "20")
+driver_anchor = None
+driver_anchor = sum(rates) / len(rates)
+dump = "DEBUG FLIPCTL unavailable: %r" % (error,)
+dump = control.command("DEBUG", "FLIPCTL").decode(errors="replace")
+during the
+during the pre-hold measurement window of the
+earliest = server_ms(observer) + ttl_ms
+earliest_expiry_ms = int(stamp[0]) * 1000 + int(stamp[1]) // 1000 + TTL_MS
+elif all(now > then for now, then in zip(progress, post_flip)):
+elif kind in (b"*", b"%", b">"):
+elif prefix in (b"*", b">"):
+elif self.move_kind == "state":
+else "during the pre-hold measurement window of the", row,
+else:
+empties the byte buffer, which for a coded reply was already empty, and leaves
+enough = ((info_field("atomic_fanout_cuts") or 0) > (before_cuts or 0) or
+enough = reads > 100 and commits > 10
+errors.append("writer/readers never reached the required progress before deadline")
+evidence = (
+evidence = ("%s: %s\n  driver per-second rates: %s\n  per-second trace:\n    %s" %
+evidence))
+ex_threads
+except AssertionError as error:
+except BlockingIOError:
+except Exception as error:
+except Exception: pass
+expect(admin.command("DEBUG", "SET-ACTIVE-EXPIRE", "0"), b"OK", "hold active expiry")
+expect(admin.command("DEBUG", "SET-ACTIVE-EXPIRE", "1"), b"OK", "restore active expiry")
+expect(driver.command("GET", "expire:lazy"), None, "lazy access reaps key")
+expect(driver.command("SET", "expire:lazy", "v", "PX", "20"), b"OK", "lazy seed")
+expect(frame_event(receive(1, 5)[0]),
+expect(info_stats()["notify_events_fired"], before + 1, "lazy event fired once")
+expect(info_stats()["notify_events_fired"], before, "lazy event not fired before access")
+expect(t.command("CLIENT", "TRACKING", "on"), b"OK", "expiry tracking arm")
+expect(t.command("GET", "trk:exp"), b"1", "register while still alive")
+expect(t.drain(0.3), b"", "no invalidation before registering")
+expect(t.drain(2.0), push(b"trk:exp"), "expiry invalidation")
+expect(t.raw_reply(), push(expiry_key.encode()), "expiry invalidation")
+expect(value, b"1", "register while still alive")
+expect(writer.command("GET", expiry_key), None, "expired key is absent")
+expect(writer.command("PEXPIRE", expiry_key, "400"), 1, "expiry deadline arm")
+expect(writer.command("SET", expiry_key, "1"), b"OK", "expiry seed")
+expire:lazy
+expired key is absent
+expired_hash_fields
+expired_keys
+expiry = conn.cmd("PEXPIRETIME", key)
+expiry deadline arm
+expiry invalidation
+expiry registration window never opened
+expiry seed
+expiry tracking arm
+expiry_key = "trk:exp:%d" % time.time_ns()
+fail("load/FLIP worker did not stop")
+fail("no acknowledged load before FLIP deadline")
+fail("no completed FLIP bracketed by every worker's verified progress before deadline")
+failed = bool(errors)
+fails as trailing garbage rather than being averaged away.
+fields = parse_debug_dump(dump)
+files = [peer.makefile("rb") for peer in peers]
+finally:
+fingerprint shift fired INSIDE its own band (distance %.6f <= band %.6f) -- %s
+fingerprint-shift
+first, second = [group for group in owners.values() if len(group) >= 3][:2]
+flags
+flip_completed
+flipctl.info
+flipctl.stable_hold_attempt
+flipctl.time.monotonic
+flipctl.time.sleep
+flipctl_anchor_ex
+flipctl_anchor_io
+flipctl_anchor_rate
+flipctl_last_trigger
+flipctl_phase
+flipctl_rate_band
+flipctl_rate_band="0.04", flipctl_anchor_rate="6000")
+flipctl_state
+flipctl_triggers
+flipctl_triggers="1", flipctl_anchor_io="6", flipctl_anchor_ex="2",
+flush=True)
+fn(c)
+for _ in range(40 if churn else 0):
+for _ in range(ROUNDS):
+for attempt in range(1, STABLE_HOLD_ATTEMPTS + 1):
+for file in files:
+for file in files: file.close()
+for index in range(ROUNDS):
+for k in keys:
+for key in keys:
+for mock in self.patches:
+for peer in peers: peer.close()
+for peer, value in zip(peers, noise):
+for ready in noise_ready:
+for round_id in range(64):
+for self.move_kind in ("trigger", "state", "split"):
+for side, (sock, file) in enumerate(((ts, tf), (os_, of))):
+for sock, file in ((tw, twf), (ow, owf)):
+force=(index == 0 and seen is not None and atomic_enabled(admin)))
+frame += b"".join(self.raw_reply() for _ in range(max(0, int(line[:-2]))))
+frame += body
+frame = prefix + line
+frame = raw_reply(victim.file)
+from _client_wait import wait_client_state
+from _lib import Conn
+from contextlib import closing
+from flipctl import (PRE_HOLD_SECONDS, classify_stable_hold, rate_rule_fires,
+from flipctl import PRE_HOLD_SECONDS, classify_stable_hold, rate_rule_fires
+from unittest.mock import patch
+ft:%d:
+ft:%d:%d
+ft:%d:%d:
+full_groups = [group for group in buckets.values() if len(group) >= 4]
+got += frame
+got = b""
+got = drain(victim, 3.0)
+got = read_reply(f)
+h = hf = None
+h.close()
+h.sendall(cmd("SET", "rk%d" % (i % K), "noise%d" % i))
+h.sendall(cmd("SET", "rk%d" % (i % K), "noise%d" % i)); read_reply(hf)
+hash_field_expires
+header = wire.readline()
+held
+held EXEC exposed private values
+held_exec_cut(keys)
+held_row = None
+held_row = payload
+held_row = stable_hold(control, args.stable_seconds, driver_commands, errors)
+hello
+hits=$(awk -F: '/^read_local_keyspace_hits:|^read_local_mget_local_hits:/{
+hold  
+hold active expiry
+hold_rates = []
+hold_rates, driver_anchor, band, moved,
+hold_rates, driver_anchor, band, moved=False, controller_anchor=controller_anchor)
+hold_rates, driver_anchor, band, moved=True,
+hold_rates.append(rate)
+hold_started = None
+hold_started = now
+ids = []
+ids.append(int(raw_id[1:-2]))
+if ! [[ "$hits" =~ ^[0-9]+$ ]]; then
+if ($2 !~ /^[0-9]+$/) invalid=1; n++; s+=$2
+if (as_int(rep["live_io"]) == tio and as_int(rep["live_ex"]) == tex and
+if (timeout_s and time.monotonic() - armed_at >= timeout_s and
+if all(armed) or (timeout != "0" and time.monotonic() - started >= .2):
+if all(progress):
+if anchored_row.get("flipctl_state") == "anchored":
+if any(t.is_alive() for t in threads):
+if armed:
+if b is not None:
+if b"=" in part) for line in listing.splitlines()]
+if b"subscribe" not in ack:
+if band < 0:
+if between and cursor != b"0":
+if between:
+if churn and batches < 40:
+if enough or failed:
+if enough:
+if errors:
+if failed:
+if force:
+if frame == marker_frame:
+if group[0] in ("DEL", "UNLINK"):
+if h is not None: h.close()
+if held_row is None:
+if hf is not None: hf.close()
+if hold_started is None and len(rates) >= PRE_HOLD_SECONDS:
+if hold_started is None or previous_time - hold_started < seconds:
+if hold_started is None:
+if hold_started is not None and now - hold_started >= seconds:
+if hold_started is not None:
+if int(published["flip_completed"]) > int(before["flip_completed"]):
+if int(stamp[0]) * 1000 + int(stamp[1]) // 1000 >= earliest_expiry_ms:
+if key in keys:
+if key.startswith("ft:%d:" % rnd):
+if kind == b"$":
+if len(frames) != 2 or frames[0][0] != b">":
+if moved:
+if n % 5000 == 0:
+if name == "lazy-expiry":
+if not acknowledged.wait(30):
+if not chunk:
+if not load_ready.wait(SECONDS):
+if not request.wait(.1):
+if not unstable:
+if now_ms >= after_arm_ms + 20:
+if post_flip is None:
+if prefix == b"$":
+if rd(wf) != b"OK":
+if request.wait(.1):
+if resp3:
+if self.move_kind == "trigger":
+if self.now <= 4:
+if self.now >= self.move_at:
+if server_ms(c) >= min(deadlines):
+if server_ms(observer) < earliest:
+if shift_band > 0 and distance <= shift_band:
+if size >= 0:
+if stop.is_set():
+if time.monotonic() - armed_at < .4:
+if time.monotonic() - armed_at < 1:
+if time.monotonic() - armed_at >= 1 and "never became blocked" in str(error):
+if time.monotonic() - armed_at >= TTL_MS / 1000 or not moved:
+if time.monotonic() > budget:
+if time.monotonic() >= deadline:
+if timeout != "0" and time.monotonic() - started >= .2:
+if timeout != "0":
+if timeout_s and time.monotonic() - armed_at >= timeout_s:
+if tio == io:
+if trigger == "fingerprint-shift":
+if unstable:
+if value == b"x" * 100:
+if verdict == "INVALID":
+if verdict == "held":
+if verdict == "moved":
+if wake_argv:
+if x is not None: x.close()
+import _lib
+import select
+import socket, ssl, sys
+import socket, ssl, sys, time
+import socket, sys
+import socket, sys, time, select
+import time
+in io_loop.h returns before the direct-reply arming, so a blocking op always has
+info=$(redis-cli -h 127.0.0.1 -p "$PORT" INFO stats 2>/dev/null | tr -d '\r')
+int(row["flipctl_triggers"]) != base_triggers or \
+io, ex = as_int(rep["live_io"]), as_int(rep["live_ex"])
+io_threads
+is put in its place.  "Discarded" has to mean every representation of that
+it -- two replies for one command, which shifts every later reply on that
+key = "ryow:conflict:%s:%d" % (conflict_epoch, round_id)
+key = churn_prefix + str(i)
+keys = ["ft:%d:%d" % (rnd, i) for i in range(NKEYS)]
+keys = ["multi:torn:%d" % i for i in range(8)]
+keys = [key for group in full_groups[:2] for key in group[:4]]
+keys = [prefix + str(i) for i in range(NKEYS)]
+keys, keys[0], group, second_conn, probes)
+keys, keys[0], group, second_conn, probes, admin,
+kind = line[:1]
+lambda row: row.get("flipctl_state") == "anchored", 60)
+last_shift_band
+last_shift_distance
+lazy access reaps key
+lazy event fired once
+lazy event not fired before access
+lazy expiry
+lazy seed
+lazy-expiry
+line += b"".join(raw_reply(file) for _ in range(count))
+line += body
+line = file.readline()
+line = self.file.readline()
+listing = parse_reply(read_reply(file))
+live = info(control, "SERVER")
+live TTL values did not survive migration
+live TTLs never spanned an observed owner move
+live hash-field window never opened
+live.get("io_threads"), live.get("ex_threads"),
+live_ex
+live_io
+load driver failed: %s
+load/FLIP worker did not stop
+load_ready = threading.Event()
+load_ready.set()
+local ARMED_SAMPLE_FAILED=0
+local label=$1 info hits
+m, z, k = second[:3]
+maneuvering
+marker = ("aclreply-fence:%d" % client_id).encode()
+marker_frame = b"$%d\r\n%s\r\n" % (len(marker), marker)
+mine = ("mine:%d" % round_id).encode()
+mine:%d
+mock.start()
+moved
+moved = any(before[1] != after[1] for before, after in zip(owners_before, owners_after))
+moved = row.get("flipctl_state") != "anchored" or \
+moving
+multi:queued
+multi:torn
+multi:torn:%d
+mutator.cmd("PING")
+mutator.cmd("PING")              # CONTROL arm does only this
+mutator.cmd("PING")          # CONTROL arm does only this
+mutator.pipe([["DEL", "churn:%06d" % j] for j in range(n - 5000, n)])
+mutator.pipe([["SET", "churn:%06d" % (n + j), "1"] for j in range(500)])
+n += 500
+never became blocked
+never opened and completed
+no acknowledged load before FLIP deadline
+no completed FLIP bracketed by every worker's verified progress before deadline
+no invalidation before registering
+no live expiry setup witnessed within the arming budget
+noise = [("other:%d:%d" % (round_id, wid)).encode() for wid in range(4)]
+noise%d
+noise_errors = []
+noise_errors.append(repr(error))
+noise_ops = [0] * 4
+noise_ops[wid] = i
+noise_ready = [threading.Event() for _ in range(4)]
+noise_ready[wid].set()
+note("RYOW under 4-writer contention x2000", ok)
+note("RYOW under 4-writer pressure x2000", ok)
+note("all background writers acknowledged and stopped",
+note("churn execution witness", False, str(error))
+note("same-key overwrite replies + unconflicted RYOW x64", conflicts_ok)
+notify_events_fired
+now - (hold_started if hold_started is not None else now),
+now = time.monotonic()
+now_ms = int(clock[0]) * 1000 + int(clock[1]) // 1000
+observer = _lib.Conn(HOST, PORT)
+observer = conn(); observer_file = observer.makefile("rb")
+observer.close()
+observer.cmd("DEL", "pt:nokey")
+observer.sendall(cmd("GET", key))
+observer_file.close(); observer.close()
+ops=%r errors=%r
+oracle WAIT 1 %s silence control
+oracle WAIT finite reply
+oready = bool(select.select([ow], [], [], 0)[0])
+other:%d:%d
+owners = _lib.owner_buckets(admin, "po:held", per_owner=3)
+owners_after = rd(wf)
+owners_before = rd(wf)
+p.command("PUBLISH", "pt:blk", "wake", wait=0.5)
+parked push/timeout window never opened
+pass
+patch("flipctl.info", self.info), patch("builtins.print")]
+patch("flipctl.time.sleep", self.sleep),
+peer.sendall(cmd("SET", key, value))
+peers = [conn() for _ in range(4)]
+pipeorder: held DEL/EXEC window witnessed; exact replies intact
+po:held
+post_flip = None
+post_flip = progress
+pre-hold window is not stationary: %s
+pre-hold window is not stationary: %s\n  per-second trace:\n    %s
+predecessor escaped hold
+prefix = "ft:%d:%d:" % (rnd, attempt)
+prefix = self.exact(1)
+prehold
+previous_commands = driver_commands()
+previous_commands, previous_time = commands, now
+previous_time = time.monotonic()
+print("  INVALID WAIT arm elapsed before both exact clients parked", flush=True)
+print("  INVALID WAIT silence observation crossed the finite deadline", flush=True)
+print("  INVALID fresh timeout arm: " + name, flush=True)
+print("  INVALID hash-field arm expired during setup: " + key, flush=True)
+print("  INVALID live expiry setup; re-arming fresh state", flush=True)
+print("  INVALID push/timeout arm: parking missed the deadline", flush=True)
+print("  INVALID push/timeout arm: publication missed the deadline", flush=True)
+print("  INVALID timeout elapsed before revocation acknowledgement: " + name,
+print("  ok   held EXEC cut: predecessors=%d, exact old/new replies" % seen, flush=True)
+print("FAIL: FLIP %d %d refused on a lightly loaded server" % (tio, tex))
+print("FAIL: flip to %d:%d never landed" % (tio, tex))
+print("INVALID TTL/FLIP cohort: elapsed=%.3fs moved=%r" %
+print("INVALID TTL/FLIP cohort: live read crossed the deadline", flush=True)
+print("pipeorder: held DEL/EXEC window witnessed; exact replies intact")
+print("stable hold %s" % evidence, flush=True)
+print("stable hold RE-ROLL %d (%.1fs budget left): %s" %
+print("stable hold RE-ROLL %d/%d: %s" %
+print("stable hold: %ds on a measured-stationary load, no trigger or split "
+print("stable hold: %ds pre-hold window stationary "
+printf '%s\t%s\n' "$label" "$hits" >> "$TMPDIR/read-local-armed-$AT.tsv"
+printf '%s\tINVALID\n' "$label" >> "$TMPDIR/read-local-armed-$AT.tsv"
+printf 'battery\thits\n' > "$TMPDIR/read-local-armed-$AT.tsv"
+progress = worker_ops[:]
+property_check("WAIT 1 %s readiness parity" % timeout, tready, oready)
+property_check("WAIT finite deadline fired", time.monotonic() - started >= 0.15, True)
+property_check("oracle WAIT 1 %s silence control" % timeout, oready, False)
+property_check("oracle WAIT finite reply", oracle, b":0\r\n")
+property_check("target WAIT 1 %s silence control" % timeout, tready, False)
+property_check("target WAIT finite reply", target, b":0\r\n")
+pt:blk
+pt:nokey
+published = counters(admin)
+published = parse_all(p.command("PUBLISH", "pt:blk", "wake", wait=0.5))
+push did not precede the one timeout reply: %r
+raise
+raise AssertionError("INVALID: stable hold never opened and completed before deadline: " +
+raise AssertionError("WAIT silence window never opened before arming deadline")
+raise AssertionError("churn batch was not acknowledged while cursor was open")
+raise AssertionError("churn worker failed: %r" % errors)
+raise AssertionError("controller reported a negative derived rate band")
+raise AssertionError("load driver failed: %s" % errors[0])
+raise AssertionError("no live expiry setup witnessed within the arming budget")
+raise AssertionError("server clock never reached the armed expiry")
+raise AssertionError("stable hold never opened and completed after bounded re-arms: " +
+raise AssertionError(payload)
+rate = (commands - previous_commands) / max(now - previous_time, 1e-9)
+rates = []
+rates, driver_anchor, band, moved=False,
+rates, sum(rates) / len(rates), band, moved=True,
+rates.append(rate)
+raw_id = read_reply(file)
+rd(wf)
+read_local_fallback_atomic_pending
+register while still alive
+registered = info_counter(c, "hash_field_expires")
+registration visible
+rep = flip_report(w, wf)
+replace
+replies = [conn.cmd(*command) for command in commands]
+replies = [rr(f) for _ in burst]
+reply = admin.cmd(*wake_argv)
+reply, and reply codes added a second one.
+reply_code_ standing.  Retire then emits the coded reply AND the NOPERM behind
+request, acknowledged = threading.Event(), threading.Event()
+request.clear()
+request.set()
+reroll
+rerolls = []
+rerolls.append("attempt %d: %s" % (attempt, payload))
+rerolls.append("wall budget for re-rolls exhausted")
+resetchannels
+resetkeys
+restore active expiry
+return
+return "reroll", "INVALID: %s; trace=%r" % (reason, trace)
+return "reroll", "INVALID: controller never quiesced before deadline: %r" % anchored_row
+return "reroll", "INVALID: injected driver excursion"
+return ("held", row)
+return ("moved",
+return ("moved", "%s: %s -- %s" % (verdict, reason, evidence))
+return ("moved", evidence)
+return ("reroll",
+return ("reroll", "INVALID: %s -- %s" % (unstable, evidence))
+return ("reroll", "INVALID: the assertion window never opened "
+return ("reroll", evidence)
+return 1
+return 6000 * self.now
+return armed, registered, size, before, max(deadlines)
+return before, expiry, replies
+return buf
+return frame
+return int(seconds) * 1000 + int(micros) // 1000
+return line
+return payload
+return row
+return s
+return stable_hold_attempt(*args)
+rk%d
+row = anchored_row
+row = dict(flipctl_state="maneuvering" if self.now < self.settles else "anchored",
+row = info(control)
+row.get("flipctl_anchor_io"), row.get("flipctl_anchor_ex"),
+row.get("flipctl_last_trigger"), band, row.get("flipctl_anchor_rate"),
+row.get("flipctl_state"), row.get("flipctl_phase"), rate,
+row.get("flipctl_triggers"), row.get("flipctl_last_trigger")))
+row["flipctl_anchor_io"], row["flipctl_anchor_ex"] = "5", "3"
+row["flipctl_state"] = "maneuvering"
+row["flipctl_triggers"] = "2"
+rows = [dict(part.split(b"=", 1) for part in line.split()
+ryow:conflict:%s:%d
+s = socket.create_connection(("127.0.0.1", PORT)); s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+s = socket.create_connection(("127.0.0.1", PORT), timeout=30); s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+s = socket.create_connection((HOST, PORT), timeout=10)
+s.close()
+s.sendall(b"".join(enc(o) for o in burst))
+s.sendall(b"INFO STATS\r\n")
+s.sendall(b"INFO STATS\r\n"); time.sleep(0.4)
+s.sendall(cmd("GET", "churn%d" % i))
+s.sendall(cmd("GET", churn_prefix + str(i)))
+s.sendall(cmd("GET", key))
+s.sendall(cmd("SET", key, mine))
+s.sendall(cmd("SET", key, settled) + cmd("GET", key))
+s.sendall(encode("HELLO", "3"))
+same-key overwrite replies + unconflicted RYOW x64
+sample_armed_lane "$t" || :
+sample_armed_lane final || :
+sample_armed_lane(){
+seconds, micros = c.cmd("TIME")
+seconds, micros = conn.cmd("TIME")
+seen = int(_lib.info(admin, "stats")["atomic_predecessor_reads"]) - before
+self.addCleanup(mock.stop)
+self.assertEqual(observer.call_count, 5)
+self.assertEqual(self.now, 180)
+self.assertEqual(self.now, self.move_at)
+self.assertEqual(stable_hold(None, 30, self.commands, [])["flipctl_triggers"], "1")
+self.assertEqual(stable_hold_attempt(None, 30, 180, self.commands, [])[0], "held")
+self.assertEqual(stable_hold_attempt(None, 30, 180, self.commands, [])[0], "reroll")
+self.assertEqual(stable_hold_attempt(None, 30, 20, self.commands, [])[0], "reroll")
+self.assertGreaterEqual(self.now, 5 + PRE_HOLD_SECONDS + 30)
+self.assertGreaterEqual(self.now, 90 + PRE_HOLD_SECONDS + 30)
+self.move_at = PRE_HOLD_SECONDS + 2
+self.move_at = math.inf
+self.move_kind = "trigger"
+self.now += seconds
+self.now = 0
+self.now = 0.0
+self.patches = [patch("flipctl.time.monotonic", lambda: self.now),
+self.settles = 0.0
+self.settles = 90
+self.settles = math.inf
+self.sleep(1)
+self.sleep(10)
+send(w, "DEBUG", "SHARDS", *keys)
+send(w, "FLIP", str(tio), str(tex))
+send(w, "MGET", *keys)
+send(w, "SET", k, "v", "PX", str(TTL_MS))
+send(w, "SET", k, "v", "PXAT", str(earliest_expiry_ms))
+send(w, "TIME")
+server clock never reached the armed expiry
+server expiry clock did not advance
+server expiry deadline never elapsed
+settled = ("settled:%d" % round_id).encode()
+settled:%d
+shift_band = float(fields.get("last_shift_band", "0") or 0)
+size = c.cmd("HLEN", key)
+size = int(header[1:-2])
+size = int(line[1:-2])
+size = int(line[:-2])
+sock.sendall(enc(["CLIENT", "ID"]))
+sock.sendall(enc(["CLIENT", "LIST", "ID", str(ids[side])]))
+sock.setblocking(False)
+sock.setblocking(True)
+solo
+split
+stable hold %s
+stable hold RE-ROLL %d (%.1fs budget left): %s
+stable hold RE-ROLL %d/%d: %s
+stable hold never opened and completed after bounded re-arms: 
+stable hold: %ds on a measured-stationary load, no trigger or split movement (attempt %d of %d)
+stable hold: %ds on a measured-stationary load, no trigger or split movement (attempt %d)
+stable hold: %ds pre-hold window stationary (driver %s/s, driver anchor %.3f/s, controller anchor %.3f/s, band %.6f); assertion window open for %ds
+stable_hold(None, 30, self.commands, [])
+stable_hold, stable_hold_attempt)
+stamp = rd(wf)
+started = time.monotonic()
+state
+stats
+still present before the deadline
+str(rep.get("moving", b"0")) in ("b'0'", "0", "b'false'")):
+subscribe
+sys.exit(1)
+t = new(resp3=True)
+t.close()
+target WAIT 1 %s silence control
+target WAIT finite reply
+target, oracle = read_reply(twf), read_reply(owf)
+tex = total - tio
+the controller's own signature detector reports the workload changed (last_shift_distance %.6f against last_shift_band %.6f, %.1fx) while the driver's rate held inside %.4f -- pass depth is a scheduling outcome the driver does not control -- %s
+the first representation op.reply.clear() could miss.
+threads = [threading.Thread(target=hammer, args=(wid,), daemon=True) for wid in range(4)]
+threads = [threading.Thread(target=hammer, daemon=True) for _ in range(4)]
+time.sleep(.001)
+time.sleep(.005)
+time.sleep(.05)
+time.sleep(0.001)
+time.sleep(0.025)
+time.sleep(0.04)
+time.sleep(0.05)
+time.sleep(0.1)
+time.sleep(0.15)
+time.sleep(0.16)
+time.sleep(0.20)
+time.sleep(0.25)
+time.sleep(0.4)
+time.sleep(0.45)
+time.sleep(0.6)                      # let it park
+time.sleep(0.8)
+time.sleep(1)
+time.sleep(1.0)
+time.sleep(SECONDS)
+time.sleep(min(0.2, max(0, budget - time.monotonic())))
+time.sleep(min(1, max(0, budget - time.monotonic())))
+time.sleep(seconds)
+timeout_s = float(blocking_argv[1] if blocking_argv[0] == "BLMPOP" else blocking_argv[-1])
+tio = max(2, min(total - 2, ex + (2 if rnd == 0 else -2)))
+tio = max(2, min(total - 2, io + 2))
+to op.reply.clear()): the two timeout rows below fail there with
+total = io + ex
+trace = []
+trace.append(
+tready = bool(select.select([tw], [], [], 0)[0])
+trigger
+trigger = row.get("flipctl_last_trigger", "unknown")
+trk:exp
+trk:exp:%d
+truncated RESP line
+truncated bulk
+try:
+tw, twf = conn_mode(TH, TP, RESP3); ow, owf = conn_mode(OH, OP, RESP3)
+tw.close(); ow.close(); twf.close(); owf.close()
+tw.sendall(enc(command)); ow.sendall(enc(command)); logical_ops += 1
+twf.close(); owf.close(); tw.close(); ow.close()
+unknown
+unstable = rate_rule_fires(rates, band)
+unstable = reason
+unstable = reason if verdict == "INVALID" else ""
+user's permissions can change while the client is parked.  When the recheck
+value = read_reply(observer, observer_file)
+value = t.command("GET", expiry_key)
+values = rd(wf)
+verdict, payload = stable_hold_attempt(args.stable_seconds)
+verdict, payload = stable_hold_attempt(control, seconds, budget, driver_commands, errors)
+verdict, reason = classify_stable_hold(
+victim = Conn(HOST, PORT, timeout=10)
+victim = connect(resp3)
+victim.close()
+victim.cmd("HELLO", "3")
+victim.send("ECHO", marker)
+victim.send(*blocking_argv)
+victim.sendall(encode("AUTH", "u", "p"))
+victim.sendall(encode(*blocking_argv))
+wait_client_state(admin, client_id, "blocked", timeout=min(5, budget - armed_at))
+wait_client_state(observer, client_id, "blocked", timeout=min(5, budget - armed_at))
+wait_deadline(other, expiry)
+wait_expired(c, expiry)
+wake
+wall budget for re-rolls exhausted
+watch:elapsed
+while True:
+while holds(admin) == before:
+while int(_lib.info(admin, "stats")["atomic_exec_order_holds"]) == before:
+while int(_lib.info(admin, "stats")["atomic_pending_entries"]) < len(keys):
+while not stop.is_set() and not request.wait(.1):
+while not stop.is_set():
+while server_ms(c) < expiry:
+while server_ms(observer) < expiry:
+while time.monotonic() < budget:
+while time.monotonic() < deadline:
+while time.time() < deadline:
+with _lib.armed(admin, "ATOMIC-COMMIT-HOLD", 1):
+with closing(_lib.Conn("127.0.0.1", PORT)) as admin:
+with closing(_lib.Conn(HOST, PORT)) as admin, closing(_lib.Conn(HOST, PORT)) as writer:
+with closing(_lib.Conn(HOST, PORT)) as geometry:
+with lock:
+with patch("flipctl.stable_hold_attempt", side_effect=attempt) as observer:
+with patch("flipctl.stable_hold_attempt", side_effect=attempt):
+with s.makefile("rb") as wire:
+with self.assertRaisesRegex(AssertionError, "controller moved during"):
+with self.assertRaisesRegex(AssertionError, "never opened and completed"):
+with self.subTest(mutation=self.move_kind):
+worker_ops = [0] * NWRITERS
+worker_ops[wid] += len(chunk) * 2
+writer.command("GET", "trk:exp")   # nudge the expiry observer
+writer.command("PEXPIRE", "trk:exp", "400")
+writer.command("SET", "trk:exp", "1")
+writer.send("EXEC")
+writer/readers never reached the required progress before deadline
+x = None
+x.close()
+x.sendall(cmd("SET", "churn%d" % i, "x" * 100))
+x.sendall(cmd("SET", key, "x" * 100))
+| awk -F: '/^read_local_keyspace_hits:|^read_local_mget_local_hits:/{s+=$2} END{print s+0}')
+} END {if (n==2 && !invalid) printf "%.0f\n", s; else exit 1}' <<<"$info")
