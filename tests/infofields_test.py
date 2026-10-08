@@ -45,10 +45,52 @@ class InfoFieldsControls(unittest.TestCase):
         body = b"# Server\r\nrun_id:a\r\n\r\n# Cluster\r\ncluster_enabled:0\r\n"
         raw = b"$%d\r\n" % len(body) + body + b"\r\n"
         self.assertEqual(set(differ.infofields_sections(raw)), {b"Server", b"Cluster"})
-        for bad in (b"# Server\r\na:1\r\na:2\r\n", b"# Server\r\n# Server\r\n", b"a:1\r\n"):
+        for bad in (b"# Server\r\na:1\r\na:2\r\n", b"# Server\r\n# Server\r\n", b"a:1\r\n",
+                    b"# Server\na:1\n", b"# Server\r\na:1", b"# Server\r\na:1\n\r\n"):
             raw = b"$%d\r\n" % len(bad) + bad + b"\r\n"
             with self.assertRaises(AssertionError):
                 differ.infofields_sections(raw)
+
+    def test_version_identity_controls(self):
+        oracle = {name: b"0" for name in differ.INFOFIELDS_REQUIRED[b"Server"]}
+        oracle[b"redis_version"] = b"7.4.10"
+        oracle[b"redis_mode"] = b"standalone"
+        target = {b"redis_version": b"7.4.10", b"tomokv_version": b"1.0-cpp", b"redis_mode": b"standalone", **oracle}
+        self.assertEqual(differ.infofields_server_versions(target, oracle), (b"7.4.10", b"7.4.10"))
+        for bad in (b"0.1-cpp", b"1.0-cpp", b"7.4", b"7.4.10-cpp", b"7.4.10\r\n", b"7.4.x"):
+            with self.subTest(bad=bad), self.assertRaises(AssertionError):
+                differ.infofields_version(bad)
+        for field, bad in ((b"redis_version", b"7.4.9"), (b"redis_version", b"8.0.0"),
+                           (b"redis_version", b"07.4.10"), (b"tomokv_version", b"7.4.10")):
+            with self.subTest(field=field, bad=bad), self.assertRaises(AssertionError):
+                differ.infofields_server_versions({**target, field: bad}, oracle)
+        for name in differ.INFOFIELDS_REQUIRED[b"Server"]:
+            for side in (0, 1):
+                pair = [target.copy(), oracle.copy()]
+                del pair[side][name]
+                with self.subTest(missing=name, side=side), self.assertRaises(AssertionError):
+                    differ.infofields_server_versions(*pair)
+        with self.assertRaises(AssertionError):
+            differ.infofields_server_versions(target, {**oracle, b"redis_version": b"8.0.0"})
+        with self.assertRaises(AssertionError):
+            differ.infofields_server_versions(target, {**oracle, b"tomokv_version": b"1.0-cpp"})
+        self.assertEqual(differ.infofields_server_versions(target, {**oracle, b"redis_version": b"7.4.9"})[1], b"7.4.9")
+
+    def test_hello_version_controls(self):
+        def frame(protocol, version=b"7.4.10", reported_protocol=None):
+            pairs = [b"server", b"redis", b"version", version, b"proto", protocol if reported_protocol is None else reported_protocol,
+                     b"id", 1, b"mode", b"standalone", b"role", b"master", b"modules", []]
+            def wire(value):
+                if isinstance(value, int): return b":%d\r\n" % value
+                if isinstance(value, list): return b"*0\r\n"
+                return b"$%d\r\n" % len(value) + value + b"\r\n"
+            return (b"*14\r\n" if protocol == 2 else b"%7\r\n") + b"".join(map(wire, pairs))
+        for protocol in (2, 3):
+            differ.infofields_hello_version(frame(protocol), protocol, b"7.4.10")
+            for bad in (frame(protocol, b"0.1-cpp"), frame(protocol, b"1.0-cpp"), frame(protocol, b"7.4.9"),
+                        frame(protocol, reported_protocol=5), frame(5 - protocol)):
+                with self.subTest(protocol=protocol, bad=bad), self.assertRaises(AssertionError):
+                    differ.infofields_hello_version(bad, protocol, b"7.4.10")
 
     def test_rate_bounds(self):
         for rate in (1700, 2000, 2300):

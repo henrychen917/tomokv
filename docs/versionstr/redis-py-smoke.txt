@@ -1,3 +1,4 @@
 WARNING: Package(s) not found: redis
 
 SKIP: redis-py is absent; no package installed and no connection attempted.
+SKIP: redis-py is absent; no package installed and no connection attempted.
