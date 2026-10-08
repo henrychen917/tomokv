@@ -1,0 +1,159 @@
+{
+  "schema": 1,
+  "scope": "tomokv-abba-instrument-v1",
+  "roots": [
+    "tests/abba_instrument.py",
+    "tests/abbagate.py",
+    "tests/abba_experiments.py",
+    "tests/gate_history.py",
+    "tests/legacy_reorder_witness.py"
+  ],
+  "python": {
+    "implementation": "cpython",
+    "version": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "executable_sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
+  },
+  "entries": [
+    {
+      "path": "tests/_abba_test_fixtures.py",
+      "mode": "100644",
+      "sha256": "bd22b1020439f72c60241a02958e8d4ec5f40965ceb81c875a265f46420e3192"
+    },
+    {
+      "path": "tests/_gate_process.py",
+      "mode": "100644",
+      "sha256": "dfa043827c3d13c57cf81b17b487fd915b047906545a1fd130cef924a391da5b"
+    },
+    {
+      "path": "tests/_lib.py",
+      "mode": "100644",
+      "sha256": "8d9abeec8b229816a08fb9de07eb3801f38361bd44207aa6518d6ce5d21b3195"
+    },
+    {
+      "path": "tests/_nullrefresh_test.py",
+      "mode": "100644",
+      "sha256": "e08c3d0a731a9b27eb20158fdfd14ce98fa3e51475cd9d8c15edf34a21889efc"
+    },
+    {
+      "path": "tests/abba_binaries.py",
+      "mode": "100644",
+      "sha256": "918fed56c7e419eb457948b9a86c23bfd6342a9ddbf1c3980c556eee0a565b59"
+    },
+    {
+      "path": "tests/abba_ceiling.py",
+      "mode": "100644",
+      "sha256": "4069c4b4e9a7f38fa7c36be093614731cacc1af18a910ae3b092c350f789c78b"
+    },
+    {
+      "path": "tests/abba_evidence.py",
+      "mode": "100644",
+      "sha256": "a4acacac034020d599a84b509f6d6dfdf64e49fbe6f32ea30178e376b5d15174"
+    },
+    {
+      "path": "tests/abba_experiments.py",
+      "mode": "100644",
+      "sha256": "039cc812b49b4e76feccf343b9d423262939ddfb26dfc9730959d34a24cc0e78"
+    },
+    {
+      "path": "tests/abba_holdout.py",
+      "mode": "100644",
+      "sha256": "f451619c6fb9dfd96ac486ddf59ccbdb04371e76cfd45a4985dce5362e7a144a"
+    },
+    {
+      "path": "tests/abba_instrument.py",
+      "mode": "100644",
+      "sha256": "3b544a91a452534b35a0e5962ab9d66ce32c18b1e0f2ad8ffa1074a73cbda106"
+    },
+    {
+      "path": "tests/abba_null_sampling.py",
+      "mode": "100644",
+      "sha256": "2c0f484093c92898be8959c53f1f063da510d357ab5774a4d32800597d0188c9"
+    },
+    {
+      "path": "tests/abba_profile.py",
+      "mode": "100644",
+      "sha256": "7ec7c27419b9f2f30f0e1944499e48300afbb0d4ad0a268af29b56d51a3a8a33"
+    },
+    {
+      "path": "tests/abba_reorder_control.py",
+      "mode": "100644",
+      "sha256": "a29a6b48768c1aaeaaebd3c6d83928361246f348fe9bc308d48b4a197a598c77"
+    },
+    {
+      "path": "tests/abba_saturation.py",
+      "mode": "100644",
+      "sha256": "bfc17d90e388d53fa10aab2d8ddcce5ccdb2577303ce17c643e8166a46b4a287"
+    },
+    {
+      "path": "tests/abba_simple.py",
+      "mode": "100644",
+      "sha256": "797281e5a1cf91c46823b9f67d4f9b0aed4b6c0399bee4d3c501234c902e9e6e"
+    },
+    {
+      "path": "tests/abba_standing_null.py",
+      "mode": "100644",
+      "sha256": "885fd693db8408a2b897f15b34ff8dcb75c7d00cf9e0520de3aea7f18417b869"
+    },
+    {
+      "path": "tests/abba_worker_affinity.py",
+      "mode": "100644",
+      "sha256": "989f85c452a3b7113b4e60b2f4d1fc54dc32cbfe5fa0fa58374faa2143057a0a"
+    },
+    {
+      "path": "tests/abba_workloads.py",
+      "mode": "100644",
+      "sha256": "b8cb98fd8a6c7a456a82087d0d9af245776283c856b729eeb30b6a857642c21c"
+    },
+    {
+      "path": "tests/abbagate.py",
+      "mode": "100644",
+      "sha256": "ab89871ef92cc205ec49995cb6bca384fd459361f628215668742bf95784f394"
+    },
+    {
+      "path": "tests/gate_history.py",
+      "mode": "100644",
+      "sha256": "eaccee3837e233948d9b2e2d230ac69c0a52557cb2e3797763201b850fe8081f"
+    },
+    {
+      "path": "tests/gate_ledger_fixture.py",
+      "mode": "100644",
+      "sha256": "e394e648fabb57b2c3c13af782f27f9227ee2ec3157194b4438ddfb274ed0f8c"
+    },
+    {
+      "path": "tests/gate_measurements.py",
+      "mode": "100644",
+      "sha256": "cf39b5c022e43f373c0bda98b7b406aa81af4560bf5c604d0295d484cd8b4f3b"
+    },
+    {
+      "path": "tests/gate_quiet.py",
+      "mode": "100644",
+      "sha256": "c0f6256d099595ef0609367ed77eaa88e487dbd2bdab72c31190b7ef96ed47d7"
+    },
+    {
+      "path": "tests/gate_receipt.py",
+      "mode": "100755",
+      "sha256": "b557beebdd933fd2420992a7d959f49fec2e32d74b6dfba6170d2bca73695d6d"
+    },
+    {
+      "path": "tests/gateplan.py",
+      "mode": "100644",
+      "sha256": "6edcd5eb95df0656a37d9110a1651368e65de99a35240f804041e6bff7cc0ea2"
+    },
+    {
+      "path": "tests/legacy_reorder_witness.py",
+      "mode": "100644",
+      "sha256": "d0a9a72bc6c35838ea8cc5500e46fae46a16088adf455aa839605be569525a38"
+    },
+    {
+      "path": "tests/load_calibration.py",
+      "mode": "100644",
+      "sha256": "1abb23e28c585e815dbe30634ea191bcd04784b49de46f39b2d9ca6882339893"
+    },
+    {
+      "path": "tests/nullpublish4_test.py",
+      "mode": "100644",
+      "sha256": "432fe964a371398b7d1f9f77f0135b792321c5c85c192def825ee5026f18a75e"
+    }
+  ],
+  "sha256": "83e2bad5ae8b2fcd159c52eb540ef3b43d970ff952176952388c21fea5747c76"
+}

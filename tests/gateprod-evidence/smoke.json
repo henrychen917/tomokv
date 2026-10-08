@@ -1,0 +1,598 @@
+{
+  "kind": "boot-smoke",
+  "measurement_valid": false,
+  "comparison_trusted": false,
+  "candidate_sha256": "f2d62135aa03585ea847457f1fd202b66c108c93084d357095164256a39f20d5",
+  "attempts": [
+    {
+      "policy": "selected-core-port-budget-v1",
+      "started_at": 1791439286.443962,
+      "finished_at": 1791439287.4520152,
+      "complete": false,
+      "samples": 2,
+      "cpu_samples": 2,
+      "sample_interval_seconds": 1.0,
+      "tick_seconds": 0.01,
+      "cpus": [
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ],
+      "requested_cpus": [
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ],
+      "ports": [
+        18760
+      ],
+      "listener_checks": 1,
+      "interference": {
+        "observed_at": 1791439287.4514532,
+        "cpu_seconds": 14.17,
+        "cpu_budget_seconds": 0.48,
+        "error": "selected-core CPU screening budget exceeded: 14.170000s > 0.480000s per 20s",
+        "cpus": [
+          {
+            "cpu": 112,
+            "total_ticks": 101,
+            "busy_ticks": 101
+          },
+          {
+            "cpu": 113,
+            "total_ticks": 102,
+            "busy_ticks": 102
+          },
+          {
+            "cpu": 114,
+            "total_ticks": 100,
+            "busy_ticks": 99
+          },
+          {
+            "cpu": 115,
+            "total_ticks": 101,
+            "busy_ticks": 101
+          },
+          {
+            "cpu": 116,
+            "total_ticks": 101,
+            "busy_ticks": 101
+          },
+          {
+            "cpu": 117,
+            "total_ticks": 100,
+            "busy_ticks": 100
+          },
+          {
+            "cpu": 118,
+            "total_ticks": 101,
+            "busy_ticks": 6
+          },
+          {
+            "cpu": 119,
+            "total_ticks": 100,
+            "busy_ticks": 100
+          },
+          {
+            "cpu": 120,
+            "total_ticks": 100,
+            "busy_ticks": 5
+          },
+          {
+            "cpu": 121,
+            "total_ticks": 99,
+            "busy_ticks": 99
+          },
+          {
+            "cpu": 122,
+            "total_ticks": 102,
+            "busy_ticks": 102
+          },
+          {
+            "cpu": 123,
+            "total_ticks": 100,
+            "busy_ticks": 100
+          },
+          {
+            "cpu": 124,
+            "total_ticks": 101,
+            "busy_ticks": 101
+          },
+          {
+            "cpu": 125,
+            "total_ticks": 100,
+            "busy_ticks": 100
+          },
+          {
+            "cpu": 126,
+            "total_ticks": 100,
+            "busy_ticks": 100
+          },
+          {
+            "cpu": 127,
+            "total_ticks": 101,
+            "busy_ticks": 100
+          }
+        ]
+      },
+      "sample_artifact": "/home/user/Projects/cx-gateprod/build/gateprod/smoke/quiet-1.jsonl",
+      "generic_cpu_screening": {
+        "scope": "preflight",
+        "server_physical_cores": 8,
+        "sampled_physical_cores": 16,
+        "capacity_fraction": 0.0015,
+        "window_seconds": 20,
+        "cpu_budget_seconds": 0.48,
+        "preflight_seconds": null,
+        "peak_rolling": {
+          "cpu_ticks": 1417,
+          "cpu_seconds": 14.17
+        },
+        "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload"
+      },
+      "limitation": "preflight detects existing contention; runtime CPU counters cannot distinguish owned work"
+    },
+    {
+      "policy": "selected-core-port-budget-v1",
+      "started_at": 1791439486.4439633,
+      "finished_at": 1791439487.4518073,
+      "complete": false,
+      "samples": 2,
+      "cpu_samples": 2,
+      "sample_interval_seconds": 1.0,
+      "tick_seconds": 0.01,
+      "cpus": [
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ],
+      "requested_cpus": [
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ],
+      "ports": [
+        18760
+      ],
+      "listener_checks": 1,
+      "interference": {
+        "observed_at": 1791439487.4512484,
+        "cpu_seconds": 13.120000000000001,
+        "cpu_budget_seconds": 0.48,
+        "error": "selected-core CPU screening budget exceeded: 13.120000s > 0.480000s per 20s",
+        "cpus": [
+          {
+            "cpu": 112,
+            "total_ticks": 101,
+            "busy_ticks": 101
+          },
+          {
+            "cpu": 113,
+            "total_ticks": 101,
+            "busy_ticks": 101
+          },
+          {
+            "cpu": 114,
+            "total_ticks": 101,
+            "busy_ticks": 101
+          },
+          {
+            "cpu": 115,
+            "total_ticks": 101,
+            "busy_ticks": 1
+          },
+          {
+            "cpu": 116,
+            "total_ticks": 101,
+            "busy_ticks": 101
+          },
+          {
+            "cpu": 117,
+            "total_ticks": 101,
+            "busy_ticks": 101
+          },
+          {
+            "cpu": 118,
+            "total_ticks": 101,
+            "busy_ticks": 101
+          },
+          {
+            "cpu": 119,
+            "total_ticks": 101,
+            "busy_ticks": 101
+          },
+          {
+            "cpu": 120,
+            "total_ticks": 100,
+            "busy_ticks": 100
+          },
+          {
+            "cpu": 121,
+            "total_ticks": 101,
+            "busy_ticks": 101
+          },
+          {
+            "cpu": 122,
+            "total_ticks": 101,
+            "busy_ticks": 21
+          },
+          {
+            "cpu": 123,
+            "total_ticks": 100,
+            "busy_ticks": 100
+          },
+          {
+            "cpu": 124,
+            "total_ticks": 100,
+            "busy_ticks": 20
+          },
+          {
+            "cpu": 125,
+            "total_ticks": 101,
+            "busy_ticks": 101
+          },
+          {
+            "cpu": 126,
+            "total_ticks": 100,
+            "busy_ticks": 100
+          },
+          {
+            "cpu": 127,
+            "total_ticks": 100,
+            "busy_ticks": 61
+          }
+        ]
+      },
+      "sample_artifact": "/home/user/Projects/cx-gateprod/build/gateprod/smoke/quiet-2.jsonl",
+      "generic_cpu_screening": {
+        "scope": "preflight",
+        "server_physical_cores": 8,
+        "sampled_physical_cores": 16,
+        "capacity_fraction": 0.0015,
+        "window_seconds": 20,
+        "cpu_budget_seconds": 0.48,
+        "preflight_seconds": null,
+        "peak_rolling": {
+          "cpu_ticks": 1312,
+          "cpu_seconds": 13.120000000000001
+        },
+        "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload"
+      },
+      "limitation": "preflight detects existing contention; runtime CPU counters cannot distinguish owned work"
+    },
+    {
+      "policy": "selected-core-port-budget-v1",
+      "started_at": 1791439686.4439952,
+      "finished_at": 1791439687.451707,
+      "complete": false,
+      "samples": 2,
+      "cpu_samples": 2,
+      "sample_interval_seconds": 1.0,
+      "tick_seconds": 0.01,
+      "cpus": [
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ],
+      "requested_cpus": [
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ],
+      "ports": [
+        18760
+      ],
+      "listener_checks": 1,
+      "interference": {
+        "observed_at": 1791439687.4512181,
+        "cpu_seconds": 4.13,
+        "cpu_budget_seconds": 0.48,
+        "error": "selected-core CPU screening budget exceeded: 4.130000s > 0.480000s per 20s",
+        "cpus": [
+          {
+            "cpu": 112,
+            "total_ticks": 100,
+            "busy_ticks": 100
+          },
+          {
+            "cpu": 113,
+            "total_ticks": 102,
+            "busy_ticks": 102
+          },
+          {
+            "cpu": 115,
+            "total_ticks": 101,
+            "busy_ticks": 1
+          },
+          {
+            "cpu": 117,
+            "total_ticks": 100,
+            "busy_ticks": 1
+          },
+          {
+            "cpu": 119,
+            "total_ticks": 101,
+            "busy_ticks": 1
+          },
+          {
+            "cpu": 121,
+            "total_ticks": 101,
+            "busy_ticks": 101
+          },
+          {
+            "cpu": 122,
+            "total_ticks": 100,
+            "busy_ticks": 100
+          },
+          {
+            "cpu": 123,
+            "total_ticks": 101,
+            "busy_ticks": 1
+          },
+          {
+            "cpu": 124,
+            "total_ticks": 101,
+            "busy_ticks": 5
+          },
+          {
+            "cpu": 127,
+            "total_ticks": 101,
+            "busy_ticks": 1
+          }
+        ]
+      },
+      "sample_artifact": "/home/user/Projects/cx-gateprod/build/gateprod/smoke/quiet-3.jsonl",
+      "generic_cpu_screening": {
+        "scope": "preflight",
+        "server_physical_cores": 8,
+        "sampled_physical_cores": 16,
+        "capacity_fraction": 0.0015,
+        "window_seconds": 20,
+        "cpu_budget_seconds": 0.48,
+        "preflight_seconds": null,
+        "peak_rolling": {
+          "cpu_ticks": 413,
+          "cpu_seconds": 4.13
+        },
+        "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload"
+      },
+      "limitation": "preflight detects existing contention; runtime CPU counters cannot distinguish owned work"
+    },
+    {
+      "policy": "selected-core-port-budget-v1",
+      "started_at": 1791439886.443973,
+      "finished_at": 1791439897.458057,
+      "complete": false,
+      "samples": 12,
+      "cpu_samples": 12,
+      "sample_interval_seconds": 1.0,
+      "tick_seconds": 0.01,
+      "cpus": [
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ],
+      "requested_cpus": [
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127
+      ],
+      "ports": [
+        18760
+      ],
+      "listener_checks": 1,
+      "interference": {
+        "observed_at": 1791439897.4575808,
+        "cpu_seconds": 2.9,
+        "cpu_budget_seconds": 0.48,
+        "error": "selected-core CPU screening budget exceeded: 2.900000s > 0.480000s per 20s",
+        "cpus": [
+          {
+            "cpu": 112,
+            "total_ticks": 99,
+            "busy_ticks": 25
+          },
+          {
+            "cpu": 113,
+            "total_ticks": 98,
+            "busy_ticks": 7
+          },
+          {
+            "cpu": 114,
+            "total_ticks": 99,
+            "busy_ticks": 35
+          },
+          {
+            "cpu": 115,
+            "total_ticks": 100,
+            "busy_ticks": 8
+          },
+          {
+            "cpu": 116,
+            "total_ticks": 100,
+            "busy_ticks": 24
+          },
+          {
+            "cpu": 117,
+            "total_ticks": 100,
+            "busy_ticks": 9
+          },
+          {
+            "cpu": 118,
+            "total_ticks": 100,
+            "busy_ticks": 7
+          },
+          {
+            "cpu": 119,
+            "total_ticks": 99,
+            "busy_ticks": 6
+          },
+          {
+            "cpu": 120,
+            "total_ticks": 99,
+            "busy_ticks": 7
+          },
+          {
+            "cpu": 121,
+            "total_ticks": 101,
+            "busy_ticks": 8
+          },
+          {
+            "cpu": 122,
+            "total_ticks": 100,
+            "busy_ticks": 7
+          },
+          {
+            "cpu": 123,
+            "total_ticks": 100,
+            "busy_ticks": 22
+          },
+          {
+            "cpu": 124,
+            "total_ticks": 101,
+            "busy_ticks": 5
+          },
+          {
+            "cpu": 125,
+            "total_ticks": 100,
+            "busy_ticks": 9
+          },
+          {
+            "cpu": 126,
+            "total_ticks": 100,
+            "busy_ticks": 58
+          },
+          {
+            "cpu": 127,
+            "total_ticks": 100,
+            "busy_ticks": 23
+          }
+        ]
+      },
+      "sample_artifact": "/home/user/Projects/cx-gateprod/build/gateprod/smoke/quiet-4.jsonl",
+      "generic_cpu_screening": {
+        "scope": "preflight",
+        "server_physical_cores": 8,
+        "sampled_physical_cores": 16,
+        "capacity_fraction": 0.0015,
+        "window_seconds": 20,
+        "cpu_budget_seconds": 0.48,
+        "preflight_seconds": null,
+        "peak_rolling": {
+          "cpu_ticks": 290,
+          "cpu_seconds": 2.9
+        },
+        "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload"
+      },
+      "limitation": "preflight detects existing contention; runtime CPU counters cannot distinguish owned work"
+    }
+  ],
+  "cells": [],
+  "status": "REFUSED",
+  "reason": "initial quiet preflight and all three retries refused",
+  "elapsed_seconds": 611.0154543910176
+}

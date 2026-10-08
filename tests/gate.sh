@@ -5,6 +5,9 @@
 #   tests/gate.sh iteration   same default tier; the subset saves only regression cells.
 #   tests/gate.sh push    full correctness + ALL regression cells, required for push/release.
 #   tests/gate.sh release same as push. `full` is the legacy alias for the same complete gate.
+#   tests/gate.sh perf --dry-run  print the 64-cell p32 network-IO product and argv; no CPU work.
+#   The frozen 181-cell headline pass is followed by 32 epoll twins of h01-h32
+#   (eight twins in iteration). GATE_ABBA_EPOLL_NULL names their separate standing null.
 #   tests/gate.sh quick   legacy correctness-only diagnostic: build (release+ASAN), footprint locks, boot
 #                         matrix, smoke, torture, RYOW, atomic torn/mixed-write/window gates,
 #                         shutdown invariants, counter-fired feature matrix, idle-loop ceiling. Runs on
@@ -57,6 +60,7 @@ cd "$(dirname "$0")/.."
 GATE_SELF_TEST=0
 for gate_arg in "$@"; do
   case "$gate_arg" in
+    --dry-run) exec python3 tests/gateprod.py "$@";;
     -h|--help|--json) exec python3 tests/gateplan.py "$@";;
     --self-test) GATE_SELF_TEST=1;;
   esac
@@ -127,7 +131,7 @@ PY
       exit 1
     fi
   fi
-  exec python3 tests/abbagate.py "${ABBA_ARGS[@]}"
+  exec python3 tests/gateprod.py --run "${ABBA_ARGS[@]}"
 fi
 PASS=0; FAIL=0
 SRV=0; SRVLOG=/dev/null
@@ -2870,6 +2874,7 @@ py tests/abbagate.py --self-test > $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/wb_policy.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/lb_stationary.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/netio.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
+    && py tests/gateprod.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && ok "ABBA comparison + saturation negative controls" \
     || bad "ABBA comparison + saturation negative controls" "see $TMPDIR/gate-abbagate-unit.txt"
@@ -3469,7 +3474,10 @@ ABBA_HISTORY_CONTEXT=$(python3 tests/gate_history.py abba-context -- "${ABBA_ARG
 row_begin "headline ABBA vs last pushed binary" "$ABBA_HISTORY_CONTEXT"
 # The watchdog still tears down the measurement; its timeout must not score or exit the gate.
 trap 'ROW_EXPIRED=1' USR1
-python3 tests/abbagate.py "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &
+# Keep the original headline result at ABBA_OUTPUT for its unchanged receipt.
+# The epoll pass writes ABBA_OUTPUT-epoll; combined exit status requires both.
+# This extends measurements only: no scored correctness row or label is added.
+python3 tests/gateprod.py --run "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &
 ABBA_PID=$!
 wait "$ABBA_PID"
 ABBA_RC=$?
