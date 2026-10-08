@@ -120,19 +120,21 @@ def dry_run(args):
     for cell in cells:
         instances = cell.instances or 1
         layout = abba.load_layout(runner.load_cpus, instances, cell.conns, cell.dbs)
+        pass_output = out.with_name(out.name + "-epoll") if cell.server_flags else out
         arms = {}
         for sequence, arm in ((1, "A"), (2, "B")):
-            folder = out / cell.id / f"n{instances}-{sequence}-{arm}"
+            folder = pass_output / cell.id / f"n{instances}-{sequence}-{arm}"
             arms[arm] = dict(server_argv=server_argv(runner, cell, arm, folder),
                 memtier_argv=[runner.memtier(part, cell=cell) + abba.workload_arguments(cell) +
                     [f"--pipeline={cell.depth}", f"--test-time={abba.WARMUP + abba.WINDOW + abba.TAIL}",
                      f"--json-out-file={folder / f'load-{index}.json'}"]
                     for index, part in enumerate(layout)])
         rows.append(dict(cell=asdict(cell), transport="epoll" if cell.server_flags else "uring",
+            pass_output=str(pass_output),
             initial_instances=instances, pinned=bool(cell.instances),
             search_ladder=[] if cell.instances and not args.escalate else
                 [n for n in abba.LADDER if n <= args.max_instances], arms=arms))
-    return dict(kind="dry-run; no processes started", counts=counts, placement=placement,
+    return dict(kind="dry-run; no processes started", counts=counts, placement=placement, order=list(abba.ORDER),
                 argv_scope="initial or pinned rung, current knob grammar; unpinned cells search the unchanged ladder",
                 duration=duration(len(rows)), cells=rows)
 
@@ -210,6 +212,11 @@ def smoke(args):
     started = time.monotonic()
     quiet = None
     children = abba.Children()
+
+    def interrupted(signum, _frame):
+        raise InterruptedError(f"smoke interrupted by signal {signum}")
+
+    old = {sig: signal.signal(sig, interrupted) for sig in (signal.SIGINT, signal.SIGTERM)}
     try:
         for attempt in range(4):
             target = started + attempt * 200
@@ -275,6 +282,8 @@ def smoke(args):
             report["attempts"].append(quiet.close())
         report["elapsed_seconds"] = time.monotonic() - started
         (out / "smoke.json").write_text(json.dumps(report, indent=2) + "\n")
+        for sig, handler in old.items():
+            signal.signal(sig, handler)
 
 
 def self_test():
@@ -331,7 +340,7 @@ def self_test():
             load_expression = compile(ast.Expression(expressions[0]), "Runner.measure/load-argv", "eval")
             with tempfile.TemporaryDirectory(dir=ROOT / "build") as directory:
                 args = parse_abba(["--server-cores", "0-31", "--server-smt", "", "--load-cores", "32-127",
-                    "--load-smt", "160-255", "--output", directory])
+                    "--load-smt", "160-255", "--output", str(Path(directory) / "run")])
                 plan = dry_run(args)
                 self.assertEqual(len(plan["cells"]), 64)
                 children = mock.Mock()
@@ -339,6 +348,7 @@ def self_test():
                 runner = abba.Runner(args, Path(directory), {"A": Path("<reference-binary>"), "B": args.candidate}, children)
                 for row in plan["cells"]:
                     cell = abba.Cell(**row["cell"])
+                    runner.out = Path(row["pass_output"])
                     for sequence, arm in ((1, "A"), (2, "B")):
                         with mock.patch.object(abba, "require_unbound_port"), redirect_stdout(io.StringIO()), \
                                 self.assertRaisesRegex(RuntimeError, "intercepted before boot"):
@@ -349,7 +359,7 @@ def self_test():
                             self.assertEqual(actual[-2:], ["--net-io", "epoll"])
                         else:
                             self.assertNotIn("--net-io", actual)
-                        folder = Path(directory) / cell.id / f"n{row['initial_instances']}-{sequence}-{arm}"
+                        folder = runner.out / cell.id / f"n{row['initial_instances']}-{sequence}-{arm}"
                         layout = abba.load_layout(runner.load_cpus, row["initial_instances"], cell.conns, cell.dbs)
                         for index, part in enumerate(layout):
                             actual_load = eval(load_expression, vars(abba), dict(self=runner, cell=cell,
@@ -402,6 +412,26 @@ def self_test():
                 run_gate([])
             process.terminate.assert_called_once()
             process.kill.assert_not_called()
+
+        def test_smoke_termination_cleans_owned_children_and_records_failure(self):
+            with tempfile.TemporaryDirectory(dir=ROOT / "build") as directory:
+                args = parse_abba(["--server-cores", "112-119", "--server-smt", "", "--load-cores", "120-127",
+                    "--load-smt", "", "--memtier", sys.executable, "--candidate-binary", sys.executable,
+                    "--output", str(Path(directory) / "smoke")])
+                monitor, children = mock.Mock(), mock.Mock()
+                monitor.close.return_value = {"complete": False}
+                monitor.start.side_effect = lambda: signal.getsignal(signal.SIGTERM)(signal.SIGTERM, None)
+                original = {sig: signal.getsignal(sig) for sig in (signal.SIGINT, signal.SIGTERM)}
+                with mock.patch(__name__ + ".QuietMonitor", return_value=monitor), \
+                        mock.patch.object(abba, "Children", return_value=children), \
+                        mock.patch.object(abba, "check_placement"), \
+                        self.assertRaisesRegex(InterruptedError, "smoke interrupted"):
+                    smoke(args)
+                children.close.assert_called_once()
+                self.assertEqual({sig: signal.getsignal(sig) for sig in original}, original)
+                report = json.loads((args.output / "smoke.json").read_text())
+                self.assertEqual(report["status"], "FAIL")
+                self.assertEqual(report["cells"], [])
 
     (ROOT / "build").mkdir(exist_ok=True)
     result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Controls))
