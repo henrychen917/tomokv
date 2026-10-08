@@ -54,6 +54,7 @@ PAIR_IDS = "m02 m03 m05 m06 p8g p8s h05 h06".split()
 SWEEP_IDS = "m02 m03 m05 m06".split()
 KEYS = (2, 3, 4, 7, 8, 9, 16)
 NA = "not available"
+FLIPCTL_DISARMED = NA + ": flipctl disarmed (flip-auto 0)"
 BOX_BAND = .0015
 REPEAT_BAND = .02
 BATCH_RANGE = (.9, 1.1)  # Predeclared operational meaning of the note's '~1.0'.
@@ -390,6 +391,15 @@ def parse_shutdown(text):
 
 def telemetry(cell, observations, before, after):
     result = {}
+    flip_armed = False
+    if cell.mode == "2s":
+        # INFO's flip_auto reports flipctl_enabled(), not merely the requested
+        # mode/configuration. Missing or changing state cannot excuse a zero.
+        flags = [row.get("flip_auto") for row in observations]
+        require(flags and all(flag in ("0", "1") for flag in flags), "missing/invalid INFO flip_auto")
+        require(len(set(flags)) == 1, "INFO flip_auto changed during central window")
+        result["flip_auto"] = int(flags[0])
+        flip_armed = flags[0] == "1"
     for name in ("atomic_fanout_cuts", "atomic_read_cuts_held"):
         require(all(name in row for row in observations), f"INFO counter missing: {name}; stop for code lane")
         vals = [number(row[name], name) for row in observations]
@@ -412,16 +422,23 @@ def telemetry(cell, observations, before, after):
             if (cell.mode == "1s" and (role != "fused" or suffix in SIGNAL_SUFFIXES[2:])) or (cell.mode == "2s" and role == "fused"):
                 result[key] = NA
                 continue
+            if cell.mode == "2s" and not flip_armed and suffix in SIGNAL_SUFFIXES[2:]:
+                result[key] = FLIPCTL_DISARMED
+                continue
             require(all(key in row for row in observations), f"INFO counter missing: {key}; stop for code lane")
             vals = [number(row[key], key) for row in observations]
             result[key] = max(vals)
     if cell.mode == "2s":
         for suffix in ("queue_delay_samples", "oldest_age_samples"):
             key = "lb_ex_" + suffix
+            if not flip_armed:
+                result[key] = FLIPCTL_DISARMED
+                continue
             require(all(key in row for row in observations), f"split sampler counter missing: {key}")
             values = [number(row[key], key) for row in observations]
             require(values[-1] > values[0], f"split sampler did not progress in central window: {key}")
             result[key] = values[-1] - values[0]
+    if flip_armed:
         for suffix in SIGNAL_SUFFIXES[2:]:
             require(result["lb_ex_" + suffix] > 0, f"split {suffix} stayed zero; sample is invalid")
             require(result["lb_ex_" + suffix] <= 60_000_000, f"split {suffix} exceeds the existing lbsignals test's 60s sanity bound")
@@ -969,7 +986,11 @@ def report(rows, receipts, destination, binary):
     answers = verdicts(rows, calibration)
     commands = campaign_commands(binary, ROOT / "build/mkprobe-mainline")
     result = dict(schema=SCHEMA, null=calibration, verdicts=answers, sample_rows=len(rows), mainline_commands=commands,
-                  status_counts=dict(Counter(r["status"] for r in rows)), performance_claim=False)
+                  status_counts=dict(Counter(r["status"] for r in rows)), performance_claim=False,
+                  age_delay_contract=("Age/delay columns are diagnostic; M1-M5 do not use them. "
+                      f"2s INFO flip_auto=0 prints '{FLIPCTL_DISARMED}' and does not invalidate the sample. "
+                      "Only INFO flip_auto=1 requires executor sample counts to advance inside the central interval "
+                      "and measured values to be positive. Missing, invalid or changing flip_auto fails the sample."))
     save(destination / "report.json", result)
     lines = ["# mkprobe diagnostic report", "", "No performance claim. Verdicts describe the predeclared mechanism signatures only.", "",
              f"Same-binary null: **{calibration['status']}** — {calibration['reason']}", "",
@@ -984,7 +1005,7 @@ def report(rows, receipts, destination, binary):
             lines.append(f"| {check['cell']} | {check['prediction']} | {check['result']} | `{json.dumps(observed, sort_keys=True)}` |")
     lines += ["", "Rows retain individual observations and arithmetic in report.json and rows.jsonl. n>=6 is required for every contributing cell/variant.",
               "", "The 1s age/delay columns are **not available**: flipctl sampling is Split-only. Split telemetry retains lb_ex_* and lb_io_* names; lb_fused_* is not synthesized for 2s.",
-              "", "**Fixed-split campaign blocker:** the current production sampler is disabled at --flip-auto 0 and outside active flip maneuvers. These fixed-geometry recipes therefore fail the required 2s age/delay progress check. Resolve that observation contract before starting the full campaign; no production counter or sampler was changed here.",
+              "", result["age_delay_contract"],
               "", "Perf core events are the abba_profile EVENTS group (cycles, instructions, ref-cycles), measured on server CPUs only. IPC=instructions/cycles; cyc/op=cycles/central calls; instr/op=instructions/central calls. Windows encompass INFO endpoints and are approximate. The memory pass and symbol pass each use a separate boot and denominator.",
               "", "WB ratios cover the whole restored boot, including warmup/tail and the recorded small observer bound. They exclude population. INFO held cuts is a sampled maximum gauge; fanout cuts is a central delta and can be zero at atomic=1.",
               "", "Memory events: any fills minus demand fills is the requested coherence residual, not a unique RFO count. The store event counts dispatch cycles blocked on store-queue tokens. L2 dTLB misses count table-walk requests, not walker duration. PMU availability/multiplexing failures invalidate the sample.",
@@ -1080,19 +1101,44 @@ def self_test(args):
     rejects(lambda: parse_shutdown(wire + "\n" + wire))
     rejects(lambda: parse_shutdown("shutdown_report " + json.dumps(dict(schema=1, wb={**wb, "serves_empty":1101}))))
     passed("shutdown accounting and duplicate report negatives")
-    base = dict(atomic_fanout_cuts="0", atomic_read_cuts_held="0", cmdstat_mget="calls=10,usec=0")
+    base = dict(atomic_fanout_cuts="0", atomic_read_cuts_held="0", cmdstat_mget="calls=10,usec=0", flip_auto="1")
     for role in ("fused", "io", "ex"):
         base.update({f"lb_{role}_{s}": "1" for s in (*SIGNAL_SUFFIXES, "queue_delay_samples", "oldest_age_samples")})
     result = telemetry(inventory["m02"], [base, base], base, base)
     require(result["lb_fused_queue_delay_ewma_us"] == NA, "1s silent zero")
     advancing = {**base, "lb_ex_queue_delay_samples": "2", "lb_ex_oldest_age_samples": "2"}
-    telemetry(inventory["m50"], [base, advancing], base, advancing)
+    result = telemetry(inventory["m50"], [base, advancing], base, advancing)
+    require(result["flip_auto"] == 1 and result["lb_ex_queue_delay_samples"] == 1
+            and result["lb_ex_oldest_age_samples"] == 1, "armed sampler lost central deltas")
     rejects(lambda: telemetry(inventory["m50"], [base, base], base, base))
-    bad = {**base, "lb_ex_queue_delay_samples": "0"}
-    rejects(lambda: telemetry(inventory["m50"], [bad, bad], bad, bad))
+    for suffix in ("queue_delay_samples", "oldest_age_samples"):
+        key = "lb_ex_" + suffix
+        for value in ("0", "1"):
+            before, after = {**base, key: value}, {**advancing, key: value}
+            rejects(lambda: telemetry(inventory["m50"], [before, after], before, after))
+    for suffix in SIGNAL_SUFFIXES[2:]:
+        key = "lb_ex_" + suffix
+        before, after = {**base, key: "0"}, {**advancing, key: "0"}
+        rejects(lambda: telemetry(inventory["m50"], [before, after], before, after))
+    passed("armed INFO flip_auto=1: advancing positive samples pass; zero/stale counts and zero values fail")
+    disarmed = {**base, "flip_auto": "0"}
+    diagnostic_keys = [f"lb_{role}_{s}" for role in ("io", "ex") for s in SIGNAL_SUFFIXES[2:]]
+    diagnostic_keys += ["lb_ex_queue_delay_samples", "lb_ex_oldest_age_samples"]
+    disarmed.update({key: "0" for key in diagnostic_keys})
+    for disabled in (disarmed, {**base, "flip_auto": "0"}):
+        result = telemetry(inventory["m50"], [disabled, disabled], disabled, disabled)
+        require(result["flip_auto"] == 0 and all(result[key] == FLIPCTL_DISARMED for key in diagnostic_keys),
+                "disarmed age/delay must be NA with reason, including stale warmup values")
+        require(result["lb_ex_masked_lane_high_water"] == 1 and result["lb_fused_queue_delay_ewma_us"] == NA,
+                "disarmed controller changed non-age telemetry or native role names")
+    for flag in (None, "", "-1", "2", "unavailable"):
+        bad = {**base, "flip_auto": flag}
+        rejects(lambda: telemetry(inventory["m50"], [bad, bad], bad, bad))
+    rejects(lambda: telemetry(inventory["m50"], [disarmed, base, disarmed], disarmed, disarmed))
+    passed("disarmed INFO flip_auto=0: NA with reason; missing/invalid/changing state fails")
     bad = {k:v for k,v in base.items() if k != "atomic_fanout_cuts"}
     rejects(lambda: telemetry(inventory["m02"], [bad, bad], bad, bad))
-    passed("1s unavailable, 2s nonvacuous sampler and missing-counter negatives")
+    passed("1s unavailable and missing-counter negatives")
     symbols = "# Total Lost Samples: 0\n# Samples: 1200 of event 'cycles'\n 50.00%;500;[.] tomo::ScatterArenaPool::refresh_snapshot_floor();\n 50.00%;500;[.] je_malloc;\n"
     require(symbol_shares(symbols)["shares_pct"]["allocator"] == 50, "symbol attribution")
     rejects(lambda: symbol_shares(symbols.replace("Samples: 0", "Samples: 1")))
@@ -1180,6 +1226,29 @@ def self_test(args):
             row = run_sample(fake, inventory["m02"], dict(id="fixture", cell="m02", sample=0, keys=8, arm="base", wb_policy=1), folder / "failed", {"binary_sha256":"fixture"})
         require(row["status"] == "FAILED" and row["quiet_refusal"] and not row["children"] and (folder / "failed/row.json").exists(), "failed sample was lost")
         passed("quiet refusal retained without starting a server")
+        # Exercise the real row-completion and report paths, replacing only the
+        # external collection. The disarmed fixture must not become a failed row.
+        monitor = mock.Mock(cpu_budget_seconds=.48)
+        monitor.close.return_value = dict(complete=True)
+        def fixture_pass(*unused):
+            return dict(metrics, kind="core", rate=100., retired_per_send=1., empty_serve_fraction=0.,
+                        shutdown=dict(wb=wb), commands=100, seconds=1., saturation=dict(score_pct=99),
+                        telemetry=telemetry(inventory["m50"], [disarmed, disarmed], disarmed, disarmed))
+        with mock.patch.multiple(__name__, quiet_file_guard=mock.Mock(), box_inventory=mock.Mock(return_value=[]),
+                                 QuietMonitor=mock.Mock(return_value=monitor), snapshot_fixture=mock.Mock(return_value={}),
+                                 run_pass=mock.Mock(side_effect=fixture_pass)):
+            row = run_sample(fake, inventory["m50"], dict(id="fixture", cell="m50", sample=0, keys=8, arm="base", wb_policy=1),
+                             folder / "disarmed", {"binary_sha256": "fixture"})
+        require(row["status"] == "COMPLETE" and all(row[key] == FLIPCTL_DISARMED for key in diagnostic_keys),
+                "disarmed sample did not complete with explained NA: " + str(row.get("error")))
+        require(json.loads((folder / "disarmed/row.json").read_text()) == json.loads(canonical(row)), "disarmed row not retained")
+        destination = folder / "report"
+        destination.mkdir()
+        report([row], [], destination, args.binary)
+        require(FLIPCTL_DISARMED in (destination / "report.md").read_text()
+                and FLIPCTL_DISARMED in json.loads((destination / "report.json").read_text())["age_delay_contract"],
+                "report lost disarmed diagnostic reason")
+        passed("disarmed 2s fixture: COMPLETE row and Markdown/JSON reports retain NA reason (no server)")
     print(json.dumps(dict(status="PASS", checks=checks, server_started=False), indent=2))
     return checks
 
