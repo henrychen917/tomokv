@@ -43,6 +43,7 @@ struct TypeLimits {
     CompactLimit list{std::numeric_limits<uint32_t>::max(), 8 * 1024};
     CompactLimit set {128, 64};
     CompactLimit zset{128, 64};
+    uint32_t set_intset_max_entries = 512;
 };
 
 // Stream node budgets are roll-over limits, not compact-promotion thresholds. Zero disables the
