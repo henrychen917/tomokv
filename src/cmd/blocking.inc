@@ -71,13 +71,13 @@ struct BlockingState {
     std::atomic<NotifyBatch*> notify{nullptr};
 };
 
-namespace {
-
 // DEBUG-only two-stage schedule: 1 holds before the owner registration recheck;
 // 2 lets that recheck run, then retains its last Task until explicitly released.
 // No worker is stopped, no timer expires, and no per-client storage is allocated.
-std::atomic<uint32_t> debug_xread_hold{0};
-std::atomic<uint32_t> debug_xread_stage{0};
+extern std::atomic<uint32_t> debug_xread_hold;
+extern std::atomic<uint32_t> debug_xread_stage;
+
+namespace {
 
 bool blocking_debug_xread_hold(const BlockingState& state, BlockingPhase phase) {
     if (state.kind != BlockingKind::Xread) return false;
@@ -1025,26 +1025,6 @@ bool blocking_finish_registration(BlockingState& state, Shard& shard,
 }
 
 }  // namespace
-
-// Registration/release schedule, entered only through the existing DEBUG gate.
-// Status: 1 = registration held, 2 = last Task held, 3 = IO refused that Task.
-// Argument: 0 releases, 1 arms registration, 2 advances to the last-Task hold.
-bool debug_xread_registration_command(Op& op) {
-    if (!op.arg(1).eq_icase("xread-registration-hold")) return false;
-    if (op.argc() == 2) {
-        reply_int(op.sink(), debug_xread_stage.load(std::memory_order_acquire));
-        return true;
-    }
-    int64_t stage = 0;
-    if (op.argc() != 3 || !parse_i64(op.arg(2), stage) || stage < 0 || stage > 2) {
-        reply_err(op.sink(), "ERR value is not an integer or out of range");
-        return true;
-    }
-    if (stage == 1) debug_xread_stage.store(0, std::memory_order_relaxed);
-    debug_xread_hold.store(static_cast<uint32_t>(stage), std::memory_order_release);
-    reply_ok(op.sink());
-    return true;
-}
 
 Shard::~Shard() {
     blocking_registry_destroy(static_cast<BlockingRegistry*>(blocking_registry_));

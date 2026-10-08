@@ -164,21 +164,21 @@ int main(int argc, char** argv) {
     require(command(add) == (move ? ":1\r\n" : "$3\r\n1-0\r\n"), "real waking write");
     bool notified = false;
     if (window) {
-    require(!sender.ready().any(), "XADD found no registered waiter");
-    require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD", "2"}) == "+OK\r\n", "advance registration");
-    require(!blocking_execute(server, owner, unused_ring, registration, shard, *op),
-            "registration sees data and retains its last Task");
-    require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":2\r\n", "last Task stage observed");
-    require(sender.ready().take(0) == 1, "first resume notification really published and consumed");
-    require(!blocking_resume_move(server, sender, unused_ring, client, pool),
-            "IO cannot resume while an owner Task still refers to the op");
-    require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":3\r\n", "IO rejection stage observed");
-    require(!sender.ready().any(), "IO has drained the notification");
-    require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD", "0"}) == "+OK\r\n", "release last Task");
-    require(blocking_execute(server, owner, unused_ring, registration, shard, *op), "last Task departs");
-    notified = sender.ready().take(0) == 1;
-    std::printf("aclkeys-wake mode=%s atomic=%d db=%u registration=1 last_task=2 io_rejected=3 final_notification=%d\n",
-                fused ? "fused" : "split", atomic, cfg.databases, notified);
+        require(!sender.ready().any(), "XADD found no registered waiter");
+        require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD", "2"}) == "+OK\r\n", "advance registration");
+        require(!blocking_execute(server, owner, unused_ring, registration, shard, *op),
+                "registration sees data and retains its last Task");
+        require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":2\r\n", "last Task stage observed");
+        require(sender.ready().take(0) == 1, "first resume notification really published and consumed");
+        require(!blocking_resume_move(server, sender, unused_ring, client, pool),
+                "IO cannot resume while an owner Task still refers to the op");
+        require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":3\r\n", "IO rejection stage observed");
+        require(!sender.ready().any(), "IO has drained the notification");
+        require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD", "0"}) == "+OK\r\n", "release last Task");
+        require(blocking_execute(server, owner, unused_ring, registration, shard, *op), "last Task departs");
+        notified = sender.ready().take(0) == 1;
+        std::printf("aclkeys-wake mode=%s atomic=%d db=%u registration=1 last_task=2 io_rejected=3 final_notification=%d\n",
+                    fused ? "fused" : "split", atomic, cfg.databases, notified);
     } else {
         notified = sender.ready().take(0) == 1;
         std::printf("aclkeys-wake mode=%s atomic=%d db=%u command=%s parked=1 final_notification=%d\n",
@@ -191,28 +191,28 @@ int main(int argc, char** argv) {
         require(op->state.load() == OpState::Done, "consumer group completed on its owner");
         blocking_retire(server, client, *op, sender);
     } else {
-    require(blocking_resume_move(server, sender, unused_ring, client, pool), "resume scatter on explicit IO visit");
-    unsigned fragments = 0;
-    bool finished = false;
-    for (unsigned pass = 0; !finished && pass < 16; ++pass) {
-    for (uint32_t tid = 0; tid < server.nthreads(); ++tid) {
-        server.thread(tid).drain_tasks([&](const Task& task) {
-            require(xshard_execute(task, server.shard(task.shard), *op, tid) == ScatterTaskResult::Complete,
-                    "stream scatter gather");
-            const auto result = xshard_complete(server, server.thread(tid), unused_ring, task, *op);
-            if (result == ScatterFinish::Final) finished = true;
-            else if (result == ScatterFinish::CommitQueued)
-                xshard_queue_commit(server, server.thread(tid), task);
-            else require(result == ScatterFinish::Waiting, "scatter phase completion");
-            ++fragments;
-        });
-        xshard_flush_commits(server, server.thread(tid), unused_ring, &finished,
-            [](void* context, Client*) { *static_cast<bool*>(context) = true; });
-    }
-    }
-    require(finished && (move ? fragments >= 2 : fragments == 1), "complete scatter owner wave");
-    op->state.store(OpState::Done);
-    xshard_retire(server, sender, unused_ring, client, *op, pool, io, nullptr, nullptr, nullptr);
+        require(blocking_resume_move(server, sender, unused_ring, client, pool), "resume scatter on explicit IO visit");
+        unsigned fragments = 0;
+        bool finished = false;
+        for (unsigned pass = 0; !finished && pass < 16; ++pass) {
+            for (uint32_t tid = 0; tid < server.nthreads(); ++tid) {
+                server.thread(tid).drain_tasks([&](const Task& task) {
+                    require(xshard_execute(task, server.shard(task.shard), *op, tid) == ScatterTaskResult::Complete,
+                            "stream scatter gather");
+                    const auto result = xshard_complete(server, server.thread(tid), unused_ring, task, *op);
+                    if (result == ScatterFinish::Final) finished = true;
+                    else if (result == ScatterFinish::CommitQueued)
+                        xshard_queue_commit(server, server.thread(tid), task);
+                    else require(result == ScatterFinish::Waiting, "scatter phase completion");
+                    ++fragments;
+                });
+                xshard_flush_commits(server, server.thread(tid), unused_ring, &finished,
+                    [](void* context, Client*) { *static_cast<bool*>(context) = true; });
+            }
+        }
+        require(finished && (move ? fragments >= 2 : fragments == 1), "complete scatter owner wave");
+        op->state.store(OpState::Done);
+        xshard_retire(server, sender, unused_ring, client, *op, pool, io, nullptr, nullptr, nullptr);
     }
     const char* expected = revoke ? "-NOPERM No permissions to access a key\r\n" : move ? "$5\r\nvalue\r\n" :
         "*1\r\n*2\r\n$13\r\nblock:aclkeys\r\n*1\r\n*2\r\n$3\r\n1-0\r\n*2\r\n$5\r\nfield\r\n$5\r\nvalue\r\n";

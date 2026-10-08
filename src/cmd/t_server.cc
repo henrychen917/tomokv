@@ -50,7 +50,7 @@
 #include <sys/socket.h>
 
 namespace tomo {
-bool debug_xread_registration_command(Op& op);
+void debug_xread_registration_command(Op& op);
 namespace {
 
 constexpr const char* kVersion = "0.1-cpp";
@@ -1104,7 +1104,6 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_int(op.sink(), xshard_plain_stale_cuts());
         return;
     }
-    if (debug_xread_registration_command(op)) return;
     // Nonblocking admission witness: unlike COMMIT-DELAY, this latch leaves both executors
     // available for CONFIG. It retains the existing commit queue until explicitly released.
     if (eq_icase(subcommand, "atomic-commit-hold") && op.argc() == 3) {
@@ -1264,7 +1263,7 @@ void cmd_debug_impl(Shard& shard, Op& op) {
         reply_err(op.sink(), "ERR internal DEBUG RELOAD routing error");
         return;
     }
-    reply_err(op.sink(), "ERR unknown subcommand or wrong number of arguments for 'debug' command");
+    debug_xread_registration_command(op);
 }
 
 void cmd_quit(Shard&, Op& op) {

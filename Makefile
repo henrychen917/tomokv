@@ -42,6 +42,8 @@ SRC      += src/cmd/geo_store.cc
 # Cold DEBUG observer links after existing objects to preserve weak-symbol selection.
 SRC      += src/persist/aof_frame_debug.cc
 SRC      += src/cmd/aclkeys.cc
+# Keep the armed-only witness parser after ordinary objects (weak-symbol selection).
+SRC      += src/cmd/blocking_debug.cc
 LDLIBS   += -lssl -lcrypto
 BUILD_ROOT ?= build
 BIN      := $(BUILD_ROOT)/tomokv
