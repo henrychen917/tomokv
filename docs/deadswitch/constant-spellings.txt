@@ -1,0 +1,1 @@
+tests/reorder_unit.cc:408:    static_assert(kGenthreadExBatchOps == 32 && kGenthreadPipelineExBatchOps == 128);
