@@ -6440,6 +6440,11 @@ def run_infofields_properties(peers):
             assert selected[b"Server"].keys() == all_fields[(side == "oracle")][b"Server"].keys(), (side, "INFO Server names changed")
             assert selected[b"Server"][b"redis_version"] == version, side
             print("  versionstr %s HELLO %d / INFO redis_version=%s" % (side, protocol, version.decode()))
+            art = parse_reply(issue(peer, ["LOLWUT"]))
+            footer = (b"TomoKV ver. 1.0-cpp\n" if side == "target"
+                      else b"Redis ver. " + version + b"\n")
+            assert isinstance(art, bytes) and art.endswith(footer), (side, "LOLWUT footer", art)
+            print("  versionstr %s RESP%d LOLWUT footer=%s" % (side, protocol, footer.decode().strip()))
     for peer, version in zip(peers, versions):
         infofields_hello_version(issue(peer, ["HELLO", "3" if RESP3 else "2"]), 3 if RESP3 else 2, version)
     if versions[0] != versions[1]:
