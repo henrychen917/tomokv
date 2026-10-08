@@ -88,7 +88,8 @@ bool blocking_debug_xread_hold(const BlockingState& state, BlockingPhase phase) 
     }
     if (held == 2 && phase == BlockingPhase::MoveRequested) {
         uint32_t seen = debug_xread_stage.load(std::memory_order_relaxed);
-        if (seen < 2) debug_xread_stage.store(2, std::memory_order_release);
+        if (seen < 2) debug_xread_stage.compare_exchange_strong(
+            seen, 2, std::memory_order_release, std::memory_order_relaxed);
         return true;
     }
     return false;

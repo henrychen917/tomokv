@@ -277,6 +277,11 @@ DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
 # ACL range audit and real permission checks; never starts the server.
 $(BUILD_ROOT)/aclkeys-unit: tests/aclkeys_unit.cc $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ))
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $^ -o $@ $(JELIBS) $(LDLIBS) -lm
+# Directed blocked-XREAD schedule using production bodies; no listener or worker.
+$(BUILD_ROOT)/aclkeys-wake-unit: tests/aclkeys_wake_unit.cc $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ))
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $^ -o $@ $(JELIBS) $(LDLIBS) -lm
+$(BUILD_ROOT)/aclkeys-wake-db0-unit: tests/aclkeys_wake_unit.cc $(filter-out $(BUILD_ROOT)/db0/src/main.o,$(DB0_OBJ)) $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ))
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # ST2 cost witness: only the two cold census walks are instrumented. The fixture
 # dispatches real commands and counts work; it never boots a listener or workers.
 STORESIZE_CORE_OBJ := $(filter-out build/src/cmd/xshard.o build/src/cmd/multidb.o build/db0/src/cmd/xshard.o build/db0/src/cmd/multidb.o,$(CORE_TEST_OBJ) $(DB0_TEST_OBJ))
