@@ -124,7 +124,7 @@ counter = Path({str(directory / 'cli-count')!r})
 n = int(counter.read_text()) + 1 if counter.exists() else 1
 counter.write_text(str(n))
 mode = {read_local!r}
-print('redis_version:7.4.2')
+print('redis_version:7.4.10')
 # First invocation is oracle identity, second is target boot, third follows a leg.
 # Model RESETSTAT: a real hit in one leg, then zeros through the final sample.
 hits = 7 if mode == 'reset' and n == 3 else 1 if mode == 'normal' else 0

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # DIFFERENTIAL battery: run one deterministic command stream against the TARGET (tomokv-cpp) and
-# the ORACLE (vanilla Redis 7.4.2 -- byte-exact redis semantics) and diff every reply.
+# the ORACLE (vanilla Redis 7.4.10 -- byte-exact redis semantics) and diff every reply.
 #   python3 tests/differ.py <target_host> <target_port> <oracle_host> <oracle_port> <suite> [seed] [-3]
 #   python3 tests/differ.py --list-generators
 # Exit 0 iff zero diffs. Suites include the ordinary byte-comparison generators plus property
