@@ -28,12 +28,14 @@ int main(int argc, char** argv) {
     const std::string scenario = argc > 3 ? argv[3] : "window";
     const bool revoke = scenario.ends_with("-denied");
     const std::string kind = revoke ? scenario.substr(0, scenario.size() - 7) : scenario;
-    const bool window = kind == "window";
+    const bool unblock = kind == "window-unblock";
+    const bool window = kind == "window" || unblock;
     require(window || kind == "XREAD" || kind == "BLMOVE" || kind == "BRPOPLPUSH" ||
             kind == "XREADGROUP", "known witness scenario");
     Config cfg;
     cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;
     cfg.thread_mode = fused ? ThreadMode::Fused : ThreadMode::Split;
+    cfg.read_local = fused ? 1 : 0;
     cfg.atomic = atomic; cfg.databases = kSingleDatabase ? 1 : 16;
     cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
     cfg.save.clear(); cfg.enable_debug_command = DebugCommandMode::Yes;
@@ -89,6 +91,11 @@ int main(int argc, char** argv) {
         request.spec->handler(shard, request);
         return bytes(request);
     };
+    require(debug({"DEBUG", "aclkeys-unknown"}) ==
+            "-ERR unknown subcommand or wrong number of arguments for 'debug' command\r\n",
+            "existing DEBUG fallback text is unchanged");
+    require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD", "3"}) ==
+            "-ERR value is not an integer or out of range\r\n", "reject invalid DEBUG stage");
     require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD", window ? "1" : "0"}) == "+OK\r\n",
             "set DEBUG latch");
     const std::string key = "block:aclkeys";
@@ -127,24 +134,32 @@ int main(int argc, char** argv) {
     const int32_t sid = blocking_dispatch_shard(dispatch, 0);
     Shard& shard = server.shard(sid);
     ThreadCtx& owner = server.thread(server.worker_of_shard(sid));
+    const auto execute = [&](const Task& task) {
+        return fused ? blocking_execute_iofused(server, owner, unused_ring, task, shard, *op)
+                     : blocking_execute(server, owner, unused_ring, task, shard, *op);
+    };
+    const auto resume = [&]() {
+        return fused ? blocking_resume_move_iofused(server, sender, unused_ring, client, pool)
+                     : blocking_resume_move(server, sender, unused_ring, client, pool);
+    };
     client.set_blocked(true); client.barrier_acquire(BarrierOwner::Blocking);
     op->attach_blocking_state(dispatch.state);
     op->state.store(OpState::Issued);
     client.rob().publish();
     blocking_start(dispatch.state, 1);
     const Task probe{&client, 0, sid, reinterpret_cast<ScatterState*>(dispatch.state)};
-    require(blocking_execute(server, owner, unused_ring, probe, shard, *op), "empty initial probe");
+    require(execute(probe), "empty initial probe");
     std::vector<Task> registrations;
     owner.drain_tasks([&](const Task& task) { registrations.push_back(task); });
     require(registrations.size() == 1, "actual registration task was posted");
     const Task registration = registrations.front();
     if (window) {
-        require(!blocking_execute(server, owner, unused_ring, registration, shard, *op),
+        require(!execute(registration),
                 "owner registration really held");
         require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":1\r\n", "registration stage observed");
         require(client.blocked() && !shard.has_blocking_waiters(), "published blocked flag precedes waiter");
     } else {
-        require(blocking_execute(server, owner, unused_ring, registration, shard, *op),
+        require(execute(registration),
                 "registration completes");
         require(client.blocked() && shard.has_blocking_waiters(), "real owner waiter is parked");
     }
@@ -163,19 +178,25 @@ int main(int argc, char** argv) {
     }
     require(command(add) == (move ? ":1\r\n" : "$3\r\n1-0\r\n"), "real waking write");
     bool notified = false;
+    bool early_notification = false;
     if (window) {
         require(!sender.ready().any(), "XADD found no registered waiter");
         require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD", "2"}) == "+OK\r\n", "advance registration");
-        require(!blocking_execute(server, owner, unused_ring, registration, shard, *op),
+        require(!execute(registration),
                 "registration sees data and retains its last Task");
         require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":2\r\n", "last Task stage observed");
-        const bool early_notification = sender.ready().take(0) == 1;
-        require(!blocking_resume_move(server, sender, unused_ring, client, pool),
+        early_notification = sender.ready().take(0) == 1;
+        require(!resume(),
                 "IO cannot resume while an owner Task still refers to the op");
         require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":3\r\n", "IO rejection stage observed");
         require(!sender.ready().any(), "IO has drained the notification");
+        if (unblock) {
+            require(blocking_request_unblock(client, true), "request unblock while the Task is held");
+            require(!blocking_cancel_client(server, sender, unused_ring, client),
+                    "the held owner Task retains cancellation responsibility");
+        }
         require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD", "0"}) == "+OK\r\n", "release last Task");
-        require(blocking_execute(server, owner, unused_ring, registration, shard, *op), "last Task departs");
+        require(execute(registration), "last Task departs");
         notified = sender.ready().take(0) == 1;
         std::printf("aclkeys-wake mode=%s atomic=%d db=%u registration=1 last_task=2 io_rejected=3 early_notification=%d final_notification=%d\n",
                     fused ? "fused" : "split", atomic, cfg.databases, early_notification, notified);
@@ -187,11 +208,11 @@ int main(int argc, char** argv) {
 
     // Explicit manual IO visit permits cleanup on PRE too. This is not evidence of a wake;
     // only the production ready-mask publication above satisfies the assertion below.
-    if (kind == "XREADGROUP") {
-        require(op->state.load() == OpState::Done, "consumer group completed on its owner");
+    if (kind == "XREADGROUP" || unblock) {
+        require(op->state.load() == OpState::Done, "direct completion on its owner");
         blocking_retire(server, client, *op, sender);
     } else {
-        require(blocking_resume_move(server, sender, unused_ring, client, pool), "resume scatter on explicit IO visit");
+        require(resume(), "resume scatter on explicit IO visit");
         unsigned fragments = 0;
         bool finished = false;
         for (unsigned pass = 0; !finished && pass < 16; ++pass) {
@@ -214,12 +235,14 @@ int main(int argc, char** argv) {
         op->state.store(OpState::Done);
         xshard_retire(server, sender, unused_ring, client, *op, pool, io, nullptr, nullptr, nullptr);
     }
-    const char* expected = revoke ? "-NOPERM No permissions to access a key\r\n" : move ? "$5\r\nvalue\r\n" :
+    const char* expected = revoke ? "-NOPERM No permissions to access a key\r\n" :
+        unblock ? "-UNBLOCKED client unblocked via CLIENT UNBLOCK\r\n" : move ? "$5\r\nvalue\r\n" :
         "*1\r\n*2\r\n$13\r\nblock:aclkeys\r\n*1\r\n*2\r\n$3\r\n1-0\r\n*2\r\n$5\r\nfield\r\n$5\r\nvalue\r\n";
     require(bytes(*op) == expected, "exact admitted/revoked blocking reply");
     require(!client.blocked() && !client.scatter_barrier(), "blocking lifecycle retired");
     blocking_bind_executor(nullptr, nullptr, nullptr);
     require(notified, "last Task did not renew the consumed IO notification");
+    if (window) require(!early_notification, "resume was notified before the last owner Task left");
     acl_shutdown();
     std::puts("PASS aclkeys-wake");
 }

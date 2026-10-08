@@ -11,7 +11,7 @@ import subprocess
 from ccfix4_budget import inventory, compare
 
 ROOT = Path(__file__).resolve().parents[1]
-ALLOWED = re.compile(r'::(?:blocking_(?:task_done|request_move|execute|scatter_retire|resume_move_impl|debug_xread_hold)|debug_xread_registration_|cmd_debug(?:_impl)?\()')
+ALLOWED = re.compile(r'::(?:blocking_(?:task_done|request_move|execute|scatter_retire|resume_move_impl|debug_xread_hold|dispatch_selected|fail_registration_oom)|BlockingRegistry::service|debug_xread_registration_|cmd_debug(?:_impl)?\()')
 
 
 def main():
@@ -21,6 +21,7 @@ def main():
     p.add_argument('values', nargs='+', type=int)
     p.add_argument('--jobs', type=int, default=4)
     p.add_argument('--dump', action='store_true')
+    p.add_argument('--auto', type=int, help='changed-TU max-inline-insns-auto budget')
     args = p.parse_args()
     stem = 't_server' if args.tu == 'server' else 'xshard'
     relative = Path('src/cmd' if args.variant == 'src' else 'db0/src/cmd') / (stem + '.o')
@@ -31,7 +32,8 @@ def main():
     original = next(shlex.split(line) for line in subprocess.check_output(
         ['make', '-n', '-B', str(Path('build') / relative)], cwd=ROOT, text=True).splitlines()
         if line.startswith('g++ ') and f'-c src/cmd/{stem}.cc ' in line)
-    folder = ROOT / 'build/aclkeys3/budgets' / (args.tu + '-' + args.variant)
+    folder = ROOT / 'build/aclkeys3/budgets' / (args.tu + '-' + args.variant +
+             (f'-auto{args.auto}' if args.auto is not None else ''))
     folder.mkdir(parents=True, exist_ok=True)
 
     def trial(value):
@@ -39,6 +41,11 @@ def main():
         command = [f'large-unit-insns={value}' if token.startswith('large-unit-insns=')
                    else '-g0' if token == '-g' else token for token in original]
         command[command.index('-o') + 1] = str(target)
+        if args.auto is not None:
+            command = [f'max-inline-insns-auto={args.auto}' if token.startswith('max-inline-insns-auto=')
+                       else token for token in command]
+            if not any(token.startswith('max-inline-insns-auto=') for token in command):
+                command += ['--param', f'max-inline-insns-auto={args.auto}']
         if args.dump:
             command.append('-fdump-ipa-inline-details=' + str(folder / f'{value}.inline'))
         with (folder / f'{value}.log').open('w') as log:

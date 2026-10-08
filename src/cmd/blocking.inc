@@ -80,6 +80,7 @@ extern std::atomic<uint32_t> debug_xread_stage;
 
 namespace {
 
+[[gnu::noinline]]
 bool blocking_debug_xread_hold(const BlockingState& state, BlockingPhase phase) {
     if (state.kind != BlockingKind::Xread) return false;
     const uint32_t held = debug_xread_hold.load(std::memory_order_relaxed);
@@ -1119,7 +1120,7 @@ bool blocking_execute_impl(Server&, ThreadCtx& self, Ring& ring, const Task& tas
         return true;
     }
     const BlockingPhase phase = state.phase.load(std::memory_order_acquire);
-    if (blocking_debug_xread_hold(state, phase)) return false;
+    if (__builtin_expect(blocking_debug_xread_hold(state, phase), false)) return false;
     if (phase == BlockingPhase::Cancelled) {
         blocking_task_done(state, self, ring);
         return true;
@@ -1182,7 +1183,8 @@ bool blocking_execute_impl(Server&, ThreadCtx& self, Ring& ring, const Task& tas
             state.pending.fetch_sub(1, std::memory_order_acq_rel) == 1 &&
             !blocking_finish_registration<IofusedPrivateQueue>(
                 state, shard, self, ring)) return false;
-        if (blocking_debug_xread_hold(state, state.phase.load(std::memory_order_acquire)))
+        if (__builtin_expect(blocking_debug_xread_hold(
+                state, state.phase.load(std::memory_order_acquire)), false))
             return false;
         blocking_task_done(state, self, ring);
         return true;
