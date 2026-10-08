@@ -1,5 +1,5 @@
-The complete infofields request, arm identities, static proof and known MONITOR
-refusal-feed deviation are in MEASURE-REQUEST-infofields.md.
-
-Do not infer a green live gate from the offline checks. The strict new monitor
-differential is expected to expose the documented preserved ordering defect.
+Lane lbosc3 (decision group 10): see MEASURE-REQUEST-lbosc3.md.
+Status UNTUNED: serverless proof and frozen arms only; no live measurements run.
+Run >=6 key-skew rounds per arm per mode, PRE/PAD-A(type A)/POST, then pooled judge.
+Maintainer owns measurements, 14-cell null, live LB/stationary-hold rows and gate.
+Rows +0/+0. Do not land without the measured pooled-move/accuracy/rate/p99 bars.

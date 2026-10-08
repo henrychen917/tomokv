@@ -1,0 +1,32 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=146340",
+    "-I.",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "--param",
+    "max-inline-insns-auto=14",
+    "-c",
+    "src/main.cc",
+    "-o",
+    "build/lbosc3/budgets/auto/db0-main-146340-a14.o"
+  ],
+  "total": 128,
+  "matched": 128,
+  "changed": []
+}

@@ -6,6 +6,7 @@ import json
 import math
 from pathlib import Path
 import statistics
+import tempfile
 import unittest
 
 import lb_episodes as episodes
@@ -150,6 +151,34 @@ def display(result):
 
 
 class SelfTest(unittest.TestCase):
+    def test_raw_owner_maps_and_fixed_endpoint_override_pass_flag(self):
+        parent = Path(__file__).resolve().parents[1] / "build"
+        parent.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=parent) as temporary:
+            path = Path(temporary) / "run.json"
+            path.write_text(json.dumps(dict(episode="key-skew", mode="1s", arm="POST", round=1,
+                                           status="FAIL", measurement_valid=True, stimulus_t=2,
+                                           rate=400, p99=1)))
+            samples = []
+            for i in range(91):
+                moved = i >= 30
+                owners = (1, 0, 0, 1) if moved else (0, 1, 0, 1)
+                samples.append(dict(t=i / 10,
+                    info={episodes.KEY: 2 * moved, episodes.SPREADS[0]: 20},
+                    signals={"shards": {str(sid): {"owner": owner, "ops": 10 * i}
+                                          for sid, owner in enumerate(owners)}}))
+            telemetry = path.with_name("telemetry.jsonl")
+            def save(): telemetry.write_text("".join(json.dumps(s) + "\n" for s in samples))
+            save()
+            result = quantities(path, dict(max_converge=3, suffix=1))
+            self.assertEqual((result["moves"], result["returns"], result["exchanges"]), (2, 0, 1))
+            self.assertEqual((result["last_move_s"], result["end_spread"]), (1, 20))
+            self.assertAlmostEqual(result["band_floor"], 2 * episodes.sampling_floor(2))
+            samples[-1]["info"][episodes.KEY] += 2
+            save()
+            with self.assertRaisesRegex(ValueError, "missed a completed move"):
+                quantities(path, dict(max_converge=3, suffix=1))
+
     def rows(self):
         return [dict(mode=m, arm=a, round=i, moves=1 if a == "POST" else 2,
                      returns=0, exchanges=0, last_move_s=3, end_spread=15 if a == "POST" else 10,
