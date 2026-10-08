@@ -1,0 +1,11 @@
+PASS knob set matches parser: 89 spellings
+PASS self-test positive copy
+PASS self-test fake documented knob: FAIL knob set matches parser: documented but not parsed: docs-drift-fake-knob
+PASS self-test missing canonical knob: FAIL knob set matches parser: parsed but undocumented: databases
+PASS self-test missing alias: FAIL knob set matches parser: parsed but undocumented: hash-max-ziplist-entries
+PASS self-test new parser knob: FAIL knob set matches parser: parsed but undocumented: docs-drift-source-knob
+PASS self-test duplicate row: FAIL knob set matches parser: duplicate documented knobs: databases
+PASS self-test comment is not a knob
+PASS self-test encoding default drift: FAIL knob set matches parser: encoding rows/defaults drifted: run python3 tests/docs_drift.py --write
+PASS self-test writeback default drift: FAIL knob set matches parser: encoding rows/defaults drifted: run python3 tests/docs_drift.py --write
+PASS self-test empty document: FAIL knob set matches parser: no documented knob rows

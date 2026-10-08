@@ -37,4 +37,5 @@ void test_zpop_faults();
 void test_empty_collection_loads();
 void test_empty_collection_random();
 void test_config_rewrite();
+void test_writeback_knob(const char* name, tomo::Config& config);
 void test_config_bounds(const char* only = nullptr);

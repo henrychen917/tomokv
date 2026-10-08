@@ -342,6 +342,8 @@ void init_config(const Config& cfg) {
     g_config.push_back({"reorder", ConfigKind::Signed,
                         std::to_string(static_cast<int32_t>(cfg.reorder)), true});
     g_config.push_back({"wb-policy", ConfigKind::Signed, std::to_string(cfg.wb_policy), true});
+    g_config.push_back({"wb-small-pipe", ConfigKind::Unsigned, std::to_string(cfg.wb_small_pipe), true});
+    g_config.push_back({"wb-complete-visits", ConfigKind::Unsigned, std::to_string(cfg.wb_complete_visits), true});
     g_config.push_back({"key-lb", ConfigKind::Unsigned, std::to_string(cfg.key_lb), true});
     g_config.push_back({"key-lb-damping", ConfigKind::Signed, std::to_string(cfg.key_lb_damping), true});
     g_config.push_back({"client-lb", ConfigKind::Unsigned, std::to_string(cfg.client_lb), true});

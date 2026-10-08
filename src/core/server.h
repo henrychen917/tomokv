@@ -481,7 +481,7 @@ public:
     const Config&    cfg()        const { return cfg_; }
     ThreadMode thread_mode() const { return cfg_.thread_mode; }
     void wb_policy_info(std::string& body) const {
-        wb_rule::info(body, cfg_.wb_policy);
+        wb_rule::info(body, cfg_.wb_policy, cfg_.wb_small_pipe, cfg_.wb_complete_visits);
     }
     const char* thread_mode_name() const {
         return cfg_.thread_mode == ThreadMode::Fused ? "1s" : "2s";

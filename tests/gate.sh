@@ -281,8 +281,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
 # encodingfix owner ruling: two serverless rows before the quick exit (+2/+2).
-EXPECT_QUICK=502
-EXPECT_FULL=519                 # ABBA reports only; self-test remains counted.
+EXPECT_QUICK=504
+EXPECT_FULL=521                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1675,7 +1675,8 @@ row_begin "netcmd regression build"
 unit_ready netcmd-unit \
     && ok "netcmd regression build" || bad "netcmd regression build" "see $RUN_DIR/jobs/production_units/build.log"
 # CD1: +1 row before the quick-tier exit; EXPECT counts remain maintainer-owned.
-for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub receive config hexpire-oom; do
+# wbknobs: +2/+2 before the quick exit; owner authorized matching EXPECT updates.
+for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub receive config wb-small-pipe wb-complete-visits hexpire-oom; do
   row_begin "netcmd $NETCMD_CASE regression"
   taskset -c "$CORES" ./build/netcmd-unit "$NETCMD_CASE" >$TMPDIR/gate-netcmd-$NETCMD_CASE.txt 2>&1 \
       && ok "netcmd $NETCMD_CASE regression" \

@@ -22,7 +22,7 @@ WB = 'src/net/wb.h'
 DETECTOR_TOKENS = (
     'wb_policy_signals_', 'wb_policy_signal(', 'wb_rule::State', 'wb_policy.pass(',
     'wb_policy.publish(', 'wb_adaptive', 'wb_thread_', 'struct Window', 'struct Published')
-RULE_TOKENS = ('now_ns(', 'clock_gettime', 'new ', 'malloc(', 'make_unique', 'build_arm')
+RULE_TOKENS = ('now_ns(', 'clock_gettime', 'cfg(', 'new ', 'malloc(', 'make_unique', 'build_arm')
 SERVE = 'wb_rule::Phase2::serve<HasTls, kEp, IoLoop, Fused>(*this)'
 GATHER = 'wb_rule::Phase2::gather(*this, batch, captured_left)'
 SERVE_GUARD = '''
@@ -65,6 +65,11 @@ BUFFER = 'SmallBuf<kWbufInline>& fb = c->fill_buf();'
 # never exempt an entire method from the remaining-reference scan.
 PLUMBING = (
     ('', 'friend struct wb_rule::Phase2;', 1),
+    ('', 'wb_rule::Settings wb_config_;', 1),
+    ('init', 'cache_writeback_config();', 1),
+    ('cache_writeback_config', '''wb_config_ = {static_cast<uint8_t>(srv_->cfg().wb_policy),
+                      static_cast<uint8_t>(srv_->cfg().wb_small_pipe),
+                      static_cast<uint8_t>(srv_->cfg().wb_complete_visits)};''', 1),
     ('', 'std::deque<Client*> pending_serve_;', 1),
     ('flip_io_drained', '''if (!pending_serve_.empty() || !pending_releases_.empty() ||
         !pending_handoffs_.empty() || !deferred_timers_.empty() ||
@@ -162,7 +167,7 @@ def envelope(path, expected_calls, plumbing, guarded):
     for method, guard in guarded: claim(method, guard, tail=True)
     for method, fragment, count in plumbing: claim(method, fragment, count)
     for i, token in enumerate(code):
-        watched = (any(name in token for name in ('pending_serve_', 'serve_pending', 'kWbufInline', 'kPolicyFraction'))
+        watched = (any(name in token for name in ('pending_serve_', 'serve_pending', 'kWbufInline', 'kPolicyFraction', 'wb_config_', 'wb_small_pipe', 'wb_complete_visits'))
                    if re.fullmatch(r'\w+', token) else False)
         watched |= code[i:i+2] in (('wb_rule', '::'), ('defer', '('))
         assert not watched or i in covered, f'{path}: unanchored writeback reference {token}'
@@ -229,7 +234,7 @@ SOURCE_CONTROLS = {
                       f'{IO}: unanchored writeback reference wb_rule'),
     'rule-clock': (POLICY, 'if (policy == 0) return false;',
                    '(void)now_ns(); if (policy == 0) return false;', f'{POLICY}: banned token now_ns('),
-    'rule-allocation': (POLICY, 'char line[64];', 'char line[64]; (void)new char;',
+    'rule-allocation': (POLICY, 'char line[128];', 'char line[128]; (void)new char;',
                         f'{POLICY}: banned token new'),
     'io-clock': (IO, 'uint32_t flush_ready() {', 'uint32_t flush_ready() { (void)now_ns();',
                  f'{IO}:flush_ready: banned token now_ns('),
@@ -292,10 +297,10 @@ def check(group, build, proofs=None):
             for case in CASES: run(build/f'wbland-{ns}unit', case)
             for case in ('fastpath', 'fraction', 'staged', 'submitted', 'bytes', 'holes', 'markers', 'codes', 'acquire'):
                 run(build/f'wbland-{ns}clause-unit', case, prefix='wb-rule')
-            for case in ('table', 'exits'):
+            for case in ('table', 'exits', 'knobs'):
                 run(build/f'wb-rule-{ns}completion-unit', case, prefix='wb-completion')
         else:
-            for case in ('lifetime', 'lifetime-serve'):
+            for case in ('lifetime', 'lifetime-serve', 'knob-lifetime', 'knob-lifetime-serve'):
                 run(build/f'wb-rule-{ns}completion-unit', case, prefix='wb-completion')
             binary = build/f'wb-rule-{ns}phase-unit'
             for extra in ((), ('r7',)): run(binary, 'wbland-fused', extra=extra, prefix='wb-rule')
@@ -303,7 +308,7 @@ def check(group, build, proofs=None):
                 for case in ('wbland-split', 'wbland-local'):
                     run(binary, case, extra=extra, prefix='wb-rule')
     for name, (kind, _, _, _, case, assertion) in legacy.MUTANTS.items():
-        if kind == 'completion' and (case == 'table') == (group == 'clauses'):
+        if kind == 'completion' and (case in ('table', 'knobs')) == (group == 'clauses'):
             for ns in ('', 'db0-'):
                 run(build/'wb-rule-completion-controls'/name/f'{ns}unit',
                     case, assertion, prefix='wb-completion')
