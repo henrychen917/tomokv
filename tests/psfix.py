@@ -166,11 +166,13 @@ def main():
                 reply = conn.cmd('SAVE')
                 assert isinstance(reply, RespError), reply
                 assert int(info(conn, 'persistence')['rdb_saves']) == before
+                assert info(conn, 'persistence')['rdb_last_bgsave_status'] == 'err'
             finally:
                 moved.rename(target_dir)
             with save_reply_timeout(conn.sock, args.bgsave_load_keys * 4096):
                 conn.must('SAVE')
             assert int(info(conn, 'persistence')['rdb_saves']) == before + 1
+            assert info(conn, 'persistence')['rdb_last_bgsave_status'] == 'ok'
             print('PSFIX failed SAVE leaves count unchanged; successful retry increments once')
             before = int(info(conn, 'persistence')['rdb_saves'])
             rewrites = int(info(conn, 'persistence')['aof_rewrites'])
@@ -184,6 +186,7 @@ def main():
                 assert time.monotonic() < deadline, 'AOF rewrite did not complete'
                 time.sleep(.01)
             assert int(fields['rdb_saves']) == before
+            assert fields['rdb_last_bgsave_status'] == 'ok'
             print('PSFIX AOF rewrite completes without incrementing rdb_saves')
         finally:
             conn.close()

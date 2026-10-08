@@ -1,0 +1,7 @@
+production PASS exit 0
+eight-slots REJECTED exit -6
+/home/user/Projects/cx-infofields/build/infofields/units/no-cron-peak.cc: In function ‘void tomo::{anonymous}::sample(uint64_t, const std::array<long unsigned int, 3>&, uint64_t)’:
+/home/user/Projects/cx-infofields/build/infofields/units/no-cron-peak.cc:51:82: warning: unused parameter ‘memory’ [-Wunused-parameter]
+   51 | void sample(uint64_t sampled_ns, const std::array<uint64_t, 3>& totals, uint64_t memory) {
+      |                                                                         ~~~~~~~~~^~~~~~
+no-cron-peak REJECTED exit -6

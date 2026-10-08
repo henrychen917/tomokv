@@ -131,7 +131,7 @@ class Err(str):
 
 
 def info_counters(conn):
-    body = conn.cmd("INFO", "stats")
+    body = conn.cmd("INFO", "stats", "memory")
     out = {}
     for line in body.decode(errors="replace").split("\r\n"):
         if ":" in line and not line.startswith("#"):

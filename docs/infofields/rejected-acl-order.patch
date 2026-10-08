@@ -1,0 +1,34 @@
+diff --git a/src/core/io_loop.h b/src/core/io_loop.h
+index 36cb9e304..f304f4367 100644
+--- a/src/core/io_loop.h
++++ b/src/core/io_loop.h
+@@ -3717,10 +3717,10 @@ private:
+                     break;
+                 }
+             }
+-            if (__builtin_expect(notify_armed, false) &&
+-                __builtin_expect(climon_armed_gate(c, *op), false)) break;
+             if (__builtin_expect(security_check, false) &&
+                 acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
++            if (__builtin_expect(notify_armed, false) &&
++                __builtin_expect(climon_armed_gate(c, *op), false)) break;
+             if (__builtin_expect(flip_pause_this_pass, false) &&
+                 !(spec->flags & CmdFlags::FlipAsync) &&
+                 !(!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))) {
+diff --git a/src/core/reorder.cc b/src/core/reorder.cc
+index f6b4cc41e..2ec029093 100644
+--- a/src/core/reorder.cc
++++ b/src/core/reorder.cc
+@@ -2731,10 +2731,10 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
+                 break;
+             }
+         }
+-        if (__builtin_expect(notify_armed, false) &&
+-            __builtin_expect(climon_armed_gate(c, *op), false)) break;
+         if (__builtin_expect(security_check, false) &&
+             acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
++        if (__builtin_expect(notify_armed, false) &&
++            __builtin_expect(climon_armed_gate(c, *op), false)) break;
+         if (__builtin_expect(flip_pause_this_pass, false) &&
+             !(spec->flags & CmdFlags::FlipAsync) &&
+             !(!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))) {

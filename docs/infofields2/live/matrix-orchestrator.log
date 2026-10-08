@@ -1,0 +1,19 @@
+COMMAND ["bash", "tools/quietcheck.sh", "112-119,120-127", "18899"]
+COMMAND ["bash", "tools/quietcheck.sh", "112-119,120-127", "18900"]
+COMMAND ["bash", "tests/differ_gate.sh", "build/infofields/POST/tomokv", "18899", "18900", "112-119", "6:2"]
+MATRIX FINISHED infofields2-POST-split 0
+COMMAND ["bash", "tools/quietcheck.sh", "112-119,120-127", "18899"]
+COMMAND ["bash", "tools/quietcheck.sh", "112-119,120-127", "18900"]
+COMMAND ["bash", "tests/differ_gate.sh", "build/infofields/POST/tomokv", "18899", "18900", "112-119", "6:2"]
+MATRIX FINISHED infofields2-POST-armed-fused 0
+COMMAND ["bash", "tools/quietcheck.sh", "112-119,120-127", "18899"]
+COMMAND ["bash", "tools/quietcheck.sh", "112-119,120-127", "18900"]
+QUIET REFUSAL; retry in 200 seconds
+COMMAND ["bash", "tools/quietcheck.sh", "112-119,120-127", "18899"]
+COMMAND ["bash", "tools/quietcheck.sh", "112-119,120-127", "18900"]
+QUIET REFUSAL; retry in 200 seconds
+COMMAND ["bash", "tools/quietcheck.sh", "112-119,120-127", "18899"]
+COMMAND ["bash", "tools/quietcheck.sh", "112-119,120-127", "18900"]
+COMMAND ["bash", "tests/differ_gate.sh", "build/infofields/PRE/tomokv", "18899", "18900", "112-119", "6:2"]
+MATRIX FINISHED infofields2-PRE-split 1
+COMMAND ["bash", "tools/quietcheck.sh", "112-119,120-127", "18899"]
