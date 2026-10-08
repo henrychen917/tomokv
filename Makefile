@@ -146,13 +146,14 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # rltopo_artifacts.py checks the PRE point-read/parser/scheduler bodies byte for byte.
 # Pin the single-database R7 TU's compiler budget as well: its source is unchanged,
 # and both surviving parser bodies must retain their PRE instructions.
-# The additional cold encoding setup in config.h changes this TU's inlining budget.
-# Retain the entire lbstall hot inventory, including TLS, without changing request code.
-$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=146409
+# Encoding setup and LBOSC3 change the boot parser and policy initialization in these two
+# TUs. Preserve PRE's ordinary parser/TLS/writeback bodies; lbstall_artifacts checks
+# both complete hot inventories. No override changes in unaffected TUs.
+$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=146503
 $(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128865
 $(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161715
 # CC18/ST3 composition: smallest current hot-body delta; ccfix4 retains the search.
-$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146203
+$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146540 --param max-inline-insns-auto=18
 # RL1: retain the measured ALT spelling and its fused GET placement controls.
 # docs/rlfence2/alt.patch and MEASURE-REQUEST-rlfence3.md record the byte proofs.
 $(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128910 -Wa,--defsym,tomo_rlfence_text_pad=16
@@ -694,7 +695,9 @@ build/lbplanner-unit-pad: build/lbplanner-unit tools/lbplanner_pad.py tools/rlfe
 	python3 tools/lbplanner_pad.py $< $@ build/lbplanner-unit-pad-proof > build/lbplanner-unit-pad.log
 build/tomokv-lbplanner-pad: build/tomokv tools/lbplanner_pad.py tools/rlfence_artifacts.py tools/lbstall_artifacts.py
 	python3 tools/lbplanner_pad.py $< $@ build/lbplanner-pad-proof > build/lbplanner-pad.log
-build/lbplanner-units: build/lbplanner-unit build/lbplanner-unit-pad $(foreach arm,$(LBPLANNER_CONTROLS) $(LBPLANNER_TIMING_CONTROLS),build/lbplanner-controls/$(arm)/unit)
+build/lbosc3-unit-pad: build/lbplanner-unit tools/lbosc3_pad.py
+	python3 tools/lbosc3_pad.py $< $@ build/lbosc3/unit-pad-proof > build/lbosc3/unit-pad.log
+build/lbplanner-units: build/lbplanner-unit build/lbplanner-unit-pad build/lbosc3-unit-pad $(foreach arm,$(LBPLANNER_CONTROLS) $(LBPLANNER_TIMING_CONTROLS),build/lbplanner-controls/$(arm)/unit)
 	@touch $@
 .SECONDARY: $(foreach arm,$(LBPLANNER_CONTROLS),build/lbplanner-controls/$(arm)/lbplanner.cc build/lbplanner-controls/$(arm)/lbplanner.o)
 

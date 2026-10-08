@@ -1,0 +1,36 @@
+{
+  "status": "REFUSED",
+  "attempts": [
+    {
+      "attempt": 1,
+      "utc": "2026-10-08T11:03:51.460530+00:00",
+      "started_at": 1791457431.4605296,
+      "observed_cpu_seconds": 3.0500000000000003,
+      "budget_cpu_seconds": 0.48,
+      "observed_wall_seconds": 1.0076680183410645
+    },
+    {
+      "attempt": 2,
+      "utc": "2026-10-08T11:08:56.842744+00:00",
+      "started_at": 1791457736.8427444,
+      "observed_cpu_seconds": 1.17,
+      "budget_cpu_seconds": 0.48,
+      "observed_wall_seconds": 12.015120506286621
+    },
+    {
+      "attempt": 3,
+      "utc": "2026-10-08T11:13:51.501180+00:00",
+      "started_at": 1791458031.5011797,
+      "observed_cpu_seconds": 1.01,
+      "budget_cpu_seconds": 0.48,
+      "observed_wall_seconds": 7.011683702468872
+    }
+  ],
+  "span_seconds": 600.0406501293182,
+  "probe_started": false,
+  "hotmax_2s_predeclared": 64,
+  "policy": "tests/gate_quiet.py selected-core-port-budget-v1",
+  "server_cores": "112-119",
+  "load_cores": "120-127",
+  "port": 7931
+}

@@ -4,3 +4,15 @@ PRE/POST: build/versionstr2/PRE/tomokv and build/versionstr2/POST/tomokv.
 1492/1492 hot, 4836/4836 ordinary, 3021/3021 linked; instructions and layouts equal; zero unexplained.
 Rows +0/+0. No target or oracle booted; 0/64 live cells ran. Replay command and refusals are recorded.
 Full gate and merge remain maintainer-owned. Do not infer live success.
+
+Lane lbosc3 (decision group 10): see MEASURE-REQUEST-lbosc3.md.
+Status UNTUNED: serverless proof and frozen arms only; no live measurements run.
+Run >=6 key-skew rounds per arm per mode, PRE/PAD-A(type A)/POST, then pooled judge.
+Maintainer owns measurements, 14-cell null, live LB/stationary-hold rows and gate.
+Rows +0/+0. Do not land without the measured pooled-move/accuracy/rate/p99 bars.
+
+encodingfix: mainline measurements pending.
+
+See MEASURE-REQUEST-encodingfix.md for the verified Redis defaults, exact PRE/POST/PAD A arms and SHA-256 checksums, 14-cell null inventory, memory accounting, changed-body proof, correctness results and remaining live gate work.
+
+No server benchmark or TomoKV boot was run by the lane.

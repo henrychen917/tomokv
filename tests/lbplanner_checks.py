@@ -57,5 +57,18 @@ for name, binary, expected, message in [
     good = result.returncode == expected and message in output
     rows.append(dict(arm=name, passed=good, returncode=result.returncode, output=output))
     print(('PASS' if good else 'FAIL'), name, output.strip())
+for name, binary, argument, expected, message in [
+    ('LBOSC3', 'build/lbplanner-unit', 'lbosc3', 0, 'PASS LBOSC3 both modes'),
+    ('LBOSC3-PAD-A', 'build/lbosc3-unit-pad', 'lbosc3-pre', 0, 'PASS LBOSC3 both modes'),
+    ('LBOSC3-rejects-PRE', 'build/lbosc3-unit-pad', 'lbosc3', 1,
+     'key objective chooses the least transfer inside the residual band'),
+    ('LBOSC3-PRE-rejects-POST', 'build/lbplanner-unit', 'lbosc3-pre', 1,
+     'key objective chooses the least transfer inside the residual band'),
+]:
+    result = subprocess.run([str(root / binary), argument], capture_output=True, text=True, timeout=60)
+    output = result.stdout + result.stderr
+    good = result.returncode == expected and message in output
+    rows.append(dict(arm=name, passed=good, returncode=result.returncode, output=output))
+    print(('PASS' if good else 'FAIL'), name, output.strip())
 (root / 'build/lbplanner-checks.json').write_text(json.dumps(rows, indent=2) + '\n')
 assert all(row['passed'] for row in rows), 'hand-off witness or a named negative control failed'

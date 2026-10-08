@@ -1,0 +1,18 @@
+{
+  "kind": "A: PRE placement behaviour with POST text size/layout",
+  "patches": [
+    {
+      "address": 3499796,
+      "after": "31c0c3",
+      "before": "89f8c3",
+      "offset": 3499796,
+      "symbol": "_ZN4tomo12lbosc3_levelEi"
+    }
+  ],
+  "source_proof": {
+    "base": "5efc5414d3d6107b5e7e29f2404e585806c823ec",
+    "pre_planner_sha256": "2bdcd617a8dbc85d336b6767e665b732105b51fad3f34e08d85d04d1ed8dc6e6",
+    "zero_policy_equals_pre": true
+  },
+  "source_sha256": "91855beff0c1ff8543e3360d9ca06e1a49d46000daa985326710c5d867eff68a"
+}
