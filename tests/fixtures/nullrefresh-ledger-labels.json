@@ -99,6 +99,8 @@
     "netcmd receive regression",
     "netcmd config regression",
     "netcmd hexpire-oom regression",
+    "encodingfix knob",
+    "encodingfix precedence",
     "NET1 serverless bounds + scan + reclamation",
     "NET1 inline + query cap (1s, uring)",
     "NET1 inline + query cap (1s, epoll)",
@@ -717,5 +719,12 @@
   "atomfix_supplement": {
     "source": "tests/gate.sh job_debug, emitted for atomic 0 and 1 before the quick-tier exit; combined with hexpirefix, proposed EXPECT_FULL 466",
     "purpose": "two labels for the serverless fixture only; live execution remains with mainline"
+  },
+  "encodingfix_supplement": {
+    "purpose": "Owner-authorized source inventory addition; not runtime execution evidence",
+    "labels": [
+      "encodingfix knob",
+      "encodingfix precedence"
+    ]
   }
 }

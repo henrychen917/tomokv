@@ -1,5 +1,5 @@
-The complete infofields request, arm identities, static proof and known MONITOR
-refusal-feed deviation are in MEASURE-REQUEST-infofields.md.
+encodingfix: mainline measurements pending.
 
-Do not infer a green live gate from the offline checks. The strict new monitor
-differential is expected to expose the documented preserved ordering defect.
+See MEASURE-REQUEST-encodingfix.md for the verified Redis defaults, exact PRE/POST/PAD A arms and SHA-256 checksums, 14-cell null inventory, memory accounting, changed-body proof, correctness results and remaining live gate work.
+
+No server benchmark or TomoKV boot was run by the lane.

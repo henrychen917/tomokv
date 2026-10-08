@@ -1,0 +1,15 @@
+test_count_only_drift_is_actionable (__main__.FixtureControls.test_count_only_drift_is_actionable) ... ok
+test_current_inventory_and_duplicate_occurrences (__main__.FixtureControls.test_current_inventory_and_duplicate_occurrences) ... ok
+test_future_literal_row_names_missing_label (__main__.FixtureControls.test_future_literal_row_names_missing_label) ... ok
+test_future_loop_row_names_missing_label (__main__.FixtureControls.test_future_loop_row_names_missing_label) ... ok
+test_partial_fixture_cannot_redefine_inventory_via_count (__main__.FixtureControls.test_partial_fixture_cannot_redefine_inventory_via_count) ... ok
+test_receipt_refuses_once_before_control_setup (__main__.FixtureControls.test_receipt_refuses_once_before_control_setup) ... ok
+test_retired_row_names_extra_label (__main__.FixtureControls.test_retired_row_names_extra_label) ... ok
+test_same_count_substitution_and_duplicate_loss_are_rejected (__main__.FixtureControls.test_same_count_substitution_and_duplicate_loss_are_rejected) ... ok
+test_stale_wbland_fixture_names_both_missing_labels (__main__.FixtureControls.test_stale_wbland_fixture_names_both_missing_labels) ... ok
+test_unsupported_label_expression_refuses_without_evaluation (__main__.FixtureControls.test_unsupported_label_expression_refuses_without_evaluation) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.336s
+
+OK

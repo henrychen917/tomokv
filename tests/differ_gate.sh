@@ -424,11 +424,8 @@ ORACLE_PID=0
 python3 tests/_differ_history.py summary "$OUT" || FAIL=$((FAIL+1))
 }
 ORACLE_ALIGNMENT=()
-# The serial oracle carries edgeenc/servertail's sole non-default persistent CONFIG value into
-# atomic1: set-max-intset-entries=128 (Redis 7.4 defaults to512). Other encoding alignment values
-# equal its defaults; timeout/keepalive/notifications, ACL users and script/function state are
-# restored by their suites. Preserve this configuration in atomic1's independent oracle.
-case "$PART" in split-1|armed-1) ORACLE_ALIGNMENT=(--set-max-intset-entries 128);; esac
+# All encoding defaults now match Redis 7.4; each suite restores non-default probes.
+# Atomic0/atomic1 must start identical default oracles, without the old intset=128 mask.
 if [ "$PART" != equivalence ]; then run_matrix || FAIL=$((FAIL+1)); fi
 # One existing differential gate row now also requires exact mode equivalence.
 # Keep every Redis leg above intact. The split job runs this once, after both
