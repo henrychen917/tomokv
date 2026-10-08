@@ -33,9 +33,9 @@ def main():
         folders.append(folder)
         debug_text = debug_original
         if control == 'no-wake':
-            text, count = re.subn(r' else if \(phase == BlockingPhase::MoveRequested\) \{\n.*?\n    \}',
-                                 '', original, flags=re.S)
-            assert count == 1, 'notification control no longer matches exactly one branch'
+            old = '        blocking_notify_sender(server, self, ring, client);'
+            assert original.count(old) == 1, 'notification control must name the final publisher'
+            text = original.replace(old, '        (void)server; (void)client;')
         elif control == 'no-acl':
             old = ('    acl_recheck_blocking(client, client.rob().at(block->op_id),\n'
                    '                         server.thread(client.ifid_thread()));\n')

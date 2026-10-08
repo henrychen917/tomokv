@@ -169,7 +169,7 @@ int main(int argc, char** argv) {
         require(!blocking_execute(server, owner, unused_ring, registration, shard, *op),
                 "registration sees data and retains its last Task");
         require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":2\r\n", "last Task stage observed");
-        require(sender.ready().take(0) == 1, "first resume notification really published and consumed");
+        const bool early_notification = sender.ready().take(0) == 1;
         require(!blocking_resume_move(server, sender, unused_ring, client, pool),
                 "IO cannot resume while an owner Task still refers to the op");
         require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD"}) == ":3\r\n", "IO rejection stage observed");
@@ -177,8 +177,8 @@ int main(int argc, char** argv) {
         require(debug({"DEBUG", "XREAD-REGISTRATION-HOLD", "0"}) == "+OK\r\n", "release last Task");
         require(blocking_execute(server, owner, unused_ring, registration, shard, *op), "last Task departs");
         notified = sender.ready().take(0) == 1;
-        std::printf("aclkeys-wake mode=%s atomic=%d db=%u registration=1 last_task=2 io_rejected=3 final_notification=%d\n",
-                    fused ? "fused" : "split", atomic, cfg.databases, notified);
+        std::printf("aclkeys-wake mode=%s atomic=%d db=%u registration=1 last_task=2 io_rejected=3 early_notification=%d final_notification=%d\n",
+                    fused ? "fused" : "split", atomic, cfg.databases, early_notification, notified);
     } else {
         notified = sender.ready().take(0) == 1;
         std::printf("aclkeys-wake mode=%s atomic=%d db=%u command=%s parked=1 final_notification=%d\n",

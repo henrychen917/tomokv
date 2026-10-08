@@ -14,6 +14,7 @@ enum class BlockingKind : uint8_t {
 enum class BlockingPhase : uint8_t {
     Probe, NeedRegister, Registering, Parked, NeedSelected, Claimed,
     MoveRequested, RemapRequested, Transferred, Completed, Cancelled,
+    MovePending,
 };
 
 enum class BlockingProbe : uint8_t { Empty, Ready, WrongType, MissingGroup, Oom };
@@ -86,7 +87,7 @@ bool blocking_debug_xread_hold(const BlockingState& state, BlockingPhase phase) 
         debug_xread_stage.store(1, std::memory_order_release);
         return true;
     }
-    if (held == 2 && phase == BlockingPhase::MoveRequested) {
+    if (held == 2 && phase == BlockingPhase::MovePending) {
         uint32_t seen = debug_xread_stage.load(std::memory_order_relaxed);
         if (seen < 2) debug_xread_stage.compare_exchange_strong(
             seen, 2, std::memory_order_release, std::memory_order_relaxed);
@@ -405,14 +406,6 @@ void blocking_finish_cancelled(BlockingState& state, ThreadCtx* self, Ring* ring
 }
 
 void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
-    // Once the last Task drops its count, IO may transfer and retire a move/read
-    // scatter immediately. Pin the cold state across the final notification.
-    const bool scatter = blocking_is_move(state.kind) || state.kind == BlockingKind::Xread;
-    if (scatter) blocking_state_retain(&state);
-    struct Pin {
-        BlockingState* state;
-        ~Pin() { blocking_state_release(state); }
-    } pin{scatter ? &state : nullptr};
     if (state.active_tasks.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
     BlockingPhase phase = state.phase.load(std::memory_order_acquire);
     if (state.cancel_requested.load(std::memory_order_acquire)) {
@@ -427,12 +420,15 @@ void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
             state.server->aof().defer_completion(self.id(), op, state.client)) return;
         if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done)
             blocking_notify_sender(*state.server, self, ring, state.client);
-    } else if (phase == BlockingPhase::MoveRequested) {
-        // The first notification can reach IO while active_tasks is nonzero.
-        // Registration reprobes close the XADD-before-waiter window, but IO
-        // cannot consume that result until this final owner Task has left.
-        // Renew the notification at the same readiness edge IO checks.
-        blocking_notify_sender(*state.server, self, ring, state.client);
+    } else if (phase == BlockingPhase::MovePending) {
+        // Registration reprobes close the XADD-before-waiter window. Publish
+        // IO's resumable phase only when the last owner Task has departed.
+        // Until this store IO cannot transfer/free the state; capture the
+        // notification inputs before handing it over.
+        Server& server = *state.server;
+        Client* client = state.client;
+        state.phase.store(BlockingPhase::MoveRequested, std::memory_order_release);
+        blocking_notify_sender(server, self, ring, client);
     }
 }
 
@@ -601,8 +597,12 @@ bool blocking_post_selected(BlockingState& state, ThreadCtx& self, Ring& ring) {
 }
 
 void blocking_request_move(BlockingState& state, ThreadCtx& self, Ring& ring) {
-    state.phase.store(BlockingPhase::MoveRequested, std::memory_order_release);
-    blocking_notify_sender(*state.server, self, ring, state.client);
+    // A registry wake may overlap the tail of another owner's registration
+    // Task. Count this publisher too, so exactly the final participant owns
+    // the MovePending -> MoveRequested notification, including active=0 wakes.
+    state.active_tasks.fetch_add(1, std::memory_order_acq_rel);
+    state.phase.store(BlockingPhase::MovePending, std::memory_order_release);
+    blocking_task_done(state, self, ring);
 }
 
 void blocking_publish_completion(BlockingState& state, ThreadCtx& self, Ring& ring) {
@@ -1348,14 +1348,15 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
                     server.thread(owner).flush_task_notify(self.id(), ring, self.sig());
             return true;
         }
-        if (!block || block->phase.load(std::memory_order_acquire) !=
-                          BlockingPhase::MoveRequested) continue;
-        if (block->active_tasks.load(std::memory_order_acquire) != 0) {
+        if (block && block->phase.load(std::memory_order_acquire) == BlockingPhase::MovePending) {
             if (block->kind == BlockingKind::Xread &&
                 debug_xread_hold.load(std::memory_order_relaxed) == 2)
                 debug_xread_stage.store(3, std::memory_order_release);
             continue;
         }
+        if (!block || block->phase.load(std::memory_order_acquire) !=
+                          BlockingPhase::MoveRequested ||
+            block->active_tasks.load(std::memory_order_acquire) != 0) continue;
         ScatterDispatch dispatch;
         const ScatterPrepare prepared = xshard_prepare(
             server, op, pool, self.id(), client.id(), dispatch);

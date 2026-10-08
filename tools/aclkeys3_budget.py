@@ -11,7 +11,7 @@ import subprocess
 from ccfix4_budget import inventory, compare
 
 ROOT = Path(__file__).resolve().parents[1]
-ALLOWED = re.compile(r'::(?:blocking_(?:task_done|execute|scatter_retire|resume_move_impl|debug_xread_hold)|debug_xread_registration_|cmd_debug(?:_impl)?\()')
+ALLOWED = re.compile(r'::(?:blocking_(?:task_done|request_move|execute|scatter_retire|resume_move_impl|debug_xread_hold)|debug_xread_registration_|cmd_debug(?:_impl)?\()')
 
 
 def main():
