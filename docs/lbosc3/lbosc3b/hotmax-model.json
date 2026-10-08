@@ -1,0 +1,3124 @@
+{
+  "margin_bands": 3,
+  "assumptions": "Uniform hot-key visits and uniform cold load per shard; equal-cost SETs; initial recorded ownership; no pinning; 1:1 cohort rates for declaration. Actual learned jitter can widen the floor.",
+  "modes": {
+    "1s": {
+      "equal_rate": {
+        "owners": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "shards": 64,
+        "hot_fraction": 0.5,
+        "band_pct": 7.2161145826323825,
+        "three_band_pct": 21.648343747897147,
+        "largest_hotmax": 128,
+        "rows": [
+          {
+            "hotmax": 4,
+            "owner_hot_counts": [
+              1,
+              0,
+              0,
+              1,
+              1,
+              0,
+              1,
+              0
+            ],
+            "owner_load_pct": [
+              18.75,
+              6.25,
+              6.25,
+              18.75,
+              18.75,
+              6.25,
+              18.75,
+              6.25
+            ],
+            "hot_only_ratio_pct": 200.0,
+            "ratio_pct": 100.0,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 13.857873077664015,
+            "three_bands": true,
+            "best_single_shard_move": null
+          },
+          {
+            "hotmax": 8,
+            "owner_hot_counts": [
+              1,
+              0,
+              0,
+              2,
+              3,
+              0,
+              1,
+              1
+            ],
+            "owner_load_pct": [
+              12.5,
+              6.25,
+              6.25,
+              18.75,
+              25.0,
+              6.25,
+              12.5,
+              12.5
+            ],
+            "hot_only_ratio_pct": 300.0,
+            "ratio_pct": 150.0,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 20.786809616496026,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 12,
+              "source": 4,
+              "destination": 1,
+              "span": 0.125,
+              "after_ratio_pct": 100.0
+            }
+          },
+          {
+            "hotmax": 16,
+            "owner_hot_counts": [
+              5,
+              1,
+              1,
+              2,
+              3,
+              1,
+              1,
+              2
+            ],
+            "owner_load_pct": [
+              21.875,
+              9.375,
+              9.375,
+              12.5,
+              15.625,
+              9.375,
+              9.375,
+              12.5
+            ],
+            "hot_only_ratio_pct": 200.0,
+            "ratio_pct": 100.0,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 13.857873077664015,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 48,
+              "source": 0,
+              "destination": 1,
+              "span": 0.0703125,
+              "after_ratio_pct": 56.25
+            }
+          },
+          {
+            "hotmax": 32,
+            "owner_hot_counts": [
+              8,
+              4,
+              3,
+              5,
+              5,
+              2,
+              2,
+              3
+            ],
+            "owner_load_pct": [
+              18.75,
+              12.5,
+              10.9375,
+              14.0625,
+              14.0625,
+              9.375,
+              9.375,
+              10.9375
+            ],
+            "hot_only_ratio_pct": 150.0,
+            "ratio_pct": 75.0,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 10.393404808248013,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 40,
+              "source": 0,
+              "destination": 2,
+              "span": 0.0546875,
+              "after_ratio_pct": 43.75
+            }
+          },
+          {
+            "hotmax": 64,
+            "owner_hot_counts": [
+              12,
+              10,
+              8,
+              9,
+              8,
+              5,
+              7,
+              5
+            ],
+            "owner_load_pct": [
+              15.625,
+              14.0625,
+              12.5,
+              13.28125,
+              12.5,
+              10.15625,
+              11.71875,
+              10.15625
+            ],
+            "hot_only_ratio_pct": 87.5,
+            "ratio_pct": 43.75,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 6.062819471478007,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 0,
+              "source": 0,
+              "destination": 2,
+              "span": 0.0390625,
+              "after_ratio_pct": 31.25
+            }
+          },
+          {
+            "hotmax": 128,
+            "owner_hot_counts": [
+              20,
+              21,
+              15,
+              14,
+              16,
+              12,
+              17,
+              13
+            ],
+            "owner_load_pct": [
+              14.0625,
+              14.453125,
+              12.109375,
+              11.71875,
+              12.5,
+              10.9375,
+              12.890625,
+              11.328125
+            ],
+            "hot_only_ratio_pct": 56.25,
+            "ratio_pct": 28.125,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 3.8975268030930046,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 1,
+              "source": 1,
+              "destination": 5,
+              "span": 0.02734375,
+              "after_ratio_pct": 21.875
+            }
+          },
+          {
+            "hotmax": 256,
+            "owner_hot_counts": [
+              35,
+              32,
+              36,
+              29,
+              31,
+              28,
+              37,
+              28
+            ],
+            "owner_load_pct": [
+              13.0859375,
+              12.5,
+              13.28125,
+              11.9140625,
+              12.3046875,
+              11.71875,
+              13.4765625,
+              11.71875
+            ],
+            "hot_only_ratio_pct": 28.125,
+            "ratio_pct": 14.0625,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 1.9487634015465023,
+            "three_bands": false,
+            "best_single_shard_move": {
+              "shard": 22,
+              "source": 6,
+              "destination": 3,
+              "span": 0.015625,
+              "after_ratio_pct": 12.5
+            }
+          }
+        ]
+      },
+      "recorded_rate": {
+        "owners": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "shards": 64,
+        "hot_fraction": 0.4999320720328287,
+        "band_pct": 7.2161145826323825,
+        "three_band_pct": 21.648343747897147,
+        "largest_hotmax": 128,
+        "rows": [
+          {
+            "hotmax": 4,
+            "owner_hot_counts": [
+              1,
+              0,
+              0,
+              1,
+              1,
+              0,
+              1,
+              0
+            ],
+            "owner_load_pct": [
+              18.74915090041036,
+              6.250849099589642,
+              6.250849099589642,
+              18.74915090041036,
+              18.74915090041036,
+              6.250849099589642,
+              18.74915090041036,
+              6.250849099589642
+            ],
+            "hot_only_ratio_pct": 200.0,
+            "ratio_pct": 99.98641440656574,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 13.855990403369049,
+            "three_bands": true,
+            "best_single_shard_move": null
+          },
+          {
+            "hotmax": 8,
+            "owner_hot_counts": [
+              1,
+              0,
+              0,
+              2,
+              3,
+              0,
+              1,
+              1
+            ],
+            "owner_load_pct": [
+              12.5,
+              6.250849099589642,
+              6.250849099589642,
+              18.74915090041036,
+              24.99830180082072,
+              6.250849099589642,
+              12.5,
+              12.5
+            ],
+            "hot_only_ratio_pct": 300.0,
+            "ratio_pct": 149.9796216098486,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 20.783985605053573,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 12,
+              "source": 4,
+              "destination": 1,
+              "span": 0.12498301800820719,
+              "after_ratio_pct": 99.98641440656574
+            }
+          },
+          {
+            "hotmax": 16,
+            "owner_hot_counts": [
+              5,
+              1,
+              1,
+              2,
+              3,
+              1,
+              1,
+              2
+            ],
+            "owner_load_pct": [
+              21.873726350615538,
+              9.375424549794822,
+              9.375424549794822,
+              12.5,
+              15.62457545020518,
+              9.375424549794822,
+              9.375424549794822,
+              12.5
+            ],
+            "hot_only_ratio_pct": 200.0,
+            "ratio_pct": 99.98641440656574,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 13.855990403369049,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 48,
+              "source": 0,
+              "destination": 1,
+              "span": 0.07030507037859064,
+              "after_ratio_pct": 56.244056302872515
+            }
+          },
+          {
+            "hotmax": 32,
+            "owner_hot_counts": [
+              8,
+              4,
+              3,
+              5,
+              5,
+              2,
+              2,
+              3
+            ],
+            "owner_load_pct": [
+              18.74915090041036,
+              12.5,
+              10.937712274897411,
+              14.06228772510259,
+              14.06228772510259,
+              9.375424549794822,
+              9.375424549794822,
+              10.937712274897411
+            ],
+            "hot_only_ratio_pct": 150.0,
+            "ratio_pct": 74.98981080492432,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 10.391992802526788,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 40,
+              "source": 0,
+              "destination": 5,
+              "span": 0.054677947629616544,
+              "after_ratio_pct": 43.742358103693235
+            }
+          },
+          {
+            "hotmax": 64,
+            "owner_hot_counts": [
+              12,
+              10,
+              8,
+              9,
+              8,
+              5,
+              7,
+              5
+            ],
+            "owner_load_pct": [
+              15.62457545020518,
+              14.06228772510259,
+              12.5,
+              13.281143862551295,
+              12.5,
+              10.156568412346116,
+              11.718856137448705,
+              10.156568412346116
+            ],
+            "hot_only_ratio_pct": 87.5,
+            "ratio_pct": 43.744056302872515,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 6.06199580147396,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 0,
+              "source": 0,
+              "destination": 5,
+              "span": 0.03905719312756474,
+              "after_ratio_pct": 31.245754502051792
+            }
+          },
+          {
+            "hotmax": 128,
+            "owner_hot_counts": [
+              20,
+              21,
+              15,
+              14,
+              16,
+              12,
+              17,
+              13
+            ],
+            "owner_load_pct": [
+              14.06228772510259,
+              14.452859656378237,
+              12.109428068724354,
+              11.718856137448705,
+              12.5,
+              10.937712274897411,
+              12.890571931275646,
+              11.328284206173059
+            ],
+            "hot_only_ratio_pct": 56.25,
+            "ratio_pct": 28.1211790518466,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 3.8969973009475427,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 1,
+              "source": 1,
+              "destination": 5,
+              "span": 0.027340035189295314,
+              "after_ratio_pct": 21.87202815143625
+            }
+          },
+          {
+            "hotmax": 256,
+            "owner_hot_counts": [
+              35,
+              32,
+              36,
+              29,
+              31,
+              28,
+              37,
+              28
+            ],
+            "owner_load_pct": [
+              13.085857896913472,
+              12.5,
+              13.281143862551295,
+              11.91414210308653,
+              12.304714034362178,
+              11.718856137448705,
+              13.476429828189119,
+              11.718856137448705
+            ],
+            "hot_only_ratio_pct": 28.125,
+            "ratio_pct": 14.060589525923305,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 1.9484986504737722,
+            "three_bands": false,
+            "best_single_shard_move": {
+              "shard": 22,
+              "source": 6,
+              "destination": 3,
+              "span": 0.015622877251025902,
+              "after_ratio_pct": 12.498301800820721
+            }
+          }
+        ]
+      },
+      "rates": {
+        "hot": 6387333.01,
+        "cold": 6389068.76
+      },
+      "seed": {
+        "arms_receipt": {
+          "path": "/home/user/Projects/cx-lbosc3/docs/lbosc3/arms.json",
+          "sha256": "6e3ca56343cecbb1d52a8fa355d7c43fc697530fd3c012b59bff85c866a4bb99",
+          "source": "--arms"
+        },
+        "hot_keys": [
+          [
+            "memtier-1",
+            56
+          ],
+          [
+            "memtier-2",
+            38
+          ],
+          [
+            "memtier-3",
+            51
+          ],
+          [
+            "memtier-4",
+            36
+          ],
+          [
+            "memtier-5",
+            12
+          ],
+          [
+            "memtier-6",
+            11
+          ],
+          [
+            "memtier-7",
+            31
+          ],
+          [
+            "memtier-8",
+            28
+          ],
+          [
+            "memtier-9",
+            56
+          ],
+          [
+            "memtier-10",
+            21
+          ],
+          [
+            "memtier-11",
+            42
+          ],
+          [
+            "memtier-12",
+            48
+          ],
+          [
+            "memtier-13",
+            1
+          ],
+          [
+            "memtier-14",
+            48
+          ],
+          [
+            "memtier-15",
+            24
+          ],
+          [
+            "memtier-16",
+            15
+          ],
+          [
+            "memtier-17",
+            27
+          ],
+          [
+            "memtier-18",
+            56
+          ],
+          [
+            "memtier-19",
+            41
+          ],
+          [
+            "memtier-20",
+            49
+          ],
+          [
+            "memtier-21",
+            27
+          ],
+          [
+            "memtier-22",
+            62
+          ],
+          [
+            "memtier-23",
+            12
+          ],
+          [
+            "memtier-24",
+            40
+          ],
+          [
+            "memtier-25",
+            10
+          ],
+          [
+            "memtier-26",
+            18
+          ],
+          [
+            "memtier-27",
+            23
+          ],
+          [
+            "memtier-28",
+            1
+          ],
+          [
+            "memtier-29",
+            52
+          ],
+          [
+            "memtier-30",
+            5
+          ],
+          [
+            "memtier-31",
+            35
+          ],
+          [
+            "memtier-32",
+            40
+          ],
+          [
+            "memtier-33",
+            52
+          ],
+          [
+            "memtier-34",
+            27
+          ],
+          [
+            "memtier-35",
+            36
+          ],
+          [
+            "memtier-36",
+            0
+          ],
+          [
+            "memtier-37",
+            34
+          ],
+          [
+            "memtier-38",
+            6
+          ],
+          [
+            "memtier-39",
+            23
+          ],
+          [
+            "memtier-40",
+            24
+          ],
+          [
+            "memtier-41",
+            6
+          ],
+          [
+            "memtier-42",
+            33
+          ],
+          [
+            "memtier-43",
+            36
+          ],
+          [
+            "memtier-44",
+            3
+          ],
+          [
+            "memtier-45",
+            3
+          ],
+          [
+            "memtier-46",
+            57
+          ],
+          [
+            "memtier-47",
+            33
+          ],
+          [
+            "memtier-48",
+            50
+          ],
+          [
+            "memtier-49",
+            40
+          ],
+          [
+            "memtier-50",
+            59
+          ],
+          [
+            "memtier-51",
+            5
+          ],
+          [
+            "memtier-52",
+            41
+          ],
+          [
+            "memtier-53",
+            18
+          ],
+          [
+            "memtier-54",
+            23
+          ],
+          [
+            "memtier-55",
+            40
+          ],
+          [
+            "memtier-56",
+            2
+          ],
+          [
+            "memtier-57",
+            30
+          ],
+          [
+            "memtier-58",
+            46
+          ],
+          [
+            "memtier-59",
+            37
+          ],
+          [
+            "memtier-60",
+            62
+          ],
+          [
+            "memtier-61",
+            57
+          ],
+          [
+            "memtier-62",
+            34
+          ],
+          [
+            "memtier-63",
+            53
+          ],
+          [
+            "memtier-64",
+            1
+          ],
+          [
+            "memtier-65",
+            8
+          ],
+          [
+            "memtier-66",
+            52
+          ],
+          [
+            "memtier-67",
+            32
+          ],
+          [
+            "memtier-68",
+            31
+          ],
+          [
+            "memtier-69",
+            32
+          ],
+          [
+            "memtier-70",
+            31
+          ],
+          [
+            "memtier-71",
+            16
+          ],
+          [
+            "memtier-72",
+            20
+          ],
+          [
+            "memtier-73",
+            62
+          ],
+          [
+            "memtier-74",
+            10
+          ],
+          [
+            "memtier-75",
+            21
+          ],
+          [
+            "memtier-76",
+            21
+          ],
+          [
+            "memtier-77",
+            52
+          ],
+          [
+            "memtier-78",
+            42
+          ],
+          [
+            "memtier-79",
+            23
+          ],
+          [
+            "memtier-80",
+            6
+          ],
+          [
+            "memtier-81",
+            32
+          ],
+          [
+            "memtier-82",
+            30
+          ],
+          [
+            "memtier-83",
+            56
+          ],
+          [
+            "memtier-84",
+            19
+          ],
+          [
+            "memtier-85",
+            12
+          ],
+          [
+            "memtier-86",
+            11
+          ],
+          [
+            "memtier-87",
+            17
+          ],
+          [
+            "memtier-88",
+            57
+          ],
+          [
+            "memtier-89",
+            62
+          ],
+          [
+            "memtier-90",
+            47
+          ],
+          [
+            "memtier-91",
+            13
+          ],
+          [
+            "memtier-92",
+            45
+          ],
+          [
+            "memtier-93",
+            26
+          ],
+          [
+            "memtier-94",
+            47
+          ],
+          [
+            "memtier-95",
+            38
+          ],
+          [
+            "memtier-96",
+            31
+          ],
+          [
+            "memtier-97",
+            8
+          ],
+          [
+            "memtier-98",
+            6
+          ],
+          [
+            "memtier-99",
+            52
+          ],
+          [
+            "memtier-100",
+            37
+          ],
+          [
+            "memtier-101",
+            49
+          ],
+          [
+            "memtier-102",
+            42
+          ],
+          [
+            "memtier-103",
+            18
+          ],
+          [
+            "memtier-104",
+            38
+          ],
+          [
+            "memtier-105",
+            48
+          ],
+          [
+            "memtier-106",
+            52
+          ],
+          [
+            "memtier-107",
+            41
+          ],
+          [
+            "memtier-108",
+            17
+          ],
+          [
+            "memtier-109",
+            37
+          ],
+          [
+            "memtier-110",
+            15
+          ],
+          [
+            "memtier-111",
+            50
+          ],
+          [
+            "memtier-112",
+            9
+          ],
+          [
+            "memtier-113",
+            1
+          ],
+          [
+            "memtier-114",
+            30
+          ],
+          [
+            "memtier-115",
+            45
+          ],
+          [
+            "memtier-116",
+            9
+          ],
+          [
+            "memtier-117",
+            22
+          ],
+          [
+            "memtier-118",
+            41
+          ],
+          [
+            "memtier-119",
+            36
+          ],
+          [
+            "memtier-120",
+            11
+          ],
+          [
+            "memtier-121",
+            49
+          ],
+          [
+            "memtier-122",
+            55
+          ],
+          [
+            "memtier-123",
+            26
+          ],
+          [
+            "memtier-124",
+            1
+          ],
+          [
+            "memtier-125",
+            60
+          ],
+          [
+            "memtier-126",
+            35
+          ],
+          [
+            "memtier-127",
+            6
+          ],
+          [
+            "memtier-128",
+            3
+          ],
+          [
+            "memtier-129",
+            44
+          ],
+          [
+            "memtier-130",
+            45
+          ],
+          [
+            "memtier-131",
+            2
+          ],
+          [
+            "memtier-132",
+            52
+          ],
+          [
+            "memtier-133",
+            0
+          ],
+          [
+            "memtier-134",
+            14
+          ],
+          [
+            "memtier-135",
+            16
+          ],
+          [
+            "memtier-136",
+            40
+          ],
+          [
+            "memtier-137",
+            39
+          ],
+          [
+            "memtier-138",
+            58
+          ],
+          [
+            "memtier-139",
+            6
+          ],
+          [
+            "memtier-140",
+            51
+          ],
+          [
+            "memtier-141",
+            46
+          ],
+          [
+            "memtier-142",
+            27
+          ],
+          [
+            "memtier-143",
+            29
+          ],
+          [
+            "memtier-144",
+            62
+          ],
+          [
+            "memtier-145",
+            10
+          ],
+          [
+            "memtier-146",
+            9
+          ],
+          [
+            "memtier-147",
+            63
+          ],
+          [
+            "memtier-148",
+            17
+          ],
+          [
+            "memtier-149",
+            5
+          ],
+          [
+            "memtier-150",
+            37
+          ],
+          [
+            "memtier-151",
+            18
+          ],
+          [
+            "memtier-152",
+            23
+          ],
+          [
+            "memtier-153",
+            35
+          ],
+          [
+            "memtier-154",
+            10
+          ],
+          [
+            "memtier-155",
+            2
+          ],
+          [
+            "memtier-156",
+            34
+          ],
+          [
+            "memtier-157",
+            55
+          ],
+          [
+            "memtier-158",
+            46
+          ],
+          [
+            "memtier-159",
+            35
+          ],
+          [
+            "memtier-160",
+            28
+          ],
+          [
+            "memtier-161",
+            55
+          ],
+          [
+            "memtier-162",
+            0
+          ],
+          [
+            "memtier-163",
+            61
+          ],
+          [
+            "memtier-164",
+            62
+          ],
+          [
+            "memtier-165",
+            30
+          ],
+          [
+            "memtier-166",
+            48
+          ],
+          [
+            "memtier-167",
+            21
+          ],
+          [
+            "memtier-168",
+            33
+          ],
+          [
+            "memtier-169",
+            13
+          ],
+          [
+            "memtier-170",
+            40
+          ],
+          [
+            "memtier-171",
+            15
+          ],
+          [
+            "memtier-172",
+            30
+          ],
+          [
+            "memtier-173",
+            28
+          ],
+          [
+            "memtier-174",
+            27
+          ],
+          [
+            "memtier-175",
+            33
+          ],
+          [
+            "memtier-176",
+            3
+          ],
+          [
+            "memtier-177",
+            51
+          ],
+          [
+            "memtier-178",
+            48
+          ],
+          [
+            "memtier-179",
+            56
+          ],
+          [
+            "memtier-180",
+            30
+          ],
+          [
+            "memtier-181",
+            10
+          ],
+          [
+            "memtier-182",
+            21
+          ],
+          [
+            "memtier-183",
+            24
+          ],
+          [
+            "memtier-184",
+            58
+          ],
+          [
+            "memtier-185",
+            56
+          ],
+          [
+            "memtier-186",
+            33
+          ],
+          [
+            "memtier-187",
+            62
+          ],
+          [
+            "memtier-188",
+            51
+          ],
+          [
+            "memtier-189",
+            21
+          ],
+          [
+            "memtier-190",
+            42
+          ],
+          [
+            "memtier-191",
+            23
+          ],
+          [
+            "memtier-192",
+            42
+          ],
+          [
+            "memtier-193",
+            15
+          ],
+          [
+            "memtier-194",
+            6
+          ],
+          [
+            "memtier-195",
+            7
+          ],
+          [
+            "memtier-196",
+            50
+          ],
+          [
+            "memtier-197",
+            62
+          ],
+          [
+            "memtier-198",
+            63
+          ],
+          [
+            "memtier-199",
+            50
+          ],
+          [
+            "memtier-200",
+            36
+          ],
+          [
+            "memtier-201",
+            28
+          ],
+          [
+            "memtier-202",
+            13
+          ],
+          [
+            "memtier-203",
+            10
+          ],
+          [
+            "memtier-204",
+            19
+          ],
+          [
+            "memtier-205",
+            39
+          ],
+          [
+            "memtier-206",
+            60
+          ],
+          [
+            "memtier-207",
+            24
+          ],
+          [
+            "memtier-208",
+            14
+          ],
+          [
+            "memtier-209",
+            14
+          ],
+          [
+            "memtier-210",
+            34
+          ],
+          [
+            "memtier-211",
+            41
+          ],
+          [
+            "memtier-212",
+            29
+          ],
+          [
+            "memtier-213",
+            34
+          ],
+          [
+            "memtier-214",
+            24
+          ],
+          [
+            "memtier-215",
+            44
+          ],
+          [
+            "memtier-216",
+            35
+          ],
+          [
+            "memtier-217",
+            33
+          ],
+          [
+            "memtier-218",
+            2
+          ],
+          [
+            "memtier-219",
+            59
+          ],
+          [
+            "memtier-220",
+            61
+          ],
+          [
+            "memtier-221",
+            28
+          ],
+          [
+            "memtier-222",
+            12
+          ],
+          [
+            "memtier-223",
+            14
+          ],
+          [
+            "memtier-224",
+            5
+          ],
+          [
+            "memtier-225",
+            61
+          ],
+          [
+            "memtier-226",
+            59
+          ],
+          [
+            "memtier-227",
+            51
+          ],
+          [
+            "memtier-228",
+            37
+          ],
+          [
+            "memtier-229",
+            3
+          ],
+          [
+            "memtier-230",
+            38
+          ],
+          [
+            "memtier-231",
+            31
+          ],
+          [
+            "memtier-232",
+            52
+          ],
+          [
+            "memtier-233",
+            39
+          ],
+          [
+            "memtier-234",
+            52
+          ],
+          [
+            "memtier-235",
+            62
+          ],
+          [
+            "memtier-236",
+            25
+          ],
+          [
+            "memtier-237",
+            25
+          ],
+          [
+            "memtier-238",
+            26
+          ],
+          [
+            "memtier-239",
+            63
+          ],
+          [
+            "memtier-240",
+            42
+          ],
+          [
+            "memtier-241",
+            38
+          ],
+          [
+            "memtier-242",
+            21
+          ],
+          [
+            "memtier-243",
+            0
+          ],
+          [
+            "memtier-244",
+            60
+          ],
+          [
+            "memtier-245",
+            28
+          ],
+          [
+            "memtier-246",
+            14
+          ],
+          [
+            "memtier-247",
+            48
+          ],
+          [
+            "memtier-248",
+            18
+          ],
+          [
+            "memtier-249",
+            35
+          ],
+          [
+            "memtier-250",
+            6
+          ],
+          [
+            "memtier-251",
+            25
+          ],
+          [
+            "memtier-252",
+            52
+          ],
+          [
+            "memtier-253",
+            39
+          ],
+          [
+            "memtier-254",
+            48
+          ],
+          [
+            "memtier-255",
+            18
+          ],
+          [
+            "memtier-256",
+            17
+          ]
+        ],
+        "identity": {
+          "arch_bits": "64",
+          "atomic": "0",
+          "client_lb": "1",
+          "client_threads": "8",
+          "config_file": "",
+          "executable": "/home/user/Projects/cx-lbosc3/build/lbosc3/PRE/tomokv",
+          "flip_auto": "0",
+          "flip_available": "0",
+          "flip_fingerprint_window": "0",
+          "flip_unavailable_reason": "threads_are_fused",
+          "fused_threads": "8",
+          "hash": "mix64",
+          "io_threads_active": "1",
+          "key_lb": "1",
+          "multiplexing_api": "io_uring",
+          "net_io": "uring",
+          "overlap": "0",
+          "overlap_enabled": "0",
+          "owner_threads": "8",
+          "pin_threads": "1",
+          "process_id": "1961231",
+          "read_local": "0",
+          "redis_mode": "standalone",
+          "redis_version": "0.1-cpp",
+          "reorder": "0",
+          "reorder_retired": "0",
+          "run_id": "1b0f67a5509be8bdc232c8119b711bc1ff8ff04c",
+          "shard_home": "0:0,1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:0,9:1,10:2,11:3,12:4,13:5,14:6,15:7,16:0,17:1,18:2,19:3,20:4,21:5,22:6,23:7,24:0,25:1,26:2,27:3,28:4,29:5,30:6,31:7,32:0,33:1,34:2,35:3,36:4,37:5,38:6,39:7,40:0,41:1,42:2,43:3,44:4,45:5,46:6,47:7,48:0,49:1,50:2,51:3,52:4,53:5,54:6,55:7,56:0,57:1,58:2,59:3,60:4,61:5,62:6,63:7",
+          "shard_owners": "0:0,1:1,2:2,3:3,4:4,5:5,6:6,7:7,8:0,9:1,10:2,11:3,12:4,13:5,14:6,15:7,16:0,17:1,18:2,19:3,20:4,21:5,22:6,23:7,24:0,25:1,26:2,27:3,28:4,29:5,30:6,31:7,32:0,33:1,34:2,35:3,36:4,37:5,38:6,39:7,40:0,41:1,42:2,43:3,44:4,45:5,46:6,47:7,48:0,49:1,50:2,51:3,52:4,53:5,54:6,55:7,56:0,57:1,58:2,59:3,60:4,61:5,62:6,63:7",
+          "shards": 64,
+          "tcp_port": "7931",
+          "thread_cpus": "0:0,1:1,2:2,3:3,4:4,5:5,6:6,7:7",
+          "thread_mode": "1s",
+          "tomokv_version": "0.1-cpp",
+          "uptime_in_days": "0",
+          "uptime_in_seconds": "0",
+          "zc_min": "16384"
+        },
+        "mode": "1s",
+        "path": "/home/user/Projects/cx-lbosc3/build/lbosc3/episodes-mainline/seed-1s/seed.tomo",
+        "population_command": [
+          "taskset",
+          "-c",
+          "8-15",
+          "/usr/bin/memtier_benchmark",
+          "-s",
+          "127.0.0.1",
+          "-p",
+          "7931",
+          "--protocol=redis",
+          "-t",
+          "8",
+          "-c",
+          "4",
+          "--ratio=1:0",
+          "--key-pattern=P:P",
+          "--key-minimum=1",
+          "--key-maximum=500000",
+          "--key-prefix=memtier-",
+          "-d",
+          "64",
+          "--hide-histogram",
+          "--json-out-file=/home/user/Projects/cx-lbosc3/build/lbosc3/episodes-mainline/seed-1s/populate.json",
+          "-n",
+          "15625"
+        ],
+        "sha256": "0e5806fef84cd6465de0d078a2dfb42053d97f8bff3de1ea4fac0707ef26af25",
+        "shards": 64
+      }
+    },
+    "2s": {
+      "equal_rate": {
+        "owners": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "shards": 32,
+        "hot_fraction": 0.5,
+        "band_pct": 6.085137719614917,
+        "three_band_pct": 18.25541315884475,
+        "largest_hotmax": 64,
+        "rows": [
+          {
+            "hotmax": 4,
+            "owner_hot_counts": [
+              1,
+              0,
+              1,
+              2
+            ],
+            "owner_load_pct": [
+              25.0,
+              12.5,
+              25.0,
+              37.5
+            ],
+            "hot_only_ratio_pct": 200.0,
+            "ratio_pct": 100.0,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 16.433481805622677,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 3,
+              "source": 7,
+              "destination": 5,
+              "span": 0.03125,
+              "after_ratio_pct": 12.5
+            }
+          },
+          {
+            "hotmax": 8,
+            "owner_hot_counts": [
+              1,
+              3,
+              2,
+              2
+            ],
+            "owner_load_pct": [
+              18.75,
+              31.25,
+              25.0,
+              25.0
+            ],
+            "hot_only_ratio_pct": 100.0,
+            "ratio_pct": 50.0,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 8.216740902811338,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 1,
+              "source": 5,
+              "destination": 4,
+              "span": 0.03125,
+              "after_ratio_pct": 12.5
+            }
+          },
+          {
+            "hotmax": 16,
+            "owner_hot_counts": [
+              4,
+              4,
+              4,
+              4
+            ],
+            "owner_load_pct": [
+              25.0,
+              25.0,
+              25.0,
+              25.0
+            ],
+            "hot_only_ratio_pct": 0.0,
+            "ratio_pct": 0.0,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 0.0,
+            "three_bands": false,
+            "best_single_shard_move": null
+          },
+          {
+            "hotmax": 32,
+            "owner_hot_counts": [
+              10,
+              6,
+              6,
+              10
+            ],
+            "owner_load_pct": [
+              28.125,
+              21.875,
+              21.875,
+              28.125
+            ],
+            "hot_only_ratio_pct": 50.0,
+            "ratio_pct": 25.0,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 4.108370451405669,
+            "three_bands": true,
+            "best_single_shard_move": null
+          },
+          {
+            "hotmax": 64,
+            "owner_hot_counts": [
+              20,
+              14,
+              15,
+              15
+            ],
+            "owner_load_pct": [
+              28.125,
+              23.4375,
+              24.21875,
+              24.21875
+            ],
+            "hot_only_ratio_pct": 37.5,
+            "ratio_pct": 18.75,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 3.081277838554252,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 0,
+              "source": 4,
+              "destination": 5,
+              "span": 0.015625,
+              "after_ratio_pct": 6.25
+            }
+          },
+          {
+            "hotmax": 128,
+            "owner_hot_counts": [
+              36,
+              33,
+              29,
+              30
+            ],
+            "owner_load_pct": [
+              26.5625,
+              25.390625,
+              23.828125,
+              24.21875
+            ],
+            "hot_only_ratio_pct": 21.875,
+            "ratio_pct": 10.9375,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 1.7974120724899803,
+            "three_bands": false,
+            "best_single_shard_move": {
+              "shard": 0,
+              "source": 4,
+              "destination": 6,
+              "span": 0.01953125,
+              "after_ratio_pct": 7.8125
+            }
+          },
+          {
+            "hotmax": 256,
+            "owner_hot_counts": [
+              65,
+              65,
+              65,
+              61
+            ],
+            "owner_load_pct": [
+              25.1953125,
+              25.1953125,
+              25.1953125,
+              24.4140625
+            ],
+            "hot_only_ratio_pct": 6.25,
+            "ratio_pct": 3.125,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 0.5135463064257086,
+            "three_bands": false,
+            "best_single_shard_move": null
+          }
+        ]
+      },
+      "recorded_rate": {
+        "owners": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "shards": 32,
+        "hot_fraction": 0.49753744737587313,
+        "band_pct": 6.085137719614917,
+        "three_band_pct": 18.25541315884475,
+        "largest_hotmax": 64,
+        "rows": [
+          {
+            "hotmax": 4,
+            "owner_hot_counts": [
+              1,
+              0,
+              1,
+              2
+            ],
+            "owner_load_pct": [
+              25.0,
+              12.561563815603172,
+              25.0,
+              37.43843618439683
+            ],
+            "hot_only_ratio_pct": 200.0,
+            "ratio_pct": 99.50748947517462,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 16.352545178134722,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 3,
+              "source": 7,
+              "destination": 5,
+              "span": 0.03140390953900796,
+              "after_ratio_pct": 12.561563815603183
+            }
+          },
+          {
+            "hotmax": 8,
+            "owner_hot_counts": [
+              1,
+              3,
+              2,
+              2
+            ],
+            "owner_load_pct": [
+              18.780781907801586,
+              31.219218092198414,
+              25.0,
+              25.0
+            ],
+            "hot_only_ratio_pct": 100.0,
+            "ratio_pct": 49.75374473758731,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 8.176272589067361,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 1,
+              "source": 5,
+              "destination": 4,
+              "span": 0.03140390953900796,
+              "after_ratio_pct": 12.561563815603183
+            }
+          },
+          {
+            "hotmax": 16,
+            "owner_hot_counts": [
+              4,
+              4,
+              4,
+              4
+            ],
+            "owner_load_pct": [
+              25.0,
+              25.0,
+              25.0,
+              25.0
+            ],
+            "hot_only_ratio_pct": 0.0,
+            "ratio_pct": 0.0,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 0.0,
+            "three_bands": false,
+            "best_single_shard_move": null
+          },
+          {
+            "hotmax": 32,
+            "owner_hot_counts": [
+              10,
+              6,
+              6,
+              10
+            ],
+            "owner_load_pct": [
+              28.109609046099205,
+              21.89039095390079,
+              21.89039095390079,
+              28.109609046099205
+            ],
+            "hot_only_ratio_pct": 50.0,
+            "ratio_pct": 24.876872368793645,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 4.088136294533679,
+            "three_bands": true,
+            "best_single_shard_move": null
+          },
+          {
+            "hotmax": 64,
+            "owner_hot_counts": [
+              20,
+              14,
+              15,
+              15
+            ],
+            "owner_load_pct": [
+              28.109609046099205,
+              23.4451954769504,
+              24.222597738475198,
+              24.222597738475198
+            ],
+            "hot_only_ratio_pct": 37.5,
+            "ratio_pct": 18.657654276595224,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 3.0661022209002575,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 0,
+              "source": 4,
+              "destination": 5,
+              "span": 0.01570195476950398,
+              "after_ratio_pct": 6.280781907801591
+            }
+          },
+          {
+            "hotmax": 128,
+            "owner_hot_counts": [
+              36,
+              33,
+              29,
+              30
+            ],
+            "owner_load_pct": [
+              26.5548045230496,
+              25.388701130762403,
+              23.833896607712795,
+              24.222597738475198
+            ],
+            "hot_only_ratio_pct": 21.875,
+            "ratio_pct": 10.883631661347227,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 1.7885596288584857,
+            "three_bands": false,
+            "best_single_shard_move": {
+              "shard": 0,
+              "source": 4,
+              "destination": 6,
+              "span": 0.019742875616135913,
+              "after_ratio_pct": 7.897150246454365
+            }
+          },
+          {
+            "hotmax": 256,
+            "owner_hot_counts": [
+              65,
+              65,
+              65,
+              61
+            ],
+            "owner_load_pct": [
+              25.194350565381203,
+              25.194350565381203,
+              25.194350565381203,
+              24.4169483038564
+            ],
+            "hot_only_ratio_pct": 6.25,
+            "ratio_pct": 3.1096090460992043,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 0.5110170368167096,
+            "three_bands": false,
+            "best_single_shard_move": null
+          }
+        ]
+      },
+      "rates": {
+        "hot": 6404779.37,
+        "cold": 6468180.05
+      },
+      "seed": {
+        "arms_receipt": {
+          "path": "/home/user/Projects/cx-lbosc3/docs/lbosc3/arms.json",
+          "sha256": "6e3ca56343cecbb1d52a8fa355d7c43fc697530fd3c012b59bff85c866a4bb99",
+          "source": "--arms"
+        },
+        "hot_keys": [
+          [
+            "memtier-1",
+            4
+          ],
+          [
+            "memtier-2",
+            3
+          ],
+          [
+            "memtier-3",
+            23
+          ],
+          [
+            "memtier-4",
+            18
+          ],
+          [
+            "memtier-5",
+            29
+          ],
+          [
+            "memtier-6",
+            6
+          ],
+          [
+            "memtier-7",
+            13
+          ],
+          [
+            "memtier-8",
+            1
+          ],
+          [
+            "memtier-9",
+            12
+          ],
+          [
+            "memtier-10",
+            8
+          ],
+          [
+            "memtier-11",
+            27
+          ],
+          [
+            "memtier-12",
+            17
+          ],
+          [
+            "memtier-13",
+            8
+          ],
+          [
+            "memtier-14",
+            30
+          ],
+          [
+            "memtier-15",
+            19
+          ],
+          [
+            "memtier-16",
+            6
+          ],
+          [
+            "memtier-17",
+            14
+          ],
+          [
+            "memtier-18",
+            20
+          ],
+          [
+            "memtier-19",
+            24
+          ],
+          [
+            "memtier-20",
+            18
+          ],
+          [
+            "memtier-21",
+            19
+          ],
+          [
+            "memtier-22",
+            27
+          ],
+          [
+            "memtier-23",
+            4
+          ],
+          [
+            "memtier-24",
+            16
+          ],
+          [
+            "memtier-25",
+            3
+          ],
+          [
+            "memtier-26",
+            11
+          ],
+          [
+            "memtier-27",
+            1
+          ],
+          [
+            "memtier-28",
+            28
+          ],
+          [
+            "memtier-29",
+            13
+          ],
+          [
+            "memtier-30",
+            3
+          ],
+          [
+            "memtier-31",
+            19
+          ],
+          [
+            "memtier-32",
+            8
+          ],
+          [
+            "memtier-33",
+            16
+          ],
+          [
+            "memtier-34",
+            29
+          ],
+          [
+            "memtier-35",
+            29
+          ],
+          [
+            "memtier-36",
+            24
+          ],
+          [
+            "memtier-37",
+            4
+          ],
+          [
+            "memtier-38",
+            10
+          ],
+          [
+            "memtier-39",
+            19
+          ],
+          [
+            "memtier-40",
+            29
+          ],
+          [
+            "memtier-41",
+            14
+          ],
+          [
+            "memtier-42",
+            26
+          ],
+          [
+            "memtier-43",
+            25
+          ],
+          [
+            "memtier-44",
+            10
+          ],
+          [
+            "memtier-45",
+            10
+          ],
+          [
+            "memtier-46",
+            27
+          ],
+          [
+            "memtier-47",
+            28
+          ],
+          [
+            "memtier-48",
+            29
+          ],
+          [
+            "memtier-49",
+            9
+          ],
+          [
+            "memtier-50",
+            29
+          ],
+          [
+            "memtier-51",
+            19
+          ],
+          [
+            "memtier-52",
+            28
+          ],
+          [
+            "memtier-53",
+            11
+          ],
+          [
+            "memtier-54",
+            14
+          ],
+          [
+            "memtier-55",
+            20
+          ],
+          [
+            "memtier-56",
+            8
+          ],
+          [
+            "memtier-57",
+            2
+          ],
+          [
+            "memtier-58",
+            5
+          ],
+          [
+            "memtier-59",
+            11
+          ],
+          [
+            "memtier-60",
+            10
+          ],
+          [
+            "memtier-61",
+            4
+          ],
+          [
+            "memtier-62",
+            18
+          ],
+          [
+            "memtier-63",
+            16
+          ],
+          [
+            "memtier-64",
+            0
+          ],
+          [
+            "memtier-65",
+            19
+          ],
+          [
+            "memtier-66",
+            3
+          ],
+          [
+            "memtier-67",
+            14
+          ],
+          [
+            "memtier-68",
+            25
+          ],
+          [
+            "memtier-69",
+            28
+          ],
+          [
+            "memtier-70",
+            30
+          ],
+          [
+            "memtier-71",
+            10
+          ],
+          [
+            "memtier-72",
+            6
+          ],
+          [
+            "memtier-73",
+            11
+          ],
+          [
+            "memtier-74",
+            2
+          ],
+          [
+            "memtier-75",
+            20
+          ],
+          [
+            "memtier-76",
+            17
+          ],
+          [
+            "memtier-77",
+            20
+          ],
+          [
+            "memtier-78",
+            12
+          ],
+          [
+            "memtier-79",
+            16
+          ],
+          [
+            "memtier-80",
+            10
+          ],
+          [
+            "memtier-81",
+            24
+          ],
+          [
+            "memtier-82",
+            30
+          ],
+          [
+            "memtier-83",
+            28
+          ],
+          [
+            "memtier-84",
+            5
+          ],
+          [
+            "memtier-85",
+            1
+          ],
+          [
+            "memtier-86",
+            24
+          ],
+          [
+            "memtier-87",
+            28
+          ],
+          [
+            "memtier-88",
+            3
+          ],
+          [
+            "memtier-89",
+            1
+          ],
+          [
+            "memtier-90",
+            19
+          ],
+          [
+            "memtier-91",
+            9
+          ],
+          [
+            "memtier-92",
+            21
+          ],
+          [
+            "memtier-93",
+            0
+          ],
+          [
+            "memtier-94",
+            9
+          ],
+          [
+            "memtier-95",
+            29
+          ],
+          [
+            "memtier-96",
+            15
+          ],
+          [
+            "memtier-97",
+            5
+          ],
+          [
+            "memtier-98",
+            24
+          ],
+          [
+            "memtier-99",
+            4
+          ],
+          [
+            "memtier-100",
+            6
+          ],
+          [
+            "memtier-101",
+            26
+          ],
+          [
+            "memtier-102",
+            22
+          ],
+          [
+            "memtier-103",
+            30
+          ],
+          [
+            "memtier-104",
+            27
+          ],
+          [
+            "memtier-105",
+            27
+          ],
+          [
+            "memtier-106",
+            24
+          ],
+          [
+            "memtier-107",
+            14
+          ],
+          [
+            "memtier-108",
+            29
+          ],
+          [
+            "memtier-109",
+            28
+          ],
+          [
+            "memtier-110",
+            5
+          ],
+          [
+            "memtier-111",
+            1
+          ],
+          [
+            "memtier-112",
+            29
+          ],
+          [
+            "memtier-113",
+            3
+          ],
+          [
+            "memtier-114",
+            3
+          ],
+          [
+            "memtier-115",
+            5
+          ],
+          [
+            "memtier-116",
+            4
+          ],
+          [
+            "memtier-117",
+            1
+          ],
+          [
+            "memtier-118",
+            9
+          ],
+          [
+            "memtier-119",
+            30
+          ],
+          [
+            "memtier-120",
+            16
+          ],
+          [
+            "memtier-121",
+            15
+          ],
+          [
+            "memtier-122",
+            11
+          ],
+          [
+            "memtier-123",
+            27
+          ],
+          [
+            "memtier-124",
+            11
+          ],
+          [
+            "memtier-125",
+            29
+          ],
+          [
+            "memtier-126",
+            31
+          ],
+          [
+            "memtier-127",
+            6
+          ],
+          [
+            "memtier-128",
+            25
+          ],
+          [
+            "memtier-129",
+            19
+          ],
+          [
+            "memtier-130",
+            9
+          ],
+          [
+            "memtier-131",
+            20
+          ],
+          [
+            "memtier-132",
+            4
+          ],
+          [
+            "memtier-133",
+            14
+          ],
+          [
+            "memtier-134",
+            23
+          ],
+          [
+            "memtier-135",
+            31
+          ],
+          [
+            "memtier-136",
+            27
+          ],
+          [
+            "memtier-137",
+            5
+          ],
+          [
+            "memtier-138",
+            22
+          ],
+          [
+            "memtier-139",
+            21
+          ],
+          [
+            "memtier-140",
+            6
+          ],
+          [
+            "memtier-141",
+            25
+          ],
+          [
+            "memtier-142",
+            18
+          ],
+          [
+            "memtier-143",
+            3
+          ],
+          [
+            "memtier-144",
+            26
+          ],
+          [
+            "memtier-145",
+            26
+          ],
+          [
+            "memtier-146",
+            25
+          ],
+          [
+            "memtier-147",
+            25
+          ],
+          [
+            "memtier-148",
+            17
+          ],
+          [
+            "memtier-149",
+            20
+          ],
+          [
+            "memtier-150",
+            12
+          ],
+          [
+            "memtier-151",
+            0
+          ],
+          [
+            "memtier-152",
+            18
+          ],
+          [
+            "memtier-153",
+            11
+          ],
+          [
+            "memtier-154",
+            4
+          ],
+          [
+            "memtier-155",
+            27
+          ],
+          [
+            "memtier-156",
+            26
+          ],
+          [
+            "memtier-157",
+            5
+          ],
+          [
+            "memtier-158",
+            11
+          ],
+          [
+            "memtier-159",
+            9
+          ],
+          [
+            "memtier-160",
+            17
+          ],
+          [
+            "memtier-161",
+            1
+          ],
+          [
+            "memtier-162",
+            14
+          ],
+          [
+            "memtier-163",
+            3
+          ],
+          [
+            "memtier-164",
+            5
+          ],
+          [
+            "memtier-165",
+            15
+          ],
+          [
+            "memtier-166",
+            16
+          ],
+          [
+            "memtier-167",
+            25
+          ],
+          [
+            "memtier-168",
+            8
+          ],
+          [
+            "memtier-169",
+            10
+          ],
+          [
+            "memtier-170",
+            20
+          ],
+          [
+            "memtier-171",
+            23
+          ],
+          [
+            "memtier-172",
+            12
+          ],
+          [
+            "memtier-173",
+            28
+          ],
+          [
+            "memtier-174",
+            1
+          ],
+          [
+            "memtier-175",
+            12
+          ],
+          [
+            "memtier-176",
+            4
+          ],
+          [
+            "memtier-177",
+            17
+          ],
+          [
+            "memtier-178",
+            9
+          ],
+          [
+            "memtier-179",
+            29
+          ],
+          [
+            "memtier-180",
+            14
+          ],
+          [
+            "memtier-181",
+            11
+          ],
+          [
+            "memtier-182",
+            23
+          ],
+          [
+            "memtier-183",
+            18
+          ],
+          [
+            "memtier-184",
+            20
+          ],
+          [
+            "memtier-185",
+            16
+          ],
+          [
+            "memtier-186",
+            23
+          ],
+          [
+            "memtier-187",
+            11
+          ],
+          [
+            "memtier-188",
+            8
+          ],
+          [
+            "memtier-189",
+            8
+          ],
+          [
+            "memtier-190",
+            14
+          ],
+          [
+            "memtier-191",
+            11
+          ],
+          [
+            "memtier-192",
+            10
+          ],
+          [
+            "memtier-193",
+            14
+          ],
+          [
+            "memtier-194",
+            4
+          ],
+          [
+            "memtier-195",
+            17
+          ],
+          [
+            "memtier-196",
+            17
+          ],
+          [
+            "memtier-197",
+            27
+          ],
+          [
+            "memtier-198",
+            31
+          ],
+          [
+            "memtier-199",
+            7
+          ],
+          [
+            "memtier-200",
+            15
+          ],
+          [
+            "memtier-201",
+            6
+          ],
+          [
+            "memtier-202",
+            12
+          ],
+          [
+            "memtier-203",
+            30
+          ],
+          [
+            "memtier-204",
+            14
+          ],
+          [
+            "memtier-205",
+            30
+          ],
+          [
+            "memtier-206",
+            31
+          ],
+          [
+            "memtier-207",
+            14
+          ],
+          [
+            "memtier-208",
+            3
+          ],
+          [
+            "memtier-209",
+            27
+          ],
+          [
+            "memtier-210",
+            1
+          ],
+          [
+            "memtier-211",
+            20
+          ],
+          [
+            "memtier-212",
+            25
+          ],
+          [
+            "memtier-213",
+            13
+          ],
+          [
+            "memtier-214",
+            23
+          ],
+          [
+            "memtier-215",
+            17
+          ],
+          [
+            "memtier-216",
+            20
+          ],
+          [
+            "memtier-217",
+            16
+          ],
+          [
+            "memtier-218",
+            1
+          ],
+          [
+            "memtier-219",
+            2
+          ],
+          [
+            "memtier-220",
+            2
+          ],
+          [
+            "memtier-221",
+            29
+          ],
+          [
+            "memtier-222",
+            12
+          ],
+          [
+            "memtier-223",
+            13
+          ],
+          [
+            "memtier-224",
+            26
+          ],
+          [
+            "memtier-225",
+            30
+          ],
+          [
+            "memtier-226",
+            23
+          ],
+          [
+            "memtier-227",
+            12
+          ],
+          [
+            "memtier-228",
+            21
+          ],
+          [
+            "memtier-229",
+            30
+          ],
+          [
+            "memtier-230",
+            7
+          ],
+          [
+            "memtier-231",
+            1
+          ],
+          [
+            "memtier-232",
+            14
+          ],
+          [
+            "memtier-233",
+            9
+          ],
+          [
+            "memtier-234",
+            10
+          ],
+          [
+            "memtier-235",
+            22
+          ],
+          [
+            "memtier-236",
+            16
+          ],
+          [
+            "memtier-237",
+            14
+          ],
+          [
+            "memtier-238",
+            28
+          ],
+          [
+            "memtier-239",
+            9
+          ],
+          [
+            "memtier-240",
+            29
+          ],
+          [
+            "memtier-241",
+            2
+          ],
+          [
+            "memtier-242",
+            31
+          ],
+          [
+            "memtier-243",
+            19
+          ],
+          [
+            "memtier-244",
+            23
+          ],
+          [
+            "memtier-245",
+            26
+          ],
+          [
+            "memtier-246",
+            28
+          ],
+          [
+            "memtier-247",
+            14
+          ],
+          [
+            "memtier-248",
+            18
+          ],
+          [
+            "memtier-249",
+            8
+          ],
+          [
+            "memtier-250",
+            11
+          ],
+          [
+            "memtier-251",
+            30
+          ],
+          [
+            "memtier-252",
+            3
+          ],
+          [
+            "memtier-253",
+            24
+          ],
+          [
+            "memtier-254",
+            2
+          ],
+          [
+            "memtier-255",
+            29
+          ],
+          [
+            "memtier-256",
+            14
+          ]
+        ],
+        "identity": {
+          "arch_bits": "64",
+          "atomic": "0",
+          "client_lb": "1",
+          "config_file": "",
+          "ex_threads": "4",
+          "executable": "/home/user/Projects/cx-lbosc3/build/lbosc3/PRE/tomokv",
+          "flip_auto": "0",
+          "flip_bucket_max": "8",
+          "flip_bucket_min": "8",
+          "flip_client_max": "1",
+          "flip_client_min": "0",
+          "flip_fingerprint_window": "0",
+          "flip_in_progress": "0",
+          "flip_last_transfers": "0",
+          "flip_target_ex": "4",
+          "flip_target_io": "4",
+          "flip_unit_threads": "1",
+          "hash": "mix64",
+          "io_threads": "4",
+          "io_threads_active": "1",
+          "key_lb": "1",
+          "multiplexing_api": "io_uring",
+          "net_io": "uring",
+          "overlap": "0",
+          "overlap_enabled": "0",
+          "pin_threads": "1",
+          "process_id": "1961627",
+          "read_local": "0",
+          "redis_mode": "standalone",
+          "redis_version": "0.1-cpp",
+          "reorder": "0",
+          "reorder_retired": "1",
+          "run_id": "b9e694c654a3485ec9b9e08cde73278045c94b39",
+          "shard_home": "0:4,1:5,2:6,3:7,4:4,5:5,6:6,7:7,8:4,9:5,10:6,11:7,12:4,13:5,14:6,15:7,16:4,17:5,18:6,19:7,20:4,21:5,22:6,23:7,24:4,25:5,26:6,27:7,28:4,29:5,30:6,31:7",
+          "shard_owners": "0:4,1:5,2:6,3:7,4:4,5:5,6:6,7:7,8:4,9:5,10:6,11:7,12:4,13:5,14:6,15:7,16:4,17:5,18:6,19:7,20:4,21:5,22:6,23:7,24:4,25:5,26:6,27:7,28:4,29:5,30:6,31:7",
+          "shards": 32,
+          "tcp_port": "7931",
+          "thread_cpus": "0:0,1:1,2:2,3:3,4:4,5:5,6:6,7:7",
+          "thread_mode": "2s",
+          "tomokv_version": "0.1-cpp",
+          "uptime_in_days": "0",
+          "uptime_in_seconds": "0",
+          "zc_min": "16384"
+        },
+        "mode": "2s",
+        "path": "/home/user/Projects/cx-lbosc3/build/lbosc3/episodes-mainline/seed-2s/seed.tomo",
+        "population_command": [
+          "taskset",
+          "-c",
+          "8-15",
+          "/usr/bin/memtier_benchmark",
+          "-s",
+          "127.0.0.1",
+          "-p",
+          "7931",
+          "--protocol=redis",
+          "-t",
+          "8",
+          "-c",
+          "4",
+          "--ratio=1:0",
+          "--key-pattern=P:P",
+          "--key-minimum=1",
+          "--key-maximum=500000",
+          "--key-prefix=memtier-",
+          "-d",
+          "64",
+          "--hide-histogram",
+          "--json-out-file=/home/user/Projects/cx-lbosc3/build/lbosc3/episodes-mainline/seed-2s/populate.json",
+          "-n",
+          "15625"
+        ],
+        "sha256": "dbe88eaf9389ece8cc31a6f85eb7badd080e4a9c1db787a49866f450232ee4ed",
+        "shards": 32
+      }
+    }
+  },
+  "sources": {
+    "build/lbosc3/episodes-mainline/key-skew-1s-PRE-probe/hot.json": "7995efc1ed6dc054fdf6dcefb1bec5747030f923000c7a93e62382dd520080c1",
+    "build/lbosc3/episodes-mainline/key-skew-1s-PRE-probe/cold.json": "f15dd8ba926970d77c1cf940178369b86f2e034e0cea95b1e1169e618d914983",
+    "build/lbosc3/episodes-mainline/seed-1s/manifest.json": "464f9f5905e36959a3727bf498cf94b84586ebc37d1a48ec7cfc869306d168ba",
+    "build/lbosc3/episodes-mainline/key-skew-2s-PRE-probe/hot.json": "bb6261429e568ee2aaca1d61379f77ae67cc19ff97c4815711ec3fa301e5a0c3",
+    "build/lbosc3/episodes-mainline/key-skew-2s-PRE-probe/cold.json": "91ffc1d7109405a2e82ac949327820f3ac640bc65c9b5f1e4f8707f654784e81",
+    "build/lbosc3/episodes-mainline/seed-2s/manifest.json": "08e5e3182741de4c845692818e8aebe499e66af6836bf2bc96af8ebd4a40f5dd"
+  }
+}

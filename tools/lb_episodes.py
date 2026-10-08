@@ -922,6 +922,11 @@ def key_mapping(conn, hotmax, shards):
     return result
 
 
+def mode_hotmax(args, mode):
+    override = getattr(args, "hotmax_2s", None) if mode == "2s" else None
+    return args.hotmax if override is None else override
+
+
 def prepare_seed(args, mode):
     # Default shard counts differ by mode. A snapshot and its physical key map
     # are shared across every arm/probe/round *within* the observed geometry.
@@ -931,12 +936,13 @@ def prepare_seed(args, mode):
         proc = children.start(argv, directory / "populate.log", directory)
         wait_loads([proc])
         require(conn.must("DBSIZE") == KEYS, "population did not produce exactly 500000 keys")
-        mapping = key_mapping(conn, args.hotmax, identity["shards"])
+        mapping = key_mapping(conn, mode_hotmax(args, mode), identity["shards"])
         require(conn.must("SAVE") == b"OK", "seed SAVE failed")
     path = directory / "seed.tomo"
     record = {"sha256": digest(path), "path": str(path), "hot_keys": mapping,
               "population_command": argv, "identity": identity, "mode": mode,
-              "shards": identity["shards"], "arms_receipt": arms_receipt(args)}
+              "shards": identity["shards"], "hotmax": mode_hotmax(args, mode),
+              "arms_receipt": arms_receipt(args)}
     save_json(directory / "manifest.json", record)
     return path, record
 
@@ -1008,11 +1014,12 @@ def episode_row(result):
 
 def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion=None, probe=False):
     calibration = episode == "balanced"
+    hotmax = mode_hotmax(args, mode)
     name = f"{episode}-{mode}-{arm}-" + ("probe" if probe else f"r{round_no}")
     directory = args.output / name
     result = {"name": name, "arm": arm, "mode": mode, "episode": episode, "round": round_no,
               "binary": str(ROOT / arm_table(args)[arm][0]), "sha256": arm_table(args)[arm][1],
-              "arms_receipt": arms_receipt(args), "shards": None, "hotmax": args.hotmax,
+              "arms_receipt": arms_receipt(args), "shards": None, "hotmax": hotmax,
               "requested_shards": args.shards, "hot_pipeline": args.hot_pipeline,
               "probe": probe, "measurement_valid": False,
               "stall": None, "pending_ms": None, "attempts": None, "pass_limit": None,
@@ -1028,7 +1035,7 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
             result["cohort_owners_method"] = "requested connection index -> sorted boot IO owners, round robin; actual placements in baseline.owners and owners"
             require(identity["shards"] == seed_record["shards"],
                     f"shards={identity['shards']}, seed limit={seed_record['shards']}")
-            require(key_mapping(conn, args.hotmax, identity["shards"]) == seed_record["hot_keys"],
+            require(key_mapping(conn, hotmax, identity["shards"]) == seed_record["hot_keys"],
                     "physical key map changed from this mode's SHA-bound seed")
             sampler = Sampler(args.port, directory / "telemetry.jsonl", int(identity["process_id"]))
             with sampled_episode(sampler, result):
@@ -1067,7 +1074,7 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
                     result["baseline_to_stimulus_gap"] = stimulus - baseline_end
                     processes = []
                     post_owners = [placement[k] for k in ("cold", "hot")]
-                    ranges = [(args.hotmax + 1, KEYS), (1, args.hotmax)] if episode == "key-skew" else [(1, KEYS)] * 2
+                    ranges = [(hotmax + 1, KEYS), (1, hotmax)] if episode == "key-skew" else [(1, KEYS)] * 2
                     duration = args.max_converge + DECISION_SECONDS + args.suffix + 3
                     for label, targets, (low, high) in zip(("cold", "hot"), post_owners, ranges):
                         argv = load_command(args, directory, label, low, high, int(duration), owners=targets)
@@ -1413,6 +1420,13 @@ def replay(directory):
             "campaigns": reports}
 
 
+def campaign_selection(args):
+    if args.probe_only:
+        return [], [args.probe_only]
+    jobs = list(schedule(args.episodes, args.rounds))
+    return jobs, sorted({mode for _, mode, _, _ in jobs})
+
+
 def dry_run(args):
     def command(argv):
         print(shlex.join(argv))
@@ -1420,10 +1434,10 @@ def dry_run(args):
     for arm, (path, sha) in arm_table(args).items():
         print(f"# SHA256 REQUIRED {arm} {sha} {ROOT / path}")
     print("# ARMS RECEIPT " + json.dumps(arms_receipt(args), sort_keys=True))
-    jobs = list(schedule(args.episodes, args.rounds))
-    modes = sorted({mode for _, mode, _, _ in jobs})
+    jobs, modes = campaign_selection(args)
     probes = args.episodes in ("key-skew", "both")
     def job(arm, mode, episode, number, probe=False):
+        hotmax = mode_hotmax(args, mode)
         directory = args.output / (f"{episode}-{mode}-{arm}-" + ("probe" if probe else f"r{number}"))
         owners = ["<boot-io-owners>"]
         if episode == "balanced" and number > 1:
@@ -1437,7 +1451,7 @@ def dry_run(args):
             command(load_command(args, directory, label, 1, KEYS, args.warm + args.baseline + 3, owners=owners))
         if episode != "balanced":
             print("# RESP: INFO COMMANDSTATS before/after both complete post-stimulus generators")
-            ranges = [(args.hotmax + 1, KEYS), (1, args.hotmax)] if episode == "key-skew" else [(1, KEYS)] * 2
+            ranges = [(hotmax + 1, KEYS), (1, hotmax)] if episode == "key-skew" else [(1, KEYS)] * 2
             for label, (low, high) in zip(("cold", "hot"), ranges):
                 targets = ["<first-two-boot-io-owners>"] if episode == "client-skew" and label == "hot" else owners
                 command(load_command(args, directory, label, low, high,
@@ -1456,18 +1470,19 @@ def dry_run(args):
         command(server_command(args, "PRE", mode, seed))
         command(load_command(args, seed, "populate", 1, KEYS, populate=True))
         print(f"# RESP 127.0.0.1:{args.port}: INFO SERVER, INFO LB, DEBUG LBSIGNALS, DBSIZE;")
-        print(f"# DEBUG SHARDS memtier-1 ... memtier-{args.hotmax} in batches of 128; SAVE")
+        print(f"# DEBUG SHARDS memtier-1 ... memtier-{mode_hotmax(args, mode)} in batches of 128; SAVE")
         for attempt in range(1, 4):
             job("PRE", mode, "balanced", attempt)
-    print("# SCORED MATRIX (only after every requested key probe is ARMED)")
+    print("# PROBE ONLY: stop after PRE admission verdict; no scored matrix" if args.probe_only else
+          "# SCORED MATRIX (only after every requested key probe is ARMED)")
     for arm, mode, episode, number in jobs:
         job(arm, mode, episode, number)
     print(f"# nominal load time {wall_seconds(args) / 60:.1f} minutes + population/boot/SAVE/connection setup")
 
 
 def wall_seconds(args):
-    jobs = list(schedule(args.episodes, args.rounds))
-    modes = len({mode for _, mode, _, _ in jobs})
+    jobs, selected_modes = campaign_selection(args)
+    modes = len(selected_modes)
     probes = modes if args.episodes in ("key-skew", "both") else 0
     observations = len(jobs) + probes
     return ((modes + observations) * (args.warm + args.baseline + 3) +
@@ -1500,6 +1515,10 @@ def argument_parser():
     parser.add_argument("--server-cores", default=SERVER_CORES)
     parser.add_argument("--load-cores", default=LOAD_CORES)
     parser.add_argument("--hotmax", type=int, default=int(os.environ.get("HOTMAX", "2000")))
+    parser.add_argument("--hotmax-2s", type=int, default=None,
+                        help="2s hot-key upper bound; omitted inherits --hotmax (1s always uses --hotmax)")
+    parser.add_argument("--probe-only", choices=("1s", "2s"),
+                        help="run only this mode's PRE seed, calibration and key-skew admission probe; no scored rounds")
     parser.add_argument("--hot-pipeline", type=int, default=PIPELINE,
                         help="hot stimulus cohort depth; cold and balanced cohorts stay at 128")
     parser.add_argument("--shards", type=int, default=None,
@@ -1529,6 +1548,10 @@ def main(argv=None):
     require(args.max_converge >= DECISION_SECONDS and args.suffix >= DECISION_SECONDS,
             "convergence and suffix must each cover a decision window")
     require(1 <= args.hotmax < KEYS and 0 < args.port < 65536 and args.rate_per_client >= 0, "invalid workload argument")
+    require(args.hotmax_2s is None or 1 <= args.hotmax_2s < KEYS,
+            "--hotmax-2s must be in [1,500000)")
+    require(not args.probe_only or args.episodes != "client-skew",
+            "--probe-only requires key-skew episodes")
     require(args.shards is None or args.shards > 0, "--shards must be positive or omitted")
     require(args.hot_pipeline > 0, "--hot-pipeline must be positive")
     args.arm_table, args.arms_receipt = bind_arms(args.arms)
@@ -1549,8 +1572,7 @@ def main(argv=None):
                     str(args.output / "owner-select.so"), str(args.output / "owner-select.c"), "-ldl"]
     with (args.output / "owner-select-build.log").open("wb") as log:
         subprocess.run(compile_argv, check=True, stdout=log, stderr=subprocess.STDOUT)
-    jobs = list(schedule(args.episodes, args.rounds))
-    modes = sorted({mode for _, mode, _, _ in jobs})
+    jobs, modes = campaign_selection(args)
     manifest = {"arms": arm_table(args), "arms_receipt": arms_receipt(args),
                 "identity": {"shards": {}, "arms_receipt": arms_receipt(args)},
                 "pad_kind": "A: PRE behaviour with POST text size/layout",
@@ -1591,6 +1613,13 @@ def main(argv=None):
             save_json(args.output / "results.json", [])
             print("LBPLANNER-VERDICT " + report["status"] + ": " + report["rule"])
             return 3 if refused else 1
+    if args.probe_only:
+        report = {"status": "PASS", "probes": probes,
+                  "rule": "PRE probe ARMED; admission only, scored matrix not run"}
+        save_json(args.output / "report.json", report)
+        save_json(args.output / "results.json", [])
+        print("LBPLANNER-VERDICT " + report["status"] + ": " + report["rule"])
+        return 0
     results = []
     for arm, mode, episode, number in jobs:
         seed, seed_record = seeds[mode]
@@ -2626,6 +2655,95 @@ class SelfTest(unittest.TestCase):
             other = "client-skew" if episode == "key-skew" else "key-skew"
             self.assertTrue(all(other not in path for path in paths))
             self.assertEqual(sum(path.endswith("-probe") for path in paths), 2 if episode == "key-skew" else 0)
+
+    def test_mode_hotmax_dry_run_and_invalid_overrides(self):
+        from contextlib import redirect_stdout
+        import io
+        from unittest.mock import patch
+        args = argument_parser().parse_args(["--episodes", "key-skew", "--rounds", "6",
+                                             "--hotmax", "256", "--hotmax-2s", "64"])
+        self.assertEqual((mode_hotmax(args, "1s"), mode_hotmax(args, "2s")), (256, 64))
+        output = io.StringIO()
+        with patch.object(subprocess, "Popen", side_effect=AssertionError("started process")), \
+                patch.object(socket, "socket", side_effect=AssertionError("opened socket")), \
+                redirect_stdout(output):
+            dry_run(args)
+        for line in output.getvalue().splitlines():
+            if line.startswith("#"):
+                continue
+            argv = shlex.split(line)
+            target = next((a.split("=", 1)[1] for a in argv if a.startswith("--json-out-file=")), "")
+            if Path(target).name not in ("hot.json", "cold.json"):
+                continue
+            hotmax = 64 if "-2s-" in target else 256
+            self.assertIn(f"--key-minimum={1 if target.endswith('/hot.json') else hotmax + 1}", argv)
+            self.assertIn(f"--key-maximum={hotmax if target.endswith('/hot.json') else KEYS}", argv)
+        self.assertIn("memtier-256 in batches", output.getvalue())
+        self.assertIn("memtier-64 in batches", output.getvalue())
+        fallback = argument_parser().parse_args(["--hotmax", "256"])
+        self.assertEqual(mode_hotmax(fallback, "2s"), 256)
+        for invalid in ("0", "-1", str(KEYS)):
+            with self.assertRaisesRegex(ValueError, "--hotmax-2s"):
+                main(["--dry-run", "--hotmax-2s", invalid])
+        with self.assertRaisesRegex(ValueError, "--probe-only requires"):
+            main(["--dry-run", "--probe-only", "2s", "--episodes", "client-skew"])
+
+    def test_probe_only_dry_run_keeps_seed_calibration_and_admission(self):
+        from contextlib import redirect_stdout
+        import io
+        args = argument_parser().parse_args(["--probe-only", "2s", "--episodes", "key-skew",
+                                             "--hotmax", "256", "--hotmax-2s", "64"])
+        output = io.StringIO()
+        with redirect_stdout(output):
+            dry_run(args)
+        commands = [shlex.split(s) for s in output.getvalue().splitlines() if not s.startswith("#")]
+        servers = [a for a in commands if "--thread-mode" in a]
+        self.assertEqual(len(servers), 5)  # seed, up to three calibrations, one probe
+        self.assertTrue(all(a[a.index("--thread-mode") + 1] == "2s" for a in servers))
+        self.assertTrue(all(a[3] == str(ROOT / ARMS["PRE"][0]) for a in servers))
+        self.assertEqual(campaign_selection(args), ([], ["2s"]))
+        self.assertEqual(wall_seconds(args), 2 * 93 + 216)
+        self.assertIn("PROBE ONLY: stop", output.getvalue())
+
+    def test_probe_only_live_dispatch_requires_admitted_move(self):
+        from contextlib import redirect_stdout
+        import io
+        import tempfile
+        from unittest.mock import patch
+        for moves in (0, 1):
+            with self.subTest(moves=moves), tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+                output = Path(temp) / "probe"
+                calls = []
+                def fake_compile(argv, **kwargs):
+                    (output / "owner-select.so").write_bytes(b"not a shared object")
+                def seed(args, mode):
+                    self.assertEqual((mode, mode_hotmax(args, mode)), ("2s", 64))
+                    return output / "seed-2s", {"shards": 32}
+                def episode(args, arm, mode, kind, number, *rest, **kwargs):
+                    calls.append((arm, mode, kind, kwargs.get("probe", False)))
+                    if kwargs.get("probe"):
+                        result = {"measurement_valid": True, "deltas": {KEY: moves}}
+                        result["status"], result["reason"] = probe_verdict(result)
+                        return result
+                    return {"status": "PASS", "criterion": {"shards": 32}}
+                with patch(__name__ + ".verify_arms"), patch(__name__ + ".prepare_seed", side_effect=seed), \
+                        patch(__name__ + ".run_episode", side_effect=episode), \
+                        patch.object(shutil, "which", return_value=__file__), \
+                        patch.object(os, "sched_getaffinity", return_value=set(range(112))), \
+                        patch.object(os, "sched_setaffinity"), \
+                        patch.object(subprocess, "run", side_effect=fake_compile), \
+                        patch.object(subprocess, "Popen", side_effect=AssertionError("started process")), \
+                        patch.object(socket, "socket", side_effect=AssertionError("opened socket")), \
+                        redirect_stdout(io.StringIO()):
+                    code = main(["--probe-only", "2s", "--episodes", "key-skew", "--hotmax", "256",
+                                 "--hotmax-2s", "64", "--output", str(output)])
+                self.assertEqual(code, 0 if moves else 3)
+                self.assertEqual(calls, [("PRE", "2s", "balanced", False), ("PRE", "2s", "key-skew", True)])
+                self.assertEqual(json.loads((output / "results.json").read_text()), [])
+                saved = json.loads((output / "manifest.json").read_text())
+                self.assertEqual(saved["schedule"], [])
+                self.assertEqual(saved["config"]["hotmax_2s"], 64)
+                self.assertEqual(json.loads((output / "report.json").read_text())["status"], "PASS" if moves else "REFUSED")
 
     def test_refused_probe_stops_matrix_with_exit_three(self):
         from contextlib import redirect_stdout

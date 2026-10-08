@@ -243,3 +243,69 @@ Final verification on CPUs 112-127, without a server:
 Logs and control results are in `docs/lbosc3/`; the full build and dry-run logs
 are compressed there. Live gate/boot/episode/null results remain pending, with
 n=0 in every live arm. **No measured performance or accuracy claim is made.**
+
+## 2026-10-08 — lbosc3b
+
+This section supersedes the old base, binary receipts, and HOTMAX recommendation
+above. The old section remains the predecessor's historical record.
+
+Merged `origin/cpp` at `db86e5b4a051929c68108d33b1dc358428c59bca`.
+The config conflict keeps encodingfix's `stream_limits` at byte 560, places
+`key_lb_damping` at byte 568, and starts `layout_reserved[52]` at byte 572.
+Config stays 624 bytes. All mainline non-reserved fields and both namespaces'
+locked layouts match; the new damping field necessarily moves from its old
+candidate-only byte 560. Both MEASURE-REQUEST texts are retained. No planner or
+damping source was changed. The affected main.cc compiler budgets and final
+byte/SHA receipts are being re-derived against the new PRE before handoff.
+
+### Stimulus predeclaration (before any new live probe)
+
+Use **2s HOTMAX=64**, the largest requested prefix whose modeled **total** owner
+spread reaches three sampling-floor bands. Model uniform visits within each
+cohort, equal hot/cold rates, equal SET costs, and the recorded seed ownership.
+For N owners, H hot keys, and hot counts c_i, owner load share is
+`0.5/N + 0.5*c_i/H`; ratio is `100*N*(max(share)-min(share))`.
+The recorded rates were almost exactly equal: hot fractions 0.499932072 (1s)
+and 0.497537447 (2s). Replacing 0.5 with those fractions preserves the selection.
+The actual band is max(sampling floor, twice learned jitter), so this model is
+not evidence that a fresh runtime band or key move has armed.
+
+**The requested 1s=256 three-band confirmation is false for this workload.**
+It has 3.8975 bands considering hot traffic alone, but only 1.9488 after cold
+traffic. The old probe ARMED, which is a weaker condition. The largest 1s prefix
+that meets the same model rule is 128. Commands will include the requested
+256/64 configuration and the margin-compliant 128/64 variant, explicitly labeled;
+there is no silent stimulus substitution or favorable-round selection.
+
+Model: equal-rate hot/cold SET cohorts; ratio = 100 * owners * (max(load)-min(load))/sum(load).
+Three-band margin applies to total demand. Hot-only ratios are shown to expose the cold-cohort dilution.
+
+1s: owners [0, 1, 2, 3, 4, 5, 6, 7], 64 shards; band 7.216114583%; 3 bands 21.648343748%.
+
+| HOTMAX | Hot keys per owner | Hot-only % | Total % | Total / band | Recorded-rate % | Improves with one shard |
+| ---: | --- | ---: | ---: | ---: | ---: | --- |
+| 4 | 1,0,0,1,1,0,1,0 | 200.0000 | 100.0000 | 13.8579 | 99.9864 | no |
+| 8 | 1,0,0,2,3,0,1,1 | 300.0000 | 150.0000 | 20.7868 | 149.9796 | yes |
+| 16 | 5,1,1,2,3,1,1,2 | 200.0000 | 100.0000 | 13.8579 | 99.9864 | yes |
+| 32 | 8,4,3,5,5,2,2,3 | 150.0000 | 75.0000 | 10.3934 | 74.9898 | yes |
+| 64 | 12,10,8,9,8,5,7,5 | 87.5000 | 43.7500 | 6.0628 | 43.7441 | yes |
+| 128 | 20,21,15,14,16,12,17,13 | 56.2500 | 28.1250 | 3.8975 | 28.1212 | yes |
+| 256 | 35,32,36,29,31,28,37,28 | 28.1250 | 14.0625 | 1.9488 | 14.0606 | yes |
+
+Largest HOTMAX with >=3 bands: 128; recorded hot fraction 0.499932072.
+
+2s: owners [4, 5, 6, 7], 32 shards; band 6.085137720%; 3 bands 18.255413159%.
+
+| HOTMAX | Hot keys per owner | Hot-only % | Total % | Total / band | Recorded-rate % | Improves with one shard |
+| ---: | --- | ---: | ---: | ---: | ---: | --- |
+| 4 | 1,0,1,2 | 200.0000 | 100.0000 | 16.4335 | 99.5075 | yes |
+| 8 | 1,3,2,2 | 100.0000 | 50.0000 | 8.2167 | 49.7537 | yes |
+| 16 | 4,4,4,4 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | no |
+| 32 | 10,6,6,10 | 50.0000 | 25.0000 | 4.1084 | 24.8769 | no |
+| 64 | 20,14,15,15 | 37.5000 | 18.7500 | 3.0813 | 18.6577 | yes |
+| 128 | 36,33,29,30 | 21.8750 | 10.9375 | 1.7974 | 10.8836 | yes |
+| 256 | 65,65,65,61 | 6.2500 | 3.1250 | 0.5135 | 3.1096 | no |
+
+Largest HOTMAX with >=3 bands: 64; recorded hot fraction 0.497537447.
+
+Predeclare 2s HOTMAX=64. 1s HOTMAX=256 arms but does NOT retain the declared three-band margin once cold traffic is counted; the largest model-compliant 1s value is 128. No favourable round selection or automatic stimulus change.
