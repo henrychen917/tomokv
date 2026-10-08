@@ -1120,7 +1120,10 @@ bool blocking_execute_impl(Server&, ThreadCtx& self, Ring& ring, const Task& tas
         return true;
     }
     const BlockingPhase phase = state.phase.load(std::memory_order_acquire);
-    if (__builtin_expect(blocking_debug_xread_hold(state, phase), false)) return false;
+    // Keep each namespace's existing GCC branch weighting outside this cold
+    // path; the body audit pairs these hints with the TU's inlining budget.
+    const bool hold = blocking_debug_xread_hold(state, phase);
+    if (kSingleDatabase ? hold : __builtin_expect(hold, false)) return false;
     if (phase == BlockingPhase::Cancelled) {
         blocking_task_done(state, self, ring);
         return true;
@@ -1183,8 +1186,9 @@ bool blocking_execute_impl(Server&, ThreadCtx& self, Ring& ring, const Task& tas
             state.pending.fetch_sub(1, std::memory_order_acq_rel) == 1 &&
             !blocking_finish_registration<IofusedPrivateQueue>(
                 state, shard, self, ring)) return false;
-        if (__builtin_expect(blocking_debug_xread_hold(
-                state, state.phase.load(std::memory_order_acquire)), false))
+        const bool hold_tail = blocking_debug_xread_hold(
+            state, state.phase.load(std::memory_order_acquire));
+        if (kSingleDatabase ? hold_tail : __builtin_expect(hold_tail, false))
             return false;
         blocking_task_done(state, self, ring);
         return true;

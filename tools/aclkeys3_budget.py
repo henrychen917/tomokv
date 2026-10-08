@@ -55,6 +55,9 @@ def main():
         for row in new.values():
             row['hot'] = not bool(ALLOWED.search(row['name']))
         result = dict(value=value, pre=str(pre), command=command,
+                      source_sha256={str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
+                                     for path in (ROOT / 'src/cmd/blocking.inc', ROOT / 'src/cmd/t_server.cc',
+                                                  ROOT / 'src/cmd/blocking_debug.cc', ROOT / 'Makefile')},
                       sha256=hashlib.sha256(target.read_bytes()).hexdigest(), **compare(old, new))
         (folder / f'{value}.json').write_text(json.dumps(result, indent=2) + '\n')
         print(args.tu, args.variant, value, 'outside_path', result['hot_changed'],

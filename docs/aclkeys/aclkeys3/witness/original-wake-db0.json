@@ -1,0 +1,62 @@
+[
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/aclkeys3/HOOK/aclkeys-wake-db0-unit",
+      "split",
+      "0",
+      "window"
+    ],
+    "exit": 1,
+    "expected_failure_observed": true,
+    "log": "docs/aclkeys/aclkeys3/witness/original-wake-db0-split-0.txt",
+    "sha256": "4db69bbb8b7d7b86db0ec8e28ca4cd845d97c4ca5a1e2b381f1dbb8215a692e2"
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/aclkeys3/HOOK/aclkeys-wake-db0-unit",
+      "split",
+      "1",
+      "window"
+    ],
+    "exit": 1,
+    "expected_failure_observed": true,
+    "log": "docs/aclkeys/aclkeys3/witness/original-wake-db0-split-1.txt",
+    "sha256": "4db69bbb8b7d7b86db0ec8e28ca4cd845d97c4ca5a1e2b381f1dbb8215a692e2"
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/aclkeys3/HOOK/aclkeys-wake-db0-unit",
+      "fused",
+      "0",
+      "window"
+    ],
+    "exit": 1,
+    "expected_failure_observed": true,
+    "log": "docs/aclkeys/aclkeys3/witness/original-wake-db0-fused-0.txt",
+    "sha256": "4db69bbb8b7d7b86db0ec8e28ca4cd845d97c4ca5a1e2b381f1dbb8215a692e2"
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-119",
+      "build/aclkeys3/HOOK/aclkeys-wake-db0-unit",
+      "fused",
+      "1",
+      "window"
+    ],
+    "exit": 1,
+    "expected_failure_observed": true,
+    "log": "docs/aclkeys/aclkeys3/witness/original-wake-db0-fused-1.txt",
+    "sha256": "4db69bbb8b7d7b86db0ec8e28ca4cd845d97c4ca5a1e2b381f1dbb8215a692e2"
+  }
+]

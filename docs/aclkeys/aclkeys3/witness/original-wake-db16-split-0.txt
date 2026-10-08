@@ -1,0 +1,2 @@
+FAIL aclkeys-wake: last Task did not renew the consumed IO notification
+aclkeys-wake mode=split atomic=0 db=16 registration=1 last_task=2 io_rejected=3 early_notification=1 final_notification=0

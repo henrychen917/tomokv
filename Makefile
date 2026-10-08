@@ -102,10 +102,10 @@ $(BUILD_ROOT)/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=
 $(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10600
 # PS5/PS7 add cold CONFIG/INFO/finalization code. Retain PRE's inlining decisions
 # for every ordinary command and storage body; tools/psfix_artifacts.py audits both variants.
-$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31290
+$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31297
 # SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31632 --param max-inline-insns-auto=16
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31629 --param max-inline-insns-auto=16
 # SV9 publishes save status only on cold completion/abort edges.
 $(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14584
 $(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14457
@@ -126,9 +126,11 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # every function, including ordinary xshard_plain_prepare and cold clones.
 # CD13b adds owner-side GEO metadata calls; +51/+53 retains ordinary command/notify bodies
 # in both namespaces. tests/cd13b_audit.py checks every emitted body and linker selection.
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127628
+# ACLKEYS3's held registration and final-task wake preserve every outside-path
+# xshard body at these budgets, including both blocked queue specializations.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127791
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=126223
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=126391
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
 $(BUILD_ROOT)/src/cmd/acl.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34630
