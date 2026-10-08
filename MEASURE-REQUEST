@@ -1,4 +1,5 @@
-Versionstr is WIP: do not merge or infer a green gate. Read MEASURE-REQUEST-versionstr.md.
-PRE and POST are built and hashed, but ordinary-dispatch byte identity still fails.
-Resolve the listed DB0 compiler drift before live verification at the gate's geometry.
-The report lists exact INFO/HELLO cells, negative PRE expectations, and client smoke commands.
+versionstr2: static byte proof PASS; live differential awaits the bounded quiet-box preflight.
+Read the dated versionstr2 section in MEASURE-REQUEST-versionstr.md.
+PRE/POST: build/versionstr2/PRE/tomokv and build/versionstr2/POST/tomokv.
+1492/1492 hot, 4836/4836 ordinary, 3021/3021 linked; instructions and layouts equal; zero unexplained.
+Rows +0/+0. Full gate and merge remain maintainer-owned. Do not infer live success.

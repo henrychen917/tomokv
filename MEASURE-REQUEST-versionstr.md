@@ -1,3 +1,52 @@
+## 2026-10-08 — versionstr2
+
+Static byte verdict: **PASS**. Live differential: **pending the bounded quiet-box preflight**. This section supersedes the predecessor's failed byte verdict below. The unchanged proof tools and all current evidence are in `docs/versionstr/versionstr2/`.
+
+Merged `origin/cpp` at entry (`c1f4f7d9c`), then fetched/merged again immediately before proof; origin remained `db86e5b4a051929c68108d33b1dc358428c59bca`, which is PRE. Production isolation is commit `bac3c0066`; the differential footer addition is `1905cec03`. The proof was recorded in `3243ca322`.
+
+The diagnosis holds: restoring the two main-visible headers and the baseline compiler flags restores every ordinary body. `src/main.cc`, `src/core/config.h`, and `src/core/boot_support.h` are byte-identical to PRE. Both complete preprocessed main translation units are byte-identical too (`main-preprocessed.json`). Main's compiler budgets are the merged baseline's 146409 (multi-db) and 146203 (DB0); this lane adds no compiler-budget override.
+
+There is no existing argc/argv pre-parse hook. `src/core/version.cc` therefore defines exactly one cold out-of-line function, `__wrap_main`; the release link uses GNU ld's `--wrap=main` to reach it from the C runtime. It prints the shared product/compatibility constants and exits for argv[1] `--version` or `-v`; otherwise it forwards argc/argv unchanged to `__real_main` and preserves its return status. This gives entry-option semantics: flag-looking option values and configuration-file contents are not scanned. The banner now precedes argument parsing, so it also appears before help/configuration errors. The DB0-to-multidb boot handoff does not re-enter the wrapper. No main-visible declaration or header edit remains. `version.h` is included only by `t_server.cc`, `server_tail.cc`, and `version.cc`.
+
+| Static quantity | PRE | POST / verdict |
+| --- | ---: | ---: |
+| Hot bodies, raw and relocation-resolved | 1492 | 1492 equal |
+| Ordinary emitted bodies | 4836 | 4836 equal |
+| Ordinary instruction counts per body | 4836 | 4836 equal |
+| Ordinary instruction total | 1,136,538 | 1,136,538 |
+| Linked ordinary selections proven | 3021 | 3021 |
+| Locked sizes/member layouts (both namespaces) | 16 types | all equal |
+| Unexplained changes | 0 | 0 |
+| `.text` bytes | 7,820,053 | 7,820,213 |
+
+The two tools compare 94 common objects. The only eight changed existing bodies are INFO, its cold clone, HELLO, and LOLWUT in each namespace; every body and reason is listed in `docs/versionstr/versionstr2/changed-bodies.md`. The added objects are separately audited in `new-objects.json`: `src/core/version.o` is empty and `db0/src/core/version.o` contains only the 136-byte entry/banner/version wrapper. No ordinary function hides in a POST-only object. Both main objects, all four formerly drifting WbEngine lambdas, FlatStore::hash_key, and both AofProducer destructor symbols now match. The original proof tools are unchanged, with hashes in `proof-tools.json`.
+
+```
+PRE  cf8331b2675e87349528d35e8b1497a791361eaa77963d27db2c455032c32907
+POST d7343c34a352b7e57b7db2f5493fdbf058e482d16d7f01646226b8703ef0845b
+```
+
+Both arms were fully rebuilt with GCC 13.3.0: `build/versionstr2/PRE` from a merge-base archive and `build/versionstr2/POST` from this branch. Build logs are retained (no warnings/errors). No throughput measurement or performance gain is claimed; no PAD arm is proposed.
+
+Reproduce the static proofs:
+
+```sh
+python3 tools/lbstall_artifacts.py compare build/versionstr2/PRE build/versionstr2/POST build/versionstr2/hot-bodies.json
+python3 tools/versionstr_artifacts.py build/versionstr2/PRE build/versionstr2/POST build/versionstr2/proof
+```
+
+Serverless checks pass: INFO controls 9/9; differential fanout controls 19/19; DEBUG LOAD controls 13/13; configuration parser and all 512 resolved geometry presentations; both CLI aliases. Seven stub-main integration cases prove early exit, correct forwarding (including `--version` as an option value), and return-status propagation. Omitting the wrapper makes the version check fail (exit 23 and the wrong output). The predecessor's banner assertion moved out of the geometry helper because that helper is again byte-identical to PRE; the live replay checks exactly one banner at each real boot.
+
+Live replay uses `docs/versionstr/versionstr2/live.py`: cores 112–119 for the eight-thread/16-shard target, 120–126 for the differential driver, 127 for the Redis oracle. It requests DB0 and multi-db (`--databases 1/16`), split 6:2 and fused/read-local=1, atomic 0/1, permanent seeds 7/19/20/23, and RESP2/RESP3 (64 legs total). Every leg calls the existing infofix suite, whose properties verify both HELLO protocols, exact target version fields, and both product-specific LOLWUT footers. Quiet preflight gets the initial attempt plus three retries 200 seconds apart. No refusal counts as a live pass. Live status and exact oracle HELLO value will be recorded after that bounded attempt.
+
+Version search uses `grep`, including gunzipped historical evidence and literal, escaped, hex, octal, URL/HTML and base64 spellings. The active old spelling remains only in deliberate INFO/HELLO negative controls. Other hits are immutable historical measurements/reports, predecessor receipts, and the search's own needle; they were not rewritten as new observations. No extra encoded old spelling was found. Receipts and exact patterns are retained alongside the proof.
+
+Rows: **+0 quick / +0 full**. `tests/gate.sh` is unchanged from the merge-base: EXPECT_QUICK=502, EXPECT_FULL=519. Config presentation remains in the existing parser row (definition at 1259–1262, collected at 3230, before quick exit at 3402–3406). Existing differential jobs are collected at 3434/3445, after that exit. No row was added or retired and no EXPECT edit is requested. The full gate remains maintainer-owned and was not run.
+
+---
+
+## Predecessor versionstr — historical failed attempt
+
 Lane versionstr — WIP, not ready to merge. The version fix and regression checks are implemented and built, but the mandatory ordinary-dispatch byte-identity proof still FAILS. No server, benchmark, or gate was started. No push was made.
 
 PRE is merge-base `5efc5414d3d6107b5e7e29f2404e585806c823ec`. `origin/cpp` was fetched and merged at entry, again before proof, and checked again at the final proof; it stayed at that commit. See `docs/versionstr/final-merge.txt`.

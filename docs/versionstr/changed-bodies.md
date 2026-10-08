@@ -1,3 +1,5 @@
+2026-10-08 versionstr2: **PASS**. See [the current changed-body inventory](versionstr2/changed-bodies.md) and [proof summary](versionstr2/proof/summary.json). The predecessor inventory below is retained as historical failed evidence.
+
 Every changed emitted body, including duplicate destructor symbols. Unaccepted drift is a blocker.
 
 | Object | Body | PRE bytes | POST bytes | Reason / status |

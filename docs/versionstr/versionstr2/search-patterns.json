@@ -1,0 +1,25 @@
+{
+  "old": [
+    "0.1-cpp",
+    "0\\.1-cpp",
+    "0\\x2e1-cpp",
+    "0\\u002e1-cpp",
+    "0%2E1-cpp",
+    "0.1&#45;cpp",
+    "0&#46;1-cpp",
+    "\\x30\\x2e\\x31\\x2d\\x63\\x70\\x70",
+    "\\u0030\\u002e\\u0031\\u002d\\u0063\\u0070\\u0070",
+    "\\060\\056\\061\\055\\143\\160\\160",
+    "%30%2E%31%2D%63%70%70",
+    "302e312d637070",
+    "MC4xLWNwcA=="
+  ],
+  "fields": [
+    "redis_version",
+    "tomokv_version",
+    "kRedisCompatVersion",
+    "kTomoVersion",
+    "\"version\"",
+    "'version'"
+  ]
+}
