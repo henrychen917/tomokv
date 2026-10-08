@@ -23,6 +23,7 @@ test_hot_pipeline_accounting_uses_its_own_bound (__main__.SelfTest.test_hot_pipe
 test_info_parsing (__main__.SelfTest.test_info_parsing) ... ok
 test_last_required_move_and_three_real_ticks (__main__.SelfTest.test_last_required_move_and_three_real_ticks) ... ok
 test_later_rebound_fails_without_restarting_clock (__main__.SelfTest.test_later_rebound_fails_without_restarting_clock) ... ok
+test_live_seed_and_episode_bind_effective_hotmax (__main__.SelfTest.test_live_seed_and_episode_bind_effective_hotmax) ... ok
 test_merged_hdr_and_exact_server_accounting (__main__.SelfTest.test_merged_hdr_and_exact_server_accounting) ... ok
 test_missing_endpoint_or_first_post_move_plan_cannot_pass (__main__.SelfTest.test_missing_endpoint_or_first_post_move_plan_cannot_pass) ... ok
 test_mode_hotmax_dry_run_and_invalid_overrides (__main__.SelfTest.test_mode_hotmax_dry_run_and_invalid_overrides) ... ok
@@ -54,6 +55,6 @@ test_unarmed_and_no_move_fail (__main__.SelfTest.test_unarmed_and_no_move_fail) 
 test_unarmed_probe_refuses_and_receipts_counters (__main__.SelfTest.test_unarmed_probe_refuses_and_receipts_counters) ... ok
 
 ----------------------------------------------------------------------
-Ran 54 tests in 0.829s
+Ran 55 tests in 1.341s
 
 OK

@@ -2705,6 +2705,39 @@ class SelfTest(unittest.TestCase):
         self.assertEqual(wall_seconds(args), 2 * 93 + 216)
         self.assertIn("PROBE ONLY: stop", output.getvalue())
 
+    def test_live_seed_and_episode_bind_effective_hotmax(self):
+        from contextlib import redirect_stdout
+        import io
+        import tempfile
+        from unittest.mock import Mock, patch
+        with tempfile.TemporaryDirectory(prefix=".lb-episodes-", dir=ROOT / "tests") as temp:
+            args = argument_parser().parse_args(["--output", temp, "--hotmax", "256", "--hotmax-2s", "64"])
+            conn, children = Mock(), Mock()
+            conn.must.side_effect = [KEYS, b"OK"]
+            @contextmanager
+            def fake_boot(args, arm, mode, directory, seed=None):
+                directory.mkdir(parents=True)
+                (directory / "seed.tomo").write_bytes(b"seed")
+                yield conn, children, [0, 1, 2, 3], {"shards": 32, "process_id": "1"}
+            mapping = [[f"memtier-{i}", i % 32] for i in range(1, 65)]
+            with patch(__name__ + ".boot", side_effect=fake_boot), \
+                    patch(__name__ + ".wait_loads"), \
+                    patch(__name__ + ".key_mapping", return_value=mapping) as key_map:
+                seed, record = prepare_seed(args, "2s")
+                key_map.assert_called_once_with(conn, 64, 32)
+                self.assertEqual(record["hotmax"], 64)
+                # A truncated/mismatching key map must still fail before any sampler/load.
+                key_map.reset_mock()
+                key_map.return_value = mapping[:-1]
+                with patch(__name__ + ".Sampler", side_effect=AssertionError("started sampler")), \
+                        redirect_stdout(io.StringIO()):
+                    result = run_episode(args, "PRE", "2s", "key-skew", 0, seed, record, probe=True)
+                key_map.assert_called_once_with(conn, 64, 32)
+                self.assertEqual(result["hotmax"], 64)
+                self.assertEqual(result["status"], "FAIL")
+                self.assertIn("physical key map changed", result["reason"])
+                self.assertEqual(children.start.call_count, 1)  # seed population only
+
     def test_probe_only_live_dispatch_requires_admitted_move(self):
         from contextlib import redirect_stdout
         import io
