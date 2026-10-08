@@ -84,10 +84,7 @@ void presentation() {
         for (unsigned tid = 0; tid < 8; ++tid)
             state.workers[tid].owned.resize(fused ? 2 : (tid < 6 ? 0 : 8));
         const auto output = capture([&](std::FILE* f) { print_boot_presentation(state, f); });
-        const auto version_end = output.find('\n');
-        require(output.substr(0, version_end) == "TomoKV 1.0-cpp (Redis 7.4.10 compatible)",
-                "product and compatibility versions");
-        const auto banner = output.substr(version_end + 1, output.find('\n', version_end + 1) - version_end - 1);
+        const auto banner = output.substr(0, output.find('\n'));
         auto has = [&](const std::string& token) { return banner.find(token) != std::string::npos; };
         require(has(fused ? "8 unified threads" : "8 threads (6 io + 2 ex)"), "resolved worker counts");
         require(has("16 shard(s)"), "resolved shard count, not auto input");
@@ -97,7 +94,7 @@ void presentation() {
         require(has("reorder=" + std::to_string(fused ? reorder : 0)), "live fused reorder / split zero");
         require(has(network == NetIoEngine::Epoll ? "epoll" : "io_uring"), "selected network engine");
         require(has(std::string("alloc=") + alloc_backend()), "compiled allocator");
-        require(std::count(output.begin(), output.end(), '\n') == 10, "version + geometry + eight placement rows");
+        require(std::count(output.begin(), output.end(), '\n') == 9, "one banner + eight placement rows");
         for (const auto& p : state.placed.threads()) {
             const std::string role = fused ? "unified" : p.role == Role::Ifid ? "ifid" : "ex";
             std::string row = "  thread t" + std::to_string(p.id) + ": role=" + role +

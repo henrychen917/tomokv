@@ -41,6 +41,8 @@ SRC      += src/core/reorder.cc
 SRC      += src/cmd/geo_store.cc
 # Cold DEBUG observer links after existing objects to preserve weak-symbol selection.
 SRC      += src/persist/aof_frame_debug.cc
+# The entry wrapper adds only cold presentation; leave main.cc's TU unchanged.
+SRC      += src/core/version.cc
 LDLIBS   += -lssl -lcrypto
 BUILD_ROOT ?= build
 BIN      := $(BUILD_ROOT)/tomokv
@@ -86,7 +88,7 @@ build/persistfix-controls/%/tomokv: build/persistfix-controls/%/aof.o build/pers
 persistfix-live-controls: build/persistfix-controls/old-ack/tomokv build/persistfix-controls/old-close/tomokv
 
 $(BIN): $(OBJ) $(DB0_OBJ)
-	$(CXX) $(CXXFLAGS) $(DB0_OBJ) $(OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+	$(CXX) $(CXXFLAGS) $(DB0_OBJ) $(OBJ) -o $@ -Wl,--wrap=main $(JELIBS) $(LDLIBS) -lm
 
 # SV6 adds only a cold metadata lookup; retain all unrelated climon bodies.
 $(BUILD_ROOT)/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=25735

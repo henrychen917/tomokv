@@ -8,14 +8,8 @@
 #include "../base/alloc.h"
 #include "config.h"
 #include "placement.h"
-#include "version.h"
 
 namespace tomo {
-
-[[gnu::cold, gnu::noinline]]
-inline void print_version(std::FILE* out = stdout) {
-    std::fprintf(out, "TomoKV %s (Redis %s compatible)\n", kTomoVersion, kRedisCompatVersion);
-}
 
 // Server-like input keeps this formatter usable in serverless resolved-state
 // fixtures. In production cfg() is already resolved; read-local is the actual
@@ -23,7 +17,6 @@ inline void print_version(std::FILE* out = stdout) {
 template <typename ServerState>
 [[gnu::cold, gnu::noinline]]
 void print_boot_presentation(ServerState& srv, std::FILE* out = stdout) {
-    print_version(out);
     const Config& cfg = srv.cfg();
     const bool fused = cfg.thread_mode == ThreadMode::Fused;
     const bool read_local = srv.read_local_enabled();

@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include "version.h"
-
 #include <cstdint>
 #include <climits>
 #include <cctype>
@@ -1110,10 +1108,6 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             if (st.ratio_source) { cfg.even_ifid = cfg.even_ex = 0; st.ratio_source = 0; }
             st.place_source = source;
             cfg.place = next("");
-        }
-        else if (!std::strcmp(a, "--version") || !std::strcmp(a, "-v")) {
-            std::printf("TomoKV %s (Redis %s compatible)\n", kTomoVersion, kRedisCompatVersion);
-            return kConfigHelp;
         }
         else if (!std::strcmp(a, "--help")) {
             std::printf("usage: %s [conf-file] [--port N] [--bind A] [--unixsocket PATH]\n"
