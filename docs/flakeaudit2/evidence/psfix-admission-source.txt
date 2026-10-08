@@ -1,0 +1,81 @@
+202:                error = "placement transition admission is busy";
+203-                return StartResult::Busy;
+204-            }
+205-        } else transition_lock.lock();
+206-        if (server.placement_transition_active()) {
+207-            error = "placement transition is in progress";
+208-            return StartResult::Busy;
+209-        }
+210-        Phase expected = Phase::Idle;
+211-        if (!phase_.compare_exchange_strong(expected, Phase::Preparing,
+212-                                            std::memory_order_acq_rel)) {
+213-            error = "Background save already in progress";
+214-            return StartResult::Busy;
+215-        }
+216-        // Check AFTER acquiring Idle: otherwise a concurrent epoch can add a held owner and
+217-        // fail between an earlier counter load and this CAS. All old capture acknowledgements
+218-        // precede Idle, so acquiring it makes every outstanding shutdown hold visible here.
+219-        if (server.shutdown_snapshot_holds()) {
+220-            error = "previous shutdown snapshot is still draining";
+221-            phase_.store(Phase::Idle, std::memory_order_release);
+222-            return StartResult::Busy;
+223-        }
+224-        server.set_shutdown_snapshot_active(shutdown);
+225-#if !TOMO_SINGLE_DATABASE
+226-        database_map_ = server.databases().capture();
+681:    const SnapshotManager::StartResult result = g_server->snapshot().start(
+682-        *g_server, *context.thread, *context.ring, blocking, error);
+683-    if (result == SnapshotManager::StartResult::Busy) {
+684-        reply_err(op.sink(), "ERR Background save already in progress");
+685-    } else if (result == SnapshotManager::StartResult::Failed) {
+686-        std::string message = "ERR ";
+687-        message += error.empty() ? "snapshot failed" : error;
+688-        reply_err(op.sink(), message.c_str());
+689-    } else if (blocking) {
+690-        reply_ok(op.sink());
+691-    } else {
+692-        reply_simple(op.sink(), "Background saving started");
+693-    }
+6177:def psfix_wait_idle(peers, persistence, phase):
+6178-    """Both peers must be idle before a save/count baseline; 10 s total, 1 ms polls."""
+6179-    deadline = time.monotonic() + 10
+6180-    states = {}
+6181-    busy = set()
+6182-    polls = 0
+6183-    timeouts = [sock.gettimeout() for sock, _ in peers]
+6184-    try:
+6185-        while True:
+6186-            fields = []
+6187-            for label, peer in zip(("target", "oracle"), peers):
+6188-                remaining = deadline - time.monotonic()
+6189-                if remaining <= 0:
+6190-                    raise TimeoutError
+6191-                peer[0].settimeout(remaining)
+6192-                row = persistence(peer)
+6193-                state = row.get(b"rdb_bgsave_in_progress")
+6194-                states[label] = state
+6195-                assert state in (b"0", b"1"), (
+6196-                    "PSFIX harness error: %s %s invalid rdb_bgsave_in_progress=%r" %
+6197-                    (phase, label, state))
+6198-                if state == b"1":
+6199-                    busy.add(label)
+6200-                fields.append(row)
+6201-            polls += 1
+6202-            remaining = deadline - time.monotonic()
+6203-            if remaining <= 0:
+6204-                raise TimeoutError
+6205-            if all(state == b"0" for state in states.values()):
+6206-                if busy:
+6207-                    print("  PSFIX idle barrier %s: polls=%d busy_peers=%s" %
+6208-                          (phase, polls, ",".join(label for label in ("target", "oracle")
+6209-                                                if label in busy)), flush=True)
+6210-                return fields
+6211-            time.sleep(min(0.001, remaining))
+6212-    except TimeoutError as error:
+6213-        raise AssertionError(
+6214-            "PSFIX harness error: %s: both peers did not become save-idle within 10 s; "
+6215-            "rdb_bgsave_in_progress=%r" % (phase, states)) from error
+6216-    finally:
+6217-        for (sock, _), timeout in zip(peers, timeouts):
+6218-            sock.settimeout(timeout)
+6219-

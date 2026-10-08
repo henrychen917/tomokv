@@ -1,0 +1,3 @@
+quiet admission 2 REFUSED: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 8.690000s > 0.480000s per 20s
+quiet admission 3 REFUSED: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 16.240000s > 0.480000s per 20s
+quiet admission 4 REFUSED: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 8.200000s > 0.480000s per 20s

@@ -1,0 +1,16 @@
+tests/edgetime.py:423:            conn, other, "multi:queued", 70,
+tests/edgetime.py:424:            [("MULTI",), ("GET", "multi:queued")], [b"OK", b"QUEUED"], queued=True)
+tests/edgetime.py:442:            conn, other, "watch:elapsed", 70, [("WATCH", "watch:elapsed")], [b"OK"])
+tests/edgetime.py:448:        conn.cmd("GET", "watch:elapsed")
+tests/edgetime.py:452:        check("post-abort EXISTS hides key", conn.cmd("EXISTS", "watch:elapsed"), 0)
+tests/hexpire.py:333:    c.cmd("DEL", "solo")
+tests/hexpire.py:334:    c.cmd("HSET", "solo", "f", "v")
+tests/hexpire.py:335:    c.cmd("HEXPIRE", "solo", "100", "FIELDS", "1", "f")
+tests/hexpire.py:336:    c.cmd("HDEL", "solo", "f")
+tests/hexpire.py:337:    check("HDEL of the last field removed the key", c.cmd("EXISTS", "solo"), 0)
+tests/hexpire.py:409:    check("HPEXPIRE armed", armed, [1, 1])
+tests/hexpire.py:432:    _, registered, size, before, expiry = arm_live_fields(c, "solo", ("f", "v"), ("f",), 200)
+tests/hexpire.py:435:    check("lapsed hash reports empty", c.cmd("HLEN", "solo"), 0)
+tests/hexpire.py:436:    check("lapsed hash is gone", [c.cmd("EXISTS", "solo"), c.cmd("TYPE", "solo")], [0, "none"])
+tests/multi_exec.py:353:        full_groups = [group for group in buckets.values() if len(group) >= 4]
+tests/multi_exec.py:354:        keys = [key for group in full_groups[:2] for key in group[:4]]

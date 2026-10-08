@@ -1,0 +1,57 @@
+1170:void arm_debug_off_hop_delay(ScatterState& state, const Op& op) {
+1171-    // Forced children inside EXEC are atomic_group too: they must reach the parent's one-ticket
+1172-    // atomic_commit_group boundary, where the same Server word supplies the ON delay.
+1173-    if (!xshard_owner_mutation_phase(state, op) || state.nsub < 2) return;
+1174-    uint64_t armed;
+1175-    if (state.kind == Kind::Rename &&
+1176-        ((armed = debug_hop_hold.load(std::memory_order_acquire)) & kDebugHopHold)) {
+1177-        const uint32_t source = state.server->worker_of_shard(state.keys[0].shard);
+1178-        if (source != state.server->worker_of_shard(state.keys[1].shard)) {
+1179-            // The test supplies its own budget, capped at 30 seconds by DEBUG. Status remains
+1180-            // expired until explicit release; timeout is never a successful observation.
+1181-            const uint64_t deadline = now_ns() + (armed & ~kDebugHopHold) * 1000000ull;
+1182-            if (debug_hop_hold.compare_exchange_strong(armed, deadline,
+1183-                                                       std::memory_order_acq_rel)) {
+1184-                state.debug_hop_lead_owner = source;
+1185-                state.debug_hop_deadline = deadline | kDebugHopHold;
+1186-                return;
+1187-            }
+1188-        }
+1189-    }
+1190-    if (state.atomic_group) return;
+1191-    const uint32_t delay_us = state.server->debug_hop_delay();
+1192-    if (__builtin_expect(delay_us == 0, true)) return;
+1193-    const uint32_t lead_owner = state.server->worker_of_shard(state.groups[0].shard);
+1194-    bool cross_owner = false;
+1195-    for (uint32_t i = 1; i < state.nsub; i++)
+1196-        if (state.server->worker_of_shard(state.groups[i].shard) != lead_owner) {
+1197-            cross_owner = true;
+1198-            break;
+1199-        }
+492:bool SnapshotManager::drain_atomic_groups(Server& server, ThreadCtx& writer, uint64_t deadline_ns) {
+493-    cuts_armed_.fetch_add(1, std::memory_order_relaxed);
+494-    const uint64_t queued = server.atomic_apply_inflight();
+495-    if (!queued) return true;
+496-    cuts_waited_.fetch_add(1, std::memory_order_relaxed);
+497-    drained_groups_.fetch_add(queued, std::memory_order_relaxed);
+498-    while (server.atomic_apply_inflight() != 0 &&
+499-           !server.shutting_down().load(std::memory_order_relaxed)) {
+500-        if (deadline_ns && now_ns() >= deadline_ns) return false;
+501-        writer.progress_fused_executor();
+502-        std::this_thread::yield();
+503-    }
+504-    return true;
+505-}
+506-
+507-void SnapshotManager::owner_ready(uint64_t value) {
+508-    if (value == epoch()) ready_owners_.fetch_add(1, std::memory_order_acq_rel);
+509-}
+510-void SnapshotManager::owner_frozen(uint64_t value) {
+511-    if (value == epoch()) frozen_owners_.fetch_add(1, std::memory_order_acq_rel);
+512-}
+513-void SnapshotManager::owner_marked(uint64_t value) {
+514-    if (value == epoch()) marked_owners_.fetch_add(1, std::memory_order_acq_rel);
+515-}
+516-void SnapshotManager::owner_cancelled(uint64_t value) {
+517-    if (value == epoch()) cancelled_owners_.fetch_add(1, std::memory_order_acq_rel);
+518-}

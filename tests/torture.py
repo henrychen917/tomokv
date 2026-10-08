@@ -98,21 +98,39 @@ except Exception as e:
     note("server alive after fuzz", False, str(e))
 
 # ---- 6. churn: 300 abrupt disconnects mid-command ----
+churn_prefix = "churn:%d:" % time.time_ns()
+observer = conn(); observer_file = observer.makefile("rb")
 for i in range(300):
+    x = None
     try:
         x = conn()
-        x.sendall(cmd("SET", "churn%d" % i, "x" * 100))
+        key = churn_prefix + str(i)
+        x.sendall(cmd("SET", key, "x" * 100))
         if i % 3 == 0: x.sendall(b"*3\r\n$3\r\nSET\r\n$4\r\nhalf")   # die mid-frame
+        # Leave this connection's reply unread. A separate connection witnesses
+        # execution before RST; a unique key prevents prior runs from supplying it.
+        deadline = time.monotonic() + 5
+        while True:
+            observer.sendall(cmd("GET", key))
+            value = read_reply(observer, observer_file)
+            if value == b"x" * 100:
+                break
+            assert value is None, (key, value)
+            assert time.monotonic() < deadline, "churn SET never reached execution"
+            time.sleep(.001)
         x.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, b"\x01\x00\x00\x00\x00\x00\x00\x00")  # RST
-        x.close()
-    except Exception: pass
-time.sleep(1)
+    except Exception as error:
+        note("churn execution witness", False, str(error))
+        break
+    finally:
+        if x is not None: x.close()
+observer_file.close(); observer.close()
 try:
     s = conn(); f = s.makefile("rb")
     s.sendall(cmd("PING")); note("server alive after churn", read_reply(s, f) == b"PONG")
     landed = 0
     for i in range(300):
-        s.sendall(cmd("GET", "churn%d" % i))
+        s.sendall(cmd("GET", churn_prefix + str(i)))
         landed += read_reply(s, f) == b"x" * 100
     note("churn writes landed", landed > 0, "(%d/300)" % landed)
     s.close()

@@ -44,6 +44,8 @@ to invert against, so the window never opens and the counter legitimately stays 
 
 import socket
 import sys
+import time
+import select
 
 
 HOST, PORT = sys.argv[1], int(sys.argv[2])
@@ -177,12 +179,22 @@ def owner_spread(admin):
     return [per_shard[s] for s in sorted(per_shard)]
 
 
-def round_trip(keys, witness, group, second_conn=False, probes=0):
+def round_trip(keys, witness, group, second_conn=False, probes=0, admin=None, force=False):
     """One pipelined round. Returns (exec_reply, settled_value, probe_values)."""
     conn = Conn()
     other = None
+    armed = False
     try:
         conn.command("FLUSHALL")
+        if force:
+            # Retain the empty-key rounds too; this directed round gives DEL/UNLINK
+            # real records on which the following transaction must wait.
+            if group[0] in ("DEL", "UNLINK"):
+                for key in keys:
+                    assert conn.command("SET", key, "before") == b"OK"
+            before = holds(admin)
+            assert admin.command("DEBUG", "ATOMIC-COMMIT-HOLD", "1") == b"OK"
+            armed = True
         payload = b""
         if group is not None and not second_conn:
             payload += encode(*group)
@@ -198,6 +210,15 @@ def round_trip(keys, witness, group, second_conn=False, probes=0):
         else:
             payload += body + encode("GET", witness) * probes
             conn.send_raw(payload)
+            if armed:
+                deadline = time.monotonic() + 10
+                while holds(admin) == before:
+                    assert time.monotonic() < deadline, "EXEC never met the held predecessor"
+                    time.sleep(.005)
+                assert int(stats(admin)["atomic_pending_entries"]) > 0
+                assert not select.select([conn.sock], [], [], 0)[0], "predecessor escaped hold"
+                assert admin.command("DEBUG", "ATOMIC-COMMIT-HOLD", "0") == b"OK"
+                armed = False
             if group is not None:
                 conn.read()
             conn.read()
@@ -207,6 +228,8 @@ def round_trip(keys, witness, group, second_conn=False, probes=0):
         settled = conn.command("GET", witness)
         return exec_reply, settled, probe_values
     finally:
+        if armed:
+            assert admin.command("DEBUG", "ATOMIC-COMMIT-HOLD", "0") == b"OK"
         conn.close()
         if other is not None:
             other.close()
@@ -221,9 +244,10 @@ def case(admin, label, keys, group, second_conn=False, probes=0, seen=None):
     before = holds(admin)
     losses = stale = acked = 0
     sample = None
-    for _ in range(ROUNDS):
+    for index in range(ROUNDS):
         exec_reply, settled, probe_values = round_trip(
-            keys, keys[0], group, second_conn, probes)
+            keys, keys[0], group, second_conn, probes, admin,
+            force=(index == 0 and seen is not None and atomic_enabled(admin)))
         if exec_reply != ACK:
             continue                      # EXEC did not claim the write; not this test's case
         acked += 1

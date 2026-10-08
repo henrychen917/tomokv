@@ -1,0 +1,28 @@
+test_early_reply_fails_without_rearming (__main__.DifferentialWaitControls.test_early_reply_fails_without_rearming) ... ok
+test_missed_deadline_rearms_fresh_clients (__main__.DifferentialWaitControls.test_missed_deadline_rearms_fresh_clients) ... ok
+test_never_parked_cannot_pass (__main__.DifferentialWaitControls.test_never_parked_cannot_pass) ... ok
+test_valid_parked_deadlines_pass (__main__.DifferentialWaitControls.test_valid_parked_deadlines_pass) ... ok
+test_missed_live_window_recreates_state (__main__.ExpiryControls.test_missed_live_window_recreates_state) ...   INVALID hash-field arm expired during setup: k
+ok
+test_never_live_cannot_pass (__main__.ExpiryControls.test_never_live_cannot_pass) ...   INVALID hash-field arm expired during setup: k
+  INVALID hash-field arm expired during setup: k
+  INVALID hash-field arm expired during setup: k
+  INVALID hash-field arm expired during setup: k
+  INVALID hash-field arm expired during setup: k
+ok
+test_wrong_arm_reply_is_not_retried (__main__.ExpiryControls.test_wrong_arm_reply_is_not_retried) ... ok
+test_acl_coded_reply_mutation_is_preserved_as_extra_frame (__main__.WireControls.test_acl_coded_reply_mutation_is_preserved_as_extra_frame) ... ok
+test_armed_highwater_survives_reset_but_malformed_info_fails (__main__.WireControls.test_armed_highwater_survives_reset_but_malformed_info_fails) ... ok
+test_ktls_fragmented_info_keeps_positive_gauge (__main__.WireControls.test_ktls_fragmented_info_keeps_positive_gauge) ... ok
+test_tracking_push_one_byte_fragments (__main__.WireControls.test_tracking_push_one_byte_fragments) ... ok
+test_disabled_hold_fails (__main__.WithdrawnAtomicSimulationControls.test_disabled_hold_fails) ... ok
+test_held_cut_reads_old_then_new (__main__.WithdrawnAtomicSimulationControls.test_held_cut_reads_old_then_new) ... KTLS_LIVE_OK tls_ktls_active:1
+  ok   held EXEC cut: predecessors=8, exact old/new replies
+ok
+test_missing_install_cannot_pass (__main__.WithdrawnAtomicSimulationControls.test_missing_install_cannot_pass) ... ok
+test_private_values_fail (__main__.WithdrawnAtomicSimulationControls.test_private_values_fail) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.441s
+
+OK

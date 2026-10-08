@@ -1,0 +1,89 @@
+  ok   held EXEC cut: predecessors=%d, exact old/new replies
+"""Keep a force-atomic EXEC undecided until an actual MGET reads its preimages."""
+'  ok   held EXEC cut: predecessors=%d, exact old/new replies'
+'ATOMIC-COMMIT-HOLD'
+'EXEC completed before release'
+'EXEC escaped commit hold'
+'EXEC never installed held records'
+'EXEC'
+'Keep a force-atomic EXEC undecided until an actual MGET reads its preimages.'
+'MGET did not read the held predecessors'
+'MGET'
+'MULTI'
+'SET'
+'atomic_fanout_cuts'
+'atomic_pending_entries'
+'atomic_predecessor_reads'
+'held EXEC exposed private values'
+'held'
+'multi:torn'
+'multi:torn:%d'
+'read_local_fallback_atomic_pending'
+'stats'
+'writer/readers never reached the required progress before deadline'
+(info_field("read_local_fallback_atomic_pending") or 0) > (before_pend or 0))
+ATOMIC-COMMIT-HOLD
+EXEC
+EXEC completed before release
+EXEC escaped commit hold
+EXEC never installed held records
+Keep a force-atomic EXEC undecided until an actual MGET reads its preimages.
+MGET
+MGET did not read the held predecessors
+MULTI
+QUEUED
+SET
+assert admin.cmd("MGET", *keys) == [b"0"] * len(keys), "held EXEC exposed private values"
+assert admin.cmd("MGET", *keys) == [b"held"] * len(keys)
+assert admin.cmd("SET", key, "0") == b"OK"
+assert not select.select([writer.sock], [], [], 0)[0], "EXEC completed before release"
+assert not select.select([writer.sock], [], [], 0)[0], "EXEC escaped commit hold"
+assert seen >= len(keys), ("MGET did not read the held predecessors", seen)
+assert time.monotonic() < deadline, "EXEC never installed held records"
+assert writer.cmd("MULTI") == b"OK"
+assert writer.cmd("SET", key, "held") == b"QUEUED"
+assert writer.read() == [b"OK"] * len(keys)
+atomic_fanout_cuts
+atomic_pending_entries
+atomic_predecessor_reads
+b'QUEUED'
+b'held'
+before = int(_lib.info(admin, "stats")["atomic_predecessor_reads"])
+break
+buckets = _lib.owner_buckets(geometry, "multi:torn", per_owner=4)
+deadline = time.monotonic() + 10
+deadline = time.monotonic() + max(10, seconds)
+def held_exec_cut(keys):
+enough = ((info_field("atomic_fanout_cuts") or 0) > (before_cuts or 0) or
+enough = reads > 100 and commits > 10
+errors.append("writer/readers never reached the required progress before deadline")
+failed = bool(errors)
+for key in keys:
+from contextlib import closing
+full_groups = [group for group in buckets.values() if len(group) >= 4]
+held
+held EXEC exposed private values
+held_exec_cut(keys)
+if enough or failed:
+if enough:
+if time.monotonic() >= deadline:
+import _lib
+import select
+keys = ["multi:torn:%d" % i for i in range(8)]
+keys = [key for group in full_groups[:2] for key in group[:4]]
+multi:torn
+multi:torn:%d
+print("  ok   held EXEC cut: predecessors=%d, exact old/new replies" % seen, flush=True)
+read_local_fallback_atomic_pending
+seen = int(_lib.info(admin, "stats")["atomic_predecessor_reads"]) - before
+stats
+time.sleep(.005)
+time.sleep(seconds)
+while True:
+while int(_lib.info(admin, "stats")["atomic_pending_entries"]) < len(keys):
+with _lib.armed(admin, "ATOMIC-COMMIT-HOLD", 1):
+with closing(_lib.Conn(HOST, PORT)) as admin, closing(_lib.Conn(HOST, PORT)) as writer:
+with closing(_lib.Conn(HOST, PORT)) as geometry:
+with lock:
+writer.send("EXEC")
+writer/readers never reached the required progress before deadline

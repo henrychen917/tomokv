@@ -130,13 +130,23 @@ def walk_scan(conn, first_args, count, between=None):
         calls += 1
         cursor = reply[0]
         seen.append(reply[1])
-        if between:
+        if between and cursor != b"0":
             between(calls)
         if cursor == b"0":
             break
         if calls > 400000:
             raise RuntimeError("cursor never returned to 0 after %d calls" % calls)
     return seen, calls
+
+
+def churn_step(request, acknowledged, errors):
+    """Keep the scan cursor open until this other connection acknowledges its batch."""
+    acknowledged.clear()
+    request.set()
+    if not acknowledged.wait(30):
+        raise AssertionError("churn batch was not acknowledged while cursor was open")
+    if errors:
+        raise AssertionError("churn worker failed: %r" % errors)
 
 
 # --------------------------------------------------------------------------------------------
@@ -150,6 +160,7 @@ def arm_scan_concurrent(label, churn, trials=2, base=500):
         walker.pipe([["SET", "base:%05d" % i, "1"] for i in range(base)])
         before = info_stat(walker, "keyspace_rehashes")
         stop = threading.Event()
+        request, acknowledged = threading.Event(), threading.Event()
         errors = []
 
         # Bounded, for the same reason as the collection arm: a mutator that outruns the walker
@@ -157,27 +168,34 @@ def arm_scan_concurrent(label, churn, trials=2, base=500):
         def run_churn():
             try:
                 n = 0
-                for _ in range(40 if churn else 0):
+                batches = 0
+                while not stop.is_set():
+                    if not request.wait(.1):
+                        continue
+                    request.clear()
                     if stop.is_set():
                         return
-                    mutator.pipe([["SET", "churn:%06d" % (n + j), "1"] for j in range(500)])
-                    n += 500
-                    if n % 5000 == 0:
-                        mutator.pipe([["DEL", "churn:%06d" % j] for j in range(n - 5000, n)])
-                    time.sleep(0.001)
-                while not stop.is_set():
-                    mutator.cmd("PING")              # CONTROL arm does only this
-                    time.sleep(0.001)
+                    if churn and batches < 40:
+                        mutator.pipe([["SET", "churn:%06d" % (n + j), "1"] for j in range(500)])
+                        n += 500
+                        batches += 1
+                        if n % 5000 == 0:
+                            mutator.pipe([["DEL", "churn:%06d" % j] for j in range(n - 5000, n)])
+                    else:
+                        mutator.cmd("PING")          # CONTROL arm does only this
+                    acknowledged.set()
             except Exception as exc:                 # noqa: BLE001 - reported, not swallowed
                 errors.append(exc)
+                acknowledged.set()
 
         thread = threading.Thread(target=run_churn)
         thread.start()
-        time.sleep(0.05)
         try:
-            batches, calls = walk_scan(walker, ["SCAN"], 20)
+            batches, calls = walk_scan(walker, ["SCAN"], 20,
+                                      between=lambda _: churn_step(request, acknowledged, errors))
         finally:
             stop.set()
+            request.set()
             thread.join()
         seen = set(k.decode() for batch in batches for k in batch if k.startswith(b"base:"))
         live = set(k.decode() for k in walker.cmd("KEYS", "base:*"))
@@ -363,6 +381,7 @@ def arm_collection_concurrent(scanner, label, base=3000, add_batch=2000, rounds=
     walker.pipe([add("base:%05d" % i) for i in range(base)])
     card_before = walker.cmd(card_cmd, key)
     stop = threading.Event()
+    request, acknowledged = threading.Event(), threading.Event()
     errors = []
     grew = [card_before]
 
@@ -375,6 +394,9 @@ def arm_collection_concurrent(scanner, label, base=3000, add_batch=2000, rounds=
         try:
             n, dropped = 0, 0
             for round_index in range(rounds):
+                while not stop.is_set() and not request.wait(.1):
+                    pass
+                request.clear()
                 if stop.is_set():
                     break
                 mutator.pipe([add("churn:%06d" % (n + j)) for j in range(add_batch)])
@@ -383,20 +405,26 @@ def arm_collection_concurrent(scanner, label, base=3000, add_batch=2000, rounds=
                 if round_index % 10 == 9:
                     mutator.pipe([remove("churn:%06d" % j) for j in range(dropped, n)])
                     dropped = n
-                time.sleep(0.001)
+                acknowledged.set()
             while not stop.is_set():
-                mutator.cmd("PING")
-                time.sleep(0.001)
+                if request.wait(.1):
+                    request.clear()
+                    if stop.is_set():
+                        break
+                    mutator.cmd("PING")
+                    acknowledged.set()
         except Exception as exc:                     # noqa: BLE001
             errors.append(exc)
+            acknowledged.set()
 
     thread = threading.Thread(target=run_churn)
     thread.start()
-    time.sleep(0.05)
     try:
-        batches, calls = walk_scan(walker, [scanner, key], 20)
+        batches, calls = walk_scan(walker, [scanner, key], 20,
+                                  between=lambda _: churn_step(request, acknowledged, errors))
     finally:
         stop.set()
+        request.set()
         thread.join()
     seen = set()
     for batch in batches:

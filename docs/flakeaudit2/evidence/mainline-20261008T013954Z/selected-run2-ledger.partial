@@ -1,0 +1,1 @@
+PARTIAL	0	GATE_ONLY_JOBS=release_batteries asan_batteries feature-split-0 feature-split-1 feature-armed-0 feature-armed-1 fused-0 fused-1 debug-0 debug-1 acl_recheck notify flip flipctl atomic_floor tls differ-split differ-armed ; NOT A RECEIPT

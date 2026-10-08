@@ -1,0 +1,41 @@
+{
+  "stage": "selected",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "tests/gate.sh",
+    "iteration",
+    "--server-cores",
+    "112-119",
+    "--load-cores",
+    "120-127",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "18340-18342"
+  ],
+  "repetitions": 6,
+  "jobs": [
+    "release_batteries",
+    "asan_batteries",
+    "feature-split-0",
+    "feature-split-1",
+    "feature-armed-0",
+    "feature-armed-1",
+    "fused-0",
+    "fused-1",
+    "debug-0",
+    "debug-1",
+    "acl_recheck",
+    "notify",
+    "flip",
+    "flipctl",
+    "atomic_floor",
+    "tls",
+    "differ-split",
+    "differ-armed"
+  ]
+}

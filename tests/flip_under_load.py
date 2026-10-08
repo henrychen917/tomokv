@@ -73,6 +73,8 @@ errors = []
 flips_ok = [0]
 flips_refused = [0]
 ops = [0]
+worker_ops = [0] * NWRITERS
+load_ready = threading.Event()
 busy = [0]
 lock = threading.Lock()
 
@@ -170,6 +172,7 @@ def worker(wid):
                     seen[k] = g
                 with lock:
                     ops[0] += len(chunk) * 2
+                    worker_ops[wid] += len(chunk) * 2
         except Busy:
             with lock:
                 busy[0] += 1
@@ -190,6 +193,9 @@ def worker(wid):
 
 
 def flipper():
+    if not load_ready.wait(SECONDS):
+        fail("no acknowledged load before FLIP deadline")
+        return
     try:
         s, f = conn()
     except Exception as e:
@@ -263,10 +269,30 @@ threads = [threading.Thread(target=worker, args=(i,)) for i in range(NWRITERS)]
 threads.append(threading.Thread(target=flipper))
 for t in threads:
     t.start()
-time.sleep(SECONDS)
+deadline = time.monotonic() + SECONDS
+post_flip = None
+while time.monotonic() < deadline:
+    with lock:
+        progress = worker_ops[:]
+        failed = bool(errors)
+    if failed:
+        break
+    if all(progress):
+        load_ready.set()
+    published = counters(admin)
+    if int(published["flip_completed"]) > int(before["flip_completed"]):
+        if post_flip is None:
+            post_flip = progress
+        elif all(now > then for now, then in zip(progress, post_flip)):
+            break
+    time.sleep(.005)
+else:
+    fail("no completed FLIP bracketed by every worker's verified progress before deadline")
 stop.set()
 for t in threads:
     t.join(timeout=30)
+if any(t.is_alive() for t in threads):
+    fail("load/FLIP worker did not stop")
 
 after = counters(admin)
 admin.close()
