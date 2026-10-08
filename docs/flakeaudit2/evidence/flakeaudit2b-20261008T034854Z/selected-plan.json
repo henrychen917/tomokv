@@ -1,0 +1,46 @@
+{
+  "abba_extra": [],
+  "axes": {
+    "load_cores": "120-127",
+    "load_smt": "",
+    "server_cores": "112-119",
+    "server_smt": ""
+  },
+  "build_candidate": 1,
+  "build_cores": "112-127",
+  "build_jobs": 16,
+  "candidate_binary": "/home/user/Projects/cx-flakeaudit2/build/tomokv",
+  "correctness_ratio": "6:2",
+  "header": "16 physical cores; 1 correctness slots = min(8/8 server, 8/2 load), 8 server threads at ratio 6:2 and 3 ports per slot; correctness load is modest protocol traffic (at least 2 physical cores per slot), server SMT reserved; isolated ABBA smoke: 8 server + 8 load physical cores, 0 load SMT threads (explicit selection), 0 explicit server SMT threads",
+  "load_min_per_slot": 2,
+  "perf": {
+    "load_cores": "120-127",
+    "load_cpus": "120-127",
+    "load_smt": "",
+    "port": 18340,
+    "server_cores": "112-119",
+    "server_cpus": "112-119",
+    "server_smt": "",
+    "split_ratio": "",
+    "threads": 8
+  },
+  "physical_cores": 16,
+  "ports_first": 18340,
+  "ports_last": 18342,
+  "ports_per_slot": 3,
+  "purpose": "iteration",
+  "reference_binary": "",
+  "server_per_slot": 8,
+  "slot_count": 1,
+  "slots": [
+    {
+      "load_cores": "120-127",
+      "load_cpus": "120-127",
+      "load_smt": "",
+      "port": 18340,
+      "server_cores": "112-119"
+    }
+  ],
+  "subset": "smoke",
+  "tier": "full"
+}

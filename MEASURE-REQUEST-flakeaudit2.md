@@ -103,6 +103,6 @@ Used the explicitly authorized fallback: `tests/multi_exec.py` is byte-identical
 
 Evidence directory: [flakeaudit2b-20261008T034854Z](docs/flakeaudit2/evidence/flakeaudit2b-20261008T034854Z/). `proof_b.py` reproduces all six mode/atomic boots using the saved rejected battery and contrasts EXEC with a held two-owner MSET. It then runs the six requested whole jobs six times serially, plus a separate full iteration; each gate records its revision, server SHA, raw ledger and logs. Failed runs stop the campaign and are retained. Quiet admission uses the unchanged 20-second / 0.48 CPU-second screen, initially plus three retries at 200-second spacing.
 
-Current proof status: reproduction admission in progress (first screen refused at 1.06 CPU-seconds); six-run selected proof and full iteration pending. Final merge and final results will be recorded here before completion.
+Current proof status: reproduction REFUSED after the initial screen plus three retries over ten minutes; no build or server was launched. All four unchanged-screen records are retained. Six-run selected proof and full iteration pending. Fetched and merged origin/cpp again (already up to date) before the selected proof.
 
 Rows **+0/+0**; `EXPECT_QUICK=500` / `EXPECT_FULL=517` untouched. No production edits, no throughput claim, no PRE/POST/PAD arms, no push.
