@@ -409,8 +409,10 @@ void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
     // scatter immediately. Pin the cold state across the final notification.
     const bool scatter = blocking_is_move(state.kind) || state.kind == BlockingKind::Xread;
     if (scatter) blocking_state_retain(&state);
-    const std::unique_ptr<BlockingState, decltype(&blocking_state_release)> pin(
-        scatter ? &state : nullptr, blocking_state_release);
+    struct Pin {
+        BlockingState* state;
+        ~Pin() { blocking_state_release(state); }
+    } pin{scatter ? &state : nullptr};
     if (state.active_tasks.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
     BlockingPhase phase = state.phase.load(std::memory_order_acquire);
     if (state.cancel_requested.load(std::memory_order_acquire)) {
@@ -1024,13 +1026,24 @@ bool blocking_finish_registration(BlockingState& state, Shard& shard,
 
 }  // namespace
 
-void debug_xread_registration_hold(uint32_t stage) {
+// Registration/release schedule, entered only through the existing DEBUG gate.
+// Status: 1 = registration held, 2 = last Task held, 3 = IO refused that Task.
+// Argument: 0 releases, 1 arms registration, 2 advances to the last-Task hold.
+bool debug_xread_registration_command(Op& op) {
+    if (!op.arg(1).eq_icase("xread-registration-hold")) return false;
+    if (op.argc() == 2) {
+        reply_int(op.sink(), debug_xread_stage.load(std::memory_order_acquire));
+        return true;
+    }
+    int64_t stage = 0;
+    if (op.argc() != 3 || !parse_i64(op.arg(2), stage) || stage < 0 || stage > 2) {
+        reply_err(op.sink(), "ERR value is not an integer or out of range");
+        return true;
+    }
     if (stage == 1) debug_xread_stage.store(0, std::memory_order_relaxed);
-    debug_xread_hold.store(stage, std::memory_order_release);
-}
-
-uint32_t debug_xread_registration_status() {
-    return debug_xread_stage.load(std::memory_order_acquire);
+    debug_xread_hold.store(static_cast<uint32_t>(stage), std::memory_order_release);
+    reply_ok(op.sink());
+    return true;
 }
 
 Shard::~Shard() {
