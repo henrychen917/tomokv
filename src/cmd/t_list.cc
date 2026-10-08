@@ -1184,7 +1184,7 @@ XshardElementResult xshard_push_list_element_impl(Shard& shard, Slice key, uint6
             return inserted == FlatStore::InsertResult::MaxmemoryOom
                 ? XshardElementResult::Maxmemory : XshardElementResult::InsertFailed;
         }
-        if (shard.has_blocking_waiters()) blocking_publish_key(shard, hash, key.p, key.n);
+        if (shard.has_blocking_waiters()) blocking_publish_key(shard, hash, key.p, key.n, key.ns);
         return XshardElementResult::Ok;
     }
 
@@ -1225,7 +1225,7 @@ XshardElementResult xshard_push_list_element_impl(Shard& shard, Slice key, uint6
         if (!expanded_push(*expanded, element, left, shard.type_limits().list)) return XshardElementResult::Oom;
         expanded->note_expanded_insert(element.n, expanded->node_allocation_bytes);
     }
-    if (shard.has_blocking_waiters()) blocking_publish_key(shard, hash, key.p, key.n);
+    if (shard.has_blocking_waiters()) blocking_publish_key(shard, hash, key.p, key.n, key.ns);
     return XshardElementResult::Ok;
 }
 

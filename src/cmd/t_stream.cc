@@ -1220,7 +1220,7 @@ void cmd_xadd(Shard& shard, Op& op) {
     }
     reply_id(op, id);
     if (shard.has_blocking_waiters())
-        blocking_publish_key(shard, op.hash, op.key().p, op.key().n);
+        blocking_publish_key(shard, op.hash, op.key().p, op.key().n, op.key().ns);
 }
 
 template <bool kNotify>
