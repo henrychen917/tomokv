@@ -469,3 +469,25 @@ Logs and input/model/compile receipts are under `docs/lbosc3/lbosc3b`.
 **Rows +0/+0; EXPECT remains 502/519, untouched by this lane.** The existing
 LB monitor row is emitted at gate.sh:1353, collected at line 3240, before the
 quick-tier exit at line 3402. No new row emitter was added. No push.
+
+### Quiet-screen outcome and handoff
+
+Three fresh attempts using the gate's unchanged `QuietMonitor` on 112–127,
+port 7931, over ten minutes all refused. Each has the same 20-second screening
+window and 0.15% of 16 physical cores budget: 0.48 CPU-seconds. Refusal latches
+as soon as accumulated selected-core activity exceeds that full-window budget.
+No compiler or unit check from this lane ran during these screens.
+
+| Attempt | Start UTC | Observed CPU-seconds at refusal | Budget CPU-seconds |
+| ---: | --- | ---: | ---: |
+| 1 | 2026-10-08T11:03:51.460530+00:00 | 3.05 | 0.48 |
+| 2 | 2026-10-08T11:08:56.842744+00:00 | 1.17 | 0.48 |
+| 3 | 2026-10-08T11:13:51.501180+00:00 | 1.01 | 0.48 |
+
+Receipts: `docs/lbosc3/lbosc3b/quiet-{1,2,3}.json`, their raw per-core samples,
+and `quiet-summary.json`. The first and third starts are 600.04 seconds apart.
+**No live probe, server, load generator, benchmark, or gate was started.**
+There is no new ARMED claim. The predeclared 2s HOTMAX=64 probe and commands above
+are the maintainer handoff; the full campaign, null and gate remain pending.
+The candidate stays UNTUNED until that evidence exists. Both follow-up code and
+offline proofs are complete, with all work committed on cx-lbosc3 and no push.
