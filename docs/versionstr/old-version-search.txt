@@ -1,0 +1,10 @@
+docs/ccfix5/null-l1-geometry.json:52:      "redis_version": "0.1-cpp",
+docs/ccfix5/null-l1-geometry.json:53:      "tomokv_version": "0.1-cpp",
+docs/ccfix5/null-l1-geometry.json:304:      "redis_version": "0.1-cpp",
+docs/ccfix5/null-l1-geometry.json:305:      "tomokv_version": "0.1-cpp",
+docs/ccfix5/null-l1-geometry.json:556:      "redis_version": "0.1-cpp",
+docs/ccfix5/null-l1-geometry.json:557:      "tomokv_version": "0.1-cpp",
+docs/ccfix5/null-l1-geometry.json:808:      "redis_version": "0.1-cpp",
+docs/ccfix5/null-l1-geometry.json:809:      "tomokv_version": "0.1-cpp",
+tests/infofields_test.py:60:        for bad in (b"0.1-cpp", b"1.0-cpp", b"7.4", b"7.4.10-cpp", b"7.4.10\r\n", b"7.4.x"):
+tests/infofields_test.py:90:            for bad in (frame(protocol, b"0.1-cpp"), frame(protocol, b"1.0-cpp"), frame(protocol, b"7.4.9"),

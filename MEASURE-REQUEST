@@ -1,5 +1,4 @@
-The complete infofields request, arm identities, static proof and known MONITOR
-refusal-feed deviation are in MEASURE-REQUEST-infofields.md.
-
-Do not infer a green live gate from the offline checks. The strict new monitor
-differential is expected to expose the documented preserved ordering defect.
+Versionstr is WIP: do not merge or infer a green gate. Read MEASURE-REQUEST-versionstr.md.
+PRE and POST are built and hashed, but ordinary-dispatch byte identity still fails.
+Resolve the listed DB0 compiler drift before live verification at the gate's geometry.
+The report lists exact INFO/HELLO cells, negative PRE expectations, and client smoke commands.

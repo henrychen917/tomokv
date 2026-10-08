@@ -147,11 +147,6 @@ int tomokv_multidb_main(int argc, char** argv) {
 #else
 int main(int argc, char** argv) {
 #endif
-    // Exit before configuration, listeners, workers, or storage are initialized.
-    if (argc == 2 && (!std::strcmp(argv[1], "--version") || !std::strcmp(argv[1], "-v"))) {
-        print_version();
-        return 0;
-    }
     // Declared before every other automatic: once armed on a clean runtime shutdown, this emits
     // only after all later-declared objects (including server/loops/listeners/signals) destruct.
     ShutdownReportFinalLine final_shutdown_line;
