@@ -55,8 +55,13 @@ SWEEP_IDS = "m02 m03 m05 m06".split()
 KEYS = (2, 3, 4, 7, 8, 9, 16)
 NA = "not available"
 FLIPCTL_DISARMED = NA + ": flipctl disarmed (flip-auto 0)"
-BOX_BAND = .0015
-REPEAT_BAND = .02
+NULL_K = 3
+MEDIAN_NORMAL_FACTOR = math.sqrt(math.pi / 2)
+# Instability guards, NOT acceptance/resolution bands. Owner's outward caps on
+# calib/refnull-spread.py's observed maxima: quiet 5.30%, noisy 8.84% (n=30),
+# with multi-key same-arm ranges reaching 16.64% (n=6). Full source table and
+# scope distinction: MEASURE-REQUEST-mkprobe3.md. Never clamp a measured band.
+STABILITY_CAPS = {"quiet": .06, "noisy/multi-key": .20}
 BATCH_RANGE = (.9, 1.1)  # Predeclared operational meaning of the note's '~1.0'.
 WARMUP, WINDOW, TAIL = 3, 20, 5
 CORE_EVENTS = tuple("ref-cycles" if name == "ref_cycles" else name for name, _ in EVENTS)
@@ -819,26 +824,128 @@ def paired_change(left, right):
     return interval([a / b - 1 for a, b in zip(left, right)])
 
 
+def median_agreement(a, b):
+    # Normal-reference SE of the difference of two independent sample medians,
+    # relative to median(B). Pool within-arm sample variances (ddof=1), never
+    # between-arm drift. sqrt(1/nA+1/nB) accounts for BOTH estimated medians.
+    na, nb = len(a), len(b)
+    pooled_sd = math.sqrt(((na - 1) * statistics.variance(a) +
+                           (nb - 1) * statistics.variance(b)) / (na + nb - 2))
+    scale = MEDIAN_NORMAL_FACTOR * pooled_sd / statistics.median(b)
+    se = scale * math.sqrt(1 / na + 1 / nb)
+    spread = max(max(v) / min(v) - 1 for v in (a, b))
+    # Planning estimate for equal-sized ABBA arms, rounded up to an even n.
+    # Raw max/min ranges do NOT contract as 1/sqrt(n); median SE does under the
+    # stationary independent-sample model. This estimate cannot waive the band.
+    target_n = max(6, 2 * math.ceil((2 * (NULL_K * scale / .03) ** 2) / 2))
+    return dict(relative_delta=statistics.median(a) / statistics.median(b) - 1,
+                relative_se_median=se, agreement_band=NULL_K * se,
+                max_same_arm_spread=spread, measured_null_band=spread,
+                pooled_sd=pooled_sd, n_per_arm=dict(A=na, B=nb),
+                required_n_per_arm_for_3pct=target_n)
+
+
 def null_verdict(rows):
     table = []
-    try:
-        for cell in NULL_IDS:
-            item = dict(cell=cell, status="PASS")
-            for metric in ("rate", "cyc_per_op"):
+    for cell in NULL_IDS:
+        category = "noisy/multi-key" if cell in MULTI_IDS else "quiet"
+        item = dict(cell=cell, status="PASS", stability_class=category,
+                    stability_cap=STABILITY_CAPS[category])
+        for metric in ("rate", "cyc_per_op"):
+            try:
                 a = observations(rows, "null", cell, arm="A", metric=metric)
                 b = observations(rows, "null", cell, arm="B", metric=metric)
-                delta = statistics.median(a) / statistics.median(b) - 1
-                spread = max(max(v) / min(v) - 1 for v in (a, b))
-                item[metric] = dict(relative_delta=delta, max_same_arm_spread=spread, n_per_arm=len(a))
-                if abs(delta) > BOX_BAND or spread > REPEAT_BAND:
-                    item["status"] = "FAIL"
-            table.append(item)
-        passed = all(r["status"] == "PASS" for r in table)
-        return dict(status="PASS" if passed else "FAIL", rows=table, band=BOX_BAND,
-                    reason="all 14 cells, rate and cyc/op medians within ±0.15%; same-arm ranges <=2%" if passed
-                    else "identical binary arithmetic outside frozen box/repeatability band")
-    except RuntimeError as error:
-        return dict(status="UNRESOLVED", rows=table, reason=str(error), band=BOX_BAND)
+                value = median_agreement(a, b)
+                value["status"] = ("UNSTABLE" if value["measured_null_band"] > item["stability_cap"] else
+                                   "PASS" if abs(value["relative_delta"]) <= value["agreement_band"] else "FAIL")
+            except (RuntimeError, KeyError) as error:
+                value = dict(status="UNRESOLVED", reason=str(error))
+            item[metric] = value
+        item["status"] = next((s for s in ("UNSTABLE", "UNRESOLVED", "FAIL")
+                               if any(item[m]["status"] == s for m in ("rate", "cyc_per_op"))), "PASS")
+        table.append(item)
+    status = next((s for s in ("UNSTABLE", "UNRESOLVED", "FAIL") if any(r["status"] == s for r in table)), "PASS")
+    return dict(status=status, rows=table, k=NULL_K,
+                estimator="SE = sqrt(pi/2) * pooled within-arm sample sd * sqrt(1/nA + 1/nB) / median(B); ddof=1",
+                band_contract="Each cell/metric's max(max(arm)/min(arm)-1) is its measured null resolution; no clipping or fixed floor",
+                stability_source="calib/refnull-spread.py; observed maxima table in MEASURE-REQUEST-mkprobe3.md",
+                reason=("all 14 cells: rate and cyc/op medians agree within k x SE; no unstable cell" if status == "PASS" else
+                        "; ".join(f"{r['cell']} {r['status']}" for r in table if r["status"] != "PASS")))
+
+
+def calibrated_band(calibration, cell, metric):
+    item = next((r for r in calibration["rows"] if r["cell"] == cell), None)
+    require(item is not None and metric in item and item[metric]["status"] == "PASS",
+            f"no measured same-binary band for {cell}/{metric}")
+    return item[metric]["measured_null_band"]
+
+
+def baseline_band(rows, calibration, cell, metric, mode, arm="base"):
+    # Frozen null has fourteen cells and no symbol passes. Do not borrow another
+    # cell's noise. For unrepresented controls use only their repeated unchanged
+    # baseline (WB1/B for the policy pair), never the intervention arm's spread.
+    if any(r["cell"] == cell for r in calibration["rows"]):
+        return dict(value=calibrated_band(calibration, cell, metric), source="earlier same-binary null", cell=cell, metric=metric)
+    values = observations(rows, mode, cell, arm=arm, metric=metric)
+    band = max(values) / min(values) - 1
+    category = "noisy/multi-key" if cell.startswith("m") else "quiet"
+    require(band <= STABILITY_CAPS[category], f"UNSTABLE baseline: {mode}/{cell}/{arm}/{metric}")
+    return dict(value=band, source=f"same-cell repeated baseline: {mode}/{arm}; not in frozen 14-cell null",
+                cell=cell, metric=metric, n=len(values))
+
+
+def effect_verdict(evidence, band, prediction="positive"):
+    # Directional claims need a whole interval beyond the measured band. The
+    # opposite direction beyond that band refutes; an in-band effect is unresolved.
+    # Equivalence is asymmetric: an interval contained in the band confirms the
+    # null prediction, an interval outside refutes, and overlap is unresolved.
+    if prediction == "null":
+        return ("CONFIRMED" if -band <= evidence["low"] <= evidence["high"] <= band else
+                "REFUTED" if evidence["low"] > band or evidence["high"] < -band else "UNRESOLVED")
+    if prediction == "no_positive_step":
+        return ("CONFIRMED" if evidence["high"] <= band else
+                "REFUTED" if evidence["low"] > band else "UNRESOLVED")
+    return ("CONFIRMED" if evidence["low"] > band else
+            "REFUTED" if evidence["high"] < -band else "UNRESOLVED")
+
+
+def conjunction(states):
+    return "REFUTED" if "REFUTED" in states else "UNRESOLVED" if "UNRESOLVED" in states else "CONFIRMED"
+
+
+def null_table(calibration):
+    lines = ["| Cell | Metric | n A/B | A/B delta | SE median | k x SE (k=3) | Same-arm spread / measured band | Sanity cap | Verdict |",
+             "|---|---|---|---|---|---|---|---|---|"]
+    for cell in calibration["rows"]:
+        for metric in ("rate", "cyc_per_op"):
+            v = cell[metric]
+            if "relative_delta" not in v:
+                lines.append(f"| {cell['cell']} | {metric} | — | — | — | — | — | {cell['stability_cap']:.0%} | {v['status']}: {v['reason']} |")
+                continue
+            n = v["n_per_arm"]
+            lines.append(f"| {cell['cell']} | {metric} | {n['A']}/{n['B']} | {v['relative_delta']:+.3%} | "
+                         f"{v['relative_se_median']:.3%} | {v['agreement_band']:.3%} | {v['measured_null_band']:.3%} | "
+                         f"{cell['stability_cap']:.0%} | {v['status']} |")
+    return lines
+
+
+def resolution_statement(calibration):
+    chosen = [r for r in calibration["rows"] if r["cell"] in ("m03", "m51")]
+    if len(chosen) != 2 or any("measured_null_band" not in r[m] for r in chosen for m in ("rate", "cyc_per_op")):
+        return "Multi-key p32 resolution unavailable: missing m03/m51 null samples."
+    spreads = [r["rate"]["measured_null_band"] for r in chosen]
+    ns = sorted({v for r in chosen for v in r["rate"]["n_per_arm"].values()})
+    sample_text = str(ns[0]) if len(ns) == 1 else "/".join(map(str, ns))
+    details = "; ".join(f"{r['cell']}: {r['rate']['measured_null_band']:.2%} rate spread, "
+                        f"n={r['rate']['required_n_per_arm_for_3pct']} for rate / "
+                        f"{r['cyc_per_op']['required_n_per_arm_for_3pct']} for cycles/op" for r in chosen)
+    return (f"The multi-key p32 cells have a same-arm spread of {math.floor(min(spreads) * 100)}-"
+            f"{math.ceil(max(spreads) * 100)}% at n={sample_text} on this box (rl0 MGET m03/m51); "
+            "any multi-key claim below that needs more samples. " + details + ". "
+            "These are equal per-arm n estimates for a 3% median-difference resolution (3 x SE <= 3%), "
+            "rounded up for ABBA: n = 2 * ceil(max(6, 2*(3*sqrt(pi/2)*pooled_sd/(median(B)*0.03))^2)/2). "
+            "This assumes independent stationary samples, not a power guarantee. Raw max/min spreads do not shrink "
+            "as 1/sqrt(n); more samples must re-establish resolution and do not automatically waive the recorded band.")
 
 
 def verdicts(rows, calibration):
@@ -854,87 +961,110 @@ def verdicts(rows, calibration):
             result.append(dict(mechanism=mechanism, verdict="UNRESOLVED", reason=str(error)))
 
     def m1():
-        checks = []
-        contradicted = False
-        uncertain = False
+        checks, states = [], []
         for cell in ("m02", "m03", "m05", "m06", "m50", "m51", "m53", "m54", "mk128g", "mk128s"):
             v = interval(observations(rows, "counters", cell, metric="retired_per_send"))
             passed = BATCH_RANGE[0] <= v["low"] <= v["high"] <= BATCH_RANGE[1]
-            contradicted |= v["low"] > BATCH_RANGE[1] or v["high"] < BATCH_RANGE[0]
-            uncertain |= not passed
-            checks.append(dict(cell=cell, prediction="0.9 <= retired/sends_submitted <= 1.1", result="PASS" if passed else "FAIL", evidence=v))
+            state = ("CONFIRMED" if passed else "REFUTED" if v["low"] > BATCH_RANGE[1] or v["high"] < BATCH_RANGE[0] else "UNRESOLVED")
+            states.append(state)
+            checks.append(dict(cell=cell, prediction="0.9 <= retired/sends_submitted <= 1.1", result="PASS" if passed else "FAIL", verdict=state, evidence=v))
         for cell in PAIR_IDS:
             rate = paired_change(observations(rows, "wb-pair", cell, arm="A", metric="rate"),
                                  observations(rows, "wb-pair", cell, arm="B", metric="rate"))
             cycles = paired_change(observations(rows, "wb-pair", cell, arm="A"), observations(rows, "wb-pair", cell, arm="B"))
             multi = cell.startswith("m")
-            passed = (abs(rate["median"]) <= BOX_BAND and abs(cycles["median"]) <= BOX_BAND) if multi else (rate["high"] < -BOX_BAND and cycles["low"] > BOX_BAND)
-            if multi:
-                contradicted |= rate["low"] > BOX_BAND or rate["high"] < -BOX_BAND or cycles["low"] > BOX_BAND or cycles["high"] < -BOX_BAND
-                uncertain |= rate["low"] < -BOX_BAND or rate["high"] > BOX_BAND or cycles["low"] < -BOX_BAND or cycles["high"] > BOX_BAND
-            else:
-                contradicted |= rate["low"] >= 0 or cycles["high"] <= 0
-                uncertain |= not passed
+            rate_band = baseline_band(rows, calibration, cell, "rate", "wb-pair", "B")
+            cycle_band = baseline_band(rows, calibration, cell, "cyc_per_op", "wb-pair", "B")
+            loss = dict(low=-rate["high"], high=-rate["low"])
+            state = conjunction([effect_verdict(rate if multi else loss, rate_band["value"], "null" if multi else "positive"),
+                                 effect_verdict(cycles, cycle_band["value"], "null" if multi else "positive")])
+            states.append(state)
             checks.append(dict(cell=cell, prediction="wb0/wb1 multi-key null" if multi else "wb0 loses rate and costs cycles versus wb1",
-                               result="PASS" if passed else "FAIL", rate=rate, cycles=cycles))
+                               result="PASS" if state == "CONFIRMED" else "FAIL", verdict=state,
+                               rate=rate, cycles=cycles, rate_band=rate_band, cycle_band=cycle_band))
         passed = all(c["result"] == "PASS" for c in checks)
-        state = "REFUTED" if contradicted else "UNRESOLVED" if uncertain else "CONFIRMED"
-        return dict(verdict=state, arithmetic="PASS" if passed else "FAIL", checks=checks,
+        return dict(verdict=conjunction(states), arithmetic="PASS" if passed else "FAIL", checks=checks,
                     reason="Conjunction of reply batching arithmetic and same-binary policy effects; read-local MGET controls excluded from scatter prediction")
 
     def m3():
-        details = []
-        passed = True
-        contradicted = False
+        details, states = [], []
         for cell in SWEEP_IDS:
             for key_count in KEYS:
                 observations(rows, "keys", cell, keys=key_count, metric="cycles_per_key")
+        def step_evidence(cell, small, large):
+            a = observations(rows, "keys", cell, keys=small, metric="cycles_per_key")
+            b = observations(rows, "keys", cell, keys=large, metric="cycles_per_key")
+            require(len(a) == len(b), "unequal key-sweep sample counts")
+            fraction = calibrated_band(calibration, cell, "cyc_per_op")
+            # At each k: uncertainty(cycles/op)/k = band * cycles/key.
+            # Add absolute endpoint uncertainties before taking a difference;
+            # neither a key division nor a depth comparison cancels uncertainty.
+            endpoint_bands = [fraction * statistics.median(v) for v in (a, b)]
+            return [y - x for x, y in zip(a, b)], dict(
+                cell=cell, boundary=f"{small}->{large}",
+                cycles_per_key_step=interval([y - x for x, y in zip(a, b)]),
+                relative=paired_change(b, a), null_band=fraction,
+                endpoint_bands_cycles_per_key=endpoint_bands,
+                propagated_band_cycles_per_key=sum(endpoint_bands),
+                propagated_relative_band=sum(endpoint_bands) / statistics.median(a))
         for small, large, p8, p32 in ((7, 8, "m02", "m03"), (3, 4, "m05", "m06")):
-            jumps = []
+            jumps, bands = [], []
             for cell in (p8, p32):
-                a = observations(rows, "keys", cell, keys=small, metric="cycles_per_key")
-                b = observations(rows, "keys", cell, keys=large, metric="cycles_per_key")
-                step = interval([y - x for x, y in zip(a, b)])
-                relative = paired_change(b, a)
-                jumps.append([y - x for x, y in zip(a, b)])
-                passed &= relative["low"] > 2 * BOX_BAND
-                contradicted |= relative["high"] <= 0
-                details.append(dict(cell=cell, boundary=f"{small}->{large}", cycles_per_key_step=step, relative=relative))
+                jump, detail = step_evidence(cell, small, large)
+                band = detail["propagated_band_cycles_per_key"]
+                detail["verdict"] = effect_verdict(detail["cycles_per_key_step"], band)
+                states.append(detail["verdict"])
+                jumps.append(jump)
+                bands.append(band)
+                details.append(detail)
             growth = interval([b - a for a, b in zip(*jumps)])
-            passed &= growth["low"] > 0
-            contradicted |= growth["high"] <= 0
-            details.append(dict(boundary=f"{small}->{large}", p32_minus_p8_step=growth))
+            state = effect_verdict(growth, sum(bands))
+            states.append(state)
+            details.append(dict(boundary=f"{small}->{large}", p32_minus_p8_step=growth,
+                                propagated_band_cycles_per_key=sum(bands), verdict=state))
         # Beyond MGET's spill cliff, more keys must not introduce another positive
         # per-key jump larger than the propagated identical-arm resolution.
         for cell in ("m02", "m03"):
-            smooth = paired_change(observations(rows, "keys", cell, keys=16, metric="cycles_per_key"),
-                                   observations(rows, "keys", cell, keys=9, metric="cycles_per_key"))
-            passed &= smooth["high"] <= 2 * BOX_BAND
-            contradicted |= smooth["low"] > 2 * BOX_BAND
-            details.append(dict(cell=cell, boundary="9->16", no_extra_positive_step=smooth))
-        return dict(verdict="CONFIRMED" if passed else "REFUTED" if contradicted else "UNRESOLVED", checks=details,
+            _, detail = step_evidence(cell, 9, 16)
+            detail["verdict"] = effect_verdict(detail["cycles_per_key_step"], detail["propagated_band_cycles_per_key"], "no_positive_step")
+            states.append(detail["verdict"])
+            details.append(detail)
+        return dict(verdict=conjunction(states), checks=details,
                     reason="Predeclared cycles/key cliffs at MGET 7->8 and MSET 3->4, both larger at p32; MGET 9->16 has no further positive jump")
 
     def m5():
-        values = []
+        values, bands = [], []
         for cell in ("m02", "m03", "mk128g"):
             refresh = observations(rows, "symbols", cell, metric="symbols/shares_pct/refresh_snapshot_floor")
             active = observations(rows, "symbols", cell, metric="symbols/shares_pct/active_snapshot_floor")
             # Exclusive symbol buckets do not double count call chains.
             values.append([a + b for a, b in zip(refresh, active)])
+            bands.append(baseline_band(rows, calibration, cell, "cyc_per_op", "symbols"))
         evidence = [interval(v) for v in values]
         enough = all(r["symbols"]["samples"] >= 1000 for r in rows if r["status"] == "COMPLETE" and r["mode"] in ("symbols", "probes") and r["cell"] in ("m02", "m03", "mk128g"))
         require(enough, "M5 requires >=1000 cycles samples per symbol pass")
         # No inlining guess: an entirely unobserved function is unavailable, not a
         # proven zero. perf report --inline must actually resolve it in the set.
         require(any(v > 0 for v in values[1]), "p32 floor symbols unobserved; cannot treat missing attribution as 0%")
-        if evidence[1]["high"] < .3:
-            state, reason = "REFUTED", "p32 floor-sweep exclusive share upper bound is below the note's 0.3% criterion"
-        elif interval([b - a for a, b in zip(values[0], values[1])])["low"] > 0 and interval([b - a for a, b in zip(values[1], values[2])])["low"] > 0:
-            state, reason = "CONFIRMED", "floor-sweep exclusive share increases p8->p32->p128"
+        # Shares are percent of total cycles: a relative cycles/op null band is
+        # 100*band percentage points. Two endpoints contribute to each contrast.
+        importance_band = 2 * 100 * bands[1]["value"]
+        growth = []
+        for i in (0, 1):
+            require(len(values[i]) == len(values[i + 1]), "unequal symbol-pass sample counts")
+            step = interval([b - a for a, b in zip(values[i], values[i + 1])])
+            band = 100 * (bands[i]["value"] + bands[i + 1]["value"])
+            growth.append(dict(evidence=step, band_percentage_points=band, verdict=effect_verdict(step, band)))
+        if evidence[1]["high"] < importance_band:
+            state, reason = "REFUTED", "p32 floor-share upper bound excludes importance above its measured cycles/op resolution; not proof of zero cost"
+        elif evidence[1]["low"] > importance_band and all(g["verdict"] == "CONFIRMED" for g in growth):
+            state, reason = "CONFIRMED", "floor-sweep share exceeds measured resolution and grows beyond propagated bands p8->p32->p128"
+        elif any(g["verdict"] == "REFUTED" for g in growth):
+            state, reason = "REFUTED", "depth growth reverses beyond the propagated measured band"
         else:
-            state, reason = "UNRESOLVED", "share neither below 0.3% at p32 nor resolved monotonic depth growth"
-        return dict(verdict=state, reason=reason, shares_pct=dict(zip(("p8", "p32", "p128"), evidence)))
+            state, reason = "UNRESOLVED", "importance or depth growth overlaps the measured resolution band"
+        return dict(verdict=state, reason=reason, shares_pct=dict(zip(("p8", "p32", "p128"), evidence)),
+                    cycle_bands=bands, importance_band_percentage_points=importance_band, growth=growth)
 
     def m2():
         evidence = {}
@@ -974,19 +1104,30 @@ def campaign_commands(binary, destination):
 
 
 def report(rows, receipts, destination, binary):
-    identities = {(r["binary_sha256"], tuple(r["geometry"]), r["instrument_sha256"],
+    identities = {(r["binary_sha256"], tuple(r["geometry"]),
                    sha(canonical({k: r.get(k) for k in ("memtier", "perf", "environment", "placement")}))) for r in receipts}
     require(len(identities) <= 1, "report mixes binary, geometry or instrument identities")
+    require(all(compatible_instruments(receipts[0], r) for r in receipts), "report mixes collection instruments")
     calibration = null_verdict(rows)
     # Null must have completed before every non-smoke measured row began.
     null_rows = [r for r in rows if r["mode"] == "null" and r["status"] == "COMPLETE"]
     measured = [r for r in rows if r["mode"] not in ("null", "smoke") and r["status"] == "COMPLETE"]
     if calibration["status"] == "PASS" and measured and max(r["finished"] for r in null_rows) > min(r["started"] for r in measured):
-        calibration = dict(status="FAIL", reason="null did not finish FIRST", rows=calibration["rows"])
+        calibration = dict(calibration, status="FAIL", reason="null did not finish FIRST")
     answers = verdicts(rows, calibration)
     commands = campaign_commands(binary, ROOT / "build/mkprobe-mainline")
     result = dict(schema=SCHEMA, null=calibration, verdicts=answers, sample_rows=len(rows), mainline_commands=commands,
                   status_counts=dict(Counter(r["status"] for r in rows)), performance_claim=False,
+                  resolution_statement=resolution_statement(calibration),
+                  verdict_contract=("Directional effects confirm only when the whole bootstrap interval exceeds the measured band; "
+                      "an opposite effect beyond the band refutes; effects inside/overlapping the band are UNRESOLVED. "
+                      "Equivalence is asymmetric: an interval contained within the band confirms a null prediction, "
+                      "an interval entirely outside refutes, and boundary overlap is UNRESOLVED. "
+                      "M3 adds endpoint uncertainties after dividing cycles/op by key count and adds both depths' step bands. "
+                      "M5 reports its importance threshold and depth-growth bands explicitly. "
+                      "Unrepresented p8/p128 controls use their own repeated unchanged baseline's spread, "
+                      "with source and n recorded; no cell borrows another cell's band. "
+                      "The retired/send [0.9,1.1] prediction describes batching semantics, not instrument resolution."),
                   age_delay_contract=("Age/delay columns are diagnostic; M1-M5 do not use them. "
                       f"2s INFO flip_auto=0 prints '{FLIPCTL_DISARMED}' and does not invalidate the sample. "
                       "Only INFO flip_auto=1 requires executor sample counts to advance inside the central interval "
@@ -994,6 +1135,10 @@ def report(rows, receipts, destination, binary):
     save(destination / "report.json", result)
     lines = ["# mkprobe diagnostic report", "", "No performance claim. Verdicts describe the predeclared mechanism signatures only.", "",
              f"Same-binary null: **{calibration['status']}** — {calibration['reason']}", "",
+             f"Declared estimator (k={calibration['k']}): {calibration['estimator']}. " + calibration["band_contract"] + ".",
+             "", "Sanity caps only: quiet 6%, noisy/multi-key 20%; exceeded caps mark UNSTABLE, never enlarge or clip a band. "
+             + calibration["stability_source"] + ".", "", *null_table(calibration),
+             "", result["resolution_statement"], "", result["verdict_contract"], "",
              "| Mechanism | Verdict | Arithmetic | Reason |", "|---|---|---|---|"]
     for answer in answers:
         lines.append(f"| {answer['mechanism']} | {answer['verdict']} | {answer.get('arithmetic', NA)} | {answer['reason']} |")
@@ -1013,6 +1158,46 @@ def report(rows, receipts, destination, binary):
               "", "## Ordered mainline campaign", "", "Run serially on the idle box. Fresh directories; --resume only with the identical receipt.", "", "```sh", *commands, "```", ""]
     (destination / "report.md").write_text("\n".join(lines))
     return result
+
+
+def collection_source(source):
+    # Preserve every collection node, constant, import and entry point. Exclude
+    # analysis/report code only. The one run() assertion that compares instrument
+    # identities is normalized explicitly; acquisition itself must match exactly.
+    import ast
+    analysis_names = set("BOX_BAND REPEAT_BAND NULL_K MEDIAN_NORMAL_FACTOR STABILITY_CAPS "
+                         "median_agreement null_verdict calibrated_band baseline_band effect_verdict conjunction "
+                         "null_table resolution_statement verdicts report self_test collection_source compatible_instruments".split())
+    tree = ast.parse(source)
+    tree.body = [n for n in tree.body if not (
+        isinstance(n, (ast.FunctionDef, ast.ClassDef)) and n.name in analysis_names or
+        isinstance(n, ast.Assign) and all(isinstance(t, ast.Name) and t.id in analysis_names for t in n.targets))]
+    class IdentityAssertion(ast.NodeTransformer):
+        def visit_Call(self, node):
+            if (isinstance(node.func, ast.Name) and node.func.id == "require" and len(node.args) == 2
+                    and isinstance(node.args[1], ast.Constant)
+                    and node.args[1].value == "null identity/geometry/instrument/PMU/environment does not match"):
+                node.args[0] = ast.Constant(value="analysis-only compatibility assertion")
+            return self.generic_visit(node)
+    return sha(ast.dump(IdentityAssertion().visit(tree), include_attributes=False).encode())
+
+
+def compatible_instruments(left, right):
+    for receipt in (left, right):
+        require(sha(canonical(receipt["sources"])) == receipt["instrument_sha256"], "unbound instrument source hashes")
+    if left["sources"] == right["sources"]:
+        return True
+    tool = "tools/mkprobe_probe.py"
+    if {k:v for k,v in left["sources"].items() if k != tool} != {k:v for k,v in right["sources"].items() if k != tool}:
+        return False
+    # Existing mkprobe2 nulls keep their ORIGINAL full source/receipt digests.
+    # Prove compatibility against the actual landed source, not an unchecked
+    # allowlist of instrument hashes. Unknown revisions are refused.
+    current = Path(__file__).read_bytes()
+    legacy = subprocess.check_output(["git", "show", "2c78708f8:tools/mkprobe_probe.py"], cwd=ROOT)
+    sources = {sha(s): s for s in (current, legacy)}
+    a, b = (sources.get(r["sources"].get(tool)) for r in (left, right))
+    return a is not None and b is not None and collection_source(a) == collection_source(b)
 
 
 def instrument_identity():
@@ -1152,19 +1337,41 @@ def self_test(args):
     unresolved = verdicts([], null_verdict([]))
     require(all(r["verdict"] == "UNRESOLVED" for r in unresolved), "empty data produced verdict")
     synthetic = []
+    variation = [1 + i / 1000 for i in (-2, -1, 0, 0, 1, 2)]
     for cell in NULL_IDS:
         for arm in ("A", "B"):
-            for sample in range(6):
+            for sample, scale in enumerate(variation):
                 synthetic.append(dict(status="COMPLETE", mode="null", cell=cell, keys=8, arm=arm, sample=sample,
-                                      recipe=dict(atomic=1), saturation_pct=99, rate=1e6, cyc_per_op=1000))
-    require(null_verdict(synthetic)["status"] == "PASS", "identical null failed")
-    shifted = [dict(r, rate=r["rate"] * (1.01 if r["arm"] == "B" else 1)) for r in synthetic]
-    require(null_verdict(shifted)["status"] == "FAIL", "bad null passed")
+                                      recipe=dict(atomic=1), saturation_pct=99, rate=1e6 * scale, cyc_per_op=1000 * scale))
+    passed_null = null_verdict(synthetic)
+    require(passed_null["status"] == "PASS", "identical-median null with nonzero spread failed")
+    measured = passed_null["rows"][0]["rate"]
+    require(math.isclose(measured["measured_null_band"], max(variation) / min(variation) - 1), "band did not come from samples")
+    # At exactly k*SE the declared <= rule passes; just beyond it must fail.
+    shift = (NULL_K + .01) * measured["relative_se_median"] * 1e6
+    shifted = [dict(r, rate=r["rate"] + (shift if r["arm"] == "A" else 0)) for r in synthetic]
+    require(null_verdict(shifted)["status"] == "FAIL", "shift beyond 3 x SE passed")
+    shifted_cycles = [dict(r, cyc_per_op=r["cyc_per_op"] + (shift / 1000 if r["arm"] == "A" else 0)) for r in synthetic]
+    require(null_verdict(shifted_cycles)["status"] == "FAIL", "cycles-only disagreement passed")
+    unstable = [dict(r, rate=1e6 * (1.3 if r["sample"] == 5 else 1)) if r["cell"] == "m03" else r for r in synthetic]
+    unstable_null = null_verdict(unstable)
+    require(unstable_null["status"] == "UNSTABLE" and len(unstable_null["rows"]) == 14
+            and next(r for r in unstable_null["rows"] if r["cell"] == "m03")["status"] == "UNSTABLE",
+            "unstable cell lost its distinct status/table")
+    quiet_unstable = [dict(r, rate=1e6 * (1.07 if r["sample"] == 5 else 1)) if r["cell"] == "h05" else r for r in synthetic]
+    require(null_verdict(quiet_unstable)["status"] == "UNSTABLE", "quiet sanity cap ignored")
     require(null_verdict(synthetic[:-1])["status"] == "UNRESOLVED", "n=5 null passed")
-    passed("null arithmetic rejects 1% delta and n=5; empty campaign unresolved")
+    require(all(r["verdict"] == "UNRESOLVED" for r in verdicts([], unstable_null)), "unstable null enabled a verdict")
+    require(math.isclose(measured["relative_se_median"], MEDIAN_NORMAL_FACTOR * statistics.stdev(variation) * math.sqrt(2 / 6)),
+            "SE does not include both arms at their n")
+    scaled = median_agreement([v * 17 for v in variation], [v * 17 for v in variation])
+    require(math.isclose(scaled["relative_se_median"], measured["relative_se_median"]), "relative SE depends on units")
+    require(median_agreement([1.] * 6, [1.] * 6)["measured_null_band"] == 0, "zero spread gained a literal floor")
+    passed("measured null: identical medians with known spread PASS; >3 x SE rate/cycle shifts FAIL; quiet/multi-key UNSTABLE; n=5/empty UNRESOLVED")
     def fixture(mode, cell, *, keys=8, arm="base", **metrics):
         return [dict(status="COMPLETE", mode=mode, cell=cell, keys=keys, arm=arm, sample=i,
-                     recipe=dict(atomic=1), saturation_pct=99, **metrics) for i in range(6)]
+                     recipe=dict(atomic=1), saturation_pct=99,
+                     **{k: v * variation[i] if isinstance(v, (int, float)) else v for k,v in metrics.items()}) for i in range(6)]
     evidence = []
     for cell in ("m02", "m03", "m05", "m06", "m50", "m51", "m53", "m54", "mk128g", "mk128s"):
         evidence += fixture("counters", cell, retired_per_send=1.)
@@ -1178,10 +1385,16 @@ def self_test(args):
             evidence += fixture("keys", cell, keys=key_count,
                                 cycles_per_key=1000. + (200. if cell in ("m03", "m06") else 100.) * spill)
     for cell, share in (("m02", 1.), ("m03", 2.), ("mk128g", 3.)):
-        evidence += fixture("symbols", cell, symbols=dict(samples=2000, shares_pct=dict(refresh_snapshot_floor=share, active_snapshot_floor=0.)))
-    passed_null = dict(status="PASS", reason="synthetic test only")
+        evidence += fixture("symbols", cell, cyc_per_op=1000., symbols=dict(samples=2000, shares_pct=dict(refresh_snapshot_floor=share, active_snapshot_floor=0.)))
     answers = {r["mechanism"]:r for r in verdicts(evidence, passed_null)}
     require(all(answers[m]["verdict"] == "CONFIRMED" for m in ("M1", "M3", "M5")), "positive mechanism fixtures did not confirm")
+    require(math.isclose(next(c for c in answers["M1"]["checks"] if c["cell"] == "m02" and "rate_band" in c)["rate_band"]["value"],
+                         measured["measured_null_band"]), "M1 ignored fixture's measured band")
+    first_step = answers["M3"]["checks"][0]
+    require(math.isclose(first_step["propagated_band_cycles_per_key"], calibrated_band(passed_null, "m02", "cyc_per_op") * (1000 + 1100)),
+            "M3 failed to propagate cycles/op band through per-key division")
+    require(math.isclose(answers["M5"]["importance_band_percentage_points"], 200 * calibrated_band(passed_null, "m03", "cyc_per_op")),
+            "M5 used a fixed importance band")
     combined = {}
     for row in evidence:
         key = ("probes" if row["mode"] in ("counters", "symbols") else row["mode"], row["cell"], row["sample"], row["keys"], row["arm"])
@@ -1191,17 +1404,40 @@ def self_test(args):
     broken = [dict(r, retired_per_send=2.) if r["mode"] == "counters" and r["cell"] == "m03" else r for r in evidence]
     answer = verdicts(broken, passed_null)[0]
     require(answer["verdict"] == "REFUTED" and answer["arithmetic"] == "FAIL", "broken M1 batching passed")
-    broken = [dict(r, cycles_per_key=1000.) if r["mode"] == "keys" else r for r in evidence]
-    require(verdicts(broken, passed_null)[2]["verdict"] == "REFUTED", "flat spill cliff passed M3")
+    flat = [dict(r, cycles_per_key=1000.) if r["mode"] == "keys" else r for r in evidence]
+    require(verdicts(flat, passed_null)[2]["verdict"] == "UNRESOLVED", "in-band flat cliff became a directional conclusion")
+    broken = [dict(r, cycles_per_key=2000. - r["cycles_per_key"]) if r["mode"] == "keys" else r for r in evidence]
+    require(verdicts(broken, passed_null)[2]["verdict"] == "REFUTED", "reversed spill cliff passed M3")
+    small = [dict(r, rate=1e6 * variation[r["sample"]], cyc_per_op=1000. * variation[r["sample"]])
+             if r["mode"] == "wb-pair" and not r["cell"].startswith("m") else r for r in evidence]
+    require(verdicts(small, passed_null)[0]["verdict"] == "UNRESOLVED", "in-band GET/SET effect became a conclusion")
+    reversed_pair = [dict(r, rate=1.1e6 * variation[r["sample"]], cyc_per_op=900. * variation[r["sample"]])
+                     if r["mode"] == "wb-pair" and r["arm"] == "A" and r["cell"] == "p8g" else r for r in evidence]
+    require(verdicts(reversed_pair, passed_null)[0]["verdict"] == "REFUTED", "reversed GET policy effect passed M1")
     incomplete = [r for r in evidence if not (r["mode"] == "keys" and r["cell"] == "m02" and r["keys"] == 2 and r["sample"] == 5)]
     require(verdicts(incomplete, passed_null)[2]["verdict"] == "UNRESOLVED", "n=5 key variant passed M3")
     broken = [dict(r, symbols=dict(samples=2000, shares_pct=dict(refresh_snapshot_floor=.1, active_snapshot_floor=0.)))
               if r["mode"] == "symbols" else r for r in evidence]
-    require(verdicts(broken, passed_null)[4]["verdict"] == "REFUTED", "sub-0.3% floor share passed M5")
+    require(verdicts(broken, passed_null)[4]["verdict"] == "REFUTED", "floor share below measured importance passed M5")
     broken = [dict(r, symbols=dict(samples=2000, shares_pct=dict(refresh_snapshot_floor=0., active_snapshot_floor=0.)))
               if r["mode"] == "symbols" else r for r in evidence]
     require(verdicts(broken, passed_null)[4]["verdict"] == "UNRESOLVED", "missing symbol attribution became zero-cost evidence")
-    passed("M1/M3/M5 positive signatures, deliberately broken mechanisms, missing variants and unavailable attribution")
+    passed("M1/M3/M5 CONFIRMED/REFUTED from fixture-owned spread; flat directional effects UNRESOLVED; key-division propagation; missing variants/attribution")
+    current_source = Path(__file__).read_bytes()
+    old_source = subprocess.check_output(["git", "show", "2c78708f8:tools/mkprobe_probe.py"], cwd=ROOT)
+    require(collection_source(old_source) == collection_source(current_source), "analysis update changed collection code")
+    require(collection_source(current_source.replace(b"WARMUP, WINDOW, TAIL = 3, 20, 5", b"WARMUP, WINDOW, TAIL = 4, 20, 5"))
+            != collection_source(old_source), "collection compatibility ignored window mutation")
+    source_map = instrument_identity()
+    old_map = dict(source_map, **{"tools/mkprobe_probe.py": sha(old_source)})
+    current_receipt = dict(sources=source_map, instrument_sha256=sha(canonical(source_map)))
+    old_receipt = dict(sources=old_map, instrument_sha256=sha(canonical(old_map)))
+    require(compatible_instruments(old_receipt, current_receipt), "mkprobe2 source-bound null reuse rejected")
+    changed_map = dict(old_map, **{"tests/abba_workloads.py": "changed"})
+    require(not compatible_instruments(dict(sources=changed_map, instrument_sha256=sha(canonical(changed_map))), current_receipt),
+            "changed workload passed compatibility")
+    rejects(lambda: compatible_instruments(dict(old_receipt, instrument_sha256="unbound"), current_receipt))
+    passed("mkprobe2 null reuse proves identical collection AST; changed windows/workloads and unbound digests rejected")
     with tempfile.TemporaryDirectory(dir=ROOT / "build") as temp:
         folder = Path(temp)
         receipt = dict(geometry=list(args.cores), arguments=dict(cores=args.cores), events=EVENTS)
@@ -1309,7 +1545,8 @@ def run(args):
         null_rows, controls = complete_rows([args.null])
         require(null_verdict(null_rows)["status"] == "PASS", "earlier same-binary null has not passed")
         control = controls[0]
-        require(all(control[k] == receipt[k] for k in ("binary_sha256", "geometry", "instrument_sha256", "memtier", "perf", "environment", "placement")), "null identity/geometry/instrument/PMU/environment does not match")
+        require(all(control[k] == receipt[k] for k in ("binary_sha256", "geometry", "memtier", "perf", "environment", "placement"))
+                and compatible_instruments(control, receipt), "null identity/geometry/instrument/PMU/environment does not match")
         receipt["null_receipt_sha256"] = sha(canonical(control))
     if args.output.exists():
         require(args.resume, "output exists; use a fresh --output or --resume")
