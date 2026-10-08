@@ -1,0 +1,62 @@
+tests/config_parser_test.cc:556:    if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2))) fail("LB band is not floored measured quiet jitter");
+tests/config_parser_test.cc:558:    if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2))) fail("an excursion widened its own LB band");
+tests/storesize_unit.cc:127:        DatabaseMap::Read map(server.databases());
+tests/r7shadow_sync.py:115:                body = body.replace('DatabaseMapTestHooks::loop_pass(*srv_, *self_, 0);',
+tests/r7shadow_sync.py:116:                                    'DatabaseMapTestHooks::loop_pass(*srv_, *self_, 1);')
+tests/mdbstamp_checks.cc:89:void measured_stamp(Server& server, Op& op, uint8_t logical, const DatabaseMap::Map* map) {
+tests/mdbstamp_checks.cc:96:bool matches(const Case& c, const Op& op, uint8_t logical, const DatabaseMap::Map& map) {
+tests/mdbstamp_checks.cc:116:void regular(Server& server, const DatabaseMap::Map& map, const char* selection) {
+tests/mdbstamp_checks.cc:229:void registry_classes(Server& server, const DatabaseMap::Map& map) {
+tests/mdbstamp_checks.cc:275:    DatabaseMap::Map map;
+tests/gate.sh:1205:  [ "$variant" != sidecar ] || flags+=' -DTOMO_TTL_DEADLINE_SIDECAR=1'
+tests/reorder_unit.cc:408:    static_assert(kGenthreadExBatchOps == 32 && kGenthreadPipelineExBatchOps == 128);
+tests/sortstore_checks.inc:98:void sortstore_stamp(Server& server, const DatabaseMap::Map& map, const SortstoreCase& row) {
+tests/shutsave_unit.cc:40:    using Lifetime = DatabaseMap::WorkerLifetime;
+tests/mdbqsbr_probe.cc:5:        const DatabaseMap& owner, uint8_t first, uint8_t second) {
+tests/mdbqsbr_probe.cc:6:    DatabaseMap::Read read(owner);
+tests/mdbqsbr_probe.cc:17:static_assert(sizeof(AtomicEntry) == 144 && sizeof(Config) == 624 && sizeof(DatabaseMap) == 120);
+tests/boot_failures.py:141:        s = replace(s, '            DatabaseMap::WorkerLifetime database_worker',
+tests/boot_failures.py:143:                    '            DatabaseMap::WorkerLifetime database_worker')
+tests/mdbqsbr_unit.cc:11:using Hooks = DatabaseMapTestHooks;
+tests/mdbqsbr_unit.cc:38:    DatabaseMap& map = server.databases();
+tests/mdbqsbr_unit.cc:66:    require(DatabaseMapTest::backlog(f.map) == 0 && !f.map.reclamation_pending(),
+tests/mdbqsbr_unit.cc:78:        DatabaseMap::Read read(f.map);
+tests/mdbqsbr_unit.cc:86:        if (publisher) DatabaseMapTest::maintenance(f.map, f.server);
+tests/mdbqsbr_unit.cc:87:        require(held_deletions == 0 && DatabaseMapTest::backlog(f.map) == 1,
+tests/mdbqsbr_unit.cc:132:        DatabaseMap::Read read(f.map);
+tests/mdbqsbr_unit.cc:139:    require(held_deletions == 0 && DatabaseMapTest::acknowledged(f.map, 1) == 0,
+tests/mdbqsbr_unit.cc:150:        DatabaseMap::Read read(f.map);
+tests/mdbqsbr_unit.cc:156:    require(held_deletions == 0 && DatabaseMapTest::backlog(f.map) == 1,
+tests/mdbqsbr_unit.cc:162:        require(DatabaseMapTest::acknowledged(f.map, 1) != 0,
+tests/mdbqsbr_unit.cc:166:        DatabaseMap::Read read(f.map);
+tests/mdbqsbr_unit.cc:176:        DatabaseMap::Read read(f.map);
+tests/mdbqsbr_unit.cc:180:                DatabaseMap::Map restore;
+tests/mdbqsbr_unit.cc:186:        require(DatabaseMapTest::backlog(f.map) == 160 && held_deletions == 0,
+tests/mdbqsbr_unit.cc:196:        require(DatabaseMapTest::backlog(f.map) == 0 && held_deletions == 1,
+tests/mdbqsbr_unit.cc:217:    require(DatabaseMapTest::backlog(map) == 0, "woken workers drain final retirement");
+tests/mdbqsbr_unit.cc:227:    require(DatabaseMapTest::acknowledged(map, 1) == 0 && DatabaseMapTest::backlog(map) == 1,
+tests/mdbqsbr_unit.cc:229:    DatabaseMapTest::expire_deadline(map); // no wall-clock sleep in this unit
+tests/mdbqsbr_unit.cc:232:    require(stop && DatabaseMapTest::backlog(map) == 1 && !map.reclamation_pending(),
+tests/mdbqsbr_unit.cc:239:    std::unique_ptr<DatabaseMap::Map> prepared;
+tests/mdbqsbr_unit.cc:247:        require(f.map.capture().epoch == before.epoch && DatabaseMapTest::backlog(f.map) == 0,
+tests/mdbqsbr_unit.cc:264:    require(DatabaseMapTest::backlog(f.map) == 0, "older retirement drained between prepare and commit");
+tests/mdbqsbr_unit.cc:274:    require(DatabaseMapTest::backlog(f.map) == 0, "prepared retirement reclaims without another writer");
+tests/mdbqsbr_unit.cc:275:    DatabaseMap::Map bad; bad[1] = bad[0];
+tests/mdbqsbr_unit.cc:291:            DatabaseMapTest::backlog(f.map) == 0 && Hooks::allocated - Hooks::freed == live,
+tests/mdbqsbr_unit.cc:357:            require(DatabaseMapTest::backlog(server.databases()) == 0,
+tests/mdbqsbr_unit.cc:394:            require(DatabaseMapTest::backlog(f.map) == 1,
+tests/mdbqsbr_unit.cc:404:            require(DatabaseMapTest::backlog(f.map) == 1,
+tests/multidb_unit.cc:438:    const auto append_map = [&](const DatabaseMap::Map& map, uint64_t group) {
+tests/multidb_unit.cc:439:        mapping_header[4] = static_cast<uint8_t>(group ? AofRecordKind::GroupDatabaseMap : AofRecordKind::DatabaseMap);
+tests/multidb_unit.cc:444:    DatabaseMap identity;
+tests/store_regression.cc:469:    require(kTtlDeadlineSidecar, "deadline case must run a sidecar-enabled build");
+tools/mdbqsbr_artifacts.py:115:                  member_layout='same 120-byte DatabaseMap, counter offset 32, pointer offset 40',
+tools/mdbqsbr_artifacts.py:125:            member_layout='DatabaseMap 120 bytes, grace gate offset 32, pointer offset 40; '
+tools/shutsave_audit.py:46:        elif 'DatabaseMap::join_workers(' in name:
+tools/shutsave_audit.py:48:        elif 'DatabaseMap::monitor(' in name or 'DatabaseMap::reclaim(' in name:
+tools/shutsave_audit.py:50:        elif 'DatabaseMap::state(' in name:
+tools/shutsave_audit.py:52:        elif any(token in name for token in ('DatabaseMap::publish(', 'DatabaseMap::worker_exited(',
+tools/shutsave_audit.py:53:                                             'DatabaseMap::boundary_started(', 'DatabaseMap::~DatabaseMap(')):
+tools/shutsave_pad.py:2:"""Offline PAD A: PRE behavior, POST cold DatabaseMap::State layout and .text size."""
+tools/shutsave_pad.py:22:        ' t=gdb.lookup_type(ns+"::DatabaseMap::State")\n'
+tools/shutsave_pad.py:72:                  layout='POST cold DatabaseMap::State and total .text size; function addresses may differ',
