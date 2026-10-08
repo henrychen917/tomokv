@@ -483,6 +483,9 @@ struct LbPlannerTest {
                 "no in-band move chooses the smallest improving residual");
         items[1].pinned = true;
         require(!choose(10), "pinned loads never become objective candidates");
+        items = {{0, 0, 140}, {1, 0, 160}, {2, 0, 900, true}, {3, 1, 800, true}};
+        require(choose(1) && choice.item_index == 1 && choice.after_weight_spread == 80,
+                "outside the band the objective ranks every improving residual");
         std::puts("PASS LBOSC3 residual objective");
     }
 
@@ -510,6 +513,8 @@ struct LbPlannerTest {
         unsigned crossed = 0;
         while (!update(100, 1) && ++crossed <= first_ticks) {}
         require(crossed + 1 == first_ticks, "damped admission needs K consecutive crossed ticks");
+        tick += 2 * Policy::kTickMs;
+        require(!update(100, 1) && streak == 1, "a skipped tick breaks consecutive admission");
         require(!update(100, 8) && state.required_ticks > first_ticks,
                 "more recent movement grows K");
         require(state.fire_band > state.base_band && state.fire_band <= 1.5 * state.base_band,

@@ -603,6 +603,15 @@ struct ConfigParseState {
     int save_source = 0;
 };
 
+// Keep this boot-only conversion out of the already large parser/IO translation unit.
+__attribute__((noipa)) inline bool cfg_parse_key_lb_damping(const char* value, int32_t& out) {
+    int64_t level;
+    if (!cfg_parse_i64(value, level) || level < -1 || level > INT32_MAX ||
+        std::to_string(level) != value) return false;
+    out = static_cast<int32_t>(level);
+    return true;
+}
+
 enum : int { kConfigParsed = 0, kConfigError = 1, kConfigHelp = 2 };
 
 // Parses one token stream (no argv[0]) into cfg. `source` is 1 for the conf file, 2 for the CLI.
@@ -881,14 +890,10 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
         }
         else if (!std::strcmp(a, "--key-lb-damping")) {
-            const char* value = next(nullptr);
-            int64_t level;
-            if (!cfg_parse_i64(value, level) || level < -1 || level > INT32_MAX ||
-                std::to_string(level) != value) {
+            if (!cfg_parse_key_lb_damping(next(nullptr), cfg.key_lb_damping)) {
                 std::fprintf(stderr, "--key-lb-damping wants -1, 0 or a positive integer\n");
                 return kConfigError;
             }
-            cfg.key_lb_damping = static_cast<int32_t>(level);
         }
         else if (!std::strcmp(a, "--client-lb")) {
             if (!cfg_parse_u32(next(nullptr), cfg.client_lb) || cfg.client_lb > 1) {

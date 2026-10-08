@@ -12,7 +12,7 @@ namespace tomo {
 __attribute__((noipa)) int32_t lbosc3_level(int32_t configured) { return configured; }
 
 void Server::lb_key_damping_init() {
-    if (lbosc3_level(cfg_.key_lb_damping))
+    if (lbosc3_level(cfg_.key_lb_damping) && !lb_policy_->key_damping)
         lb_policy_->key_damping = std::make_unique<LbAutotune::KeyDamping>();
 }
 
@@ -37,6 +37,8 @@ bool LbAutotune::KeyDamping::update(double ratio, QuietJitter& noise, uint32_t& 
         topology = epoch;
         streak = 0;
     } else if (last_ms) {
+        // A skipped controller tick cannot count as a consecutive crossing.
+        if (now_ms - last_ms >= 2 * kTickMs) streak = 0;
         recent *= std::exp2(-double(now_ms - last_ms) / (horizon * kTickMs));
     }
     if (completed != moves) {
