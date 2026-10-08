@@ -205,6 +205,10 @@ class SelfTest(unittest.TestCase):
         for r in rows:
             if r["arm"] == "POST": r["p99"] = 1.021
         self.assertEqual(judge(rows)["verdict"], "SHELVE")
+        rows = self.rows()
+        for r in rows:
+            if r["arm"] == "POST": r["rate"] = 97.9
+        self.assertEqual(judge(rows)["verdict"], "SHELVE")
         self.assertEqual(judge(self.rows(), ["telemetry gap"])["verdict"], "UNTUNED")
 
 
