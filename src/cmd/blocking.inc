@@ -404,6 +404,12 @@ void blocking_finish_cancelled(BlockingState& state, ThreadCtx* self, Ring* ring
 }
 
 void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
+    // Once the last Task drops its count, IO may transfer and retire a move/read
+    // scatter immediately. Pin the cold state across the final notification.
+    const bool scatter = blocking_is_move(state.kind) || state.kind == BlockingKind::Xread;
+    if (scatter) blocking_state_retain(&state);
+    const std::unique_ptr<BlockingState, decltype(&blocking_state_release)> pin(
+        scatter ? &state : nullptr, blocking_state_release);
     if (state.active_tasks.fetch_sub(1, std::memory_order_acq_rel) != 1) return;
     BlockingPhase phase = state.phase.load(std::memory_order_acquire);
     if (state.cancel_requested.load(std::memory_order_acquire)) {
@@ -418,6 +424,12 @@ void blocking_task_done(BlockingState& state, ThreadCtx& self, Ring& ring) {
             state.server->aof().defer_completion(self.id(), op, state.client)) return;
         if (op.state.exchange(OpState::Done, std::memory_order_acq_rel) != OpState::Done)
             blocking_notify_sender(*state.server, self, ring, state.client);
+    } else if (phase == BlockingPhase::MoveRequested) {
+        // The first notification can reach IO while active_tasks is nonzero.
+        // Registration reprobes close the XADD-before-waiter window, but IO
+        // cannot consume that result until this final owner Task has left.
+        // Renew the notification at the same readiness edge IO checks.
+        blocking_notify_sender(*state.server, self, ring, state.client);
     }
 }
 
@@ -1492,6 +1504,8 @@ void blocking_retire(Server& server, Client& client, Op& op, ThreadCtx& thread) 
 void blocking_scatter_retire(Server& server, Client& client, ScatterState& state) {
     BlockingState* block = state.blocking_origin;
     if (!block) return;
+    acl_recheck_blocking(client, client.rob().at(block->op_id),
+                         server.thread(client.ifid_thread()));
     client.set_blocked(false);
     // The OTHER exit of the same parked lifetime: blocking_resume_move() converted this op from a
     // blocking state to a move scatter IN PLACE, reusing the ROB slot and inheriting the Blocking
