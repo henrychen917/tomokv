@@ -45,6 +45,11 @@ int main(int argc, char** argv) {
     cfg.place = placement.c_str();
     Server server;
     require(server.prepare_boot(cfg) && server.init(cfg), "gate geometry initialization");
+    for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
+        require(fused ? server.thread(tid).init_task_inbox_local_fused()
+                      : server.thread(tid).init_task_inbox_local(
+                            server.placement().ifid_threads(), server.placement().ex_threads()),
+                "owner task inbox initialization");
     command_bind_server(&server);
     std::string error;
     require(acl_initialize(server, cfg, error), "ACL initialization");
