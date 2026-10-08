@@ -554,6 +554,20 @@ int main() {
     if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2))) fail("an excursion widened its own LB band");
 
     tomo::Config lb_defaults;
+    if (lb_defaults.key_lb_damping != -1) fail("key damping default is not auto");
+    for (const char* value : {"-1", "0", "1", "3", "2147483647"}) {
+        tomo::Config lb;
+        tomo::ConfigParseState state;
+        if (tomo::parse_config_args({"--key-lb-damping", value}, lb, state, 1, "conf") !=
+                tomo::kConfigParsed || std::to_string(lb.key_lb_damping) != value)
+            fail("key damping canonical integer grammar");
+        if (tomo::parse_config_args({"--key-lb-damping", "0"}, lb, state, 2, "cli") !=
+                tomo::kConfigParsed || lb.key_lb_damping != 0)
+            fail("key damping CLI override");
+    }
+    for (const char* value : {"-2", "2147483648", "1x", "yes", "", "+1", "01", "-0", " 1"})
+        if (!rejects({"--key-lb-damping", value})) fail("invalid key damping grammar accepted");
+    if (!rejects({"--key-lb-damping"})) fail("missing key damping level accepted");
     if (lb_defaults.key_lb != 1 || lb_defaults.client_lb != 1)
         fail("independent LB defaults are not both enabled");
     for (const char* mode : {"1s", "2s"})

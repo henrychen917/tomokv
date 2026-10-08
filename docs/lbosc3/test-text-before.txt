@@ -1,0 +1,120 @@
+tests/atomic_survivors_unit.cc:482:    cfg.key_lb = cfg.client_lb = 0; cfg.flip_auto = 0;
+tests/cd13b_unit.cc:31:        cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/xshard_dispatch_scale.py:87:    for name, expected in (("thread_mode", "2s"), ("key_lb", "0"), ("client_lb", "0"),
+tests/ccfix2_atomic_unit.cc:15:    cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/config_parser_test.cc:115:        config.key_lb != 1 || config.client_lb != 1 || config.slowlog_log_slower_than != 10000 ||
+tests/config_parser_test.cc:557:    if (lb_defaults.key_lb != 1 || lb_defaults.client_lb != 1)
+tests/config_parser_test.cc:564:                if (tomo::parse_config_args({"--thread-mode", mode, "--key-lb", key,
+tests/config_parser_test.cc:567:                    lb.key_lb != static_cast<uint32_t>(*key - '0') ||
+tests/config_parser_test.cc:571:                if (tomo::parse_config_args({"--key-lb", "1"}, lb, state, 2, "cli") !=
+tests/config_parser_test.cc:572:                        tomo::kConfigParsed || lb.key_lb != 1 ||
+tests/config_parser_test.cc:574:                    fail("key-lb override changed client-lb");
+tests/config_parser_test.cc:576:                        tomo::kConfigParsed || lb.key_lb != 1 || lb.client_lb != 0)
+tests/config_parser_test.cc:577:                    fail("client-lb override changed key-lb");
+tests/config_parser_test.cc:579:    for (const char* flag : {"--key-lb", "--client-lb"}) {
+tests/storesize_unit.cc:294:    cfg.key_lb = cfg.client_lb = cfg.flip_auto = cfg.protected_mode = 0;
+tests/mode_equivalence.py:156:    knobs.update({'thread-mode': mode, 'shards': 16, 'flip-auto': 0, 'key-lb': 0, 'client-lb': 0})
+tests/shutdown_unit.cc:60:        cfg.key_lb = cfg.client_lb = 0;
+tests/xshard_dispatch_scale.sh:80:      --key-lb 0 --client-lb 0 --flip-auto 0 --save '' --dir "$DATA_DIR" \
+tests/perf_gate.py:76:                       'key-lb': 0, 'client-lb': 0})
+tests/connreset_repro.py:217:    client_lb, key_lb, count, storm_count = PROFILES[profile]
+tests/connreset_repro.py:274:    client_lb, key_lb, _, _ = PROFILES[profile]
+tests/connreset_repro.py:277:            "--key-lb", str(key_lb), "--flip-auto", "0", "--enable-debug-command", "yes",
+tests/overlap_prefetch_unit.cc:52:            config.read_local = config.atomic = config.key_lb = config.client_lb = 1;
+tests/overlap_prefetch_unit.cc:228:            std::printf("PASS overlap prefetch %s overlap=%u read-local=atomic=key-lb=client-lb=1\n",
+tests/mdbstamp_checks.cc:273:    cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/gate_perf_evidence.json:15:        "key-lb": 0,
+tests/gate_perf_evidence.json:56:        "key-lb": 0,
+tests/gate_perf_evidence.json:73:        "key-lb": 1,
+tests/gate_perf_evidence.json:121:        "key-lb": 1,
+tests/gate_perf_evidence.json:138:        "key-lb": 0,
+tests/gate_perf_evidence.json:186:        "key-lb": 0,
+tests/gate_perf_evidence.json:203:        "key-lb": 1,
+tests/gate_perf_evidence.json:251:        "key-lb": 1,
+tests/gate_perf_evidence.json:268:        "key-lb": 0,
+tests/gate_perf_evidence.json:318:        "key-lb": 0,
+tests/gate_perf_evidence.json:335:        "key-lb": 1,
+tests/gate_perf_evidence.json:392:        "key-lb": 1,
+tests/gate_perf_evidence.json:409:        "key-lb": 0,
+tests/gate_perf_evidence.json:466:        "key-lb": 0,
+tests/gate_perf_evidence.json:483:        "key-lb": 1,
+tests/gate_perf_evidence.json:540:        "key-lb": 1,
+tests/gate_perf_evidence.json:557:        "key-lb": 0,
+tests/gate_perf_evidence.json:600:        "key-lb": 0,
+tests/gate_perf_evidence.json:643:        "key-lb": 1,
+tests/gate_perf_evidence.json:693:        "key-lb": 1,
+tests/gate_perf_evidence.json:743:        "key-lb": 0,
+tests/gate_perf_evidence.json:793:        "key-lb": 0,
+tests/gate_perf_evidence.json:843:        "key-lb": 1,
+tests/gate_perf_evidence.json:893:        "key-lb": 1,
+tests/gate_perf_evidence.json:943:        "key-lb": 0,
+tests/gate_perf_evidence.json:995:        "key-lb": 0,
+tests/gate_perf_evidence.json:1047:        "key-lb": 1,
+tests/gate_perf_evidence.json:1106:        "key-lb": 1,
+tests/gate_perf_evidence.json:1165:        "key-lb": 0,
+tests/gate_perf_evidence.json:1224:        "key-lb": 0,
+tests/gate_perf_evidence.json:1283:        "key-lb": 1,
+tests/gate_perf_evidence.json:1342:        "key-lb": 1,
+tests/gate_perf_evidence.json:1401:        "key-lb": 0,
+tests/gate_perf_evidence.json:1453:        "key-lb": 0,
+tests/gate_perf_evidence.json:1506:        "key-lb": 0,
+tests/gate_perf_evidence.json:1576:        "key-lb": 0,
+tests/gate_perf_evidence.json:4376:            "key-lb": 0,
+tests/gate_perf_evidence.json:5757:            "key-lb": 0,
+tests/gate_perf_evidence.json:7218:            "key-lb": 0,
+tests/legacy_reorder_witness.py:261:    if abba.accepted(binary, 'key-lb', 0) and abba.accepted(binary, 'client-lb', 0):
+tests/legacy_reorder_witness.py:262:        result.update({'key-lb': 0, 'client-lb': 0})
+tests/reorder_scope.py:77:            std::fputs("window\tpid\ttid\tmode\trl\tatomic\tkey_lb\tclient_lb\treorder\toverlap\t"
+tests/reorder_scope.py:163:        cfg.atomic, cfg.key_lb, cfg.client_lb, cfg.reorder, cfg.overlap, path,
+tests/reorder_scope.py:353:        identity = tuple(row[k] for k in ("mode", "rl", "atomic", "key_lb", "client_lb", "reorder", "overlap"))
+tests/owner_arena_unit.cc:176:        config.key_lb = config.client_lb = 1; config.flip_auto = 0; config.save.clear();
+tests/execabort_watch_unit.cc:42:        cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/debug_load_test.py:184:    def test_fused_still_waits_for_key_lb(self):
+tests/gate.sh:1390:        --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes \
+tests/gate.sh:1524:  if "$boot_fn" "$CANDIDATE_BINARY" --key-lb 1 --client-lb 1 --flip-auto 0 --enable-debug-command yes &&
+tests/gate.sh:2028:      --key-lb 0 --client-lb 0 --flip-auto 0 \
+tests/gate.sh:2662:    --aof-timestamp-enabled no --key-lb 0 --client-lb 0 --flip-auto 0 \
+tests/gate.sh:3344:# sets both values of --atomic, --key-lb, --client-lb across it. The last three rows exercise
+tests/core_concurrency_unit.cc:85:            config.key_lb = config.client_lb = load_balance ? 1 : 0;
+tests/tailgen_stall.py:45:                            ("read-local", "0"), ("key-lb", "1"), ("client-lb", "1")):
+tests/rltopo_unit.cc:95:            cfg.read_local = cfg.atomic = cfg.key_lb = cfg.client_lb = 1;
+tests/splitlocal_live.py:80:                             ('key-lb', '0'), ('client-lb', '0'), ('flip-auto', '0')]:
+tests/abba_saturation_controls.py:350:                 "--reorder", "0", "--atomic", "1", "--key-lb", "0", "--client-lb", "0",
+tests/lbplanner_unit.cc:202:        f.server.cfg_.key_lb = !client;
+tests/lbplanner_unit.cc:327:        f.server.cfg_.key_lb = !client;
+tests/overlap.py:5:Boot with the requested mode/overlap/read-local, --key-lb 0 --client-lb 0, --enable-debug-command yes,
+tests/overlap.py:50:                             ("read-local", lane), ("key-lb", "0"), ("client-lb", "0"),
+tests/netcmd_unit.cc:633:            cfg.thread_mode = mode; cfg.key_lb = cfg.client_lb = 0;
+tests/feature_gate.py:55:        knobs.update({'thread-mode': mode, 'atomic': r ^ o, 'key-lb': q, 'client-lb': o,
+tests/feature_gate.py:62:                 'flip-auto': 0, 'atomic': 1, 'key-lb': 0, 'client-lb': 0}
+tests/feature_gate.py:90:                                                  'atomic', 'key-lb', 'client-lb')),
+tests/feature_gate.py:92:    for key in (*SWITCHES, 'atomic', 'key-lb', 'client-lb'):
+tests/feature_gate.py:101:    for key in ('thread-mode', *SWITCHES, 'atomic', 'key-lb', 'client-lb'):
+tests/feature_gate.py:191:    if knobs['key-lb'] or knobs['client-lb']:
+tests/feature_gate.py:197:    for knob, field in (('key-lb', 'tomokv_keylb_bucket_weight_spread_current'),
+tests/feature_gate.py:202:    if not knobs['key-lb']:
+tests/feature_gate.py:203:        require(number(after, 'tomokv_keylb_bucket_moves') == 0, 'key-lb off moved a bucket')
+tests/reorder_engagement_unit.cc:62:            config.atomic = config.key_lb = config.client_lb = 1;
+tests/gates_test.py:33:             'flip-auto': 1, 'atomic': 1, 'key-lb': 1, 'client-lb': 1}
+tests/gates_test.py:181:        for key in ('overlap', 'atomic', 'key-lb', 'client-lb', 'flip-auto'):
+tests/rl2s.py:7:  --enable-debug-command yes --key-lb 0 --client-lb 0 --flip-auto 0
+tests/rl2s.py:144:    for knob in ("key-lb", "client-lb", "flip-auto"):
+tests/shutsave_unit.cc:134:        cfg.key_lb = cfg.client_lb = 0;
+tests/ccfix5_debug_unit.cc:34:    cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/atomic_plain.py:6:Boot with --atomic MODE --enable-debug-command yes --key-lb 0 --client-lb 0 --flip-auto 0.
+tests/atomic_plain.py:75:    for knob, value in (("atomic", atomic), ("key-lb", "0"),
+tests/atomic_plain.py:296:            self.config = {"atomic": atomic, "key-lb": "0", "client-lb": "0", "flip-auto": "0"}
+tests/atomic_plain.py:335:            for knob in ("atomic", "key-lb", "client-lb", "flip-auto"):
+tests/aof_frame_order.py:117:                        ("key-lb", "0"), ("client-lb", "0"), ("flip-auto", "0")):
+tests/multidb_boundary_unit.cc:32:        cfg.key_lb = cfg.client_lb = cfg.flip_auto = cfg.protected_mode = 0;
+tests/multidb_boundary_unit.cc:213:        cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/lbsignals.py:224:    ok("key-lb=0 performs no bucket gathers", gathers == 0)
+tests/reordertrim.py:208:                                 '--atomic', 1, '--key-lb', 0, '--client-lb', 0]
+tests/at15_unit.cc:51:        cfg.key_lb = cfg.client_lb = cfg.flip_auto = 0;
+tests/reorder_scope_test.py:15:        result = dict(mode="1s", rl=1, atomic=1, key_lb=1, client_lb=1, reorder=1, overlap=1,
+tests/orthog.py:53:                    "key-lb": 0, "client-lb": 0, "flip-auto": 0}
+tests/multidb_unit.cc:474:    cfg.key_lb = cfg.client_lb = 0; cfg.flip_auto = 0;
+tests/knobs.py:66:                           ("atomic", atomic), ("key-lb", "1"), ("client-lb", "1"),
+tests/knobs.py:71:    for name in ("read-local", "key-lb", "client-lb", "flip-auto", "net-io", "overlap", "reorder", "wb-policy",
+tests/knobs.py:89:                           ("key_lb", "1"), ("client_lb", "1"), ("flip_auto", "0"),
+tests/atomiccollapse_checks.inc:283:            cfg.key_lb = cfg.client_lb = 0; cfg.flip_auto = 0; cfg.save.clear();

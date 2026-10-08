@@ -58,6 +58,10 @@ void operator delete[](void* p, std::size_t) noexcept { ::operator delete(p); }
 extern "C" bool lbplanner_parse_gate(const tomo::IoLoop*, uint64_t);
 
 namespace tomo {
+int32_t lbosc3_level(int32_t);
+bool lbosc3_best_incremental_move(const std::vector<WeightedLbItem>&,
+                                 const std::vector<uint32_t>&, bool, bool,
+                                 WeightedLbMoveChoice&, double);
 struct LbPlannerTest {
     using Core = CoreConcurrencyTest;
     static void require(bool yes, const char* why) { Core::require(yes, why); }
@@ -456,6 +460,107 @@ struct LbPlannerTest {
         std::puts("PASS LB record lifetime: late reader acquires replacement; active reader defers one consumption");
     }
 
+    static void damping_objective(bool pre) {
+        const std::vector<uint32_t> owners{0, 1};
+        // Loads 1200/800. Moving 200 is perfect; moving 160 reaches residual 80
+        // inside a 100-unit band with less load in flight. PRE chooses 200.
+        std::vector<WeightedLbItem> items{{0, 0, 200}, {1, 0, 160},
+                                        {2, 0, 840, true}, {3, 1, 800, true}};
+        WeightedLbMoveChoice choice;
+        auto choose = [&](double band) {
+            return lbosc3_level(-1)
+                ? lbosc3_best_incremental_move(items, owners, true, false, choice, band)
+                : weighted_lb_best_incremental_move(items, owners, true, false, choice);
+        };
+        require(choose(10), "objective fixture must have improving candidates");
+        require(choice.item_index == (pre ? 0u : 1u) &&
+                    choice.after_weight_spread == (pre ? 0 : 80),
+                "key objective chooses the least transfer inside the residual band");
+        require(choose(1) && choice.item_index == 0 && choice.after_weight_spread == 0,
+                "objective still chooses the only move inside a narrow band");
+        items[0].pinned = true;
+        require(choose(1) && choice.item_index == 1 && choice.after_weight_spread == 80,
+                "no in-band move chooses the smallest improving residual");
+        items[1].pinned = true;
+        require(!choose(10), "pinned loads never become objective candidates");
+        std::puts("PASS LBOSC3 residual objective");
+    }
+
+    static void damping_streak() {
+        using Policy = LbAutotune;
+        Policy::KeyDamping state;
+        Policy::QuietJitter noise;
+        for (unsigned i = 0; i < 8; ++i) noise.observe(100);
+        uint32_t streak = 0;
+        uint64_t tick = 0;
+        auto update = [&](double ratio, uint64_t moves, int32_t level = -1, uint64_t epoch = 0) {
+            tick += Policy::kTickMs;
+            return state.update(ratio, noise, streak, 16, level, tick, moves, epoch);
+        };
+        for (unsigned i = 1; i <= Policy::kDecisionTicks; ++i)
+            require(update(100, 0) == (i == Policy::kDecisionTicks),
+                    "initial crossing retains the original decision window");
+        require(!update(100, 1) && state.required_ticks > Policy::kDecisionTicks,
+                "completed movement lengthens the next streak");
+        const auto first_ticks = state.required_ticks.load();
+        require(!update(100, 1), "damping requires sustained evidence after a move");
+        const double deadband = state.fire_band * 0.9;
+        require(!update(deadband, 1) && streak == 0,
+                "inside the Schmitt gap breaks the damped consecutive streak");
+        unsigned crossed = 0;
+        while (!update(100, 1) && ++crossed <= first_ticks) {}
+        require(crossed + 1 == first_ticks, "damped admission needs K consecutive crossed ticks");
+        require(!update(100, 8) && state.required_ticks > first_ticks,
+                "more recent movement grows K");
+        require(state.fire_band > state.base_band && state.fire_band <= 1.5 * state.base_band,
+                "temporary widening stays within the accuracy budget");
+        require(!update(100, 9, INT32_MAX) && state.fire_band <= 1.5 * state.base_band,
+                "explicit maximum level remains bounded");
+        tick += uint64_t{Policy::kSamplesPerDecision} * Policy::kWindowMs;
+        update(0, 9);
+        require(state.recent == 0 && state.required_ticks == Policy::kDecisionTicks &&
+                    state.fire_band == state.base_band && streak == 0,
+                "quiet time expires pressure and restores the original band");
+        update(100, 10);
+        require(!update(100, 10, -1, 1) && state.recent == 0,
+                "topology change clears stale movement pressure");
+        std::puts("PASS LBOSC3 consecutive streak, bounded widening, expiry, topology reset");
+    }
+
+    template<bool Fused>
+    static void damping_controller(bool pre) {
+        Core::LbFixture<Fused> f;
+        f.balanced_owner_loads();
+        for (unsigned i = 0; i < 48; ++i) require(!f.tick(), "damping witness starts stationary");
+        require(bool(f.server.lb_policy_->key_damping) == !pre,
+                "policy zero allocates no damping state");
+        f.modest_imbalance();
+        bool admitted = false;
+        for (unsigned i = 0; i < 9 && !admitted; ++i) admitted = f.tick();
+        require(admitted, "damping controller witness must admit a real shard move");
+        f.commit();
+        require(f.server.lb_bucket_moves() != 0, "damping controller move must complete");
+        f.tick();
+        if (!pre) require(f.server.lb_policy_->key_damping->required_ticks > LbAutotune::kDecisionTicks,
+                          "production monitor charges completed moves to damping");
+        for (unsigned i = 0; i < 64; ++i) if (f.tick()) f.commit();
+        const auto settled = f.server.lb_bucket_moves();
+        for (unsigned i = 0; i < 48; ++i) require(!f.tick(), "stationary damping suffix stays quiet");
+        require(f.server.lb_bucket_moves() == settled, "stationary damping suffix moves no shards");
+        Core::Fixture<Fused> off(true, 8, 16, 1, 6, false, 0);
+        require(!off.server.lb_policy_->key_damping, "explicit zero allocates no damping state");
+        Core::Fixture<Fused> lb_off(false);
+        require(!lb_off.server.lb_policy_, "disabled LB allocates no damping policy");
+    }
+
+    static void damping(bool pre) {
+        damping_objective(pre);
+        if (!pre) damping_streak();
+        damping_controller<false>(pre);
+        damping_controller<true>(pre);
+        std::puts("PASS LBOSC3 both modes: real moves and stationary hold");
+    }
+
     static void all() {
         record_republication();
         parse_gate();
@@ -479,6 +584,10 @@ extern "C" __attribute__((noinline)) uint32_t lbplanner_io_pass_negative(tomo::I
     return tomo::LbPlannerTest::pass(*io, count, true);
 }
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string_view(argv[1]).starts_with("lbosc3")) {
+        tomo::LbPlannerTest::damping(std::string_view(argv[1]) == "lbosc3-pre");
+        return 0;
+    }
     if (argc == 2 && std::string_view(argv[1]).starts_with("timing")) {
         const std::string_view mode(argv[1]);
         tomo::LbPlannerTest::timing(mode == "timing-pad" ? "PAD-A" : "POST",

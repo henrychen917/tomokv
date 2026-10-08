@@ -449,7 +449,9 @@ struct Config {
     // Boot-only writeback policy; consume reserved bytes, preserving all prior offsets.
     int32_t wb_policy = wb_rule::default_policy();
     uint64_t client_query_buffer_limit = 1024ull * 1024 * 1024;
-    uint8_t layout_reserved[64]{};
+    // Cold key planner only: 0 = PRE policy, -1 = derived damping, N = damping level.
+    int32_t key_lb_damping = -1;
+    uint8_t layout_reserved[60]{};
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
 
@@ -878,6 +880,16 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--key-lb-damping")) {
+            const char* value = next(nullptr);
+            int64_t level;
+            if (!cfg_parse_i64(value, level) || level < -1 || level > INT32_MAX ||
+                std::to_string(level) != value) {
+                std::fprintf(stderr, "--key-lb-damping wants -1, 0 or a positive integer\n");
+                return kConfigError;
+            }
+            cfg.key_lb_damping = static_cast<int32_t>(level);
+        }
         else if (!std::strcmp(a, "--client-lb")) {
             if (!cfg_parse_u32(next(nullptr), cfg.client_lb) || cfg.client_lb > 1) {
                 std::fprintf(stderr, "--client-lb wants 0 or 1\n");
@@ -1119,6 +1131,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --shards -1|N               default auto: min(8*executors, 256)\n"
                         "    --shard-home shard:tid,...  complete shard-to-executor map; allows empty fillers\n"
                         "  load balancing: --key-lb 0|1 --client-lb 0|1 (both default 1)\n"
+                        "  key planner: --key-lb-damping -1|0|N (default -1, 0 = PRE policy)\n"
                         "  flip controller: --flip-auto 0|1\n"
                         "    --zc-min N                  zero-copy replies at >= N bytes (0=off)\n"
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY\n"
