@@ -1124,7 +1124,9 @@ def report(rows, receipts, destination, binary):
                       "Equivalence is asymmetric: an interval contained within the band confirms a null prediction, "
                       "an interval entirely outside refutes, and boundary overlap is UNRESOLVED. "
                       "M3 adds endpoint uncertainties after dividing cycles/op by key count and adds both depths' step bands. "
-                      "M5 reports its importance threshold and depth-growth bands explicitly. "
+                      "M5 importance is a separate minimum-effect prediction: its p32 share interval must exceed twice "
+                      "the measured cycles/op band (in percentage points); a whole interval below that threshold refutes "
+                      "resolvable importance, not nonzero cost; overlap is UNRESOLVED. Depth growth uses directional bands. "
                       "Unrepresented p8/p128 controls use their own repeated unchanged baseline's spread, "
                       "with source and n recorded; no cell borrows another cell's band. "
                       "The retired/send [0.9,1.1] prediction describes batching semantics, not instrument resolution."),
@@ -1146,8 +1148,26 @@ def report(rows, receipts, destination, binary):
     if m1.get("checks"):
         lines += ["", "| M1 cell | Prediction | Arithmetic | Observation |", "|---|---|---|---|"]
         for check in m1["checks"]:
-            observed = check.get("evidence", {k: check[k] for k in ("rate", "cycles") if k in check})
-            lines.append(f"| {check['cell']} | {check['prediction']} | {check['result']} | `{json.dumps(observed, sort_keys=True)}` |")
+            observed = check.get("evidence", {k: check[k] for k in ("rate", "cycles", "rate_band", "cycle_band") if k in check})
+            lines.append(f"| {check['cell']} | {check['prediction']} | {check['result']} / {check['verdict']} | `{json.dumps(observed, sort_keys=True)}` |")
+    m3 = next(a for a in answers if a["mechanism"] == "M3")
+    if m3.get("checks"):
+        lines += ["", "| M3 cell / contrast | Keys | Step interval (cycles/key) | Propagated band (cycles/key) | Verdict |",
+                  "|---|---|---|---|---|"]
+        for check in m3["checks"]:
+            v = check.get("cycles_per_key_step", check.get("p32_minus_p8_step"))
+            lines.append(f"| {check.get('cell', 'p32 minus p8')} | {check['boundary']} | {v['low']:.6g} to {v['high']:.6g} | "
+                         f"{check['propagated_band_cycles_per_key']:.6g} | {check['verdict']} |")
+    m5 = next(a for a in answers if a["mechanism"] == "M5")
+    if "cycle_bands" in m5:
+        lines += ["", f"M5 p32 importance threshold: {m5['importance_band_percentage_points']:.6g} percentage points.",
+                  "", "| M5 depth | Share interval (%) | Measured cycles/op band | Source |", "|---|---|---|---|"]
+        for (depth, v), band in zip(m5["shares_pct"].items(), m5["cycle_bands"]):
+            lines.append(f"| {depth} | {v['low']:.6g} to {v['high']:.6g} | {band['value']:.3%} | {band['source']} |")
+        for contrast, growth in zip(("p8->p32", "p32->p128"), m5["growth"]):
+            v = growth["evidence"]
+            lines += ["", f"M5 {contrast}: interval {v['low']:.6g} to {v['high']:.6g} percentage points; "
+                      f"propagated band {growth['band_percentage_points']:.6g}; {growth['verdict']}."]
     lines += ["", "Rows retain individual observations and arithmetic in report.json and rows.jsonl. n>=6 is required for every contributing cell/variant.",
               "", "The 1s age/delay columns are **not available**: flipctl sampling is Split-only. Split telemetry retains lb_ex_* and lb_io_* names; lb_fused_* is not synthesized for 2s.",
               "", result["age_delay_contract"],
@@ -1351,6 +1371,9 @@ def self_test(args):
     shift = (NULL_K + .01) * measured["relative_se_median"] * 1e6
     shifted = [dict(r, rate=r["rate"] + (shift if r["arm"] == "A" else 0)) for r in synthetic]
     require(null_verdict(shifted)["status"] == "FAIL", "shift beyond 3 x SE passed")
+    boundary = dict(measured, relative_delta=measured["agreement_band"])
+    with mock.patch(__name__ + ".median_agreement", return_value=boundary):
+        require(null_verdict(synthetic)["status"] == "PASS", "exact k x SE boundary must be inclusive")
     shifted_cycles = [dict(r, cyc_per_op=r["cyc_per_op"] + (shift / 1000 if r["arm"] == "A" else 0)) for r in synthetic]
     require(null_verdict(shifted_cycles)["status"] == "FAIL", "cycles-only disagreement passed")
     unstable = [dict(r, rate=1e6 * (1.3 if r["sample"] == 5 else 1)) if r["cell"] == "m03" else r for r in synthetic]
@@ -1395,6 +1418,18 @@ def self_test(args):
             "M3 failed to propagate cycles/op band through per-key division")
     require(math.isclose(answers["M5"]["importance_band_percentage_points"], 200 * calibrated_band(passed_null, "m03", "cyc_per_op")),
             "M5 used a fixed importance band")
+    # Alter only calibration spread, retaining identical medians and effect data.
+    # A hard-coded judge would keep confirming both of these marginal effects.
+    wide = [dict(r, rate=1e6 * (1 + (variation[r["sample"]] - 1) * 10),
+                 cyc_per_op=1000 * (1 + (variation[r["sample"]] - 1) * 10)) for r in synthetic]
+    wider_null = null_verdict(wide)
+    require(wider_null["status"] == "PASS", "wider known-spread null failed")
+    marginal = [dict(r, rate=.98e6 * variation[r["sample"]], cyc_per_op=1020. * variation[r["sample"]])
+                if r["mode"] == "wb-pair" and r["arm"] == "A" and not r["cell"].startswith("m") else r for r in evidence]
+    require(verdicts(marginal, passed_null)[0]["verdict"] == "CONFIRMED"
+            and verdicts(marginal, wider_null)[0]["verdict"] == "UNRESOLVED", "M1 ignored increased measured spread")
+    require(verdicts(evidence, wider_null)[2]["verdict"] == "UNRESOLVED", "M3 ignored increased measured spread")
+    require(verdicts(evidence, wider_null)[4]["verdict"] == "REFUTED", "M5 ignored increased measured resolution threshold")
     combined = {}
     for row in evidence:
         key = ("probes" if row["mode"] in ("counters", "symbols") else row["mode"], row["cell"], row["sample"], row["keys"], row["arm"])
@@ -1422,6 +1457,10 @@ def self_test(args):
     broken = [dict(r, symbols=dict(samples=2000, shares_pct=dict(refresh_snapshot_floor=0., active_snapshot_floor=0.)))
               if r["mode"] == "symbols" else r for r in evidence]
     require(verdicts(broken, passed_null)[4]["verdict"] == "UNRESOLVED", "missing symbol attribution became zero-cost evidence")
+    threshold = answers["M5"]["importance_band_percentage_points"]
+    overlap = [dict(r, symbols=dict(samples=2000, shares_pct=dict(refresh_snapshot_floor=threshold, active_snapshot_floor=0.)))
+               if r["mode"] == "symbols" and r["cell"] == "m03" else r for r in evidence]
+    require(verdicts(overlap, passed_null)[4]["verdict"] == "UNRESOLVED", "M5 importance boundary overlap produced a conclusion")
     passed("M1/M3/M5 CONFIRMED/REFUTED from fixture-owned spread; flat directional effects UNRESOLVED; key-division propagation; missing variants/attribution")
     current_source = Path(__file__).read_bytes()
     old_source = subprocess.check_output(["git", "show", "2c78708f8:tools/mkprobe_probe.py"], cwd=ROOT)
@@ -1448,6 +1487,14 @@ def self_test(args):
         changed["geometry"] = ["0-31", "32-111"]
         require(changed != json.loads(canonical(receipt)), "changed geometry accepted as identical receipt")
         passed("resume serialization identity and changed-geometry negative control")
+        mechanism_report = folder / "mechanisms"
+        mechanism_report.mkdir()
+        report([dict(r, started=0., finished=1.) for r in synthetic] +
+               [dict(r, started=2., finished=3.) for r in evidence], [], mechanism_report, args.binary)
+        rendered = (mechanism_report / "report.md").read_text()
+        require(all(text in rendered for text in ("SE median", "Propagated band", "importance threshold", "same-cell repeated baseline")),
+                "Markdown omitted measured bands or their provenance")
+        passed("Markdown/JSON report includes per-metric null table, M1/M3/M5 bands and baseline provenance")
         children = Children()
         try:
             process = children.start(["taskset", "-c", "112", sys.executable, "-c", "import time; time.sleep(30)"], folder / "child.log", folder)
