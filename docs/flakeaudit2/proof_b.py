@@ -123,8 +123,11 @@ def main():
     os.chdir(ROOT)
     base = args.output.resolve()
     base.mkdir(parents=True, exist_ok=True)
-    proof.write(base / "request.json", dict(stage=args.stage, jobs=JOBS,
-        command=GATE, repetitions=6 if args.stage == "selected" else 1))
+    proof.write(base / "request.json", dict(stage=args.stage,
+        jobs=JOBS if args.stage == "selected" else None,
+        command=GATE, repetitions=6 if args.stage == "selected" else 1,
+        revision=subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+        origin=subprocess.check_output(["git", "rev-parse", "origin/cpp"], text=True).strip()))
     if not proof.quiet(base, args.prior_screen):
         return 3
     if args.stage == "reproduce":
