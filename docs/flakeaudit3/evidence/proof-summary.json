@@ -1,0 +1,87 @@
+{
+  "phases": {
+    "selected": {
+      "campaign": "selected-20261008T234356Z",
+      "status": "REFUSED",
+      "required_runs": 6,
+      "completed_runs": 0,
+      "run_ids": [],
+      "gate_rc": null,
+      "fail_rows": null,
+      "quiet_attempts": 4,
+      "quiet_cpu_seconds": [
+        16.16,
+        16.31,
+        16.3,
+        16.32
+      ],
+      "quiet_budget_seconds": 0.48,
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "112-119",
+        "--load-cores",
+        "120-127",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "18340-18342"
+      ],
+      "revision": "bb469e36f032b904545da447b3fc968fc81dc349",
+      "origin": "dab7409642bf0a6d125fb5f479e6d190c7636083",
+      "started_at_utc": "2026-10-08T23:43:56.768284+00:00",
+      "last_screen_finished_at_utc": "2026-10-08T23:53:57.787460+00:00"
+    },
+    "full": {
+      "campaign": "full-20261008T235415Z",
+      "status": "IN_PROGRESS",
+      "required_runs": 1,
+      "completed_runs": 0,
+      "run_ids": [],
+      "gate_rc": null,
+      "fail_rows": null,
+      "quiet_attempts": 1,
+      "quiet_cpu_seconds": [
+        16.22
+      ],
+      "quiet_budget_seconds": 0.48,
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "tests/gate.sh",
+        "iteration",
+        "--server-cores",
+        "112-119",
+        "--load-cores",
+        "120-127",
+        "--server-smt",
+        "",
+        "--load-smt",
+        "",
+        "--ports",
+        "18340-18342"
+      ],
+      "revision": "f7fc7ea1a6c8eb9edb2fa2a8f875804febdb465b",
+      "origin": "dab7409642bf0a6d125fb5f479e6d190c7636083",
+      "started_at_utc": "2026-10-08T23:54:15.495578+00:00",
+      "last_screen_finished_at_utc": "2026-10-08T23:54:16.511103+00:00"
+    }
+  },
+  "admission_retries": "initial plus three retries at 200-second spacing; no failed gate retried",
+  "rows_delta": {
+    "quick": 0,
+    "full": 0
+  },
+  "expected": {
+    "quick": 502,
+    "full": 519
+  },
+  "production_diff_bytes": 0
+}
