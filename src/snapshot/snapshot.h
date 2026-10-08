@@ -177,5 +177,6 @@ void snapshot_bind_io(ThreadCtx* thread, Ring* ring);
 SnapshotIoContext snapshot_io_context();
 // Process-wide persistence telemetry, touched only on initialization/finalization/INFO.
 uint64_t snapshot_completed_saves();
+bool snapshot_last_bgsave_ok();
 
 }  // namespace tomo
