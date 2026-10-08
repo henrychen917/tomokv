@@ -141,8 +141,9 @@ def parse_info(raw, mandatory=True):
                 "INFO LB missing mandatory fields: " + ", ".join(k for k in FIELDS if k not in result))
         require(result.get(PREFIX + "enabled") == result.get("tomokv_clientlb_enabled") == "1",
                 "both balancers must be enabled")
-        for key in (*FIELDS, *(k for k in HISTORY_COUNTERS if k in result)):
-            value = float(result[key]) if "spread" in key else int(result[key])
+        optional = (PREFIX + "damping_band_pct", PREFIX + "damping_fire_pct", PREFIX + "damping_ticks")
+        for key in (*FIELDS, *(k for k in (*HISTORY_COUNTERS, *optional) if k in result)):
+            value = float(result[key]) if "spread" in key or key.endswith("_pct") else int(result[key])
             require(math.isfinite(value) and value >= 0, "invalid INFO value: " + key)
             result[key] = value
     return result
@@ -183,15 +184,15 @@ def parse_signals(raw):
     return result
 
 
-def geometry(sample, mode, requested_shards=None):
+def geometry(sample, mode, requested_shards=None, threads=16):
     snap = sample["signals"]
     roles = Counter(r["role"] for r in snap["threads"].values())
     require(snap["derived"]["thread_mode"] == mode,
             f"expected thread-mode={mode}, observed {snap['derived']['thread_mode']}; observed {roles!r}")
-    valid = (roles == {"fused": 16} if mode == "1s" else
-             len(snap["threads"]) == roles["io"] + roles["ex"] == 16 and roles["io"] >= 2)
-    expected = "16 fused threads" if mode == "1s" else "16 IO + EX threads with at least 2 IO"
-    require(valid, f"expected {expected} on cores 0-15; observed {roles!r}")
+    valid = (roles == {"fused": threads} if mode == "1s" else
+             len(snap["threads"]) == roles["io"] + roles["ex"] == threads and roles["io"] >= 2)
+    expected = f"{threads} fused threads" if mode == "1s" else f"{threads} IO + EX threads with at least 2 IO"
+    require(valid, f"expected {expected} on requested server CPUs; observed {roles!r}")
     count = len(snap["shards"])
     require(count > 0 and set(snap["shards"]) == set(range(count)),
             f"shard IDs must cover 0..{count - 1}; observed {sorted(snap['shards'])}")
@@ -823,7 +824,7 @@ def sampled_episode(sampler, result):
 def server_command(args, arm, mode, directory):
     # Match calib/lb-stationary.sh: the default split uses all 16 allowed CPUs.
     # --ratio specifies whole-server counts, not a ratio scaled to CPU affinity.
-    argv = ["taskset", "-c", SERVER_CORES, str(ROOT / arm_table(args)[arm][0]),
+    argv = ["taskset", "-c", getattr(args, "server_cores", SERVER_CORES), str(ROOT / arm_table(args)[arm][0]),
             "--bind", "127.0.0.1", "--port", str(args.port), "--thread-mode", mode,
             "--key-lb", "1", "--client-lb", "1", "--flip-auto", "0",
             "--enable-debug-command", "yes", "--save", "", "--appendonly", "no",
@@ -834,7 +835,7 @@ def server_command(args, arm, mode, directory):
 
 
 def load_command(args, directory, label, low, high, duration=None, populate=False, owners=None):
-    argv = ["taskset", "-c", LOAD_CORES, args.memtier, "-s", "127.0.0.1", "-p", str(args.port),
+    argv = ["taskset", "-c", getattr(args, "load_cores", LOAD_CORES), args.memtier, "-s", "127.0.0.1", "-p", str(args.port),
             "--protocol=redis", "-t", "8" if populate else "4", "-c", "4" if populate else "16",
             "--ratio=1:0", "--key-pattern=" + ("P:P" if populate else "R:R"),
             f"--key-minimum={low}", f"--key-maximum={high}", "--key-prefix=memtier-",
@@ -884,7 +885,7 @@ def boot(args, arm, mode, directory, seed=None):
                 time.sleep(.1)
         require(conn is not None, "server boot timeout")
         sample = {"signals": parse_signals(conn.must("DEBUG", "LBSIGNALS"))}
-        owners = geometry(sample, mode, args.shards)
+        owners = geometry(sample, mode, args.shards, len(cpu_set(getattr(args, "server_cores", SERVER_CORES))))
         observed = len(sample["signals"]["shards"])
         require(int(identity["shards"]) == observed,
                 f"INFO shards={identity['shards']}, DEBUG LBSIGNALS limit={observed}")
@@ -1127,10 +1128,10 @@ def run_episode(args, arm, mode, episode, round_no, seed, seed_record, criterion
     return result
 
 
-def schedule(episodes="both"):
+def schedule(episodes="both", rounds=3):
     for episode in (("key-skew", "client-skew") if episodes == "both" else (episodes,)):
         for mode in ("1s", "2s"):
-            for number in range(1, 4):
+            for number in range(1, rounds + 1):
                 order = ("PRE", "PAD-A", "POST") if number % 2 else ("POST", "PAD-A", "PRE")
                 for arm in order:
                     yield arm, mode, episode, number
@@ -1180,7 +1181,7 @@ def compare_actuators(post, reference, alpha):
     return reasons, evidence
 
 
-def assess(results, episodes="both"):
+def assess(results, episodes="both", rounds=3):
     def admissible(result):
         # Client PRE/PAD may stall on refusals. Their measured end spread is
         # still a control: demanding that it improve would again reject a
@@ -1189,7 +1190,7 @@ def assess(results, episodes="both"):
                 (result["status"] == "PASS" or
                  (result["episode"] == "client-skew" and result["arm"] != "POST")))
     checks = []
-    expected = list(schedule(episodes))
+    expected = list(schedule(episodes, rounds))
     identities = [(r["arm"], r["mode"], r["episode"], r["round"]) for r in results]
     complete = Counter(identities) == Counter(expected)
     # 95% family confidence over all predeclared arm/reason comparisons. This
@@ -1395,11 +1396,12 @@ def replay(directory):
         episodes = data["manifest"].get("config", {}).get("episodes") or (
             next(iter(kinds)) if len(kinds) == 1 else "both")
         present = {(r["arm"], r["mode"], r["episode"], r["round"]) for r in results}
-        missing = [f"{e}-{m}-{a}-r{n}/run.json" for a, m, e, n in schedule(episodes)
+        rounds = data["manifest"].get("config", {}).get("rounds", 3)
+        missing = [f"{e}-{m}-{a}-r{n}/run.json" for a, m, e, n in schedule(episodes, rounds)
                    if (a, m, e, n) not in present]
         for name in missing:
             print(f"LBPLANNER-REPLAY-MISSING {campaign / name}")
-        report = assess(results, episodes)
+        report = assess(results, episodes, rounds)
         for check in report["checks"]:
             print(f"LBPLANNER-REPLAY-PAIR {check['episode']} {check['mode']} r{check['round']} "
                   f"{check['status']}: " + ("; ".join(check["reasons"]) or "all paired rules passed"))
@@ -1418,7 +1420,7 @@ def dry_run(args):
     for arm, (path, sha) in arm_table(args).items():
         print(f"# SHA256 REQUIRED {arm} {sha} {ROOT / path}")
     print("# ARMS RECEIPT " + json.dumps(arms_receipt(args), sort_keys=True))
-    jobs = list(schedule(args.episodes))
+    jobs = list(schedule(args.episodes, args.rounds))
     modes = sorted({mode for _, mode, _, _ in jobs})
     probes = args.episodes in ("key-skew", "both")
     def job(arm, mode, episode, number, probe=False):
@@ -1464,12 +1466,24 @@ def dry_run(args):
 
 
 def wall_seconds(args):
-    jobs = list(schedule(args.episodes))
+    jobs = list(schedule(args.episodes, args.rounds))
     modes = len({mode for _, mode, _, _ in jobs})
     probes = modes if args.episodes in ("key-skew", "both") else 0
     observations = len(jobs) + probes
     return ((modes + observations) * (args.warm + args.baseline + 3) +
             observations * (args.max_converge + DECISION_SECONDS + args.suffix + 3))
+
+
+def cpu_set(text):
+    result = set()
+    for entry in text.split(","):
+        parts = entry.split("-")
+        require(1 <= len(parts) <= 2 and all(p.isdecimal() for p in parts), "invalid CPU list: " + text)
+        first, last = int(parts[0]), int(parts[-1])
+        require(first <= last, "reversed CPU range: " + text)
+        result.update(range(first, last + 1))
+    require(bool(result), "empty CPU list")
+    return result
 
 
 def argument_parser():
@@ -1482,6 +1496,9 @@ def argument_parser():
     parser.add_argument("--output", type=Path, default=ROOT / "build/lbplanner-episodes")
     parser.add_argument("--memtier", default="memtier_benchmark")
     parser.add_argument("--port", type=int, default=7931)
+    parser.add_argument("--rounds", type=int, default=3, help="rounds per arm and mode; lbosc3 requires at least 6")
+    parser.add_argument("--server-cores", default=SERVER_CORES)
+    parser.add_argument("--load-cores", default=LOAD_CORES)
     parser.add_argument("--hotmax", type=int, default=int(os.environ.get("HOTMAX", "2000")))
     parser.add_argument("--hot-pipeline", type=int, default=PIPELINE,
                         help="hot stimulus cohort depth; cold and balanced cohorts stay at 128")
@@ -1505,6 +1522,9 @@ def main(argv=None):
     if args.replay is not None:
         return 0 if replay(args.replay)["status"] == "PASS" else 1
     args.output = args.output.resolve()
+    require(args.rounds > 0, "--rounds must be positive")
+    server_cpus, load_cpus = cpu_set(args.server_cores), cpu_set(args.load_cores)
+    require(not server_cpus & load_cpus, "server/load CPUs must be disjoint")
     require(args.warm >= 30 and args.baseline >= 12, "keep warm >=30 s and baseline >=12 s")
     require(args.max_converge >= DECISION_SECONDS and args.suffix >= DECISION_SECONDS,
             "convergence and suffix must each cover a decision window")
@@ -1521,15 +1541,15 @@ def main(argv=None):
     memtier = shutil.which(args.memtier)
     require(memtier is not None, "memtier executable missing")
     args.memtier = str(Path(memtier).resolve())
-    require(set(range(0, 16)) | set(range(64, 96)) <= os.sched_getaffinity(0), "required server/load CPUs unavailable")
-    os.sched_setaffinity(0, range(64, 96))
+    require(server_cpus | load_cpus <= os.sched_getaffinity(0), "required server/load CPUs unavailable")
+    os.sched_setaffinity(0, load_cpus)
     args.output.mkdir(parents=True)
     (args.output / "owner-select.c").write_text(SELECTOR_C)
     compile_argv = ["cc", "-shared", "-fPIC", "-O2", "-Wall", "-Wextra", "-Werror", "-o",
                     str(args.output / "owner-select.so"), str(args.output / "owner-select.c"), "-ldl"]
     with (args.output / "owner-select-build.log").open("wb") as log:
         subprocess.run(compile_argv, check=True, stdout=log, stderr=subprocess.STDOUT)
-    jobs = list(schedule(args.episodes))
+    jobs = list(schedule(args.episodes, args.rounds))
     modes = sorted({mode for _, mode, _, _ in jobs})
     manifest = {"arms": arm_table(args), "arms_receipt": arms_receipt(args),
                 "identity": {"shards": {}, "arms_receipt": arms_receipt(args)},
@@ -1576,7 +1596,7 @@ def main(argv=None):
         seed, seed_record = seeds[mode]
         results.append(run_episode(args, arm, mode, episode, number, seed, seed_record, criteria[mode]))
         save_json(args.output / "results.json", results)
-    report = assess(results, args.episodes)
+    report = assess(results, args.episodes, args.rounds)
     save_json(args.output / "report.json", report)
     print("LBPLANNER-VERDICT " + report["status"] + ": " + report["rule"])
     return 0 if report["status"] == "PASS" else 1
@@ -2428,6 +2448,21 @@ class SelfTest(unittest.TestCase):
         self.assertEqual(probe_verdict(result)[0], "FAIL")
         result.update(measurement_valid=True, deltas={KEY: 1})
         self.assertEqual(probe_verdict(result)[0], "PASS")
+
+    def test_damping_campaign_geometry_and_six_rounds(self):
+        args = argument_parser().parse_args(["--episodes", "key-skew", "--rounds", "6",
+                                            "--server-cores", "112-119", "--load-cores", "120-127"])
+        self.assertEqual(len(list(schedule(args.episodes, args.rounds))), 36)
+        self.assertEqual(server_command(args, "PRE", "1s", args.output)[2], "112-119")
+        command = load_command(args, args.output, "hot", 1, 256, 20, owners=[0])
+        self.assertEqual(command[command.index("taskset") + 2], "120-127")
+        sample = self.topology_sample([(t, "fused") for t in range(8)], "1s")
+        self.assertEqual(geometry(sample, "1s", threads=8), list(range(8)))
+        with self.assertRaises(ValueError): geometry(sample, "1s", threads=16)
+        self.assertEqual(cpu_set("112-115,118,119"), {112, 113, 114, 115, 118, 119})
+        for bad in ("", "3-1", "-1", "1-2-3", "x"):
+            with self.assertRaises(ValueError): cpu_set(bad)
+        self.assertGreater(wall_seconds(args), wall_seconds(argument_parser().parse_args(["--episodes", "key-skew"])))
 
     def test_shards_schedule_depth_and_wall_time(self):
         args = argument_parser().parse_args(["--episodes", "key-skew", "--shards", "128", "--hot-pipeline", "4"])
