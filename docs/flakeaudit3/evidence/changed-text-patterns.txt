@@ -1,0 +1,235 @@
+  CD13b GEO %s %s keys=%r route(sid,owner,migrations)=%r after_route=%r initial=%d before=%d after=%d store=%r freq=%r encoding=%r members=%r
+  CD13b GEO %s %s keys=%r route(sid,owner,migrations)=%r initial=%d before=%d after=%d store=%r freq=%r encoding=%r
+  CD13b GEO rearm %s %s attempt=%d initial=%d before=%d route=%r
+  CD13b GEO rearm %s %s attempt=%d: route moved during STORE
+"LFU/cross-owner window never witnessed within 30 s", attempt, witness)
+"initial=%d before=%d after=%d store=%r freq=%r encoding=%r members=%r" %
+"initial=%d before=%d after=%d store=%r freq=%r encoding=%r" %
+"members=[b'a', b'b']"
+# Later arms would be healthy. A retry would conceal the defect.
+# Migration invalidates only the route witness. Check every result
+# Redis geo.c creates a new result and may compact it. Only GEOADD has the
+# STORE may compact its new result; only GEOADD forbids demotion.
+# before considering a fresh arm: a moved shard cannot excuse damage.
+# no-demotion rule. Preserve the landed local STORE behavior here as well.
+$8\r\nlistpack\r\n
+'  CD13b GEO %s %s keys=%r route(sid,owner,migrations)=%r after_route=%r initial=%d before=%d after=%d store=%r freq=%r encoding=%r members=%r'
+'  CD13b GEO %s %s keys=%r route(sid,owner,migrations)=%r initial=%d before=%d after=%d store=%r freq=%r encoding=%r'
+'  CD13b GEO rearm %s %s attempt=%d initial=%d before=%d route=%r'
+'  CD13b GEO rearm %s %s attempt=%d: route moved during STORE'
+':0:source'
+'BYRADIUS'
+'DEL'
+'ENCODING'
+'FREQ'
+'FROMLONLAT'
+'GEORADIUS'
+'GEOSEARCHSTORE'
+'LFU priming exhausted window budget'
+'LFU/cross-owner window never armed on three fresh destinations'
+'LFU/cross-owner window never witnessed within 30 s'
+'OBJECT'
+'STORE checks exhausted window budget'
+'ZRANGE'
+'cd13b_wire.time.monotonic'
+'count'
+'cross-owner search exhausted window budget'
+'destination LFU reset'
+'encoding'
+'freq-reset'
+'freq-type'
+'maxmemory'
+'maxmemory-policy'
+'members'
+'migration_only'
+'owner/migration changed during STORE'
+'route moved during STORE'
+'same_owner_after'
+'skiplist'
+'window budget'
+'window never armed on three fresh destinations'
+'wrong'
+(label, verb, (source, destination), witness, after_witness, initial, before, after,
+(label, verb, (source, destination), witness, initial, before, after,
+(label, verb, attempt))
+(label, verb, attempt, initial, before, witness))
+*2\r\n
+:0:source
+:1\r\n
+:2\r\n
+:5\r\n
+:[0-9]+\\r\\n
+:[0-9]+\r\n
+BYRADIUS
+DEL
+ENCODING
+FREQ
+FROMLONLAT
+GEORADIUS
+GEOSEARCHSTORE
+LFU priming exhausted window budget
+LFU/cross-owner window never armed on three fresh destinations
+LFU/cross-owner window never witnessed within 30 s
+OBJECT
+STORE checks exhausted window budget
+ZRANGE
+after = int(after_raw[1:-2])
+after_raw = call(["OBJECT", "FREQ", destination])
+after_witness = route([source, destination])
+args = ["GEORADIUS", source, "13", "38", "10", "km", verb, destination]
+args = [verb, destination, source, "FROMLONLAT", "13", "38", "BYRADIUS", "10", "km"]
+armed = False
+armed = True
+assert after > initial, ("destination LFU reset", initial, before, after)
+assert after_witness == witness, ("owner/migration changed during STORE", witness, after_witness)
+assert armed, ("LFU/cross-owner window never armed on three fresh destinations",
+assert encoding == b"$8\r\nlistpack\r\n", encoding
+assert isinstance(members, list) and sorted(members) == [b"a", b"b"], members
+assert re.fullmatch(rb":[0-9]+\r\n", after_raw), after_raw
+assert stored == b":2\r\n", stored
+assert time.monotonic() < deadline, "LFU priming exhausted window budget"
+assert time.monotonic() < deadline, "STORE checks exhausted window budget"
+assert time.monotonic() < deadline, "cross-owner search exhausted window budget"
+assert time.monotonic() < deadline, (
+attempt += 1
+attempt = 0
+attempt = int(keys[0].split(':')[-2])
+b'$8\r\nlistpack\r\n'
+b'*2\r\n'
+b':1\r\n'
+b':2\r\n'
+b':5\r\n'
+b':[0-9]+\\r\\n'
+b'noeviction'
+broken = args[2] in self.stored and ':0:source' in args[2]
+cd13b_wire.time.monotonic
+continue
+corrupt=None, cold=False, expire_after_store=False):
+count
+cross-owner search exhausted window budget
+deadline = time.monotonic() + 30
+def __init__(self, never_opens=False):
+def __init__(self, never_opens=False, prime_moves=1, store_moves=0,
+def test_bad_store_is_never_retried_even_when_route_moved(self):
+def test_cold_lfu_never_passes(self):
+def test_deadline_cannot_accept_an_otherwise_valid_store(self):
+def test_more_than_three_invalid_arms_can_establish_a_witness(self):
+def test_perpetual_post_store_migration_never_passes(self):
+def test_source_moves_during_store_require_fresh_stable_cross_owner_arm(self):
+def test_window_that_never_opens_fails_after_three_fresh_attempts(self):
+def test_window_that_never_opens_fails_at_deadline(self):
+destination = None
+destination LFU reset
+else:
+encoding
+encoding = call(["OBJECT", "ENCODING", destination])
+failures, log = self.check(fixture)
+fixture = Fixture(prime_moves=0, cold=True)
+fixture = Fixture(prime_moves=0, expire_after_store=True)
+fixture = Fixture(prime_moves=0, never_stable=True)
+fixture = Fixture(prime_moves=0, store_moves=4, **options)
+fixture = Fixture(prime_moves=0, store_moves=int(moved), corrupt=corrupt)
+fixture = Fixture(prime_moves=4)
+for _ in range(4096):
+for attempt in range(3):
+for corrupt in ('count', 'freq-type', 'freq-reset', 'encoding', 'members'):
+for moved in (False, True):
+for options in ({}, {'same_owner_after': True}, {'migration_only': True}):
+for touch in range(4096):
+freq-reset
+freq-type
+from unittest.mock import patch
+if after_witness == witness:
+if before < initial + 3 or not cross_owner:
+if before >= initial + 3 and cross_owner:
+if broken and self.corrupt == 'encoding':
+if broken and self.corrupt == 'freq-reset':
+if broken and self.corrupt == 'freq-type':
+if command == 'ZRANGE':
+if count >= 2 and (self.never_opens or attempt < self.prime_moves):
+if count >= 3 and (self.never_stable or attempt < self.store_moves):
+if self.corrupt == 'count' and ':0:source' in destination:
+if self.corrupt == 'members' and ':0:source' in args[1]:
+if self.expire_after_store:
+if source and destination:
+if touch % 128 == 0:
+if verb == "GEOSEARCHSTORE":
+import time
+initial, before, witness)
+integer(call, ["DEL", destination])
+integer(call, ["DEL", source])
+listpack
+maxmemory
+maxmemory-policy
+members
+members = decoded(call(["ZRANGE", destination, "0", "-1"]))
+members=[b'a', b'b']
+migration_only
+moved = count >= 2 and (self.never_opens or ':0:source' in keys[0])
+never_stable=False, migration_only=False, same_owner_after=False,
+noeviction
+owner = 0 if self.migration_only else (1 if self.same_owner_after else 6)
+owner/migration changed during STORE
+print("  CD13b GEO %s %s keys=%r route(sid,owner,migrations)=%r "
+print("  CD13b GEO %s %s keys=%r route(sid,owner,migrations)=%r after_route=%r "
+print("  CD13b GEO rearm %s %s attempt=%d initial=%d before=%d route=%r" %
+print("  CD13b GEO rearm %s %s attempt=%d: route moved during STORE" %
+return ((0, 0, 0), (1, 0, 1) if moved else (1, 1, 0))
+return ((0, 0, 0), (1, 0, 1))
+return ((0, 0, 0), (1, 1, 0))
+return ((0, owner, 2), (1, 1, 0))
+return b'*2\r\n' + bulk('a') + bulk('b')
+return b'*2\r\n' + bulk('a') + bulk('wrong')
+return b':1\r\n'
+return b':5\r\n'
+return bulk('9')
+return bulk('skiplist')
+route moved during STORE
+same_owner_after
+self.assertEqual(failures, 0, log)
+self.assertEqual(failures, 3, log)
+self.assertEqual(fixture.frequency, {})
+self.assertEqual(fixture.settings, {'maxmemory': b'0', 'maxmemory-policy': b'noeviction'})
+self.assertEqual(fixture.stored, set())
+self.assertEqual(fixture.stores, [])
+self.assertEqual(len(fixture.sources), 15)
+self.assertEqual(len(fixture.sources), 3)
+self.assertEqual(len(fixture.sources), 9)
+self.assertEqual(len(fixture.sources), 90)
+self.assertEqual(len(fixture.stores), 15)
+self.assertEqual(len(fixture.stores), 3)
+self.assertEqual(len(fixture.stores), 87)
+self.assertEqual(len(set(fixture.stores)), 15)
+self.assertEqual(log.count("members=[b'a', b'b']"), 15)
+self.assertEqual(log.count('STORE checks exhausted window budget'), 3)
+self.assertEqual(log.count('route moved during STORE'), 12)
+self.assertEqual(log.count('window never armed on three fresh destinations'), 3)
+self.assertIn('window budget', log)
+self.assertNotIn('route moved during STORE', log)
+self.clock += 1
+self.clock += 30
+self.clock = 0
+self.cold = cold
+self.corrupt = corrupt
+self.expire_after_store = expire_after_store
+self.frequency.pop(args[1], None)
+self.frequency[args[1]] = 5 if self.cold else 9
+self.frequency[args[1]] = 9
+self.migration_only = migration_only
+self.never_stable = never_stable
+self.prime_moves = prime_moves
+self.same_owner_after = same_owner_after
+self.store_moves = store_moves
+skiplist
+stored = call(args)
+stored, after_raw, encoding))
+stored, after_raw, encoding, members))
+while True:
+window budget
+window never armed on three fresh destinations
+with contextlib.redirect_stdout(log), patch('cd13b_wire.time.monotonic', lambda: fixture.clock):
+with contextlib.redirect_stdout(log):
+with self.subTest(corrupt=corrupt, moved=moved):
+with self.subTest(options=options):
+witness = None
+wrong
