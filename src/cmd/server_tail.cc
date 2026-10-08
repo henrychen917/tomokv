@@ -20,6 +20,7 @@
 #include "../core/shard.h"
 #include "../core/signal_doorbell.h"
 #include "../core/thread.h"
+#include "../core/version.h"
 #include "../exec/op.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
@@ -145,7 +146,7 @@ void cmd_lolwut(Shard&, Op& op) {
         "'--------------------'\n";
     std::string body(kArt);
     body += "TomoKV ver. ";
-    body += "0.1-cpp";
+    body += kTomoVersion;
     body += "\n";
     reply_bulk(op.sink(), Slice(body.data(), static_cast<uint32_t>(body.size())));
 }

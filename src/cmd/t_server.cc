@@ -21,6 +21,7 @@
 #include "../core/lbsignals.h"
 #include "../core/pubsub_event.h"
 #include "../core/thread.h"
+#include "../core/version.h"
 #include "../exec/op.h"
 #include "../net/conn.h"
 #include "../net/resp.h"
@@ -52,7 +53,6 @@
 namespace tomo {
 namespace {
 
-constexpr const char* kVersion = "0.1-cpp";
 constexpr uint64_t kScanInnerMask = (uint64_t{1} << 56) - 1;
 constexpr uint64_t kMaxInnerCursor = (uint64_t{1} << 33) - 1;
 
@@ -795,7 +795,7 @@ void cmd_hello(Shard&, Op& op) {
     auto sink = op.sink();
     reply_map_header(sink, 7, resp3);
     reply_bulk(sink, Slice("server", 6)); reply_bulk(sink, Slice("redis", 5));
-    reply_bulk(sink, Slice("version", 7)); reply_bulk(sink, Slice(kVersion, std::strlen(kVersion)));
+    reply_bulk(sink, Slice("version", 7)); reply_bulk(sink, Slice(kRedisCompatVersion, std::strlen(kRedisCompatVersion)));
     reply_bulk(sink, Slice("proto", 5)); reply_int(sink, static_cast<long long>(version));
     reply_bulk(sink, Slice("id", 2)); reply_int(sink, g_client ? static_cast<long long>(g_client->id()) : 0);
     reply_bulk(sink, Slice("mode", 4)); reply_bulk(sink, Slice("standalone", 10));
@@ -2089,7 +2089,7 @@ void cmd_info(Shard&, Op& op) {
                       "arch_bits:%zu\r\nmultiplexing_api:%s\r\nprocess_id:%lld\r\n"
                       "run_id:%s\r\ntcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n"
                       "executable:%s\r\nconfig_file:%s\r\nio_threads_active:1\r\n",
-                kVersion, kVersion, g_server ? g_server->thread_mode_name() : "2s",
+                kRedisCompatVersion, kTomoVersion, g_server ? g_server->thread_mode_name() : "2s",
                 g_server ? g_server->nshards() : 0u,
                 g_server ? g_server->cfg().overlap : 0u,
                 g_server && g_server->cfg().overlap_enabled() ? 1u : 0u,
