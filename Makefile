@@ -41,13 +41,15 @@ SRC      += src/core/reorder.cc
 SRC      += src/cmd/geo_store.cc
 # Cold DEBUG observer links after existing objects to preserve weak-symbol selection.
 SRC      += src/persist/aof_frame_debug.cc
-# The entry wrapper adds only cold presentation; leave main.cc's TU unchanged.
-SRC      += src/core/version.cc
+# The entry wrapper belongs only to server links using --wrap=main.
+SERVER_ONLY_SRC := src/core/version.cc
 LDLIBS   += -lssl -lcrypto
 BUILD_ROOT ?= build
 BIN      := $(BUILD_ROOT)/tomokv
 OBJ      := $(SRC:%.cc=$(BUILD_ROOT)/%.o)
 DB0_OBJ  := $(SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
+SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/%.o)
+DB0_SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 
 all: $(BIN)
 
@@ -87,8 +89,8 @@ build/persistfix-controls/%/tomokv: build/persistfix-controls/%/aof.o build/pers
 .PHONY: persistfix-live-controls
 persistfix-live-controls: build/persistfix-controls/old-ack/tomokv build/persistfix-controls/old-close/tomokv
 
-$(BIN): $(OBJ) $(DB0_OBJ)
-	$(CXX) $(CXXFLAGS) $(DB0_OBJ) $(OBJ) -o $@ -Wl,--wrap=main $(JELIBS) $(LDLIBS) -lm
+$(BIN): $(OBJ) $(SERVER_ONLY_OBJ) $(DB0_OBJ) $(DB0_SERVER_ONLY_OBJ)
+	$(CXX) $(CXXFLAGS) $(DB0_OBJ) $(DB0_SERVER_ONLY_OBJ) $(OBJ) $(SERVER_ONLY_OBJ) -o $@ -Wl,--wrap=main $(JELIBS) $(LDLIBS) -lm
 
 # SV6 adds only a cold metadata lookup; retain all unrelated climon bodies.
 $(BUILD_ROOT)/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=25735
