@@ -1,0 +1,12 @@
+SEARCH 'RYOW under 4-writer contention'
+SEARCH 'RYOW under 4-writer pressure'
+tests/ryow.py:94:note("RYOW under 4-writer pressure x2000", ok)
+SEARCH 'TTL_MS'
+tests/flip_ttl.py:26:TTL_MS = 700
+tests/flip_ttl.py:172:        earliest_expiry_ms = int(stamp[0]) * 1000 + int(stamp[1]) // 1000 + TTL_MS
+tests/flip_ttl.py:175:            send(w, "SET", k, "v", "PX", str(TTL_MS))
+tests/flip_ttl.py:200:        if time.monotonic() - armed_at >= TTL_MS / 1000 or not moved:
+SEARCH 'ft:%d:'
+tests/flip_ttl.py:168:        prefix = "ft:%d:%d:" % (rnd, attempt)
+SEARCH 'crossed the deadline'
+tests/flip_ttl.py:209:            print("INVALID TTL/FLIP cohort: live read crossed the deadline", flush=True)

@@ -1,0 +1,13 @@
+tests/multi_exec.py:325:        with _lib.armed(admin, "ATOMIC-COMMIT-HOLD", 1):
+tests/atomic_torn.py:440:        debug("ATOMIC-OFF-HOP-HOLD", ceiling_ms)
+tests/atomic_torn.py:481:        debug("ATOMIC-OFF-HOP-HOLD", 0)
+tests/multires.py:196:            assert admin.command("DEBUG", "ATOMIC-COMMIT-HOLD", "1") == b"OK"
+tests/multires.py:220:                assert admin.command("DEBUG", "ATOMIC-COMMIT-HOLD", "0") == b"OK"
+tests/multires.py:232:            assert admin.command("DEBUG", "ATOMIC-COMMIT-HOLD", "0") == b"OK"
+tests/atomicwindow.py:163:                    if admin.must("DEBUG", "ATOMIC-COMMIT-HOLD", "1") != b"OK":
+tests/atomicwindow.py:178:                            if admin.must("DEBUG", "ATOMIC-COMMIT-HOLD", "0") != b"OK":
+tests/atomicwindow.py:208:                    if admin.must("DEBUG", "ATOMIC-COMMIT-HOLD", "0") != b"OK":
+tests/pipeorder.py:40:    with _lib.armed(admin, "ATOMIC-COMMIT-HOLD", 1):
+tests/read_local_lane.py:166:                    with _lib.armed(ctl, "ATOMIC-COMMIT-HOLD", 1):
+tests/read_local_lane.py:241:            if args[:2] == ("DEBUG", "ATOMIC-COMMIT-HOLD"):
+tests/_differ_ccfix.py:250:                    with _lib.armed(probe, "ATOMIC-COMMIT-HOLD", 1):

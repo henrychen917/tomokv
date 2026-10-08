@@ -1,0 +1,56 @@
+SEARCH 'stable hold'
+tests/flipctl_test.py:20:        self.assertIn("controller moved during the stable hold", reason)
+tests/flipctl.py:22:# The stable hold states a property of the CONTROLLER ("it does not move while the offered load
+tests/flipctl.py:198:        return "FAIL", stationary + "; controller moved during the stable hold"
+tests/flipctl.py:290:                "controller moved %s stable hold: %r\n"
+tests/flipctl.py:351:            print("stable hold: %ds pre-hold window stationary "
+tests/flipctl.py:374:    print("stable hold %s" % evidence, flush=True)
+tests/flipctl.py:389:            print("stable hold: %ds on a measured-stationary load, no trigger or split "
+tests/flipctl.py:394:        print("stable hold RE-ROLL %d (%.1fs budget left): %s" %
+tests/flipctl.py:396:    raise AssertionError("INVALID: stable hold never opened and completed before deadline: " +
+tests/flipctl.py:440:    # completed commands. The stable hold judges the load it actually offered, not the server's
+tests/flipctl.py:568:        # ---- stable hold ----------------------------------------------------------------------
+tests/flipctl.py:600:                "rate-surge counter changed between the end of the stable hold (%d) and the "
+SEARCH 'STABLE_HOLD_ATTEMPTS'
+SEARCH 'read_local_keyspace_hits:'
+tests/gate.sh:797:  hits=$(awk -F: '/^read_local_keyspace_hits:|^read_local_mget_local_hits:/{
+SEARCH 'read_local_mget_local_hits:'
+tests/gate.sh:797:  hits=$(awk -F: '/^read_local_keyspace_hits:|^read_local_mget_local_hits:/{
+SEARCH 'tls_ktls_active:'
+tests/gate.sh:2774:line = [l for l in d.split("\r\n") if l.startswith("tls_ktls_active:")]
+SEARCH 'INFO STATS'
+tests/dumpttl.py:91:    require("INFO STATS is a bulk reply", isinstance(reply, bytes), repr(reply))
+tests/dumpttl.py:96:    raise AssertionError("INFO STATS omitted %s" % name)
+tests/multirace.py:163:        raise AssertionError(f"INFO STATS returned {raw!r}")
+tests/multirace.py:175:        raise AssertionError("INFO STATS has no atomic_exec_order_holds counter")
+tests/multirace.py:532:        print("  FAIL INFO STATS has no atomic_exec_order_late counter, so this build cannot show "
+tests/atomic_torn.py:138:            "INFO STATS has no %s; the battery cannot prove the mechanism fired" % name)
+tests/gate.sh:2765:s.sendall(b"INFO STATS\r\n")
+tests/gate.sh:2775:assert line, "no tls_ktls_active in INFO STATS: " + d[:200]
+tests/tls.py:276:        raise AssertionError("INFO STATS returned %r" % (reply,))
+tests/multires.py:131:        raise AssertionError(f"INFO STATS returned {raw!r}")
+tests/multires.py:143:        raise AssertionError("INFO STATS has no atomic_exec_order_holds counter")
+tests/multires.py:152:        raise AssertionError("INFO STATS has no atomic_exec_order_late counter")
+tests/pubsub.py:121:        raise AssertionError(f"INFO STATS returned {raw!r}")
+tests/limits.py:111:        raise AssertionError(f"INFO STATS returned {raw!r}")
+tests/ktls_keyupdate.cc:46:    send(ssl, "INFO STATS\r\n");
+tests/scriptatomic.py:134:        raise AssertionError(f"INFO STATS returned {raw!r}")
+tests/xscript.py:116:        raise AssertionError("INFO STATS returned %r" % (raw,))
+tests/execfix.py:137:        raise AssertionError(f"INFO STATS returned {raw!r}")
+tests/execfix.py:150:            f"INFO STATS has no {name}: this build cannot prove the mechanism, so every arm that "
+tests/replyoff_xshard.py:30:  - a counter the battery rests on must EXIST in INFO STATS (_lib.info_int: absent is a failure,
+tests/atomfix.py:118:        raise AssertionError(f"INFO STATS returned {raw!r}")
+tests/atomfix.py:131:            "INFO STATS has no atomic_scan_order_holds counter: this build cannot prove the "
+tests/writer_atomic.py:775:                raise AssertionError("TomoKV INFO STATS lacks atomic_groups")
+tests/writer_atomic.py:872:                errors.append("TomoKV INFO STATS disappeared")
+tests/bplus.py:113:        raise AssertionError("INFO STATS returned %r" % (raw,))
+tests/bplus.py:152:            "INFO STATS omitted %s; this build cannot prove the B+ mechanisms fired" %
+tests/netio.py:14:  A  engine identity         CONFIG GET net-io, and the epoll readiness counters in INFO STATS.
+tests/netio.py:45:    yield events >= 0 and recvs >= 0, 'A2 epoll counters present in INFO STATS', (events, recvs)
+tests/abbagate.py:556:    The lock also brackets the harness's central INFO STATS endpoints: no poll
+tests/differ.py:76:            raise RuntimeError("target INFO STATS did not return a bulk string")
+SEARCH 'INFO STATS\\r\\n'
+tests/gate.sh:2765:s.sendall(b"INFO STATS\r\n")
+tests/ktls_keyupdate.cc:46:    send(ssl, "INFO STATS\r\n");
+SEARCH 'INFO STATS\\\\r\\\\n'
+SEARCH 's.recv(1 << 20)'

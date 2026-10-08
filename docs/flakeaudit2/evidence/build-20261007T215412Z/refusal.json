@@ -1,0 +1,6 @@
+{
+  "status": "REFUSED",
+  "reason": "quiet precondition",
+  "attempts": 4,
+  "prior": "docs/flakeaudit2/evidence/quiet-build-1.json"
+}

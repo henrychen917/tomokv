@@ -1,0 +1,31 @@
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'no'] -> b'+OK\r\n'
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$2\r\nno\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'yes'] -> b'+OK\r\n'
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'NO'] -> b'+OK\r\n'
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$2\r\nno\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'YeS'] -> b'+OK\r\n'
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', '0'] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', '1'] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'true'] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', ''] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'yes '] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX exact ['CONFIG', 'SET', 'AOF-LOAD-TRUNCATED', '0'] -> b"-ERR CONFIG SET failed (possibly related to argument 'aof-load-truncated') - argument must be 'yes' or 'no'\r\n"
+  PSFIX exact ['CONFIG', 'SET', 'aof-load-truncated', 'no', 'AOF-LOAD-TRUNCATED', 'yes'] -> b"-ERR CONFIG SET failed (possibly related to argument 'AOF-LOAD-TRUNCATED') - duplicate parameter\r\n"
+  PSFIX exact ['CONFIG', 'GET', 'aof-load-truncated'] -> b'*2\r\n$18\r\naof-load-truncated\r\n$3\r\nyes\r\n'
+  PSFIX field names/order: loading rdb_changes_since_last_save rdb_bgsave_in_progress rdb_last_save_time rdb_last_bgsave_status rdb_saves aof_enabled aof_rewrite_in_progress aof_rewrite_scheduled aof_last_bgrewrite_status aof_rewrites aof_rewrites_consecutive_failures aof_last_write_status
+  PSFIX target SAVE timeout=30.000 s used_memory=1072
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-infofields/tests/differ.py", line 6292, in <module>
+    run_psfix_suite()
+  File "/home/user/Projects/cx-infofields/tests/differ.py", line 6275, in run_psfix_suite
+    psfix_check_save_reply(label, command, reply)
+  File "/home/user/Projects/cx-infofields/tests/differ.py", line 6186, in psfix_check_save_reply
+    raise AssertionError(
+AssertionError: PSFIX harness error: target SAVE raced a background save after the both-peer idle barrier; reply must not be compared: b'-ERR Background save already in progress\r\n'

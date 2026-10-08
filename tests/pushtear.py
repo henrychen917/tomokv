@@ -58,6 +58,9 @@ import ssl
 import sys
 import time
 
+import _lib
+from _client_wait import wait_client_state
+
 HOST = "127.0.0.1"
 PORT = 0
 TLS_DIR = None
@@ -633,17 +636,39 @@ def cell_blocking_reply_survives():
     slow pass."""
     tag = "blocking/push-then-timeout"
     before = admin_info()
-    b = Conn(timeout=12)
+    b = None
     p = Conn()
+    observer = _lib.Conn(HOST, PORT)
     try:
-        b.command("HELLO", "3", wait=0.5)
-        ack = b.command("SUBSCRIBE", "pt:blk", wait=0.6)
-        if b"subscribe" not in ack:
-            bad(tag, "SUBSCRIBE never acknowledged")
-            return
-        b.send(*("BLPOP", "pt:nokey", "1"))
-        time.sleep(0.15)
-        p.command("PUBLISH", "pt:blk", "wake", wait=0.5)
+        budget = time.monotonic() + 10
+        while True:
+            assert time.monotonic() < budget, "parked push/timeout window never opened"
+            if b is not None:
+                b.close()
+            b = Conn(timeout=12)
+            b.command("HELLO", "3", wait=0.5)
+            ack = b.command("SUBSCRIBE", "pt:blk", wait=0.6)
+            if b"subscribe" not in ack:
+                bad(tag, "SUBSCRIBE never acknowledged")
+                return
+            client_id_frame = parse_all(b.command("CLIENT", "ID"))
+            assert len(client_id_frame) == 1 and client_id_frame[0][0] == b":", client_id_frame
+            client_id = int(client_id_frame[0][1])
+            observer.cmd("DEL", "pt:nokey")
+            armed_at = time.monotonic()
+            b.send("BLPOP", "pt:nokey", "1")
+            try:
+                wait_client_state(observer, client_id, "blocked", timeout=min(5, budget - armed_at))
+            except AssertionError as error:
+                if time.monotonic() - armed_at >= 1 and "never became blocked" in str(error):
+                    print("  INVALID push/timeout arm: parking missed the deadline", flush=True)
+                    continue
+                raise
+            published = parse_all(p.command("PUBLISH", "pt:blk", "wake", wait=0.5))
+            assert len(published) == 1 and published[0][0] == b":" and int(published[0][1]) > 0
+            if time.monotonic() - armed_at < 1:
+                break
+            print("  INVALID push/timeout arm: publication missed the deadline", flush=True)
         raw = b.drain(3.0, expect=2)
         try:
             frames = parse_all(raw)
@@ -652,6 +677,9 @@ def cell_blocking_reply_survives():
             return
         pushes = [v for k, v in frames if k == b">"]
         nulls = [k for k, v in frames if (k == b"_") or (k == b"*" and v is None)]
+        if len(frames) != 2 or frames[0][0] != b">":
+            bad(tag, "push did not precede the one timeout reply: %r" % (frames,))
+            return
         if not pushes:
             bad(tag, "the delivery never arrived: geometry not constructed")
             return
@@ -667,8 +695,10 @@ def cell_blocking_reply_survives():
             return
         ok(tag, "push delivered immediately (seg+%d) and BLPOP timeout still emitted" % segmented)
     finally:
-        b.close()
+        if b is not None:
+            b.close()
         p.close()
+        observer.close()
 
 
 def cell_copy_control(size):

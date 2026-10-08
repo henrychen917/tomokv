@@ -1,0 +1,33 @@
+SEARCH 'churn writes landed'
+tests/torture.py:135:    note("churn writes landed", landed > 0, "(%d/300)" % landed)
+SEARCH 'churn%d'
+SEARCH 'churn:%d:'
+tests/atomic_torn.py:1041:        keys = ["at:churn:%d:k%d" % (i, k) for k in range(8)]
+tests/atomic_torn.py:1046:                args.extend((key, "churn:%d:%d" % (i, seq)))
+tests/torture.py:101:churn_prefix = "churn:%d:" % time.time_ns()
+SEARCH 'expire:lazy'
+tests/notify.py:479:        expect(driver.command("SET", "expire:lazy", "v", "PX", "20"), b"OK", "lazy seed")
+tests/notify.py:491:        expect(driver.command("GET", "expire:lazy"), None, "lazy access reaps key")
+tests/notify.py:493:               ("__keyevent@0__:expired", "expire:lazy"), "lazy expiry")
+SEARCH 'time.sleep(SECONDS)'
+tests/torn_mset.py:115:time.sleep(SECONDS)
+SEARCH 'flip_completed'
+tests/flipsettle_checks.inc:56:    f.server.flip_completed_.store(47, std::memory_order_relaxed);
+tests/flip_cost_gate.py:209:        check("cost gate: no flip completed", int(held["flip_completed"]), 0)
+tests/flip_cost_gate.py:226:                 held["flip_completed"], held["io_threads"], held["ex_threads"]))
+tests/flip_cost_gate.py:238:        check("paying move: exactly one flip", int(moved["flip_completed"]), 1)
+tests/flip_cost_gate.py:265:        flips = int(moved["flip_completed"])
+tests/flip_cost_gate.py:272:                            and int(r.get("flip_completed", 0)) >= flips + 2,
+tests/flip_cost_gate.py:276:        check("induced miss: out and back", int(reverted["flip_completed"]), flips + 2)
+tests/flip_cost_gate.py:293:        flips = int(reverted["flip_completed"])
+tests/flip_cost_gate.py:300:        check("judged proposal: no flip", int(refused["flip_completed"]), flips)
+tests/flip_multikey_hold.py:142:            int(row.get("flip_completed", -1)),
+tests/flip.py:157:        baseline = int(before.get("flip_completed", "0"))
+tests/flip.py:195:              int(after_grow_stats["flip_completed"]), lambda value: value >= baseline + 1)
+tests/flip.py:236:              int(info(control, "stats")["flip_completed"]),
+tests/flip.py:237:              int(negative_before["flip_completed"]))
+tests/flip.py:270:        # that the actuation really happened (flip_completed, flip_clients_transferred,
+tests/flip.py:320:                  "still proved by flip_completed / flip_clients_transferred / "
+tests/flip.py:358:              int(stats["flip_completed"]), lambda value: value >= baseline + 2)
+tests/flip_under_load.py:44:            "client_output_buffer_limit_disconnections", "flip_completed",
+tests/flip_under_load.py:283:    if int(published["flip_completed"]) > int(before["flip_completed"]):

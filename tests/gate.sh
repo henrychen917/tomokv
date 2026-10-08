@@ -791,8 +791,26 @@ feature_split_job(){
 # boot banner must agree with that resolved state. The shutdown row is the
 # leg's vacuity guard: the lane's own hit counters must have moved during the batteries, or the 32
 # rows between ran on the owner path and proved nothing about the armed one.
+sample_armed_lane(){
+  local label=$1 info hits
+  info=$(redis-cli -h 127.0.0.1 -p "$PORT" INFO stats 2>/dev/null | tr -d '\r')
+  hits=$(awk -F: '/^read_local_keyspace_hits:|^read_local_mget_local_hits:/{
+      if ($2 !~ /^[0-9]+$/) invalid=1; n++; s+=$2
+    } END {if (n==2 && !invalid) printf "%.0f\n", s; else exit 1}' <<<"$info")
+  if ! [[ "$hits" =~ ^[0-9]+$ ]]; then
+    ARMED_SAMPLE_FAILED=1
+    printf '%s\tINVALID\n' "$label" >> "$TMPDIR/read-local-armed-$AT.tsv"
+    return 1
+  fi
+  [ "$hits" -le "$ARMED_HITS" ] || ARMED_HITS=$hits
+  printf '%s\t%s\n' "$label" "$hits" >> "$TMPDIR/read-local-armed-$AT.tsv"
+}
+
 feature_armed_job(){
   local AT=$1 t FEATURE_ARGS ARMED_INFO ARMED_MODE ARMED_RL ARMED_HITS ARMED_REPORT_MODE ARMED_REPORT_KIND
+  local ARMED_SAMPLE_FAILED=0
+  ARMED_HITS=0
+  printf 'battery\thits\n' > "$TMPDIR/read-local-armed-$AT.tsv"
   row_begin "fused+armed boot line (atomic $AT)"
   if boot_fused "$CANDIDATE_BINARY" --atomic "$AT" --read-local 1 --enable-debug-command yes; then
     ARMED_INFO=$(redis-cli -h 127.0.0.1 -p "$PORT" INFO server 2>/dev/null | tr -d '\r')
@@ -812,18 +830,20 @@ feature_armed_job(){
     py tests/$t.py 127.0.0.1 $PORT "${FEATURE_ARGS[@]}" >$TMPDIR/gate-fusedarmed-$t-$AT.txt 2>&1 \
         && ok "fused+armed $t battery (atomic $AT)" \
         || bad "fused+armed $t battery (atomic $AT)" "see $TMPDIR/gate-fusedarmed-$t-$AT.txt"
+    # RESETSTAT in a later battery must not erase an observed execution of this lane.
+    # No synthetic reads: witness the actual battery, and latch malformed INFO as a failure.
+    sample_armed_lane "$t" || :
   done
   row_begin "fused+armed shutdown report + lane fired (hits=N, atomic $AT)"
-  ARMED_HITS=$(redis-cli -h 127.0.0.1 -p "$PORT" INFO stats 2>/dev/null | tr -d '\r' \
-      | awk -F: '/^read_local_keyspace_hits:|^read_local_mget_local_hits:/{s+=$2} END{print s+0}')
+  sample_armed_lane final || :
   stop
   ARMED_REPORT_MODE=$(shutdown_value thread_mode)
   ARMED_REPORT_KIND=$(shutdown_value work.kind)
   shutdown_clean && [ "$ARMED_REPORT_MODE" = 1s ] && [ "$ARMED_REPORT_KIND" = fused ] \
-      && [ -n "$ARMED_HITS" ] && [ "$ARMED_HITS" -gt 0 ] \
+      && [ "$ARMED_SAMPLE_FAILED" -eq 0 ] && [ "$ARMED_HITS" -gt 0 ] \
       && ok "fused+armed shutdown report + lane fired (hits=$ARMED_HITS, atomic $AT)" \
       || bad "fused+armed shutdown report + lane fired (atomic $AT)" \
-             "mode=$ARMED_REPORT_MODE kind=$ARMED_REPORT_KIND hits=$ARMED_HITS; see $SRVLOG"
+             "mode=$ARMED_REPORT_MODE kind=$ARMED_REPORT_KIND peak_hits=$ARMED_HITS sample_failed=$ARMED_SAMPLE_FAILED; see $SRVLOG"
 }
 
 job_label(){
@@ -2736,18 +2756,26 @@ py tests/tls.py 127.0.0.1 "$TLS_PORT" "$TLS_DIR" optional --plain-port "$PORT" \
 row_begin "kTLS TLS 1.2 engaged live (default boot)"
 python3 - "$TLS_PORT" "$TLS_DIR" <<'PYEOF' >$TMPDIR/gate-ktls-live.txt 2>&1 \
     && ok "kTLS TLS 1.2 engaged live (default boot)" || bad "kTLS engaged live" "see $TMPDIR/gate-ktls-live.txt"
-import socket, ssl, sys, time
+import socket, ssl, sys
 port, certdir = int(sys.argv[1]), sys.argv[2]
 ctx = ssl.create_default_context(cafile=f"{certdir}/ca.crt")
 ctx.check_hostname = False
 ctx.minimum_version = ctx.maximum_version = ssl.TLSVersion.TLSv1_2
 s = ctx.wrap_socket(socket.create_connection(("127.0.0.1", port), timeout=5))
-s.sendall(b"INFO STATS\r\n"); time.sleep(0.4)
-d = s.recv(1 << 20).decode(errors="replace")
+s.sendall(b"INFO STATS\r\n")
+with s.makefile("rb") as wire:
+    header = wire.readline()
+    assert header.startswith(b"$") and header.endswith(b"\r\n"), header
+    size = int(header[1:-2])
+    assert size >= 0, header
+    body = wire.read(size)
+    assert len(body) == size and wire.read(2) == b"\r\n", "truncated INFO bulk reply"
+    d = body.decode(errors="replace")
 line = [l for l in d.split("\r\n") if l.startswith("tls_ktls_active:")]
 assert line, "no tls_ktls_active in INFO STATS: " + d[:200]
 assert int(line[0].split(":")[1]) >= 1, "kTLS did not engage: " + line[0]
 print("KTLS_LIVE_OK", line[0])
+s.close()
 PYEOF
 row_begin "TLS 1.3 KeyUpdate survives (NET2)"
 [ -f "$RUN_DIR/unit-ready/ktls-keyupdate" ] && \
