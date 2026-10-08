@@ -132,6 +132,7 @@ try:
     encoding_names = ["%s-max-listpack-%s" % (kind, axis)
                       for kind in ("hash", "set", "zset") for axis in ("entries", "value")]
     encoding_names.append("list-max-listpack-size")
+    encoding_names.append("set-max-intset-entries")
     original = {name: values[name.encode()] for name in encoding_names}
     created = set(by_shard.values())
 
@@ -179,13 +180,22 @@ try:
             encoding(key, expanded)
             conn.must("CONFIG", "SET", entries, original[entries], size, original[size])
 
-        # Redis's listpack controls must not act as the missing intset count control.
-        conn.must("CONFIG", "SET", "set-max-listpack-entries", 0, "set-max-listpack-value", 0)
+        # Integer and listpack limits are independent, and CONFIG must reach every owner.
+        conn.must("CONFIG", "SET", "set-max-listpack-entries", 0, "set-max-listpack-value", 0,
+                  "set-max-intset-entries", 9)
+        for key in by_shard.values():
+            conn.must("DEL", key)
+            conn.must("SADD", key, *range(9))
+            encoding(key, b"intset")
+            conn.must("SADD", key, 9)
+            encoding(key, b"hashtable")
+        conn.must("CONFIG", "SET", "set-max-intset-entries", original["set-max-intset-entries"])
         key = next(iter(by_shard.values()))
         conn.must("DEL", key)
-        conn.must("SADD", key, *range(128))
+        count = int(original["set-max-intset-entries"])
+        conn.must("SADD", key, *range(count))
         encoding(key, b"intset")
-        conn.must("SADD", key, 128)
+        conn.must("SADD", key, count)
         encoding(key, b"hashtable")
 
         for fill, count in ((0, 1), (4, 4)):

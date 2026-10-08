@@ -1,0 +1,175 @@
+{
+  "legs": 24,
+  "replies": 84800,
+  "differences": 0,
+  "results": [
+    {
+      "suite": "hash",
+      "seed": 19,
+      "atomic": 0,
+      "commands": 3545,
+      "differences": []
+    },
+    {
+      "suite": "hash",
+      "seed": 20,
+      "atomic": 0,
+      "commands": 3545,
+      "differences": []
+    },
+    {
+      "suite": "hash",
+      "seed": 23,
+      "atomic": 0,
+      "commands": 3545,
+      "differences": []
+    },
+    {
+      "suite": "hash",
+      "seed": 7,
+      "atomic": 0,
+      "commands": 3545,
+      "differences": []
+    },
+    {
+      "suite": "hash",
+      "seed": 19,
+      "atomic": 1,
+      "commands": 3545,
+      "differences": []
+    },
+    {
+      "suite": "hash",
+      "seed": 20,
+      "atomic": 1,
+      "commands": 3545,
+      "differences": []
+    },
+    {
+      "suite": "hash",
+      "seed": 23,
+      "atomic": 1,
+      "commands": 3545,
+      "differences": []
+    },
+    {
+      "suite": "hash",
+      "seed": 7,
+      "atomic": 1,
+      "commands": 3545,
+      "differences": []
+    },
+    {
+      "suite": "set",
+      "seed": 19,
+      "atomic": 0,
+      "commands": 3524,
+      "differences": []
+    },
+    {
+      "suite": "set",
+      "seed": 20,
+      "atomic": 0,
+      "commands": 3524,
+      "differences": []
+    },
+    {
+      "suite": "set",
+      "seed": 23,
+      "atomic": 0,
+      "commands": 3524,
+      "differences": []
+    },
+    {
+      "suite": "set",
+      "seed": 7,
+      "atomic": 0,
+      "commands": 3524,
+      "differences": []
+    },
+    {
+      "suite": "set",
+      "seed": 19,
+      "atomic": 1,
+      "commands": 3524,
+      "differences": []
+    },
+    {
+      "suite": "set",
+      "seed": 20,
+      "atomic": 1,
+      "commands": 3524,
+      "differences": []
+    },
+    {
+      "suite": "set",
+      "seed": 23,
+      "atomic": 1,
+      "commands": 3524,
+      "differences": []
+    },
+    {
+      "suite": "set",
+      "seed": 7,
+      "atomic": 1,
+      "commands": 3524,
+      "differences": []
+    },
+    {
+      "suite": "zset",
+      "seed": 19,
+      "atomic": 0,
+      "commands": 3531,
+      "differences": []
+    },
+    {
+      "suite": "zset",
+      "seed": 20,
+      "atomic": 0,
+      "commands": 3531,
+      "differences": []
+    },
+    {
+      "suite": "zset",
+      "seed": 23,
+      "atomic": 0,
+      "commands": 3531,
+      "differences": []
+    },
+    {
+      "suite": "zset",
+      "seed": 7,
+      "atomic": 0,
+      "commands": 3531,
+      "differences": []
+    },
+    {
+      "suite": "zset",
+      "seed": 19,
+      "atomic": 1,
+      "commands": 3531,
+      "differences": []
+    },
+    {
+      "suite": "zset",
+      "seed": 20,
+      "atomic": 1,
+      "commands": 3531,
+      "differences": []
+    },
+    {
+      "suite": "zset",
+      "seed": 23,
+      "atomic": 1,
+      "commands": 3531,
+      "differences": []
+    },
+    {
+      "suite": "zset",
+      "seed": 7,
+      "atomic": 1,
+      "commands": 3531,
+      "differences": []
+    }
+  ]
+}

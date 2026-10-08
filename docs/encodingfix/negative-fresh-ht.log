@@ -1,0 +1,4 @@
+fresh: $9
+hashtable
+expected listpack
+FAIL: exact collection encoding

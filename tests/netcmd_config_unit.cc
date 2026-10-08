@@ -83,6 +83,7 @@ void knob_matrix() {
         {"list-max-listpack-size", "list-max-ziplist-size", nullptr, "-3", "-3"},
         {"set-max-listpack-entries", nullptr, nullptr, "6", "6"},
         {"set-max-listpack-value", nullptr, nullptr, "20", "20"},
+        {"set-max-intset-entries", nullptr, nullptr, "9", "9"},
         {"zset-max-listpack-entries", "zset-max-ziplist-entries", "zset-max-compact-entries", "8", "8"},
         {"zset-max-listpack-value", "zset-max-ziplist-value", "zset-max-compact-value", "2k", "2000"},
     };
@@ -99,7 +100,8 @@ void knob_matrix() {
     check(limits.hash.max_entries == 7 && limits.hash.max_value == 7 &&
           limits.zset.max_entries == 7 && limits.zset.max_value == 7 &&
           limits.list.max_entries == UINT32_MAX && limits.list.max_value == 16384 &&
-          limits.set.max_entries == 6 && limits.set.max_value == 20,
+          limits.set.max_entries == 6 && limits.set.max_value == 20 &&
+          limits.set_intset_max_entries == 9,
           "knob matrix SET changes the owner's actual limits, not just GET");
     for (const auto& row : rows) {
         if (row.alias) {
@@ -202,7 +204,8 @@ void test_config_rewrite() {
     check(body.find("max-ziplist-") == std::string::npos, "stale encoding aliases were replaced");
     check(body.find("max-compact-") == std::string::npos, "stale TomoKV aliases were replaced");
     for (const char* name : {"hash-max-listpack-entries", "hash-max-listpack-value", "list-max-listpack-size",
-                             "zset-max-listpack-entries", "zset-max-listpack-value"})
+                             "zset-max-listpack-entries", "zset-max-listpack-value",
+                             "set-max-intset-entries"})
         check(body.find(std::string(name) + " ") != std::string::npos, "canonical encoding directive emitted");
     for (const char* directive : {"hll-sparse-max-bytes 1024\n", "aof-load-truncated no\n",
                                   "unixsocketperm 600\n", "port 6397\n", "bind 127.0.0.2\n",

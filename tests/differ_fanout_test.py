@@ -196,7 +196,8 @@ quiet_stop(){ :; }
                 stops = (directory / 'stops').read_text().splitlines()
                 self.assertEqual(len(boots), 2)  # exactly one oracle and one target, across all seeds
                 self.assertEqual(len(stops), 2)
-                self.assertEqual('--set-max-intset-entries 128' in boots[0], part.endswith('-1'))
+                self.assertNotIn('--set-max-intset-entries', boots[0],
+                                 'every atomic leg must exercise Redis default encoding thresholds')
 
     def test_actual_equivalence_loop_runs_every_frozen_failure_stream(self):
         directory, out, completed = self.run_part('equivalence')
