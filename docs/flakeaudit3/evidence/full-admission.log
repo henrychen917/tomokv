@@ -1,0 +1,2 @@
+proof evidence: /home/user/Projects/cx-flakeaudit3/docs/flakeaudit3/evidence/full-20261008T235415Z
+quiet admission 1 REFUSED: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 16.220000s > 0.480000s per 20s
