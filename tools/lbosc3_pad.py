@@ -16,7 +16,7 @@ from lbplanner_pad import body, normalized
 from rlfence_artifacts import tables, moved_symbol
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = "5efc5414d3d6107b5e7e29f2404e585806c823ec"
+BASE = "db86e5b4a051929c68108d33b1dc358428c59bca"
 
 def save(path, value):
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")

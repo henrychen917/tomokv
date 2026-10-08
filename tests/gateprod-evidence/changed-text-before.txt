@@ -1,0 +1,19 @@
+tests/gate_history.py:839:        label = "ABBA comparison + saturation negative controls"
+tests/gate.sh:67:    exec python3 tests/abbagate.py "$@"
+tests/gate.sh:130:  exec python3 tests/abbagate.py "${ABBA_ARGS[@]}"
+tests/gate.sh:2851:row_begin "ABBA comparison + saturation negative controls" "with-scheduler-controls"
+tests/gate.sh:2864:    && py tests/netio.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
+tests/gate.sh:2866:    && ok "ABBA comparison + saturation negative controls" \
+tests/gate.sh:2867:    || bad "ABBA comparison + saturation negative controls" "see $TMPDIR/gate-abbagate-unit.txt"
+tests/gate.sh:3396:# ---- B. mandatory headline performance: ABBA vs the LAST PUSHED BINARY ------------------------
+tests/gate.sh:3464:python3 tests/abbagate.py "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &
+tests/fixtures/nullrefresh-ledger-labels.json:488:    "ABBA comparison + saturation negative controls",
+tests/gate_receipt.py:34:ABBA_LABEL = "ABBA comparison + saturation negative controls"
+tests/gates_test.py:297:        cases.append(('ABBA comparison + saturation negative controls', 'with-scheduler-controls'))
+tests/gates_test.py:339:            marker = gate.index('# ---- B. mandatory headline performance')
+tests/gates_test.py:340:            start = gate.index('python3 tests/abbagate.py "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &\n', marker)
+tests/gates_test.py:429:                self.assertEqual(rows[-1][:2], ['ok', 'ABBA comparison + saturation negative controls'])
+tests/gates_test.py:435:            self.assertEqual(rows[-1][1], 'ABBA comparison + saturation negative controls')
+tests/gates_test.py:486:                    self.assertEqual(rows[-1][1], 'ABBA comparison + saturation negative controls')
+tests/gates_test.py:618:        marker = gate.index('# ---- B. mandatory headline performance')
+tests/gates_test.py:619:        start = gate.index('python3 tests/abbagate.py "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &\n', marker)

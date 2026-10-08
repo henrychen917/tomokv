@@ -451,11 +451,8 @@ AddResult add_to_table(CollectionRef& set, Slice member) {
     return AddResult::Added;
 }
 
-// Integer encoding has its own Redis control, set-max-intset-entries. That control is
-// still missing here; preserve its incoming 128-entry behavior independently of listpack knobs.
-constexpr uint32_t kIntsetMaxEntries = 128;
-
-AddResult add_member(CollectionRef& set, Slice member, const CompactLimit& limit) {
+AddResult add_member(CollectionRef& set, Slice member, const CompactLimit& limit,
+                     uint32_t intset_max_entries) {
     if (set.encoding() == CollectionEncoding::Hashtable) return add_to_table(set, member);
     if (set.entries() == std::numeric_limits<uint32_t>::max()) return AddResult::Oom;
 
@@ -465,7 +462,7 @@ AddResult add_member(CollectionRef& set, Slice member, const CompactLimit& limit
             uint32_t position = 0;
             if (integer_search(set, integer, position)) return AddResult::Exists;
             const uint32_t resulting = set.entries() + 1;
-            if (resulting > kIntsetMaxEntries) {
+            if (resulting > intset_max_entries) {
                 if (!promote_to_table(set, resulting)) return AddResult::Oom;
                 return add_to_table(set, member);
             }
@@ -476,7 +473,17 @@ AddResult add_member(CollectionRef& set, Slice member, const CompactLimit& limit
         }
 
         const uint32_t resulting = set.entries() + 1;
-        const uint32_t incoming_max = std::max(set_max_member_bytes(set), member.n);
+        // SREM does not shrink the cached maximum. Redis checks the remaining
+        // intset extrema when converting to text, so a removed wide integer must
+        // not force a hashtable under a subsequently lowered value limit.
+        uint32_t incoming_max = member.n;
+        if (set.entries()) {
+            int64_t first = 0, last = 0;
+            if (!integer_at(set, 0, first) || !integer_at(set, set.entries() - 1, last))
+                return AddResult::Oom;
+            incoming_max = std::max(incoming_max,
+                std::max(integer_text_length(first), integer_text_length(last)));
+        }
         if (set.compact_fits(limit, resulting, incoming_max)) {
             if (!convert_integer_to_generic_with(set, member)) return AddResult::Oom;
             set_max_member_bytes(set, incoming_max);
@@ -642,6 +649,7 @@ bool ensure_set_add_capacity(Shard& shard, Op& op, KvObj*& object) {
     CollectionRef set(object);
     if (!set.is_embedded()) return true;
     const CompactLimit& limit = shard.type_limits().set;
+    const uint32_t intset_max_entries = shard.type_limits().set_intset_max_entries;
     const uint32_t hint = op.argc() - 2;
     uint32_t incoming_max = set_max_member_bytes(set);
     bool generic = set_small_encoding(set) == SetSmallEncoding::Generic;
@@ -690,10 +698,10 @@ bool ensure_set_add_capacity(Shard& shard, Op& op, KvObj*& object) {
     if (set.embedded_bytes_fit(projected_encoded) &&
         set.embedded_bytes_fit(transient_integer_encoded) &&
         static_cast<uint64_t>(set.entries()) + hint <=
-            (generic ? limit.max_entries : kIntsetMaxEntries) &&
+            (generic ? limit.max_entries : intset_max_entries) &&
         (!generic || incoming_max <= limit.max_value) &&
         (set_small_encoding(set) != SetSmallEncoding::Integer ||
-         static_cast<uint64_t>(set.entries()) + integer_prefix <= kIntsetMaxEntries))
+         static_cast<uint64_t>(set.entries()) + integer_prefix <= intset_max_entries))
         return true;
     return externalize_set<kNotify>(shard, op, object);
 }
@@ -716,10 +724,11 @@ void cmd_sadd(Shard& shard, Op& op) {
     ObjectSizeTracker size_tracker(shard.store(), object);
 
     const CompactLimit& limit = shard.type_limits().set;
+    const uint32_t intset_max_entries = shard.type_limits().set_intset_max_entries;
     const uint32_t hint = op.argc() - 2;
     if (!object) {
         int64_t first_integer = 0;
-        if (!parse_i64_strict(op.arg(2), first_integer)) {
+        if (hint > intset_max_entries || !parse_i64_strict(op.arg(2), first_integer)) {
             owned->small_encoding = SetSmallEncoding::Generic;
             if (hint > limit.max_entries || op.arg(2).n > limit.max_value) {
                 if (!owned->table.reserve(hint)) {
@@ -729,17 +738,10 @@ void cmd_sadd(Shard& shard, Op& op) {
                 }
                 owned->finish_table_promotion(0);
             }
-        } else if (hint > kIntsetMaxEntries) {
-            if (!owned->table.reserve(hint)) {
-                delete owned;
-                reply_err(op.sink(), "ERR out of memory");
-                return;
-            }
-            owned->finish_table_promotion(0);
         }
     } else if (set.encoding() == CollectionEncoding::Compact &&
                hint > (set_small_encoding(set) == SetSmallEncoding::Integer
-                       ? kIntsetMaxEntries : limit.max_entries)) {
+                       ? intset_max_entries : limit.max_entries)) {
         // Redis/Valkey apply the multi-add size hint before looking for duplicates. Preserve that
         // observable upgrade rule while keeping the decision O(1).
         if (!promote_to_table(set, std::max(set.entries(), hint))) {
@@ -750,7 +752,7 @@ void cmd_sadd(Shard& shard, Op& op) {
 
     uint32_t added = 0;
     for (uint32_t i = 2; i < op.argc(); i++) {
-        const AddResult result = add_member(set, op.arg(i), limit);
+        const AddResult result = add_member(set, op.arg(i), limit, intset_max_entries);
         if (result == AddResult::Oom) {
             if (!object) delete owned;
             reply_err(op.sink(), "ERR out of memory");
@@ -1200,9 +1202,10 @@ XshardElementResult xshard_insert_set_element_impl(Shard& shard, Slice key, uint
     CollectionRef set = object ? as_set(object) : CollectionRef(owned);
     ObjectSizeTracker size_tracker(shard.store(), object);
     const CompactLimit& limit = shard.type_limits().set;
+    const uint32_t intset_max_entries = shard.type_limits().set_intset_max_entries;
     if (!object) {
         int64_t integer = 0;
-        if (!parse_i64_strict(member, integer)) {
+        if (!intset_max_entries || !parse_i64_strict(member, integer)) {
             owned->small_encoding = SetSmallEncoding::Generic;
             if (limit.max_entries == 0 || member.n > limit.max_value) {
                 if (!owned->table.reserve(1)) {
@@ -1214,7 +1217,7 @@ XshardElementResult xshard_insert_set_element_impl(Shard& shard, Slice key, uint
         }
     }
 
-    if (add_member(set, member, limit) == AddResult::Oom) {
+    if (add_member(set, member, limit, intset_max_entries) == AddResult::Oom) {
         if (!object) delete owned;
         return XshardElementResult::Oom;
     }
@@ -1300,6 +1303,7 @@ SnapshotHookStatus set_snapshot_load(Slice key, uint8_t encoding, int64_t expire
     if (encoding != 0 || !payload.n) return SnapshotHookStatus::Corrupt;
     auto* set = new (std::nothrow) SetVal;
     if (!set) return SnapshotHookStatus::Oom;
+    if (!limits.set_intset_max_entries) set->small_encoding = SetSmallEncoding::Generic;
     CollectionRef set_ref(set);
     const uint8_t* p = reinterpret_cast<const uint8_t*>(payload.p);
     uint64_t left = payload.n;
@@ -1310,7 +1314,7 @@ SnapshotHookStatus set_snapshot_load(Slice key, uint8_t encoding, int64_t expire
         if (left < len) { delete set; return SnapshotHookStatus::Corrupt; }
         const Slice member(reinterpret_cast<const char*>(p), len);
         p += len; left -= len;
-        if (add_member(set_ref, member, limits.set) == AddResult::Oom) {
+        if (add_member(set_ref, member, limits.set, limits.set_intset_max_entries) == AddResult::Oom) {
             delete set;
             return SnapshotHookStatus::Oom;
         }

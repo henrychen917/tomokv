@@ -277,11 +277,14 @@ int main() {
     const auto defaults = encodings.encodings.type_limits();
     if (std::memcmp(&fixed, &defaults, sizeof(fixed)))
         fail("restored encoding defaults changed the fixed behavior");
+    if (defaults.hash.max_entries != 512 || defaults.set_intset_max_entries != 512)
+        fail("hash/intset defaults differ from the pinned Redis 7.4.10 oracle");
     if (tomo::parse_config_args({"--hash-max-ziplist-entries", "4",
                                 "--hash-max-ziplist-value", "1kb",
                                 "--list-max-ziplist-size", "-3",
                                 "--set-max-listpack-entries", "6",
                                 "--set-max-listpack-value", "20",
+                                "--set-max-intset-entries", "9",
                                 "--zset-max-ziplist-entries", "7",
                                 "--zset-max-ziplist-value", "2k"},
                                encodings, encoding_state, 1, "conf") != tomo::kConfigParsed)
@@ -290,6 +293,7 @@ int main() {
     if (limits.hash.max_entries != 4 || limits.hash.max_value != 1024 ||
         limits.list.max_entries != UINT32_MAX || limits.list.max_value != 16384 ||
         limits.set.max_entries != 6 || limits.set.max_value != 20 ||
+        limits.set_intset_max_entries != 9 ||
         limits.zset.max_entries != 7 || limits.zset.max_value != 2000)
         fail("reference encoding limits were not applied");
     if (tomo::parse_config_args({"--hash-max-listpack-entries", "512",

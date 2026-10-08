@@ -109,8 +109,9 @@ $(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-u
 # CD6/CD13 add cold scan/replacement work. Preserve GCC 13's ordinary set/zset bodies in
 # both database namespaces; tests/cdfix_checks.py audits every emitted function against PRE.
 # These are compile-time inlining budgets, with no runtime option or request-path branch.
-$(BUILD_ROOT)/src/cmd/t_set.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=23440
-$(BUILD_ROOT)/db0/src/cmd/t_set.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=23300
+$(BUILD_ROOT)/src/cmd/t_set.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=23568
+# The live intset limit adds cold collection code; retain the ordinary FlatStore body.
+$(BUILD_ROOT)/db0/src/cmd/t_set.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=23428
 $(BUILD_ROOT)/src/cmd/t_zset.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=33395
 $(BUILD_ROOT)/db0/src/cmd/t_zset.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=32970
 # CD7/CD13's cold GEO text needs its own budget. The audit still reports the three
@@ -143,10 +144,10 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # rltopo_artifacts.py checks the PRE point-read/parser/scheduler bodies byte for byte.
 # Pin the single-database R7 TU's compiler budget as well: its source is unchanged,
 # and both surviving parser bodies must retain their PRE instructions.
-# LBOSC3 changes the boot parser and policy initialization included in these two
+# Encoding setup and LBOSC3 change the boot parser and policy initialization in these two
 # TUs. Preserve PRE's ordinary parser/TLS/writeback bodies; lbstall_artifacts checks
 # both complete hot inventories. No override changes in unaffected TUs.
-$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=146495
+$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=146503
 $(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128865
 $(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161715
 # CC18/ST3 composition: smallest current hot-body delta; ccfix4 retains the search.
@@ -266,6 +267,8 @@ unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flip
 # Deterministic core regressions: the test TU instantiates the real executor/IO methods
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
+build/encodingfix-unit: build/tests/encodingfix_unit.o $(CORE_TEST_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
 # ST2 cost witness: only the two cold census walks are instrumented. The fixture
 # dispatches real commands and counts work; it never boots a listener or workers.

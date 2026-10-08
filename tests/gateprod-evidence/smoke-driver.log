@@ -1,0 +1,4 @@
+SMOKE quiet preflight 1: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 14.170000s > 0.480000s per 20s
+SMOKE quiet preflight 2: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 13.120000s > 0.480000s per 20s
+SMOKE quiet preflight 3: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 4.130000s > 0.480000s per 20s
+SMOKE quiet preflight 4: QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 2.900000s > 0.480000s per 20s

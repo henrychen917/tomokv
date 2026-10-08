@@ -1,0 +1,38 @@
+{
+  "origin_cpp": "5efc5414d3d6107b5e7e29f2404e585806c823ec",
+  "instrument_sha256_before": "83e2bad5ae8b2fcd159c52eb540ef3b43d970ff952176952388c21fea5747c76",
+  "instrument_sha256_after": "83e2bad5ae8b2fcd159c52eb540ef3b43d970ff952176952388c21fea5747c76",
+  "instrument_manifest_equal": true,
+  "protected_files_identical_to_origin_cpp": [
+    "tests/abbagate.py",
+    "tests/abba_instrument.py",
+    "tests/headline_cells.txt",
+    "tests/gate_measurements.json",
+    "tests/fixtures/nullrefresh-ledger-labels.json"
+  ],
+  "matrix": {
+    "uring": 32,
+    "epoll": 32,
+    "product": 64,
+    "headline": 181,
+    "gate_full": 213,
+    "frozen_sha256": "244c3941036d8b4535df60eb7a6304bd1f022e046a4c40fdada9501114bc5abc"
+  },
+  "rows": {
+    "quick": {
+      "before": 500,
+      "after": 500,
+      "delta": 0,
+      "labels_byte_equal": true
+    },
+    "full": {
+      "before": 517,
+      "after": 517,
+      "delta": 0,
+      "labels_byte_equal": true
+    }
+  },
+  "quick_exit_line": 3394,
+  "matrix_selftest_line": 2869,
+  "measurement_dispatch_line": 3472
+}
