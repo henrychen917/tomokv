@@ -50,6 +50,8 @@
 #include <sys/socket.h>
 
 namespace tomo {
+void debug_xread_registration_hold(uint32_t stage);
+uint32_t debug_xread_registration_status();
 namespace {
 
 constexpr const char* kVersion = "0.1-cpp";
@@ -1101,6 +1103,23 @@ void cmd_debug_impl(Shard& shard, Op& op) {
     }
     if (eq_icase(subcommand, "atomic-plain-stale-cuts") && op.argc() == 2) {
         reply_int(op.sink(), xshard_plain_stale_cuts());
+        return;
+    }
+    // Registration/release schedule for the blocked XREAD notification witness.
+    // Status: 1 = registration held, 2 = last Task held, 3 = IO refused that Task.
+    // 0 releases, 1 arms registration, 2 advances to the last-Task hold.
+    if (eq_icase(subcommand, "xread-registration-hold")) {
+        if (op.argc() == 2) {
+            reply_int(op.sink(), debug_xread_registration_status());
+            return;
+        }
+        uint64_t stage = 0;
+        if (op.argc() != 3 || !parse_u64(op.arg(2), stage) || stage > 2) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        debug_xread_registration_hold(static_cast<uint32_t>(stage));
+        reply_ok(op.sink());
         return;
     }
     // Nonblocking admission witness: unlike COMMIT-DELAY, this latch leaves both executors

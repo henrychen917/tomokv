@@ -73,6 +73,27 @@ struct BlockingState {
 
 namespace {
 
+// DEBUG-only two-stage schedule: 1 holds before the owner registration recheck;
+// 2 lets that recheck run, then retains its last Task until explicitly released.
+// No worker is stopped, no timer expires, and no per-client storage is allocated.
+std::atomic<uint32_t> debug_xread_hold{0};
+std::atomic<uint32_t> debug_xread_stage{0};
+
+bool blocking_debug_xread_hold(const BlockingState& state, BlockingPhase phase) {
+    if (state.kind != BlockingKind::Xread) return false;
+    const uint32_t held = debug_xread_hold.load(std::memory_order_relaxed);
+    if (held == 1 && phase == BlockingPhase::Registering) {
+        debug_xread_stage.store(1, std::memory_order_release);
+        return true;
+    }
+    if (held == 2 && phase == BlockingPhase::MoveRequested) {
+        uint32_t seen = debug_xread_stage.load(std::memory_order_relaxed);
+        if (seen < 2) debug_xread_stage.store(2, std::memory_order_release);
+        return true;
+    }
+    return false;
+}
+
 struct BlockingEntry {
     BlockingState* state = nullptr;
     uint32_t key_index = 0;
@@ -990,6 +1011,15 @@ bool blocking_finish_registration(BlockingState& state, Shard& shard,
 
 }  // namespace
 
+void debug_xread_registration_hold(uint32_t stage) {
+    if (stage == 1) debug_xread_stage.store(0, std::memory_order_relaxed);
+    debug_xread_hold.store(stage, std::memory_order_release);
+}
+
+uint32_t debug_xread_registration_status() {
+    return debug_xread_stage.load(std::memory_order_acquire);
+}
+
 Shard::~Shard() {
     blocking_registry_destroy(static_cast<BlockingRegistry*>(blocking_registry_));
 }
@@ -1083,6 +1113,7 @@ bool blocking_execute_impl(Server&, ThreadCtx& self, Ring& ring, const Task& tas
         return true;
     }
     const BlockingPhase phase = state.phase.load(std::memory_order_acquire);
+    if (blocking_debug_xread_hold(state, phase)) return false;
     if (phase == BlockingPhase::Cancelled) {
         blocking_task_done(state, self, ring);
         return true;
@@ -1145,6 +1176,8 @@ bool blocking_execute_impl(Server&, ThreadCtx& self, Ring& ring, const Task& tas
             state.pending.fetch_sub(1, std::memory_order_acq_rel) == 1 &&
             !blocking_finish_registration<IofusedPrivateQueue>(
                 state, shard, self, ring)) return false;
+        if (blocking_debug_xread_hold(state, state.phase.load(std::memory_order_acquire)))
+            return false;
         blocking_task_done(state, self, ring);
         return true;
     }
@@ -1310,8 +1343,13 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
             return true;
         }
         if (!block || block->phase.load(std::memory_order_acquire) !=
-                          BlockingPhase::MoveRequested ||
-            block->active_tasks.load(std::memory_order_acquire) != 0) continue;
+                          BlockingPhase::MoveRequested) continue;
+        if (block->active_tasks.load(std::memory_order_acquire) != 0) {
+            if (block->kind == BlockingKind::Xread &&
+                debug_xread_hold.load(std::memory_order_relaxed) == 2)
+                debug_xread_stage.store(3, std::memory_order_release);
+            continue;
+        }
         ScatterDispatch dispatch;
         const ScatterPrepare prepared = xshard_prepare(
             server, op, pool, self.id(), client.id(), dispatch);
