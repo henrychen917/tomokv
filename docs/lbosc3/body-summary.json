@@ -1,13 +1,13 @@
 {
-  "base": "5efc5414d3d6107b5e7e29f2404e585806c823ec",
+  "base": "db86e5b4a051929c68108d33b1dc358428c59bca",
   "hot_bodies": 1492,
   "raw_equal": 1488,
   "instructions_and_resolved_targets_equal": 1492,
   "text_bytes": {
-    "PRE": 7817349,
-    "PAD-A": 7841621,
-    "POST": 7841621
+    "PRE": 7820053,
+    "PAD-A": 7845285,
+    "POST": 7845285
   },
-  "text_delta": 24272,
+  "text_delta": 25232,
   "post_equals_build_tomokv": true
 }

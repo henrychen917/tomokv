@@ -523,6 +523,336 @@
         "hot": 6387333.01,
         "cold": 6389068.76
       },
+      "recorded_cold": {
+        "owners": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "shards": 64,
+        "hot_fraction": 0.4999320720328287,
+        "band_pct": 7.2161145826323825,
+        "three_band_pct": 21.648343747897147,
+        "largest_hotmax": 128,
+        "rows": [
+          {
+            "hotmax": 4,
+            "owner_hot_counts": [
+              1,
+              0,
+              0,
+              1,
+              1,
+              0,
+              1,
+              0
+            ],
+            "owner_load_pct": [
+              18.760802576345405,
+              6.26480110639598,
+              6.21889450335577,
+              18.71309571436244,
+              18.74940093637463,
+              6.260700516581931,
+              18.77990532401573,
+              6.252399322568124
+            ],
+            "hot_only_ratio_pct": 200.0,
+            "ratio_pct": 100.48808656527966,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 13.925511494389601,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 6,
+              "source": 6,
+              "destination": 2,
+              "span": 0.12508403253777278,
+              "after_ratio_pct": 100.06722603021822
+            }
+          },
+          {
+            "hotmax": 8,
+            "owner_hot_counts": [
+              1,
+              0,
+              0,
+              2,
+              3,
+              0,
+              1,
+              1
+            ],
+            "owner_load_pct": [
+              12.511701776742862,
+              6.26485122560674,
+              6.218944255307828,
+              18.713045418323414,
+              24.998401816006556,
+              6.260750602987446,
+              12.530804677237613,
+              12.501500227787545
+            ],
+            "hot_only_ratio_pct": 300.0,
+            "ratio_pct": 150.23566048558982,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 20.819467147483266,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 12,
+              "source": 4,
+              "destination": 2,
+              "span": 0.1245229481533597,
+              "after_ratio_pct": 99.61835852268776
+            }
+          },
+          {
+            "hotmax": 16,
+            "owner_hot_counts": [
+              5,
+              1,
+              1,
+              2,
+              3,
+              1,
+              1,
+              2
+            ],
+            "owner_load_pct": [
+              21.885128264234428,
+              9.389426899853104,
+              9.343519195019164,
+              12.463993956992988,
+              15.624775483777443,
+              9.38532621162175,
+              9.406329736709171,
+              12.501500251791962
+            ],
+            "hot_only_ratio_pct": 200.0,
+            "ratio_pct": 100.33287255372213,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 13.904002133669207,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 48,
+              "source": 0,
+              "destination": 2,
+              "span": 0.06995576175302956,
+              "after_ratio_pct": 55.96460940242365
+            }
+          },
+          {
+            "hotmax": 32,
+            "owner_hot_counts": [
+              8,
+              4,
+              3,
+              5,
+              5,
+              2,
+              2,
+              3
+            ],
+            "owner_load_pct": [
+              18.760453158926964,
+              12.513902778175293,
+              10.905805899085054,
+              14.026180509841584,
+              14.062487765076337,
+              9.38542654848208,
+              9.406430745725325,
+              10.939312594687372
+            ],
+            "hot_only_ratio_pct": 150.0,
+            "ratio_pct": 75.00021288355906,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 10.39343430938143,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 48,
+              "source": 0,
+              "destination": 5,
+              "span": 0.054411894464535426,
+              "after_ratio_pct": 43.52951557162834
+            }
+          },
+          {
+            "hotmax": 64,
+            "owner_hot_counts": [
+              12,
+              10,
+              8,
+              9,
+              8,
+              5,
+              7,
+              5
+            ],
+            "owner_load_pct": [
+              15.635878432158929,
+              14.075991340391647,
+              12.46799155552921,
+              13.245034336132683,
+              12.500300079166916,
+              10.16667107763221,
+              11.749764291640814,
+              10.1583688873476
+            ],
+            "hot_only_ratio_pct": 87.5,
+            "ratio_pct": 43.82007635849063,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 6.0725305642950875,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 0,
+              "source": 0,
+              "destination": 7,
+              "span": 0.03909320262759437,
+              "after_ratio_pct": 31.2745621020755
+            }
+          },
+          {
+            "hotmax": 128,
+            "owner_hot_counts": [
+              20,
+              21,
+              15,
+              14,
+              16,
+              12,
+              17,
+              13
+            ],
+            "owner_load_pct": [
+              14.073592154208498,
+              14.466264908592324,
+              12.077515565319176,
+              11.683042105414057,
+              12.500300117586885,
+              10.947916272851419,
+              12.921283964333293,
+              11.330084911694353
+            ],
+            "hot_only_ratio_pct": 56.25,
+            "ratio_pct": 28.14678908592725,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 3.9005463069655857,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 1,
+              "source": 1,
+              "destination": 5,
+              "span": 0.02743507242514144,
+              "after_ratio_pct": 21.948057940113152
+            }
+          },
+          {
+            "hotmax": 256,
+            "owner_hot_counts": [
+              35,
+              32,
+              36,
+              29,
+              31,
+              28,
+              37,
+              28
+            ],
+            "owner_load_pct": [
+              13.097265286254467,
+              12.513909009810511,
+              13.248722861266366,
+              11.878418962781838,
+              12.305114293637299,
+              11.729062748964331,
+              13.506749468279654,
+              11.720757369005538
+            ],
+            "hot_only_ratio_pct": 28.125,
+            "ratio_pct": 14.287936794192934,
+            "band_pct": 7.2161145826323825,
+            "ratio_bands": 1.9800041463561135,
+            "three_bands": false,
+            "best_single_shard_move": {
+              "shard": 22,
+              "source": 6,
+              "destination": 7,
+              "span": 0.015196601123020348,
+              "after_ratio_pct": 12.157280898416278
+            }
+          }
+        ]
+      },
+      "seed_shard_sizes": {
+        "0": 7860,
+        "1": 7919,
+        "2": 7763,
+        "3": 7883,
+        "4": 7783,
+        "5": 7681,
+        "6": 7874,
+        "7": 7848,
+        "8": 7869,
+        "9": 7788,
+        "10": 7740,
+        "11": 7959,
+        "12": 7866,
+        "13": 7749,
+        "14": 7840,
+        "15": 7752,
+        "16": 7802,
+        "17": 7939,
+        "18": 7767,
+        "19": 7666,
+        "20": 7808,
+        "21": 7943,
+        "22": 7901,
+        "23": 7787,
+        "24": 7782,
+        "25": 7770,
+        "26": 7761,
+        "27": 7750,
+        "28": 7837,
+        "29": 7829,
+        "30": 7757,
+        "31": 7775,
+        "32": 7908,
+        "33": 7886,
+        "34": 7723,
+        "35": 7779,
+        "36": 7919,
+        "37": 7924,
+        "38": 7884,
+        "39": 7812,
+        "40": 7616,
+        "41": 7735,
+        "42": 7778,
+        "43": 7704,
+        "44": 7910,
+        "45": 7960,
+        "46": 7744,
+        "47": 7870,
+        "48": 7883,
+        "49": 7751,
+        "50": 8018,
+        "51": 7636,
+        "52": 7626,
+        "53": 7653,
+        "54": 7909,
+        "55": 7790,
+        "56": 7897,
+        "57": 7851,
+        "58": 7630,
+        "59": 7763,
+        "60": 7754,
+        "61": 7859,
+        "62": 7899,
+        "63": 7881
+      },
       "seed": {
         "arms_receipt": {
           "path": "/home/user/Projects/cx-lbosc3/docs/lbosc3/arms.json",
@@ -2003,6 +2333,232 @@
         "hot": 6404779.37,
         "cold": 6468180.05
       },
+      "recorded_cold": {
+        "owners": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "shards": 32,
+        "hot_fraction": 0.49753744737587313,
+        "band_pct": 6.085137719614917,
+        "three_band_pct": 18.25541315884475,
+        "largest_hotmax": 64,
+        "rows": [
+          {
+            "hotmax": 4,
+            "owner_hot_counts": [
+              1,
+              0,
+              1,
+              2
+            ],
+            "owner_load_pct": [
+              24.962214513758777,
+              12.576034852887044,
+              25.017988303290373,
+              37.44376233006381
+            ],
+            "hot_only_ratio_pct": 200.0,
+            "ratio_pct": 99.47090990870707,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 16.3465338817347,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 23,
+              "source": 7,
+              "destination": 5,
+              "span": 0.031103685762024713,
+              "after_ratio_pct": 12.441474304809885
+            }
+          },
+          {
+            "hotmax": 8,
+            "owner_hot_counts": [
+              1,
+              3,
+              2,
+              2
+            ],
+            "owner_load_pct": [
+              18.743096613390065,
+              31.233488257015573,
+              25.0179884471991,
+              25.00542668239526
+            ],
+            "hot_only_ratio_pct": 100.0,
+            "ratio_pct": 49.96156657450204,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 8.210424952824853,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 13,
+              "source": 5,
+              "destination": 4,
+              "span": 0.030591414591495586,
+              "after_ratio_pct": 12.236565836598235
+            }
+          },
+          {
+            "hotmax": 16,
+            "owner_hot_counts": [
+              4,
+              4,
+              4,
+              4
+            ],
+            "owner_load_pct": [
+              24.962213606878088,
+              25.014370888873493,
+              25.017988735023465,
+              25.005426769224957
+            ],
+            "hot_only_ratio_pct": 0.0,
+            "ratio_pct": 0.22310051258151997,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 0.03666318214333502,
+            "three_bands": false,
+            "best_single_shard_move": null
+          },
+          {
+            "hotmax": 32,
+            "owner_hot_counts": [
+              10,
+              6,
+              6,
+              10
+            ],
+            "owner_load_pct": [
+              28.07162044585041,
+              21.90496330055708,
+              21.908581262485534,
+              28.114834991106978
+            ],
+            "hot_only_ratio_pct": 50.0,
+            "ratio_pct": 24.839486762199602,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 4.0819925376761255,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 7,
+              "source": 7,
+              "destination": 5,
+              "span": 0.06163039183364874,
+              "after_ratio_pct": 24.652156733459496
+            }
+          },
+          {
+            "hotmax": 64,
+            "owner_hot_counts": [
+              20,
+              14,
+              15,
+              15
+            ],
+            "owner_load_pct": [
+              28.071417003518324,
+              23.459768756356258,
+              24.240688706013515,
+              24.228125534111904
+            ],
+            "hot_only_ratio_pct": 37.5,
+            "ratio_pct": 18.44659298864826,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 3.03141750254678,
+            "three_bands": true,
+            "best_single_shard_move": {
+              "shard": 12,
+              "source": 4,
+              "destination": 5,
+              "span": 0.015642656598128357,
+              "after_ratio_pct": 6.257062639251343
+            }
+          },
+          {
+            "hotmax": 128,
+            "owner_hot_counts": [
+              36,
+              33,
+              29,
+              30
+            ],
+            "owner_load_pct": [
+              26.51660759063547,
+              25.4029747212961,
+              23.8521909279743,
+              24.228226760094124
+            ],
+            "hot_only_ratio_pct": 21.875,
+            "ratio_pct": 10.657666650644693,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 1.7514257099376114,
+            "three_bands": false,
+            "best_single_shard_move": {
+              "shard": 12,
+              "source": 4,
+              "destination": 6,
+              "span": 0.02001025414303481,
+              "after_ratio_pct": 8.004101657213925
+            }
+          },
+          {
+            "hotmax": 256,
+            "owner_hot_counts": [
+              65,
+              65,
+              65,
+              61
+            ],
+            "owner_load_pct": [
+              25.156445481510403,
+              25.208627811825913,
+              25.212247395431607,
+              24.42267931123209
+            ],
+            "hot_only_ratio_pct": 6.25,
+            "ratio_pct": 3.1582723367980625,
+            "band_pct": 6.085137719614917,
+            "ratio_bands": 0.5190141098397237,
+            "three_bands": false,
+            "best_single_shard_move": null
+          }
+        ]
+      },
+      "seed_shard_sizes": {
+        "0": 15588,
+        "1": 15698,
+        "2": 15734,
+        "3": 15599,
+        "4": 15490,
+        "5": 15464,
+        "6": 15552,
+        "7": 15357,
+        "8": 15747,
+        "9": 15753,
+        "10": 15680,
+        "11": 15866,
+        "12": 15475,
+        "13": 15480,
+        "14": 15553,
+        "15": 15609,
+        "16": 15594,
+        "17": 15739,
+        "18": 15851,
+        "19": 15659,
+        "20": 15509,
+        "21": 15571,
+        "22": 15594,
+        "23": 15431,
+        "24": 15510,
+        "25": 15821,
+        "26": 15727,
+        "27": 15800,
+        "28": 15711,
+        "29": 15617,
+        "30": 15488,
+        "31": 15733
+      },
       "seed": {
         "arms_receipt": {
           "path": "/home/user/Projects/cx-lbosc3/docs/lbosc3/arms.json",
@@ -3117,8 +3673,10 @@
     "build/lbosc3/episodes-mainline/key-skew-1s-PRE-probe/hot.json": "7995efc1ed6dc054fdf6dcefb1bec5747030f923000c7a93e62382dd520080c1",
     "build/lbosc3/episodes-mainline/key-skew-1s-PRE-probe/cold.json": "f15dd8ba926970d77c1cf940178369b86f2e034e0cea95b1e1169e618d914983",
     "build/lbosc3/episodes-mainline/seed-1s/manifest.json": "464f9f5905e36959a3727bf498cf94b84586ebc37d1a48ec7cfc869306d168ba",
+    "build/lbosc3/episodes-mainline/key-skew-1s-PRE-probe/telemetry.jsonl": "c363418de604f603faf2014e2def2b2c28c4d8546282202f03f96f484eecd468",
     "build/lbosc3/episodes-mainline/key-skew-2s-PRE-probe/hot.json": "bb6261429e568ee2aaca1d61379f77ae67cc19ff97c4815711ec3fa301e5a0c3",
     "build/lbosc3/episodes-mainline/key-skew-2s-PRE-probe/cold.json": "91ffc1d7109405a2e82ac949327820f3ac640bc65c9b5f1e4f8707f654784e81",
-    "build/lbosc3/episodes-mainline/seed-2s/manifest.json": "08e5e3182741de4c845692818e8aebe499e66af6836bf2bc96af8ebd4a40f5dd"
+    "build/lbosc3/episodes-mainline/seed-2s/manifest.json": "08e5e3182741de4c845692818e8aebe499e66af6836bf2bc96af8ebd4a40f5dd",
+    "build/lbosc3/episodes-mainline/key-skew-2s-PRE-probe/telemetry.jsonl": "71f207ddc015ce9ac3ee92dafa0b3e93a867d792a8daf32312f8391abaf924d5"
   }
 }

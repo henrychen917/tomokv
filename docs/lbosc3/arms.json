@@ -1,14 +1,14 @@
 {
   "PRE": {
     "path": "/home/user/Projects/cx-lbosc3/build/lbosc3/PRE/tomokv",
-    "sha256": "c1978243f4910d317747341dd71b983d2e84d18009466942a2d63cff501b61c3"
+    "sha256": "26335d4df6753409a35c81b13e62b7c600be6467b27307e1421e4a1bc20291d8"
   },
   "PAD-A": {
     "path": "/home/user/Projects/cx-lbosc3/build/lbosc3/PAD-A/tomokv",
-    "sha256": "56345222b517cb2bc8afdbbc127c4afae05e908cb0a0f038f0eb6e7a6be17a2f"
+    "sha256": "e753a0131d1ccafd4b2316e0bb20de9d206f5bdddad103ac3785a39941834220"
   },
   "POST": {
     "path": "/home/user/Projects/cx-lbosc3/build/lbosc3/POST/tomokv",
-    "sha256": "8010210528069bd7c1fe0e1dab23b8b121cb64d221c955995a006405e43dd101"
+    "sha256": "ace49e7b1ccac5b37d65402644d244dadb2f9d1c69ae85b7e4486feb0eb1c849"
   }
 }

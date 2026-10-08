@@ -1,0 +1,83 @@
+tests/cd13b_unit.cc:57:        shard.configure_maxmemory(snapshot.maxmemory != 0, snapshot.maxmemory / server.nshards(),
+tests/config_parser_test.cc:561:    if (lb_defaults.key_lb_damping != -1) fail("key damping default is not auto");
+tests/config_parser_test.cc:565:        if (tomo::parse_config_args({"--key-lb-damping", value}, lb, state, 1, "conf") !=
+tests/config_parser_test.cc:566:                tomo::kConfigParsed || std::to_string(lb.key_lb_damping) != value)
+tests/config_parser_test.cc:568:        if (tomo::parse_config_args({"--key-lb-damping", "0"}, lb, state, 2, "cli") !=
+tests/config_parser_test.cc:569:                tomo::kConfigParsed || lb.key_lb_damping != 0)
+tests/config_parser_test.cc:573:        if (!rejects({"--key-lb-damping", value})) fail("invalid key damping grammar accepted");
+tests/config_parser_test.cc:574:    if (!rejects({"--key-lb-damping"})) fail("missing key damping level accepted");
+tests/core_concurrency_unit.cc:87:            config.key_lb_damping = key_damping;
+tests/gateprod-evidence/proof.json:2:  "origin_cpp": "5efc5414d3d6107b5e7e29f2404e585806c823ec",
+tests/gateprod-evidence/final-merge.txt:1:origin/cpp 5efc5414d3d6107b5e7e29f2404e585806c823ec
+tests/gateprod-evidence/frozen-before.json:2:  "base_commit": "5efc5414d3d6107b5e7e29f2404e585806c823ec",
+tests/netcmd_unit.cc:404:                                       server.cfg_.stream_limits);
+tests/netcmd_config_unit.cc:170:            check(shard.stream_limits().node_max_entries != 0 &&
+tests/netcmd_config_unit.cc:171:                  shard.stream_limits().node_max_bytes != 0,
+tests/netcmd_config_unit.cc:180:          shard.stream_limits().node_max_bytes == 4096, "stream byte limit accepts Redis memory grammar");
+tests/encodingfix_unit.cc:19:                                       server.cfg_.stream_limits);
+tests/knobs.py:68:                           ("wb-policy", "1"), ("key-lb-damping", "-1")):
+tests/knobs.py:71:    for name in ("read-local", "key-lb", "client-lb", "key-lb-damping", "flip-auto", "net-io", "overlap", "reorder", "wb-policy",
+tools/lb_episodes.py:913:def key_mapping(conn, hotmax, shards):
+tools/lb_episodes.py:915:    for start in range(1, hotmax + 1, 128):
+tools/lb_episodes.py:916:        keys = ["memtier-" + str(i) for i in range(start, min(hotmax + 1, start + 128))]
+tools/lb_episodes.py:925:def mode_hotmax(args, mode):
+tools/lb_episodes.py:926:    override = getattr(args, "hotmax_2s", None) if mode == "2s" else None
+tools/lb_episodes.py:927:    return args.hotmax if override is None else override
+tools/lb_episodes.py:939:        mapping = key_mapping(conn, mode_hotmax(args, mode), identity["shards"])
+tools/lb_episodes.py:944:              "shards": identity["shards"], "hotmax": mode_hotmax(args, mode),
+tools/lb_episodes.py:988:        row += f"hotmax={fmt(result.get('hotmax'))} shard_count={fmt(result.get('shards'))} "
+tools/lb_episodes.py:995:            "coord_busy", "shards", "hotmax", "envelope_return_t"))
+tools/lb_episodes.py:1017:    hotmax = mode_hotmax(args, mode)
+tools/lb_episodes.py:1022:              "arms_receipt": arms_receipt(args), "shards": None, "hotmax": hotmax,
+tools/lb_episodes.py:1038:            require(key_mapping(conn, hotmax, identity["shards"]) == seed_record["hot_keys"],
+tools/lb_episodes.py:1039:                    "physical key map changed from this mode's SHA-bound seed")
+tools/lb_episodes.py:1077:                    ranges = [(hotmax + 1, KEYS), (1, hotmax)] if episode == "key-skew" else [(1, KEYS)] * 2
+tools/lb_episodes.py:1291:    fields = ("name", "episode", "mode", "arm", "round", "probe", "hotmax", "shards",
+tools/lb_episodes.py:1424:    if args.probe_only:
+tools/lb_episodes.py:1425:        return [], [args.probe_only]
+tools/lb_episodes.py:1440:        hotmax = mode_hotmax(args, mode)
+tools/lb_episodes.py:1454:            ranges = [(hotmax + 1, KEYS), (1, hotmax)] if episode == "key-skew" else [(1, KEYS)] * 2
+tools/lb_episodes.py:1473:        print(f"# DEBUG SHARDS memtier-1 ... memtier-{mode_hotmax(args, mode)} in batches of 128; SAVE")
+tools/lb_episodes.py:1476:    print("# PROBE ONLY: stop after PRE admission verdict; no scored matrix" if args.probe_only else
+tools/lb_episodes.py:1517:    parser.add_argument("--hotmax", type=int, default=int(os.environ.get("HOTMAX", "2000")))
+tools/lb_episodes.py:1518:    parser.add_argument("--hotmax-2s", type=int, default=None,
+tools/lb_episodes.py:1519:                        help="2s hot-key upper bound; omitted inherits --hotmax (1s always uses --hotmax)")
+tools/lb_episodes.py:1520:    parser.add_argument("--probe-only", choices=("1s", "2s"),
+tools/lb_episodes.py:1550:    require(1 <= args.hotmax < KEYS and 0 < args.port < 65536 and args.rate_per_client >= 0, "invalid workload argument")
+tools/lb_episodes.py:1551:    require(args.hotmax_2s is None or 1 <= args.hotmax_2s < KEYS,
+tools/lb_episodes.py:1552:            "--hotmax-2s must be in [1,500000)")
+tools/lb_episodes.py:1553:    require(not args.probe_only or args.episodes != "client-skew",
+tools/lb_episodes.py:1554:            "--probe-only requires key-skew episodes")
+tools/lb_episodes.py:1611:                      "rule": "every requested PRE key-skew probe must admit a key move; no automatic stimulus changes"}
+tools/lb_episodes.py:1616:    if args.probe_only:
+tools/lb_episodes.py:1618:                  "rule": "PRE probe ARMED; admission only, scored matrix not run"}
+tools/lb_episodes.py:2470:                      hotmax=2000, shards=128)
+tools/lb_episodes.py:2474:            "LBPLANNER-EPISODE key-skew 1s PRE probe UNARMED hotmax=2000 shard_count=128 "
+tools/lb_episodes.py:2659:    def test_mode_hotmax_dry_run_and_invalid_overrides(self):
+tools/lb_episodes.py:2664:                                             "--hotmax", "256", "--hotmax-2s", "64"])
+tools/lb_episodes.py:2665:        self.assertEqual((mode_hotmax(args, "1s"), mode_hotmax(args, "2s")), (256, 64))
+tools/lb_episodes.py:2678:            hotmax = 64 if "-2s-" in target else 256
+tools/lb_episodes.py:2679:            self.assertIn(f"--key-minimum={1 if target.endswith('/hot.json') else hotmax + 1}", argv)
+tools/lb_episodes.py:2680:            self.assertIn(f"--key-maximum={hotmax if target.endswith('/hot.json') else KEYS}", argv)
+tools/lb_episodes.py:2683:        fallback = argument_parser().parse_args(["--hotmax", "256"])
+tools/lb_episodes.py:2684:        self.assertEqual(mode_hotmax(fallback, "2s"), 256)
+tools/lb_episodes.py:2686:            with self.assertRaisesRegex(ValueError, "--hotmax-2s"):
+tools/lb_episodes.py:2687:                main(["--dry-run", "--hotmax-2s", invalid])
+tools/lb_episodes.py:2688:        with self.assertRaisesRegex(ValueError, "--probe-only requires"):
+tools/lb_episodes.py:2689:            main(["--dry-run", "--probe-only", "2s", "--episodes", "client-skew"])
+tools/lb_episodes.py:2691:    def test_probe_only_dry_run_keeps_seed_calibration_and_admission(self):
+tools/lb_episodes.py:2694:        args = argument_parser().parse_args(["--probe-only", "2s", "--episodes", "key-skew",
+tools/lb_episodes.py:2695:                                             "--hotmax", "256", "--hotmax-2s", "64"])
+tools/lb_episodes.py:2706:        self.assertIn("PROBE ONLY: stop", output.getvalue())
+tools/lb_episodes.py:2708:    def test_live_seed_and_episode_bind_effective_hotmax(self):
+tools/lb_episodes.py:2714:            args = argument_parser().parse_args(["--output", temp, "--hotmax", "256", "--hotmax-2s", "64"])
+tools/lb_episodes.py:2728:                self.assertEqual(record["hotmax"], 64)
+tools/lb_episodes.py:2736:                self.assertEqual(result["hotmax"], 64)
+tools/lb_episodes.py:2738:                self.assertIn("physical key map changed", result["reason"])
+tools/lb_episodes.py:2741:    def test_probe_only_live_dispatch_requires_admitted_move(self):
+tools/lb_episodes.py:2753:                    self.assertEqual((mode, mode_hotmax(args, mode)), ("2s", 64))
+tools/lb_episodes.py:2771:                    code = main(["--probe-only", "2s", "--episodes", "key-skew", "--hotmax", "256",
+tools/lb_episodes.py:2772:                                 "--hotmax-2s", "64", "--output", str(output)])
+tools/lb_episodes.py:2778:                self.assertEqual(saved["config"]["hotmax_2s"], 64)
+tools/lbosc3_pad.py:19:BASE = "db86e5b4a051929c68108d33b1dc358428c59bca"
+tools/lbosc3_pad.py:30:    level = "    const int32_t damping = lbosc3_level(cfg_.key_lb_damping);\n"
