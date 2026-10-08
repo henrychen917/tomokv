@@ -1,0 +1,122 @@
+{
+  "PRE": {
+    "tomo::BlockingState": {
+      "size": 216,
+      "fields": {
+        "refs": 0,
+        "active_tasks": 32,
+        "pending": 64,
+        "candidate": 96,
+        "phase": 128,
+        "counted": 136,
+        "cancel_requested": 144,
+        "unblock_reply": 152,
+        "server": 192,
+        "client": 256,
+        "op_id": 320,
+        "logical_db": 384,
+        "deadline_ms": 448,
+        "kind": 512,
+        "pop_left": 520,
+        "count": 576,
+        "selected": 640,
+        "xread_first_id": 672,
+        "stream_group": 704,
+        "stream_consumer": 960,
+        "stream_consumer_prepared": 1216,
+        "keys": 1280,
+        "groups": 1472,
+        "notify": 1664
+      }
+    },
+    "tomo_db0::BlockingState": {
+      "size": 216,
+      "fields": {
+        "refs": 0,
+        "active_tasks": 32,
+        "pending": 64,
+        "candidate": 96,
+        "phase": 128,
+        "counted": 136,
+        "cancel_requested": 144,
+        "unblock_reply": 152,
+        "server": 192,
+        "client": 256,
+        "op_id": 320,
+        "logical_db": 384,
+        "deadline_ms": 448,
+        "kind": 512,
+        "pop_left": 520,
+        "count": 576,
+        "selected": 640,
+        "xread_first_id": 672,
+        "stream_group": 704,
+        "stream_consumer": 960,
+        "stream_consumer_prepared": 1216,
+        "keys": 1280,
+        "groups": 1472,
+        "notify": 1664
+      }
+    }
+  },
+  "POST": {
+    "tomo::BlockingState": {
+      "size": 216,
+      "fields": {
+        "refs": 0,
+        "active_tasks": 32,
+        "pending": 64,
+        "candidate": 96,
+        "phase": 128,
+        "counted": 136,
+        "cancel_requested": 144,
+        "unblock_reply": 152,
+        "server": 192,
+        "client": 256,
+        "op_id": 320,
+        "logical_db": 384,
+        "deadline_ms": 448,
+        "kind": 512,
+        "pop_left": 520,
+        "count": 576,
+        "selected": 640,
+        "xread_first_id": 672,
+        "stream_group": 704,
+        "stream_consumer": 960,
+        "stream_consumer_prepared": 1216,
+        "keys": 1280,
+        "groups": 1472,
+        "notify": 1664
+      }
+    },
+    "tomo_db0::BlockingState": {
+      "size": 216,
+      "fields": {
+        "refs": 0,
+        "active_tasks": 32,
+        "pending": 64,
+        "candidate": 96,
+        "phase": 128,
+        "counted": 136,
+        "cancel_requested": 144,
+        "unblock_reply": 152,
+        "server": 192,
+        "client": 256,
+        "op_id": 320,
+        "logical_db": 384,
+        "deadline_ms": 448,
+        "kind": 512,
+        "pop_left": 520,
+        "count": 576,
+        "selected": 640,
+        "xread_first_id": 672,
+        "stream_group": 704,
+        "stream_consumer": 960,
+        "stream_consumer_prepared": 1216,
+        "keys": 1280,
+        "groups": 1472,
+        "notify": 1664
+      }
+    }
+  }
+}

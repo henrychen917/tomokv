@@ -22,6 +22,7 @@ def main():
     p.add_argument('--jobs', type=int, default=4)
     p.add_argument('--dump', action='store_true')
     p.add_argument('--auto', type=int, help='changed-TU max-inline-insns-auto budget')
+    p.add_argument('--speedup', type=int, help='changed-TU inline-min-speedup budget')
     args = p.parse_args()
     stem = 't_server' if args.tu == 'server' else 'xshard'
     relative = Path('src/cmd' if args.variant == 'src' else 'db0/src/cmd') / (stem + '.o')
@@ -33,7 +34,8 @@ def main():
         ['make', '-n', '-B', str(Path('build') / relative)], cwd=ROOT, text=True).splitlines()
         if line.startswith('g++ ') and f'-c src/cmd/{stem}.cc ' in line)
     folder = ROOT / 'build/aclkeys3/budgets' / (args.tu + '-' + args.variant +
-             (f'-auto{args.auto}' if args.auto is not None else ''))
+             (f'-auto{args.auto}' if args.auto is not None else '') +
+             (f'-speedup{args.speedup}' if args.speedup is not None else ''))
     folder.mkdir(parents=True, exist_ok=True)
 
     def trial(value):
@@ -48,6 +50,8 @@ def main():
                 command += ['--param', f'max-inline-insns-auto={args.auto}']
         if args.dump:
             command.append('-fdump-ipa-inline-details=' + str(folder / f'{value}.inline'))
+        if args.speedup is not None:
+            command += ['--param', f'inline-min-speedup={args.speedup}']
         with (folder / f'{value}.log').open('w') as log:
             subprocess.run(['taskset', '-c', '112-127', *command], cwd=ROOT,
                            stdout=log, stderr=subprocess.STDOUT, check=True)

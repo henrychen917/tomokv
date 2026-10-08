@@ -1,5 +1,5 @@
-encodingfix: mainline measurements pending.
+aclkeys3: missed XREAD notification fixed; live acceptance pending.
 
-See MEASURE-REQUEST-encodingfix.md for the verified Redis defaults, exact PRE/POST/PAD A arms and SHA-256 checksums, 14-cell null inventory, memory accounting, changed-body proof, correctness results and remaining live gate work.
+See MEASURE-REQUEST-aclkeys3.md for the original-protocol failure, 528/528 directed serverless cases, negative controls, PRE/POST SHA-256, body/layout audit, quiet refusals, gate recipe blockers, and the requested mainline 14-cell null.
 
-No server benchmark or TomoKV boot was run by the lane.
+Six loaded gate runs and idle/loaded loss rates remain unrun. The strict emitted-body audit retains one discarded weak-copy difference; its selected executable copy is identical. No server or load generator was started.

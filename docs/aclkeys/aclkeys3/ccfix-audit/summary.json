@@ -1,0 +1,61 @@
+{
+  "total": 17072,
+  "equal": 17022,
+  "changed": 50,
+  "handlers": 1213,
+  "handlers_equal": 1211,
+  "hot": 1496,
+  "hot_equal": 1496,
+  "changed_handlers": [
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 6484,
+      "post_size": 6500,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 6532,
+      "post_size": 6608,
+      "classification": "other"
+    }
+  ],
+  "changed_hot": [],
+  "hot_nonerror_equal": 1496,
+  "handlers_nonerror_equal": 1211,
+  "other_handlers": [
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_debug_impl(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 6484,
+      "post_size": 6500,
+      "classification": "other"
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_114cmd_debug_implERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_debug_impl(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 6532,
+      "post_size": 6608,
+      "classification": "other"
+    }
+  ],
+  "other_hot": []
+}

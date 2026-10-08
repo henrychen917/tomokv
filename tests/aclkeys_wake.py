@@ -35,7 +35,7 @@ def main():
                 worker.send('XREAD', 'BLOCK', '0', 'STREAMS', 'block:aclkeys', '0')
                 wait_blocked(admin, (worker.sock, worker.file), ident,
                              lambda conn, command: conn.cmd(*command), lambda value: value,
-                             lambda _file: worker.read())
+                             lambda _file: worker.read(), timeout=2.0)
                 start = time.monotonic()
                 assert admin.cmd('XADD', 'block:aclkeys', '1-0', 'field', 'value') == b'1-0'
                 try:

@@ -7,13 +7,40 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import sys
 
-# Import layout support before ccfix installs its full relocation canonicalizer.
-from psfix_artifacts import layouts
 from ccfix_audit import audit
 from aclkeys3_budget import ALLOWED
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def path_reason(name):
+    for token, reason in (
+        ('blocking_task_done', 'Final active-task departure publishes MoveRequested and notifies; includes its new outlined tail'),
+        ('blocking_request_move', 'Count the requesting publisher and enter MovePending before dropping its task reference'),
+        ('blocking_dispatch_selected', 'Selected XREAD/list-move request uses the new publisher protocol'),
+        ('BlockingRegistry::service', 'A ready registered XREAD/list move uses the new publisher protocol'),
+        ('blocking_scatter_retire', 'Recheck retained blocking ACL permissions on scatter retirement'),
+        ('blocking_resume_move_impl', 'Reject MovePending and record armed DEBUG stage 3 at the actual IO entry'),
+        ('blocking_debug_xread_hold', 'New noinline XREAD registration/final-task DEBUG latch predicate'),
+        ('blocking_execute', 'Hold actual XREAD registration/final-task stages and use the final-task publisher'),
+        ('cmd_debug', 'Dispatch the new cold DEBUG subcommand while preserving existing error text'),
+        ('debug_xread_registration_', 'New DEBUG stage parser; two static atomic words, no waiter allocation'),
+        ('blocking_fail_registration_oom', 'Registration OOM tail outlined after the blocked-path change'),
+    ):
+        if token in name:
+            return reason + ('; exception landing pad follows that body' if '[clone .cold]' in name else '')
+    raise AssertionError('unexplained admitted body: ' + name)
+
+
+def layouts(binary):
+    # The older layout tool also patches Elf.canonical on import. Keep that
+    # independent from ccfix's stronger target-aware canonicalizer.
+    code = ('import json,sys; from pathlib import Path; from psfix_artifacts import layouts; '
+            'print(json.dumps(layouts(Path(sys.argv[1]))))')
+    return json.loads(subprocess.check_output(
+        [sys.executable, '-c', code, str(binary.resolve())], cwd=ROOT / 'tools', text=True))
 
 
 def main():
@@ -39,8 +66,7 @@ def main():
             if relative.name in ('acl.o', 'aclkeys.o'):
                 reason = 'Inherited ACL key-extraction change; this lane does not modify this TU'
             elif ALLOWED.search(name):
-                reason = ('Cold DEBUG stage parser/dispatch' if 'debug' in name.lower() else
-                          'Blocked registration, final owner-task publication, scatter wake, or ACL retirement')
+                reason = path_reason(name)
             elif relative.name == 'blocking_debug.o':
                 reason = 'Compiler helper emitted by the new isolated DEBUG TU; check linker selection'
             elif equal:
