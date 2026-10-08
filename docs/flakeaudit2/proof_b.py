@@ -129,6 +129,13 @@ def main():
         return 3
     if args.stage == "reproduce":
         return reproduce(base)
+    # Merge may have changed source while an older release binary still exists.
+    # Establish the candidate before the before/after SHA check on every gate run.
+    build = base / "build"
+    build.mkdir()
+    rc = proof.run(build, ["taskset", "-c", "112-127", "make", "-j16"])
+    if rc:
+        return rc
     for index in range(1, 7 if args.stage == "selected" else 2):
         out = base / ("run-%d" % index)
         out.mkdir()
