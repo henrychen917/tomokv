@@ -80,8 +80,8 @@ inline size_t reply_bytes(const Operation& op) {
 }
 
 template <class Connection>
-inline bool defer(Connection& c, int policy = 1, unsigned small_pipe = kSmallPipe,
-                  unsigned complete_visits = kCompleteVisits) {
+inline bool defer(Connection& c, const Settings& cfg) {
+    int policy = cfg.policy;
     if (policy == 0) return false; // LATENCY: every ready head on every captured pass
     auto& rob = c.rob();
     const unsigned n = rob.in_flight();
@@ -89,6 +89,7 @@ inline bool defer(Connection& c, int policy = 1, unsigned small_pipe = kSmallPip
     size_t bytes = staged_bytes(c);
     if (bytes >= kWbufInline) return false;
     const auto head = rob.flush_id();
+    const unsigned small_pipe = cfg.small_pipe, complete_visits = cfg.complete_visits;
     // Keep this per-visit predicate off the encoder's register set. A live
     // register here spills once per integer reply; one stack byte keeps all
     // additional work at the visit boundary (locked by code-costs receipts).
@@ -117,6 +118,13 @@ inline bool defer(Connection& c, int policy = 1, unsigned small_pipe = kSmallPip
     c.wb_deferrals() += complete;
     return true;
 }
+template <class Connection>
+inline bool defer(Connection& c, int policy = 1, unsigned small_pipe = kSmallPipe,
+                  unsigned complete_visits = kCompleteVisits) {
+    const Settings cfg{static_cast<uint8_t>(policy), static_cast<uint8_t>(small_pipe),
+                       static_cast<uint8_t>(complete_visits)};
+    return defer(c, cfg);
+}
 // Both modes use the same acquire walk and FIFO lifetime rule. Coded preserves
 // each caller's existing encoder capability; it is not a policy selector.
 struct Phase2 {
@@ -129,8 +137,7 @@ struct Phase2 {
             --left;
             Client* client = loop.pending_serve_.front();
             loop.pending_serve_.pop_front();
-            if (!client->dead() && defer(*client, loop.wb_config_.policy,
-                                        loop.wb_config_.small_pipe, loop.wb_config_.complete_visits)) {
+            if (!client->dead() && defer(*client, loop.wb_config_)) {
                 loop.pending_serve_.push_back(client);
                 continue;
             }
@@ -155,8 +162,7 @@ struct Phase2 {
             Client* c = loop.pending_serve_.front();
             loop.pending_serve_.pop_front();
             ++visits;
-            if (!c->dead() && defer(*c, loop.wb_config_.policy,
-                                   loop.wb_config_.small_pipe, loop.wb_config_.complete_visits)) {
+            if (!c->dead() && defer(*c, loop.wb_config_)) {
                 // Keep the lifetime pin; a younger eligible connection may pass this head.
                 loop.pending_serve_.push_back(c);
                 continue;

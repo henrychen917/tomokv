@@ -409,7 +409,7 @@ struct CoreConcurrencyTest {
         require(f.ex.self_->ex_inbound_quiesced(), "EX sources retired");
     }
     template <bool Fused, bool Local = false> static void wbland_policies(bool r7) {
-        for (const auto [small, delay] : {std::pair{16u, 3u}, {0u, 3u}, {8u, 1u}, {64u, 0u}})
+        for (const auto& [small, delay] : {std::pair{16u, 3u}, {0u, 3u}, {8u, 1u}, {64u, 0u}})
         for (unsigned depth : {2u, 4u, 5u, 8u, 16u, 17u, 32u, 64u}) for (int policy : {0, 1}) {
             Fixture<Fused, Local> f(policy, small, delay);
             require(f.io.wb_config_.policy == policy && f.io.wb_config_.small_pipe == small &&

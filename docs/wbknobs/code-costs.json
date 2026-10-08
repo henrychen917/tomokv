@@ -1,0 +1,7822 @@
+{
+  "scope": "One wrapper/defer invocation including cached policy/S/D loads; setup excluded. Existing ptrace tracer, no clocks, PMU, server or load.",
+  "tracer_sha256": "473f7ca948eaa10e00bdd2dfb8227bc33e8d532ca8fad9b9da24145e7ba00b92",
+  "commands": [
+    [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_JEMALLOC",
+      "-DWBKNOBS_PRE",
+      "-I/home/user/Projects/cx-wbknobs/build/wbknobs/PRE-src",
+      "-I.",
+      "tests/wbknobs_cost.cc",
+      "-o",
+      "/home/user/Projects/cx-wbknobs/build/wbknobs/PRE-cost",
+      "-ljemalloc"
+    ],
+    [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_JEMALLOC",
+      "-DWBKNOBS_PRE",
+      "-I/home/user/Projects/cx-wbknobs/build/wbknobs/PRE-src",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "tests/wbknobs_cost.cc",
+      "-o",
+      "/home/user/Projects/cx-wbknobs/build/wbknobs/PRE-db0-cost",
+      "-ljemalloc"
+    ],
+    [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_JEMALLOC",
+      "-I.",
+      "tests/wbknobs_cost.cc",
+      "-o",
+      "/home/user/Projects/cx-wbknobs/build/wbknobs/POST-cost",
+      "-ljemalloc"
+    ],
+    [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-g",
+      "-Wall",
+      "-Wextra",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "tests/wbknobs_cost.cc",
+      "-o",
+      "/home/user/Projects/cx-wbknobs/build/wbknobs/POST-db0-cost",
+      "-ljemalloc"
+    ]
+  ],
+  "binaries": [
+    {
+      "arm": "PRE",
+      "db0": false,
+      "path": "build/wbknobs/PRE-cost",
+      "sha256": "f2b1262cb690d46eb0c83f3cf56d2a1db3b628d64b73ebb3c782127b619051fb"
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "path": "build/wbknobs/PRE-db0-cost",
+      "sha256": "6b04c7e0221c10275d111554c6768e74fda430e348a79aaea869644515944ad6"
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "path": "build/wbknobs/POST-cost",
+      "sha256": "6185c58dbacd26dddc3a1330bcc9472bbbbd661628b0edd84c961086081eeae7"
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "path": "build/wbknobs/POST-db0-cost",
+      "sha256": "a2ce816060a6e883b6111cb4487750935dc110dc84ae252f918e0a0547c5a951"
+    }
+  ],
+  "rows": [
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-1-0-0-1-0-0",
+      "instructions": 13,
+      "executable_instructions": 13,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-1-0-0-1-0-1",
+      "instructions": 13,
+      "executable_instructions": 13,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-1-0-0-1-0-2",
+      "instructions": 13,
+      "executable_instructions": 13,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-1-0-0-1-0-3",
+      "instructions": 13,
+      "executable_instructions": 13,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-1-0-0-0-0",
+      "instructions": 8,
+      "executable_instructions": 8,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-1-0-0-0-1",
+      "instructions": 8,
+      "executable_instructions": 8,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-1-0-0-0-2",
+      "instructions": 8,
+      "executable_instructions": 8,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-1-0-0-0-3",
+      "instructions": 8,
+      "executable_instructions": 8,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-0-512-1-0-0",
+      "instructions": 35,
+      "executable_instructions": 35,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-0-512-1-0-1",
+      "instructions": 35,
+      "executable_instructions": 35,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-0-512-1-0-2",
+      "instructions": 35,
+      "executable_instructions": 35,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-0-512-1-0-3",
+      "instructions": 35,
+      "executable_instructions": 35,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-0-0-1-0-0",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-0-0-1-0-1",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-0-0-1-0-2",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-0-0-1-0-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-1-0-1-0-0",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-1-0-1-0-1",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-1-0-1-0-2",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-1-0-1-0-3",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-8-0-1-0-0",
+      "instructions": 268,
+      "executable_instructions": 268,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-8-0-1-0-1",
+      "instructions": 268,
+      "executable_instructions": 268,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-8-0-1-0-2",
+      "instructions": 268,
+      "executable_instructions": 268,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-8-0-1-0-3",
+      "instructions": 167,
+      "executable_instructions": 167,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-0-0-1-0-0",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-0-0-1-0-1",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-0-0-1-0-2",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-0-0-1-0-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-1-0-1-0-0",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-1-0-1-0-1",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-1-0-1-0-2",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-1-0-1-0-3",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-16-0-1-0-0",
+      "instructions": 476,
+      "executable_instructions": 476,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-16-0-1-0-1",
+      "instructions": 476,
+      "executable_instructions": 476,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-16-0-1-0-2",
+      "instructions": 476,
+      "executable_instructions": 476,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-16-0-1-0-3",
+      "instructions": 271,
+      "executable_instructions": 271,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-0-0-1-0-0",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-0-0-1-0-1",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-0-0-1-0-2",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-0-0-1-0-3",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-1-0-1-0-0",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-1-0-1-0-1",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-1-0-1-0-2",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-1-0-1-0-3",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-17-0-1-0-0",
+      "instructions": 295,
+      "executable_instructions": 295,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-17-0-1-0-1",
+      "instructions": 295,
+      "executable_instructions": 295,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-17-0-1-0-2",
+      "instructions": 295,
+      "executable_instructions": 295,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-17-0-1-0-3",
+      "instructions": 295,
+      "executable_instructions": 295,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-0-0-1-0-0",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-0-0-1-0-1",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-0-0-1-0-2",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-0-0-1-0-3",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-1-0-1-0-0",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-1-0-1-0-1",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-1-0-1-0-2",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-1-0-1-0-3",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-32-0-1-0-0",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-32-0-1-0-1",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-32-0-1-0-2",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-32-0-1-0-3",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-33-0-0-1-0-0",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-33-0-0-1-0-1",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-33-0-0-1-0-2",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-33-0-0-1-0-3",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-33-1-0-1-0-0",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-33-1-0-1-0-1",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-33-1-0-1-0-2",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-33-1-0-1-0-3",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-33-33-0-1-0-0",
+      "instructions": 503,
+      "executable_instructions": 503,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-33-33-0-1-0-1",
+      "instructions": 503,
+      "executable_instructions": 503,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-33-33-0-1-0-2",
+      "instructions": 503,
+      "executable_instructions": 503,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-33-33-0-1-0-3",
+      "instructions": 503,
+      "executable_instructions": 503,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-0-0-1-0-0",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-0-0-1-0-1",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-0-0-1-0-2",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-0-0-1-0-3",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-1-0-1-0-0",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-1-0-1-0-1",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-1-0-1-0-2",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-1-0-1-0-3",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-64-0-1-0-0",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-64-0-1-0-1",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-64-0-1-0-2",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-64-0-1-0-3",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-1-0-1-1-0",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-1-0-1-1-1",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-1-0-1-1-2",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-1-0-1-1-3",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-0-0-1-0-0",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-0-0-1-0-1",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-0-0-1-0-2",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-0-0-1-0-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-1-0-1-0-0",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-1-0-1-0-1",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-1-0-1-0-2",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-1-0-1-0-3",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-2-0-1-0-0",
+      "instructions": 127,
+      "executable_instructions": 127,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-2-0-1-0-1",
+      "instructions": 127,
+      "executable_instructions": 127,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-2-0-1-0-2",
+      "instructions": 127,
+      "executable_instructions": 127,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-2-0-1-0-3",
+      "instructions": 115,
+      "executable_instructions": 115,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-4-0-1-0-0",
+      "instructions": 164,
+      "executable_instructions": 164,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-4-0-1-0-1",
+      "instructions": 164,
+      "executable_instructions": 164,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-4-0-1-0-2",
+      "instructions": 164,
+      "executable_instructions": 164,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-4-4-0-1-0-3",
+      "instructions": 115,
+      "executable_instructions": 115,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-4-0-1-0-0",
+      "instructions": 179,
+      "executable_instructions": 179,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-4-0-1-0-1",
+      "instructions": 179,
+      "executable_instructions": 179,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-4-0-1-0-2",
+      "instructions": 179,
+      "executable_instructions": 179,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-4-0-1-0-3",
+      "instructions": 167,
+      "executable_instructions": 167,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-8-0-1-0-0",
+      "instructions": 283,
+      "executable_instructions": 283,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-8-0-1-0-1",
+      "instructions": 283,
+      "executable_instructions": 283,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-8-0-1-0-2",
+      "instructions": 283,
+      "executable_instructions": 283,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-16-8-0-1-0-3",
+      "instructions": 271,
+      "executable_instructions": 271,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-8-0-1-0-0",
+      "instructions": 284,
+      "executable_instructions": 284,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-8-0-1-0-1",
+      "instructions": 284,
+      "executable_instructions": 284,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-8-0-1-0-2",
+      "instructions": 284,
+      "executable_instructions": 284,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-17-8-0-1-0-3",
+      "instructions": 284,
+      "executable_instructions": 284,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-16-0-1-0-0",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-16-0-1-0-1",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-16-0-1-0-2",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-32-16-0-1-0-3",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-32-0-1-0-0",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-32-0-1-0-1",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-32-0-1-0-2",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-64-32-0-1-0-3",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-1-0-1-1-0",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-1-0-1-1-1",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-1-0-1-1-2",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "trace-8-1-0-1-1-3",
+      "instructions": 79,
+      "executable_instructions": 79,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-0-0-1",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-0-0-2",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-0-0-3",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-0-1-1",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-0-1-2",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-0-1-3",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-0-2-1",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-0-2-2",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-0-2-3",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-0-3-1",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-0-3-2",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-0-3-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-1-0-1",
+      "instructions": 105,
+      "executable_instructions": 105,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-1-0-2",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-1-0-3",
+      "instructions": 142,
+      "executable_instructions": 142,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-1-1-1",
+      "instructions": 105,
+      "executable_instructions": 105,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-1-1-2",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-1-1-3",
+      "instructions": 142,
+      "executable_instructions": 142,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-1-2-1",
+      "instructions": 105,
+      "executable_instructions": 105,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-1-2-2",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-1-2-3",
+      "instructions": 142,
+      "executable_instructions": 142,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-1-3-1",
+      "instructions": 108,
+      "executable_instructions": 108,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-1-3-2",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-1-3-3",
+      "instructions": 145,
+      "executable_instructions": 145,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-2-0-1",
+      "instructions": 135,
+      "executable_instructions": 135,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-2-0-2",
+      "instructions": 127,
+      "executable_instructions": 127,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-2-0-3",
+      "instructions": 209,
+      "executable_instructions": 209,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-2-1-1",
+      "instructions": 135,
+      "executable_instructions": 135,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-2-1-2",
+      "instructions": 127,
+      "executable_instructions": 127,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-2-1-3",
+      "instructions": 209,
+      "executable_instructions": 209,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-2-2-1",
+      "instructions": 135,
+      "executable_instructions": 135,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-2-2-2",
+      "instructions": 127,
+      "executable_instructions": 127,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-2-2-3",
+      "instructions": 209,
+      "executable_instructions": 209,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-2-3-1",
+      "instructions": 138,
+      "executable_instructions": 138,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-2-3-2",
+      "instructions": 130,
+      "executable_instructions": 130,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": false,
+      "case": "codes-2-3-3",
+      "instructions": 212,
+      "executable_instructions": 212,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-1-0-0-1-0-0",
+      "instructions": 13,
+      "executable_instructions": 13,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-1-0-0-1-0-1",
+      "instructions": 13,
+      "executable_instructions": 13,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-1-0-0-1-0-2",
+      "instructions": 13,
+      "executable_instructions": 13,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-1-0-0-1-0-3",
+      "instructions": 13,
+      "executable_instructions": 13,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-1-0-0-0-0",
+      "instructions": 8,
+      "executable_instructions": 8,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-1-0-0-0-1",
+      "instructions": 8,
+      "executable_instructions": 8,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-1-0-0-0-2",
+      "instructions": 8,
+      "executable_instructions": 8,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-1-0-0-0-3",
+      "instructions": 8,
+      "executable_instructions": 8,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-0-512-1-0-0",
+      "instructions": 35,
+      "executable_instructions": 35,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-0-512-1-0-1",
+      "instructions": 35,
+      "executable_instructions": 35,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-0-512-1-0-2",
+      "instructions": 35,
+      "executable_instructions": 35,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-0-512-1-0-3",
+      "instructions": 35,
+      "executable_instructions": 35,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-0-0-1-0-0",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-0-0-1-0-1",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-0-0-1-0-2",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-0-0-1-0-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-1-0-1-0-0",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-1-0-1-0-1",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-1-0-1-0-2",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-1-0-1-0-3",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-8-0-1-0-0",
+      "instructions": 268,
+      "executable_instructions": 268,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-8-0-1-0-1",
+      "instructions": 268,
+      "executable_instructions": 268,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-8-0-1-0-2",
+      "instructions": 268,
+      "executable_instructions": 268,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-8-0-1-0-3",
+      "instructions": 167,
+      "executable_instructions": 167,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-0-0-1-0-0",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-0-0-1-0-1",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-0-0-1-0-2",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-0-0-1-0-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-1-0-1-0-0",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-1-0-1-0-1",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-1-0-1-0-2",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-1-0-1-0-3",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-16-0-1-0-0",
+      "instructions": 476,
+      "executable_instructions": 476,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-16-0-1-0-1",
+      "instructions": 476,
+      "executable_instructions": 476,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-16-0-1-0-2",
+      "instructions": 476,
+      "executable_instructions": 476,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-16-0-1-0-3",
+      "instructions": 271,
+      "executable_instructions": 271,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-0-0-1-0-0",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-0-0-1-0-1",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-0-0-1-0-2",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-0-0-1-0-3",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-1-0-1-0-0",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-1-0-1-0-1",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-1-0-1-0-2",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-1-0-1-0-3",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-17-0-1-0-0",
+      "instructions": 295,
+      "executable_instructions": 295,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-17-0-1-0-1",
+      "instructions": 295,
+      "executable_instructions": 295,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-17-0-1-0-2",
+      "instructions": 295,
+      "executable_instructions": 295,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-17-0-1-0-3",
+      "instructions": 295,
+      "executable_instructions": 295,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-0-0-1-0-0",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-0-0-1-0-1",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-0-0-1-0-2",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-0-0-1-0-3",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-1-0-1-0-0",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-1-0-1-0-1",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-1-0-1-0-2",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-1-0-1-0-3",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-32-0-1-0-0",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-32-0-1-0-1",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-32-0-1-0-2",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-32-0-1-0-3",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-33-0-0-1-0-0",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-33-0-0-1-0-1",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-33-0-0-1-0-2",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-33-0-0-1-0-3",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-33-1-0-1-0-0",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-33-1-0-1-0-1",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-33-1-0-1-0-2",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-33-1-0-1-0-3",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-33-33-0-1-0-0",
+      "instructions": 503,
+      "executable_instructions": 503,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-33-33-0-1-0-1",
+      "instructions": 503,
+      "executable_instructions": 503,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-33-33-0-1-0-2",
+      "instructions": 503,
+      "executable_instructions": 503,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-33-33-0-1-0-3",
+      "instructions": 503,
+      "executable_instructions": 503,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-0-0-1-0-0",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-0-0-1-0-1",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-0-0-1-0-2",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-0-0-1-0-3",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-1-0-1-0-0",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-1-0-1-0-1",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-1-0-1-0-2",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-1-0-1-0-3",
+      "instructions": 102,
+      "executable_instructions": 102,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-64-0-1-0-0",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-64-0-1-0-1",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-64-0-1-0-2",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-64-0-1-0-3",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-1-0-1-1-0",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-1-0-1-1-1",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-1-0-1-1-2",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-1-0-1-1-3",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-0-0-1-0-0",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-0-0-1-0-1",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-0-0-1-0-2",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-0-0-1-0-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-1-0-1-0-0",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-1-0-1-0-1",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-1-0-1-0-2",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-1-0-1-0-3",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-2-0-1-0-0",
+      "instructions": 127,
+      "executable_instructions": 127,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-2-0-1-0-1",
+      "instructions": 127,
+      "executable_instructions": 127,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-2-0-1-0-2",
+      "instructions": 127,
+      "executable_instructions": 127,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-2-0-1-0-3",
+      "instructions": 115,
+      "executable_instructions": 115,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-4-0-1-0-0",
+      "instructions": 164,
+      "executable_instructions": 164,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-4-0-1-0-1",
+      "instructions": 164,
+      "executable_instructions": 164,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-4-0-1-0-2",
+      "instructions": 164,
+      "executable_instructions": 164,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-4-4-0-1-0-3",
+      "instructions": 115,
+      "executable_instructions": 115,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-4-0-1-0-0",
+      "instructions": 179,
+      "executable_instructions": 179,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-4-0-1-0-1",
+      "instructions": 179,
+      "executable_instructions": 179,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-4-0-1-0-2",
+      "instructions": 179,
+      "executable_instructions": 179,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-4-0-1-0-3",
+      "instructions": 167,
+      "executable_instructions": 167,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-8-0-1-0-0",
+      "instructions": 283,
+      "executable_instructions": 283,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-8-0-1-0-1",
+      "instructions": 283,
+      "executable_instructions": 283,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-8-0-1-0-2",
+      "instructions": 283,
+      "executable_instructions": 283,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-16-8-0-1-0-3",
+      "instructions": 271,
+      "executable_instructions": 271,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-8-0-1-0-0",
+      "instructions": 284,
+      "executable_instructions": 284,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-8-0-1-0-1",
+      "instructions": 284,
+      "executable_instructions": 284,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-8-0-1-0-2",
+      "instructions": 284,
+      "executable_instructions": 284,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-17-8-0-1-0-3",
+      "instructions": 284,
+      "executable_instructions": 284,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-16-0-1-0-0",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-16-0-1-0-1",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-16-0-1-0-2",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-32-16-0-1-0-3",
+      "instructions": 477,
+      "executable_instructions": 477,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-32-0-1-0-0",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-32-0-1-0-1",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-32-0-1-0-2",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-64-32-0-1-0-3",
+      "instructions": 893,
+      "executable_instructions": 893,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-1-0-1-1-0",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-1-0-1-1-1",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-1-0-1-1-2",
+      "instructions": 76,
+      "executable_instructions": 76,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "trace-8-1-0-1-1-3",
+      "instructions": 79,
+      "executable_instructions": 79,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-0-0-1",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-0-0-2",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-0-0-3",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-0-1-1",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-0-1-2",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-0-1-3",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-0-2-1",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-0-2-2",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-0-2-3",
+      "instructions": 75,
+      "executable_instructions": 75,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-0-3-1",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-0-3-2",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-0-3-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-1-0-1",
+      "instructions": 105,
+      "executable_instructions": 105,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-1-0-2",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-1-0-3",
+      "instructions": 142,
+      "executable_instructions": 142,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-1-1-1",
+      "instructions": 105,
+      "executable_instructions": 105,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-1-1-2",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-1-1-3",
+      "instructions": 142,
+      "executable_instructions": 142,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-1-2-1",
+      "instructions": 105,
+      "executable_instructions": 105,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-1-2-2",
+      "instructions": 101,
+      "executable_instructions": 101,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-1-2-3",
+      "instructions": 142,
+      "executable_instructions": 142,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-1-3-1",
+      "instructions": 108,
+      "executable_instructions": 108,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-1-3-2",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-1-3-3",
+      "instructions": 145,
+      "executable_instructions": 145,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-2-0-1",
+      "instructions": 135,
+      "executable_instructions": 135,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-2-0-2",
+      "instructions": 127,
+      "executable_instructions": 127,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-2-0-3",
+      "instructions": 209,
+      "executable_instructions": 209,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-2-1-1",
+      "instructions": 135,
+      "executable_instructions": 135,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-2-1-2",
+      "instructions": 127,
+      "executable_instructions": 127,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-2-1-3",
+      "instructions": 209,
+      "executable_instructions": 209,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-2-2-1",
+      "instructions": 135,
+      "executable_instructions": 135,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-2-2-2",
+      "instructions": 127,
+      "executable_instructions": 127,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-2-2-3",
+      "instructions": 209,
+      "executable_instructions": 209,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-2-3-1",
+      "instructions": 138,
+      "executable_instructions": 138,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-2-3-2",
+      "instructions": 130,
+      "executable_instructions": 130,
+      "library_instructions": 0
+    },
+    {
+      "arm": "PRE",
+      "db0": true,
+      "case": "codes-2-3-3",
+      "instructions": 212,
+      "executable_instructions": 212,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-1-0-0-1-0-0",
+      "instructions": 12,
+      "executable_instructions": 12,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-1-0-0-1-0-1",
+      "instructions": 12,
+      "executable_instructions": 12,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-1-0-0-1-0-2",
+      "instructions": 12,
+      "executable_instructions": 12,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-1-0-0-1-0-3",
+      "instructions": 12,
+      "executable_instructions": 12,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-1-0-0-0-0",
+      "instructions": 7,
+      "executable_instructions": 7,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-1-0-0-0-1",
+      "instructions": 7,
+      "executable_instructions": 7,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-1-0-0-0-2",
+      "instructions": 7,
+      "executable_instructions": 7,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-1-0-0-0-3",
+      "instructions": 7,
+      "executable_instructions": 7,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-0-512-1-0-0",
+      "instructions": 47,
+      "executable_instructions": 47,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-0-512-1-0-1",
+      "instructions": 47,
+      "executable_instructions": 47,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-0-512-1-0-2",
+      "instructions": 47,
+      "executable_instructions": 47,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-0-512-1-0-3",
+      "instructions": 47,
+      "executable_instructions": 47,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-0-0-1-0-0",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-0-0-1-0-1",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-0-0-1-0-2",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-0-0-1-0-3",
+      "instructions": 83,
+      "executable_instructions": 83,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-1-0-1-0-0",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-1-0-1-0-1",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-1-0-1-0-2",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-1-0-1-0-3",
+      "instructions": 109,
+      "executable_instructions": 109,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-8-0-1-0-0",
+      "instructions": 270,
+      "executable_instructions": 270,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-8-0-1-0-1",
+      "instructions": 270,
+      "executable_instructions": 270,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-8-0-1-0-2",
+      "instructions": 270,
+      "executable_instructions": 270,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-8-0-1-0-3",
+      "instructions": 172,
+      "executable_instructions": 172,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-0-0-1-0-0",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-0-0-1-0-1",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-0-0-1-0-2",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-0-0-1-0-3",
+      "instructions": 83,
+      "executable_instructions": 83,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-1-0-1-0-0",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-1-0-1-0-1",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-1-0-1-0-2",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-1-0-1-0-3",
+      "instructions": 109,
+      "executable_instructions": 109,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-16-0-1-0-0",
+      "instructions": 478,
+      "executable_instructions": 478,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-16-0-1-0-1",
+      "instructions": 478,
+      "executable_instructions": 478,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-16-0-1-0-2",
+      "instructions": 478,
+      "executable_instructions": 478,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-16-0-1-0-3",
+      "instructions": 276,
+      "executable_instructions": 276,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-0-0-1-0-0",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-0-0-1-0-1",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-0-0-1-0-2",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-0-0-1-0-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-1-0-1-0-0",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-1-0-1-0-1",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-1-0-1-0-2",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-1-0-1-0-3",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-17-0-1-0-0",
+      "instructions": 297,
+      "executable_instructions": 297,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-17-0-1-0-1",
+      "instructions": 297,
+      "executable_instructions": 297,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-17-0-1-0-2",
+      "instructions": 297,
+      "executable_instructions": 297,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-17-0-1-0-3",
+      "instructions": 297,
+      "executable_instructions": 297,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-0-0-1-0-0",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-0-0-1-0-1",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-0-0-1-0-2",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-0-0-1-0-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-1-0-1-0-0",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-1-0-1-0-1",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-1-0-1-0-2",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-1-0-1-0-3",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-32-0-1-0-0",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-32-0-1-0-1",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-32-0-1-0-2",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-32-0-1-0-3",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-33-0-0-1-0-0",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-33-0-0-1-0-1",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-33-0-0-1-0-2",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-33-0-0-1-0-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-33-1-0-1-0-0",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-33-1-0-1-0-1",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-33-1-0-1-0-2",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-33-1-0-1-0-3",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-33-33-0-1-0-0",
+      "instructions": 505,
+      "executable_instructions": 505,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-33-33-0-1-0-1",
+      "instructions": 505,
+      "executable_instructions": 505,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-33-33-0-1-0-2",
+      "instructions": 505,
+      "executable_instructions": 505,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-33-33-0-1-0-3",
+      "instructions": 505,
+      "executable_instructions": 505,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-0-0-1-0-0",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-0-0-1-0-1",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-0-0-1-0-2",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-0-0-1-0-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-1-0-1-0-0",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-1-0-1-0-1",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-1-0-1-0-2",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-1-0-1-0-3",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-64-0-1-0-0",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-64-0-1-0-1",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-64-0-1-0-2",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-64-0-1-0-3",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-1-0-1-1-0",
+      "instructions": 79,
+      "executable_instructions": 79,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-1-0-1-1-1",
+      "instructions": 79,
+      "executable_instructions": 79,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-1-0-1-1-2",
+      "instructions": 79,
+      "executable_instructions": 79,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-1-0-1-1-3",
+      "instructions": 79,
+      "executable_instructions": 79,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-0-0-1-0-0",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-0-0-1-0-1",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-0-0-1-0-2",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-0-0-1-0-3",
+      "instructions": 83,
+      "executable_instructions": 83,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-1-0-1-0-0",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-1-0-1-0-1",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-1-0-1-0-2",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-1-0-1-0-3",
+      "instructions": 109,
+      "executable_instructions": 109,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-2-0-1-0-0",
+      "instructions": 129,
+      "executable_instructions": 129,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-2-0-1-0-1",
+      "instructions": 129,
+      "executable_instructions": 129,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-2-0-1-0-2",
+      "instructions": 129,
+      "executable_instructions": 129,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-2-0-1-0-3",
+      "instructions": 120,
+      "executable_instructions": 120,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-4-0-1-0-0",
+      "instructions": 166,
+      "executable_instructions": 166,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-4-0-1-0-1",
+      "instructions": 166,
+      "executable_instructions": 166,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-4-0-1-0-2",
+      "instructions": 166,
+      "executable_instructions": 166,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-4-4-0-1-0-3",
+      "instructions": 120,
+      "executable_instructions": 120,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-4-0-1-0-0",
+      "instructions": 181,
+      "executable_instructions": 181,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-4-0-1-0-1",
+      "instructions": 181,
+      "executable_instructions": 181,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-4-0-1-0-2",
+      "instructions": 181,
+      "executable_instructions": 181,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-4-0-1-0-3",
+      "instructions": 172,
+      "executable_instructions": 172,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-8-0-1-0-0",
+      "instructions": 285,
+      "executable_instructions": 285,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-8-0-1-0-1",
+      "instructions": 285,
+      "executable_instructions": 285,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-8-0-1-0-2",
+      "instructions": 285,
+      "executable_instructions": 285,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-16-8-0-1-0-3",
+      "instructions": 276,
+      "executable_instructions": 276,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-8-0-1-0-0",
+      "instructions": 286,
+      "executable_instructions": 286,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-8-0-1-0-1",
+      "instructions": 286,
+      "executable_instructions": 286,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-8-0-1-0-2",
+      "instructions": 286,
+      "executable_instructions": 286,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-17-8-0-1-0-3",
+      "instructions": 286,
+      "executable_instructions": 286,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-16-0-1-0-0",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-16-0-1-0-1",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-16-0-1-0-2",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-32-16-0-1-0-3",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-32-0-1-0-0",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-32-0-1-0-1",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-32-0-1-0-2",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-64-32-0-1-0-3",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-1-0-1-1-0",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-1-0-1-1-1",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-1-0-1-1-2",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "trace-8-1-0-1-1-3",
+      "instructions": 84,
+      "executable_instructions": 84,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-0-0-1",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-0-0-2",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-0-0-3",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-0-1-1",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-0-1-2",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-0-1-3",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-0-2-1",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-0-2-2",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-0-2-3",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-0-3-1",
+      "instructions": 83,
+      "executable_instructions": 83,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-0-3-2",
+      "instructions": 83,
+      "executable_instructions": 83,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-0-3-3",
+      "instructions": 83,
+      "executable_instructions": 83,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-1-0-1",
+      "instructions": 107,
+      "executable_instructions": 107,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-1-0-2",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-1-0-3",
+      "instructions": 144,
+      "executable_instructions": 144,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-1-1-1",
+      "instructions": 107,
+      "executable_instructions": 107,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-1-1-2",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-1-1-3",
+      "instructions": 144,
+      "executable_instructions": 144,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-1-2-1",
+      "instructions": 107,
+      "executable_instructions": 107,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-1-2-2",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-1-2-3",
+      "instructions": 144,
+      "executable_instructions": 144,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-1-3-1",
+      "instructions": 113,
+      "executable_instructions": 113,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-1-3-2",
+      "instructions": 109,
+      "executable_instructions": 109,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-1-3-3",
+      "instructions": 150,
+      "executable_instructions": 150,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-2-0-1",
+      "instructions": 137,
+      "executable_instructions": 137,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-2-0-2",
+      "instructions": 129,
+      "executable_instructions": 129,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-2-0-3",
+      "instructions": 211,
+      "executable_instructions": 211,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-2-1-1",
+      "instructions": 137,
+      "executable_instructions": 137,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-2-1-2",
+      "instructions": 129,
+      "executable_instructions": 129,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-2-1-3",
+      "instructions": 211,
+      "executable_instructions": 211,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-2-2-1",
+      "instructions": 137,
+      "executable_instructions": 137,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-2-2-2",
+      "instructions": 129,
+      "executable_instructions": 129,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-2-2-3",
+      "instructions": 211,
+      "executable_instructions": 211,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-2-3-1",
+      "instructions": 143,
+      "executable_instructions": 143,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-2-3-2",
+      "instructions": 135,
+      "executable_instructions": 135,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": false,
+      "case": "codes-2-3-3",
+      "instructions": 217,
+      "executable_instructions": 217,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-1-0-0-1-0-0",
+      "instructions": 12,
+      "executable_instructions": 12,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-1-0-0-1-0-1",
+      "instructions": 12,
+      "executable_instructions": 12,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-1-0-0-1-0-2",
+      "instructions": 12,
+      "executable_instructions": 12,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-1-0-0-1-0-3",
+      "instructions": 12,
+      "executable_instructions": 12,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-1-0-0-0-0",
+      "instructions": 7,
+      "executable_instructions": 7,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-1-0-0-0-1",
+      "instructions": 7,
+      "executable_instructions": 7,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-1-0-0-0-2",
+      "instructions": 7,
+      "executable_instructions": 7,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-1-0-0-0-3",
+      "instructions": 7,
+      "executable_instructions": 7,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-0-512-1-0-0",
+      "instructions": 47,
+      "executable_instructions": 47,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-0-512-1-0-1",
+      "instructions": 47,
+      "executable_instructions": 47,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-0-512-1-0-2",
+      "instructions": 47,
+      "executable_instructions": 47,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-0-512-1-0-3",
+      "instructions": 47,
+      "executable_instructions": 47,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-0-0-1-0-0",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-0-0-1-0-1",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-0-0-1-0-2",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-0-0-1-0-3",
+      "instructions": 83,
+      "executable_instructions": 83,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-1-0-1-0-0",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-1-0-1-0-1",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-1-0-1-0-2",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-1-0-1-0-3",
+      "instructions": 109,
+      "executable_instructions": 109,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-8-0-1-0-0",
+      "instructions": 270,
+      "executable_instructions": 270,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-8-0-1-0-1",
+      "instructions": 270,
+      "executable_instructions": 270,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-8-0-1-0-2",
+      "instructions": 270,
+      "executable_instructions": 270,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-8-0-1-0-3",
+      "instructions": 172,
+      "executable_instructions": 172,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-0-0-1-0-0",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-0-0-1-0-1",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-0-0-1-0-2",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-0-0-1-0-3",
+      "instructions": 83,
+      "executable_instructions": 83,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-1-0-1-0-0",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-1-0-1-0-1",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-1-0-1-0-2",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-1-0-1-0-3",
+      "instructions": 109,
+      "executable_instructions": 109,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-16-0-1-0-0",
+      "instructions": 478,
+      "executable_instructions": 478,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-16-0-1-0-1",
+      "instructions": 478,
+      "executable_instructions": 478,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-16-0-1-0-2",
+      "instructions": 478,
+      "executable_instructions": 478,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-16-0-1-0-3",
+      "instructions": 276,
+      "executable_instructions": 276,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-0-0-1-0-0",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-0-0-1-0-1",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-0-0-1-0-2",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-0-0-1-0-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-1-0-1-0-0",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-1-0-1-0-1",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-1-0-1-0-2",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-1-0-1-0-3",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-17-0-1-0-0",
+      "instructions": 297,
+      "executable_instructions": 297,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-17-0-1-0-1",
+      "instructions": 297,
+      "executable_instructions": 297,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-17-0-1-0-2",
+      "instructions": 297,
+      "executable_instructions": 297,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-17-0-1-0-3",
+      "instructions": 297,
+      "executable_instructions": 297,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-0-0-1-0-0",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-0-0-1-0-1",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-0-0-1-0-2",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-0-0-1-0-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-1-0-1-0-0",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-1-0-1-0-1",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-1-0-1-0-2",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-1-0-1-0-3",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-32-0-1-0-0",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-32-0-1-0-1",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-32-0-1-0-2",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-32-0-1-0-3",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-33-0-0-1-0-0",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-33-0-0-1-0-1",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-33-0-0-1-0-2",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-33-0-0-1-0-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-33-1-0-1-0-0",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-33-1-0-1-0-1",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-33-1-0-1-0-2",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-33-1-0-1-0-3",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-33-33-0-1-0-0",
+      "instructions": 505,
+      "executable_instructions": 505,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-33-33-0-1-0-1",
+      "instructions": 505,
+      "executable_instructions": 505,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-33-33-0-1-0-2",
+      "instructions": 505,
+      "executable_instructions": 505,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-33-33-0-1-0-3",
+      "instructions": 505,
+      "executable_instructions": 505,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-0-0-1-0-0",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-0-0-1-0-1",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-0-0-1-0-2",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-0-0-1-0-3",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-1-0-1-0-0",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-1-0-1-0-1",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-1-0-1-0-2",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-1-0-1-0-3",
+      "instructions": 104,
+      "executable_instructions": 104,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-64-0-1-0-0",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-64-0-1-0-1",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-64-0-1-0-2",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-64-0-1-0-3",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-1-0-1-1-0",
+      "instructions": 79,
+      "executable_instructions": 79,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-1-0-1-1-1",
+      "instructions": 79,
+      "executable_instructions": 79,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-1-0-1-1-2",
+      "instructions": 79,
+      "executable_instructions": 79,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-1-0-1-1-3",
+      "instructions": 79,
+      "executable_instructions": 79,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-0-0-1-0-0",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-0-0-1-0-1",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-0-0-1-0-2",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-0-0-1-0-3",
+      "instructions": 83,
+      "executable_instructions": 83,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-1-0-1-0-0",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-1-0-1-0-1",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-1-0-1-0-2",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-1-0-1-0-3",
+      "instructions": 109,
+      "executable_instructions": 109,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-2-0-1-0-0",
+      "instructions": 129,
+      "executable_instructions": 129,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-2-0-1-0-1",
+      "instructions": 129,
+      "executable_instructions": 129,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-2-0-1-0-2",
+      "instructions": 129,
+      "executable_instructions": 129,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-2-0-1-0-3",
+      "instructions": 120,
+      "executable_instructions": 120,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-4-0-1-0-0",
+      "instructions": 166,
+      "executable_instructions": 166,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-4-0-1-0-1",
+      "instructions": 166,
+      "executable_instructions": 166,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-4-0-1-0-2",
+      "instructions": 166,
+      "executable_instructions": 166,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-4-4-0-1-0-3",
+      "instructions": 120,
+      "executable_instructions": 120,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-4-0-1-0-0",
+      "instructions": 181,
+      "executable_instructions": 181,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-4-0-1-0-1",
+      "instructions": 181,
+      "executable_instructions": 181,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-4-0-1-0-2",
+      "instructions": 181,
+      "executable_instructions": 181,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-4-0-1-0-3",
+      "instructions": 172,
+      "executable_instructions": 172,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-8-0-1-0-0",
+      "instructions": 285,
+      "executable_instructions": 285,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-8-0-1-0-1",
+      "instructions": 285,
+      "executable_instructions": 285,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-8-0-1-0-2",
+      "instructions": 285,
+      "executable_instructions": 285,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-16-8-0-1-0-3",
+      "instructions": 276,
+      "executable_instructions": 276,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-8-0-1-0-0",
+      "instructions": 286,
+      "executable_instructions": 286,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-8-0-1-0-1",
+      "instructions": 286,
+      "executable_instructions": 286,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-8-0-1-0-2",
+      "instructions": 286,
+      "executable_instructions": 286,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-17-8-0-1-0-3",
+      "instructions": 286,
+      "executable_instructions": 286,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-16-0-1-0-0",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-16-0-1-0-1",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-16-0-1-0-2",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-32-16-0-1-0-3",
+      "instructions": 479,
+      "executable_instructions": 479,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-32-0-1-0-0",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-32-0-1-0-1",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-32-0-1-0-2",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-64-32-0-1-0-3",
+      "instructions": 895,
+      "executable_instructions": 895,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-1-0-1-1-0",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-1-0-1-1-1",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-1-0-1-1-2",
+      "instructions": 78,
+      "executable_instructions": 78,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "trace-8-1-0-1-1-3",
+      "instructions": 84,
+      "executable_instructions": 84,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-0-0-1",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-0-0-2",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-0-0-3",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-0-1-1",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-0-1-2",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-0-1-3",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-0-2-1",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-0-2-2",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-0-2-3",
+      "instructions": 77,
+      "executable_instructions": 77,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-0-3-1",
+      "instructions": 83,
+      "executable_instructions": 83,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-0-3-2",
+      "instructions": 83,
+      "executable_instructions": 83,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-0-3-3",
+      "instructions": 83,
+      "executable_instructions": 83,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-1-0-1",
+      "instructions": 107,
+      "executable_instructions": 107,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-1-0-2",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-1-0-3",
+      "instructions": 144,
+      "executable_instructions": 144,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-1-1-1",
+      "instructions": 107,
+      "executable_instructions": 107,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-1-1-2",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-1-1-3",
+      "instructions": 144,
+      "executable_instructions": 144,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-1-2-1",
+      "instructions": 107,
+      "executable_instructions": 107,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-1-2-2",
+      "instructions": 103,
+      "executable_instructions": 103,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-1-2-3",
+      "instructions": 144,
+      "executable_instructions": 144,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-1-3-1",
+      "instructions": 113,
+      "executable_instructions": 113,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-1-3-2",
+      "instructions": 109,
+      "executable_instructions": 109,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-1-3-3",
+      "instructions": 150,
+      "executable_instructions": 150,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-2-0-1",
+      "instructions": 137,
+      "executable_instructions": 137,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-2-0-2",
+      "instructions": 129,
+      "executable_instructions": 129,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-2-0-3",
+      "instructions": 211,
+      "executable_instructions": 211,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-2-1-1",
+      "instructions": 137,
+      "executable_instructions": 137,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-2-1-2",
+      "instructions": 129,
+      "executable_instructions": 129,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-2-1-3",
+      "instructions": 211,
+      "executable_instructions": 211,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-2-2-1",
+      "instructions": 137,
+      "executable_instructions": 137,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-2-2-2",
+      "instructions": 129,
+      "executable_instructions": 129,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-2-2-3",
+      "instructions": 211,
+      "executable_instructions": 211,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-2-3-1",
+      "instructions": 143,
+      "executable_instructions": 143,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-2-3-2",
+      "instructions": 135,
+      "executable_instructions": 135,
+      "library_instructions": 0
+    },
+    {
+      "arm": "POST",
+      "db0": true,
+      "case": "codes-2-3-3",
+      "instructions": 217,
+      "executable_instructions": 217,
+      "library_instructions": 0
+    }
+  ],
+  "comparisons": [
+    {
+      "db0": false,
+      "case": "trace-1-0-0-1-0-0",
+      "pre": 13,
+      "post": 12,
+      "delta": -1
+    },
+    {
+      "db0": false,
+      "case": "trace-1-0-0-1-0-1",
+      "pre": 13,
+      "post": 12,
+      "delta": -1
+    },
+    {
+      "db0": false,
+      "case": "trace-1-0-0-1-0-2",
+      "pre": 13,
+      "post": 12,
+      "delta": -1
+    },
+    {
+      "db0": false,
+      "case": "trace-1-0-0-1-0-3",
+      "pre": 13,
+      "post": 12,
+      "delta": -1
+    },
+    {
+      "db0": false,
+      "case": "trace-64-1-0-0-0-0",
+      "pre": 8,
+      "post": 7,
+      "delta": -1
+    },
+    {
+      "db0": false,
+      "case": "trace-64-1-0-0-0-1",
+      "pre": 8,
+      "post": 7,
+      "delta": -1
+    },
+    {
+      "db0": false,
+      "case": "trace-64-1-0-0-0-2",
+      "pre": 8,
+      "post": 7,
+      "delta": -1
+    },
+    {
+      "db0": false,
+      "case": "trace-64-1-0-0-0-3",
+      "pre": 8,
+      "post": 7,
+      "delta": -1
+    },
+    {
+      "db0": false,
+      "case": "trace-64-0-512-1-0-0",
+      "pre": 35,
+      "post": 47,
+      "delta": 12
+    },
+    {
+      "db0": false,
+      "case": "trace-64-0-512-1-0-1",
+      "pre": 35,
+      "post": 47,
+      "delta": 12
+    },
+    {
+      "db0": false,
+      "case": "trace-64-0-512-1-0-2",
+      "pre": 35,
+      "post": 47,
+      "delta": 12
+    },
+    {
+      "db0": false,
+      "case": "trace-64-0-512-1-0-3",
+      "pre": 35,
+      "post": 47,
+      "delta": 12
+    },
+    {
+      "db0": false,
+      "case": "trace-8-0-0-1-0-0",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-0-0-1-0-1",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-0-0-1-0-2",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-0-0-1-0-3",
+      "pre": 78,
+      "post": 83,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "trace-8-1-0-1-0-0",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-1-0-1-0-1",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-1-0-1-0-2",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-1-0-1-0-3",
+      "pre": 104,
+      "post": 109,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "trace-8-8-0-1-0-0",
+      "pre": 268,
+      "post": 270,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-8-0-1-0-1",
+      "pre": 268,
+      "post": 270,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-8-0-1-0-2",
+      "pre": 268,
+      "post": 270,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-8-0-1-0-3",
+      "pre": 167,
+      "post": 172,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "trace-16-0-0-1-0-0",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-16-0-0-1-0-1",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-16-0-0-1-0-2",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-16-0-0-1-0-3",
+      "pre": 78,
+      "post": 83,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "trace-16-1-0-1-0-0",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-16-1-0-1-0-1",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-16-1-0-1-0-2",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-16-1-0-1-0-3",
+      "pre": 104,
+      "post": 109,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "trace-16-16-0-1-0-0",
+      "pre": 476,
+      "post": 478,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-16-16-0-1-0-1",
+      "pre": 476,
+      "post": 478,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-16-16-0-1-0-2",
+      "pre": 476,
+      "post": 478,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-16-16-0-1-0-3",
+      "pre": 271,
+      "post": 276,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "trace-17-0-0-1-0-0",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-17-0-0-1-0-1",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-17-0-0-1-0-2",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-17-0-0-1-0-3",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-17-1-0-1-0-0",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-17-1-0-1-0-1",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-17-1-0-1-0-2",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-17-1-0-1-0-3",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-17-17-0-1-0-0",
+      "pre": 295,
+      "post": 297,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-17-17-0-1-0-1",
+      "pre": 295,
+      "post": 297,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-17-17-0-1-0-2",
+      "pre": 295,
+      "post": 297,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-17-17-0-1-0-3",
+      "pre": 295,
+      "post": 297,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-0-0-1-0-0",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-0-0-1-0-1",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-0-0-1-0-2",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-0-0-1-0-3",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-1-0-1-0-0",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-1-0-1-0-1",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-1-0-1-0-2",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-1-0-1-0-3",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-32-0-1-0-0",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-32-0-1-0-1",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-32-0-1-0-2",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-32-0-1-0-3",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-33-0-0-1-0-0",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-33-0-0-1-0-1",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-33-0-0-1-0-2",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-33-0-0-1-0-3",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-33-1-0-1-0-0",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-33-1-0-1-0-1",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-33-1-0-1-0-2",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-33-1-0-1-0-3",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-33-33-0-1-0-0",
+      "pre": 503,
+      "post": 505,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-33-33-0-1-0-1",
+      "pre": 503,
+      "post": 505,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-33-33-0-1-0-2",
+      "pre": 503,
+      "post": 505,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-33-33-0-1-0-3",
+      "pre": 503,
+      "post": 505,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-0-0-1-0-0",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-0-0-1-0-1",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-0-0-1-0-2",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-0-0-1-0-3",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-1-0-1-0-0",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-1-0-1-0-1",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-1-0-1-0-2",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-1-0-1-0-3",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-64-0-1-0-0",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-64-0-1-0-1",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-64-0-1-0-2",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-64-0-1-0-3",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-1-0-1-1-0",
+      "pre": 77,
+      "post": 79,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-1-0-1-1-1",
+      "pre": 77,
+      "post": 79,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-1-0-1-1-2",
+      "pre": 77,
+      "post": 79,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-1-0-1-1-3",
+      "pre": 77,
+      "post": 79,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-4-0-0-1-0-0",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-4-0-0-1-0-1",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-4-0-0-1-0-2",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-4-0-0-1-0-3",
+      "pre": 78,
+      "post": 83,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "trace-4-1-0-1-0-0",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-4-1-0-1-0-1",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-4-1-0-1-0-2",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-4-1-0-1-0-3",
+      "pre": 104,
+      "post": 109,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "trace-4-2-0-1-0-0",
+      "pre": 127,
+      "post": 129,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-4-2-0-1-0-1",
+      "pre": 127,
+      "post": 129,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-4-2-0-1-0-2",
+      "pre": 127,
+      "post": 129,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-4-2-0-1-0-3",
+      "pre": 115,
+      "post": 120,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "trace-4-4-0-1-0-0",
+      "pre": 164,
+      "post": 166,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-4-4-0-1-0-1",
+      "pre": 164,
+      "post": 166,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-4-4-0-1-0-2",
+      "pre": 164,
+      "post": 166,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-4-4-0-1-0-3",
+      "pre": 115,
+      "post": 120,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "trace-8-4-0-1-0-0",
+      "pre": 179,
+      "post": 181,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-4-0-1-0-1",
+      "pre": 179,
+      "post": 181,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-4-0-1-0-2",
+      "pre": 179,
+      "post": 181,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-4-0-1-0-3",
+      "pre": 167,
+      "post": 172,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "trace-16-8-0-1-0-0",
+      "pre": 283,
+      "post": 285,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-16-8-0-1-0-1",
+      "pre": 283,
+      "post": 285,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-16-8-0-1-0-2",
+      "pre": 283,
+      "post": 285,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-16-8-0-1-0-3",
+      "pre": 271,
+      "post": 276,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "trace-17-8-0-1-0-0",
+      "pre": 284,
+      "post": 286,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-17-8-0-1-0-1",
+      "pre": 284,
+      "post": 286,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-17-8-0-1-0-2",
+      "pre": 284,
+      "post": 286,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-17-8-0-1-0-3",
+      "pre": 284,
+      "post": 286,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-16-0-1-0-0",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-16-0-1-0-1",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-16-0-1-0-2",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-32-16-0-1-0-3",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-32-0-1-0-0",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-32-0-1-0-1",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-32-0-1-0-2",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-64-32-0-1-0-3",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-1-0-1-1-0",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-1-0-1-1-1",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-1-0-1-1-2",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "trace-8-1-0-1-1-3",
+      "pre": 79,
+      "post": 84,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "codes-0-0-1",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-0-0-2",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-0-0-3",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-0-1-1",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-0-1-2",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-0-1-3",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-0-2-1",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-0-2-2",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-0-2-3",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-0-3-1",
+      "pre": 78,
+      "post": 83,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "codes-0-3-2",
+      "pre": 78,
+      "post": 83,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "codes-0-3-3",
+      "pre": 78,
+      "post": 83,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "codes-1-0-1",
+      "pre": 105,
+      "post": 107,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-1-0-2",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-1-0-3",
+      "pre": 142,
+      "post": 144,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-1-1-1",
+      "pre": 105,
+      "post": 107,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-1-1-2",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-1-1-3",
+      "pre": 142,
+      "post": 144,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-1-2-1",
+      "pre": 105,
+      "post": 107,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-1-2-2",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-1-2-3",
+      "pre": 142,
+      "post": 144,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-1-3-1",
+      "pre": 108,
+      "post": 113,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "codes-1-3-2",
+      "pre": 104,
+      "post": 109,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "codes-1-3-3",
+      "pre": 145,
+      "post": 150,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "codes-2-0-1",
+      "pre": 135,
+      "post": 137,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-2-0-2",
+      "pre": 127,
+      "post": 129,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-2-0-3",
+      "pre": 209,
+      "post": 211,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-2-1-1",
+      "pre": 135,
+      "post": 137,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-2-1-2",
+      "pre": 127,
+      "post": 129,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-2-1-3",
+      "pre": 209,
+      "post": 211,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-2-2-1",
+      "pre": 135,
+      "post": 137,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-2-2-2",
+      "pre": 127,
+      "post": 129,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-2-2-3",
+      "pre": 209,
+      "post": 211,
+      "delta": 2
+    },
+    {
+      "db0": false,
+      "case": "codes-2-3-1",
+      "pre": 138,
+      "post": 143,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "codes-2-3-2",
+      "pre": 130,
+      "post": 135,
+      "delta": 5
+    },
+    {
+      "db0": false,
+      "case": "codes-2-3-3",
+      "pre": 212,
+      "post": 217,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "trace-1-0-0-1-0-0",
+      "pre": 13,
+      "post": 12,
+      "delta": -1
+    },
+    {
+      "db0": true,
+      "case": "trace-1-0-0-1-0-1",
+      "pre": 13,
+      "post": 12,
+      "delta": -1
+    },
+    {
+      "db0": true,
+      "case": "trace-1-0-0-1-0-2",
+      "pre": 13,
+      "post": 12,
+      "delta": -1
+    },
+    {
+      "db0": true,
+      "case": "trace-1-0-0-1-0-3",
+      "pre": 13,
+      "post": 12,
+      "delta": -1
+    },
+    {
+      "db0": true,
+      "case": "trace-64-1-0-0-0-0",
+      "pre": 8,
+      "post": 7,
+      "delta": -1
+    },
+    {
+      "db0": true,
+      "case": "trace-64-1-0-0-0-1",
+      "pre": 8,
+      "post": 7,
+      "delta": -1
+    },
+    {
+      "db0": true,
+      "case": "trace-64-1-0-0-0-2",
+      "pre": 8,
+      "post": 7,
+      "delta": -1
+    },
+    {
+      "db0": true,
+      "case": "trace-64-1-0-0-0-3",
+      "pre": 8,
+      "post": 7,
+      "delta": -1
+    },
+    {
+      "db0": true,
+      "case": "trace-64-0-512-1-0-0",
+      "pre": 35,
+      "post": 47,
+      "delta": 12
+    },
+    {
+      "db0": true,
+      "case": "trace-64-0-512-1-0-1",
+      "pre": 35,
+      "post": 47,
+      "delta": 12
+    },
+    {
+      "db0": true,
+      "case": "trace-64-0-512-1-0-2",
+      "pre": 35,
+      "post": 47,
+      "delta": 12
+    },
+    {
+      "db0": true,
+      "case": "trace-64-0-512-1-0-3",
+      "pre": 35,
+      "post": 47,
+      "delta": 12
+    },
+    {
+      "db0": true,
+      "case": "trace-8-0-0-1-0-0",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-0-0-1-0-1",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-0-0-1-0-2",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-0-0-1-0-3",
+      "pre": 78,
+      "post": 83,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "trace-8-1-0-1-0-0",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-1-0-1-0-1",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-1-0-1-0-2",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-1-0-1-0-3",
+      "pre": 104,
+      "post": 109,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "trace-8-8-0-1-0-0",
+      "pre": 268,
+      "post": 270,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-8-0-1-0-1",
+      "pre": 268,
+      "post": 270,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-8-0-1-0-2",
+      "pre": 268,
+      "post": 270,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-8-0-1-0-3",
+      "pre": 167,
+      "post": 172,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "trace-16-0-0-1-0-0",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-16-0-0-1-0-1",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-16-0-0-1-0-2",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-16-0-0-1-0-3",
+      "pre": 78,
+      "post": 83,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "trace-16-1-0-1-0-0",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-16-1-0-1-0-1",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-16-1-0-1-0-2",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-16-1-0-1-0-3",
+      "pre": 104,
+      "post": 109,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "trace-16-16-0-1-0-0",
+      "pre": 476,
+      "post": 478,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-16-16-0-1-0-1",
+      "pre": 476,
+      "post": 478,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-16-16-0-1-0-2",
+      "pre": 476,
+      "post": 478,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-16-16-0-1-0-3",
+      "pre": 271,
+      "post": 276,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "trace-17-0-0-1-0-0",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-17-0-0-1-0-1",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-17-0-0-1-0-2",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-17-0-0-1-0-3",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-17-1-0-1-0-0",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-17-1-0-1-0-1",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-17-1-0-1-0-2",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-17-1-0-1-0-3",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-17-17-0-1-0-0",
+      "pre": 295,
+      "post": 297,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-17-17-0-1-0-1",
+      "pre": 295,
+      "post": 297,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-17-17-0-1-0-2",
+      "pre": 295,
+      "post": 297,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-17-17-0-1-0-3",
+      "pre": 295,
+      "post": 297,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-0-0-1-0-0",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-0-0-1-0-1",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-0-0-1-0-2",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-0-0-1-0-3",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-1-0-1-0-0",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-1-0-1-0-1",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-1-0-1-0-2",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-1-0-1-0-3",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-32-0-1-0-0",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-32-0-1-0-1",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-32-0-1-0-2",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-32-0-1-0-3",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-33-0-0-1-0-0",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-33-0-0-1-0-1",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-33-0-0-1-0-2",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-33-0-0-1-0-3",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-33-1-0-1-0-0",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-33-1-0-1-0-1",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-33-1-0-1-0-2",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-33-1-0-1-0-3",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-33-33-0-1-0-0",
+      "pre": 503,
+      "post": 505,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-33-33-0-1-0-1",
+      "pre": 503,
+      "post": 505,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-33-33-0-1-0-2",
+      "pre": 503,
+      "post": 505,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-33-33-0-1-0-3",
+      "pre": 503,
+      "post": 505,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-0-0-1-0-0",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-0-0-1-0-1",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-0-0-1-0-2",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-0-0-1-0-3",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-1-0-1-0-0",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-1-0-1-0-1",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-1-0-1-0-2",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-1-0-1-0-3",
+      "pre": 102,
+      "post": 104,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-64-0-1-0-0",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-64-0-1-0-1",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-64-0-1-0-2",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-64-0-1-0-3",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-1-0-1-1-0",
+      "pre": 77,
+      "post": 79,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-1-0-1-1-1",
+      "pre": 77,
+      "post": 79,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-1-0-1-1-2",
+      "pre": 77,
+      "post": 79,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-1-0-1-1-3",
+      "pre": 77,
+      "post": 79,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-4-0-0-1-0-0",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-4-0-0-1-0-1",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-4-0-0-1-0-2",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-4-0-0-1-0-3",
+      "pre": 78,
+      "post": 83,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "trace-4-1-0-1-0-0",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-4-1-0-1-0-1",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-4-1-0-1-0-2",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-4-1-0-1-0-3",
+      "pre": 104,
+      "post": 109,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "trace-4-2-0-1-0-0",
+      "pre": 127,
+      "post": 129,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-4-2-0-1-0-1",
+      "pre": 127,
+      "post": 129,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-4-2-0-1-0-2",
+      "pre": 127,
+      "post": 129,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-4-2-0-1-0-3",
+      "pre": 115,
+      "post": 120,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "trace-4-4-0-1-0-0",
+      "pre": 164,
+      "post": 166,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-4-4-0-1-0-1",
+      "pre": 164,
+      "post": 166,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-4-4-0-1-0-2",
+      "pre": 164,
+      "post": 166,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-4-4-0-1-0-3",
+      "pre": 115,
+      "post": 120,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "trace-8-4-0-1-0-0",
+      "pre": 179,
+      "post": 181,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-4-0-1-0-1",
+      "pre": 179,
+      "post": 181,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-4-0-1-0-2",
+      "pre": 179,
+      "post": 181,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-4-0-1-0-3",
+      "pre": 167,
+      "post": 172,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "trace-16-8-0-1-0-0",
+      "pre": 283,
+      "post": 285,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-16-8-0-1-0-1",
+      "pre": 283,
+      "post": 285,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-16-8-0-1-0-2",
+      "pre": 283,
+      "post": 285,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-16-8-0-1-0-3",
+      "pre": 271,
+      "post": 276,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "trace-17-8-0-1-0-0",
+      "pre": 284,
+      "post": 286,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-17-8-0-1-0-1",
+      "pre": 284,
+      "post": 286,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-17-8-0-1-0-2",
+      "pre": 284,
+      "post": 286,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-17-8-0-1-0-3",
+      "pre": 284,
+      "post": 286,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-16-0-1-0-0",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-16-0-1-0-1",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-16-0-1-0-2",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-32-16-0-1-0-3",
+      "pre": 477,
+      "post": 479,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-32-0-1-0-0",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-32-0-1-0-1",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-32-0-1-0-2",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-64-32-0-1-0-3",
+      "pre": 893,
+      "post": 895,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-1-0-1-1-0",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-1-0-1-1-1",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-1-0-1-1-2",
+      "pre": 76,
+      "post": 78,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "trace-8-1-0-1-1-3",
+      "pre": 79,
+      "post": 84,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "codes-0-0-1",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-0-0-2",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-0-0-3",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-0-1-1",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-0-1-2",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-0-1-3",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-0-2-1",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-0-2-2",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-0-2-3",
+      "pre": 75,
+      "post": 77,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-0-3-1",
+      "pre": 78,
+      "post": 83,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "codes-0-3-2",
+      "pre": 78,
+      "post": 83,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "codes-0-3-3",
+      "pre": 78,
+      "post": 83,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "codes-1-0-1",
+      "pre": 105,
+      "post": 107,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-1-0-2",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-1-0-3",
+      "pre": 142,
+      "post": 144,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-1-1-1",
+      "pre": 105,
+      "post": 107,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-1-1-2",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-1-1-3",
+      "pre": 142,
+      "post": 144,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-1-2-1",
+      "pre": 105,
+      "post": 107,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-1-2-2",
+      "pre": 101,
+      "post": 103,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-1-2-3",
+      "pre": 142,
+      "post": 144,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-1-3-1",
+      "pre": 108,
+      "post": 113,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "codes-1-3-2",
+      "pre": 104,
+      "post": 109,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "codes-1-3-3",
+      "pre": 145,
+      "post": 150,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "codes-2-0-1",
+      "pre": 135,
+      "post": 137,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-2-0-2",
+      "pre": 127,
+      "post": 129,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-2-0-3",
+      "pre": 209,
+      "post": 211,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-2-1-1",
+      "pre": 135,
+      "post": 137,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-2-1-2",
+      "pre": 127,
+      "post": 129,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-2-1-3",
+      "pre": 209,
+      "post": 211,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-2-2-1",
+      "pre": 135,
+      "post": 137,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-2-2-2",
+      "pre": 127,
+      "post": 129,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-2-2-3",
+      "pre": 209,
+      "post": 211,
+      "delta": 2
+    },
+    {
+      "db0": true,
+      "case": "codes-2-3-1",
+      "pre": 138,
+      "post": 143,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "codes-2-3-2",
+      "pre": 130,
+      "post": 135,
+      "delta": 5
+    },
+    {
+      "db0": true,
+      "case": "codes-2-3-3",
+      "pre": 212,
+      "post": 217,
+      "delta": 5
+    }
+  ],
+  "per_reply_growth": [
+    {
+      "db0": false,
+      "count": 0,
+      "shape": 1,
+      "pre": 30,
+      "post": 30
+    },
+    {
+      "db0": false,
+      "count": 0,
+      "shape": 2,
+      "pre": 26,
+      "post": 26
+    },
+    {
+      "db0": false,
+      "count": 0,
+      "shape": 3,
+      "pre": 67,
+      "post": 67
+    },
+    {
+      "db0": false,
+      "count": 1,
+      "shape": 1,
+      "pre": 30,
+      "post": 30
+    },
+    {
+      "db0": false,
+      "count": 1,
+      "shape": 2,
+      "pre": 26,
+      "post": 26
+    },
+    {
+      "db0": false,
+      "count": 1,
+      "shape": 3,
+      "pre": 67,
+      "post": 67
+    },
+    {
+      "db0": false,
+      "count": 2,
+      "shape": 1,
+      "pre": 30,
+      "post": 30
+    },
+    {
+      "db0": false,
+      "count": 2,
+      "shape": 2,
+      "pre": 26,
+      "post": 26
+    },
+    {
+      "db0": false,
+      "count": 2,
+      "shape": 3,
+      "pre": 67,
+      "post": 67
+    },
+    {
+      "db0": false,
+      "count": 3,
+      "shape": 1,
+      "pre": 30,
+      "post": 30
+    },
+    {
+      "db0": false,
+      "count": 3,
+      "shape": 2,
+      "pre": 26,
+      "post": 26
+    },
+    {
+      "db0": false,
+      "count": 3,
+      "shape": 3,
+      "pre": 67,
+      "post": 67
+    },
+    {
+      "db0": true,
+      "count": 0,
+      "shape": 1,
+      "pre": 30,
+      "post": 30
+    },
+    {
+      "db0": true,
+      "count": 0,
+      "shape": 2,
+      "pre": 26,
+      "post": 26
+    },
+    {
+      "db0": true,
+      "count": 0,
+      "shape": 3,
+      "pre": 67,
+      "post": 67
+    },
+    {
+      "db0": true,
+      "count": 1,
+      "shape": 1,
+      "pre": 30,
+      "post": 30
+    },
+    {
+      "db0": true,
+      "count": 1,
+      "shape": 2,
+      "pre": 26,
+      "post": 26
+    },
+    {
+      "db0": true,
+      "count": 1,
+      "shape": 3,
+      "pre": 67,
+      "post": 67
+    },
+    {
+      "db0": true,
+      "count": 2,
+      "shape": 1,
+      "pre": 30,
+      "post": 30
+    },
+    {
+      "db0": true,
+      "count": 2,
+      "shape": 2,
+      "pre": 26,
+      "post": 26
+    },
+    {
+      "db0": true,
+      "count": 2,
+      "shape": 3,
+      "pre": 67,
+      "post": 67
+    },
+    {
+      "db0": true,
+      "count": 3,
+      "shape": 1,
+      "pre": 30,
+      "post": 30
+    },
+    {
+      "db0": true,
+      "count": 3,
+      "shape": 2,
+      "pre": 26,
+      "post": 26
+    },
+    {
+      "db0": true,
+      "count": 3,
+      "shape": 3,
+      "pre": 67,
+      "post": 67
+    }
+  ]
+}

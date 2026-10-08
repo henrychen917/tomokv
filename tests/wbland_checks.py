@@ -67,6 +67,7 @@ PLUMBING = (
     ('', 'friend struct wb_rule::Phase2;', 1),
     ('', 'wb_rule::Settings wb_config_;', 1),
     ('init', 'cache_writeback_config();', 1),
+    ('', 'void cache_writeback_config() {', 1),
     ('cache_writeback_config', '''wb_config_ = {static_cast<uint8_t>(srv_->cfg().wb_policy),
                       static_cast<uint8_t>(srv_->cfg().wb_small_pipe),
                       static_cast<uint8_t>(srv_->cfg().wb_complete_visits)};''', 1),
@@ -167,7 +168,7 @@ def envelope(path, expected_calls, plumbing, guarded):
     for method, guard in guarded: claim(method, guard, tail=True)
     for method, fragment, count in plumbing: claim(method, fragment, count)
     for i, token in enumerate(code):
-        watched = (any(name in token for name in ('pending_serve_', 'serve_pending', 'kWbufInline', 'kPolicyFraction', 'wb_config_', 'wb_small_pipe', 'wb_complete_visits'))
+        watched = (any(name in token for name in ('pending_serve_', 'serve_pending', 'kWbufInline', 'kPolicyFraction', 'wb_config_', 'wb_small_pipe', 'wb_complete_visits', 'cache_writeback_config'))
                    if re.fullmatch(r'\w+', token) else False)
         watched |= code[i:i+2] in (('wb_rule', '::'), ('defer', '('))
         assert not watched or i in covered, f'{path}: unanchored writeback reference {token}'
@@ -221,6 +222,12 @@ def source():
 # A positive unrelated edit must still run R7 parity. No source tree under test
 # (in particular --root pointing at another lane) is modified.
 SOURCE_CONTROLS = {
+    'io-cache-value': (IO, 'static_cast<uint8_t>(srv_->cfg().wb_small_pipe)', 'uint8_t{16}',
+                       f'{IO}: cache_writeback_config anchored writeback site'),
+    'io-cache-reload': (IO, 'uint32_t flush_ready() {', 'uint32_t flush_ready() { cache_writeback_config();',
+                        f'{IO}: unanchored writeback reference cache_writeback_config'),
+    'rule-config-read': (POLICY, 'int policy = cfg.policy;', 'int policy = loop.srv_->cfg().wb_policy;',
+                         f'{POLICY}: banned token cfg('),
     'reorder-arguments': (R7, SERVE, SERVE.replace('Fused>', 'true>'),
                           f'{R7}: Phase2 call set (count/arguments)'),
     'reorder-unrelated': (R7, '', '\n// Unrelated boot-banner documentation edit.\n', None),
