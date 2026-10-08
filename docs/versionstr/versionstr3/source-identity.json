@@ -1,0 +1,6 @@
+{
+  "src/main.cc": true,
+  "src/core/config.h": true,
+  "src/core/boot_support.h": true,
+  "wrapper_unchanged_from_versionstr2": true
+}
