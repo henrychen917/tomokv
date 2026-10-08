@@ -1017,6 +1017,7 @@ def verdicts(rows, calibration):
                 jumps.append(jump)
                 bands.append(band)
                 details.append(detail)
+            require(len(jumps[0]) == len(jumps[1]), "unequal key-sweep depth sample counts")
             growth = interval([b - a for a, b in zip(*jumps)])
             state = effect_verdict(growth, sum(bands))
             states.append(state)
@@ -1451,6 +1452,8 @@ def self_test(args):
     require(verdicts(reversed_pair, passed_null)[0]["verdict"] == "REFUTED", "reversed GET policy effect passed M1")
     incomplete = [r for r in evidence if not (r["mode"] == "keys" and r["cell"] == "m02" and r["keys"] == 2 and r["sample"] == 5)]
     require(verdicts(incomplete, passed_null)[2]["verdict"] == "UNRESOLVED", "n=5 key variant passed M3")
+    unequal = evidence + [dict(r, sample=6) for r in evidence if r["mode"] == "keys" and r["cell"] == "m02" and r["sample"] == 0]
+    require(verdicts(unequal, passed_null)[2]["verdict"] == "UNRESOLVED", "unequal depths silently discarded samples")
     broken = [dict(r, symbols=dict(samples=2000, shares_pct=dict(refresh_snapshot_floor=.1, active_snapshot_floor=0.)))
               if r["mode"] == "symbols" else r for r in evidence]
     require(verdicts(broken, passed_null)[4]["verdict"] == "REFUTED", "floor share below measured importance passed M5")
