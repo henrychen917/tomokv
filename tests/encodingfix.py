@@ -6,9 +6,11 @@ dispatch/MVCC proof uses this same stream through differ.py on maintainer boots.
 This module never starts a server; --oracle-port must name an existing oracle.
 """
 import argparse
+import ast
 import gzip
 import hashlib
 import json
+import random
 from pathlib import Path
 import subprocess
 
@@ -161,20 +163,56 @@ def memory(endpoint, n):
     return out
 
 
+def collection_suite(name, seed):
+    # Load only the existing pure generators/normalizer, avoiding differ.py's live
+    # socket driver at module scope. No generator or comparison rule is duplicated.
+    path = Path(__file__).with_name("differ.py")
+    tree = ast.parse(path.read_text())
+    names = {"gen_" + name, "parse_reply", "sort_nested", "normalize"}
+    nodes = [node for node in tree.body if
+             isinstance(node, ast.FunctionDef) and node.name in names or
+             isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and
+             t.id == "SORTED_SET_REPLIES" for t in node.targets)]
+    scope = {}
+    exec(compile(ast.Module(body=nodes, type_ignores=[]), str(path), "exec"), scope)
+    return scope["gen_" + name](random.Random(seed)), scope["normalize"]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("record", "compare", "memory"))
+    parser.add_argument("action", choices=("record", "compare", "memory", "collections"))
     parser.add_argument("--oracle-port", type=int)
     parser.add_argument("--unit")
     parser.add_argument("--atomic", type=int, choices=(0, 1), default=0)
     parser.add_argument("--oracle-json", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--keys", type=int, default=256)
+    parser.add_argument("--suite", choices=("hash", "set", "zset"))
+    parser.add_argument("--seed", type=int, default=7)
     args = parser.parse_args()
     endpoint = Unit(args.unit, args.atomic) if args.unit else Oracle(args.oracle_port)
     try:
         if args.action == "memory":
             result = memory(endpoint, args.keys)
+        elif args.action == "collections":
+            assert args.unit and args.oracle_port and args.suite
+            oracle = Oracle(args.oracle_port)
+            rows, normalize = collection_suite(args.suite, args.seed)
+            differences = []
+            try:
+                assert oracle.cmd("FLUSHDB") == b"+OK\r\n"
+                for i, row in enumerate(rows):
+                    actual = normalize(row[0], endpoint.cmd(*row))
+                    expected = normalize(row[0], oracle.cmd(*row))
+                    if actual != expected:
+                        differences.append(dict(index=i, command=row, expected=expected.hex(), actual=actual.hex()))
+            finally:
+                oracle.close()
+            result = dict(suite=args.suite, seed=args.seed, atomic=args.atomic,
+                          commands=len(rows), differences=differences)
+            args.output.write_text(json.dumps(result, indent=2) + "\n")
+            print(f"{args.suite} seed={args.seed} atomic={args.atomic}: {len(rows)} replies, {len(differences)} differences")
+            assert not differences, differences[:5]
         else:
             rows = commands()
             replies = [endpoint.cmd(*row).hex() for row in rows]

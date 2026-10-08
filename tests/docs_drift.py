@@ -4,7 +4,7 @@
 Every documented spelling occupies its own row starting with | `name` |.
 The source set includes CLI directives and all EncodingConfig aliases. --help is
 an action, not a setting; the file-only `pin` translation is documented in prose.
-This checks names, not defaults, grammar, mutability, INFO, or runtime behavior.
+This checks names and generated encoding rows/defaults; runtime behavior is separate.
 """
 
 import argparse

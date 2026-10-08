@@ -506,7 +506,7 @@ def gen_set(rng):
         elif c == 13: ops.append(["SADD", "grow"] + ["g%d" % rng.randrange(400) for _ in range(5)])
     # directed: conversions + WRONGTYPE + edge counts (deterministic only)
     ops += [
-        ["DEL", "iv"], ["SADD", "iv"] + [str(i) for i in range(200)], ["SCARD", "iv"],   # int compact -> table
+        ["DEL", "iv"], ["SADD", "iv"] + [str(i) for i in range(200)], ["SCARD", "iv"],   # remains intset (default 512)
         ["SADD", "iv", "notint"], ["SCARD", "iv"], ["SMEMBERS", "iv"],
         ["DEL", "big"], ["SADD", "big", "y" * 100], ["SCARD", "big"],                    # value > 64 forces table
         ["SET", "str", "v"], ["SADD", "str", "m"], ["SCARD", "str"],

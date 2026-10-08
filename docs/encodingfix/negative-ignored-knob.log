@@ -1,0 +1,4 @@
+grow: $6
+intset
+expected hashtable
+FAIL: exact collection encoding
