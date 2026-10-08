@@ -1,0 +1,30 @@
+{
+  "objects": 94,
+  "functions": 17047,
+  "changed": 102,
+  "hot": 1584,
+  "hot_equal": 1583,
+  "hot_raw_equal": 1581,
+  "changed_objects": {
+    "db0/src/cmd/climon.o": 5,
+    "db0/src/cmd/cmdmeta.o": 1,
+    "db0/src/cmd/info_stats.o": 19,
+    "db0/src/cmd/t_server.o": 15,
+    "db0/src/core/lbplanner.o": 1,
+    "db0/src/snapshot/snapshot.o": 7,
+    "src/cmd/climon.o": 8,
+    "src/cmd/cmdmeta.o": 1,
+    "src/cmd/info_stats.o": 19,
+    "src/cmd/t_server.o": 17,
+    "src/core/lbplanner.o": 1,
+    "src/snapshot/snapshot.o": 8
+  },
+  "PRE": {
+    "sha256": "3a7f8c99d31c0e8606b68ab4b0dbad5833702d56e74e7d3ba6cf5333a4451db5",
+    "text_bytes": 7812565
+  },
+  "POST": {
+    "sha256": "f3f41cccd4ea5fe2efb4fcc41f28edca0170bf559ddbbeee6a4c8f364eea3827",
+    "text_bytes": 7816357
+  }
+}

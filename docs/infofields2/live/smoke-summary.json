@@ -1,0 +1,122 @@
+[
+  {
+    "run_id": "smoke/split-a0-config0",
+    "rate_peak": "infofields offered=2006.0/s polls=[[1999, 1992], [1998, 1992]]",
+    "config_file": "",
+    "target_stop": {
+      "pid": 2864207,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2864216,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "monitor": "docs/infofields2/live/smoke-split-a0-config0-monitor.log",
+    "strict-refused": "docs/infofields2/live/smoke-split-a0-config0-strict-refused.log",
+    "strict-scripts": "docs/infofields2/live/smoke-split-a0-config0-strict-scripts.log",
+    "quiet": [
+      {
+        "log": "build/infofields2/live-smoke/split-a0-config0/quiet-0-18899.log",
+        "text": ""
+      },
+      {
+        "log": "build/infofields2/live-smoke/split-a0-config0/quiet-0-18900.log",
+        "text": ""
+      }
+    ]
+  },
+  {
+    "run_id": "smoke/split-a1-config0",
+    "rate_peak": "infofields offered=2006.0/s polls=[[1998, 1992], [1997, 1992]]",
+    "config_file": "",
+    "target_stop": {
+      "pid": 2865770,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2865779,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "monitor": "docs/infofields2/live/smoke-split-a1-config0-monitor.log",
+    "strict-refused": "docs/infofields2/live/smoke-split-a1-config0-strict-refused.log",
+    "strict-scripts": "docs/infofields2/live/smoke-split-a1-config0-strict-scripts.log",
+    "quiet": [
+      {
+        "log": "build/infofields2/live-smoke/split-a1-config0/quiet-0-18899.log",
+        "text": ""
+      },
+      {
+        "log": "build/infofields2/live-smoke/split-a1-config0/quiet-0-18900.log",
+        "text": ""
+      }
+    ]
+  },
+  {
+    "run_id": "smoke/armed-fused-a0-config0",
+    "rate_peak": "infofields offered=2005.9/s polls=[[1998, 2004], [1998, 2005]]",
+    "config_file": "",
+    "target_stop": {
+      "pid": 2865864,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2865873,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "monitor": "docs/infofields2/live/smoke-armed-fused-a0-config0-monitor.log",
+    "strict-refused": "docs/infofields2/live/smoke-armed-fused-a0-config0-strict-refused.log",
+    "strict-scripts": "docs/infofields2/live/smoke-armed-fused-a0-config0-strict-scripts.log",
+    "quiet": [
+      {
+        "log": "build/infofields2/live-smoke/armed-fused-a0-config0/quiet-0-18899.log",
+        "text": ""
+      },
+      {
+        "log": "build/infofields2/live-smoke/armed-fused-a0-config0/quiet-0-18900.log",
+        "text": ""
+      }
+    ]
+  },
+  {
+    "run_id": "smoke/armed-fused-a1-config0",
+    "rate_peak": "infofields offered=2005.9/s polls=[[1999, 1992], [2000, 1992]]",
+    "config_file": "",
+    "target_stop": {
+      "pid": 2867408,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2867417,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "monitor": "docs/infofields2/live/smoke-armed-fused-a1-config0-monitor.log",
+    "strict-refused": "docs/infofields2/live/smoke-armed-fused-a1-config0-strict-refused.log",
+    "strict-scripts": "docs/infofields2/live/smoke-armed-fused-a1-config0-strict-scripts.log",
+    "quiet": [
+      {
+        "log": "build/infofields2/live-smoke/armed-fused-a1-config0/quiet-0-18899.log",
+        "text": ""
+      },
+      {
+        "log": "build/infofields2/live-smoke/armed-fused-a1-config0/quiet-0-18900.log",
+        "text": ""
+      }
+    ]
+  }
+]

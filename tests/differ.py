@@ -6241,7 +6241,7 @@ def run_psfix_suite():
         # This explicit inventory makes omissions fail. Intersecting the two observed
         # sets alone would silently accept a missing/misspelled field on the target.
         shared = set(b"loading rdb_changes_since_last_save rdb_bgsave_in_progress "
-                     b"rdb_last_save_time rdb_saves aof_enabled aof_rewrite_in_progress "
+                     b"rdb_last_save_time rdb_last_bgsave_status rdb_saves aof_enabled aof_rewrite_in_progress "
                      b"aof_rewrite_scheduled aof_last_bgrewrite_status aof_rewrites "
                      b"aof_rewrites_consecutive_failures aof_last_write_status".split())
         conditional = set(b"aof_current_size aof_base_size aof_pending_rewrite".split())
@@ -6277,6 +6277,7 @@ def run_psfix_suite():
                 assert int(fields[b"rdb_saves"]) == before + 1, (label, command, before, fields)
                 assert int(persistence(peer)[b"rdb_saves"]) == before + 1, "INFO advanced save count"
                 assert fields[b"loading"] == b"0"
+                assert fields[b"rdb_last_bgsave_status"] == b"ok", (label, command, fields)
                 coverage.note([command], "rdb_saves advances exactly once after completion")
                 checks += 1
                 print("  PSFIX %s %s rdb_saves %d -> %d; loading:0" % (label, command, before, before + 1))
@@ -6289,6 +6290,276 @@ def run_psfix_suite():
 
 if SUITE == "psfix":
     run_psfix_suite()
+    sys.exit(0)
+
+
+# Fields introduced by SV7/SV9, with Redis 7.4's actual section placement.
+INFOFIELDS_REQUIRED = {
+    b"Server": {b"run_id", b"executable", b"config_file", b"io_threads_active"},
+    b"Replication": {b"role"},
+    b"Cluster": {b"cluster_enabled"},
+    b"Persistence": {b"loading", b"rdb_last_bgsave_status"},
+    b"Stats": {b"instantaneous_ops_per_sec", b"instantaneous_input_kbps",
+               b"instantaneous_output_kbps", b"latest_fork_usec"},
+    b"Memory": {b"used_memory_peak", b"maxmemory", b"maxmemory_policy",
+                b"mem_fragmentation_ratio", b"number_of_cached_scripts",
+                b"number_of_functions", b"number_of_libraries"},
+}
+
+
+def infofields_sections(raw):
+    payload = parse_reply(raw)
+    assert isinstance(payload, bytes), ("INFO bulk/verbatim reply", raw[:100])
+    if payload.startswith(b"txt:"):
+        payload = payload[4:]
+    sections, current = {}, None
+    for line in payload.split(b"\r\n"):
+        if line.startswith(b"# "):
+            current = line[2:]
+            assert current not in sections, ("duplicate section", current)
+            sections[current] = {}
+        elif line:
+            assert current is not None and b":" in line, ("malformed INFO line", line)
+            key, value = line.split(b":", 1)
+            assert key not in sections[current], ("duplicate field", current, key)
+            sections[current][key] = value
+    return sections
+
+
+def infofields_names(target, oracle):
+    for section, required in INFOFIELDS_REQUIRED.items():
+        assert required <= target.get(section, {}).keys(), ("missing target", section, required)
+        assert required <= oracle.get(section, {}).keys(), ("missing oracle", section, required)
+    # Compare section-specific NAME sets for every shared field. Required sets above
+    # independently catch missing candidate fields; values are checked separately below.
+    target_names = set().union(*(set(rows) for rows in target.values()))
+    oracle_names = set().union(*(set(rows) for rows in oracle.values()))
+    shared = target_names & oracle_names
+    for section in target.keys() | oracle.keys():
+        tnames = set(target.get(section, {})) & shared
+        onames = set(oracle.get(section, {})) & shared
+        assert tnames == onames, ("INFO field placement", section, tnames, onames)
+
+
+def infofields_rate_check(rate, offered):
+    assert offered > 0 and abs(rate - offered) <= offered * .15, (rate, offered, "15% rate bound")
+
+
+def run_infofields_properties(peers):
+    def issue(peer, args):
+        sock, file = peer
+        sock.sendall(enc(args))
+        return read_reply(file)
+
+    def info(peer, section):
+        return infofields_sections(issue(peer, ["INFO", section]))
+
+    all_fields = [info(peer, "all") for peer in peers]
+    infofields_names(*all_fields)
+    for side, peer, rows in zip(("target", "oracle"), peers, all_fields):
+        server = rows[b"Server"]
+        assert re.fullmatch(br"[0-9a-f]{40}", server[b"run_id"]), (side, server)
+        assert server[b"executable"].startswith(b"/"), (side, server)
+        assert server[b"config_file"] == b"" or server[b"config_file"].startswith(b"/"), (side, server)
+        assert rows[b"Replication"][b"role"] == b"master", side
+        assert rows[b"Cluster"][b"cluster_enabled"] == b"0", side
+        assert rows[b"Persistence"][b"loading"] == b"0", side
+        assert rows[b"Persistence"][b"rdb_last_bgsave_status"] in (b"ok", b"err"), side
+        assert rows[b"Stats"][b"latest_fork_usec"] == b"0" or side == "oracle", side
+        assert re.fullmatch(br"[0-9]+\.[0-9]{2}", rows[b"Memory"][b"mem_fragmentation_ratio"]), side
+        for name in (b"instantaneous_input_kbps", b"instantaneous_output_kbps"):
+            assert re.fullmatch(br"[0-9]+\.[0-9]{2}", rows[b"Stats"][name]), (side, name)
+        for section, required in INFOFIELDS_REQUIRED.items():
+            selected = info(peer, section.decode())
+            assert set(selected) == {section}, (side, section, selected.keys())
+            assert required <= selected[section].keys(), (side, section)
+        ordered = list(rows[b"Memory"])
+        positions = [ordered.index(name) for name in (b"number_of_cached_scripts", b"number_of_functions", b"number_of_libraries", b"maxmemory")]
+        assert positions == sorted(positions), (side, "Memory script field order", positions)
+        assert issue(peer, ["CONFIG", "RESETSTAT"]) == b"+OK\r\n"
+        assert info(peer, "server")[b"Server"][b"run_id"] == server[b"run_id"], side
+    assert all_fields[0][b"Server"][b"io_threads_active"] == b"1"
+
+    # Observe the high-water mark only AFTER the value is deleted. During its
+    # lifetime the only INFO requests are STATS; lazy Memory rendering cannot pass.
+    for side, peer in zip(("target", "oracle"), peers):
+        assert issue(peer, ["FLUSHALL"]) == b"+OK\r\n"
+        assert issue(peer, ["CONFIG", "RESETSTAT"]) == b"+OK\r\n"
+        base = info(peer, "memory")[b"Memory"]
+        value = b"m" * (8 * 1024 * 1024)
+        assert issue(peer, ["SET", "ifxd:cron-peak", value]) == b"+OK\r\n"
+        for _ in range(6):
+            time.sleep(.1)
+            info(peer, "stats")
+        assert issue(peer, ["DEL", "ifxd:cron-peak"]) == b":1\r\n"
+        time.sleep(.2)
+        after = info(peer, "memory")[b"Memory"]
+        assert int(after[b"used_memory_peak"]) >= int(base[b"used_memory"]) + len(value), (side, base, after)
+        assert int(after[b"used_memory"]) < int(after[b"used_memory_peak"]), (side, after)
+
+    # The harness itself offers 2000 commands/s to BOTH peers. Two isolated polls
+    # one second apart follow a two-second warm-up, covering the full 1.6 s ring.
+    # The very first loaded poll must pass: an INFO-driven meter cannot arm itself
+    # on that poll and receive another chance. A late driver is a harness failure.
+    for peer in peers:
+        assert issue(peer, ["CONFIG", "RESETSTAT"]) == b"+OK\r\n"
+    # Prime an idle history before the silent loaded interval. PRE's lazy meter
+    # otherwise gets one perfectly rate-matched sample spanning RESETSTAT->INFO
+    # and could pass despite having no cron at all.
+    for _ in range(17):
+        for peer in peers:
+            info(peer, "stats")
+        time.sleep(.1)
+    payload = enc(["PING"]) * 20
+    started = time.monotonic()
+    polls, sent = [], 0
+    for batch in range(321):
+        due = started + batch * .01
+        time.sleep(max(0, due - time.monotonic()))
+        assert time.monotonic() - due < .1, "INFO offered-rate driver fell behind"
+        for sock, _ in peers:
+            sock.sendall(payload)
+        for _, file in peers:
+            for _ in range(20):
+                assert read_reply(file) == b"+PONG\r\n", "rate driver PING failed"
+        sent += 20
+        if batch in (220, 320):
+            sampled = [info(peer, "stats")[b"Stats"] for peer in peers]
+            polls.append((time.monotonic(), sampled))
+    offered = sent / (time.monotonic() - started)
+    assert abs(offered - 2000) <= 2000 * .05, ("driver rate", offered)
+    assert .9 <= polls[1][0] - polls[0][0] <= 1.1, ("poll interval", polls)
+    for _, sampled in polls:
+        for rows in sampled:
+            infofields_rate_check(int(rows[b"instantaneous_ops_per_sec"]), offered)
+            # Existing socket counters also have to reach the cron ring.
+            assert float(rows[b"instantaneous_input_kbps"]) > 0, rows
+            assert float(rows[b"instantaneous_output_kbps"]) > 0, rows
+    print("  infofields offered=%.1f/s polls=%r" %
+          (offered, [[int(rows[b"instantaneous_ops_per_sec"]) for rows in p[1]] for p in polls]))
+
+
+def monitor_quote(value):
+    if isinstance(value, str):
+        value = value.encode()
+    escapes = {92: b"\\\\", 34: b'\\"', 10: b"\\n", 13: b"\\r", 9: b"\\t", 7: b"\\a", 8: b"\\b"}
+    return b'"' + b"".join(escapes.get(c, bytes([c]) if 32 <= c <= 126 else b"\\x%02x" % c)
+                            for c in value) + b'"'
+
+
+def monitor_payload(raw, address):
+    match = re.fullmatch(br'\+[0-9]+\.[0-9]{6} \[0 ([^\]\r\n]+)\] (.+)\r\n', raw)
+    assert match is not None, ("MONITOR line format", raw)
+    assert match[1] in (address, b"lua"), ("MONITOR source address", match[1], address)
+    return (b"lua " if match[1] == b"lua" else b"") + match[2]
+
+
+MONITOR_SCRIPT = "return 7"
+MONITOR_SHA = hashlib.sha1(MONITOR_SCRIPT.encode()).hexdigest()
+MONITOR_LIBRARY = "#!lua name=ifmonlib\nredis.register_function{function_name='ifmonget', callback=function(keys,args) return 7 end, flags={'no-writes'}}"
+
+
+def gen_monitor(rng, strict=False):
+    """Admin, skip_monitor, command/key ACL denials, NOAUTH and binary quoting."""
+    marker = "ifmon:end:%d" % rng.randrange(1 << 30)
+    commands = [
+        (["SET", "ifmon:key", b'quote" slash\\ newline\n nul\x00 hi\xff'], b"+OK\r\n", True),
+        (["GET", "ifmon:missing"], None, True),
+        (["CONFIG", "GET", "maxmemory"], None, False),
+        (["EVAL", "return 7", "0"], b":7\r\n", True),
+        (["EVAL", MONITOR_SCRIPT, "1", "ifmon:key"], None, True),
+        (["EVAL_RO", MONITOR_SCRIPT, "1", "ifmon:key"], None, True),
+        (["EVALSHA", MONITOR_SHA, "1", "ifmon:key"], None, True),
+        (["EVALSHA_RO", MONITOR_SHA, "1", "ifmon:key"], None, True),
+        (["FCALL", "ifmonget", "1", "ifmon:key"], None, True),
+        (["FCALL_RO", "ifmonget", "1", "ifmon:key"], None, True),
+        (["AUTH", "ifmon_limited", "ifmon_password"], b"+OK\r\n", True),
+        (["PING"], b"+PONG\r\n", True),
+        (["SET", "ifmon:denied", "v"], b"-NOPERM", False),
+        (["GET", "outside:denied"], b"-NOPERM", False),
+        (["CONFIG", "GET", "maxmemory"], b"-NOPERM", False),
+        (["AUTH", "default", ""], b"+OK\r\n", True),
+        (["CONFIG", "SET", "requirepass", "ifmon_secret"], b"+OK\r\n", False),
+        (["RESET"], b"+RESET\r\n", True),
+        (["GET", "ifmon:noauth"], b"-NOAUTH", False),
+        (["AUTH", "default", "ifmon_secret"], b"+OK\r\n", True),
+        (["CONFIG", "SET", "requirepass", ""], b"+OK\r\n", False),
+        (["PING", marker], None, True),
+    ]
+    # Refusal visibility is a separate strict witness. The gate drives only
+    # admitted ordinary commands plus admin commands (including an ACL refusal).
+    if not strict:
+        commands = [(args, reply, visible) for args, reply, visible in commands
+                    if args[0] == "CONFIG" or reply not in (b"-NOPERM", b"-NOAUTH")]
+    return commands
+
+
+def monitor_check_streams(target, oracle, expected):
+    assert expected, "empty MONITOR witness"
+    assert target == oracle == expected, ("MONITOR inclusion/format", target, oracle, expected)
+
+
+def run_monitor_suite(rng, strict=False, nested=False):
+    commands = gen_monitor(rng, strict=strict)
+    streams = []
+    expected = []
+    for args, _, visible in commands:
+        if visible:
+            displayed = [args[0], "(redacted)", "(redacted)"] if args[0] == "AUTH" else args
+            expected.append(b" ".join(map(monitor_quote, displayed)))
+            if nested and args[0] in ("EVAL", "EVAL_RO", "EVALSHA", "EVALSHA_RO", "FCALL", "FCALL_RO") and args[2] == "1":
+                expected.append(b'lua "get" "ifmon:key"')
+    for side, host, port in (("target", TH, TP), ("oracle", OH, OP)):
+        # Exactly two connections per server. A observes; B sets up, drives and cleans up.
+        a, af = conn_mode(host, port, RESP3, buffering=0)
+        b, bf = conn_mode(host, port, RESP3)
+        def issue(args):
+            b.sendall(enc(args))
+            return read_reply(bf)
+        try:
+            setup = ["ACL", "SETUSER", "ifmon_limited", "reset", "on", ">ifmon_password",
+                     "~ifmon:*", "+get", "+ping", "+auth", "+reset"]
+            assert issue(setup) == b"+OK\r\n", side
+            assert parse_reply(issue(["SCRIPT", "LOAD", MONITOR_SCRIPT])) == MONITOR_SHA.encode(), side
+            assert parse_reply(issue(["FUNCTION", "LOAD", "REPLACE", MONITOR_LIBRARY])) == b"ifmonlib", side
+            a.sendall(enc(["MONITOR"]))
+            assert read_reply(af) == b"+OK\r\n", side
+            for args, reply, _ in commands:
+                result = issue(args)
+                if reply is not None:
+                    assert result.startswith(reply), (side, args, result, reply)
+                else:
+                    assert not result.startswith(b"-"), (side, args, result)
+                coverage.note(args)
+            address = ("%s:%d" % b.getsockname()[:2]).encode()
+            a.settimeout(5)
+            lines = []
+            while not lines or lines[-1] != expected[-1]:
+                lines.append(monitor_payload(read_reply(af), address))
+                assert len(lines) <= len(expected) + len(commands), (side, "unbounded monitor stream", lines)
+            streams.append(lines)
+            assert issue(["ACL", "DELUSER", "ifmon_limited"]) == b":1\r\n", side
+        finally:
+            # Cleanup is attempted even after a failed assertion while B is unauthenticated.
+            try:
+                issue(["AUTH", "default", "ifmon_secret"])
+                issue(["CONFIG", "SET", "requirepass", ""])
+                issue(["ACL", "DELUSER", "ifmon_limited"])
+            finally:
+                af.close(); a.close(); bf.close(); b.close()
+    if strict:
+        for side, stream in zip(("target", "oracle"), streams):
+            from collections import Counter
+            extra = Counter(stream) - Counter(expected)
+            missing = Counter(expected) - Counter(stream)
+            print("MONITOR STRICT %s extra=%r missing=%r" % (side, list(extra.elements()), list(missing.elements())))
+    monitor_check_streams(streams[0], streams[1], expected)
+    print("DIFFER monitor: %d driven commands, %d visible lines per peer, 0 diffs -> PASS" %
+          (len(commands), len(expected)))
+
+
+if SUITE == "monitor":
+    run_monitor_suite(rng)
     sys.exit(0)
 
 
@@ -6322,6 +6593,7 @@ if LIST_GENERATORS:
         's6fix',
         'ccfix',
         'psfix',
+        'monitor',
     ]))
     sys.exit(0)
 ops = gens[SUITE](rng)
@@ -6776,6 +7048,7 @@ if SUITE == "scan":
     sscan_churn_property(os_, of, "oracle")
 
 if SUITE == "infofix":
+    run_infofields_properties(((ts, tf), (os_, of)))
     # INFO is telemetry, so its values cannot be byte-compared across two implementations. Keep
     # the 4200-command state stream byte-exact above, then validate the same invariants on each side.
     def issue(sock, file, argv):
@@ -6856,19 +7129,14 @@ if SUITE == "infofix":
         property_fail("target peak reset", repr(reset_memory))
     print("  infofix peak points: %r" % memory_points)
 
-    # The same sampled-rate contract as infofix.py: INFO-only polls let residual samples drain,
-    # and work is fed until a sample sees it. No arbitrary instant is compared to the oracle's
-    # live gauge. Pin published_rate at zero/nonzero to fail the positive/idle controls.
+    # Complement the calibrated offered-rate property above with zero/nonzero controls.
+    # Leave a full ring with no traffic before demanding zero; INFO itself is counted.
     def sampled_rate(sock, file):
         return int(fields(sock, file, "stats").get("instantaneous_ops_per_sec", "-1"))
 
     def idle_rate(sock, file):
-        deadline = time.monotonic() + 5.0
-        while True:
-            value = sampled_rate(sock, file)
-            if value <= 0 or time.monotonic() >= deadline:
-                return value
-            time.sleep(.11)
+        time.sleep(2.0)
+        return sampled_rate(sock, file)
 
     for sock, file in ((ts, tf), (os_, of)):
         issue(sock, file, ["CONFIG", "RESETSTAT"])

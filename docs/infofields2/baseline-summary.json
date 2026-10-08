@@ -1,0 +1,162 @@
+[
+  {
+    "arm": "POST",
+    "geometry": "split",
+    "log": "build/infofields/differ2-POST-split/differ.log",
+    "summary": "DIFFER FOCUSED PROOF: pass=19 fail=21 runtime=11m55s",
+    "counts": {
+      "infofix-a0": {
+        "pass": 0,
+        "fail": 5
+      },
+      "psfix-a0": {
+        "pass": 4,
+        "fail": 1
+      },
+      "climon-a0": {
+        "pass": 5,
+        "fail": 0
+      },
+      "monitor-a0": {
+        "pass": 0,
+        "fail": 5
+      },
+      "infofix-a1": {
+        "pass": 0,
+        "fail": 5
+      },
+      "psfix-a1": {
+        "pass": 5,
+        "fail": 0
+      },
+      "climon-a1": {
+        "pass": 5,
+        "fail": 0
+      },
+      "monitor-a1": {
+        "pass": 0,
+        "fail": 5
+      }
+    }
+  },
+  {
+    "arm": "POST",
+    "geometry": "armed-fused",
+    "log": "build/infofields/differ2-POST-armed-fused/differ.log",
+    "summary": "DIFFER FOCUSED PROOF: pass=22 fail=20 runtime=11m55s",
+    "counts": {
+      "infofix-a0": {
+        "pass": 0,
+        "fail": 5
+      },
+      "psfix-a0": {
+        "pass": 5,
+        "fail": 0
+      },
+      "climon-a0": {
+        "pass": 5,
+        "fail": 0
+      },
+      "monitor-a0": {
+        "pass": 0,
+        "fail": 5
+      },
+      "infofix-a1": {
+        "pass": 0,
+        "fail": 5
+      },
+      "psfix-a1": {
+        "pass": 5,
+        "fail": 0
+      },
+      "climon-a1": {
+        "pass": 5,
+        "fail": 0
+      },
+      "monitor-a1": {
+        "pass": 0,
+        "fail": 5
+      }
+    }
+  },
+  {
+    "arm": "PRE",
+    "geometry": "split",
+    "log": "build/infofields/differ2-PRE-split/differ.log",
+    "summary": "DIFFER FOCUSED PROOF: pass=10 fail=30 runtime=11m56s",
+    "counts": {
+      "infofix-a0": {
+        "pass": 0,
+        "fail": 5
+      },
+      "psfix-a0": {
+        "pass": 0,
+        "fail": 5
+      },
+      "climon-a0": {
+        "pass": 5,
+        "fail": 0
+      },
+      "monitor-a0": {
+        "pass": 0,
+        "fail": 5
+      },
+      "infofix-a1": {
+        "pass": 0,
+        "fail": 5
+      },
+      "psfix-a1": {
+        "pass": 0,
+        "fail": 5
+      },
+      "climon-a1": {
+        "pass": 5,
+        "fail": 0
+      },
+      "monitor-a1": {
+        "pass": 0,
+        "fail": 5
+      }
+    }
+  },
+  {
+    "arm": "PRE",
+    "geometry": "armed-fused",
+    "log": "build/infofields/differ2-PRE-armed-fused/differ.log",
+    "summary": "DIFFER FOCUSED PROOF: pass=12 fail=30 runtime=11m55s",
+    "counts": {
+      "infofix-a0": {
+        "pass": 0,
+        "fail": 5
+      },
+      "psfix-a0": {
+        "pass": 0,
+        "fail": 5
+      },
+      "climon-a0": {
+        "pass": 5,
+        "fail": 0
+      },
+      "monitor-a0": {
+        "pass": 0,
+        "fail": 5
+      },
+      "infofix-a1": {
+        "pass": 0,
+        "fail": 5
+      },
+      "psfix-a1": {
+        "pass": 0,
+        "fail": 5
+      },
+      "climon-a1": {
+        "pass": 5,
+        "fail": 0
+      },
+      "monitor-a1": {
+        "pass": 0,
+        "fail": 5
+      }
+    }
+  }
+]

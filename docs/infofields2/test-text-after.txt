@@ -1,0 +1,83 @@
+
+PATTERN 'number_of_cached_scripts'
+tests/scriptsurf.py:214:    note("number_of_cached_scripts counts the store", counters["number_of_cached_scripts"] >= 1,
+tests/scriptsurf.py:215:         counters["number_of_cached_scripts"])
+tests/scriptsurf.py:224:    note("store emptied", after["number_of_cached_scripts"] == 0)
+tests/differ.py:6305:                b"mem_fragmentation_ratio", b"number_of_cached_scripts",
+tests/differ.py:6377:        positions = [ordered.index(name) for name in (b"number_of_cached_scripts", b"number_of_functions", b"number_of_libraries", b"maxmemory")]
+
+PATTERN '6e756d6265725f6f665f6361636865645f73637269707473'
+
+PATTERN '\\x6e\\x75\\x6d\\x62\\x65\\x72\\x5f\\x6f\\x66\\x5f\\x63\\x61\\x63\\x68\\x65\\x64\\x5f\\x73\\x63\\x72\\x69\\x70\\x74\\x73'
+
+PATTERN 'number_of_functions'
+tests/scriptsurf.py:371:         gen_after["number_of_libraries"] == 2 and gen_after["number_of_functions"] == 5,
+tests/scriptsurf.py:373:                             gen_after["number_of_functions"]))
+tests/scriptsurf.py:536:         c.cmd("FUNCTION", "LIST") == [] and info_counters(c)["number_of_functions"] == 0)
+tests/scriptsurf.py:542:         info_counters(c)["number_of_functions"] == 5)
+tests/differ.py:6306:                b"number_of_functions", b"number_of_libraries"},
+tests/differ.py:6377:        positions = [ordered.index(name) for name in (b"number_of_cached_scripts", b"number_of_functions", b"number_of_libraries", b"maxmemory")]
+
+PATTERN '6e756d6265725f6f665f66756e6374696f6e73'
+
+PATTERN '\\x6e\\x75\\x6d\\x62\\x65\\x72\\x5f\\x6f\\x66\\x5f\\x66\\x75\\x6e\\x63\\x74\\x69\\x6f\\x6e\\x73'
+
+PATTERN 'number_of_libraries'
+tests/scriptsurf.py:371:         gen_after["number_of_libraries"] == 2 and gen_after["number_of_functions"] == 5,
+tests/scriptsurf.py:372:         "libs=%d fns=%d" % (gen_after["number_of_libraries"],
+tests/scriptsurf.py:492:         info_counters(c)["number_of_libraries"] == 2,
+tests/scriptsurf.py:493:         info_counters(c)["number_of_libraries"])
+tests/scriptsurf.py:521:         info_counters(c)["number_of_libraries"] == 2)
+tests/scriptsurf.py:541:         info_counters(c)["number_of_libraries"] == 2 and
+tests/scriptsurf.py:551:         info_counters(c)["number_of_libraries"] == 1)
+tests/differ.py:6306:                b"number_of_functions", b"number_of_libraries"},
+tests/differ.py:6377:        positions = [ordered.index(name) for name in (b"number_of_cached_scripts", b"number_of_functions", b"number_of_libraries", b"maxmemory")]
+
+PATTERN '6e756d6265725f6f665f6c6962726172696573'
+
+PATTERN '\\x6e\\x75\\x6d\\x62\\x65\\x72\\x5f\\x6f\\x66\\x5f\\x6c\\x69\\x62\\x72\\x61\\x72\\x69\\x65\\x73'
+
+PATTERN '# Stats'
+
+PATTERN '23205374617473'
+
+PATTERN '\\x23\\x20\\x53\\x74\\x61\\x74\\x73'
+
+PATTERN '# Memory'
+tests/infofix.py:244:    check("variadic INFO stays selective", "# Memory\r\n" in selected, False)
+
+PATTERN '23204d656d6f7279'
+
+PATTERN '\\x23\\x20\\x4d\\x65\\x6d\\x6f\\x72\\x79'
+
+PATTERN 'skip_monitor'
+tests/differ.py:6463:    """Admin, skip_monitor, command/key ACL denials, NOAUTH and binary quoting."""
+
+PATTERN '736b69705f6d6f6e69746f72'
+
+PATTERN '\\x73\\x6b\\x69\\x70\\x5f\\x6d\\x6f\\x6e\\x69\\x74\\x6f\\x72'
+
+PATTERN 'ifmon:denied'
+tests/differ.py:6478:        (["SET", "ifmon:denied", "v"], b"-NOPERM", False),
+
+PATTERN '69666d6f6e3a64656e696564'
+
+PATTERN '\\x69\\x66\\x6d\\x6f\\x6e\\x3a\\x64\\x65\\x6e\\x69\\x65\\x64'
+
+PATTERN 'ifmon:noauth'
+tests/differ.py:6484:        (["GET", "ifmon:noauth"], b"-NOAUTH", False),
+
+PATTERN '69666d6f6e3a6e6f61757468'
+
+PATTERN '\\x69\\x66\\x6d\\x6f\\x6e\\x3a\\x6e\\x6f\\x61\\x75\\x74\\x68'
+
+PATTERN 'MONITOR_SCRIPT'
+tests/differ.py:6457:MONITOR_SCRIPT = "return 7"
+tests/differ.py:6458:MONITOR_SHA = hashlib.sha1(MONITOR_SCRIPT.encode()).hexdigest()
+tests/differ.py:6470:        (["EVAL", MONITOR_SCRIPT, "1", "ifmon:key"], None, True),
+tests/differ.py:6471:        (["EVAL_RO", MONITOR_SCRIPT, "1", "ifmon:key"], None, True),
+tests/differ.py:6523:            assert parse_reply(issue(["SCRIPT", "LOAD", MONITOR_SCRIPT])) == MONITOR_SHA.encode(), side
+
+PATTERN '4d4f4e49544f525f534352495054'
+
+PATTERN '\\x4d\\x4f\\x4e\\x49\\x54\\x4f\\x52\\x5f\\x53\\x43\\x52\\x49\\x50\\x54'
