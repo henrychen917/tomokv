@@ -1,0 +1,27 @@
+[
+  {
+    "path": "tools/lbstall_artifacts.py",
+    "sha256": "e6703d88c62d62a5936b877d13c2d28ec88f86d8504773d02ef20f899249d762",
+    "unchanged_from_versionstr2": true
+  },
+  {
+    "path": "tools/versionstr_artifacts.py",
+    "sha256": "f2ac56a9fd2dc999caf2ec002c55fbdb5af8b72142dc0887c6d5ce2365153b7f",
+    "unchanged_from_versionstr2": true
+  },
+  {
+    "path": "tools/infofields_artifacts.py",
+    "sha256": "13b3714b384eb26fa3023b3296baecd99e245dd7d91e6bc8d350729c42c3e29b",
+    "unchanged_from_versionstr2": true
+  },
+  {
+    "path": "tools/infofields_budget.py",
+    "sha256": "32c733d842eb640812ca05595f56f33621b77075c41dba723b35cd0b622792a0",
+    "unchanged_from_versionstr2": true
+  },
+  {
+    "path": "tools/cmdmeta_audit.py",
+    "sha256": "0396a9b45e8e3c5d034edfff6ca5232c9f519859b2ac98554e2bade0d0d0df87",
+    "unchanged_from_versionstr2": true
+  }
+]
