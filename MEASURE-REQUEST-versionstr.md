@@ -1,6 +1,6 @@
 ## 2026-10-08 — versionstr2
 
-Static byte verdict: **PASS**. Live differential: **pending the bounded quiet-box preflight**. This section supersedes the predecessor's failed byte verdict below. The unchanged proof tools and all current evidence are in `docs/versionstr/versionstr2/`.
+Static byte verdict: **PASS**. Live differential: **BLOCKED by four quiet-preflight refusals over ten minutes (0/64 legs run)**. This section supersedes the predecessor's failed byte verdict below. The unchanged proof tools and all current evidence are in `docs/versionstr/versionstr2/`.
 
 Merged `origin/cpp` at entry (`c1f4f7d9c`), then fetched/merged again immediately before proof; origin remained `db86e5b4a051929c68108d33b1dc358428c59bca`, which is PRE. Production isolation is commit `bac3c0066`; the differential footer addition is `1905cec03`. The proof was recorded in `3243ca322`.
 
@@ -37,7 +37,15 @@ python3 tools/versionstr_artifacts.py build/versionstr2/PRE build/versionstr2/PO
 
 Serverless checks pass: INFO controls 9/9; differential fanout controls 19/19; DEBUG LOAD controls 13/13; configuration parser and all 512 resolved geometry presentations; both CLI aliases. Seven stub-main integration cases prove early exit, correct forwarding (including `--version` as an option value), and return-status propagation. Omitting the wrapper makes the version check fail (exit 23 and the wrong output). The predecessor's banner assertion moved out of the geometry helper because that helper is again byte-identical to PRE; the live replay checks exactly one banner at each real boot.
 
-Live replay uses `docs/versionstr/versionstr2/live.py`: cores 112–119 for the eight-thread/16-shard target, 120–126 for the differential driver, 127 for the Redis oracle. It requests DB0 and multi-db (`--databases 1/16`), split 6:2 and fused/read-local=1, atomic 0/1, permanent seeds 7/19/20/23, and RESP2/RESP3 (64 legs total). Every leg calls the existing infofix suite, whose properties verify both HELLO protocols, exact target version fields, and both product-specific LOLWUT footers. Quiet preflight gets the initial attempt plus three retries 200 seconds apart. No refusal counts as a live pass. Live status and exact oracle HELLO value will be recorded after that bounded attempt.
+Live replay uses `docs/versionstr/versionstr2/live.py`: cores 112–119 for the eight-thread/16-shard target, 120–126 for the differential driver, 127 for the Redis oracle. It requests DB0 and multi-db (`--databases 1/16`), split 6:2 and fused/read-local=1, atomic 0/1, permanent seeds 7/19/20/23, and RESP2/RESP3 (64 legs total). Every leg calls the existing infofix suite, whose properties verify both HELLO protocols, exact target version fields, and both product-specific LOLWUT footers. Quiet preflight gets the initial attempt plus three retries 200 seconds apart. No refusal counts as a live pass. The attempt ran at 10:51:50, 10:55:10, 10:58:30 and 11:01:50 UTC on 2026-10-08; both port/core preflights returned 2 on every attempt. Sibling compiler processes were recorded during retries 1 and 2; the last retry still found busy cores. All four logs and the failing driver transcript are in `docs/versionstr/versionstr2/live-preflight/`; the machine-readable outcome is `live-result.json`. No target or oracle was started, so **0/64 cells ran**. This is a recorded infrastructure refusal, not a passing differential. The oracle executable's exact CLI value is `7.4.10` (full line in `cli.json`); its live INFO and HELLO values were **not observed**.
+
+Maintainer follow-up on an allocated quiet box (fresh output directory required):
+
+```sh
+python3 -u docs/versionstr/versionstr2/live.py build/versionstr2/POST/tomokv build/versionstr2/live-retry
+```
+
+The replay must finish all 64 cells with zero differences, exactly one version banner per boot, and nonzero read-local witnesses in the four fused boots. Then run the normal maintainer-owned iteration gate. No throughput comparison is requested for this identity correction.
 
 Version search uses `grep`, including gunzipped historical evidence and literal, escaped, hex, octal, URL/HTML and base64 spellings. The active old spelling remains only in deliberate INFO/HELLO negative controls. Other hits are immutable historical measurements/reports, predecessor receipts, and the search's own needle; they were not rewritten as new observations. No extra encoded old spelling was found. Receipts and exact patterns are retained alongside the proof.
 

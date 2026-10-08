@@ -1,5 +1,6 @@
-versionstr2: static byte proof PASS; live differential awaits the bounded quiet-box preflight.
+versionstr2: static byte proof PASS; live differential BLOCKED by four quiet-preflight refusals over ten minutes.
 Read the dated versionstr2 section in MEASURE-REQUEST-versionstr.md.
 PRE/POST: build/versionstr2/PRE/tomokv and build/versionstr2/POST/tomokv.
 1492/1492 hot, 4836/4836 ordinary, 3021/3021 linked; instructions and layouts equal; zero unexplained.
-Rows +0/+0. Full gate and merge remain maintainer-owned. Do not infer live success.
+Rows +0/+0. No target or oracle booted; 0/64 live cells ran. Replay command and refusals are recorded.
+Full gate and merge remain maintainer-owned. Do not infer live success.
