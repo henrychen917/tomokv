@@ -473,7 +473,17 @@ AddResult add_member(CollectionRef& set, Slice member, const CompactLimit& limit
         }
 
         const uint32_t resulting = set.entries() + 1;
-        const uint32_t incoming_max = std::max(set_max_member_bytes(set), member.n);
+        // SREM does not shrink the cached maximum. Redis checks the remaining
+        // intset extrema when converting to text, so a removed wide integer must
+        // not force a hashtable under a subsequently lowered value limit.
+        uint32_t incoming_max = member.n;
+        if (set.entries()) {
+            int64_t first = 0, last = 0;
+            if (!integer_at(set, 0, first) || !integer_at(set, set.entries() - 1, last))
+                return AddResult::Oom;
+            incoming_max = std::max(incoming_max,
+                std::max(integer_text_length(first), integer_text_length(last)));
+        }
         if (set.compact_fits(limit, resulting, incoming_max)) {
             if (!convert_integer_to_generic_with(set, member)) return AddResult::Oom;
             set_max_member_bytes(set, incoming_max);

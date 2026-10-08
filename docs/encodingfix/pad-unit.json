@@ -1,0 +1,20 @@
+{
+  "kind": "A: behavior twin for default-threshold collection workloads",
+  "source": "build/encodingfix-unit",
+  "output": "build/encodingfix/PAD/encodingfix-unit",
+  "constructors": [
+    "_ZN4tomo16NetcmdRegressionC2Ej"
+  ],
+  "constant_virtual_addresses": [
+    "0x3ab340"
+  ],
+  "intset_default_post": 512,
+  "intset_default_pad": 128,
+  "changed_file_bytes": [
+    3847032,
+    3847033
+  ],
+  "executable_bytes_identical": 3692213,
+  "source_sha256": "a763950f40d430629d2ef52bed0234549039f337da3250cae857d27e53c7788e",
+  "pad_sha256": "b7a0914c6ea732ca2cf8f57c59ab2948075a997e8f0884a5c0a7109d4e75ccd6"
+}

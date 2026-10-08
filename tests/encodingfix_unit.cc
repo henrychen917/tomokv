@@ -83,6 +83,10 @@ static void precedence(tomo::NetcmdRegression& f) {
     encoding(f, "mixed", "intset");
     check(f.run({"SADD", "mixed", "x"}) == ":1\r\n", "string transition");
     encoding(f, "mixed", "listpack");
+    check(f.run({"SADD", "wide", "9223372036854775807", "1"}) == ":2\r\n", "wide integer seed");
+    check(f.run({"SREM", "wide", "9223372036854775807"}) == ":1\r\n", "wide integer removed");
+    check(f.run({"SADD", "wide", "x"}) == ":1\r\n", "remaining integers fit listpack");
+    encoding(f, "wide", "listpack");
     check(f.run({"SREM", "mixed", "x"}) == ":1\r\n", "string removed");
     encoding(f, "mixed", "listpack");
     check(f.run({"SADD", "hint", "1"}) == ":1\r\n", "hint seed");

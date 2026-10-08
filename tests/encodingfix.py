@@ -74,6 +74,12 @@ def commands():
             mutation(key, "SADD", *members)
             mutation(key, "SADD", text)
             mutation(key, "SREM", text)
+        for wide in ("9223372036854775807", "-9223372036854775808"):
+            key = f"efx:{phase}:removed-wide"
+            add("DEL", key)
+            mutation(key, "SADD", wide, "1")
+            mutation(key, "SREM", wide)
+            mutation(key, "SADD", "x")
 
     # Fresh hints choose intset/listpack/HT; existing hints promote directly to HT,
     # even when every argument is a duplicate. These are different Redis rules.

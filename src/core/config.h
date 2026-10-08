@@ -302,7 +302,9 @@ struct EncodingConfig {
             case SetEntries: limits.set.max_entries = bound; break;
             case SetValue: limits.set.max_value = bound; break;
             // Redis intsetMaxEntries caps the public size_t setting at 1G entries.
-            case SetIntsetEntries: limits.set_intset_max_entries = std::min(bound, 1u << 30); break;
+            case SetIntsetEntries:
+                limits.set_intset_max_entries = bound < (1u << 30) ? bound : (1u << 30);
+                break;
             case ZsetEntries: limits.zset.max_entries = bound; break;
             case ZsetValue: limits.zset.max_value = bound; break;
             default: break;

@@ -1,0 +1,3 @@
+Hot bodies: 1492; raw byte equal: 1490; bytes + resolved relocation targets equal: 1490
+DIFF src/cmd/t_set.o 1242 1190 tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+DIFF src/cmd/t_set.o 1376 1319 tomo::FlatStore::insert(unsigned long, tomo::KvObj*)

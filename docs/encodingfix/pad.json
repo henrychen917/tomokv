@@ -1,0 +1,24 @@
+{
+  "kind": "A: behavior twin for default-threshold collection workloads",
+  "source": "build/tomokv",
+  "output": "build/encodingfix/PAD/tomokv",
+  "constructors": [
+    "_ZN4tomo6ConfigC2Ev",
+    "_ZN8tomo_db06ConfigC2Ev"
+  ],
+  "constant_virtual_addresses": [
+    "0x7a9f00",
+    "0x7b37c0"
+  ],
+  "intset_default_post": 512,
+  "intset_default_pad": 128,
+  "changed_file_bytes": [
+    8036152,
+    8036153,
+    8075256,
+    8075257
+  ],
+  "executable_bytes_identical": 7827821,
+  "source_sha256": "f055aa79df525ec611036ee279cbf25e2b13b2bd657089107dd3eea30ddb3667",
+  "pad_sha256": "b370482079eb0e37d7fc9460b7dcd826f84882b6df372347bda962ff3aee431c"
+}

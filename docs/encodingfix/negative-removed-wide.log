@@ -1,0 +1,9 @@
+encodingfix atomic=0: 5433 replies, 2 differences
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-encodingfix/tests/encodingfix.py", line 244, in <module>
+    if __name__ == "__main__": main()
+                               ^^^^^^
+  File "/home/user/Projects/cx-encodingfix/tests/encodingfix.py", line 238, in main
+    assert not differences, differences[:5]
+           ^^^^^^^^^^^^^^^
+AssertionError: [{'index': 5357, 'command': ['OBJECT', 'ENCODING', 'efx:custom:removed-wide'], 'expected': '$8\r\nlistpack\r\n', 'actual': '$9\r\nhashtable\r\n'}, {'index': 5364, 'command': ['OBJECT', 'ENCODING', 'efx:custom:removed-wide'], 'expected': '$8\r\nlistpack\r\n', 'actual': '$9\r\nhashtable\r\n'}]
