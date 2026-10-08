@@ -322,7 +322,8 @@ class LedgerWiring(unittest.TestCase):
                           'tests/gate_receipt.py', 'tests/abba_instrument.py',
                           'tests/background_environment_test.py', 'tests/gate_history.py',
                           'tests/gate_process_test.py', 'tests/gates_test.py', 'tests/gate_subset_test.py',
-                          'tests/wb_policy.py', 'tests/lb_stationary.py', 'tests/netio.py', 'tests/tailgen_stall.py')
+                          'tests/wb_policy.py', 'tests/lb_stationary.py', 'tests/netio.py',
+                          'tests/gateprod.py', 'tests/tailgen_stall.py')
 
     def run_block(self, kind, rc=0, abba_rc=0, abba_helper='', cells=None):
         root = Path(__file__).resolve().parent.parent
@@ -337,7 +338,7 @@ class LedgerWiring(unittest.TestCase):
             self.assertLess(end, gate.index('if [ "$TIER" = quick ]; then'))
         else:
             marker = gate.index('# ---- B. mandatory headline performance')
-            start = gate.index('python3 tests/abbagate.py "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &\n', marker)
+            start = gate.index('python3 tests/gateprod.py --run "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &\n', marker)
             end = gate.index('\nesac', start) + len('\nesac')
         definitions = ''
         if kind == 'feature':
@@ -365,7 +366,7 @@ py(){
   # New control helpers must not accidentally inherit the feature-cell verdict.
   case "$1" in
     tests/feature_gate.py) return "$WIRE_RC";;
-    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/gate_subset_test.py|tests/wb_policy.py|tests/lb_stationary.py|tests/netio.py|tests/tailgen_stall.py)
+    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/gate_subset_test.py|tests/wb_policy.py|tests/lb_stationary.py|tests/netio.py|tests/gateprod.py|tests/tailgen_stall.py)
       printf '%s\\n' "$1" >> "$WIRE_CONTROLS"
       if [ -z "$WIRE_ABBA_HELPER" ] || [ "$1" = "$WIRE_ABBA_HELPER" ]; then
         return "$WIRE_ABBA_RC"
@@ -414,7 +415,7 @@ say(){ :; }
                 self.assertEqual((Path(directory) / 'controls').read_text().splitlines(), helpers)
             if kind == 'performance':
                 argv = (Path(directory) / 'argv').read_bytes().decode().rstrip('\0').split('\0')
-                self.assertEqual(argv, ['tests/abbagate.py', '--output', str(Path(directory) / 'abba')])
+                self.assertEqual(argv, ['tests/gateprod.py', '--run', '--output', str(Path(directory) / 'abba')])
             # A block that emits no row leaves no ledger file; that is the empty ledger.
             if not ledger.exists():
                 return []
@@ -616,7 +617,7 @@ class ABBATermination(unittest.TestCase):
         gate = (root / 'tests/gate.sh').read_text()
         cleanup = gate[gate.index('reap_children(){'):gate.index('\nport_listeners(){')]
         marker = gate.index('# ---- B. mandatory headline performance')
-        start = gate.index('python3 tests/abbagate.py "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &\n', marker)
+        start = gate.index('python3 tests/gateprod.py --run "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &\n', marker)
         launch = gate[start:gate.index('\nesac', start) + len('\nesac')]
         with tempfile.TemporaryDirectory(dir=root / 'build') as tmp:
             directory = Path(tmp)
@@ -651,7 +652,7 @@ ABBA_OUTPUT="$WIRE_OUTPUT"
 stop_workers(){ :; }
 row_unwatch(){ :; }
 python3(){
-  if [ "$1" = tests/abbagate.py ]; then shift; exec "$WIRE_PYTHON" "$WIRE_DRIVER" "$WIRE_TESTS" "$@"
+  if [ "$1" = tests/gateprod.py ]; then shift 2; exec "$WIRE_PYTHON" "$WIRE_DRIVER" "$WIRE_TESTS" "$@"
   else command "$WIRE_PYTHON" "$@"; fi
 }
 ok(){ printf 'ok\\n' >> "$WIRE_OUTPUT/verdict"; }
@@ -1758,7 +1759,7 @@ python3(){
   if [ "$1" = - ]; then command "$WIRE_PYTHON" "$@"; return; fi
   if [ "$1" = tests/gate_history.py ]; then printf "fixture-context\n"; return 0; fi
   if [ "$1" = tests/differ_fanout.py ]; then return 0; fi
-  [ "$1" = tests/abbagate.py ] || return 74
+  [ "$1" = tests/gateprod.py ] && [ "$2" = --run ] || return 74
   [ "$JOINED" = 1 ] || { echo 'measurement before worker join' >&2; return 72; }
   case " ${JOB_NAMES[*]} " in *' abba '*|*' perf '*) return 73;; esac
   printf 'ABBA\n' >> "$EVENTS"
@@ -1800,7 +1801,7 @@ python3(){
                         self.assertTrue(all(index < final_join for index, event in enumerate(events)
                                             if event.startswith('COLLECT ')))
                         argv = (directory / 'argv').read_bytes().decode().rstrip('\0').split('\0')
-                        self.assertEqual(argv[0], 'tests/abbagate.py')
+                        self.assertEqual(argv[:2], ['tests/gateprod.py', '--run'])
                         self.assertEqual(argv[argv.index('--subset') + 1],
                                          'smoke' if purpose == 'iteration' else 'full')
                         self.assertEqual(argv[-2:], ['--output', str(directory / 'abba')])
@@ -1849,7 +1850,7 @@ exec(){ printf 'ABBA %s\\n' "$*" >> "$EVENTS"; }
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(len(events), 2)
         self.assertEqual(events[0], 'BUILD -c 0-15 make -j16')
-        self.assertTrue(events[1].startswith('ABBA python3 tests/abbagate.py --candidate-binary '))
+        self.assertTrue(events[1].startswith('ABBA python3 tests/gateprod.py --run --candidate-binary '))
 
     def test_explicit_candidate_bypasses_build(self):
         result, events = self.dispatch(0)
@@ -1925,6 +1926,7 @@ class EarlyGateDispatch(unittest.TestCase):
         branch = gate[gate.index('GATE_SELF_TEST=0'):gate.index('GATE_STARTED=$SECONDS')]
         stub = 'exec(){ printf "%s\\n" "$*"; exit 0; }\n'
         cases = [(['perf', '--self-test'], 'python3 tests/abbagate.py --self-test'),
+                 (['perf', '--dry-run'], 'python3 tests/gateprod.py perf --dry-run'),
                  (['quick', '--self-test'], 'python3 tests/gateplan.py quick --self-test'),
                  (['perf', '--help'], 'python3 tests/gateplan.py perf --help'),
                  (['perf', '--json'], 'python3 tests/gateplan.py perf --json')]
