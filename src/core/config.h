@@ -456,7 +456,9 @@ struct Config {
     // The eighth encoding value consumes the former stream-limit slot. Move only these
     // cold budgets into reserved storage; every ordinary Config field keeps its offset.
     StreamLimits stream_limits;          // macro-node roll-over budgets, live via CONFIG SET
-    uint8_t layout_reserved[56]{};
+    // Cold key planner only: 0 = PRE policy, -1 = derived damping, N = damping level.
+    int32_t key_lb_damping = -1;
+    uint8_t layout_reserved[52]{};
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
 
@@ -607,6 +609,15 @@ struct ConfigParseState {
     int place_source = 0;
     int save_source = 0;
 };
+
+// Keep this boot-only conversion out of the already large parser/IO translation unit.
+__attribute__((noipa)) inline bool cfg_parse_key_lb_damping(const char* value, int32_t& out) {
+    int64_t level;
+    if (!cfg_parse_i64(value, level) || level < -1 || level > INT32_MAX ||
+        std::to_string(level) != value) return false;
+    out = static_cast<int32_t>(level);
+    return true;
+}
 
 enum : int { kConfigParsed = 0, kConfigError = 1, kConfigHelp = 2 };
 
@@ -885,6 +896,12 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
+        else if (!std::strcmp(a, "--key-lb-damping")) {
+            if (!cfg_parse_key_lb_damping(next(nullptr), cfg.key_lb_damping)) {
+                std::fprintf(stderr, "--key-lb-damping wants -1, 0 or a positive integer\n");
+                return kConfigError;
+            }
+        }
         else if (!std::strcmp(a, "--client-lb")) {
             if (!cfg_parse_u32(next(nullptr), cfg.client_lb) || cfg.client_lb > 1) {
                 std::fprintf(stderr, "--client-lb wants 0 or 1\n");
@@ -1126,6 +1143,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --shards -1|N               default auto: min(8*executors, 256)\n"
                         "    --shard-home shard:tid,...  complete shard-to-executor map; allows empty fillers\n"
                         "  load balancing: --key-lb 0|1 --client-lb 0|1 (both default 1)\n"
+                        "  key planner: --key-lb-damping -1|0|N (default -1, 0 = PRE policy)\n"
                         "  flip controller: --flip-auto 0|1\n"
                         "    --zc-min N                  zero-copy replies at >= N bytes (0=off)\n"
                         "  cache: --maxmemory BYTES --maxmemory-policy POLICY\n"

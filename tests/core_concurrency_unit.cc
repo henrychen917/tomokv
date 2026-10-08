@@ -44,7 +44,8 @@ struct CoreConcurrencyTest {
         uint32_t destination = Fused ? 1 : 7;
         uint32_t io_id = Fused ? 7 : 0;
         Fixture(bool load_balance = true, uint32_t thread_count = 8, uint32_t shard_count = 16,
-                uint32_t databases = 1, uint32_t split_io = 6, bool read_local = false)
+                uint32_t databases = 1, uint32_t split_io = 6, bool read_local = false,
+                int32_t key_damping = -1)
             : loops(std::make_unique<ExLoopT<Fused>[]>(thread_count)) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
@@ -83,6 +84,7 @@ struct CoreConcurrencyTest {
             config.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
             config.flip_auto = 0;
             config.key_lb = config.client_lb = load_balance ? 1 : 0;
+            config.key_lb_damping = key_damping;
             config.save.clear();
             require(server.init(config), "initialize in-memory fixture");
             require(server.nshards() == shard_count && server.nthreads() == thread_count, "fixture geometry");

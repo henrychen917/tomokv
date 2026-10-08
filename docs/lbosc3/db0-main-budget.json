@@ -1,0 +1,32 @@
+{
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=146540",
+    "--param",
+    "max-inline-insns-auto=18",
+    "-DTOMO_JEMALLOC",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-I.",
+    "-c",
+    "src/main.cc",
+    "-o",
+    "build/db0/src/main.o"
+  ],
+  "base": "db86e5b4a051929c68108d33b1dc358428c59bca",
+  "pre_sha256": "5d21b4d14e6de6a479fdcca19373933dbd910f24f677ec7d5e3ad90c692ef9e5",
+  "post_sha256": "cc38c2dec9060e072a06f093291521a4c70e3ca289340da5536e77bd7dbb64ee",
+  "total": 128,
+  "matched": 128,
+  "changed": []
+}

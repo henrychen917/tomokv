@@ -52,6 +52,7 @@ the allowed CPU set and complete SMT sibling units (`src/core/placement.h:73`).
 | `reorder` | T | u32, 0 or 1 | `0` | Boot/GET | `reorder`, `reorder_retired` | 1s shadow priority; 2s resolves to 0; `src/core/config.h:437`, `:836`. |
 | `wb-policy` | T | Literal `0` or `1` | `1` | Boot/GET | `wb_policy` (Writeback) | Flush-all or composite half rule; `src/core/config.h:843`, `src/core/wb_rule.h:25`. |
 | `key-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `key_lb` | Sample key demand and rebalance shard ownership; `src/core/config.h:851`, `src/core/server.h:1272`. |
+| `key-lb-damping` | T | canonical signed decimal, -1..2147483647 | `-1` | Boot/GET | `tomokv_keylb_damping_band_pct`, `tomokv_keylb_damping_fire_pct`, `tomokv_keylb_damping_ticks` | 0 keeps the original key planner and allocates no damping sidecar; -1 derives damping from the decision window; positive N sets the level. Residual-band objective and bounded recent-move damping; `src/core/lbplanner.cc`. |
 | `client-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `client_lb` | Census client demand and move connections between IO owners; `src/core/config.h:857`, `src/core/server.h:529`. |
 | `flip-auto` | T | u32, 0 or 1 | `0` | Boot/GET | `flip_auto`, `flip_fingerprint_window` (derived) | Automatic IO/executor split controller; 1s rejects 1; `src/core/config.h:863`, `:1168`. |
 | `hash` | T | `mix64` or `siphash` | `mix64` | Boot | `hash` | Select key hash implementation; `src/core/config.h:1057`. |
@@ -294,6 +295,7 @@ shards 16
 overlap 0
 read-local 0
 key-lb 1
+key-lb-damping -1
 client-lb 1
 reorder 0
 save 3600 1

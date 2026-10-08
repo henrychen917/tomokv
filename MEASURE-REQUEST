@@ -1,5 +1,13 @@
 aclkeys3: missed XREAD notification fixed; live acceptance pending.
 
+Lane lbosc3 (decision group 10): see MEASURE-REQUEST-lbosc3.md.
+Status UNTUNED: serverless proof and frozen arms only; no live measurements run.
+Run >=6 key-skew rounds per arm per mode, PRE/PAD-A(type A)/POST, then pooled judge.
+Maintainer owns measurements, 14-cell null, live LB/stationary-hold rows and gate.
+Rows +0/+0. Do not land without the measured pooled-move/accuracy/rate/p99 bars.
+
+encodingfix: mainline measurements pending.
+
 See MEASURE-REQUEST-aclkeys3.md for the original-protocol failure, 528/528 directed serverless cases, negative controls, PRE/POST SHA-256, body/layout audit, quiet refusals, gate recipe blockers, and the requested mainline 14-cell null.
 
 Six loaded gate runs and idle/loaded loss rates remain unrun. The strict emitted-body audit retains one discarded weak-copy difference; its selected executable copy is identical. No server or load generator was started.

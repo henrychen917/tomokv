@@ -1,0 +1,34 @@
+{
+  "all_other_bytes_identical": true,
+  "changed_bytes": 2,
+  "controls": {
+    "missing-_ZN4tomo12lbosc3_levelEi": {
+      "assertion": "PAD policy bypass missing",
+      "rejected": true
+    },
+    "moved-symbol": {
+      "assertion": "PAD symbol table moved",
+      "rejected": true
+    },
+    "unrelated-byte": {
+      "assertion": "PAD unplanned byte change",
+      "rejected": true
+    }
+  },
+  "exact_function_and_section_tables": true,
+  "kind": "A: PRE placement behaviour with POST text size/layout",
+  "pad": {
+    "binary_sha256": "2dc5c211a74fa8b550e1712d75eea8ec96c75116d1eb55f96192b9446f215dcb",
+    "function_table_sha256": "d2b8dc1e7c33f46ab805d0c164866e4f0d29c0ffafe8ba73dc904f0cb5646b17",
+    "functions": 5410,
+    "section_table_sha256": "80d01c9477b5bbb9bcafd060dd120fc1015080a8ffcebf70bcd899ba04a5a44d",
+    "text_bytes": 3803477
+  },
+  "post": {
+    "binary_sha256": "91855beff0c1ff8543e3360d9ca06e1a49d46000daa985326710c5d867eff68a",
+    "function_table_sha256": "d2b8dc1e7c33f46ab805d0c164866e4f0d29c0ffafe8ba73dc904f0cb5646b17",
+    "functions": 5410,
+    "section_table_sha256": "80d01c9477b5bbb9bcafd060dd120fc1015080a8ffcebf70bcd899ba04a5a44d",
+    "text_bytes": 3803477
+  }
+}
