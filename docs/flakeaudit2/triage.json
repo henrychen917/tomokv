@@ -1,8 +1,8 @@
 {
   "counts": {
     "C": 22,
-    "A": 42,
-    "B": 51,
+    "A": 35,
+    "B": 58,
     "D": 2
   },
   "mechanisms": [
@@ -118,10 +118,12 @@
         249,
         357
       ],
-      "category": "A",
+      "category": "B",
       "name": "multi_exec",
-      "detail": "ATOMIC-COMMIT-HOLD forces an undecided EXEC on two real owners; MGET must read all eight predecessors and then all eight committed values. The remaining stress ends only after its original read/commit/cut floors, with a deadline that can only fail.",
-      "witnesses": []
+      "detail": "flakeaudit2b reverted this battery exactly to pre-flakeaudit2 (5bf5b65e6); original lottery stress and all original assertions retained. W16: nonblocking EXEC latch after every owner installs and before atomic_commit_group, with transaction identity, installed-owner/key counts, entered status and explicit release. ATOMIC-COMMIT-HOLD only stops flush_xshard_commits (src/core/ex_loop.h:2761); EXEC commits directly (src/cmd/multi.inc:2255). Pending entries count installs, not a held stage; atomic_exec_order_holds witnesses a younger EXEC waiting before install. Finite COMMIT-DELAY/FANOUT-DEFER/SLEEP cannot provide explicit release. Ordinary body change YES; no production change authorized here.",
+      "witnesses": [
+        "W16"
+      ]
     },
     {
       "mechanism": 10,

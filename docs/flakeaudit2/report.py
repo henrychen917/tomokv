@@ -19,7 +19,7 @@ DECISIONS = [
     ("C", "atomic_ryow", "Pipeline rate >1.10 times serial rate (24 groups, release only). Exact ACKs, ordered reads, consistent-or-absent values and positive worker/cut counts remain. ASAN omits the rate assertion but still has finite stress floors; a held overlap is also needed before claiming those arms witnessed.", []),
     ("B", "atomic_hazards", "W2: publish and hold the exact pinned-cut/reader and dispatch stages; ordinary body change YES. Finite delays plus elapsed observations cannot identify those stages; unarmed XREAD <100 ms is a performance control.", ["W2"]),
     ("B", "s6", "W3: DEBUG-controlled sampler traversal/seed with a required traversal-complete witness; ordinary body change YES in the armed sampler branch. Keep exact all-200-key coverage; 20,000 random draws alone cannot guarantee it.", ["W3"]),
-    ("A", "multi_exec", "ATOMIC-COMMIT-HOLD forces an undecided EXEC on two real owners; MGET must read all eight predecessors and then all eight committed values. The remaining stress ends only after its original read/commit/cut floors, with a deadline that can only fail.", []),
+    ("B", "multi_exec", "flakeaudit2b reverted this battery exactly to pre-flakeaudit2 (5bf5b65e6); original lottery stress and all original assertions retained. W16: nonblocking EXEC latch after every owner installs and before atomic_commit_group, with transaction identity, installed-owner/key counts, entered status and explicit release. ATOMIC-COMMIT-HOLD only stops flush_xshard_commits (src/core/ex_loop.h:2761); EXEC commits directly (src/cmd/multi.inc:2255). Pending entries count installs, not a held stage; atomic_exec_order_holds witnesses a younger EXEC waiting before install. Finite COMMIT-DELAY/FANOUT-DEFER/SLEEP cannot provide explicit release. Ordinary body change YES; no production change authorized here.", ["W16"]),
     ("B", "blocking", "W1 plus W5: applied per-owner config epoch and controlled finite-blocker deadline/retirement; ordinary body changes NO for owner-local config query, YES for an armed clock/lifecycle latch. Exact null/data/gauges stay; two 0.10..0.75 s bounds also mix timing into correctness.", ["W1", "W5"]),
     ("C", "blockmulti", "EXEC completion <250 ms; satisfied WAIT <100 ms; WAIT 200 in 150..900 ms; pipeline WAIT 120 >=90 ms. Exact EXEC results, WAIT :0, younger PONG order, parked/drained gauges and timeout-zero silence remain. Deadline lower bounds express semantics; the upper ceilings are performance.", []),
     ("C", "stream", "Current source gates footprint, not the old register's sampled latency: plateau growth <=8192 B, post-delete <=baseline+4096 B, 0<B/key<512, 128-entry usage<25,600 B. Exact last-100 payloads, all 128 migration entries, DBSIZE and positive allocation remain. Empty-stream timeout >=80 ms is separate deadline semantics.", []),
@@ -71,6 +71,7 @@ PRIMITIVES = {
     "W13": ("Producer-to-tracking-consumer delivery fence", "YES: a fence must cover the async notification path. Ordinary ECHO/PUBLISH alone can overtake that path and cannot prove a zero-event leg drained."),
     "W14": ("Snapshot/placement admission reservation with entered/release state", "YES on cold snapshot/placement admission; expose which Busy condition fired and hold admission until the intended SAVE is admitted."),
     "W15": ("Owner-local stream clock/cut observation", "NO outside a cold DEBUG query of the actual owner's cached clock. IO-side TIME need not bound an earlier owner pass; keep monotonic IDs and verify the command cut without an arbitrary clock tolerance."),
+    "W16": ("EXEC installed/predecision latch with identity, owner/key counts and explicit release", "YES: park the transaction finalizer after all installs and before its direct atomic_commit_group call, without blocking owners. The scatter commit-queue latch does not cover EXEC."),
 }
 
 
@@ -244,7 +245,9 @@ def main():
         "valid hold, each failing immediately without a re-roll. Other controls reject missing atomic "
         "installation, disabled holds, private values, truncated frames, duplicate coded ACL replies, "
         "never-live TTL arms, absent/malformed lane counters, never-parked WAIT arms and in-window early "
-        "replies. These are serverless mutation controls; no live mutant controller binary was run. "
+        "replies. The four atomic simulations are retained against the rejected battery as historical "
+        "controls only: they assumed a server mechanism that EXEC does not implement. They support no "
+        "live held-EXEC claim. These are serverless mutation controls; no live mutant controller binary was run. "
         "Live six-run receipts remain pending after quiet refusal.", "",
         "## Full triage", "",
         "[remaining-v2.md](docs/flakeaudit2/remaining-v2.md) contains all 42 original mechanisms, the "
@@ -253,10 +256,11 @@ def main():
     for cat in 'ABCD':
         report.append("| %s — %s | %d | %d |" % (cat, status[cat],
             sum(r['category'] == cat for r in records), counts[cat]))
-    report += ["", "GT16 adds one A mechanism/occurrence: **43 A + 51 B + 22 C + 2 D = 118 distinct "
+    report += ["", "GT16 adds one A mechanism/occurrence: **36 A + 58 B + 22 C + 2 D = 118 distinct "
         "scoped occurrences**. PSFIX and the WAIT partial repair are within rows 515/516 and add zero "
-        "occurrences. 45 distinct public occurrences were edited (42 original A, GT16, and the two "
-        "partially repaired differential rows), without adding public rows.", "",
+        "occurrences. After withdrawing the seven multi_exec repairs, 38 distinct public occurrences "
+        "remain edited (35 original A, GT16, and the two partially repaired differential rows), without "
+        "adding public rows.", "",
         "## Ranked class-B primitives", "",
         "Counts overlap; implementing one primitive does not prove an entire mixed battery.", "",
         "| Primitive | Occurrences | Exact row family | Ordinary body change |", "|---|---:|---|---|"]
@@ -276,7 +280,10 @@ def main():
         "new PSFIX evidence does not distinguish its admission race and is classified B. Production "
         "correctness laws and layouts were not changed. Threshold separation is a mainline decision; "
         "this lane neither deletes nor relaxes those assertions."]
-    (ROOT / "MEASURE-REQUEST-flakeaudit2.md").write_text("\n".join(report) + "\n")
+    request = ROOT / "MEASURE-REQUEST-flakeaudit2.md"
+    marker = "\n## 2026-10-08 — flakeaudit2b\n"
+    _, found, followup = request.read_text().partition(marker)
+    request.write_text("\n".join(report) + "\n" + (found + followup if found else ""))
     print("triage", dict(counts), "selected", selected, "full", full)
 
 

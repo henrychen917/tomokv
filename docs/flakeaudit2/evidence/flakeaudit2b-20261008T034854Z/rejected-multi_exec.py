@@ -5,6 +5,10 @@ import socket
 import sys
 import threading
 import time
+import select
+from contextlib import closing
+
+import _lib
 
 
 HOST, PORT = sys.argv[1], int(sys.argv[2])
@@ -312,6 +316,31 @@ def info_field(field):
         client.close()
 
 
+def held_exec_cut(keys):
+    """Keep a force-atomic EXEC undecided until an actual MGET reads its preimages."""
+    with closing(_lib.Conn(HOST, PORT)) as admin, closing(_lib.Conn(HOST, PORT)) as writer:
+        for key in keys:
+            assert admin.cmd("SET", key, "0") == b"OK"
+        before = int(_lib.info(admin, "stats")["atomic_predecessor_reads"])
+        with _lib.armed(admin, "ATOMIC-COMMIT-HOLD", 1):
+            assert writer.cmd("MULTI") == b"OK"
+            for key in keys:
+                assert writer.cmd("SET", key, "held") == b"QUEUED"
+            writer.send("EXEC")
+            deadline = time.monotonic() + 10
+            while int(_lib.info(admin, "stats")["atomic_pending_entries"]) < len(keys):
+                assert time.monotonic() < deadline, "EXEC never installed held records"
+                time.sleep(.005)
+            assert not select.select([writer.sock], [], [], 0)[0], "EXEC escaped commit hold"
+            assert admin.cmd("MGET", *keys) == [b"0"] * len(keys), "held EXEC exposed private values"
+            seen = int(_lib.info(admin, "stats")["atomic_predecessor_reads"]) - before
+            assert seen >= len(keys), ("MGET did not read the held predecessors", seen)
+            assert not select.select([writer.sock], [], [], 0)[0], "EXEC completed before release"
+        assert writer.read() == [b"OK"] * len(keys)
+        assert admin.cmd("MGET", *keys) == [b"held"] * len(keys)
+        print("  ok   held EXEC cut: predecessors=%d, exact old/new replies" % seen, flush=True)
+
+
 def torn_arm(seconds=2.0):
     # NOT VACUOUS. This arm is a stress arm: on a quiet box its readers finish their fan-out in
     # microseconds and never straddle anything, which is exactly how a partial EXEC survived here
@@ -319,7 +348,11 @@ def torn_arm(seconds=2.0):
     # its own, so the arm also demands atomic_fanout_cuts advance: every cross-shard read really
     # did pin a cut while the atomic-activity word read zero -- the guarded path. The deterministic
     # version of this window lives in tests/execatomic.py (DEBUG ATOMIC-FANOUT-DEFER).
-    keys = ["multi:torn:%d" % i for i in range(8)]
+    with closing(_lib.Conn(HOST, PORT)) as geometry:
+        buckets = _lib.owner_buckets(geometry, "multi:torn", per_owner=4)
+        full_groups = [group for group in buckets.values() if len(group) >= 4]
+        keys = [key for group in full_groups[:2] for key in group[:4]]
+    held_exec_cut(keys)
     before_cuts = info_field("atomic_fanout_cuts")
     before_pend = info_field("read_local_fallback_atomic_pending")
     init = Resp()
@@ -380,7 +413,20 @@ def torn_arm(seconds=2.0):
     ]
     for thread in threads:
         thread.start()
-    time.sleep(seconds)
+    deadline = time.monotonic() + max(10, seconds)
+    while True:
+        with lock:
+            enough = reads > 100 and commits > 10
+            failed = bool(errors)
+        if enough:
+            enough = ((info_field("atomic_fanout_cuts") or 0) > (before_cuts or 0) or
+                      (info_field("read_local_fallback_atomic_pending") or 0) > (before_pend or 0))
+        if enough or failed:
+            break
+        if time.monotonic() >= deadline:
+            errors.append("writer/readers never reached the required progress before deadline")
+            break
+        time.sleep(.005)
     stop.set()
     for thread in threads:
         thread.join(35)

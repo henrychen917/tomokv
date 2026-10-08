@@ -30,7 +30,6 @@ All entries below share the selected campaign status above; the row numbers are 
 | 367 | GT16: quiescent arm, time-budget invalid windows, full-length in-band hold; valid movement fails immediately | 21 serverless classifier/schedule controls; live campaign above |
 | 118, 501 | torture: Unique churn keys; observer GET witnesses each SET before RST, with the writer reply unread and partial next frame retained. Final landed-key assertion and every transport error remain. | Selected campaign above |
 | 119, 502 | ryow: All four background writers acknowledge progress and propagate errors. Added explicit same-key overwrites with an allowed-conflict value set, followed by exact uncontended RYOW; original own-key checks retained. | Selected campaign above |
-| 131, 165, 200, 207, 214, 249, 357 | multi_exec: ATOMIC-COMMIT-HOLD forces an undecided EXEC on two real owners; MGET must read all eight predecessors and then all eight committed values. The remaining stress ends only after its original read/commit/cut floors, with a deadline that can only fail. | Selected campaign above |
 | 147, 181, 230, 265 | tracking: Fresh client/key and bounded TTL registration; the 300 ms negative drain occurs before arming the unchanged 400 ms TTL. Positive invalidation is read as a complete exact RESP frame; expired value must be absent. | Selected campaign above |
 | 148, 182, 231, 266 | hexpire: Recreate only clock-invalid short-field setup; HPEXPIRE and HPEXPIRETIME share one EXEC cut so the actual installed deadline is captured before it can expire. TIME bounds subsequent counters/HLEN. Lazy arm disables active expiry and requires the exact reap delta; active baseline precedes TTL installation. Other numeric tolerances are unchanged. | Selected campaign above |
 | 151, 185, 234, 269 | concur: Every churn batch is acknowledged while a nonzero SCAN cursor is open. Growth/cardinality/rehash and exact permanent-set assertions remain; callbacks no longer count mutation after cursor completion. | Selected campaign above |
@@ -46,7 +45,7 @@ All entries below share the selected campaign status above; the row numbers are 
 | 439 | kTLS live INFO: Read the full RESP bulk length/body/trailer across arbitrary fragmentation. tls_ktls_active >=1 remains mandatory; the 400 ms sleep and single recv are gone. | Selected campaign above |
 | 515, 516 (partial repair) | Differential WAIT: both exact clients parked, unchanged 200 ms deadline/50 ms silence arm; fresh connections on missed setup, exact :0 result | Selected differential jobs; aggregate rows remain B |
 
-Serverless evidence: [GT16](docs/flakeaudit2/evidence/gt16-controls.txt), [15 fragmentation/high-water/expiry/atomic/WAIT controls](docs/flakeaudit2/evidence/test-side-controls.txt). The deliberate GT16 controls inject trigger, state and anchor-split movement during an otherwise valid hold, each failing immediately without a re-roll. Other controls reject missing atomic installation, disabled holds, private values, truncated frames, duplicate coded ACL replies, never-live TTL arms, absent/malformed lane counters, never-parked WAIT arms and in-window early replies. These are serverless mutation controls; no live mutant controller binary was run. Live six-run receipts remain pending after quiet refusal.
+Serverless evidence: [GT16](docs/flakeaudit2/evidence/gt16-controls.txt), [15 fragmentation/high-water/expiry/atomic/WAIT controls](docs/flakeaudit2/evidence/test-side-controls.txt). The deliberate GT16 controls inject trigger, state and anchor-split movement during an otherwise valid hold, each failing immediately without a re-roll. Other controls reject missing atomic installation, disabled holds, private values, truncated frames, duplicate coded ACL replies, never-live TTL arms, absent/malformed lane counters, never-parked WAIT arms and in-window early replies. The four atomic simulations are retained against the rejected battery as historical controls only: they assumed a server mechanism that EXEC does not implement. They support no live held-EXEC claim. These are serverless mutation controls; no live mutant controller binary was run. Live six-run receipts remain pending after quiet refusal.
 
 ## Full triage
 
@@ -54,12 +53,12 @@ Serverless evidence: [GT16](docs/flakeaudit2/evidence/gt16-controls.txt), [15 fr
 
 | Category | Mechanisms in original 42 | Row occurrences |
 |---|---:|---:|
-| A — FIXED-TEST-SIDE | 16 | 42 |
-| B — NEEDS-WITNESS | 17 | 51 |
+| A — FIXED-TEST-SIDE | 15 | 35 |
+| B — NEEDS-WITNESS | 18 | 58 |
 | C — PERF-THRESHOLD | 8 | 22 |
 | D — PRODUCTION-DEFECT | 1 | 2 |
 
-GT16 adds one A mechanism/occurrence: **43 A + 51 B + 22 C + 2 D = 118 distinct scoped occurrences**. PSFIX and the WAIT partial repair are within rows 515/516 and add zero occurrences. 45 distinct public occurrences were edited (42 original A, GT16, and the two partially repaired differential rows), without adding public rows.
+GT16 adds one A mechanism/occurrence: **36 A + 58 B + 22 C + 2 D = 118 distinct scoped occurrences**. PSFIX and the WAIT partial repair are within rows 515/516 and add zero occurrences. After withdrawing the seven multi_exec repairs, 38 distinct public occurrences remain edited (35 original A, GT16, and the two partially repaired differential rows), without adding public rows.
 
 ## Ranked class-B primitives
 
@@ -71,6 +70,7 @@ Counts overlap; implementing one primitive does not prove an entire mixed batter
 | W5 — Controlled timeout/cron stage with client identity and release | 9 | 132, 139, 166, 173, 215, 222, 250, 257, 358 | YES: deadline/cron progression while DEBUG armed; needed alongside W1 for blocking's config arm. |
 | W3 — Controlled sampler traversal with completion witness | 8 | 130, 164, 199, 206, 213, 248, 515, 516 | YES: only when DEBUG armed; both peer oracles need a deterministic coverage construction, not extra random draws. |
 | W2 — Held read cut / first fanout fragment / reader publication stage | 7 | 126, 128, 303, 304, 317, 318, 503 | YES: entered/release checks in the existing armed debug path; specify stage separately for fanout and hazard arms. |
+| W16 — EXEC installed/predecision latch with identity, owner/key counts and explicit release | 7 | 131, 165, 200, 207, 214, 249, 357 | YES: park the transaction finalizer after all installs and before its direct atomic_commit_group call, without blocking owners. The scatter commit-queue latch does not cover EXEC. |
 | W4 — Held command expiry cut, including local MGET, EXEC and script | 4 | 159, 193, 242, 277 | YES: stage publication and explicit release on the relevant read/transaction paths. |
 | W8 — Snapshot capture-cut entered/hold/release | 4 | 341, 342, 349, 350 | YES, snapshot path only; independent mutation ACK must precede capture release. |
 | W9 — Atomic APPLY-fragment hold plus snapshot apply-drain state | 4 | 343, 344, 351, 352 | YES: commit-decision hold is not equivalent to partial apply. |
@@ -90,3 +90,19 @@ Counts overlap; implementing one primitive does not prove an entire mixed batter
 **Snapshot groups:** the current snapshot capture drains `atomic_apply_inflight`; a commit latch after all installs cannot witness partial apply. W9 must hold the apply stage itself.
 
 **Production defects:** only the already assigned 337/338 ACL defect is classified D. The new PSFIX evidence does not distinguish its admission race and is classified B. Production correctness laws and layouts were not changed. Threshold separation is a mainline decision; this lane neither deletes nor relaxes those assertions.
+
+## 2026-10-08 — flakeaudit2b
+
+The seven multi_exec occurrences (131/165/200/207/214/249/357) are **class B / NEEDS-WITNESS**, not repaired held-EXEC tests. The supplied mainline campaign recorded 226 ok and seven FAIL, all at `tests/multi_exec.py:332`. The first merge was `8f1fb3d49` over `origin/cpp` at `9b3cab67b`.
+
+Root cause: `DEBUG ATOMIC-COMMIT-HOLD` (`src/cmd/t_server.cc:1096`) sets the latch checked only by `ExLoopT::flush_xshard_commits` (`src/core/ex_loop.h:2761`), retaining the owner-private scatter commit queue before ticket reservation. EXEC's all-owner join instead calls `Server::atomic_commit_group` directly (`src/cmd/multi.inc:2246-2255`, `src/core/server.h:2564`), bypassing that queue and latch. It installs and commits; the test's ten-second deadline misreports the missing held state as missing installation. `atomic_pending_entries` is the number of live linked entries (`src/store/flatstore_atomic.inc:40,591,1027`), not a commit-hold witness. `atomic_exec_order_holds` (`src/core/ex_loop.h:2360`) counts a younger transaction parked behind an earlier same-connection unit *before* installation; substituting it would prove a different mechanism. `_lib.owner_buckets` (`tests/_lib.py:481`) already checks real owners; the failing test selected four keys on each of two owners, so 16-shard geometry is not the cause.
+
+No existing hook provides the required nonblocking, explicitly released EXEC stage. COMMIT-DELAY is a finite stall; FANOUT-DEFER and EXEC's DEBUG SLEEP are finite parks. Missing primitive **W16**: hold the EXEC finalizer after every owner has installed and before its direct commit decision; expose transaction identity, installed owner/key counts, entered status and explicit release, while owners remain available for the independent reader. Adding it would require a production change, outside this lane.
+
+Used the explicitly authorized fallback: `tests/multi_exec.py` is byte-identical to `5bf5b65e6:tests/multi_exec.py`, the predecessor of repair `ebb7c512d`. The original eight-key lottery, two-second stress, read/commit/cut floors, torn-read oracle, exact replies, WATCH assertions and public rows remain. No tolerance was widened and no original assertion was removed. The rejected implementation and its four fake-server controls are retained as historical evidence; those controls assumed the unsupported mechanism and are not live proof. The other eleven serverless controls are unchanged; all 15 pass.
+
+Evidence directory: [flakeaudit2b-20261008T034854Z](docs/flakeaudit2/evidence/flakeaudit2b-20261008T034854Z/). `proof_b.py` reproduces all six mode/atomic boots using the saved rejected battery and contrasts EXEC with a held two-owner MSET. It then runs the six requested whole jobs six times serially, plus a separate full iteration; each gate records its revision, server SHA, raw ledger and logs. Failed runs stop the campaign and are retained. Quiet admission uses the unchanged 20-second / 0.48 CPU-second screen, initially plus three retries at 200-second spacing.
+
+Current proof status: reproduction admission in progress (first screen refused at 1.06 CPU-seconds); six-run selected proof and full iteration pending. Final merge and final results will be recorded here before completion.
+
+Rows **+0/+0**; `EXPECT_QUICK=500` / `EXPECT_FULL=517` untouched. No production edits, no throughput claim, no PRE/POST/PAD arms, no push.

@@ -160,7 +160,12 @@ class ExpiryControls(unittest.TestCase):
         self.assertEqual(fake.attempts, 1)
 
 
-class AtomicControls(unittest.TestCase):
+class WithdrawnAtomicSimulationControls(unittest.TestCase):
+    """Historical fake-server controls; they never proved EXEC obeys the scatter latch.
+
+    Keep the rejected assertion checks reproducible after the authorized battery
+    revert. Live flakeaudit2b evidence supersedes any mechanism claim from these.
+    """
     def observe(self, *, missing=False, private=False, escape=False):
         state = dict(held=False, predecessors=0, installed=0)
         clock = Clock()
@@ -195,7 +200,8 @@ class AtomicControls(unittest.TestCase):
         def info(*args):
             return dict(atomic_pending_entries=state["installed"],
                         atomic_predecessor_reads=state["predecessors"])
-        fn = definitions("tests/multi_exec.py", ["held_exec_cut"], HOST="fake", PORT=0,
+        fn = definitions("docs/flakeaudit2/evidence/flakeaudit2b-20261008T034854Z/rejected-multi_exec.py",
+            ["held_exec_cut"], HOST="fake", PORT=0,
             closing=closing, time=clock,
             select=SimpleNamespace(select=lambda *args: ([Fake.sock] if escape else [], [], [])),
             _lib=SimpleNamespace(Conn=Fake, armed=armed, info=info))["held_exec_cut"]
