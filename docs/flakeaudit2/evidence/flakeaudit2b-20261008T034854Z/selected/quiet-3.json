@@ -1,0 +1,1985 @@
+{
+  "policy": "selected-core-port-budget-v1",
+  "started_at": 1791432391.38975,
+  "finished_at": 1791432411.390774,
+  "complete": false,
+  "samples": 21,
+  "cpu_samples": 21,
+  "sample_interval_seconds": 1.0,
+  "tick_seconds": 0.01,
+  "cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "requested_cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "ports": [
+    18340,
+    18341,
+    18342
+  ],
+  "listener_checks": 1,
+  "interference": {
+    "observed_at": 1791432411.3903744,
+    "cpu_seconds": 0.97,
+    "cpu_budget_seconds": 0.48,
+    "error": "selected-core CPU screening budget exceeded: 0.970000s > 0.480000s per 20s",
+    "cpus": [
+      {
+        "cpu": 112,
+        "total_ticks": 98,
+        "busy_ticks": 18
+      },
+      {
+        "cpu": 113,
+        "total_ticks": 97,
+        "busy_ticks": 1
+      },
+      {
+        "cpu": 114,
+        "total_ticks": 98,
+        "busy_ticks": 2
+      },
+      {
+        "cpu": 115,
+        "total_ticks": 98,
+        "busy_ticks": 2
+      },
+      {
+        "cpu": 116,
+        "total_ticks": 98,
+        "busy_ticks": 2
+      },
+      {
+        "cpu": 117,
+        "total_ticks": 97,
+        "busy_ticks": 1
+      },
+      {
+        "cpu": 118,
+        "total_ticks": 98,
+        "busy_ticks": 2
+      },
+      {
+        "cpu": 119,
+        "total_ticks": 99,
+        "busy_ticks": 2
+      },
+      {
+        "cpu": 120,
+        "total_ticks": 98,
+        "busy_ticks": 2
+      },
+      {
+        "cpu": 121,
+        "total_ticks": 98,
+        "busy_ticks": 2
+      },
+      {
+        "cpu": 122,
+        "total_ticks": 98,
+        "busy_ticks": 2
+      },
+      {
+        "cpu": 123,
+        "total_ticks": 98,
+        "busy_ticks": 1
+      },
+      {
+        "cpu": 124,
+        "total_ticks": 98,
+        "busy_ticks": 2
+      },
+      {
+        "cpu": 125,
+        "total_ticks": 99,
+        "busy_ticks": 2
+      },
+      {
+        "cpu": 126,
+        "total_ticks": 99,
+        "busy_ticks": 8
+      },
+      {
+        "cpu": 127,
+        "total_ticks": 98,
+        "busy_ticks": 2
+      }
+    ]
+  },
+  "sample_artifact": null,
+  "cpu_activity": [
+    {
+      "started_monotonic": 3088503.547683938,
+      "ended_monotonic": 3088504.55467536,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 102,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 101,
+          "busy_ticks": 1
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088504.55467536,
+      "ended_monotonic": 3088505.555238938,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 99,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 101,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088505.555238938,
+      "ended_monotonic": 3088506.555804307,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088506.555804307,
+      "ended_monotonic": 3088507.556367679,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 101,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088507.556367679,
+      "ended_monotonic": 3088508.556930372,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 101,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 99,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 99,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 101,
+          "busy_ticks": 1
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088508.556930372,
+      "ended_monotonic": 3088509.557490207,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 99,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088509.557490207,
+      "ended_monotonic": 3088510.558058364,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 101,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088510.558058364,
+      "ended_monotonic": 3088511.558616953,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 99,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088511.558616953,
+      "ended_monotonic": 3088512.559177565,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 101,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088512.559177565,
+      "ended_monotonic": 3088513.559733938,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 99,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088513.559733938,
+      "ended_monotonic": 3088514.560310645,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088514.560310645,
+      "ended_monotonic": 3088515.560869512,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 101,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 101,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088515.560869512,
+      "ended_monotonic": 3088516.561436873,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 99,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088516.561436873,
+      "ended_monotonic": 3088517.561983713,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088517.561983713,
+      "ended_monotonic": 3088518.562526326,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 101,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088518.562526326,
+      "ended_monotonic": 3088519.563120142,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 3
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 101,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 101,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 9
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 101,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 101,
+          "busy_ticks": 7
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 99,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 99,
+          "busy_ticks": 6
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 99,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 2
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088519.563120142,
+      "ended_monotonic": 3088520.5636838,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 100,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 99,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088520.5636838,
+      "ended_monotonic": 3088521.56424857,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088521.56424857,
+      "ended_monotonic": 3088522.564819552,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 101,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 101,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 100,
+          "busy_ticks": 0
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088522.564819552,
+      "ended_monotonic": 3088523.548293608,
+      "phase": "preflight",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 98,
+          "busy_ticks": 18
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 97,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 98,
+          "busy_ticks": 2
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 98,
+          "busy_ticks": 2
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 98,
+          "busy_ticks": 2
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 97,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 98,
+          "busy_ticks": 2
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 99,
+          "busy_ticks": 2
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 98,
+          "busy_ticks": 2
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 98,
+          "busy_ticks": 2
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 98,
+          "busy_ticks": 2
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 98,
+          "busy_ticks": 1
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 98,
+          "busy_ticks": 2
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 99,
+          "busy_ticks": 2
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 99,
+          "busy_ticks": 8
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 98,
+          "busy_ticks": 2
+        }
+      ]
+    },
+    {
+      "started_monotonic": 3088523.548293608,
+      "ended_monotonic": 3088523.548700029,
+      "phase": "owned-workload",
+      "cpus": [
+        {
+          "cpu": 112,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 113,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 114,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 115,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 116,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 117,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 118,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 119,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 120,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 121,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 122,
+          "total_ticks": 1,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 123,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 124,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 125,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 126,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        },
+        {
+          "cpu": 127,
+          "total_ticks": 0,
+          "busy_ticks": 0
+        }
+      ]
+    }
+  ],
+  "generic_cpu_screening": {
+    "scope": "preflight",
+    "server_physical_cores": 8,
+    "sampled_physical_cores": 16,
+    "capacity_fraction": 0.0015,
+    "window_seconds": 20,
+    "cpu_budget_seconds": 0.48,
+    "preflight_seconds": null,
+    "peak_rolling": {
+      "cpu_ticks": 97,
+      "cpu_seconds": 0.97
+    },
+    "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload"
+  },
+  "limitation": "preflight detects existing contention; runtime CPU counters cannot distinguish owned work"
+}
