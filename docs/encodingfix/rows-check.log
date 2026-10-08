@@ -10,6 +10,6 @@ test_stale_wbland_fixture_names_both_missing_labels (__main__.FixtureControls.te
 test_unsupported_label_expression_refuses_without_evaluation (__main__.FixtureControls.test_unsupported_label_expression_refuses_without_evaluation) ... ok
 
 ----------------------------------------------------------------------
-Ran 10 tests in 0.337s
+Ran 10 tests in 0.336s
 
 OK

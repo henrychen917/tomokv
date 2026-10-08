@@ -228,6 +228,7 @@ def main():
                 data = args.oracle_json.read_bytes()
                 reference = json.loads(gzip.decompress(data) if args.oracle_json.suffix == ".gz" else data)
                 assert reference["stream_sha256"] == digest, "oracle stream differs"
+                assert len(reference["replies"]) == len(replies), "oracle reply count differs"
                 differences = [dict(index=i, command=[str(x) for x in rows[i]],
                                     expected=bytes.fromhex(a).decode(errors="replace"),
                                     actual=bytes.fromhex(b).decode(errors="replace"))

@@ -1,0 +1,23 @@
+{
+  "objects": 94,
+  "functions": 17066,
+  "changed": 131,
+  "ordinary": 4828,
+  "ordinary_equal": 4803,
+  "ordinary_raw_equal": 4725,
+  "ordinary_instruction_counts_equal": 4815,
+  "ordinary_instructions_pre": 1133435,
+  "ordinary_instructions_post": 1133549,
+  "linked_ordinary": 3013,
+  "linked_proven": 2989,
+  "linked_raw_equal": 458,
+  "layouts_equal": false,
+  "PRE": {
+    "sha256": "ed92bcd7089ee56e846f319b54cbfce20a4096b9e35f7e763427fa6f11f1fa8b",
+    "text_bytes": 7817349
+  },
+  "POST": {
+    "sha256": "ff3b73795e045cf7593f4081e7d6237585f077975d8429737ff4cf42a9c20ae3",
+    "text_bytes": 7820053
+  }
+}
