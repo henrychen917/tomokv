@@ -63,6 +63,58 @@ def documented_knobs(document):
     return set(names)
 
 
+def regenerate_encodings(source, document):
+    """Regenerate the encoding rows/defaults/anchors from EncodingConfig, not prose edits."""
+    start = source.index("static constexpr Setting settings[Count] = {")
+    end = source.index("int64_t values[Count]", start)
+    settings = re.findall(r'\{"([a-z0-9-]+)", ("[a-z0-9-]+"|nullptr), (true|false), '
+                          r'("[a-z0-9-]+"|nullptr)\}', source[start:end])
+    defaults = re.search(r'int64_t values\[Count\] = \{([^}]+)\}', source).group(1).split(",")
+    assert len(settings) == len(defaults)
+    descriptions = {
+        "hash-max-listpack-entries": "Compact hash entry ceiling",
+        "hash-max-listpack-value": "Compact hash field/value byte ceiling",
+        "list-max-listpack-size": "-1..-5: 4/8/16/32/64 KiB; smaller negatives clamp to 64 KiB; nonnegative count with 8 KiB ceiling, 0 allows one element",
+        "set-max-listpack-entries": "Compact string-set entry ceiling",
+        "set-max-listpack-value": "Compact string-set element byte ceiling",
+        "set-max-intset-entries": "Integer-set entry ceiling; 0 disables intsets; internal cap 1073741824",
+        "zset-max-listpack-entries": "Compact sorted-set entry ceiling",
+        "zset-max-listpack-value": "Compact sorted-set member byte ceiling",
+    }
+    rows = []
+    for spelling_index in (0, 1, 3):
+        for setting, default in zip(settings, defaults):
+            name, alias, memory, legacy = setting
+            spelling = setting[spelling_index].strip('"')
+            if spelling == "nullptr": continue
+            is_legacy = spelling_index == 3
+            grammar = ("u32 decimal bytes" if memory == "true" else "u32 decimal") if is_legacy else (
+                "Canonical signed 32-bit decimal" if name == "list-max-listpack-size" else
+                "Memory ≤9223372036854775807" if memory == "true" else
+                "Count64, no memory suffix" if name == "set-max-listpack-value" else "Count64")
+            description = descriptions[name] if spelling_index == 0 else (
+                ("Legacy alias of " if is_legacy else "Alias of ") + name)
+            line = source[:source.index('{"' + name + '"', start)].count("\n") + 1
+            rows.append(f"| `{spelling}` | {'T' if is_legacy else 'R'} | {grammar} | `{default.strip()}` | Live | — | {description}; `src/core/config.h:{line}`. |")
+    first = document.index("| `hash-max-listpack-entries` |"); last = document.index("| `hll-sparse-max-bytes` |", first)
+    document = document[:first] + "\n".join(rows) + "\n" + document[last:]
+    first = document.index("The seven canonical rows") if "The seven canonical rows" in document else document.index("The encoding rows")
+    last = document.index("**Count64**", first)
+    document = document[:first] + ("The encoding rows, aliases, defaults, and source anchors below are generated from\n"
+        "`EncodingConfig` by `python3 tests/docs_drift.py --write`. The drift guard checks\n"
+        "their exact agreement with the source.\n") + document[last:]
+    first = document.index("Aliases share canonical CONFIG storage")
+    last = document.index("\n## Security,", first)
+    document = document[:first] + ("Aliases share canonical CONFIG storage. Integer sets have an independent\n"
+        "`set-max-intset-entries` limit. Fresh sets prefer intset, then listpack, then\n"
+        "hashtable according to the first member and size hint. An existing intset\n"
+        "exceeding its integer ceiling goes directly to hashtable; a non-integer\n"
+        "insertion can instead select listpack when both listpack limits fit. Removal\n"
+        "does not demote an encoding. All eight defaults match the pinned Redis 7.4.10\n"
+        "oracle; its hash entry default is **512**, not 128.\n") + document[last:]
+    return document
+
+
 def check(header, document):
     parsed = parser_knobs(header.read_text())
     documented = documented_knobs(document.read_text())
@@ -71,6 +123,8 @@ def check(header, document):
         errors.append("parsed but undocumented: " + ", ".join(sorted(parsed - documented)))
     if documented - parsed:
         errors.append("documented but not parsed: " + ", ".join(sorted(documented - parsed)))
+    if not errors and regenerate_encodings(header.read_text(), document.read_text()) != document.read_text():
+        errors.append("encoding rows/defaults drifted: run python3 tests/docs_drift.py --write")
     if errors:
         raise ValueError("; ".join(errors))
     return len(parsed)
@@ -101,6 +155,9 @@ def self_test(header, document):
              "duplicate documented knobs: databases"),
             ("comment is not a knob", source + '\n// std::strcmp(a, "--comment-only")\n',
              markdown, None),
+            ("encoding default drift", source,
+             re.sub(r'(^\| `set-max-intset-entries` \|.*?)`512`', r'\g<1>`128`', markdown, flags=re.M),
+             "encoding rows/defaults drifted"),
             ("empty document", source, "", "no documented knob rows"),
         ]
         for name, candidate, doc, failure in cases:
@@ -123,8 +180,11 @@ def main():
     parser.add_argument("--config-header", type=Path, default=ROOT / "src/core/config.h")
     parser.add_argument("--document", type=Path, default=ROOT / "docs/CONFIGURATION.md")
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--write", action="store_true", help="regenerate encoding rows from config.h")
     args = parser.parse_args()
     try:
+        if args.write:
+            args.document.write_text(regenerate_encodings(args.config_header.read_text(), args.document.read_text()))
         count = check(args.config_header, args.document)
         print(f"PASS {ASSERTION}: {count} spellings")
         if args.self_test:

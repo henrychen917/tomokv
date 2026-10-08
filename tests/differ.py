@@ -1381,7 +1381,7 @@ def gen_edgetime(rng):
     Deliberately not in the stream: DBSIZE and INFO (batch-published on TomoKV by design,
     NOTES-COMPAT.md), SCAN (COUNT is a slot-work hint here, so the two servers reap different
     entries per call and the states drift apart), OBJECT ENCODING (comparable only with the
-    encoding-knob alignment the servertail suite performs), and RANDOMKEY (its shard-choice
+    encoding-default parity the servertail suite checks), and RANDOMKEY (its shard-choice
     divergence is a separate shelved finding, written up in NOTES-EDGETIME.md).
     """
     stamp = int(time.time() * 1000)
@@ -2103,7 +2103,7 @@ def gen_edgeenc(rng):
 
     Value lengths are drawn from a boundary-heavy LADDER rather than uniformly, because the
     interesting lengths in this tree are not spread out -- they are the compact/expanded promotion
-    limits (aligned to the oracle's listpack limits by the suite preamble), the 192-byte KvObj
+    limits (the same defaults as the pinned oracle), the 192-byte KvObj
     embed line, the varint width step at 128, and the allocator size classes the embedded capacity
     is cut from. KEY LENGTH is a second ladder: a small collection lives in its key's own
     allocation and its in-place capacity is good_size() slack there, so two keys of different
@@ -2221,7 +2221,7 @@ def gen_edgeenc(rng):
                 ["RENAME", k + "c", k + "r"], ["GET", k + "r"],
                 ["DEL", k, k + "r"]]
 
-    # Promotion and the one-way rule at the fixed limits: hash 512, set/zset 128, value 64.
+    # Promotion and the one-way rule at the default limits: hash 512, set/zset 128, value 64.
     for limit_kind in ("entries", "value"):
         for kind in ("hash", "set", "zset"):
             entries = (513 if kind == "hash" else 129) if limit_kind == "entries" else 3
@@ -2337,8 +2337,8 @@ def gen_edgeenc(rng):
 def gen_servertail(rng):
     """LCS-heavy, plus the introspection replies that are genuinely byte-comparable.
 
-    Threshold alignment is done in the suite preamble below: the oracle is configured to the
-    target's fixed compact limits, outside the diffed operation stream.
+    Both endpoints retain the pinned Redis 7.4 encoding defaults. The encodingfix suite
+    separately changes both endpoints to the same non-default limits and restores them.
 
     Deliberately EXCLUDED, with reasons:
       - OBJECT ENCODING on strings of 45..192 bytes. Our embstr/raw boundary is kEmbedThreshold
@@ -6608,6 +6608,7 @@ gens = {"string": gen_string, "list": gen_list, "set": gen_set, "zset": gen_zset
         "streamgrp": gen_streamgrp,
         "zsetops": gen_zsetops, "geo": gen_geo, "doubles": gen_doubles,
         "scan": gen_scan, "multi": gen_multi,
+        "encodingfix": lambda rng: __import__("encodingfix").commands(),
         "edgeenc": gen_edgeenc, "edgeproto": gen_edgeproto, "cmdgap": gen_cmdgap,
         "cmdgap2": gen_cmdgap2,
         "sort": gen_sort,
@@ -6822,21 +6823,8 @@ if SUITE == "multi":
     # required sections, and the deterministic transaction replies on both independent servers.
     from at15 import compare as compare_at15
     compare_at15(TH, TP, OH, OP, RESP3)
-# OBJECT ENCODING compares hash/set/zset only at matched promotion limits. TomoKV's limits
-# are fixed; configure the oracle to those values. These setup replies are drained, not diffed.
-if SUITE in ("servertail", "edgeenc"):
-    alignment = [["CONFIG", "SET", "hash-max-listpack-entries", "512"],
-                 ["CONFIG", "SET", "hash-max-listpack-value", "64"],
-                 ["CONFIG", "SET", "set-max-listpack-entries", "128"],
-                 ["CONFIG", "SET", "set-max-listpack-value", "64"],
-                 ["CONFIG", "SET", "set-max-intset-entries", "128"],
-                 ["CONFIG", "SET", "zset-max-listpack-entries", "128"],
-                 ["CONFIG", "SET", "zset-max-listpack-value", "64"],
-                 ["CONFIG", "SET", "list-max-listpack-size", "-2"]]
-    for command in alignment:
-        os_.sendall(enc(command))
-        if read_reply(of)[:1] != b"+":
-            raise RuntimeError("encoding alignment failed: %r" % command)
+# Encoding defaults now match the pinned Redis 7.4 oracle, including intsets.
+# Never mask a target default regression by changing only the oracle's limits.
 
 diffs = 0
 # HLL's directed promotion stream uses many-argument PFADDs and byte-sized GET oracles, and the

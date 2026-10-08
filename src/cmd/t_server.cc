@@ -492,7 +492,16 @@ bool normalize_config(const ConfigValue& entry, Slice input, std::string& out,
         case ConfigKind::Encoding: {
             int64_t value = 0;
             const int key = EncodingConfig::find(Slice(entry.name, std::strlen(entry.name)));
-            if (key < 0 || !EncodingConfig::parse(key, input, value, legacy_compact)) return false;
+            if (key < 0 || !EncodingConfig::parse(key, input, value, legacy_compact)) {
+                if (key == EncodingConfig::SetIntsetEntries) {
+                    const std::string text(input.p, input.n);
+                    int64_t integer = 0;
+                    error = cfg_parse_i64(text.c_str(), integer) && std::to_string(integer) == text
+                        ? "argument must be between 0 and 9223372036854775807 inclusive"
+                        : "argument couldn't be parsed into an integer";
+                }
+                return false;
+            }
             out = std::to_string(value);
             return true;
         }
@@ -616,7 +625,8 @@ bool collect_config_updates(Op& op,
             const std::string requested(op.arg(i).p, op.arg(i).n);
             for (uint32_t previous = 2; previous < i; previous += 2) {
                 if (!eq_icase(op.arg(previous), requested.c_str())) continue;
-                if (!std::strcmp(item->name, "aof-load-truncated")) {
+                if (!std::strcmp(item->name, "aof-load-truncated") ||
+                    encoding == EncodingConfig::SetIntsetEntries) {
                     std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
                     msg += requested;
                     msg += "') - duplicate parameter";
@@ -656,7 +666,9 @@ bool collect_config_updates(Op& op,
         if (!normalized) {
             if (config_error) {
                 std::string msg = "ERR CONFIG SET failed (possibly related to argument '";
-                msg += item->name;
+                if (encoding == EncodingConfig::SetIntsetEntries)
+                    msg.append(op.arg(i).p, op.arg(i).n);
+                else msg += item->name;
                 msg += "') - "; msg += config_error;
                 reply_err(op.sink(), msg.c_str()); return false;
             }

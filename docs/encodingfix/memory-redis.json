@@ -1,0 +1,34 @@
+[
+  {
+    "shape": "hash100",
+    "keys": 256,
+    "used_before": 1284416,
+    "used_after": 1567000,
+    "bytes_per_key": 1103.84375,
+    "encoding": "$8\r\nlistpack\r\n"
+  },
+  {
+    "shape": "hash300",
+    "keys": 256,
+    "used_before": 1284864,
+    "used_after": 2076440,
+    "bytes_per_key": 3092.09375,
+    "encoding": "$8\r\nlistpack\r\n"
+  },
+  {
+    "shape": "intset300",
+    "keys": 256,
+    "used_before": 1270016,
+    "used_after": 1453848,
+    "bytes_per_key": 718.09375,
+    "encoding": "$6\r\nintset\r\n"
+  },
+  {
+    "shape": "stringset64",
+    "keys": 256,
+    "used_before": 1270016,
+    "used_after": 1404696,
+    "bytes_per_key": 526.09375,
+    "encoding": "$8\r\nlistpack\r\n"
+  }
+]
