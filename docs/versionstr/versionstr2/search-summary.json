@@ -1,8 +1,8 @@
 {
-  "matching_occurrences": 12579,
-  "matching_files": 80,
+  "matching_occurrences": 12580,
+  "matching_files": 81,
   "spellings": {
-    "0.1-cpp": 12579
+    "0.1-cpp": 12580
   },
   "active_old_version_uses": {
     "tests/infofields_test.py": 2
