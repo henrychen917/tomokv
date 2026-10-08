@@ -516,10 +516,13 @@ private:
     FlatStore store_;
     Stats     stats_;
     TypeLimits type_limits_;
-    StreamLimits stream_limits_;
+    // The intset threshold consumes four cold bytes. Place the dirty flag in the
+    // remaining gap and the stream budgets in its former slot, preserving all
+    // other offsets (including the blocking registry and both watch maps).
+    std::atomic<bool> blocking_dirty_{false};
     void* blocking_registry_ = nullptr;
     std::atomic<uint64_t> blocking_waiters_{0};
-    std::atomic<bool> blocking_dirty_{false};
+    StreamLimits stream_limits_;
     std::unordered_map<std::string, std::vector<WatchEntry>> watchers_;
     // One key can carry several undecided reservations at once -- see WatchReservation::blocking.
     std::unordered_map<std::string, std::vector<WatchReservation>> watch_reservations_;

@@ -265,7 +265,7 @@ enum class TlsAuthClients : uint8_t { Yes = 0, No = 1, Optional = 2 };
 // Keep names, aliases and parsing here so boot, CONFIG SET/GET and REWRITE cannot drift.
 struct EncodingConfig {
     enum Key : uint32_t { HashEntries, HashValue, ListSize, SetEntries, SetValue,
-                          ZsetEntries, ZsetValue, Count };
+                          ZsetEntries, ZsetValue, SetIntsetEntries, Count };
     struct Setting { const char* name; const char* alias; bool memory; const char* tomo_alias; };
     static constexpr Setting settings[Count] = {
         {"hash-max-listpack-entries", "hash-max-ziplist-entries", false, "hash-max-compact-entries"},
@@ -275,8 +275,9 @@ struct EncodingConfig {
         {"set-max-listpack-value", nullptr, false, nullptr},
         {"zset-max-listpack-entries", "zset-max-ziplist-entries", false, "zset-max-compact-entries"},
         {"zset-max-listpack-value", "zset-max-ziplist-value", true, "zset-max-compact-value"},
+        {"set-max-intset-entries", nullptr, false, nullptr},
     };
-    int64_t values[Count] = {512, 64, -2, 128, 64, 128, 64};
+    int64_t values[Count] = {512, 64, -2, 128, 64, 128, 64, 512};
 
     static int find(Slice name) {
         for (uint32_t i = 0; i < Count; i++)
@@ -300,6 +301,10 @@ struct EncodingConfig {
             case HashValue: limits.hash.max_value = bound; break;
             case SetEntries: limits.set.max_entries = bound; break;
             case SetValue: limits.set.max_value = bound; break;
+            // Redis intsetMaxEntries caps the public size_t setting at 1G entries.
+            case SetIntsetEntries:
+                limits.set_intset_max_entries = bound < (1u << 30) ? bound : (1u << 30);
+                break;
             case ZsetEntries: limits.zset.max_entries = bound; break;
             case ZsetValue: limits.zset.max_value = bound; break;
             default: break;
@@ -400,8 +405,7 @@ struct Config {
 
     // ---- scripting / collection encodings -------------------------------------------------
     // The Lua instruction bound is fixed in scripting.cc; unused interpreters allocate nothing.
-    EncodingConfig encodings;           // Redis listpack controls, live via CONFIG SET
-    StreamLimits stream_limits;          // macro-node roll-over budgets, live via CONFIG SET
+    EncodingConfig encodings;           // Redis collection controls, live via CONFIG SET
 
     // Empty flag string = notifications off.
     uint32_t notify_events = 0;
@@ -449,7 +453,10 @@ struct Config {
     // Boot-only writeback policy; consume reserved bytes, preserving all prior offsets.
     int32_t wb_policy = wb_rule::default_policy();
     uint64_t client_query_buffer_limit = 1024ull * 1024 * 1024;
-    uint8_t layout_reserved[64]{};
+    // The eighth encoding value consumes the former stream-limit slot. Move only these
+    // cold budgets into reserved storage; every ordinary Config field keeps its offset.
+    StreamLimits stream_limits;          // macro-node roll-over budgets, live via CONFIG SET
+    uint8_t layout_reserved[56]{};
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
 
@@ -1154,6 +1161,7 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  encodings: --hash-max-listpack-entries N --hash-max-listpack-value BYTES\n"
                         "    --list-max-listpack-size N (-1..-5: 4..64 KiB; >=0: entry count; default -2)\n"
                         "    --set-max-listpack-entries N --set-max-listpack-value N\n"
+                        "    --set-max-intset-entries N (default 512; 0 disables intsets)\n"
                         "    --zset-max-listpack-entries N --zset-max-listpack-value BYTES\n"
                         "    (ziplist and hash/zset compact aliases accepted)\n"
                         "  HyperLogLog: --hll-sparse-max-bytes BYTES (boot-only; default 3000)\n"

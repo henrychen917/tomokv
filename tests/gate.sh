@@ -5,6 +5,9 @@
 #   tests/gate.sh iteration   same default tier; the subset saves only regression cells.
 #   tests/gate.sh push    full correctness + ALL regression cells, required for push/release.
 #   tests/gate.sh release same as push. `full` is the legacy alias for the same complete gate.
+#   tests/gate.sh perf --dry-run  print the 64-cell p32 network-IO product and argv; no CPU work.
+#   The frozen 181-cell headline pass is followed by 32 epoll twins of h01-h32
+#   (eight twins in iteration). GATE_ABBA_EPOLL_NULL names their separate standing null.
 #   tests/gate.sh quick   legacy correctness-only diagnostic: build (release+ASAN), footprint locks, boot
 #                         matrix, smoke, torture, RYOW, atomic torn/mixed-write/window gates,
 #                         shutdown invariants, counter-fired feature matrix, idle-loop ceiling. Runs on
@@ -57,6 +60,7 @@ cd "$(dirname "$0")/.."
 GATE_SELF_TEST=0
 for gate_arg in "$@"; do
   case "$gate_arg" in
+    --dry-run) exec python3 tests/gateprod.py "$@";;
     -h|--help|--json) exec python3 tests/gateplan.py "$@";;
     --self-test) GATE_SELF_TEST=1;;
   esac
@@ -127,7 +131,7 @@ PY
       exit 1
     fi
   fi
-  exec python3 tests/abbagate.py "${ABBA_ARGS[@]}"
+  exec python3 tests/gateprod.py --run "${ABBA_ARGS[@]}"
 fi
 PASS=0; FAIL=0
 SRV=0; SRVLOG=/dev/null
@@ -276,8 +280,9 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # wbrule: three serverless rows collected with the static units BEFORE the quick
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
-EXPECT_QUICK=500
-EXPECT_FULL=517                 # +2 rltopo rows, +2 wbland rows (clauses, paths); ABBA reports only; self-test remains counted.
+# encodingfix owner ruling: two serverless rows before the quick exit (+2/+2).
+EXPECT_QUICK=502
+EXPECT_FULL=519                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1676,6 +1681,13 @@ for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub rece
       && ok "netcmd $NETCMD_CASE regression" \
       || bad "netcmd $NETCMD_CASE regression" "see $TMPDIR/gate-netcmd-$NETCMD_CASE.txt"
 done
+for ENCODING_CASE in knob precedence; do
+  row_begin "encodingfix $ENCODING_CASE"
+  unit_ready encodingfix-unit && taskset -c "$CORES" ./build/encodingfix-unit "$ENCODING_CASE" \
+      >"$TMPDIR/gate-encodingfix-$ENCODING_CASE.txt" 2>&1 \
+      && ok "encodingfix $ENCODING_CASE" \
+      || bad "encodingfix $ENCODING_CASE" "see $TMPDIR/gate-encodingfix-$ENCODING_CASE.txt"
+done
 row_begin "NET1 serverless bounds + scan + reclamation"
 unit_ready netcap-unit && taskset -c "$CORES" ./build/netcap-unit >"$TMPDIR/gate-netcap-unit.txt" 2>&1 \
     && ok "NET1 serverless bounds + scan + reclamation" \
@@ -2862,6 +2874,7 @@ py tests/abbagate.py --self-test > $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/wb_policy.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/lb_stationary.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/netio.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
+    && py tests/gateprod.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && py tests/tailgen_stall.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
     && ok "ABBA comparison + saturation negative controls" \
     || bad "ABBA comparison + saturation negative controls" "see $TMPDIR/gate-abbagate-unit.txt"
@@ -3084,12 +3097,12 @@ job_production_units(){
   local target
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
-      build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/netcap-unit \
+      build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit \
       build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
+  for target in at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -3461,7 +3474,10 @@ ABBA_HISTORY_CONTEXT=$(python3 tests/gate_history.py abba-context -- "${ABBA_ARG
 row_begin "headline ABBA vs last pushed binary" "$ABBA_HISTORY_CONTEXT"
 # The watchdog still tears down the measurement; its timeout must not score or exit the gate.
 trap 'ROW_EXPIRED=1' USR1
-python3 tests/abbagate.py "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &
+# Keep the original headline result at ABBA_OUTPUT for its unchanged receipt.
+# The epoll pass writes ABBA_OUTPUT-epoll; combined exit status requires both.
+# This extends measurements only: no scored correctness row or label is added.
+python3 tests/gateprod.py --run "${ABBA_ARGS[@]}" --output "$ABBA_OUTPUT" &
 ABBA_PID=$!
 wait "$ABBA_PID"
 ABBA_RC=$?
