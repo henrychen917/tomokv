@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "commands": {
+    "ACL": 4,
+    "AUTH": 2,
+    "BLMOVE": 1,
+    "BLMPOP": 9,
+    "BLPOP": 9,
+    "BRPOP": 9,
+    "BRPOPLPUSH": 1,
+    "BZPOPMIN": 9,
+    "CLIENT": 32,
+    "COMMAND": 40,
+    "DEL": 38,
+    "GET": 4,
+    "INFO": 1,
+    "LLEN": 4,
+    "LPUSH": 22,
+    "LRANGE": 4,
+    "PING": 36,
+    "SET": 2,
+    "XADD": 8,
+    "XGROUP": 2,
+    "XREAD": 9,
+    "XREADGROUP": 1,
+    "ZADD": 6
+  },
+  "kinds": {
+    "ACL": [
+      "reply"
+    ],
+    "AUTH": [
+      "reply"
+    ],
+    "BLMOVE": [
+      "witnessed admitted wake"
+    ],
+    "BLMPOP": [
+      "reply",
+      "witnessed admitted wake"
+    ],
+    "BLPOP": [
+      "reply",
+      "witnessed admitted wake"
+    ],
+    "BRPOP": [
+      "reply",
+      "witnessed admitted wake"
+    ],
+    "BRPOPLPUSH": [
+      "witnessed admitted wake"
+    ],
+    "BZPOPMIN": [
+      "reply",
+      "witnessed admitted wake"
+    ],
+    "CLIENT": [
+      "reply"
+    ],
+    "COMMAND": [
+      "reply"
+    ],
+    "DEL": [
+      "reply"
+    ],
+    "GET": [
+      "reply"
+    ],
+    "INFO": [
+      "reply"
+    ],
+    "LLEN": [
+      "reply"
+    ],
+    "LPUSH": [
+      "reply"
+    ],
+    "LRANGE": [
+      "reply"
+    ],
+    "PING": [
+      "reply"
+    ],
+    "SET": [
+      "reply"
+    ],
+    "XADD": [
+      "reply"
+    ],
+    "XGROUP": [
+      "reply"
+    ],
+    "XREAD": [
+      "reply",
+      "witnessed admitted wake"
+    ],
+    "XREADGROUP": [
+      "witnessed admitted wake"
+    ],
+    "ZADD": [
+      "reply"
+    ]
+  }
+}

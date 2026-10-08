@@ -1,0 +1,11 @@
+{
+  "start": "2026-10-08T00:49:47.722294+00:00",
+  "binary": "/home/user/Projects/cx-aclkeys/build/aclkeys2/REPRO/tomokv",
+  "sha256": "833685b6244322188b5412af343b355fc0347aed00a755776389be0f73a38651",
+  "oracle": "/home/user/Projects/redis74/src/redis-server",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "geometry": "split 6:2, 16 shards, 16 databases",
+  "server_cpus": "112-119",
+  "oracle_client_cpus": "120-127",
+  "socket_timeout_seconds": 5
+}
