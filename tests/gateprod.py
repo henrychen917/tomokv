@@ -18,7 +18,6 @@ import io
 import json
 import os
 from pathlib import Path
-import shlex
 import signal
 import subprocess
 import sys
@@ -37,9 +36,15 @@ FROZEN_SHA256 = "244c3941036d8b4535df60eb7a6304bd1f022e046a4c40fdada9501114bc5ab
 
 
 def data_lines(path):
-    return {line.split(b" |", 1)[0].decode(): line
-            for line in path.read_bytes().splitlines(keepends=True)
-            if line.strip() and not line.lstrip().startswith(b"#")}
+    rows = {}
+    for line in path.read_bytes().splitlines(keepends=True):
+        if not line.strip() or line.lstrip().startswith(b"#"):
+            continue
+        ident = line.split(b" |", 1)[0].decode()
+        if ident in rows:
+            raise ValueError(f"duplicate cell data: {ident}")
+        rows[ident] = line
+    return rows
 
 
 def check_matrix():
@@ -97,6 +102,8 @@ def duration(count):
 
 def dry_run(args):
     counts = check_matrix()
+    if args.cells.resolve() != HEADLINE or args.only or args.subset != "full":
+        raise ValueError("dry-run prints the full network-IO product; omit --cells, --only and --subset smoke")
     abba.resolve_geometry(args)
     server, load = abba.cpus(args.server_cores), abba.cpus(args.load_cores)
     ssmt, lsmt = abba.cpus(args.server_smt), abba.cpus(args.load_smt)
@@ -157,8 +164,6 @@ def run_gate(argv):
     active = None
 
     def interrupted(signum, _frame):
-        if active is not None and active.poll() is None:
-            active.send_signal(signum)
         raise InterruptedError(f"gate product interrupted by signal {signum}")
 
     old = {sig: signal.signal(sig, interrupted) for sig in (signal.SIGINT, signal.SIGTERM)}
@@ -166,7 +171,10 @@ def run_gate(argv):
     try:
         for name, arguments in commands:
             print(f"GATE measurement pass: {name}", flush=True)
-            active = subprocess.Popen([sys.executable, str(ROOT / "tests/abbagate.py"), *arguments], cwd=ROOT)
+            # One forwarded termination lets ABBA reap its own children. A
+            # private session avoids an extra terminal SIGINT during cleanup.
+            active = subprocess.Popen([sys.executable, str(ROOT / "tests/abbagate.py"), *arguments],
+                                      cwd=ROOT, start_new_session=True)
             rc = active.wait()
             statuses.append(dict(pass_name=name, exit_code=rc))
             active = None
@@ -206,7 +214,7 @@ def smoke(args):
         for attempt in range(4):
             target = started + attempt * 200
             while time.monotonic() < target:
-                time.sleep(min(30, target - time.monotonic()))
+                time.sleep(max(0, min(30, target - time.monotonic())))
             quiet = QuietMonitor(abba.cpus(args.server_cores), abba.cpus(args.load_cores),
                 ports=(args.port,), window_seconds=abba.WINDOW,
                 sample_artifact=out / f"quiet-{attempt + 1}.jsonl")
@@ -258,6 +266,9 @@ def smoke(args):
             print(found, flush=True)
         report["status"] = "PASS"
         return 0
+    except BaseException as error:
+        report.update(status="FAIL", reason=f"{type(error).__name__}: {error}")
+        raise
     finally:
         children.close()
         if quiet is not None:
@@ -274,6 +285,7 @@ def self_test():
     class Controls(unittest.TestCase):
         def test_frozen_bytes_and_full_product(self):
             from itertools import product
+            from gate_measurements import apply_floor
             self.assertEqual(check_matrix()["product"], 64)
             original = [c for c in abba.read_cells(HEADLINE, measurements={"load_floors": {}}) if c.id in IDS]
             epoll = abba.read_cells(EPOLL, measurements={"load_floors": {}})
@@ -284,8 +296,39 @@ def self_test():
                 self.assertEqual(replace(after, id=before.id, server_flags=""), before)
                 self.assertNotEqual(shape(before), shape(after))
                 self.assertEqual(after.instances, 0)
+                copied = dict(instances=8, shape=shape(before), geometry={},
+                              status="calibrated", instrument_sha256="fixture")
+                self.assertEqual(apply_floor(after, {"load_floors": {after.id: copied}},
+                    instrument_sha256="fixture").instances, 0)
+
+        def test_instrument_scope_stays_frozen_but_uring_null_cannot_cover_epoll(self):
+            from abba_instrument import instrument_fingerprint, validate_fingerprint
+            from abba_evidence import match_null_identity
+            fingerprint = instrument_fingerprint(ROOT)
+            self.assertEqual(validate_fingerprint(fingerprint), fingerprint["sha256"])
+            paths = {entry["path"] for entry in fingerprint["entries"]}
+            for name in ("tests/gateprod.py", "tests/netio_cells.txt", "tests/headline_cells.txt", "tests/gate.sh"):
+                self.assertNotIn(name, paths)
+            def identity(path):
+                return dict(instrument_fingerprint=fingerprint, cell_source=dict(
+                    sha256=abba.sha256(path), total_cells=len(abba.read_cells(path))))
+            uring, epoll = identity(HEADLINE), identity(EPOLL)
+            match_null_identity(uring, uring)
+            match_null_identity(epoll, epoll)
+            with self.assertRaisesRegex(ValueError, "null inventory differs"):
+                match_null_identity(epoll, uring)
 
         def test_dry_run_matches_real_boot_argv_for_every_cell_and_both_arms(self):
+            import ast
+            import inspect
+            import textwrap
+            syntax = ast.parse(textwrap.dedent(inspect.getsource(abba.Runner.measure)))
+            # Evaluate the actual instrument's load argv expression, without
+            # executing its surrounding boot/measurement body.
+            expressions = [node.value for node in ast.walk(syntax) if isinstance(node, ast.Assign)
+                and any(isinstance(target, ast.Name) and target.id == "argv" for target in node.targets)]
+            self.assertEqual(len(expressions), 1)
+            load_expression = compile(ast.Expression(expressions[0]), "Runner.measure/load-argv", "eval")
             with tempfile.TemporaryDirectory(dir=ROOT / "build") as directory:
                 args = parse_abba(["--server-cores", "0-31", "--server-smt", "", "--load-cores", "32-127",
                     "--load-smt", "160-255", "--output", directory])
@@ -306,6 +349,13 @@ def self_test():
                             self.assertEqual(actual[-2:], ["--net-io", "epoll"])
                         else:
                             self.assertNotIn("--net-io", actual)
+                        folder = Path(directory) / cell.id / f"n{row['initial_instances']}-{sequence}-{arm}"
+                        layout = abba.load_layout(runner.load_cpus, row["initial_instances"], cell.conns, cell.dbs)
+                        for index, part in enumerate(layout):
+                            actual_load = eval(load_expression, vars(abba), dict(self=runner, cell=cell,
+                                placement=part, i=index, folder=folder,
+                                load_lifetime=abba.WARMUP + abba.WINDOW + abba.TAIL))
+                            self.assertEqual(actual_load, row["arms"][arm]["memtier_argv"][index])
 
         def test_absent_or_wrong_transport_and_missing_cell_cannot_pass(self):
             rows = data_lines(EPOLL)
@@ -328,6 +378,30 @@ def self_test():
             self.assertIsNone(epoll_arguments(["--only", "m01"]))
             self.assertIsNone(epoll_arguments(["--cells", "tests/mkprobe_cells.txt"]))
             self.assertEqual(len(abba.selected_cells(abba.read_cells(EPOLL), "smoke")), 8)
+
+        def test_real_coordinator_dispatches_both_passes_and_cannot_hide_epoll_failure(self):
+            for statuses, expected in (((0, 0), 0), ((0, 3), 3), ((3, 0), 3), ((0, 1), 1), ((1, 0), 1)):
+                processes = [mock.Mock(wait=mock.Mock(return_value=code)) for code in statuses]
+                with mock.patch.object(subprocess, "Popen", side_effect=processes) as start, \
+                        redirect_stdout(io.StringIO()):
+                    self.assertEqual(run_gate(["--output", "build/result"]), expected)
+                self.assertEqual(start.call_count, 2)
+                first, second = [call.args[0] for call in start.call_args_list]
+                self.assertEqual(first, [sys.executable, str(ROOT / "tests/abbagate.py"),
+                                         "--output", "build/result"])
+                parsed = parse_abba(second[2:])
+                self.assertEqual(parsed.cells, EPOLL)
+                self.assertEqual(parsed.output, Path("build/result-epoll"))
+
+        def test_coordinator_interrupt_terminates_the_active_driver_once(self):
+            process = mock.Mock()
+            process.poll.return_value = None
+            process.wait.side_effect = [InterruptedError("control"), 0]
+            with mock.patch.object(subprocess, "Popen", return_value=process), \
+                    redirect_stdout(io.StringIO()), self.assertRaises(InterruptedError):
+                run_gate([])
+            process.terminate.assert_called_once()
+            process.kill.assert_not_called()
 
     (ROOT / "build").mkdir(exist_ok=True)
     result = unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Controls))
