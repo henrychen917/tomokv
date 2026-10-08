@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <memory>
 #include <vector>
 #include "lbstall.h"
 
@@ -135,6 +136,17 @@ struct LbAutotune {
         return std::max<uint64_t>(kDecisionTicks, ticks) * kTickMs;
     }
     LbStallState stall; // allocated with the existing LB-only policy, never when both knobs are 0
+    // Monitor-private damping; the optional sidecar leaves all existing policy offsets intact.
+    // INFO reads only the separately published atomics. No request-path reader or writer.
+    struct KeyDamping {
+        uint64_t last_ms = 0, moves = 0, topology = UINT64_MAX;
+        double recent = 0;
+        std::atomic<double> base_band{0}, fire_band{0};
+        std::atomic<uint32_t> required_ticks{kDecisionTicks};
+        bool update(double ratio, QuietJitter& noise, uint32_t& streak, uint32_t owners,
+                    int32_t level, uint64_t now_ms, uint64_t completed, uint64_t epoch);
+    };
+    std::unique_ptr<KeyDamping> key_damping; // null for key-lb=0 or key-lb-damping=0
 };
 
 struct WeightedLbItem {

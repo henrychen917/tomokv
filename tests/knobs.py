@@ -65,10 +65,10 @@ try:
     for name, expected in (("thread-mode", "2s"), ("net-io", engine), ("read-local", "0"),
                            ("atomic", atomic), ("key-lb", "1"), ("client-lb", "1"),
                            ("flip-auto", "0"), ("overlap", "0"), ("reorder", "0"),
-                           ("wb-policy", "1")):
+                           ("wb-policy", "1"), ("key-lb-damping", "-1")):
         if values.get(name.encode()) != expected.encode():
             raise AssertionError("CONFIG %s differs: %r" % (name, values.get(name.encode())))
-    for name in ("read-local", "key-lb", "client-lb", "flip-auto", "net-io", "overlap", "reorder", "wb-policy",
+    for name in ("read-local", "key-lb", "client-lb", "key-lb-damping", "flip-auto", "net-io", "overlap", "reorder", "wb-policy",
                  "hll-sparse-max-bytes", "unixsocketperm", "port", "bind", "unixsocket"):
         result = conn.cmd("CONFIG", "SET", name, values[name.encode()])
         if not isinstance(result, _lib.RespError) or "immutable" not in str(result):

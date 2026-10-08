@@ -1,0 +1,46 @@
+[
+  {
+    "row": "lbfix",
+    "returncode": 0
+  },
+  {
+    "row": "lbfix-floor",
+    "returncode": 0
+  },
+  {
+    "row": "lbfix-stationary",
+    "returncode": 0
+  },
+  {
+    "row": "lbfix-hot",
+    "returncode": 0
+  },
+  {
+    "row": "lbfix-clearable",
+    "returncode": 0
+  },
+  {
+    "row": "lbfix-sampling",
+    "returncode": 0
+  },
+  {
+    "row": "lbfix-gather",
+    "returncode": 0
+  },
+  {
+    "row": "lbfix-no-move",
+    "returncode": 0
+  },
+  {
+    "row": "lbfix-step",
+    "returncode": 0
+  },
+  {
+    "row": "lbfix-read-only",
+    "returncode": 0
+  },
+  {
+    "row": "lbstall",
+    "returncode": 0
+  }
+]

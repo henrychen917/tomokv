@@ -343,6 +343,7 @@ void init_config(const Config& cfg) {
                         std::to_string(static_cast<int32_t>(cfg.reorder)), true});
     g_config.push_back({"wb-policy", ConfigKind::Signed, std::to_string(cfg.wb_policy), true});
     g_config.push_back({"key-lb", ConfigKind::Unsigned, std::to_string(cfg.key_lb), true});
+    g_config.push_back({"key-lb-damping", ConfigKind::Signed, std::to_string(cfg.key_lb_damping), true});
     g_config.push_back({"client-lb", ConfigKind::Unsigned, std::to_string(cfg.client_lb), true});
     g_config.push_back({"flip-auto", ConfigKind::Unsigned,
                         std::to_string(cfg.flip_auto), true});

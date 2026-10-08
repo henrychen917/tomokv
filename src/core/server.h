@@ -421,6 +421,7 @@ public:
                 lb_bucket_weight_.assign(kNumBuckets, 0.0);
                 lb_shard_last_move_ms_.assign(cfg.shards, 0);
                 lb_policy_->shards.resize(cfg.shards);
+                lb_key_damping_init();
             } catch (const std::bad_alloc&) {
                 std::fprintf(stderr, "fatal: could not allocate weighted key-placement windows\n");
                 return false;
@@ -500,6 +501,8 @@ public:
         return lb_policy_ ? lb_policy_->sample_rate.load(std::memory_order_relaxed) : 0;
     }
     static constexpr uint32_t lb_tick_ms() { return LbAutotune::kTickMs; }
+    void lb_key_damping_init();
+    void lb_key_damping_info(std::string& out) const;
 
     bool smt_units_enabled() const { return smt_mode_; }
 

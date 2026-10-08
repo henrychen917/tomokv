@@ -4,10 +4,156 @@
 #include "signal_doorbell.h"
 #include "io_loop.h"
 #include "../cmd/info_stats.h"
+#include <tuple>
 
 namespace tomo {
+// One offline PAD-A patch point: returning zero restores PRE policy on this exact
+// layout. Production returns the configured level; no ordinary operation calls it.
+__attribute__((noipa)) int32_t lbosc3_level(int32_t configured) { return configured; }
+
+void Server::lb_key_damping_init() {
+    if (lbosc3_level(cfg_.key_lb_damping) && !lb_policy_->key_damping)
+        lb_policy_->key_damping = std::make_unique<LbAutotune::KeyDamping>();
+}
+
+void Server::lb_key_damping_info(std::string& out) const {
+    const auto* state = lb_policy_ ? lb_policy_->key_damping.get() : nullptr;
+    out += "tomokv_keylb_damping_band_pct:" + std::to_string(state ? state->base_band.load() : 0) + "\r\n";
+    out += "tomokv_keylb_damping_fire_pct:" + std::to_string(state ? state->fire_band.load() : 0) + "\r\n";
+    out += "tomokv_keylb_damping_ticks:" + std::to_string(state ? state->required_ticks.load() : 0) + "\r\n";
+}
+
+bool LbAutotune::KeyDamping::update(double ratio, QuietJitter& noise, uint32_t& streak,
+                                   uint32_t owners, int32_t level, uint64_t now_ms,
+                                   uint64_t completed, uint64_t epoch) {
+    const bool learned = noise.observe(ratio);
+    const double band = noise.band(owners);
+    // A full owner's load contains ceil(100/band) independently resolvable steps.
+    // Retain move pressure for that many decision windows, using the existing tick.
+    const double horizon = kDecisionTicks * std::ceil(100.0 / band);
+    if (topology != epoch || completed < moves || now_ms < last_ms) {
+        recent = 0;
+        moves = completed;
+        topology = epoch;
+        streak = 0;
+    } else if (last_ms) {
+        // A skipped controller tick cannot count as a consecutive crossing.
+        if (now_ms - last_ms >= 2 * kTickMs) streak = 0;
+        recent *= std::exp2(-double(now_ms - last_ms) / (horizon * kTickMs));
+    }
+    if (completed != moves) {
+        recent += completed - moves;
+        streak = 0; // a completed plan always needs a fresh run of crossed ticks
+    }
+    if (recent < 1.0 / kSamplesPerDecision) recent = 0;
+    moves = completed;
+    last_ms = now_ms;
+    // Auto charges one decision window per recent move. Explicit N scales that
+    // charge. Both K and widening saturate at a horizon; arithmetic stays bounded
+    // even at INT32_MAX. The 1.5 ceiling is the owner's allowed accuracy budget.
+    const double extra_cap = std::max(1.0, horizon - kDecisionTicks);
+    const double pressure = std::min(extra_cap, recent * (level < 0 ? kDecisionTicks : level));
+    const uint32_t ticks = kDecisionTicks + static_cast<uint32_t>(std::ceil(pressure));
+    const double fire = band * (1.0 + 0.5 * pressure / extra_cap);
+    base_band.store(band, std::memory_order_relaxed);
+    fire_band.store(fire, std::memory_order_relaxed);
+    required_ticks.store(ticks, std::memory_order_relaxed);
+    if (!learned) return false;
+    if (ratio > fire) streak = std::min(streak + 1, ticks);
+    else if (recent > 0 || ratio < 0.8 * fire) streak = 0;
+    return streak >= ticks;
+}
+
+// The key objective lives in the cold planner TU. The shared PRE search remains
+// unchanged for clients, FLIP, and the behaviour twin.
+bool lbosc3_best_incremental_move(const std::vector<WeightedLbItem>& items,
+                                              const std::vector<uint32_t>& targets,
+                                              bool demand_hot, bool secondary_hot,
+                                              WeightedLbMoveChoice& choice, double band) {
+    choice = {};
+    if (targets.size() < 2 || (!demand_hot && !secondary_hot)) return false;
+    std::vector<double> load(targets.size(), 0);
+    std::vector<double> secondary_load(targets.size(), 0);
+    std::vector<uint32_t> count(targets.size(), 0);
+    auto target_index = [&](uint32_t tid) {
+        for (uint32_t i = 0; i < targets.size(); i++) if (targets[i] == tid) return i;
+        return UINT32_MAX;
+    };
+    for (const WeightedLbItem& item : items) {
+        const uint32_t owner = target_index(item.owner);
+        if (owner == UINT32_MAX) return false;
+        load[owner] += std::max(0.0, item.weight);
+        secondary_load[owner] += std::max(0.0, item.secondary);
+        count[owner]++;
+    }
+    double total = 0, secondary_total = 0;
+    for (double value : load) total += value;
+    for (double value : secondary_load) secondary_total += value;
+    const double weight_band = total / targets.size() * band / 100.0;
+    const double secondary_band = secondary_total / targets.size() * band / 100.0;
+    auto spread = [](const auto& values) {
+        const auto [lo, hi] = std::minmax_element(values.begin(), values.end());
+        return values.empty() ? 0.0 : static_cast<double>(*hi - *lo);
+    };
+    const double old_weight = spread(load);
+    const double old_secondary = spread(secondary_load);
+    choice.before_weight_spread = old_weight;
+    choice.before_secondary_spread = old_secondary;
+    // All residuals inside the band have the same objective. Among those moves,
+    // transfer the least load: correcting a resolvable imbalance is enough.
+    // Outside the band the first component is strictly ordered by raw residual.
+    using Score = std::tuple<double, double, double, double, uint32_t, uint64_t, uint32_t>;
+    Score best{};
+    for (uint32_t item_index = 0; item_index < items.size(); item_index++) {
+        const WeightedLbItem& item = items[item_index];
+        if (item.pinned) continue;
+        const uint32_t source = target_index(item.owner);
+        for (uint32_t destination = 0; destination < targets.size(); destination++) {
+            if (destination == source) continue;
+            load[source] -= std::max(0.0, item.weight);
+            load[destination] += std::max(0.0, item.weight);
+            secondary_load[source] -= std::max(0.0, item.secondary);
+            secondary_load[destination] += std::max(0.0, item.secondary);
+            count[source]--;
+            count[destination]++;
+            const double next_weight = spread(load);
+            const double next_secondary = spread(secondary_load);
+            const auto [count_lo, count_hi] = std::minmax_element(count.begin(), count.end());
+            const uint32_t next_count = *count_hi - *count_lo;
+            count[destination]--;
+            count[source]++;
+            secondary_load[destination] -= std::max(0.0, item.secondary);
+            secondary_load[source] += std::max(0.0, item.secondary);
+            load[destination] -= std::max(0.0, item.weight);
+            load[source] += std::max(0.0, item.weight);
+
+            const bool improves = demand_hot
+                ? next_weight + 1e-9 < old_weight
+                : next_weight <= old_weight + 1e-9 &&
+                  next_secondary + 1e-9 < old_secondary;
+            if (!improves) continue;
+            const Score score{
+                std::max(0.0, next_weight - weight_band),
+                std::max(0.0, next_secondary - secondary_band),
+                demand_hot ? item.weight : item.secondary,
+                demand_hot ? item.secondary : item.weight,
+                next_count, item.id, targets[destination]};
+            if (choice.item_index == UINT32_MAX || score < best) {
+                choice.item_index = item_index;
+                choice.source = item.owner;
+                choice.destination = targets[destination];
+                choice.after_weight_spread = next_weight;
+                choice.after_secondary_spread = next_secondary;
+                best = score;
+            }
+        }
+    }
+    return choice.item_index != UINT32_MAX;
+}
+
 bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
     if (!lb_controller_enabled() || coordinator >= nthreads()) return false;
+    const int32_t damping = lbosc3_level(cfg_.key_lb_damping);
     const bool key_enabled = key_lb_signals_enabled();
     const bool client_enabled = client_lb_signals_enabled();
     lb_ticks_.fetch_add(1, std::memory_order_relaxed);
@@ -103,8 +249,21 @@ bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
                 std::memory_order_relaxed);
             lb_bucket_bytes_spread_current_.store(
                 static_cast<uint64_t>(bytes_before + 0.5), std::memory_order_relaxed);
-            if (update_streak(std::max(weight_ratio, byte_ratio), lb_policy_->key_jitter,
-                              lb_bucket_hot_streak_, executors.size())) {
+            // LBOSC3 BEGIN admission: only the key planner sees damping.
+            bool key_admitted;
+            if (damping && lb_policy_->key_damping) {
+                key_admitted = lb_policy_->key_damping->update(
+                    std::max(weight_ratio, byte_ratio), lb_policy_->key_jitter,
+                    lb_bucket_hot_streak_, executors.size(), damping, now_ms,
+                    lb_bucket_moves(), plan_flip_epoch);
+                if (!key_admitted)
+                    lb_hysteresis_refused_.fetch_add(1, std::memory_order_relaxed);
+            } else {
+                key_admitted = update_streak(std::max(weight_ratio, byte_ratio),
+                    lb_policy_->key_jitter, lb_bucket_hot_streak_, executors.size());
+            }
+            // LBOSC3 END admission
+            if (key_admitted) {
                 // Consume admission even when cooldown, indivisibility, or a sampled
                 // no-improvement plan produces no move. Such a plan needs fresh sustain.
                 lb_bucket_hot_streak_ = 0;
@@ -132,7 +291,9 @@ bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
                 }
                 shard_before = spread(loads, executors);
                 bytes_before = spread(byte_loads, executors);
-                const double band = lb_policy_->key_jitter.band(executors.size());
+                const double band = damping && lb_policy_->key_damping
+                    ? lb_policy_->key_damping->fire_band.load(std::memory_order_relaxed)
+                    : lb_policy_->key_jitter.band(executors.size());
                 if (dominant_bucket && ratio_pct(shard_before, loads, executors) > band) {
                     // The single-owner actuator cannot decompose a dominant bucket.
                     lb_hot_bucket_refused_.fetch_add(1, std::memory_order_relaxed);
@@ -148,8 +309,12 @@ bool Server::lb_controller_tick(uint32_t coordinator, uint64_t now_ms) {
                                                 band;
                         if (!demand_hot && !memory_hot) break;
                         WeightedLbMoveChoice choice;
-                        if (!weighted_lb_best_incremental_move(
-                                shard_items, executors, demand_hot, memory_hot, choice)) {
+                        const bool found = damping
+                            ? lbosc3_best_incremental_move(shard_items, executors,
+                                  demand_hot, memory_hot, choice, band)
+                            : weighted_lb_best_incremental_move(shard_items, executors,
+                                  demand_hot, memory_hot, choice);
+                        if (!found) {
                             if (cooldown_seen)
                                 lb_cooldown_refused_.fetch_add(1, std::memory_order_relaxed);
                             else

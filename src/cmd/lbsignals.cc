@@ -346,6 +346,7 @@ void lbsignals_info_section(Server& srv, std::string& out) {
                srv.lb_transition_refused(), srv.lb_capacity_refused(), srv.lb_client_refused(),
                srv.lb_hot_bucket_refused());
     srv.lb_stall_info(out);
+    srv.lb_key_damping_info(out);
     appendf_lb(out, "tomokv_keylb_bucket_gathers:%" PRIu64 "\r\n", srv.lb_bucket_gathers());
     appendf_lb(out,
                "tomokv_keylb_bucket_weight_spread_current:%.3f\r\n"

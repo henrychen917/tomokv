@@ -1,0 +1,20 @@
+tests/gateprod-evidence/proof.json:2:  "origin_cpp": "5efc5414d3d6107b5e7e29f2404e585806c823ec",
+tests/gateprod-evidence/final-merge.txt:1:origin/cpp 5efc5414d3d6107b5e7e29f2404e585806c823ec
+tests/gateprod-evidence/frozen-before.json:2:  "base_commit": "5efc5414d3d6107b5e7e29f2404e585806c823ec",
+tools/lb_episodes.py:913:def key_mapping(conn, hotmax, shards):
+tools/lb_episodes.py:915:    for start in range(1, hotmax + 1, 128):
+tools/lb_episodes.py:916:        keys = ["memtier-" + str(i) for i in range(start, min(hotmax + 1, start + 128))]
+tools/lb_episodes.py:934:        mapping = key_mapping(conn, args.hotmax, identity["shards"])
+tools/lb_episodes.py:982:        row += f"hotmax={fmt(result.get('hotmax'))} shard_count={fmt(result.get('shards'))} "
+tools/lb_episodes.py:989:            "coord_busy", "shards", "hotmax", "envelope_return_t"))
+tools/lb_episodes.py:1015:              "arms_receipt": arms_receipt(args), "shards": None, "hotmax": args.hotmax,
+tools/lb_episodes.py:1031:            require(key_mapping(conn, args.hotmax, identity["shards"]) == seed_record["hot_keys"],
+tools/lb_episodes.py:1070:                    ranges = [(args.hotmax + 1, KEYS), (1, args.hotmax)] if episode == "key-skew" else [(1, KEYS)] * 2
+tools/lb_episodes.py:1284:    fields = ("name", "episode", "mode", "arm", "round", "probe", "hotmax", "shards",
+tools/lb_episodes.py:1440:            ranges = [(args.hotmax + 1, KEYS), (1, args.hotmax)] if episode == "key-skew" else [(1, KEYS)] * 2
+tools/lb_episodes.py:1459:        print(f"# DEBUG SHARDS memtier-1 ... memtier-{args.hotmax} in batches of 128; SAVE")
+tools/lb_episodes.py:1502:    parser.add_argument("--hotmax", type=int, default=int(os.environ.get("HOTMAX", "2000")))
+tools/lb_episodes.py:1531:    require(1 <= args.hotmax < KEYS and 0 < args.port < 65536 and args.rate_per_client >= 0, "invalid workload argument")
+tools/lb_episodes.py:2441:                      hotmax=2000, shards=128)
+tools/lb_episodes.py:2445:            "LBPLANNER-EPISODE key-skew 1s PRE probe UNARMED hotmax=2000 shard_count=128 "
+tools/deadcode2_budget.py:14:    'db0/src/main.o': 146203,
