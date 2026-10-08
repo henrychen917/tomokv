@@ -1,0 +1,43 @@
+[
+  {
+    "variant": "multidb",
+    "bytes": 5040039,
+    "PRE": "e8dc20cae8c7def81241d0dc4a2c3b7026e444ee1f3338805eaf4e8bdf75f511",
+    "POST": "e8dc20cae8c7def81241d0dc4a2c3b7026e444ee1f3338805eaf4e8bdf75f511",
+    "equal": true,
+    "argv": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_DUAL_DATABASE",
+      "-I.",
+      "-E",
+      "-P",
+      "src/main.cc"
+    ]
+  },
+  {
+    "variant": "db0",
+    "bytes": 5040182,
+    "PRE": "6e28b4ef92e1695a14b75678ab63b205966d008964c870e6f56e102b381d6ff9",
+    "POST": "6e28b4ef92e1695a14b75678ab63b205966d008964c870e6f56e102b381d6ff9",
+    "equal": true,
+    "argv": [
+      "g++",
+      "-std=c++20",
+      "-O2",
+      "-march=native",
+      "-pthread",
+      "-DTOMO_JEMALLOC",
+      "-DTOMO_SINGLE_DATABASE=1",
+      "-Dtomo=tomo_db0",
+      "-I.",
+      "-E",
+      "-P",
+      "src/main.cc"
+    ]
+  }
+]

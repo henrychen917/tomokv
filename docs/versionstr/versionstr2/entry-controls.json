@@ -1,0 +1,66 @@
+[
+  {
+    "argv": [],
+    "returncode": 23,
+    "stdout": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nforwarded argc=1\n",
+    "passed": true
+  },
+  {
+    "argv": [
+      "--version"
+    ],
+    "returncode": 0,
+    "stdout": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\n",
+    "passed": true
+  },
+  {
+    "argv": [
+      "-v"
+    ],
+    "returncode": 0,
+    "stdout": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\n",
+    "passed": true
+  },
+  {
+    "argv": [
+      "--version",
+      "unused.conf"
+    ],
+    "returncode": 0,
+    "stdout": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\n",
+    "passed": true
+  },
+  {
+    "argv": [
+      "--requirepass",
+      "--version"
+    ],
+    "returncode": 23,
+    "stdout": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nforwarded argc=3 [--requirepass] [--version]\n",
+    "passed": true
+  },
+  {
+    "argv": [
+      "--help"
+    ],
+    "returncode": 23,
+    "stdout": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nforwarded argc=2 [--help]\n",
+    "passed": true
+  },
+  {
+    "argv": [
+      "config.conf",
+      "--port",
+      "18460"
+    ],
+    "returncode": 23,
+    "stdout": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\nforwarded argc=4 [config.conf] [--port] [18460]\n",
+    "passed": true
+  },
+  {
+    "control": "wrapper omitted",
+    "returncode": 23,
+    "stdout": "forwarded argc=2 [--version]\n",
+    "rejected": true
+  }
+]
