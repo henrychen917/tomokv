@@ -2668,6 +2668,7 @@ class SelfTest(unittest.TestCase):
                 patch.object(socket, "socket", side_effect=AssertionError("opened socket")), \
                 redirect_stdout(output):
             dry_run(args)
+        ranges_checked = Counter()
         for line in output.getvalue().splitlines():
             if line.startswith("#"):
                 continue
@@ -2675,9 +2676,13 @@ class SelfTest(unittest.TestCase):
             target = next((a.split("=", 1)[1] for a in argv if a.startswith("--json-out-file=")), "")
             if Path(target).name not in ("hot.json", "cold.json"):
                 continue
-            hotmax = 64 if "-2s-" in target else 256
+            mode = "2s" if "-2s-" in target else "1s"
+            ranges_checked[mode, Path(target).stem] += 1
+            hotmax = 64 if mode == "2s" else 256
             self.assertIn(f"--key-minimum={1 if target.endswith('/hot.json') else hotmax + 1}", argv)
             self.assertIn(f"--key-maximum={hotmax if target.endswith('/hot.json') else KEYS}", argv)
+        self.assertEqual(ranges_checked, Counter({(mode, cohort): 19
+                         for mode in ("1s", "2s") for cohort in ("hot", "cold")}))
         self.assertIn("memtier-256 in batches", output.getvalue())
         self.assertIn("memtier-64 in batches", output.getvalue())
         fallback = argument_parser().parse_args(["--hotmax", "256"])

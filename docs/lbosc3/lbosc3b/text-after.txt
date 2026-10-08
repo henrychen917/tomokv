@@ -56,28 +56,31 @@ tools/lb_episodes.py:2474:            "LBPLANNER-EPISODE key-skew 1s PRE probe U
 tools/lb_episodes.py:2659:    def test_mode_hotmax_dry_run_and_invalid_overrides(self):
 tools/lb_episodes.py:2664:                                             "--hotmax", "256", "--hotmax-2s", "64"])
 tools/lb_episodes.py:2665:        self.assertEqual((mode_hotmax(args, "1s"), mode_hotmax(args, "2s")), (256, 64))
-tools/lb_episodes.py:2678:            hotmax = 64 if "-2s-" in target else 256
-tools/lb_episodes.py:2679:            self.assertIn(f"--key-minimum={1 if target.endswith('/hot.json') else hotmax + 1}", argv)
-tools/lb_episodes.py:2680:            self.assertIn(f"--key-maximum={hotmax if target.endswith('/hot.json') else KEYS}", argv)
-tools/lb_episodes.py:2683:        fallback = argument_parser().parse_args(["--hotmax", "256"])
-tools/lb_episodes.py:2684:        self.assertEqual(mode_hotmax(fallback, "2s"), 256)
-tools/lb_episodes.py:2686:            with self.assertRaisesRegex(ValueError, "--hotmax-2s"):
-tools/lb_episodes.py:2687:                main(["--dry-run", "--hotmax-2s", invalid])
-tools/lb_episodes.py:2688:        with self.assertRaisesRegex(ValueError, "--probe-only requires"):
-tools/lb_episodes.py:2689:            main(["--dry-run", "--probe-only", "2s", "--episodes", "client-skew"])
-tools/lb_episodes.py:2691:    def test_probe_only_dry_run_keeps_seed_calibration_and_admission(self):
-tools/lb_episodes.py:2694:        args = argument_parser().parse_args(["--probe-only", "2s", "--episodes", "key-skew",
-tools/lb_episodes.py:2695:                                             "--hotmax", "256", "--hotmax-2s", "64"])
-tools/lb_episodes.py:2706:        self.assertIn("PROBE ONLY: stop", output.getvalue())
-tools/lb_episodes.py:2708:    def test_live_seed_and_episode_bind_effective_hotmax(self):
-tools/lb_episodes.py:2714:            args = argument_parser().parse_args(["--output", temp, "--hotmax", "256", "--hotmax-2s", "64"])
-tools/lb_episodes.py:2728:                self.assertEqual(record["hotmax"], 64)
-tools/lb_episodes.py:2736:                self.assertEqual(result["hotmax"], 64)
-tools/lb_episodes.py:2738:                self.assertIn("physical key map changed", result["reason"])
-tools/lb_episodes.py:2741:    def test_probe_only_live_dispatch_requires_admitted_move(self):
-tools/lb_episodes.py:2753:                    self.assertEqual((mode, mode_hotmax(args, mode)), ("2s", 64))
-tools/lb_episodes.py:2771:                    code = main(["--probe-only", "2s", "--episodes", "key-skew", "--hotmax", "256",
-tools/lb_episodes.py:2772:                                 "--hotmax-2s", "64", "--output", str(output)])
-tools/lb_episodes.py:2778:                self.assertEqual(saved["config"]["hotmax_2s"], 64)
+tools/lb_episodes.py:2671:        ranges_checked = Counter()
+tools/lb_episodes.py:2680:            ranges_checked[mode, Path(target).stem] += 1
+tools/lb_episodes.py:2681:            hotmax = 64 if mode == "2s" else 256
+tools/lb_episodes.py:2682:            self.assertIn(f"--key-minimum={1 if target.endswith('/hot.json') else hotmax + 1}", argv)
+tools/lb_episodes.py:2683:            self.assertIn(f"--key-maximum={hotmax if target.endswith('/hot.json') else KEYS}", argv)
+tools/lb_episodes.py:2684:        self.assertEqual(ranges_checked, Counter({(mode, cohort): 19
+tools/lb_episodes.py:2688:        fallback = argument_parser().parse_args(["--hotmax", "256"])
+tools/lb_episodes.py:2689:        self.assertEqual(mode_hotmax(fallback, "2s"), 256)
+tools/lb_episodes.py:2691:            with self.assertRaisesRegex(ValueError, "--hotmax-2s"):
+tools/lb_episodes.py:2692:                main(["--dry-run", "--hotmax-2s", invalid])
+tools/lb_episodes.py:2693:        with self.assertRaisesRegex(ValueError, "--probe-only requires"):
+tools/lb_episodes.py:2694:            main(["--dry-run", "--probe-only", "2s", "--episodes", "client-skew"])
+tools/lb_episodes.py:2696:    def test_probe_only_dry_run_keeps_seed_calibration_and_admission(self):
+tools/lb_episodes.py:2699:        args = argument_parser().parse_args(["--probe-only", "2s", "--episodes", "key-skew",
+tools/lb_episodes.py:2700:                                             "--hotmax", "256", "--hotmax-2s", "64"])
+tools/lb_episodes.py:2711:        self.assertIn("PROBE ONLY: stop", output.getvalue())
+tools/lb_episodes.py:2713:    def test_live_seed_and_episode_bind_effective_hotmax(self):
+tools/lb_episodes.py:2719:            args = argument_parser().parse_args(["--output", temp, "--hotmax", "256", "--hotmax-2s", "64"])
+tools/lb_episodes.py:2733:                self.assertEqual(record["hotmax"], 64)
+tools/lb_episodes.py:2741:                self.assertEqual(result["hotmax"], 64)
+tools/lb_episodes.py:2743:                self.assertIn("physical key map changed", result["reason"])
+tools/lb_episodes.py:2746:    def test_probe_only_live_dispatch_requires_admitted_move(self):
+tools/lb_episodes.py:2758:                    self.assertEqual((mode, mode_hotmax(args, mode)), ("2s", 64))
+tools/lb_episodes.py:2776:                    code = main(["--probe-only", "2s", "--episodes", "key-skew", "--hotmax", "256",
+tools/lb_episodes.py:2777:                                 "--hotmax-2s", "64", "--output", str(output)])
+tools/lb_episodes.py:2783:                self.assertEqual(saved["config"]["hotmax_2s"], 64)
 tools/lbosc3_pad.py:19:BASE = "db86e5b4a051929c68108d33b1dc358428c59bca"
 tools/lbosc3_pad.py:30:    level = "    const int32_t damping = lbosc3_level(cfg_.key_lb_damping);\n"

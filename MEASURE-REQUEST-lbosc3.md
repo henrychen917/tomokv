@@ -438,6 +438,10 @@ python3 tools/lb_episodes.py --dry-run --episodes key-skew --rounds 6 \
 python3 tools/lb_episodes.py --episodes key-skew --rounds 6 \
   --server-cores 0-7 --load-cores 8-15 --hotmax 256 --hotmax-2s 64 \
   --arms docs/lbosc3/arms.json --output build/lbosc3/episodes-lbosc3b-256-64
+
+python3 tools/lb_episodes.py --episodes key-skew --rounds 6 \
+  --server-cores 112-119 --load-cores 120-127 --hotmax 256 --hotmax-2s 64 \
+  --arms docs/lbosc3/arms.json --output build/lbosc3/episodes-lbosc3b-256-64-reserved
 ```
 
 Model-compliant matrix at 1s=128, 2s=64, predeclared here and subject to fresh PRE

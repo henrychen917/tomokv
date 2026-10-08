@@ -55,6 +55,6 @@ test_unarmed_and_no_move_fail (__main__.SelfTest.test_unarmed_and_no_move_fail) 
 test_unarmed_probe_refuses_and_receipts_counters (__main__.SelfTest.test_unarmed_probe_refuses_and_receipts_counters) ... ok
 
 ----------------------------------------------------------------------
-Ran 55 tests in 1.341s
+Ran 55 tests in 0.820s
 
 OK
