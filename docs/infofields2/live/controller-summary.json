@@ -1,0 +1,234 @@
+[
+  {
+    "run_id": "controller/split-a0-config0",
+    "rate_peak": "infofields offered=2005.9/s polls=[[1999, 2004], [2000, 2005]]",
+    "config_file": "",
+    "target_stop": {
+      "pid": 2870368,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2870377,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "infofix": "docs/infofields2/live/controller-split-a0-config0-infofix.log",
+    "quiet": [
+      {
+        "log": "build/infofields2/live-controller/split-a0-config0/quiet-0-18899.log",
+        "text": ""
+      },
+      {
+        "log": "build/infofields2/live-controller/split-a0-config0/quiet-0-18900.log",
+        "text": ""
+      }
+    ]
+  },
+  {
+    "run_id": "controller/split-a0-config1",
+    "rate_peak": "infofields offered=2006.0/s polls=[[1998, 2004], [2010, 2005]]",
+    "config_file": "/home/user/Projects/cx-infofields/build/infofields2/live-controller/split-a0-config1/loaded.conf",
+    "target_stop": {
+      "pid": 2870426,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2870435,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "infofix": "docs/infofields2/live/controller-split-a0-config1-infofix.log",
+    "quiet": [
+      {
+        "log": "build/infofields2/live-controller/split-a0-config1/quiet-0-18899.log",
+        "text": ""
+      },
+      {
+        "log": "build/infofields2/live-controller/split-a0-config1/quiet-0-18900.log",
+        "text": ""
+      }
+    ]
+  },
+  {
+    "run_id": "controller/split-a1-config0",
+    "rate_peak": "infofields offered=2006.0/s polls=[[1997, 1992], [1998, 1992]]",
+    "config_file": "",
+    "target_stop": {
+      "pid": 2871965,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2871974,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "infofix": "docs/infofields2/live/controller-split-a1-config0-infofix.log",
+    "quiet": [
+      {
+        "log": "build/infofields2/live-controller/split-a1-config0/quiet-0-18899.log",
+        "text": ""
+      },
+      {
+        "log": "build/infofields2/live-controller/split-a1-config0/quiet-0-18900.log",
+        "text": ""
+      }
+    ]
+  },
+  {
+    "run_id": "controller/split-a1-config1",
+    "rate_peak": "infofields offered=2006.0/s polls=[[1997, 1992], [1998, 1992]]",
+    "config_file": "/home/user/Projects/cx-infofields/build/infofields2/live-controller/split-a1-config1/loaded.conf",
+    "target_stop": {
+      "pid": 2886679,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2886688,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "infofix": "docs/infofields2/live/controller-split-a1-config1-infofix.log",
+    "quiet": [
+      {
+        "log": "build/infofields2/live-controller/split-a1-config1/quiet-0-18899.log",
+        "text": ""
+      },
+      {
+        "log": "build/infofields2/live-controller/split-a1-config1/quiet-0-18900.log",
+        "text": "quietcheck: assigned cores busy: cpu113=30% cpu118=30%\n"
+      },
+      {
+        "log": "build/infofields2/live-controller/split-a1-config1/quiet-1-18899.log",
+        "text": ""
+      },
+      {
+        "log": "build/infofields2/live-controller/split-a1-config1/quiet-1-18900.log",
+        "text": ""
+      }
+    ]
+  },
+  {
+    "run_id": "controller/armed-fused-a0-config0",
+    "rate_peak": "infofields offered=2005.9/s polls=[[1999, 1992], [1998, 1992]]",
+    "config_file": "",
+    "target_stop": {
+      "pid": 2888241,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2888250,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "infofix": "docs/infofields2/live/controller-armed-fused-a0-config0-infofix.log",
+    "quiet": [
+      {
+        "log": "build/infofields2/live-controller/armed-fused-a0-config0/quiet-0-18899.log",
+        "text": ""
+      },
+      {
+        "log": "build/infofields2/live-controller/armed-fused-a0-config0/quiet-0-18900.log",
+        "text": ""
+      }
+    ]
+  },
+  {
+    "run_id": "controller/armed-fused-a0-config1",
+    "rate_peak": "infofields offered=2005.9/s polls=[[1998, 2004], [2000, 2005]]",
+    "config_file": "/home/user/Projects/cx-infofields/build/infofields2/live-controller/armed-fused-a0-config1/loaded.conf",
+    "target_stop": {
+      "pid": 2888283,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2888292,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "infofix": "docs/infofields2/live/controller-armed-fused-a0-config1-infofix.log",
+    "quiet": [
+      {
+        "log": "build/infofields2/live-controller/armed-fused-a0-config1/quiet-0-18899.log",
+        "text": ""
+      },
+      {
+        "log": "build/infofields2/live-controller/armed-fused-a0-config1/quiet-0-18900.log",
+        "text": ""
+      }
+    ]
+  },
+  {
+    "run_id": "controller/armed-fused-a1-config0",
+    "rate_peak": "infofields offered=2005.9/s polls=[[1998, 1992], [2000, 1992]]",
+    "config_file": "",
+    "target_stop": {
+      "pid": 2889816,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2889825,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "infofix": "docs/infofields2/live/controller-armed-fused-a1-config0-infofix.log",
+    "quiet": [
+      {
+        "log": "build/infofields2/live-controller/armed-fused-a1-config0/quiet-0-18899.log",
+        "text": ""
+      },
+      {
+        "log": "build/infofields2/live-controller/armed-fused-a1-config0/quiet-0-18900.log",
+        "text": ""
+      }
+    ]
+  },
+  {
+    "run_id": "controller/armed-fused-a1-config1",
+    "rate_peak": "infofields offered=2005.9/s polls=[[1998, 1992], [2000, 1992]]",
+    "config_file": "/home/user/Projects/cx-infofields/build/infofields2/live-controller/armed-fused-a1-config1/loaded.conf",
+    "target_stop": {
+      "pid": 2889895,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2889906,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "infofix": "docs/infofields2/live/controller-armed-fused-a1-config1-infofix.log",
+    "quiet": [
+      {
+        "log": "build/infofields2/live-controller/armed-fused-a1-config1/quiet-0-18899.log",
+        "text": ""
+      },
+      {
+        "log": "build/infofields2/live-controller/armed-fused-a1-config1/quiet-0-18900.log",
+        "text": ""
+      }
+    ]
+  }
+]

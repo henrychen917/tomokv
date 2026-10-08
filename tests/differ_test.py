@@ -345,6 +345,7 @@ class DeadlineReplies(unittest.TestCase):
                         state['pending'] = 0
                     fields = dict(loading=0, rdb_changes_since_last_save=0,
                                   rdb_bgsave_in_progress=int(busy), rdb_last_save_time=0,
+                                  rdb_last_bgsave_status='ok',
                                   rdb_saves=state['saves'], aof_enabled=0, aof_rewrite_in_progress=0,
                                   aof_rewrite_scheduled=0, aof_last_bgrewrite_status='ok',
                                   aof_rewrites=0, aof_rewrites_consecutive_failures=0,

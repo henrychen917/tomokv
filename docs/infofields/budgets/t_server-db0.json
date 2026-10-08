@@ -1,0 +1,89 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=31630",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-c",
+    "src/cmd/t_server.cc",
+    "-o",
+    "/home/user/Projects/cx-infofields/build/infofields/budgets/t_server-db0/31630-g0.o"
+  ],
+  "value": 31630,
+  "total": 228,
+  "hot": 218,
+  "changed": 6,
+  "hot_changed": 0,
+  "hot_differing_bytes": 0,
+  "rows": [
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_config(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "pre_size": 7553,
+      "post_size": 7599,
+      "differing_bytes": 5766,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+      "hot": false,
+      "pre_size": 16371,
+      "post_size": 16580,
+      "differing_bytes": 13940,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "hot": false,
+      "pre_size": 336,
+      "post_size": 338,
+      "differing_bytes": 316,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db019command_bind_serverEPNS_6ServerE",
+      "name": "tomo_db0::command_bind_server(tomo_db0::Server*)",
+      "hot": false,
+      "pre_size": 155,
+      "post_size": 155,
+      "differing_bytes": 60,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db024command_config_resetstatEv",
+      "name": "tomo_db0::command_config_resetstat()",
+      "hot": false,
+      "pre_size": 2199,
+      "post_size": 2226,
+      "differing_bytes": 1006,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db024command_config_resetstatEv.cold",
+      "name": "tomo_db0::command_config_resetstat() [clone .cold]",
+      "hot": false,
+      "pre_size": 61,
+      "post_size": 65,
+      "differing_bytes": 54,
+      "targets_equal": false
+    }
+  ]
+}

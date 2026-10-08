@@ -1,0 +1,17 @@
+[
+  {
+    "control": "opcode mutation",
+    "accepted": false,
+    "expected_equal": false
+  },
+  {
+    "control": "referenced constant mutation",
+    "accepted": false,
+    "expected_equal": false
+  },
+  {
+    "control": "unreferenced neighboring constant",
+    "accepted": true,
+    "expected_equal": true
+  }
+]

@@ -1,0 +1,418 @@
+[
+  {
+    "run_id": "split-a0-config0",
+    "target": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/cx-infofields/build/infofields/POST/tomokv",
+      "--port",
+      "18899",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--atomic",
+      "0",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/split-a0-config0/target",
+      "--ratio",
+      "6:2"
+    ],
+    "oracle": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--port",
+      "18900",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/split-a0-config0/oracle"
+    ],
+    "config_file": "",
+    "rate_peak": "PASS",
+    "monitor": {
+      "command": [
+        "taskset",
+        "-c",
+        "120-127",
+        "python3",
+        "tests/differ.py",
+        "127.0.0.1",
+        "18899",
+        "127.0.0.1",
+        "18900",
+        "monitor",
+        "7"
+      ],
+      "log": "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/split-a0-config0/monitor.log",
+      "exit": 0
+    },
+    "strict_refused": {
+      "command": [
+        "taskset",
+        "-c",
+        "120-127",
+        "python3",
+        "tools/infofields_monitor_strict.py",
+        "127.0.0.1",
+        "18899",
+        "127.0.0.1",
+        "18900"
+      ],
+      "log": "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/split-a0-config0/strict-refused.log",
+      "exit": 1
+    },
+    "strict_scripts": {
+      "command": [
+        "taskset",
+        "-c",
+        "120-127",
+        "python3",
+        "tools/infofields_monitor_strict.py",
+        "127.0.0.1",
+        "18899",
+        "127.0.0.1",
+        "18900",
+        "--scripts"
+      ],
+      "log": "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/split-a0-config0/strict-scripts.log",
+      "exit": 1
+    },
+    "target_stop": {
+      "pid": 2864207,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2864216,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    }
+  },
+  {
+    "run_id": "split-a1-config0",
+    "target": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/cx-infofields/build/infofields/POST/tomokv",
+      "--port",
+      "18899",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--atomic",
+      "1",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/split-a1-config0/target",
+      "--ratio",
+      "6:2"
+    ],
+    "oracle": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--port",
+      "18900",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/split-a1-config0/oracle"
+    ],
+    "config_file": "",
+    "rate_peak": "PASS",
+    "monitor": {
+      "command": [
+        "taskset",
+        "-c",
+        "120-127",
+        "python3",
+        "tests/differ.py",
+        "127.0.0.1",
+        "18899",
+        "127.0.0.1",
+        "18900",
+        "monitor",
+        "7"
+      ],
+      "log": "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/split-a1-config0/monitor.log",
+      "exit": 0
+    },
+    "strict_refused": {
+      "command": [
+        "taskset",
+        "-c",
+        "120-127",
+        "python3",
+        "tools/infofields_monitor_strict.py",
+        "127.0.0.1",
+        "18899",
+        "127.0.0.1",
+        "18900"
+      ],
+      "log": "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/split-a1-config0/strict-refused.log",
+      "exit": 1
+    },
+    "strict_scripts": {
+      "command": [
+        "taskset",
+        "-c",
+        "120-127",
+        "python3",
+        "tools/infofields_monitor_strict.py",
+        "127.0.0.1",
+        "18899",
+        "127.0.0.1",
+        "18900",
+        "--scripts"
+      ],
+      "log": "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/split-a1-config0/strict-scripts.log",
+      "exit": 1
+    },
+    "target_stop": {
+      "pid": 2865770,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2865779,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    }
+  },
+  {
+    "run_id": "armed-fused-a0-config0",
+    "target": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/cx-infofields/build/infofields/POST/tomokv",
+      "--port",
+      "18899",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--atomic",
+      "0",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/armed-fused-a0-config0/target",
+      "--thread-mode",
+      "fused",
+      "--read-local",
+      "1"
+    ],
+    "oracle": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--port",
+      "18900",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/armed-fused-a0-config0/oracle"
+    ],
+    "config_file": "",
+    "rate_peak": "PASS",
+    "monitor": {
+      "command": [
+        "taskset",
+        "-c",
+        "120-127",
+        "python3",
+        "tests/differ.py",
+        "127.0.0.1",
+        "18899",
+        "127.0.0.1",
+        "18900",
+        "monitor",
+        "7"
+      ],
+      "log": "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/armed-fused-a0-config0/monitor.log",
+      "exit": 0
+    },
+    "strict_refused": {
+      "command": [
+        "taskset",
+        "-c",
+        "120-127",
+        "python3",
+        "tools/infofields_monitor_strict.py",
+        "127.0.0.1",
+        "18899",
+        "127.0.0.1",
+        "18900"
+      ],
+      "log": "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/armed-fused-a0-config0/strict-refused.log",
+      "exit": 1
+    },
+    "strict_scripts": {
+      "command": [
+        "taskset",
+        "-c",
+        "120-127",
+        "python3",
+        "tools/infofields_monitor_strict.py",
+        "127.0.0.1",
+        "18899",
+        "127.0.0.1",
+        "18900",
+        "--scripts"
+      ],
+      "log": "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/armed-fused-a0-config0/strict-scripts.log",
+      "exit": 1
+    },
+    "target_stop": {
+      "pid": 2865864,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2865873,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    }
+  },
+  {
+    "run_id": "armed-fused-a1-config0",
+    "target": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/cx-infofields/build/infofields/POST/tomokv",
+      "--port",
+      "18899",
+      "--bind",
+      "127.0.0.1",
+      "--shards",
+      "16",
+      "--databases",
+      "16",
+      "--atomic",
+      "1",
+      "--save",
+      "",
+      "--dir",
+      "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/armed-fused-a1-config0/target",
+      "--thread-mode",
+      "fused",
+      "--read-local",
+      "1"
+    ],
+    "oracle": [
+      "taskset",
+      "-c",
+      "112-119",
+      "/home/user/Projects/redis74/src/redis-server",
+      "--port",
+      "18900",
+      "--bind",
+      "127.0.0.1",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--dir",
+      "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/armed-fused-a1-config0/oracle"
+    ],
+    "config_file": "",
+    "rate_peak": "PASS",
+    "monitor": {
+      "command": [
+        "taskset",
+        "-c",
+        "120-127",
+        "python3",
+        "tests/differ.py",
+        "127.0.0.1",
+        "18899",
+        "127.0.0.1",
+        "18900",
+        "monitor",
+        "7"
+      ],
+      "log": "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/armed-fused-a1-config0/monitor.log",
+      "exit": 0
+    },
+    "strict_refused": {
+      "command": [
+        "taskset",
+        "-c",
+        "120-127",
+        "python3",
+        "tools/infofields_monitor_strict.py",
+        "127.0.0.1",
+        "18899",
+        "127.0.0.1",
+        "18900"
+      ],
+      "log": "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/armed-fused-a1-config0/strict-refused.log",
+      "exit": 1
+    },
+    "strict_scripts": {
+      "command": [
+        "taskset",
+        "-c",
+        "120-127",
+        "python3",
+        "tools/infofields_monitor_strict.py",
+        "127.0.0.1",
+        "18899",
+        "127.0.0.1",
+        "18900",
+        "--scripts"
+      ],
+      "log": "/home/user/Projects/cx-infofields/build/infofields2/live-smoke/armed-fused-a1-config0/strict-scripts.log",
+      "exit": 1
+    },
+    "target_stop": {
+      "pid": 2867408,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    },
+    "oracle_stop": {
+      "pid": 2867417,
+      "exit": 0,
+      "signal": "SIGTERM",
+      "forced": false
+    }
+  }
+]

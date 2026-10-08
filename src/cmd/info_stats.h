@@ -1,13 +1,24 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
+#include <string>
 
 namespace tomo {
 
-// INFO-only process state. The request paths supply already-existing per-IO counters; sampling,
-// division, locking and the memory high-water mark all stay on the cold introspection path.
-uint64_t info_stats_sample_ops(uint64_t operations);
+class Server;
+
+// Only boot, the main monitor thread and cold INFO/RESETSTAT paths use this state.
+// The three rates are commands/s, input bytes/s and output bytes/s.
+void info_stats_init(Server* server);
+void info_stats_tick(Server& server);
+std::array<uint64_t, 3> info_stats_rates();
 uint64_t info_stats_observe_memory(uint64_t used_memory);
-void info_stats_reset(uint64_t operations, uint64_t used_memory);
+void info_stats_reset(uint64_t operations, uint64_t used_memory,
+                      uint64_t input_bytes = 0, uint64_t output_bytes = 0);
+void info_stats_memory_fields(std::string& body, uint64_t allocated, uint64_t resident);
+const char* info_run_id();
+const char* info_executable();
+const char* info_config_file();
 
 }  // namespace tomo

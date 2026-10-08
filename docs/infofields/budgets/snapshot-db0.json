@@ -1,0 +1,98 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "0-15",
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-g0",
+    "-Wall",
+    "-Wextra",
+    "-march=native",
+    "-pthread",
+    "-DTOMO_JEMALLOC",
+    "-I.",
+    "--param",
+    "inline-unit-growth=0",
+    "--param",
+    "large-unit-insns=14457",
+    "-DTOMO_SINGLE_DATABASE=1",
+    "-Dtomo=tomo_db0",
+    "-c",
+    "src/snapshot/snapshot.cc",
+    "-o",
+    "/home/user/Projects/cx-infofields/build/infofields/budgets/snapshot-db0/14457-g0.o"
+  ],
+  "value": 14457,
+  "total": 126,
+  "hot": 117,
+  "changed": 7,
+  "hot_changed": 0,
+  "hot_differing_bytes": 0,
+  "rows": [
+    {
+      "symbol": "_ZN8tomo_db015SnapshotManager10abort_fileEv",
+      "name": "tomo_db0::SnapshotManager::abort_file()",
+      "hot": false,
+      "pre_size": 174,
+      "post_size": 204,
+      "differing_bytes": 175,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db015SnapshotManager21complete_file_successEv",
+      "name": "tomo_db0::SnapshotManager::complete_file_success()",
+      "hot": false,
+      "pre_size": 358,
+      "post_size": 358,
+      "differing_bytes": 52,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db015SnapshotManager4initEjjjPKcS2_NS_15PersistIoEngineE",
+      "name": "tomo_db0::SnapshotManager::init(unsigned int, unsigned int, unsigned int, char const*, char const*, tomo_db0::PersistIoEngine)",
+      "hot": false,
+      "pre_size": 2025,
+      "post_size": 2041,
+      "differing_bytes": 1742,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db015SnapshotManager5startERNS_6ServerERNS_9ThreadCtxERNS_4RingEbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPNS_10AofManagerEPKcSH_b",
+      "name": "tomo_db0::SnapshotManager::start(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo_db0::AofManager*, char const*, char const*, bool)",
+      "hot": false,
+      "pre_size": 5299,
+      "post_size": 5252,
+      "differing_bytes": 2822,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db015SnapshotManager5startERNS_6ServerERNS_9ThreadCtxERNS_4RingEbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPNS_10AofManagerEPKcSH_b.cold",
+      "name": "tomo_db0::SnapshotManager::start(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&, tomo_db0::AofManager*, char const*, char const*, bool) [clone .cold]",
+      "hot": false,
+      "pre_size": 125,
+      "post_size": 181,
+      "differing_bytes": 165,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db023snapshot_last_bgsave_okEv",
+      "name": "tomo_db0::snapshot_last_bgsave_ok()",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 17,
+      "differing_bytes": 17,
+      "targets_equal": false
+    },
+    {
+      "symbol": "_ZN8tomo_db0L21record_bgsave_failureEPNS_10AofManagerE",
+      "name": "tomo_db0::record_bgsave_failure(tomo_db0::AofManager*)",
+      "hot": false,
+      "pre_size": 0,
+      "post_size": 13,
+      "differing_bytes": 13,
+      "targets_equal": false
+    }
+  ]
+}

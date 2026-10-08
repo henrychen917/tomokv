@@ -1,0 +1,1041 @@
+[
+  {
+    "run_id": "infofields2-POST-split",
+    "exit": 0,
+    "passed": 40,
+    "failed": 0,
+    "runtime": "13m41s",
+    "per_atomic": {
+      "0": {
+        "infofix": {
+          "passed": 5,
+          "failed": 0
+        },
+        "psfix": {
+          "passed": 5,
+          "failed": 0
+        },
+        "climon": {
+          "passed": 5,
+          "failed": 0
+        },
+        "monitor": {
+          "passed": 5,
+          "failed": 0
+        }
+      },
+      "1": {
+        "infofix": {
+          "passed": 5,
+          "failed": 0
+        },
+        "psfix": {
+          "passed": 5,
+          "failed": 0
+        },
+        "climon": {
+          "passed": 5,
+          "failed": 0
+        },
+        "monitor": {
+          "passed": 5,
+          "failed": 0
+        }
+      }
+    },
+    "read_local": [],
+    "quiet": [
+      {
+        "path": "build/infofields2/live-matrix/infofields2-POST-split/quiet-0-18899.log",
+        "text": ""
+      },
+      {
+        "path": "build/infofields2/live-matrix/infofields2-POST-split/quiet-0-18900.log",
+        "text": ""
+      }
+    ],
+    "legs": [
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      }
+    ]
+  },
+  {
+    "run_id": "infofields2-POST-armed-fused",
+    "exit": 0,
+    "passed": 42,
+    "failed": 0,
+    "runtime": "13m41s",
+    "per_atomic": {
+      "0": {
+        "infofix": {
+          "passed": 5,
+          "failed": 0
+        },
+        "psfix": {
+          "passed": 5,
+          "failed": 0
+        },
+        "climon": {
+          "passed": 5,
+          "failed": 0
+        },
+        "monitor": {
+          "passed": 5,
+          "failed": 0
+        }
+      },
+      "1": {
+        "infofix": {
+          "passed": 5,
+          "failed": 0
+        },
+        "psfix": {
+          "passed": 5,
+          "failed": 0
+        },
+        "climon": {
+          "passed": 5,
+          "failed": 0
+        },
+        "monitor": {
+          "passed": 5,
+          "failed": 0
+        }
+      }
+    },
+    "read_local": [
+      [
+        "0",
+        "ok (hits=36 fallbacks=15 at peak; final_hits=34 final_fallbacks=15)"
+      ],
+      [
+        "1",
+        "ok (hits=36 fallbacks=15 at peak; final_hits=34 final_fallbacks=15)"
+      ]
+    ],
+    "quiet": [
+      {
+        "path": "build/infofields2/live-matrix/infofields2-POST-armed-fused/quiet-0-18899.log",
+        "text": ""
+      },
+      {
+        "path": "build/infofields2/live-matrix/infofields2-POST-armed-fused/quiet-0-18900.log",
+        "text": ""
+      }
+    ],
+    "legs": [
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER monitor: 19 driven commands, 15 visible lines per peer, 0 diffs -> PASS)"
+      }
+    ]
+  },
+  {
+    "run_id": "infofields2-PRE-split",
+    "exit": 1,
+    "passed": 10,
+    "failed": 30,
+    "runtime": "11m55s",
+    "per_atomic": {
+      "0": {
+        "infofix": {
+          "passed": 0,
+          "failed": 5
+        },
+        "psfix": {
+          "passed": 0,
+          "failed": 5
+        },
+        "climon": {
+          "passed": 5,
+          "failed": 0
+        },
+        "monitor": {
+          "passed": 0,
+          "failed": 5
+        }
+      },
+      "1": {
+        "infofix": {
+          "passed": 0,
+          "failed": 5
+        },
+        "psfix": {
+          "passed": 0,
+          "failed": 5
+        },
+        "climon": {
+          "passed": 5,
+          "failed": 0
+        },
+        "monitor": {
+          "passed": 0,
+          "failed": 5
+        }
+      }
+    },
+    "read_local": [],
+    "quiet": [
+      {
+        "path": "build/infofields2/live-matrix/infofields2-PRE-split/quiet-0-18899.log",
+        "text": "quietcheck: assigned cores busy: cpu118=17%\n"
+      },
+      {
+        "path": "build/infofields2/live-matrix/infofields2-PRE-split/quiet-0-18900.log",
+        "text": ""
+      },
+      {
+        "path": "build/infofields2/live-matrix/infofields2-PRE-split/quiet-1-18899.log",
+        "text": ""
+      },
+      {
+        "path": "build/infofields2/live-matrix/infofields2-PRE-split/quiet-1-18900.log",
+        "text": "quietcheck: assigned cores busy: cpu114=29% cpu124=31%\n"
+      },
+      {
+        "path": "build/infofields2/live-matrix/infofields2-PRE-split/quiet-2-18899.log",
+        "text": ""
+      },
+      {
+        "path": "build/infofields2/live-matrix/infofields2-PRE-split/quiet-2-18900.log",
+        "text": ""
+      }
+    ],
+    "legs": [
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 7,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/infofix-a0-s7.txt; AssertionError: ('missing target', b'Server', {b'executable', b'run_id', b'config_file', b'io_threads_active'}))"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 7,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/psfix-a0-s7.txt; AssertionError: ('missing target fields', {b'rdb_last_bgsave_status'}))"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 7,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/monitor-a0-s7.txt; AssertionError: ('MONITOR inclusion/format', [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"ifmon_secret\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"\"', b'\"PING\" \"ifmon:end:695425564\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:695425564\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:695425564\"']))"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 19,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/infofix-a0-s19.txt; AssertionError: ('missing target', b'Server', {b'run_id', b'config_file', b'executable', b'io_threads_active'}))"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 19,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/psfix-a0-s19.txt; AssertionError: ('missing target fields', {b'rdb_last_bgsave_status'}))"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 19,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/monitor-a0-s19.txt; AssertionError: ('MONITOR inclusion/format', [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"ifmon_secret\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"\"', b'\"PING\" \"ifmon:end:92886839\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:92886839\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:92886839\"']))"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 20,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/infofix-a0-s20.txt; AssertionError: ('missing target', b'Server', {b'run_id', b'executable', b'io_threads_active', b'config_file'}))"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 20,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/psfix-a0-s20.txt; AssertionError: ('missing target fields', {b'rdb_last_bgsave_status'}))"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 20,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/monitor-a0-s20.txt; AssertionError: ('MONITOR inclusion/format', [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"ifmon_secret\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"\"', b'\"PING\" \"ifmon:end:324710872\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:324710872\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:324710872\"']))"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 23,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/infofix-a0-s23.txt; AssertionError: ('missing target', b'Server', {b'run_id', b'config_file', b'executable', b'io_threads_active'}))"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 23,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/psfix-a0-s23.txt; AssertionError: ('missing target fields', {b'rdb_last_bgsave_status'}))"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 23,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/monitor-a0-s23.txt; AssertionError: ('MONITOR inclusion/format', [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"ifmon_secret\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"\"', b'\"PING\" \"ifmon:end:622591254\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:622591254\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:622591254\"']))"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 0,
+        "seed": 91,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/infofix-a0-s91.txt; AssertionError: ('missing target', b'Server', {b'io_threads_active', b'executable', b'config_file', b'run_id'}))"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 0,
+        "seed": 91,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/psfix-a0-s91.txt; AssertionError: ('missing target fields', {b'rdb_last_bgsave_status'}))"
+      },
+      {
+        "suite": "climon",
+        "atomic": 0,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 0,
+        "seed": 91,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/monitor-a0-s91.txt; AssertionError: ('MONITOR inclusion/format', [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"ifmon_secret\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"\"', b'\"PING\" \"ifmon:end:179358952\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:179358952\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:179358952\"']))"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 7,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/infofix-a1-s7.txt; AssertionError: ('missing target', b'Server', {b'config_file', b'run_id', b'executable', b'io_threads_active'}))"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 7,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/psfix-a1-s7.txt; AssertionError: ('missing target fields', {b'rdb_last_bgsave_status'}))"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 7,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 7,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/monitor-a1-s7.txt; AssertionError: ('MONITOR inclusion/format', [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"ifmon_secret\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"\"', b'\"PING\" \"ifmon:end:695425564\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:695425564\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:695425564\"']))"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 19,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/infofix-a1-s19.txt; AssertionError: ('missing target', b'Server', {b'executable', b'config_file', b'io_threads_active', b'run_id'}))"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 19,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/psfix-a1-s19.txt; AssertionError: ('missing target fields', {b'rdb_last_bgsave_status'}))"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 19,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 19,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/monitor-a1-s19.txt; AssertionError: ('MONITOR inclusion/format', [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"ifmon_secret\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"\"', b'\"PING\" \"ifmon:end:92886839\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:92886839\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:92886839\"']))"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 20,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/infofix-a1-s20.txt; AssertionError: ('missing target', b'Server', {b'run_id', b'io_threads_active', b'executable', b'config_file'}))"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 20,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/psfix-a1-s20.txt; AssertionError: ('missing target fields', {b'rdb_last_bgsave_status'}))"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 20,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 20,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/monitor-a1-s20.txt; AssertionError: ('MONITOR inclusion/format', [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"ifmon_secret\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"\"', b'\"PING\" \"ifmon:end:324710872\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:324710872\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:324710872\"']))"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 23,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/infofix-a1-s23.txt; AssertionError: ('missing target', b'Server', {b'run_id', b'executable', b'io_threads_active', b'config_file'}))"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 23,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/psfix-a1-s23.txt; AssertionError: ('missing target fields', {b'rdb_last_bgsave_status'}))"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 23,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 23,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/monitor-a1-s23.txt; AssertionError: ('MONITOR inclusion/format', [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"ifmon_secret\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"\"', b'\"PING\" \"ifmon:end:622591254\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:622591254\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:622591254\"']))"
+      },
+      {
+        "suite": "infofix",
+        "atomic": 1,
+        "seed": 91,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/infofix-a1-s91.txt; AssertionError: ('missing target', b'Server', {b'executable', b'run_id', b'config_file', b'io_threads_active'}))"
+      },
+      {
+        "suite": "psfix",
+        "atomic": 1,
+        "seed": 91,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/psfix-a1-s91.txt; AssertionError: ('missing target fields', {b'rdb_last_bgsave_status'}))"
+      },
+      {
+        "suite": "climon",
+        "atomic": 1,
+        "seed": 91,
+        "verdict": "ok",
+        "detail": "(DIFFER climon: 4318 ops, 0 diffs -> PASS)"
+      },
+      {
+        "suite": "monitor",
+        "atomic": 1,
+        "seed": 91,
+        "verdict": "FAIL",
+        "detail": "(see /home/user/Projects/cx-infofields/build/infofields2/live-matrix/infofields2-PRE-split/monitor-a1-s91.txt; AssertionError: ('MONITOR inclusion/format', [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"CONFIG\" \"GET\" \"maxmemory\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"ifmon_secret\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"CONFIG\" \"SET\" \"requirepass\" \"\"', b'\"PING\" \"ifmon:end:179358952\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:179358952\"'], [b'\"SET\" \"ifmon:key\" \"quote\\\\\" slash\\\\\\\\ newline\\\\n nul\\\\x00 hi\\\\xff\"', b'\"GET\" \"ifmon:missing\"', b'\"EVAL\" \"return 7\" \"0\"', b'\"EVAL\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVAL_RO\" \"return 7\" \"1\" \"ifmon:key\"', b'\"EVALSHA\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"EVALSHA_RO\" \"59b6ab2fbe0ee4b25733de0f62e6cda4899ef8e9\" \"1\" \"ifmon:key\"', b'\"FCALL\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"FCALL_RO\" \"ifmonget\" \"1\" \"ifmon:key\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"RESET\"', b'\"AUTH\" \"(redacted)\" \"(redacted)\"', b'\"PING\" \"ifmon:end:179358952\"']))"
+      }
+    ]
+  }
+]
