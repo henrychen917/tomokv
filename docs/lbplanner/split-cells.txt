@@ -1,4 +1,4 @@
-h53 | 2s | rl=0 | ov=1 | ro=0 | GET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
-h54 | 2s | rl=0 | ov=1 | ro=0 | SET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
-h21 | 2s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
-h22 | 2s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+h53 | 2s | rl=0 | ov=0 | ro=0 | GET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
+h54 | 2s | rl=0 | ov=0 | ro=0 | SET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
+h21 | 2s | rl=0 | ov=0 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+h22 | 2s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0

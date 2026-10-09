@@ -16,7 +16,7 @@ These are the five contradicted claims identified by the cmd-server audit
 | Config is 528 bytes; 624 is stale. | `static_assert(sizeof(Config) == 624)` remains at `src/core/config.h:430`. |
 | CONFIG REWRITE appends nonempty values verbatim. | `config_quote` quotes whitespace/quotes/backslashes and hex-escapes control/non-ASCII bytes (`src/cmd/server_tail.cc:653`); the writer calls it at `:723`. `requirepass "two words"` remains quoted. Loader support is at `src/core/config.h:1239`. |
 | The CONFIG table omits port, bind, and unixsocket. | All three are registered with immutable=true (`src/cmd/t_server.cc:314`); unixsocketperm follows at `:320`. They participate in REWRITE. |
-| The old scheduler and combined-balancer spellings are current. | `overlap` and `reorder` parse at `src/core/config.h:795`, `:836`; separate balancing controls parse at `:851`. Reorder is 1s-only after resolution (`src/core/config.h:437`, `src/main.cc:192`). The retired spellings are rejection cases in `tests/config_parser_test.cc`'s `retired` table. |
+| The old scheduler and combined-balancer spellings are current. | `reorder` is the surviving scheduler knob; separate balancing controls parse at `:851`. Reorder is 1s-only after resolution (`src/core/config.h:437`, `src/main.cc:192`). The retired spellings are rejection cases in `tests/config_parser_test.cc`'s `retired` table. |
 
 [CONFIGURATION.md](CONFIGURATION.md) now covers every accepted boot spelling,
 including encoding aliases, and distinguishes the 68 canonical CONFIG rows
@@ -61,7 +61,7 @@ that zero disables every borrow allocation.
 ## Reader contract
 
 Read-local has complete runtimes in both modes (`src/main.cc:325`,
-`src/core/rl2s.cc:97`), including 2s with overlap 1 (`src/core/rl2s.cc:93`).
+`src/core/rl2s.cc:97`).
 Lane-full and quota admission **defer, never demote**
 (`src/core/io_loop.h:3443`). Safety failures and same-connection dependencies
 can still require owner execution. The RYOW ring predicate is

@@ -36,7 +36,7 @@ for group in ('publication', 'watch', 'metadata'):
     py('exbatch_checks.py', group)
 py('lbplanner_checks.py')
 py('persistfix_checks.py')
-for group in ('policy', 'phase', 'stages', 'split-phase', 'split-overlap'):
+for group in ('policy', 'phase', 'stages', 'split-phase'):
     py('wb_rule_checks.py', 'check', group)
 for group in ('clauses', 'paths'):
     py('wbland_checks.py', 'check', group)

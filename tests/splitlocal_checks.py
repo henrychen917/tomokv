@@ -92,7 +92,7 @@ def check(binary, output):
         ('old-forwarding', 'Fused ? kGenthreadIfidBatchOps : 0, SplitLocal',
          'Fused ? kGenthreadIfidBatchOps : 0', 'flush_ready preserves SplitLocal and prebuild policy'),
         ('old-park', 'epoll_pass<HasUnix, HasTls, Fused>(Ring::kWaitTimeoutMs)',
-         'epoll_pass<HasUnix, HasTls, !SplitLocal, Pipeline>(Ring::kWaitTimeoutMs)', 'park/hot callback Fused policy mismatch')]:
+         'epoll_pass<HasUnix, HasTls, !SplitLocal>(Ring::kWaitTimeoutMs)', 'park/hot callback Fused policy mismatch')]:
         dest = output / name
         for relative in ('src/core/io_loop.h', 'src/core/reorder.cc', 'src/core/genthread_pipeline.h'):
             text = (ROOT / relative).read_text()

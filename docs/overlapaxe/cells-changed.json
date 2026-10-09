@@ -1,0 +1,207 @@
+[
+  {
+    "path": "docs/ccfix/generic14.cells.txt",
+    "rows": 14,
+    "ov1_before": 8,
+    "ov0_before": 6,
+    "changed": 8,
+    "format": "text"
+  },
+  {
+    "path": "docs/deadcode2/generic-merit-cells.txt",
+    "rows": 14,
+    "ov1_before": 14,
+    "ov0_before": 0,
+    "changed": 14,
+    "format": "text"
+  },
+  {
+    "path": "docs/deadfused/feature-cells.txt",
+    "rows": 32,
+    "ov1_before": 14,
+    "ov0_before": 18,
+    "changed": 14,
+    "format": "text"
+  },
+  {
+    "path": "docs/deadfused/generic-merit-cells.txt",
+    "rows": 14,
+    "ov1_before": 14,
+    "ov0_before": 0,
+    "changed": 14,
+    "format": "text"
+  },
+  {
+    "path": "docs/deadswitch/06-null14-cells.txt",
+    "rows": 14,
+    "ov1_before": 2,
+    "ov0_before": 12,
+    "changed": 2,
+    "format": "text"
+  },
+  {
+    "path": "docs/exbatch/generic-plus-cells.txt",
+    "rows": 23,
+    "ov1_before": 23,
+    "ov0_before": 0,
+    "changed": 23,
+    "format": "text"
+  },
+  {
+    "path": "docs/exbatch/measurement-cells.json",
+    "changed": 15,
+    "format": "server_argv --overlap pair removed"
+  },
+  {
+    "path": "docs/iopass/split-cells.txt",
+    "rows": 2,
+    "ov1_before": 2,
+    "ov0_before": 0,
+    "changed": 2,
+    "format": "text"
+  },
+  {
+    "path": "docs/lbplanner/4096-cells.txt",
+    "rows": 8,
+    "ov1_before": 8,
+    "ov0_before": 0,
+    "changed": 8,
+    "format": "text"
+  },
+  {
+    "path": "docs/lbplanner/generic-cells.txt",
+    "rows": 14,
+    "ov1_before": 14,
+    "ov0_before": 0,
+    "changed": 14,
+    "format": "text"
+  },
+  {
+    "path": "docs/lbplanner/multidb-cells.txt",
+    "rows": 8,
+    "ov1_before": 8,
+    "ov0_before": 0,
+    "changed": 8,
+    "format": "text"
+  },
+  {
+    "path": "docs/lbplanner/multidb-info-cells.txt",
+    "rows": 4,
+    "ov1_before": 4,
+    "ov0_before": 0,
+    "changed": 4,
+    "format": "text"
+  },
+  {
+    "path": "docs/lbplanner/split-cells.txt",
+    "rows": 4,
+    "ov1_before": 4,
+    "ov0_before": 0,
+    "changed": 4,
+    "format": "text"
+  },
+  {
+    "path": "docs/rlfence2/generic-merit-cells.txt",
+    "rows": 14,
+    "ov1_before": 14,
+    "ov0_before": 0,
+    "changed": 14,
+    "format": "text"
+  },
+  {
+    "path": "tests/headline_cells.txt",
+    "rows": 181,
+    "ov1_before": 101,
+    "ov0_before": 80,
+    "changed": 101,
+    "format": "text"
+  },
+  {
+    "path": "tests/netio_cells.txt",
+    "rows": 32,
+    "ov1_before": 16,
+    "ov0_before": 16,
+    "changed": 16,
+    "format": "text"
+  },
+  {
+    "path": "tests/reorderwb_cells.txt",
+    "rows": 6,
+    "ov1_before": 6,
+    "ov0_before": 0,
+    "changed": 6,
+    "format": "text"
+  },
+  {
+    "path": "tests/signalacct_tail_cells.txt",
+    "rows": 8,
+    "ov1_before": 8,
+    "ov0_before": 0,
+    "changed": 8,
+    "format": "text"
+  },
+  {
+    "path": "tests/ttl_cells.txt",
+    "rows": 2,
+    "ov1_before": 2,
+    "ov0_before": 0,
+    "changed": 2,
+    "format": "text"
+  },
+  {
+    "path": "tests/wb_rule_2s_cells.txt",
+    "rows": 16,
+    "ov1_before": 16,
+    "ov0_before": 0,
+    "changed": 16,
+    "format": "text"
+  },
+  {
+    "path": "tests/wb_rule_cells.txt",
+    "rows": 7,
+    "ov1_before": 7,
+    "ov0_before": 0,
+    "changed": 7,
+    "format": "text"
+  },
+  {
+    "path": "tests/wbhybrid2_cells.txt",
+    "rows": 14,
+    "ov1_before": 14,
+    "ov0_before": 0,
+    "changed": 14,
+    "format": "text"
+  },
+  {
+    "path": "tests/wbhybrid_cells.txt",
+    "rows": 21,
+    "ov1_before": 21,
+    "ov0_before": 0,
+    "changed": 21,
+    "format": "text"
+  },
+  {
+    "path": "tests/wbknobs_sweep_cells.txt",
+    "rows": 2,
+    "ov1_before": 2,
+    "ov0_before": 0,
+    "changed": 2,
+    "format": "text"
+  },
+  {
+    "path": "tests/wbland_4096_cells.txt",
+    "rows": 12,
+    "ov1_before": 12,
+    "ov0_before": 0,
+    "changed": 12,
+    "format": "text"
+  },
+  {
+    "path": "tests/wbland_merit_cells.txt",
+    "rows": 14,
+    "ov1_before": 14,
+    "ov0_before": 0,
+    "changed": 14,
+    "format": "text"
+  }
+]

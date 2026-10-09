@@ -64,7 +64,7 @@ The file-only spelling `pin yes` leaves the default alone; `pin no` translates
 to the valueless `--no-pin`. A later `pin yes` does not undo an earlier `pin no`
 (`src/core/config.h:1342`). `--help` prints usage and exits; it is not a knob.
 
-Read-local works with overlap 0 or 1 in both modes; split IO remains shard-less
+Read-local works in both modes; split IO remains shard-less
 (`src/core/rl2s.cc:72`, `:213`). A quota refusal or full lane **defers the frame,
 never demotes it**: bytes remain unconsumed until lane work drains
 (`src/core/io_loop.h:3443`). Safety/ordering failures can still require owner
@@ -293,7 +293,6 @@ bind 127.0.0.1
 port 6399
 thread-mode 2s
 shards 16
-overlap 0
 read-local 0
 key-lb 1
 key-lb-damping -1
@@ -315,7 +314,7 @@ taskset -c 0-7 ./build/tomokv build/docs-example.conf --ratio 6:2 --dir "$DOCS_D
 
 From another terminal: `redis-cli -p 6399 PING`,
 `redis-cli -p 6399 CONFIG GET databases`, and `redis-cli -p 6399 INFO server`.
-Expect PONG, databases=1, thread_mode=2s, shards=16, overlap=0, read_local=0,
+Expect PONG, databases=1, thread_mode=2s, shards=16, read_local=0,
 key_lb=1, client_lb=1, reorder=0. Stop with `redis-cli -p 6399 SHUTDOWN NOSAVE`.
 The parser and serverless geometry check can validate this example without a
 listener; live boot and these replies are maintainer-run checks.

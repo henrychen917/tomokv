@@ -3,7 +3,7 @@
 
 Reuses coadapt's flip_fix_acceptance.py protocol; tests/flipctl.py remains the
 workload and acceptance oracle. Explicitly record both switches: the original
-reproduction defaults to overlap=0/reorder=0 and cannot exercise the R7 drain.
+reproduction defaults to reorder=0 and cannot exercise the R7 drain.
 Run only when scheduled, with taskset -c 120-127. All attempts are retained and
 any failed attempt makes this runner fail. Only child PIDs are stopped.
 """
@@ -50,8 +50,7 @@ def interrupted(signum, frame):
 
 def check_settings(settings, args, pid):
     expected = {"thread_mode": "2s", "shards": "16", "atomic": "0",
-                "flip_auto": "1", "reorder": args.reorder or "0",
-                "overlap": args.overlap or "0"}
+                "flip_auto": "1", "reorder": args.reorder or "0"}
     for name, value in expected.items():
         assert settings[name] == value, (name, settings[name], value)
     assert settings["process_id"] == str(pid)
@@ -66,7 +65,6 @@ def main():
     parser.add_argument("--repetitions", type=int, default=6)
     parser.add_argument("--observe", action="store_true")
     parser.add_argument("--reorder", choices=("0", "1"))
-    parser.add_argument("--overlap", choices=("0", "1"))
     parser.add_argument("--bare-boot", action="store_true",
                         help="send no readiness requests; verify INFO settings after the driver")
     parser.add_argument("--sample-driver", action="store_true", help=argparse.SUPPRESS)
@@ -100,8 +98,6 @@ def main():
                        "--atomic", "0", "--enable-debug-command", "yes", "--flip-auto", "1"]
         if args.reorder is not None:
             server_argv += ["--reorder", args.reorder]
-        if args.overlap is not None:
-            server_argv += ["--overlap", args.overlap]
         driver_argv = ["taskset", "-c", "120-127", "python3"]
         if args.observe:
             driver_argv += [str(Path(__file__).resolve()), str(run), "--sample-driver", "--driver-args"]

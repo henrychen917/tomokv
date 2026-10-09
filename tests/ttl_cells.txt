@@ -3,5 +3,5 @@
 # 20M shared keys lengthen the P:P revisit cycle so 1s TTLs can expire under load.
 # Population has no TTL; expiry must fire inside EACH central 20s window.
 # id | mode | rl | ov | ro | op | depth | conns | reserved | reserved | pin | atomic | score | mix | smoke | options
-ttls | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | cli=--expiry-range=1-30 | keys=20000000
-ttlm | 1s | rl=0 | ov=1 | ro=0 | MIX | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=1:1 | smoke=0 | cli=--expiry-range=1-30 | keys=20000000
+ttls | 1s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | cli=--expiry-range=1-30 | keys=20000000
+ttlm | 1s | rl=0 | ov=0 | ro=0 | MIX | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=1:1 | smoke=0 | cli=--expiry-range=1-30 | keys=20000000

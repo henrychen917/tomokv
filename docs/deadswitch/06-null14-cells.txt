@@ -11,5 +11,5 @@ m53 | 2s | rl=0 | ov=0 | ro=0 | MSET | p8 | 512 | - | - | - | atomic=1 | score=r
 m54 | 2s | rl=0 | ov=0 | ro=0 | MSET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
 m74 | 2s | rl=1 | ov=0 | ro=0 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
 m75 | 2s | rl=1 | ov=0 | ro=0 | MGET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
-h05 | 1s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
-h06 | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+h05 | 1s | rl=0 | ov=0 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+h06 | 1s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0

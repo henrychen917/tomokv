@@ -70,8 +70,10 @@ def parse_abba(argv):
 
 
 def knobs(cell):
+    if cell.overlap:
+        raise abba.KnobNotAccepted(f"RETIRED_KNOB: overlap={cell.overlap} in {cell.id}")
     return {"thread-mode": cell.mode, "read-local": cell.read_local,
-            "overlap": cell.overlap, "reorder": cell.reorder}
+            "reorder": cell.reorder}
 
 
 def server_argv(runner, cell, arm, folder):

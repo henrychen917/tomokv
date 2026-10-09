@@ -29,10 +29,10 @@ round-robin to executors.
 and runtime `FLIP`. Both modes retain cross-thread owner dispatch. The optional
 local-read lane runs in both modes: the 2s entry selects a dedicated runtime
 whose IO threads remain shard-less (`src/main.cc:325`, `src/core/rl2s.cc:97`,
-`:213`). Both overlap settings are supported (`src/core/rl2s.cc:72`). See
+`:213`). See
 [CONFIGURATION.md](CONFIGURATION.md#threads-placement-and-execution).
 
-The shipped posture is `thread-mode 2s`, `overlap 0`, `read-local 0`,
+The shipped posture is `thread-mode 2s`, `read-local 0`,
 `key-lb 1`, `client-lb 1`, and `reorder 0` (`src/core/config.h:306`, `:329`,
 `:350`, `:387`). Periodic snapshots use Redis's three clauses,
 `save 3600 1`, `save 300 100`, `save 60 10000` (`src/core/config.h:347`).

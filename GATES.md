@@ -14,8 +14,8 @@ No pattern kill, other worktree edit, full gate, or automatic reference replacem
 **Feature tier: 35 rows in quick and full.**
 
 `tests/feature_gate.py` covers the complete 32-entry product of thread-mode, read-local, client-lb,
-reorder and flip-auto. Every boot explicitly sets all eight switches. The other three booleans
-vary as `atomic = read-local XOR overlap`, `key-lb = reorder`, `client-lb = overlap`, covering
+reorder and flip-auto. Every boot explicitly sets all seven switches. The other two booleans
+vary as `atomic = read-local XOR client-lb`, `key-lb = reorder`, covering
 both values and all four independent LB settings. An inventory assertion checks this plan.
 The gate shell emits a separate ledger row for every entry, so deleting an entry also breaks
 the ledger count.
@@ -42,9 +42,8 @@ Assertions require:
 - Every active reader accumulates both GET and MGET hits. Nonreaders remain at zero; a role
   change permits the lifetime counts accumulated while it was a reader. Disabled read-local
   has no thread-report allocation and zero hit, arm, sidecar and write-ring counters.
-- The correct overlap schedule, increasing passes **and interleaved passes**, and increasing
-  reorder calls, multi-client runs **and permutations**. Disabled mechanisms have zero counters;
-  both disabled means the schedule-stat allocation/report must be absent.
+- When reorder is armed, fresh reorder calls, multi-client runs **and permutations**
+  must increase. Disabled reorder has zero counters and no schedule-stat allocation/report.
 - Atomic groups fire on cross-owner work when enabled and stay zero when disabled. LB ticks
   and the independently enabled key/client signal collectors must produce measured weights;
   disabled collectors stay zero and cannot move their respective objects.
@@ -71,7 +70,7 @@ implementation. No rejection is marked expected, skipped, or passed by these row
 **Performance tier: 32 mandatory full-only rows.**
 
 `tests/perf_gate.py` runs GET, SET, four-key MGET and four-pair MSET at p1/p32 in 1s/2s with
-read-local off/on. Atomics are always on. Overlap, reorder, flip and both balancers are explicitly
+read-local off/on. Atomics are always on. Reorder, flip and both balancers are explicitly
 off, keeping the geometry stable across the measurement. Commands/s counts complete commands,
 not MGET elements or MSET pairs.
 

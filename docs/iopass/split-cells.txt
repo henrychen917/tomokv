@@ -1,2 +1,2 @@
-d32g | 2s | rl=1 | ov=1 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
-d8s | 2s | rl=1 | ov=1 | ro=0 | SET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+d32g | 2s | rl=1 | ov=0 | ro=0 | GET | p32 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0
+d8s | 2s | rl=1 | ov=0 | ro=0 | SET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=0

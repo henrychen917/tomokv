@@ -14,7 +14,7 @@ import signalacct_live as live
 class Driver(unittest.TestCase):
     def args(self, directory, **kw):
         return argparse.Namespace(binary=Path('/never-executed'), output=Path(directory),
-            cores='0-7', port=16739, mode=kw.get('mode', '2s'), read_local=1, overlap=1,
+            cores='0-7', port=16739, mode=kw.get('mode', '2s'), read_local=1,
             reorder=1, databases=1, net_io='uring', edges=True, legacy_control=kw.get('legacy', False))
 
     def attempt(self, args, report, *, boot_failed=False):
@@ -70,7 +70,7 @@ class Driver(unittest.TestCase):
 
     def test_unentered_window_has_exactly_three_fresh_attempts_then_fails(self):
         argv = ['signalacct_live.py', '--binary', '/never-executed', '--output', 'build/mock',
-                '--mode', '2s', '--read-local', '1', '--overlap', '1', '--reorder', '1']
+                '--mode', '2s', '--read-local', '1', '--reorder', '1']
         with (mock.patch.object(live.sys, 'argv', argv),
               mock.patch.object(live, 'attempt', side_effect=SystemExit('window never opened')) as attempt):
             with self.assertRaisesRegex(AssertionError, 'after three fresh boots'):

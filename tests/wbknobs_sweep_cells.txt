@@ -1,3 +1,3 @@
 # Same frozen p8 cells as tests/wb_rule_cells.txt; the coordinator supplies arm-only flags.
-p8g | 1s | rl=0 | ov=1 | ro=0 | GET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
-p8s | 1s | rl=0 | ov=1 | ro=0 | SET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+p8g | 1s | rl=0 | ov=0 | ro=0 | GET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+p8s | 1s | rl=0 | ov=0 | ro=0 | SET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0

@@ -346,7 +346,7 @@ def idle(args):
                          ports=(args.port,), sample_artifact=args.output / "quiet-samples.jsonl")
     try:
         quiet.start()
-        knobs = ["--thread-mode", args.mode, "--read-local", "1", "--overlap", "0",
+        knobs = ["--thread-mode", args.mode, "--read-local", "1",
                  "--reorder", "0", "--atomic", "1", "--key-lb", "0", "--client-lb", "0",
                  "--shards", "256" if args.mode == "1s" else "128"]
         if args.mode == "2s":

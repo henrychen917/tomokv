@@ -400,7 +400,7 @@ def inventory():
         require(srv[:4] == ["taskset", "-c", "0-7", "{ARM}"], "server placement changed")
         options = dict(zip(srv[4::2], srv[5::2]))
         expected = {"--bind": "127.0.0.1", "--port": "18179", "--net-io": "uring", "--shards": "16",
-                    "--atomic": "1", "--overlap": "1", "--reorder": "0", "--key-lb": "1",
+                    "--atomic": "1", "--reorder": "0", "--key-lb": "1",
                     "--client-lb": "1", "--flip-auto": "0", "--save": "", "--appendonly": "no",
                     "--enable-debug-command": "yes", "--databases": "1", "--dir": "{RUN_DIR}",
                     "--thread-mode": "2s" if regime == "s0" else "1s",
@@ -1138,7 +1138,7 @@ def run_sample(cell, arm, identities, folder, q, guard=None):
         require(boot["read_local"] == ("1" if regime == "f1" else "0"), "effective read-local posture differs")
         for name, value in {"pin_threads": "1", "net_io": "uring", "atomic": "1",
                             "key_lb": "1", "client_lb": "1", "flip_auto": "0", "shards": "16",
-                            "overlap": "1", "reorder": "0", "thread_mode": "2s" if regime == "s0" else "1s"}.items():
+                            "reorder": "0", "thread_mode": "2s" if regime == "s0" else "1s"}.items():
             require(boot[name] == value, f"effective boot {name} differs from recipe")
         require(conn.must("DBSIZE") == 0, "server did not boot with fresh empty state")
         if base == BASES[0]:
@@ -2285,7 +2285,7 @@ def self_test():
                 now = [1000.]
                 processes, dbsizes, endpoints, lb_calls = [], [0, 1000000, 1000000], [0, 0, 80000, 80000], []
                 boot = dict(process_id="123", read_local="0", pin_threads="1", net_io="uring", atomic="1",
-                            key_lb="1", client_lb="1", flip_auto="0", shards="16", overlap="1", reorder="0",
+                            key_lb="1", client_lb="1", flip_auto="0", shards="16", reorder="0",
                             thread_mode="1s", thread_cpus=",".join(f"{i}:{i}" for i in range(8)))
 
                 class Process:

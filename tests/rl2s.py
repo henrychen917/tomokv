@@ -3,7 +3,7 @@
 
 Run against a maintainer-started, otherwise idle server:
   tests/rl2s.py HOST PORT
-  --thread-mode 2s --read-local 1 --overlap 0|1 --shards 16 --ratio 6:2
+  --thread-mode 2s --read-local 1 --shards 16 --ratio 6:2
   --enable-debug-command yes --key-lb 0 --client-lb 0 --flip-auto 0
 
 This script never launches a server. Wrong geometry or a lane that never fires

@@ -1,13 +1,13 @@
 # Both modes, 32 server cores; split uses 16 IO + 16 EX.
-wbland_1s_get_1_4k | 1s | rl=0 | ov=1 | ro=0 | GET | p1 | 4096 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
-wbland_1s_set_1_4k | 1s | rl=0 | ov=1 | ro=0 | SET | p1 | 4096 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
-wbland_1s_get_8_4k | 1s | rl=0 | ov=1 | ro=0 | GET | p8 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
-wbland_1s_set_8_4k | 1s | rl=0 | ov=1 | ro=0 | SET | p8 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
-wbland_1s_get_32_4k | 1s | rl=0 | ov=1 | ro=0 | GET | p32 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
-wbland_1s_set_32_4k | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
-wbland_2s_get_1_4k | 2s | rl=0 | ov=1 | ro=0 | GET | p1 | 4096 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
-wbland_2s_set_1_4k | 2s | rl=0 | ov=1 | ro=0 | SET | p1 | 4096 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
-wbland_2s_get_8_4k | 2s | rl=0 | ov=1 | ro=0 | GET | p8 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
-wbland_2s_set_8_4k | 2s | rl=0 | ov=1 | ro=0 | SET | p8 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
-wbland_2s_get_32_4k | 2s | rl=0 | ov=1 | ro=0 | GET | p32 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
-wbland_2s_set_32_4k | 2s | rl=0 | ov=1 | ro=0 | SET | p32 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+wbland_1s_get_1_4k | 1s | rl=0 | ov=0 | ro=0 | GET | p1 | 4096 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
+wbland_1s_set_1_4k | 1s | rl=0 | ov=0 | ro=0 | SET | p1 | 4096 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
+wbland_1s_get_8_4k | 1s | rl=0 | ov=0 | ro=0 | GET | p8 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+wbland_1s_set_8_4k | 1s | rl=0 | ov=0 | ro=0 | SET | p8 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+wbland_1s_get_32_4k | 1s | rl=0 | ov=0 | ro=0 | GET | p32 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+wbland_1s_set_32_4k | 1s | rl=0 | ov=0 | ro=0 | SET | p32 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+wbland_2s_get_1_4k | 2s | rl=0 | ov=0 | ro=0 | GET | p1 | 4096 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
+wbland_2s_set_1_4k | 2s | rl=0 | ov=0 | ro=0 | SET | p1 | 4096 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=0
+wbland_2s_get_8_4k | 2s | rl=0 | ov=0 | ro=0 | GET | p8 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+wbland_2s_set_8_4k | 2s | rl=0 | ov=0 | ro=0 | SET | p8 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+wbland_2s_get_32_4k | 2s | rl=0 | ov=0 | ro=0 | GET | p32 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0
+wbland_2s_set_32_4k | 2s | rl=0 | ov=0 | ro=0 | SET | p32 | 4096 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0

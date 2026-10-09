@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Prove one externally started mode cell, including actual multi-client permutations.
 
-orthog.py HOST PORT 1s|2s READ_LOCAL OVERLAP REORDER [--output FILE]
+orthog.py HOST PORT 1s|2s READ_LOCAL REORDER [--output FILE]
 Requires atomic 1, DEBUG enabled, key/client LB and automatic FLIP disabled.
 No throughput measurement, server lifecycle, or gate invocation lives here.
 """
@@ -36,7 +36,7 @@ def main():
     parser.add_argument("host")
     parser.add_argument("port", type=int)
     parser.add_argument("mode", choices=("1s", "2s"))
-    for name in ("read_local", "overlap", "reorder"):
+    for name in ("read_local", "reorder"):
         parser.add_argument(name, type=int, choices=(0, 1))
     parser.add_argument("--output")
     args = parser.parse_args()
@@ -47,7 +47,6 @@ def main():
         cfg = ctl.must("CONFIG", "GET", "*")
         cfg = dict(zip(cfg[::2], cfg[1::2]))
         expected = {"thread-mode": args.mode, "read-local": args.read_local,
-                    "overlap": args.overlap,
                     "reorder": 0 if _lib.info(ctl, "server").get("reorder_retired") == "1" else args.reorder,
                     "atomic": 1,
                     "key-lb": 0, "client-lb": 0, "flip-auto": 0}
@@ -59,12 +58,11 @@ def main():
             if not args.read_local or int(before.get("read_local_active_threads", 0)) == expected_active:
                 break
             time.sleep(0.01)
-        for name in ("thread_mode", "read_local", "overlap", "reorder", "atomic"):
-            wanted = args.mode if name == "thread_mode" else 1 if name == "atomic" else 0 if name == "reorder" else getattr(args, name)
+        for name in ("thread_mode", "read_local", "reorder", "atomic"):
+            wanted = args.mode if name == "thread_mode" else 1 if name == "atomic" else expected[name.replace("_", "-")] if name == "reorder" else getattr(args, name)
             require(before[name] == str(wanted), "INFO mismatch: " + name)
-        require(before.get("overlap_enabled") == str(args.overlap), "effective overlap mismatch")
         nthreads = int(before["io_threads"]) + int(before["ex_threads"]) if args.mode == "2s" else int(before["fused_threads"])
-        require(int(before.get("schedule_stats_threads", 0)) == (nthreads if args.overlap else 0),
+        require(int(before.get("schedule_stats_threads", 0)) == (nthreads if expected["reorder"] else 0),
                 "disabled schedule knobs allocated witnesses, or enabled witnesses are absent")
         topo = _lib.topology(ctl)
         prefix = "orthog:%d" % time.time_ns()
@@ -150,16 +148,10 @@ def main():
             with concurrent.futures.ThreadPoolExecutor(max_workers=len(chosen)) as pool:
                 list(pool.map(worker, enumerate(chosen)))
             final = _lib.info(ctl, "server")
-            overlapped = not args.overlap or (
-                int(final["overlap_passes"]) > int(start["overlap_passes"]) and
-                (args.mode == "1s" or int(final["overlap_interleaved_passes"]) >
-                 int(start["overlap_interleaved_passes"])))
-            # An idle or all-natural split pass must re-arm on fresh keys/connections,
-            # and activity before this workload cannot pass it.
             reordered = not args.reorder or start.get("reorder_retired") == "1" or (
                 int(final.get("reorder_permuted_runs", 0)) >
                 int(start.get("reorder_permuted_runs", 0)))
-            if overlapped and reordered:
+            if reordered:
                 break
         require(final.get("reorder_retired") in ("0", "1"), "missing reorder capability")
         reorder_on = args.reorder and final["reorder_retired"] == "0"
@@ -171,31 +163,20 @@ def main():
             require(all(name not in final for name in
                         ("reorder_batches", "reorder_multi_client_runs", "reorder_permuted_runs", "reorder_max_batch")),
                     "disabled reorder exposed counters")
-        schedule = "plain" if not args.overlap else "split-io-overlap" if args.mode == "2s" else "fused-overlap"
-        require(final.get("overlap_schedule", "plain") == schedule, "actual schedule differs from requested mode")
-        if args.overlap:
-            require(int(final["overlap_passes"]) > int(start["overlap_passes"]), "overlap did not run")
-            if args.mode == "2s":
-                require(int(final["overlap_interleaved_passes"]) > int(start["overlap_interleaved_passes"]),
-                        "split IO never entered its interleaved arm in this fresh workload")
-            else:
-                require(int(final["overlap_interleaved_passes"]) == 0,
-                        "fused whole-batch prefetch claimed deleted split interleaving")
-        else:
-            require(int(final.get("overlap_passes", 0)) == int(final.get("overlap_interleaved_passes", 0)) == 0,
-                    "overlap ran while disabled")
+        require(all(name not in final for name in ("overlap", "overlap_enabled", "overlap_schedule",
+                                                   "overlap_passes", "overlap_interleaved_passes")),
+                "retired overlap INFO field is visible")
         if not args.read_local:
             require(int(_lib.info(ctl, "stats")["read_local_hits"]) == 0, "disabled lane completed reads")
         evidence = {"requested": expected, "before": before, "local_info": local_info,
-                    "scheduler_before": start, "after": final, "overlap_arm_attempts": attempt + 1}
+                    "scheduler_before": start, "after": final, "reorder_arm_attempts": attempt + 1}
         if args.output:
             with open(args.output, "w") as f:
                 json.dump(evidence, f, indent=2, sort_keys=True)
                 f.write("\n")
-        print("PASS orthog %s/%d/%d/%d: active=%s schedule=%s passes=%s interleaved=%s reordered=%s" %
-              (args.mode, args.read_local, args.overlap, args.reorder,
-               local_info.get("read_local_active_threads", "0"), schedule,
-               final.get("overlap_passes", "0"), final.get("overlap_interleaved_passes", "0"),
+        print("PASS orthog %s/%d/%d: active=%s reordered=%s" %
+              (args.mode, args.read_local, args.reorder,
+               local_info.get("read_local_active_threads", "0"),
                final.get("reorder_permuted_runs", "disabled")))
     finally:
         for conn in opened:

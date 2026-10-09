@@ -93,7 +93,7 @@ def suite(abba):
             for cell in self.cells:
                 self.assertEqual((cell.mode, cell.read_local, cell.overlap, cell.reorder,
                     cell.conns, cell.data_bytes, cell.depth, cell.atomic, cell.score, cell.instances),
-                    ("1s", 0, 1, 0, 512, 64, 32, 1, "rate", h05.instances))
+                    ("1s", 0, 0, 0, 512, 64, 32, 1, "rate", h05.instances))
                 self.assertEqual(cell.key_count, 20_000_000)
                 self.assertEqual(abba.client_arguments(cell.client_flags), ["--expiry-range=1-30"])
             args = SimpleNamespace(cells=abba.ROOT / "tests/ttl_cells.txt", subset="full", only="")

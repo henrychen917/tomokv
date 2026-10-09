@@ -18,7 +18,7 @@ BUILD = ROOT / 'build'
 PRE = BUILD / 'wbrule2s-pre'
 PRE_SRC = BUILD / 'wbrule2s-pre-src'
 STUDY = BUILD / 'wbrule2s34-src'
-GROUPS = ('policy', 'phase', 'stages', 'split-phase', 'split-overlap')
+GROUPS = ('policy', 'phase', 'stages', 'split-phase')
 
 
 def pinned():
@@ -172,7 +172,7 @@ def costs():
         subprocess.run(['g++', '-std=c++20', '-O2', '-g', '-Wall', '-Wextra', '-march=native', '-pthread',
                         '-DTOMO_JEMALLOC', '-I'+str(source), str(source/'tests/wb_rule_2s_cost.cc'), '-o', str(witness), '-ljemalloc'], check=True)
         elf = Elf(witness); section = elf.sections[elf.names.index('.text')]
-        for kind in ('walk', 'select'):
+        for kind in ('walk',):
             symbol = elf.functions()['wb_rule_2s_cost_'+kind]
             for shape in ('p32', 'mget'):
                 for count in (16, 128):
@@ -183,7 +183,7 @@ def costs():
                     counts = json.loads(next(s[6:] for s in run.stdout.splitlines() if s.startswith('TRACE=')))
                     rows.append(dict(arm=name, case=case, **counts, witness_sha256=sha(witness), command=command, stdout=run.stdout))
                     print(name, case, counts, flush=True)
-    (BUILD/'wbrule2s-costs.json').write_text(json.dumps(dict(scope='One deterministic synthetic invocation, x86 instruction steps, not PMU instructions/op, cycles, IPC, or latency. walk is eligibility only; select adds production FIFO/scratch selection on a fixture deque. No retirement, IFID, AOF or sends.', tracer_sha256=sha(trace), rows=rows), indent=2)+'\n')
+    (BUILD/'wbrule2s-costs.json').write_text(json.dumps(dict(scope='One deterministic synthetic invocation, x86 instruction steps, not PMU instructions/op, cycles, IPC, or latency. walk is eligibility only; the retired overlap FIFO/scratch selection is no longer measured. No retirement, IFID, AOF or sends.', tracer_sha256=sha(trace), rows=rows), indent=2)+'\n')
 
 
 def audit():

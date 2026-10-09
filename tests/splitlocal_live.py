@@ -69,14 +69,13 @@ def instrument(pre, post, output):
     print('Counter overlays emitted:', makefile)
 
 
-def probe(host, port, mode, overlap, database, output):
+def probe(host, port, mode, database, output):
     conn = _lib.Conn(host, port, timeout=15)
     keys = []
     try:
         config = conn.must('CONFIG', 'GET', '*')
         config = dict(zip(config[::2], config[1::2]))
         for name, wanted in [('thread-mode', mode), ('read-local', '1'),
-                             ('overlap', str(overlap)),
                              ('key-lb', '0'), ('client-lb', '0'), ('flip-auto', '0')]:
             assert config.get(name.encode()) == wanted.encode(), ('configuration', name, config.get(name.encode()))
         assert conn.must('SELECT', database) == b'OK'
@@ -103,7 +102,7 @@ def probe(host, port, mode, overlap, database, output):
         assert after - before == expected, ('prebuild count', after - before, expected)
         assert conn.must('DEBUG', 'IO-THREAD') == tid, 'connection owner stable'
         assert _lib.topology(conn).shard_owner == topo.shard_owner, 'shard owners stable'
-        receipt = dict(mode=mode, overlap=overlap, database=database, sets=operations,
+        receipt = dict(mode=mode, database=database, sets=operations,
                        value_bytes=len(value), prebuilds=after-before, expected=expected,
                        foreign_keys=len(keys), ryow=True)
         output.parent.mkdir(parents=True, exist_ok=True)
@@ -124,8 +123,8 @@ if __name__ == '__main__':
     i.add_argument('--output', type=Path, default=Path('build/splitlocal'))
     c = sub.add_parser('probe')
     c.add_argument('host'); c.add_argument('port', type=int); c.add_argument('mode', choices=['1s','2s'])
-    c.add_argument('overlap', type=int, choices=[0,1]); c.add_argument('database', type=int)
+    c.add_argument('database', type=int)
     c.add_argument('output', type=Path)
     args = p.parse_args()
     if args.action == 'instrument': instrument(args.pre, args.post, args.output)
-    else: probe(args.host, args.port, args.mode, args.overlap, args.database, args.output)
+    else: probe(args.host, args.port, args.mode, args.database, args.output)

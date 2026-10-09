@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Check one externally booted overlap/read-local cell; never starts a server.
+"""Check one externally booted mode/read-local cell; never starts a server.
 
-Usage: overlap.py HOST PORT 1s|2s OVERLAP READ_LOCAL [REORDER]
-Boot with the requested mode/overlap/read-local, --key-lb 0 --client-lb 0, --enable-debug-command yes,
-and two shard owners foreign to the reader. Repeat for all eight cells and atomic 0/1.
+Usage: mode_lane.py HOST PORT 1s|2s READ_LOCAL [REORDER]
+Boot with the requested mode/mode/read-local, --key-lb 0 --client-lb 0, --enable-debug-command yes,
+and two shard owners foreign to the reader. Repeat for all four cells and atomic 0/1.
 This is a correctness/engagement battery, not a throughput measurement. Existing
 read_local_lane.py and bplus.py exercise the deterministic pressure/atomic windows.
 """
@@ -34,11 +34,11 @@ def burst(conn, commands, replies):
 
 
 def main():
-    if (len(sys.argv) not in (6, 7) or sys.argv[3] not in ("1s", "2s") or
+    if (len(sys.argv) not in (5, 6) or sys.argv[3] not in ("1s", "2s") or
             any(value not in ("0", "1") for value in sys.argv[4:])):
         raise SystemExit(__doc__)
-    host, port, mode, overlap, lane = sys.argv[1:6]
-    reorder = sys.argv[6] if len(sys.argv) == 7 else "0"
+    host, port, mode, lane = sys.argv[1:5]
+    reorder = sys.argv[5] if len(sys.argv) == 6 else "0"
     armed = lane == "1"
     control = _lib.Conn(host, port, timeout=10)
     reader = _lib.Conn(host, port, timeout=10)
@@ -46,27 +46,26 @@ def main():
     try:
         config = control.must("CONFIG", "GET", "*")
         config = dict(zip(config[::2], config[1::2]))
-        for name, wanted in (("thread-mode", mode), ("overlap", overlap),
+        for name, wanted in (("thread-mode", mode), 
                              ("read-local", lane), ("key-lb", "0"), ("client-lb", "0"),
                              ("reorder", reorder)):
             expect(config.get(name.encode()), wanted.encode(), "CONFIG " + name)
-        expect(control.must("CONFIG", "GET", "x-overlap"), [], "retired spelling")
-        result = control.cmd("CONFIG", "SET", "overlap", overlap)
-        if not isinstance(result, _lib.RespError) or "immutable" not in str(result):
-            raise AssertionError("overlap must remain boot-only: %r" % result)
+        for name in ("overlap", "x-overlap"):
+            expect(control.must("CONFIG", "GET", name), [], "retired spelling")
+            if not isinstance(control.cmd("CONFIG", "SET", name, "0"), _lib.RespError):
+                raise AssertionError("retired knob remains writable: " + name)
         server = _lib.info(control, "server")
-        for name, wanted in (("thread_mode", mode), ("overlap", overlap),
-                             ("overlap_enabled", overlap),
+        for name, wanted in (("thread_mode", mode), 
                              ("read_local", str(int(armed)))):
             expect(server.get(name), wanted, "INFO " + name)
-        if "x_overlap" in server:
+        if any(name in server for name in ("overlap", "overlap_enabled", "x_overlap")):
             raise AssertionError("retired INFO spelling remains visible")
 
         # Select two different owners, both foreign to the reader. Never infer ownership
         # from names; fixed LB makes this witness valid through the last read below.
         reader_tid = reader.must("DEBUG", "IO-THREAD")
         topo = _lib.topology(control)
-        prefix = "overlap:%d" % time.time_ns()
+        prefix = "mode-lane:%d" % time.time_ns()
         chosen = {}
         for key, shard, owner in _lib.probe_keys(control, prefix, topo):
             if owner != reader_tid:
@@ -124,9 +123,9 @@ def main():
         expect(_lib.topology(control).shard_owner, topo.shard_owner, "shard ownership")
         if not armed:
             expect(counters(control), before, "inactive lane counters")
-        print("overlap cell PASS: mode=%s overlap=%s read-local=%s effective=%d; "
+        print("mode lane PASS: mode=%s read-local=%s effective=%d; "
               "clean hits=%d MGET hits=%d missing demotions=%d" %
-              (mode, overlap, lane, armed,
+              (mode, lane, armed,
                after["read_local_hits"] - before["read_local_hits"],
                after["read_local_mget_local_hits"] - before["read_local_mget_local_hits"],
                missing_after["read_local_fallback_missing"] - after["read_local_fallback_missing"]))
