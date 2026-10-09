@@ -1,0 +1,3 @@
+GATE_ONLY_JOBS="release_batteries asan_batteries exbatch_units wbland_units wb_rule_units reorder_engagement atomic_units wb_policy" tests/gate.sh iteration --server-cores 112-119 --load-cores 120-127 --server-smt '' --load-smt '' --ports 18340-18342
+
+production_units is added automatically as a prerequisite; gate_subset.sh rejects it as a directly selected job. The six failed families were derived from build/gate-run.wumlEk/jobs/*/ledger. The requested release and ASAN batteries and the affected wb_policy job include live boots. Every original failed row is mapped in previous-failures.json.

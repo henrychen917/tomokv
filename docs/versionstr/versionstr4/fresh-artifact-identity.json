@@ -1,0 +1,585 @@
+{
+  "fresh": "build/tomokv",
+  "retained": "build/versionstr3/POST/tomokv",
+  "sha256": "f1800a8e71de7f0644083ec5cd52a339aca0180282d168f8221b75d5a6be400a",
+  "server_elf_identical": true,
+  "object_count": 96,
+  "objects": [
+    {
+      "path": "src/cmd/acl.o",
+      "retained": "94999d5e93fa6f84d70023c837a895bc4d11ec80c621e8ab67fbdde071936872",
+      "fresh": "94999d5e93fa6f84d70023c837a895bc4d11ec80c621e8ab67fbdde071936872",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/climon.o",
+      "retained": "4ed11a37e209665ce88148139a85b5c475f88a20a66c9a12c9169feb5f7f2311",
+      "fresh": "4ed11a37e209665ce88148139a85b5c475f88a20a66c9a12c9169feb5f7f2311",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/cmdgap.o",
+      "retained": "414ca5ac0a8f2c5e8d7c84ec6592d1e898846db16bd6287a176bef9e1a5a7a48",
+      "fresh": "414ca5ac0a8f2c5e8d7c84ec6592d1e898846db16bd6287a176bef9e1a5a7a48",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/cmdmeta.o",
+      "retained": "2a66bd427c09b3f3e3e45c475bbd3ec71a58a12d4b26af2fc41fb19dc034374a",
+      "fresh": "2a66bd427c09b3f3e3e45c475bbd3ec71a58a12d4b26af2fc41fb19dc034374a",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/commands.o",
+      "retained": "9936f6c25b9a86eb57f6c669d9655dcd74c1ef3342780598e2dddb87d3e5a247",
+      "fresh": "9936f6c25b9a86eb57f6c669d9655dcd74c1ef3342780598e2dddb87d3e5a247",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/functions.o",
+      "retained": "04ce190af7a15a3db23d365dbae897cb8aba91e6009d94206f1a5c91f3ab9fd3",
+      "fresh": "04ce190af7a15a3db23d365dbae897cb8aba91e6009d94206f1a5c91f3ab9fd3",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/geo.o",
+      "retained": "4ffb8766f9133588e4e94c6ec1ed3cdc9d0ed503ffe4d5a29667b6d20e0670c8",
+      "fresh": "4ffb8766f9133588e4e94c6ec1ed3cdc9d0ed503ffe4d5a29667b6d20e0670c8",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/geo_store.o",
+      "retained": "734549659ca66b718d00657f85a854223dc04076bfb1a2a102c0348ccd999a51",
+      "fresh": "734549659ca66b718d00657f85a854223dc04076bfb1a2a102c0348ccd999a51",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/glob.o",
+      "retained": "2a62578c567bec6eddc823f664c25755cd4a690d9ddfcf914bd5a247d8a90510",
+      "fresh": "2a62578c567bec6eddc823f664c25755cd4a690d9ddfcf914bd5a247d8a90510",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/hll.o",
+      "retained": "6a3045ee2bd2c7504205e5d4eb8117b0b2063b11e57f2c46a966111e2ac26ac6",
+      "fresh": "6a3045ee2bd2c7504205e5d4eb8117b0b2063b11e57f2c46a966111e2ac26ac6",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/info_stats.o",
+      "retained": "2d54c8fc54571457772564bc84cb5b5240f6867d2f2076f611d90e7897f2b3c8",
+      "fresh": "2d54c8fc54571457772564bc84cb5b5240f6867d2f2076f611d90e7897f2b3c8",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/l4prebuild.o",
+      "retained": "1612126aa51ae0b3bef6396a47048ae6a95cbad0a779a479ab9b2f388f86361c",
+      "fresh": "1612126aa51ae0b3bef6396a47048ae6a95cbad0a779a479ab9b2f388f86361c",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/lbsignals.o",
+      "retained": "a68f5acc5b09ac6506bc82be96db2a3103505bee1d0c6964a3978e3b6f7e94ab",
+      "fresh": "a68f5acc5b09ac6506bc82be96db2a3103505bee1d0c6964a3978e3b6f7e94ab",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/lcs.o",
+      "retained": "fff787e08bbdf8c96ad82b177d331c7bbbccb9ed90dcbc10628f27fe990491ab",
+      "fresh": "fff787e08bbdf8c96ad82b177d331c7bbbccb9ed90dcbc10628f27fe990491ab",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/multi_admin.o",
+      "retained": "f320c1beeacca445435563e9de2e023a44e02dd39f029c19a29d4d90bf45c810",
+      "fresh": "f320c1beeacca445435563e9de2e023a44e02dd39f029c19a29d4d90bf45c810",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/multidb.o",
+      "retained": "d16554467be98798fd78fe0c1ea50f2684264ecd07fea291134e510b52a8f76a",
+      "fresh": "d16554467be98798fd78fe0c1ea50f2684264ecd07fea291134e510b52a8f76a",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/pfdebug.o",
+      "retained": "11f9fc28cab3d3a68b06ead147e793db5b528c44ef43a239a2b74e238ffb2661",
+      "fresh": "11f9fc28cab3d3a68b06ead147e793db5b528c44ef43a239a2b74e238ffb2661",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/scripting.o",
+      "retained": "3efaa8a613a7e6815f140c904699f8df720520bffdac6a8c89ffe822bc56c5f9",
+      "fresh": "3efaa8a613a7e6815f140c904699f8df720520bffdac6a8c89ffe822bc56c5f9",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/serialize.o",
+      "retained": "f836d226d8ff95fe55721929b6c8d7fb5c736255ab2b60b10f87e416795555fd",
+      "fresh": "f836d226d8ff95fe55721929b6c8d7fb5c736255ab2b60b10f87e416795555fd",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/server_tail.o",
+      "retained": "a9d25c7010902f4b2f7dce7adc7effa3a88de7ff2159a5a4112e2657517bb8e3",
+      "fresh": "a9d25c7010902f4b2f7dce7adc7effa3a88de7ff2159a5a4112e2657517bb8e3",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/slowlog.o",
+      "retained": "6f598b58830619750c1ff12e68cf164f2f78bdeb64ced9e9f31f5268c1c343c6",
+      "fresh": "6f598b58830619750c1ff12e68cf164f2f78bdeb64ced9e9f31f5268c1c343c6",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/storesize.o",
+      "retained": "2bbd453d1b40daae50d992b0ed65a632290b9f1def03d16af32a7f8218c35bef",
+      "fresh": "2bbd453d1b40daae50d992b0ed65a632290b9f1def03d16af32a7f8218c35bef",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/t_hash.o",
+      "retained": "35ad4704011814703cdf7839efb85e1d96a09c86ed3052ac6e8064b82ca96820",
+      "fresh": "35ad4704011814703cdf7839efb85e1d96a09c86ed3052ac6e8064b82ca96820",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/t_hash_ttl.o",
+      "retained": "32975816c4e8da5835b88e782a92549435ca152e1105453e75a10ec2fd099da1",
+      "fresh": "32975816c4e8da5835b88e782a92549435ca152e1105453e75a10ec2fd099da1",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/t_list.o",
+      "retained": "da615101b22032ca181f08fd8bb653e6d9bebcafd3f6753b23759cc506ce071e",
+      "fresh": "da615101b22032ca181f08fd8bb653e6d9bebcafd3f6753b23759cc506ce071e",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/t_server.o",
+      "retained": "9ed7c460907c42d4868bf4f7ba3457d311703968730cdac1ec2d493fae1d7b25",
+      "fresh": "9ed7c460907c42d4868bf4f7ba3457d311703968730cdac1ec2d493fae1d7b25",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/t_set.o",
+      "retained": "5ff49af36e90f248588930725c07d2c5f0ade9338d7bc78ef017c96fc7bbcfba",
+      "fresh": "5ff49af36e90f248588930725c07d2c5f0ade9338d7bc78ef017c96fc7bbcfba",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/t_sort.o",
+      "retained": "6420b26ce98f0281a3e828f4a4b386a8cbd4ef3c597849026ff73323e09740dc",
+      "fresh": "6420b26ce98f0281a3e828f4a4b386a8cbd4ef3c597849026ff73323e09740dc",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/t_stream.o",
+      "retained": "b2a249b0ee9bee689c122c575c3a13424110c3ae89bf74170e22605dfd1429de",
+      "fresh": "b2a249b0ee9bee689c122c575c3a13424110c3ae89bf74170e22605dfd1429de",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/t_stream_groups.o",
+      "retained": "17caa7abbfdb852b42e9d3050dee356f2e46dd285389f9e1e69aa1d299b9922c",
+      "fresh": "17caa7abbfdb852b42e9d3050dee356f2e46dd285389f9e1e69aa1d299b9922c",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/t_string.o",
+      "retained": "3581dbe5dc9af4f33cde194da4f34762274a4834670ed3e259e19c0b2b0a9d0f",
+      "fresh": "3581dbe5dc9af4f33cde194da4f34762274a4834670ed3e259e19c0b2b0a9d0f",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/t_string_notify.o",
+      "retained": "6b2c822accaeb22569288366227b7dd2a4aaf67b65ed54a8f92be5ab66327e9e",
+      "fresh": "6b2c822accaeb22569288366227b7dd2a4aaf67b65ed54a8f92be5ab66327e9e",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/t_zset.o",
+      "retained": "a0a8f474b7dbc60ce8e355c6fee872a22e3da5f5c5b547595e6ad3b870e98ad3",
+      "fresh": "a0a8f474b7dbc60ce8e355c6fee872a22e3da5f5c5b547595e6ad3b870e98ad3",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/t_zset_ops.o",
+      "retained": "fe7d6fc55a86d3dd393e5d151378f890b85ad4d799c1c60d23d38434a055f7ed",
+      "fresh": "fe7d6fc55a86d3dd393e5d151378f890b85ad4d799c1c60d23d38434a055f7ed",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/tracking.o",
+      "retained": "d2c98ecfae5316f4916c12876153969087864c47579a4ac9d141e98351ef012f",
+      "fresh": "d2c98ecfae5316f4916c12876153969087864c47579a4ac9d141e98351ef012f",
+      "equal": true
+    },
+    {
+      "path": "src/cmd/xshard.o",
+      "retained": "b9a56f6ce3b198b3a0c0b1d29dd84f270c5b9f5d858614d369953c8c524f9011",
+      "fresh": "b9a56f6ce3b198b3a0c0b1d29dd84f270c5b9f5d858614d369953c8c524f9011",
+      "equal": true
+    },
+    {
+      "path": "src/core/flipctl.o",
+      "retained": "367e125e60a7cec8f4869ab2b689b704e5af51d62f2cd51de59d344bb128bac3",
+      "fresh": "367e125e60a7cec8f4869ab2b689b704e5af51d62f2cd51de59d344bb128bac3",
+      "equal": true
+    },
+    {
+      "path": "src/core/genthread.o",
+      "retained": "99a2872a62b9ce62703a7e00c3c16df0320923c9cfb341eea8879796376b5697",
+      "fresh": "99a2872a62b9ce62703a7e00c3c16df0320923c9cfb341eea8879796376b5697",
+      "equal": true
+    },
+    {
+      "path": "src/core/lbplanner.o",
+      "retained": "d4bf51ed5d4bc9d9160bb97a7c423ffab4de03049a91769e42eb5552ef11a728",
+      "fresh": "d4bf51ed5d4bc9d9160bb97a7c423ffab4de03049a91769e42eb5552ef11a728",
+      "equal": true
+    },
+    {
+      "path": "src/core/lbstall.o",
+      "retained": "62eb56117e2a9f9ab87bd975e196dbbf700f1e6a7678f83f203bdec08571e7c5",
+      "fresh": "62eb56117e2a9f9ab87bd975e196dbbf700f1e6a7678f83f203bdec08571e7c5",
+      "equal": true
+    },
+    {
+      "path": "src/core/reorder.o",
+      "retained": "df583f70fbfc50849c83f5f739cc6ab4a4223a3aa405f81cadcad71a40dc45db",
+      "fresh": "df583f70fbfc50849c83f5f739cc6ab4a4223a3aa405f81cadcad71a40dc45db",
+      "equal": true
+    },
+    {
+      "path": "src/core/rl2s.o",
+      "retained": "ff5457659835e7799f3b866ed4bc5ba0af025bb397fea8c4bc0315417ec5b0ee",
+      "fresh": "ff5457659835e7799f3b866ed4bc5ba0af025bb397fea8c4bc0315417ec5b0ee",
+      "equal": true
+    },
+    {
+      "path": "src/core/version.o",
+      "retained": "75a5507ea6ce292068284881ae67142bf300c24ef8aadcf823677e9082e9db0b",
+      "fresh": "75a5507ea6ce292068284881ae67142bf300c24ef8aadcf823677e9082e9db0b",
+      "equal": true
+    },
+    {
+      "path": "src/main.o",
+      "retained": "1ad0842da1cce3967b43c4aea08ad01d38c70b4e6b78fff4b838491538c7115a",
+      "fresh": "1ad0842da1cce3967b43c4aea08ad01d38c70b4e6b78fff4b838491538c7115a",
+      "equal": true
+    },
+    {
+      "path": "src/net/tls.o",
+      "retained": "8de1cfbac586c7eb4f1105f3e524fed569c22bb9b2e67575a36c17b23bd6d77e",
+      "fresh": "8de1cfbac586c7eb4f1105f3e524fed569c22bb9b2e67575a36c17b23bd6d77e",
+      "equal": true
+    },
+    {
+      "path": "src/persist/aof.o",
+      "retained": "a32e898649a5dc457af9902a7e68ec894525f41d6f81a98a15bf31aff1a40730",
+      "fresh": "a32e898649a5dc457af9902a7e68ec894525f41d6f81a98a15bf31aff1a40730",
+      "equal": true
+    },
+    {
+      "path": "src/persist/aof_frame_debug.o",
+      "retained": "9ab79e605bb58cc1c0c9327f3c5621454b0bd76ea670d7a574103d9365458594",
+      "fresh": "9ab79e605bb58cc1c0c9327f3c5621454b0bd76ea670d7a574103d9365458594",
+      "equal": true
+    },
+    {
+      "path": "src/snapshot/snapshot.o",
+      "retained": "b3da8664dbccc67bf41912cbc6bb559490d8c0d0b37c95f16a16a98b7cd35551",
+      "fresh": "b3da8664dbccc67bf41912cbc6bb559490d8c0d0b37c95f16a16a98b7cd35551",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/acl.o",
+      "retained": "66326781574a912305e68e10f6d36f8a25037e7673c52f371cc22f07ae5932c5",
+      "fresh": "66326781574a912305e68e10f6d36f8a25037e7673c52f371cc22f07ae5932c5",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/climon.o",
+      "retained": "2aa757985d5260bbc4767eab15410fddbca5da49a0ac959005371a8797c6dee9",
+      "fresh": "2aa757985d5260bbc4767eab15410fddbca5da49a0ac959005371a8797c6dee9",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/cmdgap.o",
+      "retained": "4834da0f402494601c2b385bf2898dbb92eb2b8a332d345e88c081b834bbe22a",
+      "fresh": "4834da0f402494601c2b385bf2898dbb92eb2b8a332d345e88c081b834bbe22a",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/cmdmeta.o",
+      "retained": "e22d0cf7f6ca68502042acda6892ff9cdfe2000c7886c470669b22a98e64cece",
+      "fresh": "e22d0cf7f6ca68502042acda6892ff9cdfe2000c7886c470669b22a98e64cece",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/commands.o",
+      "retained": "fd48003cb2451f4f8e33de5be36d0ccf96b759b4f562da2b53a88bcc3aa6b37c",
+      "fresh": "fd48003cb2451f4f8e33de5be36d0ccf96b759b4f562da2b53a88bcc3aa6b37c",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/functions.o",
+      "retained": "b800f041d56d85429bc9db45d4469c3ea600597c99932c0b4109902472b42f2c",
+      "fresh": "b800f041d56d85429bc9db45d4469c3ea600597c99932c0b4109902472b42f2c",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/geo.o",
+      "retained": "b7812f3fc3974d92c890cb0e5d29ac5db344bc02c424c833082a5f840e0ffecc",
+      "fresh": "b7812f3fc3974d92c890cb0e5d29ac5db344bc02c424c833082a5f840e0ffecc",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/geo_store.o",
+      "retained": "e6d6100a74a771e8de845e13c49611d9d4b178d6c6f4fb8ff02ee503be91faa0",
+      "fresh": "e6d6100a74a771e8de845e13c49611d9d4b178d6c6f4fb8ff02ee503be91faa0",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/glob.o",
+      "retained": "8b1e997d1fe4037eb1824bcb60b6b87bb72b4726f8a3e87896d8e7173d23424a",
+      "fresh": "8b1e997d1fe4037eb1824bcb60b6b87bb72b4726f8a3e87896d8e7173d23424a",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/hll.o",
+      "retained": "7e2b0803b68838ac15037d892b6c8dbe2509ec3f13ee303cd7d6c8d00b8deece",
+      "fresh": "7e2b0803b68838ac15037d892b6c8dbe2509ec3f13ee303cd7d6c8d00b8deece",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/info_stats.o",
+      "retained": "fe68b108d76735cbe1f49e93dbd4d5f8bbe0c0420b6fe0b278344a9e88c437c4",
+      "fresh": "fe68b108d76735cbe1f49e93dbd4d5f8bbe0c0420b6fe0b278344a9e88c437c4",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/l4prebuild.o",
+      "retained": "0aed0cad2d7ecd8f822fa31ac6b1e39619e9ee42ba91e0be6cd4bf297762e291",
+      "fresh": "0aed0cad2d7ecd8f822fa31ac6b1e39619e9ee42ba91e0be6cd4bf297762e291",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/lbsignals.o",
+      "retained": "3ad4793d8ecdeb4aadb0e848d4dcffdf9aeeda60a212bd961333a73cf5c3a6af",
+      "fresh": "3ad4793d8ecdeb4aadb0e848d4dcffdf9aeeda60a212bd961333a73cf5c3a6af",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/lcs.o",
+      "retained": "116e780b66540ab91795894f23baf4beee7f81d7014e95ee8738c0f766041f86",
+      "fresh": "116e780b66540ab91795894f23baf4beee7f81d7014e95ee8738c0f766041f86",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/multi_admin.o",
+      "retained": "c370648eb7f725948bb235b640558abee0c4976734dd03ff424524bdb5b19de7",
+      "fresh": "c370648eb7f725948bb235b640558abee0c4976734dd03ff424524bdb5b19de7",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/multidb.o",
+      "retained": "6a108b4a65ae397ac35541cf5dfe7ba28fffa083c29b4fac53bb3ed3aceaf2fa",
+      "fresh": "6a108b4a65ae397ac35541cf5dfe7ba28fffa083c29b4fac53bb3ed3aceaf2fa",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/pfdebug.o",
+      "retained": "6a9d6f11bf64e152cf9237d53c9c600ad5fe2b953fce59bbd3ce0111fef80bd3",
+      "fresh": "6a9d6f11bf64e152cf9237d53c9c600ad5fe2b953fce59bbd3ce0111fef80bd3",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/scripting.o",
+      "retained": "312d5b08bf1338349bd9437e91de528ed24c0012ab05480d68cf5b336728389f",
+      "fresh": "312d5b08bf1338349bd9437e91de528ed24c0012ab05480d68cf5b336728389f",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/serialize.o",
+      "retained": "dae4195a59b1bf2855d64daf78367f2dad4d443cb1ef35b4f0baaa56d092b2c2",
+      "fresh": "dae4195a59b1bf2855d64daf78367f2dad4d443cb1ef35b4f0baaa56d092b2c2",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/server_tail.o",
+      "retained": "78fe9aa7e843581b9d5809559415b7938a6ca0d2551c9aab3aab41d0e838b551",
+      "fresh": "78fe9aa7e843581b9d5809559415b7938a6ca0d2551c9aab3aab41d0e838b551",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/slowlog.o",
+      "retained": "7adc2fdb497be189c8c50f4cbc3a1d45cb0d65ee64476d222f9a85339e128a21",
+      "fresh": "7adc2fdb497be189c8c50f4cbc3a1d45cb0d65ee64476d222f9a85339e128a21",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/storesize.o",
+      "retained": "19c3599fb74fc276ea7ca489d8eb6266fab8ea48467663003851a6b2d72649cd",
+      "fresh": "19c3599fb74fc276ea7ca489d8eb6266fab8ea48467663003851a6b2d72649cd",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/t_hash.o",
+      "retained": "9dc57db7e47fbf66993b524649eda2757c9d1b77272e8f16c1c0ecc46bf272cb",
+      "fresh": "9dc57db7e47fbf66993b524649eda2757c9d1b77272e8f16c1c0ecc46bf272cb",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/t_hash_ttl.o",
+      "retained": "6b4f02ac73b35b5a91ed76e87334b40433aec3e26d0606135281048dd03b2921",
+      "fresh": "6b4f02ac73b35b5a91ed76e87334b40433aec3e26d0606135281048dd03b2921",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/t_list.o",
+      "retained": "8935ab5cae17eb61a67abb741c1e3fe443ab9fda680edc485f0d7e5d16400219",
+      "fresh": "8935ab5cae17eb61a67abb741c1e3fe443ab9fda680edc485f0d7e5d16400219",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/t_server.o",
+      "retained": "53eee95d7ba71da424198d1719905f0d6630cd9ef620616e5a2e481a8b2a6cff",
+      "fresh": "53eee95d7ba71da424198d1719905f0d6630cd9ef620616e5a2e481a8b2a6cff",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/t_set.o",
+      "retained": "74cb750101c65c0eed9819b97c53cfc8d27f1ba06333ae30cb28ddb0514de590",
+      "fresh": "74cb750101c65c0eed9819b97c53cfc8d27f1ba06333ae30cb28ddb0514de590",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/t_sort.o",
+      "retained": "a2a7e82e3f696d2c265612c49e32c7b43f80f63b3acdb4c9d257fdad214a6b65",
+      "fresh": "a2a7e82e3f696d2c265612c49e32c7b43f80f63b3acdb4c9d257fdad214a6b65",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/t_stream.o",
+      "retained": "b6dca9bc11c3c8084cd86a701c1713dd9477e8fd7b634f90a9f894afd0eb8fa5",
+      "fresh": "b6dca9bc11c3c8084cd86a701c1713dd9477e8fd7b634f90a9f894afd0eb8fa5",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/t_stream_groups.o",
+      "retained": "494d230c7ab10c4a5454495ff44b8b99486846af3a3541908e5388f07b408c75",
+      "fresh": "494d230c7ab10c4a5454495ff44b8b99486846af3a3541908e5388f07b408c75",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/t_string.o",
+      "retained": "12d61ded636db56b122b3dad5d392629bd9d33de874a68c8e3bab19ab945f370",
+      "fresh": "12d61ded636db56b122b3dad5d392629bd9d33de874a68c8e3bab19ab945f370",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/t_string_notify.o",
+      "retained": "2724edee2aabd3e48ee2b0c6524360415acccc6f32ad9c89b64a8eb8a5457c11",
+      "fresh": "2724edee2aabd3e48ee2b0c6524360415acccc6f32ad9c89b64a8eb8a5457c11",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/t_zset.o",
+      "retained": "a0918cd949bd93e418674fe6f3ef449e3b108aa4bcc5353b783bcd87e68891a0",
+      "fresh": "a0918cd949bd93e418674fe6f3ef449e3b108aa4bcc5353b783bcd87e68891a0",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/t_zset_ops.o",
+      "retained": "5448d0e7e8386ddfb4219cec899d457193d24ea430d400f93bd466a262a5cc95",
+      "fresh": "5448d0e7e8386ddfb4219cec899d457193d24ea430d400f93bd466a262a5cc95",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/tracking.o",
+      "retained": "4ab28e17498353c101a925e63fb124ecc5037e4194b0cac1a23749027bdc510e",
+      "fresh": "4ab28e17498353c101a925e63fb124ecc5037e4194b0cac1a23749027bdc510e",
+      "equal": true
+    },
+    {
+      "path": "db0/src/cmd/xshard.o",
+      "retained": "8cbed220f5ff25195c7cbcc35c904a8505b396d8337dc6e9f80a680c2dc5f458",
+      "fresh": "8cbed220f5ff25195c7cbcc35c904a8505b396d8337dc6e9f80a680c2dc5f458",
+      "equal": true
+    },
+    {
+      "path": "db0/src/core/flipctl.o",
+      "retained": "8bc9502118427d7ea87670f63e4eafb138dbe55f3f782462f862db3f639c8028",
+      "fresh": "8bc9502118427d7ea87670f63e4eafb138dbe55f3f782462f862db3f639c8028",
+      "equal": true
+    },
+    {
+      "path": "db0/src/core/genthread.o",
+      "retained": "e7ba626259a560a15147708dd3cbc83ab7b66e0352cc24523747923609b3d25e",
+      "fresh": "e7ba626259a560a15147708dd3cbc83ab7b66e0352cc24523747923609b3d25e",
+      "equal": true
+    },
+    {
+      "path": "db0/src/core/lbplanner.o",
+      "retained": "06c086c3a3637ed46f58ae448a5021802f43db5218ed0628abf96df60f5eb70f",
+      "fresh": "06c086c3a3637ed46f58ae448a5021802f43db5218ed0628abf96df60f5eb70f",
+      "equal": true
+    },
+    {
+      "path": "db0/src/core/lbstall.o",
+      "retained": "31aee8689cdc3e378c94b9b6214376c29d0c2a066b9bb8d142a5dc9dc7adc5f6",
+      "fresh": "31aee8689cdc3e378c94b9b6214376c29d0c2a066b9bb8d142a5dc9dc7adc5f6",
+      "equal": true
+    },
+    {
+      "path": "db0/src/core/reorder.o",
+      "retained": "21ffdba371a77f5018a7b5150e0b409fc57f7223d44ffec7a41b69083dd524d8",
+      "fresh": "21ffdba371a77f5018a7b5150e0b409fc57f7223d44ffec7a41b69083dd524d8",
+      "equal": true
+    },
+    {
+      "path": "db0/src/core/rl2s.o",
+      "retained": "eee2c8762a48161dace1b1c7cf13330fb1e12f50418c6d568c57359785eb8298",
+      "fresh": "eee2c8762a48161dace1b1c7cf13330fb1e12f50418c6d568c57359785eb8298",
+      "equal": true
+    },
+    {
+      "path": "db0/src/core/version.o",
+      "retained": "609892d15e23ee504d24e92a0a9432a9a97bbcfb15163cd4d0b511c1342d0aa0",
+      "fresh": "609892d15e23ee504d24e92a0a9432a9a97bbcfb15163cd4d0b511c1342d0aa0",
+      "equal": true
+    },
+    {
+      "path": "db0/src/main.o",
+      "retained": "eb1151b8acf306fe47eaaa1ac07e5aad592921eb644f35e3175d11eade1995f8",
+      "fresh": "eb1151b8acf306fe47eaaa1ac07e5aad592921eb644f35e3175d11eade1995f8",
+      "equal": true
+    },
+    {
+      "path": "db0/src/net/tls.o",
+      "retained": "81fb817694fa5dc350b9bcc341a80da605f22c632d06e03f038926fc2519bc63",
+      "fresh": "81fb817694fa5dc350b9bcc341a80da605f22c632d06e03f038926fc2519bc63",
+      "equal": true
+    },
+    {
+      "path": "db0/src/persist/aof.o",
+      "retained": "6eea9897b69ab45a39b969681cba643ff4ad413ba6f6ba390f8298f06c542852",
+      "fresh": "6eea9897b69ab45a39b969681cba643ff4ad413ba6f6ba390f8298f06c542852",
+      "equal": true
+    },
+    {
+      "path": "db0/src/persist/aof_frame_debug.o",
+      "retained": "7fab261a5dc11aeeed47ee072fcb9b45ac29f9a35e26ce4ec8b486dc7712b978",
+      "fresh": "7fab261a5dc11aeeed47ee072fcb9b45ac29f9a35e26ce4ec8b486dc7712b978",
+      "equal": true
+    },
+    {
+      "path": "db0/src/snapshot/snapshot.o",
+      "retained": "e2fda614780713413745f937eb965cfe2e46922fbc46683e7dcfebc3d709e996",
+      "fresh": "e2fda614780713413745f937eb965cfe2e46922fbc46683e7dcfebc3d709e996",
+      "equal": true
+    }
+  ]
+}

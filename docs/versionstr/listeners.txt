@@ -1,0 +1,11 @@
+    PID COMMAND         COMMAND
+State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess                                     
+LISTEN 0      4096   127.0.0.53%lo:53         0.0.0.0:*                                               
+LISTEN 0      4096      127.0.0.54:53         0.0.0.0:*                                               
+LISTEN 0      512        127.0.0.1:8590       0.0.0.0:*    users:(("GarnetServer",pid=2762718,fd=132))
+LISTEN 0      1024       127.0.0.1:11211      0.0.0.0:*                                               
+LISTEN 0      4096         0.0.0.0:22         0.0.0.0:*                                               
+LISTEN 0      4096       127.0.0.1:631        0.0.0.0:*                                               
+LISTEN 0      4096            [::]:22            [::]:*                                               
+LISTEN 0      1024           [::1]:11211         [::]:*                                               
+LISTEN 0      4096           [::1]:631           [::]:*                                               

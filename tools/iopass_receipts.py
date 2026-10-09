@@ -99,7 +99,7 @@ def build(label, source, checks=False):
     objects = sorted((ROOT / 'build/iopass-pre/src').rglob('*.o'))
     # As in lbplanner-unit, link the witness first so its inline definitions win
     # COMDAT selection. Frozen command/executor objects isolate the IO change.
-    objects = [p for p in objects if p.name != 'main.o']
+    objects = [p for p in objects if p.name not in ('main.o', 'version.o')]
     flags = ['g++', '-std=c++20', '-O2', '-g', '-Wall', '-Wextra', '-march=native', '-pthread',
              '-DTOMO_JEMALLOC', '-DTOMO_CORE_CONCURRENCY_TEST', '-ffunction-sections',
              '-fdata-sections', '-I' + str(source), '-I' + str(ROOT)]

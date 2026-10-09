@@ -39,7 +39,7 @@ def make(args, directory, *targets):
 
 def controls(args):
     build = args.build_root.resolve()
-    objects = sorted(p for p in (build / 'src').rglob('*.o') if p.name != 'main.o')
+    objects = sorted(p for p in (build / 'src').rglob('*.o') if p.name not in ('main.o', 'version.o'))
     assert objects and (build / 'shutdown-unit').exists()
     rows = []
     for defect, assertion in (

@@ -1,0 +1,259 @@
+[
+  {
+    "file": "tests/cd13b_checks.py",
+    "line": 26,
+    "predicates": [
+      "p.name not in ('main.o', 'version.o', 'xshard.o')"
+    ],
+    "variants": [
+      {
+        "iterator": "(objects / 'src').rglob('*.o')",
+        "namespace": "from iterator",
+        "before": 46,
+        "after": 45,
+        "removed": [
+          "/home/user/Projects/cx-versionstr/build/versionstr3/POST/src/core/version.o"
+        ],
+        "added": []
+      }
+    ]
+  },
+  {
+    "file": "tests/cd13b_checks.py",
+    "line": 31,
+    "predicates": [
+      "p.name not in ('main.o', 'version.o', 'xshard.o')"
+    ],
+    "variants": [
+      {
+        "iterator": "(objects / 'db0/src').rglob('*.o')",
+        "namespace": "from iterator",
+        "before": 46,
+        "after": 45,
+        "removed": [
+          "/home/user/Projects/cx-versionstr/build/versionstr3/POST/db0/src/core/version.o"
+        ],
+        "added": []
+      }
+    ]
+  },
+  {
+    "file": "tests/cdfix_checks.py",
+    "line": 58,
+    "predicates": [
+      "p.name not in ('main.o', 'version.o', 't_set.o')"
+    ],
+    "variants": [
+      {
+        "iterator": "(args.post / 'src').rglob('*.o')",
+        "namespace": "from iterator",
+        "before": 46,
+        "after": 45,
+        "removed": [
+          "/home/user/Projects/cx-versionstr/build/versionstr3/POST/src/core/version.o"
+        ],
+        "added": []
+      }
+    ]
+  },
+  {
+    "file": "tests/cdfix_checks.py",
+    "line": 44,
+    "predicates": [
+      "p.name not in ('main.o', 'version.o')"
+    ],
+    "variants": [
+      {
+        "iterator": "(root / 'src').rglob('*.o')",
+        "namespace": "from iterator",
+        "before": 47,
+        "after": 46,
+        "removed": [
+          "/home/user/Projects/cx-versionstr/build/versionstr3/POST/src/core/version.o"
+        ],
+        "added": []
+      }
+    ]
+  },
+  {
+    "file": "tests/cdfix_checks.py",
+    "line": 46,
+    "predicates": [
+      "p.name not in ('main.o', 'version.o')"
+    ],
+    "variants": [
+      {
+        "iterator": "(root / 'db0/src').rglob('*.o')",
+        "namespace": "from iterator",
+        "before": 47,
+        "after": 46,
+        "removed": [
+          "/home/user/Projects/cx-versionstr/build/versionstr3/POST/db0/src/core/version.o"
+        ],
+        "added": []
+      }
+    ]
+  },
+  {
+    "file": "tests/climonfix_artifacts.py",
+    "line": 42,
+    "predicates": [
+      "p.name not in ('main.o', 'version.o')"
+    ],
+    "variants": [
+      {
+        "iterator": "(build / 'src').rglob('*.o')",
+        "namespace": "from iterator",
+        "before": 47,
+        "after": 46,
+        "removed": [
+          "/home/user/Projects/cx-versionstr/build/versionstr3/POST/src/core/version.o"
+        ],
+        "added": []
+      }
+    ]
+  },
+  {
+    "file": "tools/flipreport_proof.py",
+    "line": 194,
+    "predicates": [
+      "p.name not in ('main.o', 'version.o')"
+    ],
+    "variants": [
+      {
+        "iterator": "(base / 'src').rglob('*.o')",
+        "namespace": "from iterator",
+        "before": 47,
+        "after": 46,
+        "removed": [
+          "/home/user/Projects/cx-versionstr/build/versionstr3/POST/src/core/version.o"
+        ],
+        "added": []
+      }
+    ]
+  },
+  {
+    "file": "tools/flipreport_proof.py",
+    "line": 196,
+    "predicates": [
+      "p.name not in ('main.o', 'version.o')"
+    ],
+    "variants": [
+      {
+        "iterator": "(base / 'db0/src').rglob('*.o')",
+        "namespace": "from iterator",
+        "before": 47,
+        "after": 46,
+        "removed": [
+          "/home/user/Projects/cx-versionstr/build/versionstr3/POST/db0/src/core/version.o"
+        ],
+        "added": []
+      }
+    ]
+  },
+  {
+    "file": "tools/flipsettle_controls.py",
+    "line": 106,
+    "predicates": [
+      "p not in [arm / 'src/main.o', arm / 'src/core/version.o', arm / 'src/core/flipctl.o']"
+    ],
+    "variants": [
+      {
+        "iterator": "(arm / 'src').rglob('*.o')",
+        "namespace": "from iterator",
+        "before": 46,
+        "after": 45,
+        "removed": [
+          "/home/user/Projects/cx-versionstr/build/versionstr3/POST/src/core/version.o"
+        ],
+        "added": []
+      }
+    ]
+  },
+  {
+    "file": "tools/flipsettle_controls.py",
+    "line": 121,
+    "predicates": [
+      "p.name not in ('main.o', 'version.o')"
+    ],
+    "variants": [
+      {
+        "iterator": "(directory / 'src').rglob('*.o')",
+        "namespace": "from iterator",
+        "before": 47,
+        "after": 46,
+        "removed": [
+          "/home/user/Projects/cx-versionstr/build/versionstr3/POST/src/core/version.o"
+        ],
+        "added": []
+      }
+    ]
+  },
+  {
+    "file": "tools/flipsettle_controls.py",
+    "line": 125,
+    "predicates": [
+      "p.name not in ('main.o', 'version.o')"
+    ],
+    "variants": [
+      {
+        "iterator": "(directory / 'db0/src').rglob('*.o')",
+        "namespace": "from iterator",
+        "before": 47,
+        "after": 46,
+        "removed": [
+          "/home/user/Projects/cx-versionstr/build/versionstr3/POST/db0/src/core/version.o"
+        ],
+        "added": []
+      }
+    ]
+  },
+  {
+    "file": "tools/iopass_receipts.py",
+    "line": 102,
+    "predicates": [
+      "p.name not in ('main.o', 'version.o')"
+    ],
+    "variants": [
+      {
+        "iterator": "objects",
+        "namespace": "from iterator",
+        "before": 47,
+        "after": 46,
+        "removed": [
+          "/home/user/Projects/cx-versionstr/build/versionstr3/POST/src/core/version.o"
+        ],
+        "added": []
+      }
+    ]
+  },
+  {
+    "file": "tools/storesize_artifacts.py",
+    "line": 61,
+    "predicates": [
+      "p.relative_to(directory).as_posix() not in ('main.o', 'cmd/xshard.o') and p.name not in ('multidb.o', 'version.o')"
+    ],
+    "variants": [
+      {
+        "iterator": "sorted(directory.rglob('*.o'))",
+        "namespace": "src",
+        "before": 45,
+        "after": 44,
+        "removed": [
+          "/home/user/Projects/cx-versionstr/build/versionstr3/POST/src/core/version.o"
+        ],
+        "added": []
+      },
+      {
+        "iterator": "sorted(directory.rglob('*.o'))",
+        "namespace": "db0/src",
+        "before": 45,
+        "after": 44,
+        "removed": [
+          "/home/user/Projects/cx-versionstr/build/versionstr3/POST/db0/src/core/version.o"
+        ],
+        "added": []
+      }
+    ]
+  }
+]

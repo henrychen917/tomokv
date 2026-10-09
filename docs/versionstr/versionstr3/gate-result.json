@@ -1,0 +1,58 @@
+{
+  "GATE_ONLY_JOBS": "release_batteries asan_batteries exbatch_units wbland_units wb_rule_units reorder_engagement atomic_units wb_policy",
+  "command": [
+    "tests/gate.sh",
+    "iteration",
+    "--server-cores",
+    "112-119",
+    "--load-cores",
+    "120-127",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "18340-18342"
+  ],
+  "admitted": false,
+  "quiet": [
+    {
+      "attempt": 0,
+      "exits": [
+        2,
+        2,
+        2
+      ],
+      "log": "build/versionstr3/gate-quiet-0.log"
+    },
+    {
+      "attempt": 1,
+      "exits": [
+        2,
+        2,
+        2
+      ],
+      "log": "build/versionstr3/gate-quiet-1.log"
+    },
+    {
+      "attempt": 2,
+      "exits": [
+        1,
+        1,
+        2
+      ],
+      "log": "build/versionstr3/gate-quiet-2.log"
+    },
+    {
+      "attempt": 3,
+      "exits": [
+        1,
+        1,
+        2
+      ],
+      "log": "build/versionstr3/gate-quiet-3.log"
+    }
+  ],
+  "exit": 2,
+  "reason": "Quiet preflight refused initial attempt and three retries over ten minutes; gate not started."
+}

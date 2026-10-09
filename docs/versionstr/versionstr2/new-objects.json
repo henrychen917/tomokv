@@ -1,0 +1,17 @@
+[
+  {
+    "object": "db0/src/core/version.o",
+    "functions": [
+      {
+        "symbol": "__wrap_main",
+        "name": "__wrap_main",
+        "size": 136,
+        "ordinary": false
+      }
+    ]
+  },
+  {
+    "object": "src/core/version.o",
+    "functions": []
+  }
+]

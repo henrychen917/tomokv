@@ -151,7 +151,7 @@ expect(unauth.command("HELLO", "2", "AUTH", "default"),
 expect(unauth.command("HELLO", "2", "BOGUS"),
        "ERR Syntax error in HELLO option 'BOGUS'", "HELLO unknown option")
 hello = unauth.command("HELLO", "2", "AUTH", "default", password)
-if not isinstance(hello, list) or hello[:6] != [b"server", b"redis", b"version", b"0.1-cpp", b"proto", 2]:
+if not isinstance(hello, list) or hello[:6] != [b"server", b"redis", b"version", b"7.4.10", b"proto", 2]:
     raise AssertionError("HELLO AUTH reply: %r" % (hello,))
 expect(unauth.command("PING"), b"PONG", "HELLO authenticated connection")
 expect(unauth.command("AUTH", b"wrong"),
@@ -177,7 +177,8 @@ expect(hello_edges.command("CLIENT", "GETNAME"), b"hello-edge", "HELLO SETNAME a
 
 proto = Conn()
 hello3 = proto.command("HELLO", "3", "AUTH", "default", password)
-if not isinstance(hello3, dict) or hello3.get(b"server") != b"redis" or hello3.get(b"proto") != 3:
+if (not isinstance(hello3, dict) or hello3.get(b"server") != b"redis" or
+        hello3.get(b"version") != b"7.4.10" or hello3.get(b"proto") != 3):
     raise AssertionError("HELLO 3 AUTH reply: %r" % (hello3,))
 expect(proto.command("PING"), b"PONG", "HELLO 3 authenticated connection")
 

@@ -1,0 +1,15 @@
+[
+  {
+    "object": "db0/src/core/version.o",
+    "functions": [
+      {
+        "symbol": "__wrap_main",
+        "bytes": 136
+      }
+    ]
+  },
+  {
+    "object": "src/core/version.o",
+    "functions": []
+  }
+]

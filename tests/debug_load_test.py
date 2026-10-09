@@ -188,7 +188,7 @@ class DebugLoadTest(unittest.TestCase):
         self.assertEqual(server.commands, [INFO, INFO, RELOAD])
 
     def test_missing_or_malformed_witness_is_never_idle(self):
-        for body in (b"", b"redis_version:7.4.0\r\n", status(flip="idle"), status(lb="idle"),
+        for body in (b"", b"redis_version:7.4.10\r\n", status(flip="idle"), status(lb="idle"),
                      status().replace(b"flip_in_progress:0\r\n", b""),
                      status().replace(b"tomokv_keylb_stage:0\r\n", b""),
                      status(fused=True).replace(b"flip_available:0", b"flip_available:1"),

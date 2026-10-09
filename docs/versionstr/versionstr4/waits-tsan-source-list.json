@@ -1,0 +1,14 @@
+{
+  "kind": "recorded build invocation; not executed",
+  "argv": [
+    "taskset",
+    "-c",
+    "112-127",
+    "tests/parbuild.sh",
+    "build/versionstr4/waits-unit-tsan",
+    "/home/user/Projects/cx-versionstr/build/gate-cache/obj-waits-tsan",
+    "-std=c++20 -O1 -g -march=native -pthread -fsanitize=thread -fno-omit-frame-pointer -no-pie -I.",
+    "-pthread",
+    "tests/waits_unit.cc"
+  ]
+}

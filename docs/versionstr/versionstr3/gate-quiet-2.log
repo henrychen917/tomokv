@@ -1,0 +1,5 @@
+2026-10-09 00:07:23 UTC
+quietcheck: port 18340 already listening
+quietcheck: port 18341 already listening
+quietcheck: assigned cores busy: cpu123=100%
+    PID    PPID PSR     ELAPSED COMMAND

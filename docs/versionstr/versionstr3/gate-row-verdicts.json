@@ -1,0 +1,128 @@
+[
+  {
+    "job": "atomic_units",
+    "row": "flushfix flush witnesses",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "atomic_units",
+    "row": "flushfix headers witnesses",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "atomic_units",
+    "row": "multidb serverless owners",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "atomic_units",
+    "row": "storesize published monitoring",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "atomic_units",
+    "row": "MULTI admin command replies",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "atomic_units",
+    "row": "EXECABORT releases WATCH reservation",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "exbatch_units",
+    "row": "exbatch publication unit + negative controls",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "exbatch_units",
+    "row": "exbatch watch unit + negative controls",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "exbatch_units",
+    "row": "exbatch metadata unit + negative controls",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "reorder_engagement",
+    "row": "R7 production engagement (both database runtimes)",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "wb_policy",
+    "row": "writeback policies 0/1: 22 standard fixtures",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "wb_rule_units",
+    "row": "writeback c12 policy witnesses + negative controls",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "wb_rule_units",
+    "row": "writeback c12 phase witnesses + negative controls",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "wb_rule_units",
+    "row": "writeback c12 stages witnesses + negative controls",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "wb_rule_units",
+    "row": "writeback c12 split-phase witnesses + negative controls",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "wb_rule_units",
+    "row": "writeback c12 split-overlap witnesses + negative controls",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "wbland_units",
+    "row": "writeback policy clauses witnesses + negative controls",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  },
+  {
+    "job": "wbland_units",
+    "row": "writeback policy paths witnesses + negative controls",
+    "previous_verdict": "FAIL",
+    "versionstr3_verdict": "NOT_RUN",
+    "reason": "Quiet/port preflight refused every admission attempt; no partial gate ledger exists."
+  }
+]

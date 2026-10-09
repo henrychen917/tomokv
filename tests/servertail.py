@@ -147,8 +147,8 @@ def scope_a(c):
     check("TIME arity", c.cmd("TIME", "EXTRA"), err_prefix("ERR wrong number of arguments"))
 
     check("ROLE", c.cmd("ROLE"), ["master", 0, []])
-    check("LOLWUT names the server", c.cmd("LOLWUT"), lambda v: "TomoKV ver." in v)
-    check("LOLWUT ignores junk", c.cmd("LOLWUT", "VERSION", "6"), lambda v: "TomoKV ver." in v)
+    check("LOLWUT names the server", c.cmd("LOLWUT"), lambda v: v.endswith("TomoKV ver. 1.0-cpp\n"))
+    check("LOLWUT ignores junk", c.cmd("LOLWUT", "VERSION", "6"), lambda v: v.endswith("TomoKV ver. 1.0-cpp\n"))
 
     check("WAIT standalone", c.cmd("WAIT", "0", "0"), 0)
     check("WAIT nonzero replicas", c.cmd("WAIT", "3", "10"), 0)

@@ -1,0 +1,38 @@
+[
+  {
+    "attempt": 0,
+    "exits": [
+      2,
+      2,
+      2
+    ],
+    "log": "build/versionstr3/gate-quiet-0.log"
+  },
+  {
+    "attempt": 1,
+    "exits": [
+      2,
+      2,
+      2
+    ],
+    "log": "build/versionstr3/gate-quiet-1.log"
+  },
+  {
+    "attempt": 2,
+    "exits": [
+      1,
+      1,
+      2
+    ],
+    "log": "build/versionstr3/gate-quiet-2.log"
+  },
+  {
+    "attempt": 3,
+    "exits": [
+      1,
+      1,
+      2
+    ],
+    "log": "build/versionstr3/gate-quiet-3.log"
+  }
+]

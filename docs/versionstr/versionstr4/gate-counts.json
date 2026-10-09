@@ -1,0 +1,12 @@
+{
+  "quick_delta": 0,
+  "full_delta": 0,
+  "constants": [
+    "EXPECT_QUICK=502",
+    "EXPECT_FULL=519                 # ABBA reports only; self-test remains counted."
+  ],
+  "row_definition": 2863,
+  "row_collection": 3377,
+  "quick_exit_start": 3406,
+  "gate_tests_unchanged": true
+}
