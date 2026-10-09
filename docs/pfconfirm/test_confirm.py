@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Serverless negative controls for confirmation validity, not a box benchmark."""
-import copy
 from collections import Counter
 from dataclasses import replace
 from pathlib import Path
@@ -157,11 +156,18 @@ class DriverControls(unittest.TestCase):
 
 
 class HistogramControls(unittest.TestCase):
+    def test_server_rejection_or_incomplete_work_cannot_be_fast_confirmation(self):
+        for after in ({"cmdstat_get": "calls=100,rejected_calls=1"},
+                      {"cmdstat_get": "calls=99,rejected_calls=0"}):
+            with self.assertRaises(RuntimeError):
+                c.check_command_counts({}, after, {"GET": 100})
+
     def test_merge_counts_instead_of_percentiles_and_score_get_only(self):
         cell = replace(c.read_cells(c.HERE / "cells.txt")[0], conns=2)
         documents = []
         for count in (10000, 50):
-            documents.append({"ALL STATS": {
+            documents.append({"configuration": dict(threads=1, clients=1, pipeline=cell.depth,
+                data_size=cell.data_bytes, key_minimum=1, key_maximum=cell.key_count), "ALL STATS": {
                 "Totals": {"Count": count + 1, "Connection Errors": 0, "Connection Errors/sec": 0},
                 "Runtime": {"Interrupted": False, "Time unit": "MILLISECONDS", "Total duration": 20000,
                             "Start time": 0, "Finish time": 20000},

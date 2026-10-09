@@ -76,6 +76,17 @@ Use each suffix with, for example:
 The same verdict above applies to every row. Counts are commands, not keys;
 wide MSET never reports its key count as its operation rate.
 
+Exact individual commands (each includes the shared dry guards):
+
+```sh
+docs/pfconfirm/run.sh --only PFKEYSPA.1 --output build/pfconfirm-ttl
+docs/pfconfirm/run.sh --only PFKEYSPA.3 --output build/pfconfirm-flush
+docs/pfconfirm/run.sh --only PFKEYSPA.4 --output build/pfconfirm-info
+docs/pfconfirm/run.sh --only PFMESSAG.1 --output build/pfconfirm-tracking
+docs/pfconfirm/run.sh --only PFPERSIS.1 --output build/pfconfirm-tls
+docs/pfconfirm/run.sh --only PFDATATY.1 --output build/pfconfirm-stream
+```
+
 Shared M0/B0 guards (~25 min) are dry GET/SET p1/p32 and eight-key MGET/MSET p8
 in both modes, plus rl0 GET/SET p32 in both modes. Each is one four-sample
 identical-arm null, with rate/p99/p99.9 and spread. No production change exists
@@ -118,3 +129,40 @@ produces a performance verdict. A latched gate quiet-screen refusal is recorded
 as **REFUSED**, without booting or retrying until green. Full runs use the same
 reserved ports and are left to the maintainer. Proof results will be appended
 after the pre-registration commit.
+
+## Delivered proof
+
+The cell definitions were committed in `3a5e9911b`, and this pre-registration
+in `bdb8141e9`, before any run. The initial runner and negative controls were
+committed in `ca6fdb1aa`. No full benchmark, server, or load generator ran in
+this lane. No production build was necessary: both arms use the existing
+headline binary above.
+
+- Both `--list-cells` invocations passed: **12 scoring cells + 16 dry guards**.
+  Retained output: [cells.json](docs/pfconfirm/proof/cells.json) and
+  [guards.json](docs/pfconfirm/proof/guards.json).
+- **17 serverless checks passed**, including all six absent-trigger negative
+  controls, unstable-null rejection, no best-block selection, exact completed
+  work/rejection checks, and count-weighted GET-only tails. See
+  [unit.txt](docs/pfconfirm/proof/unit.txt). Python compilation and shell syntax
+  checks passed. These checks are not substitutes for live witnesses.
+- The exact short smoke command above returned **3 / REFUSED**. The gate's
+  latched quiet screen observed **1.03 CPU-seconds > 0.48 CPU-seconds** on
+  CPUs 112–127. **All six candidates are REFUSED; zero boots and zero loads**.
+  No live trigger or witness was exercised, and the quiet screen was not
+  retried. See [smoke receipt](docs/pfconfirm/proof/smoke-attempt.json),
+  [quiet evidence](docs/pfconfirm/proof/smoke-quiet.json), and
+  [six result lines](docs/pfconfirm/proof/smoke-results.jsonl).
+
+The refusal happened at the same unchanged preflight used by the final driver;
+subsequent serverless review strengthened command/configuration/error checks.
+Mainline must first run the short smoke in its quiet slot, with a fresh output
+directory, then the full command:
+
+```sh
+taskset -c 112-127 docs/pfconfirm/run.sh --smoke --output build/pfconfirm-smoke-mainline
+docs/pfconfirm/run.sh --output build/pfconfirm-mainline
+```
+
+Performance verdicts remain **unmeasured**. Rows **+0/+0**. `src/`, gate files,
+and EXPECT constants are unchanged; the committed `production.diff` is empty.

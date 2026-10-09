@@ -30,7 +30,7 @@ sys.path.insert(0, str(ROOT / "tests"))
 from _lib import Conn, RespError, encode, topology
 from abbagate import (read_cells, load_layout, cpu_string, info, server_arguments,
                       measured_ratio, workload_arguments)
-from abba_workloads import command_histogram, command_stat, percentile
+from abba_workloads import MULTI_KEYS, command_histogram, command_stat, percentile
 from gate_quiet import QuietMonitor, QuietViolation
 from gateplan import read_topology
 
@@ -186,12 +186,29 @@ def pipeline(conn, commands):
     return replies
 
 
+def check_command_counts(before, after, completed):
+    for name, done in completed.items():
+        calls = command_stat(after, name)[0] - command_stat(before, name)[0]
+        require(calls == done > 0, f"{name} whole-run server/HDR mismatch: {calls} != {done}")
+        def rejects(snapshot):
+            row = snapshot.get("cmdstat_" + name.lower())
+            if row is None:
+                return 0
+            fields = dict(part.split("=", 1) for part in row.split(","))
+            return int(fields["rejected_calls"])
+        require(rejects(after) == rejects(before), f"{name} rejected commands during load")
+
+
 def metrics(documents, cell, layout, names):
     hist = Counter()
     counts = Counter()
     rate = 0
     times = []
     for document, place in zip(documents, layout, strict=True):
+        configuration = document["configuration"]
+        expected = dict(threads=place["threads"], clients=place["clients"], pipeline=cell.depth,
+                        data_size=cell.data_bytes, key_minimum=1, key_maximum=cell.key_count)
+        require(all(configuration[k] == v for k, v in expected.items()), "memtier realized configuration differs")
         stats = document["ALL STATS"]
         total, runtime = stats["Totals"], stats["Runtime"]
         require(runtime["Interrupted"] in (False, "false"), "interrupted memtier run")
@@ -241,6 +258,7 @@ class Campaign:
         require(self.memtier, "memtier_benchmark unavailable")
 
     def prepare(self):
+        require(MULTI_KEYS == 8, "M0/B0 guards require eight-key commands; unset TOMO_MULTI_KEYS")
         require(set(self.server + self.load) <= os.sched_getaffinity(0),
                 "requested physical CPU geometry is unavailable in current affinity")
         topo = read_topology(self.server + self.load)
@@ -502,6 +520,7 @@ class Campaign:
         return witness
 
     def sample(self, original, kind, on, arm, folder):
+        print(f"  {original.id} {folder.name}: trigger {'ON' if on else 'OFF'}", file=sys.stderr, flush=True)
         folder.mkdir(parents=True)
         cell = original
         if self.args.smoke:
@@ -532,13 +551,15 @@ class Campaign:
                 if periodic:
                     periodic.close()
                 after = info(conn, "commandstats")
+                for index in range(len(loads)):
+                    log = (folder / f"load-{index}.log").read_text(errors="replace").lower()
+                    require("server error:" not in log and "handle error response:" not in log,
+                            "memtier received a server error; inspect retained log")
                 documents = [json.loads((folder / f"load-{i}.json").read_text()) for i in range(len(loads))]
                 result.update(metrics(documents, cell, layout, names))
                 require(result["common_runtime"][1] - result["common_runtime"][0] >= self.seconds - .5,
                         "load generators did not share the registered window")
-                for name, done in result["completed"].items():
-                    calls = command_stat(after, name)[0] - command_stat(before, name)[0]
-                    require(calls == done > 0, f"{name} whole-run server/HDR mismatch: {calls} != {done}")
+                check_command_counts(before, after, result["completed"])
                 save(folder / "commandstats.json", dict(before=before, after=after))
                 result["witness"] = self.finish_witness(cell, state, conn, periodic, result, before, after)
                 result["complete"] = True
