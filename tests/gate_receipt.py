@@ -33,8 +33,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = 1
 ABBA_LABEL = "ABBA comparison + saturation negative controls"
 # These are retirement guards, not inventories. All rows/cells in the CURRENT files are required,
-# including future additions. The structural checks below also preserve the 64 original cells,
-# restored 96 multi-key cells, and the 18 deliberate supplemental regimes.
+# including future additions. The structural checks below preserve the surviving geometries
+# of the 64 original cells, 96 multi-key cells, and 18 deliberate supplemental regimes.
 ORDER = ["A", "B", "B", "A"]
 HARNESS_DIRS = ("tests/", ".githooks/", "bench/", "benchmarks/", "scripts/", "make/")
 
@@ -211,20 +211,22 @@ def inventory(root, path):
                 c["depth"], c["conns"], c.get("atomic", 1), c.get("mix", "-"))
     actual = {axis(c) for c in cells}
     required = set()
-    for mode, rl, ov, ro in product(("1s", "2s"), (0, 1), (0, 1), (0, 1)):
+    # Overlap is retired; its retained receipt column must stay zero. Keep an
+    # independent cross product so deleting a current geometry still fails.
+    for mode, rl, ro in product(("1s", "2s"), (0, 1), (0, 1)):
         for op, depth in product(("GET", "SET"), (1, 32)):
-            required.add((mode, rl, ov, ro, op, depth, 512, 1, "-"))
+            required.add((mode, rl, 0, ro, op, depth, 512, 1, "-"))
         for op, depth in product(("MGET", "MSET"), (1, 8, 32)):
-            required.add((mode, rl, ov, ro, op, depth, 512, 1, "-"))
+            required.add((mode, rl, 0, ro, op, depth, 512, 1, "-"))
     for mode in ("1s", "2s"):
         for rl in (0, 1):
-            required.add((mode, rl, 1, 1, "MIX", 1, 512, 1, "7:1"))
-            required.add((mode, rl, 1, 1, "GET", 32, 2048, 1, "-"))
-        required.add((mode, 1, 1, 1, "MIX8", 128, 512, 1, "18:14"))
+            required.add((mode, rl, 0, 1, "MIX", 1, 512, 1, "7:1"))
+            required.add((mode, rl, 0, 1, "GET", 32, 2048, 1, "-"))
+        required.add((mode, 1, 0, 1, "MIX8", 128, 512, 1, "18:14"))
         for op in ("MGET", "MSET"):
-            required.add((mode, 1, 1, 1, op, 8, 512, 0, "-"))
+            required.add((mode, 1, 0, 1, op, 8, 512, 0, "-"))
         for ro in (0, 1):
-            required.add((mode, 0, 1, ro, "REORDER", 8, 512, 1, "8:2"))
+            required.add((mode, 0, 0, ro, "REORDER", 8, 512, 1, "8:2"))
     require(required <= actual, f"full inventory retired {len(required - actual)} required cell geometries")
     for cell in cells:
         require(saturation_exempt(cell) or cell.get("instances", 0) > 0,
@@ -1307,11 +1309,23 @@ ABBA_OUTPUT="$PWD/build/abba"; LEDGER="$PWD/build/ledger.tsv"
         def test_full_inventory_cannot_retire_a_multikey_geometry(self):
             cells = self.root / "tests/headline_cells.txt"
             rows = cells.read_text().splitlines(True)
-            index = next(i for i, row in enumerate(rows) if " | MGET | " in row)
-            rows[index] = rows[index].replace("MGET", "GET")
-            cells.write_text("".join(rows))
-            with self.assertRaisesRegex(ValueError, "retired"):
-                inventory(self.root, cells)
+            current = inventory(self.root, cells)["cells"]
+            axes = ("mode", "read_local", "overlap", "reorder", "op", "depth",
+                    "conns", "atomic", "mix")
+            for op, replacement in (("MGET", "GET"), ("MSET", "SET")):
+                with self.subTest(op=op):
+                    target = next(cell for cell in current if cell["op"] == op)
+                    # Former overlap pairs now duplicate a geometry. Retire all
+                    # its IDs, keeping the row count unchanged, to test coverage.
+                    victims = {cell["id"] for cell in current
+                               if all(cell[key] == target[key] for key in axes)}
+                    self.assertTrue(victims)
+                    changed = [row.replace(f" | {op} | ", f" | {replacement} | ")
+                               if row.split("|", 1)[0].strip() in victims else row
+                               for row in rows]
+                    cells.write_text("".join(changed))
+                    with self.assertRaisesRegex(ValueError, "retired 1 required cell geometries"):
+                        inventory(self.root, cells)
 
         def test_worktree_hook_config_is_reversible_without_common_changes(self):
             # Only temporary repositories are configured; --install is never invoked on ROOT.
