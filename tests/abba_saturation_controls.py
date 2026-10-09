@@ -13,7 +13,7 @@ coordinated quiet box; merely preparing the plan reserves no CPUs.
 """
 import argparse
 from contextlib import ExitStack
-from dataclasses import asdict, replace
+from dataclasses import replace
 import json
 import os
 from pathlib import Path
@@ -127,7 +127,7 @@ def plan(args):
                 "--port", str(args.port), "--ports", f"{args.port}-{args.port}", "--memtier", args.memtier,
                 "--output", str((args.output / cell.id).resolve())]
         layout = abba.load_layout(load_cpus, cell.instances, cell.conns)
-        manifest["probes"].append(dict(source_cell=asdict(original), diagnostic_cell=asdict(cell),
+        manifest["probes"].append(dict(source_cell=abba.cell_receipt(original), diagnostic_cell=abba.cell_receipt(cell),
             phase=phase, reason=reason, load_layout=layout, worker_threads=sum(p["threads"] for p in layout),
             fixture_sha256=abba.sha256(fixture), argv=argv, shell=shlex.join(argv)))
         print(shlex.join(argv))
@@ -184,7 +184,7 @@ def review_probe(probe, manifest):
             raise ValueError("diagnostic fixture changed")
         cell = abba.Cell(**probe["diagnostic_cell"])
         rows = report.get("cells", [])
-        if len(rows) != 1 or rows[0].get("cell") != asdict(cell):
+        if len(rows) != 1 or rows[0].get("cell") != abba.cell_receipt(cell):
             raise ValueError("probe did not reach exactly its planned cell")
         row = rows[0]
         blocks = row.get("rounds", [])
@@ -455,7 +455,7 @@ def self_test():
                     self.assertIn("--only", argv)
                     self.assertNotIn("--escalate", argv)
                     fixture = Path(argv[argv.index("--cells") + 1])
-                    self.assertEqual(asdict(abba.read_cells(fixture)[0]), probe["diagnostic_cell"])
+                    self.assertEqual(abba.cell_receipt(abba.read_cells(fixture)[0]), probe["diagnostic_cell"])
                     self.assertEqual(sum(row["threads"] * row["clients"] for row in probe["load_layout"]),
                                      probe["diagnostic_cell"]["conns"])
                     self.assertEqual(probe["worker_threads"], {"single": 1, "reduced": 16,
