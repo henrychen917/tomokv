@@ -63,6 +63,20 @@ def documented_knobs(document):
     return set(names)
 
 
+def regenerate_writeback(source, document):
+    rule = (ROOT / "src/core/wb_rule.h").read_text()
+    rows = []
+    for name, field, constant, maximum, zero in (
+            ("wb-small-pipe", "wb_small_pipe", "kSmallPipe", "64", "half rule, no completion"),
+            ("wb-complete-visits", "wb_complete_visits", "kCompleteVisits", "255", "unbounded completion")):
+        initial = re.search(r'uint32_t ' + field + r' = ([^;]+);', source)[1]
+        default = re.search(r'unsigned ' + constant + r' = (\d+);', rule)[1] if initial == 'wb_rule::' + constant else initial
+        line = source[:source.index('uint32_t ' + field)].count('\n') + 1
+        rows.append(f"| `{name}` | T | Canonical decimal 0..{maximum} | `{default}` | Boot/GET | `{field}` (Writeback) | 0 = {zero}; measured default, ledger addendum 12; `src/core/config.h:{line}`. |")
+        document = re.sub(r'^\| `' + name + r'` \|.*\n', '', document, flags=re.M)
+    return re.sub(r'(^\| `wb-policy` \|.*\n)', lambda m: m[1] + '\n'.join(rows) + '\n', document, flags=re.M)
+
+
 def regenerate_encodings(source, document):
     """Regenerate the encoding rows/defaults/anchors from EncodingConfig, not prose edits."""
     start = source.index("static constexpr Setting settings[Count] = {")
@@ -112,7 +126,7 @@ def regenerate_encodings(source, document):
         "insertion can instead select listpack when both listpack limits fit. Removal\n"
         "does not demote an encoding. All eight defaults match the pinned Redis 7.4.10\n"
         "oracle; its hash entry default is **512**, not 128.\n") + document[last:]
-    return document
+    return regenerate_writeback(source, document)
 
 
 def check(header, document):
@@ -158,6 +172,9 @@ def self_test(header, document):
             ("encoding default drift", source,
              re.sub(r'(^\| `set-max-intset-entries` \|.*?)`512`', r'\g<1>`128`', markdown, flags=re.M),
              "encoding rows/defaults drifted"),
+            ("writeback default drift", source,
+             re.sub(r'(^\| `wb-small-pipe` \|.*?)`16`', r'\g<1>`8`', markdown, flags=re.M),
+             "encoding rows/defaults drifted"),
             ("empty document", source, "", "no documented knob rows"),
         ]
         for name, candidate, doc, failure in cases:
@@ -180,7 +197,7 @@ def main():
     parser.add_argument("--config-header", type=Path, default=ROOT / "src/core/config.h")
     parser.add_argument("--document", type=Path, default=ROOT / "docs/CONFIGURATION.md")
     parser.add_argument("--self-test", action="store_true")
-    parser.add_argument("--write", action="store_true", help="regenerate encoding rows from config.h")
+    parser.add_argument("--write", action="store_true", help="regenerate encoding and writeback rows from source")
     args = parser.parse_args()
     try:
         if args.write:

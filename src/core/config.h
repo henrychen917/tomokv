@@ -458,7 +458,10 @@ struct Config {
     StreamLimits stream_limits;          // macro-node roll-over budgets, live via CONFIG SET
     // Cold key planner only: 0 = PRE policy, -1 = derived damping, N = damping level.
     int32_t key_lb_damping = -1;
-    uint8_t layout_reserved[52]{};
+    // Boot-only writeback bounds; measured defaults, occupying the reserved tail.
+    uint32_t wb_small_pipe = wb_rule::kSmallPipe;
+    uint32_t wb_complete_visits = wb_rule::kCompleteVisits;
+    uint8_t layout_reserved[44]{};
 };
 static_assert(sizeof(Config) == 624, "Config footprint changed; update the documented accounting");
 
@@ -890,6 +893,19 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
             }
             cfg.wb_policy = std::atoi(value);
         }
+        else if (!std::strcmp(a, "--wb-small-pipe") || !std::strcmp(a, "--wb-complete-visits")) {
+            const bool small = !std::strcmp(a, "--wb-small-pipe");
+            const char* value = next(nullptr);
+            const char* error = nullptr;
+            uint32_t parsed = 0;
+            const unsigned limit = small ? kRobWindow : UINT8_MAX;
+            if (!value || !cfg_parse_u32_limit(Slice(value, std::strlen(value)), false, parsed, error) ||
+                parsed > limit) {
+                std::fprintf(stderr, "%s wants an integer in 0..%u\n", a, limit);
+                return kConfigError;
+            }
+            (small ? cfg.wb_small_pipe : cfg.wb_complete_visits) = parsed;
+        }
         else if (!std::strcmp(a, "--key-lb")) {
             if (!cfg_parse_u32(next(nullptr), cfg.key_lb) || cfg.key_lb > 1) {
                 std::fprintf(stderr, "--key-lb wants 0 or 1\n");
@@ -1137,6 +1153,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "    --overlap 1                 2s: bucket prefetch + IO overlap; 1s: prefetch always on\n"
                         "    --reorder 0|1 (default 0) fused off/on shadow priority; 2s stays FIFO\n"
                         "    --wb-policy 0|1 (default 1) flush-all|composite half\n"
+                        "    --wb-small-pipe 0..64 (default 16; 0 = half rule)\n"
+                        "    --wb-complete-visits 0..255 (default 3; 0 = unbounded)\n"
                         "  placement (default derived from allowed CPUs):\n"
                         "    --ratio io:ex               global counts, split mode only\n"
                         "    --place role@cpu,...        explicit CPUs; roles are ifid, ex\n"
@@ -1199,6 +1217,10 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
 
 // Post-parse validation shared by every source combination. Call once, after all token streams.
 inline int validate_config(const Config& cfg) {
+    if (cfg.wb_small_pipe > kRobWindow || cfg.wb_complete_visits > UINT8_MAX) {
+        std::fprintf(stderr, "--wb-small-pipe wants 0..64; --wb-complete-visits wants 0..255\n");
+        return kConfigError;
+    }
     if (cfg.wb_policy < 0 || cfg.wb_policy > 1) {
         std::fprintf(stderr, "--wb-policy wants 0 or 1\n");
         return kConfigError;

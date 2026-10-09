@@ -1,0 +1,29 @@
+{
+  "experiment": "sweep",
+  "cells": [
+    "p8g",
+    "p8s"
+  ],
+  "candidate": "build/wbknobs/POST/tomokv",
+  "reference": "build/wbknobs/POST/tomokv",
+  "arms": {
+    "A": {
+      "wb-policy": 1,
+      "wb-small-pipe": 0,
+      "wb-complete-visits": 3
+    },
+    "B": {
+      "wb-policy": 1,
+      "wb-small-pipe": 16,
+      "wb-complete-visits": 3
+    }
+  },
+  "order": [
+    "A",
+    "B",
+    "B",
+    "A"
+  ],
+  "profile": 0,
+  "normal_gate_eligible": true
+}

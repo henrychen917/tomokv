@@ -94,6 +94,7 @@ public:
         tls_context_ = tls_context;
         unix_listen_fd_ = unix_listen_fd;
         epoll_ = srv_->cfg().net_io == NetIoEngine::Epoll;
+        cache_writeback_config();
         age_sample_rate_cached_ = srv_->effective_age_sample_rate();
         age_signals_armed_ = age_sample_rate_cached_ != 0;
         client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
@@ -5338,6 +5339,12 @@ ordinary_shard_ready:
         dead_next_.clear();
     }
 
+    void cache_writeback_config() {
+        wb_config_ = {static_cast<uint8_t>(srv_->cfg().wb_policy),
+                      static_cast<uint8_t>(srv_->cfg().wb_small_pipe),
+                      static_cast<uint8_t>(srv_->cfg().wb_complete_visits)};
+    }
+
     Server*    srv_  = nullptr;
     struct ClientWorkFence {
         uint64_t dispatch = 0;
@@ -5363,6 +5370,7 @@ ordinary_shard_ready:
     ScatterArenaPool scatter_pool_;          // touched only by this connection-owning IO thread
     uint32_t flush_tick_ = 0;
     bool     backstop_pass_ = false;
+    wb_rule::Settings wb_config_; // three bytes of existing padding, fixed for this IO lifetime
     static constexpr uint32_t kClientCronBeatsPerSecond = 10;
     static constexpr uint32_t kClientCronMinVisits = 5;
     uint64_t client_cron_beat_ms_ = 0;

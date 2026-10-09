@@ -681,7 +681,7 @@ build/wb-rule-units: build/wb-rule-unit build/wb-rule-db0-unit build/wb-rule-pha
 	@touch $@
 
 # Completion witnesses and clause-deletion controls share the existing wbland rows.
-WB_RULE_COMPLETION_CONTROLS := small-early small-late visits-early visits-late gather-reset serve-reset
+WB_RULE_COMPLETION_CONTROLS := small-early small-late visits-early visits-late gather-reset serve-reset knob-small-ignored knob-unbounded-ignored knob-unbounded-wrap
 WB_RULE_COMPLETION_DEPS := tests/wb_rule_completion_unit.cc tests/wb_rule_checks.py $(wildcard src/*/*.h) Makefile
 WB_RULE_COMPLETION_UNITS := build/wb-rule-completion-unit build/wb-rule-db0-completion-unit $(foreach name,$(WB_RULE_COMPLETION_CONTROLS),build/wb-rule-completion-controls/$(name)/unit build/wb-rule-completion-controls/$(name)/db0-unit)
 build/wb-rule-completion-unit: $(WB_RULE_COMPLETION_DEPS)

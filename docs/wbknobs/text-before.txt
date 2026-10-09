@@ -1,0 +1,73 @@
+tests/signalacct_source_checks.py:79:                wb_policy_sha256=hashlib.sha256(wb).hexdigest(), wb_phase2_envelope_equal=True,
+tests/wb_rule_completion_evidence.json:11:    "ledger": "Constants ledger addendum 12 (2026-10-02): S=16 KEEP; D=3 DERIVE-BY-MEASUREMENT; PLAN-SERIAL 2026-10-02 06:54 D-curve row 3"
+tests/wbland_unit.cc:20:        for (unsigned waits = 0; waits <= wb_rule::kCompleteVisits; ++waits) {
+tests/wbland_unit.cc:25:        const unsigned need = n <= wb_rule::kSmallPipe && waits < wb_rule::kCompleteVisits
+tests/wbland_unit.cc:47:    require(Config{}.wb_policy == 1 && sizeof(Config) == 624, "default and footprint");
+tests/wbland_unit.cc:50:        require(parse_config_args({"--wb-policy", p}, c, st, 1, "conf") == kConfigParsed &&
+tests/wbland_unit.cc:51:                c.wb_policy == std::atoi(p), "numeric file grammar");
+tests/wbland_unit.cc:52:        require(parse_config_args({"--wb-policy", "0"}, c, st, 2, "CLI") == kConfigParsed &&
+tests/wbland_unit.cc:53:                c.wb_policy == 0, "CLI overrides file");
+tests/wbland_unit.cc:57:        require(parse_config_args({"--wb-policy", p}, c, st, 2, "test") == kConfigError,
+tests/wbland_unit.cc:61:    require(parse_config_args({"--wb-policy"}, c, st, 2, "test") == kConfigError,
+tests/wbland_unit.cc:64:        c.wb_policy = policy;
+tests/wbland_unit.cc:72:        require(output == "# Writeback\r\nwb_policy:" + std::to_string(policy) + "\r\n",
+tests/gate.sh:1026:              wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
+tests/gate.sh:1495:job_wb_policy(){
+tests/gate.sh:1500:  unit_ready wbland-units && py tests/wb_policy.py --traces >"$TMPDIR/traces.log" 2>&1 || rc=1
+tests/gate.sh:1506:      if "$boot_fn" "$CANDIDATE_BINARY" --wb-policy "$policy" --enable-debug-command yes &&
+tests/gate.sh:1507:          py tests/wb_policy.py --port "$PORT" --policy "$policy" --output "$TMPDIR/$mode-$policy.json" \
+tests/gate.sh:2874:    && py tests/wb_policy.py --self-test >> $TMPDIR/gate-abbagate-unit.txt 2>&1 \
+tests/gate.sh:3167:    lbplanner_units|climonfix|persistfix_units|exbatch_units|wb_rule_units|wbland_units|splitlocal_units|atomic_units|netcmd_units|multidb-*|wb_policy|reorder_engagement) echo production_units;;
+tests/gate.sh:3260:collect_job wb_policy
+tests/gateprod-evidence/changed-text-audit.json:322:    "tests/wb_policy.py",
+tests/wb_rule_completion_unit.cc:10:static constexpr unsigned delay = wb_rule::kCompleteVisits, small = wb_rule::kSmallPipe;
+tests/wb_rule_completion_unit.cc:94:    struct Config { int wb_policy = 1; } config;
+tests/wb_rule_completion_unit.cc:127:        if (exit == 4) loop.server.config.wb_policy = 0;
+tests/wb_rule_completion_unit.cc:136:            loop.server.config.wb_policy = 1; enqueue(loop, c);
+tests/wb_rule_unit.cc:32:        for (unsigned waits = 0; waits <= wb_rule::kCompleteVisits; ++waits) {
+tests/wb_rule_unit.cc:37:        const unsigned need = n <= wb_rule::kSmallPipe && waits < wb_rule::kCompleteVisits
+tests/wb_rule_unit.cc:118:        c.wb_deferrals() = wb_rule::kCompleteVisits;
+tests/gates_test.py:325:                          'tests/wb_policy.py', 'tests/lb_stationary.py', 'tests/netio.py',
+tests/gates_test.py:369:    tests/abbagate.py|tests/gate_quiet.py|tests/gate_measurements.py|tests/gate_receipt.py|tests/abba_instrument.py|tests/background_environment_test.py|tests/gate_history.py|tests/gate_process_test.py|tests/gates_test.py|tests/gate_subset_test.py|tests/wb_policy.py|tests/lb_stationary.py|tests/netio.py|tests/gateprod.py|tests/tailgen_stall.py)
+tests/wbland_evidence.json:20:      "wb_policy"
+tests/writer_atomic_campaign.py:49:# a hardcoded range silently lands on somebody else's cores.
+tests/writer_atomic_campaign.py:149:        # configured server range rather than a hardcoded number, or this arm lands on whatever
+tests/wb_rule_phase_unit.cc:94:            config.wb_policy = policy;
+tests/wb_rule_phase_unit.cc:270:            for (unsigned waits = 0; waits <= wb_rule::kCompleteVisits; ++waits) {
+tests/wb_rule_phase_unit.cc:271:            const unsigned threshold = n <= wb_rule::kSmallPipe && waits < wb_rule::kCompleteVisits
+tests/wb_rule_phase_unit.cc:422:            for (unsigned pass = 0; pass <= wb_rule::kCompleteVisits; ++pass) {
+tests/wb_rule_phase_unit.cc:424:                require(staged.send_inflight() && !staged.serve_pending(), "wb-policy empty pipe sends");
+tests/wb_rule_phase_unit.cc:429:                    const bool complete = depth <= wb_rule::kSmallPipe && waits[i] < wb_rule::kCompleteVisits;
+tests/wb_rule_phase_unit.cc:435:                            "wb-policy exact retirement in every physical schedule");
+tests/wb_rule_phase_unit.cc:436:                    require(c.serve_pending() == queued[i], "wb-policy retains deferred pins");
+tests/wb_rule_phase_unit.cc:473:        dead.wb_deferrals() = closing.wb_deferrals() = wb_rule::kCompleteVisits;
+tests/netcmd_config_unit.cc:46:             {"unixsocket", "build/unused-knob-matrix.sock"}, {"wb-policy", "1"}}) {
+tests/netcmd_config_unit.cc:74:        set({"CONFIG", "SET", "wb-policy", policy}, false);
+tests/netcmd_config_unit.cc:75:        get("wb-policy", "1");
+tests/netcmd_config_unit.cc:214:    check(body.find("wb-policy 1\n") != std::string::npos, "writeback policy survives rewrite");
+tests/wb_policy.py:52:        with tempfile.TemporaryDirectory(prefix='wb-policy-control-') as directory:
+tests/wb_policy.py:66:        check_replies(admin.must('CONFIG', 'GET', 'wb-policy'),
+tests/wb_policy.py:67:                      [b'wb-policy', str(policy).encode()], 'boot CONFIG')
+tests/wb_policy.py:68:        check_replies(_lib.info(admin, 'WRITEBACK').get('wb_policy'), str(policy), 'INFO WRITEBACK')
+tests/wb_policy.py:70:            key = f'wb-policy:{index}:value'
+tests/wb_policy.py:71:            counter = f'wb-policy:{index}:counter'
+tests/wb_policy.py:82:                    other = f'wb-policy:scatter:{candidate}'
+tests/wbland_checks.py:23:    'wb_policy_signals_', 'wb_policy_signal(', 'wb_rule::State', 'wb_policy.pass(',
+tests/wbland_checks.py:24:    'wb_policy.publish(', 'wb_adaptive', 'wb_thread_', 'struct Window', 'struct Published')
+tests/wbland_checks.py:232:    'rule-allocation': (POLICY, 'char line[64];', 'char line[64]; (void)new char;',
+tests/wbland_checks.py:321:            ('split-policy', 'wbland-fused', 'wb-policy exact retirement in every physical schedule'),
+tests/wbland_checks.py:322:            ('gather-policy', 'wbland-split', 'wb-policy exact retirement in every physical schedule')):
+tests/wb_rule_checks.py:20:    "small-early": ("completion", POLICY, "n <= kSmallPipe", "n < kSmallPipe", "table", "bounded decision table"),
+tests/wb_rule_checks.py:21:    "small-late": ("completion", POLICY, "n <= kSmallPipe", "n <= kSmallPipe + 1", "table", "bounded decision table"),
+tests/wb_rule_checks.py:22:    "visits-early": ("completion", POLICY, "c.wb_deferrals() < kCompleteVisits", "c.wb_deferrals() < kCompleteVisits - 1", "table", "bounded decision table"),
+tests/wb_rule_checks.py:23:    "visits-late": ("completion", POLICY, "c.wb_deferrals() < kCompleteVisits", "c.wb_deferrals() <= kCompleteVisits", "table", "bounded decision table"),
+tests/wb_rule_checks.py:54:    "dead": ("phase", POLICY, "!c->dead() && defer(*c, loop.srv_->cfg().wb_policy)", "defer(*c, loop.srv_->cfg().wb_policy)", "dead", "dead entry removed and unpinned"),
+tests/wb_rule_checks.py:56:    "split-policy": ("split-phase", POLICY, "!c->dead() && defer(*c, loop.srv_->cfg().wb_policy)", "false", "split-policy", "2s uses exact composite fraction"),
+tests/wb_rule_checks.py:57:    "split-local": ("split-phase", POLICY, "!c->dead() && defer(*c, loop.srv_->cfg().wb_policy)", "false", "split-local", "2s reader capability shares composite writeback"),
+tests/wb_rule_checks.py:60:    "gather-policy": ("split-overlap", POLICY, "!client->dead() && defer(*client, loop.srv_->cfg().wb_policy)", "false", "split-policy", "2s uses exact composite fraction"),
+tests/wb_rule_checks.py:66:    "gather-dead": ("split-overlap", POLICY, "!client->dead() && defer(*client, loop.srv_->cfg().wb_policy)", "defer(*client, loop.srv_->cfg().wb_policy)", "split-dead", "dead entry removed and unpinned"),
+tests/knobs.py:68:                           ("wb-policy", "1"), ("key-lb-damping", "-1")):
+tests/knobs.py:71:    for name in ("read-local", "key-lb", "client-lb", "key-lb-damping", "flip-auto", "net-io", "overlap", "reorder", "wb-policy",
+tests/knobs.py:84:    if writeback.get("wb_policy") != "1":
+tests/knobs.py:85:        raise AssertionError("INFO WRITEBACK wb_policy differs: %r" % writeback)
+tests/flip_under_load.py:205:    # hardcoded 32-thread shapes made every flip a legal refusal on smaller servers, and the gate

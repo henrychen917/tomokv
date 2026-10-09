@@ -68,9 +68,10 @@ static void grammar() {
 static void info() {
     for (int policy : {0, 1}) {
         std::string output;
-        wb_rule::info(output, policy);
-        require(output == "# Writeback\r\nwb_policy:" + std::to_string(policy) + "\r\n",
-                "INFO contains only the selected static policy");
+        wb_rule::info(output, policy, 16, 3);
+        require(output == "# Writeback\r\nwb_policy:" + std::to_string(policy) +
+                "\r\nwb_small_pipe:16\r\nwb_complete_visits:3\r\n",
+                "INFO contains exactly the selected boot policy and bounds");
     }
 }
 int main(int argc, char** argv) {

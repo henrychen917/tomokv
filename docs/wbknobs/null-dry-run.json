@@ -1,0 +1,30 @@
+{
+  "experiment": "null",
+  "cells": [
+    "h05",
+    "h06",
+    "p8g",
+    "p8s",
+    "d1g_l0",
+    "d1s_l0",
+    "m8g_l0",
+    "v1g_l0",
+    "d128g_l0",
+    "d32g_l1",
+    "d8s_l1",
+    "d32s_l1",
+    "x9_32_l1",
+    "x9_32_l0"
+  ],
+  "candidate": "build/wbknobs/POST/tomokv",
+  "reference": "/home/user/Projects/bench-bins/tomokv-headline-db86e5b4a",
+  "arms": "both boot defaults",
+  "order": [
+    "A",
+    "B",
+    "B",
+    "A"
+  ],
+  "profile": 0,
+  "normal_gate_eligible": true
+}

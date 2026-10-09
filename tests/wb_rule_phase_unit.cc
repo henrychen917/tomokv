@@ -73,7 +73,7 @@ struct CoreConcurrencyTest {
         unsigned sq_head = 0;
         unsigned cq_head = 0, cq_tail = 0;
         std::array<io_uring_sqe, 8> sqes{};
-        explicit Fixture(int policy = 1) {
+        explicit Fixture(int policy = 1, unsigned small = 16, unsigned visits = 3) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
             require(sched_getaffinity(0, sizeof cpus, &cpus) == 0, "read affinity");
@@ -92,6 +92,7 @@ struct CoreConcurrencyTest {
             Config config;
             config.thread_mode = Fused ? ThreadMode::Fused : ThreadMode::Split;
             config.wb_policy = policy;
+            config.wb_small_pipe = small; config.wb_complete_visits = visits;
             config.databases = kSingleDatabase ? 1 : 4;
             config.shards = 16;
             config.read_local = SplitLocal;
@@ -118,6 +119,7 @@ struct CoreConcurrencyTest {
             require(ex.ring_.init(8), "eventfd-only owner doorbell");
             g_ring_epoll_mode = false;
             io.srv_ = &server;
+            io.cache_writeback_config();
             io.self_ = &server.thread(0);
             if constexpr (Fused || SplitLocal) {
                 io.fused_executor_ = &ex;
@@ -407,8 +409,11 @@ struct CoreConcurrencyTest {
         require(f.ex.self_->ex_inbound_quiesced(), "EX sources retired");
     }
     template <bool Fused, bool Local = false> static void wbland_policies(bool r7) {
+        for (const auto& [small, delay] : {std::pair{16u, 3u}, {0u, 3u}, {8u, 1u}, {64u, 0u}})
         for (unsigned depth : {2u, 4u, 5u, 8u, 16u, 17u, 32u, 64u}) for (int policy : {0, 1}) {
-            Fixture<Fused, Local> f(policy);
+            Fixture<Fused, Local> f(policy, small, delay);
+            require(f.io.wb_config_.policy == policy && f.io.wb_config_.small_pipe == small &&
+                    f.io.wb_config_.complete_visits == delay, "real boot cache preserves writeback knobs");
             std::vector<std::unique_ptr<Client>> clients;
             std::array<bool, 96> queued; queued.fill(true);
             std::array<unsigned, 96> waits{};
@@ -426,11 +431,11 @@ struct CoreConcurrencyTest {
                 for (unsigned i = 0; i < clients.size(); ++i) {
                     Client& c = *clients[i];
                     const unsigned prefix = i%depth+1;
-                    const bool complete = depth <= wb_rule::kSmallPipe && waits[i] < wb_rule::kCompleteVisits;
+                    const bool complete = depth <= small && (delay == 0 || waits[i] < delay);
                     const unsigned need = complete ? depth : depth/2 + depth%2;
                     if (queued[i] && (policy == 0 || prefix >= need)) {
                         queued[i] = false; waits[i] = 0; ++total_served;
-                    } else if (queued[i] && complete) ++waits[i];
+                    } else if (queued[i] && complete && delay) ++waits[i];
                     require(c.rob().in_flight() == (queued[i] ? depth : depth-prefix),
                             "wb-policy exact retirement in every physical schedule");
                     require(c.serve_pending() == queued[i], "wb-policy retains deferred pins");
@@ -460,10 +465,10 @@ struct CoreConcurrencyTest {
             }
             phase(f, r7);
             for (auto& c : clients) {
-                const bool complete = policy != 0;
+                const bool complete = policy != 0 && small >= 8;
                 require(c->rob().in_flight() == (complete ? 8u : 4u),
                         "served connection completes again next pipe");
-                require(c->wb_deferrals() == unsigned(complete), "new pipe wait count");
+                require(c->wb_deferrals() == unsigned(complete && delay), "new pipe wait count");
             }
         }
         // Dead entries bypass defer() but must clear a nonzero wait count, and closing
