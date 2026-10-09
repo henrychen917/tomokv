@@ -30,7 +30,7 @@ struct CoreConcurrencyTest {
         ExLoopT<true> loop;
         uint32_t owner;
         uint64_t key_serial = 0;
-        Fixture(ThreadMode mode) : owner(mode == ThreadMode::Fused ? 0 : 6) {
+        Fixture(ThreadMode mode, bool local) : owner(mode == ThreadMode::Fused ? 0 : 6) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
             require(sched_getaffinity(0, sizeof(cpus), &cpus) == 0, "read test affinity");
@@ -50,30 +50,35 @@ struct CoreConcurrencyTest {
             Config config;
             config.thread_mode = mode;
             config.shards = 16;
-            config.read_local = config.atomic = config.key_lb = config.client_lb = 1;
+            config.read_local = local;
+            config.atomic = config.key_lb = config.client_lb = 1;
             config.save.clear();
             require(server.init(config), "initialize in-memory fixture");
             require(server.nthreads() == 8 && server.nshards() == 16, "gate geometry");
             loop.srv_ = &server;
             loop.self_ = &server.thread(owner);
             loop.cached_now_ms_ = 1000;
-            loop.read_local_.impl = std::make_unique<ReadLocalExImpl>();
-            auto& deferred = loop.read_local_impl().deferred;
-            require(deferred.init(&server, loop.self_), "owner QSBR queue");
-            for (Shard* sh : loop.self_->shards())
-                sh->store().configure_read_local(true, *deferred.sink());
+            if (local) {
+                loop.read_local_.impl = std::make_unique<ReadLocalExImpl>();
+                auto& deferred = loop.read_local_impl().deferred;
+                require(deferred.init(&server, loop.self_), "owner QSBR queue");
+                for (Shard* sh : loop.self_->shards())
+                    sh->store().configure_read_local(true, *deferred.sink());
+            }
             server.bind_owner_notify_pending(owner, &loop.notify_keyless_pending_);
             loop.refresh_live_config();
             loop.slowlog_armed_ = false;
             if (mode == ThreadMode::Fused)
                 loop.bind_fused_completion(nullptr, [](void*, Client*) {});
-            require(loop.read_local_enabled() && server.atomic_enabled(), "armed owner paths");
+            require(loop.read_local_enabled() == local && server.atomic_enabled(), "resolved owner paths");
             require(server.mode_schedule_stats() == nullptr,
                     "prefetch allocates no witness sidecar");
         }
         ~Fixture() {
-            loop.read_local_impl().deferred.drain_shutdown();
-            for (Shard* sh : loop.self_->shards()) sh->store().configure_read_local(false, {});
+            if (loop.read_local_.impl) {
+                loop.read_local_impl().deferred.drain_shutdown();
+                for (Shard* sh : loop.self_->shards()) sh->store().configure_read_local(false, {});
+            }
         }
         int32_t sid() const { return server.thread(owner).shards().front()->id(); }
         std::string key() {
@@ -206,14 +211,15 @@ int main() {
     using T = tomo::CoreConcurrencyTest;
     T::require(tomo::command_registry_init(false), "command registry");
     for (auto mode : {tomo::ThreadMode::Fused, tomo::ThreadMode::Split}) {
+        for (bool local : {false, true})
         {
-            T::Fixture fixture(mode);
+            T::Fixture fixture(mode, local);
             T::eligibility(fixture);
             for (uint32_t n : {0u, 1u, 2u, 3u, 31u, 32u, 127u, 128u}) T::ordered(fixture, n);
             for (uint32_t n : {1u, 2u, 3u, 32u, 128u})
                 for (uint32_t stop : {0u, n / 2, n - 1}) T::blocked(fixture, n, stop);
-            std::printf("PASS owner prefetch %s read-local=atomic=key-lb=client-lb=1\n",
-                        mode == tomo::ThreadMode::Fused ? "1s" : "2s");
+            std::printf("PASS owner prefetch %s read-local=%d reorder=0 atomic=key-lb=client-lb=1\n",
+                        mode == tomo::ThreadMode::Fused ? "1s" : "2s", local);
         }
     }
 }

@@ -1,0 +1,186 @@
+[
+  {
+    "arm": "POST",
+    "binary_sha256": "b692d35058948d20949870ef827d3118f7cd3479e2a4eb55544a22ce4cb110fe",
+    "commands": [
+      "PING",
+      "SET",
+      "GET",
+      "MSET",
+      "MGET",
+      "CONFIG GET/SET"
+    ],
+    "databases": 1,
+    "exit": {
+      "exited_before_cleanup": null,
+      "forced_kill": false,
+      "pid": 80872,
+      "returncode": 0
+    },
+    "mode": "1s",
+    "ratio": "8 fused",
+    "server_cpus": "112-119",
+    "shards": 16
+  },
+  {
+    "arm": "POST",
+    "binary_sha256": "b692d35058948d20949870ef827d3118f7cd3479e2a4eb55544a22ce4cb110fe",
+    "commands": [
+      "PING",
+      "SET",
+      "GET",
+      "MSET",
+      "MGET",
+      "CONFIG GET/SET"
+    ],
+    "databases": 1,
+    "exit": {
+      "exited_before_cleanup": null,
+      "forced_kill": false,
+      "pid": 80886,
+      "returncode": 0
+    },
+    "mode": "2s",
+    "ratio": "6:2",
+    "server_cpus": "112-119",
+    "shards": 16
+  },
+  {
+    "arm": "POST",
+    "binary_sha256": "b692d35058948d20949870ef827d3118f7cd3479e2a4eb55544a22ce4cb110fe",
+    "commands": [
+      "PING",
+      "SET",
+      "GET",
+      "MSET",
+      "MGET",
+      "CONFIG GET/SET"
+    ],
+    "databases": 16,
+    "exit": {
+      "exited_before_cleanup": null,
+      "forced_kill": false,
+      "pid": 80901,
+      "returncode": 0
+    },
+    "mode": "1s",
+    "ratio": "8 fused",
+    "server_cpus": "112-119",
+    "shards": 16
+  },
+  {
+    "arm": "POST",
+    "binary_sha256": "b692d35058948d20949870ef827d3118f7cd3479e2a4eb55544a22ce4cb110fe",
+    "commands": [
+      "PING",
+      "SET",
+      "GET",
+      "MSET",
+      "MGET",
+      "CONFIG GET/SET"
+    ],
+    "databases": 16,
+    "exit": {
+      "exited_before_cleanup": null,
+      "forced_kill": false,
+      "pid": 81060,
+      "returncode": 0
+    },
+    "mode": "2s",
+    "ratio": "6:2",
+    "server_cpus": "112-119",
+    "shards": 16
+  },
+  {
+    "arm": "PAD-A",
+    "binary_sha256": "d8b8d2c280c8094a147883a756555cc252f07a83bc23df99d415a10850b342ec",
+    "commands": [
+      "PING",
+      "SET",
+      "GET",
+      "MSET",
+      "MGET",
+      "CONFIG GET/SET"
+    ],
+    "databases": 1,
+    "exit": {
+      "exited_before_cleanup": null,
+      "forced_kill": false,
+      "pid": 81078,
+      "returncode": 0
+    },
+    "mode": "1s",
+    "ratio": "8 fused",
+    "server_cpus": "112-119",
+    "shards": 16
+  },
+  {
+    "arm": "PAD-A",
+    "binary_sha256": "d8b8d2c280c8094a147883a756555cc252f07a83bc23df99d415a10850b342ec",
+    "commands": [
+      "PING",
+      "SET",
+      "GET",
+      "MSET",
+      "MGET",
+      "CONFIG GET/SET"
+    ],
+    "databases": 1,
+    "exit": {
+      "exited_before_cleanup": null,
+      "forced_kill": false,
+      "pid": 81092,
+      "returncode": 0
+    },
+    "mode": "2s",
+    "ratio": "6:2",
+    "server_cpus": "112-119",
+    "shards": 16
+  },
+  {
+    "arm": "PAD-A",
+    "binary_sha256": "d8b8d2c280c8094a147883a756555cc252f07a83bc23df99d415a10850b342ec",
+    "commands": [
+      "PING",
+      "SET",
+      "GET",
+      "MSET",
+      "MGET",
+      "CONFIG GET/SET"
+    ],
+    "databases": 16,
+    "exit": {
+      "exited_before_cleanup": null,
+      "forced_kill": false,
+      "pid": 81106,
+      "returncode": 0
+    },
+    "mode": "1s",
+    "ratio": "8 fused",
+    "server_cpus": "112-119",
+    "shards": 16
+  },
+  {
+    "arm": "PAD-A",
+    "binary_sha256": "d8b8d2c280c8094a147883a756555cc252f07a83bc23df99d415a10850b342ec",
+    "commands": [
+      "PING",
+      "SET",
+      "GET",
+      "MSET",
+      "MGET",
+      "CONFIG GET/SET"
+    ],
+    "databases": 16,
+    "exit": {
+      "exited_before_cleanup": null,
+      "forced_kill": false,
+      "pid": 81120,
+      "returncode": 0
+    },
+    "mode": "2s",
+    "ratio": "6:2",
+    "server_cpus": "112-119",
+    "shards": 16
+  }
+]

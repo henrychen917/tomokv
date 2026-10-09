@@ -1,0 +1,5 @@
+{
+  "returncode": 1,
+  "stderr": "FAIL owner prefetch: each eligible fused batch enters its prefetch body\n",
+  "control": "Remove only the prefetch_owner_batch call from exec_batch in a throwaway header; the real-batch witness must fail. No production binary/header changed."
+}

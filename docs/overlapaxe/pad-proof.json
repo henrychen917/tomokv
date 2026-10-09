@@ -1,0 +1,57 @@
+{
+  "all_other_original_bytes_identical": true,
+  "controls": {
+    "missing-retarget": {
+      "reason": "planned retarget missing",
+      "rejected": true
+    },
+    "moved-symbol": {
+      "reason": "symbol table moved",
+      "rejected": true
+    },
+    "one-byte": {
+      "reason": "unplanned byte change",
+      "rejected": true
+    }
+  },
+  "exact_function_and_section_tables": true,
+  "kind": "A: PRE overlap=0 observable data-plane behavior at POST layout",
+  "limitation": "Default-only null control. The two retired INFO rows are restored, but the retired CLI/CONFIG surface and overlap=1 are intentionally not restored. POST already retains PRE overlap=0 data-plane behavior. There is no independent data-path treatment; POST/PAD cannot attribute compiler-codegen versus address-layout effects. A non-null result requires investigation; this control cannot justify a speedup claim.",
+  "pad": {
+    "binary_sha256": "d8b8d2c280c8094a147883a756555cc252f07a83bc23df99d415a10850b342ec",
+    "function_table_sha256": "69865c5a8d454387797656a060f9d2aae00ed179811c8b2f9236ec45df98b5e0",
+    "functions": 10016,
+    "section_table_sha256": "2972cab32467c734eb09c1b357d27ba3163a9640c2e2b9e9e36303319ae3b2be",
+    "text_bytes": 7580741
+  },
+  "patches": [
+    {
+      "kind": "read-only PT_LOAD",
+      "new": "01000000040000000060230b0000000000b095000000000000b0950000000000680100000000000068010000000000000010000000000000",
+      "offset": 512,
+      "old": "0400000004000000a003000000000000a003000000000000a003000000000000440000000000000044000000000000000400000000000000"
+    },
+    {
+      "kind": "INFO format reference",
+      "new": "488d35c58a7b00",
+      "offset": 1713460,
+      "old": "488d35c5d95b00",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE"
+    },
+    {
+      "kind": "INFO format reference",
+      "new": "488d35803c4400",
+      "offset": 5337977,
+      "old": "488d35808b2400",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE"
+    }
+  ],
+  "post": {
+    "binary_sha256": "b692d35058948d20949870ef827d3118f7cd3479e2a4eb55544a22ce4cb110fe",
+    "function_table_sha256": "69865c5a8d454387797656a060f9d2aae00ed179811c8b2f9236ec45df98b5e0",
+    "functions": 10016,
+    "section_table_sha256": "2972cab32467c734eb09c1b357d27ba3163a9640c2e2b9e9e36303319ae3b2be",
+    "text_bytes": 7580741
+  },
+  "restored_info_rows": "overlap:0\r\noverlap_enabled:0\r\n"
+}

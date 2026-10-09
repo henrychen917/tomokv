@@ -1,7 +1,7 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
   "source_sha256": "1a100a97fa169564e0ae8884389d4d4dcacba9afb582d76938f9a570824b980f",
-  "purpose": "serverless expected-label fixture only, never evidence of lane execution",
+  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full)",
   "labels": [
     "release build (+footprint locks)",
     "ASAN build",

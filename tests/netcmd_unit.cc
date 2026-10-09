@@ -394,12 +394,18 @@ struct NetcmdRegression {
         acl_selectors();
         tracking_eviction();
         zero_copy("zc-all");
+        config_knobs();
+    }
+    static void config_knobs() {
         Server server;
         const std::string password = "pass with spaces\n\r\t\"'\\tail";
         char directory[] = "build/netcmd-config-XXXXXX";
         check(::mkdtemp(directory), "private config directory");
         const std::string path = std::string(directory) + "/tomo.conf";
         server.cfg_.conf_path = path.c_str(); server.cfg_.requirepass = password.c_str();
+        std::FILE* config_file = std::fopen(path.c_str(), "w");
+        check(config_file, "knob fixture config exists before INFO realpath initialization");
+        std::fclose(config_file);
         ConfigParseState state;
         check(parse_config_args({"--port", "6397", "--bind", "127.0.0.2",
                                  "--unixsocket", "build/unused-knob-matrix.sock",
@@ -423,8 +429,8 @@ struct NetcmdRegression {
         command_bind_server(&info_server);
         info_server.cfg_.thread_mode = ThreadMode::Fused;
         for (int32_t reorder : {0, 1}) {
-        info_server.cfg_.reorder = reorder;
-        Shard shard;
+            info_server.cfg_.reorder = reorder;
+            Shard shard;
             check(info_server.mode_schedule_stats() == nullptr, "handler fixture starts without a sidecar");
             const std::string info = execute(shard, {"INFO", "SERVER"});
             for (const char* field : {"overlap:", "overlap_enabled:", "overlap_schedule:",
@@ -759,6 +765,7 @@ int main(int argc, char** argv) {
     else if (mode == "collection-oom") R::collection_oom();
     else if (mode == "hexpire-oom") test_hexpire_oom(argc == 3 ? argv[2] : nullptr);
     else if (mode == "config") R::config();
+    else if (mode == "config-knobs") R::config_knobs();
     else if (mode == "wb-small-pipe" || mode == "wb-complete-visits") R::writeback_knob(mode.c_str());
     else if (mode == "config-bounds") test_config_bounds(argc == 3 ? argv[2] : nullptr);
     else if (mode == "acl-selectors") R::acl_selectors();
