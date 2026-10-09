@@ -75,27 +75,27 @@ def off_roles(binary):
     return removed
 
 
-def splitlocal_inventory(binary, namespaces):
-    """Require the fourteen extra physical parser bodies per runtime after splitlocal.
+def splitlocal_inventory(binary, namespaces, *, overlap_removed=False):
+    """Require the extra physical parser bodies per runtime after splitlocal.
 
-    Forwarding SplitLocal in overlap-0 emits two parsers, their eight closures,
-    and four ordinary-parser clones. Keep the historical r7/wbrule inventories
-    usable for their frozen inputs; a current receipt names this larger set.
+    Forwarding SplitLocal emits two parsers and four ordinary-parser clones.
+    Their eight out-of-line closures become six after overlap removal.
+    Historical inventories remain usable for frozen inputs.
     """
     for namespace in namespaces:
         for no_borrow in ('false', 'true'):
-            parser = (f'{namespace}::IoLoop::parse_and_dispatch'
-                      f'<{no_borrow}, 32u, false, true>({namespace}::Client*)')
+            parser = audit.canonical(f'{namespace}::IoLoop::parse_and_dispatch'
+                                     f'<{no_borrow}, 32u, false, true>({namespace}::Client*)')
             direct = f'{namespace}::IoLoop::DispatchResult {parser}'
             family = {name for name in binary.groups if parser in name and audit.category(name)}
             conflicts = {name for name in family if name.startswith(
                 f'{namespace}::Rob<64u>::read_local_owner_conflicts_before<')}
             fillers = {name for name in family if name.startswith(
                 f'auto {parser}::{{lambda(auto:1&&)#1}}::operator()<')}
-            ordinary = (f'{namespace}::IoLoop::DispatchResult {namespace}::IoLoop::'
-                        f'parse_and_dispatch<{no_borrow}, 32u, false, false>({namespace}::Client*)')
+            ordinary = audit.canonical(f'{namespace}::IoLoop::DispatchResult {namespace}::IoLoop::'
+                                       f'parse_and_dispatch<{no_borrow}, 32u, false, false>({namespace}::Client*)')
             clones = {ordinary + ' [clone .isra.0]' + suffix for suffix in ('', ' [clone .cold]')}
-            assert (len(conflicts) == 3 and len(fillers) == 1 and
+            assert (len(conflicts) == (2 if overlap_removed else 3) and len(fillers) == 1 and
                     family == {direct} | conflicts | fillers and
                     all(len(binary.groups.get(name, ())) == 1 for name in family | clones)), \
                 f'missing split-local parser bodies: {namespace}, NoBorrow={no_borrow}'
@@ -106,8 +106,8 @@ if __name__ == '__main__':
     parser.add_argument('pre')
     parser.add_argument('post')
     parser.add_argument('output')
-    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal'), default='r7',
-                        help='wbrule adds 32 physical split-local WB bodies; splitlocal also adds 28 parser bodies')
+    parser.add_argument('--inventory', choices=('r7', 'wbrule', 'splitlocal', 'overlapaxe'), default='r7',
+                        help='wbrule/splitlocal retain historical inventories; overlapaxe requires the surviving bodies')
     args = parser.parse_args()
     out = Path(args.output)
     out.mkdir(parents=True, exist_ok=True)
@@ -116,11 +116,11 @@ if __name__ == '__main__':
     post = audit.Binary(args.post, out, literal_pools=True)
     excluded = {'pre': off_roles(pre), 'post': off_roles(post)}
     rows = audit.compare(pre, post, out)
-    # The boot-selected db0 runtime duplicates this inventory. The current
-    # reference has 168 bodies per variant; the old single-runtime audit had 169.
+    # The boot-selected db0 runtime duplicates the historical 168-body inventory;
+    # the old single-runtime audit had 169. Later inventory deltas are explicit.
     expected = {'tomo': 168, 'tomo_db0': 168} if any(
         'tomo_db0::' in row['name'] for row in rows) else {'tomo': 169}
-    if args.inventory in ('wbrule', 'splitlocal'):
+    if args.inventory in ('wbrule', 'splitlocal', 'overlapaxe'):
         assert set(expected) == {'tomo', 'tomo_db0'}, 'wbrule requires both database runtimes'
         # wbrule carries SplitLocal through flush_ready. These sixteen additional
         # instantiations per runtime keep physical 2s writeback separate from 1s.
@@ -133,11 +133,20 @@ if __name__ == '__main__':
                 found = {name for name in binary.groups if name in added}
                 assert found == added, f'missing physical split-local WB bodies: {added - found}'
             expected[namespace] += len(added)
-    if args.inventory == 'splitlocal':
+    if args.inventory in ('splitlocal', 'overlapaxe'):
         for binary in (pre, post):
-            splitlocal_inventory(binary, expected)
+            splitlocal_inventory(binary, expected, overlap_removed=args.inventory == 'overlapaxe')
         for namespace in expected:
             expected[namespace] += 14
+    if args.inventory == 'overlapaxe':
+        # 198 -> 147 physical bodies per runtime: -32 IO envelopes, -14 parser
+        # bodies/closures, -4 retired WB helpers, -1 scheduler body. The renamed
+        # fused owner prefetch remains in the audit; only split prefetch is gone.
+        for namespace in expected:
+            expected[namespace] -= 51
+            owner = f'{namespace}::ExLoopT<true>::prefetch_owner_batch({namespace}::Task const*, unsigned int)'
+            for binary in (pre, post):
+                assert len(binary.groups.get(owner, ())) == 1, f'missing owner prefetch body: {namespace}'
     counts = Counter('tomo_db0' if 'tomo_db0::' in row['name'] else 'tomo' for row in rows)
     assert counts == expected, f'off-path inventory changed: {counts}, expected {expected}'
     def inventory(binary):
