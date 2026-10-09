@@ -198,7 +198,7 @@ Rows **+0/+0**; `EXPECT_QUICK=502`, `EXPECT_FULL=519` unchanged. No row was adde
 
 ## 2026-10-09 — versionstr4
 
-In progress: repair committed; verification receipts follow in this section.
+Repair commit: `36cd5c0f1`. The full serverless gate self-test passes (66 top-level tests). Link and static byte proofs pass; final build/handler receipts follow in this section.
 
 Entry HEAD `5911a55b6`; fetched and merged `origin/cpp` (`dab740964`), already up to date. The exact pre-fix TSAN wiring assertion is reproduced in `docs/versionstr/versionstr4/before-fix.log`. Its source is **not a Makefile variable**: `job_core_tsan_build` in `tests/gate.sh` independently expands `src/core/*.cc`, admitting `src/core/version.cc` despite the Makefile's `SERVER_ONLY_SRC` separation. The build now excludes that server entry source before calling `tests/parbuild.sh`; the self-test expected set is unchanged.
 
