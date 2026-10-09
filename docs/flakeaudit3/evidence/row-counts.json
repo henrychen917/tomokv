@@ -1,0 +1,10 @@
+{
+  "quick": 502,
+  "full": 519,
+  "delta_quick": 0,
+  "delta_full": 0,
+  "quick_exit_line": 3402,
+  "gate_identical_to_origin": true,
+  "gate_sha256": "efca99d874e63fa4cd11e39baf6aa3bae45e17ad643db86af62486c99278ee85",
+  "method": "gate_ledger_fixture source declarations; quick count stops at the source quick-tier exit; no gate execution"
+}

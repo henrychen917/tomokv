@@ -1,0 +1,3104 @@
+[
+  {
+    "original_ordinal": 1,
+    "current_ordinal": 1,
+    "name": "release build (+footprint locks)",
+    "original_gate_line": 1191
+  },
+  {
+    "original_ordinal": 2,
+    "current_ordinal": 2,
+    "name": "ASAN build",
+    "original_gate_line": 1218
+  },
+  {
+    "original_ordinal": 3,
+    "current_ordinal": 3,
+    "name": "configuration docs match parser",
+    "original_gate_line": 1228
+  },
+  {
+    "original_ordinal": 4,
+    "current_ordinal": 4,
+    "name": "Redis config quoting + mid-value #",
+    "original_gate_line": 1234
+  },
+  {
+    "original_ordinal": 5,
+    "current_ordinal": 5,
+    "name": "flip controller model unit",
+    "original_gate_line": 1243
+  },
+  {
+    "original_ordinal": 6,
+    "current_ordinal": 6,
+    "name": "B+ counting-fingerprint filter unit",
+    "original_gate_line": 1252
+  },
+  {
+    "original_ordinal": 7,
+    "current_ordinal": 7,
+    "name": "read-local write ring + arming transient unit",
+    "original_gate_line": 1269
+  },
+  {
+    "original_ordinal": 8,
+    "current_ordinal": 8,
+    "name": "climon 128-owner delivery mask",
+    "original_gate_line": 1276
+  },
+  {
+    "original_ordinal": 9,
+    "current_ordinal": 9,
+    "name": "read-local MGET fence symmetry unit",
+    "original_gate_line": 1287
+  },
+  {
+    "original_ordinal": 10,
+    "current_ordinal": 10,
+    "name": "shutdown policy + signal handoff serverless",
+    "original_gate_line": 1298
+  },
+  {
+    "original_ordinal": 11,
+    "current_ordinal": 11,
+    "name": "shutdown persistence (1s, command)",
+    "original_gate_line": 1307
+  },
+  {
+    "original_ordinal": 12,
+    "current_ordinal": 12,
+    "name": "shutdown persistence (1s, sigterm)",
+    "original_gate_line": 1307
+  },
+  {
+    "original_ordinal": 13,
+    "current_ordinal": 13,
+    "name": "shutdown persistence (1s, sigint)",
+    "original_gate_line": 1307
+  },
+  {
+    "original_ordinal": 14,
+    "current_ordinal": 14,
+    "name": "shutdown persistence (2s, command)",
+    "original_gate_line": 1307
+  },
+  {
+    "original_ordinal": 15,
+    "current_ordinal": 15,
+    "name": "shutdown persistence (2s, sigterm)",
+    "original_gate_line": 1307
+  },
+  {
+    "original_ordinal": 16,
+    "current_ordinal": 16,
+    "name": "shutdown persistence (2s, sigint)",
+    "original_gate_line": 1307
+  },
+  {
+    "original_ordinal": 17,
+    "current_ordinal": 17,
+    "name": "LB sampler exceptional cleanup + negative control",
+    "original_gate_line": 1319
+  },
+  {
+    "original_ordinal": 18,
+    "current_ordinal": 18,
+    "name": "LB monitor plan handoff + negative controls",
+    "original_gate_line": 1328
+  },
+  {
+    "original_ordinal": 19,
+    "current_ordinal": 19,
+    "name": "exbatch publication unit + negative controls",
+    "original_gate_line": 1352
+  },
+  {
+    "original_ordinal": 20,
+    "current_ordinal": 20,
+    "name": "exbatch watch unit + negative controls",
+    "original_gate_line": 1352
+  },
+  {
+    "original_ordinal": 21,
+    "current_ordinal": 21,
+    "name": "exbatch metadata unit + negative controls",
+    "original_gate_line": 1352
+  },
+  {
+    "original_ordinal": 22,
+    "current_ordinal": 22,
+    "name": "exbatch publication and WATCH lifecycle (1s)",
+    "original_gate_line": 1367
+  },
+  {
+    "original_ordinal": 23,
+    "current_ordinal": 23,
+    "name": "exbatch publication and WATCH lifecycle (2s)",
+    "original_gate_line": 1367
+  },
+  {
+    "original_ordinal": 24,
+    "current_ordinal": 24,
+    "name": "AOF publication/shutdown witnesses + negative controls",
+    "original_gate_line": 1339
+  },
+  {
+    "original_ordinal": 25,
+    "current_ordinal": 25,
+    "name": "core concurrency watch",
+    "original_gate_line": 1388
+  },
+  {
+    "original_ordinal": 26,
+    "current_ordinal": 26,
+    "name": "core concurrency lifetime",
+    "original_gate_line": 1388
+  },
+  {
+    "original_ordinal": 27,
+    "current_ordinal": 27,
+    "name": "core concurrency drain",
+    "original_gate_line": 1388
+  },
+  {
+    "original_ordinal": 28,
+    "current_ordinal": 28,
+    "name": "core concurrency route",
+    "original_gate_line": 1388
+  },
+  {
+    "original_ordinal": 29,
+    "current_ordinal": 29,
+    "name": "core concurrency snapshot",
+    "original_gate_line": 1388
+  },
+  {
+    "original_ordinal": 30,
+    "current_ordinal": 30,
+    "name": "core concurrency config",
+    "original_gate_line": 1388
+  },
+  {
+    "original_ordinal": 31,
+    "current_ordinal": 31,
+    "name": "core concurrency notify",
+    "original_gate_line": 1388
+  },
+  {
+    "original_ordinal": 32,
+    "current_ordinal": 32,
+    "name": "read-local topology demotion (1s)",
+    "original_gate_line": 1404
+  },
+  {
+    "original_ordinal": 33,
+    "current_ordinal": 33,
+    "name": "read-local topology demotion (2s)",
+    "original_gate_line": 1404
+  },
+  {
+    "original_ordinal": 34,
+    "current_ordinal": 34,
+    "name": "writeback c12 policy witnesses + negative controls",
+    "original_gate_line": 1422
+  },
+  {
+    "original_ordinal": 35,
+    "current_ordinal": 35,
+    "name": "writeback c12 phase witnesses + negative controls",
+    "original_gate_line": 1422
+  },
+  {
+    "original_ordinal": 36,
+    "current_ordinal": 36,
+    "name": "writeback c12 stages witnesses + negative controls",
+    "original_gate_line": 1422
+  },
+  {
+    "original_ordinal": 37,
+    "current_ordinal": 37,
+    "name": "writeback c12 split-phase witnesses + negative controls",
+    "original_gate_line": 1422
+  },
+  {
+    "original_ordinal": 38,
+    "current_ordinal": 38,
+    "name": "writeback c12 split-overlap witnesses + negative controls",
+    "original_gate_line": 1422
+  },
+  {
+    "original_ordinal": 39,
+    "current_ordinal": 39,
+    "name": "writeback policy clauses witnesses + negative controls",
+    "original_gate_line": 1436
+  },
+  {
+    "original_ordinal": 40,
+    "current_ordinal": 40,
+    "name": "writeback policy paths witnesses + negative controls",
+    "original_gate_line": 1436
+  },
+  {
+    "original_ordinal": 41,
+    "current_ordinal": 41,
+    "name": "R7 generated envelope parity",
+    "original_gate_line": 1448
+  },
+  {
+    "original_ordinal": 42,
+    "current_ordinal": 42,
+    "name": "R7 production engagement (both database runtimes)",
+    "original_gate_line": 1455
+  },
+  {
+    "original_ordinal": 43,
+    "current_ordinal": 43,
+    "name": "R7 FIFO twin off-path identity + negative controls",
+    "original_gate_line": 1466
+  },
+  {
+    "original_ordinal": 44,
+    "current_ordinal": 44,
+    "name": "writeback policies 0/1: 22 standard fixtures",
+    "original_gate_line": 1474
+  },
+  {
+    "original_ordinal": 45,
+    "current_ordinal": 45,
+    "name": "stationary balanced LB holds still (1s)",
+    "original_gate_line": 1503
+  },
+  {
+    "original_ordinal": 46,
+    "current_ordinal": 46,
+    "name": "stationary balanced LB holds still (2s)",
+    "original_gate_line": 1503
+  },
+  {
+    "original_ordinal": 47,
+    "current_ordinal": 47,
+    "name": "epoll directed correctness (1s)",
+    "original_gate_line": 1492
+  },
+  {
+    "original_ordinal": 48,
+    "current_ordinal": 48,
+    "name": "epoll directed correctness (2s)",
+    "original_gate_line": 1492
+  },
+  {
+    "original_ordinal": 49,
+    "current_ordinal": 49,
+    "name": "splitlocal template forwarding + old-argument controls",
+    "original_gate_line": 1513
+  },
+  {
+    "original_ordinal": 50,
+    "current_ordinal": 50,
+    "name": "storage unlinked regression",
+    "original_gate_line": 1534
+  },
+  {
+    "original_ordinal": 51,
+    "current_ordinal": 51,
+    "name": "storage randomkey regression",
+    "original_gate_line": 1534
+  },
+  {
+    "original_ordinal": 52,
+    "current_ordinal": 52,
+    "name": "storage rehash regression",
+    "original_gate_line": 1534
+  },
+  {
+    "original_ordinal": 53,
+    "current_ordinal": 53,
+    "name": "storage rollback regression",
+    "original_gate_line": 1534
+  },
+  {
+    "original_ordinal": 54,
+    "current_ordinal": 54,
+    "name": "storage snapshot-eviction regression",
+    "original_gate_line": 1534
+  },
+  {
+    "original_ordinal": 55,
+    "current_ordinal": 55,
+    "name": "storage flags regression",
+    "original_gate_line": 1534
+  },
+  {
+    "original_ordinal": 56,
+    "current_ordinal": 56,
+    "name": "storage aof-eviction regression",
+    "original_gate_line": 1534
+  },
+  {
+    "original_ordinal": 57,
+    "current_ordinal": 57,
+    "name": "storage intents regression",
+    "original_gate_line": 1534
+  },
+  {
+    "original_ordinal": 58,
+    "current_ordinal": 58,
+    "name": "storage imported-hash regression",
+    "original_gate_line": 1534
+  },
+  {
+    "original_ordinal": 59,
+    "current_ordinal": 59,
+    "name": "storage field-index-failure regression",
+    "original_gate_line": 1534
+  },
+  {
+    "original_ordinal": 60,
+    "current_ordinal": 60,
+    "name": "storage hash-bytes regression",
+    "original_gate_line": 1534
+  },
+  {
+    "original_ordinal": 61,
+    "current_ordinal": 61,
+    "name": "storage deadline-sidecar regression",
+    "original_gate_line": 1553
+  },
+  {
+    "original_ordinal": 62,
+    "current_ordinal": 62,
+    "name": "flushfix flush witnesses",
+    "original_gate_line": 1564
+  },
+  {
+    "original_ordinal": 63,
+    "current_ordinal": 63,
+    "name": "flushfix headers witnesses",
+    "original_gate_line": 1564
+  },
+  {
+    "original_ordinal": 64,
+    "current_ordinal": 64,
+    "name": "multidb serverless owners",
+    "original_gate_line": 1572
+  },
+  {
+    "original_ordinal": 65,
+    "current_ordinal": 65,
+    "name": "multidb global namespace boundary",
+    "original_gate_line": 1579
+  },
+  {
+    "original_ordinal": 66,
+    "current_ordinal": 66,
+    "name": "storesize published monitoring",
+    "original_gate_line": 1587
+  },
+  {
+    "original_ordinal": 67,
+    "current_ordinal": 67,
+    "name": "MULTI admin command replies",
+    "original_gate_line": 1594
+  },
+  {
+    "original_ordinal": 68,
+    "current_ordinal": 68,
+    "name": "EXECABORT releases WATCH reservation",
+    "original_gate_line": 1607
+  },
+  {
+    "original_ordinal": 69,
+    "current_ordinal": 69,
+    "name": "atomic survivors unit build",
+    "original_gate_line": 1629
+  },
+  {
+    "original_ordinal": 70,
+    "current_ordinal": 70,
+    "name": "atomic survivor: admission",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 71,
+    "current_ordinal": 71,
+    "name": "atomic survivor: closure",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 72,
+    "current_ordinal": 72,
+    "name": "atomic survivor: script_keys",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 73,
+    "current_ordinal": 73,
+    "name": "atomic survivor: rename_overlay",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 74,
+    "current_ordinal": 74,
+    "name": "atomic survivor: write_latest",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 75,
+    "current_ordinal": 75,
+    "name": "atomic survivor: script_apply",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 76,
+    "current_ordinal": 76,
+    "name": "atomic survivor: post_apply_probe",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 77,
+    "current_ordinal": 77,
+    "name": "atomic survivor: lua_conversion",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 78,
+    "current_ordinal": 78,
+    "name": "atomic survivor: watch_parent",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 79,
+    "current_ordinal": 79,
+    "name": "atomic survivor: watch_cycle",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 80,
+    "current_ordinal": 80,
+    "name": "atomic survivor: mset_arity",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 81,
+    "current_ordinal": 81,
+    "name": "atomic survivor: watch_oom",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 82,
+    "current_ordinal": 82,
+    "name": "atomic survivor: lua_lines",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 83,
+    "current_ordinal": 83,
+    "name": "atomic survivor: library_limit",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 84,
+    "current_ordinal": 84,
+    "name": "atomic survivor: stage_flag",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 85,
+    "current_ordinal": 85,
+    "name": "atomic survivor: instruction_limit",
+    "original_gate_line": 1637
+  },
+  {
+    "original_ordinal": 86,
+    "current_ordinal": 86,
+    "name": "netcmd regression build",
+    "original_gate_line": 1649
+  },
+  {
+    "original_ordinal": 87,
+    "current_ordinal": 87,
+    "name": "netcmd streams regression",
+    "original_gate_line": 1654
+  },
+  {
+    "original_ordinal": 88,
+    "current_ordinal": 88,
+    "name": "netcmd zpop regression",
+    "original_gate_line": 1654
+  },
+  {
+    "original_ordinal": 89,
+    "current_ordinal": 89,
+    "name": "netcmd notify-oom regression",
+    "original_gate_line": 1654
+  },
+  {
+    "original_ordinal": 90,
+    "current_ordinal": 90,
+    "name": "netcmd notify-retry regression",
+    "original_gate_line": 1654
+  },
+  {
+    "original_ordinal": 91,
+    "current_ordinal": 91,
+    "name": "netcmd flush regression",
+    "original_gate_line": 1654
+  },
+  {
+    "original_ordinal": 92,
+    "current_ordinal": 92,
+    "name": "netcmd output regression",
+    "original_gate_line": 1654
+  },
+  {
+    "original_ordinal": 93,
+    "current_ordinal": 93,
+    "name": "netcmd pubsub regression",
+    "original_gate_line": 1654
+  },
+  {
+    "original_ordinal": 94,
+    "current_ordinal": 94,
+    "name": "netcmd receive regression",
+    "original_gate_line": 1654
+  },
+  {
+    "original_ordinal": 95,
+    "current_ordinal": 95,
+    "name": "netcmd config regression",
+    "original_gate_line": 1654
+  },
+  {
+    "original_ordinal": 96,
+    "current_ordinal": 96,
+    "name": "netcmd hexpire-oom regression",
+    "original_gate_line": 1654
+  },
+  {
+    "original_ordinal": 97,
+    "current_ordinal": 99,
+    "name": "NET1 serverless bounds + scan + reclamation",
+    "original_gate_line": 1659
+  },
+  {
+    "original_ordinal": 98,
+    "current_ordinal": 100,
+    "name": "NET1 inline + query cap (1s, uring)",
+    "original_gate_line": 1671
+  },
+  {
+    "original_ordinal": 99,
+    "current_ordinal": 101,
+    "name": "NET1 inline + query cap (1s, epoll)",
+    "original_gate_line": 1671
+  },
+  {
+    "original_ordinal": 100,
+    "current_ordinal": 102,
+    "name": "NET1 inline + query cap (2s, uring)",
+    "original_gate_line": 1671
+  },
+  {
+    "original_ordinal": 101,
+    "current_ordinal": 103,
+    "name": "NET1 inline + query cap (2s, epoll)",
+    "original_gate_line": 1671
+  },
+  {
+    "original_ordinal": 102,
+    "current_ordinal": 104,
+    "name": "RESP protocol error compatibility",
+    "original_gate_line": 1696
+  },
+  {
+    "original_ordinal": 103,
+    "current_ordinal": 105,
+    "name": "generated Redis 7.4 ACL categories",
+    "original_gate_line": 1751
+  },
+  {
+    "original_ordinal": 104,
+    "current_ordinal": 106,
+    "name": "reject --mode (flag deleted)",
+    "original_gate_line": 1761
+  },
+  {
+    "original_ordinal": 105,
+    "current_ordinal": 107,
+    "name": "reject --spread",
+    "original_gate_line": 1763
+  },
+  {
+    "original_ordinal": 106,
+    "current_ordinal": 108,
+    "name": "reject --nodes",
+    "original_gate_line": 1765
+  },
+  {
+    "original_ordinal": 107,
+    "current_ordinal": 109,
+    "name": "reject 3-part ratio",
+    "original_gate_line": 1767
+  },
+  {
+    "original_ordinal": 108,
+    "current_ordinal": 110,
+    "name": "reject missing conf",
+    "original_gate_line": 1769
+  },
+  {
+    "original_ordinal": 109,
+    "current_ordinal": 111,
+    "name": "reject bad conf key",
+    "original_gate_line": 1772
+  },
+  {
+    "original_ordinal": 110,
+    "current_ordinal": 112,
+    "name": "reject aclfile + conf user lines",
+    "original_gate_line": 1775
+  },
+  {
+    "original_ordinal": 111,
+    "current_ordinal": 113,
+    "name": "cmdmeta covers every registered command",
+    "original_gate_line": 1785
+  },
+  {
+    "original_ordinal": 112,
+    "current_ordinal": 114,
+    "name": "waits config publication + admission unit",
+    "original_gate_line": 1795
+  },
+  {
+    "original_ordinal": 113,
+    "current_ordinal": 115,
+    "name": "reads never wait for retirement quiescence",
+    "original_gate_line": 1801
+  },
+  {
+    "original_ordinal": 114,
+    "current_ordinal": 116,
+    "name": "read-only resize split read-local=0",
+    "original_gate_line": 1812
+  },
+  {
+    "original_ordinal": 115,
+    "current_ordinal": 117,
+    "name": "read-only resize split read-local=1",
+    "original_gate_line": 1812
+  },
+  {
+    "original_ordinal": 116,
+    "current_ordinal": 118,
+    "name": "read-only resize fused read-local=0",
+    "original_gate_line": 1812
+  },
+  {
+    "original_ordinal": 117,
+    "current_ordinal": 119,
+    "name": "read-only resize fused read-local=1",
+    "original_gate_line": 1812
+  },
+  {
+    "original_ordinal": 118,
+    "current_ordinal": 120,
+    "name": "torture battery",
+    "original_gate_line": 1838
+  },
+  {
+    "original_ordinal": 119,
+    "current_ordinal": 121,
+    "name": "RYOW battery",
+    "original_gate_line": 1841
+  },
+  {
+    "original_ordinal": 120,
+    "current_ordinal": 122,
+    "name": "ACL category runtime table",
+    "original_gate_line": 1844
+  },
+  {
+    "original_ordinal": 121,
+    "current_ordinal": 123,
+    "name": "ACL LOAD/SAVE no-file errors",
+    "original_gate_line": 1847
+  },
+  {
+    "original_ordinal": 122,
+    "current_ordinal": 124,
+    "name": "idle loop ceiling (LBSIGNALS, 1s)",
+    "original_gate_line": 1853
+  },
+  {
+    "original_ordinal": 123,
+    "current_ordinal": 125,
+    "name": "shutdown invariants (nothing stuck)",
+    "original_gate_line": 1859
+  },
+  {
+    "original_ordinal": 124,
+    "current_ordinal": 126,
+    "name": "direct-reply fired (direct=N)",
+    "original_gate_line": 1862
+  },
+  {
+    "original_ordinal": 125,
+    "current_ordinal": 127,
+    "name": "dispatched==executed (N)",
+    "original_gate_line": 1865
+  },
+  {
+    "original_ordinal": 126,
+    "current_ordinal": 128,
+    "name": "atomic torn/window battery",
+    "original_gate_line": 1875
+  },
+  {
+    "original_ordinal": 127,
+    "current_ordinal": 129,
+    "name": "atomic RYOW/mixed-write battery",
+    "original_gate_line": 1878
+  },
+  {
+    "original_ordinal": 128,
+    "current_ordinal": 130,
+    "name": "atomic owner-local hazard battery",
+    "original_gate_line": 1881
+  },
+  {
+    "original_ordinal": 129,
+    "current_ordinal": 131,
+    "name": "atomic shutdown invariants",
+    "original_gate_line": 1886
+  },
+  {
+    "original_ordinal": 130,
+    "current_ordinal": 132,
+    "name": "s6 battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 131,
+    "current_ordinal": 133,
+    "name": "multi_exec battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 132,
+    "current_ordinal": 134,
+    "name": "blocking battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 133,
+    "current_ordinal": 135,
+    "name": "blockmulti battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 134,
+    "current_ordinal": 136,
+    "name": "stream battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 135,
+    "current_ordinal": 137,
+    "name": "streamgroups battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 136,
+    "current_ordinal": 138,
+    "name": "pubsub battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 137,
+    "current_ordinal": 139,
+    "name": "lua_scripting battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 138,
+    "current_ordinal": 140,
+    "name": "scriptsurf battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 139,
+    "current_ordinal": 141,
+    "name": "limits battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 140,
+    "current_ordinal": 142,
+    "name": "resp3 battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 141,
+    "current_ordinal": 143,
+    "name": "bitfield battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 142,
+    "current_ordinal": 144,
+    "name": "dumprestore battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 143,
+    "current_ordinal": 145,
+    "name": "zsetops battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 144,
+    "current_ordinal": 146,
+    "name": "geo battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 145,
+    "current_ordinal": 147,
+    "name": "climon battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 146,
+    "current_ordinal": 148,
+    "name": "climon2 battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 147,
+    "current_ordinal": 149,
+    "name": "tracking battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 148,
+    "current_ordinal": 150,
+    "name": "hexpire battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 149,
+    "current_ordinal": 151,
+    "name": "servertail battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 150,
+    "current_ordinal": 152,
+    "name": "lcs battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 151,
+    "current_ordinal": 153,
+    "name": "concur battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 152,
+    "current_ordinal": 154,
+    "name": "edgeproto battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 153,
+    "current_ordinal": 155,
+    "name": "edgeenc battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 154,
+    "current_ordinal": 156,
+    "name": "edgetime battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 155,
+    "current_ordinal": 157,
+    "name": "arity battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 156,
+    "current_ordinal": 158,
+    "name": "contarity battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 157,
+    "current_ordinal": 159,
+    "name": "cmdgap battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 158,
+    "current_ordinal": 160,
+    "name": "aclsel battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 159,
+    "current_ordinal": 161,
+    "name": "expwide battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 160,
+    "current_ordinal": 162,
+    "name": "infofix battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 161,
+    "current_ordinal": 163,
+    "name": "pushtear battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 162,
+    "current_ordinal": 164,
+    "name": "netcmd battery (atomic 0)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 163,
+    "current_ordinal": 165,
+    "name": "feature shutdown invariants (atomic 0)",
+    "original_gate_line": 782
+  },
+  {
+    "original_ordinal": 164,
+    "current_ordinal": 166,
+    "name": "s6 battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 165,
+    "current_ordinal": 167,
+    "name": "multi_exec battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 166,
+    "current_ordinal": 168,
+    "name": "blocking battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 167,
+    "current_ordinal": 169,
+    "name": "blockmulti battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 168,
+    "current_ordinal": 170,
+    "name": "stream battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 169,
+    "current_ordinal": 171,
+    "name": "streamgroups battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 170,
+    "current_ordinal": 172,
+    "name": "pubsub battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 171,
+    "current_ordinal": 173,
+    "name": "lua_scripting battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 172,
+    "current_ordinal": 174,
+    "name": "scriptsurf battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 173,
+    "current_ordinal": 175,
+    "name": "limits battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 174,
+    "current_ordinal": 176,
+    "name": "resp3 battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 175,
+    "current_ordinal": 177,
+    "name": "bitfield battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 176,
+    "current_ordinal": 178,
+    "name": "dumprestore battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 177,
+    "current_ordinal": 179,
+    "name": "zsetops battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 178,
+    "current_ordinal": 180,
+    "name": "geo battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 179,
+    "current_ordinal": 181,
+    "name": "climon battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 180,
+    "current_ordinal": 182,
+    "name": "climon2 battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 181,
+    "current_ordinal": 183,
+    "name": "tracking battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 182,
+    "current_ordinal": 184,
+    "name": "hexpire battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 183,
+    "current_ordinal": 185,
+    "name": "servertail battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 184,
+    "current_ordinal": 186,
+    "name": "lcs battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 185,
+    "current_ordinal": 187,
+    "name": "concur battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 186,
+    "current_ordinal": 188,
+    "name": "edgeproto battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 187,
+    "current_ordinal": 189,
+    "name": "edgeenc battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 188,
+    "current_ordinal": 190,
+    "name": "edgetime battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 189,
+    "current_ordinal": 191,
+    "name": "arity battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 190,
+    "current_ordinal": 192,
+    "name": "contarity battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 191,
+    "current_ordinal": 193,
+    "name": "cmdgap battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 192,
+    "current_ordinal": 194,
+    "name": "aclsel battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 193,
+    "current_ordinal": 195,
+    "name": "expwide battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 194,
+    "current_ordinal": 196,
+    "name": "infofix battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 195,
+    "current_ordinal": 197,
+    "name": "pushtear battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 196,
+    "current_ordinal": 198,
+    "name": "netcmd battery (atomic 1)",
+    "original_gate_line": 777
+  },
+  {
+    "original_ordinal": 197,
+    "current_ordinal": 199,
+    "name": "feature shutdown invariants (atomic 1)",
+    "original_gate_line": 782
+  },
+  {
+    "original_ordinal": 198,
+    "current_ordinal": 200,
+    "name": "fused boot line (atomic 0)",
+    "original_gate_line": 1894
+  },
+  {
+    "original_ordinal": 199,
+    "current_ordinal": 201,
+    "name": "fused s6 battery (atomic 0)",
+    "original_gate_line": 1907
+  },
+  {
+    "original_ordinal": 200,
+    "current_ordinal": 202,
+    "name": "fused multi_exec battery (atomic 0)",
+    "original_gate_line": 1907
+  },
+  {
+    "original_ordinal": 201,
+    "current_ordinal": 203,
+    "name": "fused edgeproto battery (atomic 0)",
+    "original_gate_line": 1907
+  },
+  {
+    "original_ordinal": 202,
+    "current_ordinal": 204,
+    "name": "fused atomfix battery (atomic 0)",
+    "original_gate_line": 1907
+  },
+  {
+    "original_ordinal": 203,
+    "current_ordinal": 205,
+    "name": "fused spinprobe battery (atomic 0)",
+    "original_gate_line": 1912
+  },
+  {
+    "original_ordinal": 204,
+    "current_ordinal": 206,
+    "name": "fused shutdown report (atomic 0)",
+    "original_gate_line": 1917
+  },
+  {
+    "original_ordinal": 205,
+    "current_ordinal": 207,
+    "name": "fused boot line (atomic 1)",
+    "original_gate_line": 1894
+  },
+  {
+    "original_ordinal": 206,
+    "current_ordinal": 208,
+    "name": "fused s6 battery (atomic 1)",
+    "original_gate_line": 1907
+  },
+  {
+    "original_ordinal": 207,
+    "current_ordinal": 209,
+    "name": "fused multi_exec battery (atomic 1)",
+    "original_gate_line": 1907
+  },
+  {
+    "original_ordinal": 208,
+    "current_ordinal": 210,
+    "name": "fused edgeproto battery (atomic 1)",
+    "original_gate_line": 1907
+  },
+  {
+    "original_ordinal": 209,
+    "current_ordinal": 211,
+    "name": "fused atomfix battery (atomic 1)",
+    "original_gate_line": 1907
+  },
+  {
+    "original_ordinal": 210,
+    "current_ordinal": 212,
+    "name": "fused spinprobe battery (atomic 1)",
+    "original_gate_line": 1912
+  },
+  {
+    "original_ordinal": 211,
+    "current_ordinal": 213,
+    "name": "fused shutdown report (atomic 1)",
+    "original_gate_line": 1917
+  },
+  {
+    "original_ordinal": 212,
+    "current_ordinal": 214,
+    "name": "fused+armed boot line (atomic 0)",
+    "original_gate_line": 796
+  },
+  {
+    "original_ordinal": 213,
+    "current_ordinal": 215,
+    "name": "fused+armed s6 battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 214,
+    "current_ordinal": 216,
+    "name": "fused+armed multi_exec battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 215,
+    "current_ordinal": 217,
+    "name": "fused+armed blocking battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 216,
+    "current_ordinal": 218,
+    "name": "fused+armed blockmulti battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 217,
+    "current_ordinal": 219,
+    "name": "fused+armed stream battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 218,
+    "current_ordinal": 220,
+    "name": "fused+armed streamgroups battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 219,
+    "current_ordinal": 221,
+    "name": "fused+armed pubsub battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 220,
+    "current_ordinal": 222,
+    "name": "fused+armed lua_scripting battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 221,
+    "current_ordinal": 223,
+    "name": "fused+armed scriptsurf battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 222,
+    "current_ordinal": 224,
+    "name": "fused+armed limits battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 223,
+    "current_ordinal": 225,
+    "name": "fused+armed resp3 battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 224,
+    "current_ordinal": 226,
+    "name": "fused+armed bitfield battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 225,
+    "current_ordinal": 227,
+    "name": "fused+armed dumprestore battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 226,
+    "current_ordinal": 228,
+    "name": "fused+armed zsetops battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 227,
+    "current_ordinal": 229,
+    "name": "fused+armed geo battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 228,
+    "current_ordinal": 230,
+    "name": "fused+armed climon battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 229,
+    "current_ordinal": 231,
+    "name": "fused+armed climon2 battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 230,
+    "current_ordinal": 232,
+    "name": "fused+armed tracking battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 231,
+    "current_ordinal": 233,
+    "name": "fused+armed hexpire battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 232,
+    "current_ordinal": 234,
+    "name": "fused+armed servertail battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 233,
+    "current_ordinal": 235,
+    "name": "fused+armed lcs battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 234,
+    "current_ordinal": 236,
+    "name": "fused+armed concur battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 235,
+    "current_ordinal": 237,
+    "name": "fused+armed edgeproto battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 236,
+    "current_ordinal": 238,
+    "name": "fused+armed edgeenc battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 237,
+    "current_ordinal": 239,
+    "name": "fused+armed edgetime battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 238,
+    "current_ordinal": 240,
+    "name": "fused+armed arity battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 239,
+    "current_ordinal": 241,
+    "name": "fused+armed contarity battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 240,
+    "current_ordinal": 242,
+    "name": "fused+armed cmdgap battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 241,
+    "current_ordinal": 243,
+    "name": "fused+armed aclsel battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 242,
+    "current_ordinal": 244,
+    "name": "fused+armed expwide battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 243,
+    "current_ordinal": 245,
+    "name": "fused+armed infofix battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 244,
+    "current_ordinal": 246,
+    "name": "fused+armed pushtear battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 245,
+    "current_ordinal": 247,
+    "name": "fused+armed netcmd battery (atomic 0)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 246,
+    "current_ordinal": 248,
+    "name": "fused+armed shutdown report + lane fired (hits=N, atomic 0)",
+    "original_gate_line": 816
+  },
+  {
+    "original_ordinal": 247,
+    "current_ordinal": 249,
+    "name": "fused+armed boot line (atomic 1)",
+    "original_gate_line": 796
+  },
+  {
+    "original_ordinal": 248,
+    "current_ordinal": 250,
+    "name": "fused+armed s6 battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 249,
+    "current_ordinal": 251,
+    "name": "fused+armed multi_exec battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 250,
+    "current_ordinal": 252,
+    "name": "fused+armed blocking battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 251,
+    "current_ordinal": 253,
+    "name": "fused+armed blockmulti battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 252,
+    "current_ordinal": 254,
+    "name": "fused+armed stream battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 253,
+    "current_ordinal": 255,
+    "name": "fused+armed streamgroups battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 254,
+    "current_ordinal": 256,
+    "name": "fused+armed pubsub battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 255,
+    "current_ordinal": 257,
+    "name": "fused+armed lua_scripting battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 256,
+    "current_ordinal": 258,
+    "name": "fused+armed scriptsurf battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 257,
+    "current_ordinal": 259,
+    "name": "fused+armed limits battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 258,
+    "current_ordinal": 260,
+    "name": "fused+armed resp3 battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 259,
+    "current_ordinal": 261,
+    "name": "fused+armed bitfield battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 260,
+    "current_ordinal": 262,
+    "name": "fused+armed dumprestore battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 261,
+    "current_ordinal": 263,
+    "name": "fused+armed zsetops battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 262,
+    "current_ordinal": 264,
+    "name": "fused+armed geo battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 263,
+    "current_ordinal": 265,
+    "name": "fused+armed climon battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 264,
+    "current_ordinal": 266,
+    "name": "fused+armed climon2 battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 265,
+    "current_ordinal": 267,
+    "name": "fused+armed tracking battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 266,
+    "current_ordinal": 268,
+    "name": "fused+armed hexpire battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 267,
+    "current_ordinal": 269,
+    "name": "fused+armed servertail battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 268,
+    "current_ordinal": 270,
+    "name": "fused+armed lcs battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 269,
+    "current_ordinal": 271,
+    "name": "fused+armed concur battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 270,
+    "current_ordinal": 272,
+    "name": "fused+armed edgeproto battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 271,
+    "current_ordinal": 273,
+    "name": "fused+armed edgeenc battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 272,
+    "current_ordinal": 274,
+    "name": "fused+armed edgetime battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 273,
+    "current_ordinal": 275,
+    "name": "fused+armed arity battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 274,
+    "current_ordinal": 276,
+    "name": "fused+armed contarity battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 275,
+    "current_ordinal": 277,
+    "name": "fused+armed cmdgap battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 276,
+    "current_ordinal": 278,
+    "name": "fused+armed aclsel battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 277,
+    "current_ordinal": 279,
+    "name": "fused+armed expwide battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 278,
+    "current_ordinal": 280,
+    "name": "fused+armed infofix battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 279,
+    "current_ordinal": 281,
+    "name": "fused+armed pushtear battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 280,
+    "current_ordinal": 282,
+    "name": "fused+armed netcmd battery (atomic 1)",
+    "original_gate_line": 811
+  },
+  {
+    "original_ordinal": 281,
+    "current_ordinal": 283,
+    "name": "fused+armed shutdown report + lane fired (hits=N, atomic 1)",
+    "original_gate_line": 816
+  },
+  {
+    "original_ordinal": 282,
+    "current_ordinal": 284,
+    "name": "eviction lfu battery (split, atomic 0)",
+    "original_gate_line": 882
+  },
+  {
+    "original_ordinal": 283,
+    "current_ordinal": 285,
+    "name": "eviction lfu battery (fused+armed, atomic 0)",
+    "original_gate_line": 882
+  },
+  {
+    "original_ordinal": 284,
+    "current_ordinal": 286,
+    "name": "eviction lruclock battery (split, atomic 0)",
+    "original_gate_line": 882
+  },
+  {
+    "original_ordinal": 285,
+    "current_ordinal": 287,
+    "name": "eviction lruclock battery (fused+armed, atomic 0)",
+    "original_gate_line": 882
+  },
+  {
+    "original_ordinal": 286,
+    "current_ordinal": 288,
+    "name": "eviction lfu battery (split, atomic 1)",
+    "original_gate_line": 882
+  },
+  {
+    "original_ordinal": 287,
+    "current_ordinal": 289,
+    "name": "eviction lfu battery (fused+armed, atomic 1)",
+    "original_gate_line": 882
+  },
+  {
+    "original_ordinal": 288,
+    "current_ordinal": 290,
+    "name": "eviction lruclock battery (split, atomic 1)",
+    "original_gate_line": 882
+  },
+  {
+    "original_ordinal": 289,
+    "current_ordinal": 291,
+    "name": "eviction lruclock battery (fused+armed, atomic 1)",
+    "original_gate_line": 882
+  },
+  {
+    "original_ordinal": 290,
+    "current_ordinal": 292,
+    "name": "B+ held-group GET/MGET filter battery",
+    "original_gate_line": 1935
+  },
+  {
+    "original_ordinal": 291,
+    "current_ordinal": 293,
+    "name": "read-local lane admission battery",
+    "original_gate_line": 1943
+  },
+  {
+    "original_ordinal": 292,
+    "current_ordinal": 294,
+    "name": "read-local MGET fence battery (1s)",
+    "original_gate_line": 1949
+  },
+  {
+    "original_ordinal": 293,
+    "current_ordinal": 295,
+    "name": "read-local MGET fence battery (2s)",
+    "original_gate_line": 1955
+  },
+  {
+    "original_ordinal": 294,
+    "current_ordinal": 296,
+    "name": "ACL recheck one-reply battery (2s)",
+    "original_gate_line": 1975
+  },
+  {
+    "original_ordinal": 295,
+    "current_ordinal": 297,
+    "name": "ACL recheck one-reply battery (1s)",
+    "original_gate_line": 1981
+  },
+  {
+    "original_ordinal": 296,
+    "current_ordinal": 298,
+    "name": "cross-owner SORT battery (atomic 0)",
+    "original_gate_line": 1996
+  },
+  {
+    "original_ordinal": 297,
+    "current_ordinal": 299,
+    "name": "cross-owner SORT battery (atomic 1)",
+    "original_gate_line": 1996
+  },
+  {
+    "original_ordinal": 298,
+    "current_ordinal": 300,
+    "name": "plain-write lost updates (atomic 0)",
+    "original_gate_line": 2014
+  },
+  {
+    "original_ordinal": 299,
+    "current_ordinal": 301,
+    "name": "lbsignals battery (atomic 0)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 300,
+    "current_ordinal": 302,
+    "name": "slowlog battery (atomic 0)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 301,
+    "current_ordinal": 303,
+    "name": "atomfix battery (atomic 0)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 302,
+    "current_ordinal": 304,
+    "name": "scriptatomic battery (atomic 0)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 303,
+    "current_ordinal": 305,
+    "name": "execatomic battery (atomic 0)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 304,
+    "current_ordinal": 306,
+    "name": "execiso battery (atomic 0)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 305,
+    "current_ordinal": 307,
+    "name": "execfix battery (atomic 0)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 306,
+    "current_ordinal": 308,
+    "name": "multires battery (atomic 0)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 307,
+    "current_ordinal": 309,
+    "name": "multirace battery (atomic 0)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 308,
+    "current_ordinal": 310,
+    "name": "session_monotonic battery (atomic 0)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 309,
+    "current_ordinal": 311,
+    "name": "xacct battery (atomic 0)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 310,
+    "current_ordinal": 312,
+    "name": "xmove battery (atomic 0)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 311,
+    "current_ordinal": 313,
+    "name": "xscript battery (atomic 0)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 312,
+    "current_ordinal": 314,
+    "name": "plain-write lost updates (atomic 1)",
+    "original_gate_line": 2014
+  },
+  {
+    "original_ordinal": 313,
+    "current_ordinal": 315,
+    "name": "lbsignals battery (atomic 1)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 314,
+    "current_ordinal": 316,
+    "name": "slowlog battery (atomic 1)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 315,
+    "current_ordinal": 317,
+    "name": "atomfix battery (atomic 1)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 316,
+    "current_ordinal": 318,
+    "name": "scriptatomic battery (atomic 1)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 317,
+    "current_ordinal": 319,
+    "name": "execatomic battery (atomic 1)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 318,
+    "current_ordinal": 320,
+    "name": "execiso battery (atomic 1)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 319,
+    "current_ordinal": 321,
+    "name": "execfix battery (atomic 1)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 320,
+    "current_ordinal": 322,
+    "name": "multires battery (atomic 1)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 321,
+    "current_ordinal": 323,
+    "name": "multirace battery (atomic 1)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 322,
+    "current_ordinal": 324,
+    "name": "session_monotonic battery (atomic 1)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 323,
+    "current_ordinal": 325,
+    "name": "xacct battery (atomic 1)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 324,
+    "current_ordinal": 326,
+    "name": "xmove battery (atomic 1)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 325,
+    "current_ordinal": 327,
+    "name": "xscript battery (atomic 1)",
+    "original_gate_line": 2057
+  },
+  {
+    "original_ordinal": 326,
+    "current_ordinal": 328,
+    "name": "xscript limit control",
+    "original_gate_line": 2069
+  },
+  {
+    "original_ordinal": 327,
+    "current_ordinal": 329,
+    "name": "xscript window control",
+    "original_gate_line": 2069
+  },
+  {
+    "original_ordinal": 328,
+    "current_ordinal": 330,
+    "name": "expire-index growth bound",
+    "original_gate_line": 2084
+  },
+  {
+    "original_ordinal": 329,
+    "current_ordinal": 331,
+    "name": "borrow-registry growth bound",
+    "original_gate_line": 2093
+  },
+  {
+    "original_ordinal": 330,
+    "current_ordinal": 332,
+    "name": "cross-shard dispatch scaling",
+    "original_gate_line": 2101
+  },
+  {
+    "original_ordinal": 331,
+    "current_ordinal": 333,
+    "name": "DUMP/RESTORE prepare + native SAVE",
+    "original_gate_line": 2112
+  },
+  {
+    "original_ordinal": 332,
+    "current_ordinal": 334,
+    "name": "DUMP/RESTORE cross-restart round-trip",
+    "original_gate_line": 2121
+  },
+  {
+    "original_ordinal": 333,
+    "current_ordinal": 335,
+    "name": "DUMP/RESTORE restart shutdown invariants",
+    "original_gate_line": 2127
+  },
+  {
+    "original_ordinal": 334,
+    "current_ordinal": 336,
+    "name": "reject bad protected-mode",
+    "original_gate_line": 2135
+  },
+  {
+    "original_ordinal": 335,
+    "current_ordinal": 337,
+    "name": "reject bad enable-debug-command",
+    "original_gate_line": 2138
+  },
+  {
+    "original_ordinal": 336,
+    "current_ordinal": 338,
+    "name": "AUTH/HELLO/protected state machine",
+    "original_gate_line": 2142
+  },
+  {
+    "original_ordinal": 337,
+    "current_ordinal": 339,
+    "name": "ACL battery (atomic off)",
+    "original_gate_line": 2150
+  },
+  {
+    "original_ordinal": 338,
+    "current_ordinal": 340,
+    "name": "ACL battery (atomic on)",
+    "original_gate_line": 2157
+  },
+  {
+    "original_ordinal": 339,
+    "current_ordinal": 341,
+    "name": "DEBUG toggle/reload battery",
+    "original_gate_line": 2164
+  },
+  {
+    "original_ordinal": 340,
+    "current_ordinal": 342,
+    "name": "typed snapshot round-trip incl stream",
+    "original_gate_line": 2167
+  },
+  {
+    "original_ordinal": 341,
+    "current_ordinal": 343,
+    "name": "snapshot concurrent cut (epoll)",
+    "original_gate_line": 2185
+  },
+  {
+    "original_ordinal": 342,
+    "current_ordinal": 344,
+    "name": "snapshot cut reload (epoll)",
+    "original_gate_line": 2195
+  },
+  {
+    "original_ordinal": 343,
+    "current_ordinal": 345,
+    "name": "snapshot never tears a cross-shard MSET group (epoll, atomic 1)",
+    "original_gate_line": 2212
+  },
+  {
+    "original_ordinal": 344,
+    "current_ordinal": 346,
+    "name": "snapshot never tears a MULTI/EXEC group (epoll, default atomic 0)",
+    "original_gate_line": 2225
+  },
+  {
+    "original_ordinal": 345,
+    "current_ordinal": 347,
+    "name": "typed snapshot save (epoll)",
+    "original_gate_line": 2238
+  },
+  {
+    "original_ordinal": 346,
+    "current_ordinal": 348,
+    "name": "typed snapshot reload (epoll)",
+    "original_gate_line": 2248
+  },
+  {
+    "original_ordinal": 347,
+    "current_ordinal": 349,
+    "name": "typed snapshot preimage race (epoll)",
+    "original_gate_line": 2260
+  },
+  {
+    "original_ordinal": 348,
+    "current_ordinal": 350,
+    "name": "typed snapshot race reload (epoll)",
+    "original_gate_line": 2272
+  },
+  {
+    "original_ordinal": 349,
+    "current_ordinal": 351,
+    "name": "snapshot concurrent cut (uring)",
+    "original_gate_line": 2185
+  },
+  {
+    "original_ordinal": 350,
+    "current_ordinal": 352,
+    "name": "snapshot cut reload (uring)",
+    "original_gate_line": 2195
+  },
+  {
+    "original_ordinal": 351,
+    "current_ordinal": 353,
+    "name": "snapshot never tears a cross-shard MSET group (uring, atomic 1)",
+    "original_gate_line": 2212
+  },
+  {
+    "original_ordinal": 352,
+    "current_ordinal": 354,
+    "name": "snapshot never tears a MULTI/EXEC group (uring, default atomic 0)",
+    "original_gate_line": 2225
+  },
+  {
+    "original_ordinal": 353,
+    "current_ordinal": 355,
+    "name": "typed snapshot save (uring)",
+    "original_gate_line": 2238
+  },
+  {
+    "original_ordinal": 354,
+    "current_ordinal": 356,
+    "name": "typed snapshot reload (uring)",
+    "original_gate_line": 2248
+  },
+  {
+    "original_ordinal": 355,
+    "current_ordinal": 357,
+    "name": "typed snapshot preimage race (uring)",
+    "original_gate_line": 2260
+  },
+  {
+    "original_ordinal": 356,
+    "current_ordinal": 358,
+    "name": "typed snapshot race reload (uring)",
+    "original_gate_line": 2272
+  },
+  {
+    "original_ordinal": 357,
+    "current_ordinal": 359,
+    "name": "MULTI feature battery",
+    "original_gate_line": 2287
+  },
+  {
+    "original_ordinal": 358,
+    "current_ordinal": 360,
+    "name": "blocking feature battery",
+    "original_gate_line": 2290
+  },
+  {
+    "original_ordinal": 359,
+    "current_ordinal": 361,
+    "name": "pubsub feature battery",
+    "original_gate_line": 2293
+  },
+  {
+    "original_ordinal": 360,
+    "current_ordinal": 362,
+    "name": "Lua feature battery",
+    "original_gate_line": 2296
+  },
+  {
+    "original_ordinal": 361,
+    "current_ordinal": 363,
+    "name": "keyspace notification battery (atomic 0/1)",
+    "original_gate_line": 2299
+  },
+  {
+    "original_ordinal": 362,
+    "current_ordinal": 364,
+    "name": "feature battery shutdown invariants",
+    "original_gate_line": 2304
+  },
+  {
+    "original_ordinal": 363,
+    "current_ordinal": 365,
+    "name": "FLIP state battery",
+    "original_gate_line": 2319
+  },
+  {
+    "original_ordinal": 364,
+    "current_ordinal": 366,
+    "name": "FLIP under verified load",
+    "original_gate_line": 2322
+  },
+  {
+    "original_ordinal": 365,
+    "current_ordinal": 367,
+    "name": "FLIP TTL + expiry events",
+    "original_gate_line": 2325
+  },
+  {
+    "original_ordinal": 366,
+    "current_ordinal": 368,
+    "name": "partial-frame conn parks (no io spin)",
+    "original_gate_line": 2328
+  },
+  {
+    "original_ordinal": 367,
+    "current_ordinal": 369,
+    "name": "flip controller: ramp gate, hold, surge + mix re-maneuvers",
+    "original_gate_line": 890
+  },
+  {
+    "original_ordinal": 368,
+    "current_ordinal": 370,
+    "name": "FLIP applies under saturated load",
+    "original_gate_line": 2337
+  },
+  {
+    "original_ordinal": 369,
+    "current_ordinal": 371,
+    "name": "flip battery shutdown invariants",
+    "original_gate_line": 2368
+  },
+  {
+    "original_ordinal": 370,
+    "current_ordinal": 372,
+    "name": "atomic MGET/MSET floor (N/s >= 120k)",
+    "original_gate_line": 2387
+  },
+  {
+    "original_ordinal": 371,
+    "current_ordinal": 373,
+    "name": "tripwire arm/disarm round-trip",
+    "original_gate_line": 2407
+  },
+  {
+    "original_ordinal": 372,
+    "current_ordinal": 374,
+    "name": "pipelined same-conn program order (400 rolls)",
+    "original_gate_line": 2415
+  },
+  {
+    "original_ordinal": 373,
+    "current_ordinal": 375,
+    "name": "configuration reduction + actual geometry (epoll, atomic 0)",
+    "original_gate_line": 2432
+  },
+  {
+    "original_ordinal": 374,
+    "current_ordinal": 376,
+    "name": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 0)",
+    "original_gate_line": 2437
+  },
+  {
+    "original_ordinal": 375,
+    "current_ordinal": 377,
+    "name": "AOF writer fired (records=N)",
+    "original_gate_line": 2443
+  },
+  {
+    "original_ordinal": 376,
+    "current_ordinal": 378,
+    "name": "AOF process-restart script replay (epoll, atomic 0)",
+    "original_gate_line": 2456
+  },
+  {
+    "original_ordinal": 377,
+    "current_ordinal": 379,
+    "name": "AOF native snapshot streams byte-exact",
+    "original_gate_line": 2461
+  },
+  {
+    "original_ordinal": 378,
+    "current_ordinal": 380,
+    "name": "AOF replay fired (records=N skipped=N)",
+    "original_gate_line": 2465
+  },
+  {
+    "original_ordinal": 379,
+    "current_ordinal": 381,
+    "name": "configuration reduction + actual geometry (epoll, atomic 1)",
+    "original_gate_line": 2432
+  },
+  {
+    "original_ordinal": 380,
+    "current_ordinal": 382,
+    "name": "AOF byte-exact + script groups + DEBUG LOADAOF (epoll, atomic 1)",
+    "original_gate_line": 2437
+  },
+  {
+    "original_ordinal": 381,
+    "current_ordinal": 383,
+    "name": "AOF writer fired (records=N)",
+    "original_gate_line": 2443
+  },
+  {
+    "original_ordinal": 382,
+    "current_ordinal": 384,
+    "name": "AOF process-restart script replay (epoll, atomic 1)",
+    "original_gate_line": 2456
+  },
+  {
+    "original_ordinal": 383,
+    "current_ordinal": 385,
+    "name": "AOF native snapshot streams byte-exact",
+    "original_gate_line": 2461
+  },
+  {
+    "original_ordinal": 384,
+    "current_ordinal": 386,
+    "name": "AOF replay fired (records=N skipped=N)",
+    "original_gate_line": 2465
+  },
+  {
+    "original_ordinal": 385,
+    "current_ordinal": 387,
+    "name": "AOF directed group interruption fired",
+    "original_gate_line": 2481
+  },
+  {
+    "original_ordinal": 386,
+    "current_ordinal": 388,
+    "name": "AOF atomic-group recovery + writer order",
+    "original_gate_line": 2491
+  },
+  {
+    "original_ordinal": 387,
+    "current_ordinal": 389,
+    "name": "AOF group shutdown invariants",
+    "original_gate_line": 2500
+  },
+  {
+    "original_ordinal": 388,
+    "current_ordinal": 390,
+    "name": "AOF always sync + reply gate fired",
+    "original_gate_line": 2510
+  },
+  {
+    "original_ordinal": 389,
+    "current_ordinal": 391,
+    "name": "AOF always recovery after quiescent SIGKILL",
+    "original_gate_line": 2521
+  },
+  {
+    "original_ordinal": 390,
+    "current_ordinal": 392,
+    "name": "AOF in-window kill recovery (2s, epoll)",
+    "original_gate_line": 2535
+  },
+  {
+    "original_ordinal": 391,
+    "current_ordinal": 393,
+    "name": "AOF in-window term recovery (2s, epoll)",
+    "original_gate_line": 2535
+  },
+  {
+    "original_ordinal": 392,
+    "current_ordinal": 394,
+    "name": "AOF in-window kill recovery (1s, epoll)",
+    "original_gate_line": 2535
+  },
+  {
+    "original_ordinal": 393,
+    "current_ordinal": 395,
+    "name": "AOF in-window term recovery (1s, epoll)",
+    "original_gate_line": 2535
+  },
+  {
+    "original_ordinal": 394,
+    "current_ordinal": 396,
+    "name": "AOF everysec write gate + idle sync fired",
+    "original_gate_line": 2555
+  },
+  {
+    "original_ordinal": 395,
+    "current_ordinal": 397,
+    "name": "AOF everysec durability window + tail warning",
+    "original_gate_line": 2572
+  },
+  {
+    "original_ordinal": 396,
+    "current_ordinal": 398,
+    "name": "AOF no-sync bypassed sync + reply gate",
+    "original_gate_line": 2584
+  },
+  {
+    "original_ordinal": 397,
+    "current_ordinal": 399,
+    "name": "AOF rewrite atomic/stage/corruption matrix",
+    "original_gate_line": 2592
+  },
+  {
+    "original_ordinal": 398,
+    "current_ordinal": 400,
+    "name": "AOF rewrite triggers + observability matrix",
+    "original_gate_line": 2599
+  },
+  {
+    "original_ordinal": 399,
+    "current_ordinal": 401,
+    "name": "AOF-off negative-control seed landed",
+    "original_gate_line": 2609
+  },
+  {
+    "original_ordinal": 400,
+    "current_ordinal": 402,
+    "name": "AOF-off negative control lost data",
+    "original_gate_line": 2622
+  },
+  {
+    "original_ordinal": 401,
+    "current_ordinal": 403,
+    "name": "configuration reduction + actual geometry (uring, atomic 0)",
+    "original_gate_line": 2432
+  },
+  {
+    "original_ordinal": 402,
+    "current_ordinal": 404,
+    "name": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 0)",
+    "original_gate_line": 2437
+  },
+  {
+    "original_ordinal": 403,
+    "current_ordinal": 405,
+    "name": "AOF writer fired (records=N)",
+    "original_gate_line": 2443
+  },
+  {
+    "original_ordinal": 404,
+    "current_ordinal": 406,
+    "name": "AOF process-restart script replay (uring, atomic 0)",
+    "original_gate_line": 2456
+  },
+  {
+    "original_ordinal": 405,
+    "current_ordinal": 407,
+    "name": "AOF native snapshot streams byte-exact",
+    "original_gate_line": 2461
+  },
+  {
+    "original_ordinal": 406,
+    "current_ordinal": 408,
+    "name": "AOF replay fired (records=N skipped=N)",
+    "original_gate_line": 2465
+  },
+  {
+    "original_ordinal": 407,
+    "current_ordinal": 409,
+    "name": "configuration reduction + actual geometry (uring, atomic 1)",
+    "original_gate_line": 2432
+  },
+  {
+    "original_ordinal": 408,
+    "current_ordinal": 410,
+    "name": "AOF byte-exact + script groups + DEBUG LOADAOF (uring, atomic 1)",
+    "original_gate_line": 2437
+  },
+  {
+    "original_ordinal": 409,
+    "current_ordinal": 411,
+    "name": "AOF writer fired (records=N)",
+    "original_gate_line": 2443
+  },
+  {
+    "original_ordinal": 410,
+    "current_ordinal": 412,
+    "name": "AOF process-restart script replay (uring, atomic 1)",
+    "original_gate_line": 2456
+  },
+  {
+    "original_ordinal": 411,
+    "current_ordinal": 413,
+    "name": "AOF native snapshot streams byte-exact",
+    "original_gate_line": 2461
+  },
+  {
+    "original_ordinal": 412,
+    "current_ordinal": 414,
+    "name": "AOF replay fired (records=N skipped=N)",
+    "original_gate_line": 2465
+  },
+  {
+    "original_ordinal": 413,
+    "current_ordinal": 415,
+    "name": "AOF directed group interruption fired",
+    "original_gate_line": 2481
+  },
+  {
+    "original_ordinal": 414,
+    "current_ordinal": 416,
+    "name": "AOF atomic-group recovery + writer order",
+    "original_gate_line": 2491
+  },
+  {
+    "original_ordinal": 415,
+    "current_ordinal": 417,
+    "name": "AOF group shutdown invariants",
+    "original_gate_line": 2500
+  },
+  {
+    "original_ordinal": 416,
+    "current_ordinal": 418,
+    "name": "AOF always sync + reply gate fired",
+    "original_gate_line": 2510
+  },
+  {
+    "original_ordinal": 417,
+    "current_ordinal": 419,
+    "name": "AOF always recovery after quiescent SIGKILL",
+    "original_gate_line": 2521
+  },
+  {
+    "original_ordinal": 418,
+    "current_ordinal": 420,
+    "name": "AOF in-window kill recovery (2s, uring)",
+    "original_gate_line": 2535
+  },
+  {
+    "original_ordinal": 419,
+    "current_ordinal": 421,
+    "name": "AOF in-window term recovery (2s, uring)",
+    "original_gate_line": 2535
+  },
+  {
+    "original_ordinal": 420,
+    "current_ordinal": 422,
+    "name": "AOF in-window kill recovery (1s, uring)",
+    "original_gate_line": 2535
+  },
+  {
+    "original_ordinal": 421,
+    "current_ordinal": 423,
+    "name": "AOF in-window term recovery (1s, uring)",
+    "original_gate_line": 2535
+  },
+  {
+    "original_ordinal": 422,
+    "current_ordinal": 424,
+    "name": "AOF everysec write gate + idle sync fired",
+    "original_gate_line": 2555
+  },
+  {
+    "original_ordinal": 423,
+    "current_ordinal": 425,
+    "name": "AOF everysec durability window + tail warning",
+    "original_gate_line": 2572
+  },
+  {
+    "original_ordinal": 424,
+    "current_ordinal": 426,
+    "name": "AOF no-sync bypassed sync + reply gate",
+    "original_gate_line": 2584
+  },
+  {
+    "original_ordinal": 425,
+    "current_ordinal": 427,
+    "name": "AOF rewrite atomic/stage/corruption matrix",
+    "original_gate_line": 2592
+  },
+  {
+    "original_ordinal": 426,
+    "current_ordinal": 428,
+    "name": "AOF rewrite triggers + observability matrix",
+    "original_gate_line": 2599
+  },
+  {
+    "original_ordinal": 427,
+    "current_ordinal": 429,
+    "name": "AOF-off negative-control seed landed",
+    "original_gate_line": 2609
+  },
+  {
+    "original_ordinal": 428,
+    "current_ordinal": 430,
+    "name": "AOF-off negative control lost data",
+    "original_gate_line": 2622
+  },
+  {
+    "original_ordinal": 429,
+    "current_ordinal": 431,
+    "name": "AOF control frame never inside a large record (atomic 0)",
+    "original_gate_line": 2645
+  },
+  {
+    "original_ordinal": 430,
+    "current_ordinal": 432,
+    "name": "AOF control frame never inside a large record (atomic 1)",
+    "original_gate_line": 2645
+  },
+  {
+    "original_ordinal": 431,
+    "current_ordinal": 433,
+    "name": "TLS ephemeral CA/server/client certificates",
+    "original_gate_line": 2663
+  },
+  {
+    "original_ordinal": 432,
+    "current_ordinal": 434,
+    "name": "NET2 serverless RX policy and KeyUpdate controls",
+    "original_gate_line": 2668
+  },
+  {
+    "original_ordinal": 433,
+    "current_ordinal": 435,
+    "name": "reject TLS listener without certificate",
+    "original_gate_line": 2679
+  },
+  {
+    "original_ordinal": 434,
+    "current_ordinal": 436,
+    "name": "reject invalid tls-protocols",
+    "original_gate_line": 2683
+  },
+  {
+    "original_ordinal": 435,
+    "current_ordinal": 437,
+    "name": "reject invalid tls-ciphers",
+    "original_gate_line": 2688
+  },
+  {
+    "original_ordinal": 436,
+    "current_ordinal": 438,
+    "name": "TLS client-auth yes matrix",
+    "original_gate_line": 2717
+  },
+  {
+    "original_ordinal": 437,
+    "current_ordinal": 439,
+    "name": "TLS yes shutdown invariants",
+    "original_gate_line": 2722
+  },
+  {
+    "original_ordinal": 438,
+    "current_ordinal": 440,
+    "name": "TLS client-auth optional matrix",
+    "original_gate_line": 2729
+  },
+  {
+    "original_ordinal": 439,
+    "current_ordinal": 441,
+    "name": "kTLS TLS 1.2 engaged live (default boot)",
+    "original_gate_line": 2736
+  },
+  {
+    "original_ordinal": 440,
+    "current_ordinal": 442,
+    "name": "TLS 1.3 KeyUpdate survives (NET2)",
+    "original_gate_line": 2752
+  },
+  {
+    "original_ordinal": 441,
+    "current_ordinal": 443,
+    "name": "TLS 1.3 userspace KeyUpdate survives (NET2)",
+    "original_gate_line": 2758
+  },
+  {
+    "original_ordinal": 442,
+    "current_ordinal": 444,
+    "name": "TLS optional shutdown invariants",
+    "original_gate_line": 2765
+  },
+  {
+    "original_ordinal": 443,
+    "current_ordinal": 445,
+    "name": "TLS pipeline/torn-record/coexistence battery",
+    "original_gate_line": 2774
+  },
+  {
+    "original_ordinal": 444,
+    "current_ordinal": 446,
+    "name": "TLS shutdown invariants",
+    "original_gate_line": 2780
+  },
+  {
+    "original_ordinal": 445,
+    "current_ordinal": 447,
+    "name": "TLS application send path error-free",
+    "original_gate_line": 2783
+  },
+  {
+    "original_ordinal": 446,
+    "current_ordinal": 448,
+    "name": "TLS connection slots all freed (N/N)",
+    "original_gate_line": 2786
+  },
+  {
+    "original_ordinal": 447,
+    "current_ordinal": 449,
+    "name": "TLS zc borrow gates fired (suppressed=N)",
+    "original_gate_line": 2793
+  },
+  {
+    "original_ordinal": 448,
+    "current_ordinal": 450,
+    "name": "feature 1s-0-0-0-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 449,
+    "current_ordinal": 451,
+    "name": "feature 1s-0-0-0-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 450,
+    "current_ordinal": 452,
+    "name": "feature 1s-0-0-1-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 451,
+    "current_ordinal": 453,
+    "name": "feature 1s-0-0-1-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 452,
+    "current_ordinal": 454,
+    "name": "feature 1s-0-1-0-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 453,
+    "current_ordinal": 455,
+    "name": "feature 1s-0-1-0-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 454,
+    "current_ordinal": 456,
+    "name": "feature 1s-0-1-1-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 455,
+    "current_ordinal": 457,
+    "name": "feature 1s-0-1-1-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 456,
+    "current_ordinal": 458,
+    "name": "feature 1s-1-0-0-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 457,
+    "current_ordinal": 459,
+    "name": "feature 1s-1-0-0-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 458,
+    "current_ordinal": 460,
+    "name": "feature 1s-1-0-1-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 459,
+    "current_ordinal": 461,
+    "name": "feature 1s-1-0-1-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 460,
+    "current_ordinal": 462,
+    "name": "feature 1s-1-1-0-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 461,
+    "current_ordinal": 463,
+    "name": "feature 1s-1-1-0-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 462,
+    "current_ordinal": 464,
+    "name": "feature 1s-1-1-1-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 463,
+    "current_ordinal": 465,
+    "name": "feature 1s-1-1-1-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 464,
+    "current_ordinal": 466,
+    "name": "feature 2s-0-0-0-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 465,
+    "current_ordinal": 467,
+    "name": "feature 2s-0-0-0-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 466,
+    "current_ordinal": 468,
+    "name": "feature 2s-0-0-1-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 467,
+    "current_ordinal": 469,
+    "name": "feature 2s-0-0-1-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 468,
+    "current_ordinal": 470,
+    "name": "feature 2s-0-1-0-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 469,
+    "current_ordinal": 471,
+    "name": "feature 2s-0-1-0-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 470,
+    "current_ordinal": 472,
+    "name": "feature 2s-0-1-1-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 471,
+    "current_ordinal": 473,
+    "name": "feature 2s-0-1-1-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 472,
+    "current_ordinal": 474,
+    "name": "feature 2s-1-0-0-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 473,
+    "current_ordinal": 475,
+    "name": "feature 2s-1-0-0-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 474,
+    "current_ordinal": 476,
+    "name": "feature 2s-1-0-1-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 475,
+    "current_ordinal": 477,
+    "name": "feature 2s-1-0-1-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 476,
+    "current_ordinal": 478,
+    "name": "feature 2s-1-1-0-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 477,
+    "current_ordinal": 479,
+    "name": "feature 2s-1-1-0-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 478,
+    "current_ordinal": 480,
+    "name": "feature 2s-1-1-1-0",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 479,
+    "current_ordinal": 481,
+    "name": "feature 2s-1-1-1-1",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 480,
+    "current_ordinal": 482,
+    "name": "feature split-home-min",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 481,
+    "current_ordinal": 483,
+    "name": "feature fused-home-max-nopin",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 482,
+    "current_ordinal": 484,
+    "name": "feature split-shards-auto",
+    "original_gate_line": 2800
+  },
+  {
+    "original_ordinal": 483,
+    "current_ordinal": 485,
+    "name": "ABBA comparison + saturation negative controls",
+    "original_gate_line": 2823
+  },
+  {
+    "original_ordinal": 484,
+    "current_ordinal": 486,
+    "name": "multidb (1s, read-local 0, atomic 0)",
+    "original_gate_line": 3075
+  },
+  {
+    "original_ordinal": 485,
+    "current_ordinal": 487,
+    "name": "multidb (1s, read-local 0, atomic 0) SWAPDB serial order",
+    "original_gate_line": 3093
+  },
+  {
+    "original_ordinal": 486,
+    "current_ordinal": 488,
+    "name": "multidb (1s, read-local 0, atomic 1)",
+    "original_gate_line": 3075
+  },
+  {
+    "original_ordinal": 487,
+    "current_ordinal": 489,
+    "name": "multidb (1s, read-local 0, atomic 1) SWAPDB serial order",
+    "original_gate_line": 3093
+  },
+  {
+    "original_ordinal": 488,
+    "current_ordinal": 490,
+    "name": "multidb (1s, read-local 1, atomic 0)",
+    "original_gate_line": 3075
+  },
+  {
+    "original_ordinal": 489,
+    "current_ordinal": 491,
+    "name": "multidb (1s, read-local 1, atomic 0) SWAPDB serial order",
+    "original_gate_line": 3093
+  },
+  {
+    "original_ordinal": 490,
+    "current_ordinal": 492,
+    "name": "multidb (1s, read-local 1, atomic 1)",
+    "original_gate_line": 3075
+  },
+  {
+    "original_ordinal": 491,
+    "current_ordinal": 493,
+    "name": "multidb (1s, read-local 1, atomic 1) SWAPDB serial order",
+    "original_gate_line": 3093
+  },
+  {
+    "original_ordinal": 492,
+    "current_ordinal": 494,
+    "name": "multidb (2s, read-local 0, atomic 0)",
+    "original_gate_line": 3075
+  },
+  {
+    "original_ordinal": 493,
+    "current_ordinal": 495,
+    "name": "multidb (2s, read-local 0, atomic 0) SWAPDB serial order",
+    "original_gate_line": 3093
+  },
+  {
+    "original_ordinal": 494,
+    "current_ordinal": 496,
+    "name": "multidb (2s, read-local 0, atomic 1)",
+    "original_gate_line": 3075
+  },
+  {
+    "original_ordinal": 495,
+    "current_ordinal": 497,
+    "name": "multidb (2s, read-local 0, atomic 1) SWAPDB serial order",
+    "original_gate_line": 3093
+  },
+  {
+    "original_ordinal": 496,
+    "current_ordinal": 498,
+    "name": "multidb (2s, read-local 1, atomic 0)",
+    "original_gate_line": 3075
+  },
+  {
+    "original_ordinal": 497,
+    "current_ordinal": 499,
+    "name": "multidb (2s, read-local 1, atomic 0) SWAPDB serial order",
+    "original_gate_line": 3093
+  },
+  {
+    "original_ordinal": 498,
+    "current_ordinal": 500,
+    "name": "multidb (2s, read-local 1, atomic 1)",
+    "original_gate_line": 3075
+  },
+  {
+    "original_ordinal": 499,
+    "current_ordinal": 501,
+    "name": "multidb (2s, read-local 1, atomic 1) SWAPDB serial order",
+    "original_gate_line": 3093
+  },
+  {
+    "original_ordinal": 500,
+    "current_ordinal": 502,
+    "name": "tailgen client-lb outstanding bound",
+    "original_gate_line": 3349
+  },
+  {
+    "original_ordinal": 501,
+    "current_ordinal": 503,
+    "name": "torture under ASAN",
+    "original_gate_line": 2845
+  },
+  {
+    "original_ordinal": 502,
+    "current_ordinal": 504,
+    "name": "RYOW under ASAN",
+    "original_gate_line": 2848
+  },
+  {
+    "original_ordinal": 503,
+    "current_ordinal": 505,
+    "name": "atomic torn/window under ASAN",
+    "original_gate_line": 2853
+  },
+  {
+    "original_ordinal": 504,
+    "current_ordinal": 506,
+    "name": "atomic RYOW under ASAN",
+    "original_gate_line": 2863
+  },
+  {
+    "original_ordinal": 505,
+    "current_ordinal": 507,
+    "name": "ASAN clean",
+    "original_gate_line": 2870
+  },
+  {
+    "original_ordinal": 506,
+    "current_ordinal": 508,
+    "name": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 0)",
+    "original_gate_line": 2881
+  },
+  {
+    "original_ordinal": 507,
+    "current_ordinal": 509,
+    "name": "CLIENT REPLY OFF/SKIP cross-shard MGET wire silence (atomic 1)",
+    "original_gate_line": 2881
+  },
+  {
+    "original_ordinal": 508,
+    "current_ordinal": 510,
+    "name": "zc borrow battery",
+    "original_gate_line": 2910
+  },
+  {
+    "original_ordinal": 509,
+    "current_ordinal": 511,
+    "name": "zc fired (zc_sends=N)",
+    "original_gate_line": 2913
+  },
+  {
+    "original_ordinal": 510,
+    "current_ordinal": 512,
+    "name": "zc borrow battery under ASAN",
+    "original_gate_line": 2917
+  },
+  {
+    "original_ordinal": 511,
+    "current_ordinal": 513,
+    "name": "zc ASAN clean",
+    "original_gate_line": 2920
+  },
+  {
+    "original_ordinal": 512,
+    "current_ordinal": 514,
+    "name": "read-local ownership-invariant build",
+    "original_gate_line": 2939
+  },
+  {
+    "original_ordinal": 513,
+    "current_ordinal": 515,
+    "name": "armed block-cache churn battery",
+    "original_gate_line": 2956
+  },
+  {
+    "original_ordinal": 514,
+    "current_ordinal": 516,
+    "name": "read-local ownership invariants",
+    "original_gate_line": 2962
+  },
+  {
+    "original_ordinal": 515,
+    "current_ordinal": 517,
+    "name": "Redis 7.4 differential matrix",
+    "original_gate_line": 865
+  },
+  {
+    "original_ordinal": 516,
+    "current_ordinal": 518,
+    "name": "Redis 7.4 differential matrix (armed fused + read-local)",
+    "original_gate_line": 865
+  },
+  {
+    "original_ordinal": 517,
+    "current_ordinal": 519,
+    "name": "glob/scan grammar parity vs Redis 7.4",
+    "original_gate_line": 2993
+  }
+]

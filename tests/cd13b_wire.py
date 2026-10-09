@@ -6,6 +6,7 @@ the target's hash/router and live shard ownership; Redis has no TomoKV shard map
 """
 import io
 import re
+import time
 from _lib import Conn
 
 
@@ -78,10 +79,20 @@ def geo_store_property(sides, route):
             for verb in verbs:
                 source = destination = None
                 try:
-                    armed = False
-                    for attempt in range(3):
+                    deadline = time.monotonic() + 30
+                    attempt = 0
+                    witness = None
+                    while True:
+                        assert time.monotonic() < deadline, (
+                            "LFU/cross-owner window never witnessed within 30 s", attempt, witness)
+                        if source and destination:
+                            integer(call, ["DEL", source])
+                            integer(call, ["DEL", destination])
                         source = "cd13b:%s:%s:%d:source" % (label, verb, attempt)
+                        destination = None
+                        attempt += 1
                         for suffix in range(4096):
+                            assert time.monotonic() < deadline, "cross-owner search exhausted window budget"
                             candidate = source + ":destination:%d" % suffix
                             witness = route([source, candidate])
                             if witness[0][0] != witness[1][0] and witness[0][1] != witness[1][1]:
@@ -100,7 +111,9 @@ def geo_store_property(sides, route):
                         assert call(args) == b":159\r\n"
                         assert call(["ZREM", destination] + ["m%d" % i for i in range(2, 160)]) == b":158\r\n"
                         assert call(["OBJECT", "ENCODING", destination]) == b"$8\r\nskiplist\r\n"
-                        for _ in range(4096):
+                        for touch in range(4096):
+                            if touch % 128 == 0:
+                                assert time.monotonic() < deadline, "LFU priming exhausted window budget"
                             assert call(["ZCARD", destination]) == b":2\r\n"
                         before = integer(call, ["OBJECT", "FREQ", destination])
                         # Priming can move the hot destination. Arm both witnesses on
@@ -109,35 +122,37 @@ def geo_store_property(sides, route):
                         witness = route([source, destination])
                         cross_owner = (witness[0][0] != witness[1][0] and
                                        witness[0][1] != witness[1][1])
-                        if before >= initial + 3 and cross_owner:
-                            armed = True
+                        if before < initial + 3 or not cross_owner:
+                            print("  CD13b GEO rearm %s %s attempt=%d initial=%d before=%d route=%r" %
+                                  (label, verb, attempt, initial, before, witness))
+                            continue
+                        if verb == "GEOSEARCHSTORE":
+                            args = [verb, destination, source, "FROMLONLAT", "13", "38", "BYRADIUS", "10", "km"]
+                        else:
+                            args = ["GEORADIUS", source, "13", "38", "10", "km", verb, destination]
+                        stored = call(args)
+                        after_witness = route([source, destination])
+                        # Migration invalidates only the route witness. Check every result
+                        # before considering a fresh arm: a moved shard cannot excuse damage.
+                        assert stored == b":2\r\n", stored
+                        after_raw = call(["OBJECT", "FREQ", destination])
+                        assert re.fullmatch(rb":[0-9]+\r\n", after_raw), after_raw
+                        after = int(after_raw[1:-2])
+                        encoding = call(["OBJECT", "ENCODING", destination])
+                        # STORE may compact its new result; only GEOADD forbids demotion.
+                        assert encoding == b"$8\r\nlistpack\r\n", encoding
+                        assert after > initial, ("destination LFU reset", initial, before, after)
+                        members = decoded(call(["ZRANGE", destination, "0", "-1"]))
+                        assert isinstance(members, list) and sorted(members) == [b"a", b"b"], members
+                        print("  CD13b GEO %s %s keys=%r route(sid,owner,migrations)=%r after_route=%r "
+                              "initial=%d before=%d after=%d store=%r freq=%r encoding=%r members=%r" %
+                              (label, verb, (source, destination), witness, after_witness, initial, before, after,
+                               stored, after_raw, encoding, members))
+                        assert time.monotonic() < deadline, "STORE checks exhausted window budget"
+                        if after_witness == witness:
                             break
-                        print("  CD13b GEO rearm %s %s attempt=%d initial=%d before=%d route=%r" %
-                              (label, verb, attempt, initial, before, witness))
-                        integer(call, ["DEL", source])
-                        integer(call, ["DEL", destination])
-                    assert armed, ("LFU/cross-owner window never armed on three fresh destinations",
-                                   initial, before, witness)
-                    if verb == "GEOSEARCHSTORE":
-                        args = [verb, destination, source, "FROMLONLAT", "13", "38", "BYRADIUS", "10", "km"]
-                    else:
-                        args = ["GEORADIUS", source, "13", "38", "10", "km", verb, destination]
-                    stored = call(args)
-                    after_witness = route([source, destination])
-                    assert after_witness == witness, ("owner/migration changed during STORE", witness, after_witness)
-                    assert stored == b":2\r\n", stored
-                    after_raw = call(["OBJECT", "FREQ", destination])
-                    assert re.fullmatch(rb":[0-9]+\r\n", after_raw), after_raw
-                    after = int(after_raw[1:-2])
-                    encoding = call(["OBJECT", "ENCODING", destination])
-                    # Redis geo.c creates a new result and may compact it. Only GEOADD has the
-                    # no-demotion rule. Preserve the landed local STORE behavior here as well.
-                    assert encoding == b"$8\r\nlistpack\r\n", encoding
-                    print("  CD13b GEO %s %s keys=%r route(sid,owner,migrations)=%r "
-                          "initial=%d before=%d after=%d store=%r freq=%r encoding=%r" %
-                          (label, verb, (source, destination), witness, initial, before, after,
-                           stored, after_raw, encoding))
-                    assert after > initial, ("destination LFU reset", initial, before, after)
+                        print("  CD13b GEO rearm %s %s attempt=%d: route moved during STORE" %
+                              (label, verb, attempt))
                 except AssertionError as error:
                     failures += 1
                     print("  CD13b GEO FAIL %s %s: %r" % (label, verb, error))
