@@ -1,0 +1,40 @@
+{
+  "binary": "build/aclkeys4/BASE/tomokv",
+  "sha256": "3b8641aa8e006bdbe9dc273f9635f11450ecd2d8e75d238cea083e6a7a5733b0",
+  "server_cpus": "112-119",
+  "client_cpus": "120-127",
+  "rows": [
+    {
+      "label": "split-a0-r1",
+      "expected": true,
+      "returncode": 1,
+      "seconds": 2.0957243843004107,
+      "negative": true,
+      "test": "aclkeys_wake_state.py"
+    },
+    {
+      "label": "split-a1-r1",
+      "expected": true,
+      "returncode": 1,
+      "seconds": 2.098196196835488,
+      "negative": true,
+      "test": "aclkeys_wake_state.py"
+    },
+    {
+      "label": "armed-fused-a0-r1",
+      "expected": true,
+      "returncode": 1,
+      "seconds": 2.0972077073529363,
+      "negative": true,
+      "test": "aclkeys_wake_state.py"
+    },
+    {
+      "label": "armed-fused-a1-r1",
+      "expected": true,
+      "returncode": 1,
+      "seconds": 2.098012262955308,
+      "negative": true,
+      "test": "aclkeys_wake_state.py"
+    }
+  ]
+}

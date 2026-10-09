@@ -1,0 +1,40 @@
+{
+  "binary": "build/aclkeys/POST/tomokv",
+  "sha256": "3679da8781bda46a5d01d15a6d3e686cffb0980d51fa8405ad8831a19553671b",
+  "server_cpus": "112-119",
+  "client_cpus": "120-127",
+  "rows": [
+    {
+      "label": "split-a0-r1",
+      "expected": true,
+      "returncode": 0,
+      "seconds": 1.5269232811406255,
+      "negative": false,
+      "test": "blocking.py"
+    },
+    {
+      "label": "split-a1-r1",
+      "expected": true,
+      "returncode": 0,
+      "seconds": 1.534501750022173,
+      "negative": false,
+      "test": "blocking.py"
+    },
+    {
+      "label": "armed-fused-a0-r1",
+      "expected": true,
+      "returncode": 0,
+      "seconds": 1.4065685686655343,
+      "negative": false,
+      "test": "blocking.py"
+    },
+    {
+      "label": "armed-fused-a1-r1",
+      "expected": true,
+      "returncode": 0,
+      "seconds": 1.4278711066581309,
+      "negative": false,
+      "test": "blocking.py"
+    }
+  ]
+}
