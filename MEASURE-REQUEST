@@ -1,11 +1,16 @@
-Lane lbosc3 (decision group 10): see MEASURE-REQUEST-lbosc3.md.
-Status UNTUNED: serverless proof and frozen arms only; no live measurements run.
-Run >=6 key-skew rounds per arm per mode, PRE/PAD-A(type A)/POST, then pooled judge.
-Maintainer owns measurements, 14-cell null, live LB/stationary-hold rows and gate.
-Rows +0/+0. Do not land without the measured pooled-move/accuracy/rate/p99 bars.
+wbknobs — 2026-10-09
 
-encodingfix: mainline measurements pending.
+See MEASURE-REQUEST-wbknobs.md for the complete owner handoff, binary hashes,
+knob grammar/defaults, instruction and body receipts, and exact commands.
 
-See MEASURE-REQUEST-encodingfix.md for the verified Redis defaults, exact PRE/POST/PAD A arms and SHA-256 checksums, 14-cell null inventory, memory accounting, changed-body proof, correctness results and remaining live gate work.
+Mainline acceptance, still pending:
+1. The 14 cells in tests/wbland_merit_cells.txt: newest headline defaults versus
+   build/wbknobs/POST/tomokv defaults, every cell within the class band.
+2. p8g and p8s in tests/wbknobs_sweep_cells.txt: identical POST bytes in both arms,
+   policy=1/S=0/D=3 versus policy=1/S=16/D=3, GET and SET each +6..+10%.
 
-No server benchmark or TomoKV boot was run by the lane.
+Use tools/wbknobs_measure.py on the scheduled quiet box. The report specifies
+32 physical server cores 0-31, load 32-111, no SMT, and eight deep-cell loaders.
+PMU diagnostics are separate --profile 1 runs, not acceptance evidence.
+No server, benchmark or gate was run by the lane. Gate inventory is +2/+2,
+504 quick / 521 full. Append measurements as MEASURE-RESULT.

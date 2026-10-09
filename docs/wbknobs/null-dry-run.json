@@ -16,8 +16,8 @@
     "x9_32_l1",
     "x9_32_l0"
   ],
-  "candidate": "/home/user/Projects/cx-wbknobs/build/tomokv",
-  "reference": "newest headline",
+  "candidate": "build/wbknobs/POST/tomokv",
+  "reference": "/home/user/Projects/bench-bins/tomokv-headline-db86e5b4a",
   "arms": "both boot defaults",
   "order": [
     "A",

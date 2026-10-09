@@ -4,8 +4,8 @@
     "p8g",
     "p8s"
   ],
-  "candidate": "/home/user/Projects/cx-wbknobs/build/tomokv",
-  "reference": "/home/user/Projects/cx-wbknobs/build/tomokv",
+  "candidate": "build/wbknobs/POST/tomokv",
+  "reference": "build/wbknobs/POST/tomokv",
   "arms": {
     "A": {
       "wb-policy": 1,
