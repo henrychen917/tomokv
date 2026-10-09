@@ -1,0 +1,103 @@
+diff --git a/src/cmd/blocking_debug.cc b/src/cmd/blocking_debug.cc
+index 5d13ec5eb..fab7ad654 100644
+--- a/src/cmd/blocking_debug.cc
++++ b/src/cmd/blocking_debug.cc
+@@ -31,4 +31,12 @@ void debug_xread_registration_command(Op& op) {
+     reply_ok(op.sink());
+ }
+ 
++// Keep the ordinary DEBUG implementation intact across mainline merges. Its
++// isolated extension is selected only after DEBUG's existing permission check.
++bool debug_xread_registration_dispatch(Op& op) {
++    if (!op.arg(1).eq_icase("xread-registration-hold")) return false;
++    debug_xread_registration_command(op);
++    return true;
++}
++
+ }  // namespace tomo
+diff --git a/src/cmd/t_server.cc b/src/cmd/t_server.cc
+index 1b48705a9..7af0b2cb5 100644
+--- a/src/cmd/t_server.cc
++++ b/src/cmd/t_server.cc
+@@ -50,7 +50,6 @@
+ #include <sys/socket.h>
+ 
+ namespace tomo {
+-void debug_xread_registration_command(Op& op);
+ namespace {
+ 
+ constexpr const char* kVersion = "0.1-cpp";
+@@ -1264,16 +1263,6 @@ void cmd_debug_impl(Shard& shard, Op& op) {
+         reply_err(op.sink(), "ERR internal DEBUG RELOAD routing error");
+         return;
+     }
+-    // Keep the two existing TU inlining profiles stable. The isolated parser
+-    // also preserves this fallback's exact unknown-subcommand error text.
+-    if constexpr (kSingleDatabase) {
+-        debug_xread_registration_command(op);
+-        return;
+-    }
+-    if (eq_icase(subcommand, "xread-registration-hold")) {
+-        debug_xread_registration_command(op);
+-        return;
+-    }
+     reply_err(op.sink(), "ERR unknown subcommand or wrong number of arguments for 'debug' command");
+ }
+ 
+@@ -3068,13 +3057,6 @@ void reply_debug_command_denied(Op& op) {
+               "ERR DEBUG command not allowed. If the enable-debug-command option is set to \"local\", you can run it from a local connection, otherwise you need to set this option in the configuration file, and then restart the server.");
+ }
+ 
+-void cmd_debug(Shard& shard, Op& op) {
+-    if (!g_server || !debug_command_allowed(*g_server, g_client)) {
+-        reply_debug_command_denied(op);
+-        return;
+-    }
+-    cmd_debug_impl(shard, op);
+-}
+ 
+ bool command_parse_scan_cursor(Slice text, uint64_t& cursor) {
+     // Redis's string2ull first tries canonical string2ll, then falls back to strtoull. Its input
+@@ -3429,4 +3411,17 @@ CommandTable server_command_table() {
+     return {kTable, sizeof(kTable) / sizeof(kTable[0])};
+ }
+ 
++// Keep the cold extension after ordinary definitions so it does not perturb
++// their template-instantiation order. The existing DEBUG permission gate stays
++// ahead of the isolated registration observer.
++bool debug_xread_registration_dispatch(Op& op);
++void cmd_debug(Shard& shard, Op& op) {
++    if (!g_server || !debug_command_allowed(*g_server, g_client)) {
++        reply_debug_command_denied(op);
++        return;
++    }
++    if (debug_xread_registration_dispatch(op)) return;
++    cmd_debug_impl(shard, op);
++}
++
+ }  // namespace tomo
+diff --git a/tools/aclkeys4_budget.py b/tools/aclkeys4_budget.py
+index ed86871e1..b3a54f9b9 100644
+--- a/tools/aclkeys4_budget.py
++++ b/tools/aclkeys4_budget.py
+@@ -9,15 +9,17 @@ import subprocess
+ from ccfix4_budget import inventory, compare
+ 
+ p = argparse.ArgumentParser(description=__doc__)
+-p.add_argument('tu', choices=('stream', 'list'))
++p.add_argument('tu', choices=('stream', 'list', 'server'))
+ p.add_argument('variant', choices=('src', 'db0'))
+ p.add_argument('values', nargs='+', type=int)
+ p.add_argument('--jobs', type=int, default=3)
++p.add_argument('--pre', type=Path, default=Path('build/aclkeys4/BASE'))
+ a = p.parse_args()
+ root = Path(__file__).resolve().parents[1]
+ relative = Path('db0/src/cmd' if a.variant == 'db0' else 'src/cmd') / f't_{a.tu}.o'
+-old = inventory(root / 'build/aclkeys4/BASE' / relative)
+-allowed = re.compile(r'::(?:cmd_xadd<|xshard_push_list_element_impl<)')
++old = inventory(a.pre / relative)
++allowed = re.compile(r'::cmd_debug(?:_impl)?\(' if a.tu == 'server' else
++                     r'::(?:cmd_xadd<|xshard_push_list_element_impl<)')
+ for row in old.values(): row['hot'] = not bool(allowed.search(row['name']))
+ command = next(line.split() for line in (root/'build/aclkeys4/merged-build.log').read_text().splitlines()
+                if line.startswith('g++ ') and line.endswith(' -o build/'+str(relative)))

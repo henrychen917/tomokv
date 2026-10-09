@@ -1,0 +1,104 @@
+[
+  {
+    "object": "src/cmd/t_list.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_129xshard_push_list_element_implILb0EEENS_19XshardElementResultERNS_5ShardENS_5SliceEmbS5_",
+    "name": "tomo::XshardElementResult tomo::(anonymous namespace)::xshard_push_list_element_impl<false>(tomo::Shard&, tomo::Slice, unsigned long, bool, tomo::Slice)",
+    "equal": false,
+    "aclkeys4_equal": false,
+    "aclkeys4_fixed_path": true,
+    "pre_size": 3585,
+    "base_size": 3585,
+    "post_size": 3606,
+    "canonical_sha256": [
+      "7756366e0e6ccd25838e8eea886394a05ec878765b42dcad3ad73a14fd2b9513",
+      "7756366e0e6ccd25838e8eea886394a05ec878765b42dcad3ad73a14fd2b9513",
+      "959cc0881c6c749a5944c31340545b5163fcc5715680215693e29da9a0f61a5b"
+    ],
+    "reason": "Publish both list-push outcomes using the destination key namespace"
+  },
+  {
+    "object": "src/cmd/t_list.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_129xshard_push_list_element_implILb0EEENS_19XshardElementResultERNS_5ShardENS_5SliceEmbS5_.cold",
+    "name": "tomo::XshardElementResult tomo::(anonymous namespace)::xshard_push_list_element_impl<false>(tomo::Shard&, tomo::Slice, unsigned long, bool, tomo::Slice) [clone .cold]",
+    "equal": false,
+    "aclkeys4_equal": false,
+    "aclkeys4_fixed_path": true,
+    "pre_size": 55,
+    "base_size": 55,
+    "post_size": 55,
+    "canonical_sha256": [
+      "30e613c95229602c1b68bcd4c0a0e6de9478e2835dbbd59ab4565c218ce24088",
+      "30e613c95229602c1b68bcd4c0a0e6de9478e2835dbbd59ab4565c218ce24088",
+      "b45dc70b28bcf4e4523eb6e1bbff65e1f4d68652f5caa04eacaac6c9eb56529f"
+    ],
+    "reason": "Publish both list-push outcomes using the destination key namespace; associated exception landing pad"
+  },
+  {
+    "object": "src/cmd/t_list.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_129xshard_push_list_element_implILb1EEENS_19XshardElementResultERNS_5ShardENS_5SliceEmbS5_",
+    "name": "tomo::XshardElementResult tomo::(anonymous namespace)::xshard_push_list_element_impl<true>(tomo::Shard&, tomo::Slice, unsigned long, bool, tomo::Slice)",
+    "equal": false,
+    "aclkeys4_equal": false,
+    "aclkeys4_fixed_path": true,
+    "pre_size": 3420,
+    "base_size": 3420,
+    "post_size": 3409,
+    "canonical_sha256": [
+      "bef374efbbf2394ce570cddee2b10460b572bff86a17dde869300892271b9a69",
+      "bef374efbbf2394ce570cddee2b10460b572bff86a17dde869300892271b9a69",
+      "56d93c8b01c28b56186a075f8aa196b0e2cc9c43b9d732af938ded1759e509eb"
+    ],
+    "reason": "Publish both list-push outcomes using the destination key namespace"
+  },
+  {
+    "object": "src/cmd/t_list.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_129xshard_push_list_element_implILb1EEENS_19XshardElementResultERNS_5ShardENS_5SliceEmbS5_.cold",
+    "name": "tomo::XshardElementResult tomo::(anonymous namespace)::xshard_push_list_element_impl<true>(tomo::Shard&, tomo::Slice, unsigned long, bool, tomo::Slice) [clone .cold]",
+    "equal": false,
+    "aclkeys4_equal": false,
+    "aclkeys4_fixed_path": true,
+    "pre_size": 55,
+    "base_size": 55,
+    "post_size": 55,
+    "canonical_sha256": [
+      "30e613c95229602c1b68bcd4c0a0e6de9478e2835dbbd59ab4565c218ce24088",
+      "30e613c95229602c1b68bcd4c0a0e6de9478e2835dbbd59ab4565c218ce24088",
+      "b45dc70b28bcf4e4523eb6e1bbff65e1f4d68652f5caa04eacaac6c9eb56529f"
+    ],
+    "reason": "Publish both list-push outcomes using the destination key namespace; associated exception landing pad"
+  },
+  {
+    "object": "src/cmd/t_stream.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_xaddILb0EEEvRNS_5ShardERNS_2OpE",
+    "name": "void tomo::(anonymous namespace)::cmd_xadd<false>(tomo::Shard&, tomo::Op&)",
+    "equal": false,
+    "aclkeys4_equal": false,
+    "aclkeys4_fixed_path": true,
+    "pre_size": 5422,
+    "base_size": 5422,
+    "post_size": 5438,
+    "canonical_sha256": [
+      "a2562cef07dde36fadabbcdff11251ab4bf8d4ffeea4f44e736200bfe52073c1",
+      "a2562cef07dde36fadabbcdff11251ab4bf8d4ffeea4f44e736200bfe52073c1",
+      "e3a4ff87104063d1ef965d49b57cf169983db6caf860caa2c2084c8f13bc3b86"
+    ],
+    "reason": "Publish XADD using its captured physical database"
+  },
+  {
+    "object": "src/cmd/t_stream.o",
+    "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_xaddILb1EEEvRNS_5ShardERNS_2OpE",
+    "name": "void tomo::(anonymous namespace)::cmd_xadd<true>(tomo::Shard&, tomo::Op&)",
+    "equal": false,
+    "aclkeys4_equal": false,
+    "aclkeys4_fixed_path": true,
+    "pre_size": 5641,
+    "base_size": 5641,
+    "post_size": 5657,
+    "canonical_sha256": [
+      "d42d89fb54afde437181e2dfc647e1bd480e07c18c9822a44dfc34ae7418c759",
+      "d42d89fb54afde437181e2dfc647e1bd480e07c18c9822a44dfc34ae7418c759",
+      "64e460d02f1f4c757b3e267eef1281f79360fa27459f87a85a4f3a3b44a4c9cb"
+    ],
+    "reason": "Publish XADD using its captured physical database"
+  }
+]
