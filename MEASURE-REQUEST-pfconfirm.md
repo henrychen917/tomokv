@@ -289,5 +289,20 @@ docs/pfconfirm/run.sh --only PFPERSIS.1 --output build/pfconfirm2-tls
 docs/pfconfirm/run.sh --only PFDATATY.1 --output build/pfconfirm2-stream
 ```
 
-The single smoke attempt's receipt and outcome will be appended after execution;
-no full confirmation or gate run is authorized for this lane.
+**Smoke outcome: REFUSED, no retry.** The correction and pre-registration were
+committed as `dbf82bdd5` before the exact lane smoke command above was attempted
+once. It returned **exit 3 / REFUSED**: the unchanged quiet screen recorded
+**0.86 CPU-seconds > 0.48 CPU-seconds** on CPUs 112–127, against its 20-second
+screening budget. All six candidates are REFUSED. No executable was staged,
+no server or load generator started, and no sample or live witness was produced.
+The attempt stopped at that refusal and was not retried. No full confirmation
+or gate ran. Performance verdicts remain **unmeasured**; the changes still
+precede any campaign measurement data.
+
+Retained evidence: [attempt receipt](docs/pfconfirm/proof/pfconfirm2/smoke-attempt.json)
+(including the committed driver/registration/cell digests),
+[quiet screen](docs/pfconfirm/proof/pfconfirm2/smoke-quiet.json),
+[raw quiet samples](docs/pfconfirm/proof/pfconfirm2/smoke-quiet-samples.jsonl),
+[campaign refusal](docs/pfconfirm/proof/pfconfirm2/smoke-campaign-error.json), and
+[six result lines](docs/pfconfirm/proof/pfconfirm2/smoke-results.jsonl).
+Mainline runs its smoke in the bench phase using the fresh directory above.
