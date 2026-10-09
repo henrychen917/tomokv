@@ -326,7 +326,7 @@ public:
         template <size_t N>
         __attribute__((always_inline)) void append(const char (&lit)[N]) {
             static_assert(N >= 1, "append() takes a string literal");
-            if constexpr (N - 1 <= 16) {
+            if constexpr (N - 1 <= kInlineLiteralMax) {
                 char* p = reserve(N - 1);
                 __builtin_memcpy(p, lit, N - 1);
                 advance(N - 1);

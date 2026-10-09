@@ -1,0 +1,57 @@
+{
+  "objects_scanned": 94,
+  "instantiations": [
+    [
+      "tomo",
+      "ExReorderQueues",
+      "32"
+    ],
+    [
+      "tomo",
+      "ShadowReorderQueues",
+      "32"
+    ],
+    [
+      "tomo_db0",
+      "ExReorderQueues",
+      "32"
+    ],
+    [
+      "tomo_db0",
+      "ShadowReorderQueues",
+      "32"
+    ]
+  ],
+  "evidence": [
+    {
+      "object": "db0/src/core/reorder.o",
+      "nm": [
+        "0000000000000000 W void tomo_db0::r7::ExReorderQueues<32ul>::emit_queued<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)",
+        "0000000000000000 W void tomo_db0::r7::ExReorderQueues<32ul>::submit<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(tomo_db0::Task const*, unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)",
+        "0000000000000000 W void tomo_db0::r7::ShadowReorderQueues<32ul>::emit_queued<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)",
+        "0000000000000000 W void tomo_db0::r7::ShadowReorderQueues<32ul>::submit<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(tomo_db0::Task const*, unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)"
+      ],
+      "objdump": [
+        "0000000000000000  w    F .text._ZN8tomo_db02r719ShadowReorderQueuesILm32EE11emit_queuedIZNS_7ExLoopTILb1EE19r7_drain_tasks_implILb1ELj32ELb0EEEjbEUlPKNS_4TaskEjNS_13ReorderResultEE_EEvjRT_\t0000000000000625 void tomo_db0::r7::ShadowReorderQueues<32ul>::emit_queued<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)",
+        "0000000000000000  w    F .text._ZN8tomo_db02r719ShadowReorderQueuesILm32EE6submitIZNS_7ExLoopTILb1EE19r7_drain_tasks_implILb1ELj32ELb0EEEjbEUlPKNS_4TaskEjNS_13ReorderResultEE_EEvS9_jRT_\t0000000000000d56 void tomo_db0::r7::ShadowReorderQueues<32ul>::submit<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(tomo_db0::Task const*, unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)",
+        "0000000000000000  w    F .text._ZN8tomo_db02r715ExReorderQueuesILm32EE11emit_queuedIZNS_7ExLoopTILb1EE19r7_drain_tasks_implILb0ELj32ELb0EEEjbEUlPKNS_4TaskEjNS_13ReorderResultEE_EEvjRT_\t00000000000002be void tomo_db0::r7::ExReorderQueues<32ul>::emit_queued<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)",
+        "0000000000000000  w    F .text._ZN8tomo_db02r715ExReorderQueuesILm32EE6submitIZNS_7ExLoopTILb1EE19r7_drain_tasks_implILb0ELj32ELb0EEEjbEUlPKNS_4TaskEjNS_13ReorderResultEE_EEvS9_jRT_\t0000000000000bff void tomo_db0::r7::ExReorderQueues<32ul>::submit<tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}>(tomo_db0::Task const*, unsigned int, tomo_db0::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo_db0::Task const*, unsigned int, tomo_db0::ReorderResult)#1}&)"
+      ]
+    },
+    {
+      "object": "src/core/reorder.o",
+      "nm": [
+        "0000000000000000 W void tomo::r7::ExReorderQueues<32ul>::emit_queued<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)",
+        "0000000000000000 W void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(tomo::Task const*, unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)",
+        "0000000000000000 W void tomo::r7::ShadowReorderQueues<32ul>::emit_queued<tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)",
+        "0000000000000000 W void tomo::r7::ShadowReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(tomo::Task const*, unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)"
+      ],
+      "objdump": [
+        "0000000000000000  w    F .text._ZN4tomo2r719ShadowReorderQueuesILm32EE11emit_queuedIZNS_7ExLoopTILb1EE19r7_drain_tasks_implILb1ELj32ELb0EEEjbEUlPKNS_4TaskEjNS_13ReorderResultEE_EEvjRT_\t0000000000000625 void tomo::r7::ShadowReorderQueues<32ul>::emit_queued<tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)",
+        "0000000000000000  w    F .text._ZN4tomo2r719ShadowReorderQueuesILm32EE6submitIZNS_7ExLoopTILb1EE19r7_drain_tasks_implILb1ELj32ELb0EEEjbEUlPKNS_4TaskEjNS_13ReorderResultEE_EEvS9_jRT_\t0000000000000d56 void tomo::r7::ShadowReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(tomo::Task const*, unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<true, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)",
+        "0000000000000000  w    F .text._ZN4tomo2r715ExReorderQueuesILm32EE11emit_queuedIZNS_7ExLoopTILb1EE19r7_drain_tasks_implILb0ELj32ELb0EEEjbEUlPKNS_4TaskEjNS_13ReorderResultEE_EEvjRT_\t00000000000002be void tomo::r7::ExReorderQueues<32ul>::emit_queued<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)",
+        "0000000000000000  w    F .text._ZN4tomo2r715ExReorderQueuesILm32EE6submitIZNS_7ExLoopTILb1EE19r7_drain_tasks_implILb0ELj32ELb0EEEjbEUlPKNS_4TaskEjNS_13ReorderResultEE_EEvS9_jRT_\t0000000000000bff void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}>(tomo::Task const*, unsigned int, tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(tomo::Task const*, unsigned int, tomo::ReorderResult)#1}&)"
+      ]
+    }
+  ]
+}

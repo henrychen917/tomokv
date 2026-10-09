@@ -1,0 +1,6 @@
+{
+  "status": "REFUSED",
+  "reason": "quiet precondition",
+  "attempts": 4,
+  "prior": null
+}
