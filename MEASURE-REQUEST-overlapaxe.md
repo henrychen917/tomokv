@@ -314,7 +314,7 @@ The separate 32-cell feature product still uses client-lb with
 `atomic = read-local XOR client-lb` and `key-lb = reorder`.
 The fixture retains upstream's source digest and documents the one-row derivation.
 As explicitly requested, the merge sets **EXPECT_QUICK=511; EXPECT_FULL=528**
-(`512/529 - 1/-1`), retaining the upstream WAKE_RC LedgerWiring checks.
+(`512 - 1 = 511; 529 - 1 = 528`), retaining the upstream WAKE_RC LedgerWiring checks.
 
 Merge commit: `56618ef9b`, parents `2b61a1fec` and `165d268be`.
 The removed WB row's emitting loop is now at `tests/gate.sh:1449`, collected at
@@ -362,8 +362,69 @@ The earlier POST digest above now refers to the saved premerge binary at
 `build/overlapaxe2/premerge-POST/tomokv`; the old PRE/PAD-A remain historical
 artifacts, not rebuilt arms for this merge.
 
-The repeated body audit is in progress against an isolated source archive of
-`165d268be` under `build/overlapaxe2/BASE-src`, also built with `make -j16` on
-CPUs 112–127. The earlier report explicitly records failed hot-body identity;
-this follow-up will report differences rather than imply that all fused bodies
-were previously identical.
+The [merge checks](docs/overlapaxe2/merge-checks.json) also compare all **35**
+feature-cell configurations and refusal decisions with upstream: every surviving
+knob and geometry matches after deleting only `overlap`. Both `job_multidb` and
+its collecting loop, the wake script, and the WAKE_RC unit-test method are
+byte-identical to upstream.
+
+Repeated body audit, against an isolated archive of `165d268be` under
+`build/overlapaxe2/BASE-src`: the base's full `make -j16 all` build passes on
+CPUs 112–127, and all **213** archived files match upstream Git blobs.
+[Build/source identities](docs/overlapaxe2/build-identity.json) record GCC 13.3.0,
+commands, hashes and text sizes. Base `.text` is 7,845,932 bytes and POST is
+7,582,188 bytes, a reduction of 263,744 bytes; this is not a rate measurement.
+
+The unchanged checker was run as:
+
+```sh
+taskset -c 112-127 python3 tools/ccfix_audit.py \
+  build/overlapaxe2/BASE build build/overlapaxe2/body-audit
+taskset -c 112-127 python3 docs/overlapaxe2/summarize-bodies.py
+```
+
+**Hot-body identity still FAILS**, exactly as disclosed in the original report;
+the checker exits 1 with `ordinary hot-path bytes changed`. It inventories
+**17,600 bodies: 15,036 equal; 2,564 changed/new/removed**. The hot inventory is
+**1,771 bodies: 666 equal; 1,105 changed/new/removed**. Every hot record has the
+same symbol, equality/raw-equality verdict and PRE/POST size as the original
+audit: **zero hot inventory signature differences**. This reproduces the earlier
+audit outcome, not a claim that all fused code is byte-identical.
+
+Both fused `genthread.o` objects together have **1,638 bodies: 1,352 equal,
+286 changed** (143 per namespace). Their hot subset is **296: 108 equal,
+188 changed**. All **10 GET/SET handler bodies remain raw-byte-identical** to
+the merged base. The linked fused prefetch bodies retain two `prefetcht0`
+instructions each: BASE 409 bytes (`tomo`) / 393 (`tomo_db0`), POST 333 / 333;
+the overlap witness is removed, and no split prefetch body survives in POST.
+
+Every changed body has its object, mangled symbol, full name, sizes, equality
+flags, and reason in [changed-bodies.json.gz](docs/overlapaxe2/changed-bodies.json.gz).
+The [fused-only list](docs/overlapaxe2/changed-fused-bodies.json.gz) contains all
+286 changed fused-object bodies with their reasons; the
+[complete inventory](docs/overlapaxe2/bodies.json.gz) and
+[summary](docs/overlapaxe2/body-summary.json) preserve the full result.
+Renamed/deleted overlap templates, retired CONFIG/INFO rows, the prefetch witness,
+and compiler re-emission of unchanged helpers account for these recorded
+differences; unresolved compiler differences are not silently counted as equal.
+
+Four non-hot records are newly unequal compared with the earlier audit:
+
+| Body (`tomo` namespace) | BASE → POST bytes | Reason |
+| --- | ---: | --- |
+| `cmd_config` in `src/cmd/t_server.o` | 7,347 → 7,393 | Retired CONFIG registration changes cold table/dispatch code generation. |
+| `command_client_migration_extract` in `src/cmd/t_server.o` | 624 → 640 | Function source unchanged; re-emitted after overlap CONFIG/INFO deletion in the same translation unit. |
+| `normalize_multi_blocking_pop` in `src/cmd/xshard.o` | 3,454 → 3,308 | `xshard.cc` is identical to upstream; included-header/template reduction changes compiler emission/inlining of retained ACL/blocking normalization. |
+| Its `.cold` clone in `src/cmd/xshard.o` | 45 → 45 | Compiler stack slots change: LEA `0x50 → 0x40`, saved canary `0x148 → 0x138`; equal size is not byte identity. |
+
+`snapshot_command` and `reply_err<Op::Sink>` in `src/cmd/t_server.o`, previously
+unequal, are now equal. The only unequal actual command handlers are CONFIG
+(`tomo`) and INFO (both namespaces and cold clones); the generic handler regex
+also includes three removed `Op::cmd_name` emissions. No normalization, assertion,
+or deadline was weakened to obtain these results. An initial report-generator
+assertion counted split prefetch symbols as fused; filtering the explicit
+`ExLoopT<true>` symbols corrected the report only, without changing the auditor.
+
+The earlier owner-judged 18-cell null remains the landing decision. These are
+merge correctness/body receipts, with no new performance result or fresh PAD arm.
+All requested work is committed on `cx-overlapaxe`; no push.
