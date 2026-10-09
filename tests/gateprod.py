@@ -12,7 +12,7 @@ explicit, two-boot diagnostic on server 112-119 / load 120-127, never a verdict.
 """
 import argparse
 from contextlib import redirect_stdout
-from dataclasses import asdict, replace
+from dataclasses import replace
 import hashlib
 import io
 import json
@@ -127,9 +127,9 @@ def dry_run(args):
             arms[arm] = dict(server_argv=server_argv(runner, cell, arm, folder),
                 memtier_argv=[runner.memtier(part, cell=cell) + abba.workload_arguments(cell) +
                     [f"--pipeline={cell.depth}", f"--test-time={abba.WARMUP + abba.WINDOW + abba.TAIL}",
-                     f"--json-out-file={folder / f'load-{index}.json'}"]
+                     f"--json-out-file={folder / f'load-{index}.json'}"] + abba.client_arguments(cell.client_flags)
                     for index, part in enumerate(layout)])
-        rows.append(dict(cell=asdict(cell), transport="epoll" if cell.server_flags else "uring",
+        rows.append(dict(cell=abba.cell_receipt(cell), transport="epoll" if cell.server_flags else "uring",
             pass_output=str(pass_output),
             initial_instances=instances, pinned=bool(cell.instances),
             search_ladder=[] if cell.instances and not args.escalate else

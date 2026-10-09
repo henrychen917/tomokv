@@ -19,7 +19,7 @@ WARMUP+WINDOW+TAIL (28/18 seconds here), which is reported separately.
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 import json
 import math
 import os
@@ -955,7 +955,7 @@ def main(args):
     cell = matches[0]
     if cell.depth > 1 and not cell.instances:
         raise ValueError("selected cell has no measured pin; calibrate with abbagate --escalate first")
-    plan = {"cell": asdict(cell), "geometry": {key: getattr(args, key) for key in GEOMETRY_KEYS},
+    plan = {"cell": abba.cell_receipt(cell), "geometry": {key: getattr(args, key) for key in GEOMETRY_KEYS},
             "blocks": BLOCKS, "scored_measurements": 24, "unscored_snapshot_priming_boots": 2}
     if args.plan_only:
         print(json.dumps(plan, indent=2))

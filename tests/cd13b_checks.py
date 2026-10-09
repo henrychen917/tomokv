@@ -23,13 +23,13 @@ def build_one(arm, namespace):
     flags = ["g++", "-std=c++20", "-O2", "-g", "-Wall", "-Wextra", "-march=native",
              "-pthread", "-DTOMO_JEMALLOC", "-I" + str(source), "-I" + str(ROOT)]
     unit = OUT / (arm + "-" + namespace + ".o")
-    links = sorted(p for p in (objects / "src").rglob("*.o") if p.name not in ("main.o", "xshard.o"))
+    links = sorted(p for p in (objects / "src").rglob("*.o") if p.name not in ("main.o", "version.o", "xshard.o"))
     if namespace == "db0":
         flags += ["-DTOMO_SINGLE_DATABASE=1", "-Dtomo=tomo_db0"]
         # The non-namespaced dependency objects still need their production xshard symbols.
         links.append(objects / "src/cmd/xshard.o")
         links = sorted(p for p in (objects / "db0/src").rglob("*.o")
-                       if p.name not in ("main.o", "xshard.o")) + links
+                       if p.name not in ("main.o", "version.o", "xshard.o")) + links
     with (OUT / (arm + "-" + namespace + "-build.log")).open("w") as log:
         subprocess.run(flags + ["-c", str(ROOT / "tests/cd13b_unit.cc"), "-o", str(unit)],
                        stdout=log, stderr=subprocess.STDOUT, check=True)

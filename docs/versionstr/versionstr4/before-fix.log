@@ -1,0 +1,17 @@
+$ taskset -c 112-127 python3 tests/gates_test.py TSANWiring.test_core_build_instruments_every_dependency_and_failed_build_publishes_no_ready_marker
+F
+======================================================================
+FAIL: test_core_build_instruments_every_dependency_and_failed_build_publishes_no_ready_marker (__main__.TSANWiring.test_core_build_instruments_every_dependency_and_failed_build_publishes_no_ready_marker)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-versionstr/tests/gates_test.py", line 1703, in test_core_build_instruments_every_dependency_and_failed_build_publishes_no_ready_marker
+    self.assertEqual(set(args[index + 5:]), expected)
+AssertionError: Items in the first set but not the second:
+'src/core/version.cc'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.004s
+
+FAILED (failures=1)
+
+exit=1

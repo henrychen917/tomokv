@@ -1,0 +1,8 @@
+$ python3 -m pip show redis
+WARNING: Package(s) not found: redis
+exit status: 1
+
+$ python3 tools/versionstr_smoke.py 127.0.0.1 6379
+SKIP: redis-py is absent; no package installed and no connection attempted.
+exit status: 0
+

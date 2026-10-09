@@ -1,0 +1,10 @@
+[
+  {
+    "object": "src/core/version.o",
+    "symbols": ""
+  },
+  {
+    "object": "db0/src/core/version.o",
+    "symbols": ".LC0 r 0 \n.LC1 r a \n.LC2 r d \n.LC3 r 14 \n.LC4 r 0 \n__printf_chk U         \n__real_main U         \n__wrap_main T 0 88\nstrcmp U         \n"
+  }
+]

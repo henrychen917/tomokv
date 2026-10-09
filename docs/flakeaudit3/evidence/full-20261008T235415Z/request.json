@@ -1,0 +1,24 @@
+{
+  "stage": "full",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "tests/gate.sh",
+    "iteration",
+    "--server-cores",
+    "112-119",
+    "--load-cores",
+    "120-127",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "18340-18342"
+  ],
+  "repetitions": 1,
+  "jobs": null,
+  "revision": "f7fc7ea1a6c8eb9edb2fa2a8f875804febdb465b",
+  "origin": "dab7409642bf0a6d125fb5f479e6d190c7636083"
+}

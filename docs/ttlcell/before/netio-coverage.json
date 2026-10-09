@@ -1,0 +1,133 @@
+{
+  "subset": "full",
+  "count": 32,
+  "ids": [
+    "h01-epoll",
+    "h02-epoll",
+    "h03-epoll",
+    "h04-epoll",
+    "h05-epoll",
+    "h06-epoll",
+    "h07-epoll",
+    "h08-epoll",
+    "h09-epoll",
+    "h10-epoll",
+    "h11-epoll",
+    "h12-epoll",
+    "h13-epoll",
+    "h14-epoll",
+    "h15-epoll",
+    "h16-epoll",
+    "h17-epoll",
+    "h18-epoll",
+    "h19-epoll",
+    "h20-epoll",
+    "h21-epoll",
+    "h22-epoll",
+    "h23-epoll",
+    "h24-epoll",
+    "h25-epoll",
+    "h26-epoll",
+    "h27-epoll",
+    "h28-epoll",
+    "h29-epoll",
+    "h30-epoll",
+    "h31-epoll",
+    "h32-epoll"
+  ],
+  "modes": [
+    "1s",
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "SET"
+  ],
+  "depths": [
+    32
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "rate"
+  ],
+  "pending_pins": [
+    "h01-epoll",
+    "h02-epoll",
+    "h03-epoll",
+    "h04-epoll",
+    "h05-epoll",
+    "h06-epoll",
+    "h07-epoll",
+    "h08-epoll",
+    "h09-epoll",
+    "h10-epoll",
+    "h11-epoll",
+    "h12-epoll",
+    "h13-epoll",
+    "h14-epoll",
+    "h15-epoll",
+    "h16-epoll",
+    "h17-epoll",
+    "h18-epoll",
+    "h19-epoll",
+    "h20-epoll",
+    "h21-epoll",
+    "h22-epoll",
+    "h23-epoll",
+    "h24-epoll",
+    "h25-epoll",
+    "h26-epoll",
+    "h27-epoll",
+    "h28-epoll",
+    "h29-epoll",
+    "h30-epoll",
+    "h31-epoll",
+    "h32-epoll"
+  ],
+  "server_flags": {
+    "h01-epoll": "--net-io epoll",
+    "h02-epoll": "--net-io epoll",
+    "h03-epoll": "--net-io epoll",
+    "h04-epoll": "--net-io epoll",
+    "h05-epoll": "--net-io epoll",
+    "h06-epoll": "--net-io epoll",
+    "h07-epoll": "--net-io epoll",
+    "h08-epoll": "--net-io epoll",
+    "h09-epoll": "--net-io epoll",
+    "h10-epoll": "--net-io epoll",
+    "h11-epoll": "--net-io epoll",
+    "h12-epoll": "--net-io epoll",
+    "h13-epoll": "--net-io epoll",
+    "h14-epoll": "--net-io epoll",
+    "h15-epoll": "--net-io epoll",
+    "h16-epoll": "--net-io epoll",
+    "h17-epoll": "--net-io epoll",
+    "h18-epoll": "--net-io epoll",
+    "h19-epoll": "--net-io epoll",
+    "h20-epoll": "--net-io epoll",
+    "h21-epoll": "--net-io epoll",
+    "h22-epoll": "--net-io epoll",
+    "h23-epoll": "--net-io epoll",
+    "h24-epoll": "--net-io epoll",
+    "h25-epoll": "--net-io epoll",
+    "h26-epoll": "--net-io epoll",
+    "h27-epoll": "--net-io epoll",
+    "h28-epoll": "--net-io epoll",
+    "h29-epoll": "--net-io epoll",
+    "h30-epoll": "--net-io epoll",
+    "h31-epoll": "--net-io epoll",
+    "h32-epoll": "--net-io epoll"
+  }
+}

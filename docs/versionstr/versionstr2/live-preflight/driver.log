@@ -1,0 +1,12 @@
+quiet attempt 0: [2, 2]
+quiet attempt 1: [2, 2]
+quiet attempt 2: [2, 2]
+quiet attempt 3: [2, 2]
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-versionstr/docs/versionstr/versionstr2/live.py", line 145, in <module>
+    main()
+  File "/home/user/Projects/cx-versionstr/docs/versionstr/versionstr2/live.py", line 93, in main
+    quiet(out)
+  File "/home/user/Projects/cx-versionstr/docs/versionstr/versionstr2/live.py", line 51, in quiet
+    raise RuntimeError("quiet preflight refused initial attempt and three retries over ten minutes")
+RuntimeError: quiet preflight refused initial attempt and three retries over ten minutes

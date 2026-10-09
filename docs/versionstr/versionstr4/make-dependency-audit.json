@@ -1,0 +1,710 @@
+[
+  {
+    "target": "build/at15-db0-unit",
+    "transitive_inputs": 293
+  },
+  {
+    "target": "build/at15-unit",
+    "transitive_inputs": 247
+  },
+  {
+    "target": "build/atomic-survivors-unit",
+    "transitive_inputs": 248
+  },
+  {
+    "target": "build/climon-mask-old-unit",
+    "transitive_inputs": 4
+  },
+  {
+    "target": "build/climon-mask-unit",
+    "transitive_inputs": 4
+  },
+  {
+    "target": "build/config-parser-test",
+    "transitive_inputs": 92
+  },
+  {
+    "target": "build/core-concurrency-unit",
+    "transitive_inputs": 55
+  },
+  {
+    "target": "build/encodingfix-unit",
+    "transitive_inputs": 247
+  },
+  {
+    "target": "build/exbatch-db0-unit",
+    "transitive_inputs": 293
+  },
+  {
+    "target": "build/exbatch-unit",
+    "transitive_inputs": 247
+  },
+  {
+    "target": "build/exbatch/PRE/unit",
+    "transitive_inputs": 50
+  },
+  {
+    "target": "build/execabort-watch-db0-unit",
+    "transitive_inputs": 293
+  },
+  {
+    "target": "build/execabort-watch-unit",
+    "transitive_inputs": 247
+  },
+  {
+    "target": "build/flipctl-unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/flushfix-header-controls/embedded/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/flushfix-header-controls/int/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/flushfix-header-controls/raw/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/flushfix-header-controls/reheader/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/flushfix-header-controls/string/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/flushfix-header-controls/typeval/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/flushfix-pre-unit",
+    "transitive_inputs": 292
+  },
+  {
+    "target": "build/flushfix-unit",
+    "transitive_inputs": 294
+  },
+  {
+    "target": "build/flushfix-units",
+    "transitive_inputs": 304
+  },
+  {
+    "target": "build/ktls-keyupdate-unit",
+    "transitive_inputs": 6
+  },
+  {
+    "target": "build/kvobj-header-db0-unit",
+    "transitive_inputs": 91
+  },
+  {
+    "target": "build/kvobj-header-unit",
+    "transitive_inputs": 91
+  },
+  {
+    "target": "build/l4prebuild-unit",
+    "transitive_inputs": 248
+  },
+  {
+    "target": "build/l4prebuild-unit-tsan",
+    "transitive_inputs": 154
+  },
+  {
+    "target": "build/lanefull-db0-unit",
+    "transitive_inputs": 294
+  },
+  {
+    "target": "build/lbosc3-unit-pad",
+    "transitive_inputs": 250
+  },
+  {
+    "target": "build/lbplanner-controls/copy-on-io/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/lbplanner-controls/duplicate/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/lbplanner-controls/no-publish/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/lbplanner-controls/record-reuse/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/lbplanner-controls/stale-flip/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/lbplanner-controls/stale-lb/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/lbplanner-controls/timing-budget/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/lbplanner-controls/timing-late-pause/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/lbplanner-controls/timing-lock/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/lbplanner-unit",
+    "transitive_inputs": 248
+  },
+  {
+    "target": "build/lbplanner-unit-pad",
+    "transitive_inputs": 252
+  },
+  {
+    "target": "build/lbplanner-unit-tsan",
+    "transitive_inputs": 51
+  },
+  {
+    "target": "build/lbplanner-units",
+    "transitive_inputs": 267
+  },
+  {
+    "target": "build/mdbqsbr-unit",
+    "transitive_inputs": 49
+  },
+  {
+    "target": "build/mdbqsbr-unit-tsan",
+    "transitive_inputs": 49
+  },
+  {
+    "target": "build/multidb-boundary-unit",
+    "transitive_inputs": 247
+  },
+  {
+    "target": "build/multidb-cost-unit",
+    "transitive_inputs": 293
+  },
+  {
+    "target": "build/multidb-cost-unit-multi",
+    "transitive_inputs": 247
+  },
+  {
+    "target": "build/multidb-unit",
+    "transitive_inputs": 345
+  },
+  {
+    "target": "build/netcap-unit",
+    "transitive_inputs": 247
+  },
+  {
+    "target": "build/netcmd-unit",
+    "transitive_inputs": 244
+  },
+  {
+    "target": "build/netcmd-unit-db0",
+    "transitive_inputs": 294
+  },
+  {
+    "target": "build/overlap-prefetch-unit",
+    "transitive_inputs": 247
+  },
+  {
+    "target": "build/owner-arena-unit",
+    "transitive_inputs": 247
+  },
+  {
+    "target": "build/persistfix-controls/no-refusal/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/persistfix-controls/old-ack/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/persistfix-controls/old-close/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/persistfix-unit",
+    "transitive_inputs": 248
+  },
+  {
+    "target": "build/persistfix-units",
+    "transitive_inputs": 252
+  },
+  {
+    "target": "build/r7shadow-instr",
+    "transitive_inputs": 91
+  },
+  {
+    "target": "build/r7shadow-split-unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/r7shadow-split-unit-db0",
+    "transitive_inputs": 295
+  },
+  {
+    "target": "build/r7shadow-unit",
+    "transitive_inputs": 92
+  },
+  {
+    "target": "build/r7shadow-unit-asan",
+    "transitive_inputs": 92
+  },
+  {
+    "target": "build/read-local-ring-unit",
+    "transitive_inputs": 91
+  },
+  {
+    "target": "build/read-local-write-ring-unit",
+    "transitive_inputs": 91
+  },
+  {
+    "target": "build/rehash-waits-unit",
+    "transitive_inputs": 248
+  },
+  {
+    "target": "build/reorder-engagement-unit",
+    "transitive_inputs": 247
+  },
+  {
+    "target": "build/reorder-engagement-unit-db0",
+    "transitive_inputs": 293
+  },
+  {
+    "target": "build/reorder-unit",
+    "transitive_inputs": 92
+  },
+  {
+    "target": "build/reorder-unit-asan",
+    "transitive_inputs": 92
+  },
+  {
+    "target": "build/reorderscan-unit",
+    "transitive_inputs": 91
+  },
+  {
+    "target": "build/reorderscan-unit-asan",
+    "transitive_inputs": 91
+  },
+  {
+    "target": "build/rlfence-unit",
+    "transitive_inputs": 91
+  },
+  {
+    "target": "build/rltopo-unit",
+    "transitive_inputs": 49
+  },
+  {
+    "target": "build/shutdown-unit",
+    "transitive_inputs": 247
+  },
+  {
+    "target": "build/shutsave-unit",
+    "transitive_inputs": 247
+  },
+  {
+    "target": "build/signalacct-core-unit",
+    "transitive_inputs": 252
+  },
+  {
+    "target": "build/splitlocal-unit",
+    "transitive_inputs": 9
+  },
+  {
+    "target": "build/store-regression",
+    "transitive_inputs": 108
+  },
+  {
+    "target": "build/store-regression-sidecar",
+    "transitive_inputs": 108
+  },
+  {
+    "target": "build/store-regression-tsan",
+    "transitive_inputs": 108
+  },
+  {
+    "target": "build/storesize-unit",
+    "transitive_inputs": 293
+  },
+  {
+    "target": "build/tailgen-unit",
+    "transitive_inputs": 11
+  },
+  {
+    "target": "build/tailgen-unit-asan",
+    "transitive_inputs": 11
+  },
+  {
+    "target": "build/tailgen-unit-tsan",
+    "transitive_inputs": 11
+  },
+  {
+    "target": "build/waits-unit",
+    "transitive_inputs": 91
+  },
+  {
+    "target": "build/wb-rule-completion-controls/gather-reset/db0-unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/wb-rule-completion-controls/gather-reset/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/wb-rule-completion-controls/serve-reset/db0-unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/wb-rule-completion-controls/serve-reset/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/wb-rule-completion-controls/small-early/db0-unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/wb-rule-completion-controls/small-early/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/wb-rule-completion-controls/small-late/db0-unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/wb-rule-completion-controls/small-late/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/wb-rule-completion-controls/visits-early/db0-unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/wb-rule-completion-controls/visits-early/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/wb-rule-completion-controls/visits-late/db0-unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/wb-rule-completion-controls/visits-late/unit",
+    "transitive_inputs": 1
+  },
+  {
+    "target": "build/wb-rule-completion-unit",
+    "transitive_inputs": 92
+  },
+  {
+    "target": "build/wb-rule-controls/borrow/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/budget/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/capture/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/code/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/crlf/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/dead/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/direct/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/done-bytes/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/fastpath/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/floor/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/gather-aof/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/gather-capture/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/gather-chunks/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/gather-dead/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/gather-head/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/gather-pin/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/gather-policy/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/gather-rotation/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/gather-visit/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/gather-work/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/head/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/hole/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/marker/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/no-sum/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/parse/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/pin/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/pre-read/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/relaxed/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/rotation/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/scatter-exit/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/spill/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/split-aof/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/split-budget/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/split-ex/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/split-local/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/split-policy/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/staged-clause/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/staged-source/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/submitted/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/visit/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-controls/walk-tail/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/whole/unit",
+    "transitive_inputs": 93
+  },
+  {
+    "target": "build/wb-rule-controls/work/unit",
+    "transitive_inputs": 249
+  },
+  {
+    "target": "build/wb-rule-db0-completion-unit",
+    "transitive_inputs": 92
+  },
+  {
+    "target": "build/wb-rule-db0-phase-unit",
+    "transitive_inputs": 293
+  },
+  {
+    "target": "build/wb-rule-db0-unit",
+    "transitive_inputs": 91
+  },
+  {
+    "target": "build/wb-rule-phase-unit",
+    "transitive_inputs": 247
+  },
+  {
+    "target": "build/wb-rule-unit",
+    "transitive_inputs": 91
+  },
+  {
+    "target": "build/wb-rule-units",
+    "transitive_inputs": 344
+  },
+  {
+    "target": "build/wbland-clause-controls/borrow/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/code/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/crlf/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/direct/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/done-bytes/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/fastpath/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/floor/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/hole/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/marker/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/no-sum/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/pre-read/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/relaxed/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/scatter-exit/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/spill/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/staged-clause/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/staged-source/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/submitted/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/walk-tail/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-controls/whole/unit",
+    "transitive_inputs": 94
+  },
+  {
+    "target": "build/wbland-clause-unit",
+    "transitive_inputs": 92
+  },
+  {
+    "target": "build/wbland-controls/byte-limit/unit",
+    "transitive_inputs": 95
+  },
+  {
+    "target": "build/wbland-controls/empty/unit",
+    "transitive_inputs": 95
+  },
+  {
+    "target": "build/wbland-controls/flushall/unit",
+    "transitive_inputs": 95
+  },
+  {
+    "target": "build/wbland-controls/half/unit",
+    "transitive_inputs": 95
+  },
+  {
+    "target": "build/wbland-db0-clause-unit",
+    "transitive_inputs": 92
+  },
+  {
+    "target": "build/wbland-db0-unit",
+    "transitive_inputs": 91
+  },
+  {
+    "target": "build/wbland-unit",
+    "transitive_inputs": 91
+  },
+  {
+    "target": "build/wbland-units",
+    "transitive_inputs": 390
+  }
+]

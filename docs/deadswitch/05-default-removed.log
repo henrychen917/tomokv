@@ -1,0 +1,16 @@
+tests/config_parser_test.cc: In function ‘int main()’:
+tests/config_parser_test.cc:556:19: error: no matching function for call to ‘tomo::LbAutotune::QuietJitter::band()’
+  556 |     if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2))) fail("LB band is not floored measured quiet jitter");
+      |         ~~~~~~~~~~^~
+In file included from tests/config_parser_test.cc:14:
+build/deadswitch/owners-probe/src/core/weighted_lb.h:103:16: note: candidate: ‘double tomo::LbAutotune::QuietJitter::band(uint32_t) const’
+  103 |         double band(uint32_t owners) const {
+      |                ^~~~
+build/deadswitch/owners-probe/src/core/weighted_lb.h:103:16: note:   candidate expects 1 argument, 0 provided
+tests/config_parser_test.cc:558:19: error: no matching function for call to ‘tomo::LbAutotune::QuietJitter::band()’
+  558 |     if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2))) fail("an excursion widened its own LB band");
+      |         ~~~~~~~~~~^~
+build/deadswitch/owners-probe/src/core/weighted_lb.h:103:16: note: candidate: ‘double tomo::LbAutotune::QuietJitter::band(uint32_t) const’
+  103 |         double band(uint32_t owners) const {
+      |                ^~~~
+build/deadswitch/owners-probe/src/core/weighted_lb.h:103:16: note:   candidate expects 1 argument, 0 provided

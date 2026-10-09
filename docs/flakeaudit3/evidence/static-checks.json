@@ -1,0 +1,17 @@
+{
+  "origin": "dab7409642bf0a6d125fb5f479e6d190c7636083",
+  "test_files_changed": [
+    "tests/cd13b_wire.py",
+    "tests/cd13b_window_test.py"
+  ],
+  "gate_unchanged": true,
+  "production_diff_bytes": 0,
+  "serverless_geo_cases": 8,
+  "differ_controls": 24,
+  "gt16_controls": 21,
+  "negative_arms": 7,
+  "no_production_or_gate_edits": true,
+  "proof_status": "LIVE_PROOF_REFUSED",
+  "proof_summary": "proof-summary.json",
+  "compiler_server_load_generator_started": false
+}

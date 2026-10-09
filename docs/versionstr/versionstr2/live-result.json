@@ -1,0 +1,57 @@
+{
+  "status": "BLOCKED_PREFLIGHT",
+  "initial_attempt_plus_retries": 4,
+  "retry_interval_seconds": 200,
+  "span_seconds": 600,
+  "attempts": [
+    {
+      "attempt": 0,
+      "time": "2026-10-08 10:51:50 UTC",
+      "returncodes": [
+        2,
+        2
+      ],
+      "log": "docs/versionstr/versionstr2/live-preflight/quiet-0.log"
+    },
+    {
+      "attempt": 1,
+      "time": "2026-10-08 10:55:10 UTC",
+      "returncodes": [
+        2,
+        2
+      ],
+      "log": "docs/versionstr/versionstr2/live-preflight/quiet-1.log"
+    },
+    {
+      "attempt": 2,
+      "time": "2026-10-08 10:58:30 UTC",
+      "returncodes": [
+        2,
+        2
+      ],
+      "log": "docs/versionstr/versionstr2/live-preflight/quiet-2.log"
+    },
+    {
+      "attempt": 3,
+      "time": "2026-10-08 11:01:50 UTC",
+      "returncodes": [
+        2,
+        2
+      ],
+      "log": "docs/versionstr/versionstr2/live-preflight/quiet-3.log"
+    }
+  ],
+  "requested_cells": 64,
+  "completed_cells": 0,
+  "target_started": false,
+  "oracle_started": false,
+  "oracle_cli_version": "7.4.10",
+  "oracle_info_hello_value": "NOT OBSERVED: no oracle started",
+  "command": [
+    "python3",
+    "-u",
+    "docs/versionstr/versionstr2/live.py",
+    "build/versionstr2/POST/tomokv",
+    "build/versionstr2/live"
+  ]
+}

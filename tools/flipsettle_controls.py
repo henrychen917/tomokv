@@ -104,7 +104,7 @@ def main():
     flags = ['-std=c++20', '-O2', '-g', '-Wall', '-Wextra', '-march=native', '-pthread',
              '-DTOMO_JEMALLOC', '-DTOMO_CORE_CONCURRENCY_TEST', '-I' + str(ROOT)]
     objects = sorted(p for p in (arm / 'src').rglob('*.o')
-                     if p not in [arm / 'src/main.o', arm / 'src/core/flipctl.o'])
+                     if p not in [arm / 'src/main.o', arm / 'src/core/version.o', arm / 'src/core/flipctl.o'])
     libs = ['-ljemalloc', '-luring', '-pthread', '-lssl', '-lcrypto', '-lm']
     targets = [str(out / (m['name'] + '.unit')) for m in mutants]
     lines = ['all: ' + ' '.join(targets)]
@@ -118,12 +118,12 @@ def main():
     positives = []
     for label in ['PRE', 'POST', 'PAD-A']:
         directory = arm.parent / label
-        normal = sorted(p for p in (directory / 'src').rglob('*.o') if p != directory / 'src/main.o')
+        normal = sorted(p for p in (directory / 'src').rglob('*.o') if p.name not in ('main.o', 'version.o'))
         for ns in ['normal', 'db0']:
             driver_obj = out / ('driver.o' if ns == 'normal' else 'driver-db0.o')
             # Lua is deliberately shared and only emitted by the normal namespace objects.
             all_objects = normal if ns == 'normal' else sorted(
-                p for p in (directory / 'db0/src').rglob('*.o') if p != directory / 'db0/src/main.o') + normal
+                p for p in (directory / 'db0/src').rglob('*.o') if p.name not in ('main.o', 'version.o')) + normal
             exe = directory / ('transitions-' + ns)
             recipe(exe, [driver_obj, *all_objects],
                    ['g++', '-pthread', str(driver_obj), *map(str, all_objects), '-o', str(exe), *libs])

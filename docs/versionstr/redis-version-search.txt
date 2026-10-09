@@ -1,0 +1,17 @@
+docs/ccfix3/wire-fused-counted/oracle-identity.txt:2:redis_version:7.4.10
+docs/ccfix3/wire-fused-final/oracle-identity.txt:2:redis_version:7.4.10
+docs/ccfix3/wire-split-counted/oracle-identity.txt:2:redis_version:7.4.10
+docs/ccfix3/wire-split-final/oracle-identity.txt:2:redis_version:7.4.10
+docs/ccfix4/wire-fused/oracle-identity.txt:2:redis_version:7.4.10
+docs/ccfix4/wire-manifest.json:5:      "oracle": "redis_version:7.4.10",
+docs/ccfix4/wire-manifest.json:38:      "oracle": "redis_version:7.4.10",
+docs/ccfix4/wire-split/oracle-identity.txt:2:redis_version:7.4.10
+tests/at15.py:81:            assert sections == {b'# Server'} and b'redis_version:' in body
+tests/cmdmeta_test.py:55:            return b"redis_version:7.4.10\r\n"
+tests/debug_load_test.py:191:        for body in (b"", b"redis_version:7.4.10\r\n", status(flip="idle"), status(lb="idle"),
+tests/differ.py:5669:    if not isinstance(version, bytes) or b"redis_version:7.4.10\r\n" not in version:
+tests/differ_fanout_test.py:127:print('redis_version:7.4.10')
+tests/differ_gate.sh:325:if ! grep -q '^redis_version:' <<<"$ORACLE_INFO" ||
+tests/differ_gate.sh:334:REDIS_VERSION=$(sed -n 's/^redis_version://p' <<<"$ORACLE_INFO" | head -1)
+tests/sortstore.py:37:    assert any(line.startswith(b"redis_version:7.4.") for line in info.splitlines()), info
+tools/ccfix3_wire.sh:29:grep -q '^redis_version:7\.4\.10' "$OUT/oracle-identity.txt"

@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclkeys/tests/differ.py", line 4782, in <module>
+    sys.exit(run_aclkeys(globals()))
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aclkeys/tests/_differ_aclkeys.py", line 109, in run
+    replies = [read_reply(worker[1]) for worker in workers]
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aclkeys/tests/differ.py", line 52, in read_reply
+    line = f.readline()
+           ^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: timed out

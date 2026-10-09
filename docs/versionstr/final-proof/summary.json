@@ -1,0 +1,116 @@
+{
+  "objects": 94,
+  "functions": 17061,
+  "changed": 33,
+  "ordinary": 4836,
+  "ordinary_equal": 4831,
+  "ordinary_raw_equal": 4824,
+  "ordinary_instruction_counts_equal": 4831,
+  "ordinary_instructions_pre": 1136512,
+  "ordinary_instructions_post": 1136497,
+  "linked_ordinary": 3021,
+  "linked_proven": 3016,
+  "linked_raw_equal": 568,
+  "layouts_equal": true,
+  "unexplained": [
+    {
+      "object": "db0/src/main.o",
+      "symbol": "_ZN8tomo_db011AofProducerD1Ev",
+      "name": "tomo_db0::AofProducer::~AofProducer()",
+      "ordinary": false,
+      "pre_size": 2721,
+      "post_size": 2722,
+      "pre_instructions": 677,
+      "post_instructions": 679,
+      "raw_equal": false,
+      "equal": false,
+      "reason": null
+    },
+    {
+      "object": "db0/src/main.o",
+      "symbol": "_ZN8tomo_db011AofProducerD2Ev",
+      "name": "tomo_db0::AofProducer::~AofProducer()",
+      "ordinary": false,
+      "pre_size": 2721,
+      "post_size": 2722,
+      "pre_instructions": 677,
+      "post_instructions": 679,
+      "raw_equal": false,
+      "equal": false,
+      "reason": null
+    },
+    {
+      "object": "db0/src/main.o",
+      "symbol": "_ZN8tomo_db09FlatStore8hash_keyENS_5SliceE.isra.0",
+      "name": "tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]",
+      "ordinary": true,
+      "pre_size": 845,
+      "post_size": 781,
+      "pre_instructions": 195,
+      "post_instructions": 180,
+      "raw_equal": false,
+      "equal": false,
+      "reason": null
+    },
+    {
+      "object": "db0/src/main.o",
+      "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb0ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "name": "tomo_db0::WbEngine::serve_impl<false, true, false, false, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "ordinary": true,
+      "pre_size": 537,
+      "post_size": 824,
+      "pre_instructions": 122,
+      "post_instructions": 183,
+      "raw_equal": false,
+      "equal": false,
+      "reason": null
+    },
+    {
+      "object": "db0/src/main.o",
+      "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb0ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "name": "tomo_db0::WbEngine::serve_impl<false, true, false, true, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "ordinary": true,
+      "pre_size": 537,
+      "post_size": 824,
+      "pre_instructions": 122,
+      "post_instructions": 183,
+      "raw_equal": false,
+      "equal": false,
+      "reason": null
+    },
+    {
+      "object": "db0/src/main.o",
+      "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb0ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "name": "tomo_db0::WbEngine::serve_impl<false, true, true, false, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "ordinary": true,
+      "pre_size": 824,
+      "post_size": 537,
+      "pre_instructions": 183,
+      "post_instructions": 122,
+      "raw_equal": false,
+      "equal": false,
+      "reason": null
+    },
+    {
+      "object": "db0/src/main.o",
+      "symbol": "_ZZN8tomo_db08WbEngine10serve_implILb0ELb1ELb1ELb1ELb0ELb0EEEbRNS_6ClientEPbENKUlRNS_2OpEE_clES6_",
+      "name": "tomo_db0::WbEngine::serve_impl<false, true, true, true, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const",
+      "ordinary": true,
+      "pre_size": 824,
+      "post_size": 537,
+      "pre_instructions": 183,
+      "post_instructions": 122,
+      "raw_equal": false,
+      "equal": false,
+      "reason": null
+    }
+  ],
+  "PRE": {
+    "sha256": "22e5ba97c9404a50f73ba1105a7749bc4a14b8c5b428e17e2994c0ccaf87778e",
+    "text_bytes": 7817349
+  },
+  "POST": {
+    "sha256": "2f8aeac8a9a59c1a0217738004394f1761ef57cff959e9f433f9bf21eeb373dc",
+    "text_bytes": 7817557
+  }
+}

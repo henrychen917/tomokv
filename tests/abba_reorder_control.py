@@ -7,13 +7,14 @@ These two different axes must not be conflated. A zero natural permutation
 count stays explicitly unobserved, backed by the directed control's counter.
 """
 import copy
-from dataclasses import asdict, replace
+from dataclasses import replace
 import json
 from pathlib import Path
 import re
 import shlex
 import time
 
+from abbagate import cell_receipt
 from abba_evidence import require, digest, instrument, utc_seconds, NULL_MAX_AGE
 from abba_instrument import instrument_fingerprint
 
@@ -100,7 +101,7 @@ def validate_binding(binding, *, cells, fingerprint, binary_sha256, environment,
     require(receipt.get("schema") == 1 and receipt.get("kind") == "read-local-reorder-controls" and
             receipt.get("verdict") == "PASS", "missing passing campaign read-local control receipt")
     targets = [cell for cell in cells if controlled(cell)]
-    require(receipt.get("cells") == [asdict(cell) for cell in targets],
+    require(receipt.get("cells") == [cell_receipt(cell) for cell in targets],
             "read-local control cell inventory/shape/load differs")
     require(receipt.get("instrument") == fingerprint and receipt.get("binary_sha256") == binary_sha256,
             "read-local control instrument or frozen binary changed")
@@ -116,7 +117,7 @@ def validate_binding(binding, *, cells, fingerprint, binary_sha256, environment,
     require(utc_seconds(workloads["started_utc"]) + workloads["elapsed_seconds"] <= finished + 1,
             "read-local receipt predates completion of its workloads")
     expected = [variant for cell in targets for variant in pair(cell)]
-    require([row["cell"] for row in workloads["cells"]] == [asdict(cell) for cell in expected] and
+    require([row["cell"] for row in workloads["cells"]] == [cell_receipt(cell) for cell in expected] and
             workloads["cell_source"]["text"] == "".join(cell_line(cell) for cell in expected),
             "read-local OFF/ON workload pair differs from campaign cells")
     proofs = {}
@@ -228,7 +229,7 @@ def collect(args):
     proofs = {cell.id: row["rounds"][0]["runs"][0]["workload_raw"].get("read_local_control")
               for cell, row in zip(targets, workloads["cells"][1::2]) if needs_proof(cell)}
     receipt = dict(schema=1, kind="read-local-reorder-controls", verdict="PASS", completed_at=time.time(),
-        cells=[asdict(cell) for cell in targets], instrument=workloads["instrument_fingerprint"],
+        cells=[cell_receipt(cell) for cell in targets], instrument=workloads["instrument_fingerprint"],
         binary_sha256=workloads["candidate"]["sha256"], workloads=identity(workload_path), proofs=proofs,
         scope="unscored read-local OFF/ON workloads plus armed directed reorder OFF/ON engagement")
     # Publish only after complete replay; a failed receipt never looks consumable.

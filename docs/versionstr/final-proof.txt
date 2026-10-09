@@ -1,0 +1,37 @@
+{
+  "objects": 94,
+  "functions": 17061,
+  "changed": 33,
+  "ordinary": 4836,
+  "ordinary_equal": 4831,
+  "ordinary_raw_equal": 4824,
+  "ordinary_instruction_counts_equal": 4831,
+  "ordinary_instructions_pre": 1136512,
+  "ordinary_instructions_post": 1136497,
+  "linked_ordinary": 3021,
+  "linked_proven": 3016,
+  "linked_raw_equal": 568,
+  "layouts_equal": true,
+  "PRE": {
+    "sha256": "22e5ba97c9404a50f73ba1105a7749bc4a14b8c5b428e17e2994c0ccaf87778e",
+    "text_bytes": 7817349
+  },
+  "POST": {
+    "sha256": "2f8aeac8a9a59c1a0217738004394f1761ef57cff959e9f433f9bf21eeb373dc",
+    "text_bytes": 7817557
+  }
+}
+UNEXPLAINED db0/src/main.o tomo_db0::AofProducer::~AofProducer()
+UNEXPLAINED db0/src/main.o tomo_db0::AofProducer::~AofProducer()
+UNEXPLAINED db0/src/main.o tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+UNEXPLAINED db0/src/main.o tomo_db0::WbEngine::serve_impl<false, true, false, false, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+UNEXPLAINED db0/src/main.o tomo_db0::WbEngine::serve_impl<false, true, false, true, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+UNEXPLAINED db0/src/main.o tomo_db0::WbEngine::serve_impl<false, true, true, false, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+UNEXPLAINED db0/src/main.o tomo_db0::WbEngine::serve_impl<false, true, true, true, false, false>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-versionstr/tools/versionstr_artifacts.py", line 36, in <module>
+    proof.main()
+  File "/home/user/Projects/cx-versionstr/tools/infofields_artifacts.py", line 225, in main
+    assert ordinary and all(r['equal'] for r in ordinary), 'ordinary body changed'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ordinary body changed

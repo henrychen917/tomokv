@@ -15,7 +15,7 @@ No sysctl, MALLOC_CONF, server bytes, threshold, or production flag changes.
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict, replace
+from dataclasses import replace
 import json
 import os
 from pathlib import Path
@@ -359,7 +359,7 @@ def main(args):
             raise RuntimeError("candidate changed while freezing")
         shutil.copy2(fixture / "candidate", fixture / "reference")
         cells = [cell for cell in abba.read_cells(args.cells) if cell.id == "h09"]
-        if len(cells) != 1 or asdict(replace(cells[0], instances=8)) != {"id": "h09", "mode": "1s", "read_local": 1,
+        if len(cells) != 1 or abba.cell_receipt(replace(cells[0], instances=8)) != {"id": "h09", "mode": "1s", "read_local": 1,
                 "overlap": 0, "reorder": 0, "op": "GET", "depth": 32, "conns": 512,
                 "instances": 8, "atomic": 1, "score": "rate", "mix": "-", "smoke": False,
                 "pin_required": True}:
@@ -370,8 +370,8 @@ def main(args):
         # Preserve the stored source pin and change only the private diagnostic cell.
         fields[10] = "8"
         (fixture / "cell.txt").write_text(" | ".join(fields) + "\n")
-        report["source_cell"] = asdict(cells[0])
-        report["cell"] = asdict(replace(cells[0], instances=8))
+        report["source_cell"] = abba.cell_receipt(cells[0])
+        report["cell"] = abba.cell_receipt(replace(cells[0], instances=8))
         write_json(output / "aslr.json", report)
         for name, postures in BLOCKS:
             block = run_block(args, fixture, snapshot, output / name, postures)

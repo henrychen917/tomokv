@@ -1,0 +1,4 @@
+$ taskset -c 112-127 tools/quietcheck.sh 112-127 18340
+quietcheck: assigned cores busy: cpu112=100% cpu113=100% cpu117=100% cpu118=100% cpu119=100% cpu120=100% cpu122=100% cpu123=100% cpu124=100% cpu125=100%
+
+exit=2

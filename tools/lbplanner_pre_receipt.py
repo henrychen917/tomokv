@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
 }
 ''')
 (root/'build/lbplanner-extra.mk').write_text('''include Makefile
-LBPLANNER_PRE_OBJ := $(filter-out build/lbplanner-pre/src/main.o,$(wildcard build/lbplanner-pre/src/*/*.o))
+LBPLANNER_PRE_OBJ := $(filter-out build/lbplanner-pre/src/main.o build/lbplanner-pre/src/core/version.o,$(wildcard build/lbplanner-pre/src/*/*.o))
 build/lbplanner-pre-pass: build/lbplanner-pre-pass.cc $(LBPLANNER_PRE_OBJ)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -Ibuild/lbplanner-pre-source -I. $< $(LBPLANNER_PRE_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/lbplanner-pre-timing: build/lbplanner-pre-timing.cc $(LBPLANNER_PRE_OBJ)

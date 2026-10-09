@@ -24,6 +24,8 @@ namespace {
 
 constexpr uint8_t kFileMagic[8] = {'T','O','M','O','S','N','P','\0'};
 constexpr uint32_t kFileHeaderBytes = 80;
+static_assert(DatabaseMap::kPayloadBytes == 256,
+              "snapshot version 1 stores mapping bytes only, excluding Map::epoch");
 constexpr uint32_t kFrameHeaderBytes = 32;
 constexpr uint32_t kFooterBytes = 32;
 constexpr uint32_t kFrameTag = 0x4d415246;   // "FRAM"
@@ -47,7 +49,7 @@ struct SnapshotIoRequest {
     int fd = -1;
     uint64_t offset = 0;
     size_t remaining = 0;
-    std::array<uint8_t, kFileHeaderBytes + 256> header{};
+    std::array<uint8_t, kFileHeaderBytes + DatabaseMap::kPayloadBytes> header{};
     std::unique_ptr<SnapshotChunk> chunk;
     iovec vectors[2]{};
     uint32_t vector_count = 0;
@@ -550,8 +552,8 @@ bool SnapshotManager::post_chunk(uint32_t producer, std::unique_ptr<SnapshotChun
 }
 
 bool SnapshotManager::write_header_normal() {
-    uint8_t h[kFileHeaderBytes + 256] = {};
-    const uint32_t header_bytes = kFileHeaderBytes + (database_map_extended_ ? 256 : 0);
+    uint8_t h[kFileHeaderBytes + DatabaseMap::kPayloadBytes] = {};
+    const uint32_t header_bytes = kFileHeaderBytes + (database_map_extended_ ? DatabaseMap::kPayloadBytes : 0);
     std::memcpy(h, kFileMagic, sizeof(kFileMagic));
     snapshot_put_u32(h + 8, kSnapshotFormatVersion);
     snapshot_put_u32(h + 12, header_bytes);
@@ -564,8 +566,8 @@ bool SnapshotManager::write_header_normal() {
     snapshot_put_u64(h + 56, g_sip_k1);
     snapshot_put_u64(h + 64, snapshot_checksum(h, 64));
     if (database_map_extended_) {
-        std::memcpy(h + kFileHeaderBytes, database_map_.data(), 256);
-        snapshot_put_u64(h + 72, snapshot_checksum(database_map_.data(), 256));
+        std::memcpy(h + kFileHeaderBytes, database_map_.data(), DatabaseMap::kPayloadBytes);
+        snapshot_put_u64(h + 72, snapshot_checksum(database_map_.data(), DatabaseMap::kPayloadBytes));
     }
     if (!write_all(fd_, h, header_bytes)) return false;
     file_offset_ = header_bytes;
@@ -618,7 +620,7 @@ bool SnapshotManager::write_frame_normal(const SnapshotChunk& chunk) {
 bool SnapshotManager::submit_header_uring(Ring& ring) {
     auto* request = new (std::nothrow) SnapshotIoRequest();
     if (!request) return false;
-    const uint32_t header_bytes = kFileHeaderBytes + (database_map_extended_ ? 256 : 0);
+    const uint32_t header_bytes = kFileHeaderBytes + (database_map_extended_ ? DatabaseMap::kPayloadBytes : 0);
     request->role = SnapshotIoHeader;
     request->epoch = epoch();
     request->fd = fd_;
@@ -636,8 +638,8 @@ bool SnapshotManager::submit_header_uring(Ring& ring) {
                      snapshot_checksum(request->header.data(), 64));
     request->offset = 0;
     if (database_map_extended_) {
-        std::memcpy(request->header.data() + kFileHeaderBytes, database_map_.data(), 256);
-        snapshot_put_u64(request->header.data() + 72, snapshot_checksum(database_map_.data(), 256));
+        std::memcpy(request->header.data() + kFileHeaderBytes, database_map_.data(), DatabaseMap::kPayloadBytes);
+        snapshot_put_u64(request->header.data() + 72, snapshot_checksum(database_map_.data(), DatabaseMap::kPayloadBytes));
     }
     request->remaining = header_bytes;
     request->vectors[0] = {request->header.data(), header_bytes};
@@ -954,7 +956,7 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
         std::memcmp(file.data(), kFileMagic, sizeof(kFileMagic)) != 0 ||
         snapshot_get_u32(file.data() + 8) != kSnapshotFormatVersion ||
         (snapshot_get_u32(file.data() + 12) != kFileHeaderBytes &&
-         snapshot_get_u32(file.data() + 12) != kFileHeaderBytes + 256) ||
+         snapshot_get_u32(file.data() + 12) != kFileHeaderBytes + DatabaseMap::kPayloadBytes) ||
         snapshot_get_u64(file.data() + 64) != snapshot_checksum(file.data(), 64)) {
         error = "invalid snapshot header";
         return nullptr;
@@ -983,11 +985,11 @@ std::unique_ptr<SnapshotLoadPlan> snapshot_read_plan(const char* path, uint32_t 
     if (header_bytes > file.size() - kFooterBytes) { error = "truncated database mapping"; return nullptr; }
     if (header_bytes != kFileHeaderBytes) {
         const uint8_t* map = file.data() + kFileHeaderBytes;
-        if (snapshot_get_u64(file.data() + 72) != snapshot_checksum(map, 256)) {
+        if (snapshot_get_u64(file.data() + 72) != snapshot_checksum(map, DatabaseMap::kPayloadBytes)) {
             error = "invalid database mapping checksum"; return nullptr;
         }
-        bool seen[256]{};
-        for (unsigned i = 0; i < 256; ++i) {
+        bool seen[DatabaseMap::kPayloadBytes]{};
+        for (unsigned i = 0; i < DatabaseMap::kPayloadBytes; ++i) {
             if (seen[map[i]]) { error = "invalid database mapping"; return nullptr; }
             seen[map[i]] = true; plan->database_map[i] = map[i];
         }

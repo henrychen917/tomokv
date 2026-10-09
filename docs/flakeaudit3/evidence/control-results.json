@@ -1,0 +1,56 @@
+[
+  {
+    "arm": "POST",
+    "tests": 8,
+    "passed": true
+  },
+  {
+    "arm": "PRE route-stability assertion",
+    "method": "test_source_moves_during_store_require_fresh_stable_cross_owner_arm",
+    "tests": 1,
+    "expected_assertion_failures": 3,
+    "unexpected_errors": 0
+  },
+  {
+    "arm": "accept changed route",
+    "method": "test_perpetual_post_store_migration_never_passes",
+    "tests": 1,
+    "expected_assertion_failures": 1,
+    "unexpected_errors": 0
+  },
+  {
+    "arm": "remove completion deadline",
+    "method": "test_deadline_cannot_accept_an_otherwise_valid_store",
+    "tests": 1,
+    "expected_assertion_failures": 1,
+    "unexpected_errors": 0
+  },
+  {
+    "arm": "remove store count",
+    "method": "test_bad_store_is_never_retried_even_when_route_moved",
+    "tests": 1,
+    "expected_assertion_failures": 2,
+    "unexpected_errors": 0
+  },
+  {
+    "arm": "remove destination LFU",
+    "method": "test_bad_store_is_never_retried_even_when_route_moved",
+    "tests": 1,
+    "expected_assertion_failures": 2,
+    "unexpected_errors": 0
+  },
+  {
+    "arm": "remove destination encoding",
+    "method": "test_bad_store_is_never_retried_even_when_route_moved",
+    "tests": 1,
+    "expected_assertion_failures": 2,
+    "unexpected_errors": 0
+  },
+  {
+    "arm": "remove destination members",
+    "method": "test_bad_store_is_never_retried_even_when_route_moved",
+    "tests": 1,
+    "expected_assertion_failures": 2,
+    "unexpected_errors": 0
+  }
+]

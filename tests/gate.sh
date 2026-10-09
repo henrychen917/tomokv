@@ -3052,7 +3052,11 @@ fi
 job_core_tsan_build(){
   # Match the core unit's Makefile dependencies: reorder's fused boot selector
   # references run_fused_server in genthread.cc even in this serverless binary.
-  local sources=(src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc)
+  local source sources=()
+  for source in src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc; do
+    # Match Makefile's SERVER_ONLY_SRC exclusion; this binary has its own main.
+    [ "$source" = src/core/version.cc ] || sources+=("$source")
+  done
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" tests/parbuild.sh "$CORE_TSAN" \
       "$PWD/build/gate-cache/obj-core-tsan" \

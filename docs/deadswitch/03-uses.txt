@@ -1,0 +1,11 @@
+src/net/conn.h:59:inline constexpr size_t   kRbufInitial  = 16 * 1024;
+src/net/conn.h:288:        rbuf_ = static_cast<char*>(std::malloc(kRbufInitial));
+src/net/conn.h:289:        rcap_ = kRbufInitial;
+src/net/conn.h:388:            char* n = static_cast<char*>(std::realloc(rbuf_, kRbufInitial));
+src/net/conn.h:389:            if (n) { rbuf_ = n; rcap_ = kRbufInitial; }
+src/core/reorder.cc:1448:    const int avail = tls->reserve_input(dst, kRbufInitial);
+src/core/reorder.cc:1549:            kRbufInitial, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
+src/core/io_loop.h:863:            kRbufInitial, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
+src/core/io_loop.h:881:            char* dst = c->read_space(kRbufInitial, avail, c->rob().quiesced(),
+src/core/io_loop.h:918:        const int avail = tls->reserve_input(dst, kRbufInitial);
+src/core/io_loop.h:2475:                kRbufInitial, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));

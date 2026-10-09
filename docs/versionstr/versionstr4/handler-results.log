@@ -1,0 +1,29 @@
+$ taskset -c 112-127 build/versionstr4/handler-multi
+INFO SERVER redis_version=7.4.10 tomokv_version=1.0-cpp
+HELLO 2 version=7.4.10
+HELLO 3 version=7.4.10
+PASS: production handlers; no server started
+exit=0 expected=0
+
+$ taskset -c 112-127 build/versionstr4/handler-multi 7.4.9 1.0-cpp
+FAIL: INFO exact identity, field order and CRLF
+exit=1 expected=1
+
+$ taskset -c 112-127 build/versionstr4/handler-multi 7.4.10 0.1-cpp
+FAIL: INFO exact identity, field order and CRLF
+exit=1 expected=1
+
+$ taskset -c 112-127 build/versionstr4/handler-db0
+INFO SERVER redis_version=7.4.10 tomokv_version=1.0-cpp
+HELLO 2 version=7.4.10
+HELLO 3 version=7.4.10
+PASS: production handlers; no server started
+exit=0 expected=0
+
+$ taskset -c 112-127 build/versionstr4/handler-db0 7.4.9 1.0-cpp
+FAIL: INFO exact identity, field order and CRLF
+exit=1 expected=1
+
+$ taskset -c 112-127 build/versionstr4/handler-db0 7.4.10 0.1-cpp
+FAIL: INFO exact identity, field order and CRLF
+exit=1 expected=1

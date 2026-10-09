@@ -51,7 +51,7 @@
 
 namespace tomo {
 
-inline constexpr uint32_t kRecvChunk = 16 * 1024;
+// Receive requests use the connection buffer's initial quantum.
 
 // IO and EX responsibilities compose on one physical thread in fused mode:
 //
@@ -861,7 +861,7 @@ private:
         // points into. See Conn::read_space.
         const bool may_grow = c->rob().quiesced();
         char* dst = c->read_space(
-            kRecvChunk, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
+            kRbufInitial, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
         if (!dst) return;                      // no usable space yet: let the ROB drain first
         io_uring_sqe* s = ring_.sqe();
         if (!s) { self_->sig().sqe_starved++; return; }   // retried from flush_ready next pass
@@ -879,7 +879,7 @@ private:
     void epoll_recv(Client* c) {
         for (;;) {
             size_t avail = 0;
-            char* dst = c->read_space(kRecvChunk, avail, c->rob().quiesced(),
+            char* dst = c->read_space(kRbufInitial, avail, c->rob().quiesced(),
                                       proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
             if (!dst) return;              // no usable space: stay un-armed so a later pass retries
             const ssize_t n = ::recv(c->fd(), dst, avail, MSG_DONTWAIT);
@@ -916,7 +916,7 @@ private:
         // a request/response client until it happens to send unrelated bytes.
         if (tls->input_pending()) return;
         char* dst = nullptr;
-        const int avail = tls->reserve_input(dst, kRecvChunk);
+        const int avail = tls->reserve_input(dst, kRbufInitial);
         if (avail <= 0) return;
         if constexpr (kEp) {
             const ssize_t n = ::recv(c->fd(), dst, static_cast<size_t>(avail), MSG_DONTWAIT);
@@ -2473,7 +2473,7 @@ private:
             size_t avail = 0;
             bool may_grow = c->rob().quiesced();
             char* dst = c->read_space(
-                kRecvChunk, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
+                kRbufInitial, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
             if (!dst) break;
             const TlsIoResult result = tls->read_plain(dst, avail);
             if (result.op == TlsOp::Progress) {

@@ -1,0 +1,4 @@
+tests/config_parser_test.cc:556:    if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2))) fail("LB band is not floored measured quiet jitter");
+tests/config_parser_test.cc:558:    if (noise.band() != std::max(2.0, tomo::LbAutotune::sampling_floor(2))) fail("an excursion widened its own LB band");
+tests/gate.sh:1205:  [ "$variant" != sidecar ] || flags+=' -DTOMO_TTL_DEADLINE_SIDECAR=1'
+tests/reorder_unit.cc:408:    static_assert(kGenthreadExBatchOps == 32 && kGenthreadPipelineExBatchOps == 128);
