@@ -112,8 +112,39 @@ end
     print('PASS eight size locks, every existing Client/IoLoop/Config member offset, both namespaces')
 
 
+def body():
+    # The tracer's fixture must execute the same core body the production TUs
+    # emit. Compare bytes with resolved relocations, not disassembly addresses.
+    from ccfix_audit import audit
+    rows = []
+    for arm in ('PRE', 'POST'):
+        for db0 in (False, True):
+            namespace = 'tomo_db0' if db0 else 'tomo'
+            obj = BUILD / f'{arm}-{namespace}-cost.o'
+            command = FLAGS + (['-DWBKNOBS_PRE', '-I' + str(BUILD / 'PRE-src')] if arm == 'PRE' else [])
+            command += (['-DTOMO_SINGLE_DATABASE=1', '-Dtomo=tomo_db0'] if db0 else [])
+            run(command + ['-I.', '-c', 'tests/wbknobs_cost.cc', '-o', obj])
+            fixture = audit.Elf(obj)
+            names = [name for name in fixture.functions() if 'wb_rule5defer' in name and
+                     ('Settings' in name if arm == 'POST' else name.endswith('_i'))]
+            assert len(names) == 1, names
+            name = names[0]
+            canonical = fixture.canonical(fixture.functions()[name])
+            base = BUILD / 'PRE' if arm == 'PRE' else ROOT / 'build'
+            for source in ('src/main.o', 'src/core/genthread.o', 'src/core/rl2s.o', 'src/core/reorder.o'):
+                relative = ('db0/' if db0 else '') + source
+                production = audit.Elf(base / relative)
+                function = production.functions().get(name)
+                rows.append(dict(arm=arm, namespace=namespace, object=relative,
+                                 emitted=bool(function), equal=bool(function and
+                                 production.canonical(function) == canonical)))
+    (OUT / 'defer-body-identity.json').write_text(json.dumps(rows, indent=2) + '\n')
+    assert len(rows) == 16 and all(row['emitted'] and row['equal'] for row in rows), rows
+    print('PASS all 16 production defer bodies equal their instruction-traced fixture body')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('costs', 'layout'))
+    parser.add_argument('action', choices=('costs', 'layout', 'body'))
     args = parser.parse_args(); OUT.mkdir(parents=True, exist_ok=True); BUILD.mkdir(parents=True, exist_ok=True)
-    (costs if args.action == 'costs' else layout)()
+    {'costs': costs, 'layout': layout, 'body': body}[args.action]()

@@ -1,0 +1,398 @@
+[
+  {
+    "binary": "build/wb-rule-completion-unit",
+    "sha256": "094f6e38cdd547fd4db41c1ea8117920a67316f847639a8ed086cbc3cd52c91b",
+    "case": "lifetime",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-completion lifetime",
+    "passed": true,
+    "stdout": "PASS wb-completion lifetime\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-completion-unit",
+    "sha256": "094f6e38cdd547fd4db41c1ea8117920a67316f847639a8ed086cbc3cd52c91b",
+    "case": "lifetime-serve",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-completion lifetime-serve",
+    "passed": true,
+    "stdout": "PASS wb-completion lifetime-serve\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-completion-unit",
+    "sha256": "094f6e38cdd547fd4db41c1ea8117920a67316f847639a8ed086cbc3cd52c91b",
+    "case": "knob-lifetime",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-completion knob-lifetime",
+    "passed": true,
+    "stdout": "PASS wb-completion knob-lifetime\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-completion-unit",
+    "sha256": "094f6e38cdd547fd4db41c1ea8117920a67316f847639a8ed086cbc3cd52c91b",
+    "case": "knob-lifetime-serve",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-completion knob-lifetime-serve",
+    "passed": true,
+    "stdout": "PASS wb-completion knob-lifetime-serve\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "wbland-fused",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-fused",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-fused\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "wbland-fused",
+    "extra": [
+      "r7"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-fused",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-fused\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "wbland-split",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-split",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-split\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "wbland-local",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-local",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-local\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "wbland-split",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-split",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-split\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "wbland-local",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-local",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-local\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "wbland-split",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-split",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-split\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "wbland-local",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-local",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-local\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-db0-completion-unit",
+    "sha256": "e1cc5a04dec04e802e95a29e5c2af9106545a358afe1a58a13512bf86b5fbd9f",
+    "case": "lifetime",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-completion lifetime",
+    "passed": true,
+    "stdout": "PASS wb-completion lifetime\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-db0-completion-unit",
+    "sha256": "e1cc5a04dec04e802e95a29e5c2af9106545a358afe1a58a13512bf86b5fbd9f",
+    "case": "lifetime-serve",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-completion lifetime-serve",
+    "passed": true,
+    "stdout": "PASS wb-completion lifetime-serve\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-db0-completion-unit",
+    "sha256": "e1cc5a04dec04e802e95a29e5c2af9106545a358afe1a58a13512bf86b5fbd9f",
+    "case": "knob-lifetime",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-completion knob-lifetime",
+    "passed": true,
+    "stdout": "PASS wb-completion knob-lifetime\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-db0-completion-unit",
+    "sha256": "e1cc5a04dec04e802e95a29e5c2af9106545a358afe1a58a13512bf86b5fbd9f",
+    "case": "knob-lifetime-serve",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-completion knob-lifetime-serve",
+    "passed": true,
+    "stdout": "PASS wb-completion knob-lifetime-serve\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "wbland-fused",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-fused",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-fused\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "wbland-fused",
+    "extra": [
+      "r7"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-fused",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-fused\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "wbland-split",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-split",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-split\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "wbland-local",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-local",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-local\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "wbland-split",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-split",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-split\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "wbland-local",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-local",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-local\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "wbland-split",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-split",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-split\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "wbland-local",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule wbland-local",
+    "passed": true,
+    "stdout": "PASS wb-rule wbland-local\n",
+    "stderr": ""
+  },
+  {
+    "binary": "build/wb-rule-completion-controls/gather-reset/unit",
+    "sha256": "399f4b8129c970414f7b6b89df8c2f49e382e56e1108e6523e8dead624028a4f",
+    "case": "lifetime",
+    "extra": [],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-completion lifetime: served connection completes again next pipe",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-completion lifetime: served connection completes again next pipe\n"
+  },
+  {
+    "binary": "build/wb-rule-completion-controls/gather-reset/db0-unit",
+    "sha256": "3ddd1eddf0b8795fcbee69b4d58043ced040b81cdf80124f1bbd595679b341dc",
+    "case": "lifetime",
+    "extra": [],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-completion lifetime: served connection completes again next pipe",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-completion lifetime: served connection completes again next pipe\n"
+  },
+  {
+    "binary": "build/wb-rule-completion-controls/serve-reset/unit",
+    "sha256": "24dc9bb644f763ede9ce808141ebe11b3c140d4a317f328faca1fb57f01d9012",
+    "case": "lifetime-serve",
+    "extra": [],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-completion lifetime-serve: served connection completes again next pipe",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-completion lifetime-serve: served connection completes again next pipe\n"
+  },
+  {
+    "binary": "build/wb-rule-completion-controls/serve-reset/db0-unit",
+    "sha256": "f958ca34f259cdec012134b7227c6e5497c3dc0c2dbc0fadcb952f4d52174313",
+    "case": "lifetime-serve",
+    "extra": [],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-completion lifetime-serve: served connection completes again next pipe",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-completion lifetime-serve: served connection completes again next pipe\n"
+  },
+  {
+    "binary": "build/wb-rule-controls/split-policy/unit",
+    "sha256": "e952752d60e1345fe08ff5bf89517f4f983a649614fbb2e44d61ada899721400",
+    "case": "wbland-fused",
+    "extra": [],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule wbland-fused: wb-policy exact retirement in every physical schedule",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule wbland-fused: wb-policy exact retirement in every physical schedule\n"
+  },
+  {
+    "binary": "build/wb-rule-controls/gather-policy/unit",
+    "sha256": "75b2f37c83d60d7be75f13e46e6363e3a70dcd63226f288fe1bd5162191b4157",
+    "case": "wbland-split",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule wbland-split: wb-policy exact retirement in every physical schedule",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule wbland-split: wb-policy exact retirement in every physical schedule\n"
+  },
+  {
+    "binary": "build/wb-rule-controls/gather-policy/unit",
+    "sha256": "75b2f37c83d60d7be75f13e46e6363e3a70dcd63226f288fe1bd5162191b4157",
+    "case": "wbland-split",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule wbland-split: wb-policy exact retirement in every physical schedule",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule wbland-split: wb-policy exact retirement in every physical schedule\n"
+  }
+]

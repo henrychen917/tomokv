@@ -1,0 +1,3698 @@
+{
+  "PRE": {
+    "tomo": {
+      "sizes": {
+        "Op": 336,
+        "Client": 1984,
+        "ThreadCtx": 1408,
+        "Shard": 1440,
+        "FlatStore": 944,
+        "AtomicEntry": 144,
+        "Config": 624,
+        "Rob<64>": 192
+      },
+      "layouts": {
+        "Client": {
+          "size": 1984,
+          "fields": {
+            "fd_": [
+              0,
+              4
+            ],
+            "rlen_": [
+              4,
+              4
+            ],
+            "rpos_": [
+              8,
+              4
+            ],
+            "last_interaction_s_": [
+              12,
+              4
+            ],
+            "rbuf_": [
+              16,
+              8
+            ],
+            "rcap_": [
+              24,
+              8
+            ],
+            "wsent_": [
+              32,
+              8
+            ],
+            "fill_": [
+              40,
+              1
+            ],
+            "recv_armed_": [
+              41,
+              1
+            ],
+            "send_inflight_": [
+              42,
+              1
+            ],
+            "segmented_send_": [
+              43,
+              1
+            ],
+            "send_requested_": [
+              44,
+              4
+            ],
+            "serve_pending_": [
+              48,
+              1
+            ],
+            "in_active_": [
+              49,
+              1
+            ],
+            "closing_": [
+              50,
+              1
+            ],
+            "dead_": [
+              51,
+              1
+            ],
+            "barrier_owners_": [
+              52,
+              1
+            ],
+            "parse_backpressure_": [
+              53,
+              1
+            ],
+            "subscriber_mode_": [
+              54,
+              1
+            ],
+            "connection_flags_": [
+              55,
+              1
+            ],
+            "obuf_bytes_": [
+              56,
+              8
+            ],
+            "atomic_groups_io_": [
+              64,
+              4
+            ],
+            "session_": [
+              68,
+              4
+            ],
+            "wb_deferrals_": [
+              72,
+              1
+            ],
+            "inline_scanned_": [
+              76,
+              4
+            ],
+            "r7_long_slots_": [
+              80,
+              8
+            ],
+            "r7_long_newest_": [
+              88,
+              8
+            ],
+            "rob_": [
+              128,
+              192
+            ],
+            "buf_": [
+              320,
+              1072
+            ],
+            "segments_": [
+              1392,
+              216
+            ],
+            "send_iov_": [
+              1608,
+              256
+            ],
+            "send_msg_": [
+              1864,
+              56
+            ],
+            "retire_queued_": [
+              1920,
+              1
+            ],
+            "wb_slot_": [
+              1924,
+              4
+            ],
+            "ifid_thread_": [
+              1928,
+              4
+            ],
+            "multi_session_": [
+              1936,
+              8
+            ],
+            "watch_generation_": [
+              1944,
+              8
+            ],
+            "watched_refs_": [
+              1952,
+              4
+            ],
+            "watch_dirty_": [
+              1956,
+              1
+            ],
+            "id_": [
+              1960,
+              8
+            ],
+            "obuf_soft_since_s_": [
+              1968,
+              4
+            ],
+            "obuf_tracking_": [
+              1972,
+              1
+            ],
+            "authenticated_": [
+              1973,
+              1
+            ],
+            "acl_user_idx_": [
+              1976,
+              4
+            ],
+            "tls_slot_": [
+              1980,
+              4
+            ]
+          }
+        },
+        "IoLoop": {
+          "size": 7144,
+          "fields": {
+            "pubsub_channels_": [
+              0,
+              56
+            ],
+            "pubsub_shard_channels_": [
+              56,
+              56
+            ],
+            "pubsub_patterns_": [
+              112,
+              24
+            ],
+            "pubsub_local_": [
+              136,
+              56
+            ],
+            "pubsub_pending_": [
+              192,
+              56
+            ],
+            "pubsub_local_events_": [
+              248,
+              80
+            ],
+            "pubsub_outbox_": [
+              328,
+              24
+            ],
+            "pubsub_outbox_dirty_": [
+              352,
+              24
+            ],
+            "pubsub_pass_pending_": [
+              376,
+              1
+            ],
+            "pubsub_rehome_epoch_": [
+              384,
+              8
+            ],
+            "srv_": [
+              392,
+              8
+            ],
+            "self_": [
+              400,
+              8
+            ],
+            "pending_serve_": [
+              408,
+              80
+            ],
+            "pending_releases_": [
+              488,
+              80
+            ],
+            "pending_handoffs_": [
+              568,
+              80
+            ],
+            "client_migrations_": [
+              648,
+              24
+            ],
+            "client_transfer_failures_": [
+              672,
+              8
+            ],
+            "flip_client_": [
+              680,
+              8
+            ],
+            "flip_op_id_": [
+              688,
+              8
+            ],
+            "flip_epoch_local_": [
+              696,
+              8
+            ],
+            "flip_prepare_epoch_": [
+              704,
+              8
+            ],
+            "flip_pubsub_rehome_epoch_": [
+              712,
+              8
+            ],
+            "deferred_timers_": [
+              720,
+              24
+            ],
+            "scatter_pool_": [
+              744,
+              600
+            ],
+            "flush_tick_": [
+              1344,
+              4
+            ],
+            "backstop_pass_": [
+              1348,
+              1
+            ],
+            "client_cron_beat_ms_": [
+              1352,
+              8
+            ],
+            "lb_client_signal_beat_ms_": [
+              1360,
+              8
+            ],
+            "lb_pause_id_": [
+              1368,
+              8
+            ],
+            "save_cron_beat_ms_": [
+              1376,
+              8
+            ],
+            "client_cron_cursor_": [
+              1384,
+              8
+            ],
+            "cached_now_ms_": [
+              1392,
+              8
+            ],
+            "cached_now_s_": [
+              1400,
+              4
+            ],
+            "client_cron_was_armed_": [
+              1404,
+              1
+            ],
+            "client_lb_signal_armed_": [
+              1405,
+              1
+            ],
+            "lb_controller_armed_": [
+              1406,
+              1
+            ],
+            "lb_client_wake_pending_": [
+              1407,
+              1
+            ],
+            "age_signals_armed_": [
+              1408,
+              1
+            ],
+            "save_cron_writer_": [
+              1409,
+              1
+            ],
+            "flip_stage_snapshot_": [
+              1410,
+              1
+            ],
+            "age_sample_rate_cached_": [
+              1412,
+              4
+            ],
+            "lb_wake_cursor_": [
+              1416,
+              4
+            ],
+            "lb_client_observations_": [
+              1424,
+              24
+            ],
+            "rob_head_ages_": [
+              1448,
+              56
+            ],
+            "rob_age_generation_": [
+              1504,
+              8
+            ],
+            "touched_": [
+              1512,
+              128
+            ],
+            "touched_list_": [
+              1640,
+              512
+            ],
+            "ntouched_": [
+              2152,
+              4
+            ],
+            "dispatch_needed_": [
+              2156,
+              512
+            ],
+            "dead_next_": [
+              2672,
+              24
+            ],
+            "dead_ready_": [
+              2696,
+              24
+            ],
+            "listen_fd_": [
+              2720,
+              4
+            ],
+            "tls_listen_fd_": [
+              2724,
+              4
+            ],
+            "unix_listen_fd_": [
+              2728,
+              4
+            ],
+            "configured_port_": [
+              2732,
+              2
+            ],
+            "accept_generation_": [
+              2736,
+              8
+            ],
+            "accept_cancel_generation_": [
+              2744,
+              8
+            ],
+            "initialized_": [
+              2752,
+              1
+            ],
+            "active_role_": [
+              2753,
+              1
+            ],
+            "prepared_role_": [
+              2754,
+              1
+            ],
+            "aof_bound_": [
+              2755,
+              1
+            ],
+            "ring_": [
+              2760,
+              328
+            ],
+            "epoll_": [
+              3088,
+              1
+            ],
+            "ep_": [
+              3092,
+              3080
+            ],
+            "epoll_closes_": [
+              6176,
+              24
+            ],
+            "wb_": [
+              6200,
+              256
+            ],
+            "accept_pending_": [
+              6456,
+              1
+            ],
+            "tls_accept_pending_": [
+              6457,
+              1
+            ],
+            "unix_accept_pending_": [
+              6458,
+              1
+            ],
+            "accept_armed_": [
+              6459,
+              1
+            ],
+            "tls_accept_armed_": [
+              6460,
+              1
+            ],
+            "unix_accept_armed_": [
+              6461,
+              1
+            ],
+            "accept_quiescing_": [
+              6462,
+              1
+            ],
+            "accept_cancel_submitted_": [
+              6463,
+              1
+            ],
+            "tls_accept_cancel_submitted_": [
+              6464,
+              1
+            ],
+            "unix_rr_": [
+              6472,
+              8
+            ],
+            "random_state_": [
+              6480,
+              8
+            ],
+            "aof_gate_target_": [
+              6488,
+              8
+            ],
+            "active_": [
+              6496,
+              24
+            ],
+            "multi_deferred_": [
+              6520,
+              24
+            ],
+            "pending_multi_cleanups_": [
+              6544,
+              80
+            ],
+            "notify_config_version_": [
+              6624,
+              8
+            ],
+            "notify_armed_": [
+              6632,
+              1
+            ],
+            "notify_config_armed_": [
+              6633,
+              1
+            ],
+            "save_config_armed_": [
+              6634,
+              1
+            ],
+            "proto_max_bulk_len_": [
+              6640,
+              8
+            ],
+            "slowlog_armed_": [
+              6648,
+              1
+            ],
+            "slowlog_arm_": [
+              6656,
+              16
+            ],
+            "pubsub_notification_chains_": [
+              6672,
+              80
+            ],
+            "tls_context_": [
+              6752,
+              8
+            ],
+            "tls_slots_": [
+              6760,
+              24
+            ],
+            "tls_free_slots_": [
+              6784,
+              24
+            ],
+            "climon_pending_": [
+              6808,
+              56
+            ],
+            "climon_conn_": [
+              6864,
+              56
+            ],
+            "climon_track_keys_": [
+              6920,
+              56
+            ],
+            "climon_armed_cached_": [
+              6976,
+              4
+            ],
+            "climon_armed_dirty_": [
+              6980,
+              1
+            ],
+            "climon_pause_deadline_ms_": [
+              6984,
+              8
+            ],
+            "climon_local_monitors_": [
+              6992,
+              4
+            ],
+            "climon_local_trackers_": [
+              6996,
+              4
+            ],
+            "climon_local_reply_": [
+              7000,
+              4
+            ],
+            "climon_monitor_clock_ms_": [
+              7008,
+              8
+            ],
+            "routing_forward_": [
+              7016,
+              56
+            ],
+            "fused_executor_": [
+              7072,
+              8
+            ],
+            "client_work_fences_": [
+              7080,
+              56
+            ],
+            "client_query_buffer_limit_": [
+              7136,
+              8
+            ]
+          }
+        },
+        "Config": {
+          "size": 624,
+          "fields": {
+            "place": [
+              0,
+              8
+            ],
+            "even_ifid": [
+              8,
+              4
+            ],
+            "even_ex": [
+              12,
+              4
+            ],
+            "shard_home": [
+              16,
+              8
+            ],
+            "shards": [
+              24,
+              4
+            ],
+            "pin_threads": [
+              28,
+              1
+            ],
+            "key_lb": [
+              32,
+              4
+            ],
+            "client_lb": [
+              36,
+              4
+            ],
+            "flip_auto": [
+              40,
+              4
+            ],
+            "port": [
+              44,
+              2
+            ],
+            "unixsocketperm": [
+              46,
+              2
+            ],
+            "bind_addr": [
+              48,
+              8
+            ],
+            "unixsocket": [
+              56,
+              8
+            ],
+            "maxclients": [
+              64,
+              4
+            ],
+            "timeout": [
+              68,
+              4
+            ],
+            "tcp_keepalive": [
+              72,
+              4
+            ],
+            "tcp_backlog": [
+              76,
+              4
+            ],
+            "net_io": [
+              80,
+              1
+            ],
+            "overlap": [
+              84,
+              4
+            ],
+            "client_output_buffer_limits": [
+              88,
+              72
+            ],
+            "requirepass": [
+              160,
+              8
+            ],
+            "protected_mode": [
+              168,
+              4
+            ],
+            "enable_debug_command": [
+              172,
+              1
+            ],
+            "aclfile": [
+              176,
+              8
+            ],
+            "acl_pubsub_allchannels": [
+              184,
+              4
+            ],
+            "acllog_max_len": [
+              192,
+              8
+            ],
+            "acl_users": [
+              200,
+              24
+            ],
+            "dir": [
+              224,
+              8
+            ],
+            "dbfilename": [
+              232,
+              8
+            ],
+            "save": [
+              240,
+              24
+            ],
+            "appendonly": [
+              264,
+              1
+            ],
+            "appendfsync": [
+              265,
+              1
+            ],
+            "thread_mode": [
+              266,
+              1
+            ],
+            "read_local": [
+              268,
+              4
+            ],
+            "appendfilename": [
+              272,
+              8
+            ],
+            "appenddirname": [
+              280,
+              8
+            ],
+            "auto_aof_rewrite_percentage": [
+              288,
+              4
+            ],
+            "auto_aof_rewrite_min_size": [
+              296,
+              8
+            ],
+            "aof_timestamp_enabled": [
+              304,
+              1
+            ],
+            "aof_load_truncated": [
+              305,
+              1
+            ],
+            "databases": [
+              308,
+              4
+            ],
+            "proto_max_bulk_len": [
+              312,
+              8
+            ],
+            "zc_min": [
+              320,
+              4
+            ],
+            "maxmemory": [
+              328,
+              8
+            ],
+            "maxmemory_policy": [
+              336,
+              1
+            ],
+            "maxmemory_samples": [
+              340,
+              4
+            ],
+            "atomic": [
+              344,
+              4
+            ],
+            "encodings": [
+              352,
+              64
+            ],
+            "notify_events": [
+              416,
+              4
+            ],
+            "reorder": [
+              420,
+              4
+            ],
+            "tracking_table_max_keys": [
+              424,
+              8
+            ],
+            "tls_port": [
+              432,
+              2
+            ],
+            "tls_cert_file": [
+              440,
+              8
+            ],
+            "tls_key_file": [
+              448,
+              8
+            ],
+            "tls_ca_cert_file": [
+              456,
+              8
+            ],
+            "tls_ca_cert_dir": [
+              464,
+              8
+            ],
+            "tls_auth_clients": [
+              472,
+              1
+            ],
+            "tls_protocols": [
+              480,
+              8
+            ],
+            "tls_ciphers": [
+              488,
+              8
+            ],
+            "tls_ciphersuites": [
+              496,
+              8
+            ],
+            "tls_prefer_server_ciphers": [
+              504,
+              1
+            ],
+            "hll_sparse_max_bytes": [
+              508,
+              4
+            ],
+            "slowlog_log_slower_than": [
+              512,
+              8
+            ],
+            "slowlog_max_len": [
+              520,
+              8
+            ],
+            "latency_monitor_threshold": [
+              528,
+              4
+            ],
+            "conf_path": [
+              536,
+              8
+            ],
+            "wb_policy": [
+              544,
+              4
+            ],
+            "client_query_buffer_limit": [
+              552,
+              8
+            ],
+            "stream_limits": [
+              560,
+              8
+            ],
+            "key_lb_damping": [
+              568,
+              4
+            ],
+            "layout_reserved": [
+              572,
+              52
+            ]
+          }
+        }
+      }
+    },
+    "tomo_db0": {
+      "sizes": {
+        "Op": 336,
+        "Client": 1984,
+        "ThreadCtx": 1408,
+        "Shard": 1440,
+        "FlatStore": 944,
+        "AtomicEntry": 144,
+        "Config": 624,
+        "Rob<64>": 192
+      },
+      "layouts": {
+        "Client": {
+          "size": 1984,
+          "fields": {
+            "fd_": [
+              0,
+              4
+            ],
+            "rlen_": [
+              4,
+              4
+            ],
+            "rpos_": [
+              8,
+              4
+            ],
+            "last_interaction_s_": [
+              12,
+              4
+            ],
+            "rbuf_": [
+              16,
+              8
+            ],
+            "rcap_": [
+              24,
+              8
+            ],
+            "wsent_": [
+              32,
+              8
+            ],
+            "fill_": [
+              40,
+              1
+            ],
+            "recv_armed_": [
+              41,
+              1
+            ],
+            "send_inflight_": [
+              42,
+              1
+            ],
+            "segmented_send_": [
+              43,
+              1
+            ],
+            "send_requested_": [
+              44,
+              4
+            ],
+            "serve_pending_": [
+              48,
+              1
+            ],
+            "in_active_": [
+              49,
+              1
+            ],
+            "closing_": [
+              50,
+              1
+            ],
+            "dead_": [
+              51,
+              1
+            ],
+            "barrier_owners_": [
+              52,
+              1
+            ],
+            "parse_backpressure_": [
+              53,
+              1
+            ],
+            "subscriber_mode_": [
+              54,
+              1
+            ],
+            "connection_flags_": [
+              55,
+              1
+            ],
+            "obuf_bytes_": [
+              56,
+              8
+            ],
+            "atomic_groups_io_": [
+              64,
+              4
+            ],
+            "session_": [
+              68,
+              4
+            ],
+            "wb_deferrals_": [
+              72,
+              1
+            ],
+            "inline_scanned_": [
+              76,
+              4
+            ],
+            "r7_long_slots_": [
+              80,
+              8
+            ],
+            "r7_long_newest_": [
+              88,
+              8
+            ],
+            "rob_": [
+              128,
+              192
+            ],
+            "buf_": [
+              320,
+              1072
+            ],
+            "segments_": [
+              1392,
+              216
+            ],
+            "send_iov_": [
+              1608,
+              256
+            ],
+            "send_msg_": [
+              1864,
+              56
+            ],
+            "retire_queued_": [
+              1920,
+              1
+            ],
+            "wb_slot_": [
+              1924,
+              4
+            ],
+            "ifid_thread_": [
+              1928,
+              4
+            ],
+            "multi_session_": [
+              1936,
+              8
+            ],
+            "watch_generation_": [
+              1944,
+              8
+            ],
+            "watched_refs_": [
+              1952,
+              4
+            ],
+            "watch_dirty_": [
+              1956,
+              1
+            ],
+            "id_": [
+              1960,
+              8
+            ],
+            "obuf_soft_since_s_": [
+              1968,
+              4
+            ],
+            "obuf_tracking_": [
+              1972,
+              1
+            ],
+            "authenticated_": [
+              1973,
+              1
+            ],
+            "acl_user_idx_": [
+              1976,
+              4
+            ],
+            "tls_slot_": [
+              1980,
+              4
+            ]
+          }
+        },
+        "IoLoop": {
+          "size": 7144,
+          "fields": {
+            "pubsub_channels_": [
+              0,
+              56
+            ],
+            "pubsub_shard_channels_": [
+              56,
+              56
+            ],
+            "pubsub_patterns_": [
+              112,
+              24
+            ],
+            "pubsub_local_": [
+              136,
+              56
+            ],
+            "pubsub_pending_": [
+              192,
+              56
+            ],
+            "pubsub_local_events_": [
+              248,
+              80
+            ],
+            "pubsub_outbox_": [
+              328,
+              24
+            ],
+            "pubsub_outbox_dirty_": [
+              352,
+              24
+            ],
+            "pubsub_pass_pending_": [
+              376,
+              1
+            ],
+            "pubsub_rehome_epoch_": [
+              384,
+              8
+            ],
+            "srv_": [
+              392,
+              8
+            ],
+            "self_": [
+              400,
+              8
+            ],
+            "pending_serve_": [
+              408,
+              80
+            ],
+            "pending_releases_": [
+              488,
+              80
+            ],
+            "pending_handoffs_": [
+              568,
+              80
+            ],
+            "client_migrations_": [
+              648,
+              24
+            ],
+            "client_transfer_failures_": [
+              672,
+              8
+            ],
+            "flip_client_": [
+              680,
+              8
+            ],
+            "flip_op_id_": [
+              688,
+              8
+            ],
+            "flip_epoch_local_": [
+              696,
+              8
+            ],
+            "flip_prepare_epoch_": [
+              704,
+              8
+            ],
+            "flip_pubsub_rehome_epoch_": [
+              712,
+              8
+            ],
+            "deferred_timers_": [
+              720,
+              24
+            ],
+            "scatter_pool_": [
+              744,
+              600
+            ],
+            "flush_tick_": [
+              1344,
+              4
+            ],
+            "backstop_pass_": [
+              1348,
+              1
+            ],
+            "client_cron_beat_ms_": [
+              1352,
+              8
+            ],
+            "lb_client_signal_beat_ms_": [
+              1360,
+              8
+            ],
+            "lb_pause_id_": [
+              1368,
+              8
+            ],
+            "save_cron_beat_ms_": [
+              1376,
+              8
+            ],
+            "client_cron_cursor_": [
+              1384,
+              8
+            ],
+            "cached_now_ms_": [
+              1392,
+              8
+            ],
+            "cached_now_s_": [
+              1400,
+              4
+            ],
+            "client_cron_was_armed_": [
+              1404,
+              1
+            ],
+            "client_lb_signal_armed_": [
+              1405,
+              1
+            ],
+            "lb_controller_armed_": [
+              1406,
+              1
+            ],
+            "lb_client_wake_pending_": [
+              1407,
+              1
+            ],
+            "age_signals_armed_": [
+              1408,
+              1
+            ],
+            "save_cron_writer_": [
+              1409,
+              1
+            ],
+            "flip_stage_snapshot_": [
+              1410,
+              1
+            ],
+            "age_sample_rate_cached_": [
+              1412,
+              4
+            ],
+            "lb_wake_cursor_": [
+              1416,
+              4
+            ],
+            "lb_client_observations_": [
+              1424,
+              24
+            ],
+            "rob_head_ages_": [
+              1448,
+              56
+            ],
+            "rob_age_generation_": [
+              1504,
+              8
+            ],
+            "touched_": [
+              1512,
+              128
+            ],
+            "touched_list_": [
+              1640,
+              512
+            ],
+            "ntouched_": [
+              2152,
+              4
+            ],
+            "dispatch_needed_": [
+              2156,
+              512
+            ],
+            "dead_next_": [
+              2672,
+              24
+            ],
+            "dead_ready_": [
+              2696,
+              24
+            ],
+            "listen_fd_": [
+              2720,
+              4
+            ],
+            "tls_listen_fd_": [
+              2724,
+              4
+            ],
+            "unix_listen_fd_": [
+              2728,
+              4
+            ],
+            "configured_port_": [
+              2732,
+              2
+            ],
+            "accept_generation_": [
+              2736,
+              8
+            ],
+            "accept_cancel_generation_": [
+              2744,
+              8
+            ],
+            "initialized_": [
+              2752,
+              1
+            ],
+            "active_role_": [
+              2753,
+              1
+            ],
+            "prepared_role_": [
+              2754,
+              1
+            ],
+            "aof_bound_": [
+              2755,
+              1
+            ],
+            "ring_": [
+              2760,
+              328
+            ],
+            "epoll_": [
+              3088,
+              1
+            ],
+            "ep_": [
+              3092,
+              3080
+            ],
+            "epoll_closes_": [
+              6176,
+              24
+            ],
+            "wb_": [
+              6200,
+              256
+            ],
+            "accept_pending_": [
+              6456,
+              1
+            ],
+            "tls_accept_pending_": [
+              6457,
+              1
+            ],
+            "unix_accept_pending_": [
+              6458,
+              1
+            ],
+            "accept_armed_": [
+              6459,
+              1
+            ],
+            "tls_accept_armed_": [
+              6460,
+              1
+            ],
+            "unix_accept_armed_": [
+              6461,
+              1
+            ],
+            "accept_quiescing_": [
+              6462,
+              1
+            ],
+            "accept_cancel_submitted_": [
+              6463,
+              1
+            ],
+            "tls_accept_cancel_submitted_": [
+              6464,
+              1
+            ],
+            "unix_rr_": [
+              6472,
+              8
+            ],
+            "random_state_": [
+              6480,
+              8
+            ],
+            "aof_gate_target_": [
+              6488,
+              8
+            ],
+            "active_": [
+              6496,
+              24
+            ],
+            "multi_deferred_": [
+              6520,
+              24
+            ],
+            "pending_multi_cleanups_": [
+              6544,
+              80
+            ],
+            "notify_config_version_": [
+              6624,
+              8
+            ],
+            "notify_armed_": [
+              6632,
+              1
+            ],
+            "notify_config_armed_": [
+              6633,
+              1
+            ],
+            "save_config_armed_": [
+              6634,
+              1
+            ],
+            "proto_max_bulk_len_": [
+              6640,
+              8
+            ],
+            "slowlog_armed_": [
+              6648,
+              1
+            ],
+            "slowlog_arm_": [
+              6656,
+              16
+            ],
+            "pubsub_notification_chains_": [
+              6672,
+              80
+            ],
+            "tls_context_": [
+              6752,
+              8
+            ],
+            "tls_slots_": [
+              6760,
+              24
+            ],
+            "tls_free_slots_": [
+              6784,
+              24
+            ],
+            "climon_pending_": [
+              6808,
+              56
+            ],
+            "climon_conn_": [
+              6864,
+              56
+            ],
+            "climon_track_keys_": [
+              6920,
+              56
+            ],
+            "climon_armed_cached_": [
+              6976,
+              4
+            ],
+            "climon_armed_dirty_": [
+              6980,
+              1
+            ],
+            "climon_pause_deadline_ms_": [
+              6984,
+              8
+            ],
+            "climon_local_monitors_": [
+              6992,
+              4
+            ],
+            "climon_local_trackers_": [
+              6996,
+              4
+            ],
+            "climon_local_reply_": [
+              7000,
+              4
+            ],
+            "climon_monitor_clock_ms_": [
+              7008,
+              8
+            ],
+            "routing_forward_": [
+              7016,
+              56
+            ],
+            "fused_executor_": [
+              7072,
+              8
+            ],
+            "client_work_fences_": [
+              7080,
+              56
+            ],
+            "client_query_buffer_limit_": [
+              7136,
+              8
+            ]
+          }
+        },
+        "Config": {
+          "size": 624,
+          "fields": {
+            "place": [
+              0,
+              8
+            ],
+            "even_ifid": [
+              8,
+              4
+            ],
+            "even_ex": [
+              12,
+              4
+            ],
+            "shard_home": [
+              16,
+              8
+            ],
+            "shards": [
+              24,
+              4
+            ],
+            "pin_threads": [
+              28,
+              1
+            ],
+            "key_lb": [
+              32,
+              4
+            ],
+            "client_lb": [
+              36,
+              4
+            ],
+            "flip_auto": [
+              40,
+              4
+            ],
+            "port": [
+              44,
+              2
+            ],
+            "unixsocketperm": [
+              46,
+              2
+            ],
+            "bind_addr": [
+              48,
+              8
+            ],
+            "unixsocket": [
+              56,
+              8
+            ],
+            "maxclients": [
+              64,
+              4
+            ],
+            "timeout": [
+              68,
+              4
+            ],
+            "tcp_keepalive": [
+              72,
+              4
+            ],
+            "tcp_backlog": [
+              76,
+              4
+            ],
+            "net_io": [
+              80,
+              1
+            ],
+            "overlap": [
+              84,
+              4
+            ],
+            "client_output_buffer_limits": [
+              88,
+              72
+            ],
+            "requirepass": [
+              160,
+              8
+            ],
+            "protected_mode": [
+              168,
+              4
+            ],
+            "enable_debug_command": [
+              172,
+              1
+            ],
+            "aclfile": [
+              176,
+              8
+            ],
+            "acl_pubsub_allchannels": [
+              184,
+              4
+            ],
+            "acllog_max_len": [
+              192,
+              8
+            ],
+            "acl_users": [
+              200,
+              24
+            ],
+            "dir": [
+              224,
+              8
+            ],
+            "dbfilename": [
+              232,
+              8
+            ],
+            "save": [
+              240,
+              24
+            ],
+            "appendonly": [
+              264,
+              1
+            ],
+            "appendfsync": [
+              265,
+              1
+            ],
+            "thread_mode": [
+              266,
+              1
+            ],
+            "read_local": [
+              268,
+              4
+            ],
+            "appendfilename": [
+              272,
+              8
+            ],
+            "appenddirname": [
+              280,
+              8
+            ],
+            "auto_aof_rewrite_percentage": [
+              288,
+              4
+            ],
+            "auto_aof_rewrite_min_size": [
+              296,
+              8
+            ],
+            "aof_timestamp_enabled": [
+              304,
+              1
+            ],
+            "aof_load_truncated": [
+              305,
+              1
+            ],
+            "databases": [
+              308,
+              4
+            ],
+            "proto_max_bulk_len": [
+              312,
+              8
+            ],
+            "zc_min": [
+              320,
+              4
+            ],
+            "maxmemory": [
+              328,
+              8
+            ],
+            "maxmemory_policy": [
+              336,
+              1
+            ],
+            "maxmemory_samples": [
+              340,
+              4
+            ],
+            "atomic": [
+              344,
+              4
+            ],
+            "encodings": [
+              352,
+              64
+            ],
+            "notify_events": [
+              416,
+              4
+            ],
+            "reorder": [
+              420,
+              4
+            ],
+            "tracking_table_max_keys": [
+              424,
+              8
+            ],
+            "tls_port": [
+              432,
+              2
+            ],
+            "tls_cert_file": [
+              440,
+              8
+            ],
+            "tls_key_file": [
+              448,
+              8
+            ],
+            "tls_ca_cert_file": [
+              456,
+              8
+            ],
+            "tls_ca_cert_dir": [
+              464,
+              8
+            ],
+            "tls_auth_clients": [
+              472,
+              1
+            ],
+            "tls_protocols": [
+              480,
+              8
+            ],
+            "tls_ciphers": [
+              488,
+              8
+            ],
+            "tls_ciphersuites": [
+              496,
+              8
+            ],
+            "tls_prefer_server_ciphers": [
+              504,
+              1
+            ],
+            "hll_sparse_max_bytes": [
+              508,
+              4
+            ],
+            "slowlog_log_slower_than": [
+              512,
+              8
+            ],
+            "slowlog_max_len": [
+              520,
+              8
+            ],
+            "latency_monitor_threshold": [
+              528,
+              4
+            ],
+            "conf_path": [
+              536,
+              8
+            ],
+            "wb_policy": [
+              544,
+              4
+            ],
+            "client_query_buffer_limit": [
+              552,
+              8
+            ],
+            "stream_limits": [
+              560,
+              8
+            ],
+            "key_lb_damping": [
+              568,
+              4
+            ],
+            "layout_reserved": [
+              572,
+              52
+            ]
+          }
+        }
+      }
+    }
+  },
+  "POST": {
+    "tomo": {
+      "sizes": {
+        "Op": 336,
+        "Client": 1984,
+        "ThreadCtx": 1408,
+        "Shard": 1440,
+        "FlatStore": 944,
+        "AtomicEntry": 144,
+        "Config": 624,
+        "Rob<64>": 192
+      },
+      "layouts": {
+        "Client": {
+          "size": 1984,
+          "fields": {
+            "fd_": [
+              0,
+              4
+            ],
+            "rlen_": [
+              4,
+              4
+            ],
+            "rpos_": [
+              8,
+              4
+            ],
+            "last_interaction_s_": [
+              12,
+              4
+            ],
+            "rbuf_": [
+              16,
+              8
+            ],
+            "rcap_": [
+              24,
+              8
+            ],
+            "wsent_": [
+              32,
+              8
+            ],
+            "fill_": [
+              40,
+              1
+            ],
+            "recv_armed_": [
+              41,
+              1
+            ],
+            "send_inflight_": [
+              42,
+              1
+            ],
+            "segmented_send_": [
+              43,
+              1
+            ],
+            "send_requested_": [
+              44,
+              4
+            ],
+            "serve_pending_": [
+              48,
+              1
+            ],
+            "in_active_": [
+              49,
+              1
+            ],
+            "closing_": [
+              50,
+              1
+            ],
+            "dead_": [
+              51,
+              1
+            ],
+            "barrier_owners_": [
+              52,
+              1
+            ],
+            "parse_backpressure_": [
+              53,
+              1
+            ],
+            "subscriber_mode_": [
+              54,
+              1
+            ],
+            "connection_flags_": [
+              55,
+              1
+            ],
+            "obuf_bytes_": [
+              56,
+              8
+            ],
+            "atomic_groups_io_": [
+              64,
+              4
+            ],
+            "session_": [
+              68,
+              4
+            ],
+            "wb_deferrals_": [
+              72,
+              1
+            ],
+            "inline_scanned_": [
+              76,
+              4
+            ],
+            "r7_long_slots_": [
+              80,
+              8
+            ],
+            "r7_long_newest_": [
+              88,
+              8
+            ],
+            "rob_": [
+              128,
+              192
+            ],
+            "buf_": [
+              320,
+              1072
+            ],
+            "segments_": [
+              1392,
+              216
+            ],
+            "send_iov_": [
+              1608,
+              256
+            ],
+            "send_msg_": [
+              1864,
+              56
+            ],
+            "retire_queued_": [
+              1920,
+              1
+            ],
+            "wb_slot_": [
+              1924,
+              4
+            ],
+            "ifid_thread_": [
+              1928,
+              4
+            ],
+            "multi_session_": [
+              1936,
+              8
+            ],
+            "watch_generation_": [
+              1944,
+              8
+            ],
+            "watched_refs_": [
+              1952,
+              4
+            ],
+            "watch_dirty_": [
+              1956,
+              1
+            ],
+            "id_": [
+              1960,
+              8
+            ],
+            "obuf_soft_since_s_": [
+              1968,
+              4
+            ],
+            "obuf_tracking_": [
+              1972,
+              1
+            ],
+            "authenticated_": [
+              1973,
+              1
+            ],
+            "acl_user_idx_": [
+              1976,
+              4
+            ],
+            "tls_slot_": [
+              1980,
+              4
+            ]
+          }
+        },
+        "IoLoop": {
+          "size": 7144,
+          "fields": {
+            "pubsub_channels_": [
+              0,
+              56
+            ],
+            "pubsub_shard_channels_": [
+              56,
+              56
+            ],
+            "pubsub_patterns_": [
+              112,
+              24
+            ],
+            "pubsub_local_": [
+              136,
+              56
+            ],
+            "pubsub_pending_": [
+              192,
+              56
+            ],
+            "pubsub_local_events_": [
+              248,
+              80
+            ],
+            "pubsub_outbox_": [
+              328,
+              24
+            ],
+            "pubsub_outbox_dirty_": [
+              352,
+              24
+            ],
+            "pubsub_pass_pending_": [
+              376,
+              1
+            ],
+            "pubsub_rehome_epoch_": [
+              384,
+              8
+            ],
+            "srv_": [
+              392,
+              8
+            ],
+            "self_": [
+              400,
+              8
+            ],
+            "pending_serve_": [
+              408,
+              80
+            ],
+            "pending_releases_": [
+              488,
+              80
+            ],
+            "pending_handoffs_": [
+              568,
+              80
+            ],
+            "client_migrations_": [
+              648,
+              24
+            ],
+            "client_transfer_failures_": [
+              672,
+              8
+            ],
+            "flip_client_": [
+              680,
+              8
+            ],
+            "flip_op_id_": [
+              688,
+              8
+            ],
+            "flip_epoch_local_": [
+              696,
+              8
+            ],
+            "flip_prepare_epoch_": [
+              704,
+              8
+            ],
+            "flip_pubsub_rehome_epoch_": [
+              712,
+              8
+            ],
+            "deferred_timers_": [
+              720,
+              24
+            ],
+            "scatter_pool_": [
+              744,
+              600
+            ],
+            "flush_tick_": [
+              1344,
+              4
+            ],
+            "backstop_pass_": [
+              1348,
+              1
+            ],
+            "wb_config_": [
+              1349,
+              3
+            ],
+            "client_cron_beat_ms_": [
+              1352,
+              8
+            ],
+            "lb_client_signal_beat_ms_": [
+              1360,
+              8
+            ],
+            "lb_pause_id_": [
+              1368,
+              8
+            ],
+            "save_cron_beat_ms_": [
+              1376,
+              8
+            ],
+            "client_cron_cursor_": [
+              1384,
+              8
+            ],
+            "cached_now_ms_": [
+              1392,
+              8
+            ],
+            "cached_now_s_": [
+              1400,
+              4
+            ],
+            "client_cron_was_armed_": [
+              1404,
+              1
+            ],
+            "client_lb_signal_armed_": [
+              1405,
+              1
+            ],
+            "lb_controller_armed_": [
+              1406,
+              1
+            ],
+            "lb_client_wake_pending_": [
+              1407,
+              1
+            ],
+            "age_signals_armed_": [
+              1408,
+              1
+            ],
+            "save_cron_writer_": [
+              1409,
+              1
+            ],
+            "flip_stage_snapshot_": [
+              1410,
+              1
+            ],
+            "age_sample_rate_cached_": [
+              1412,
+              4
+            ],
+            "lb_wake_cursor_": [
+              1416,
+              4
+            ],
+            "lb_client_observations_": [
+              1424,
+              24
+            ],
+            "rob_head_ages_": [
+              1448,
+              56
+            ],
+            "rob_age_generation_": [
+              1504,
+              8
+            ],
+            "touched_": [
+              1512,
+              128
+            ],
+            "touched_list_": [
+              1640,
+              512
+            ],
+            "ntouched_": [
+              2152,
+              4
+            ],
+            "dispatch_needed_": [
+              2156,
+              512
+            ],
+            "dead_next_": [
+              2672,
+              24
+            ],
+            "dead_ready_": [
+              2696,
+              24
+            ],
+            "listen_fd_": [
+              2720,
+              4
+            ],
+            "tls_listen_fd_": [
+              2724,
+              4
+            ],
+            "unix_listen_fd_": [
+              2728,
+              4
+            ],
+            "configured_port_": [
+              2732,
+              2
+            ],
+            "accept_generation_": [
+              2736,
+              8
+            ],
+            "accept_cancel_generation_": [
+              2744,
+              8
+            ],
+            "initialized_": [
+              2752,
+              1
+            ],
+            "active_role_": [
+              2753,
+              1
+            ],
+            "prepared_role_": [
+              2754,
+              1
+            ],
+            "aof_bound_": [
+              2755,
+              1
+            ],
+            "ring_": [
+              2760,
+              328
+            ],
+            "epoll_": [
+              3088,
+              1
+            ],
+            "ep_": [
+              3092,
+              3080
+            ],
+            "epoll_closes_": [
+              6176,
+              24
+            ],
+            "wb_": [
+              6200,
+              256
+            ],
+            "accept_pending_": [
+              6456,
+              1
+            ],
+            "tls_accept_pending_": [
+              6457,
+              1
+            ],
+            "unix_accept_pending_": [
+              6458,
+              1
+            ],
+            "accept_armed_": [
+              6459,
+              1
+            ],
+            "tls_accept_armed_": [
+              6460,
+              1
+            ],
+            "unix_accept_armed_": [
+              6461,
+              1
+            ],
+            "accept_quiescing_": [
+              6462,
+              1
+            ],
+            "accept_cancel_submitted_": [
+              6463,
+              1
+            ],
+            "tls_accept_cancel_submitted_": [
+              6464,
+              1
+            ],
+            "unix_rr_": [
+              6472,
+              8
+            ],
+            "random_state_": [
+              6480,
+              8
+            ],
+            "aof_gate_target_": [
+              6488,
+              8
+            ],
+            "active_": [
+              6496,
+              24
+            ],
+            "multi_deferred_": [
+              6520,
+              24
+            ],
+            "pending_multi_cleanups_": [
+              6544,
+              80
+            ],
+            "notify_config_version_": [
+              6624,
+              8
+            ],
+            "notify_armed_": [
+              6632,
+              1
+            ],
+            "notify_config_armed_": [
+              6633,
+              1
+            ],
+            "save_config_armed_": [
+              6634,
+              1
+            ],
+            "proto_max_bulk_len_": [
+              6640,
+              8
+            ],
+            "slowlog_armed_": [
+              6648,
+              1
+            ],
+            "slowlog_arm_": [
+              6656,
+              16
+            ],
+            "pubsub_notification_chains_": [
+              6672,
+              80
+            ],
+            "tls_context_": [
+              6752,
+              8
+            ],
+            "tls_slots_": [
+              6760,
+              24
+            ],
+            "tls_free_slots_": [
+              6784,
+              24
+            ],
+            "climon_pending_": [
+              6808,
+              56
+            ],
+            "climon_conn_": [
+              6864,
+              56
+            ],
+            "climon_track_keys_": [
+              6920,
+              56
+            ],
+            "climon_armed_cached_": [
+              6976,
+              4
+            ],
+            "climon_armed_dirty_": [
+              6980,
+              1
+            ],
+            "climon_pause_deadline_ms_": [
+              6984,
+              8
+            ],
+            "climon_local_monitors_": [
+              6992,
+              4
+            ],
+            "climon_local_trackers_": [
+              6996,
+              4
+            ],
+            "climon_local_reply_": [
+              7000,
+              4
+            ],
+            "climon_monitor_clock_ms_": [
+              7008,
+              8
+            ],
+            "routing_forward_": [
+              7016,
+              56
+            ],
+            "fused_executor_": [
+              7072,
+              8
+            ],
+            "client_work_fences_": [
+              7080,
+              56
+            ],
+            "client_query_buffer_limit_": [
+              7136,
+              8
+            ]
+          }
+        },
+        "Config": {
+          "size": 624,
+          "fields": {
+            "place": [
+              0,
+              8
+            ],
+            "even_ifid": [
+              8,
+              4
+            ],
+            "even_ex": [
+              12,
+              4
+            ],
+            "shard_home": [
+              16,
+              8
+            ],
+            "shards": [
+              24,
+              4
+            ],
+            "pin_threads": [
+              28,
+              1
+            ],
+            "key_lb": [
+              32,
+              4
+            ],
+            "client_lb": [
+              36,
+              4
+            ],
+            "flip_auto": [
+              40,
+              4
+            ],
+            "port": [
+              44,
+              2
+            ],
+            "unixsocketperm": [
+              46,
+              2
+            ],
+            "bind_addr": [
+              48,
+              8
+            ],
+            "unixsocket": [
+              56,
+              8
+            ],
+            "maxclients": [
+              64,
+              4
+            ],
+            "timeout": [
+              68,
+              4
+            ],
+            "tcp_keepalive": [
+              72,
+              4
+            ],
+            "tcp_backlog": [
+              76,
+              4
+            ],
+            "net_io": [
+              80,
+              1
+            ],
+            "overlap": [
+              84,
+              4
+            ],
+            "client_output_buffer_limits": [
+              88,
+              72
+            ],
+            "requirepass": [
+              160,
+              8
+            ],
+            "protected_mode": [
+              168,
+              4
+            ],
+            "enable_debug_command": [
+              172,
+              1
+            ],
+            "aclfile": [
+              176,
+              8
+            ],
+            "acl_pubsub_allchannels": [
+              184,
+              4
+            ],
+            "acllog_max_len": [
+              192,
+              8
+            ],
+            "acl_users": [
+              200,
+              24
+            ],
+            "dir": [
+              224,
+              8
+            ],
+            "dbfilename": [
+              232,
+              8
+            ],
+            "save": [
+              240,
+              24
+            ],
+            "appendonly": [
+              264,
+              1
+            ],
+            "appendfsync": [
+              265,
+              1
+            ],
+            "thread_mode": [
+              266,
+              1
+            ],
+            "read_local": [
+              268,
+              4
+            ],
+            "appendfilename": [
+              272,
+              8
+            ],
+            "appenddirname": [
+              280,
+              8
+            ],
+            "auto_aof_rewrite_percentage": [
+              288,
+              4
+            ],
+            "auto_aof_rewrite_min_size": [
+              296,
+              8
+            ],
+            "aof_timestamp_enabled": [
+              304,
+              1
+            ],
+            "aof_load_truncated": [
+              305,
+              1
+            ],
+            "databases": [
+              308,
+              4
+            ],
+            "proto_max_bulk_len": [
+              312,
+              8
+            ],
+            "zc_min": [
+              320,
+              4
+            ],
+            "maxmemory": [
+              328,
+              8
+            ],
+            "maxmemory_policy": [
+              336,
+              1
+            ],
+            "maxmemory_samples": [
+              340,
+              4
+            ],
+            "atomic": [
+              344,
+              4
+            ],
+            "encodings": [
+              352,
+              64
+            ],
+            "notify_events": [
+              416,
+              4
+            ],
+            "reorder": [
+              420,
+              4
+            ],
+            "tracking_table_max_keys": [
+              424,
+              8
+            ],
+            "tls_port": [
+              432,
+              2
+            ],
+            "tls_cert_file": [
+              440,
+              8
+            ],
+            "tls_key_file": [
+              448,
+              8
+            ],
+            "tls_ca_cert_file": [
+              456,
+              8
+            ],
+            "tls_ca_cert_dir": [
+              464,
+              8
+            ],
+            "tls_auth_clients": [
+              472,
+              1
+            ],
+            "tls_protocols": [
+              480,
+              8
+            ],
+            "tls_ciphers": [
+              488,
+              8
+            ],
+            "tls_ciphersuites": [
+              496,
+              8
+            ],
+            "tls_prefer_server_ciphers": [
+              504,
+              1
+            ],
+            "hll_sparse_max_bytes": [
+              508,
+              4
+            ],
+            "slowlog_log_slower_than": [
+              512,
+              8
+            ],
+            "slowlog_max_len": [
+              520,
+              8
+            ],
+            "latency_monitor_threshold": [
+              528,
+              4
+            ],
+            "conf_path": [
+              536,
+              8
+            ],
+            "wb_policy": [
+              544,
+              4
+            ],
+            "client_query_buffer_limit": [
+              552,
+              8
+            ],
+            "stream_limits": [
+              560,
+              8
+            ],
+            "key_lb_damping": [
+              568,
+              4
+            ],
+            "wb_small_pipe": [
+              572,
+              4
+            ],
+            "wb_complete_visits": [
+              576,
+              4
+            ],
+            "layout_reserved": [
+              580,
+              44
+            ]
+          }
+        }
+      }
+    },
+    "tomo_db0": {
+      "sizes": {
+        "Op": 336,
+        "Client": 1984,
+        "ThreadCtx": 1408,
+        "Shard": 1440,
+        "FlatStore": 944,
+        "AtomicEntry": 144,
+        "Config": 624,
+        "Rob<64>": 192
+      },
+      "layouts": {
+        "Client": {
+          "size": 1984,
+          "fields": {
+            "fd_": [
+              0,
+              4
+            ],
+            "rlen_": [
+              4,
+              4
+            ],
+            "rpos_": [
+              8,
+              4
+            ],
+            "last_interaction_s_": [
+              12,
+              4
+            ],
+            "rbuf_": [
+              16,
+              8
+            ],
+            "rcap_": [
+              24,
+              8
+            ],
+            "wsent_": [
+              32,
+              8
+            ],
+            "fill_": [
+              40,
+              1
+            ],
+            "recv_armed_": [
+              41,
+              1
+            ],
+            "send_inflight_": [
+              42,
+              1
+            ],
+            "segmented_send_": [
+              43,
+              1
+            ],
+            "send_requested_": [
+              44,
+              4
+            ],
+            "serve_pending_": [
+              48,
+              1
+            ],
+            "in_active_": [
+              49,
+              1
+            ],
+            "closing_": [
+              50,
+              1
+            ],
+            "dead_": [
+              51,
+              1
+            ],
+            "barrier_owners_": [
+              52,
+              1
+            ],
+            "parse_backpressure_": [
+              53,
+              1
+            ],
+            "subscriber_mode_": [
+              54,
+              1
+            ],
+            "connection_flags_": [
+              55,
+              1
+            ],
+            "obuf_bytes_": [
+              56,
+              8
+            ],
+            "atomic_groups_io_": [
+              64,
+              4
+            ],
+            "session_": [
+              68,
+              4
+            ],
+            "wb_deferrals_": [
+              72,
+              1
+            ],
+            "inline_scanned_": [
+              76,
+              4
+            ],
+            "r7_long_slots_": [
+              80,
+              8
+            ],
+            "r7_long_newest_": [
+              88,
+              8
+            ],
+            "rob_": [
+              128,
+              192
+            ],
+            "buf_": [
+              320,
+              1072
+            ],
+            "segments_": [
+              1392,
+              216
+            ],
+            "send_iov_": [
+              1608,
+              256
+            ],
+            "send_msg_": [
+              1864,
+              56
+            ],
+            "retire_queued_": [
+              1920,
+              1
+            ],
+            "wb_slot_": [
+              1924,
+              4
+            ],
+            "ifid_thread_": [
+              1928,
+              4
+            ],
+            "multi_session_": [
+              1936,
+              8
+            ],
+            "watch_generation_": [
+              1944,
+              8
+            ],
+            "watched_refs_": [
+              1952,
+              4
+            ],
+            "watch_dirty_": [
+              1956,
+              1
+            ],
+            "id_": [
+              1960,
+              8
+            ],
+            "obuf_soft_since_s_": [
+              1968,
+              4
+            ],
+            "obuf_tracking_": [
+              1972,
+              1
+            ],
+            "authenticated_": [
+              1973,
+              1
+            ],
+            "acl_user_idx_": [
+              1976,
+              4
+            ],
+            "tls_slot_": [
+              1980,
+              4
+            ]
+          }
+        },
+        "IoLoop": {
+          "size": 7144,
+          "fields": {
+            "pubsub_channels_": [
+              0,
+              56
+            ],
+            "pubsub_shard_channels_": [
+              56,
+              56
+            ],
+            "pubsub_patterns_": [
+              112,
+              24
+            ],
+            "pubsub_local_": [
+              136,
+              56
+            ],
+            "pubsub_pending_": [
+              192,
+              56
+            ],
+            "pubsub_local_events_": [
+              248,
+              80
+            ],
+            "pubsub_outbox_": [
+              328,
+              24
+            ],
+            "pubsub_outbox_dirty_": [
+              352,
+              24
+            ],
+            "pubsub_pass_pending_": [
+              376,
+              1
+            ],
+            "pubsub_rehome_epoch_": [
+              384,
+              8
+            ],
+            "srv_": [
+              392,
+              8
+            ],
+            "self_": [
+              400,
+              8
+            ],
+            "pending_serve_": [
+              408,
+              80
+            ],
+            "pending_releases_": [
+              488,
+              80
+            ],
+            "pending_handoffs_": [
+              568,
+              80
+            ],
+            "client_migrations_": [
+              648,
+              24
+            ],
+            "client_transfer_failures_": [
+              672,
+              8
+            ],
+            "flip_client_": [
+              680,
+              8
+            ],
+            "flip_op_id_": [
+              688,
+              8
+            ],
+            "flip_epoch_local_": [
+              696,
+              8
+            ],
+            "flip_prepare_epoch_": [
+              704,
+              8
+            ],
+            "flip_pubsub_rehome_epoch_": [
+              712,
+              8
+            ],
+            "deferred_timers_": [
+              720,
+              24
+            ],
+            "scatter_pool_": [
+              744,
+              600
+            ],
+            "flush_tick_": [
+              1344,
+              4
+            ],
+            "backstop_pass_": [
+              1348,
+              1
+            ],
+            "wb_config_": [
+              1349,
+              3
+            ],
+            "client_cron_beat_ms_": [
+              1352,
+              8
+            ],
+            "lb_client_signal_beat_ms_": [
+              1360,
+              8
+            ],
+            "lb_pause_id_": [
+              1368,
+              8
+            ],
+            "save_cron_beat_ms_": [
+              1376,
+              8
+            ],
+            "client_cron_cursor_": [
+              1384,
+              8
+            ],
+            "cached_now_ms_": [
+              1392,
+              8
+            ],
+            "cached_now_s_": [
+              1400,
+              4
+            ],
+            "client_cron_was_armed_": [
+              1404,
+              1
+            ],
+            "client_lb_signal_armed_": [
+              1405,
+              1
+            ],
+            "lb_controller_armed_": [
+              1406,
+              1
+            ],
+            "lb_client_wake_pending_": [
+              1407,
+              1
+            ],
+            "age_signals_armed_": [
+              1408,
+              1
+            ],
+            "save_cron_writer_": [
+              1409,
+              1
+            ],
+            "flip_stage_snapshot_": [
+              1410,
+              1
+            ],
+            "age_sample_rate_cached_": [
+              1412,
+              4
+            ],
+            "lb_wake_cursor_": [
+              1416,
+              4
+            ],
+            "lb_client_observations_": [
+              1424,
+              24
+            ],
+            "rob_head_ages_": [
+              1448,
+              56
+            ],
+            "rob_age_generation_": [
+              1504,
+              8
+            ],
+            "touched_": [
+              1512,
+              128
+            ],
+            "touched_list_": [
+              1640,
+              512
+            ],
+            "ntouched_": [
+              2152,
+              4
+            ],
+            "dispatch_needed_": [
+              2156,
+              512
+            ],
+            "dead_next_": [
+              2672,
+              24
+            ],
+            "dead_ready_": [
+              2696,
+              24
+            ],
+            "listen_fd_": [
+              2720,
+              4
+            ],
+            "tls_listen_fd_": [
+              2724,
+              4
+            ],
+            "unix_listen_fd_": [
+              2728,
+              4
+            ],
+            "configured_port_": [
+              2732,
+              2
+            ],
+            "accept_generation_": [
+              2736,
+              8
+            ],
+            "accept_cancel_generation_": [
+              2744,
+              8
+            ],
+            "initialized_": [
+              2752,
+              1
+            ],
+            "active_role_": [
+              2753,
+              1
+            ],
+            "prepared_role_": [
+              2754,
+              1
+            ],
+            "aof_bound_": [
+              2755,
+              1
+            ],
+            "ring_": [
+              2760,
+              328
+            ],
+            "epoll_": [
+              3088,
+              1
+            ],
+            "ep_": [
+              3092,
+              3080
+            ],
+            "epoll_closes_": [
+              6176,
+              24
+            ],
+            "wb_": [
+              6200,
+              256
+            ],
+            "accept_pending_": [
+              6456,
+              1
+            ],
+            "tls_accept_pending_": [
+              6457,
+              1
+            ],
+            "unix_accept_pending_": [
+              6458,
+              1
+            ],
+            "accept_armed_": [
+              6459,
+              1
+            ],
+            "tls_accept_armed_": [
+              6460,
+              1
+            ],
+            "unix_accept_armed_": [
+              6461,
+              1
+            ],
+            "accept_quiescing_": [
+              6462,
+              1
+            ],
+            "accept_cancel_submitted_": [
+              6463,
+              1
+            ],
+            "tls_accept_cancel_submitted_": [
+              6464,
+              1
+            ],
+            "unix_rr_": [
+              6472,
+              8
+            ],
+            "random_state_": [
+              6480,
+              8
+            ],
+            "aof_gate_target_": [
+              6488,
+              8
+            ],
+            "active_": [
+              6496,
+              24
+            ],
+            "multi_deferred_": [
+              6520,
+              24
+            ],
+            "pending_multi_cleanups_": [
+              6544,
+              80
+            ],
+            "notify_config_version_": [
+              6624,
+              8
+            ],
+            "notify_armed_": [
+              6632,
+              1
+            ],
+            "notify_config_armed_": [
+              6633,
+              1
+            ],
+            "save_config_armed_": [
+              6634,
+              1
+            ],
+            "proto_max_bulk_len_": [
+              6640,
+              8
+            ],
+            "slowlog_armed_": [
+              6648,
+              1
+            ],
+            "slowlog_arm_": [
+              6656,
+              16
+            ],
+            "pubsub_notification_chains_": [
+              6672,
+              80
+            ],
+            "tls_context_": [
+              6752,
+              8
+            ],
+            "tls_slots_": [
+              6760,
+              24
+            ],
+            "tls_free_slots_": [
+              6784,
+              24
+            ],
+            "climon_pending_": [
+              6808,
+              56
+            ],
+            "climon_conn_": [
+              6864,
+              56
+            ],
+            "climon_track_keys_": [
+              6920,
+              56
+            ],
+            "climon_armed_cached_": [
+              6976,
+              4
+            ],
+            "climon_armed_dirty_": [
+              6980,
+              1
+            ],
+            "climon_pause_deadline_ms_": [
+              6984,
+              8
+            ],
+            "climon_local_monitors_": [
+              6992,
+              4
+            ],
+            "climon_local_trackers_": [
+              6996,
+              4
+            ],
+            "climon_local_reply_": [
+              7000,
+              4
+            ],
+            "climon_monitor_clock_ms_": [
+              7008,
+              8
+            ],
+            "routing_forward_": [
+              7016,
+              56
+            ],
+            "fused_executor_": [
+              7072,
+              8
+            ],
+            "client_work_fences_": [
+              7080,
+              56
+            ],
+            "client_query_buffer_limit_": [
+              7136,
+              8
+            ]
+          }
+        },
+        "Config": {
+          "size": 624,
+          "fields": {
+            "place": [
+              0,
+              8
+            ],
+            "even_ifid": [
+              8,
+              4
+            ],
+            "even_ex": [
+              12,
+              4
+            ],
+            "shard_home": [
+              16,
+              8
+            ],
+            "shards": [
+              24,
+              4
+            ],
+            "pin_threads": [
+              28,
+              1
+            ],
+            "key_lb": [
+              32,
+              4
+            ],
+            "client_lb": [
+              36,
+              4
+            ],
+            "flip_auto": [
+              40,
+              4
+            ],
+            "port": [
+              44,
+              2
+            ],
+            "unixsocketperm": [
+              46,
+              2
+            ],
+            "bind_addr": [
+              48,
+              8
+            ],
+            "unixsocket": [
+              56,
+              8
+            ],
+            "maxclients": [
+              64,
+              4
+            ],
+            "timeout": [
+              68,
+              4
+            ],
+            "tcp_keepalive": [
+              72,
+              4
+            ],
+            "tcp_backlog": [
+              76,
+              4
+            ],
+            "net_io": [
+              80,
+              1
+            ],
+            "overlap": [
+              84,
+              4
+            ],
+            "client_output_buffer_limits": [
+              88,
+              72
+            ],
+            "requirepass": [
+              160,
+              8
+            ],
+            "protected_mode": [
+              168,
+              4
+            ],
+            "enable_debug_command": [
+              172,
+              1
+            ],
+            "aclfile": [
+              176,
+              8
+            ],
+            "acl_pubsub_allchannels": [
+              184,
+              4
+            ],
+            "acllog_max_len": [
+              192,
+              8
+            ],
+            "acl_users": [
+              200,
+              24
+            ],
+            "dir": [
+              224,
+              8
+            ],
+            "dbfilename": [
+              232,
+              8
+            ],
+            "save": [
+              240,
+              24
+            ],
+            "appendonly": [
+              264,
+              1
+            ],
+            "appendfsync": [
+              265,
+              1
+            ],
+            "thread_mode": [
+              266,
+              1
+            ],
+            "read_local": [
+              268,
+              4
+            ],
+            "appendfilename": [
+              272,
+              8
+            ],
+            "appenddirname": [
+              280,
+              8
+            ],
+            "auto_aof_rewrite_percentage": [
+              288,
+              4
+            ],
+            "auto_aof_rewrite_min_size": [
+              296,
+              8
+            ],
+            "aof_timestamp_enabled": [
+              304,
+              1
+            ],
+            "aof_load_truncated": [
+              305,
+              1
+            ],
+            "databases": [
+              308,
+              4
+            ],
+            "proto_max_bulk_len": [
+              312,
+              8
+            ],
+            "zc_min": [
+              320,
+              4
+            ],
+            "maxmemory": [
+              328,
+              8
+            ],
+            "maxmemory_policy": [
+              336,
+              1
+            ],
+            "maxmemory_samples": [
+              340,
+              4
+            ],
+            "atomic": [
+              344,
+              4
+            ],
+            "encodings": [
+              352,
+              64
+            ],
+            "notify_events": [
+              416,
+              4
+            ],
+            "reorder": [
+              420,
+              4
+            ],
+            "tracking_table_max_keys": [
+              424,
+              8
+            ],
+            "tls_port": [
+              432,
+              2
+            ],
+            "tls_cert_file": [
+              440,
+              8
+            ],
+            "tls_key_file": [
+              448,
+              8
+            ],
+            "tls_ca_cert_file": [
+              456,
+              8
+            ],
+            "tls_ca_cert_dir": [
+              464,
+              8
+            ],
+            "tls_auth_clients": [
+              472,
+              1
+            ],
+            "tls_protocols": [
+              480,
+              8
+            ],
+            "tls_ciphers": [
+              488,
+              8
+            ],
+            "tls_ciphersuites": [
+              496,
+              8
+            ],
+            "tls_prefer_server_ciphers": [
+              504,
+              1
+            ],
+            "hll_sparse_max_bytes": [
+              508,
+              4
+            ],
+            "slowlog_log_slower_than": [
+              512,
+              8
+            ],
+            "slowlog_max_len": [
+              520,
+              8
+            ],
+            "latency_monitor_threshold": [
+              528,
+              4
+            ],
+            "conf_path": [
+              536,
+              8
+            ],
+            "wb_policy": [
+              544,
+              4
+            ],
+            "client_query_buffer_limit": [
+              552,
+              8
+            ],
+            "stream_limits": [
+              560,
+              8
+            ],
+            "key_lb_damping": [
+              568,
+              4
+            ],
+            "wb_small_pipe": [
+              572,
+              4
+            ],
+            "wb_complete_visits": [
+              576,
+              4
+            ],
+            "layout_reserved": [
+              580,
+              44
+            ]
+          }
+        }
+      }
+    }
+  }
+}

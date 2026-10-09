@@ -379,6 +379,9 @@ struct NetcmdRegression {
         check(::mkdtemp(directory), "writeback knob private config directory");
         const std::string path = std::string(directory) + "/tomo.conf";
         server.cfg_.conf_path = path.c_str();
+        std::FILE* file = std::fopen(path.c_str(), "w");
+        check(file, "writeback knob boot config exists for INFO realpath");
+        std::fclose(file);
         command_bind_server(&server);
         test_writeback_knob(name, server.cfg_);
         command_bind_server(nullptr);

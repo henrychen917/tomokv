@@ -1,0 +1,410 @@
+[
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "fused-budget",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule fused-budget",
+    "passed": true,
+    "stdout": "PASS wb-rule fused-budget\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "fastpath",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule fastpath",
+    "passed": true,
+    "stdout": "PASS wb-rule fastpath\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "fifo",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule fifo",
+    "passed": true,
+    "stdout": "PASS wb-rule fifo\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "capture",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule capture",
+    "passed": true,
+    "stdout": "PASS wb-rule capture\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "dead",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule dead",
+    "passed": true,
+    "stdout": "PASS wb-rule dead\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "progress",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule progress",
+    "passed": true,
+    "stdout": "PASS wb-rule progress\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "fused-budget",
+    "extra": [
+      "r7"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule fused-budget",
+    "passed": true,
+    "stdout": "PASS wb-rule fused-budget\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "fastpath",
+    "extra": [
+      "r7"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule fastpath",
+    "passed": true,
+    "stdout": "PASS wb-rule fastpath\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "fifo",
+    "extra": [
+      "r7"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule fifo",
+    "passed": true,
+    "stdout": "PASS wb-rule fifo\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "capture",
+    "extra": [
+      "r7"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule capture",
+    "passed": true,
+    "stdout": "PASS wb-rule capture\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "dead",
+    "extra": [
+      "r7"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule dead",
+    "passed": true,
+    "stdout": "PASS wb-rule dead\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "progress",
+    "extra": [
+      "r7"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule progress",
+    "passed": true,
+    "stdout": "PASS wb-rule progress\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "fused-budget",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule fused-budget",
+    "passed": true,
+    "stdout": "PASS wb-rule fused-budget\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "fastpath",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule fastpath",
+    "passed": true,
+    "stdout": "PASS wb-rule fastpath\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "fifo",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule fifo",
+    "passed": true,
+    "stdout": "PASS wb-rule fifo\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "capture",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule capture",
+    "passed": true,
+    "stdout": "PASS wb-rule capture\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "dead",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule dead",
+    "passed": true,
+    "stdout": "PASS wb-rule dead\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "progress",
+    "extra": [],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule progress",
+    "passed": true,
+    "stdout": "PASS wb-rule progress\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "fused-budget",
+    "extra": [
+      "r7"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule fused-budget",
+    "passed": true,
+    "stdout": "PASS wb-rule fused-budget\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "fastpath",
+    "extra": [
+      "r7"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule fastpath",
+    "passed": true,
+    "stdout": "PASS wb-rule fastpath\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "fifo",
+    "extra": [
+      "r7"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule fifo",
+    "passed": true,
+    "stdout": "PASS wb-rule fifo\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "capture",
+    "extra": [
+      "r7"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule capture",
+    "passed": true,
+    "stdout": "PASS wb-rule capture\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "dead",
+    "extra": [
+      "r7"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule dead",
+    "passed": true,
+    "stdout": "PASS wb-rule dead\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "progress",
+    "extra": [
+      "r7"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule progress",
+    "passed": true,
+    "stdout": "PASS wb-rule progress\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/budget/unit",
+    "sha256": "c4514ec5211f0ff3205887c040549915911451856a913a1ed55f4d71847fbd2d",
+    "case": "fused-budget",
+    "extra": [],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule fused-budget: exact mode-specific budget",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule fused-budget: exact mode-specific budget\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/rotation/unit",
+    "sha256": "7ddedfe42c6d0041e0850ebe52d8d43e6e25c8e95425a0bc1cda37c8127b18ee",
+    "case": "fifo",
+    "extra": [],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule fifo: deferred rotation preserves order",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule fifo: deferred rotation preserves order\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/head/unit",
+    "sha256": "5afb6720057acb7e965dd5d035b3aa48b201163a68af742c806749a332439e2b",
+    "case": "fifo",
+    "extra": [],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule fifo: younger eligible passes deferred head",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule fifo: younger eligible passes deferred head\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/pin/unit",
+    "sha256": "2ad1edfd7e9abf29589a75207adfc8d43acadeb7f8592088adee44c5f7e30fed",
+    "case": "fifo",
+    "extra": [],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule fifo: deferred lifetime pins kept",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule fifo: deferred lifetime pins kept\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/capture/unit",
+    "sha256": "acc7616f2de060129c67fc340a613aa247306ecaba3cfe014b300aaeca4219c8",
+    "case": "capture",
+    "extra": [],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule capture: callback cannot extend captured visit count",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule capture: callback cannot extend captured visit count\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/visit/unit",
+    "sha256": "39e3dca22b65e7addf30e20a61135db1853b1d85b57b46133c498843149d73a0",
+    "case": "fifo",
+    "extra": [],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule fifo: deferred rotation preserves order",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule fifo: deferred rotation preserves order\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/dead/unit",
+    "sha256": "ffdcfe0110e83c8d30871bfb67d1d5052fb6bbaa22f1d4df5f1415c758c5da33",
+    "case": "dead",
+    "extra": [],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule dead: dead entry removed and unpinned",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule dead: dead entry removed and unpinned\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/work/unit",
+    "sha256": "db0f720ce090c184215a654f11157d8e7256a3283a1ff5ec34e9439635af4970",
+    "case": "progress",
+    "extra": [],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule progress: deferral alone is positive work",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule progress: deferral alone is positive work\n"
+  }
+]

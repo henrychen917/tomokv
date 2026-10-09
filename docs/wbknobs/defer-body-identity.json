@@ -1,0 +1,114 @@
+[
+  {
+    "arm": "PRE",
+    "namespace": "tomo",
+    "object": "src/main.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "PRE",
+    "namespace": "tomo",
+    "object": "src/core/genthread.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "PRE",
+    "namespace": "tomo",
+    "object": "src/core/rl2s.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "PRE",
+    "namespace": "tomo",
+    "object": "src/core/reorder.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "PRE",
+    "namespace": "tomo_db0",
+    "object": "db0/src/main.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "PRE",
+    "namespace": "tomo_db0",
+    "object": "db0/src/core/genthread.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "PRE",
+    "namespace": "tomo_db0",
+    "object": "db0/src/core/rl2s.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "PRE",
+    "namespace": "tomo_db0",
+    "object": "db0/src/core/reorder.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "POST",
+    "namespace": "tomo",
+    "object": "src/main.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "POST",
+    "namespace": "tomo",
+    "object": "src/core/genthread.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "POST",
+    "namespace": "tomo",
+    "object": "src/core/rl2s.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "POST",
+    "namespace": "tomo",
+    "object": "src/core/reorder.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "POST",
+    "namespace": "tomo_db0",
+    "object": "db0/src/main.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "POST",
+    "namespace": "tomo_db0",
+    "object": "db0/src/core/genthread.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "POST",
+    "namespace": "tomo_db0",
+    "object": "db0/src/core/rl2s.o",
+    "emitted": true,
+    "equal": true
+  },
+  {
+    "arm": "POST",
+    "namespace": "tomo_db0",
+    "object": "db0/src/core/reorder.o",
+    "emitted": true,
+    "equal": true
+  }
+]

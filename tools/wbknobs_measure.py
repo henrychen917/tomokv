@@ -55,7 +55,15 @@ class SweepRunner(BASE_RUNNER):
         return {**(population or {}), 'wbknobs_boot': boot}
 
 
+class ProfileQuiet(abba.QuietMonitor):
+    def set_phase(self, phase):
+        # Match the existing ASLR diagnostic adapter: phase labels cannot relax
+        # the ordinary selected-core/port budget or erase a latched refusal.
+        self.check()
+
+
 def self_test():
+    import tempfile
     from types import SimpleNamespace
     class Connection:
         def __init__(self, arm): self.values = ARM_SETTINGS[arm]
@@ -93,7 +101,28 @@ def self_test():
             assert 'cannot override' in str(error)
     finally:
         BASE_PLAN = original
-    print('PASS wbknobs measurement coordinator: arm selection, ignored knob, missing INFO, override controls')
+    # Exercise the real CLI/delegation boundary without entering the instrument
+    # or starting a process. In particular PMU mode must stay diagnostic-only.
+    with tempfile.TemporaryDirectory(prefix='wbknobs-plan-', dir=ROOT / 'build') as directory:
+        candidate = Path(directory) / 'candidate'
+        candidate.write_bytes(b'fixture bytes; never executed')
+        for experiment, profile in (('null', 0), ('sweep', 0), ('sweep', 1)):
+            def instrument(args, *, diagnostic_monitor, diagnostic_profile):
+                assert args.candidate == candidate and args.build_reference == 0
+                assert diagnostic_profile == profile
+                assert diagnostic_monitor is (ProfileQuiet if profile else None)
+                assert abba.knob_plan is (sweep_plan if experiment == 'sweep' else BASE_PLAN)
+                assert abba.Runner is (SweepRunner if experiment == 'sweep' else BASE_RUNNER)
+                if experiment == 'sweep':
+                    assert args.reference_binary == candidate
+                return 23
+            argv = [__file__, '--experiment', experiment, '--profile', str(profile),
+                    '--candidate', str(candidate)]
+            with mock.patch.object(sys, 'argv', argv), mock.patch.object(abba, 'main', instrument):
+                assert main() == 23
+            assert abba.knob_plan is BASE_PLAN and abba.Runner is BASE_RUNNER
+    print('PASS wbknobs coordinator: arm selection, ignored knob, missing INFO, override controls, '
+          'normal/diagnostic delegation without server execution')
 
 
 def main():
@@ -131,7 +160,7 @@ def main():
             abba.knob_plan, abba.Runner = sweep_plan, SweepRunner
         # The instrument explicitly reserves PMU collection for a diagnostic
         # run. Keep its permanent untrusted marker and the ordinary quiet checks.
-        return abba.main(args, diagnostic_monitor=abba.QuietMonitor if options.profile else None,
+        return abba.main(args, diagnostic_monitor=ProfileQuiet if options.profile else None,
                          diagnostic_profile=options.profile)
     finally:
         abba.knob_plan, abba.Runner = BASE_PLAN, BASE_RUNNER
