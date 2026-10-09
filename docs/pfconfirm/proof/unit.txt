@@ -17,6 +17,6 @@ test_null_tail_spread_cannot_be_ignored (__main__.VerdictControls.test_null_tail
 test_unstable_null_or_arm_fails_instead_of_widening_threshold (__main__.VerdictControls.test_unstable_null_or_arm_fails_instead_of_widening_threshold) ... ok
 
 ----------------------------------------------------------------------
-Ran 17 tests in 0.962s
+Ran 17 tests in 0.956s
 
 OK

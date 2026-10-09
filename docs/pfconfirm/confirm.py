@@ -257,14 +257,16 @@ class Campaign:
         self.memtier = shutil.which(args.memtier)
         require(self.memtier, "memtier_benchmark unavailable")
 
-    def prepare(self):
-        require(MULTI_KEYS == 8, "M0/B0 guards require eight-key commands; unset TOMO_MULTI_KEYS")
+    def place_observer(self):
         require(set(self.server + self.load) <= os.sched_getaffinity(0),
                 "requested physical CPU geometry is unavailable in current affinity")
         topo = read_topology(self.server + self.load)
         require(len(set(topo.values())) == len(topo), "SMT siblings are not permitted")
-        # All orchestration, TLS setup and trigger threads stay on the granted load CPUs.
+        # Pin before QuietMonitor starts its thread; affinity is inherited at thread creation.
         os.sched_setaffinity(0, self.load)
+
+    def prepare(self):
+        require(MULTI_KEYS == 8, "M0/B0 guards require eight-key commands; unset TOMO_MULTI_KEYS")
         require(sha(self.args.binary) == self.args.sha256, "headline digest differs from explicit pin")
         shutil.copy2(self.args.binary, self.binary)
         require(sha(self.binary) == self.args.sha256, "staged headline digest differs")
@@ -648,6 +650,7 @@ def main():
     signal.alarm(300 if args.smoke else 170 * 60)
     try:
         campaign = Campaign(args)
+        campaign.place_observer()
         # No boot/probe/load/build before the repository's strict, latched quiet screen.
         monitor = QuietMonitor(campaign.server, campaign.load, window_seconds=20,
                                ports=(25000, 25001), sample_artifact=args.output / "quiet-samples.jsonl")

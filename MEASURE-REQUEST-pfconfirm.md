@@ -154,8 +154,9 @@ headline binary above.
   [quiet evidence](docs/pfconfirm/proof/smoke-quiet.json), and
   [six result lines](docs/pfconfirm/proof/smoke-results.jsonl).
 
-The refusal happened at the same unchanged preflight used by the final driver;
-subsequent serverless review strengthened command/configuration/error checks.
+The gate quiet-screen policy and budget are unchanged in the final driver;
+subsequent serverless review strengthened command/configuration/error checks
+and pinned the observer before its thread starts, within the load CPU budget.
 Mainline must first run the short smoke in its quiet slot, with a fresh output
 directory, then the full command:
 
