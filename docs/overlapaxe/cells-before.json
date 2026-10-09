@@ -1,0 +1,224 @@
+[
+  {
+    "path": "docs/ccfix/generic14.cells.txt",
+    "rows": 14,
+    "ov0": 6,
+    "ov1": 8
+  },
+  {
+    "path": "docs/deadcode2/generic-merit-cells.txt",
+    "rows": 14,
+    "ov0": 0,
+    "ov1": 14
+  },
+  {
+    "path": "docs/deadfused/feature-cells.txt",
+    "rows": 32,
+    "ov0": 18,
+    "ov1": 14
+  },
+  {
+    "path": "docs/deadfused/generic-merit-cells.txt",
+    "rows": 14,
+    "ov0": 0,
+    "ov1": 14
+  },
+  {
+    "path": "docs/deadswitch/06-null14-cells.txt",
+    "rows": 14,
+    "ov0": 12,
+    "ov1": 2
+  },
+  {
+    "path": "docs/deadswitch/08-encodings.txt",
+    "rows": 8,
+    "ov0": 8,
+    "ov1": 0
+  },
+  {
+    "path": "docs/encodingfix/threshold-fixture-search.txt.gz",
+    "rows": 14,
+    "ov0": 11,
+    "ov1": 3
+  },
+  {
+    "path": "docs/exbatch/generic-plus-cells.txt",
+    "rows": 23,
+    "ov0": 0,
+    "ov1": 23
+  },
+  {
+    "path": "docs/iopass/split-cells.txt",
+    "rows": 2,
+    "ov0": 0,
+    "ov1": 2
+  },
+  {
+    "path": "docs/lbplanner/4096-cells.txt",
+    "rows": 8,
+    "ov0": 0,
+    "ov1": 8
+  },
+  {
+    "path": "docs/lbplanner/generic-cells.txt",
+    "rows": 14,
+    "ov0": 0,
+    "ov1": 14
+  },
+  {
+    "path": "docs/lbplanner/multidb-cells.txt",
+    "rows": 8,
+    "ov0": 0,
+    "ov1": 8
+  },
+  {
+    "path": "docs/lbplanner/multidb-info-cells.txt",
+    "rows": 4,
+    "ov0": 0,
+    "ov1": 4
+  },
+  {
+    "path": "docs/lbplanner/split-cells.txt",
+    "rows": 4,
+    "ov0": 0,
+    "ov1": 4
+  },
+  {
+    "path": "docs/rlfence2/generic-merit-cells.txt",
+    "rows": 14,
+    "ov0": 0,
+    "ov1": 14
+  },
+  {
+    "path": "tests/abba_aslr.py",
+    "rows": 1,
+    "ov0": 1,
+    "ov1": 0
+  },
+  {
+    "path": "tests/abba_experiments.py",
+    "rows": 3,
+    "ov0": 3,
+    "ov1": 0
+  },
+  {
+    "path": "tests/abbagate.py",
+    "rows": 9,
+    "ov0": 6,
+    "ov1": 3
+  },
+  {
+    "path": "tests/execfix_cells.txt",
+    "rows": 8,
+    "ov0": 8,
+    "ov1": 0
+  },
+  {
+    "path": "tests/gateprod-evidence/changed-text-audit.txt.gz",
+    "rows": 32,
+    "ov0": 16,
+    "ov1": 16
+  },
+  {
+    "path": "tests/gateprod-evidence/changed-text-patterns.txt.gz",
+    "rows": 32,
+    "ov0": 16,
+    "ov1": 16
+  },
+  {
+    "path": "tests/headline_cells.txt",
+    "rows": 181,
+    "ov0": 80,
+    "ov1": 101
+  },
+  {
+    "path": "tests/l4_cells.txt",
+    "rows": 16,
+    "ov0": 16,
+    "ov1": 0
+  },
+  {
+    "path": "tests/load_calibration.py",
+    "rows": 1,
+    "ov0": 1,
+    "ov1": 0
+  },
+  {
+    "path": "tests/mkprobe_cells.txt",
+    "rows": 19,
+    "ov0": 14,
+    "ov1": 5
+  },
+  {
+    "path": "tests/netio_cells.txt",
+    "rows": 32,
+    "ov0": 16,
+    "ov1": 16
+  },
+  {
+    "path": "tests/reorderwb_cells.txt",
+    "rows": 6,
+    "ov0": 0,
+    "ov1": 6
+  },
+  {
+    "path": "tests/signalacct_tail_cells.txt",
+    "rows": 8,
+    "ov0": 0,
+    "ov1": 8
+  },
+  {
+    "path": "tests/standing-null/artifacts/82daac5418e894ee2db39520dbc35559f54e81ee45a2c5b9f76188d2c2af0ac4.json.gz",
+    "rows": 1,
+    "ov0": 0,
+    "ov1": 1
+  },
+  {
+    "path": "tests/ttl_cells.txt",
+    "rows": 2,
+    "ov0": 0,
+    "ov1": 2
+  },
+  {
+    "path": "tests/wb_rule_2s_cells.txt",
+    "rows": 16,
+    "ov0": 0,
+    "ov1": 16
+  },
+  {
+    "path": "tests/wb_rule_cells.txt",
+    "rows": 7,
+    "ov0": 0,
+    "ov1": 7
+  },
+  {
+    "path": "tests/wbhybrid2_cells.txt",
+    "rows": 14,
+    "ov0": 0,
+    "ov1": 14
+  },
+  {
+    "path": "tests/wbhybrid_cells.txt",
+    "rows": 21,
+    "ov0": 0,
+    "ov1": 21
+  },
+  {
+    "path": "tests/wbknobs_sweep_cells.txt",
+    "rows": 2,
+    "ov0": 0,
+    "ov1": 2
+  },
+  {
+    "path": "tests/wbland_4096_cells.txt",
+    "rows": 12,
+    "ov0": 0,
+    "ov1": 12
+  },
+  {
+    "path": "tests/wbland_merit_cells.txt",
+    "rows": 14,
+    "ov0": 0,
+    "ov1": 14
+  }
+]
