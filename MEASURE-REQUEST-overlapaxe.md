@@ -316,8 +316,54 @@ The fixture retains upstream's source digest and documents the one-row derivatio
 As explicitly requested, the merge sets **EXPECT_QUICK=511; EXPECT_FULL=528**
 (`512/529 - 1/-1`), retaining the upstream WAKE_RC LedgerWiring checks.
 
-Verification is in progress using CPUs 112–127 and `make -j16`. Final proof
-results, artifact digests, and the repeated body audit will be appended here.
-The earlier report explicitly records failed hot-body identity; this follow-up
-will report differences against the merged upstream base rather than imply that
-all fused bodies were previously identical.
+Merge commit: `56618ef9b`, parents `2b61a1fec` and `165d268be`.
+The removed WB row's emitting loop is now at `tests/gate.sh:1449`, collected at
+line **3269**; the eight multidb jobs are collected at line **3398**. Both precede
+the quick exit beginning at line **3421** (count check at **3424**), so the exact
+delta remains **-1 quick / -1 full**, with all eight new wake rows in both tiers.
+
+Completed proofs on the merged tree, all drivers pinned with
+`taskset -c 112-127`:
+
+- `make -j16 all`: PASS; full release build compiles and links both `tomo` and
+  `tomo_db0`, including the footprint static assertions.
+- `python3 tests/gates_test.py`: **66/66 PASS**, 75.778 s, including the unchanged
+  upstream LedgerWiring multidb cases for WAKE_RC 0/1/3 in both thread modes.
+- `python3 tests/docs_drift.py --self-test`: **88 spellings PASS**, including all
+  ten positive/negative self-test cases. `python3 tests/r7shadow_sync.py` and
+  `bash -n tests/gate.sh` also pass. An initial optional envelope check used an
+  unsupported `--check` flag and exited 2; the correct default check above passed.
+- [Reproducible live driver](docs/overlapaxe2/run-live.py): **12/12 owned boots
+  PASS**, `databases=1/16 × 1s/2s × read-local=0/1`, plus both atomic settings
+  for db16. Every boot answered **PING, SET/GET, MSET/MGET**. The eight server
+  CPUs are 112–119 (within the assigned 112–127); shards=16, split ratio=6:2,
+  fused=8 threads, uring, key-lb/client-lb=1, reorder/flip-auto=0. INFO checks the
+  exact PID/geometry and active reader threads whenever read-local is armed.
+- Unmodified `tests/aclkeys_wake_state.py`: **8/8 PASS**, exactly
+  `1s/2s × read-local 0/1 × atomic 0/1`, db16, a fresh map per boot. This includes
+  split and armed-fused with both atomic settings. Owner registration, the exact
+  reply, and the original two-second wake deadline remain mandatory.
+- Unmodified `tests/knobs.py`: **3/3 PASS**, split/read-local=0 with db1 atomic=1
+  and db16 atomic=0/1, including retired knob rejection, live encoding controls,
+  and actual geometry checks. Every owned PID was reaped with rc=0, no forced
+  kill, a clean shutdown report, and the listener confirmed closed.
+
+[Live results](docs/overlapaxe2/live-results.json) and
+[complete proof logs](docs/overlapaxe2/proof-logs.json.gz) retain the evidence.
+`tools/mkprobe_probe.py` and `tests/mkprobe_cells.txt` are byte-identical to
+`2b61a1fec`; `build/mkprobe-mainline` is absent in this worktree and was never
+created or written. [Protected-input hashes](docs/overlapaxe2/protected.json).
+No gate, benchmark, or load generator was run; the short live proofs are the
+explicit exception requested by this task.
+
+`build/tomokv` and refreshed `build/overlapaxe/POST/tomokv` are byte-identical,
+SHA-256 **`3ec6574798039760af4fd6497eb3e08d72f4c16a0f0ebaade66ac611efd3be79`**.
+The earlier POST digest above now refers to the saved premerge binary at
+`build/overlapaxe2/premerge-POST/tomokv`; the old PRE/PAD-A remain historical
+artifacts, not rebuilt arms for this merge.
+
+The repeated body audit is in progress against an isolated source archive of
+`165d268be` under `build/overlapaxe2/BASE-src`, also built with `make -j16` on
+CPUs 112–127. The earlier report explicitly records failed hot-body identity;
+this follow-up will report differences rather than imply that all fused bodies
+were previously identical.
