@@ -100,6 +100,9 @@ $(BUILD_ROOT)/db0/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-gro
 # decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
 $(BUILD_ROOT)/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10600
 $(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10600
+# ACLKEYS4's physical namespace argument changes only blocking list publication.
+# Keep every other list body identical; tools/aclkeys4_audit.py checks all bodies.
+$(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=25338
 # PS5/PS7 add cold CONFIG/INFO/finalization code. Retain PRE's inlining decisions
 # for every ordinary command and storage body; tools/psfix_artifacts.py audits both variants.
 $(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31297

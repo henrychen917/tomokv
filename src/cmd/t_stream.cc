@@ -1219,8 +1219,10 @@ void cmd_xadd(Shard& shard, Op& op) {
         if (trimmed) notify_record(shard, op, NOTIFY_STREAM, NotifyEventId::Xtrim, op.key());
     }
     reply_id(op, id);
+    // XREAD registers the captured physical namespace, which SWAPDB may remap.
     if (shard.has_blocking_waiters())
-        blocking_publish_key(shard, op.hash, op.key().p, op.key().n, op.key().ns);
+        blocking_publish_key(shard, op.hash, op.key().p, op.key().n,
+                             kSingleDatabase ? 0 : op.physical_db);
 }
 
 template <bool kNotify>
