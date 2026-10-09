@@ -1,0 +1,29 @@
+{
+  "stage": "selected",
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "tests/gate.sh",
+    "iteration",
+    "--server-cores",
+    "112-119",
+    "--load-cores",
+    "120-127",
+    "--server-smt",
+    "",
+    "--load-smt",
+    "",
+    "--ports",
+    "18340-18342"
+  ],
+  "repetitions": 6,
+  "jobs": [
+    "differ-split-0",
+    "differ-split-1",
+    "differ-armed-0",
+    "differ-armed-1"
+  ],
+  "revision": "bb469e36f032b904545da447b3fc968fc81dc349",
+  "origin": "dab7409642bf0a6d125fb5f479e6d190c7636083"
+}
