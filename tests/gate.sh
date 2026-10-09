@@ -281,8 +281,10 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
 # encodingfix owner ruling: two serverless rows before the quick exit (+2/+2).
-EXPECT_QUICK=504
-EXPECT_FULL=521                 # ABBA reports only; self-test remains counted.
+# aclkeys4: one fresh SWAPDB/XREAD row per multidb mode/read-local/atomic cell,
+# eight rows collected above the quick-tier exit (+8 quick, +8 full).
+EXPECT_QUICK=512
+EXPECT_FULL=529                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -3142,6 +3144,17 @@ job_multidb(){
     ok "$label SWAPDB serial order"
   else
     bad "$label SWAPDB serial order" "see $TMPDIR/multidb-serial.log and $SRVLOG"
+  fi
+  stop
+  row_begin "$label XREAD wake after SWAPDB"
+  # Fresh map: the sole swap must leave logical DB 0 on physical namespace 1.
+  if "$boot_fn" "$CANDIDATE_BINARY" --atomic "$atomic" --read-local "$read_local" \
+        --databases 16 --save '' &&
+      py tests/aclkeys_wake_state.py 127.0.0.1 "$PORT" \
+        >"$TMPDIR/aclkeys-wake-state.log" 2>&1; then
+    ok "$label XREAD wake after SWAPDB"
+  else
+    bad "$label XREAD wake after SWAPDB" "see $TMPDIR/aclkeys-wake-state.log and $SRVLOG"
   fi
   stop
 }

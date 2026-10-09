@@ -1,0 +1,17 @@
+  ok   BLPOP follows argument-order priority
+  ok   BRPOP pops the right edge
+  ok   per-key waiter delivery is FIFO values=[b'v0', b'v1', b'v2', b'v3', b'v4']
+  ok   blocking timeout is coarse but bounded elapsed=0.165
+  ok   BLMOVE timeout replies nil
+  ok   second waiter times out behind a forever waiter elapsed=0.152
+  ok   forever waiter still served after later waiter's timeout result=[[b'block:behind', b'front-value']] errors=[]
+  ok   BLMPOP wakes with key and count payload reply=[[b'block:mb', [b'x', b'y']]]
+  ok   BZMPOP wakes with ordered score/member payload reply=[[b'block:zb', [[b'z', b'3'], [b'y', b'2']]]]
+  ok   BZPOPMIN reply shape
+  ok   BZPOPMAX reply shape
+  ok   blocked connection stops parsing younger frames
+  ok   BLMOVE/BRPOPLPUSH publication chain replies=[b'chain']/[b'chain']/[[b'block:move-out', b'chain']]
+  ok   abandoned atomic push wakes nobody; publish wakes failed=True fired=True hidden=True reply=[[b'block:atomic-dst:0', b'published']]
+  ok   stream waiter skip semantics (different cursors) behind=[[[b'block:stream-skip', [[b'2-0', [b'f', b'wake']]]]]] ahead=[None]
+  ok   disconnect churn drains waiter registry and gauges clients=0 waiters=0
+BLOCKING PASS

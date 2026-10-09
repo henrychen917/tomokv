@@ -1,0 +1,15 @@
+{
+  "production_revision": "0aded867887dc45b29edab79bc4b58ff7f7ace83",
+  "pre_revision": "db86e5b4a051929c68108d33b1dc358428c59bca",
+  "source_sha256": {
+    "Makefile": "46407ef83206e6e37922b7d7bfca0a7f6f6ce26c49c10678f3f4f67144431ff6",
+    "src/cmd/blocking.inc": "ccedd9fe1795d6f321d96d0f02498edf3fa5b02fa0b2b5704ef17586fa34f8ec",
+    "src/cmd/blocking_debug.cc": "ab97b963e589ed65792cdb0146cb557dffebb2de81163bf2280ede1ce0f97d28",
+    "src/cmd/t_server.cc": "f07c488fb98b0afaf6d285bc89a7f0dafae9f883698cb976935b038bd5beec9d",
+    "tests/aclkeys_wake_unit.cc": "ca16819fd3b4a6d99165224beb031f0dd4179c86bf5bd8e83cb6f5a7d2f39ed3"
+  },
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "build_cpus": "112-127",
+  "serverless_cpus": "112-119",
+  "gate_rows_added": 0
+}

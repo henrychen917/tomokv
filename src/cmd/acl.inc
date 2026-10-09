@@ -1,6 +1,13 @@
-// acl.inc -- Redis 7.4 ACL machinery, textually included once by xshard.cc.
+// acl.inc -- Redis 7.4 ACL machinery, textually included once by acl.cc.
 
 namespace tomo {
+
+bool acl_pattern_allowed(const AclSelector& perm, Slice value);
+__attribute__((noinline)) AclDeniedReason acl_check_metadata_keys(
+    const AclSelector& perm, const CommandSpec& spec, uint32_t argc,
+    const void* argument_context, Slice (*argument_at)(const void*, uint32_t),
+    uint32_t* denied_arg);
+
 namespace {
 
 constexpr uint32_t kAclMaxUsers = 65536;
@@ -493,12 +500,6 @@ AclUser* acl_create_locked(AclUserImage&& image, uint32_t requested_index = UINT
     return user;
 }
 
-bool acl_pattern_allowed(const AclSelector& perm, Slice value) {
-    for (const std::string& pattern : perm.key_patterns)
-        if (command_glob_match(Slice(pattern.data(), static_cast<uint32_t>(pattern.size())), value))
-            return true;
-    return false;
-}
 
 bool acl_channel_allowed(const AclSelector& perm, Slice value, bool literal_pattern) {
     for (const std::string& pattern : perm.channel_patterns) {
@@ -534,45 +535,11 @@ AclDeniedReason acl_check_keys(const AclSelector& perm, const CommandSpec& spec,
             }
         }
     }
-    if (spec.flags & CmdFlags::ScriptRoute) {
-        if (argc < 3) return AclDeniedReason::None;
-        uint64_t count = 0;
-        const Slice text = get_arg(2);
-        if (!text.n) return AclDeniedReason::None;
-        for (uint32_t i = 0; i < text.n; i++) {
-            if (text.p[i] < '0' || text.p[i] > '9') return AclDeniedReason::None;
-            count = count * 10 + static_cast<uint64_t>(text.p[i] - '0');
-        }
-        for (uint32_t arg = 3; arg < argc && arg < 3 + count; arg++)
-            if (!acl_pattern_allowed(perm, get_arg(arg))) {
-                if (denied_arg) *denied_arg = arg;
-                return AclDeniedReason::Key;
-            }
-        return AclDeniedReason::None;
-    }
-    if (spec.flags & CmdFlags::StreamRoute) {
-        uint32_t streams = 1;
-        while (streams < argc && !get_arg(streams).eq_icase("streams")) streams++;
-        if (streams == argc || ((argc - streams - 1) & 1u)) return AclDeniedReason::None;
-        const uint32_t count = (argc - streams - 1) / 2;
-        for (uint32_t arg = streams + 1; arg < streams + 1 + count; arg++)
-            if (!acl_pattern_allowed(perm, get_arg(arg))) {
-                if (denied_arg) *denied_arg = arg;
-                return AclDeniedReason::Key;
-            }
-        return AclDeniedReason::None;
-    }
-    if (spec.first_key <= 0 || spec.key_step <= 0 || argc == 0)
-        return AclDeniedReason::None;
-    const uint32_t last = spec.last_key < 0 ? argc - 1 :
-        std::min<uint32_t>(static_cast<uint32_t>(spec.last_key), argc - 1);
-    for (uint32_t arg = static_cast<uint32_t>(spec.first_key); arg <= last;
-         arg += static_cast<uint32_t>(spec.key_step))
-        if (!acl_pattern_allowed(perm, get_arg(arg))) {
-            if (denied_arg) *denied_arg = arg;
-            return AclDeniedReason::Key;
-        }
-    return AclDeniedReason::None;
+    using Arguments = std::remove_reference_t<GetArg>;
+    return acl_check_metadata_keys(perm, spec, argc, &get_arg,
+        [](const void* arguments, uint32_t arg) {
+            return (*static_cast<const Arguments*>(arguments))(arg);
+        }, denied_arg);
 }
 
 template <typename GetArg>

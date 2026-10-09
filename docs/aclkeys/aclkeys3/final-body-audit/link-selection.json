@@ -1,0 +1,195 @@
+{
+  "receipts": [
+    {
+      "object": "db0/src/cmd/acl.o",
+      "symbol": "_ZN8tomo_db06IoLoop21pubsub_finish_pendingEm",
+      "name": "tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)",
+      "selected_existing_body_equal": true,
+      "changed_copy_discarded_in_both_arms": true,
+      "selection": [
+        {
+          "address": 810288,
+          "size": 3713,
+          "object": "db0/src/main.o"
+        },
+        {
+          "address": 810560,
+          "size": 3713,
+          "object": "db0/src/main.o"
+        }
+      ]
+    },
+    {
+      "object": "db0/src/cmd/blocking_debug.o",
+      "symbol": "_ZN8tomo_db02Op4Sink6appendEPKcm",
+      "name": "tomo_db0::Op::Sink::append(char const*, unsigned long)",
+      "selected_existing_body_equal": true,
+      "changed_copy_discarded_in_both_arms": true,
+      "selection": [
+        {
+          "address": 406160,
+          "size": 533,
+          "object": "db0/src/main.o"
+        },
+        {
+          "address": 406432,
+          "size": 533,
+          "object": "db0/src/main.o"
+        }
+      ]
+    },
+    {
+      "object": "db0/src/cmd/blocking_debug.o",
+      "symbol": "_ZN8tomo_db09reply_errINS_2Op4SinkEEEvOT_PKc",
+      "name": "void tomo_db0::reply_err<tomo_db0::Op::Sink>(tomo_db0::Op::Sink&&, char const*)",
+      "selected_existing_body_equal": true,
+      "changed_copy_discarded_in_both_arms": true,
+      "selection": [
+        {
+          "address": 504016,
+          "size": 973,
+          "object": "db0/src/main.o"
+        },
+        {
+          "address": 504288,
+          "size": 973,
+          "object": "db0/src/main.o"
+        }
+      ]
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db020kvobj_external_bytesEPKNS_5KvObjE",
+      "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+      "selected_existing_body_equal": true,
+      "changed_copy_discarded_in_both_arms": true,
+      "selection": [
+        {
+          "address": 410256,
+          "size": 1606,
+          "object": "db0/src/main.o"
+        },
+        {
+          "address": 410528,
+          "size": 1606,
+          "object": "db0/src/main.o"
+        }
+      ]
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db025blocking_resume_move_implILb0EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_16ScatterArenaPoolE",
+      "name": "bool tomo_db0::blocking_resume_move_impl<false>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::ScatterArenaPool&)",
+      "selected_existing_body_equal": false,
+      "changed_copy_discarded_in_both_arms": false,
+      "selection": [
+        {
+          "address": 1528400,
+          "size": 2229,
+          "object": "db0/src/cmd/xshard.o"
+        },
+        {
+          "address": 1529072,
+          "size": 2261,
+          "object": "db0/src/cmd/xshard.o"
+        }
+      ]
+    },
+    {
+      "object": "db0/src/cmd/xshard.o",
+      "symbol": "_ZN8tomo_db025blocking_resume_move_implILb1EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_16ScatterArenaPoolE",
+      "name": "bool tomo_db0::blocking_resume_move_impl<true>(tomo_db0::Server&, tomo_db0::ThreadCtx&, tomo_db0::Ring&, tomo_db0::Client&, tomo_db0::ScatterArenaPool&)",
+      "selected_existing_body_equal": false,
+      "changed_copy_discarded_in_both_arms": false,
+      "selection": [
+        {
+          "address": 1530640,
+          "size": 2256,
+          "object": "db0/src/cmd/xshard.o"
+        },
+        {
+          "address": 1531344,
+          "size": 2272,
+          "object": "db0/src/cmd/xshard.o"
+        }
+      ]
+    },
+    {
+      "object": "src/cmd/blocking_debug.o",
+      "symbol": "_ZN4tomo2Op4Sink6appendEPKcm",
+      "name": "tomo::Op::Sink::append(char const*, unsigned long)",
+      "selected_existing_body_equal": true,
+      "changed_copy_discarded_in_both_arms": true,
+      "selection": [
+        {
+          "address": 4177968,
+          "size": 533,
+          "object": "src/main.o"
+        },
+        {
+          "address": 4178640,
+          "size": 533,
+          "object": "src/main.o"
+        }
+      ]
+    },
+    {
+      "object": "src/cmd/blocking_debug.o",
+      "symbol": "_ZN4tomo9reply_errINS_2Op4SinkEEEvOT_PKc",
+      "name": "void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)",
+      "selected_existing_body_equal": true,
+      "changed_copy_discarded_in_both_arms": true,
+      "selection": [
+        {
+          "address": 4273760,
+          "size": 973,
+          "object": "src/main.o"
+        },
+        {
+          "address": 4274432,
+          "size": 973,
+          "object": "src/main.o"
+        }
+      ]
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo25blocking_resume_move_implILb0EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_16ScatterArenaPoolE",
+      "name": "bool tomo::blocking_resume_move_impl<false>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::ScatterArenaPool&)",
+      "selected_existing_body_equal": false,
+      "changed_copy_discarded_in_both_arms": false,
+      "selection": [
+        {
+          "address": 5267168,
+          "size": 2247,
+          "object": "src/cmd/xshard.o"
+        },
+        {
+          "address": 5268256,
+          "size": 2279,
+          "object": "src/cmd/xshard.o"
+        }
+      ]
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo25blocking_resume_move_implILb1EEEbRNS_6ServerERNS_9ThreadCtxERNS_4RingERNS_6ClientERNS_16ScatterArenaPoolE",
+      "name": "bool tomo::blocking_resume_move_impl<true>(tomo::Server&, tomo::ThreadCtx&, tomo::Ring&, tomo::Client&, tomo::ScatterArenaPool&)",
+      "selected_existing_body_equal": false,
+      "changed_copy_discarded_in_both_arms": false,
+      "selection": [
+        {
+          "address": 5269424,
+          "size": 2244,
+          "object": "src/cmd/xshard.o"
+        },
+        {
+          "address": 5270544,
+          "size": 2276,
+          "object": "src/cmd/xshard.o"
+        }
+      ]
+    }
+  ],
+  "limitation": "This records discarded object copies separately; it does not call their object bytes identical."
+}

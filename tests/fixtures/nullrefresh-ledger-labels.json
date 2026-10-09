@@ -1,6 +1,6 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
-  "source_sha256": "1a100a97fa169564e0ae8884389d4d4dcacba9afb582d76938f9a570824b980f",
+  "source_sha256": "8c1e51707e09366c289fbbe39466844d5936e8e027843897719adea590cb3304",
   "purpose": "serverless expected-label fixture only, never evidence of lane execution",
   "labels": [
     "release build (+footprint locks)",
@@ -492,20 +492,28 @@
     "ABBA comparison + saturation negative controls",
     "multidb (1s, read-local 0, atomic 0)",
     "multidb (1s, read-local 0, atomic 0) SWAPDB serial order",
+    "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB",
     "multidb (1s, read-local 0, atomic 1)",
     "multidb (1s, read-local 0, atomic 1) SWAPDB serial order",
+    "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB",
     "multidb (1s, read-local 1, atomic 0)",
     "multidb (1s, read-local 1, atomic 0) SWAPDB serial order",
+    "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB",
     "multidb (1s, read-local 1, atomic 1)",
     "multidb (1s, read-local 1, atomic 1) SWAPDB serial order",
+    "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB",
     "multidb (2s, read-local 0, atomic 0)",
     "multidb (2s, read-local 0, atomic 0) SWAPDB serial order",
+    "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB",
     "multidb (2s, read-local 0, atomic 1)",
     "multidb (2s, read-local 0, atomic 1) SWAPDB serial order",
+    "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB",
     "multidb (2s, read-local 1, atomic 0)",
     "multidb (2s, read-local 1, atomic 0) SWAPDB serial order",
+    "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB",
     "multidb (2s, read-local 1, atomic 1)",
     "multidb (2s, read-local 1, atomic 1) SWAPDB serial order",
+    "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB",
     "tailgen client-lb outstanding bound",
     "torture under ASAN",
     "RYOW under ASAN",
@@ -713,6 +721,21 @@
       "when": "2026-10-07 00:05",
       "added": [
         "storesize published monitoring"
+      ],
+      "removed": [],
+      "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"
+    },
+    {
+      "when": "2026-10-09 16:17",
+      "added": [
+        "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB",
+        "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB",
+        "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB",
+        "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB",
+        "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB",
+        "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB",
+        "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB",
+        "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB"
       ],
       "removed": [],
       "purpose": "labels regenerated from tests/gate.sh declarations after a reviewed landing; serverless fixture only, no claimed execution"

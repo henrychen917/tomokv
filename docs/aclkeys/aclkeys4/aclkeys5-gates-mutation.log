@@ -1,0 +1,119 @@
+FFFFFF
+======================================================================
+FAIL: test_multidb_rows_fail_independently (__main__.LedgerWiring.test_multidb_rows_fail_independently) (mode='1s', boot=1, multidb=0, serial=0, live=0, unit=0, wake=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclkeys/tests/gates_test.py", line 485, in test_multidb_rows_fail_independently
+    self.assertEqual(result.stdout.splitlines(), wanted)
+AssertionError: Lists differ: ['FAIL', 'FAIL', 'ok'] != ['FAIL', 'FAIL', 'FAIL']
+
+First differing element 2:
+'ok'
+'FAIL'
+
+- ['FAIL', 'FAIL', 'ok']
+?                   ^^
+
++ ['FAIL', 'FAIL', 'FAIL']
+?                   ^^^^
+
+
+======================================================================
+FAIL: test_multidb_rows_fail_independently (__main__.LedgerWiring.test_multidb_rows_fail_independently) (mode='1s', boot=0, multidb=0, serial=0, live=0, unit=0, wake=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclkeys/tests/gates_test.py", line 485, in test_multidb_rows_fail_independently
+    self.assertEqual(result.stdout.splitlines(), wanted)
+AssertionError: Lists differ: ['ok', 'ok', 'ok'] != ['ok', 'ok', 'FAIL']
+
+First differing element 2:
+'ok'
+'FAIL'
+
+- ['ok', 'ok', 'ok']
+?               ^^
+
++ ['ok', 'ok', 'FAIL']
+?               ^^^^
+
+
+======================================================================
+FAIL: test_multidb_rows_fail_independently (__main__.LedgerWiring.test_multidb_rows_fail_independently) (mode='1s', boot=0, multidb=0, serial=0, live=0, unit=0, wake=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclkeys/tests/gates_test.py", line 485, in test_multidb_rows_fail_independently
+    self.assertEqual(result.stdout.splitlines(), wanted)
+AssertionError: Lists differ: ['ok', 'ok', 'ok'] != ['ok', 'ok', 'FAIL']
+
+First differing element 2:
+'ok'
+'FAIL'
+
+- ['ok', 'ok', 'ok']
+?               ^^
+
++ ['ok', 'ok', 'FAIL']
+?               ^^^^
+
+
+======================================================================
+FAIL: test_multidb_rows_fail_independently (__main__.LedgerWiring.test_multidb_rows_fail_independently) (mode='2s', boot=1, multidb=0, serial=0, live=0, unit=0, wake=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclkeys/tests/gates_test.py", line 485, in test_multidb_rows_fail_independently
+    self.assertEqual(result.stdout.splitlines(), wanted)
+AssertionError: Lists differ: ['FAIL', 'FAIL', 'ok'] != ['FAIL', 'FAIL', 'FAIL']
+
+First differing element 2:
+'ok'
+'FAIL'
+
+- ['FAIL', 'FAIL', 'ok']
+?                   ^^
+
++ ['FAIL', 'FAIL', 'FAIL']
+?                   ^^^^
+
+
+======================================================================
+FAIL: test_multidb_rows_fail_independently (__main__.LedgerWiring.test_multidb_rows_fail_independently) (mode='2s', boot=0, multidb=0, serial=0, live=0, unit=0, wake=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclkeys/tests/gates_test.py", line 485, in test_multidb_rows_fail_independently
+    self.assertEqual(result.stdout.splitlines(), wanted)
+AssertionError: Lists differ: ['ok', 'ok', 'ok'] != ['ok', 'ok', 'FAIL']
+
+First differing element 2:
+'ok'
+'FAIL'
+
+- ['ok', 'ok', 'ok']
+?               ^^
+
++ ['ok', 'ok', 'FAIL']
+?               ^^^^
+
+
+======================================================================
+FAIL: test_multidb_rows_fail_independently (__main__.LedgerWiring.test_multidb_rows_fail_independently) (mode='2s', boot=0, multidb=0, serial=0, live=0, unit=0, wake=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclkeys/tests/gates_test.py", line 485, in test_multidb_rows_fail_independently
+    self.assertEqual(result.stdout.splitlines(), wanted)
+AssertionError: Lists differ: ['ok', 'ok', 'ok'] != ['ok', 'ok', 'FAIL']
+
+First differing element 2:
+'ok'
+'FAIL'
+
+- ['ok', 'ok', 'ok']
+?               ^^
+
++ ['ok', 'ok', 'FAIL']
+?               ^^^^
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.034s
+
+FAILED (failures=6)

@@ -51,6 +51,7 @@
 #include <sys/socket.h>
 
 namespace tomo {
+void debug_xread_registration_command(Op& op);
 namespace {
 
 constexpr uint64_t kScanInnerMask = (uint64_t{1} << 56) - 1;
@@ -1263,6 +1264,16 @@ void cmd_debug_impl(Shard& shard, Op& op) {
     }
     if (eq_icase(subcommand, "reload") && op.argc() == 2) {
         reply_err(op.sink(), "ERR internal DEBUG RELOAD routing error");
+        return;
+    }
+    // Keep the two existing TU inlining profiles stable. The isolated parser
+    // also preserves this fallback's exact unknown-subcommand error text.
+    if constexpr (kSingleDatabase) {
+        debug_xread_registration_command(op);
+        return;
+    }
+    if (eq_icase(subcommand, "xread-registration-hold")) {
+        debug_xread_registration_command(op);
         return;
     }
     reply_err(op.sink(), "ERR unknown subcommand or wrong number of arguments for 'debug' command");

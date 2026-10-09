@@ -1,0 +1,27 @@
+{
+  "total": 17102,
+  "equal": 17031,
+  "changed": 71,
+  "aclkeys4_equal": 17096,
+  "aclkeys4_changed": 6,
+  "unexpected": [],
+  "hot": 1496,
+  "hot_equal": 1496,
+  "ordinary_handlers": 1202,
+  "ordinary_handlers_equal": 1202,
+  "layouts_equal": true,
+  "arms": {
+    "PRE": {
+      "sha256": "518cbea9796290309a52349a7f6edfa683849ae8fbf139ef4cd581c260c3648d",
+      "text_bytes": 7845285
+    },
+    "BASE": {
+      "sha256": "3b8641aa8e006bdbe9dc273f9635f11450ecd2d8e75d238cea083e6a7a5733b0",
+      "text_bytes": 7846812
+    },
+    "POST": {
+      "sha256": "3679da8781bda46a5d01d15a6d3e686cffb0980d51fa8405ad8831a19553671b",
+      "text_bytes": 7846860
+    }
+  }
+}

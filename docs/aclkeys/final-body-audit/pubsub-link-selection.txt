@@ -1,0 +1,43 @@
+POST relink with map is SHA-identical: 833685b6244322188b5412af343b355fc0347aed00a755776389be0f73a38651
+                0x0000000000000000     0x16d0 build/aclkeys/POST/db0/src/cmd/xshard.o
+ .text._ZN8tomo_db06IoLoop21pubsub_finish_pendingEm
+                0x0000000000000000     0x1029 build/aclkeys/POST/db0/src/cmd/xshard.o
+ .rodata._ZN8tomo_db06IoLoop21pubsub_finish_pendingEm
+                0x0000000000000000       0x18 build/aclkeys/POST/db0/src/cmd/xshard.o
+ .text._ZN8tomo_db06IoLoop20pubsub_handle_resultERNS_11PubSubEventE
+                0x0000000000000000      0x937 build/aclkeys/POST/db0/src/cmd/acl.o
+ .text._ZN8tomo_db06IoLoop21pubsub_finish_pendingEm
+                0x0000000000000000      0xd46 build/aclkeys/POST/db0/src/cmd/acl.o
+ .rodata._ZN8tomo_db06IoLoop21pubsub_finish_pendingEm
+                0x0000000000000000       0x18 build/aclkeys/POST/db0/src/cmd/acl.o
+ .text._ZN8tomo_db06IoLoop20pubsub_handle_resultERNS_11PubSubEventE
+                0x0000000000000000      0x92a build/aclkeys/POST/db0/src/cmd/climon.o
+ .text._ZN8tomo_db06IoLoop21pubsub_finish_pendingEm
+                0x0000000000000000     0x1035 build/aclkeys/POST/db0/src/cmd/climon.o
+ .rodata._ZN8tomo_db06IoLoop21pubsub_finish_pendingEm
+                0x0000000000000000       0x18 build/aclkeys/POST/db0/src/cmd/climon.o
+ .text._ZN8tomo_db06IoLoop20pubsub_handle_resultERNS_11PubSubEventE
+                0x0000000000000000      0xa72 build/aclkeys/POST/db0/src/core/genthread.o
+ .text._ZN8tomo_db06IoLoop21pubsub_finish_pendingEm
+                0x0000000000000000      0xe81 build/aclkeys/POST/db0/src/core/genthread.o
+ .rodata._ZN8tomo_db06IoLoop21pubsub_finish_pendingEm
+                0x0000000000000000       0x18 build/aclkeys/POST/db0/src/core/genthread.o
+ .text._ZN8tomo_db06IoLoop20pubsub_handle_resultERNS_11PubSubEventE
+                0x0000000000000000      0xa72 build/aclkeys/POST/db0/src/core/rl2s.o
+ .text._ZN8tomo_db06IoLoop21pubsub_finish_pendingEm
+                0x0000000000000000      0xd40 build/aclkeys/POST/db0/src/core/rl2s.o
+ .rodata._ZN8tomo_db06IoLoop21pubsub_finish_pendingEm
+                0x0000000000000000       0x18 build/aclkeys/POST/db0/src/core/rl2s.o
+ .text._ZN8tomo_db06IoLoop20pubsub_handle_resultERNS_11PubSubEventE
+                0x0000000000000000      0xa72 build/aclkeys/POST/db0/src/core/reorder.o
+ .text._ZN8tomo_db06IoLoop21pubsub_finish_pendingEm
+                0x0000000000000000      0xe90 build/aclkeys/POST/db0/src/core/reorder.o
+ .rodata._ZN8tomo_db06IoLoop21pubsub_finish_pendingEm
+                0x0000000000000000       0x18 build/aclkeys/POST/db0/src/core/reorder.o
+ .text._ZN8tomo_db06IoLoop20pubsub_handle_resultERNS_11PubSubEventE
+ *fill*         0x00000000000c59a2        0xe 
+ .text._ZN8tomo_db06IoLoop21pubsub_finish_pendingEm
+                0x00000000000c59b0      0xe81 build/aclkeys/POST/db0/src/main.o
+                0x00000000000c59b0                tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)
+ *fill*         0x00000000000c6831        0xf 
+ .text._ZN8tomo_db06IoLoop20pubsub_handle_resultERNS_11PubSubEventE

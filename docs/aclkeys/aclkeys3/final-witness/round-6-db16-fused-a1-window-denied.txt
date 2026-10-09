@@ -1,0 +1,2 @@
+aclkeys-wake mode=fused atomic=1 db=16 registration=1 last_task=2 io_rejected=3 early_notification=0 final_notification=1
+PASS aclkeys-wake

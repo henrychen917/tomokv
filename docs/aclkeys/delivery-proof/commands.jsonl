@@ -1,0 +1,4 @@
+{"start": "2026-10-07T17:25:21.367192+00:00", "revision": "354d3a54e9fe2f44aeaba1b66e0feb5c857c8136", "base": "d81b6d3a2b095224d59049dc60342a6ca1574674", "affinity": [120, 121, 122, 123, 124, 125, 126, 127]}
+{"name": "hashes", "start": "2026-10-07T17:25:21.370063+00:00", "end": "2026-10-07T17:25:21.934517+00:00", "argv": ["sha256sum", "-c", "docs/aclkeys/SHA256SUMS"], "environment": {}, "returncode": 0}
+{"name": "post-copy", "start": "2026-10-07T17:25:21.934727+00:00", "end": "2026-10-07T17:25:22.048743+00:00", "argv": ["cmp", "build/aclkeys/POST/tomokv", "build/tomokv"], "environment": {}, "returncode": 0}
+{"name": "registry-and-permissions", "start": "2026-10-07T17:25:22.048946+00:00", "end": "2026-10-07T17:25:22.052571+00:00", "argv": ["taskset", "-c", "112-127", "build/aclkeys/POST/aclkeys-unit"], "environment": {}, "returncode": 1}

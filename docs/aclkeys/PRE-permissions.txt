@@ -1,0 +1,2 @@
+FAIL: admission BLPOP denied arg 3
+exit=1

@@ -1,0 +1,414 @@
+[
+  {
+    "atomic": 0,
+    "server": "TomoKV",
+    "command": [
+      "BLPOP",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "LPUSH",
+      "block:aclkeys",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.08613010868430138,
+    "reply": "b'*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 0,
+    "server": "TomoKV",
+    "command": [
+      "BRPOP",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "LPUSH",
+      "block:aclkeys",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.06037019193172455,
+    "reply": "b'*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 0,
+    "server": "TomoKV",
+    "command": [
+      "BLMPOP",
+      "0",
+      "1",
+      "block:aclkeys",
+      "LEFT"
+    ],
+    "wake": [
+      "LPUSH",
+      "block:aclkeys",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.06494997069239616,
+    "reply": "b'*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n*1\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 0,
+    "server": "TomoKV",
+    "command": [
+      "BZPOPMIN",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "ZADD",
+      "block:aclkeys",
+      "1",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.08547073230147362,
+    "reply": "b'*3\\r\\n$13\\r\\nblock:aclkeys\\r\\n$5\\r\\nvalue\\r\\n$1\\r\\n1\\r\\n'"
+  },
+  {
+    "atomic": 0,
+    "server": "TomoKV",
+    "command": [
+      "XREAD",
+      "BLOCK",
+      "0",
+      "STREAMS",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "XADD",
+      "block:aclkeys",
+      "1-0",
+      "field",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b'$3\\r\\n1-0\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.1417100429534912,
+    "reply": "b'*1\\r\\n*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n*1\\r\\n*2\\r\\n$3\\r\\n1-0\\r\\n*2\\r\\n$5\\r\\nfield\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 0,
+    "server": "Redis",
+    "command": [
+      "BLPOP",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "LPUSH",
+      "block:aclkeys",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.07062964141368866,
+    "reply": "b'*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 0,
+    "server": "Redis",
+    "command": [
+      "BRPOP",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "LPUSH",
+      "block:aclkeys",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.05893968045711517,
+    "reply": "b'*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 0,
+    "server": "Redis",
+    "command": [
+      "BLMPOP",
+      "0",
+      "1",
+      "block:aclkeys",
+      "LEFT"
+    ],
+    "wake": [
+      "LPUSH",
+      "block:aclkeys",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.06514973938465118,
+    "reply": "b'*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n*1\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 0,
+    "server": "Redis",
+    "command": [
+      "BZPOPMIN",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "ZADD",
+      "block:aclkeys",
+      "1",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.07099006325006485,
+    "reply": "b'*3\\r\\n$13\\r\\nblock:aclkeys\\r\\n$5\\r\\nvalue\\r\\n$1\\r\\n1\\r\\n'"
+  },
+  {
+    "atomic": 0,
+    "server": "Redis",
+    "command": [
+      "XREAD",
+      "BLOCK",
+      "0",
+      "STREAMS",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "XADD",
+      "block:aclkeys",
+      "1-0",
+      "field",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b'$3\\r\\n1-0\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.11776015162467957,
+    "reply": "b'*1\\r\\n*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n*1\\r\\n*2\\r\\n$3\\r\\n1-0\\r\\n*2\\r\\n$5\\r\\nfield\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 1,
+    "server": "TomoKV",
+    "command": [
+      "BLPOP",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "LPUSH",
+      "block:aclkeys",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.0832797959446907,
+    "reply": "b'*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 1,
+    "server": "TomoKV",
+    "command": [
+      "BRPOP",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "LPUSH",
+      "block:aclkeys",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.05898112431168556,
+    "reply": "b'*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 1,
+    "server": "TomoKV",
+    "command": [
+      "BLMPOP",
+      "0",
+      "1",
+      "block:aclkeys",
+      "LEFT"
+    ],
+    "wake": [
+      "LPUSH",
+      "block:aclkeys",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.06476091220974922,
+    "reply": "b'*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n*1\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 1,
+    "server": "TomoKV",
+    "command": [
+      "BZPOPMIN",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "ZADD",
+      "block:aclkeys",
+      "1",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.08409982547163963,
+    "reply": "b'*3\\r\\n$13\\r\\nblock:aclkeys\\r\\n$5\\r\\nvalue\\r\\n$1\\r\\n1\\r\\n'"
+  },
+  {
+    "atomic": 1,
+    "server": "TomoKV",
+    "command": [
+      "XREAD",
+      "BLOCK",
+      "0",
+      "STREAMS",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "XADD",
+      "block:aclkeys",
+      "1-0",
+      "field",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b'$3\\r\\n1-0\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.14023110270500183,
+    "reply": "b'*1\\r\\n*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n*1\\r\\n*2\\r\\n$3\\r\\n1-0\\r\\n*2\\r\\n$5\\r\\nfield\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 1,
+    "server": "Redis",
+    "command": [
+      "BLPOP",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "LPUSH",
+      "block:aclkeys",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.06783008575439453,
+    "reply": "b'*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 1,
+    "server": "Redis",
+    "command": [
+      "BRPOP",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "LPUSH",
+      "block:aclkeys",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.056949909776449203,
+    "reply": "b'*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 1,
+    "server": "Redis",
+    "command": [
+      "BLMPOP",
+      "0",
+      "1",
+      "block:aclkeys",
+      "LEFT"
+    ],
+    "wake": [
+      "LPUSH",
+      "block:aclkeys",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.07278099656105042,
+    "reply": "b'*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n*1\\r\\n$5\\r\\nvalue\\r\\n'"
+  },
+  {
+    "atomic": 1,
+    "server": "Redis",
+    "command": [
+      "BZPOPMIN",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "ZADD",
+      "block:aclkeys",
+      "1",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b':1\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.07002102211117744,
+    "reply": "b'*3\\r\\n$13\\r\\nblock:aclkeys\\r\\n$5\\r\\nvalue\\r\\n$1\\r\\n1\\r\\n'"
+  },
+  {
+    "atomic": 1,
+    "server": "Redis",
+    "command": [
+      "XREAD",
+      "BLOCK",
+      "0",
+      "STREAMS",
+      "block:aclkeys",
+      "0"
+    ],
+    "wake": [
+      "XADD",
+      "block:aclkeys",
+      "1-0",
+      "field",
+      "value"
+    ],
+    "parked": true,
+    "wake_reply": "b'$3\\r\\n1-0\\r\\n'",
+    "verdict": "WOKE",
+    "milliseconds": 0.11643022298812866,
+    "reply": "b'*1\\r\\n*2\\r\\n$13\\r\\nblock:aclkeys\\r\\n*1\\r\\n*2\\r\\n$3\\r\\n1-0\\r\\n*2\\r\\n$5\\r\\nfield\\r\\n$5\\r\\nvalue\\r\\n'"
+  }
+]

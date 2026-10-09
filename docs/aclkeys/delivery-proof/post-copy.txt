@@ -1,0 +1,4 @@
+2026-10-07T17:25:21.934727+00:00
+$ cmp build/aclkeys/POST/tomokv build/tomokv
+
+2026-10-07T17:25:22.048743+00:00 exit=0

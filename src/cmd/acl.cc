@@ -16,6 +16,7 @@
 #include <sys/random.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <type_traits>
 #include <unistd.h>
 #include <unordered_map>
 #include <unordered_set>

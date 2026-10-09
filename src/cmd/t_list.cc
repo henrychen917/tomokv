@@ -949,8 +949,8 @@ static const CommandSpec kTable[] = {
     {"LREM",       4,  4, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_lrem)},
     {"LTRIM",      4,  4, CmdFlags::Write,    TOMO_HANDLER_PAIR(cmd_ltrim)},
     {"LPOS",       3, -1, CmdFlags::Readonly, TOMO_HANDLER_PAIR(cmd_lpos)},
-    {"BLPOP",      3, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
-    {"BRPOP",      3, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,-1,1},
+    {"BLPOP",      3, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,-2,1},
+    {"BRPOP",      3, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,-2,1},
     {"BLMPOP",     5, -1, CmdFlags::Write | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,3,-1,1},
     {"BLMOVE",     6,  6, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
     {"BRPOPLPUSH", 4,  4, CmdFlags::Write | CmdFlags::DenyOom | CmdFlags::Blocking | CmdFlags::MultiShard,cmd_xshard_only,1,2,1},
@@ -1184,7 +1184,7 @@ XshardElementResult xshard_push_list_element_impl(Shard& shard, Slice key, uint6
             return inserted == FlatStore::InsertResult::MaxmemoryOom
                 ? XshardElementResult::Maxmemory : XshardElementResult::InsertFailed;
         }
-        if (shard.has_blocking_waiters()) blocking_publish_key(shard, hash, key.p, key.n);
+        if (shard.has_blocking_waiters()) blocking_publish_key(shard, hash, key.p, key.n, key.ns);
         return XshardElementResult::Ok;
     }
 
@@ -1225,7 +1225,7 @@ XshardElementResult xshard_push_list_element_impl(Shard& shard, Slice key, uint6
         if (!expanded_push(*expanded, element, left, shard.type_limits().list)) return XshardElementResult::Oom;
         expanded->note_expanded_insert(element.n, expanded->node_allocation_bytes);
     }
-    if (shard.has_blocking_waiters()) blocking_publish_key(shard, hash, key.p, key.n);
+    if (shard.has_blocking_waiters()) blocking_publish_key(shard, hash, key.p, key.n, key.ns);
     return XshardElementResult::Ok;
 }
 

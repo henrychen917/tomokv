@@ -1,0 +1,2 @@
+FAIL: admitted retirement must preserve the completed reply
+PASS: pre-extraction control rejected by the admitted-retirement assertion

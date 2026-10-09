@@ -41,6 +41,9 @@ SRC      += src/core/reorder.cc
 SRC      += src/cmd/geo_store.cc
 # Cold DEBUG observer links after existing objects to preserve weak-symbol selection.
 SRC      += src/persist/aof_frame_debug.cc
+SRC      += src/cmd/aclkeys.cc
+# Keep the armed-only witness parser after ordinary objects (weak-symbol selection).
+SRC      += src/cmd/blocking_debug.cc
 # The entry wrapper belongs only to server links using --wrap=main.
 SERVER_ONLY_SRC := src/core/version.cc
 LDLIBS   += -lssl -lcrypto
@@ -109,12 +112,15 @@ $(BUILD_ROOT)/db0/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-gro
 # decisions as the base-420b4d492 translation unit; the objdump gate locks cmd_get/cmd_set to base.
 $(BUILD_ROOT)/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10600
 $(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-insns=10600
+# ACLKEYS4's physical namespace argument changes only blocking list publication.
+# Keep every other list body identical; tools/aclkeys4_audit.py checks all bodies.
+$(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=25338
 # PS5/PS7 add cold CONFIG/INFO/finalization code. Retain PRE's inlining decisions
 # for every ordinary command and storage body; tools/psfix_artifacts.py audits both variants.
-$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31290
+$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31297
 # SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31632 --param max-inline-insns-auto=16
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31629 --param max-inline-insns-auto=16
 # SV9 publishes save status only on cold completion/abort edges.
 $(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14584
 $(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14457
@@ -135,9 +141,15 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # every function, including ordinary xshard_plain_prepare and cold clones.
 # CD13b adds owner-side GEO metadata calls; +51/+53 retains ordinary command/notify bodies
 # in both namespaces. tests/cd13b_audit.py checks every emitted body and linker selection.
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127628
+# ACLKEYS3's held registration and final-task wake preserve every outside-path
+# xshard body at these budgets, including both blocked queue specializations.
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127791
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=126223
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=126391
+# ACL key extraction is isolated from the IO templates. Keep the merged baseline's
+# ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
+$(BUILD_ROOT)/src/cmd/acl.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34630
+$(BUILD_ROOT)/db0/src/cmd/acl.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34550
 # The isolated prebuild TU reuses the string parser text without emitting its public handlers.
 $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
@@ -286,6 +298,14 @@ build/encodingfix-unit: build/tests/encodingfix_unit.o $(CORE_TEST_OBJ)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
+# ACL range audit and real permission checks; never starts the server.
+$(BUILD_ROOT)/aclkeys-unit: tests/aclkeys_unit.cc $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ))
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $^ -o $@ $(JELIBS) $(LDLIBS) -lm
+# Directed blocked-XREAD schedule using production bodies; no listener or worker.
+$(BUILD_ROOT)/aclkeys-wake-unit: tests/aclkeys_wake_unit.cc $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ))
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $^ -o $@ $(JELIBS) $(LDLIBS) -lm
+$(BUILD_ROOT)/aclkeys-wake-db0-unit: tests/aclkeys_wake_unit.cc $(filter-out $(BUILD_ROOT)/db0/src/main.o,$(DB0_OBJ)) $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ))
+	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # ST2 cost witness: only the two cold census walks are instrumented. The fixture
 # dispatches real commands and counts work; it never boots a listener or workers.
 STORESIZE_CORE_OBJ := $(filter-out build/src/cmd/xshard.o build/src/cmd/multidb.o build/db0/src/cmd/xshard.o build/db0/src/cmd/multidb.o,$(CORE_TEST_OBJ) $(DB0_TEST_OBJ))
