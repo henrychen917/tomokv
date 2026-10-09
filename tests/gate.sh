@@ -283,8 +283,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # encodingfix owner ruling: two serverless rows before the quick exit (+2/+2).
 # aclkeys4: one fresh SWAPDB/XREAD row per multidb mode/read-local/atomic cell,
 # eight rows collected above the quick-tier exit (+8 quick, +8 full).
-EXPECT_QUICK=510
-EXPECT_FULL=527                 # ABBA reports only; self-test remains counted.
+EXPECT_QUICK=512
+EXPECT_FULL=529                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
