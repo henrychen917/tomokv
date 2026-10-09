@@ -2,7 +2,7 @@
 
 Base: `origin/cpp` at `dab740964`; test-side repair `368f92df7`. This register preserves all 42 inherited mechanisms and adds GT16, CD13b GEO and PSFIX explicitly. A = test-side witness implemented; B = missing server witness; C = performance/resource threshold; D = production defect. An A classification is **not** a fresh live-proof claim. No production code or gate declaration changed.
 
-**Proof status:** selected-job and full-iteration admission receipts are reported in [MEASURE-REQUEST-flakeaudit3.md](../../MEASURE-REQUEST-flakeaudit3.md). No past landing or serverless control is counted as a new live run.
+**Proof status: REFUSED / NOT RUN.** Selected-job admission and full-iteration admission each exhausted four screens over ten minutes; completed runs 0/6 and 0/1. No compiler, server or gate started. [Final proof summary](evidence/proof-summary.json). Detailed receipts are reported in [MEASURE-REQUEST-flakeaudit3.md](../../MEASURE-REQUEST-flakeaudit3.md). No past landing or serverless control is counted as a new live run.
 
 Original-register occurrence counts stay **A=35, B=58, C=22, D=2 (117)**. Adding the distinct GT16 row gives **A=36, B=58, C=22, D=2 (118)**. GEO is an A submechanism inside the two B differential aggregate rows; PSFIX is a B submechanism there. They are not double-counted. Original mechanism counts: **A=15, B=18, C=8, D=1 (42)**; all 45 named entries, including overlapping addenda: **A=17, B=19, C=8, D=1**.
 

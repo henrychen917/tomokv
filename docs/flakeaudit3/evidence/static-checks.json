@@ -10,5 +10,8 @@
   "differ_controls": 24,
   "gt16_controls": 21,
   "negative_arms": 7,
-  "no_production_or_gate_edits": true
+  "no_production_or_gate_edits": true,
+  "proof_status": "LIVE_PROOF_REFUSED",
+  "proof_summary": "proof-summary.json",
+  "compiler_server_load_generator_started": false
 }

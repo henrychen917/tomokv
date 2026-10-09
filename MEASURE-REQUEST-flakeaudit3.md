@@ -4,7 +4,7 @@ Worktree/branch: `/home/user/Projects/cx-flakeaudit3`, `cx-flakeaudit3`.
 Merged `origin/cpp` at `dab740964` before implementation and again before proof.
 Implementation: `368f92df7`; audit/control evidence: `5be719018`.
 
-**Status: test repair implemented; selected live proof REFUSED; full admission pending.**
+**Status: test repair implemented; selected and full live proof REFUSED / NOT RUN.**
 No compiler, server or gate has started. The proof table records admission separately
 from gate verdicts.
 This is test-only work: no performance, binary-layout or PRE/POST/PAD claim.
@@ -86,14 +86,18 @@ python3 docs/flakeaudit3/proof.py full
 | Campaign | Admission / live result | Run IDs |
 |---|---|---|
 | `selected-20261008T234356Z` (six requested) | **REFUSED** after four screens over ten minutes; **0/6 runs**, wrapper rc=3, no gate verdict | None |
-| `full-20261008T235415Z` (one requested) | Admission in progress; first screen refused | None |
+| `full-20261008T235415Z` (one requested) | **REFUSED** after four screens over ten minutes; **0/1 runs**, wrapper rc=3, no gate verdict | None |
 
 [Machine-readable proof summary](docs/flakeaudit3/evidence/proof-summary.json).
 Selected screens observed 16.16, 16.31, 16.30 and 16.32 CPU-seconds against the
 unchanged 0.48-second quiet budget. These are failed preconditions, not gate FAIL
 rows; a refusal does not count as a test run. The raw selected admission records
 were committed in `08c095d6e`. Mainline was merged again before full admission
-(`f7fc7ea1a`).
+(`f7fc7ea1a`). Full screens observed 16.22, 14.67, 1.11 and 9.09 CPU-seconds
+against the same 0.48-second budget. All eight raw screens and both refusal records
+are committed under `docs/flakeaudit3/evidence/`. No compiler, server, load generator
+or gate ran. The required six selected runs and full iteration remain outstanding
+for mainline; no fresh live pass, failed row count or run ID is invented.
 
 Serverless receipts, separate from the required live proof:
 
