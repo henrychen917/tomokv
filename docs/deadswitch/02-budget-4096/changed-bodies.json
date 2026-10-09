@@ -1,0 +1,24 @@
+[
+  {
+    "object": "db0/src/persist/aof.o",
+    "symbol": "_ZN8tomo_db010AofManager11writer_passERNS_9ThreadCtxERNS_4RingEb",
+    "name": "tomo_db0::AofManager::writer_pass(tomo_db0::ThreadCtx&, tomo_db0::Ring&, bool)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1144,
+    "post_size": 1144,
+    "classification": "other"
+  },
+  {
+    "object": "src/persist/aof.o",
+    "symbol": "_ZN4tomo10AofManager11writer_passERNS_9ThreadCtxERNS_4RingEb",
+    "name": "tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)",
+    "equal": false,
+    "error_callee_only": false,
+    "raw_equal": false,
+    "pre_size": 1144,
+    "post_size": 1144,
+    "classification": "other"
+  }
+]

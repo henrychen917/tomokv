@@ -1,0 +1,29 @@
+  heads: n=2..32, exact 4:1 short/long turns
+  heads: n=2..128, exact 4:1 short/long turns
+  pipelines: 32 tasks, head promotion and FIFO across ROB wraps
+  pipelines: 128 tasks, head promotion and FIFO across ROB wraps
+  barriers: capacity 32, all special flags and complete suffix
+  barriers: capacity 128, all special flags and complete suffix
+  controls: empty/single task, one full client, homogeneous and already ordered FIFO
+  predecessor controls: missing head, in-run gap and atomic hazard
+  dependency: due ratio turn waits for the fifth short predecessor
+  continuous: cross-gather promotion, bounded debt, barrier and immediate destruction
+  continuous: cross-gather promotion, bounded debt, barrier and immediate destruction
+  sustained: bounded long service across 12 gathers and ring wraps
+  sustained: bounded long service across 12 gathers and ring wraps
+  connection stream: 1024 tasks, advancing heads, hazards and fixed barrier scopes
+  connection stream: 1024 tasks, advancing heads, hazards and fixed barrier scopes
+reorder battery: PASS, 205 batch permutations plus continuous service, max batch 128
+PASS pending Long-only scope: FIFO and zero permutations are correct
+PASS three pipes B=32: six unshadowed shorts, three longs, seven shadowed shorts
+PASS three pipes B=128: six unshadowed shorts, three longs, seven shadowed shorts
+PASS newest-long stamps, Done without retire, and real ROB recycling
+PASS completion probe when a hidden follower becomes eligible
+PASS L s L dependencies and barrier B=32
+PASS L s L dependencies and barrier B=128
+PASS queued foreign completion B=32: Done clears without ROB retirement
+PASS queued foreign completion B=128: Done clears without ROB retirement
+PASS all thirteen special barriers and inherited atomic hazard classification
+PASS numeric off/on resolution and 2s no-op
+PASS bounded service B=32: 1536 picks, max wait 64 <= K=352; immediate destruction
+PASS bounded service B=128: 6144 picks, max wait 256 <= K=1408; immediate destruction

@@ -1445,7 +1445,7 @@ void IoLoop::r7_arm_tls_recv(Client* c) {
     // a request/response client until it happens to send unrelated bytes.
     if (tls->input_pending()) return;
     char* dst = nullptr;
-    const int avail = tls->reserve_input(dst, kRecvChunk);
+    const int avail = tls->reserve_input(dst, kRbufInitial);
     if (avail <= 0) return;
     if constexpr (kEp) {
         const ssize_t n = ::recv(c->fd(), dst, static_cast<size_t>(avail), MSG_DONTWAIT);
@@ -1546,7 +1546,7 @@ bool IoLoop::r7_drive_tls(Client* c) {
         size_t avail = 0;
         bool may_grow = c->rob().quiesced();
         char* dst = c->read_space(
-            kRecvChunk, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
+            kRbufInitial, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
         if (!dst) break;
         const TlsIoResult result = tls->read_plain(dst, avail);
         if (result.op == TlsOp::Progress) {
