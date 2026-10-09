@@ -1,16 +1,18 @@
-# Shared M0/B0 dry identical-arm controls; original headline IDs, fixed eight instances.
-h13 | 1s | rl=1 | ov=1 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
-h14 | 1s | rl=1 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
-h29 | 2s | rl=1 | ov=1 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
-h30 | 2s | rl=1 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
-h45 | 1s | rl=1 | ov=1 | ro=0 | GET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=1 | keys=1000000
-h46 | 1s | rl=1 | ov=1 | ro=0 | SET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=1 | keys=1000000
-h61 | 2s | rl=1 | ov=1 | ro=0 | GET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=1 | keys=1000000
-h62 | 2s | rl=1 | ov=1 | ro=0 | SET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=1 | keys=1000000
-m38 | 1s | rl=1 | ov=1 | ro=0 | MGET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
-m41 | 1s | rl=1 | ov=1 | ro=0 | MSET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
-m86 | 2s | rl=1 | ov=1 | ro=0 | MGET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
-m89 | 2s | rl=1 | ov=1 | ro=0 | MSET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
+# Shared M0/B0 dry identical-arm controls; fixed eight instances.
+# pfconfirm2: historical IDs retained, all guards now rl=0 (including split controls).
+# ov=1/ov=0 coverage retained; no rl=1 informational guards.
+h13 | 1s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
+h14 | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
+h29 | 2s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
+h30 | 2s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
+h45 | 1s | rl=0 | ov=1 | ro=0 | GET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=1 | keys=1000000
+h46 | 1s | rl=0 | ov=1 | ro=0 | SET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=1 | keys=1000000
+h61 | 2s | rl=0 | ov=1 | ro=0 | GET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=1 | keys=1000000
+h62 | 2s | rl=0 | ov=1 | ro=0 | SET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=1 | keys=1000000
+m38 | 1s | rl=0 | ov=1 | ro=0 | MGET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
+m41 | 1s | rl=0 | ov=1 | ro=0 | MSET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
+m86 | 2s | rl=0 | ov=1 | ro=0 | MGET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
+m89 | 2s | rl=0 | ov=1 | ro=0 | MSET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
 h01 | 1s | rl=0 | ov=0 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
 h02 | 1s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000
 h17 | 2s | rl=0 | ov=0 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000

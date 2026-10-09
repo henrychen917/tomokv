@@ -1,5 +1,9 @@
 # pfconfirm: pre-registered feature confirmations
 
+The pre-data [pfconfirm2 amendment](#pfconfirm2) supersedes the original geometry,
+instability caps and decisive metrics below; the original registration/proof is
+retained as history.
+
 Tool/test only, based on `165d268be` (`cx-pfconfirm`). No production change,
 no PRE/POST or PAD claim, no push. `production.diff` is empty. Gate rows **+0/+0**;
 neither EXPECT constant changes. These are priority confirmations, not optimization
@@ -167,3 +171,123 @@ docs/pfconfirm/run.sh --output build/pfconfirm-mainline
 
 Performance verdicts remain **unmeasured**. Rows **+0/+0**. `src/`, gate files,
 and EXPECT constants are unchanged; the committed `production.diff` is empty.
+
+## pfconfirm2
+
+Amended **2026-10-10**, continuing `cx-pfconfirm` from `c03cdadc4`, **before any
+confirmation, smoke or full run produced measurement data**. The prior smoke
+was REFUSED by the quiet screen, with zero boots and zero loads. These changes
+therefore precede observations from this campaign. The checks below use only
+synthetic fixtures; they are not performance evidence. This amendment is
+committed before the one newly authorized short smoke attempt.
+
+**Instability and resolution.** All four former 2% checks now use the owner's
+caps from `tools/mkprobe_probe.py` and `MEASURE-REQUEST-mkprobe3.md`: **6%** for
+single-key GET/SET with read-local 0, **20%** for multi-key commands or read-local 1.
+The caps apply **only to rate spans**: the four OFF samples, each two-sample
+ABBA arm, and each four-sample dry guard. A span above its cap is FAIL (unstable
+measurement); equality passes. A failed candidate null stops that cell before
+ON collection. Tails and maxima have no instability cap. The caps never replace,
+clamp or widen the measured null span, which remains
+`100 * (maximum - minimum) / median` for each metric and cell.
+
+**Geometry.** All **12 scoring cells and 16 dependent dry guards use rl=0**.
+Scoring uses the 2026-10-08 paper baseline: fused/1s, reorder 0, no persistence,
+flip-auto 0. No rl=1 informational guards are retained. Existing split guards
+remain controls with their original mode/ratio/shards; historical guard IDs are
+retained with the changed rl field documented in `guards.txt`. Overlap (including
+the four existing ov=0 guards), atomic, key/client balancing, shard counts,
+connections, instances, payloads, ports **25000/25001**, CPU placement and the
+pinned headline path/digest are unchanged. No production binary is built.
+
+**Decisive metrics.** Each block still pairs the B/A medians of its two samples
+per arm for rate, p99 and p99.9. All these metrics remain reported for every
+candidate, including TLS. The candidate confirms if any of its predeclared
+cells meets the applicable rule, provided every cell and dependent guard is
+valid; otherwise it is NOT CONFIRMED (mark only).
+
+| Candidate | Decisive rule |
+|---|---|
+| PFKEYSPA.1, PFMESSAG.1 | Median paired rate loss >=5% or p99 ratio >=2. |
+| PFKEYSPA.3 (empty FLUSHDB at 1 Hz), PFKEYSPA.4 (INFO at 1 Hz), PFDATATY.1 (XREADGROUP then GET) | Median paired rate loss >=5%, p99 ratio >=2, **or p99.9 ratio >=2**. |
+| PFPERSIS.1 (plain TCP versus TLS 1.3) | **Every one of the three blocks** has TLS maximum latency **>=100 ms** and plain maximum latency **<10 ms**. Rate, p99 and p99.9 are report-only. |
+
+For each decisive rate/p99/p99.9 metric, **all three blocks must also exceed
+that cell's measured OFF-null span in that same metric**, strictly: rate loss
+in percent must exceed the rate span; tail ratio must exceed `1 + span_pct/100`.
+No best-block selection or global noise floor is used. The p99.9 addition lets
+sparse stalls that affect less than 1% of requests count under the owner's 2x
+tail bar; it does not make p99.9 decisive for PFKEYSPA.1 or PFMESSAG.1.
+
+TLS uses the specific absolute stall signature instead of the relative-metric
+rule: ordinary encryption can lower rate and inflate saturated p99/p99.9 without
+the reported 150–601 ms stall. `max_ms` is the highest occupied main-command HDR
+bucket in milliseconds, merged across generators. A block's arm maximum is the
+maximum of its two sample maxima, never their mean or median. All three A/B
+maxima and the decisive-metric flags are retained in `results.jsonl` and the
+cell verdict. A TLS maximum of 100 ms passes its boundary; a plain maximum of
+10 ms fails its boundary. A missing stall in any block, or a plain spike in any
+block, gives NOT CONFIRMED even if throughput or percentile ratios look large.
+This screens the stall signature; causal attribution still requires the later
+progress-only fix/control. Missing metrics/work/witnesses remain FAIL.
+
+**Budget and exact commands.** Sample counts are unchanged: 12 cells × (4 OFF
+null + 3 × 4 ABBA) = **192 scoring samples**, plus 16 × 4 = **64 guard samples**.
+At 20 seconds each, measured windows total **85 min 20 s**. Existing estimates
+remain PFKEYSPA.1 40 min; PFKEYSPA.3 10 min; PFKEYSPA.4 10 min; PFMESSAG.1 10 min;
+PFPERSIS.1 35 min; PFDATATY.1 10 min; shared guards 25 min: **140 min estimated,
+170 min maximum/watchdog**, including setup, cleanup and quiet screening.
+The short smoke uses six A/B pairs with two-second windows (**24 s** of load
+windows), a 20-second quiet screen, and the existing **5 min watchdog**. It
+remains a functional smoke with no performance verdict. No timing estimate here
+is a measured result.
+
+Serverless proof commands (all passed):
+
+```sh
+python3 docs/pfconfirm/test_confirm.py
+python3 tests/abbagate.py --cells docs/pfconfirm/cells.txt --list-cells
+python3 tests/abbagate.py --cells docs/pfconfirm/guards.txt --list-cells
+```
+
+The **28 passing checks** include a 5% quiet null accepted and a 7% quiet null
+rejected, inclusive 6%/20% boundaries, classified caps in the early candidate
+null and dry guard paths, all-three-block resolution checks, baseline rl=0
+coverage, a synthetic sparse 1 Hz stall visible only at p99.9, ordinary TLS
+slowdown that stays NOT CONFIRMED, all-three-block TLS maximum boundaries, and
+a rare GET maximum beyond p99.9 that excludes the accompanying feature command.
+See [unit output](docs/pfconfirm/proof/pfconfirm2/unit.txt) and the
+[serverless review](docs/pfconfirm/proof/pfconfirm2/serverless-review.json), which
+also checks that cell fields other than rl and the collection methods stayed
+unchanged. Both list commands passed with **12 scoring cells / 16 guards**.
+Gate rows remain **+0/+0**;
+EXPECT constants and `production.diff` remain unchanged (the latter is empty).
+
+The lane's single authorized smoke command, after this registration commit:
+
+```sh
+taskset -c 112-127 docs/pfconfirm/run.sh --smoke --output build/pfconfirm-smoke-2
+```
+
+A quiet-screen refusal is recorded as REFUSED and stops the attempt without
+retry. The maintainer's later bench-phase commands use fresh output directories:
+
+```sh
+taskset -c 112-127 docs/pfconfirm/run.sh --smoke --output build/pfconfirm-smoke-2-mainline
+docs/pfconfirm/run.sh --output build/pfconfirm2-mainline
+```
+
+Alternatively, run one candidate with its shared guards (do not combine with
+the all-candidate command in the same box slot):
+
+```sh
+docs/pfconfirm/run.sh --only PFKEYSPA.1 --output build/pfconfirm2-ttl
+docs/pfconfirm/run.sh --only PFKEYSPA.3 --output build/pfconfirm2-flush
+docs/pfconfirm/run.sh --only PFKEYSPA.4 --output build/pfconfirm2-info
+docs/pfconfirm/run.sh --only PFMESSAG.1 --output build/pfconfirm2-tracking
+docs/pfconfirm/run.sh --only PFPERSIS.1 --output build/pfconfirm2-tls
+docs/pfconfirm/run.sh --only PFDATATY.1 --output build/pfconfirm2-stream
+```
+
+The single smoke attempt's receipt and outcome will be appended after execution;
+no full confirmation or gate run is authorized for this lane.

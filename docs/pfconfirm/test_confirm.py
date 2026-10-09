@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Serverless negative controls for confirmation validity, not a box benchmark."""
 from collections import Counter
+from contextlib import redirect_stderr
 from dataclasses import replace
+from io import StringIO
 from pathlib import Path
 from types import SimpleNamespace
 import unittest
@@ -10,29 +12,89 @@ from unittest.mock import Mock, patch
 import confirm as c
 
 
-def sample(arm="A", on=False, rate=100, p99=1, p999=2):
+def sample(arm="A", on=False, rate=100, p99=1, p999=2, maximum=None):
     return dict(arm=arm, trigger_on=on, complete=True, rate=rate, p99_ms=p99,
-                p999_ms=p999, witness=dict(verdict="PASS"))
+                p999_ms=p999, max_ms=p999 if maximum is None else maximum,
+                witness=dict(verdict="PASS"))
 
 
-def experiment(rate=94, p99=1):
+def experiment(rate=94, p99=1, p999=2, maximum=None, plain_maximum=None):
     null = [sample(arm) for arm in c.ORDER]
     blocks = [[sample(arm, arm == "B", rate if arm == "B" else 100,
-                      p99 if arm == "B" else 1) for arm in c.ORDER] for _ in range(3)]
+                      p99 if arm == "B" else 1, p999 if arm == "B" else 2,
+                      maximum if arm == "B" else plain_maximum)
+               for arm in c.ORDER] for _ in range(3)]
     return null, blocks
+
+
+def evaluate(null, blocks, candidate="PFKEYSPA.1", cell=None):
+    if cell is None:
+        cell = next(x for x in c.read_cells(c.HERE / "cells.txt")
+                    if x.id.startswith(c.SPECS[candidate][0]))
+    return c.decide(null, blocks, cell=cell, candidate=candidate)
 
 
 class VerdictControls(unittest.TestCase):
     def test_null_never_confirms_and_both_thresholds_work(self):
-        for rate, tail, verdict in ((100, 1, False), (94, 1, True), (100, 2, True), (96, 1.99, False)):
-            with self.subTest(rate=rate, tail=tail):
-                result = c.decide(*experiment(rate, tail))
-                self.assertEqual(result["verdict"] == "HIGH upside CONFIRMED", verdict)
+        for candidate in ("PFKEYSPA.1", "PFMESSAG.1"):
+            for rate, tail, verdict in ((100, 1, False), (94, 1, True), (100, 2, True), (96, 1.99, False)):
+                with self.subTest(candidate=candidate, rate=rate, tail=tail):
+                    result = evaluate(*experiment(rate, tail), candidate)
+                    self.assertEqual(result["verdict"] == "HIGH upside CONFIRMED", verdict)
 
     def test_null_tail_spread_cannot_be_ignored(self):
         null, blocks = experiment(100, 2)
         null[0]["p99_ms"] = 5
-        self.assertEqual(c.decide(null, blocks)["verdict"], "NOT CONFIRMED (mark only)")
+        self.assertEqual(evaluate(null, blocks)["verdict"], "NOT CONFIRMED (mark only)")
+
+    def test_quiet_five_percent_null_passes_but_seven_percent_fails(self):
+        for span in (5, 7):
+            null, blocks = experiment()
+            for row, rate in zip(null, (100 - span / 2, 100, 100, 100 + span / 2)):
+                row["rate"] = rate
+            with self.subTest(span=span):
+                if span == 7:
+                    with self.assertRaisesRegex(RuntimeError, "unstable OFF null.*>6%"):
+                        evaluate(null, blocks)
+                else:
+                    result = evaluate(null, blocks)
+                    self.assertEqual(result["null"]["rate"]["span_pct"], 5)
+                    self.assertEqual(result["rate_span_cap_pct"], 6)
+                    self.assertTrue(result["rate_confirmed"])
+
+    def test_quiet_and_noisy_caps_apply_to_nulls_and_both_abba_arms(self):
+        base = c.read_cells(c.HERE / "cells.txt")[0]
+        for op, read_local, cap in (("GET", 0, 6), ("SET", 0, 6), ("GET", 1, 20),
+                                   ("SET", 1, 20), ("MGET", 0, 20), ("MSET", 0, 20)):
+            cell = replace(base, op=op, read_local=read_local)
+            for which in ("null", "on", "off"):
+                for span in (cap - 1, cap, cap + 1):
+                    null, blocks = experiment(100)
+                    rows = null if which == "null" else [r for r in blocks[1]
+                        if r["arm"] == ("B" if which == "on" else "A")]
+                    rows[0]["rate"], rows[-1]["rate"] = 100 - span / 2, 100 + span / 2
+                    with self.subTest(op=op, rl=read_local, which=which, span=span):
+                        if span > cap:
+                            with self.assertRaisesRegex(RuntimeError, f"unstable.*>{cap}%"):
+                                evaluate(null, blocks, cell=cell)
+                        else:
+                            self.assertEqual(evaluate(null, blocks, cell=cell)["rate_span_cap_pct"], cap)
+
+    def test_rate_effect_must_exceed_measured_null_in_every_block(self):
+        for weak_block in (False, True):
+            null, blocks = experiment(94)
+            for row, rate in zip(null, (97.5, 100, 100, 102.5)):
+                row["rate"] = rate
+            # Same null and median effect: one weak block must prevent confirmation.
+            if weak_block:
+                for row in blocks[2]:
+                    if row["arm"] == "B":
+                        row["rate"] = 97
+            self.assertEqual(evaluate(null, blocks)["rate_confirmed"], not weak_block)
+        null, blocks = experiment(93.75)  # Exact binary fraction: loss equals measured span.
+        for row, rate in zip(null, (96.875, 100, 100, 103.125)):
+            row["rate"] = rate
+        self.assertFalse(evaluate(null, blocks, "PFMESSAG.1")["rate_confirmed"])
 
     def test_unstable_null_or_arm_fails_instead_of_widening_threshold(self):
         for which in ("null", "on", "off"):
@@ -40,7 +102,7 @@ class VerdictControls(unittest.TestCase):
             target = null[0] if which == "null" else blocks[1][1 if which == "on" else 0]
             target["rate"] *= 1.1
             with self.subTest(which=which), self.assertRaisesRegex(RuntimeError, "unstable"):
-                c.decide(null, blocks)
+                evaluate(null, blocks)
 
     def test_no_best_block_selection_or_p999_only_confirmation(self):
         null, blocks = experiment(100, 1)
@@ -51,7 +113,94 @@ class VerdictControls(unittest.TestCase):
             for row in block:
                 if row["arm"] == "B":
                     row["p999_ms"] = 200
-        self.assertEqual(c.decide(null, blocks)["verdict"], "NOT CONFIRMED (mark only)")
+        for candidate in ("PFKEYSPA.1", "PFMESSAG.1"):
+            self.assertEqual(evaluate(null, blocks, candidate)["verdict"], "NOT CONFIRMED (mark only)")
+
+    def test_sparse_one_hz_stall_visible_only_at_p999_confirms_stall_candidates(self):
+        # A 2 ms window each second affects 0.2% of requests, below p99's reach.
+        plain = Counter({1000: 100000})
+        stalled = Counter({1000: 99800, 3000: 200})
+        null, blocks = experiment(100)
+        for row in null + sum(blocks, []):
+            hist = stalled if row["trigger_on"] else plain
+            row.update(p99_ms=c.percentile(hist, 99), p999_ms=c.percentile(hist, 99.9),
+                       max_ms=c.percentile(hist, 100))
+        for candidate in c.SPECS:
+            with self.subTest(candidate=candidate):
+                result = evaluate(null, blocks, candidate)
+                stall_candidate = candidate in ("PFKEYSPA.3", "PFKEYSPA.4", "PFDATATY.1")
+                self.assertEqual(result["p999_confirmed"], stall_candidate)
+                self.assertEqual(result["verdict"] == "HIGH upside CONFIRMED", stall_candidate)
+                self.assertFalse(result["rate_confirmed"] or result["p99_confirmed"])
+                self.assertEqual(result["p99_ratio"], 1)
+                self.assertEqual(result["p999_ratio"], 3)
+
+    def test_p999_needs_action_bar_and_all_three_blocks_beyond_its_null(self):
+        for control in ("at_bar", "below_bar", "null_equals_effect", "weak_block"):
+            null, blocks = experiment(100, 1, 4)
+            if control == "below_bar":
+                for block in blocks:
+                    for row in block:
+                        if row["arm"] == "B":
+                            row["p999_ms"] = 3.99
+            elif control == "null_equals_effect":
+                null[0]["p999_ms"] = 4  # 100% measured span, ratio exactly 2 is insufficient.
+            elif control == "weak_block":
+                for row in blocks[2]:
+                    if row["arm"] == "B":
+                        row["p999_ms"] = 2
+            with self.subTest(control=control):
+                self.assertEqual(evaluate(null, blocks, "PFKEYSPA.3")["p999_confirmed"],
+                                 control == "at_bar")
+
+    def test_tls_encryption_cost_without_stall_never_confirms(self):
+        result = evaluate(*experiment(50, 4, 8, maximum=9), "PFPERSIS.1")
+        self.assertEqual(result["verdict"], "NOT CONFIRMED (mark only)")
+        self.assertEqual(result["rate_loss_pct"], 50)
+        self.assertEqual((result["p99_ratio"], result["p999_ratio"]), (4, 4))
+        self.assertEqual(result["decisive_metrics"], ("max_ms",))
+        self.assertFalse(any(result[m] for m in ("rate_confirmed", "p99_confirmed",
+                                                 "p999_confirmed", "stall_confirmed")))
+
+    def test_tls_stall_requires_each_block_and_strict_plain_maximum(self):
+        for control in ("at_bar", "below_bar", "plain_at_limit", "one_missing_block", "plain_spike"):
+            null, blocks = experiment(100, maximum=100, plain_maximum=9.999)
+            if control == "below_bar":
+                for block in blocks:
+                    for row in block:
+                        if row["arm"] == "B":
+                            row["max_ms"] = 99.999
+            elif control == "plain_at_limit":
+                blocks[0][0]["max_ms"] = 10
+            elif control == "one_missing_block":
+                for row in blocks[2]:
+                    if row["arm"] == "B":
+                        row["max_ms"] = 9
+            elif control == "plain_spike":
+                blocks[2][3]["max_ms"] = 150
+            with self.subTest(control=control):
+                result = evaluate(null, blocks, "PFPERSIS.1")
+                self.assertEqual(result["stall_confirmed"], control == "at_bar")
+                self.assertEqual(result["verdict"] == "HIGH upside CONFIRMED", control == "at_bar")
+
+    def test_tls_pools_maxima_without_averaging_or_null_tail_caps(self):
+        null, blocks = experiment(100, maximum=150, plain_maximum=9)
+        null[0].update(p99_ms=1000, p999_ms=1000, max_ms=1000)
+        for block in blocks:
+            block[1]["max_ms"] = 2  # max(2, 150) must stay 150, not fall to a mean of 76.
+        result = evaluate(null, blocks, "PFPERSIS.1")
+        self.assertTrue(result["stall_confirmed"])
+        self.assertEqual(result["block_max_ms"], [dict(A=9, B=150)] * 3)
+
+    def test_missing_or_nonfinite_maximum_fails(self):
+        for value in (None, float("nan")):
+            null, blocks = experiment()
+            if value is None:
+                del blocks[0][1]["max_ms"]
+            else:
+                blocks[0][1]["max_ms"] = value
+            with self.assertRaises((KeyError, RuntimeError)):
+                evaluate(null, blocks, "PFPERSIS.1")
 
     def test_missing_trigger_incomplete_or_mislabelled_arm_fails(self):
         for mutation in (lambda r: r["witness"].update(verdict="FAIL"),
@@ -61,10 +210,10 @@ class VerdictControls(unittest.TestCase):
             null, blocks = experiment()
             mutation(blocks[0][1])
             with self.assertRaises(RuntimeError):
-                c.decide(null, blocks)
+                evaluate(null, blocks)
         null, blocks = experiment()
         with self.assertRaises(RuntimeError):
-            c.decide(null, blocks[:2])
+            evaluate(null, blocks[:2])
 
 
 class DriverControls(unittest.TestCase):
@@ -75,6 +224,7 @@ class DriverControls(unittest.TestCase):
         self.driver.memtier = "/usr/bin/memtier_benchmark"
         self.driver.seconds = 20
         self.driver.port = 25000
+        self.driver.out = Path("/unused")
         self.place = dict(cpus=[32], threads=1, clients=1)
 
     def test_all_cell_files_parse_and_no_trigger_can_run_as_stock_cell(self):
@@ -82,6 +232,30 @@ class DriverControls(unittest.TestCase):
         self.assertEqual(len(c.read_cells(c.HERE / "guards.txt")), 16)
         for ident, (prefix, _) in c.SPECS.items():
             self.assertTrue(any(x.id.startswith(prefix) for x in c.read_cells(c.HERE / "cells.txt")), ident)
+
+    def test_scoring_and_all_dependent_guards_use_read_local_zero(self):
+        cells = c.read_cells(c.HERE / "cells.txt")
+        guards = c.read_cells(c.HERE / "guards.txt")
+        self.assertTrue(all(cell.mode == "1s" and cell.read_local == cell.reorder == 0 for cell in cells))
+        self.assertTrue(all(cell.read_local == cell.reorder == 0 for cell in guards))
+        self.assertEqual({cell.mode for cell in guards}, {"1s", "2s"})
+
+    def test_candidate_null_and_dry_guards_use_classified_rate_caps(self):
+        for op, rl, cap in (("GET", 0, 6), ("MSET", 0, 20), ("GET", 1, 20)):
+            cell = replace(self.cell, op=op, read_local=rl)
+            for span in (cap - 1, cap + 1):
+                for method in (self.driver.guards, lambda: self.driver.candidate("PFKEYSPA.1")):
+                    null, blocks = experiment(100)
+                    null[0]["rate"], null[-1]["rate"] = 100 - span / 2, 100 + span / 2
+                    with self.subTest(op=op, rl=rl, span=span, method=method), redirect_stderr(StringIO()):
+                        with patch.object(c, "read_cells", return_value=[cell]), patch.object(c, "save"), \
+                             patch.object(self.driver, "sample", side_effect=null + sum(blocks, [])) as sample_mock:
+                            if span > cap:
+                                with self.assertRaisesRegex(RuntimeError, "unstable"):
+                                    method()
+                                self.assertEqual(sample_mock.call_count, 4)  # No ON data after a bad null.
+                            else:
+                                method()
 
     def test_wide_mset_has_exactly_1024_distinct_nonmatching_keys(self):
         cell = next(x for x in c.read_cells(c.HERE / "cells.txt") if x.id.startswith("tracking-"))
@@ -174,11 +348,14 @@ class HistogramControls(unittest.TestCase):
                 "Gets": {"Count": count}, "XLEN": {"Count": 1}}})
         def histogram(document, command, **kwargs):
             count = document["ALL STATS"]["Gets"]["Count"]
-            return Counter({100 if count == 10000 else 100000: count}) if command == "GET" else Counter({500000: 1})
+            if command != "GET":
+                return Counter({500000: 1})
+            return Counter({100: count - 1, 200000: 1}) if count == 10000 else Counter({100000: count})
         with patch.object(c, "command_histogram", side_effect=histogram):
             result = c.metrics(documents, cell, [dict(threads=1, clients=1)] * 2, ["GET", "XLEN"])
         self.assertEqual(result["p99_ms"], .1)
         self.assertEqual(result["p999_ms"], 100)
+        self.assertEqual(result["max_ms"], 200)  # Rarer than p99.9; XLEN's 500 ms must not score.
         self.assertEqual(result["rate"], 502.5)
         self.assertEqual(result["completed"], {"GET": 10050, "XLEN": 2})
 

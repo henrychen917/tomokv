@@ -44,7 +44,15 @@ SPECS = {
     "PFPERSIS.1": ("tls-", 35),
     "PFDATATY.1": ("stream-", 10),
 }
-METRICS = ("rate", "p99_ms", "p999_ms")
+METRICS = ("rate", "p99_ms", "p999_ms", "max_ms")
+DECISIVE_METRICS = {
+    "PFKEYSPA.1": ("rate", "p99_ms"),
+    "PFKEYSPA.3": ("rate", "p99_ms", "p999_ms"),
+    "PFKEYSPA.4": ("rate", "p99_ms", "p999_ms"),
+    "PFMESSAG.1": ("rate", "p99_ms"),
+    "PFPERSIS.1": ("max_ms",),
+    "PFDATATY.1": ("rate", "p99_ms", "p999_ms"),
+}
 ORDER = "ABBA"
 
 
@@ -73,8 +81,21 @@ def summary(values):
                 span_pct=100 * (max(values) - min(values)) / middle)
 
 
-def decide(null, blocks):
+def rate_span_cap(cell):
+    """Owner's instability caps only; resolution always comes from measured nulls."""
+    return 6 if cell.op in ("GET", "SET") and cell.read_local == 0 else 20
+
+
+def require_stable_rate(stats, cell, context):
+    cap = rate_span_cap(cell)
+    require(stats["span_pct"] <= cap, f"unstable {context} (>{cap}% rate span)")
+
+
+def decide(null, blocks, *, cell, candidate):
     """Pure, replayable preregistered verdict; never discards a bad block."""
+    require(candidate in SPECS and cell.id.startswith(SPECS[candidate][0]),
+            "candidate/cell mismatch")
+    decisive = DECISIVE_METRICS[candidate]
     require(len(null) == 4 and len(blocks) == 3 and all(len(b) == 4 for b in blocks),
             "need one four-sample null and three complete ABBA blocks")
     require(all(r["witness"]["verdict"] == "PASS" for r in null + sum(blocks, [])),
@@ -82,27 +103,39 @@ def decide(null, blocks):
     require(all(r["complete"] for r in null + sum(blocks, [])), "incomplete sample")
     require(not any(r["trigger_on"] for r in null), "null contains an ON trigger")
     null_stats = {m: summary([r[m] for r in null]) for m in METRICS}
-    require(null_stats["rate"]["span_pct"] <= 2, "unstable OFF null (>2% rate span)")
+    require_stable_rate(null_stats["rate"], cell, "OFF null")
     pairs = []
     for block in blocks:
         require("".join(r["arm"] for r in block) == ORDER, "invalid ABBA order")
         require(all(r["trigger_on"] == (r["arm"] == "B") for r in block), "OFF/ON arm mismatch")
         arms = {a: {m: summary([r[m] for r in block if r["arm"] == a])
                     for m in METRICS} for a in "AB"}
-        require(all(arms[a]["rate"]["span_pct"] <= 2 for a in "AB"),
-                "unstable within-arm ABBA rate span (>2%)")
+        for arm in "AB":
+            require_stable_rate(arms[arm]["rate"], cell, f"within-arm ABBA {arm}")
         pairs.append(dict(arms=arms,
             rate_loss_pct=100 * (1 - arms["B"]["rate"]["median"] / arms["A"]["rate"]["median"]),
             p99_ratio=arms["B"]["p99_ms"]["median"] / arms["A"]["p99_ms"]["median"],
-            p999_ratio=arms["B"]["p999_ms"]["median"] / arms["A"]["p999_ms"]["median"]))
+            p999_ratio=arms["B"]["p999_ms"]["median"] / arms["A"]["p999_ms"]["median"],
+            # Pool the two samples per arm by maximum, never by median/mean.
+            max_ms={a: arms[a]["max_ms"]["maximum"] for a in "AB"}))
     losses = [p["rate_loss_pct"] for p in pairs]
     tails = [p["p99_ratio"] for p in pairs]
-    rate_hit = statistics.median(losses) >= 5 and min(losses) > null_stats["rate"]["span_pct"]
-    tail_hit = statistics.median(tails) >= 2 and min(tails) > 1 + null_stats["p99_ms"]["span_pct"] / 100
-    return dict(verdict="HIGH upside CONFIRMED" if rate_hit or tail_hit else "NOT CONFIRMED (mark only)",
+    far_tails = [p["p999_ratio"] for p in pairs]
+    rate_hit = ("rate" in decisive and statistics.median(losses) >= 5
+                and min(losses) > null_stats["rate"]["span_pct"])
+    tail_hit = ("p99_ms" in decisive and statistics.median(tails) >= 2
+                and min(tails) > 1 + null_stats["p99_ms"]["span_pct"] / 100)
+    far_tail_hit = ("p999_ms" in decisive and statistics.median(far_tails) >= 2
+                   and min(far_tails) > 1 + null_stats["p999_ms"]["span_pct"] / 100)
+    stall_hit = ("max_ms" in decisive
+                 and all(p["max_ms"]["B"] >= 100 and p["max_ms"]["A"] < 10 for p in pairs))
+    return dict(verdict="HIGH upside CONFIRMED" if rate_hit or tail_hit or far_tail_hit or stall_hit
+                else "NOT CONFIRMED (mark only)",
                 rate_loss_pct=statistics.median(losses), p99_ratio=statistics.median(tails),
-                p999_ratio=statistics.median(p["p999_ratio"] for p in pairs),
-                rate_confirmed=rate_hit, p99_confirmed=tail_hit, null=null_stats, blocks=pairs,
+                p999_ratio=statistics.median(far_tails), block_max_ms=[p["max_ms"] for p in pairs],
+                decisive_metrics=decisive, rate_span_cap_pct=rate_span_cap(cell),
+                rate_confirmed=rate_hit, p99_confirmed=tail_hit, p999_confirmed=far_tail_hit,
+                stall_confirmed=stall_hit, null=null_stats, blocks=pairs,
                 arms={a: {m: summary([r[m] for b in blocks for r in b if r["arm"] == a])
                           for m in METRICS} for a in "AB"})
 
@@ -239,6 +272,7 @@ def metrics(documents, cell, layout, names):
         times.append((runtime["Start time"] / 1000, runtime["Finish time"] / 1000))
     require(rate > 0 and hist, "no main-command completions")
     return dict(rate=rate, p99_ms=percentile(hist, 99), p999_ms=percentile(hist, 99.9),
+                max_ms=percentile(hist, 100),
                 completed=dict(counts), main_histogram=dict(hist),
                 common_runtime=[max(t[0] for t in times), min(t[1] for t in times)], runtimes=times)
 
@@ -579,9 +613,9 @@ class Campaign:
             rows = [self.sample(cell, "guard", False, arm, self.out / "guards" / cell.id / str(i))
                     for i, arm in enumerate(ORDER)]
             stats = {m: summary([r[m] for r in rows]) for m in METRICS}
-            results[cell.id] = stats
+            results[cell.id] = dict(stats, rate_span_cap_pct=rate_span_cap(cell))
             save(self.out / "guards.json", results)
-            require(stats["rate"]["span_pct"] <= 2, f"unstable dry guard {cell.id}")
+            require_stable_rate(stats["rate"], cell, f"dry guard {cell.id}")
 
     def candidate(self, ident):
         prefix, estimate = SPECS[ident]
@@ -602,10 +636,10 @@ class Campaign:
                 continue
             null = [self.sample(cell, kind, False, arm, base / f"null-{i}-{arm}")
                     for i, arm in enumerate(ORDER)]
-            require(summary([r["rate"] for r in null])["span_pct"] <= 2, "unstable candidate null")
+            require_stable_rate(summary([r["rate"] for r in null]), cell, "candidate null")
             blocks = [[self.sample(cell, kind, arm == "B", arm, base / f"block-{block}-{i}-{arm}")
                        for i, arm in enumerate(ORDER)] for block in range(3)]
-            results[cell.id] = decide(null, blocks)
+            results[cell.id] = decide(null, blocks, cell=cell, candidate=ident)
             save(base / "verdict.json", results[cell.id])
         verdict = "SMOKE_OK (no performance verdict)" if self.args.smoke else (
             "HIGH upside CONFIRMED" if any(c["verdict"] == "HIGH upside CONFIRMED" for c in results.values())
@@ -636,7 +670,9 @@ def main():
         line = {k: v for k, v in result.items() if k != "cells"}
         if "cells" in result:
             line["cells"] = {name: {k: v for k, v in row.items() if k in
-                ("verdict", "rate_loss_pct", "p99_ratio", "p999_ratio", "arms", "null")}
+                ("verdict", "rate_loss_pct", "p99_ratio", "p999_ratio", "block_max_ms",
+                 "decisive_metrics", "rate_span_cap_pct", "rate_confirmed", "p99_confirmed",
+                 "p999_confirmed", "stall_confirmed", "arms", "null")}
                 for name, row in result["cells"].items()}
         with (args.output / "results.jsonl").open("a") as stream:
             stream.write(json.dumps(line, sort_keys=True) + "\n")
