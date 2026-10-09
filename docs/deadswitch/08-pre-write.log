@@ -1,0 +1,4 @@
+PASS PRE write: grouped=0 payload=256 sizeof(Map)=260
+PASS POST replay: all 256 bytes restored; 260-byte payload rejected
+PASS PRE write: grouped=1 payload=256 sizeof(Map)=260
+PASS POST replay: all 256 bytes restored; 260-byte payload rejected

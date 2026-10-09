@@ -9,3 +9,9 @@ encodingfix: mainline measurements pending.
 See MEASURE-REQUEST-encodingfix.md for the verified Redis defaults, exact PRE/POST/PAD A arms and SHA-256 checksums, 14-cell null inventory, memory accounting, changed-body proof, correctness results and remaining live gate work.
 
 No server benchmark or TomoKV boot was run by the lane.
+
+deadswitch: see MEASURE-REQUEST-deadswitch.md and docs/deadswitch/.
+Default cleanup: final 1492/1492 hot, 17078/17078 full emitted bodies and loadable sections identical.
+AOF budget is LIVE on epoll; live batteries/common-budget follow-up remain pending.
+TTL EXPERIMENT: inline/sidecar/PAD-B (B inverse control) built; measurements remain mainline-owned.
+Rows +0/+0. No server, benchmark, gate, or push run by this lane.

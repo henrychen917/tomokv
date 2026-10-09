@@ -17,6 +17,9 @@
 
 namespace tomo {
 
+// Shared by Buf and Op::Sink: literal bytes excluding the terminating NUL.
+inline constexpr size_t kInlineLiteralMax = 16;
+
 // ---- key byte equality ------------------------------------------------------------------------
 // The store's key comparison. Every FlatStore probe run ends here, so it is the hottest comparison
 // in the server, and the shipped build reached it through `memcmp@plt`. What that call costs is
@@ -242,7 +245,7 @@ public:
     template <size_t N>
     void append(const char (&lit)[N]) {
         static_assert(N >= 1, "append() takes a string literal");
-        if constexpr (N - 1 <= 16) {
+        if constexpr (N - 1 <= kInlineLiteralMax) {
             if (len_ + (N - 1) > cap_) grow(len_ + (N - 1));
             __builtin_memcpy(data_ + len_, lit, N - 1);
             len_ += N - 1;

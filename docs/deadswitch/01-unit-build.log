@@ -1,0 +1,2 @@
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DkGenthreadPipelineExBatchOps=128 -I. tests/reorder_unit.cc -o build/reorder-unit
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DkGenthreadPipelineExBatchOps=128 -I. tests/r7shadow_unit.cc -o build/r7shadow-unit

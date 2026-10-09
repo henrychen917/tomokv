@@ -19,10 +19,13 @@
 #include <new>
 #include <type_traits>
 #include <vector>
+#include "exqueue.h"
 
 namespace tomo {
 
-inline constexpr size_t kMaskedQueueCacheLine = 64;
+// Compatibility name; queue layout follows the canonical cache-line quantity.
+inline constexpr size_t kMaskedQueueCacheLine = tomo::kCacheLine;
+static_assert(kMaskedQueueCacheLine == tomo::kCacheLine);
 
 // Cold read-side aggregate.  Each underlying counter has exactly one writer: the arena consumer
 // records observed lane depth, and the lane's sole producer records refusals and their arena sample.

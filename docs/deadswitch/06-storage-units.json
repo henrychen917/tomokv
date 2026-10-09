@@ -1,0 +1,170 @@
+[
+  {
+    "arm": "inline",
+    "case": "unlinked",
+    "returncode": 0,
+    "stdout": "PASS storage unlinked\n",
+    "stderr": ""
+  },
+  {
+    "arm": "inline",
+    "case": "randomkey",
+    "returncode": 0,
+    "stdout": "PASS storage randomkey\n",
+    "stderr": ""
+  },
+  {
+    "arm": "inline",
+    "case": "rehash",
+    "returncode": 0,
+    "stdout": "PASS storage rehash\n",
+    "stderr": ""
+  },
+  {
+    "arm": "inline",
+    "case": "rollback",
+    "returncode": 0,
+    "stdout": "PASS storage rollback\n",
+    "stderr": ""
+  },
+  {
+    "arm": "inline",
+    "case": "snapshot-eviction",
+    "returncode": 0,
+    "stdout": "PASS storage snapshot-eviction\n",
+    "stderr": ""
+  },
+  {
+    "arm": "inline",
+    "case": "flags",
+    "returncode": 0,
+    "stdout": "PASS storage flags\n",
+    "stderr": ""
+  },
+  {
+    "arm": "inline",
+    "case": "aof-eviction",
+    "returncode": 0,
+    "stdout": "PASS storage aof-eviction\n",
+    "stderr": ""
+  },
+  {
+    "arm": "inline",
+    "case": "intents",
+    "returncode": 0,
+    "stdout": "PASS storage intents\n",
+    "stderr": ""
+  },
+  {
+    "arm": "inline",
+    "case": "imported-hash",
+    "returncode": 0,
+    "stdout": "PASS storage imported-hash\n",
+    "stderr": ""
+  },
+  {
+    "arm": "inline",
+    "case": "field-index-failure",
+    "returncode": 0,
+    "stdout": "PASS storage field-index-failure\n",
+    "stderr": ""
+  },
+  {
+    "arm": "inline",
+    "case": "hash-bytes",
+    "returncode": 0,
+    "stdout": "PASS storage hash-bytes\n",
+    "stderr": ""
+  },
+  {
+    "arm": "sidecar",
+    "case": "unlinked",
+    "returncode": 0,
+    "stdout": "PASS storage unlinked\n",
+    "stderr": ""
+  },
+  {
+    "arm": "sidecar",
+    "case": "randomkey",
+    "returncode": 0,
+    "stdout": "PASS storage randomkey\n",
+    "stderr": ""
+  },
+  {
+    "arm": "sidecar",
+    "case": "rehash",
+    "returncode": 0,
+    "stdout": "PASS storage rehash\n",
+    "stderr": ""
+  },
+  {
+    "arm": "sidecar",
+    "case": "rollback",
+    "returncode": 0,
+    "stdout": "PASS storage rollback\n",
+    "stderr": ""
+  },
+  {
+    "arm": "sidecar",
+    "case": "snapshot-eviction",
+    "returncode": 0,
+    "stdout": "PASS storage snapshot-eviction\n",
+    "stderr": ""
+  },
+  {
+    "arm": "sidecar",
+    "case": "flags",
+    "returncode": 0,
+    "stdout": "PASS storage flags\n",
+    "stderr": ""
+  },
+  {
+    "arm": "sidecar",
+    "case": "aof-eviction",
+    "returncode": 0,
+    "stdout": "PASS storage aof-eviction\n",
+    "stderr": ""
+  },
+  {
+    "arm": "sidecar",
+    "case": "intents",
+    "returncode": 0,
+    "stdout": "PASS storage intents\n",
+    "stderr": ""
+  },
+  {
+    "arm": "sidecar",
+    "case": "imported-hash",
+    "returncode": 0,
+    "stdout": "PASS storage imported-hash\n",
+    "stderr": ""
+  },
+  {
+    "arm": "sidecar",
+    "case": "field-index-failure",
+    "returncode": 0,
+    "stdout": "PASS storage field-index-failure\n",
+    "stderr": ""
+  },
+  {
+    "arm": "sidecar",
+    "case": "hash-bytes",
+    "returncode": 0,
+    "stdout": "PASS storage hash-bytes\n",
+    "stderr": ""
+  },
+  {
+    "arm": "sidecar",
+    "case": "deadline-sidecar",
+    "returncode": 0,
+    "stdout": "PASS storage deadline-sidecar\n",
+    "stderr": ""
+  },
+  {
+    "arm": "inline-negative",
+    "case": "deadline-sidecar",
+    "returncode": 1,
+    "stdout": "",
+    "stderr": "FAIL: deadline case must run a sidecar-enabled build\n"
+  }
+]
