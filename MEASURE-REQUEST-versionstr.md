@@ -195,3 +195,13 @@ The runner exited 2 without invoking the gate or booting a server. `gate-result.
 Rows **+0/+0**; `EXPECT_QUICK=502`, `EXPECT_FULL=519` unchanged. No row was added or retired on either side of the quick-tier exit, and `tests/gate.sh` matches PRE. Grep receipts cover plain, escaped, hex, Unicode, octal, URL, HTML and base64 spellings in `tests/` and `tools/`, including their 24 gzip artifacts. Presentation strings and test assertions were unchanged by versionstr3. No throughput measurement or performance claim is made; no measurement PAD arm is proposed.
 
 **Lesson for the record:** a lane that touches the Makefile must build and run the gate's unit targets, not only its own serverless checks.
+
+## 2026-10-09 — versionstr4
+
+In progress: repair committed; verification receipts follow in this section.
+
+Entry HEAD `5911a55b6`; fetched and merged `origin/cpp` (`dab740964`), already up to date. The exact pre-fix TSAN wiring assertion is reproduced in `docs/versionstr/versionstr4/before-fix.log`. Its source is **not a Makefile variable**: `job_core_tsan_build` in `tests/gate.sh` independently expands `src/core/*.cc`, admitting `src/core/version.cc` despite the Makefile's `SERVER_ONLY_SRC` separation. The build now excludes that server entry source before calling `tests/parbuild.sh`; the self-test expected set is unchanged.
+
+The non-server inventory also found two Makefile test-object dependency globs and eight offline unit/control build helpers collecting sources or objects independently. Their build lists now omit the entry wrapper in both namespaces where applicable. Changes in Python files affect build input selection only; runtime checks and byte-comparison logic are untouched. The release link's ordered multi-db/DB0 object lists and both server-only version objects are unchanged. `production.diff` records only these build changes, relative to the entry HEAD.
+
+Rows **+0 quick / +0 full**; EXPECT_QUICK=502 and EXPECT_FULL=519 remain unchanged. No server, benchmark or gate is run by this lane. The first build quiet screen refused admission (exit 2); this is a refusal, not a build failure.

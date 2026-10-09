@@ -191,9 +191,9 @@ def controls():
 
     def objects(arm, ns):
         base = OUT / arm / 'artifacts'
-        normal = sorted(p for p in (base / 'src').rglob('*.o') if p != base / 'src/main.o')
+        normal = sorted(p for p in (base / 'src').rglob('*.o') if p.name not in ('main.o', 'version.o'))
         if ns == 'normal': return normal
-        return sorted(p for p in (base / 'db0/src').rglob('*.o') if p != base / 'db0/src/main.o') + normal
+        return sorted(p for p in (base / 'db0/src').rglob('*.o') if p.name not in ('main.o', 'version.o')) + normal
 
     drivers = {}
     for arm in ('PRE', 'POST'):

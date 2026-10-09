@@ -60,7 +60,7 @@ def pre_unit(root):
     for directory in (root / 'src', root / 'db0/src'):
         objects += [p for p in sorted(directory.rglob('*.o'))
                     if p.relative_to(directory).as_posix() not in ('main.o', 'cmd/xshard.o')
-                    and p.name != 'multidb.o']
+                    and p.name not in ('multidb.o', 'version.o')]
     subprocess.run(['g++', '-pthread', *map(str, objects), '-o', str(root / 'unit'),
                     '-ljemalloc', '-luring', '-lssl', '-lcrypto', '-lm'], check=True)
 
