@@ -1,0 +1,693 @@
+{
+  "start_commit": "61cb3771417cce25df6d1eecfb6a161d6cf93739",
+  "upstream": "165d268bed1bae72947263fa951985d8a83eb0c8",
+  "merge": "git fetch origin && git merge --no-edit origin/cpp: Already up to date.",
+  "cpu_affinity": "112-127",
+  "code_commits": [
+    "cb25f1ad30b7a196660e140540169cda1b86f97a Guard surviving full-inventory geometries after overlap removal",
+    "9a921c48190b29875357a53824d019bcdbb94f57 Refresh FIFO identity signatures and inventories after overlap removal",
+    "8610565df3468df147a34f4180a47c811e7e9160 Update multidb QSBR unit calls after overlap removal"
+  ],
+  "production_units": {
+    "command": "taskset -c 112-127 make -k -j16 build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0",
+    "returncode": 0,
+    "live_arms_command": "taskset -c 112-127 make -j16 mdbqsbr-live-arms",
+    "live_arms_returncode": 0,
+    "readiness": {
+      "count": 28,
+      "targets": [
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/at15-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/at15-db0-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/execabort-watch-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/execabort-watch-db0-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/core-concurrency-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/atomic-survivors-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/netcmd-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/encodingfix-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/netcap-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/waits-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/rehash-waits-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/multidb-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/multidb-boundary-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/storesize-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/wb-rule-units"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/wbland-units"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/rltopo-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/lbplanner-units"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/shutdown-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/persistfix-units"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/exbatch-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/exbatch-db0-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/ktls-keyupdate"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/ktls-keyupdate-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/flushfix-units"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/splitlocal-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/reorder-engagement-unit"
+          ],
+          "returncode": 0,
+          "output": ""
+        },
+        {
+          "argv": [
+            "taskset",
+            "-c",
+            "112-127",
+            "make",
+            "-q",
+            "build/reorder-engagement-unit-db0"
+          ],
+          "returncode": 0,
+          "output": ""
+        }
+      ]
+    },
+    "build_kind": "incremental; every requested target checked with make -q, no stale-output acceptance"
+  },
+  "reorder_identity": {
+    "command": "taskset -c 112-127 python3 tests/reorder_receipt.py build/tomokv build/overlapaxe3/reorder_identity/receipt",
+    "returncode": 0,
+    "identical_bodies": 294,
+    "per_namespace": {
+      "tomo": 147,
+      "tomo_db0": 147
+    },
+    "negative_controls_rejected": [
+      "missing policy symbols",
+      "missing split-local parser",
+      "changed opcode"
+    ],
+    "twin_kind": "A: FIFO behaviour at candidate text size/layout; offline correctness witness"
+  },
+  "multidb_serverless_owners": {
+    "commands": [
+      "taskset -c 112-127 ./build/multidb-unit",
+      "taskset -c 112-127 python3 tests/mdbqsbr_checks.py build/mdbqsbr-unit"
+    ],
+    "returncodes": [
+      0,
+      0
+    ],
+    "fault_controls_rejected": 18,
+    "production_deadline_aborts_with_expected_participant": true
+  },
+  "abba_selftest": [
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/abbagate.py",
+        "--self-test"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 128.6051685810089,
+      "log": "build/overlapaxe3/abba_selftest/abbagate.log",
+      "sha256": "04176593aeb3b362dcbda2807f1fa34fa5d0b308b80741938be2e1773d095d12"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/gate_quiet.py",
+        "--self-test"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.10045925993472338,
+      "log": "build/overlapaxe3/abba_selftest/gate_quiet.log",
+      "sha256": "5b8a3ccb28c32f172271a641e8142fdb66c37cd396f681ca016266abfdb51bb3"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/gate_measurements.py",
+        "--self-test"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 2.6567797092720866,
+      "log": "build/overlapaxe3/abba_selftest/gate_measurements.log",
+      "sha256": "1dda432d26cdd2263f5462dc4615d786abe65c4e31a9bdfdaadd8daa12c7f67b"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/gate_receipt.py",
+        "--self-test"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 129.3240245017223,
+      "log": "build/overlapaxe3/abba_selftest/gate_receipt.log",
+      "sha256": "49e9e9faf6e399949f9d9acfaea636378986fdcc9e25b4978ef95ca4c0ad9a08"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/abba_instrument.py",
+        "--self-test"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 1.2393931169062853,
+      "log": "build/overlapaxe3/abba_selftest/abba_instrument.log",
+      "sha256": "4f15383f99750116950b268f0896ca2f17439813927417f4ee71b46f1a6e3fae"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/background_environment_test.py"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.04773392388597131,
+      "log": "build/overlapaxe3/abba_selftest/background_environment_test.log",
+      "sha256": "34a82a30511a2175a5286cff0751874e9220ce5fb08cab87b09cc04e220f6b31"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/gate_history.py",
+        "self-test"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 21.309537190943956,
+      "log": "build/overlapaxe3/abba_selftest/gate_history.log",
+      "sha256": "0c6bb519b6c8174f19655563f5ba8a05348da025344c8c7e717bb475d7007d40"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/gate_process_test.py"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.5425180671736598,
+      "log": "build/overlapaxe3/abba_selftest/gate_process_test.log",
+      "sha256": "f914ddf26bfc130bf6e886a1877d2ea71ba295e418dd42b7abd1ca39f71a179a"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/gates_test.py"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 75.06448422884569,
+      "log": "build/overlapaxe3/abba_selftest/gates_test.log",
+      "sha256": "8fbc1a6bdec512d9a6ab5b6d39cbc1ad59dfd79ce6ed1bde02ec6ab151fe116c"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/gate_subset_test.py"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.10052493307739496,
+      "log": "build/overlapaxe3/abba_selftest/gate_subset_test.log",
+      "sha256": "37b97ae0fb4829536396d7806265324ff6659addb08f1bb23b5a87f3dc9b9e04"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/wb_policy.py",
+        "--self-test"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.03519773529842496,
+      "log": "build/overlapaxe3/abba_selftest/wb_policy.log",
+      "sha256": "87f77e09967560adad269fca918425a94ad358c96effdbbe49d4ba8e22615a76"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/lb_stationary.py",
+        "--self-test"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.21552495192736387,
+      "log": "build/overlapaxe3/abba_selftest/lb_stationary.log",
+      "sha256": "c47cc04c7c91b95522c64a56f5bdbbf19ec81f3e11baadf7c784725b33b1f232"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/netio.py",
+        "--self-test"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.020096173975616693,
+      "log": "build/overlapaxe3/abba_selftest/netio.log",
+      "sha256": "3e7d37b61f8ed9128d7985effdf09f645d12e8e4fe0535eab9973b71b9384640"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/gateprod.py",
+        "--self-test"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 1.9245409397408366,
+      "log": "build/overlapaxe3/abba_selftest/gateprod.log",
+      "sha256": "898ad44453f00dc9a56e83917a243f026b48a1ee83cc1af1804eca0991d3f5d4"
+    },
+    {
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/tailgen_stall.py",
+        "--self-test"
+      ],
+      "returncode": 0,
+      "elapsed_seconds": 0.08537078090012074,
+      "log": "build/overlapaxe3/abba_selftest/tailgen_stall.log",
+      "sha256": "0180e1fbba418334ae31cf429348617874fd9ae207f593a6069967d6f84a838b"
+    }
+  ],
+  "gates_test": {
+    "command": "taskset -c 112-127 python3 tests/gates_test.py",
+    "tests": 66,
+    "returncode": 0,
+    "run_as": "eighth follow-on command after abbagate.py in the exact abba_selftest sequence"
+  },
+  "geometry_guard": {
+    "required_geometries": 98,
+    "inventory_rows": 181,
+    "unique_geometries": 100,
+    "negative_controls": {
+      "MGET": [
+        "m01",
+        "m13"
+      ],
+      "MSET": [
+        "m04",
+        "m16"
+      ]
+    },
+    "control_result": "each replacement keeps 181 rows and rejects exactly one missing geometry"
+  },
+  "initial_failures": [
+    {
+      "command": "taskset -c 112-127 make -j16 build/mdbqsbr-asan/tests/mdbqsbr_unit.o",
+      "returncode": 2,
+      "cause": "old Pipeline=1 argument became SplitLocal=true with Fused=false; not a layout assertion"
+    },
+    {
+      "command": "reorder_identity after run_loop arity repair only",
+      "returncode": 1,
+      "cause": "stale split-local parser signature/body inventory; repaired before final proof"
+    }
+  ],
+  "unchanged": {
+    "files": {
+      "tools/mkprobe_probe.py": {
+        "sha256": "0ff75f47dd5cf382a3c0c74dde1e64361ef472816ae7371b954ce8ff90323d9f",
+        "unchanged_from": "61cb3771417cce25df6d1eecfb6a161d6cf93739"
+      },
+      "tests/mkprobe_cells.txt": {
+        "sha256": "0f786dec1a647fa10334dc418e62b1aea702a4f2ebb269cce488c6b5b31bba03",
+        "unchanged_from": "61cb3771417cce25df6d1eecfb6a161d6cf93739"
+      },
+      "tests/gate.sh": {
+        "sha256": "a2d01ee765a135f4e4b373151a93e69504094023ef69ca49d23ba2a00de8fc58",
+        "unchanged_from": "61cb3771417cce25df6d1eecfb6a161d6cf93739"
+      },
+      "tests/headline_cells.txt": {
+        "sha256": "f62b7a4c59cb8a9844d0baafeb19c0328f2e6790ca6103dffb21abb5ee0e20f6",
+        "unchanged_from": "61cb3771417cce25df6d1eecfb6a161d6cf93739"
+      },
+      "tests/fixtures/nullrefresh-ledger-labels.json": {
+        "sha256": "00c616f5c241378c9332ef4d4086183a00ad9b2940814bf1cc06014d3bb7ae37",
+        "unchanged_from": "61cb3771417cce25df6d1eecfb6a161d6cf93739"
+      }
+    },
+    "production_source_and_makefile_unchanged": true
+  },
+  "binary_sha256": {
+    "build/tomokv": "3ec6574798039760af4fd6497eb3e08d72f4c16a0f0ebaade66ac611efd3be79",
+    "build/overlapaxe2/BASE/tomokv": "e08a44f462e18561892a7d5d042c5cf553db5984ee1014c4862d5480a78df16e"
+  },
+  "gate_counts": {
+    "quick": 511,
+    "full": 528,
+    "gate_executed": false
+  },
+  "log_sha256": {
+    "build/overlapaxe3/abba_selftest/abba_instrument.log": "4f15383f99750116950b268f0896ca2f17439813927417f4ee71b46f1a6e3fae",
+    "build/overlapaxe3/abba_selftest/abbagate.log": "04176593aeb3b362dcbda2807f1fa34fa5d0b308b80741938be2e1773d095d12",
+    "build/overlapaxe3/abba_selftest/background_environment_test.log": "34a82a30511a2175a5286cff0751874e9220ce5fb08cab87b09cc04e220f6b31",
+    "build/overlapaxe3/abba_selftest/gate_history.log": "0c6bb519b6c8174f19655563f5ba8a05348da025344c8c7e717bb475d7007d40",
+    "build/overlapaxe3/abba_selftest/gate_measurements.log": "1dda432d26cdd2263f5462dc4615d786abe65c4e31a9bdfdaadd8daa12c7f67b",
+    "build/overlapaxe3/abba_selftest/gate_process_test.log": "f914ddf26bfc130bf6e886a1877d2ea71ba295e418dd42b7abd1ca39f71a179a",
+    "build/overlapaxe3/abba_selftest/gate_quiet.log": "5b8a3ccb28c32f172271a641e8142fdb66c37cd396f681ca016266abfdb51bb3",
+    "build/overlapaxe3/abba_selftest/gate_receipt.log": "49e9e9faf6e399949f9d9acfaea636378986fdcc9e25b4978ef95ca4c0ad9a08",
+    "build/overlapaxe3/abba_selftest/gate_subset_test.log": "37b97ae0fb4829536396d7806265324ff6659addb08f1bb23b5a87f3dc9b9e04",
+    "build/overlapaxe3/abba_selftest/gateprod.log": "898ad44453f00dc9a56e83917a243f026b48a1ee83cc1af1804eca0991d3f5d4",
+    "build/overlapaxe3/abba_selftest/gates_test.log": "8fbc1a6bdec512d9a6ab5b6d39cbc1ad59dfd79ce6ed1bde02ec6ab151fe116c",
+    "build/overlapaxe3/abba_selftest/lb_stationary.log": "c47cc04c7c91b95522c64a56f5bdbbf19ec81f3e11baadf7c784725b33b1f232",
+    "build/overlapaxe3/abba_selftest/netio.log": "3e7d37b61f8ed9128d7985effdf09f645d12e8e4fe0535eab9973b71b9384640",
+    "build/overlapaxe3/abba_selftest/tailgen_stall.log": "0180e1fbba418334ae31cf429348617874fd9ae207f593a6069967d6f84a838b",
+    "build/overlapaxe3/abba_selftest/wb_policy.log": "87f77e09967560adad269fca918425a94ad358c96effdbbe49d4ba8e22615a76",
+    "build/overlapaxe3/identity-inventory-before.log": "86b548d61c8471975821dd410b9cd010c9aa037a0a7e20cd5f20295426ae91db",
+    "build/overlapaxe3/mdbqsbr-before.log": "661706324cfdd05181d2cc5ce1ca549d2fa1294ca3a2f0b0f50006baa8481e83",
+    "build/overlapaxe3/mdbqsbr-live-build.log": "b95b0013e1aeda6c1ba31af9107cc232d08c23b91737cba9a520c56148671805",
+    "build/overlapaxe3/multidb-unit.log": "5acae313c61dc8b4cea7d48b21f0639db907da7f35ec363410f18737c48318fc",
+    "build/overlapaxe3/production-units-build.log": "11416d184d42dd5c3787fe791416a3cd85482c822b328dd3e8956bae3bcf0d4d",
+    "build/overlapaxe3/reorder-identity-first-attempt.log": "8391bf1c03743523baf78011ffe8988bf3d160050a41115be2587922ddcc1357",
+    "build/overlapaxe3/reorder-identity.log": "97f5eb4a88fff2a6b335d7cd79cd74b5426936f256ee656cfc4ff0c168038f6c"
+  },
+  "source_sha256": {
+    "tests/gate_receipt.py": "3d85bed0ec57e87644f460afbd35219b872af5240a60f69698602f9fb5761aac",
+    "tests/mdbqsbr_unit.cc": "43826e64eee712f2d7b276fa22a4fe77b81dcd532fa4b5002dcb9ee883d6cad6",
+    "tests/r7shadow_noop.py": "dad3cd4a5719448ed5d1939c3c970cd92403bd73b5118bd9bf2b65260aa58e09",
+    "tests/reorder_noop.py": "728d5e8907f3ddb1399f48396eb763a45a1f777af009aad476ed1900cfc54280",
+    "tests/reorder_receipt.py": "4ab2d26eb24e7e962dcd386d91b0ef133bc0a1858d7717fe34ff81439fa72854"
+  }
+}

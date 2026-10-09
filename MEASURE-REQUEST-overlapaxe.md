@@ -428,3 +428,135 @@ assertion counted split prefetch symbols as fused; filtering the explicit
 The earlier owner-judged 18-cell null remains the landing decision. These are
 merge correctness/body receipts, with no new performance result or fresh PAD arm.
 All requested work is committed on `cx-overlapaxe`; no push.
+
+## overlapaxe3
+
+Continued from `61cb3771417cce25df6d1eecfb6a161d6cf93739` on `cx-overlapaxe`.
+First ran `git fetch origin && git merge --no-edit origin/cpp`; the branch already
+contained upstream `165d268bed1bae72947263fa951985d8a83eb0c8`.
+All requested builds and proofs used **`taskset -c 112-127`**.
+The three failed landing rows now pass their exact underlying commands.
+No server, load generator, measurement, or full gate was started; no push.
+
+The fixes and their assertions:
+
+1. **FIFO identity.** `tests/reorder_noop.py` now recognizes
+   `run_loop<HasUnix, HasTls, kEp, Fused, SplitLocal>` and
+   `parse_and_dispatch<NoBorrow, BatchOps, SplitLocal>`, including the generated
+   R7 envelopes in both `tomo` and `tomo_db0`. Historical disabled Pipeline/IoPipe
+   arguments map to the surviving signatures; enabled historical policies and
+   every surviving argument remain distinct. Self-checks cover those mappings,
+   argument changes, and unexpected loop arities.
+
+   The first rerun exposed further stale parser/body inventory expectations.
+   `r7shadow_noop.py` now has an explicit `overlapaxe` inventory, selected by
+   `reorder_receipt.py`; historical inventory choices remain available. The new
+   inventory requires all surviving split-local parser families, their ordinary
+   parser clones, all 16 split-local writeback specializations per namespace,
+   and the renamed fused `prefetch_owner_batch`. The comparison still checks
+   registers, operands, instruction encodings, clone counts, and off-path call graphs.
+
+   The independently inspected upstream and current binaries give this physical
+   body derivation **per namespace**:
+
+   | Audited category | Before removal | After removal |
+   | --- | ---: | ---: |
+   | IO envelopes | 92 | 60 |
+   | Parser bodies and closures | 42 | 28 |
+   | Scheduler bodies, including owner prefetch | 32 | 31 |
+   | Retirement helpers | 8 | 4 |
+   | GET/SET commands | 8 | 8 |
+   | Multi-key commands | 16 | 16 |
+   | **Total** | **198** | **147** |
+
+   The IO delta is 16 overlap loop specializations plus 16 pipeline passes;
+   retirement loses four `wb_retire_prepare` helpers. The split owner-prefetch
+   specialization is removed and its fused counterpart remains required under
+   its new name. Split-local parser families retain two conflict closures and
+   one filler closure per NoBorrow value. Full symbol/clone inventories are in
+   [identity.json.gz](docs/overlapaxe3/identity.json.gz).
+
+   Final result: **294/294 identical bodies**, 147 in each namespace.
+   Removing policy symbols, removing a split-local parser, and changing an opcode
+   all fail the existing negative controls. The offline FIFO twin is **PAD kind A:
+   FIFO behavior at candidate text size/layout**; it is a correctness witness.
+
+2. **Multidb unit build.** The failure at `src/core/io_loop.h:503` was
+   `static_assert(!SplitLocal || Fused)`, a template-policy assertion. **No layout
+   assertion or member offset shifted.** `tests/mdbqsbr_unit.cc` still supplied
+   the removed fifth Pipeline argument: its old `1` became `SplitLocal=true`
+   while `Fused=false`. Removed the retired overlap axis and supplied the current
+   calls with default `SplitLocal=false`. Both modes, both reorder request values,
+   and both IO/EX role transitions retain their original scope, acknowledgement,
+   reclamation, and fresh-window assertions. The production assertion is unchanged.
+
+   Reproduced the original ASAN/UBSAN compilation failure first (make exit 2).
+   The full production build then passed, including the ASAN dependency of
+   `multidb-unit`; all **28/28** gate readiness checks (`make -q`) passed. Both
+   `mdbqsbr-live-arms` binaries also build successfully. This was an incremental
+   build: unaffected targets were verified up to date. The serverless owners row
+   passes, including all **18 rejected fault controls** and the production
+   deadline control's expected SIGABRT/participant diagnostic.
+
+3. **Full receipt inventory.** `tests/gate_receipt.py` independently requires
+   the surviving `mode × read-local × reorder` products with `ov=0`, plus the
+   mixed, connection-count, atomic-off, and reorder-tail regimes. It requires
+   **98 geometries**; the unchanged 181-row file contains 100 distinct geometries.
+   The remaining two are supplemental read-local reorder-tail geometries; every
+   current row remains part of the receipt.
+
+   `test_full_inventory_cannot_retire_a_multikey_geometry` first accepts the
+   complete fixture, then replaces **both** duplicate MGET IDs `m01/m13`, and
+   separately both MSET IDs `m04/m16`, with single-key rows. Each control preserves
+   the 181-row count and fails with **`retired 1 required cell geometries`**.
+   The full receipt self-test passes: 18 primary controls, plus its 10/27/10/1
+   fixture, promotion, holdout, and refreeze suites.
+
+Exact row commands, each exit 0:
+
+```sh
+taskset -c 112-127 python3 tests/reorder_receipt.py build/tomokv build/overlapaxe3/reorder_identity/receipt
+taskset -c 112-127 ./build/multidb-unit
+taskset -c 112-127 python3 tests/mdbqsbr_checks.py build/mdbqsbr-unit
+```
+
+The ABBA row ran **all 15 Python commands** from `job_abba_selftest`, in gate order,
+each prefixed with `taskset -c 112-127 python3`: `abbagate.py --self-test`,
+`gate_quiet.py --self-test`, `gate_measurements.py --self-test`,
+`gate_receipt.py --self-test`, `abba_instrument.py --self-test`,
+`background_environment_test.py`, `gate_history.py self-test`,
+`gate_process_test.py`, `gates_test.py`, `gate_subset_test.py`,
+`wb_policy.py --self-test`, `lb_stationary.py --self-test`, `netio.py --self-test`,
+`gateprod.py --self-test`, and `tailgen_stall.py --self-test` (all under `tests/`).
+Every command exits 0. ABBA's primary suite is **116/116**, plus 10/9/16 imported
+tests. **`python3 tests/gates_test.py`: 66/66**, 74.964 seconds, with its embedded
+14-test suite also passing.
+
+The complete production build commands were:
+
+```sh
+taskset -c 112-127 make -k -j16 \
+  build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit \
+  build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
+  build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit \
+  build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit \
+  build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit \
+  build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0
+taskset -c 112-127 make -j16 mdbqsbr-live-arms
+```
+
+[Commands, exit codes, timings, readiness checks, and hashes](docs/overlapaxe3/proofs.json)
+and [complete proof logs](docs/overlapaxe3/proof-logs.json.gz) include the original
+ASAN failure and the intermediate identity failure before the parser inventory
+repair. Raw outputs remain under `build/overlapaxe3/`.
+
+`src/`, `Makefile`, `tests/gate.sh`, the ledger-label fixture, and the headline
+cell file are unchanged from the starting commit. **Rows and EXPECT remain
+511 quick / 528 full.** `tools/mkprobe_probe.py` and `tests/mkprobe_cells.txt` are
+byte-identical to the starting commit. `build/tomokv` still has the overlapaxe2
+SHA-256 `3ec6574798039760af4fd6497eb3e08d72f4c16a0f0ebaade66ac611efd3be79`.
+No new performance measurement is requested for these harness-only repairs.
+
+Code commits: `8610565df` (QSBR fixture), `9a921c481` (FIFO identity),
+`cb25f1ad3` (receipt inventory). The report and proof archive are committed
+separately; the worktree is left clean.
