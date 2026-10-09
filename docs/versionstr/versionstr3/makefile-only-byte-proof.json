@@ -2,8 +2,8 @@
   "pre_fix_makefile": "92e716dc6:Makefile",
   "same_fresh_objects": true,
   "before_fix_link_sha256": "f1800a8e71de7f0644083ec5cd52a339aca0180282d168f8221b75d5a6be400a",
-  "after_fix_link_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "whole_binary_identical": false,
+  "after_fix_link_sha256": "f1800a8e71de7f0644083ec5cd52a339aca0180282d168f8221b75d5a6be400a",
+  "whole_binary_identical": true,
   "command": [
     "g++",
     "-std=c++20",

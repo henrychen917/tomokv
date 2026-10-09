@@ -1,0 +1,236 @@
+{
+  "initial_46_target_make_exit": 2,
+  "current_45_target_make_exit": 0,
+  "all_default_exit": 0,
+  "make_exbatch_db0_unit_exit": 0,
+  "readiness": [
+    {
+      "target": "build/at15-db0-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/at15-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/climon-mask-old-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/climon-mask-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/config-parser-test",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/exbatch-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/flipctl-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/flushfix-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/flushfix-units",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/lanefull-db0-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/lbplanner-units",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/mdbqsbr-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/multidb-cost-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/multidb-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/netcap-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/netcmd-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/persistfix-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/persistfix-units",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/r7shadow-split-unit-db0",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/read-local-write-ring-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/rlfence-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/rltopo-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/shutdown-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/store-regression",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/store-regression-sidecar",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/store-regression-tsan",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/storesize-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/tailgen",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/waits-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/wb-rule-db0-phase-unit",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/wb-rule-units",
+      "make_q_exit": 0
+    },
+    {
+      "target": "build/wbland-units",
+      "make_q_exit": 0
+    }
+  ],
+  "DB0_consumer_symbol_checks": [
+    {
+      "target": "build/at15-db0-unit",
+      "wrapper_symbols": []
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "wrapper_symbols": []
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "wrapper_symbols": []
+    },
+    {
+      "target": "build/flushfix-unit",
+      "wrapper_symbols": []
+    },
+    {
+      "target": "build/lanefull-db0-unit",
+      "wrapper_symbols": []
+    },
+    {
+      "target": "build/multidb-cost-unit",
+      "wrapper_symbols": []
+    },
+    {
+      "target": "build/multidb-unit",
+      "wrapper_symbols": []
+    },
+    {
+      "target": "build/r7shadow-split-unit-db0",
+      "wrapper_symbols": []
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "wrapper_symbols": []
+    },
+    {
+      "target": "build/storesize-unit",
+      "wrapper_symbols": []
+    },
+    {
+      "target": "build/wb-rule-db0-phase-unit",
+      "wrapper_symbols": []
+    }
+  ],
+  "historical_target": "See legacy-flushfix.json: matching PRE/POST compile failure, outside gate.",
+  "build_directory_setup": "mkdir -p build/lbosc3 was needed for the newly merged unit PAD recipe redirect; no source rule changed."
+}

@@ -1,0 +1,2 @@
+python3 tools/lbstall_artifacts.py compare /home/user/Projects/cx-versionstr/build/versionstr3/PRE /home/user/Projects/cx-versionstr/build/versionstr3/POST /home/user/Projects/cx-versionstr/docs/versionstr/versionstr3/hot-bodies.json
+Hot bodies: 1492; raw byte equal: 1492; bytes + resolved relocation targets equal: 1492

@@ -136,3 +136,53 @@ Final byte verdict: **FAIL**. Hot inventory: 1488/1492 relocation-resolved bodie
 | Ordinary instruction inventory | 1136512 | 1136497 |
 
 These instruction counts do not establish a performance verdict. The +208-byte cold/text change has no associated performance claim; no measurement was run. The four lambda bodies swap between 537 and 824 bytes; preserving the global instruction total would not satisfy the per-body requirement.
+
+## 2026-10-09 — versionstr3
+
+Static byte verdict: **PASS**. Default build and all current gate unit/witness targets: **PASS**. Partial gate: **pending quiet admission**. Evidence is in `docs/versionstr/versionstr3/`.
+
+Merged `origin/cpp` at entry (`92e716dc6`), preserving both sides of the `MEASURE-REQUEST` report conflict, and fetched/merged again before final proof. PRE is merge-base `dab7409642bf0a6d125fb5f479e6d190c7636083`. The Makefile repair is `f1066d0ff`. The protected `src/main.cc`, `src/core/config.h`, and `src/core/boot_support.h` match this merge-base exactly; `src/core/version.cc` matches versionstr2 (`b812934fa`) exactly. The proof tools are unchanged.
+
+**Cause and repair.** `SRC += src/core/version.cc` put the wrapper in the shared object lists. The multi-database object is empty, but the DB0 object defines `__wrap_main` and refers to `__real_main`. Unit links do not pass `--wrap=main`. Replaying the original DB0 exbatch link recipe against its cached objects reproduced the undefined reference exactly (`reproduce-db0-link.log`). `SERVER_ONLY_SRC`, `SERVER_ONLY_OBJ`, and `DB0_SERVER_ONLY_OBJ` now keep the object out of the shared unit lists and include it explicitly in the wrapped server link. All 96 server objects retain their exact original order. No wrapper semantics or production source changed in this repair.
+
+**Build proof.** `build-inventory.json`, `expanded-unit-targets.txt`, and `unit-build-summary.json` record the targets derived from the gate's build paths/make invocations and every direct `DB0_TEST_OBJ` consumer. The default target and 45 current targets pass, including a separate successful `make build/exbatch-db0-unit`. All 11 current direct DB0 consumers have neither `__wrap_main` nor `__real_main` in their symbol tables. The gate's direct foreign-read compile, ASAN build, core/waits TSan builds, and both MDBQSBR boot-control builds also pass. The newly merged LB unit-control recipe required `mkdir -p build/lbosc3` before its log redirection; this artifact-directory preparation is recorded, and no unrelated Makefile rule was changed.
+
+The initial 46-target batch also attempted the non-gate historical `build/flushfix-pre-unit`. That target fails before linking because its frozen `e279aeb4c` source references removed `ReadLocalStats::mget_generation_retries` and `info_stats_sample_ops`. Both namespace compilations fail with identical diagnostics against fresh PRE and POST headers (`legacy-flushfix.json`). This is retained as a failure, not counted as a passing build. The gate uses the current `build/flushfix-units`, which builds successfully. The complete initial build log and the successful current-target replay are retained.
+
+| Static quantity | PRE | POST / verdict |
+| --- | ---: | ---: |
+| Hot bodies, raw and relocation-resolved | 1492 | 1492 equal |
+| Ordinary emitted bodies, relocation-resolved | 4836 | 4836 equal |
+| Ordinary emitted bodies, raw | 4836 | 4833 equal |
+| Ordinary per-body instruction counts | 4836 | 4836 equal |
+| Ordinary instruction inventory | 1136424 | 1136424 |
+| Linked ordinary bodies proven | 3021 | 3021 |
+| Locked sizes/member layouts | Both namespaces | Equal |
+| Unexplained changed bodies | 0 | 0 |
+| `.text` bytes | 7845285 | 7845445 |
+| Makefile-only relink, complete ELF | Old link recipe | Byte-identical |
+
+Both unchanged byte tools exit 0. They compare 94 common objects and find exactly eight changed existing bodies: INFO (including its cold clone), HELLO, and LOLWUT in both namespaces. The only new objects are the empty multi-db version object and the 136-byte DB0 entry wrapper. `changed-bodies.md`, `new-objects.json`, and `proof/summary.json` contain the details. Relocation normalization is explicit above; the independent Makefile-only check relinks the same fresh objects using the pre-fix Makefile and obtains an identical complete ELF, proving this link-list repair moves no production body.
+
+PRE and POST were freshly compiled. POST is retained at `build/versionstr3/POST/tomokv` and was copied back to the generic `build/tomokv` used by the null item. The initial snapshot was rejected because it observed the output while the linker was writing it; the final snapshot was taken only after make exited, and all proofs were repeated on the completed artifacts.
+
+```text
+PRE  build/versionstr3/PRE/tomokv
+     6def8f04df33af1c407ed27dbc980e9c34335b40fb935ae0fc4b222f4e582985
+POST build/versionstr3/POST/tomokv = build/tomokv = old-recipe relink
+     f1800a8e71de7f0644083ec5cd52a339aca0180282d168f8221b75d5a6be400a
+```
+
+The corrected gate selection is below. `production_units` is a build prerequisite that the current selector rejects as a direct selection. The additional consuming jobs cover all 18 failures in `gate-run.wumlEk`; the requested release/ASAN batteries and `wb_policy` include live boots.
+
+```sh
+GATE_ONLY_JOBS="release_batteries asan_batteries exbatch_units wbland_units wb_rule_units reorder_engagement atomic_units wb_policy" \
+  tests/gate.sh iteration --server-cores 112-119 --load-cores 120-127 \
+  --server-smt '' --load-smt '' --ports 18340-18342
+```
+
+Gate result: **PENDING**. Initial quiet admission was refused; three retries over ten minutes are in progress. No pending row is counted green. Optional infofix replay is pending admission.
+
+Rows **+0/+0**; `EXPECT_QUICK=502`, `EXPECT_FULL=519` unchanged. No row was added or retired on either side of the quick-tier exit, and `tests/gate.sh` matches PRE. Grep receipts cover plain, escaped, hex, Unicode, octal, URL, HTML and base64 spellings in `tests/` and `tools/`, including their 24 gzip artifacts. Presentation strings and test assertions were unchanged by versionstr3. No throughput measurement or performance claim is made; no measurement PAD arm is proposed.
+
+**Lesson for the record:** a lane that touches the Makefile must build and run the gate's unit targets, not only its own serverless checks.
