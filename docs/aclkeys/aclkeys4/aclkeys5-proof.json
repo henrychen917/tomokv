@@ -1,0 +1,96 @@
+{
+  "branch": "cx-aclkeys",
+  "start": "ed648110e46af332e8e26c022ec3d3efab83cfd1",
+  "merged_origin_cpp": "6b50f447fcc5be467e9314d7c602b688755957b9",
+  "merged_baseline": "c46dd73d27cd9d0e1403777b2671d8171cbfcd75",
+  "tests": {
+    "path": "tests/gates_test.py",
+    "sha256": "dc77957fdaef56121e04a5909435101d88ef6312359fef2f30bf7e1a4d2fe817",
+    "modes": [
+      "1s",
+      "2s"
+    ],
+    "existing_subcases_preserved": 14,
+    "new_wake_failure_subcases": 4,
+    "total_subcases": 18,
+    "wake_failure_exit_codes": [
+      1,
+      3
+    ]
+  },
+  "scope": {
+    "production_diff": "production.diff",
+    "production_diff_bytes": 0,
+    "production_diff_command": [
+      "git",
+      "diff",
+      "c46dd73d27cd9d0e1403777b2671d8171cbfcd75",
+      "--",
+      "src/"
+    ],
+    "gate_unchanged_since_merge": true,
+    "job_multidb_unchanged_since_start": true,
+    "gate_sha256": "5e39dc4ec67027f730db11a3f05614f9bbd4cdef0c05bdf78a3fa4294e84ccdf",
+    "expected_quick": 510,
+    "expected_full": 527
+  },
+  "merge_row_note": {
+    "imported_netcmd_cases": [
+      "wb-small-pipe",
+      "wb-complete-visits"
+    ],
+    "loop_line": 1681,
+    "quick_exit_line": 3420,
+    "before_quick_exit": true,
+    "imported_delta_quick": 2,
+    "imported_delta_full": 2,
+    "combined_inventory_quick": 512,
+    "combined_inventory_full": 529,
+    "aclkeys5_delta_quick": 0,
+    "aclkeys5_delta_full": 0,
+    "expected_count_edits": "None; maintainer owns reconciliation."
+  },
+  "validation": {
+    "single": {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/gates_test.py",
+        "LedgerWiring.test_multidb_rows_fail_independently"
+      ],
+      "returncode": 0,
+      "tests": 1,
+      "output": "aclkeys5-gates-single.log",
+      "sha256": "19ef556a0f57316e6b8c6d36f372ebc7e9bce051d41ecd3367648fe40bc9969a"
+    },
+    "mutation": {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/gates_test.py",
+        "LedgerWiring.test_multidb_rows_fail_independently"
+      ],
+      "returncode": 1,
+      "tests": 1,
+      "output": "aclkeys5-gates-mutation.log",
+      "sha256": "eed587d12d6fbe4f4fe595ee5fb60b5897f96f7a96fae48b88e4e38b73ba2fd6"
+    },
+    "full_after_mutation_reverted": {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "python3",
+        "tests/gates_test.py"
+      ],
+      "returncode": 0,
+      "tests": 66,
+      "output": "aclkeys5-gates-full.log",
+      "sha256": "91d02364b4b5a187050a1674be76917842dd5149018a89ffa77754ee2cbf6dea"
+    }
+  }
+}

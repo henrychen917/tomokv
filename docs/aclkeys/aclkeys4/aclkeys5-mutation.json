@@ -1,0 +1,22 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "python3",
+    "tests/gates_test.py",
+    "LedgerWiring.test_multidb_rows_fail_independently"
+  ],
+  "mutation": {
+    "path": "tests/gate.sh",
+    "before": "    bad \"$label XREAD wake after SWAPDB\" \"see $TMPDIR/aclkeys-wake-state.log and $SRVLOG\"",
+    "after": "    ok \"$label XREAD wake after SWAPDB\" \"see $TMPDIR/aclkeys-wake-state.log and $SRVLOG\"",
+    "description": "Report success when the fresh SWAPDB/XREAD boot or script fails."
+  },
+  "returncode": 1,
+  "gate_sha256_before": "5e39dc4ec67027f730db11a3f05614f9bbd4cdef0c05bdf78a3fa4294e84ccdf",
+  "gate_sha256_mutated": "1ec979b973c8d6156719e67b4ff4166cb6ba5ed1c1c64a6a5563907183929790",
+  "gate_sha256_restored": "5e39dc4ec67027f730db11a3f05614f9bbd4cdef0c05bdf78a3fa4294e84ccdf",
+  "output": "aclkeys5-gates-mutation.log",
+  "restored": true
+}
