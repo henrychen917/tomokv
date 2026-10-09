@@ -1,0 +1,3 @@
+engine=epoll drain_all=0 queued=384 consumed=1 expected=16
+FAIL budget witness: production pass must consume exactly its engine-specific budget
+exit=1
