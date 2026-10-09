@@ -1,0 +1,60 @@
+{
+  "baseline_commit": "dab740964",
+  "implementation_commit": "0a0feddab",
+  "comparisons": [
+    {
+      "file": "generic-coverage.json",
+      "byte_identical": true,
+      "sha256": "b1d9d706a0f404caf02bf17fd26dc9b8b45d6749333271d3cb4bc83e0f0721f7"
+    },
+    {
+      "file": "generic-fingerprints.json",
+      "byte_identical": true,
+      "sha256": "1cb971144243f3f53857d8335fb95dbccbfd9a92c03cbb6b06ef884ab993572a"
+    },
+    {
+      "file": "generic-receipts.json",
+      "byte_identical": true,
+      "sha256": "20d48a50675ff72844288df593d8fb07405020452f4f5aa2953e6733c83a93d1"
+    },
+    {
+      "file": "headline-coverage.json",
+      "byte_identical": true,
+      "sha256": "8d96346d839470eb840b7fc32d9c9c620c4cc803e217eae3d4f4967c2bdaab99"
+    },
+    {
+      "file": "headline-fingerprints.json",
+      "byte_identical": true,
+      "sha256": "5fc8757950d4b3977e6f7a2a2e918f2cf23eb9c4e377f539430de9faf09ede9f"
+    },
+    {
+      "file": "headline-receipts.json",
+      "byte_identical": true,
+      "sha256": "136485dd2c34d6197417f5afd6e81b31c9aec667c2e479640ee88d13dddb5f4a"
+    },
+    {
+      "file": "manifest.json",
+      "byte_identical": true,
+      "sha256": "7116184a7d06babf555aa391be2fe0a883a49bcbe6790b81d52910ce4c523473"
+    },
+    {
+      "file": "netio-coverage.json",
+      "byte_identical": true,
+      "sha256": "bc21a5fa2de29fd8e71881feac836ee96c1c0f0ff5f5085d5325cdec67210544"
+    },
+    {
+      "file": "netio-fingerprints.json",
+      "byte_identical": true,
+      "sha256": "0295611927c1cf40ed8149a1bbb1efe2182196691558e53cfdd4a8dd7bf91a88"
+    },
+    {
+      "file": "netio-receipts.json",
+      "byte_identical": true,
+      "sha256": "217dc8c95fcc6a38f1fc7e65bc69d13a0517c750bb7227f4ef9944c17bf9f11e"
+    }
+  ],
+  "source_instrument_before": "83e2bad5ae8b2fcd159c52eb540ef3b43d970ff952176952388c21fea5747c76",
+  "source_instrument_after": "d1cd8e2cc0ce8a8c51868604bd71b0f3c61acae91c5327275bf6174a71e08581",
+  "source_instrument_note": "Code changes must invalidate the source instrument fingerprint; cell fingerprints and receipts are unchanged.",
+  "production_diff_bytes": 0
+}
