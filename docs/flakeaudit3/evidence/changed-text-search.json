@@ -1,0 +1,20 @@
+{
+  "command": [
+    "grep",
+    "-RFnI",
+    "--exclude-dir=__pycache__",
+    "-f",
+    "docs/flakeaudit3/evidence/changed-text-patterns.txt",
+    "tests/"
+  ],
+  "base": "origin/cpp",
+  "rc": 0,
+  "changed_files": [
+    "tests/cd13b_window_test.py",
+    "tests/cd13b_wire.py"
+  ],
+  "patterns": 235,
+  "matched_source_lines": 6400,
+  "full_output_sha256": "49f410bff1a86524120b15376a4fbbaf272ae138a99cd004b324e50cbd7e3b73",
+  "method": "Changed source text plus decoded, unicode_escape, JSON-escaped and repr literal spellings; old and new versions."
+}

@@ -1,0 +1,591 @@
+{
+  "counts": {
+    "C": 22,
+    "A": 35,
+    "B": 58,
+    "D": 2
+  },
+  "mechanisms": [
+    {
+      "mechanism": 1,
+      "rows": [
+        47,
+        48
+      ],
+      "category": "C",
+      "name": "netio",
+      "detail": "Wake latency <25 ms; exact blocked-client identity and delivered value remain correctness facts.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 2,
+      "rows": [
+        118,
+        501
+      ],
+      "category": "A",
+      "name": "torture",
+      "detail": "Unique churn keys; observer GET witnesses each SET before RST, with the writer reply unread and partial next frame retained. Final landed-key assertion and every transport error remain.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 3,
+      "rows": [
+        119,
+        502
+      ],
+      "category": "A",
+      "name": "ryow",
+      "detail": "All four background writers acknowledge progress and propagate errors. Added explicit same-key overwrites with an allowed-conflict value set, followed by exact uncontended RYOW; original own-key checks retained.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 4,
+      "rows": [
+        122,
+        203,
+        210,
+        366
+      ],
+      "category": "B",
+      "name": "spinprobe",
+      "detail": "W10: per-client parser-park state, observed before the counter interval; ordinary body change YES. Existing LBSIGNALS lacks this state. Counter budgets also need a separate performance instrument (see threshold appendix).",
+      "witnesses": [
+        "W10"
+      ]
+    },
+    {
+      "mechanism": 5,
+      "rows": [
+        126,
+        503
+      ],
+      "category": "B",
+      "name": "atomic_torn",
+      "detail": "W2: held read-cut/lead-fragment stage with entered/released status; ordinary body change YES. The existing RENAME hold and commit latch do not force the other fanout/promotion windows.",
+      "witnesses": [
+        "W2"
+      ]
+    },
+    {
+      "mechanism": 6,
+      "rows": [
+        127,
+        504
+      ],
+      "category": "C",
+      "name": "atomic_ryow",
+      "detail": "Pipeline rate >1.10 times serial rate (24 groups, release only). Exact ACKs, ordered reads, consistent-or-absent values and positive worker/cut counts remain. ASAN omits the rate assertion but still has finite stress floors; a held overlap is also needed before claiming those arms witnessed.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 7,
+      "rows": [
+        128
+      ],
+      "category": "B",
+      "name": "atomic_hazards",
+      "detail": "W2: publish and hold the exact pinned-cut/reader and dispatch stages; ordinary body change YES. Finite delays plus elapsed observations cannot identify those stages; unarmed XREAD <100 ms is a performance control.",
+      "witnesses": [
+        "W2"
+      ]
+    },
+    {
+      "mechanism": 8,
+      "rows": [
+        130,
+        164,
+        199,
+        206,
+        213,
+        248
+      ],
+      "category": "B",
+      "name": "s6",
+      "detail": "W3: DEBUG-controlled sampler traversal/seed with a required traversal-complete witness; ordinary body change YES in the armed sampler branch. Keep exact all-200-key coverage; 20,000 random draws alone cannot guarantee it.",
+      "witnesses": [
+        "W3"
+      ]
+    },
+    {
+      "mechanism": 9,
+      "rows": [
+        131,
+        165,
+        200,
+        207,
+        214,
+        249,
+        357
+      ],
+      "category": "B",
+      "name": "multi_exec",
+      "detail": "flakeaudit2b reverted this battery exactly to pre-flakeaudit2 (5bf5b65e6); original lottery stress and all original assertions retained. W16: nonblocking EXEC latch after every owner installs and before atomic_commit_group, with transaction identity, installed-owner/key counts, entered status and explicit release. ATOMIC-COMMIT-HOLD only stops flush_xshard_commits (src/core/ex_loop.h:2761); EXEC commits directly (src/cmd/multi.inc:2255). Pending entries count installs, not a held stage; atomic_exec_order_holds witnesses a younger EXEC waiting before install. Finite COMMIT-DELAY/FANOUT-DEFER/SLEEP cannot provide explicit release. Ordinary body change YES; no production change authorized here.",
+      "witnesses": [
+        "W16"
+      ]
+    },
+    {
+      "mechanism": 10,
+      "rows": [
+        132,
+        166,
+        215,
+        250,
+        358
+      ],
+      "category": "B",
+      "name": "blocking",
+      "detail": "W1 plus W5: applied per-owner config epoch and controlled finite-blocker deadline/retirement; ordinary body changes NO for owner-local config query, YES for an armed clock/lifecycle latch. Exact null/data/gauges stay; two 0.10..0.75 s bounds also mix timing into correctness.",
+      "witnesses": [
+        "W1",
+        "W5"
+      ]
+    },
+    {
+      "mechanism": 11,
+      "rows": [
+        133,
+        167,
+        216,
+        251
+      ],
+      "category": "C",
+      "name": "blockmulti",
+      "detail": "EXEC completion <250 ms; satisfied WAIT <100 ms; WAIT 200 in 150..900 ms; pipeline WAIT 120 >=90 ms. Exact EXEC results, WAIT :0, younger PONG order, parked/drained gauges and timeout-zero silence remain. Deadline lower bounds express semantics; the upper ceilings are performance.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 12,
+      "rows": [
+        134,
+        168,
+        217,
+        252
+      ],
+      "category": "C",
+      "name": "stream",
+      "detail": "Current source gates footprint, not the old register's sampled latency: plateau growth <=8192 B, post-delete <=baseline+4096 B, 0<B/key<512, 128-entry usage<25,600 B. Exact last-100 payloads, all 128 migration entries, DBSIZE and positive allocation remain. Empty-stream timeout >=80 ms is separate deadline semantics.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 13,
+      "rows": [
+        139,
+        173,
+        222,
+        257
+      ],
+      "category": "B",
+      "name": "limits",
+      "detail": "W5: DEBUG-held cron/timeout progression with fired and retired client identity; ordinary body change YES. CLIENT LIST already witnesses admission/closure, but not the soft-limit/idle deadline crossing while the test's heartbeat was descheduled.",
+      "witnesses": [
+        "W5"
+      ]
+    },
+    {
+      "mechanism": 14,
+      "rows": [
+        146,
+        180,
+        229,
+        264
+      ],
+      "category": "C",
+      "name": "climon2",
+      "detail": "PAUSE WRITE read <250 ms, held write >300 ms, UNPAUSE elapsed <2000 ms. Exact GET/SET replies, positive client_pause_holds, ALL-mode silence and released reply remain. A held pause/deadline stage would separate the >300 ms mechanism claim from the clock.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 15,
+      "rows": [
+        147,
+        181,
+        230,
+        265
+      ],
+      "category": "A",
+      "name": "tracking",
+      "detail": "Fresh client/key and bounded TTL registration; the 300 ms negative drain occurs before arming the unchanged 400 ms TTL. Positive invalidation is read as a complete exact RESP frame; expired value must be absent.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 16,
+      "rows": [
+        148,
+        182,
+        231,
+        266
+      ],
+      "category": "A",
+      "name": "hexpire",
+      "detail": "Recreate only clock-invalid short-field setup; HPEXPIRE and HPEXPIRETIME share one EXEC cut so the actual installed deadline is captured before it can expire. TIME bounds subsequent counters/HLEN. Lazy arm disables active expiry and requires the exact reap delta; active baseline precedes TTL installation. Other numeric tolerances are unchanged.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 17,
+      "rows": [
+        149,
+        183,
+        232,
+        267
+      ],
+      "category": "B",
+      "name": "servertail",
+      "detail": "W1: query each owner's already-applied live-config version before OBJECT policy checks; ordinary body change NO if queried on that owner through cold DEBUG work. TIME's +/-60 s allowance is an additional clock oracle, not evidence of config publication.",
+      "witnesses": [
+        "W1"
+      ]
+    },
+    {
+      "mechanism": 18,
+      "rows": [
+        151,
+        185,
+        234,
+        269
+      ],
+      "category": "A",
+      "name": "concur",
+      "detail": "Every churn batch is acknowledged while a nonzero SCAN cursor is open. Growth/cardinality/rehash and exact permanent-set assertions remain; callbacks no longer count mutation after cursor completion.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 19,
+      "rows": [
+        154,
+        188,
+        237,
+        272
+      ],
+      "category": "A",
+      "name": "edgetime",
+      "detail": "Fresh 70/80 ms absolute-deadline queue/WATCH setup must complete before that deadline; missed setups DISCARD/UNWATCH and recreate state within a budget. PEXPIRETIME must equal the armed deadline; wait for it before EXEC. Exact null/abort/reap and negative controls remain.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 20,
+      "rows": [
+        159,
+        193,
+        242,
+        277
+      ],
+      "category": "B",
+      "name": "expwide",
+      "detail": "W4: publish a pinned command/transaction expiry cut and hold before the later owner/read until explicit release (including read-local and script/EXEC variants); ordinary body change YES. Existing ATOMIC-FANOUT-DEFER is a finite duration with no entered-stage publication.",
+      "witnesses": [
+        "W4"
+      ]
+    },
+    {
+      "mechanism": 21,
+      "rows": [
+        161,
+        195,
+        244,
+        279
+      ],
+      "category": "A",
+      "name": "pushtear",
+      "detail": "Exact CLIENT ID must be blocked before PUBLISH; require its ACK before the unchanged one-second deadline. Fresh connections only on missed arming. The two complete frames must retain push/null order and the segment-counter assertion.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 22,
+      "rows": [
+        246,
+        281
+      ],
+      "category": "A",
+      "name": "read-local high water",
+      "detail": "Per-battery INFO high water survives RESETSTAT, following differ_gate.sh. A malformed/missing counter latches failure; no synthetic local reads are added. Positive peak remains required at shutdown.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 23,
+      "rows": [
+        294,
+        295
+      ],
+      "category": "A",
+      "name": "aclreply",
+      "detail": "Exact blocked CLIENT ID, fresh finite timeout arms, acknowledged ACL revocation, and an ECHO reply fence. Compare the entire raw stream, including a duplicate coded null if present, to the original expected reply.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 24,
+      "rows": [
+        300,
+        314
+      ],
+      "category": "B",
+      "name": "slowlog",
+      "detail": "W1: applied config epoch on every IO/ex owner before recorder assertions; ordinary body change NO for cold owner-local queries. The existing 200 ms propagation sleep is not that acknowledgement.",
+      "witnesses": [
+        "W1"
+      ]
+    },
+    {
+      "mechanism": 25,
+      "rows": [
+        303,
+        304,
+        317,
+        318
+      ],
+      "category": "B",
+      "name": "execatomic / execiso",
+      "detail": "W2: hold a published first fragment and pinned read cut until explicit release; ordinary body change YES. ATOMIC-COMMIT-HOLD covers installed records, not this read-fanout lead-fragment schedule.",
+      "witnesses": [
+        "W2"
+      ]
+    },
+    {
+      "mechanism": 26,
+      "rows": [
+        306,
+        320
+      ],
+      "category": "A",
+      "name": "multires",
+      "detail": "First positive atomic-on round holds a real undecided predecessor and requires atomic_exec_order_holds plus pending entries before release. Existing ACK/value/probe assertions, remaining rounds and negative/atomic-off controls stay.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 27,
+      "rows": [
+        309,
+        323
+      ],
+      "category": "C",
+      "name": "xacct",
+      "detail": "Stream size-cost ratio <4.0; EXEC size-cost ratio <15.0. Exact accounting, command replies, persistence/reload state and negative controls remain. Debug jobs already disable placement controllers for reload.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 28,
+      "rows": [
+        310,
+        324
+      ],
+      "category": "B",
+      "name": "xmove",
+      "detail": "W6: LMOVE-family phase-one result held before phase-two targeted removal, with entered status and release; ordinary body change YES. ATOMIC-OFF-HOP-HOLD is Kind::Rename-only and after source mutation, so it cannot replace the 500k LREM schedule. Preserve both RPUSH and LPUSH edge oracles. Atomic-off size ratio <5.0 is also performance.",
+      "witnesses": [
+        "W6"
+      ]
+    },
+    {
+      "mechanism": 29,
+      "rows": [
+        328,
+        329,
+        330
+      ],
+      "category": "C",
+      "name": "efficiency",
+      "detail": "328: trigger growth <=8x at 16x population and last-volatile DEL <=1.25x neighbour. 329: borrowed GET and plain control growth <=1.05. 330: best-of-two dispatch-excess ratio (128/4 threads) <=1.20. Exact key/TTL population, borrow/send/release counters and dispatch geometry controls remain; no threshold is relaxed.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 30,
+      "rows": [
+        337,
+        338
+      ],
+      "category": "D",
+      "name": "aclkeys",
+      "detail": "Known ACL admission/wake defects belong to aclkeys/aclkeys3 and are excluded from this lane. Retain D as the defect disposition, not a timing repair. No claim here that a branch fix is already in origin/cpp.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 31,
+      "rows": [
+        339
+      ],
+      "category": "B",
+      "name": "debug",
+      "detail": "W7: DEBUG SLEEP entered/release latch with the sleeping client identity; ordinary body change NO outside the cold DEBUG SLEEP body. The existing blocked_clients gauge can miss the whole finite sleep, and does not hold same-owner progress open.",
+      "witnesses": [
+        "W7"
+      ]
+    },
+    {
+      "mechanism": 32,
+      "rows": [
+        341,
+        342,
+        349,
+        350
+      ],
+      "category": "B",
+      "name": "snapshot capture/reload",
+      "detail": "W8: hold capture after its published cut and before completion, release after an acknowledged mutation; ordinary body change YES on the cold snapshot path. rdb_bgsave_in_progress alone can be missed or outlive actual capture.",
+      "witnesses": [
+        "W8"
+      ]
+    },
+    {
+      "mechanism": 33,
+      "rows": [
+        343,
+        344,
+        351,
+        352
+      ],
+      "category": "B",
+      "name": "snapshot groups",
+      "detail": "W9: hold an APPLY fragment before all group fragments install, publish entry and snapshot waiting-for-apply, then release; ordinary body change YES. COMMIT-HOLD is too late: snapshot explicitly drains atomic_apply_inflight, not reply/commit latency.",
+      "witnesses": [
+        "W9"
+      ]
+    },
+    {
+      "mechanism": 34,
+      "rows": [
+        361
+      ],
+      "category": "A",
+      "name": "notify",
+      "detail": "Keep notifications configured; disable active expiry before the lazy arm. TIME witnesses the unchanged 20 ms deadline, counter must stay flat before GET, then exact expired event and +1 counter are required. Restore active expiry in finally.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 35,
+      "rows": [
+        364
+      ],
+      "category": "A",
+      "name": "flip under load",
+      "detail": "Every worker acknowledges checked progress before FLIP; observe flip_completed advance, then every worker advances again. Original wrong-value, generation, BUSY, refusal and connection assertions stay; deadline expiry cannot pass.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 36,
+      "rows": [
+        365
+      ],
+      "category": "A",
+      "name": "flip TTL",
+      "detail": "Fresh 96-key cohorts share an absolute deadline 700 ms after arm, avoiding an inference about owners' relative clock cuts. DEBUG SHARDS proves an owner changed and TIME bounds the post-move live read. Every key must emit its expired event and be absent; only missed live windows re-arm under a 30 s budget.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 37,
+      "rows": [
+        368
+      ],
+      "category": "B",
+      "name": "flip saturated",
+      "detail": "W11: held admitted backlog spanning FLIP, with per-owner outstanding-work publication and explicit release; ordinary body change YES. Existing command totals/FLIP completion cannot prove a continuously saturated producer; cold queue queries alone would only prove sampled occupancy.",
+      "witnesses": [
+        "W11"
+      ]
+    },
+    {
+      "mechanism": 38,
+      "rows": [
+        370
+      ],
+      "category": "C",
+      "name": "atomic floor",
+      "detail": ">=120,000 MGET/MSET operations/s after 8 s warmup, delta divided by a constant 6 s. This public row has no independent key/value correctness assertion; rate and positive command activity are all it checks.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 39,
+      "rows": [
+        372
+      ],
+      "category": "A",
+      "name": "pipeorder",
+      "detail": "Add a held cross-owner DEL before EXEC, require atomic_exec_order_holds/pending entries, release and compare all five exact replies. Keep all original 400 pipeline rolls and value assertions.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 40,
+      "rows": [
+        439
+      ],
+      "category": "A",
+      "name": "kTLS live INFO",
+      "detail": "Read the full RESP bulk length/body/trailer across arbitrary fragmentation. tls_ktls_active >=1 remains mandatory; the 400 ms sleep and single recv are gone.",
+      "witnesses": []
+    },
+    {
+      "mechanism": 41,
+      "rows": [
+        443
+      ],
+      "category": "B",
+      "name": "TLS partial handshake/teardown",
+      "detail": "W12: per-connection received partial handshake/ciphertext/parser stage and retired state, held/released where needed; ordinary body change YES on armed TLS paths. Aggregate gauges can show admission, but cannot prove this connection reached its intended partial-record window.",
+      "witnesses": [
+        "W12"
+      ]
+    },
+    {
+      "mechanism": 42,
+      "rows": [
+        515,
+        516
+      ],
+      "category": "B",
+      "name": "differential matrix",
+      "detail": "WAIT and CD13b GEO route windows have test-side witnesses. Aggregate remains B for W3 sampler, W13 notification fence, W14 SAVE/placement admission and W15 owner clock. Current suite inventory has 46 names; encodingfix and monitor were added after the v2 inventory.",
+      "witnesses": [
+        "W3",
+        "W13",
+        "W14",
+        "W15"
+      ]
+    }
+  ],
+  "priority_addenda": [
+    {
+      "mechanism": 43,
+      "rows": [
+        367
+      ],
+      "category": "A",
+      "name": "GT16",
+      "disposition": "Already landed: quiescence-gated hold and time-budgeted rerolls; unchanged in this lane."
+    },
+    {
+      "mechanism": 44,
+      "rows": [
+        515,
+        516
+      ],
+      "category": "A",
+      "name": "CD13b GEO route window",
+      "disposition": "Changed: always check result count, exact members, listpack encoding and retained LFU. Only witnessed route movement or unarmed LFU/cross-owner setup re-arms fresh keys; shared 30-second per-side/per-verb failure budget."
+    },
+    {
+      "mechanism": 45,
+      "rows": [
+        515,
+        516
+      ],
+      "category": "B",
+      "name": "PSFIX SAVE admission",
+      "witness": "W14",
+      "disposition": "Reverified on current source: save-idle does not reserve placement or snapshot admission. Busy aliases a placement transition, non-Idle snapshot, and outstanding shutdown-snapshot holds; completion counters do not identify the rejected request. No generic error retry."
+    }
+  ],
+  "mechanism_counts": {
+    "A": 15,
+    "B": 18,
+    "C": 8,
+    "D": 1
+  },
+  "scope": "42 inherited mechanisms; addenda overlap existing public rows except GT16; A means implemented test-side witness, not new live proof",
+  "origin": "dab740964",
+  "counts_with_gt16": {
+    "A": 36,
+    "B": 58,
+    "C": 22,
+    "D": 2
+  }
+}

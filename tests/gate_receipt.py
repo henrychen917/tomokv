@@ -197,12 +197,11 @@ def history_directory(root):
 
 def inventory(root, path):
     # One authoritative parser, including implicit tail geometry and value size.
-    from abbagate import read_cells
-    from dataclasses import asdict
+    from abbagate import read_cells, cell_receipt
     from gate_measurements import load as load_measurements
     measurements_path = root / "tests/gate_measurements.json"
     measurements = load_measurements(measurements_path) if measurements_path.is_file() else {"load_floors": {}}
-    cells = [asdict(cell) for cell in read_cells(path, measurements=measurements,
+    cells = [cell_receipt(cell) for cell in read_cells(path, measurements=measurements,
              instrument_sha256=instrument_fingerprint(root)["sha256"])]
     require(cells and len({cell["id"] for cell in cells}) == len(cells), "duplicate/empty cell inventory")
     # Requiring the complete cross products catches retirement even if someone replaces removed

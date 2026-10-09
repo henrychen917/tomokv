@@ -126,6 +126,12 @@ def command_stat(data, name):
     return int(fields.get("calls", 0)), float(fields.get("usec", 0))
 
 
+def server_command_name(cell, name):
+    # memtier 2.5.1 redis_protocol::write_command_set emits SETEX for a positive
+    # expiry; its JSON Count/HDR rows still call these logical operations "Sets".
+    return "SETEX" if name == "SET" and getattr(cell, "client_flags", "") else name
+
+
 def retired_reorder(mode):
     if mode.get("reorder_retired") != "1":
         return False
@@ -139,11 +145,14 @@ def require_workload_witness(cell, before, after, mode_before, mode_after, legac
                             read_local_control=None):
     evidence = {}
     for name in workload_command_names(cell):
-        bc, bt = command_stat(before, name)
-        ac, at = command_stat(after, name)
+        command = server_command_name(cell, name)
+        bc, bt = command_stat(before, command)
+        ac, at = command_stat(after, command)
         if ac <= bc or at < bt:
-            raise RuntimeError(f"{name} did not execute during the measured window")
+            raise RuntimeError(f"{command} did not execute during the measured window")
         evidence[name] = {"calls": ac - bc}
+        if command != name:
+            evidence[name]["server_command"] = command
     if cell.op == "REORDER":
         if retired_reorder(mode_before) and retired_reorder(mode_after):
             evidence["reorder_witness"] = "retired, no-op"
@@ -258,15 +267,18 @@ def require_workload_accounting(cell, before, after, generators):
         raise RuntimeError("accounted generator connections differ from requested cell geometry")
     evidence = {}
     for name in workload_command_names(cell):
-        start, _ = command_stat(before, name)
-        finish, _ = command_stat(after, name)
+        command = server_command_name(cell, name)
+        start, _ = command_stat(before, command)
+        finish, _ = command_stat(after, command)
         reported = sum(row["reported_counts"][name] for row in generators)
         completed = sum(row["completed_hdr_counts"][name] for row in generators)
         calls = finish - start
         evidence[name] = {"server_calls": calls, "memtier_count": reported,
                           "completed_hdr_count": completed, "server_minus_count": calls - reported}
+        if command != name:
+            evidence[name]["server_command"] = command
         if calls != completed or completed <= 0:
-            raise RuntimeError(f"{name} whole-run accounting mismatch: server={calls}, "
+            raise RuntimeError(f"{command} whole-run accounting mismatch: server={calls}, "
                                f"completed HDR={completed}, memtier Count={reported}")
     return {"commands": evidence, "count_outstanding_bound": sum(row["outstanding_bound"] for row in generators),
             "scope": "whole generator run, including warmup and tail; logical commands, not keys",

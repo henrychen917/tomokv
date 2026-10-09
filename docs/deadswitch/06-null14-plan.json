@@ -1,0 +1,66 @@
+{
+  "subset": "full",
+  "count": 14,
+  "ids": [
+    "m02",
+    "m03",
+    "m05",
+    "m06",
+    "m26",
+    "m27",
+    "m50",
+    "m51",
+    "m53",
+    "m54",
+    "m74",
+    "m75",
+    "h05",
+    "h06"
+  ],
+  "modes": [
+    "1s",
+    "2s"
+  ],
+  "operations": [
+    "GET",
+    "MGET",
+    "MSET",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "MGET",
+    "MSET",
+    "SET"
+  ],
+  "depths": [
+    8,
+    32
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "rate"
+  ],
+  "pending_pins": [
+    "m02",
+    "m03",
+    "m05",
+    "m06",
+    "m26",
+    "m27",
+    "m50",
+    "m51",
+    "m53",
+    "m54",
+    "m74",
+    "m75"
+  ]
+}

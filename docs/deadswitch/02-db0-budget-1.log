@@ -1,0 +1,4 @@
+engine=epoll drain_all=0 queued=384 consumed=1 expected=1
+engine=epoll drain_all=1 queued=384 consumed=256 expected=256
+engine=uring drain_all=0 queued=384 consumed=256 expected=256
+engine=uring drain_all=1 queued=384 consumed=256 expected=256

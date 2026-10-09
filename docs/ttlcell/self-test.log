@@ -1,0 +1,184 @@
+test_a_peak_at_the_top_is_not_yet_proven (__main__.self_test.<locals>.ABBA.test_a_peak_at_the_top_is_not_yet_proven) ... ok
+test_a_pin_that_stops_saturating_fails_and_says_how_to_fix_it (__main__.self_test.<locals>.ABBA.test_a_pin_that_stops_saturating_fails_and_says_how_to_fix_it) ... ok
+test_a_pinned_cell_needs_no_second_rung (__main__.self_test.<locals>.ABBA.test_a_pinned_cell_needs_no_second_rung) ... ok
+test_aabb_is_rejected (__main__.self_test.<locals>.ABBA.test_aabb_is_rejected) ... ok
+test_abba_cancels_linear_drift (__main__.self_test.<locals>.ABBA.test_abba_cancels_linear_drift) ... ok
+test_accounting_rejects_interrupted_errors_unknown_and_missing_commands (__main__.self_test.<locals>.ABBA.test_accounting_rejects_interrupted_errors_unknown_and_missing_commands) ... ok
+test_arbitrary_workloads_issue_eight_keys_and_correct_mix_direction (__main__.self_test.<locals>.ABBA.test_arbitrary_workloads_issue_eight_keys_and_correct_mix_direction) ... ok
+test_armed_zero_permutations_need_directed_control_and_live_batches (__main__.self_test.<locals>.ABBA.test_armed_zero_permutations_need_directed_control_and_live_batches) ... ok
+test_bad_sized_cells_cannot_silently_measure_64_bytes (__main__.self_test.<locals>.ABBA.test_bad_sized_cells_cannot_silently_measure_64_bytes) ... ok
+test_bind_guard_accepts_owned_time_wait_that_plain_bind_rejects (__main__.self_test.<locals>.ABBA.test_bind_guard_accepts_owned_time_wait_that_plain_bind_rejects) ... ok
+test_bind_guard_rejects_live_listener_even_with_reuseport (__main__.self_test.<locals>.ABBA.test_bind_guard_rejects_live_listener_even_with_reuseport) ... ok
+test_build_abort_stops_only_pids_in_its_owned_session (__main__.self_test.<locals>.ABBA.test_build_abort_stops_only_pids_in_its_owned_session) ... ok
+test_busy_floor_applies_to_every_run_of_the_judged_block (__main__.self_test.<locals>.ABBA.test_busy_floor_applies_to_every_run_of_the_judged_block) ... ok
+test_changed_harness_invalidates_the_real_measurement_loop (__main__.self_test.<locals>.ABBA.test_changed_harness_invalidates_the_real_measurement_loop) ... ABBA FAIL: RuntimeError: measurement harness changed during the ABBA tier
+ok
+test_changed_instrument_invalidates_the_real_measurement_loop (__main__.self_test.<locals>.ABBA.test_changed_instrument_invalidates_the_real_measurement_loop) ... ABBA FAIL: RuntimeError: measurement instrument changed during the ABBA tier
+ok
+test_comparison_inherits_the_null_floor_and_can_still_fail (__main__.self_test.<locals>.ABBA.test_comparison_inherits_the_null_floor_and_can_still_fail) ... ok
+test_contamination_during_reference_skip_still_fails_whole_tier (__main__.self_test.<locals>.ABBA.test_contamination_during_reference_skip_still_fails_whole_tier) ... ABBA SKIP — NOT A PASS: reference missing
+ABBA FAIL: foreign work during reference lookup
+ok
+test_contended_preflight_never_reaches_support_or_measurement (__main__.self_test.<locals>.ABBA.test_contended_preflight_never_reaches_support_or_measurement) ... ABBA FAIL: QuietViolation: foreign compiler is active
+ok
+test_contender_invalidates_real_loop_without_retry_or_threshold_change (__main__.self_test.<locals>.ABBA.test_contender_invalidates_real_loop_without_retry_or_threshold_change) ... ABBA FAIL: QuietViolation: PID 123 (foreign): one CPU tick
+ok
+test_count_hdr_tail_validation_uses_the_same_finite_bound (__main__.self_test.<locals>.ABBA.test_count_hdr_tail_validation_uses_the_same_finite_bound) ... ok
+test_depth_one_ignores_deep_pipeline_pin (__main__.self_test.<locals>.ABBA.test_depth_one_ignores_deep_pipeline_pin) ... ok
+test_depth_one_uses_latency_and_is_exempt (__main__.self_test.<locals>.ABBA.test_depth_one_uses_latency_and_is_exempt) ... ok
+test_escalate_cannot_borrow_pin_for_a_single_block (__main__.self_test.<locals>.ABBA.test_escalate_cannot_borrow_pin_for_a_single_block) ... ok
+test_escalate_ignores_pin_and_drives_full_ladder (__main__.self_test.<locals>.ABBA.test_escalate_ignores_pin_and_drives_full_ladder) ... ok
+test_explicit_axes_and_binary_arguments (__main__.self_test.<locals>.ABBA.test_explicit_axes_and_binary_arguments) ... ok
+test_explicit_reference_records_digest_without_fabricating_a_commit (__main__.self_test.<locals>.ABBA.test_explicit_reference_records_digest_without_fabricating_a_commit) ... ok
+test_fastest_arm_still_gaining_fails (__main__.self_test.<locals>.ABBA.test_fastest_arm_still_gaining_fails) ... ok
+test_final_observation_can_fail_completed_real_loop (__main__.self_test.<locals>.ABBA.test_final_observation_can_fail_completed_real_loop) ... ABBA FAIL: QuietViolation: foreign activity at final sample
+ok
+test_flat_rate_below_the_busy_floor_still_fails (__main__.self_test.<locals>.ABBA.test_flat_rate_below_the_busy_floor_still_fails) ... ok
+test_flat_rate_just_under_98_busy_is_saturated (__main__.self_test.<locals>.ABBA.test_flat_rate_just_under_98_busy_is_saturated) ... ok
+test_full_coverage_preserves_original_axes_and_restores_multikey (__main__.self_test.<locals>.ABBA.test_full_coverage_preserves_original_axes_and_restores_multikey) ... ok
+test_fused_only_smoke_needs_no_unmeasured_split_ratio (__main__.self_test.<locals>.ABBA.test_fused_only_smoke_needs_no_unmeasured_split_ratio) ... ok
+test_generator_cpu_endpoint_rejects_exit_missing_and_malformed_proc (__main__.self_test.<locals>.ABBA.test_generator_cpu_endpoint_rejects_exit_missing_and_malformed_proc) ... ok
+test_generator_cpu_endpoints_preserve_identity_seconds_and_worker_normalization (__main__.self_test.<locals>.ABBA.test_generator_cpu_endpoints_preserve_identity_seconds_and_worker_normalization) ... ok
+test_hdr_decoder_matches_recorded_memtier_output_and_rejects_corruption (__main__.self_test.<locals>.ABBA.test_hdr_decoder_matches_recorded_memtier_output_and_rejects_corruption) ... ok
+test_histograms_merge_counts_instead_of_averaging_percentiles (__main__.self_test.<locals>.ABBA.test_histograms_merge_counts_instead_of_averaging_percentiles) ... ok
+test_historical_numbers_are_not_inputs (__main__.self_test.<locals>.ABBA.test_historical_numbers_are_not_inputs) ... ok
+test_idle_spinning_is_not_busy (__main__.self_test.<locals>.ABBA.test_idle_spinning_is_not_busy) ... ok
+test_info_poller_cadence_bad_replies_and_throughput_exclusion (__main__.self_test.<locals>.ABBA.test_info_poller_cadence_bad_replies_and_throughput_exclusion) ... ok
+test_l4_cells_cover_sizes_modes_and_controls_without_borrowed_pins (__main__.self_test.<locals>.ABBA.test_l4_cells_cover_sizes_modes_and_controls_without_borrowed_pins) ... ok
+test_large_population_matches_scored_bytes_and_rejects_bad_controls (__main__.self_test.<locals>.ABBA.test_large_population_matches_scored_bytes_and_rejects_bad_controls) ... ok
+test_legacy_busy_cannot_replace_missing_or_forged_saturation_evidence (__main__.self_test.<locals>.ABBA.test_legacy_busy_cannot_replace_missing_or_forged_saturation_evidence) ... ok
+test_legacy_control_requires_both_live_verdicts_and_caches_only_success (__main__.self_test.<locals>.ABBA.test_legacy_control_requires_both_live_verdicts_and_caches_only_success) ... ok
+test_load_escalation_preserves_total_connections (__main__.self_test.<locals>.ABBA.test_load_escalation_preserves_total_connections) ... ok
+test_long_tail_cannot_regress_behind_short_tail_improvement (__main__.self_test.<locals>.ABBA.test_long_tail_cannot_regress_behind_short_tail_improvement) ... ok
+test_missing_candidate_executable_is_rejected (__main__.self_test.<locals>.ABBA.test_missing_candidate_executable_is_rejected) ... ABBA FAIL: RuntimeError: candidate executable unavailable: /home/user/Projects/cx-ttlcell/build/tmpbvbbs34d/missing-candidate
+ok
+test_missing_knobs_are_reported_and_candidate_keeps_them (__main__.self_test.<locals>.ABBA.test_missing_knobs_are_reported_and_candidate_keeps_them) ... ok
+test_missing_workload_or_scheduler_engagement_is_red (__main__.self_test.<locals>.ABBA.test_missing_workload_or_scheduler_engagement_is_red) ... ok
+test_multidb_cell_inventory_and_exact_connection_assignment (__main__.self_test.<locals>.ABBA.test_multidb_cell_inventory_and_exact_connection_assignment) ... ok
+test_multidb_population_and_select_witness_reject_db0_only_load (__main__.self_test.<locals>.ABBA.test_multidb_population_and_select_witness_reject_db0_only_load) ... ok
+test_new_unmeasured_pins_search_instead_of_vetoing_the_tier (__main__.self_test.<locals>.ABBA.test_new_unmeasured_pins_search_instead_of_vetoing_the_tier) ... ok
+test_null_resolution_records_equal_gain_and_loss_for_every_scored_metric (__main__.self_test.<locals>.ABBA.test_null_resolution_records_equal_gain_and_loss_for_every_scored_metric) ... ok
+test_null_resolution_retains_a_failing_escalation_probe (__main__.self_test.<locals>.ABBA.test_null_resolution_retains_a_failing_escalation_probe) ... ok
+test_one_probe_cannot_prove_plateau (__main__.self_test.<locals>.ABBA.test_one_probe_cannot_prove_plateau) ... ok
+test_only_owned_children_are_stopped (__main__.self_test.<locals>.ABBA.test_only_owned_children_are_stopped) ... ok
+test_optional_cell_fields_are_strict_and_part_of_calibration_shape (__main__.self_test.<locals>.ABBA.test_optional_cell_fields_are_strict_and_part_of_calibration_shape) ... ok
+test_physical_load_ceiling_keeps_unproven_saturation_red (__main__.self_test.<locals>.ABBA.test_physical_load_ceiling_keeps_unproven_saturation_red) ... ok
+test_pidfile_empty_window_rejects_read_once_but_waits_for_publication (__main__.self_test.<locals>.ABBA.test_pidfile_empty_window_rejects_read_once_but_waits_for_publication) ... ok
+test_pidfile_wait_requires_a_complete_integer_before_deadline (__main__.self_test.<locals>.ABBA.test_pidfile_wait_requires_a_complete_integer_before_deadline) ... ok
+test_pin_beyond_budget_is_loud_not_an_unreached_measurement (__main__.self_test.<locals>.ABBA.test_pin_beyond_budget_is_loud_not_an_unreached_measurement) ... ok
+test_pin_dispatch_uses_identical_arms_and_the_validated_atomic_writer (__main__.self_test.<locals>.ABBA.test_pin_dispatch_uses_identical_arms_and_the_validated_atomic_writer) ... ok
+test_pin_drives_real_loop_to_exactly_four_measurements (__main__.self_test.<locals>.ABBA.test_pin_drives_real_loop_to_exactly_four_measurements) ... ok
+test_pin_that_outgrows_load_fails_after_four_and_names_remedy (__main__.self_test.<locals>.ABBA.test_pin_that_outgrows_load_fails_after_four_and_names_remedy) ... ok
+test_pinned_floor_cannot_borrow_occupancy_outside_central_window (__main__.self_test.<locals>.ABBA.test_pinned_floor_cannot_borrow_occupancy_outside_central_window) ... ok
+test_placement_caps_physical_cores_and_preserves_explicit_smt (__main__.self_test.<locals>.ABBA.test_placement_caps_physical_cores_and_preserves_explicit_smt) ... ok
+test_port_boundaries_reject_any_bind_outside_the_budget (__main__.self_test.<locals>.ABBA.test_port_boundaries_reject_any_bind_outside_the_budget) ... ok
+test_profile_cannot_be_enabled_in_normal_gate_or_cli (__main__.self_test.<locals>.ABBA.test_profile_cannot_be_enabled_in_normal_gate_or_cli) ... ABBA FAIL: ValueError: CPU profiling requires the permanently untrusted diagnostic runner
+ok
+test_raw_role_deltas_preserve_idle_executor_evidence (__main__.self_test.<locals>.ABBA.test_raw_role_deltas_preserve_idle_executor_evidence) ... ok
+test_read_local_control_binds_bytes_mode_and_both_arms (__main__.self_test.<locals>.ABBA.test_read_local_control_binds_bytes_mode_and_both_arms) ... ok
+test_real_escalation_accepts_positive_gain_inside_each_arms_repeatability (__main__.self_test.<locals>.ABBA.test_real_escalation_accepts_positive_gain_inside_each_arms_repeatability) ... ok
+test_real_escalation_accepts_twelve_as_cli_ceiling (__main__.self_test.<locals>.ABBA.test_real_escalation_accepts_twelve_as_cli_ceiling) ... ok
+test_real_escalation_cannot_call_same_worker_count_more_capacity (__main__.self_test.<locals>.ABBA.test_real_escalation_cannot_call_same_worker_count_more_capacity) ... ok
+test_real_escalation_cannot_discard_an_unstable_higher_probe (__main__.self_test.<locals>.ABBA.test_real_escalation_cannot_discard_an_unstable_higher_probe) ... ok
+test_real_escalation_does_not_hide_either_arms_different_knee (__main__.self_test.<locals>.ABBA.test_real_escalation_does_not_hide_either_arms_different_knee) ... ok
+test_real_escalation_incomplete_measurement_is_permanent_failure (__main__.self_test.<locals>.ABBA.test_real_escalation_incomplete_measurement_is_permanent_failure) ... ok
+test_real_escalation_retests_existing_non_ladder_pin (__main__.self_test.<locals>.ABBA.test_real_escalation_retests_existing_non_ladder_pin) ... ok
+test_real_escalation_sixteen_cannot_credit_fewer_workers_than_twelve (__main__.self_test.<locals>.ABBA.test_real_escalation_sixteen_cannot_credit_fewer_workers_than_twelve) ... ok
+test_real_escalation_twelve_confirms_eight_with_more_workers (__main__.self_test.<locals>.ABBA.test_real_escalation_twelve_confirms_eight_with_more_workers) ... ok
+test_real_loop_passes_selected_port_and_preserves_cpu_samples (__main__.self_test.<locals>.ABBA.test_real_loop_passes_selected_port_and_preserves_cpu_samples) ... ok
+test_real_main_passes_actual_measurement_window_to_quiet_monitor (__main__.self_test.<locals>.ABBA.test_real_main_passes_actual_measurement_window_to_quiet_monitor) ... ok
+test_real_measure_brackets_all_generators_and_rejects_counter_mutants (__main__.self_test.<locals>.ABBA.test_real_measure_brackets_all_generators_and_rejects_counter_mutants) ... ok
+test_real_null_collection_comparison_and_subset_controls (__main__.self_test.<locals>.ABBA.test_real_null_collection_comparison_and_subset_controls) ... ok
+test_real_orchestration_order_and_negative_control (__main__.self_test.<locals>.ABBA.test_real_orchestration_order_and_negative_control) ... ok
+test_real_runner_checks_effective_read_local_before_population (__main__.self_test.<locals>.ABBA.test_real_runner_checks_effective_read_local_before_population) ... ok
+test_reference_lacking_a_requested_on_knob_is_not_comparable (__main__.self_test.<locals>.ABBA.test_reference_lacking_a_requested_on_knob_is_not_comparable) ... ok
+test_reference_must_match_last_push (__main__.self_test.<locals>.ABBA.test_reference_must_match_last_push) ... ok
+test_reference_noise_cannot_turn_a_bad_session_green (__main__.self_test.<locals>.ABBA.test_reference_noise_cannot_turn_a_bad_session_green) ... ok
+test_regression_cannot_hide_in_reference_noise (__main__.self_test.<locals>.ABBA.test_regression_cannot_hide_in_reference_noise) ... ok
+test_saturation_from_another_window_is_rejected (__main__.self_test.<locals>.ABBA.test_saturation_from_another_window_is_rejected) ... ok
+test_server_flags_reach_both_arm_boots (__main__.self_test.<locals>.ABBA.test_server_flags_reach_both_arm_boots) ... ok
+test_smoke_is_seventeen_justified_cells_not_a_cross_product (__main__.self_test.<locals>.ABBA.test_smoke_is_seventeen_justified_cells_not_a_cross_product) ... ok
+test_split_local_io_can_saturate_with_idle_executors (__main__.self_test.<locals>.ABBA.test_split_local_io_can_saturate_with_idle_executors) ... ok
+test_stable_equal_arms_pass (__main__.self_test.<locals>.ABBA.test_stable_equal_arms_pass) ... ok
+test_standalone_defaults_use_all_other_physical_and_smt_load_cores (__main__.self_test.<locals>.ABBA.test_standalone_defaults_use_all_other_physical_and_smt_load_cores) ... ok
+test_stopped_child_can_be_reaped_at_any_read (__main__.self_test.<locals>.ABBA.test_stopped_child_can_be_reaped_at_any_read) ... ok
+test_tail_instrument_geometry_and_warmup (__main__.self_test.<locals>.ABBA.test_tail_instrument_geometry_and_warmup) ... ok
+test_unpinned_real_loop_searches_and_says_so (__main__.self_test.<locals>.ABBA.test_unpinned_real_loop_searches_and_says_so) ... ok
+test_variance_pin_bounds_are_frozen_and_pilots_cannot_raise_paired_ceiling (__main__.self_test.<locals>.ABBA.test_variance_pin_bounds_are_frozen_and_pilots_cannot_raise_paired_ceiling) ... ok
+test_variance_pin_exhaustion_does_not_award_the_ceiling (__main__.self_test.<locals>.ABBA.test_variance_pin_exhaustion_does_not_award_the_ceiling) ... ok
+test_variance_pin_noisy_cell_escalates_even_when_rate_is_flat (__main__.self_test.<locals>.ABBA.test_variance_pin_noisy_cell_escalates_even_when_rate_is_flat) ... ok
+test_variance_pin_quiet_cell_keeps_its_saturation_rung (__main__.self_test.<locals>.ABBA.test_variance_pin_quiet_cell_keeps_its_saturation_rung) ... ok
+test_variance_pin_rejects_missing_reused_skipped_and_unsaturated_evidence (__main__.self_test.<locals>.ABBA.test_variance_pin_rejects_missing_reused_skipped_and_unsaturated_evidence) ... ok
+test_verdict_is_taken_at_the_peak_not_the_last_block (__main__.self_test.<locals>.ABBA.test_verdict_is_taken_at_the_peak_not_the_last_block) ... ok
+test_whole_run_counts_use_logical_multikey_units_and_exact_hdr (__main__.self_test.<locals>.ABBA.test_whole_run_counts_use_logical_multikey_units_and_exact_hdr) ... ok
+test_worker_pinning_and_startup_allowance_cannot_enter_normal_gate (__main__.self_test.<locals>.ABBA.test_worker_pinning_and_startup_allowance_cannot_enter_normal_gate) ... ABBA FAIL: ValueError: worker placement requires diagnostic null arms and explicit 5s startup allowance
+ABBA FAIL: ValueError: worker placement requires diagnostic null arms and explicit 5s startup allowance
+ABBA FAIL: ValueError: worker placement requires diagnostic null arms and explicit 5s startup allowance
+ok
+test_worst_failure_not_an_average (__main__.self_test.<locals>.ABBA.test_worst_failure_not_an_average) ... ok
+test_inventory_geometry_and_pin (ttlcell_test.suite.<locals>.TTLCell.test_inventory_geometry_and_pin) ... ok
+test_measured_window_wiring_both_arms_and_failed_artifact (ttlcell_test.suite.<locals>.TTLCell.test_measured_window_wiring_both_arms_and_failed_artifact) ... ok
+test_null_cannot_cover_a_plain_twin_even_with_same_id_and_source_digest (ttlcell_test.suite.<locals>.TTLCell.test_null_cannot_cover_a_plain_twin_even_with_same_id_and_source_digest) ... ok
+test_option_text_argv_receipt_and_shape (ttlcell_test.suite.<locals>.TTLCell.test_option_text_argv_receipt_and_shape) ... ok
+test_population_never_gets_client_flags (ttlcell_test.suite.<locals>.TTLCell.test_population_never_gets_client_flags) ... ok
+test_raw_endpoint_replay_and_arm_specific_named_fail (ttlcell_test.suite.<locals>.TTLCell.test_raw_endpoint_replay_and_arm_specific_named_fail) ... ok
+test_setex_server_counters_match_logical_memtier_sets_exactly (ttlcell_test.suite.<locals>.TTLCell.test_setex_server_counters_match_logical_memtier_sets_exactly) ... ok
+test_unknown_duplicate_unsafe_and_vacuous_options_rejected (ttlcell_test.suite.<locals>.TTLCell.test_unknown_duplicate_unsafe_and_vacuous_options_rejected) ... ok
+test_witness_zero_missing_bad_and_reset_fail_for_either_arm (ttlcell_test.suite.<locals>.TTLCell.test_witness_zero_missing_bad_and_reset_fail_for_either_arm) ... ok
+
+----------------------------------------------------------------------
+Ran 115 tests in 117.933s
+
+OK
+test_bad_schema_and_duplicate_threads_are_rejected (abba_saturation.self_test.<locals>.Controls.test_bad_schema_and_duplicate_threads_are_rejected) ... ok
+test_cached_saturation_cannot_hide_missing_or_unproductive_threads (abba_saturation.self_test.<locals>.Controls.test_cached_saturation_cannot_hide_missing_or_unproductive_threads) ... ok
+test_counter_reset_role_change_and_no_clock_progress_are_invalid (abba_saturation.self_test.<locals>.Controls.test_counter_reset_role_change_and_no_clock_progress_are_invalid) ... ok
+test_executors_need_tasks_not_client_ownership (abba_saturation.self_test.<locals>.Controls.test_executors_need_tasks_not_client_ownership) ... ok
+test_fused_combined_counter_is_not_divided_between_roles (abba_saturation.self_test.<locals>.Controls.test_fused_combined_counter_is_not_divided_between_roles) ... ok
+test_idle_polling_control_and_one_hot_thread_cannot_certify_role (abba_saturation.self_test.<locals>.Controls.test_idle_polling_control_and_one_hot_thread_cannot_certify_role) ... ok
+test_raw_saturation_replays_after_json_round_trip (abba_saturation.self_test.<locals>.Controls.test_raw_saturation_replays_after_json_round_trip) ... ok
+test_saturation_is_bound_to_this_workload_interval (abba_saturation.self_test.<locals>.Controls.test_saturation_is_bound_to_this_workload_interval) ... ok
+test_split_local_io_saturates_while_executors_are_idle (abba_saturation.self_test.<locals>.Controls.test_split_local_io_saturates_while_executors_are_idle) ... ok
+test_wide_capture_cannot_borrow_outside_window_occupancy (abba_saturation.self_test.<locals>.Controls.test_wide_capture_cannot_borrow_outside_window_occupancy) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.008s
+
+OK
+test_ceiling_abba_assessment_prints_without_plateau_confirmation_fields (load_calibration.self_test.<locals>.Controls.test_ceiling_abba_assessment_prints_without_plateau_confirmation_fields) ... ok
+test_ceiling_classification_keeps_slope_occupancy_and_never_a_floor (load_calibration.self_test.<locals>.Controls.test_ceiling_classification_keeps_slope_occupancy_and_never_a_floor) ... ok
+test_failed_empty_shortened_and_changed_workload_observations_refuse (load_calibration.self_test.<locals>.Controls.test_failed_empty_shortened_and_changed_workload_observations_refuse) ... ok
+test_observed_peak_matches_full_escalation_on_same_rates (load_calibration.self_test.<locals>.Controls.test_observed_peak_matches_full_escalation_on_same_rates) ... ok
+test_real_dispatch_emits_pin_only_and_retains_failed_rung_or_late_quiet (load_calibration.self_test.<locals>.Controls.test_real_dispatch_emits_pin_only_and_retains_failed_rung_or_late_quiet) ... ok
+test_real_runner_reuses_one_boot_population_and_reaps_on_failure (load_calibration.self_test.<locals>.Controls.test_real_runner_reuses_one_boot_population_and_reaps_on_failure) ... ok
+test_session_cleanup_survives_connection_close_error (load_calibration.self_test.<locals>.Controls.test_session_cleanup_survives_connection_close_error) ... ok
+test_short_windows_require_calibration_session (load_calibration.self_test.<locals>.Controls.test_short_windows_require_calibration_session) ... ok
+test_unconfirmed_unsaturated_or_no_capacity_increase_cannot_pin (load_calibration.self_test.<locals>.Controls.test_unconfirmed_unsaturated_or_no_capacity_increase_cannot_pin) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.471s
+
+OK
+test_181_cells_and_all_phases_share_one_copy_and_receipt_identity (abba_binaries.self_test.<locals>.Controls.test_181_cells_and_all_phases_share_one_copy_and_receipt_identity) ... ok
+test_alias_must_be_hard_link_even_if_copy_has_identical_bytes (abba_binaries.self_test.<locals>.Controls.test_alias_must_be_hard_link_even_if_copy_has_identical_bytes) ... ok
+test_changed_source_or_manifest_refuses_reuse (abba_binaries.self_test.<locals>.Controls.test_changed_source_or_manifest_refuses_reuse) ... ok
+test_cli_low_space_stops_before_any_snapshot_or_manifest (abba_binaries.self_test.<locals>.Controls.test_cli_low_space_stops_before_any_snapshot_or_manifest) ... ok
+test_cross_filesystem_alias_refuses_instead_of_copying (abba_binaries.self_test.<locals>.Controls.test_cross_filesystem_alias_refuses_instead_of_copying) ... ok
+test_deleted_alias_and_manifest_name_the_missing_path (abba_binaries.self_test.<locals>.Controls.test_deleted_alias_and_manifest_name_the_missing_path) ... ok
+test_deleted_binary_fails_real_measure_before_any_child_or_control (abba_binaries.self_test.<locals>.Controls.test_deleted_binary_fails_real_measure_before_any_child_or_control) ... ok
+test_deleted_snapshot_is_not_recreated_from_surviving_alias (abba_binaries.self_test.<locals>.Controls.test_deleted_snapshot_is_not_recreated_from_surviving_alias) ... ok
+test_descriptor_is_closed_when_child_launch_fails (abba_binaries.self_test.<locals>.Controls.test_descriptor_is_closed_when_child_launch_fails) ... ok
+test_distinct_arms_copy_once_each (abba_binaries.self_test.<locals>.Controls.test_distinct_arms_copy_once_each) ... ok
+test_each_cell_hashes_once_and_each_boot_rechecks_identity (abba_binaries.self_test.<locals>.Controls.test_each_cell_hashes_once_and_each_boot_rechecks_identity) ... ok
+test_inode_replacement_and_preserved_mtime_corruption_fail (abba_binaries.self_test.<locals>.Controls.test_inode_replacement_and_preserved_mtime_corruption_fail) ... ok
+test_old_source_mtime_not_inherited_and_source_rewrite_is_isolated (abba_binaries.self_test.<locals>.Controls.test_old_source_mtime_not_inherited_and_source_rewrite_is_isolated) ... ok
+test_real_taskset_exec_survives_unlink_with_harmless_true_fixture (abba_binaries.self_test.<locals>.Controls.test_real_taskset_exec_survives_unlink_with_harmless_true_fixture) ... ok
+test_space_boundary_includes_payload_once_and_rejects_equality (abba_binaries.self_test.<locals>.Controls.test_space_boundary_includes_payload_once_and_rejects_equality) ... ok
+test_unlink_between_check_and_taskset_exec_keeps_open_inode_then_fails_guard (abba_binaries.self_test.<locals>.Controls.test_unlink_between_check_and_taskset_exec_keeps_open_inode_then_fails_guard) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.402s
+
+OK
+CEILING fixture loadgen: calibration rc=3, strict campaign rc=0
+CEILING fixture legacy-ceiling: calibration rc=1, strict campaign rc=1

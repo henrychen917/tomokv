@@ -8,7 +8,7 @@ from contextlib import ExitStack
 import inspect
 import textwrap
 import copy
-from dataclasses import asdict, replace
+from dataclasses import replace
 from datetime import datetime, timezone
 import json
 from functools import lru_cache
@@ -89,7 +89,7 @@ def fixture_report(cells, fingerprint, env, source, started, binary, *, fast=Fal
         rounds = [dict(instances=n, runs=[raw_run(cell, arm, n, rung + 1 if fast else i, env, fast=fast,
                                                 score=70 if cell.ceiling_status else None)
                    for i, arm in enumerate(['B'] if fast else abba.ORDER, 1)]) for rung, n in enumerate(counts)]
-        row = dict(cell=asdict(cell), rounds=rounds)
+        row = dict(cell=abba.cell_receipt(cell), rounds=rounds)
         if fast:
             row['status'] = 'EXEMPT' if saturation_exempt(cell) else 'PIN'
         else:
@@ -212,7 +212,7 @@ def control_fixture(folder, cells, fp, env, binary, completed):
     path = folder / 'workloads.json'
     receipt.write_json(path, workloads)
     control = dict(schema=1, kind='read-local-reorder-controls', verdict='PASS', completed_at=completed,
-        cells=[asdict(c) for c in targets], instrument=fp, binary_sha256=binary['sha256'],
+        cells=[abba.cell_receipt(c) for c in targets], instrument=fp, binary_sha256=binary['sha256'],
         workloads=reorder_control.identity(path), proofs={c.id: proof for c in targets if reorder_control.needs_proof(c)})
     path = folder / 'receipt.json'
     receipt.write_json(path, control)
@@ -956,7 +956,7 @@ class NullpublishControls(unittest.TestCase):
                 for index, arm in enumerate(abba.ORDER, 1)]
         for run, value in zip(runs, values):
             run['latency_ms'] = value
-        return cell, dict(cell=asdict(cell), rounds=[dict(instances=1, runs=runs)])
+        return cell, dict(cell=abba.cell_receipt(cell), rounds=[dict(instances=1, runs=runs)])
 
     def collect(self, values, extra):
         cell, row = self.row(values)
@@ -1024,7 +1024,7 @@ class NullpublishControls(unittest.TestCase):
         def assertion():
             assessment = abba.assess(cell, row['rounds'], bounds)
             self.assertEqual(assessment['verdict'], 'UNRESOLVED', 'non-loss on unresolved null cannot PASS')
-            self.assertEqual(abba.overall([dict(cell=asdict(cell), assessment=assessment, verdict=assessment['verdict'])])[0],
+            self.assertEqual(abba.overall([dict(cell=abba.cell_receipt(cell), assessment=assessment, verdict=assessment['verdict'])])[0],
                              'UNRESOLVED', 'overall cannot certify reporting-only rows')
         assertion()
         with throwaway(abba, 'assess', 'if unresolved else "PASS"', 'if False else "PASS"'):

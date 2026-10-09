@@ -69,27 +69,35 @@ build/persistfix/unit.o: tests/persistfix_unit.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_PERSISTFIX_TEST -I. -c $< -o $@
 build/persistfix-unit: build/persistfix/unit.o build/persistfix/aof-test.o $(PERSISTFIX_CORE)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 build/persistfix-controls/%/aof.cc: tools/persistfix_controls.py src/persist/aof.cc Makefile
+	@mkdir -p $(dir $@)
 	python3 tools/persistfix_controls.py $* $@
 build/persistfix-controls/%/aof.o: build/persistfix-controls/%/aof.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_PERSISTFIX_TEST -Isrc/persist -I. -c build/persistfix-controls/$*/aof.cc -o $@
 build/persistfix-controls/%/db0-aof.o: build/persistfix-controls/%/aof.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -DTOMO_PERSISTFIX_TEST -Isrc/persist -I. -c $< -o $@
 build/persistfix-controls/%/unit: build/persistfix-controls/%/aof.o build/persistfix/unit.o $(PERSISTFIX_CORE)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 .PHONY: persistfix-units
 persistfix-units: build/persistfix-units
 build/persistfix-units: build/persistfix-unit $(foreach arm,$(PERSISTFIX_CONTROLS),build/persistfix-controls/$(arm)/unit)
+	@mkdir -p $(dir $@)
 	@touch $@
 .SECONDARY: $(foreach arm,$(PERSISTFIX_CONTROLS),build/persistfix-controls/$(arm)/aof.o)
 .SECONDARY: $(foreach arm,$(PERSISTFIX_CONTROLS),build/persistfix-controls/$(arm)/aof.cc)
 build/persistfix-controls/%/tomokv: build/persistfix-controls/%/aof.o build/persistfix-controls/%/db0-aof.o $(filter-out build/src/persist/aof.o,$(OBJ)) $(filter-out build/db0/src/persist/aof.o,$(DB0_OBJ))
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 .PHONY: persistfix-live-controls
 persistfix-live-controls: build/persistfix-controls/old-ack/tomokv build/persistfix-controls/old-close/tomokv
 
 $(BIN): $(OBJ) $(SERVER_ONLY_OBJ) $(DB0_OBJ) $(DB0_SERVER_ONLY_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(DB0_OBJ) $(DB0_SERVER_ONLY_OBJ) $(OBJ) $(SERVER_ONLY_OBJ) -o $@ -Wl,--wrap=main $(JELIBS) $(LDLIBS) -lm
 
 # SV6 adds only a cold metadata lookup; retain all unrelated climon bodies.
@@ -211,11 +219,14 @@ build/ktls-keyupdate: tests/ktls_keyupdate.cc Makefile
 	$(CXX) $(CXXFLAGS) -I. $< -o $@ -lssl -lcrypto
 
 build/ktls-keyupdate-unit: tests/ktls_keyupdate_unit.cc src/net/tls.cc src/net/tls.h src/core/config.h Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -I. tests/ktls_keyupdate_unit.cc src/net/tls.cc -o $@ \
 	  -Wl,--wrap=BIO_ctrl -Wl,--wrap=setsockopt -lssl -lcrypto
 build/splitlocal-unit.cc: tests/splitlocal_checks.py tests/r7shadow_sync.py tools/reorder_sync.py src/core/io_loop.h src/core/reorder.cc src/core/genthread_pipeline.h
+	@mkdir -p $(dir $@)
 	python3 tests/splitlocal_checks.py emit $@
 build/splitlocal-unit: build/splitlocal-unit.cc Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $< -o $@
 build/config-parser-test: tests/config_parser_test.cc tests/boot_support_checks.inc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
@@ -272,49 +283,65 @@ unit: build/reorder-unit build/r7shadow-unit build/config-parser-test build/flip
 # with ASAN/UBSAN and test-only interleaving hooks. No server or ring is started.
 CORE_TEST_OBJ := $(filter-out build/src/main.o,$(OBJ))
 build/encodingfix-unit: build/tests/encodingfix_unit.o $(CORE_TEST_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 DB0_TEST_OBJ := $(filter-out build/db0/src/main.o,$(DB0_OBJ))
 # ST2 cost witness: only the two cold census walks are instrumented. The fixture
 # dispatches real commands and counts work; it never boots a listener or workers.
 STORESIZE_CORE_OBJ := $(filter-out build/src/cmd/xshard.o build/src/cmd/multidb.o build/db0/src/cmd/xshard.o build/db0/src/cmd/multidb.o,$(CORE_TEST_OBJ) $(DB0_TEST_OBJ))
 build/storesize/multidb.cc: tests/storesize_checks.py src/cmd/multidb.cc
+	@mkdir -p $(dir $@)
 	python3 $< src/cmd/multidb.cc $@
 build/storesize/multidb.o: build/storesize/multidb.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Isrc/cmd -I. -c $< -o $@
 build/storesize/db0-multidb.o: build/storesize/multidb.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -Isrc/cmd -I. -c $< -o $@
 build/storesize-unit: build/tests/storesize_unit.o build/db0/tests/storesize_unit.o build/storesize/multidb.o build/storesize/db0-multidb.o $(STORESIZE_CORE_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # AT15: production transaction routing, no listener or worker threads.
 build/at15-unit: build/tests/at15_unit.o $(CORE_TEST_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 build/at15-db0-unit: build/db0/tests/at15_unit.o $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # EXECABORT/WATCH: same serverless witness linked against real production bodies.
 build/execabort-watch-unit: build/tests/execabort_watch_unit.o $(CORE_TEST_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 build/execabort-watch-db0-unit: build/db0/tests/execabort_watch_unit.o $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # EX1/EX3/EX6 use production objects without opening a listener or IO ring.
 build/exbatch-unit: build/tests/exbatch_unit.o $(CORE_TEST_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 build/exbatch-db0-unit: build/db0/tests/exbatch_unit.o $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # Lane-only frozen baseline fixture; PRE/source and PRE/build come from cd02ecbab.
 # The ordinary gate never depends on this artifact.
 build/exbatch/PRE/unit.o: tests/exbatch_unit.cc Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Wno-mismatched-new-delete -Ibuild/exbatch/PRE/source -I. -c $< -o $@
 build/exbatch/PRE/unit: build/exbatch/PRE/unit.o $(patsubst build/%,build/exbatch/PRE/build/%,$(CORE_TEST_OBJ))
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 # ST1/ST10 serverless proofs. PRE objects are kept by the lane before editing;
 # the control target substitutes just the two command objects in both images.
 FLUSHFIX_UNIT_OBJ := build/tests/flushfix_unit.o build/db0/tests/flushfix_unit.o
 FLUSHFIX_COMMAND_OBJ := build/src/cmd/t_server.o build/src/cmd/multidb.o build/db0/src/cmd/t_server.o build/db0/src/cmd/multidb.o
 build/flushfix-unit: $(FLUSHFIX_UNIT_OBJ) $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 build/flushfix-pre-unit: $(FLUSHFIX_UNIT_OBJ) $(filter-out $(FLUSHFIX_COMMAND_OBJ),$(DB0_TEST_OBJ) $(CORE_TEST_OBJ)) $(addprefix build/flushfix/pre/,$(patsubst build/%,%,$(FLUSHFIX_COMMAND_OBJ)))
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm
 build/flushfix/pre-source/.emitted: tests/flushfix_checks.py
+	@mkdir -p $(dir $@)
 	python3 tests/flushfix_checks.py emit-pre build/flushfix/pre-source
 build/flushfix/pre/src/cmd/%.o: build/flushfix/pre-source/.emitted
 	@mkdir -p $(dir $@)
@@ -330,9 +357,11 @@ build/kvobj-header-db0-unit: tests/kvobj_header_unit.cc $(wildcard src/*/*.h) Ma
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< -o $@ $(JELIBS)
 FLUSHFIX_HEADER_SITES := raw int string typeval embedded reheader
 build/flushfix-header-controls/%/unit: tests/kvobj_header_unit.cc tests/flushfix_checks.py $(wildcard src/*/*.h) Makefile
+	@mkdir -p build/flushfix-header-controls/$*/source
 	python3 tests/flushfix_checks.py emit-header $* build/flushfix-header-controls/$*/source
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Ibuild/flushfix-header-controls/$*/source -I. $< -o $@ $(JELIBS)
 build/flushfix-units: build/flushfix-unit build/kvobj-header-unit build/kvobj-header-db0-unit $(addprefix build/flushfix-header-controls/,$(addsuffix /unit,$(FLUSHFIX_HEADER_SITES)))
+	@mkdir -p $(dir $@)
 	@touch $@
 # Link-only witnesses: no allocation/metadata counters enter production objects.
 MDBSTAMP_WRAP := -Wl,--wrap=_ZN4tomo24command_metadata_resolveERNS_2OpEj \
@@ -359,14 +388,19 @@ build/mdbqsbr-tsan/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makef
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=thread -c $< -o $@
 build/mdbqsbr-asan/src/cmd/l4prebuild.o build/mdbqsbr-tsan/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 build/mdbqsbr-unit: build/mdbqsbr-asan/tests/mdbqsbr_unit.o $(MDBQSBR_ASAN_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=address,undefined $^ -o $@ $(LDLIBS) -lm $(MDBQSBR_WRAP)
 build/mdbqsbr-unit-tsan: build/mdbqsbr-tsan/tests/mdbqsbr_unit.o $(MDBQSBR_TSAN_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=thread $^ -o $@ $(LDLIBS) -lm $(MDBQSBR_WRAP)
 build/core-concurrency-mdbqsbr-asan: build/mdbqsbr-asan/tests/core_concurrency_unit.o $(MDBQSBR_ASAN_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=address,undefined $^ -o $@ $(LDLIBS) -lm
 build/rltopo-unit: build/mdbqsbr-asan/tests/rltopo_unit.o $(MDBQSBR_ASAN_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=address,undefined $^ -o $@ $(LDLIBS) -lm
 build/core-concurrency-mdbqsbr-tsan: build/mdbqsbr-tsan/tests/core_concurrency_unit.o $(MDBQSBR_TSAN_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=thread $^ -o $@ $(LDLIBS) -lm
 build/multidb-unit: | build/mdbqsbr-unit
 # Real-boot wake proof twins, never measurement arms. Both extend only the idle
@@ -378,35 +412,45 @@ mdbqsbr-live-arms:
 	$(MAKE) BUILD_ROOT=build/mdbqsbr2-no-wake CXXFLAGS='$(CXXFLAGS) -DTOMO_MDBQSBR_LIVE_PARK -DTOMO_MDBQSBR_NO_WAKE' all
 
 build/multidb-boundary-unit: tests/multidb_boundary_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/multidb-cost-unit: tests/multidb_cost_unit.cc $(CORE_TEST_OBJ) $(DB0_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(DB0_TEST_OBJ) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/multidb-cost-unit-multi: tests/multidb_cost_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_COST_NAMESPACED=1 -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/tomokv-multidb2-pad: build/tomokv tools/multidb2_artifacts.py tools/lbstall_artifacts.py
+	@mkdir -p $(dir $@)
 	python3 tools/multidb2_artifacts.py $< $@ > build/multidb2-pad.json
 build/tomokv-multidb-pad: build/tomokv tools/multidb_artifacts.py tools/lbstall_artifacts.py
+	@mkdir -p $(dir $@)
 	python3 tools/multidb_artifacts.py $< $@ > build/multidb-pad.json
 build/rehash-waits-unit: tests/rehash_waits_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 # Whole owner batches and live WATCH blockers; this unit starts no server.
 build/overlap-prefetch-unit: tests/overlap_prefetch_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 build/core-concurrency-unit: build/core-concurrency-mdbqsbr-asan
+	@mkdir -p $(dir $@)
 	cp $< $@
 
 # Directed owner-phase tests. The test includes xshard.cc to drive the real private phases
 # without starting worker threads or opening a listener; all other code is the release objects.
 build/atomic-survivors-unit: tests/atomiccollapse_checks.inc tests/atomic_plain_checks.inc
 build/atomic-survivors-unit: tests/atomic_survivors_unit.cc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. tests/atomic_survivors_unit.cc \
 	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 # Inspect real record/header allocation arenas on pinned owner threads, including abort cleanup
 # and quiesced shard handoff. JE=1 is required; no server or io_uring instance is started.
 build/owner-arena-unit: tests/owner_arena_unit.cc tests/at_recycle_checks.inc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< \
 	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ \
 	  $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
@@ -425,6 +469,7 @@ owner-arena-unit: build/owner-arena-unit
 # still catches a disabled/inclusive policy; a one-line boundary edit rebuilds both binaries.
 L4PREBUILD_TEST_FLAGS := -DTOMO_L4_PREBUILD_TEST_BOUNDARY=$(shell sed -n 's/^\#define TOMO_L4_PREBUILD_THRESHOLD //p' src/cmd/l4prebuild.cc)
 build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cmd/xshard.cc $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) $(L4PREBUILD_TEST_FLAGS) -I. $< \
 	  $(filter-out build/src/main.o build/src/cmd/xshard.o,$(OBJ)) -o $@ \
 	  $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
@@ -432,6 +477,7 @@ build/l4prebuild-unit: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cm
 # R7 kind A: mainline FIFO behavior in an exact copy of POST text and layout.
 # The offline patch disables only the boot capability; L4 prebuild stays enabled.
 build/tomokv-pad: $(BIN) tests/r7shadow_pad.py tools/lbstall_artifacts.py
+	@mkdir -p $(dir $@)
 	python3 tests/r7shadow_pad.py $< $@ --scope fifo --receipt $@.json
 
 l4prebuild-unit: build/l4prebuild-unit
@@ -450,6 +496,7 @@ build/l4prebuild-tsan/%.o: %.cc $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Ma
 	$(CXX) $(L4PREBUILD_TSAN_FLAGS) $(JEFLAGS) -I. -c $< -o $@
 build/l4prebuild-tsan/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 build/l4prebuild-unit-tsan: tests/l4prebuild_unit.cc tests/owner_arena_unit.cc src/cmd/xshard.cc $(L4PREBUILD_TSAN_COMMON) $(wildcard src/*/*.inc) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(L4PREBUILD_TSAN_FLAGS) $(JEFLAGS) $(L4PREBUILD_TEST_FLAGS) -I. $< \
 	  $(L4PREBUILD_TSAN_COMMON) \
 	  -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mallocx -Wl,--wrap=sdallocx
@@ -510,6 +557,7 @@ build/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(filter-o
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Wno-mismatched-new-delete -I. -c $< -o $@
 build/netcmd-unit: $(NETCMD_TEST_OBJ) $(NETCMD_LIB_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mkstemp -Wl,--wrap=fopen
 
 # The same direct-call regressions against the databases=1 runtime selected at boot.
@@ -520,6 +568,7 @@ build/db0/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(filt
 # Lua's C runtime is emitted only by the namespaced scripting object; the second library
 # supplies that shared runtime, as in multidb-unit, without crossing database state.
 build/netcmd-unit-db0: $(NETCMD_DB0_TEST_OBJ) $(patsubst build/%,build/db0/%,$(NETCMD_LIB_OBJ)) $(CORE_TEST_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=mkstemp -Wl,--wrap=fopen
 
 # R7 uses real Clients/ROB slots, without a listener or worker loop.
@@ -534,13 +583,17 @@ build/reorderscan-unit-asan: tests/reorderscan_unit.cc $(wildcard src/*/*.h) Mak
 	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@
 
 build/reorder-unit: tests/reorder_unit.cc tests/reorder_batch_fixture.h $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
 build/reorder-unit-asan: tests/reorder_unit.cc tests/reorder_batch_fixture.h $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@
 
 build/reorder-engagement-unit: tests/reorder_engagement_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 build/reorder-engagement-unit-db0: tests/reorder_engagement_unit.cc $(DB0_TEST_OBJ) $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< \
 	  $(DB0_TEST_OBJ) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
@@ -548,6 +601,7 @@ build/reorder-engagement-unit-db0: tests/reorder_engagement_unit.cc $(DB0_TEST_O
 # candidate text size/layout with the cold capability disabled, never a server.
 .PHONY: reorder-checks
 reorder-checks: $(BIN) build/reorder-engagement-unit build/reorder-engagement-unit-db0
+	@mkdir -p build/reorder-checks/multi build/reorder-checks/db0 build/reorder-checks/identity
 	python3 tests/r7shadow_sync.py
 	python3 tests/r7shadow_sync_test.py
 	python3 tests/reorder_receipt.py build/reorder-engagement-unit build/reorder-checks/multi --engagement
@@ -560,6 +614,7 @@ build/r7shadow3/reorder-witness.o: src/core/reorder.cc tests/r7shadow_witness.h 
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_R7_WITNESS -include tests/r7shadow_witness.h -I. -c $< -o $@
 build/r7shadow-split-unit: tests/r7shadow_split_unit.cc tests/reorder_engagement_unit.cc tests/r7shadow_witness.h build/r7shadow3/reorder-witness.o $(filter-out build/src/core/reorder.o,$(CORE_TEST_OBJ)) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_R7_WITNESS -DTOMO_R7_WITNESS_MAIN -Wno-mismatched-new-delete \
 	  -include tests/r7shadow_witness.h -I. $< build/r7shadow3/reorder-witness.o \
 	  $(filter-out build/src/core/reorder.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm
@@ -568,24 +623,29 @@ build/r7shadow3/reorder-witness-db0.o: src/core/reorder.cc tests/r7shadow_witnes
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 \
 	  -DTOMO_R7_WITNESS -include tests/r7shadow_witness.h -I. -c $< -o $@
 build/r7shadow-split-unit-db0: tests/r7shadow_split_unit.cc tests/reorder_engagement_unit.cc tests/r7shadow_witness.h build/r7shadow3/reorder-witness-db0.o $(filter-out build/db0/src/core/reorder.o,$(DB0_TEST_OBJ)) $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 \
 	  -DTOMO_R7_WITNESS -DTOMO_R7_WITNESS_MAIN -Wno-mismatched-new-delete \
 	  -include tests/r7shadow_witness.h -I. $< build/r7shadow3/reorder-witness-db0.o \
 	  $(filter-out build/db0/src/core/reorder.o,$(DB0_TEST_OBJ)) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 build/r7shadow-unit: tests/r7shadow_unit.cc tests/reorder_batch_fixture.h $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
 build/r7shadow-unit-asan: tests/r7shadow_unit.cc tests/reorder_batch_fixture.h $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I. $< -o $@
 
 # Instructions only, no rate/timing benchmark and no server. Run on compile CPUs.
 build/r7shadow-instr: tests/r7shadow_instr.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
 
 # Existing route row owns IO accounting/model/physical-placement proofs.
 build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o: tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc
 # Fast serverless lane entry; the gate uses its existing fully instrumented route row.
 build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc $(CORE_TEST_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 # Measured fused writeback rule, serverless production-path witnesses. Clause
@@ -601,18 +661,23 @@ build/wb-rule-db0-unit: tests/wb_rule_unit.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< -o $@ $(JELIBS)
 build/wb-rule-phase-unit: build/tests/wb_rule_phase_unit.o $(CORE_TEST_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm $(WB_RULE_WRAP)
 build/wb-rule-db0-phase-unit: build/db0/tests/wb_rule_phase_unit.o $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm $(WB_RULE_WRAP)
 $(addprefix build/wb-rule-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CONTROLS))): build/wb-rule-controls/%/unit: $(WB_RULE_CONTROL_DEPS)
+	@mkdir -p build/wb-rule-controls/$*/source
 	python3 tests/wb_rule_checks.py emit $* build/wb-rule-controls/$*/source
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Ibuild/wb-rule-controls/$*/source -I. tests/wb_rule_unit.cc -o $@ $(JELIBS)
 $(addprefix build/wb-rule-controls/,$(addsuffix /unit,$(WB_RULE_PHASE_CONTROLS))): build/wb-rule-controls/%/unit: $(WB_RULE_CONTROL_DEPS) $(CORE_TEST_OBJ)
+	@mkdir -p build/wb-rule-controls/$*/source
 	python3 tests/wb_rule_checks.py emit $* build/wb-rule-controls/$*/source
 	$(CXX) $(CXXFLAGS) -O0 -g0 $(JEFLAGS) -Ibuild/wb-rule-controls/$*/source -I. tests/wb_rule_phase_unit.cc $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm $(WB_RULE_WRAP)
 .PHONY: wb-rule-units
 wb-rule-units: build/wb-rule-units
 build/wb-rule-units: build/wb-rule-unit build/wb-rule-db0-unit build/wb-rule-phase-unit build/wb-rule-db0-phase-unit $(addprefix build/wb-rule-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CONTROLS) $(WB_RULE_PHASE_CONTROLS)))
+	@mkdir -p $(dir $@)
 	@touch $@
 
 # Completion witnesses and clause-deletion controls share the existing wbland rows.
@@ -626,11 +691,14 @@ build/wb-rule-db0-completion-unit: $(WB_RULE_COMPLETION_DEPS)
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< -o $@ $(JELIBS)
 $(addprefix build/wb-rule-completion-controls/,$(addsuffix /source/.emitted,$(WB_RULE_COMPLETION_CONTROLS))): build/wb-rule-completion-controls/%/source/.emitted: $(WB_RULE_COMPLETION_DEPS)
+	@mkdir -p $(dir $@)
 	python3 tests/wb_rule_checks.py emit $* build/wb-rule-completion-controls/$*/source
 	@touch $@
 build/wb-rule-completion-controls/%/unit: build/wb-rule-completion-controls/%/source/.emitted $(WB_RULE_COMPLETION_DEPS)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Ibuild/wb-rule-completion-controls/$*/source -I. tests/wb_rule_completion_unit.cc -o $@ $(JELIBS)
 build/wb-rule-completion-controls/%/db0-unit: build/wb-rule-completion-controls/%/source/.emitted $(WB_RULE_COMPLETION_DEPS)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -Ibuild/wb-rule-completion-controls/$*/source -I. tests/wb_rule_completion_unit.cc -o $@ $(JELIBS)
 
 # Fixed writeback policies: all fixtures are serverless; gate owns execution.
@@ -642,66 +710,87 @@ build/wbland-db0-unit: tests/wbland_unit.cc $(wildcard src/*/*.h) Makefile
 	@mkdir -p build
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< -o $@ $(JELIBS)
 build/wbland-clause-unit: tests/wbland_clause_unit.cc tests/wb_rule_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< -o $@ $(JELIBS)
 build/wbland-db0-clause-unit: tests/wbland_clause_unit.cc tests/wb_rule_unit.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< -o $@ $(JELIBS)
 $(addprefix build/wbland-controls/,$(addsuffix /unit,$(WBLAND_CONTROLS))): build/wbland-controls/%/unit: tests/wbland_checks.py tests/wbland_unit.cc $(WB_RULE_CONTROL_DEPS)
+	@mkdir -p build/wbland-controls/$*/source
 	python3 tests/wbland_checks.py emit $* build/wbland-controls/$*/source
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Ibuild/wbland-controls/$*/source -I. tests/wbland_unit.cc -o $@ $(JELIBS)
 $(addprefix build/wbland-clause-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CONTROLS))): build/wbland-clause-controls/%/unit: tests/wbland_clause_unit.cc $(WB_RULE_CONTROL_DEPS)
+	@mkdir -p build/wbland-clause-controls/$*/source
 	python3 tests/wb_rule_checks.py emit $* build/wbland-clause-controls/$*/source
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Ibuild/wbland-clause-controls/$*/source -I. tests/wbland_clause_unit.cc -o $@ $(JELIBS)
 .PHONY: wbland-units
 wbland-units: build/wbland-units
 build/wbland-units: $(WB_RULE_COMPLETION_UNITS) build/wbland-unit build/wbland-db0-unit build/wbland-clause-unit build/wbland-db0-clause-unit build/wb-rule-units $(addprefix build/wbland-controls/,$(addsuffix /unit,$(WBLAND_CONTROLS))) $(addprefix build/wbland-clause-controls/,$(addsuffix /unit,$(WB_RULE_POLICY_CONTROLS)))
+	@mkdir -p $(dir $@)
 	@touch $@
 
 # cleanup-lanefull extends the existing core route row; no new gate emission.
 build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o build/signalacct-core-unit: tests/lanefull_checks.inc
 # Fast direct-call db0 variant; both database implementations retain their existing object flags.
 build/lanefull-db0-unit: tests/core_concurrency_unit.cc tests/lanefull_checks.inc $(DB0_TEST_OBJ) $(CORE_TEST_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. $< $(DB0_TEST_OBJ) $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 # SV2: production control flow; replace only the disk writer in the serverless witness.
 SHUTDOWN_WRAP := -Wl,--wrap=_ZN4tomo15SnapshotManager5startERNS_6ServerERNS_9ThreadCtxERNS_4RingEbRNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEPNS_10AofManagerEPKcSH_b -Wl,--wrap=clock_gettime
 SHUTDOWN_UNIT_OBJ = $(filter-out $(BUILD_ROOT)/src/main.o,$(OBJ))
 $(BUILD_ROOT)/shutdown-unit: $(BUILD_ROOT)/tests/shutdown_unit.o $(SHUTDOWN_UNIT_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm $(SHUTDOWN_WRAP)
 # Shutdown/SAVE supervisor schedules; no listener or worker loop is started.
 $(BUILD_ROOT)/shutsave-unit: $(BUILD_ROOT)/tests/shutsave_unit.o $(SHUTDOWN_UNIT_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=clock_gettime -Wl,--wrap=fdatasync
 # NET1 bounds, linear scan, and actual deferred client reclamation; no server is started.
 build/netcap-unit: build/tests/netcap_unit.o $(CORE_TEST_OBJ)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(JELIBS) $(LDLIBS) -lm -Wl,--wrap=free
 
 # CT1-CT3 serverless handoff; the planner object is production code, no live loops.
 LBPLANNER_WRAP := -Wl,--wrap=pthread_mutex_trylock -Wl,--wrap=pthread_mutex_lock
 build/lbplanner-unit: tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm $(LBPLANNER_WRAP)
 build/lbplanner-unit-tsan: tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(MDBQSBR_TSAN_OBJ) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(MDBQSBR_FLAGS) -fsanitize=thread $< $(MDBQSBR_TSAN_OBJ) -o $@ $(LDLIBS) -lm $(LBPLANNER_WRAP)
 
 LBPLANNER_CONTROLS := no-publish stale-flip stale-lb duplicate copy-on-io record-reuse
 LBPLANNER_TIMING_CONTROLS := timing-lock timing-late-pause timing-budget
 build/lbplanner-controls/%/source/src/core/io_loop.h: tools/lbplanner_controls.py $(SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc)
+	@mkdir -p $(dir $@)
 	python3 tools/lbplanner_controls.py $* $@
 $(foreach arm,$(LBPLANNER_TIMING_CONTROLS),build/lbplanner-controls/$(arm)/unit): build/lbplanner-controls/%/unit: build/lbplanner-controls/%/source/src/core/io_loop.h tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -Ibuild/lbplanner-controls/$*/source -I. tests/lbplanner_unit.cc $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm $(LBPLANNER_WRAP)
 build/lbplanner-controls/%/lbplanner.cc: tools/lbplanner_controls.py src/core/lbplanner.cc
+	@mkdir -p $(dir $@)
 	python3 tools/lbplanner_controls.py $* $@
 build/lbplanner-controls/%/lbplanner.o: build/lbplanner-controls/%/lbplanner.cc $(wildcard src/*/*.h) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -iquote src/core -I. -c $< -o $@
 build/lbplanner-controls/%/unit: build/lbplanner-controls/%/lbplanner.o tests/lbplanner_unit.cc tests/core_concurrency_unit.cc $(CORE_TEST_OBJ) Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. tests/lbplanner_unit.cc $< $(filter-out build/src/core/lbplanner.o,$(CORE_TEST_OBJ)) -o $@ $(JELIBS) $(LDLIBS) -lm $(LBPLANNER_WRAP)
 build/lbplanner-unit-pad: build/lbplanner-unit tools/lbplanner_pad.py tools/rlfence_artifacts.py tools/lbstall_artifacts.py
+	@mkdir -p $(dir $@) build/lbplanner-unit-pad-proof
 	python3 tools/lbplanner_pad.py $< $@ build/lbplanner-unit-pad-proof > build/lbplanner-unit-pad.log
 build/tomokv-lbplanner-pad: build/tomokv tools/lbplanner_pad.py tools/rlfence_artifacts.py tools/lbstall_artifacts.py
+	@mkdir -p $(dir $@) build/lbplanner-pad-proof
 	python3 tools/lbplanner_pad.py $< $@ build/lbplanner-pad-proof > build/lbplanner-pad.log
 build/lbosc3-unit-pad: build/lbplanner-unit tools/lbosc3_pad.py
+	@mkdir -p build/lbosc3/unit-pad-proof
 	python3 tools/lbosc3_pad.py $< $@ build/lbosc3/unit-pad-proof > build/lbosc3/unit-pad.log
 build/lbplanner-units: build/lbplanner-unit build/lbplanner-unit-pad build/lbosc3-unit-pad $(foreach arm,$(LBPLANNER_CONTROLS) $(LBPLANNER_TIMING_CONTROLS),build/lbplanner-controls/$(arm)/unit)
+	@mkdir -p $(dir $@)
 	@touch $@
 .SECONDARY: $(foreach arm,$(LBPLANNER_CONTROLS),build/lbplanner-controls/$(arm)/lbplanner.cc build/lbplanner-controls/$(arm)/lbplanner.o)
 
 build/lbplanner-trace: tools/lbplanner_trace.cc Makefile
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $< -o $@

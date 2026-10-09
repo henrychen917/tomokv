@@ -1,0 +1,22 @@
+[
+  {
+    "path": "/home/user/Projects/bench-bins/tomokv-headline-dab740964",
+    "bytes": 186412184,
+    "sha256": "962e49486786c3175e68aa106455d810fc563e520fabee49a97fbf60182e698f"
+  },
+  {
+    "path": "/home/user/Projects/bench-bins/tomokv-ttl-inline-3f92cd93",
+    "bytes": 186413760,
+    "sha256": "3f92cd9326f002837c5b6bf55c0b0f1f66a33bde0f9219d623252414f6bd8470"
+  },
+  {
+    "path": "/home/user/Projects/bench-bins/tomokv-ttl-sidecar-04eb6243",
+    "bytes": 186265536,
+    "sha256": "04eb62439aafdc19f1ec3388028cbfbe329e02d9a23a0e456ce3fb50ce56cc34"
+  },
+  {
+    "path": "/home/user/Projects/bench-bins/tomokv-ttl-pad-b-4eb4d10e",
+    "bytes": 186290112,
+    "sha256": "4eb4d10e21141bca84607c8510e1e2d8161bba0351e9af3ab5409ed38e3bb6aa"
+  }
+]

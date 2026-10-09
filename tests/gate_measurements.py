@@ -139,7 +139,7 @@ def shape(cell):
         result["data_bytes"] = cell["data_bytes"]
     # Database selection, boot flags and monitoring change the experiment even
     # with the same cell ID. Never borrow a db0/no-poller calibration for them.
-    for key in ("server_flags", "dbs", "poll", "keys"):
+    for key in ("server_flags", "dbs", "poll", "keys", "client_flags"):
         if cell.get(key):
             result[key] = cell[key]
     return result

@@ -1,0 +1,2 @@
+341:ok	13.270000	tracking battery (atomic 0)
+376:ok	13.210000	fused+armed tracking battery (atomic 0)

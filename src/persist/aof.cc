@@ -34,6 +34,8 @@ namespace {
 
 constexpr uint8_t kFileMagic[8] = {'T','O','M','O','A','O','F','\0'};
 constexpr uint32_t kFileVersion = 1;
+static_assert(DatabaseMap::kPayloadBytes == 256,
+              "AOF version 1 stores mapping bytes only, excluding Map::epoch");
 constexpr uint32_t kFileHeaderBytes = 80;
 constexpr uint32_t kFrameHeaderBytes = 40;
 constexpr uint32_t kFrameTag = 0x4d524641;       // "AFRM"
@@ -863,13 +865,13 @@ bool AofProducer::record_flush(int physical_db) {
 bool AofProducer::record_database_map(const uint8_t* mapping) {
     if (!enabled()) return true;
     return record_bytes(AofRecordKind::DatabaseMap, 0, 0, Slice(), -1, 0,
-                        mapping, 256, nullptr, nullptr, nullptr);
+                        mapping, DatabaseMap::kPayloadBytes, nullptr, nullptr, nullptr);
 }
 
 bool AofProducer::record_group_database_map(const uint8_t* mapping) {
     if (!enabled()) return true;
     return active_group_ && record_group_bytes(*active_group_, AofRecordKind::GroupDatabaseMap,
-        0, 0, Slice(), -1, nullptr, nullptr, mapping, 256);
+        0, 0, Slice(), -1, nullptr, nullptr, mapping, DatabaseMap::kPayloadBytes);
 }
 
 bool AofProducer::flush(AofOwnerContext& context) {
@@ -2778,7 +2780,7 @@ bool aof_load_shard(const AofReplayPlan& plan, Server& server, Shard& shard,
         if (kind == AofRecordKind::Timestamp || kind == AofRecordKind::GroupCommit) continue;
         if (kind == AofRecordKind::GroupDatabaseMap && !plan.committed_groups.count(group)) continue;
         if (kind == AofRecordKind::DatabaseMap || kind == AofRecordKind::GroupDatabaseMap) {
-            if (sid != 0 || key_len || payload_len != 256 ||
+            if (sid != 0 || key_len || payload_len != DatabaseMap::kPayloadBytes ||
                 !server.databases().restore(reinterpret_cast<const uint8_t*>(payload.p))) {
                 error = "invalid AOF database mapping"; return false;
             }

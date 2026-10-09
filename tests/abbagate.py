@@ -168,8 +168,13 @@ class Cell:
     dbs: int = 0            # 0: existing db0 workload; N: logical connection i selects i % N.
     poll: str = ""          # Optional bare INFO once per second on a dedicated connection.
     keys: int = 0           # 0: existing KEYS; otherwise TOTAL resident keys across databases.
+    client_flags: str = ""  # Optional cli= argv for timed memtier load, identical in BOTH arms.
 
     def __post_init__(self):
+        if self.client_flags:
+            client_arguments(self.client_flags)
+            if self.op not in ("SET", "MIX") or self.dbs:
+                raise ValueError("cli=--expiry-range requires a db0 SET or MIX cell")
         # The tail instrument needs 16 independent generators to avoid arrival bursts.
         # This is workload geometry, independent of throughput saturation calibration.
         if self.op == "REORDER" and self.instances == 0:
@@ -187,6 +192,53 @@ class Cell:
     def database_keys(self, database=0):
         count = self.dbs or 1
         return (self.key_count + count - 1 - database) // count
+
+
+def cell_receipt(cell):
+    """Keep every pre-cli cell's serialized parameters byte-for-byte compatible."""
+    result = asdict(cell)
+    if not cell.client_flags:
+        del result["client_flags"]
+    return result
+
+
+def client_arguments(flags):
+    # Explicit allowlist: getopt abbreviations, short aliases, unknown options and
+    # harness-owned connection/workload/output flags must fail before boot. Like
+    # srv=, preserve the supplied argv without a shell or option normalization.
+    argv = shlex.split(flags)
+    if not flags:
+        return argv
+    if any(ord(char) < 32 for char in flags):
+        raise ValueError("cli= cannot contain control characters")
+    if len(argv) == 1 and argv[0].startswith("--expiry-range="):
+        value = argv[0].split("=", 1)[1]
+    elif len(argv) == 2 and argv[0] == "--expiry-range":
+        value = argv[1]
+    else:
+        raise ValueError("cli= accepts only one exact --expiry-range=MIN-MAX option")
+    match = re.fullmatch(r"([1-9][0-9]*)-([1-9][0-9]*)", value)
+    if not match or not 1 <= int(match[1]) <= int(match[2]) <= 2147483647:
+        raise ValueError("cli=--expiry-range requires positive MIN <= MAX <= 2147483647 seconds")
+    return argv
+
+
+def expiry_witness(cell, before, after, arm):
+    """Replay the central INFO STATS endpoints, never warmup or drain counts."""
+    if not cell.client_flags:
+        return None
+    values = []
+    for label, snapshot in (("before", before), ("after", after)):
+        value = snapshot.get("expired_keys") if isinstance(snapshot, dict) else None
+        if not isinstance(value, str) or not re.fullmatch(r"[0-9]+", value):
+            raise RuntimeError(f"EXPIRY-FIRED: arm {arm} missing/invalid {label} expired_keys")
+        values.append(int(value))
+    delta = values[1] - values[0]
+    if delta <= 0:
+        reason = "no expirations in measured window" if delta == 0 else "expiration counter reset"
+        raise RuntimeError(f"EXPIRY-FIRED: arm {arm} expired_keys delta={delta}: {reason}")
+    return dict(name="EXPIRY-FIRED", field="expired_keys", before=values[0], after=values[1],
+                delta=delta, verdict="PASS")
 
 
 def server_arguments(flags):
@@ -217,7 +269,7 @@ def cell_options(fields):
     options = {}
     for field in fields:
         name, sep, value = field.partition("=")
-        if not sep or name not in ("srv", "dbs", "poll", "keys") or name in options:
+        if not sep or name not in ("srv", "dbs", "poll", "keys", "cli") or name in options:
             raise ValueError(f"unknown/duplicate cell option: {field}")
         options[name] = value
     flags = options.get("srv", "")
@@ -237,7 +289,12 @@ def cell_options(fields):
     poll = options.get("poll", "0")
     if poll not in ("0", "info1hz"):
         raise ValueError("poll= requires 0 or info1hz")
-    return dict(server_flags=flags, dbs=dbs, poll="" if poll == "0" else poll, keys=int(keys))
+    client_flags = options.get("cli", "")
+    if "cli" in options and not client_flags.strip():
+        raise ValueError("cli= requires a client option")
+    client_arguments(client_flags)
+    return dict(server_flags=flags, dbs=dbs, poll="" if poll == "0" else poll, keys=int(keys),
+                client_flags=client_flags)
 
 
 def read_cells(path, *, placement=None, measurements=None, instrument_sha256=None):
@@ -343,7 +400,7 @@ def coverage(cells):
             "scores": sorted({cell.metric for cell in cells}),
             "pending_pins": [cell.id for cell in cells if not saturation_exempt(cell) and not cell.instances]}
     # Keep the existing --list-cells JSON byte-for-byte unchanged when no option is used.
-    for name in ("server_flags", "dbs", "poll", "keys"):
+    for name in ("server_flags", "dbs", "poll", "keys", "client_flags"):
         values = {cell.id: getattr(cell, name) for cell in cells if getattr(cell, name)}
         if values:
             result[name] = values
@@ -609,6 +666,17 @@ class InfoPoller:
 
 
 def require_cell_options_evidence(cell, run):
+    client_flags = client_arguments(cell.client_flags)
+    if client_flags:
+        commands, layout = run.get("load_argv", []), run.get("load_layout", [])
+        if not layout or len(commands) != len(layout) or any(
+                argv[-len(client_flags):] != client_flags or
+                any(arg.startswith("--expiry") for arg in argv[:-len(client_flags)])
+                for argv in commands):
+            raise RuntimeError("client argv did not retain the cell's exact cli= suffix")
+        witness = expiry_witness(cell, run.get("info_before"), run.get("info_after"), run.get("arm", "?"))
+        if run.get("expiry_witness") != witness:
+            raise RuntimeError("EXPIRY-FIRED: recorded witness differs from central INFO STATS endpoints")
     flags = server_arguments(cell.server_flags)
     if flags and run.get("server_argv", [])[-len(flags):] != flags:
         raise RuntimeError("server argv did not retain the cell's srv= flags")
@@ -768,6 +836,11 @@ def load_block_evidence(cell, block, bounds=None):
         reasons.append("invalid server busy measurement")
     saturation = []
     for index, run in enumerate(runs, 1):
+        if cell.client_flags:
+            try:
+                require_cell_options_evidence(cell, run)
+            except (RuntimeError, ValueError) as error:
+                reasons.append(f"run {index}:{run.get('arm', '?')}: {error}")
         try:
             saturation.append(saturation_score(run, cell))
         except (ValueError, TypeError) as error:
@@ -1060,7 +1133,7 @@ def pin_null_sample(report, cell, instances, calibration, fingerprint):
     from abba_evidence import validate_measurements, validate_null, instrument
     from gate_measurements import require
     validate_measurements(report, now=time.time(), expected_instrument=fingerprint,
-                          expected_cells=[asdict(replace(cell, instances=instances))])
+                          expected_cells=[cell_receipt(replace(cell, instances=instances))])
     validate_null(report, now=time.time())
     require(report["window_seconds"] == WINDOW and report.get("escalate") is False and
             report["candidate"]["sha256"] == calibration["candidate"]["sha256"] and
@@ -1134,7 +1207,7 @@ def pin_main(args):
         validate_fast_calibration(calibration, fingerprint)
         for rate_row in calibration["cells"]:
             cell = Cell(**rate_row["cell"])
-            row = dict(cell=asdict(cell), noise_reports=[], trials=[])
+            row = dict(cell=cell_receipt(cell), noise_reports=[], trials=[])
             report["cells"].append(row)
             ceiling = min(args.max_instances, cell.conns, len(calibration["environment"]["load_physical"]))
             ladder = [n for n in AVAILABLE_LADDER if n <= ceiling]
@@ -1732,7 +1805,7 @@ class Runner:
             raise ValueError("short windows require the isolated 10-second calibration session")
         window = WINDOW if _window is None else _window
         reused = bool(_calibration)
-        if reused and _calibration["cell"] != asdict(cell):
+        if reused and _calibration["cell"] != cell_receipt(cell):
             raise ValueError("calibration session cannot outlive its cell")
         self.verify_binary(cell, arm)
         profile = None
@@ -1842,7 +1915,7 @@ class Runner:
                 result["population"] = self.populate(cell, arm, conn, folder)
                 result["populate_seconds"] = time.monotonic() - started
                 if _calibration is not None:
-                    _calibration.update(srv=srv, conn=conn, cell=asdict(cell), boot_info=identity,
+                    _calibration.update(srv=srv, conn=conn, cell=cell_receipt(cell), boot_info=identity,
                         server_argv=result["server_argv"], population=result["population"])
                     if configured_databases:
                         _calibration["configured_databases"] = result["configured_databases"]
@@ -1864,6 +1937,7 @@ class Runner:
                 argv = self.memtier(placement, cell=cell) + workload_arguments(cell) + [f"--pipeline={cell.depth}",
                         f"--test-time={load_lifetime}",
                         f"--json-out-file={folder / f'load-{i}.json'}"]
+                argv += client_arguments(cell.client_flags)
                 generators.append(self.children.start(argv, folder / f"load-{i}.log", folder))
                 result.setdefault("load_argv", []).append(argv)
             if self.worker_affinity_factory is not None:
@@ -1917,6 +1991,8 @@ class Runner:
                 before = info(conn, "stats")
                 before_cpu, t0 = cpu_seconds(srv.pid), time.monotonic()
                 poll_before = poller.count() if poller else 0
+            if cell.client_flags:
+                result["info_before"] = before
             if self.load_startup_seconds:
                 # Use the earliest possible generator expiry. Setup consumes its
                 # allowance, never the central window or the reserved tail. Both
@@ -1931,6 +2007,11 @@ class Runner:
                 after = info(conn, "stats")
                 t1, after_cpu = time.monotonic(), cpu_seconds(srv.pid)
                 poll_after = poller.count() if poller else 0
+            if cell.client_flags:
+                # Retain raw endpoints even when a vacuous TTL window fails.
+                result.update(info_after=after, window_seconds=t1 - t0,
+                              midpoint_monotonic=(t0 + t1) / 2)
+                result["expiry_witness"] = expiry_witness(cell, before, after, arm)
             commands = (int(after["total_commands_processed"]) -
                         int(before["total_commands_processed"]) - 1 - (poll_after - poll_before))
             if poller:
@@ -1963,7 +2044,9 @@ class Runner:
             if commands <= 0:
                 raise RuntimeError("no commands completed")
             misses = int(after["keyspace_misses"]) - int(before["keyspace_misses"])
-            if misses != 0:
+            if cell.client_flags and misses < 0:
+                raise RuntimeError("TTL keyspace_misses counter reset")
+            if misses != 0 and not cell.client_flags:
                 raise RuntimeError(f"GETs missed prepopulated keys: {misses}")
             busy, per_thread = busy_between(before_lb.threads, after_lb.threads)
             result.update(rate=commands / (t1 - t0), commands=commands, window_seconds=t1 - t0,
@@ -2306,7 +2389,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
             validate_null(control, now=time.time())
             if (report["instrument_fingerprint"] != control["instrument_fingerprint"] or
                     report["cell_source"]["sha256"] != control["cell_source"]["sha256"] or
-                    [asdict(cell) for cell in cells] != [row["cell"] for row in control["cells"]]):
+                    [cell_receipt(cell) for cell in cells] != [row["cell"] for row in control["cells"]]):
                 raise ValueError("holdout null fingerprint/inventory differs; re-freeze before measuring")
             report.update(holdout_contract=CONTRACT, holdout_plan=holdout_plan(control))
             (out / "results.json").write_text(json.dumps(report, indent=2) + "\n")
@@ -2374,7 +2457,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
             from abba_ceiling import validate_ceiling_controls
             plans = load_measurements()["ceiling_loads"]
             report["ceiling_loads"] = {cell.id: plans[cell.id] for cell in cells if cell.ceiling_status}
-            validate_ceiling_controls(report, [asdict(cell) for cell in cells])
+            validate_ceiling_controls(report, [cell_receipt(cell) for cell in cells])
         print(f"GEOMETRY server={args.server_cores} ({len(server_physical)} physical cores) "
               f"server-smt={args.server_smt or '(reserved)'} ({len(server_cpus)} threads) "
               f"load={args.load_cores} load-smt={args.load_smt or '(reserved)'} "
@@ -2388,7 +2471,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
         quiet.check()
         report["accepted_knobs"] = support
         for cell in cells:
-            row = {"cell": asdict(cell), "verdict": "FAIL", "rounds": []}
+            row = {"cell": cell_receipt(cell), "verdict": "FAIL", "rounds": []}
             report["cells"].append(row)
             try:
                 plans, row["notes"] = knob_plan(cell, support)
@@ -2959,7 +3042,7 @@ def self_test():
                         instrument_fingerprint=fingerprint, candidate={"sha256": sha256(options.candidate)},
                         cell_source=dict(path=str(source.resolve()), text=source.read_text(),
                             sha256=sha256(source), total_cells=1), environment=environment,
-                        coverage=dict(ids=[cell.id], count=1), cells=[dict(cell=asdict(cell), status="PIN", rounds=rounds)],
+                        coverage=dict(ids=[cell.id], count=1), cells=[dict(cell=cell_receipt(cell), status="PIN", rounds=rounds)],
                         quiet_box=quiet_record(cpus=range(112), started_at=epoch, finished_at=epoch + 30,
                                                samples=31, window_seconds=10))
                     options.output.mkdir()
@@ -3207,7 +3290,7 @@ def self_test():
                 self.assertEqual(cell.instances, 16)
                 self.assertIn("--rate-limiting=1400", workload_arguments(cell))
                 self.assertIn("--key-maximum=65536", workload_arguments(cell))
-                self.assertIsNone(threshold_for(asdict(cell)))
+                self.assertIsNone(threshold_for(cell_receipt(cell)))
             self.assertEqual(replace(measured, instances=0).instances, 16)
             self.assertEqual(replace(measured, instances=8).instances, 8)
             pins = load_measurements()["load_floors"]
@@ -3870,7 +3953,7 @@ def self_test():
                             run[metric] = value
                         # Cached summaries deliberately claim success and a huge
                         # allowance; only raw observations establish null resolution.
-                        report = {"cells": [dict(cell=asdict(cell), assessment={"verdict": "PASS", "threshold_pct": 99},
+                        report = {"cells": [dict(cell=cell_receipt(cell), assessment={"verdict": "PASS", "threshold_pct": 99},
                                                  rounds=[dict(instances=4, runs=runs)])]}
                         # Owner ruling: a null MEASURES resolution, it does not fail on it. Both signs
                         # are recorded with their spreads; a comparison inherits them as floors.
@@ -3945,7 +4028,7 @@ def self_test():
             cell = replace(self.cell, score="rate")
             good = self.round([100] * 4, n=1)
             bad = self.round([100, 101, 101, 100], n=2)
-            report = {"cells": [dict(cell=asdict(cell), rounds=[good, bad],
+            report = {"cells": [dict(cell=cell_receipt(cell), rounds=[good, bad],
                                      assessment={"instances": 1, "verdict": "PASS"})]}
             checks = null_resolution(report)
             probe = [row for row in checks if row["instances"] == 2 and row["metric"] == "rate"]
@@ -5046,7 +5129,10 @@ def self_test():
                  self.assertRaisesRegex(AssertionError, "did not stop"):
                 wait_stopped(123, 5)
 
-    return 0 if unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(ABBA)).wasSuccessful() else 1
+    from ttlcell_test import suite as ttlcell_suite
+    suite = unittest.TestSuite((unittest.defaultTestLoader.loadTestsFromTestCase(ABBA),
+                                ttlcell_suite(sys.modules[__name__])))
+    return 0 if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful() else 1
 
 
 if __name__ == "__main__":

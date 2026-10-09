@@ -1,0 +1,249 @@
+POST
+test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) ... ok
+test_cold_lfu_never_passes (cd13b_window_test.PlacementWindow.test_cold_lfu_never_passes) ... ok
+test_deadline_cannot_accept_an_otherwise_valid_store (cd13b_window_test.PlacementWindow.test_deadline_cannot_accept_an_otherwise_valid_store) ... ok
+test_migration_while_priming_rearms_on_fresh_keys (cd13b_window_test.PlacementWindow.test_migration_while_priming_rearms_on_fresh_keys) ... ok
+test_more_than_three_invalid_arms_can_establish_a_witness (cd13b_window_test.PlacementWindow.test_more_than_three_invalid_arms_can_establish_a_witness) ... ok
+test_perpetual_post_store_migration_never_passes (cd13b_window_test.PlacementWindow.test_perpetual_post_store_migration_never_passes) ... ok
+test_source_moves_during_store_require_fresh_stable_cross_owner_arm (cd13b_window_test.PlacementWindow.test_source_moves_during_store_require_fresh_stable_cross_owner_arm) ... ok
+test_window_that_never_opens_fails_at_deadline (cd13b_window_test.PlacementWindow.test_window_that_never_opens_fails_at_deadline) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.669s
+
+OK
+
+PRE route-stability assertion
+test_source_moves_during_store_require_fresh_stable_cross_owner_arm (cd13b_window_test.PlacementWindow.test_source_moves_during_store_require_fresh_stable_cross_owner_arm) ... 
+  test_source_moves_during_store_require_fresh_stable_cross_owner_arm (cd13b_window_test.PlacementWindow.test_source_moves_during_store_require_fresh_stable_cross_owner_arm) (options={}) ... FAIL
+  test_source_moves_during_store_require_fresh_stable_cross_owner_arm (cd13b_window_test.PlacementWindow.test_source_moves_during_store_require_fresh_stable_cross_owner_arm) (options={'same_owner_after': True}) ... FAIL
+  test_source_moves_during_store_require_fresh_stable_cross_owner_arm (cd13b_window_test.PlacementWindow.test_source_moves_during_store_require_fresh_stable_cross_owner_arm) (options={'migration_only': True}) ... FAIL
+
+======================================================================
+FAIL: test_source_moves_during_store_require_fresh_stable_cross_owner_arm (cd13b_window_test.PlacementWindow.test_source_moves_during_store_require_fresh_stable_cross_owner_arm) (options={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakeaudit3/tests/cd13b_window_test.py", line 139, in test_source_moves_during_store_require_fresh_stable_cross_owner_arm
+    self.assertEqual(failures, 0, log)
+AssertionError: 3 != 0 :   CD13b GEO FAIL target STORE: AssertionError(('owner/migration changed during STORE', ((0, 0, 0), (1, 1, 0)), ((0, 6, 2), (1, 1, 0))))
+  CD13b GEO FAIL target STOREDIST: AssertionError(('owner/migration changed during STORE', ((0, 0, 0), (1, 1, 0)), ((0, 6, 2), (1, 1, 0))))
+  CD13b GEO FAIL target GEOSEARCHSTORE: AssertionError(('owner/migration changed during STORE', ((0, 0, 0), (1, 1, 0)), ((0, 6, 2), (1, 1, 0))))
+
+
+======================================================================
+FAIL: test_source_moves_during_store_require_fresh_stable_cross_owner_arm (cd13b_window_test.PlacementWindow.test_source_moves_during_store_require_fresh_stable_cross_owner_arm) (options={'same_owner_after': True})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakeaudit3/tests/cd13b_window_test.py", line 139, in test_source_moves_during_store_require_fresh_stable_cross_owner_arm
+    self.assertEqual(failures, 0, log)
+AssertionError: 3 != 0 :   CD13b GEO FAIL target STORE: AssertionError(('owner/migration changed during STORE', ((0, 0, 0), (1, 1, 0)), ((0, 1, 2), (1, 1, 0))))
+  CD13b GEO FAIL target STOREDIST: AssertionError(('owner/migration changed during STORE', ((0, 0, 0), (1, 1, 0)), ((0, 1, 2), (1, 1, 0))))
+  CD13b GEO FAIL target GEOSEARCHSTORE: AssertionError(('owner/migration changed during STORE', ((0, 0, 0), (1, 1, 0)), ((0, 1, 2), (1, 1, 0))))
+
+
+======================================================================
+FAIL: test_source_moves_during_store_require_fresh_stable_cross_owner_arm (cd13b_window_test.PlacementWindow.test_source_moves_during_store_require_fresh_stable_cross_owner_arm) (options={'migration_only': True})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakeaudit3/tests/cd13b_window_test.py", line 139, in test_source_moves_during_store_require_fresh_stable_cross_owner_arm
+    self.assertEqual(failures, 0, log)
+AssertionError: 3 != 0 :   CD13b GEO FAIL target STORE: AssertionError(('owner/migration changed during STORE', ((0, 0, 0), (1, 1, 0)), ((0, 0, 2), (1, 1, 0))))
+  CD13b GEO FAIL target STOREDIST: AssertionError(('owner/migration changed during STORE', ((0, 0, 0), (1, 1, 0)), ((0, 0, 2), (1, 1, 0))))
+  CD13b GEO FAIL target GEOSEARCHSTORE: AssertionError(('owner/migration changed during STORE', ((0, 0, 0), (1, 1, 0)), ((0, 0, 2), (1, 1, 0))))
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.016s
+
+FAILED (failures=3)
+
+accept changed route
+test_perpetual_post_store_migration_never_passes (cd13b_window_test.PlacementWindow.test_perpetual_post_store_migration_never_passes) ... FAIL
+
+======================================================================
+FAIL: test_perpetual_post_store_migration_never_passes (cd13b_window_test.PlacementWindow.test_perpetual_post_store_migration_never_passes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakeaudit3/tests/cd13b_window_test.py", line 148, in test_perpetual_post_store_migration_never_passes
+    self.assertEqual(failures, 3, log)
+AssertionError: 0 != 3 :   CD13b GEO target STORE keys=('cd13b:target:STORE:0:source', 'cd13b:target:STORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:0:source', 'cd13b:target:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:0:source', 'cd13b:target:GEOSEARCHSTORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.006s
+
+FAILED (failures=1)
+
+remove completion deadline
+test_deadline_cannot_accept_an_otherwise_valid_store (cd13b_window_test.PlacementWindow.test_deadline_cannot_accept_an_otherwise_valid_store) ... FAIL
+
+======================================================================
+FAIL: test_deadline_cannot_accept_an_otherwise_valid_store (cd13b_window_test.PlacementWindow.test_deadline_cannot_accept_an_otherwise_valid_store)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakeaudit3/tests/cd13b_window_test.py", line 173, in test_deadline_cannot_accept_an_otherwise_valid_store
+    self.assertEqual(failures, 3, log)
+AssertionError: 0 != 3 :   CD13b GEO target STORE keys=('cd13b:target:STORE:0:source', 'cd13b:target:STORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:0:source', 'cd13b:target:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:0:source', 'cd13b:target:GEOSEARCHSTORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.006s
+
+FAILED (failures=1)
+
+remove store count
+test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) ... 
+  test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='count', moved=False) ... FAIL
+  test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='count', moved=True) ... FAIL
+
+======================================================================
+FAIL: test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='count', moved=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakeaudit3/tests/cd13b_window_test.py", line 164, in test_bad_store_is_never_retried_even_when_route_moved
+    self.assertEqual(failures, 3, log)
+AssertionError: 0 != 3 :   CD13b GEO target STORE keys=('cd13b:target:STORE:0:source', 'cd13b:target:STORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':1\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:0:source', 'cd13b:target:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':1\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:0:source', 'cd13b:target:GEOSEARCHSTORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':1\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+
+
+======================================================================
+FAIL: test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='count', moved=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakeaudit3/tests/cd13b_window_test.py", line 164, in test_bad_store_is_never_retried_even_when_route_moved
+    self.assertEqual(failures, 3, log)
+AssertionError: 0 != 3 :   CD13b GEO target STORE keys=('cd13b:target:STORE:0:source', 'cd13b:target:STORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=9 store=b':1\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO rearm target STORE attempt=1: route moved during STORE
+  CD13b GEO target STORE keys=('cd13b:target:STORE:1:source', 'cd13b:target:STORE:1:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:0:source', 'cd13b:target:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=9 store=b':1\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO rearm target STOREDIST attempt=1: route moved during STORE
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:1:source', 'cd13b:target:STOREDIST:1:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:0:source', 'cd13b:target:GEOSEARCHSTORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=9 store=b':1\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO rearm target GEOSEARCHSTORE attempt=1: route moved during STORE
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:1:source', 'cd13b:target:GEOSEARCHSTORE:1:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.065s
+
+FAILED (failures=2)
+
+remove destination LFU
+test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) ... 
+  test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='freq-reset', moved=False) ... FAIL
+  test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='freq-reset', moved=True) ... FAIL
+
+======================================================================
+FAIL: test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='freq-reset', moved=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakeaudit3/tests/cd13b_window_test.py", line 164, in test_bad_store_is_never_retried_even_when_route_moved
+    self.assertEqual(failures, 3, log)
+AssertionError: 0 != 3 :   CD13b GEO target STORE keys=('cd13b:target:STORE:0:source', 'cd13b:target:STORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=5 store=b':2\r\n' freq=b':5\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:0:source', 'cd13b:target:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=5 store=b':2\r\n' freq=b':5\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:0:source', 'cd13b:target:GEOSEARCHSTORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=5 store=b':2\r\n' freq=b':5\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+
+
+======================================================================
+FAIL: test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='freq-reset', moved=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakeaudit3/tests/cd13b_window_test.py", line 164, in test_bad_store_is_never_retried_even_when_route_moved
+    self.assertEqual(failures, 3, log)
+AssertionError: 0 != 3 :   CD13b GEO target STORE keys=('cd13b:target:STORE:0:source', 'cd13b:target:STORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=5 store=b':2\r\n' freq=b':5\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO rearm target STORE attempt=1: route moved during STORE
+  CD13b GEO target STORE keys=('cd13b:target:STORE:1:source', 'cd13b:target:STORE:1:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:0:source', 'cd13b:target:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=5 store=b':2\r\n' freq=b':5\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO rearm target STOREDIST attempt=1: route moved during STORE
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:1:source', 'cd13b:target:STOREDIST:1:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:0:source', 'cd13b:target:GEOSEARCHSTORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=5 store=b':2\r\n' freq=b':5\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO rearm target GEOSEARCHSTORE attempt=1: route moved during STORE
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:1:source', 'cd13b:target:GEOSEARCHSTORE:1:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.067s
+
+FAILED (failures=2)
+
+remove destination encoding
+test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) ... 
+  test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='encoding', moved=False) ... FAIL
+  test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='encoding', moved=True) ... FAIL
+
+======================================================================
+FAIL: test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='encoding', moved=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakeaudit3/tests/cd13b_window_test.py", line 164, in test_bad_store_is_never_retried_even_when_route_moved
+    self.assertEqual(failures, 3, log)
+AssertionError: 0 != 3 :   CD13b GEO target STORE keys=('cd13b:target:STORE:0:source', 'cd13b:target:STORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nskiplist\r\n' members=[b'a', b'b']
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:0:source', 'cd13b:target:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nskiplist\r\n' members=[b'a', b'b']
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:0:source', 'cd13b:target:GEOSEARCHSTORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nskiplist\r\n' members=[b'a', b'b']
+
+
+======================================================================
+FAIL: test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='encoding', moved=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakeaudit3/tests/cd13b_window_test.py", line 164, in test_bad_store_is_never_retried_even_when_route_moved
+    self.assertEqual(failures, 3, log)
+AssertionError: 0 != 3 :   CD13b GEO target STORE keys=('cd13b:target:STORE:0:source', 'cd13b:target:STORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nskiplist\r\n' members=[b'a', b'b']
+  CD13b GEO rearm target STORE attempt=1: route moved during STORE
+  CD13b GEO target STORE keys=('cd13b:target:STORE:1:source', 'cd13b:target:STORE:1:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:0:source', 'cd13b:target:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nskiplist\r\n' members=[b'a', b'b']
+  CD13b GEO rearm target STOREDIST attempt=1: route moved during STORE
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:1:source', 'cd13b:target:STOREDIST:1:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:0:source', 'cd13b:target:GEOSEARCHSTORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nskiplist\r\n' members=[b'a', b'b']
+  CD13b GEO rearm target GEOSEARCHSTORE attempt=1: route moved during STORE
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:1:source', 'cd13b:target:GEOSEARCHSTORE:1:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.095s
+
+FAILED (failures=2)
+
+remove destination members
+test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) ... 
+  test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='members', moved=False) ... FAIL
+  test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='members', moved=True) ... FAIL
+
+======================================================================
+FAIL: test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='members', moved=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakeaudit3/tests/cd13b_window_test.py", line 164, in test_bad_store_is_never_retried_even_when_route_moved
+    self.assertEqual(failures, 3, log)
+AssertionError: 0 != 3 :   CD13b GEO target STORE keys=('cd13b:target:STORE:0:source', 'cd13b:target:STORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'wrong']
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:0:source', 'cd13b:target:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'wrong']
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:0:source', 'cd13b:target:GEOSEARCHSTORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'wrong']
+
+
+======================================================================
+FAIL: test_bad_store_is_never_retried_even_when_route_moved (cd13b_window_test.PlacementWindow.test_bad_store_is_never_retried_even_when_route_moved) (corrupt='members', moved=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flakeaudit3/tests/cd13b_window_test.py", line 164, in test_bad_store_is_never_retried_even_when_route_moved
+    self.assertEqual(failures, 3, log)
+AssertionError: 0 != 3 :   CD13b GEO target STORE keys=('cd13b:target:STORE:0:source', 'cd13b:target:STORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'wrong']
+  CD13b GEO rearm target STORE attempt=1: route moved during STORE
+  CD13b GEO target STORE keys=('cd13b:target:STORE:1:source', 'cd13b:target:STORE:1:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:0:source', 'cd13b:target:STOREDIST:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'wrong']
+  CD13b GEO rearm target STOREDIST attempt=1: route moved during STORE
+  CD13b GEO target STOREDIST keys=('cd13b:target:STOREDIST:1:source', 'cd13b:target:STOREDIST:1:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:0:source', 'cd13b:target:GEOSEARCHSTORE:0:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 6, 2), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'wrong']
+  CD13b GEO rearm target GEOSEARCHSTORE attempt=1: route moved during STORE
+  CD13b GEO target GEOSEARCHSTORE keys=('cd13b:target:GEOSEARCHSTORE:1:source', 'cd13b:target:GEOSEARCHSTORE:1:source:destination:0') route(sid,owner,migrations)=((0, 0, 0), (1, 1, 0)) after_route=((0, 0, 0), (1, 1, 0)) initial=5 before=9 after=9 store=b':2\r\n' freq=b':9\r\n' encoding=b'$8\r\nlistpack\r\n' members=[b'a', b'b']
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.093s
+
+FAILED (failures=2)
+

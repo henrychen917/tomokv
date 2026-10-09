@@ -1,0 +1,21 @@
+{
+  "origin": "dab7409642bf0a6d125fb5f479e6d190c7636083",
+  "command": [
+    "git",
+    "diff",
+    "dab7409642bf0a6d125fb5f479e6d190c7636083",
+    "--",
+    "src",
+    "tools",
+    "Makefile",
+    "tomokv.conf"
+  ],
+  "bytes": 0,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "scope": "All production paths; all other changes restricted to the two named tests and flakeaudit3 audit/report files",
+  "test_files": [
+    "tests/cd13b_wire.py",
+    "tests/cd13b_window_test.py"
+  ],
+  "gate_unchanged": true
+}

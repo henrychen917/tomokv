@@ -1,0 +1,14 @@
+{
+  "base": "dab740964",
+  "baseline_test_files_checked": 426,
+  "baseline_files_byte_identical": true,
+  "command": "python3 tests/abba_experiments.py --self-test",
+  "baseline_exit": 1,
+  "post_exit": 1,
+  "failures_in_both": [
+    "test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block index=1",
+    "test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block index=5",
+    "test_failed_first_null_is_retained_and_all_later_blocks_still_run"
+  ],
+  "cause": "Null sampling runs 12 additional measurements; legacy experiment tests expect exactly 24."
+}

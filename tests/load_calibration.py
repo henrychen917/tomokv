@@ -10,7 +10,6 @@ explicit fixed-load observation, never a saturated-peak floor.
 The normal 20-second paired ABBA path retains its own repeatability-based rule.
 """
 from contextlib import contextmanager
-from dataclasses import asdict
 import json
 import math
 import os
@@ -190,7 +189,7 @@ def main(args):
             (("thread-mode", "1s"), ("read-local", 0), ("overlap", 0), ("reorder", 0))}
         report["accepted_knobs"] = {"B": support}
         for cell in cells:
-            row = dict(cell=asdict(cell), status="FAIL", rounds=[])
+            row = dict(cell=abba.cell_receipt(cell), status="FAIL", rounds=[])
             report["cells"].append(row)
             try:
                 plans, _ = abba.knob_plan(cell, {"A": support, "B": support})
@@ -342,7 +341,7 @@ def self_test():
                 self.assertEqual(assessment["load_selection"]["status"], "CEILING")
                 output = io.StringIO()
                 with contextlib.redirect_stdout(output):
-                    abba.print_cell(dict(cell=asdict(cell), assessment=assessment))
+                    abba.print_cell(dict(cell=abba.cell_receipt(cell), assessment=assessment))
                 self.assertIn(status, output.getvalue())
                 self.assertIn("saturation UNPROVEN; no saturated-peak floor", output.getvalue())
 
