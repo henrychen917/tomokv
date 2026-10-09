@@ -48,7 +48,9 @@
     "combined_inventory_full": 529,
     "aclkeys5_delta_quick": 0,
     "aclkeys5_delta_full": 0,
-    "expected_count_edits": "None; maintainer owns reconciliation."
+    "expected_count_edits": "None; maintainer owns reconciliation.",
+    "collection_line": 3289,
+    "existing_wake_collection_line": 3397
   },
   "validation": {
     "single": {
