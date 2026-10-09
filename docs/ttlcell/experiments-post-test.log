@@ -1,7 +1,7 @@
 test_bridge_failure_cannot_be_erased_by_matched_seed_results (__main__.self_test.<locals>.Experiments.test_bridge_failure_cannot_be_erased_by_matched_seed_results) ... ok
 test_complete_driver_calls_real_abba_loop_twenty_four_times (__main__.self_test.<locals>.Experiments.test_complete_driver_calls_real_abba_loop_twenty_four_times) ... ok
 test_contended_box_refuses_before_snapshot_priming (__main__.self_test.<locals>.Experiments.test_contended_box_refuses_before_snapshot_priming) ... ok
-test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block (__main__.self_test.<locals>.Experiments.test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block) ... 
+test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block (__main__.self_test.<locals>.Experiments.test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block) ...
   test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block (__main__.self_test.<locals>.Experiments.test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block) (index=1) ... FAIL
   test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block (__main__.self_test.<locals>.Experiments.test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block) (index=5) ... FAIL
 test_default_geometry_reserves_server_siblings (__main__.self_test.<locals>.Experiments.test_default_geometry_reserves_server_siblings) ... ok
