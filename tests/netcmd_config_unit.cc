@@ -22,6 +22,12 @@ void observe_open(int fd) {
 void knob_matrix() {
     tomo::Server* server = tomo::command_server();
     tomo::Shard& shard = server->shard(0);
+    for (const char* name : {"overlap", "x-overlap", "thread-pipeline"}) {
+        check(execute(shard, {"CONFIG", "GET", name}) == "*0\r\n", "removed knob GET is empty");
+        const std::string expected = std::string("-ERR Unknown option or number of arguments for CONFIG SET - '") + name + "'\r\n";
+        check(execute(shard, {"CONFIG", "SET", name, "0"}) == expected, "removed knob SET is unknown");
+    }
+
     auto get = [&](const char* name, const char* value) {
         const std::string expected = "*2\r\n$" + std::to_string(std::strlen(name)) + "\r\n" +
             name + "\r\n$" + std::to_string(std::strlen(value)) + "\r\n" + value + "\r\n";
@@ -202,6 +208,7 @@ void test_config_rewrite() {
     std::ifstream in(path); std::string body((std::istreambuf_iterator<char>(in)), {});
     check(body.find("user reader on nopass ~* +get\n") != std::string::npos, "inline ACL survived rewrite");
     check(body.find("load \"/tmp/recovery source.tomo\"\n") != std::string::npos, "recovery source survived rewrite");
+    check(body.find("overlap ") == std::string::npos, "rewrite does not emit retired overlap knobs");
     check(body.find("max-ziplist-") == std::string::npos, "stale encoding aliases were replaced");
     check(body.find("max-compact-") == std::string::npos, "stale TomoKV aliases were replaced");
     for (const char* name : {"hash-max-listpack-entries", "hash-max-listpack-value", "list-max-listpack-size",

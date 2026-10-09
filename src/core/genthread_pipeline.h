@@ -5,7 +5,7 @@
 
 namespace tomo {
 
-// Both fused overlap settings and split executors use the same live task quanta.
+// Fused and split executors use the same live task quanta.
 inline constexpr uint32_t kGenthreadIfidBatchOps = 32;
 inline constexpr uint32_t kGenthreadExBatchOps = 32;
 

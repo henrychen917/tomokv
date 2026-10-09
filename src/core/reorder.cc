@@ -64,7 +64,7 @@ uint32_t ExLoopT<Fused>::r7_drain_tasks_impl(bool unmasked) {
             for (uint32_t i = 0; i < count; i++) ordered_deferred_.push_back(selected[i]);
             return;
         }
-        if (overlap_prefetch_enabled(count)) prefetch_overlap_batch(selected, count);
+        if (owner_prefetch_enabled(count)) prefetch_owner_batch(selected, count);
         else prefetch_exec_batch(selected, count);
         exec_batch_prefetched<IofusedPrivateQueue>(selected, count);
     };
@@ -724,13 +724,9 @@ uint32_t ExLoopT<Fused>::r7_sweep() {
     return n;
 }
 
-template <bool HasUnix, bool HasTls, bool kEp, bool Fused,
-          uint8_t Pipeline, bool SplitLocal>
+template <bool HasUnix, bool HasTls, bool kEp, bool Fused, bool SplitLocal>
 void IoLoop::r7_run_loop() {
     TOMO_R7_PATH();
-    static_assert(Pipeline <= 1);
-    // O1's 1s on/off arms instantiate the same baseline loop and producer transport.
-    static_assert(!Fused || SplitLocal || Pipeline == 0);
     static_assert(!SplitLocal || Fused);
     LoopSignals& sig = self_->sig();
     IoTenure tenure(sig);
@@ -743,7 +739,6 @@ void IoLoop::r7_run_loop() {
                     client, probed, fallbacks, count, demoted);
             });
 
-    constexpr bool IoPipe = (!Fused || SplitLocal) && Pipeline == 1;
     if constexpr (Fused) {
         if (srv_->read_local_enabled()) {
             // A split EX tenure is permanently parked: it never probes the local lane.
@@ -759,10 +754,6 @@ void IoLoop::r7_run_loop() {
         if constexpr (HasTls) arm_accept(UrKind::TlsAccept);
         if constexpr (HasUnix) if (unix_listen_fd_ >= 0) arm_accept(UrKind::UnixAccept);
     }
-    // The disarmed specialization is empty. No depth history or cursor is allocated or
-    // initialized by overlap 0, including when an EX thread activates an IO role after FLIP.
-    [[maybe_unused]] IoPipeLoopState<IoPipe> pipe;
-    if constexpr (IoPipe) pipe.depth.reset(sig.ops);
     while (!self_->stop_flag().load(std::memory_order_relaxed) &&
            self_->role() == Role::Ifid) {
         const uint64_t pass_ns = tenure.pass();
@@ -800,10 +791,6 @@ void IoLoop::r7_run_loop() {
         scatter_pool_.reap_deferred();
 
         uint32_t did = 0;
-        bool submitted = false;
-        bool natural_order = false;
-        if constexpr (IoPipe)
-            natural_order = pipe.depth.loop_boundary(sig.ops);
         {
             // The pass-boundary clock is already sampled. Reuse that same cut for
             // every monotonic millisecond consumer instead of issuing separate clock_gettime
@@ -839,15 +826,15 @@ void IoLoop::r7_run_loop() {
                 if constexpr (HasUnix)
                     if (unix_accept_pending_) arm_accept(UrKind::UnixAccept);
             }
-            if constexpr (!IoPipe) {
+            {
                 // In epoll mode this drains the doorbell mailbox instead of a CQ ring; the tag
                 // stream, and therefore this switch, is identical. See uring.h.
                 did += ring_.for_each_cqe(
                     [&](io_uring_cqe* cqe) {
-                        r7_on_cqe<HasTls, kEp, Fused, Pipeline>(cqe);
+                        r7_on_cqe<HasTls, kEp, Fused>(cqe);
                     });
                 if constexpr (kEp)
-                    did += r7_epoll_pass<HasUnix, HasTls, Fused, Pipeline>(0);
+                    did += r7_epoll_pass<HasUnix, HasTls, Fused>(0);
             }
             did += service_client_migrations<kEp>();
             did += drain_client_transfers<kEp>();
@@ -868,12 +855,7 @@ void IoLoop::r7_run_loop() {
                 did += deferred_timer_pass(cached_now_ms_);
             }
             did += flush_borrow_releases();
-            if constexpr (IoPipe) {
-                if (__builtin_expect(!routing_forward_.empty(), false))
-                    client_routing_cleanup_pass();
-                did += pipeline_pass<HasUnix, HasTls, kEp, SplitLocal>(
-                    false, natural_order, submitted, pipe.cursor);
-            } else if constexpr (Fused) {
+            if constexpr (Fused) {
                 if (__builtin_expect(!routing_forward_.empty(), false))
                     client_routing_cleanup_pass();
                 did += r7_flush_ready<HasTls, kEp, true, HasUnix, false, SplitLocal>();
@@ -907,14 +889,7 @@ void IoLoop::r7_run_loop() {
         // the busy path without submitting strands them in the SQ forever, and the peer
         // that is waiting on that wake never runs.
         if (did) {
-            if constexpr (IoPipe) {
-                if (!submitted || ring_.sq_ready()) {
-                    ring_.submit_and_reap();
-#ifdef TOMO_SIGNALACCT_WITNESS
-                    tenure.did_submit();
-#endif
-                }
-            } else {
+            {
                 ring_.submit_and_reap();
 #ifdef TOMO_SIGNALACCT_WITNESS
                 tenure.did_submit();
@@ -929,20 +904,9 @@ void IoLoop::r7_run_loop() {
         // not be the only thing that can find queued work, or one lost bit wedges a connection
         // forever. Runs only when this thread has already concluded it has nothing to do.
         uint32_t sweep_work = 0;
-        if constexpr (IoPipe)
-            sweep_work = pipeline_sweep<HasUnix, HasTls, kEp, SplitLocal>(
-                natural_order, submitted, pipe.cursor);
-        else
-            sweep_work = r7_sweep<HasUnix, HasTls, kEp, Fused, SplitLocal>();
+        sweep_work = r7_sweep<HasUnix, HasTls, kEp, Fused, SplitLocal>();
         if (sweep_work) {
-            if constexpr (IoPipe) {
-                if (!submitted || ring_.sq_ready()) {
-                    ring_.submit_and_reap();
-#ifdef TOMO_SIGNALACCT_WITNESS
-                    tenure.sweep_submit();
-#endif
-                }
-            } else {
+            {
                 ring_.submit_and_reap();
 #ifdef TOMO_SIGNALACCT_WITNESS
                 tenure.sweep_submit();
@@ -968,13 +932,13 @@ void IoLoop::r7_run_loop() {
 #ifdef TOMO_SIGNALACCT_WITNESS
                     tenure.park();
 #endif
-                    r7_epoll_pass<HasUnix, HasTls, Fused, Pipeline>(Ring::kWaitTimeoutMs);
+                    r7_epoll_pass<HasUnix, HasTls, Fused>(Ring::kWaitTimeoutMs);
                 }
             } else if (!self_->any_io_inbound()) {
 #ifdef TOMO_SIGNALACCT_WITNESS
                 tenure.park();
 #endif
-                r7_epoll_pass<HasUnix, HasTls, false, Pipeline>(Ring::kWaitTimeoutMs);
+                r7_epoll_pass<HasUnix, HasTls, false>(Ring::kWaitTimeoutMs);
             }
         } else {
             if constexpr (Fused) {
@@ -1184,26 +1148,26 @@ uint32_t IoLoop::r7_flush_ready() {
                 if constexpr (HasTls) {
                     if (c->is_tls())
                         dispatch_result = r7_parse_and_dispatch<
-                            true, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
+                            true, Fused ? kGenthreadIfidBatchOps : 0, SplitLocal>(c);
                     else
                         dispatch_result = r7_parse_and_dispatch<
-                            false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
+                            false, Fused ? kGenthreadIfidBatchOps : 0, SplitLocal>(c);
                 } else {
                     dispatch_result = r7_parse_and_dispatch<
-                        false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
+                        false, Fused ? kGenthreadIfidBatchOps : 0, SplitLocal>(c);
                 }
                 if (conn.rpos() != rpos_before) work++;
             } else {
                 if constexpr (HasTls) {
                     if (c->is_tls())
                         dispatch_result = r7_parse_and_dispatch<
-                            true, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
+                            true, Fused ? kGenthreadIfidBatchOps : 0, SplitLocal>(c);
                     else
                         dispatch_result = r7_parse_and_dispatch<
-                            false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
+                            false, Fused ? kGenthreadIfidBatchOps : 0, SplitLocal>(c);
                 } else {
                     dispatch_result = r7_parse_and_dispatch<
-                        false, Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal>(c);
+                        false, Fused ? kGenthreadIfidBatchOps : 0, SplitLocal>(c);
                 }
                 if (__builtin_expect(
                         dispatch_result != DispatchResult::NeedInput, true))
@@ -1293,7 +1257,7 @@ uint32_t IoLoop::r7_flush_ready() {
     return work + wb_rule::Phase2::serve<HasTls, kEp, IoLoop, Fused>(*this);
 }
 
-template <bool kEp, bool Fused, uint8_t Pipeline>
+template <bool kEp, bool Fused>
 void IoLoop::r7_admit_fd(int fd, UrKind kind) {
     TOMO_R7_PATH();
     if (accepts_paused()) { ::close(fd); return; }
@@ -1352,16 +1316,16 @@ void IoLoop::r7_admit_fd(int fd, UrKind kind) {
         const auto& ios = srv_->placement().ifid_threads();
         const uint32_t target = ios[unix_rr_++ % ios.size()];
         c->set_ifid_thread(target);
-        if (target == self_->id()) r7_adopt_client<kEp, Fused, Pipeline>(c, true);
+        if (target == self_->id()) r7_adopt_client<kEp, Fused>(c, true);
         else if (!srv_->thread(target).post_client(self_->id(), c, ring_, self_->sig()))
             pending_handoffs_.push_back(c);
     } else {
         c->set_ifid_thread(self_->id());
-        r7_adopt_client<kEp, Fused, Pipeline>(c, false, tls_socket);
+        r7_adopt_client<kEp, Fused>(c, false, tls_socket);
     }
 }
 
-template <bool kEp, bool Fused, uint8_t Pipeline>
+template <bool kEp, bool Fused>
 void IoLoop::r7_adopt_client(Client* c, bool unix_socket, bool tls_socket) {
     TOMO_R7_PATH();
     // ARMED ONCE FOR THIS OWNERSHIP TENURE. Both directions are edge triggered. Normal teardown
@@ -1413,12 +1377,12 @@ void IoLoop::r7_adopt_client(Client* c, bool unix_socket, bool tls_socket) {
     if (tls_socket) {
         TlsConn* tls = tls_slot_conn(c);
         if (tls && tls->fd_handshake()) {
-            (void)r7_drive_tls<kEp, Fused, Pipeline>(c);
+            (void)r7_drive_tls<kEp, Fused>(c);
             if (!c->closing() && tls->ktls()) arm_recv<kEp>(c);
             else if (!c->closing() && tls->memory_userspace())
-                r7_arm_tls_recv<kEp, Fused, Pipeline>(c);
+                r7_arm_tls_recv<kEp, Fused>(c);
         } else {
-            r7_arm_tls_recv<kEp, Fused, Pipeline>(c);
+            r7_arm_tls_recv<kEp, Fused>(c);
         }
     } else arm_recv<kEp>(c);
     // Reachability, not optimism: if that arm starved for an SQE, nothing else names this
@@ -1427,7 +1391,7 @@ void IoLoop::r7_adopt_client(Client* c, bool unix_socket, bool tls_socket) {
     mark_active(c);
 }
 
-template <bool kEp, bool Fused, uint8_t Pipeline>
+template <bool kEp, bool Fused>
 void IoLoop::r7_arm_tls_recv(Client* c) {
     TOMO_R7_PATH();
     if (c->recv_armed() || c->closing()) return;
@@ -1436,7 +1400,7 @@ void IoLoop::r7_arm_tls_recv(Client* c) {
     // Any engine output is submitted before another socket read. This is the memory-BIO
     // flush-before-read rule that prevents WANT_READ from hiding a required write.
     if (tls->output_pending()) {
-        (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(*c, *tls);
+        (void)wb_.pump_tls<kEp, false>(*c, *tls);
         if (tls->output_pending()) return;
     }
     // Ciphertext or decrypted plaintext already inside the engine must be drained before a
@@ -1451,7 +1415,7 @@ void IoLoop::r7_arm_tls_recv(Client* c) {
         const ssize_t n = ::recv(c->fd(), dst, static_cast<size_t>(avail), MSG_DONTWAIT);
         if (n > 0) {
             self_->sig().epoll_recvs++;
-            r7_on_tls_recv<kEp, Fused, Pipeline>(c, static_cast<int>(n));
+            r7_on_tls_recv<kEp, Fused>(c, static_cast<int>(n));
             return;
         }
         tls->abandon_input();
@@ -1475,7 +1439,7 @@ void IoLoop::r7_arm_tls_recv(Client* c) {
     }
 }
 
-template <bool kEp, bool Fused, uint8_t Pipeline>
+template <bool kEp, bool Fused>
 bool IoLoop::r7_drive_tls(Client* c) {
     TOMO_R7_PATH();
     TlsConn* tls = tls_slot_conn(c);
@@ -1507,7 +1471,7 @@ bool IoLoop::r7_drive_tls(Client* c) {
     }
 
     if (tls->socket_userspace() && tls->has_pinned_plain()) {
-        (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(*c, *tls);
+        (void)wb_.pump_tls<kEp, false>(*c, *tls);
         if (tls->has_pinned_plain()) {
             arm_tls_socket_poll<kEp>(c, tls->wanted());
             return true;
@@ -1515,7 +1479,7 @@ bool IoLoop::r7_drive_tls(Client* c) {
     }
 
     if (tls->output_pending() || c->send_inflight()) {
-        (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(*c, *tls);
+        (void)wb_.pump_tls<kEp, false>(*c, *tls);
         return !tls->failed();
     }
 
@@ -1527,7 +1491,7 @@ bool IoLoop::r7_drive_tls(Client* c) {
             self_->sig().tls_handshakes_completed++;
             self_->sig().tls_ktls_fallback++;
         }
-        (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(
+        (void)wb_.pump_tls<kEp, false>(
             *c, *tls);  // alerts and handshake flights are flushed first
         if (result == TlsOp::Error || result == TlsOp::GracefulEof) {
             self_->sig().tls_handshakes_failed++;
@@ -1557,7 +1521,7 @@ bool IoLoop::r7_drive_tls(Client* c) {
             self_->sig().tls_plaintext_input_bytes += result.bytes;
             decrypted = true;
             if (tls->output_pending()) {
-                (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(*c, *tls);
+                (void)wb_.pump_tls<kEp, false>(*c, *tls);
                 break;
             }
             continue;
@@ -1569,10 +1533,10 @@ bool IoLoop::r7_drive_tls(Client* c) {
         else if (result.op == TlsOp::WantWrite) {
             self_->sig().tls_want_write++;
             if (tls->socket_userspace()) arm_tls_socket_poll<kEp>(c, result.op);
-            else (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(*c, *tls);
+            else (void)wb_.pump_tls<kEp, false>(*c, *tls);
         } else if (result.op == TlsOp::GracefulEof) {
             (void)tls->shutdown();
-            (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(*c, *tls);
+            (void)wb_.pump_tls<kEp, false>(*c, *tls);
             close_client(c, tls->output_pending() || c->send_inflight());
             return false;
         } else {
@@ -1580,20 +1544,20 @@ bool IoLoop::r7_drive_tls(Client* c) {
                 std::fprintf(stderr, "TLS client %llu: %s\n",
                              static_cast<unsigned long long>(c->id()),
                              tls->last_error().c_str());
-            (void)wb_.pump_tls<kEp, Fused && Pipeline == 1>(*c, *tls);
+            (void)wb_.pump_tls<kEp, false>(*c, *tls);
             close_client(c, tls->output_pending() || c->send_inflight());
             return false;
         }
         break;
     }
-    if constexpr (Pipeline == 0) {
+    {
         if (decrypted || c->rpos() < c->rlen())
             r7_parse_and_dispatch<true, Fused ? kGenthreadIfidBatchOps : 0>(c);
     }
     return !tls->failed();
 }
 
-template <bool kEp, bool Fused, uint8_t Pipeline>
+template <bool kEp, bool Fused>
 uint32_t IoLoop::r7_epoll_accept(UrKind kind) {
     TOMO_R7_PATH();
     if (accepts_paused()) return 0;
@@ -1609,11 +1573,11 @@ uint32_t IoLoop::r7_epoll_accept(UrKind kind) {
             return taken;
         }
         taken++;
-        r7_admit_fd<kEp, Fused, Pipeline>(fd, kind);
+        r7_admit_fd<kEp, Fused>(fd, kind);
     }
 }
 
-template <bool HasUnix, bool HasTls, bool Fused, uint8_t Pipeline>
+template <bool HasUnix, bool HasTls, bool Fused>
 uint32_t IoLoop::r7_epoll_pass(int timeout_ms) {
     TOMO_R7_PATH();
     const int n = ep_.wait(timeout_ms);
@@ -1624,14 +1588,14 @@ uint32_t IoLoop::r7_epoll_pass(int timeout_ms) {
         const epoll_event& ev = ep_.event(i);
         switch (ur_kind(ev.data.u64)) {
             case UrKind::Accept:
-                work += r7_epoll_accept<true, Fused, Pipeline>(UrKind::Accept); break;
+                work += r7_epoll_accept<true, Fused>(UrKind::Accept); break;
             case UrKind::TlsAccept:
                 if constexpr (HasTls)
-                    work += r7_epoll_accept<true, Fused, Pipeline>(UrKind::TlsAccept);
+                    work += r7_epoll_accept<true, Fused>(UrKind::TlsAccept);
                 break;
             case UrKind::UnixAccept:
                 if constexpr (HasUnix)
-                    work += r7_epoll_accept<true, Fused, Pipeline>(UrKind::UnixAccept);
+                    work += r7_epoll_accept<true, Fused>(UrKind::UnixAccept);
                 break;
             case UrKind::Wake:
                 // The doorbell. Draining it here rather than at the park keeps the level-
@@ -1696,171 +1660,7 @@ uint32_t IoLoop::r7_epoll_pass(int timeout_ms) {
     return work;
 }
 
-template <bool HasTls, bool kEp, bool SplitLocal>
-uint32_t IoLoop::r7_ifid_parse_hash(IfidBatch& batch) {
-    TOMO_R7_PATH();
-    uint32_t work = 0;
-    backstop_pass_ = (++flush_tick_ >= kIoPipeWbBackstopTurns);
-    if (backstop_pass_) flush_tick_ = 0;
-
-    // The read side is one bounded batch before this rotation's retirement/send. Arming first
-    // keeps the arrival stream flowing independently of the reply backlog.
-    for (uint32_t batch_index = 0; batch_index < batch.count; batch_index++) {
-        Client* c = batch.clients[batch_index];
-        if (c->dead() || !c->in_active()) continue;
-        Client& conn = *c;
-        DispatchResult dispatch_result = DispatchResult::Progress;
-        TlsConn* tls = nullptr;
-        if constexpr (HasTls) tls = tls_engine(c);
-        if (backstop_pass_ && !c->serve_pending()) enqueue_serve(c);
-
-        if constexpr (HasTls) {
-            if (tls) {
-                // Only the recv completion may drive inbound TLS while its BIO input frontier
-                // is pinned. Pipeline callbacks decrypt but defer parsing to this stage.
-                if (!c->closing() && !c->recv_armed())
-                    (void)r7_drive_tls<kEp, false, 1>(c);
-                else if (tls->userspace()) {
-                    (void)wb_.pump_tls<kEp>(*c, *tls);
-                    if (tls->socket_userspace() && tls->has_pinned_plain())
-                        arm_tls_socket_poll<kEp>(c, tls->wanted());
-                }
-                tls = tls_engine(c);
-                if constexpr (kEp)
-                    if (wb_.take_send_failure()) epoll_request_close(c);
-            }
-        }
-
-        if (c->scatter_barrier()) {
-            if (c->blocked() &&
-                blocking_resume_move(*srv_, *self_, ring_, *c, scatter_pool_)) {
-                enqueue_serve(c);
-                work++;
-            }
-            if (__builtin_expect(c->barrier_held_by(BarrierOwner::Debug), false) &&
-                !srv_->debug_barrier_hold_armed())
-                c->barrier_release(BarrierOwner::Debug);
-            if (c->rob().quiesced()) c->barrier_release_quiesced();
-        }
-        if (c->atomic_backpressure() && srv_->atomic_can_admit(self_->id()) &&
-            scatter_pool_.can_register_snapshot())
-            c->set_atomic_backpressure(false);
-        if (c->flip_backpressure() && (!flip_dispatch_paused() ||
-            (!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))))
-            c->set_flip_backpressure(false);
-        if (c->rob().quiesced() && (kEp || !conn.recv_armed()))
-            conn.reset_rbuf_at_quiescence();
-
-        if constexpr (kEp) {
-            if (c->closing()) c->set_recv_armed(false);
-            if (!c->closing()) {
-                if constexpr (HasTls) {
-                    if (tls) r7_arm_tls_recv<kEp, false, 1>(c);
-                    else arm_recv<kEp>(c);
-                } else {
-                    arm_recv<kEp>(c);
-                }
-                if constexpr (HasTls) if (tls) {
-                    (void)r7_drive_tls<kEp, false, 1>(c);
-                    tls = tls_engine(c);
-                }
-                if (wb_.take_send_failure()) epoll_request_close(c);
-            }
-        }
-
-        if (!c->closing() && conn.rpos() < conn.rlen() && !c->scatter_barrier() &&
-            !c->parse_backpressure()) {
-            // The pause accounting and transport choice are the ordinary diet-era parse path;
-            // only deferred IFID.POST is schedule-specific. The ROB itself bounds parsing.
-            if (__builtin_expect(climon_pause_armed(), false)) {
-                const uint32_t rpos_before = conn.rpos();
-                if constexpr (HasTls) {
-                    if (c->is_tls())
-                        dispatch_result = r7_parse_and_dispatch<true, 0, true, SplitLocal>(c);
-                    else
-                        dispatch_result = r7_parse_and_dispatch<false, 0, true, SplitLocal>(c);
-                } else {
-                    dispatch_result = r7_parse_and_dispatch<false, 0, true, SplitLocal>(c);
-                }
-                if (conn.rpos() != rpos_before) work++;
-            } else {
-                if constexpr (HasTls) {
-                    if (c->is_tls())
-                        dispatch_result = r7_parse_and_dispatch<true, 0, true, SplitLocal>(c);
-                    else
-                        dispatch_result = r7_parse_and_dispatch<false, 0, true, SplitLocal>(c);
-                } else {
-                    dispatch_result = r7_parse_and_dispatch<false, 0, true, SplitLocal>(c);
-                }
-                if (__builtin_expect(dispatch_result != DispatchResult::NeedInput, true))
-                    work++;
-            }
-        }
-
-        if constexpr (!kEp) {
-            if constexpr (HasTls) {
-                if (tls && tls->memory_bio()) r7_arm_tls_recv<kEp, false, 1>(c);
-                else if (!tls) arm_recv<kEp>(c);
-            } else {
-                arm_recv<kEp>(c);
-            }
-        }
-
-        const bool stuck = (conn.rpos() < conn.rlen() && c->rob().full()) ||
-                           (!conn.recv_armed() && !c->closing());
-        const bool more_input = conn.rpos() < conn.rlen() &&
-                                dispatch_result != DispatchResult::NeedInput;
-        const bool tls_output = tls && (tls->output_pending() || c->send_inflight());
-        const bool done = c->rob().quiesced() && !more_input && !stuck &&
-                          !c->serve_pending() && c->nothing_to_write() && !tls_output;
-        // Batch entries remain readable through the existing corpse grace; membership is the
-        // authoritative check before mutating the active set.
-        if (c->dead() || !c->in_active()) continue;
-        if (done && !c->closing()) {
-            c->set_in_active(false);
-            active_.erase(c);
-        } else if (c->closing() && !tls_output && c->safe_to_release()) {
-            if (pubsub_disconnect_ready(c)) {
-                c->set_in_active(false);
-                active_.erase(c);
-                close_client(c);
-            }
-        }
-    }
-
-    if constexpr (kEp) {
-        while (!epoll_closes_.empty()) {
-            Client* victim = epoll_closes_.back();
-            epoll_closes_.pop_back();
-            epoll_close_now(victim);
-        }
-    }
-    // The IO role drains only its local-read lane. All writes and demotions still use
-    // the ordinary split owner inbox; publish QSBR only after every capture is consumed.
-    if constexpr (SplitLocal) work += fused_executor_->split_read_local_pass();
-    return work;
-}
-
-template <bool HasUnix, bool HasTls, bool kEp>
-uint32_t IoLoop::r7_ifid_rx(IfidBatch& batch, size_t& cursor) {
-    TOMO_R7_PATH();
-    uint32_t work = ring_.for_each_cqe(
-        [&](io_uring_cqe* cqe) { r7_on_cqe<HasTls, kEp, false, 1>(cqe); });
-    if constexpr (kEp) work += r7_epoll_pass<HasUnix, HasTls, false, 1>(0);
-    if (batch.count) std::abort();
-    const size_t available = active_.size();
-    if (!available) { cursor = 0; return work; }
-    if (cursor >= available) cursor = 0;
-    const size_t visits = std::min<size_t>(available, kIoPipeIfidBatchClients);
-    for (size_t i = 0; i < visits; i++) {
-        Client* client = active_.at(cursor);
-        if (++cursor == available) cursor = 0;
-        if (!client->dead()) batch.clients[batch.count++] = client;
-    }
-    return work;
-}
-
-template <bool kEp, bool Fused, uint8_t Pipeline>
+template <bool kEp, bool Fused>
 void IoLoop::r7_on_accept(io_uring_cqe* cqe, UrKind kind) {
     TOMO_R7_PATH();
     const uint64_t generation = reinterpret_cast<uintptr_t>(ur_ptr<void>(cqe->user_data));
@@ -1881,28 +1681,28 @@ void IoLoop::r7_on_accept(io_uring_cqe* cqe, UrKind kind) {
         rearm_accept(cqe, kind);
         return;
     }
-    r7_admit_fd<kEp, Fused, Pipeline>(cqe->res, kind);
+    r7_admit_fd<kEp, Fused>(cqe->res, kind);
     rearm_accept(cqe, kind);
 }
 
-template <bool HasTls, bool kEp, bool Fused, uint8_t Pipeline>
+template <bool HasTls, bool kEp, bool Fused>
 void IoLoop::r7_on_cqe(io_uring_cqe* cqe) {
     TOMO_R7_PATH();
-    constexpr bool ImmediateSendProgress = !(Fused && Pipeline != 0);
+    constexpr bool ImmediateSendProgress = true;
     if constexpr (!HasTls) {
         // Keep the tls-port=0 completion dispatch byte-for-byte shaped like the base switch.
         switch (ur_kind(cqe->user_data)) {
             case UrKind::Accept:
-                r7_on_accept<kEp, Fused, Pipeline>(cqe, UrKind::Accept); break;
+                r7_on_accept<kEp, Fused>(cqe, UrKind::Accept); break;
             case UrKind::UnixAccept:
-                r7_on_accept<kEp, Fused, Pipeline>(cqe, UrKind::UnixAccept); break;
+                r7_on_accept<kEp, Fused>(cqe, UrKind::UnixAccept); break;
             case UrKind::Recv:
-                r7_on_recv<false, kEp, Fused, Pipeline>(
+                r7_on_recv<false, kEp, Fused>(
                     ur_ptr<Client>(cqe->user_data), cqe->res);
                 break;
             case UrKind::Send:
                 on_plain_send_cqe<kEp, ImmediateSendProgress,
-                                  Fused && Pipeline == 1>(cqe); break;
+                                  false>(cqe); break;
             case UrKind::Wake: self_->sig().wakes_recv++; break;
             case UrKind::DatabaseWake:
                 srv_->databases().consume_wake(self_->id(), ring_); break;
@@ -1927,30 +1727,30 @@ void IoLoop::r7_on_cqe(io_uring_cqe* cqe) {
     } else {
         switch (ur_kind(cqe->user_data)) {
             case UrKind::Accept:
-                r7_on_accept<kEp, Fused, Pipeline>(cqe, UrKind::Accept); break;
+                r7_on_accept<kEp, Fused>(cqe, UrKind::Accept); break;
             case UrKind::TlsAccept:
-                r7_on_accept<kEp, Fused, Pipeline>(cqe, UrKind::TlsAccept); break;
+                r7_on_accept<kEp, Fused>(cqe, UrKind::TlsAccept); break;
             case UrKind::UnixAccept:
-                r7_on_accept<kEp, Fused, Pipeline>(cqe, UrKind::UnixAccept); break;
+                r7_on_accept<kEp, Fused>(cqe, UrKind::UnixAccept); break;
             case UrKind::Recv:
-                r7_on_recv<true, kEp, Fused, Pipeline>(
+                r7_on_recv<true, kEp, Fused>(
                     ur_ptr<Client>(cqe->user_data), cqe->res);
                 break;
             case UrKind::TlsRecv:
-                r7_on_tls_recv<kEp, Fused, Pipeline>(
+                r7_on_tls_recv<kEp, Fused>(
                     ur_ptr<Client>(cqe->user_data), cqe->res);
                 break;
             case UrKind::Send:
                 on_plain_send_cqe<kEp, ImmediateSendProgress,
-                                  Fused && Pipeline == 1>(cqe); break;
+                                  false>(cqe); break;
             case UrKind::TlsSend:
                 on_tls_send_cqe<kEp, ImmediateSendProgress,
-                                Fused && Pipeline == 1>(cqe); break;
+                                false>(cqe); break;
             case UrKind::TlsReadPoll:
-                r7_on_tls_socket_poll<kEp, Fused, Pipeline>(
+                r7_on_tls_socket_poll<kEp, Fused>(
                     ur_ptr<Client>(cqe->user_data), cqe->res, TlsOp::WantRead); break;
             case UrKind::TlsWritePoll:
-                r7_on_tls_socket_poll<kEp, Fused, Pipeline>(
+                r7_on_tls_socket_poll<kEp, Fused>(
                     ur_ptr<Client>(cqe->user_data), cqe->res, TlsOp::WantWrite); break;
             case UrKind::Wake: self_->sig().wakes_recv++; break;
             case UrKind::DatabaseWake:
@@ -1973,7 +1773,7 @@ void IoLoop::r7_on_cqe(io_uring_cqe* cqe) {
     }
 }
 
-template <bool HasTls, bool kEp, bool Fused, uint8_t Pipeline>
+template <bool HasTls, bool kEp, bool Fused>
 void IoLoop::r7_on_recv(Client* c, int res) {
     TOMO_R7_PATH();
     c->set_recv_armed(false);       // the kernel has released its pointer
@@ -2011,7 +1811,7 @@ void IoLoop::r7_on_recv(Client* c, int res) {
     c->commit_read(static_cast<size_t>(res));
     if (query_buffer_exceeded(*c)) { close_client(c); return; }
     c->set_last_interaction_s(cached_now_s_);
-    if constexpr (Pipeline == 0) {
+    {
         if constexpr (HasTls) {
             if (c->is_tls())
                 r7_parse_and_dispatch<true, Fused ? kGenthreadIfidBatchOps : 0>(c);
@@ -2026,7 +1826,7 @@ void IoLoop::r7_on_recv(Client* c, int res) {
     mark_active(c);
 }
 
-template <bool kEp, bool Fused, uint8_t Pipeline>
+template <bool kEp, bool Fused>
 void IoLoop::r7_on_tls_recv(Client* c, int res) {
     TOMO_R7_PATH();
     c->set_recv_armed(false);
@@ -2047,11 +1847,11 @@ void IoLoop::r7_on_tls_recv(Client* c, int res) {
     }
     self_->sig().tls_ciphertext_input_bytes += static_cast<uint64_t>(res);
     c->set_last_interaction_s(cached_now_s_);
-    (void)r7_drive_tls<kEp, Fused, Pipeline>(c);
+    (void)r7_drive_tls<kEp, Fused>(c);
     mark_active(c);
 }
 
-template <bool kEp, bool Fused, uint8_t Pipeline>
+template <bool kEp, bool Fused>
 void IoLoop::r7_on_tls_socket_poll(Client* c, int res, TlsOp wanted) {
     TOMO_R7_PATH();
     TlsConn* tls = tls_slot_conn(c);
@@ -2060,26 +1860,26 @@ void IoLoop::r7_on_tls_socket_poll(Client* c, int res, TlsOp wanted) {
     c->set_recv_armed(tls->any_poll_armed());
     if (c->dead()) return;
     if (c->closing() || res < 0) { close_client(c); return; }
-    (void)r7_drive_tls<kEp, Fused, Pipeline>(c);
+    (void)r7_drive_tls<kEp, Fused>(c);
     mark_active(c);
 }
 
-template <bool NoBorrow, uint32_t BatchOps, bool IoPipe,
+template <bool NoBorrow, uint32_t BatchOps,
           bool SplitLocal>
 IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
     // PAD A delegates to the inherited parser before any shadow scratch or scan.
     if (!r7::shadow_available())
-        return parse_and_dispatch<NoBorrow, BatchOps, IoPipe, SplitLocal>(c);
+        return parse_and_dispatch<NoBorrow, BatchOps, SplitLocal>(c);
     // Only R7 touches the otherwise uninitialized Client padding. The first
     // parser entry precedes every publication; migration retains Client + ROB.
     if (c->rob().dispatch_id() == 0) r7::ShadowLongIndex::initialize(*c);
     r7::LazyShadowDispatch shadow_dispatch(c->rob().dispatch_id());
 
     TOMO_R7_PATH();
-    // Split readers and fused overlap need the same ROB hazards, MGET fence,
+    // Split readers and fused batches need the same ROB hazards, MGET fence,
     // admission, and demotion protocol as the baseline fused reader.
     static constexpr bool Fused = SplitLocal || (
-        BatchOps == kGenthreadIfidBatchOps && !IoPipe);
+        BatchOps == kGenthreadIfidBatchOps);
     [[maybe_unused]] const bool read_local_enabled =
         Fused && __builtin_expect(srv_->read_local_enabled(), false);
     Client& conn = *c;
@@ -2151,7 +1951,6 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
     // Split O1 needs no per-op schedule budget. This IO thread owns both parsing and
     // retirement, and no WB stage runs inside this parse pass: acquire() already stops at
     // the 64-slot ROB boundary. Local/error completions publish Done; they do not retire.
-    if constexpr (IoPipe) static_assert(kRobWindow == 64, "re-audit O1's ROB-bounded parse quantum");
     for (;;) {
         if constexpr (BatchOps != 0)
             if (sig.ops - batch_start_ops >= BatchOps) break;
@@ -2170,8 +1969,8 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
             op = read_local_enabled
                 ? rob.acquire_read_local(conn.op_route_flags())
                 : rob.acquire<true>(conn.op_route_flags());
-            // Preserve the old unarmed overlap parser's byte replies. acquire_read_local
-            // above uses the existing coded fused arm; overlap WB already handles codes.
+            // Preserve the unarmed parser's byte replies. acquire_read_local
+            // above uses the existing coded fused arm.
         } else {
             op = rob.acquire<false>(conn.op_route_flags());   // 2s keeps the byte path
         }
@@ -3065,11 +2864,10 @@ ordinary_shard_ready:
         touch_worker(worker_id);
         mark_active(c);
     }
-    if constexpr (!IoPipe) {
+    {
         // Item 2: one notify per worker per parse pass, not per op. The pushes above are already
         // visible in the queues; this publishes the "look here" bit and pays the wake decision
-        // once. The pipelined schedule deliberately folds the same set across its whole IFID
-        // batch and publishes it at IFID.POST.
+        // once.
         for (uint32_t i = 0; i < ntouched_; i++) {
             const uint32_t wkr = touched_list_[i];
             touched_[wkr] = false;
@@ -3104,30 +2902,27 @@ void IoLoop::run_fused_reordered() {
     if (!fused_executor_) std::abort();
     const bool has_unix = unix_listen_fd_ >= 0 ||
                           (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
-    auto run_pipeline = [&](auto pipeline_tag) {
-        constexpr uint8_t Pipeline = decltype(pipeline_tag)::value;
+    auto run = [&] {
         if (epoll_) {
             if (tls_context_) {
-                if (has_unix) r7_run_loop<true, true, true, true, Pipeline>();
-                else r7_run_loop<false, true, true, true, Pipeline>();
+                if (has_unix) r7_run_loop<true, true, true, true>();
+                else r7_run_loop<false, true, true, true>();
             } else {
-                if (has_unix) r7_run_loop<true, false, true, true, Pipeline>();
-                else r7_run_loop<false, false, true, true, Pipeline>();
+                if (has_unix) r7_run_loop<true, false, true, true>();
+                else r7_run_loop<false, false, true, true>();
             }
             return;
         }
         if (tls_context_) {
-            if (has_unix) r7_run_loop<true, true, false, true, Pipeline>();
-            else r7_run_loop<false, true, false, true, Pipeline>();
+            if (has_unix) r7_run_loop<true, true, false, true>();
+            else r7_run_loop<false, true, false, true>();
         } else {
-            if (has_unix) r7_run_loop<true, false, false, true, Pipeline>();
-            else r7_run_loop<false, false, false, true, Pipeline>();
+            if (has_unix) r7_run_loop<true, false, false, true>();
+            else r7_run_loop<false, false, false, true>();
         }
     };
-    // Reuse O1's ordinary fused outer loop, transport, completion hooks and submit boundary.
-    // O6 warms each eligible whole owner batch unconditionally in fused placement;
-    // selecting Pipeline 0 here must not turn off that independent executor mechanism.
-    run_pipeline(std::integral_constant<uint8_t, 0>{});
+    // Fused owner-batch prefetch is independent of the ordinary IO loop.
+    run();
 }
 
 namespace {

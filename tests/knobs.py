@@ -17,7 +17,7 @@ retired = (
     "list-max-compact-entries", "list-max-compact-value", "set-max-compact-entries",
     "set-max-compact-value",
     "lb-sample-rate", "lb-age-sample-rate", "lb-tick-ms", "lb-imbalance-pct",
-    "lb-move-cap", "lb-cooldown-ms", "ex-sched", "x-ex-sched", "x-overlap", "thread-pipeline",
+    "lb-move-cap", "lb-cooldown-ms", "ex-sched", "x-ex-sched", "overlap", "x-overlap", "thread-pipeline",
 )
 conn = _lib.Conn(host, port)
 try:
@@ -64,12 +64,12 @@ try:
         conn.must("CONFIG", "SET", query_name, values[query_name.encode()])
     for name, expected in (("thread-mode", "2s"), ("net-io", engine), ("read-local", "0"),
                            ("atomic", atomic), ("key-lb", "1"), ("client-lb", "1"),
-                           ("flip-auto", "0"), ("overlap", "0"), ("reorder", "0"),
+                           ("flip-auto", "0"), ("reorder", "0"),
                            ("wb-policy", "1"), ("wb-small-pipe", "16"),
                            ("wb-complete-visits", "3"), ("key-lb-damping", "-1")):
         if values.get(name.encode()) != expected.encode():
             raise AssertionError("CONFIG %s differs: %r" % (name, values.get(name.encode())))
-    for name in ("read-local", "key-lb", "client-lb", "key-lb-damping", "flip-auto", "net-io", "overlap", "reorder", "wb-policy",
+    for name in ("read-local", "key-lb", "client-lb", "key-lb-damping", "flip-auto", "net-io", "reorder", "wb-policy",
                  "wb-small-pipe", "wb-complete-visits",
                  "hll-sparse-max-bytes", "unixsocketperm", "port", "bind", "unixsocket"):
         result = conn.cmd("CONFIG", "SET", name, values[name.encode()])
@@ -88,7 +88,7 @@ try:
             raise AssertionError("INFO WRITEBACK %s differs: %r" % (name, writeback))
     server = _lib.info(conn, "server")
     for name, expected in (("thread_mode", "2s"), ("shards", "16"),
-                           ("read_local", "0"), ("atomic", atomic), ("overlap", "0"), ("reorder", "0"),
+                           ("read_local", "0"), ("atomic", atomic), ("reorder", "0"),
                            ("key_lb", "1"), ("client_lb", "1"), ("flip_auto", "0"),
                            ("flip_fingerprint_window", "0"), ("net_io", engine), ("hash", "mix64"),
                            ("zc_min", values[b"zc-min"].decode()),

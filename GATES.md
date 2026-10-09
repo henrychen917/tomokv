@@ -13,7 +13,7 @@ No pattern kill, other worktree edit, full gate, or automatic reference replacem
 
 **Feature tier: 35 rows in quick and full.**
 
-`tests/feature_gate.py` covers the complete 32-entry product of thread-mode, read-local, overlap,
+`tests/feature_gate.py` covers the complete 32-entry product of thread-mode, read-local, client-lb,
 reorder and flip-auto. Every boot explicitly sets all eight switches. The other three booleans
 vary as `atomic = read-local XOR overlap`, `key-lb = reorder`, `client-lb = overlap`, covering
 both values and all four independent LB settings. An inventory assertion checks this plan.
@@ -221,7 +221,7 @@ invoke `tests/gate.sh` or run the full gate.
 
 | Rows protected | Directed failure |
 | --- | --- |
-| All 32 mode rows | In a throwaway binary, ignore any requested switch: effective INFO mismatch must fail. Leave INFO reporting it enabled but bypass the local-read loop, overlap call, reorder call/permutation, atomic admission, LB collector or flip trigger handling: its required activity witness must fail. For reorder, preserving only the call count while returning an identity result still fails permutations. |
+| All 32 mode rows | In a throwaway binary, ignore any requested switch: effective INFO mismatch must fail. Leave INFO reporting it enabled but bypass the local-read loop, reorder call/permutation, atomic admission, LB collector or flip trigger handling: its required activity witness must fail. For reorder, preserving only the call count while returning an identity result still fails permutations. |
 | Disabled-feature arms | Force the feature or its optional allocation on when its knob is zero: nonzero/allocated counter checks fail. Mutate a stable executor's reader hits: the nonreader assertion fails. |
 | Three topology rows | Ignore `--place`, `--shards`, `--shard-home`, or `--no-pin`: compare against actual roles, owners and kernel affinity; do not merely change the INFO echo. |
 | All 32 performance rows | Remove population, introduce a prefix mismatch, disable the lane while echoing it enabled, remove/freeze INFO/LBSIGNALS, return command errors, drop a connection, or prevent generator completion: validity fails before scoring. |

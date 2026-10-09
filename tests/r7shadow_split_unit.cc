@@ -7,12 +7,12 @@
 namespace {
 using T = tomo::CoreConcurrencyTest;
 template <bool ReadLocal>
-void split(int32_t requested, uint32_t overlap, const std::string& leak) {
+void split(int32_t requested, const std::string& leak) {
     using namespace tomo;
     r7_witness::track_heap = true;
-    T::run<ReadLocal>(ThreadMode::Split, overlap, requested, true);
-    T::shadow_pipes<ReadLocal>(ThreadMode::Split, overlap, requested);
-    T::Fixture<ReadLocal> f(ThreadMode::Split, overlap, requested);
+    T::run<ReadLocal>(ThreadMode::Split, requested, true);
+    T::shadow_pipes<ReadLocal>(ThreadMode::Split, requested);
+    T::Fixture<ReadLocal> f(ThreadMode::Split, requested);
     auto& server = f.server;
     T::require(server.cfg().reorder == 0, "split init retained the raw request");
     // The ordinary existing signal beat must not enter any R7 path.
@@ -32,12 +32,7 @@ void split(int32_t requested, uint32_t overlap, const std::string& leak) {
     T::require(r7_witness::paths == 0, "reorder-specific path executed in split mode");
     T::require(r7_witness::allocations == 0, "reorder-specific allocation in split mode");
     const auto* stats = server.mode_schedule_stats();
-    T::require((stats != nullptr) == (overlap != 0), "split schedule allocation depends on reorder");
-    if (stats) for (uint32_t i = 0; i < server.nthreads(); ++i) {
-        T::require(!stats[i].reorder_batches.load() && !stats[i].reorder_multi_client_runs.load() &&
-                       !stats[i].reorder_permuted_runs.load() && !stats[i].reorder_max_batch.load(),
-                   "split retained reorder state inside overlap storage");
-    }
+    T::require(stats == nullptr, "split never allocates schedule state");
     command_bind_server(&server);
     Op op;
     T::require(op.push_arg(Slice("INFO")) && op.push_arg(Slice("SERVER")), "INFO arguments");
@@ -61,18 +56,17 @@ void split(int32_t requested, uint32_t overlap, const std::string& leak) {
 int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "positive") {
         T::require(tomo::command_registry_init(false), "command registry");
-        T::run<true>(tomo::ThreadMode::Fused, 0, 1, true);
-        T::shadow_pipes<true>(tomo::ThreadMode::Fused, 0, 1);
+        T::run<true>(tomo::ThreadMode::Fused, 1, true);
+        T::shadow_pipes<true>(tomo::ThreadMode::Fused, 1);
         T::require(r7_witness::paths > 0 && r7_witness::allocations > 0,
                    "instrumented production R7 object did not count positive control");
         std::puts("PASS fused path/allocation positive control");
         return 0;
     }
-    T::require(argc == 4 || argc == 5, "usage: split-unit requested overlap read-local [leak]");
+    T::require(argc == 3 || argc == 4, "usage: split-unit requested read-local [leak]");
     T::require(tomo::command_registry_init(false), "command registry");
     const int32_t requested = std::stoi(argv[1]);
-    const uint32_t overlap = std::stoul(argv[2]);
-    const std::string leak = argc == 5 ? argv[4] : "";
-    if (std::stoi(argv[3])) split<true>(requested, overlap, leak);
-    else split<false>(requested, overlap, leak);
+    const std::string leak = argc == 4 ? argv[3] : "";
+    if (std::stoi(argv[2])) split<true>(requested, leak);
+    else split<false>(requested, leak);
 }

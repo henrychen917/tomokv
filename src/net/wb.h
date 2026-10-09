@@ -751,8 +751,6 @@ private:
     // Every caller already knows the mode statically, so nothing had to be threaded:
     //   flush_ready              carries `Fused` as its 3rd template parameter already, and is the
     //                            path BOTH modes take -> passes Fused
-    //   wb_serve_natural         physical split IO, including SplitLocal: run_loop uses
-    //   wb_retire_prepare        IoPipe = (!Fused || SplitLocal) && Pipeline == 1; pass SplitLocal
     //   run_fused / run_loop     fused-only run_fused() selects run_loop with Fused=true
     // With Coded=false every coded block below is deleted by `if constexpr`, so a 2s instantiation
     // is the pre-reply-code function, not a variant of it.

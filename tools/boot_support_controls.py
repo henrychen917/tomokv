@@ -30,7 +30,6 @@ def main():
         ('requested-shard-count', header, 'srv.nshards()', 'cfg.shards', 'resolved shard count'),
         ('wrong-mode', header, 'const bool fused = cfg.thread_mode == ThreadMode::Fused;',
          'const bool fused = false;', 'resolved worker counts'),
-        ('wrong-overlap', header, 'cfg.overlap', '0u', 'resolved overlap'),
         ('wrong-send-owner', header, 'send=self', 'send=other', 'mode-specific placement'),
         ('wrong-cpu', header, 'p.cpu', 'p.cpu + 1', 'mode-specific placement'),
         ('wrong-domain', header, 'p.domain', 'p.domain + 1', 'mode-specific placement'),

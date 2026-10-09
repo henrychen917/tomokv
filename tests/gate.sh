@@ -281,8 +281,10 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # exit: policy + clause controls, PHASE 2 + FIFO controls, and unchanged 2s stages.
 # Explicit lane task (requirement 5) authorizes this count update: +3 in both tiers.
 # encodingfix owner ruling: two serverless rows before the quick exit (+2/+2).
-EXPECT_QUICK=504
-EXPECT_FULL=521                 # ABBA reports only; self-test remains counted.
+# overlapaxe: retire only split-overlap WB row, collected before quick exit (-1/-1).
+# Matrix client-lb dimension preserves every former split correctness scenario.
+EXPECT_QUICK=503
+EXPECT_FULL=520                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1031,8 +1033,8 @@ plan_jobs(){
               aof_frame tls fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
-    for FR in 0 1; do for FO in 0 1; do for FQ in 0 1; do for FF in 0 1; do
-      JOB_NAMES+=("feature-cell-$FM-$FR-$FO-$FQ-$FF")
+    for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
+      JOB_NAMES+=("feature-cell-$FM-$FR-$FC-$FQ-$FF")
     done; done; done; done
   done
   JOB_NAMES+=(feature-cell-split-home-min feature-cell-fused-home-max-nopin feature-cell-split-shards-auto)
@@ -1442,7 +1444,7 @@ done
 
 job_wb_rule_units(){
   local group label
-  for group in policy phase stages split-phase split-overlap; do
+  for group in policy phase stages split-phase; do
     label="writeback c12 $group witnesses + negative controls"
     row_begin "$label"
     if unit_ready wb-rule-units && taskset -c "$CORES" python3 tests/wb_rule_checks.py check "$group" \
@@ -1845,10 +1847,10 @@ for WAIT_MODE in split fused; do
     row_begin "read-only resize $WAIT_MODE read-local=$WAIT_LOCAL"
     WAIT_BOOTED=0
     if [ "$WAIT_MODE" = split ]; then
-      boot "$CANDIDATE_BINARY" --atomic 1 --read-local "$WAIT_LOCAL" --overlap 0 \
+      boot "$CANDIDATE_BINARY" --atomic 1 --read-local "$WAIT_LOCAL" \
           --flip-auto 0 --enable-debug-command yes && WAIT_BOOTED=1
     else
-      boot_fused "$CANDIDATE_BINARY" --atomic 1 --read-local "$WAIT_LOCAL" --overlap 0 \
+      boot_fused "$CANDIDATE_BINARY" --atomic 1 --read-local "$WAIT_LOCAL" \
           --flip-auto 0 --enable-debug-command yes && WAIT_BOOTED=1
     fi
     WAIT_OK=0
@@ -1928,11 +1930,10 @@ local AT=${1##*-}
   if boot_fused "$CANDIDATE_BINARY" --atomic "$AT" --enable-debug-command yes; then
     FUSED_INFO=$(redis-cli -h 127.0.0.1 -p "$PORT" INFO server 2>/dev/null | tr -d '\r')
     FUSED_MODE=$(printf '%s\n' "$FUSED_INFO" | sed -n 's/^thread_mode://p')
-    FUSED_OVERLAP=$(printf '%s\n' "$FUSED_INFO" | sed -n 's/^overlap://p')
-    [ "$FUSED_MODE" = 1s ] && [ "$FUSED_OVERLAP" = 0 ] \
+    [ "$FUSED_MODE" = 1s ] \
         && grep -Eq '^tomokv-cpp: .*thread-mode=1s,.*read-local=0([,[:space:]]|$)' "$SRVLOG" \
         && ok "fused boot line (atomic $AT)" \
-        || bad "fused boot line (atomic $AT)" "wire mode=$FUSED_MODE overlap=$FUSED_OVERLAP; banner must say read-local=0; see $SRVLOG"
+        || bad "fused boot line (atomic $AT)" "wire mode=$FUSED_MODE; banner must say read-local=0; see $SRVLOG"
   else
     bad "fused boot line (atomic $AT)" "server did not boot; see $SRVLOG"
   fi
@@ -3358,7 +3359,7 @@ collect_job tls
 
 # ---- A. mandatory feature matrix (35 rows, BEFORE the quick-tier exit) -----------------------
 # No inherited feature defaults: feature_gate.py sets --thread-mode {1s,2s}, --read-local {0,1},
-# --overlap {0,1}, --reorder {0,1}, --flip-auto {0,1} in the full 32-way product, and explicitly
+# --client-lb {0,1}, --reorder {0,1}, --flip-auto {0,1} in the full 32-way product, and explicitly
 # sets both values of --atomic, --key-lb, --client-lb across it. The last three rows exercise
 # --shards {-1,1,16,256}, --ratio, --place, --shard-home (including empty owners), and --no-pin.
 # The eight fused + flip-auto=1 cells must refuse the exact documented unsupported combination;
@@ -3366,8 +3367,8 @@ collect_job tls
 # mandatory: accepting the combination or refusing for another reason is a failure. The Python
 # inventory assertion refuses a missing value/product entry. See GATES.md.
 for FM in 1s 2s; do
-  for FR in 0 1; do for FO in 0 1; do for FQ in 0 1; do for FF in 0 1; do
-    FEATURE_CELL=$FM-$FR-$FO-$FQ-$FF
+  for FR in 0 1; do for FC in 0 1; do for FQ in 0 1; do for FF in 0 1; do
+    FEATURE_CELL=$FM-$FR-$FC-$FQ-$FF
     collect_job "feature-cell-$FEATURE_CELL"
   done; done; done; done
 done
@@ -3394,7 +3395,7 @@ export GATE_CORES="$CORES" GATE_LOAD_CORES="$LOAD_CORES"
 taskset -pc "$LOAD_CORES" "$BASHPID" >/dev/null
 row_begin "tailgen client-lb outstanding bound"
 if [ -f "$RUN_DIR/unit-ready/tailgen" ] &&
-    boot_fused "$CANDIDATE_BINARY" --shards 256 --atomic 1 --overlap 1 &&
+    boot_fused "$CANDIDATE_BINARY" --shards 256 --atomic 1 &&
     py tests/tailgen_stall.py --port "$PORT" --cores "$LOAD_CORES" \
         --output "$TMPDIR/tailgen-stall" >"$TMPDIR/gate-tailgen-stall.txt" 2>&1; then
   ok "tailgen client-lb outstanding bound"

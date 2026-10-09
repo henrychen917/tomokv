@@ -122,16 +122,10 @@ struct Loop {
     bool climon_reply_suppressed(Client*) { return false; }
     unsigned climon_serve_suppressed(Client*) { return 0; }
 };
-struct Batch { std::array<Client*, 1> clients{}; std::array<bool, 1> submit_allowed{}; unsigned count = 0; };
-static bool serve_path;
 static bool visit(Loop& loop) {
-    if (serve_path) {
-        const unsigned before = loop.wb_.calls;
-        wb_rule::Phase2::serve<false, false>(loop);
-        return loop.wb_.calls != before;
-    }
-    size_t left = SIZE_MAX; Batch batch;
-    return wb_rule::Phase2::gather(loop, batch, left) != 0;
+    const unsigned before = loop.wb_.calls;
+    wb_rule::Phase2::serve<false, false>(loop);
+    return loop.wb_.calls != before;
 }
 static void enqueue(Loop& loop, Client& c) { c.set_serve_pending(true); loop.pending_serve_.push_back(&c); }
 static void lifetime() {
@@ -214,10 +208,10 @@ int main(int argc, char** argv) {
     else if (name == "knobs") knobs();
     else if (name == "exits") exits();
     else if (name == "lifetime" || name == "lifetime-serve") {
-        serve_path = name == "lifetime-serve"; lifetime();
+        lifetime();
     }
     else if (name == "knob-lifetime" || name == "knob-lifetime-serve") {
-        serve_path = name == "knob-lifetime-serve"; knob_lifetime();
+        knob_lifetime();
     }
     else if (name.starts_with("trace-")) trace(name);
     else require(false, "known fixture");

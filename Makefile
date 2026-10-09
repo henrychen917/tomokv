@@ -431,7 +431,7 @@ build/rehash-waits-unit: tests/rehash_waits_unit.cc $(CORE_TEST_OBJ) $(wildcard 
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
 # Whole owner batches and live WATCH blockers; this unit starts no server.
-build/overlap-prefetch-unit: tests/overlap_prefetch_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
+build/owner-prefetch-unit: tests/owner_prefetch_unit.cc $(CORE_TEST_OBJ) $(wildcard src/*/*.h) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 
@@ -651,7 +651,7 @@ build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core
 # Measured fused writeback rule, serverless production-path witnesses. Clause
 # mutants live only in build/ header overlays; no selector enters production.
 WB_RULE_POLICY_CONTROLS := scatter-exit fastpath staged-clause staged-source submitted done-bytes spill direct borrow crlf no-sum floor whole hole marker code relaxed pre-read walk-tail
-WB_RULE_PHASE_CONTROLS := budget rotation head pin capture visit dead work split-policy split-local split-budget split-ex parse split-aof gather-policy gather-rotation gather-head gather-pin gather-capture gather-visit gather-dead gather-work gather-chunks gather-aof
+WB_RULE_PHASE_CONTROLS := budget rotation head pin capture visit dead work split-policy split-local split-budget split-ex parse split-aof
 WB_RULE_CONTROL_DEPS := tests/wb_rule_checks.py tests/wb_rule_unit.cc tests/wb_rule_phase_unit.cc $(wildcard src/*/*.h) Makefile
 WB_RULE_WRAP := -Wl,--wrap=io_uring_submit -Wl,--wrap=io_uring_submit_and_get_events
 build/wb-rule-unit: tests/wb_rule_unit.cc $(wildcard src/*/*.h) Makefile
@@ -681,7 +681,7 @@ build/wb-rule-units: build/wb-rule-unit build/wb-rule-db0-unit build/wb-rule-pha
 	@touch $@
 
 # Completion witnesses and clause-deletion controls share the existing wbland rows.
-WB_RULE_COMPLETION_CONTROLS := small-early small-late visits-early visits-late gather-reset serve-reset knob-small-ignored knob-unbounded-ignored knob-unbounded-wrap
+WB_RULE_COMPLETION_CONTROLS := small-early small-late visits-early visits-late serve-reset knob-small-ignored knob-unbounded-ignored knob-unbounded-wrap
 WB_RULE_COMPLETION_DEPS := tests/wb_rule_completion_unit.cc tests/wb_rule_checks.py $(wildcard src/*/*.h) Makefile
 WB_RULE_COMPLETION_UNITS := build/wb-rule-completion-unit build/wb-rule-db0-completion-unit $(foreach name,$(WB_RULE_COMPLETION_CONTROLS),build/wb-rule-completion-controls/$(name)/unit build/wb-rule-completion-controls/$(name)/db0-unit)
 build/wb-rule-completion-unit: $(WB_RULE_COMPLETION_DEPS)

@@ -24,7 +24,6 @@ DETECTOR_TOKENS = (
     'wb_policy.publish(', 'wb_adaptive', 'wb_thread_', 'struct Window', 'struct Published')
 RULE_TOKENS = ('now_ns(', 'clock_gettime', 'cfg(', 'new ', 'malloc(', 'make_unique', 'build_arm')
 SERVE = 'wb_rule::Phase2::serve<HasTls, kEp, IoLoop, Fused>(*this)'
-GATHER = 'wb_rule::Phase2::gather(*this, batch, captured_left)'
 SERVE_GUARD = '''
     if (!pending_serve_.empty()) {
         AofManager& aof = srv_->aof();
@@ -40,22 +39,6 @@ SERVE_GUARD = '''
         aof_gate_target_ = 0;
     }
     return work + ''' + SERVE + ';'
-GATHER_GUARD = '''
-    if (batch.count) std::abort();
-    if (pending_serve_.empty()) {
-        aof_gate_target_ = 0;
-        return 0;
-    }
-    AofManager& aof = srv_->aof();
-    if (__builtin_expect(aof.configured(), false)) {
-        if (!aof_gate_target_) aof_gate_target_ = aof.posted_sequence();
-        if (!aof.reply_gate_ready(aof_gate_target_)) {
-            aof.register_send_gate_wait(self_->id());
-            return 0;
-        }
-    }
-    aof_gate_target_ = 0;
-    return ''' + GATHER + ';'
 BACKSTOP = 'if (backstop_pass_ && !c->serve_pending()) enqueue_serve(c);'
 IDLE = '''const bool done = c->rob().quiesced() && !more_input && !stuck &&
                         !c->serve_pending() && c->nothing_to_write() && !tls_output;'''
@@ -83,11 +66,7 @@ PLUMBING = (
         client->serve_pending() || !client->nothing_to_write() ||
         !wb_.migration_ready(*client)) return false;''', 1),
     ('parse_and_dispatch', BUFFER, 2),
-    ('ifid_parse_hash', BACKSTOP, 1), ('ifid_parse_hash', IDLE, 1),
     ('flush_ready', BACKSTOP, 1), ('flush_ready', IDLE, 1),
-    ('pipeline_pass', '''while (captured_left != SIZE_MAX && captured_left &&
-        !pending_serve_.empty()) {''', 1),
-    ('pipeline_pass', 'if (!pending_serve_.empty() && captured_left != SIZE_MAX) ++work;', 1),
     ('enqueue_serve', '''if (c->serve_pending()) return;
         c->set_serve_pending(true); pending_serve_.push_back(c);''', 1),
     ('reap_dead', '''if (c->serve_pending() || c->send_inflight() || c->recv_armed()) {
@@ -95,7 +74,6 @@ PLUMBING = (
 )
 R7_PLUMBING = (
     ('r7_parse_and_dispatch', BUFFER, 2),
-    ('r7_ifid_parse_hash', BACKSTOP, 1), ('r7_ifid_parse_hash', IDLE, 1),
     ('r7_flush_ready', BACKSTOP, 1), ('r7_flush_ready', IDLE, 1),
 )
 
@@ -174,9 +152,7 @@ def envelope(path, expected_calls, plumbing, guarded):
         assert not watched or i in covered, f'{path}: unanchored writeback reference {token}'
     # IO has legitimate clocks/allocation in accept, TLS, slowlog and timers.
     # Ban them throughout the WB methods, not those unrelated owner duties.
-    methods = ('wb_gather', 'wb_observe', 'wb_prefetch', 'wb_retire_prepare',
-               'wb_submit_reclaim', 'wb_serve_natural', 'pipeline_pass',
-               'flush_ready', 'enqueue_serve') if path == IO else ('r7_flush_ready',) if path == R7 else ()
+    methods = ('flush_ready', 'enqueue_serve') if path == IO else ('r7_flush_ready',) if path == R7 else ()
     for method in methods:
         start, end = method_span(code, method)
         no_tokens(f'{path}:{method}', ' '.join(code[start:end]), RULE_TOKENS)
@@ -212,7 +188,7 @@ def source():
         no_tokens(path, (ROOT/path).read_text(), DETECTOR_TOKENS)
     no_tokens(POLICY, (ROOT/POLICY).read_text(), RULE_TOKENS)
     envelope(WB, (), (), ())
-    envelope(IO, (GATHER, SERVE), PLUMBING, (('wb_gather', GATHER_GUARD), ('flush_ready', SERVE_GUARD)))
+    envelope(IO, (SERVE,), PLUMBING, (('flush_ready', SERVE_GUARD),))
     envelope(R7, (SERVE,), R7_PLUMBING, (('r7_flush_ready', SERVE_GUARD),))
     subprocess.run([sys.executable, '-B', 'tests/r7shadow_sync.py'], cwd=ROOT, check=True)
     print('PASS wbland source: anchored calls/guards, no stray policy references or detector, R7 parity')
@@ -231,7 +207,7 @@ SOURCE_CONTROLS = {
     'reorder-arguments': (R7, SERVE, SERVE.replace('Fused>', 'true>'),
                           f'{R7}: Phase2 call set (count/arguments)'),
     'reorder-unrelated': (R7, '', '\n// Unrelated boot-banner documentation edit.\n', None),
-    'io-extra-call': (IO, 'return ' + GATHER + ';', GATHER + '; return ' + GATHER + ';',
+    'io-extra-call': (IO, 'return work + ' + SERVE + ';', SERVE + '; return work + ' + SERVE + ';',
                       f'{IO}: Phase2 call set (count/arguments)'),
     'rule-detector': (POLICY, '', '\nstruct Window {};\n', f'{POLICY}: banned token struct Window'),
     'reorder-guard': (R7, 'if (!pending_serve_.empty()) {', 'if (pending_serve_.empty()) {',
@@ -307,11 +283,11 @@ def check(group, build, proofs=None):
             for case in ('table', 'exits', 'knobs'):
                 run(build/f'wb-rule-{ns}completion-unit', case, prefix='wb-completion')
         else:
-            for case in ('lifetime', 'lifetime-serve', 'knob-lifetime', 'knob-lifetime-serve'):
+            for case in ('lifetime-serve', 'knob-lifetime-serve'):
                 run(build/f'wb-rule-{ns}completion-unit', case, prefix='wb-completion')
             binary = build/f'wb-rule-{ns}phase-unit'
             for extra in ((), ('r7',)): run(binary, 'wbland-fused', extra=extra, prefix='wb-rule')
-            for extra in ((), ('natural',), ('shallow',)):
+            for extra in ((),):
                 for case in ('wbland-split', 'wbland-local'):
                     run(binary, case, extra=extra, prefix='wb-rule')
     for name, (kind, _, _, _, case, assertion) in legacy.MUTANTS.items():
@@ -331,9 +307,9 @@ def check(group, build, proofs=None):
         # Real schedules must notice when knob selection is bypassed or ignored.
         for name, case, assertion in (
             ('split-policy', 'wbland-fused', 'wb-policy exact retirement in every physical schedule'),
-            ('gather-policy', 'wbland-split', 'wb-policy exact retirement in every physical schedule')):
-            # R7 is linked separately: a header overlay mutates FIFO/overlap only.
-            for extra in (((),) if name == 'split-policy' else (('natural',), ('shallow',))):
+            ('split-policy', 'wbland-split', 'wb-policy exact retirement in every physical schedule')):
+            # R7 is linked separately: a header overlay mutates FIFO only.
+            for extra in ((),):
                 run(build/'wb-rule-controls'/name/'unit', case, assertion, extra, prefix='wb-rule')
     proofs.write_text(json.dumps(rows, indent=2)+'\n')
     if not all(r['passed'] for r in rows): raise SystemExit(1)

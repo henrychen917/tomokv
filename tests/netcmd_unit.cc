@@ -418,31 +418,20 @@ struct NetcmdRegression {
                                        server.cfg_.stream_limits);
         command_bind_server(&server);
         test_config_rewrite();
-        // Retain t01's null-sidecar INFO regression. O6 enables fused prefetch, but the
-        // helper must still report explicit zeros in this fixture without allocating state.
-        // Use an empty INFO fixture: the CONFIG fixture above has a private shard but no
-        // placement map. Neither fixture starts workers, opens a ring, or listens on a socket.
+        // INFO must not allocate schedule state; retired fields stay absent.
         Server info_server;
         command_bind_server(&info_server);
         info_server.cfg_.thread_mode = ThreadMode::Fused;
         for (int32_t reorder : {0, 1}) {
         info_server.cfg_.reorder = reorder;
         Shard shard;
-        for (uint32_t overlap : {0u, 1u}) {
-            info_server.cfg_.overlap = overlap;
             check(info_server.mode_schedule_stats() == nullptr, "handler fixture starts without a sidecar");
             const std::string info = execute(shard, {"INFO", "SERVER"});
-            check(info.find("overlap_enabled:" + std::to_string(overlap) + "\r\n") != std::string::npos,
-                  "optional schedule reporting follows overlap");
-            if (overlap || reorder) {
-                for (const char* field : {"schedule_stats_threads:0\r\n", "overlap_schedule:plain\r\n",
-                         "overlap_passes:0\r\n", "overlap_interleaved_passes:0\r\n"})
-                    check(info.find(field) != std::string::npos, "requested schedule reports explicit zeros without a sidecar");
-            } else {
-                check(info.find("schedule_stats_threads:") == std::string::npos &&
-                      info.find("reorder_permuted_runs:") == std::string::npos,
-                      "both requested knobs off preserve the existing INFO surface");
-            }
+            for (const char* field : {"overlap:", "overlap_enabled:", "overlap_schedule:",
+                                      "overlap_passes:", "overlap_interleaved_passes:"})
+                check(info.find(field) == std::string::npos, "retired INFO field remains visible");
+            check((info.find("schedule_stats_threads:0\r\n") != std::string::npos) == (reorder != 0),
+                  "only reorder requests schedule reporting");
             check(info.find("reorder:" + std::to_string(reorder) + "\r\nreorder_retired:0\r\n") != std::string::npos,
                   "R7 reports its effective boot value and capability");
             for (const char* field : {"reorder_batches:", "reorder_multi_client_runs:",
@@ -452,10 +441,8 @@ struct NetcmdRegression {
             check(info_server.mode_schedule_stats() == nullptr, "INFO did not allocate schedule storage");
             check(info.find("reorder_auto_") == std::string::npos, "INFO retained AUTO diagnostics");
         }
-        }
         info_server.cfg_.thread_mode = ThreadMode::Split;
         info_server.cfg_.reorder = 0; // the cold boot resolution for off/on
-        info_server.cfg_.overlap = 0;
         Shard split_shard;
         const std::string split_info = execute(split_shard, {"INFO", "SERVER"});
         check(split_info.find("reorder:0\r\nreorder_retired:1\r\n") != std::string::npos &&

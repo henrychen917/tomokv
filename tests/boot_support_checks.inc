@@ -61,7 +61,6 @@ void presentation() {
     for (auto mode : {ThreadMode::Fused, ThreadMode::Split})
     for (bool armed : {false, true})
     for (unsigned requested : {0u, 1u})
-    for (unsigned overlap : {0u, 1u})
     for (int reorder : {0, 1})
     for (auto network : {NetIoEngine::Uring, NetIoEngine::Epoll})
     for (bool tcp : {false, true})
@@ -71,7 +70,6 @@ void presentation() {
         state.armed = armed;
         state.config.thread_mode = mode;
         state.config.read_local = requested; // may disagree with the resolved armed state
-        state.config.overlap = overlap;
         state.config.reorder = reorder_for_mode(reorder, mode);
         state.config.net_io = network;
         state.config.bind_addr = "127.0.0.2";
@@ -90,7 +88,7 @@ void presentation() {
         require(has("16 shard(s)"), "resolved shard count, not auto input");
         require(has(fused ? "thread-mode=1s" : "thread-mode=2s"), "resolved mode");
         require(has("read-local=" + std::to_string(armed)), "enabled/disabled resolved banner field");
-        require(has("overlap=" + std::to_string(overlap)), "resolved overlap");
+        require(!has("overlap="), "retired overlap absent from banner");
         require(has("reorder=" + std::to_string(fused ? reorder : 0)), "live fused reorder / split zero");
         require(has(network == NetIoEngine::Epoll ? "epoll" : "io_uring"), "selected network engine");
         require(has(std::string("alloc=") + alloc_backend()), "compiled allocator");
@@ -112,7 +110,7 @@ void presentation() {
         require(ready == expected, "only configured TCP/TLS and actually bound Unix announced");
         ++cells;
     }
-    require(cells == 512, "complete resolved presentation matrix entered");
+    require(cells == 256, "complete resolved presentation matrix entered");
     std::printf("boot presentation: %u resolved cells, eight placement witnesses each\n", cells);
 }
 

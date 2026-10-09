@@ -1,5 +1,5 @@
 #include "boot_support.h"
-// Unified generalized-thread runtime for overlap 0 and 1. rl2s.cc separately instantiates
+// Unified generalized-thread runtime. rl2s.cc separately instantiates
 // the shard-less local-read IO schedules and fused-capable split owners.
 #include "genthread.h"
 
@@ -41,30 +41,27 @@ void IoLoop::run_fused() {
     if (!fused_executor_) std::abort();
     const bool has_unix = unix_listen_fd_ >= 0 ||
                           (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
-    auto run_pipeline = [&](auto pipeline_tag) {
-        constexpr uint8_t Pipeline = decltype(pipeline_tag)::value;
+    auto run = [&] {
         if (epoll_) {
             if (tls_context_) {
-                if (has_unix) run_loop<true, true, true, true, Pipeline>();
-                else run_loop<false, true, true, true, Pipeline>();
+                if (has_unix) run_loop<true, true, true, true>();
+                else run_loop<false, true, true, true>();
             } else {
-                if (has_unix) run_loop<true, false, true, true, Pipeline>();
-                else run_loop<false, false, true, true, Pipeline>();
+                if (has_unix) run_loop<true, false, true, true>();
+                else run_loop<false, false, true, true>();
             }
             return;
         }
         if (tls_context_) {
-            if (has_unix) run_loop<true, true, false, true, Pipeline>();
-            else run_loop<false, true, false, true, Pipeline>();
+            if (has_unix) run_loop<true, true, false, true>();
+            else run_loop<false, true, false, true>();
         } else {
-            if (has_unix) run_loop<true, false, false, true, Pipeline>();
-            else run_loop<false, false, false, true, Pipeline>();
+            if (has_unix) run_loop<true, false, false, true>();
+            else run_loop<false, false, false, true>();
         }
     };
-    // Reuse O1's ordinary fused outer loop, transport, completion hooks and submit boundary.
-    // O6 warms each eligible whole owner batch unconditionally in fused placement;
-    // selecting Pipeline 0 here must not turn off that independent executor mechanism.
-    run_pipeline(std::integral_constant<uint8_t, 0>{});
+    // Fused owner-batch prefetch is independent of the ordinary IO loop.
+    run();
 }
 
 int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,

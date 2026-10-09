@@ -23,22 +23,22 @@ void print_boot_presentation(ServerState& srv, std::FILE* out = stdout) {
     const char* network = cfg.net_io == NetIoEngine::Epoll ? "epoll" : "io_uring";
     if (fused) {
         std::fprintf(out, "tomokv-cpp: %u unified threads, %u shard(s), thread-mode=1s,"
-                     " overlap=%u (executor prefetch; ordinary IO), %s, alloc=%s,"
+                     " owner-batch prefetch, %s, alloc=%s,"
                      " reorder=%d, read-local=%u\n", srv.nthreads(), srv.nshards(),
-                     cfg.overlap, network, alloc_backend(), static_cast<int32_t>(cfg.reorder),
+                     network, alloc_backend(), static_cast<int32_t>(cfg.reorder),
                      static_cast<unsigned>(read_local));
     } else if (read_local) {
         std::fprintf(out, "tomokv-cpp: %u threads (%zu io + %zu ex), %u shard(s),"
-                     " thread-mode=2s, overlap=%u, reorder=%d, read-local=%u, %s, alloc=%s\n",
+                     " thread-mode=2s, reorder=%d, read-local=%u, %s, alloc=%s\n",
                      srv.nthreads(), srv.placement().ifid_threads().size(),
-                     srv.placement().ex_threads().size(), srv.nshards(), cfg.overlap,
+                     srv.placement().ex_threads().size(), srv.nshards(),
                      static_cast<int32_t>(cfg.reorder), static_cast<unsigned>(read_local),
                      network, alloc_backend());
     } else {
         std::fprintf(out, "tomokv-cpp: %u threads (%zu io + %zu ex), %u shard(s),"
-                     " thread-mode=2s, overlap=%u, %s, alloc=%s, reorder=%d, read-local=%u\n",
+                     " thread-mode=2s, %s, alloc=%s, reorder=%d, read-local=%u\n",
                      srv.nthreads(), srv.placement().ifid_threads().size(),
-                     srv.placement().ex_threads().size(), srv.nshards(), cfg.overlap,
+                     srv.placement().ex_threads().size(), srv.nshards(),
                      network, alloc_backend(), static_cast<int32_t>(cfg.reorder),
                      static_cast<unsigned>(read_local));
     }

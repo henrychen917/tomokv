@@ -40,7 +40,6 @@
     "writeback c12 phase witnesses + negative controls",
     "writeback c12 stages witnesses + negative controls",
     "writeback c12 split-phase witnesses + negative controls",
-    "writeback c12 split-overlap witnesses + negative controls",
     "writeback policy clauses witnesses + negative controls",
     "writeback policy paths witnesses + negative controls",
     "R7 generated envelope parity",

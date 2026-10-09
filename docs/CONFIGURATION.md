@@ -47,12 +47,11 @@ the allowed CPU set and complete SMT sibling units (`src/core/placement.h:73`).
 | `shards` | T | `-1` or integer 1..256 | `-1` → min(8 × executors, 256) | Boot | `shards` | Initial migration units; resolved before recovery; `src/core/config.h:441`, `:826`. |
 | `shard-home` | T | Complete comma-separated `shard:executor_tid` map | Round-robin | Boot | `shard_home`; `shard_owners` (current) | Dense placement thread IDs, not CPU IDs; empty owners allowed; `src/core/config.h:1055`, `src/core/placement.h:178`. |
 | `no-pin` | T | Valueless CLI switch | Absent: pinning on | Boot | `pin_threads` | Disable worker CPU pinning; `src/core/config.h:1056`. |
-| `overlap` | T | u32, 0 or 1 | `0` | Boot/GET | `overlap`, `overlap_enabled` | 2s owner prefetch and IO overlap; eligible 1s owner batches prefetch regardless; `src/core/config.h:326`, `:795`. |
 | `read-local` | T | u32, 0 or 1 | `0` | Boot/GET | `read_local` | Eligible GET/MGET on the parsing thread in both modes; `src/core/config.h:801`, `src/main.cc:325`. |
 | `reorder` | T | u32, 0 or 1 | `0` | Boot/GET | `reorder`, `reorder_retired` | 1s shadow priority; 2s resolves to 0; `src/core/config.h:437`, `:836`. |
 | `wb-policy` | T | Literal `0` or `1` | `1` | Boot/GET | `wb_policy` (Writeback) | Flush-all or composite half rule; `src/core/config.h:843`, `src/core/wb_rule.h:25`. |
-| `wb-small-pipe` | T | Canonical decimal 0..64 | `16` | Boot/GET | `wb_small_pipe` (Writeback) | 0 = half rule, no completion; measured default, ledger addendum 12; `src/core/config.h:462`. |
-| `wb-complete-visits` | T | Canonical decimal 0..255 | `3` | Boot/GET | `wb_complete_visits` (Writeback) | 0 = unbounded completion; measured default, ledger addendum 12; `src/core/config.h:463`. |
+| `wb-small-pipe` | T | Canonical decimal 0..64 | `16` | Boot/GET | `wb_small_pipe` (Writeback) | 0 = half rule, no completion; measured default, ledger addendum 12; `src/core/config.h:458`. |
+| `wb-complete-visits` | T | Canonical decimal 0..255 | `3` | Boot/GET | `wb_complete_visits` (Writeback) | 0 = unbounded completion; measured default, ledger addendum 12; `src/core/config.h:459`. |
 | `key-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `key_lb` | Sample key demand and rebalance shard ownership; `src/core/config.h:851`, `src/core/server.h:1272`. |
 | `key-lb-damping` | T | canonical signed decimal, -1..2147483647 | `-1` | Boot/GET | `tomokv_keylb_damping_band_pct`, `tomokv_keylb_damping_fire_pct`, `tomokv_keylb_damping_ticks` | 0 keeps the original key planner and allocates no damping sidecar; -1 derives damping from the decision window; positive N sets the level. Residual-band objective and bounded recent-move damping; `src/core/lbplanner.cc`. |
 | `client-lb` | T | u32, 0 or 1 | `1` | Boot/GET | `client_lb` | Census client demand and move connections between IO owners; `src/core/config.h:857`, `src/core/server.h:529`. |

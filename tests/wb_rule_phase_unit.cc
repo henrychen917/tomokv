@@ -15,7 +15,6 @@
 static const char* selected;
 static unsigned submissions = 0, submitted_sends = 0;
 // Test grammar only: each invocation drives one production IO schedule.
-static unsigned split_schedule = 0; // 0 coarse, 1 natural, 2 shallow
 extern "C" int __wrap_io_uring_submit(io_uring* ring) {
     const unsigned count = ring->sq.sqe_tail - ring->sq.sqe_head;
     if (count > ring->sq.ring_entries) std::abort();
@@ -96,7 +95,7 @@ struct CoreConcurrencyTest {
             config.databases = kSingleDatabase ? 1 : 4;
             config.shards = 16;
             config.read_local = SplitLocal;
-            config.overlap = config.atomic = 1;
+            config.atomic = 1;
             config.save.clear();
             require(server.init(config), "in-memory server state");
             for (unsigned tid = 0; tid < 8; ++tid) {
@@ -179,10 +178,6 @@ struct CoreConcurrencyTest {
     template <bool Fused, bool SplitLocal> static unsigned phase(Fixture<Fused, SplitLocal>& f, bool r7 = false) {
         if constexpr (Fused) {
             if (r7) return f.io.template r7_flush_ready<false, false, true>();
-        } else if (split_schedule) {
-            bool submitted = false; size_t cursor = 0;
-            return f.io.template pipeline_pass<false, false, false, SplitLocal>(
-                true, split_schedule == 1, submitted, cursor);
         }
         return f.io.template flush_ready<false, false, Fused || SplitLocal, false, false, SplitLocal>();
     }
@@ -486,10 +481,7 @@ struct CoreConcurrencyTest {
         require(argc == 2 || argc == 3, "usage: wb-rule-phase-unit CASE [r7]");
         selected = argv[1]; const std::string name = selected;
         const bool r7 = argc == 3 && std::string(argv[2]) == "r7";
-        if (argc == 3 && !r7) {
-            require(std::string(argv[2]) == "natural" || std::string(argv[2]) == "shallow", "known split schedule");
-            split_schedule = std::string(argv[2]) == "natural" ? 1 : 2;
-        }
+        require(argc == 2 || r7, "known fused schedule");
         require(command_registry_init(false), "command registry");
         if (name == "wbland-fused") wbland_policies<true>(r7);
         else if (name == "wbland-split") wbland_policies<false>(false);
