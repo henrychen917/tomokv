@@ -1,0 +1,898 @@
+[
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-budget",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-budget",
+    "passed": true,
+    "stdout": "PASS wb-rule split-budget\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-dead",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-dead",
+    "passed": true,
+    "stdout": "PASS wb-rule split-dead\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-policy",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-policy",
+    "passed": true,
+    "stdout": "PASS wb-rule split-policy\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-local",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-local",
+    "passed": true,
+    "stdout": "PASS wb-rule split-local\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-fastpath",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-fastpath",
+    "passed": true,
+    "stdout": "PASS wb-rule split-fastpath\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-fifo",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-fifo",
+    "passed": true,
+    "stdout": "PASS wb-rule split-fifo\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-capture",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-capture",
+    "passed": true,
+    "stdout": "PASS wb-rule split-capture\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-progress",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-progress",
+    "passed": true,
+    "stdout": "PASS wb-rule split-progress\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-chunk",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-chunk",
+    "passed": true,
+    "stdout": "PASS wb-rule split-chunk\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-aof",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-aof",
+    "passed": true,
+    "stdout": "PASS wb-rule split-aof\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-capture-multi",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-capture-multi",
+    "passed": true,
+    "stdout": "PASS wb-rule split-capture-multi\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-budget",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-budget",
+    "passed": true,
+    "stdout": "PASS wb-rule split-budget\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-dead",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-dead",
+    "passed": true,
+    "stdout": "PASS wb-rule split-dead\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-policy",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-policy",
+    "passed": true,
+    "stdout": "PASS wb-rule split-policy\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-local",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-local",
+    "passed": true,
+    "stdout": "PASS wb-rule split-local\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-fastpath",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-fastpath",
+    "passed": true,
+    "stdout": "PASS wb-rule split-fastpath\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-fifo",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-fifo",
+    "passed": true,
+    "stdout": "PASS wb-rule split-fifo\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-capture",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-capture",
+    "passed": true,
+    "stdout": "PASS wb-rule split-capture\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-progress",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-progress",
+    "passed": true,
+    "stdout": "PASS wb-rule split-progress\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-chunk",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-chunk",
+    "passed": true,
+    "stdout": "PASS wb-rule split-chunk\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-aof",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-aof",
+    "passed": true,
+    "stdout": "PASS wb-rule split-aof\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-phase-unit",
+    "sha256": "3119aa449a099469767e6df7c740bd3fcf95382770a2c0c1a0740caebc4b4917",
+    "case": "split-capture-multi",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-capture-multi",
+    "passed": true,
+    "stdout": "PASS wb-rule split-capture-multi\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-budget",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-budget",
+    "passed": true,
+    "stdout": "PASS wb-rule split-budget\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-dead",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-dead",
+    "passed": true,
+    "stdout": "PASS wb-rule split-dead\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-policy",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-policy",
+    "passed": true,
+    "stdout": "PASS wb-rule split-policy\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-local",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-local",
+    "passed": true,
+    "stdout": "PASS wb-rule split-local\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-fastpath",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-fastpath",
+    "passed": true,
+    "stdout": "PASS wb-rule split-fastpath\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-fifo",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-fifo",
+    "passed": true,
+    "stdout": "PASS wb-rule split-fifo\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-capture",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-capture",
+    "passed": true,
+    "stdout": "PASS wb-rule split-capture\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-progress",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-progress",
+    "passed": true,
+    "stdout": "PASS wb-rule split-progress\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-chunk",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-chunk",
+    "passed": true,
+    "stdout": "PASS wb-rule split-chunk\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-aof",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-aof",
+    "passed": true,
+    "stdout": "PASS wb-rule split-aof\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-capture-multi",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-capture-multi",
+    "passed": true,
+    "stdout": "PASS wb-rule split-capture-multi\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-budget",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-budget",
+    "passed": true,
+    "stdout": "PASS wb-rule split-budget\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-dead",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-dead",
+    "passed": true,
+    "stdout": "PASS wb-rule split-dead\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-policy",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-policy",
+    "passed": true,
+    "stdout": "PASS wb-rule split-policy\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-local",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-local",
+    "passed": true,
+    "stdout": "PASS wb-rule split-local\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-fastpath",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-fastpath",
+    "passed": true,
+    "stdout": "PASS wb-rule split-fastpath\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-fifo",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-fifo",
+    "passed": true,
+    "stdout": "PASS wb-rule split-fifo\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-capture",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-capture",
+    "passed": true,
+    "stdout": "PASS wb-rule split-capture\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-progress",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-progress",
+    "passed": true,
+    "stdout": "PASS wb-rule split-progress\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-chunk",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-chunk",
+    "passed": true,
+    "stdout": "PASS wb-rule split-chunk\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-aof",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-aof",
+    "passed": true,
+    "stdout": "PASS wb-rule split-aof\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-db0-phase-unit",
+    "sha256": "022f825d48fcd9cad87c0f524366f5e93e767b2c30fb1bc54c8e61e9c2aa27ad",
+    "case": "split-capture-multi",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 0,
+    "exit": 0,
+    "required": "PASS wb-rule split-capture-multi",
+    "passed": true,
+    "stdout": "PASS wb-rule split-capture-multi\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-policy/unit",
+    "sha256": "75b2f37c83d60d7be75f13e46e6363e3a70dcd63226f288fe1bd5162191b4157",
+    "case": "split-policy",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-policy: 2s uses exact composite fraction",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-policy: 2s uses exact composite fraction\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-policy/unit",
+    "sha256": "75b2f37c83d60d7be75f13e46e6363e3a70dcd63226f288fe1bd5162191b4157",
+    "case": "split-policy",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-policy: 2s uses exact composite fraction",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-policy: 2s uses exact composite fraction\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-rotation/unit",
+    "sha256": "f8bcb28728bcefdb22313b333144b22d4686e7b88496bacb4558bd5d2e07fd3b",
+    "case": "split-fifo",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-fifo: deferred rotation preserves order",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-fifo: deferred rotation preserves order\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-rotation/unit",
+    "sha256": "f8bcb28728bcefdb22313b333144b22d4686e7b88496bacb4558bd5d2e07fd3b",
+    "case": "split-fifo",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-fifo: deferred rotation preserves order",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-fifo: deferred rotation preserves order\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-head/unit",
+    "sha256": "1144a249a0d79875f4a28947da9d6739f58e1dcbbe317c7fcaeeaf1d432213f2",
+    "case": "split-fifo",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-fifo: younger eligible passes deferred head",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-fifo: younger eligible passes deferred head\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-head/unit",
+    "sha256": "1144a249a0d79875f4a28947da9d6739f58e1dcbbe317c7fcaeeaf1d432213f2",
+    "case": "split-fifo",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-fifo: younger eligible passes deferred head",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-fifo: younger eligible passes deferred head\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-pin/unit",
+    "sha256": "9df70bdcd66a51c0077db0c39e5fd0dc1669df09170a25a31f40eac819e42707",
+    "case": "split-fifo",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-fifo: deferred lifetime pins kept",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-fifo: deferred lifetime pins kept\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-pin/unit",
+    "sha256": "9df70bdcd66a51c0077db0c39e5fd0dc1669df09170a25a31f40eac819e42707",
+    "case": "split-fifo",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-fifo: deferred lifetime pins kept",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-fifo: deferred lifetime pins kept\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-capture/unit",
+    "sha256": "127ec97cf55578cc7e388e320f17959a61bc4af2a59a8bd8cc5fc7c5998dba30",
+    "case": "split-capture-multi",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-capture-multi: 2s callback cannot extend captured chunks",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-capture-multi: 2s callback cannot extend captured chunks\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-capture/unit",
+    "sha256": "127ec97cf55578cc7e388e320f17959a61bc4af2a59a8bd8cc5fc7c5998dba30",
+    "case": "split-capture-multi",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-capture-multi: 2s callback cannot extend captured chunks",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-capture-multi: 2s callback cannot extend captured chunks\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-visit/unit",
+    "sha256": "5b95e85e309badf78a4134c54293fc5fe5cb3e7db63fa1aac6b0cbb07a04cfed",
+    "case": "split-fifo",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-fifo: deferred rotation preserves order",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-fifo: deferred rotation preserves order\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-visit/unit",
+    "sha256": "5b95e85e309badf78a4134c54293fc5fe5cb3e7db63fa1aac6b0cbb07a04cfed",
+    "case": "split-fifo",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-fifo: deferred rotation preserves order",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-fifo: deferred rotation preserves order\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-dead/unit",
+    "sha256": "3c239f477a50a6158431dacfe63a8f240ea95bebf90fa9f858e706d5fb6ba8f6",
+    "case": "split-dead",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-dead: dead entry removed and unpinned",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-dead: dead entry removed and unpinned\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-dead/unit",
+    "sha256": "3c239f477a50a6158431dacfe63a8f240ea95bebf90fa9f858e706d5fb6ba8f6",
+    "case": "split-dead",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-dead: dead entry removed and unpinned",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-dead: dead entry removed and unpinned\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-work/unit",
+    "sha256": "3f728b9f59debbd902bba1d804278c77010acc1839a8c9485b0cf68b22a1af7f",
+    "case": "split-progress",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-progress: deferral alone is positive work",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-progress: deferral alone is positive work\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-work/unit",
+    "sha256": "3f728b9f59debbd902bba1d804278c77010acc1839a8c9485b0cf68b22a1af7f",
+    "case": "split-progress",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-progress: deferral alone is positive work",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-progress: deferral alone is positive work\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-chunks/unit",
+    "sha256": "3f5443dc7def730fc800bd44e7905ed53eb53fb413c0aef35b8408a11d9fb898",
+    "case": "split-chunk",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-chunk: 2s captured pass crosses scratch bound",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-chunk: 2s captured pass crosses scratch bound\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-chunks/unit",
+    "sha256": "3f5443dc7def730fc800bd44e7905ed53eb53fb413c0aef35b8408a11d9fb898",
+    "case": "split-chunk",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-chunk: 2s captured pass crosses scratch bound",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-chunk: 2s captured pass crosses scratch bound\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-aof/unit",
+    "sha256": "3bf8e4212aed80e4169f7f940a50534f9d48300f1834c17d839cbc265a67a9ba",
+    "case": "split-aof",
+    "extra": [
+      "natural"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-aof: AOF refusal precedes composite selection",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-aof: AOF refusal precedes composite selection\n"
+  },
+  {
+    "binary": "/home/user/Projects/cx-wbknobs/build/wb-rule-controls/gather-aof/unit",
+    "sha256": "3bf8e4212aed80e4169f7f940a50534f9d48300f1834c17d839cbc265a67a9ba",
+    "case": "split-aof",
+    "extra": [
+      "shallow"
+    ],
+    "expected_exit": 1,
+    "exit": 1,
+    "required": "FAIL wb-rule split-aof: AOF refusal precedes composite selection",
+    "passed": true,
+    "stdout": "",
+    "stderr": "FAIL wb-rule split-aof: AOF refusal precedes composite selection\n"
+  }
+]

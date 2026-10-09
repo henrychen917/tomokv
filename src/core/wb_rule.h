@@ -7,15 +7,21 @@
 #include "../net/conn.h"
 
 namespace tomo::wb_rule {
-// MEASURED S=16, not derived from a batch size or reply size. Constants ledger
+// MEASURED default S=16, not derived from a batch size or reply size. Constants ledger
 // addendum 12, S=16 KEEP (2026-10-02); PLAN-SERIAL 2026-10-01 16:54 and
 // 2026-10-02 06:54: p8 saturation, p8@512K attainment, floor-0.4 bursts.
 // See MEASURE-REQUEST-wbhybrid.md: no honest derivation from existing sizings.
 inline constexpr unsigned kSmallPipe = 16;
-// MEASURED D=3. Constants ledger addendum 12, D=3 DERIVE-BY-MEASUREMENT
+// MEASURED default D=3. Constants ledger addendum 12, D=3 DERIVE-BY-MEASUREMENT
 // (2026-10-02); PLAN-SERIAL 06:54 D-curve row 3: p8 GET/SET/rl-SET
 // +9.4/+10.4/+6.6%, with floor-0.4 p99/p999 inside the same-binary band.
 inline constexpr unsigned kCompleteVisits = 3;
+// Boot-latched in IoLoop padding; no allocation or per-visit configuration lookup.
+struct Settings {
+    uint8_t policy = 1;
+    uint8_t small_pipe = kSmallPipe;
+    uint8_t complete_visits = kCompleteVisits;
+};
 // Dimensionless POLICY fraction, not a byte/count/time bound. Competition record
 // section 39 (2026-09-23/24), w4-c12: parse 32 / EX 32 / composite 1/2.
 inline constexpr std::ratio<1, 2> kPolicyFraction{};
@@ -28,9 +34,11 @@ __attribute__((noinline, noclone)) inline int default_policy() {
     return policy;
 }
 
-inline void info(std::string& body, int policy) {
-    char line[64];
-    std::snprintf(line, sizeof line, "# Writeback\r\nwb_policy:%d\r\n", policy);
+inline void info(std::string& body, int policy, unsigned small_pipe, unsigned complete_visits) {
+    char line[128];
+    std::snprintf(line, sizeof line,
+                  "# Writeback\r\nwb_policy:%d\r\nwb_small_pipe:%u\r\nwb_complete_visits:%u\r\n",
+                  policy, small_pipe, complete_visits);
     body += line;
 }
 
@@ -72,7 +80,8 @@ inline size_t reply_bytes(const Operation& op) {
 }
 
 template <class Connection>
-inline bool defer(Connection& c, int policy = 1) {
+inline bool defer(Connection& c, const Settings& cfg) {
+    int policy = cfg.policy;
     if (policy == 0) return false; // LATENCY: every ready head on every captured pass
     auto& rob = c.rob();
     const unsigned n = rob.in_flight();
@@ -80,11 +89,15 @@ inline bool defer(Connection& c, int policy = 1) {
     size_t bytes = staged_bytes(c);
     if (bytes >= kWbufInline) return false;
     const auto head = rob.flush_id();
+    const unsigned small_pipe = cfg.small_pipe, complete_visits = cfg.complete_visits;
     // Keep this per-visit predicate off the encoder's register set. A live
     // register here spills once per integer reply; one stack byte keeps all
     // additional work at the visit boundary (locked by code-costs receipts).
-    const volatile bool complete = n <= kSmallPipe && c.wb_deferrals() < kCompleteVisits;
-    const unsigned threshold = complete ? n : (n * kPolicyFraction.num + kPolicyFraction.den - 1) / kPolicyFraction.den;
+    // D=0 completes without counting. Only the bounded predicate survives the
+    // walk, so neither knob needs a live register through integer reply sizing.
+    const volatile bool complete = n <= small_pipe && c.wb_deferrals() < complete_visits;
+    const unsigned threshold = (complete || (complete_visits == 0 && n <= small_pipe))
+        ? n : (n * kPolicyFraction.num + kPolicyFraction.den - 1) / kPolicyFraction.den;
     unsigned prefix = 0;
     // Both counters belong to IO, but Done can have holes. Neither head/tail nor
     // the threshold slot alone proves a contiguous prefix. At most ROB slots,
@@ -101,9 +114,16 @@ inline bool defer(Connection& c, int policy = 1) {
     }
     if (prefix >= threshold) return false;
     // One byte update per deferred visit, never per operation. The predicate
-    // caps the count at D: a half-rule deferral adds zero, so it cannot wrap.
+    // caps the count at D: half-rule and unbounded deferrals add zero, never wrap.
     c.wb_deferrals() += complete;
     return true;
+}
+template <class Connection>
+inline bool defer(Connection& c, int policy = 1, unsigned small_pipe = kSmallPipe,
+                  unsigned complete_visits = kCompleteVisits) {
+    const Settings cfg{static_cast<uint8_t>(policy), static_cast<uint8_t>(small_pipe),
+                       static_cast<uint8_t>(complete_visits)};
+    return defer(c, cfg);
 }
 // Both modes use the same acquire walk and FIFO lifetime rule. Coded preserves
 // each caller's existing encoder capability; it is not a policy selector.
@@ -117,7 +137,7 @@ struct Phase2 {
             --left;
             Client* client = loop.pending_serve_.front();
             loop.pending_serve_.pop_front();
-            if (!client->dead() && defer(*client, loop.srv_->cfg().wb_policy)) {
+            if (!client->dead() && defer(*client, loop.wb_config_)) {
                 loop.pending_serve_.push_back(client);
                 continue;
             }
@@ -142,7 +162,7 @@ struct Phase2 {
             Client* c = loop.pending_serve_.front();
             loop.pending_serve_.pop_front();
             ++visits;
-            if (!c->dead() && defer(*c, loop.srv_->cfg().wb_policy)) {
+            if (!c->dead() && defer(*c, loop.wb_config_)) {
                 // Keep the lifetime pin; a younger eligible connection may pass this head.
                 loop.pending_serve_.push_back(c);
                 continue;

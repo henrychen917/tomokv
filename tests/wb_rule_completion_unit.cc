@@ -57,6 +57,23 @@ static void table() {
         }
     std::printf("table_cells=%u policies=0,1 wraps=0,61 counts=0..%u\n", cells, wait_limit);
 }
+static void knobs() {
+    // Independent integer oracle; sweep every prefix, both ROB placements, and
+    // counter boundaries. The same runtime call must distinguish S=0 and D=0.
+    for (unsigned s : {0u, 1u, 2u, 8u, 16u, 17u, 64u})
+        for (unsigned d : {0u, 1u, 3u, 255u})
+        for (unsigned start : {0u, 61u}) for (unsigned n = 0; n <= 64; ++n)
+        for (unsigned done = 0; done <= n; ++done)
+        for (unsigned waits : {0u, 1u, 2u, 3u, 254u, 255u}) {
+            Client c(-1); fill(c, start, start); finish(c); fill(c, n, done); count(c, waits);
+            const bool completing = n <= s && (d == 0 || waits < d);
+            const bool expected = n > 1 && done < (completing ? n : n / 2 + n % 2);
+            require(!wb_rule::defer(c, 0, s, d) && count(c) == waits, "knobs preserve policy zero");
+            require(wb_rule::defer(c, 1, s, d) == expected, "runtime knob decision table");
+            require(count(c) == waits + unsigned(expected && completing && d != 0),
+                    "runtime count saturates or stays untouched when unbounded");
+        }
+}
 static void exits() {
     for (unsigned n = 2; n <= 64; ++n) for (unsigned waits = 0; waits <= wait_limit; ++waits) {
         Client c(-1); fill(c, n, 1); count(c, waits);
@@ -101,6 +118,7 @@ struct WbStub {
 struct Loop {
     std::deque<Client*> pending_serve_; ServerStub server; ServerStub* srv_ = &server;
     unsigned climon_armed_cached_ = 0; WbStub wb_;
+    wb_rule::Settings wb_config_;
     bool climon_reply_suppressed(Client*) { return false; }
     unsigned climon_serve_suppressed(Client*) { return 0; }
 };
@@ -124,7 +142,7 @@ static void lifetime() {
         if (exit == 2) c.fill_buf().append(std::string(512, 's').data(), 512);
         if (exit == 3) { auto& op = c.rob().at(c.rob().flush_id());
             op.zc_ptr = reinterpret_cast<const char*>(1); op.zc_shard = Op::kScatterStateMarker; }
-        if (exit == 4) loop.server.config.wb_policy = 0;
+        if (exit == 4) loop.wb_config_.policy = 0;
         if (exit == 5) c.mark_dead();
         enqueue(loop, c); require(visit(loop) == (exit != 5), "serve/dead exit");
         require(!c.serve_pending() && loop.pending_serve_.empty(), "FIFO pin released");
@@ -133,7 +151,7 @@ static void lifetime() {
         if (exit != 5) {
             if (exit == 3) c.rob().at(c.rob().flush_id()).zc_ptr = nullptr;
             finish(c); c.fill_buf().clear(); fill(c, 8, 4);
-            loop.server.config.wb_policy = 1; enqueue(loop, c);
+            loop.wb_config_.policy = 1; enqueue(loop, c);
             require(!visit(loop), "served connection completes again next pipe");
         } else require(count(c) == 0, "dead exit resets count");
     }
@@ -155,6 +173,26 @@ static void lifetime() {
         require(count(c) == delay, "saturation cannot wrap after 1024 visits");
     }
 }
+static void knob_lifetime() {
+    for (unsigned s : {0u, 8u, 64u}) for (unsigned d : {0u, 1u, 3u, 255u}) {
+        Loop loop;
+        loop.wb_config_.small_pipe = s; loop.wb_config_.complete_visits = d;
+        Client c(-1); fill(c, 8, 4); enqueue(loop, c);
+        const unsigned visits = s == 0 ? 0 : d == 0 ? 1024 : d;
+        for (unsigned i = 0; i < visits; ++i) {
+            require(!visit(loop), "runtime completion defers exactly D visits");
+            require(c.serve_pending() && loop.pending_serve_.size() == 1,
+                    "runtime completion retains one FIFO pin");
+            require(count(c) == (d ? i + 1 : 0), "D=0 never increments or wraps");
+        }
+        if (d || !s) require(visit(loop), "runtime half threshold admits after D visits");
+        else {
+            finish(c); fill(c, 8, 8);
+            require(visit(loop), "unbounded completion admits a finished pipe");
+        }
+        require(!c.serve_pending() && count(c) == 0, "runtime admission resets count and pin");
+    }
+}
 extern "C" __attribute__((noinline, noclone)) bool wb_completion_defer(Client* c, int policy) {
     return wb_rule::defer(*c, policy);
 }
@@ -173,9 +211,13 @@ int main(int argc, char** argv) {
     if (argc != 2) return 2;
     selected = argv[1]; const std::string name = selected;
     if (name == "table") table();
+    else if (name == "knobs") knobs();
     else if (name == "exits") exits();
     else if (name == "lifetime" || name == "lifetime-serve") {
         serve_path = name == "lifetime-serve"; lifetime();
+    }
+    else if (name == "knob-lifetime" || name == "knob-lifetime-serve") {
+        serve_path = name == "knob-lifetime-serve"; knob_lifetime();
     }
     else if (name.starts_with("trace-")) trace(name);
     else require(false, "known fixture");

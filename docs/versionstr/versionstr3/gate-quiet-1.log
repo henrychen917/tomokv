@@ -1,0 +1,13 @@
+2026-10-09 00:04:03 UTC
+quietcheck: assigned cores busy: cpu118=100% cpu120=100% cpu121=100% cpu122=100% cpu123=100% cpu124=100% cpu125=100% cpu126=100% cpu127=100%
+quietcheck: assigned cores busy: cpu118=100% cpu120=100% cpu121=100% cpu122=100% cpu123=100% cpu124=100% cpu125=100% cpu126=100% cpu127=100%
+quietcheck: assigned cores busy: cpu117=84% cpu120=100% cpu121=100% cpu122=100% cpu123=100% cpu124=100% cpu125=100% cpu126=100% cpu127=100%
+    PID    PPID PSR     ELAPSED COMMAND
+3522916 3522915 123       00:14 cc1plus
+3523021 3523020 126       00:13 cc1plus
+3525740 3525739 121       00:05 cc1plus
+3525759 3525758 122       00:03 cc1plus
+3525775 3525774 127       00:03 cc1plus
+3525779 3525778 124       00:02 cc1plus
+3525794 3525793 120       00:01 cc1plus
+3525798 3525797 125       00:01 cc1plus

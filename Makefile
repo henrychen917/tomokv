@@ -44,11 +44,15 @@ SRC      += src/persist/aof_frame_debug.cc
 SRC      += src/cmd/aclkeys.cc
 # Keep the armed-only witness parser after ordinary objects (weak-symbol selection).
 SRC      += src/cmd/blocking_debug.cc
+# The entry wrapper belongs only to server links using --wrap=main.
+SERVER_ONLY_SRC := src/core/version.cc
 LDLIBS   += -lssl -lcrypto
 BUILD_ROOT ?= build
 BIN      := $(BUILD_ROOT)/tomokv
 OBJ      := $(SRC:%.cc=$(BUILD_ROOT)/%.o)
 DB0_OBJ  := $(SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
+SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/%.o)
+DB0_SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 
 all: $(BIN)
 
@@ -95,9 +99,9 @@ build/persistfix-controls/%/tomokv: build/persistfix-controls/%/aof.o build/pers
 .PHONY: persistfix-live-controls
 persistfix-live-controls: build/persistfix-controls/old-ack/tomokv build/persistfix-controls/old-close/tomokv
 
-$(BIN): $(OBJ) $(DB0_OBJ)
+$(BIN): $(OBJ) $(SERVER_ONLY_OBJ) $(DB0_OBJ) $(DB0_SERVER_ONLY_OBJ)
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(DB0_OBJ) $(OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+	$(CXX) $(CXXFLAGS) $(DB0_OBJ) $(DB0_SERVER_ONLY_OBJ) $(OBJ) $(SERVER_ONLY_OBJ) -o $@ -Wl,--wrap=main $(JELIBS) $(LDLIBS) -lm
 
 # SV6 adds only a cold metadata lookup; retain all unrelated climon bodies.
 $(BUILD_ROOT)/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=25735
@@ -569,7 +573,7 @@ NETCMD_TEST_SRC := tests/netcmd_unit.cc tests/netcmd_stream_unit.cc tests/netcmd
 NETCMD_TEST_OBJ := $(NETCMD_TEST_SRC:tests/%.cc=build/tests/%.o)
 build/tests/netcmd_unit.o build/db0/tests/netcmd_unit.o: tests/tlsserve_checks.inc tests/hexpire_oom_checks.inc
 NETCMD_LIB_OBJ := $(filter-out build/src/main.o build/src/cmd/xshard.o build/src/cmd/t_stream_groups.o build/src/cmd/t_zset.o build/src/cmd/server_tail.o,$(OBJ))
-build/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(wildcard src/*/*.cc) $(wildcard src/*/*.inc) Makefile
+build/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(filter-out $(SERVER_ONLY_SRC),$(wildcard src/*/*.cc)) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Wno-mismatched-new-delete -I. -c $< -o $@
 build/netcmd-unit: $(NETCMD_TEST_OBJ) $(NETCMD_LIB_OBJ)
@@ -578,7 +582,7 @@ build/netcmd-unit: $(NETCMD_TEST_OBJ) $(NETCMD_LIB_OBJ)
 
 # The same direct-call regressions against the databases=1 runtime selected at boot.
 NETCMD_DB0_TEST_OBJ := $(NETCMD_TEST_SRC:tests/%.cc=build/db0/tests/%.o)
-build/db0/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(wildcard src/*/*.cc) $(wildcard src/*/*.inc) Makefile
+build/db0/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(filter-out $(SERVER_ONLY_SRC),$(wildcard src/*/*.cc)) $(wildcard src/*/*.inc) Makefile
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Wno-mismatched-new-delete -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c $< -o $@
 # Lua's C runtime is emitted only by the namespaced scripting object; the second library
@@ -697,7 +701,7 @@ build/wb-rule-units: build/wb-rule-unit build/wb-rule-db0-unit build/wb-rule-pha
 	@touch $@
 
 # Completion witnesses and clause-deletion controls share the existing wbland rows.
-WB_RULE_COMPLETION_CONTROLS := small-early small-late visits-early visits-late gather-reset serve-reset
+WB_RULE_COMPLETION_CONTROLS := small-early small-late visits-early visits-late gather-reset serve-reset knob-small-ignored knob-unbounded-ignored knob-unbounded-wrap
 WB_RULE_COMPLETION_DEPS := tests/wb_rule_completion_unit.cc tests/wb_rule_checks.py $(wildcard src/*/*.h) Makefile
 WB_RULE_COMPLETION_UNITS := build/wb-rule-completion-unit build/wb-rule-db0-completion-unit $(foreach name,$(WB_RULE_COMPLETION_CONTROLS),build/wb-rule-completion-controls/$(name)/unit build/wb-rule-completion-controls/$(name)/db0-unit)
 build/wb-rule-completion-unit: $(WB_RULE_COMPLETION_DEPS)

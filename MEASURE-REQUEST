@@ -11,3 +11,20 @@ encodingfix: mainline measurements pending.
 See MEASURE-REQUEST-aclkeys3.md for the original-protocol failure, 528/528 directed serverless cases, negative controls, PRE/POST SHA-256, body/layout audit, quiet refusals, gate recipe blockers, and the requested mainline 14-cell null.
 
 Six loaded gate runs and idle/loaded loss rates remain unrun. The strict emitted-body audit retains one discarded weak-copy difference; its selected executable copy is identical. No server or load generator was started.
+
+wbknobs — 2026-10-09
+
+See MEASURE-REQUEST-wbknobs.md for the complete owner handoff, binary hashes,
+knob grammar/defaults, instruction and body receipts, and exact commands.
+
+Mainline acceptance, still pending:
+1. The 14 cells in tests/wbland_merit_cells.txt: newest headline defaults versus
+   build/wbknobs/POST/tomokv defaults, every cell within the class band.
+2. p8g and p8s in tests/wbknobs_sweep_cells.txt: identical POST bytes in both arms,
+   policy=1/S=0/D=3 versus policy=1/S=16/D=3, GET and SET each +6..+10%.
+
+Use tools/wbknobs_measure.py on the scheduled quiet box. The report specifies
+32 physical server cores 0-31, load 32-111, no SMT, and eight deep-cell loaders.
+PMU diagnostics are separate --profile 1 runs, not acceptance evidence.
+No server, benchmark or gate was run by the lane. Gate inventory is +2/+2,
+504 quick / 521 full. Append measurements as MEASURE-RESULT.

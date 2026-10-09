@@ -1,0 +1,30 @@
+[
+  {
+    "binary": "/home/user/Projects/cx-versionstr/build/versionstr2/POST/tomokv",
+    "flag": "--version",
+    "returncode": 0,
+    "stdout": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/cx-versionstr/build/versionstr2/POST/tomokv",
+    "flag": "-v",
+    "returncode": 0,
+    "stdout": "TomoKV 1.0-cpp (Redis 7.4.10 compatible)\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/redis74/src/redis-server",
+    "flag": "--version",
+    "returncode": 0,
+    "stdout": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746\n",
+    "stderr": ""
+  },
+  {
+    "binary": "/home/user/Projects/redis74/src/redis-server",
+    "flag": "-v",
+    "returncode": 0,
+    "stdout": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746\n",
+    "stderr": ""
+  }
+]

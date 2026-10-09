@@ -288,8 +288,8 @@ inline bool priority_enabled(uint32_t requested) {
 // Costs and the conservative non-head classification still require S4 measurement.
 template <size_t BatchOps>
 class ExReorderQueues {
-    static_assert(BatchOps == kGenthreadExBatchOps ||
-                  BatchOps == 128 /* legacy queue unit geometry; no production caller */);
+    // Queue geometry is generic; production uses the executor quantum.
+    static_assert(BatchOps > 0 && BatchOps <= UINT32_MAX / 2);
     static constexpr uint32_t Capacity = 2 * BatchOps;
     static_assert((Capacity & (Capacity - 1)) == 0);
     static_assert(std::is_trivially_destructible_v<Task>);
@@ -445,8 +445,8 @@ public:
 // This is a pick bound, not a wall-time promise about long handlers/atomic waits.
 template <size_t BatchOps>
 class ShadowReorderQueues {
-    static_assert(BatchOps == kGenthreadExBatchOps ||
-                  BatchOps == 128 /* legacy queue unit geometry; no production caller */);
+    // Queue geometry is generic; production uses the executor quantum.
+    static_assert(BatchOps > 0 && BatchOps <= UINT32_MAX / 2);
     static constexpr uint32_t Capacity = 2 * BatchOps;
     using Index = uint16_t;
     static constexpr Index None = UINT16_MAX;

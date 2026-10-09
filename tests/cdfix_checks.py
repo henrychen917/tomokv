@@ -41,9 +41,9 @@ def build(args):
         unit = out / (namespace + ".o")
         run(flags + variant + ["-c", "tests/cdfix_unit.cc", "-o", unit])
         for arm, root in (("PRE", args.pre), ("POST", args.post)):
-            objects = sorted(p for p in (root / "src").rglob("*.o") if p.name != "main.o")
+            objects = sorted(p for p in (root / "src").rglob("*.o") if p.name not in ("main.o", "version.o"))
             if namespace == "db0":
-                objects = sorted(p for p in (root / "db0/src").rglob("*.o") if p.name != "main.o") + objects
+                objects = sorted(p for p in (root / "db0/src").rglob("*.o") if p.name not in ("main.o", "version.o")) + objects
             run(flags + [unit, out / "oracle.o", out / "redis-geohash.o", out / "redis-util.o"] + objects +
                 ["-Wl,--gc-sections", "-ljemalloc", "-luring", "-lssl", "-lcrypto", "-lm",
                  "-o", out / (arm + "-" + namespace)])
@@ -55,7 +55,7 @@ def build(args):
     broken = out / "physical-slot.cc"
     broken.write_text(source.replace(correct, "slot.state == Live && pos == home"))
     run(flags + ["-Isrc/cmd", "-c", broken, "-o", out / "physical-slot.o"])
-    objects = sorted(p for p in (args.post / "src").rglob("*.o") if p.name not in ("main.o", "t_set.o"))
+    objects = sorted(p for p in (args.post / "src").rglob("*.o") if p.name not in ("main.o", "version.o", "t_set.o"))
     run(flags + [out / "multi.o", out / "physical-slot.o", out / "oracle.o",
                  out / "redis-geohash.o", out / "redis-util.o"] + objects +
         ["-Wl,--gc-sections", "-ljemalloc", "-luring", "-lssl", "-lcrypto", "-lm",

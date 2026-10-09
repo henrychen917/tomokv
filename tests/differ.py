@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # DIFFERENTIAL battery: run one deterministic command stream against the TARGET (tomokv-cpp) and
-# the ORACLE (vanilla Redis 7.4.2 -- byte-exact redis semantics) and diff every reply.
+# the ORACLE (vanilla Redis 7.4.10 -- byte-exact redis semantics) and diff every reply.
 #   python3 tests/differ.py <target_host> <target_port> <oracle_host> <oracle_port> <suite> [seed] [-3]
 #   python3 tests/differ.py --list-generators
 # Exit 0 iff zero diffs. Suites include the ordinary byte-comparison generators plus property
@@ -6336,7 +6336,9 @@ if SUITE == "psfix":
 
 # Fields introduced by SV7/SV9, with Redis 7.4's actual section placement.
 INFOFIELDS_REQUIRED = {
-    b"Server": {b"run_id", b"executable", b"config_file", b"io_threads_active"},
+    b"Server": {b"redis_version", b"redis_mode", b"arch_bits", b"multiplexing_api",
+                b"process_id", b"run_id", b"tcp_port", b"uptime_in_seconds",
+                b"uptime_in_days", b"executable", b"config_file", b"io_threads_active"},
     b"Replication": {b"role"},
     b"Cluster": {b"cluster_enabled"},
     b"Persistence": {b"loading", b"rdb_last_bgsave_status"},
@@ -6353,6 +6355,8 @@ def infofields_sections(raw):
     assert isinstance(payload, bytes), ("INFO bulk/verbatim reply", raw[:100])
     if payload.startswith(b"txt:"):
         payload = payload[4:]
+    assert payload.endswith(b"\r\n"), ("INFO trailing CRLF", payload[-80:])
+    assert b"\n" not in payload.replace(b"\r\n", b"") and b"\r" not in payload.replace(b"\r\n", b""), "INFO bare newline"
     sections, current = {}, None
     for line in payload.split(b"\r\n"):
         if line.startswith(b"# "):
@@ -6386,6 +6390,39 @@ def infofields_rate_check(rate, offered):
     assert offered > 0 and abs(rate - offered) <= offered * .15, (rate, offered, "15% rate bound")
 
 
+def infofields_version(value):
+    assert isinstance(value, bytes) and re.fullmatch(br"[0-9]+\.[0-9]+\.[0-9]+", value), ("Redis version grammar", value)
+    return tuple(map(int, value.split(b".")))
+
+
+def infofields_server_versions(target, oracle):
+    # TomoKV has additional Server telemetry; compare the supported Redis names,
+    # whose presence/section placement is independently pinned above.
+    required = INFOFIELDS_REQUIRED[b"Server"]
+    assert required <= target.keys() and required <= oracle.keys(), "INFO Server field names"
+    assert list(target)[:3] == [b"redis_version", b"tomokv_version", b"redis_mode"], "INFO version field order"
+    assert target[b"tomokv_version"] == b"1.0-cpp", target[b"tomokv_version"]
+    assert target[b"redis_version"] == b"7.4.10", target[b"redis_version"]
+    assert infofields_version(target[b"redis_version"]) == (7, 4, 10)
+    assert infofields_version(oracle[b"redis_version"])[:2] == (7, 4), "requires Redis 7.4 oracle"
+    assert not {b"tomokv_version", b"dragonfly_version"} & oracle.keys(), "requires vanilla oracle"
+    assert target[b"redis_mode"] == oracle[b"redis_mode"] == b"standalone"
+    return target[b"redis_version"], oracle[b"redis_version"]
+
+
+def infofields_hello_version(raw, protocol, expected):
+    prefix = b"*14\r\n" if protocol == 2 else b"%7\r\n"
+    assert raw.startswith(prefix), ("HELLO framing", protocol, raw[:80])
+    values = parse_reply(raw)
+    assert isinstance(values, list) and len(values) == 14, ("HELLO fields", values)
+    fields = dict(zip(values[::2], values[1::2]))
+    assert set(fields) == {b"server", b"version", b"proto", b"id", b"mode", b"role", b"modules"}, fields
+    assert fields[b"server"] == b"redis" and fields[b"mode"] == b"standalone" and fields[b"role"] == b"master", fields
+    assert fields[b"proto"] == b":%d" % protocol, fields
+    assert fields[b"version"] == expected, ("HELLO vs INFO version", fields[b"version"], expected)
+    assert infofields_version(fields[b"version"]) == infofields_version(expected)
+
+
 def run_infofields_properties(peers):
     def issue(peer, args):
         sock, file = peer
@@ -6397,6 +6434,25 @@ def run_infofields_properties(peers):
 
     all_fields = [info(peer, "all") for peer in peers]
     infofields_names(*all_fields)
+    versions = infofields_server_versions(*(rows[b"Server"] for rows in all_fields))
+    for protocol in (2, 3):
+        for side, peer, version in zip(("target", "oracle"), peers, versions):
+            infofields_hello_version(issue(peer, ["HELLO", str(protocol)]), protocol, version)
+            # Exercise INFO in both negotiated modes, including RESP3 verbatim framing.
+            selected = info(peer, "server")
+            assert set(selected) == {b"Server"}, (side, selected.keys())
+            assert selected[b"Server"].keys() == all_fields[(side == "oracle")][b"Server"].keys(), (side, "INFO Server names changed")
+            assert selected[b"Server"][b"redis_version"] == version, side
+            print("  versionstr %s HELLO %d / INFO redis_version=%s" % (side, protocol, version.decode()))
+            art = parse_reply(issue(peer, ["LOLWUT"]))
+            footer = (b"TomoKV ver. 1.0-cpp\n" if side == "target"
+                      else b"Redis ver. " + version + b"\n")
+            assert isinstance(art, bytes) and art.endswith(footer), (side, "LOLWUT footer", art)
+            print("  versionstr %s RESP%d LOLWUT footer=%s" % (side, protocol, footer.decode().strip()))
+    for peer, version in zip(peers, versions):
+        infofields_hello_version(issue(peer, ["HELLO", "3" if RESP3 else "2"]), 3 if RESP3 else 2, version)
+    if versions[0] != versions[1]:
+        print("  versionstr oracle patch differs: target=%s oracle=%s (both Redis 7.4)" % tuple(v.decode() for v in versions))
     for side, peer, rows in zip(("target", "oracle"), peers, all_fields):
         server = rows[b"Server"]
         assert re.fullmatch(br"[0-9a-f]{40}", server[b"run_id"]), (side, server)

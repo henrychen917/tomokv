@@ -1,0 +1,4 @@
+2026-10-08 10:51:50 UTC
+quietcheck: assigned cores busy: cpu112=16% cpu119=86%
+quietcheck: assigned cores busy: cpu112=23% cpu113=80%
+    PID    PPID PSR     ELAPSED COMMAND

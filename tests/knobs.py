@@ -65,10 +65,12 @@ try:
     for name, expected in (("thread-mode", "2s"), ("net-io", engine), ("read-local", "0"),
                            ("atomic", atomic), ("key-lb", "1"), ("client-lb", "1"),
                            ("flip-auto", "0"), ("overlap", "0"), ("reorder", "0"),
-                           ("wb-policy", "1"), ("key-lb-damping", "-1")):
+                           ("wb-policy", "1"), ("wb-small-pipe", "16"),
+                           ("wb-complete-visits", "3"), ("key-lb-damping", "-1")):
         if values.get(name.encode()) != expected.encode():
             raise AssertionError("CONFIG %s differs: %r" % (name, values.get(name.encode())))
     for name in ("read-local", "key-lb", "client-lb", "key-lb-damping", "flip-auto", "net-io", "overlap", "reorder", "wb-policy",
+                 "wb-small-pipe", "wb-complete-visits",
                  "hll-sparse-max-bytes", "unixsocketperm", "port", "bind", "unixsocket"):
         result = conn.cmd("CONFIG", "SET", name, values[name.encode()])
         if not isinstance(result, _lib.RespError) or "immutable" not in str(result):
@@ -81,8 +83,9 @@ try:
             raise AssertionError("AOF recovery policy did not change at runtime")
     conn.must("CONFIG", "SET", "aof-load-truncated", values[b"aof-load-truncated"])
     writeback = _lib.info(conn, "WRITEBACK")
-    if writeback.get("wb_policy") != "1":
-        raise AssertionError("INFO WRITEBACK wb_policy differs: %r" % writeback)
+    for name, expected in (("wb_policy", "1"), ("wb_small_pipe", "16"), ("wb_complete_visits", "3")):
+        if writeback.get(name) != expected:
+            raise AssertionError("INFO WRITEBACK %s differs: %r" % (name, writeback))
     server = _lib.info(conn, "server")
     for name, expected in (("thread_mode", "2s"), ("shards", "16"),
                            ("read_local", "0"), ("atomic", atomic), ("overlap", "0"), ("reorder", "0"),

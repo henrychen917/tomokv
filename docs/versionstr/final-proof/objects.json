@@ -1,0 +1,472 @@
+[
+  {
+    "object": "db0/src/cmd/acl.o",
+    "functions": 258,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/climon.o",
+    "functions": 220,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/cmdgap.o",
+    "functions": 4,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/cmdmeta.o",
+    "functions": 35,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/commands.o",
+    "functions": 28,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/functions.o",
+    "functions": 78,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/geo.o",
+    "functions": 94,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/geo_store.o",
+    "functions": 6,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/glob.o",
+    "functions": 2,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/hll.o",
+    "functions": 24,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/info_stats.o",
+    "functions": 22,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/l4prebuild.o",
+    "functions": 62,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/lbsignals.o",
+    "functions": 15,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/lcs.o",
+    "functions": 14,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/multi_admin.o",
+    "functions": 8,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/multidb.o",
+    "functions": 82,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/pfdebug.o",
+    "functions": 34,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/scripting.o",
+    "functions": 138,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/serialize.o",
+    "functions": 105,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/server_tail.o",
+    "functions": 92,
+    "changed": 1
+  },
+  {
+    "object": "db0/src/cmd/slowlog.o",
+    "functions": 72,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/storesize.o",
+    "functions": 19,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/t_hash.o",
+    "functions": 232,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/t_hash_ttl.o",
+    "functions": 96,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/t_list.o",
+    "functions": 195,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/t_server.o",
+    "functions": 228,
+    "changed": 3
+  },
+  {
+    "object": "db0/src/cmd/t_set.o",
+    "functions": 203,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/t_sort.o",
+    "functions": 22,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/t_stream.o",
+    "functions": 249,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/t_stream_groups.o",
+    "functions": 159,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/t_string.o",
+    "functions": 145,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/t_string_notify.o",
+    "functions": 171,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/t_zset.o",
+    "functions": 292,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/t_zset_ops.o",
+    "functions": 1,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/tracking.o",
+    "functions": 67,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/cmd/xshard.o",
+    "functions": 870,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/core/flipctl.o",
+    "functions": 73,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/core/genthread.o",
+    "functions": 758,
+    "changed": 2
+  },
+  {
+    "object": "db0/src/core/lbplanner.o",
+    "functions": 64,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/core/lbstall.o",
+    "functions": 12,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/core/reorder.o",
+    "functions": 822,
+    "changed": 2
+  },
+  {
+    "object": "db0/src/core/rl2s.o",
+    "functions": 915,
+    "changed": 2
+  },
+  {
+    "object": "db0/src/main.o",
+    "functions": 827,
+    "changed": 10
+  },
+  {
+    "object": "db0/src/net/tls.o",
+    "functions": 38,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/persist/aof.o",
+    "functions": 297,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/persist/aof_frame_debug.o",
+    "functions": 6,
+    "changed": 0
+  },
+  {
+    "object": "db0/src/snapshot/snapshot.o",
+    "functions": 126,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/acl.o",
+    "functions": 258,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/climon.o",
+    "functions": 219,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/cmdgap.o",
+    "functions": 4,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/cmdmeta.o",
+    "functions": 35,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/commands.o",
+    "functions": 28,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/functions.o",
+    "functions": 78,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/geo.o",
+    "functions": 95,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/geo_store.o",
+    "functions": 6,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/glob.o",
+    "functions": 2,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/hll.o",
+    "functions": 24,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/info_stats.o",
+    "functions": 22,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/l4prebuild.o",
+    "functions": 66,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/lbsignals.o",
+    "functions": 15,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/lcs.o",
+    "functions": 14,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/multi_admin.o",
+    "functions": 9,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/multidb.o",
+    "functions": 97,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/pfdebug.o",
+    "functions": 34,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/scripting.o",
+    "functions": 571,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/serialize.o",
+    "functions": 105,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/server_tail.o",
+    "functions": 92,
+    "changed": 1
+  },
+  {
+    "object": "src/cmd/slowlog.o",
+    "functions": 72,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/storesize.o",
+    "functions": 20,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/t_hash.o",
+    "functions": 233,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/t_hash_ttl.o",
+    "functions": 94,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/t_list.o",
+    "functions": 193,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/t_server.o",
+    "functions": 224,
+    "changed": 3
+  },
+  {
+    "object": "src/cmd/t_set.o",
+    "functions": 204,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/t_sort.o",
+    "functions": 22,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/t_stream.o",
+    "functions": 251,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/t_stream_groups.o",
+    "functions": 160,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/t_string.o",
+    "functions": 144,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/t_string_notify.o",
+    "functions": 173,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/t_zset.o",
+    "functions": 293,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/t_zset_ops.o",
+    "functions": 1,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/tracking.o",
+    "functions": 68,
+    "changed": 0
+  },
+  {
+    "object": "src/cmd/xshard.o",
+    "functions": 877,
+    "changed": 0
+  },
+  {
+    "object": "src/core/flipctl.o",
+    "functions": 73,
+    "changed": 0
+  },
+  {
+    "object": "src/core/genthread.o",
+    "functions": 767,
+    "changed": 2
+  },
+  {
+    "object": "src/core/lbplanner.o",
+    "functions": 64,
+    "changed": 0
+  },
+  {
+    "object": "src/core/lbstall.o",
+    "functions": 12,
+    "changed": 0
+  },
+  {
+    "object": "src/core/reorder.o",
+    "functions": 833,
+    "changed": 2
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "functions": 931,
+    "changed": 2
+  },
+  {
+    "object": "src/main.o",
+    "functions": 833,
+    "changed": 3
+  },
+  {
+    "object": "src/net/tls.o",
+    "functions": 38,
+    "changed": 0
+  },
+  {
+    "object": "src/persist/aof.o",
+    "functions": 297,
+    "changed": 0
+  },
+  {
+    "object": "src/persist/aof_frame_debug.o",
+    "functions": 6,
+    "changed": 0
+  },
+  {
+    "object": "src/snapshot/snapshot.o",
+    "functions": 124,
+    "changed": 0
+  }
+]

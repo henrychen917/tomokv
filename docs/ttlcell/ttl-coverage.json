@@ -1,0 +1,43 @@
+{
+  "subset": "full",
+  "count": 2,
+  "ids": [
+    "ttls",
+    "ttlm"
+  ],
+  "modes": [
+    "1s"
+  ],
+  "operations": [
+    "MIX",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "SET"
+  ],
+  "depths": [
+    32
+  ],
+  "connections": [
+    512
+  ],
+  "data_bytes": [
+    64
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "rate"
+  ],
+  "pending_pins": [],
+  "keys": {
+    "ttls": 20000000,
+    "ttlm": 20000000
+  },
+  "client_flags": {
+    "ttls": "--expiry-range=1-30",
+    "ttlm": "--expiry-range=1-30"
+  }
+}

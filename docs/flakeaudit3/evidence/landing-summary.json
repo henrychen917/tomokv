@@ -1,0 +1,114 @@
+{
+  "landed_ledgers": [
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1007/ccfix-gate-ledger-iteration.txt",
+      "sha256": "e45e065e9b16c7a44d6fcfbed3aebc6c4f85ba9cf1dcf69a1779ce76f7eebaf1",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1007/cd13b-gate-ledger-iteration.txt",
+      "sha256": "b6296d490bd801475da5954cf1ad8728fe6c78fcebf92a7826a84d470652029c",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1007/cmdmeta-gate-ledger-iteration.txt",
+      "sha256": "ef1923c2e0431f45d72698fb1562f8b17dfc0ee3628e3da1e0bdb69d73c8f1a9",
+      "ok": 516,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1007/exbatch3-gate-ledger-iteration.txt",
+      "sha256": "1d162ad3eadd93dfa451cbf537c3615498e7381d2cfd807c38981d47e9d69bd8",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1007/flakeaudit-gate-ledger-iteration.txt",
+      "sha256": "e5929fadd50c4e0be1248b7502db0878529f3adb512acd12f8c3bcb9770055b8",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1007/flakefix-gate-ledger-iteration.txt",
+      "sha256": "e5b5f137ec0a0492af62af663fe132bc0855cfec7a618a96fcfe28a25c096625",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1007/flakefix3-gate-ledger-iteration.txt",
+      "sha256": "f1f5a0e50798be4985386d4d8d99d7d8d6806ca2ed4c689b53b842abed7bc975",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1007/mdbcells-gate-ledger-iteration.txt",
+      "sha256": "6db61b4242cc52d5a7bb20c7a5e05a4748262652cbe7141f3be55c8d1b013558",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1007/pttlfix-gate-ledger-iteration.txt",
+      "sha256": "ace8b98c015d40aef18b1b22d1c6f15be45068916474dee60e817e3b3c690cd0",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1007/shutsave-gate-ledger-iteration.txt",
+      "sha256": "d6b4810e2222b3bb0fe32f149c810ede318e876a76818f9eb3bbddaf5ad3d7e1",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1007/storesize-gate-ledger-iteration.txt",
+      "sha256": "0907617e38437bb362d1124852df18d8916c9a9400f597300b72ec7adc5f89f9",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1008/deadcode2-gate-ledger-iteration.txt",
+      "sha256": "c5f0d740da0c303f3163f8d68b3037e48cf6b98210043f5c5d85d7f400999461",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1008/encodingfix-gate-ledger-iteration.txt",
+      "sha256": "242ad7520c8a167985cc9c4aac2879a373ba6b7da53f335f4a6bd00ce7e7e64a",
+      "ok": 519,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1008/flakeaudit2-gate-ledger-iteration.txt",
+      "sha256": "175f7246be6643db7f272875c5d13cbe62abb0bb0206705506d4c2d39eb12fe2",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1008/gateprod-gate-ledger-iteration.txt",
+      "sha256": "133b26380451e93b88f6887673fb99705446cca0407d28f789fab8fe9bfd835c",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1008/infofields2-gate-ledger-iteration.txt",
+      "sha256": "fa328c208099373662a55d7e2c428f86a1bef1abe5df1ce66e456dc908a35d6e",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1008/mkprobe-gate-ledger-iteration.txt",
+      "sha256": "b0c7c9d30248f9f1217272aee29afec453b2e0a869354ff02c62d470a0629fde",
+      "ok": 517,
+      "fail": []
+    },
+    {
+      "path": "/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/evidence-1008/mkprobe2-gate-ledger-iteration.txt",
+      "sha256": "49967948a8033d3398e4d3efc17c585e119f1953aea8ca5cc8c2fb097b61ed95",
+      "ok": 517,
+      "fail": []
+    }
+  ],
+  "broad_grep_files": 11272,
+  "broad_grep_matches": 14205
+}

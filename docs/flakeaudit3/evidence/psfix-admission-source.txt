@@ -1,0 +1,253 @@
+src/cmd/t_server.cc SHA256 5a2131883420e64f3b54b86323ffc1f0fc44e34dc26783e460545e6d0710b20f
+src/cmd/t_server.cc:286:}
+src/cmd/t_server.cc:287:
+src/cmd/t_server.cc:288:enum class ConfigKind : uint8_t {
+src/cmd/t_server.cc:289:    String, Bool, Unsigned, Bytes, Enum, Policy, ClientOutputBufferLimit, NotifyFlags, Save,
+src/cmd/t_server.cc:290:    // slowlog-log-slower-than is the tree's first genuinely signed knob: redis's grammar accepts
+src/cmd/t_server.cc:291:    // and reports -1, so an unsigned representation would not round-trip.
+src/cmd/t_server.cc:292:    Signed, Encoding, Uint32, Uint32Bytes
+src/cmd/t_server.cc:293:};
+src/cmd/t_server.cc:294:struct ConfigValue {
+src/cmd/t_server.cc:295:    const char* name;
+src/cmd/t_server.cc:296:    ConfigKind kind;
+src/cmd/t_server.cc:297:    std::string value;
+src/cmd/t_server.cc:298:    bool immutable = false;
+src/cmd/t_server.cc:299:};
+src/cmd/t_server.cc:300:
+src/cmd/t_server.cc:301:std::mutex g_config_mu;
+src/cmd/t_server.cc:302:std::vector<ConfigValue> g_config;
+src/cmd/t_server.cc:303:ClientOutputBufferLimits g_client_obuf_limits;
+src/cmd/t_server.cc:304:std::atomic<uint64_t> g_proto_max_bulk_len{512ull * 1024 * 1024};
+src/cmd/t_server.cc:337:                        cfg.thread_mode == ThreadMode::Fused ? "1s" : "2s", true});
+src/cmd/t_server.cc:338:    g_config.push_back({"overlap", ConfigKind::Unsigned,
+src/cmd/t_server.cc:339:                        std::to_string(cfg.overlap), true});
+src/cmd/t_server.cc:340:    g_config.push_back({"read-local", ConfigKind::Unsigned,
+src/cmd/t_server.cc:341:                        std::to_string(cfg.read_local), true});
+src/cmd/t_server.cc:342:    g_config.push_back({"reorder", ConfigKind::Signed,
+src/cmd/t_server.cc:343:                        std::to_string(static_cast<int32_t>(cfg.reorder)), true});
+src/cmd/t_server.cc:344:    g_config.push_back({"wb-policy", ConfigKind::Signed, std::to_string(cfg.wb_policy), true});
+src/cmd/t_server.cc:345:    g_config.push_back({"key-lb", ConfigKind::Unsigned, std::to_string(cfg.key_lb), true});
+src/cmd/t_server.cc:346:    g_config.push_back({"key-lb-damping", ConfigKind::Signed, std::to_string(cfg.key_lb_damping), true});
+src/cmd/t_server.cc:347:    g_config.push_back({"client-lb", ConfigKind::Unsigned, std::to_string(cfg.client_lb), true});
+src/cmd/t_server.cc:348:    g_config.push_back({"flip-auto", ConfigKind::Unsigned,
+src/cmd/t_server.cc:349:                        std::to_string(cfg.flip_auto), true});
+src/cmd/t_server.cc:350:    g_config.push_back({"appendfilename", ConfigKind::String, cfg.appendfilename, true});
+src/cmd/t_server.cc:351:    g_config.push_back({"appenddirname", ConfigKind::String, cfg.appenddirname, true});
+src/cmd/t_server.cc:352:    add_config("auto-aof-rewrite-percentage", ConfigKind::Unsigned,
+src/cmd/t_server.cc:353:               cfg.auto_aof_rewrite_percentage);
+src/cmd/t_server.cc:640:        }
+src/cmd/t_server.cc:641:        if (!std::strcmp(item->name, "aof-use-rdb-preamble")) {
+src/cmd/t_server.cc:642:            if (!eq_icase(op.arg(i + 1), "yes")) {
+src/cmd/t_server.cc:643:                reply_err(op.sink(), "ERR aof-use-rdb-preamble no is unsupported: the AOF base file is a TomoKV snapshot");
+src/cmd/t_server.cc:644:                return false;
+src/cmd/t_server.cc:645:            }
+src/cmd/t_server.cc:646:        }
+src/cmd/t_server.cc:647:        if (item->immutable || !std::strcmp(item->name, "dir") ||
+src/cmd/t_server.cc:648:            !std::strcmp(item->name, "dbfilename") || !std::strcmp(item->name, "tcp-backlog")) {
+src/cmd/t_server.cc:649:            reply_err(op.sink(), "ERR parameter is immutable at runtime"); return false;
+src/cmd/t_server.cc:650:        }
+src/cmd/t_server.cc:651:        std::string value;
+src/cmd/t_server.cc:652:        bool normalized = false;
+src/cmd/t_server.cc:685:
+src/cmd/t_server.cc:686:void snapshot_command(Op& op, bool blocking) {
+src/cmd/t_server.cc:687:    if (!g_server) { reply_err(op.sink(), "ERR snapshot subsystem is unavailable"); return; }
+src/cmd/t_server.cc:688:    const SnapshotIoContext context = snapshot_io_context();
+src/cmd/t_server.cc:689:    if (!context.thread || !context.ring) {
+src/cmd/t_server.cc:690:        reply_err(op.sink(), "ERR snapshot command has no IO owner");
+src/cmd/t_server.cc:691:        return;
+src/cmd/t_server.cc:692:    }
+src/cmd/t_server.cc:693:    std::string error;
+src/cmd/t_server.cc:694:    const SnapshotManager::StartResult result = g_server->snapshot().start(
+src/cmd/t_server.cc:695:        *g_server, *context.thread, *context.ring, blocking, error);
+src/cmd/t_server.cc:696:    if (result == SnapshotManager::StartResult::Busy) {
+src/cmd/t_server.cc:697:        reply_err(op.sink(), "ERR Background save already in progress");
+src/cmd/t_server.cc:698:    } else if (result == SnapshotManager::StartResult::Failed) {
+src/cmd/t_server.cc:699:        std::string message = "ERR ";
+src/cmd/t_server.cc:700:        message += error.empty() ? "snapshot failed" : error;
+src/cmd/t_server.cc:701:        reply_err(op.sink(), message.c_str());
+src/cmd/t_server.cc:702:    } else if (blocking) {
+src/cmd/t_server.cc:703:        reply_ok(op.sink());
+src/cmd/t_server.cc:704:    } else {
+src/cmd/t_server.cc:705:        reply_simple(op.sink(), "Background saving started");
+src/cmd/t_server.cc:706:    }
+src/cmd/t_server.cc:707:}
+src/cmd/t_server.cc:708:
+src/cmd/t_server.cc:709:void cmd_save(Shard&, Op& op) { snapshot_command(op, true); }
+src/cmd/t_server.cc:710:void cmd_bgsave(Shard&, Op& op) { snapshot_command(op, false); }
+src/cmd/t_server.cc:711:void cmd_bgrewriteaof(Shard&, Op& op) {
+src/cmd/t_server.cc:712:    if (!g_server || !g_server->aof().recording()) {
+src/cmd/t_server.cc:2286:    if (info_section(op, "PERSISTENCE")) {
+src/cmd/t_server.cc:2287:        uint64_t preimages = 0;
+src/cmd/t_server.cc:2288:        if (g_server)
+src/cmd/t_server.cc:2289:            for (uint32_t i = 0; i < g_server->nshards(); i++)
+src/cmd/t_server.cc:2290:                preimages += g_server->shard(static_cast<int32_t>(i)).store().snapshot_preimages();
+src/cmd/t_server.cc:2291:        appendf(body,
+src/cmd/t_server.cc:2292:                "# Persistence\r\nloading:%u\r\nrdb_changes_since_last_save:%llu\r\n"
+src/cmd/t_server.cc:2293:                "rdb_bgsave_in_progress:%u\r\nrdb_last_save_time:%lld\r\n"
+src/cmd/t_server.cc:2294:                "rdb_last_bgsave_status:%s\r\nrdb_saves:%llu\r\n"
+src/cmd/t_server.cc:2295:                "rdb_scheduled_saves:%llu\r\n"
+src/cmd/t_server.cc:2296:                "rdb_save_cron_checks:%llu\r\n"
+src/cmd/t_server.cc:2297:                "snapshot_preimages:%llu\r\n"
+src/cmd/t_server.cc:2298:                "snapshot_cuts_armed:%llu\r\nsnapshot_cuts_waited:%llu\r\n"
+src/cmd/t_server.cc:2299:                "snapshot_groups_drained:%llu\r\n"
+src/cmd/t_server.cc:2300:                "snapshot_cut_ticket:%llu\r\n"
+src/cmd/t_server.cc:2301:                "aof_enabled:%u\r\naof_rewrite_in_progress:%u\r\n"
+src/cmd/t_server.cc:2302:                "aof_rewrite_scheduled:%u\r\naof_last_bgrewrite_status:%s\r\n"
+src/cmd/t_server.cc:2303:                "aof_rewrites:%llu\r\naof_rewrites_consecutive_failures:%u\r\n"
+src/cmd/t_server.cc:2304:                "aof_last_write_status:%s\r\naof_current_size:%llu\r\n"
+src/cmd/t_server.cc:2305:                "aof_base_size:%llu\r\naof_pending_rewrite:%u\r\n"
+src/cmd/t_server.cc:2306:                "aof_records_written:%llu\r\n"
+src/cmd/t_server.cc:2307:                "aof_replayed_records:%llu\r\naof_groups_committed:%llu\r\n"
+src/cmd/t_server.cc:2308:                "aof_groups_skipped_on_replay:%llu\r\naof_fsyncs:%llu\r\n"
+src/cmd/t_server.cc:2309:                "aof_send_gate_waits:%llu\r\naof_control_frames_deferred:%llu\r\n"
+src/cmd/t_server.cc:2310:                "aof_rewrite_base_size:%llu\r\n"
+src/cmd/t_server.cc:2311:                "aof_rewrite_requests:%llu\r\n"
+src/cmd/t_server.cc:2312:                "aof_auto_rewrite_triggers:%llu\r\naof_history_unlinks:%llu\r\n"
+src/cmd/t_server.cc:2313:                "aof_rewrite_failures:%llu\r\n"
+src/cmd/t_server.cc:2314:                "aof_auto_rewrite_backoff_skips:%llu\r\n",
+src/cmd/t_server.cc:2315:                g_server && g_server->loading() ? 1u : 0u,
+src/cmd/t_server.cc:2316:                static_cast<unsigned long long>(
+src/cmd/t_server.cc:2317:                    g_server ? g_server->save_changes_since_last_save() : 0),
+src/cmd/t_server.cc:2318:                g_server && g_server->snapshot().in_progress() ? 1u : 0u,
+src/cmd/t_server.cc:2319:                static_cast<long long>(g_server ? g_server->snapshot().last_save_time() : 0),
+src/cmd/t_server.cc:2320:                snapshot_last_bgsave_ok() ? "ok" : "err",
+src/cmd/t_server.cc:2321:                static_cast<unsigned long long>(snapshot_completed_saves()),
+src/cmd/t_server.cc:2322:                static_cast<unsigned long long>(
+src/cmd/t_server.cc:2323:                    g_server ? g_server->scheduled_save_triggers() : 0),
+src/cmd/t_server.cc:2324:                static_cast<unsigned long long>(g_server ? g_server->save_cron_checks() : 0),
+src/cmd/t_server.cc:2325:                static_cast<unsigned long long>(preimages),
+src/cmd/t_server.cc:2326:                static_cast<unsigned long long>(g_server ? g_server->snapshot().cuts_armed() : 0),
+src/cmd/t_server.cc:2327:                static_cast<unsigned long long>(g_server ? g_server->snapshot().cuts_waited() : 0),
+src/cmd/t_server.cc:2328:                static_cast<unsigned long long>(
+src/cmd/t_server.cc:2329:                    g_server ? g_server->snapshot().drained_groups() : 0),
+src/cmd/t_server.cc:2330:                static_cast<unsigned long long>(
+src/snapshot/snapshot.cc SHA256 845e0d3561df3f7e9e60727d7934fd77b1251d464fb39affb47691b242e35eb1
+src/snapshot/snapshot.cc:198:SnapshotManager::StartResult SnapshotManager::start(Server& server, ThreadCtx& writer,
+src/snapshot/snapshot.cc:199:                                                     Ring& writer_ring, bool is_blocking,
+src/snapshot/snapshot.cc:200:                                                     std::string& error, AofManager* rewrite,
+src/snapshot/snapshot.cc:201:                                                     const char* target_dir,
+src/snapshot/snapshot.cc:202:                                                     const char* target_filename, bool shutdown) {
+src/snapshot/snapshot.cc:203:    {
+src/snapshot/snapshot.cc:204:        // Pair this admission edge with Server's FLIP/LB publication. Without the short mutex,
+src/snapshot/snapshot.cc:205:        // two IO owners could both observe the other's atomic state as idle and publish Preparing
+src/snapshot/snapshot.cc:206:        // and Planning concurrently.
+src/snapshot/snapshot.cc:207:        std::unique_lock<std::mutex> transition_lock(server.shape_transition_mutex(), std::defer_lock);
+src/snapshot/snapshot.cc:208:        if (shutdown) {
+src/snapshot/snapshot.cc:209:            if (!transition_lock.try_lock()) {
+src/snapshot/snapshot.cc:210:                error = "placement transition admission is busy";
+src/snapshot/snapshot.cc:211:                return StartResult::Busy;
+src/snapshot/snapshot.cc:212:            }
+src/snapshot/snapshot.cc:213:        } else transition_lock.lock();
+src/snapshot/snapshot.cc:214:        if (server.placement_transition_active()) {
+src/snapshot/snapshot.cc:215:            error = "placement transition is in progress";
+src/snapshot/snapshot.cc:216:            return StartResult::Busy;
+src/snapshot/snapshot.cc:217:        }
+src/snapshot/snapshot.cc:218:        Phase expected = Phase::Idle;
+src/snapshot/snapshot.cc:219:        if (!phase_.compare_exchange_strong(expected, Phase::Preparing,
+src/snapshot/snapshot.cc:220:                                            std::memory_order_acq_rel)) {
+src/snapshot/snapshot.cc:221:            error = "Background save already in progress";
+src/snapshot/snapshot.cc:222:            return StartResult::Busy;
+src/snapshot/snapshot.cc:223:        }
+src/snapshot/snapshot.cc:224:        // Check AFTER acquiring Idle: otherwise a concurrent epoch can add a held owner and
+src/snapshot/snapshot.cc:225:        // fail between an earlier counter load and this CAS. All old capture acknowledgements
+src/snapshot/snapshot.cc:226:        // precede Idle, so acquiring it makes every outstanding shutdown hold visible here.
+src/snapshot/snapshot.cc:227:        if (server.shutdown_snapshot_holds()) {
+src/snapshot/snapshot.cc:228:            error = "previous shutdown snapshot is still draining";
+src/snapshot/snapshot.cc:229:            phase_.store(Phase::Idle, std::memory_order_release);
+src/snapshot/snapshot.cc:230:            return StartResult::Busy;
+src/snapshot/snapshot.cc:231:        }
+src/snapshot/snapshot.cc:232:        server.set_shutdown_snapshot_active(shutdown);
+src/snapshot/snapshot.cc:233:#if !TOMO_SINGLE_DATABASE
+src/snapshot/snapshot.cc:234:        database_map_ = server.databases().capture();
+src/snapshot/snapshot.cc:235:        database_map_extended_ = false;
+src/snapshot/snapshot.cc:236:        for (unsigned i = 0; i < database_map_.size(); ++i)
+src/snapshot/snapshot.cc:237:            database_map_extended_ |= database_map_[i] != i;
+src/snapshot/snapshot.cc:238:#endif
+tests/differ.py SHA256 4b1c0b36f22a22d10e6ce5b5645131312ad433962a7680aadf94c7b79c40e813
+tests/differ.py:6177:def psfix_wait_idle(peers, persistence, phase):
+tests/differ.py:6178:    """Both peers must be idle before a save/count baseline; 10 s total, 1 ms polls."""
+tests/differ.py:6179:    deadline = time.monotonic() + 10
+tests/differ.py:6180:    states = {}
+tests/differ.py:6181:    busy = set()
+tests/differ.py:6182:    polls = 0
+tests/differ.py:6183:    timeouts = [sock.gettimeout() for sock, _ in peers]
+tests/differ.py:6184:    try:
+tests/differ.py:6185:        while True:
+tests/differ.py:6186:            fields = []
+tests/differ.py:6187:            for label, peer in zip(("target", "oracle"), peers):
+tests/differ.py:6188:                remaining = deadline - time.monotonic()
+tests/differ.py:6189:                if remaining <= 0:
+tests/differ.py:6190:                    raise TimeoutError
+tests/differ.py:6191:                peer[0].settimeout(remaining)
+tests/differ.py:6192:                row = persistence(peer)
+tests/differ.py:6193:                state = row.get(b"rdb_bgsave_in_progress")
+tests/differ.py:6194:                states[label] = state
+tests/differ.py:6195:                assert state in (b"0", b"1"), (
+tests/differ.py:6196:                    "PSFIX harness error: %s %s invalid rdb_bgsave_in_progress=%r" %
+tests/differ.py:6197:                    (phase, label, state))
+tests/differ.py:6198:                if state == b"1":
+tests/differ.py:6199:                    busy.add(label)
+tests/differ.py:6200:                fields.append(row)
+tests/differ.py:6201:            polls += 1
+tests/differ.py:6202:            remaining = deadline - time.monotonic()
+tests/differ.py:6203:            if remaining <= 0:
+tests/differ.py:6204:                raise TimeoutError
+tests/differ.py:6205:            if all(state == b"0" for state in states.values()):
+tests/differ.py:6206:                if busy:
+tests/differ.py:6207:                    print("  PSFIX idle barrier %s: polls=%d busy_peers=%s" %
+tests/differ.py:6208:                          (phase, polls, ",".join(label for label in ("target", "oracle")
+tests/differ.py:6209:                                                if label in busy)), flush=True)
+tests/differ.py:6210:                return fields
+tests/differ.py:6211:            time.sleep(min(0.001, remaining))
+tests/differ.py:6212:    except TimeoutError as error:
+tests/differ.py:6213:        raise AssertionError(
+tests/differ.py:6214:            "PSFIX harness error: %s: both peers did not become save-idle within 10 s; "
+tests/differ.py:6215:            "rdb_bgsave_in_progress=%r" % (phase, states)) from error
+tests/differ.py:6216:    finally:
+tests/differ.py:6217:        for (sock, _), timeout in zip(peers, timeouts):
+tests/differ.py:6218:            sock.settimeout(timeout)
+tests/differ.py:6219:
+tests/differ.py:6220:
+tests/differ.py:6221:def psfix_check_save_reply(label, command, reply):
+tests/differ.py:6222:    if reply == b"-ERR Background save already in progress\r\n":
+tests/differ.py:6223:        raise AssertionError(
+tests/differ.py:6224:            "PSFIX harness error: %s %s raced a background save after the both-peer "
+tests/differ.py:6225:            "idle barrier; reply must not be compared: %r" % (label, command, reply))
+tests/differ.py:6226:    assert reply == (b"+OK\r\n" if command == "SAVE" else b"+Background saving started\r\n"), (
+tests/differ.py:6227:        label, command, reply)
+tests/differ.py:6228:
+tests/differ.py:6229:
+tests/differ.py:6230:def run_psfix_suite():
+tests/differ.py:6293:        print("  PSFIX field names/order: %s" % b" ".join(name for name in oracle if name in expected).decode())
+tests/differ.py:6294:
+tests/differ.py:6295:        for index, (label, peer) in enumerate(zip(("target", "oracle"), peers)):
+tests/differ.py:6296:            assert persistence(peer)[b"loading"] == b"0", (label, "loading after boot")
+tests/differ.py:6297:            memory = parse_reply(issue(peer, ["INFO", "memory"]))
+tests/differ.py:6298:            assert isinstance(memory, bytes), (label, "INFO memory", memory)
+tests/differ.py:6299:            sizes = re.findall(rb"^used_memory:([0-9]+)\r?$", memory, re.MULTILINE)
+tests/differ.py:6300:            assert len(sizes) == 1, (label, "missing/invalid used_memory", memory)
+tests/differ.py:6301:            save_bytes = int(sizes[0])
+tests/differ.py:6302:            for command in ("SAVE", "SAVE", "BGSAVE"):
+tests/differ.py:6303:                idle = psfix_wait_idle(peers, persistence, "before %s %s" % (label, command))
+tests/differ.py:6304:                before = int(idle[index][b"rdb_saves"])
+tests/differ.py:6305:                if command == "SAVE":
+tests/differ.py:6306:                    with save_reply_timeout(peer[0], save_bytes) as timeout:
+tests/differ.py:6307:                        print("  PSFIX %s SAVE timeout=%.3f s used_memory=%d" %
+tests/differ.py:6308:                              (label, timeout, save_bytes), flush=True)
+tests/differ.py:6309:                        reply = issue(peer, [command])
+tests/differ.py:6310:                else:
+tests/differ.py:6311:                    reply = issue(peer, [command])
+tests/differ.py:6312:                psfix_check_save_reply(label, command, reply)
+tests/differ.py:6313:                fields = psfix_wait_idle(peers, persistence, "after %s %s" % (label, command))[index]
+tests/differ.py:6314:                assert int(fields[b"rdb_saves"]) == before + 1, (label, command, before, fields)
+tests/differ.py:6315:                assert int(persistence(peer)[b"rdb_saves"]) == before + 1, "INFO advanced save count"
+tests/differ.py:6316:                assert fields[b"loading"] == b"0"
+tests/differ.py:6317:                assert fields[b"rdb_last_bgsave_status"] == b"ok", (label, command, fields)
+tests/differ.py:6318:                coverage.note([command], "rdb_saves advances exactly once after completion")
+tests/differ.py:6319:                checks += 1
+tests/differ.py:6320:                print("  PSFIX %s %s rdb_saves %d -> %d; loading:0" % (label, command, before, before + 1))
+tests/differ.py:6321:    finally:
+tests/differ.py:6322:        for sock, file in peers:
+tests/differ.py:6323:            file.close()
+tests/differ.py:6324:            sock.close()
+tests/differ.py:6325:    print("DIFFER psfix: %d exact/property checks, 0 diffs -> PASS" % checks)

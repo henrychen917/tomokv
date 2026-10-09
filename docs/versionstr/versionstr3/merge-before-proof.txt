@@ -1,0 +1,8 @@
+Final pre-proof fetch/merge: 2026-10-08T23:50:08.459214+00:00
+Already up to date.
+origin/cpp and PRE merge-base: dab7409642bf0a6d125fb5f479e6d190c7636083
+1b9814af4 Record wrapper isolation and unchanged proof tools
+86bd96f79 Record versionstr3 link reproduction and build inventory
+f1066d0ff Keep the version entry wrapper out of unit links
+92e716dc6 Merge origin/cpp before versionstr3 link isolation
+dab740964 Merge lbosc3 (b20d2c9af) into cx-final: gate iteration 519 rows, 0 gating FAIL

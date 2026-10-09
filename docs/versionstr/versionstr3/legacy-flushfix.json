@@ -1,0 +1,15 @@
+{
+  "target": "build/flushfix-pre-unit",
+  "in_gate_build_inventory": false,
+  "historical_source_commit": "e279aeb4cf08ae2c39f26be679388b872fed4667",
+  "PRE_compile_exit": 2,
+  "POST_compile_exit": 2,
+  "matching_error_diagnostics": [
+    "\u2018const struct tomo::ReadLocalStats\u2019 has no member named \u2018mget_generation_retries\u2019",
+    "\u2018const struct tomo_db0::ReadLocalStats\u2019 has no member named \u2018mget_generation_retries\u2019",
+    "\u2018info_stats_sample_ops\u2019 was not declared in this scope; did you mean \u2018info_stats_rates\u2019?",
+    "\u2018struct tomo::ReadLocalStats\u2019 has no member named \u2018mget_generation_retries\u2019",
+    "\u2018struct tomo_db0::ReadLocalStats\u2019 has no member named \u2018mget_generation_retries\u2019"
+  ],
+  "assessment": "Pre-existing frozen source/header incompatibility; fails before linking in both namespaces. Gate uses build/flushfix-units and never this optional historical target. No fixture or production source was changed to hide the failure."
+}

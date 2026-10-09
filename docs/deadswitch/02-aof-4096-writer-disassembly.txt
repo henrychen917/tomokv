@@ -1,0 +1,492 @@
+
+build/deadswitch/aof-4096/src/persist/aof.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+00000000000130e0 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)>:
+   130e0:	f3 0f 1e fa          	endbr64
+   130e4:	41 57                	push   %r15
+   130e6:	41 56                	push   %r14
+   130e8:	41 55                	push   %r13
+   130ea:	41 54                	push   %r12
+   130ec:	55                   	push   %rbp
+   130ed:	53                   	push   %rbx
+   130ee:	48 83 ec 58          	sub    $0x58,%rsp
+   130f2:	64 48 8b 04 25 28 00 00 00 	mov    %fs:0x28,%rax
+   130fb:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
+   13100:	31 c0                	xor    %eax,%eax
+   13102:	80 3f 00             	cmpb   $0x0,(%rdi)
+   13105:	74 0d                	je     13114 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x34>
+   13107:	8b 06                	mov    (%rsi),%eax
+   13109:	48 89 fb             	mov    %rdi,%rbx
+   1310c:	48 89 f5             	mov    %rsi,%rbp
+   1310f:	39 47 18             	cmp    %eax,0x18(%rdi)
+   13112:	74 2c                	je     13140 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x60>
+   13114:	31 c0                	xor    %eax,%eax
+   13116:	48 8b 54 24 48       	mov    0x48(%rsp),%rdx
+   1311b:	64 48 2b 14 25 28 00 00 00 	sub    %fs:0x28,%rdx
+   13124:	0f 85 29 04 00 00    	jne    13553 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x473>
+   1312a:	48 83 c4 58          	add    $0x58,%rsp
+   1312e:	5b                   	pop    %rbx
+   1312f:	5d                   	pop    %rbp
+   13130:	41 5c                	pop    %r12
+   13132:	41 5d                	pop    %r13
+   13134:	41 5e                	pop    %r14
+   13136:	41 5f                	pop    %r15
+   13138:	c3                   	ret
+   13139:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+   13140:	44 8b 87 d0 01 00 00 	mov    0x1d0(%rdi),%r8d
+   13147:	45 85 c0             	test   %r8d,%r8d
+   1314a:	78 c8                	js     13114 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x34>
+   1314c:	0f b6 47 41          	movzbl 0x41(%rdi),%eax
+   13150:	84 c0                	test   %al,%al
+   13152:	75 c0                	jne    13114 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x34>
+   13154:	80 7f 01 01          	cmpb   $0x1,0x1(%rdi)
+   13158:	49 89 d4             	mov    %rdx,%r12
+   1315b:	41 89 cf             	mov    %ecx,%r15d
+   1315e:	0f 84 2c 03 00 00    	je     13490 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x3b0>
+   13164:	48 89 df             	mov    %rbx,%rdi
+   13167:	e8 00 00 00 00       	call   1316c <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x8c>	13168: R_X86_64_PLT32	tomo::AofManager::maybe_schedule_auto_rewrite()-0x4
+   1316c:	4c 89 e2             	mov    %r12,%rdx
+   1316f:	48 89 ee             	mov    %rbp,%rsi
+   13172:	48 89 df             	mov    %rbx,%rdi
+   13175:	e8 00 00 00 00       	call   1317a <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x9a>	13176: R_X86_64_PLT32	tomo::AofManager::maybe_start_rewrite(tomo::ThreadCtx&, tomo::Ring&)-0x4
+   1317a:	4c 8b 6b 58          	mov    0x58(%rbx),%r13
+   1317e:	b8 00 01 00 00       	mov    $0x100,%eax
+   13183:	45 84 ff             	test   %r15b,%r15b
+   13186:	75 0c                	jne    13194 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0xb4>
+   13188:	80 7b 01 01          	cmpb   $0x1,0x1(%rbx)
+   1318c:	ba 00 10 00 00       	mov    $0x1000,%edx
+   13191:	0f 45 c2             	cmovne %edx,%eax
+   13194:	89 44 24 38          	mov    %eax,0x38(%rsp)
+   13198:	0f b6 83 00 02 00 00 	movzbl 0x200(%rbx),%eax
+   1319f:	c7 44 24 3c 00 00 00 00 	movl   $0x0,0x3c(%rsp)
+   131a7:	48 c7 44 24 40 00 00 00 00 	movq   $0x0,0x40(%rsp)
+   131b0:	3c 01                	cmp    $0x1,%al
+   131b2:	75 7c                	jne    13230 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x150>
+   131b4:	44 8b 93 f0 01 00 00 	mov    0x1f0(%rbx),%r10d
+   131bb:	48 8d b3 f0 01 00 00 	lea    0x1f0(%rbx),%rsi
+   131c2:	48 89 df             	mov    %rbx,%rdi
+   131c5:	e8 00 00 00 00       	call   131ca <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0xea>	131c6: R_X86_64_PLT32	tomo::AofManager::note_control_deferral(tomo::AofStreamOwner::LargeToken const&)-0x4
+   131ca:	48 8d 4c 24 3c       	lea    0x3c(%rsp),%rcx
+   131cf:	48 8d 54 24 38       	lea    0x38(%rsp),%rdx
+   131d4:	4c 8d 4c 24 40       	lea    0x40(%rsp),%r9
+   131d9:	4d 89 e0             	mov    %r12,%r8
+   131dc:	48 89 df             	mov    %rbx,%rdi
+   131df:	44 89 d6             	mov    %r10d,%esi
+   131e2:	e8 00 00 00 00       	call   131e7 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x107>	131e3: R_X86_64_PLT32	tomo::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo::Ring&, io_uring_sqe*&)-0x4
+   131e7:	48 8b 43 58          	mov    0x58(%rbx),%rax
+   131eb:	4c 39 e8             	cmp    %r13,%rax
+   131ee:	74 15                	je     13205 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x125>
+   131f0:	48 83 7b 08 00       	cmpq   $0x0,0x8(%rbx)
+   131f5:	74 0e                	je     13205 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x125>
+   131f7:	4c 89 e2             	mov    %r12,%rdx
+   131fa:	48 89 ee             	mov    %rbp,%rsi
+   131fd:	48 89 df             	mov    %rbx,%rdi
+   13200:	e8 bb de fe ff       	call   10c0 <tomo::AofManager::wake_gate_waiters(tomo::ThreadCtx&, tomo::Ring&) [clone .part.0]>
+   13205:	48 8b 4c 24 40       	mov    0x40(%rsp),%rcx
+   1320a:	4c 89 e2             	mov    %r12,%rdx
+   1320d:	48 89 ee             	mov    %rbp,%rsi
+   13210:	48 89 df             	mov    %rbx,%rdi
+   13213:	e8 00 00 00 00       	call   13218 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x138>	13214: R_X86_64_PLT32	tomo::AofManager::maybe_sync(tomo::ThreadCtx&, tomo::Ring&, io_uring_sqe*)-0x4
+   13218:	03 44 24 3c          	add    0x3c(%rsp),%eax
+   1321c:	e9 f5 fe ff ff       	jmp    13116 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x36>
+   13221:	66 66 2e 0f 1f 84 00 00 00 00 00 	data16 cs nopw 0x0(%rax,%rax,1)
+   1322c:	0f 1f 40 00          	nopl   0x0(%rax)
+   13230:	84 c0                	test   %al,%al
+   13232:	4c 8d 4c 24 40       	lea    0x40(%rsp),%r9
+   13237:	b8 00 00 00 00       	mov    $0x0,%eax
+   1323c:	48 8d b3 f0 01 00 00 	lea    0x1f0(%rbx),%rsi
+   13243:	48 8d 54 24 38       	lea    0x38(%rsp),%rdx
+   13248:	48 0f 45 f0          	cmovne %rax,%rsi
+   1324c:	4d 89 c8             	mov    %r9,%r8
+   1324f:	4c 89 e1             	mov    %r12,%rcx
+   13252:	48 89 df             	mov    %rbx,%rdi
+   13255:	48 89 14 24          	mov    %rdx,(%rsp)
+   13259:	4c 89 4c 24 08       	mov    %r9,0x8(%rsp)
+   1325e:	e8 00 00 00 00       	call   13263 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x183>	1325f: R_X86_64_PLT32	tomo::AofManager::drain_pending_commits(tomo::AofStreamOwner::OpenToken const&, unsigned int&, tomo::Ring&, io_uring_sqe*&)-0x4
+   13263:	4c 8b 4c 24 08       	mov    0x8(%rsp),%r9
+   13268:	48 8d 53 28          	lea    0x28(%rbx),%rdx
+   1326c:	45 31 db             	xor    %r11d,%r11d
+   1326f:	4c 89 6c 24 18       	mov    %r13,0x18(%rsp)
+   13274:	48 89 6c 24 20       	mov    %rbp,0x20(%rsp)
+   13279:	41 ba 01 00 00 00    	mov    $0x1,%r10d
+   1327f:	49 89 d5             	mov    %rdx,%r13
+   13282:	48 89 d5             	mov    %rdx,%rbp
+   13285:	45 89 de             	mov    %r11d,%r14d
+   13288:	89 44 24 3c          	mov    %eax,0x3c(%rsp)
+   1328c:	44 89 7c 24 2c       	mov    %r15d,0x2c(%rsp)
+   13291:	8b 4c 24 38          	mov    0x38(%rsp),%ecx
+   13295:	85 c9                	test   %ecx,%ecx
+   13297:	0f 84 6b 02 00 00    	je     13508 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x428>
+   1329d:	48 8b 45 00          	mov    0x0(%rbp),%rax
+   132a1:	48 85 c0             	test   %rax,%rax
+   132a4:	0f 85 f6 00 00 00    	jne    133a0 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x2c0>
+   132aa:	41 83 c6 40          	add    $0x40,%r14d
+   132ae:	48 83 c5 08          	add    $0x8,%rbp
+   132b2:	41 81 fe 80 00 00 00 	cmp    $0x80,%r14d
+   132b9:	75 d6                	jne    13291 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x1b1>
+   132bb:	44 8b 7c 24 2c       	mov    0x2c(%rsp),%r15d
+   132c0:	4c 8b 6c 24 18       	mov    0x18(%rsp),%r13
+   132c5:	48 8b 6c 24 20       	mov    0x20(%rsp),%rbp
+   132ca:	8b 44 24 38          	mov    0x38(%rsp),%eax
+   132ce:	45 84 ff             	test   %r15b,%r15b
+   132d1:	0f 84 79 01 00 00    	je     13450 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x370>
+   132d7:	8b 54 24 3c          	mov    0x3c(%rsp),%edx
+   132db:	85 d2                	test   %edx,%edx
+   132dd:	0f 85 6d 01 00 00    	jne    13450 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x370>
+   132e3:	0f b6 93 00 02 00 00 	movzbl 0x200(%rbx),%edx
+   132ea:	84 d2                	test   %dl,%dl
+   132ec:	0f 85 4c 02 00 00    	jne    1353e <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x45e>
+   132f2:	8b 53 10             	mov    0x10(%rbx),%edx
+   132f5:	45 31 ff             	xor    %r15d,%r15d
+   132f8:	4c 8d 74 24 3c       	lea    0x3c(%rsp),%r14
+   132fd:	85 d2                	test   %edx,%edx
+   132ff:	74 65                	je     13366 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x286>
+   13301:	48 89 df             	mov    %rbx,%rdi
+   13304:	89 d6                	mov    %edx,%esi
+   13306:	44 89 fb             	mov    %r15d,%ebx
+   13309:	49 89 ff             	mov    %rdi,%r15
+   1330c:	85 c0                	test   %eax,%eax
+   1330e:	0f 84 37 02 00 00    	je     1354b <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x46b>
+   13314:	41 8b 87 08 02 00 00 	mov    0x208(%r15),%eax
+   1331b:	31 d2                	xor    %edx,%edx
+   1331d:	4d 89 e0             	mov    %r12,%r8
+   13320:	4c 89 ff             	mov    %r15,%rdi
+   13323:	4c 89 4c 24 08       	mov    %r9,0x8(%rsp)
+   13328:	8d 48 01             	lea    0x1(%rax),%ecx
+   1332b:	f7 f6                	div    %esi
+   1332d:	41 89 8f 08 02 00 00 	mov    %ecx,0x208(%r15)
+   13334:	4c 89 f1             	mov    %r14,%rcx
+   13337:	89 d6                	mov    %edx,%esi
+   13339:	48 8b 14 24          	mov    (%rsp),%rdx
+   1333d:	e8 00 00 00 00       	call   13342 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x262>	1333e: R_X86_64_PLT32	tomo::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo::Ring&, io_uring_sqe*&)-0x4
+   13342:	41 80 bf 00 02 00 00 00 	cmpb   $0x0,0x200(%r15)
+   1334a:	4c 8b 4c 24 08       	mov    0x8(%rsp),%r9
+   1334f:	0f 85 97 01 00 00    	jne    134ec <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x40c>
+   13355:	41 8b 77 10          	mov    0x10(%r15),%esi
+   13359:	ff c3                	inc    %ebx
+   1335b:	8b 44 24 38          	mov    0x38(%rsp),%eax
+   1335f:	39 f3                	cmp    %esi,%ebx
+   13361:	72 a9                	jb     1330c <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x22c>
+   13363:	4c 89 fb             	mov    %r15,%rbx
+   13366:	85 c0                	test   %eax,%eax
+   13368:	74 23                	je     1338d <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x2ad>
+   1336a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+   13370:	48 8b 14 24          	mov    (%rsp),%rdx
+   13374:	48 8d b3 f0 01 00 00 	lea    0x1f0(%rbx),%rsi
+   1337b:	4d 89 c8             	mov    %r9,%r8
+   1337e:	4c 89 e1             	mov    %r12,%rcx
+   13381:	48 89 df             	mov    %rbx,%rdi
+   13384:	e8 00 00 00 00       	call   13389 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x2a9>	13385: R_X86_64_PLT32	tomo::AofManager::drain_pending_commits(tomo::AofStreamOwner::OpenToken const&, unsigned int&, tomo::Ring&, io_uring_sqe*&)-0x4
+   13389:	01 44 24 3c          	add    %eax,0x3c(%rsp)
+   1338d:	48 8b 43 58          	mov    0x58(%rbx),%rax
+   13391:	4c 39 e8             	cmp    %r13,%rax
+   13394:	0f 85 56 fe ff ff    	jne    131f0 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x110>
+   1339a:	e9 66 fe ff ff       	jmp    13205 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x125>
+   1339f:	90                   	nop
+   133a0:	45 31 db             	xor    %r11d,%r11d
+   133a3:	4c 87 5d 00          	xchg   %r11,0x0(%rbp)
+   133a7:	4d 89 df             	mov    %r11,%r15
+   133aa:	4d 85 db             	test   %r11,%r11
+   133ad:	0f 84 f7 fe ff ff    	je     132aa <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x1ca>
+   133b3:	48 8d 44 24 3c       	lea    0x3c(%rsp),%rax
+   133b8:	48 89 44 24 10       	mov    %rax,0x10(%rsp)
+   133bd:	8b 74 24 38          	mov    0x38(%rsp),%esi
+   133c1:	85 f6                	test   %esi,%esi
+   133c3:	74 2b                	je     133f0 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x310>
+   133c5:	80 bb 00 02 00 00 00 	cmpb   $0x0,0x200(%rbx)
+   133cc:	75 22                	jne    133f0 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x310>
+   133ce:	f3 49 0f bc f7       	tzcnt  %r15,%rsi
+   133d3:	c4 c2 80 f3 cf       	blsr   %r15,%r15
+   133d8:	44 01 f6             	add    %r14d,%esi
+   133db:	3b 73 10             	cmp    0x10(%rbx),%esi
+   133de:	72 40                	jb     13420 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x340>
+   133e0:	4d 85 ff             	test   %r15,%r15
+   133e3:	75 d8                	jne    133bd <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x2dd>
+   133e5:	e9 c0 fe ff ff       	jmp    132aa <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x1ca>
+   133ea:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+   133f0:	f3 49 0f bc c7       	tzcnt  %r15,%rax
+   133f5:	c4 c2 80 f3 cf       	blsr   %r15,%r15
+   133fa:	44 01 f0             	add    %r14d,%eax
+   133fd:	c4 c2 f9 f7 d2       	shlx   %rax,%r10,%rdx
+   13402:	c1 e8 06             	shr    $0x6,%eax
+   13405:	49 8d 44 c5 00       	lea    0x0(%r13,%rax,8),%rax
+   1340a:	48 8b 08             	mov    (%rax),%rcx
+   1340d:	48 85 ca             	test   %rcx,%rdx
+   13410:	75 04                	jne    13416 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x336>
+   13412:	f0 48 09 10          	lock or %rdx,(%rax)
+   13416:	4d 85 ff             	test   %r15,%r15
+   13419:	75 d5                	jne    133f0 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x310>
+   1341b:	e9 8a fe ff ff       	jmp    132aa <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x1ca>
+   13420:	48 8b 4c 24 10       	mov    0x10(%rsp),%rcx
+   13425:	48 8b 14 24          	mov    (%rsp),%rdx
+   13429:	4d 89 e0             	mov    %r12,%r8
+   1342c:	48 89 df             	mov    %rbx,%rdi
+   1342f:	4c 89 4c 24 08       	mov    %r9,0x8(%rsp)
+   13434:	e8 00 00 00 00       	call   13439 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x359>	13435: R_X86_64_PLT32	tomo::AofManager::drain_producer(unsigned int, unsigned int&, unsigned int&, tomo::Ring&, io_uring_sqe*&)-0x4
+   13439:	4c 8b 4c 24 08       	mov    0x8(%rsp),%r9
+   1343e:	41 ba 01 00 00 00    	mov    $0x1,%r10d
+   13444:	eb 9a                	jmp    133e0 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x300>
+   13446:	66 2e 0f 1f 84 00 00 00 00 00 	cs nopw 0x0(%rax,%rax,1)
+   13450:	85 c0                	test   %eax,%eax
+   13452:	0f 84 35 ff ff ff    	je     1338d <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x2ad>
+   13458:	0f b6 93 00 02 00 00 	movzbl 0x200(%rbx),%edx
+   1345f:	84 d2                	test   %dl,%dl
+   13461:	0f 84 09 ff ff ff    	je     13370 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x290>
+   13467:	48 8d 83 f0 01 00 00 	lea    0x1f0(%rbx),%rax
+   1346e:	80 fa 01             	cmp    $0x1,%dl
+   13471:	be 00 00 00 00       	mov    $0x0,%esi
+   13476:	48 89 df             	mov    %rbx,%rdi
+   13479:	48 0f 44 f0          	cmove  %rax,%rsi
+   1347d:	e8 00 00 00 00       	call   13482 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x3a2>	1347e: R_X86_64_PLT32	tomo::AofManager::note_control_deferral(tomo::AofStreamOwner::LargeToken const&)-0x4
+   13482:	e9 06 ff ff ff       	jmp    1338d <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x2ad>
+   13487:	66 0f 1f 84 00 00 00 00 00 	nopw   0x0(%rax,%rax,1)
+   13490:	0f b6 87 19 01 00 00 	movzbl 0x119(%rdi),%eax
+   13497:	84 c0                	test   %al,%al
+   13499:	75 0d                	jne    134a8 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x3c8>
+   1349b:	83 bf 10 02 00 00 07 	cmpl   $0x7,0x210(%rdi)
+   134a2:	0f 87 6c fc ff ff    	ja     13114 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x34>
+   134a8:	80 7b 01 01          	cmpb   $0x1,0x1(%rbx)
+   134ac:	0f 85 b2 fc ff ff    	jne    13164 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x84>
+   134b2:	0f b6 83 19 01 00 00 	movzbl 0x119(%rbx),%eax
+   134b9:	3c 01                	cmp    $0x1,%al
+   134bb:	0f 85 a3 fc ff ff    	jne    13164 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x84>
+   134c1:	8b bb 0c 02 00 00    	mov    0x20c(%rbx),%edi
+   134c7:	85 ff                	test   %edi,%edi
+   134c9:	0f 84 95 fc ff ff    	je     13164 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x84>
+   134cf:	e8 2c cb fe ff       	call   0 <tomo::(anonymous namespace)::monotonic_ms()>
+   134d4:	48 2b 83 18 02 00 00 	sub    0x218(%rbx),%rax
+   134db:	48 3d e7 03 00 00    	cmp    $0x3e7,%rax
+   134e1:	0f 8e 7d fc ff ff    	jle    13164 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x84>
+   134e7:	e9 28 fc ff ff       	jmp    13114 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x34>
+   134ec:	8b 44 24 38          	mov    0x38(%rsp),%eax
+   134f0:	4c 89 fb             	mov    %r15,%rbx
+   134f3:	85 c0                	test   %eax,%eax
+   134f5:	0f 84 92 fe ff ff    	je     1338d <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x2ad>
+   134fb:	41 0f b6 97 00 02 00 00 	movzbl 0x200(%r15),%edx
+   13503:	e9 5f ff ff ff       	jmp    13467 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x387>
+   13508:	44 8b 7c 24 2c       	mov    0x2c(%rsp),%r15d
+   1350d:	4c 8b 6c 24 18       	mov    0x18(%rsp),%r13
+   13512:	48 8b 6c 24 20       	mov    0x20(%rsp),%rbp
+   13517:	45 84 ff             	test   %r15b,%r15b
+   1351a:	0f 84 6d fe ff ff    	je     1338d <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x2ad>
+   13520:	8b 44 24 3c          	mov    0x3c(%rsp),%eax
+   13524:	85 c0                	test   %eax,%eax
+   13526:	0f 85 61 fe ff ff    	jne    1338d <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x2ad>
+   1352c:	80 bb 00 02 00 00 00 	cmpb   $0x0,0x200(%rbx)
+   13533:	0f 84 b9 fd ff ff    	je     132f2 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x212>
+   13539:	e9 4f fe ff ff       	jmp    1338d <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x2ad>
+   1353e:	85 c0                	test   %eax,%eax
+   13540:	0f 85 21 ff ff ff    	jne    13467 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x387>
+   13546:	e9 42 fe ff ff       	jmp    1338d <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x2ad>
+   1354b:	4c 89 fb             	mov    %r15,%rbx
+   1354e:	e9 3a fe ff ff       	jmp    1338d <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x2ad>
+   13553:	e8 00 00 00 00       	call   13558 <tomo::AofManager::writer_pass(tomo::ThreadCtx&, tomo::Ring&, bool)+0x478>	13554: R_X86_64_PLT32	__stack_chk_fail-0x4
+
+Disassembly of section .text._ZNKSt5ctypeIcE8do_widenEc:
+
+Disassembly of section .text._ZNSt23_Sp_counted_ptr_inplaceIN4tomo16AofGroupDecisionESaIvELN9__gnu_cxx12_Lock_policyE2EED2Ev:
+
+Disassembly of section .text._ZNSt23_Sp_counted_ptr_inplaceIN4tomo16AofGroupDecisionESaIvELN9__gnu_cxx12_Lock_policyE2EED0Ev:
+
+Disassembly of section .text._ZN4tomoL12atomic_epochERKNS_11AtomicEntryE:
+
+Disassembly of section .text._ZN4tomo9FlatStore24read_local_reclaim_tableEPvS1_m:
+
+Disassembly of section .text._ZNSt23_Sp_counted_ptr_inplaceIN4tomo16AofGroupDecisionESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv:
+
+Disassembly of section .text._ZZN4tomo9siphash12EPKcmENKUlvE_clEv.isra.0:
+
+Disassembly of section .text._ZNSt23_Sp_counted_ptr_inplaceIN4tomo16AofGroupDecisionESaIvELN9__gnu_cxx12_Lock_policyE2EE14_M_get_deleterERKSt9type_info:
+
+Disassembly of section .text._ZNSt10unique_ptrIN4tomo22atomic_tripwire_detail5StateESt14default_deleteIS2_EED2Ev:
+
+Disassembly of section .text._ZN4tomo9FlatStore25read_local_topology_storeIjEEvPT_S2_.isra.0:
+
+Disassembly of section .text.unlikely:
+
+Disassembly of section .text._ZNSt23_Sp_counted_ptr_inplaceIN4tomo16AofGroupDecisionESaIvELN9__gnu_cxx12_Lock_policyE2EE10_M_disposeEv:
+
+Disassembly of section .text._ZNSt7__cxx119to_stringEm:
+
+Disassembly of section .text._ZN4tomo4Ring6msg_toERS0_m:
+
+Disassembly of section .text._ZNK4tomo5Slice6key_eqERKS0_:
+
+Disassembly of section .text._ZNK4tomo7Compact14capacity_bytesEv:
+
+Disassembly of section .text._ZN4tomo24atomic_tripwire_excludedEmmmmm:
+
+Disassembly of section .text._ZN4tomo23atomic_tripwire_samekeyENS_21AtomicTripwireSamekeyE:
+
+Disassembly of section .text._ZN4tomo5KvObj17set_eviction_metaEh:
+
+Disassembly of section .text._ZNK4tomo5KvObj3keyEv:
+
+Disassembly of section .text._ZNK4tomo5KvObj7val_ptrEv:
+
+Disassembly of section .text._ZN4tomo14kvobj_capacityEPKNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo20kvobj_external_bytesEPKNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo10kvobj_sizeEPKNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo17ForeignReadSafety12poison_closeEv:
+
+Disassembly of section .text.unlikely._ZN4tomo11ExpireIndex14collapse_emptyEv:
+
+Disassembly of section .text._ZN4tomo11ExpireIndex16finish_migrationEv:
+
+Disassembly of section .text._ZZN4tomo9FlatStore23atomic_resolve_internalEmNS_5SliceEmbENKUlRNS_11AtomicEntryEPNS_5KvObjEbE_clES3_S5_b:
+
+Disassembly of section .text._ZN4tomo9FlatStore8hash_keyENS_5SliceE:
+
+Disassembly of section .text._ZNK4tomo9FlatStore11borrow_findEPKc:
+
+Disassembly of section .text._ZN4tomo9FlatStore5touchEPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore25random_volatile_candidateEv:
+
+Disassembly of section .text._ZNK4tomo9FlatStore7find_inEimNS_5SliceE:
+
+Disassembly of section .text._ZN4tomo9FlatStore23atomic_resolve_internalEmNS_5SliceEmb:
+
+Disassembly of section .text._ZNK4tomo9FlatStore15projected_bytesENS_5SliceEm:
+
+Disassembly of section .text._ZN4tomo9FlatStore24choose_victim_read_localENS_5SliceE:
+
+Disassembly of section .text._ZN4tomo9FlatStore13choose_victimENS_5SliceE:
+
+Disassembly of section .text._ZN4tomo9FlatStore30install_empty_table_read_localEiPmj:
+
+Disassembly of section .text._ZN4tomo9FlatStore21retire_obj_read_localEPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore19erase_in_read_localEimNS_5SliceEPb:
+
+Disassembly of section .text._ZN4tomo9FlatStore22insert_into_read_localEimPNS_5KvObjEb:
+
+Disassembly of section .text._ZN4tomo9FlatStore22rehash_step_read_localEv:
+
+Disassembly of section .text._ZN4tomo9FlatStore29read_local_advance_generationERSt6atomicImEb:
+
+Disassembly of section .text._ZN4tomo9FlatStore16clear_read_localEv:
+
+Disassembly of section .text._ZN4tomo9FlatStore12start_rehashEj:
+
+Disassembly of section .text._ZN4tomo9FlatStore18maybe_start_shrinkEv:
+
+Disassembly of section .text._ZSteqIcSt11char_traitsIcESaIcEEbRKNSt7__cxx1112basic_stringIT_T0_T1_EEPKS5_:
+
+Disassembly of section .text._ZN4tomo10AofManager15CompletionBatchD2Ev:
+
+Disassembly of section .text._ZNSt8__detail18__to_chars_10_implIjEEvPcjT_:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC2EOS4_:
+
+Disassembly of section .text._ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE24_M_release_last_use_coldEv:
+
+Disassembly of section .text._ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_releaseEv:
+
+Disassembly of section .text._ZN4tomo8AofChunkD2Ev:
+
+Disassembly of section .text._ZNSt6vectorIhSaIhEED2Ev:
+
+Disassembly of section .text._ZNSt6vectorIjSaIjEED2Ev:
+
+Disassembly of section .text._ZNSt6vectorIhSaIhEE6resizeEm:
+
+Disassembly of section .text._ZNSt6vectorISt4pairImNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEESaIS7_EED2Ev:
+
+Disassembly of section .text._ZNSt6vectorIS_IjSaIjEESaIS1_EED2Ev:
+
+Disassembly of section .text._ZNSt12_Vector_baseISt4pairImNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEESaIS7_EED2Ev:
+
+Disassembly of section .text._ZNSt12_Vector_baseISt6vectorIjSaIjEESaIS2_EED2Ev:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE10_M_disposeEv:
+
+Disassembly of section .text._ZN4tomo24kvobj_free_with_capacityEPNS_5KvObjEm:
+
+Disassembly of section .text._ZN4tomo9FlatStore25read_local_reclaim_objectEPvS1_m:
+
+Disassembly of section .text._ZN4tomo9FlatStore10retire_objEPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore8erase_inEimNS_5SliceEPb:
+
+Disassembly of section .text._ZN4tomo9FlatStore11insert_intoEimPNS_5KvObjEb:
+
+Disassembly of section .text._ZN4tomo9FlatStore5eraseEmNS_5SliceE:
+
+Disassembly of section .text._ZN4tomo9FlatStore5clearEv:
+
+Disassembly of section .text._ZNSt6vectorISt4pairImNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEESaIS7_EE17_M_realloc_insertIJRKmRKS6_EEEvN9__gnu_cxx17__normal_iteratorIPS7_S9_EEDpOT_:
+
+Disassembly of section .text._ZNSt6vectorIjSaIjEEC2ERKS1_:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo10AofManager10CompletionESaIS2_EED2Ev:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE9_M_mutateEmmPKcm:
+
+Disassembly of section .text._ZStplIcSt11char_traitsIcESaIcEENSt7__cxx1112basic_stringIT_T0_T1_EEOS8_PKS5_:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE10_M_replaceEmmPKcm:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE6appendEPKcm:
+
+Disassembly of section .text._ZStplIcSt11char_traitsIcESaIcEENSt7__cxx1112basic_stringIT_T0_T1_EEPKS5_OS8_:
+
+Disassembly of section .text._ZStplIcSt11char_traitsIcESaIcEENSt7__cxx1112basic_stringIT_T0_T1_EEOS8_S9_:
+
+Disassembly of section .text._ZNSt6vectorIjSaIjEE14_M_fill_assignEmRKj:
+
+Disassembly of section .text._ZNSt6vectorISt4pairImNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEESaIS7_EE17_M_realloc_insertIJRmRS6_EEEvN9__gnu_cxx17__normal_iteratorIPS7_S9_EEDpOT_:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_SaIS5_ENSt8__detail9_IdentityESt8equal_toIS5_ESt4hashIS5_ENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb1ELb1ELb1EEEE5clearEv:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_SaIS5_ENSt8__detail9_IdentityESt8equal_toIS5_ESt4hashIS5_ENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb1ELb1ELb1EEEE21_M_deallocate_bucketsEv:
+
+Disassembly of section .text._ZNSt5dequeIN4tomo11AofProducer10StagedItemESaIS2_EE16_M_push_back_auxIJEEEvDpOT_:
+
+Disassembly of section .text._ZN4tomo9FlatStore13make_room_forENS_5SliceEm:
+
+Disassembly of section .text._ZN4tomo9FlatStore17insert_read_localEmPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore6insertEmPNS_5KvObjE:
+
+Disassembly of section .text._ZN4tomo9FlatStore4findEmNS_5SliceE:
+
+Disassembly of section .text._ZNSt5dequeIN4tomo11AofProducer10StagedItemESaIS2_EE16_M_pop_front_auxEv:
+
+Disassembly of section .text._ZNSt5dequeIN4tomo11AofProducer10StagedItemESaIS2_EE9pop_frontEv:
+
+Disassembly of section .text._ZNSt11_Deque_baseIN4tomo10AofManager15CompletionBatchESaIS2_EED2Ev:
+
+Disassembly of section .text._ZN4tomo10AofManager9ChunkChanD2Ev:
+
+Disassembly of section .text._ZSt11make_uniqueIA_N4tomo10AofManager9ChunkChanEENSt8__detail9_MakeUniqIT_E7__arrayEm:
+
+Disassembly of section .text._ZNSt6vectorIN4tomo18AofGroupDependencyESaIS1_EE17_M_default_appendEm:
+
+Disassembly of section .text._ZNSt6vectorIhSaIhEE14_M_fill_assignEmRKh:
+
+Disassembly of section .text._ZNSt6vectorIS_IjSaIjEESaIS1_EE17_M_realloc_insertIJRKS1_EEEvN9__gnu_cxx17__normal_iteratorIPS1_S3_EEDpOT_:
+
+Disassembly of section .text._ZNSt6vectorINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESaIS5_EE17_M_realloc_insertIJRKS5_EEEvN9__gnu_cxx17__normal_iteratorIPS5_S7_EEDpOT_:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC2ERKS4_:
+
+Disassembly of section .text._ZNSt6vectorIS_IhSaIhEESaIS1_EE17_M_default_appendEm:
+
+Disassembly of section .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE9_M_assignERKS4_:
+
+Disassembly of section .text._ZNSt10_HashtableImmSaImENSt8__detail9_IdentityESt8equal_toImESt4hashImENS1_18_Mod_range_hashingENS1_20_Default_ranged_hashENS1_20_Prime_rehash_policyENS1_17_Hashtable_traitsILb0ELb1ELb1EEEE8_M_eraseEmPNS1_15_Hash_node_baseEPNS1_10_Hash_nodeImLb0EEE:
+
+Disassembly of section .text._ZNSt10_HashtableINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_SaIS5_ENSt8__detail9_IdentityESt8equal_toIS5_ESt4hashIS5_ENS7_18_Mod_range_hashingENS7_20_Default_ranged_hashENS7_20_Prime_rehash_policyENS7_17_Hashtable_traitsILb1ELb1ELb1EEEE9_M_rehashEmRKm:
+
+Disassembly of section .text._ZNSt10_HashtableImmSaImENSt8__detail9_IdentityESt8equal_toImESt4hashImENS1_18_Mod_range_hashingENS1_20_Default_ranged_hashENS1_20_Prime_rehash_policyENS1_17_Hashtable_traitsILb0ELb1ELb1EEEE9_M_rehashEmRKm:
+
+Disassembly of section .text._ZNSt8__detail12_Insert_baseImmSaImENS_9_IdentityESt8equal_toImESt4hashImENS_18_Mod_range_hashingENS_20_Default_ranged_hashENS_20_Prime_rehash_policyENS_17_Hashtable_traitsILb0ELb1ELb1EEEE6insertERKm:
+
+Disassembly of section .text.startup:

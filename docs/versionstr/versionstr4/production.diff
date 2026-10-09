@@ -1,0 +1,180 @@
+diff --git a/Makefile b/Makefile
+index 4b1e3c317..5d6f7edba 100644
+--- a/Makefile
++++ b/Makefile
+@@ -506,7 +506,7 @@ NETCMD_TEST_SRC := tests/netcmd_unit.cc tests/netcmd_stream_unit.cc tests/netcmd
+ NETCMD_TEST_OBJ := $(NETCMD_TEST_SRC:tests/%.cc=build/tests/%.o)
+ build/tests/netcmd_unit.o build/db0/tests/netcmd_unit.o: tests/tlsserve_checks.inc tests/hexpire_oom_checks.inc
+ NETCMD_LIB_OBJ := $(filter-out build/src/main.o build/src/cmd/xshard.o build/src/cmd/t_stream_groups.o build/src/cmd/t_zset.o build/src/cmd/server_tail.o,$(OBJ))
+-build/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(wildcard src/*/*.cc) $(wildcard src/*/*.inc) Makefile
++build/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(filter-out $(SERVER_ONLY_SRC),$(wildcard src/*/*.cc)) $(wildcard src/*/*.inc) Makefile
+ 	@mkdir -p $(dir $@)
+ 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Wno-mismatched-new-delete -I. -c $< -o $@
+ build/netcmd-unit: $(NETCMD_TEST_OBJ) $(NETCMD_LIB_OBJ)
+@@ -514,7 +514,7 @@ build/netcmd-unit: $(NETCMD_TEST_OBJ) $(NETCMD_LIB_OBJ)
+ 
+ # The same direct-call regressions against the databases=1 runtime selected at boot.
+ NETCMD_DB0_TEST_OBJ := $(NETCMD_TEST_SRC:tests/%.cc=build/db0/tests/%.o)
+-build/db0/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(wildcard src/*/*.cc) $(wildcard src/*/*.inc) Makefile
++build/db0/tests/%.o: tests/%.cc tests/netcmd_unit.h $(wildcard src/*/*.h) $(filter-out $(SERVER_ONLY_SRC),$(wildcard src/*/*.cc)) $(wildcard src/*/*.inc) Makefile
+ 	@mkdir -p $(dir $@)
+ 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -Wno-mismatched-new-delete -DTOMO_SINGLE_DATABASE=1 -Dtomo=tomo_db0 -I. -c $< -o $@
+ # Lua's C runtime is emitted only by the namespaced scripting object; the second library
+diff --git a/tests/cd13b_checks.py b/tests/cd13b_checks.py
+index 5f8f9ff60..c7569c129 100644
+--- a/tests/cd13b_checks.py
++++ b/tests/cd13b_checks.py
+@@ -23,13 +23,13 @@ def build_one(arm, namespace):
+     flags = ["g++", "-std=c++20", "-O2", "-g", "-Wall", "-Wextra", "-march=native",
+              "-pthread", "-DTOMO_JEMALLOC", "-I" + str(source), "-I" + str(ROOT)]
+     unit = OUT / (arm + "-" + namespace + ".o")
+-    links = sorted(p for p in (objects / "src").rglob("*.o") if p.name not in ("main.o", "xshard.o"))
++    links = sorted(p for p in (objects / "src").rglob("*.o") if p.name not in ("main.o", "version.o", "xshard.o"))
+     if namespace == "db0":
+         flags += ["-DTOMO_SINGLE_DATABASE=1", "-Dtomo=tomo_db0"]
+         # The non-namespaced dependency objects still need their production xshard symbols.
+         links.append(objects / "src/cmd/xshard.o")
+         links = sorted(p for p in (objects / "db0/src").rglob("*.o")
+-                       if p.name not in ("main.o", "xshard.o")) + links
++                       if p.name not in ("main.o", "version.o", "xshard.o")) + links
+     with (OUT / (arm + "-" + namespace + "-build.log")).open("w") as log:
+         subprocess.run(flags + ["-c", str(ROOT / "tests/cd13b_unit.cc"), "-o", str(unit)],
+                        stdout=log, stderr=subprocess.STDOUT, check=True)
+diff --git a/tests/cdfix_checks.py b/tests/cdfix_checks.py
+index c801cb762..54207fd0b 100644
+--- a/tests/cdfix_checks.py
++++ b/tests/cdfix_checks.py
+@@ -41,9 +41,9 @@ def build(args):
+         unit = out / (namespace + ".o")
+         run(flags + variant + ["-c", "tests/cdfix_unit.cc", "-o", unit])
+         for arm, root in (("PRE", args.pre), ("POST", args.post)):
+-            objects = sorted(p for p in (root / "src").rglob("*.o") if p.name != "main.o")
++            objects = sorted(p for p in (root / "src").rglob("*.o") if p.name not in ("main.o", "version.o"))
+             if namespace == "db0":
+-                objects = sorted(p for p in (root / "db0/src").rglob("*.o") if p.name != "main.o") + objects
++                objects = sorted(p for p in (root / "db0/src").rglob("*.o") if p.name not in ("main.o", "version.o")) + objects
+             run(flags + [unit, out / "oracle.o", out / "redis-geohash.o", out / "redis-util.o"] + objects +
+                 ["-Wl,--gc-sections", "-ljemalloc", "-luring", "-lssl", "-lcrypto", "-lm",
+                  "-o", out / (arm + "-" + namespace)])
+@@ -55,7 +55,7 @@ def build(args):
+     broken = out / "physical-slot.cc"
+     broken.write_text(source.replace(correct, "slot.state == Live && pos == home"))
+     run(flags + ["-Isrc/cmd", "-c", broken, "-o", out / "physical-slot.o"])
+-    objects = sorted(p for p in (args.post / "src").rglob("*.o") if p.name not in ("main.o", "t_set.o"))
++    objects = sorted(p for p in (args.post / "src").rglob("*.o") if p.name not in ("main.o", "version.o", "t_set.o"))
+     run(flags + [out / "multi.o", out / "physical-slot.o", out / "oracle.o",
+                  out / "redis-geohash.o", out / "redis-util.o"] + objects +
+         ["-Wl,--gc-sections", "-ljemalloc", "-luring", "-lssl", "-lcrypto", "-lm",
+diff --git a/tests/climonfix_artifacts.py b/tests/climonfix_artifacts.py
+index 787c4630b..f7c93539d 100644
+--- a/tests/climonfix_artifacts.py
++++ b/tests/climonfix_artifacts.py
+@@ -39,7 +39,7 @@ def make(args, directory, *targets):
+ 
+ def controls(args):
+     build = args.build_root.resolve()
+-    objects = sorted(p for p in (build / 'src').rglob('*.o') if p.name != 'main.o')
++    objects = sorted(p for p in (build / 'src').rglob('*.o') if p.name not in ('main.o', 'version.o'))
+     assert objects and (build / 'shutdown-unit').exists()
+     rows = []
+     for defect, assertion in (
+diff --git a/tests/gate.sh b/tests/gate.sh
+index 6cb184203..ef1007052 100755
+--- a/tests/gate.sh
++++ b/tests/gate.sh
+@@ -3051,7 +3051,11 @@ fi
+ job_core_tsan_build(){
+   # Match the core unit's Makefile dependencies: reorder's fused boot selector
+   # references run_fused_server in genthread.cc even in this serverless binary.
+-  local sources=(src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc)
++  local source sources=()
++  for source in src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc; do
++    # Match Makefile's SERVER_ONLY_SRC exclusion; this binary has its own main.
++    [ "$source" = src/core/version.cc ] || sources+=("$source")
++  done
+   mkdir -p "$RUN_DIR/unit-ready"
+   pausable taskset -c "$BUILD_CORES" tests/parbuild.sh "$CORE_TSAN" \
+       "$PWD/build/gate-cache/obj-core-tsan" \
+diff --git a/tools/flipreport_proof.py b/tools/flipreport_proof.py
+index 3e0643528..d6856dd89 100644
+--- a/tools/flipreport_proof.py
++++ b/tools/flipreport_proof.py
+@@ -191,9 +191,9 @@ def controls():
+ 
+     def objects(arm, ns):
+         base = OUT / arm / 'artifacts'
+-        normal = sorted(p for p in (base / 'src').rglob('*.o') if p != base / 'src/main.o')
++        normal = sorted(p for p in (base / 'src').rglob('*.o') if p.name not in ('main.o', 'version.o'))
+         if ns == 'normal': return normal
+-        return sorted(p for p in (base / 'db0/src').rglob('*.o') if p != base / 'db0/src/main.o') + normal
++        return sorted(p for p in (base / 'db0/src').rglob('*.o') if p.name not in ('main.o', 'version.o')) + normal
+ 
+     drivers = {}
+     for arm in ('PRE', 'POST'):
+diff --git a/tools/flipsettle_controls.py b/tools/flipsettle_controls.py
+index ee0987d63..cc90fce46 100644
+--- a/tools/flipsettle_controls.py
++++ b/tools/flipsettle_controls.py
+@@ -104,7 +104,7 @@ def main():
+     flags = ['-std=c++20', '-O2', '-g', '-Wall', '-Wextra', '-march=native', '-pthread',
+              '-DTOMO_JEMALLOC', '-DTOMO_CORE_CONCURRENCY_TEST', '-I' + str(ROOT)]
+     objects = sorted(p for p in (arm / 'src').rglob('*.o')
+-                     if p not in [arm / 'src/main.o', arm / 'src/core/flipctl.o'])
++                     if p not in [arm / 'src/main.o', arm / 'src/core/version.o', arm / 'src/core/flipctl.o'])
+     libs = ['-ljemalloc', '-luring', '-pthread', '-lssl', '-lcrypto', '-lm']
+     targets = [str(out / (m['name'] + '.unit')) for m in mutants]
+     lines = ['all: ' + ' '.join(targets)]
+@@ -118,12 +118,12 @@ def main():
+     positives = []
+     for label in ['PRE', 'POST', 'PAD-A']:
+         directory = arm.parent / label
+-        normal = sorted(p for p in (directory / 'src').rglob('*.o') if p != directory / 'src/main.o')
++        normal = sorted(p for p in (directory / 'src').rglob('*.o') if p.name not in ('main.o', 'version.o'))
+         for ns in ['normal', 'db0']:
+             driver_obj = out / ('driver.o' if ns == 'normal' else 'driver-db0.o')
+             # Lua is deliberately shared and only emitted by the normal namespace objects.
+             all_objects = normal if ns == 'normal' else sorted(
+-                p for p in (directory / 'db0/src').rglob('*.o') if p != directory / 'db0/src/main.o') + normal
++                p for p in (directory / 'db0/src').rglob('*.o') if p.name not in ('main.o', 'version.o')) + normal
+             exe = directory / ('transitions-' + ns)
+             recipe(exe, [driver_obj, *all_objects],
+                    ['g++', '-pthread', str(driver_obj), *map(str, all_objects), '-o', str(exe), *libs])
+diff --git a/tools/iopass_receipts.py b/tools/iopass_receipts.py
+index 87bf4e9e8..86b967a31 100644
+--- a/tools/iopass_receipts.py
++++ b/tools/iopass_receipts.py
+@@ -99,7 +99,7 @@ def build(label, source, checks=False):
+     objects = sorted((ROOT / 'build/iopass-pre/src').rglob('*.o'))
+     # As in lbplanner-unit, link the witness first so its inline definitions win
+     # COMDAT selection. Frozen command/executor objects isolate the IO change.
+-    objects = [p for p in objects if p.name != 'main.o']
++    objects = [p for p in objects if p.name not in ('main.o', 'version.o')]
+     flags = ['g++', '-std=c++20', '-O2', '-g', '-Wall', '-Wextra', '-march=native', '-pthread',
+              '-DTOMO_JEMALLOC', '-DTOMO_CORE_CONCURRENCY_TEST', '-ffunction-sections',
+              '-fdata-sections', '-I' + str(source), '-I' + str(ROOT)]
+diff --git a/tools/lbplanner_pre_receipt.py b/tools/lbplanner_pre_receipt.py
+index edd34de3f..d40965fad 100644
+--- a/tools/lbplanner_pre_receipt.py
++++ b/tools/lbplanner_pre_receipt.py
+@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
+ }
+ ''')
+ (root/'build/lbplanner-extra.mk').write_text('''include Makefile
+-LBPLANNER_PRE_OBJ := $(filter-out build/lbplanner-pre/src/main.o,$(wildcard build/lbplanner-pre/src/*/*.o))
++LBPLANNER_PRE_OBJ := $(filter-out build/lbplanner-pre/src/main.o build/lbplanner-pre/src/core/version.o,$(wildcard build/lbplanner-pre/src/*/*.o))
+ build/lbplanner-pre-pass: build/lbplanner-pre-pass.cc $(LBPLANNER_PRE_OBJ)
+ 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -Ibuild/lbplanner-pre-source -I. $< $(LBPLANNER_PRE_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
+ build/lbplanner-pre-timing: build/lbplanner-pre-timing.cc $(LBPLANNER_PRE_OBJ)
+diff --git a/tools/storesize_artifacts.py b/tools/storesize_artifacts.py
+index 13b4c4971..df3f7883e 100644
+--- a/tools/storesize_artifacts.py
++++ b/tools/storesize_artifacts.py
+@@ -60,7 +60,7 @@ def pre_unit(root):
+     for directory in (root / 'src', root / 'db0/src'):
+         objects += [p for p in sorted(directory.rglob('*.o'))
+                     if p.relative_to(directory).as_posix() not in ('main.o', 'cmd/xshard.o')
+-                    and p.name != 'multidb.o']
++                    and p.name not in ('multidb.o', 'version.o')]
+     subprocess.run(['g++', '-pthread', *map(str, objects), '-o', str(root / 'unit'),
+                     '-ljemalloc', '-luring', '-lssl', '-lcrypto', '-lm'], check=True)
+ 

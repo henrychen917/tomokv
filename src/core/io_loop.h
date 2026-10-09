@@ -51,7 +51,7 @@
 
 namespace tomo {
 
-inline constexpr uint32_t kRecvChunk = 16 * 1024;
+// Receive requests use the connection buffer's initial quantum.
 
 // IO and EX responsibilities compose on one physical thread in fused mode:
 //
@@ -94,6 +94,7 @@ public:
         tls_context_ = tls_context;
         unix_listen_fd_ = unix_listen_fd;
         epoll_ = srv_->cfg().net_io == NetIoEngine::Epoll;
+        cache_writeback_config();
         age_sample_rate_cached_ = srv_->effective_age_sample_rate();
         age_signals_armed_ = age_sample_rate_cached_ != 0;
         client_lb_signal_armed_ = srv_->client_lb_signals_enabled();
@@ -860,7 +861,7 @@ private:
         // points into. See Conn::read_space.
         const bool may_grow = c->rob().quiesced();
         char* dst = c->read_space(
-            kRecvChunk, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
+            kRbufInitial, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
         if (!dst) return;                      // no usable space yet: let the ROB drain first
         io_uring_sqe* s = ring_.sqe();
         if (!s) { self_->sig().sqe_starved++; return; }   // retried from flush_ready next pass
@@ -878,7 +879,7 @@ private:
     void epoll_recv(Client* c) {
         for (;;) {
             size_t avail = 0;
-            char* dst = c->read_space(kRecvChunk, avail, c->rob().quiesced(),
+            char* dst = c->read_space(kRbufInitial, avail, c->rob().quiesced(),
                                       proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
             if (!dst) return;              // no usable space: stay un-armed so a later pass retries
             const ssize_t n = ::recv(c->fd(), dst, avail, MSG_DONTWAIT);
@@ -915,7 +916,7 @@ private:
         // a request/response client until it happens to send unrelated bytes.
         if (tls->input_pending()) return;
         char* dst = nullptr;
-        const int avail = tls->reserve_input(dst, kRecvChunk);
+        const int avail = tls->reserve_input(dst, kRbufInitial);
         if (avail <= 0) return;
         if constexpr (kEp) {
             const ssize_t n = ::recv(c->fd(), dst, static_cast<size_t>(avail), MSG_DONTWAIT);
@@ -2472,7 +2473,7 @@ private:
             size_t avail = 0;
             bool may_grow = c->rob().quiesced();
             char* dst = c->read_space(
-                kRecvChunk, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
+                kRbufInitial, avail, may_grow, proto_max_bulk_len_, query_buffer_limit(*c), queued_query_bytes(*c));
             if (!dst) break;
             const TlsIoResult result = tls->read_plain(dst, avail);
             if (result.op == TlsOp::Progress) {
@@ -5338,6 +5339,12 @@ ordinary_shard_ready:
         dead_next_.clear();
     }
 
+    void cache_writeback_config() {
+        wb_config_ = {static_cast<uint8_t>(srv_->cfg().wb_policy),
+                      static_cast<uint8_t>(srv_->cfg().wb_small_pipe),
+                      static_cast<uint8_t>(srv_->cfg().wb_complete_visits)};
+    }
+
     Server*    srv_  = nullptr;
     struct ClientWorkFence {
         uint64_t dispatch = 0;
@@ -5363,6 +5370,7 @@ ordinary_shard_ready:
     ScatterArenaPool scatter_pool_;          // touched only by this connection-owning IO thread
     uint32_t flush_tick_ = 0;
     bool     backstop_pass_ = false;
+    wb_rule::Settings wb_config_; // three bytes of existing padding, fixed for this IO lifetime
     static constexpr uint32_t kClientCronBeatsPerSecond = 10;
     static constexpr uint32_t kClientCronMinVisits = 5;
     uint64_t client_cron_beat_ms_ = 0;

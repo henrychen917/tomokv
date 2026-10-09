@@ -373,6 +373,20 @@ struct NetcmdRegression {
         std::printf("ok: atomic fingerprint boot=%u, three runtime toggles with active work\n", boot);
     }
 
+    static void writeback_knob(const char* name) {
+        Server server;
+        char directory[] = "build/netcmd-wbknobs-XXXXXX";
+        check(::mkdtemp(directory), "writeback knob private config directory");
+        const std::string path = std::string(directory) + "/tomo.conf";
+        server.cfg_.conf_path = path.c_str();
+        std::FILE* file = std::fopen(path.c_str(), "w");
+        check(file, "writeback knob boot config exists for INFO realpath");
+        std::fclose(file);
+        command_bind_server(&server);
+        test_writeback_knob(name, server.cfg_);
+        command_bind_server(nullptr);
+        std::filesystem::remove_all(directory);
+    }
     static void config() {
         atomic_fingerprint(0);
         atomic_fingerprint(1);
@@ -758,6 +772,7 @@ int main(int argc, char** argv) {
     else if (mode == "collection-oom") R::collection_oom();
     else if (mode == "hexpire-oom") test_hexpire_oom(argc == 3 ? argv[2] : nullptr);
     else if (mode == "config") R::config();
+    else if (mode == "wb-small-pipe" || mode == "wb-complete-visits") R::writeback_knob(mode.c_str());
     else if (mode == "config-bounds") test_config_bounds(argc == 3 ? argv[2] : nullptr);
     else if (mode == "acl-selectors") R::acl_selectors();
     else if (mode == "tracking-eviction") R::tracking_eviction();

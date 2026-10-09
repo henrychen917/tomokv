@@ -1,0 +1,11 @@
+{
+  "matching_occurrences": 12580,
+  "matching_files": 81,
+  "spellings": {
+    "0.1-cpp": 12580
+  },
+  "active_old_version_uses": {
+    "tests/infofields_test.py": 2
+  },
+  "disposition": "Intentional negative controls; all other hits are historical measured evidence, predecessor search receipts, or the search needle. No historical measurement rewritten."
+}

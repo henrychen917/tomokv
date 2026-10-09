@@ -1,0 +1,14 @@
+test_inventory_geometry_and_pin (__main__.suite.<locals>.TTLCell.test_inventory_geometry_and_pin) ... ok
+test_measured_window_wiring_both_arms_and_failed_artifact (__main__.suite.<locals>.TTLCell.test_measured_window_wiring_both_arms_and_failed_artifact) ... ok
+test_null_cannot_cover_a_plain_twin_even_with_same_id_and_source_digest (__main__.suite.<locals>.TTLCell.test_null_cannot_cover_a_plain_twin_even_with_same_id_and_source_digest) ... ok
+test_option_text_argv_receipt_and_shape (__main__.suite.<locals>.TTLCell.test_option_text_argv_receipt_and_shape) ... ok
+test_population_never_gets_client_flags (__main__.suite.<locals>.TTLCell.test_population_never_gets_client_flags) ... ok
+test_raw_endpoint_replay_and_arm_specific_named_fail (__main__.suite.<locals>.TTLCell.test_raw_endpoint_replay_and_arm_specific_named_fail) ... ok
+test_setex_server_counters_match_logical_memtier_sets_exactly (__main__.suite.<locals>.TTLCell.test_setex_server_counters_match_logical_memtier_sets_exactly) ... ok
+test_unknown_duplicate_unsafe_and_vacuous_options_rejected (__main__.suite.<locals>.TTLCell.test_unknown_duplicate_unsafe_and_vacuous_options_rejected) ... ok
+test_witness_zero_missing_bad_and_reset_fail_for_either_arm (__main__.suite.<locals>.TTLCell.test_witness_zero_missing_bad_and_reset_fail_for_either_arm) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.779s
+
+OK

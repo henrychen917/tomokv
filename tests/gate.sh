@@ -1677,7 +1677,8 @@ row_begin "netcmd regression build"
 unit_ready netcmd-unit \
     && ok "netcmd regression build" || bad "netcmd regression build" "see $RUN_DIR/jobs/production_units/build.log"
 # CD1: +1 row before the quick-tier exit; EXPECT counts remain maintainer-owned.
-for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub receive config hexpire-oom; do
+# wbknobs: +2/+2 before the quick exit; owner authorized matching EXPECT updates.
+for NETCMD_CASE in streams zpop notify-oom notify-retry flush output pubsub receive config wb-small-pipe wb-complete-visits hexpire-oom; do
   row_begin "netcmd $NETCMD_CASE regression"
   taskset -c "$CORES" ./build/netcmd-unit "$NETCMD_CASE" >$TMPDIR/gate-netcmd-$NETCMD_CASE.txt 2>&1 \
       && ok "netcmd $NETCMD_CASE regression" \
@@ -3053,7 +3054,11 @@ fi
 job_core_tsan_build(){
   # Match the core unit's Makefile dependencies: reorder's fused boot selector
   # references run_fused_server in genthread.cc even in this serverless binary.
-  local sources=(src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc)
+  local source sources=()
+  for source in src/net/tls.cc src/core/*.cc src/cmd/*.cc src/snapshot/*.cc src/persist/*.cc; do
+    # Match Makefile's SERVER_ONLY_SRC exclusion; this binary has its own main.
+    [ "$source" = src/core/version.cc ] || sources+=("$source")
+  done
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" tests/parbuild.sh "$CORE_TSAN" \
       "$PWD/build/gate-cache/obj-core-tsan" \

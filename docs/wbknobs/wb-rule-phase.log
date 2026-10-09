@@ -1,0 +1,33 @@
+PASS phase wb-rule-phase-unit fused-budget 
+PASS phase wb-rule-phase-unit fastpath 
+PASS phase wb-rule-phase-unit fifo 
+PASS phase wb-rule-phase-unit capture 
+PASS phase wb-rule-phase-unit dead 
+PASS phase wb-rule-phase-unit progress 
+PASS phase wb-rule-phase-unit fused-budget r7
+PASS phase wb-rule-phase-unit fastpath r7
+PASS phase wb-rule-phase-unit fifo r7
+PASS phase wb-rule-phase-unit capture r7
+PASS phase wb-rule-phase-unit dead r7
+PASS phase wb-rule-phase-unit progress r7
+PASS phase wb-rule-db0-phase-unit fused-budget 
+PASS phase wb-rule-db0-phase-unit fastpath 
+PASS phase wb-rule-db0-phase-unit fifo 
+PASS phase wb-rule-db0-phase-unit capture 
+PASS phase wb-rule-db0-phase-unit dead 
+PASS phase wb-rule-db0-phase-unit progress 
+PASS phase wb-rule-db0-phase-unit fused-budget r7
+PASS phase wb-rule-db0-phase-unit fastpath r7
+PASS phase wb-rule-db0-phase-unit fifo r7
+PASS phase wb-rule-db0-phase-unit capture r7
+PASS phase wb-rule-db0-phase-unit dead r7
+PASS phase wb-rule-db0-phase-unit progress r7
+PASS phase unit fused-budget 
+PASS phase unit fifo 
+PASS phase unit fifo 
+PASS phase unit fifo 
+PASS phase unit capture 
+PASS phase unit fifo 
+PASS phase unit dead 
+PASS phase unit progress 
+PASS wb-rule phase: 32/32 strict outcomes

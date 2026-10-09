@@ -1,0 +1,3 @@
+FAIL: tracking map swapped
+ok: atomic fingerprint boot=0, three runtime toggles with active work
+ok: atomic fingerprint boot=1, three runtime toggles with active work

@@ -49,7 +49,10 @@ class DatabaseMap {
 public:
     DatabaseMap() noexcept;
     ~DatabaseMap();
-    struct Map : std::array<uint8_t, 256> {
+    using Payload = std::array<uint8_t, 256>;
+    static constexpr size_t kPayloadBytes = sizeof(Payload);
+    static_assert(kPayloadBytes == UINT8_MAX + 1u, "one map byte per logical database");
+    struct Map : Payload {
         uint32_t epoch = 0;
         Map() { for (unsigned i = 0; i < size(); ++i) (*this)[i] = i; }
 #ifdef TOMO_MDBQSBR_TEST

@@ -1,0 +1,4 @@
+{
+  "build/src/core/version.o": "",
+  "build/db0/src/core/version.o": "0000000000000000 r .LC0\n000000000000000a r .LC1\n000000000000000d r .LC2\n0000000000000014 r .LC3\n0000000000000000 r .LC4\n0000000000000000 0000000000000088 T __wrap_main\n"
+}

@@ -43,7 +43,8 @@ void knob_matrix() {
     for (const auto& [name, value] : {
              std::pair{"hll-sparse-max-bytes", "1024"},
              {"unixsocketperm", "600"}, {"port", "6397"}, {"bind", "127.0.0.2"},
-             {"unixsocket", "build/unused-knob-matrix.sock"}, {"wb-policy", "1"}}) {
+             {"unixsocket", "build/unused-knob-matrix.sock"}, {"wb-policy", "1"},
+             {"wb-small-pipe", "16"}, {"wb-complete-visits", "3"}}) {
         get(name, value);
         set({"CONFIG", "SET", name, value}, false);
         get(name, value);
@@ -211,7 +212,8 @@ void test_config_rewrite() {
                                   "unixsocketperm 600\n", "port 6397\n", "bind 127.0.0.2\n",
                                   "unixsocket build/unused-knob-matrix.sock\n"})
         check(body.find(directive) != std::string::npos, "boot binding survived rewrite with actual value");
-    check(body.find("wb-policy 1\n") != std::string::npos, "writeback policy survives rewrite");
+    for (const char* line : {"wb-policy 1\n", "wb-small-pipe 16\n", "wb-complete-visits 3\n"})
+        check(body.find(line) != std::string::npos, "writeback boot knobs survive rewrite");
     std::vector<std::string> loaded;
     check(tomo::load_conf_file(path, loaded), "rewritten config loads");
     auto password = std::find(loaded.begin(), loaded.end(), "--requirepass");
@@ -226,4 +228,68 @@ void test_config_rewrite() {
     check(success[0] && success[1], "both concurrent rewrites completed");
     std::ifstream after(path); std::string final((std::istreambuf_iterator<char>(after)), {});
     check(final == body, "concurrent rewrites preserve exact complete bytes");
+}
+
+void test_writeback_knob(const char* name, tomo::Config& cfg) {
+    const bool small = !std::strcmp(name, "wb-small-pipe");
+    const std::string flag = std::string("--") + name;
+    const std::string info_name = small ? "wb_small_pipe" : "wb_complete_visits";
+    const unsigned maximum = small ? tomo::kRobWindow : UINT8_MAX;
+    const unsigned measured = small ? 16 : 3;
+    auto value = [&](const tomo::Config& c) { return small ? c.wb_small_pipe : c.wb_complete_visits; };
+    check(value(cfg) == measured, "writeback measured default");
+    tomo::Shard shard;
+    auto observe = [&](unsigned expected) {
+        const std::string number = std::to_string(expected);
+        const std::string wire = "*2\r\n$" + std::to_string(std::strlen(name)) + "\r\n" + name +
+            "\r\n$" + std::to_string(number.size()) + "\r\n" + number + "\r\n";
+        check(execute(shard, {"CONFIG", "GET", name}) == wire, "writeback knob CONFIG GET actual boot value");
+        check(execute(shard, {"INFO", "WRITEBACK"}).find(info_name + ":" + number + "\r\n") !=
+              std::string::npos, "writeback INFO actual boot value");
+    };
+    observe(measured);
+    for (unsigned boot : {0u, 1u, measured, maximum}) {
+        tomo::ConfigParseState state;
+        const std::string number = std::to_string(boot);
+        check(tomo::parse_config_args({flag.c_str(), number.c_str()}, cfg, state, 1, "conf") ==
+              tomo::kConfigParsed && value(cfg) == boot, "writeback canonical file grammar");
+        check(tomo::parse_config_args({flag.c_str(), "0"}, cfg, state, 2, "CLI") ==
+              tomo::kConfigParsed && value(cfg) == 0, "writeback CLI overrides file");
+        check(tomo::parse_config_args({flag.c_str(), number.c_str()}, cfg, state, 2, "CLI") ==
+              tomo::kConfigParsed && value(cfg) == boot, "writeback canonical CLI grammar");
+        tomo::command_bind_server(tomo::command_server());
+        observe(boot);
+        for (const char* input : {"0", "1", "16", "255", "-1", "256", "junk"}) {
+            tomo::Op op; args(op, {"CONFIG", "SET", name, input});
+            check(!tomo::command_validate_config_set(op), "writeback boot-only SET rejects");
+            check(std::string(op.reply.data(), op.reply.size()) == "-ERR parameter is immutable at runtime\r\n",
+                  "writeback SET uses exact wb-policy rejection");
+            check(execute(shard, {"CONFIG", "SET", name, input}) ==
+                  "-ERR parameter is immutable at runtime\r\n", "writeback handler rejects SET");
+            observe(boot);
+        }
+        std::FILE* file = std::fopen(cfg.conf_path, "w"); check(file, "writeback rewrite source");
+        std::fprintf(file, "%s 1\n", name); std::fclose(file);
+        std::string error;
+        check(tomo::config_rewrite(error), "writeback knob rewrite succeeds");
+        std::vector<std::string> loaded;
+        check(tomo::load_conf_file(cfg.conf_path, loaded), "writeback rewritten file loads");
+        std::vector<const char*> argv;
+        for (const auto& arg : loaded) argv.push_back(arg.c_str());
+        tomo::Config reparsed; tomo::ConfigParseState reparse_state;
+        check(tomo::parse_config_args(argv, reparsed, reparse_state, 1, "rewrite") == tomo::kConfigParsed &&
+              value(reparsed) == boot, "writeback REWRITE reboots actual value");
+    }
+    for (const std::string& input : std::vector<std::string>{"-1", "-0", "+1", "01", "00", "1x", "1.0",
+                                    "1kb", "", " 1", "1 ", "4294967296", "18446744073709551616",
+                                    std::to_string(maximum + 1)}) {
+        tomo::Config candidate; tomo::ConfigParseState state;
+        check(tomo::parse_config_args({flag.c_str(), input.c_str()}, candidate, state, 2, "invalid") ==
+              tomo::kConfigError && value(candidate) == measured, "writeback invalid grammar cannot change config");
+    }
+    tomo::Config invalid; tomo::ConfigParseState state;
+    check(tomo::parse_config_args({flag.c_str()}, invalid, state, 2, "missing") == tomo::kConfigError,
+          "writeback missing argument rejected");
+    (small ? invalid.wb_small_pipe : invalid.wb_complete_visits) = maximum + 1;
+    check(tomo::validate_config(invalid) == tomo::kConfigError, "writeback direct Config range validated");
 }

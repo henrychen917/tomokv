@@ -1,0 +1,32 @@
+PASS paths build/wb-rule-completion-unit lifetime 
+PASS paths build/wb-rule-completion-unit lifetime-serve 
+PASS paths build/wb-rule-completion-unit knob-lifetime 
+PASS paths build/wb-rule-completion-unit knob-lifetime-serve 
+PASS paths build/wb-rule-phase-unit wbland-fused 
+PASS paths build/wb-rule-phase-unit wbland-fused r7
+PASS paths build/wb-rule-phase-unit wbland-split 
+PASS paths build/wb-rule-phase-unit wbland-local 
+PASS paths build/wb-rule-phase-unit wbland-split natural
+PASS paths build/wb-rule-phase-unit wbland-local natural
+PASS paths build/wb-rule-phase-unit wbland-split shallow
+PASS paths build/wb-rule-phase-unit wbland-local shallow
+PASS paths build/wb-rule-db0-completion-unit lifetime 
+PASS paths build/wb-rule-db0-completion-unit lifetime-serve 
+PASS paths build/wb-rule-db0-completion-unit knob-lifetime 
+PASS paths build/wb-rule-db0-completion-unit knob-lifetime-serve 
+PASS paths build/wb-rule-db0-phase-unit wbland-fused 
+PASS paths build/wb-rule-db0-phase-unit wbland-fused r7
+PASS paths build/wb-rule-db0-phase-unit wbland-split 
+PASS paths build/wb-rule-db0-phase-unit wbland-local 
+PASS paths build/wb-rule-db0-phase-unit wbland-split natural
+PASS paths build/wb-rule-db0-phase-unit wbland-local natural
+PASS paths build/wb-rule-db0-phase-unit wbland-split shallow
+PASS paths build/wb-rule-db0-phase-unit wbland-local shallow
+PASS paths gather-reset/unit lifetime 
+PASS paths gather-reset/db0-unit lifetime 
+PASS paths serve-reset/unit lifetime-serve 
+PASS paths serve-reset/db0-unit lifetime-serve 
+PASS paths split-policy/unit wbland-fused 
+PASS paths gather-policy/unit wbland-split natural
+PASS paths gather-policy/unit wbland-split shallow
+PASS wbland paths: 31/31 strict outcomes

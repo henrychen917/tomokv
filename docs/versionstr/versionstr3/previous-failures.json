@@ -1,0 +1,74 @@
+[
+  {
+    "job": "atomic_units",
+    "row": "flushfix flush witnesses"
+  },
+  {
+    "job": "atomic_units",
+    "row": "flushfix headers witnesses"
+  },
+  {
+    "job": "atomic_units",
+    "row": "multidb serverless owners"
+  },
+  {
+    "job": "atomic_units",
+    "row": "storesize published monitoring"
+  },
+  {
+    "job": "atomic_units",
+    "row": "MULTI admin command replies"
+  },
+  {
+    "job": "atomic_units",
+    "row": "EXECABORT releases WATCH reservation"
+  },
+  {
+    "job": "exbatch_units",
+    "row": "exbatch publication unit + negative controls"
+  },
+  {
+    "job": "exbatch_units",
+    "row": "exbatch watch unit + negative controls"
+  },
+  {
+    "job": "exbatch_units",
+    "row": "exbatch metadata unit + negative controls"
+  },
+  {
+    "job": "reorder_engagement",
+    "row": "R7 production engagement (both database runtimes)"
+  },
+  {
+    "job": "wb_policy",
+    "row": "writeback policies 0/1: 22 standard fixtures"
+  },
+  {
+    "job": "wb_rule_units",
+    "row": "writeback c12 policy witnesses + negative controls"
+  },
+  {
+    "job": "wb_rule_units",
+    "row": "writeback c12 phase witnesses + negative controls"
+  },
+  {
+    "job": "wb_rule_units",
+    "row": "writeback c12 stages witnesses + negative controls"
+  },
+  {
+    "job": "wb_rule_units",
+    "row": "writeback c12 split-phase witnesses + negative controls"
+  },
+  {
+    "job": "wb_rule_units",
+    "row": "writeback c12 split-overlap witnesses + negative controls"
+  },
+  {
+    "job": "wbland_units",
+    "row": "writeback policy clauses witnesses + negative controls"
+  },
+  {
+    "job": "wbland_units",
+    "row": "writeback policy paths witnesses + negative controls"
+  }
+]

@@ -98,6 +98,8 @@
     "netcmd pubsub regression",
     "netcmd receive regression",
     "netcmd config regression",
+    "netcmd wb-small-pipe regression",
+    "netcmd wb-complete-visits regression",
     "netcmd hexpire-oom regression",
     "encodingfix knob",
     "encodingfix precedence",
@@ -748,6 +750,13 @@
     "labels": [
       "encodingfix knob",
       "encodingfix precedence"
+    ]
+  },
+  "wbknobs_supplement": {
+    "purpose": "Owner-authorized +2 quick/full source inventory, not execution evidence",
+    "labels": [
+      "netcmd wb-small-pipe regression",
+      "netcmd wb-complete-visits regression"
     ]
   }
 }

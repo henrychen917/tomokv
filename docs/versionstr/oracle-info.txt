@@ -1,0 +1,4 @@
+Could not connect to Redis at 127.0.0.1:6379: Connection refused
+
+Endpoint: 127.0.0.1:6379 (default oracle port); exit status: 1
+No server was started. Live oracle INFO/HELLO proof remains pending.
