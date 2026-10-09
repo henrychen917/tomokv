@@ -227,8 +227,8 @@ def prime_snapshot(args, fixture, output, cell):
     binary = fixture / "candidate"
     try:
         support = {arm: {name: abba.accepted(binary, name, value) for name, value in
-                   (("thread-mode", "1s"), ("read-local", 0), ("overlap", 0), ("reorder", 0),
-                    ("x-overlap", 0), ("x-ex-sched", 0))} for arm in ("A", "B")}
+                   (("thread-mode", "1s"), ("read-local", 0), ("reorder", 0),
+                    ("x-ex-sched", 0))} for arm in ("A", "B")}
         plans, document["notes"] = abba.knob_plan(cell, support)
         snapshots, metadata = [], []
         for index, name in enumerate(("empty", "full")):

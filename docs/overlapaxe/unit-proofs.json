@@ -1,0 +1,503 @@
+[
+  {
+    "command": [
+      "build/config-parser-test"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/owner-prefetch-unit"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "python3",
+      "tests/splitlocal_checks.py",
+      "check",
+      "--output",
+      "build/overlapaxe/splitlocal-controls"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/netcmd-unit",
+      "config-knobs"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/netcmd-unit",
+      "config-bounds"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/netcmd-unit-db0",
+      "config-knobs"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/netcmd-unit-db0",
+      "config-bounds"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/netcmd-unit",
+      "config"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/reorder-engagement-unit",
+      "on",
+      "shadow"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/reorder-engagement-unit-db0",
+      "on",
+      "shadow"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/r7shadow-split-unit",
+      "positive"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/r7shadow-split-unit",
+      "0",
+      "0"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/r7shadow-split-unit",
+      "0",
+      "1"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/r7shadow-split-unit",
+      "1",
+      "0"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/r7shadow-split-unit",
+      "1",
+      "1"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/r7shadow-split-unit-db0",
+      "positive"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/r7shadow-split-unit-db0",
+      "0",
+      "0"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/r7shadow-split-unit-db0",
+      "0",
+      "1"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/r7shadow-split-unit-db0",
+      "1",
+      "0"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/r7shadow-split-unit-db0",
+      "1",
+      "1"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "wbland-fused"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "wbland-split"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "wbland-local"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "fused-budget"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-budget"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-policy"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-fastpath"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-fifo"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-capture"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-progress"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-chunk"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-aof"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-capture-multi"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-local"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-local-sweep"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "fused-parse"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-parse"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-ex"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-ex-unmasked"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-phase-unit",
+      "split-ex-timed"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "wbland-fused"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "wbland-split"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "wbland-local"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "fused-budget"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-budget"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-policy"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-fastpath"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-fifo"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-capture"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-progress"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-chunk"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-aof"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-capture-multi"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-local"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-local-sweep"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "fused-parse"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-parse"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-ex"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-ex-unmasked"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-phase-unit",
+      "split-ex-timed"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-completion-unit",
+      "table"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-completion-unit",
+      "knobs"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-completion-unit",
+      "exits"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-completion-unit",
+      "lifetime"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-completion-unit",
+      "knob-lifetime"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-completion-unit",
+      "table"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-completion-unit",
+      "knobs"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-completion-unit",
+      "exits"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-completion-unit",
+      "lifetime"
+    ],
+    "returncode": 0
+  },
+  {
+    "command": [
+      "build/wb-rule-db0-completion-unit",
+      "knob-lifetime"
+    ],
+    "returncode": 0
+  }
+]

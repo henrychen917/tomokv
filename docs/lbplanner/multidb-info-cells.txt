@@ -1,6 +1,6 @@
 # Two matched SET pairs: the ordinary 2M-key workload, then 40M TOTAL resident keys.
 # Run each pair with --only as documented in MEASURE-REQUEST-mdbcells.md.
-h06m | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16
-h06m_info | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16 | poll=info1hz
-h06m_40m | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16 | keys=40000000
-h06m_40m_info | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16 | keys=40000000 | poll=info1hz
+h06m | 1s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16
+h06m_info | 1s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16 | poll=info1hz
+h06m_40m | 1s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16 | keys=40000000
+h06m_40m_info | 1s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 16 | dbs=16 | keys=40000000 | poll=info1hz

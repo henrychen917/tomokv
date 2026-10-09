@@ -31,8 +31,9 @@ ROOT = Path(__file__).resolve().parents[1]
 HEADLINE = ROOT / "tests/headline_cells.txt"
 EPOLL = ROOT / "tests/netio_cells.txt"
 IDS = tuple(f"h{i:02}" for i in range(1, 33))
-# Filled from the original data lines, including LF; not the comments or a reserialization.
-FROZEN_SHA256 = "244c3941036d8b4535df60eb7a6304bd1f022e046a4c40fdada9501114bc5abc"
+# Re-frozen after overlap retirement: exact h01-h32 lines with ov=0, including LF.
+# Historical IDs remain; formerly different overlap arms now repeat the surviving schedule.
+FROZEN_SHA256 = "575e12a3a3b737d3f149e8cf6d2dc8d2b5785e548df60088374449be65a4682d"
 
 
 def data_lines(path):
@@ -70,8 +71,10 @@ def parse_abba(argv):
 
 
 def knobs(cell):
+    if cell.overlap:
+        raise abba.KnobNotAccepted(f"RETIRED_KNOB: overlap={cell.overlap} in {cell.id}")
     return {"thread-mode": cell.mode, "read-local": cell.read_local,
-            "overlap": cell.overlap, "reorder": cell.reorder}
+            "reorder": cell.reorder}
 
 
 def server_argv(runner, cell, arm, folder):
@@ -300,7 +303,7 @@ def self_test():
             epoll = abba.read_cells(EPOLL, measurements={"load_floors": {}})
             self.assertEqual({(c.mode, c.read_local, c.overlap, c.reorder, c.op,
                                "epoll" if c.server_flags else "uring") for c in original + epoll},
-                set(product(("1s", "2s"), (0, 1), (0, 1), (0, 1), ("GET", "SET"), ("uring", "epoll"))))
+                set(product(("1s", "2s"), (0, 1), (0,), (0, 1), ("GET", "SET"), ("uring", "epoll"))))
             for before, after in zip(original, epoll):
                 self.assertEqual(replace(after, id=before.id, server_flags=""), before)
                 self.assertNotEqual(shape(before), shape(after))

@@ -120,7 +120,7 @@ Important defaults, before any overrides:
 | --- | --- |
 | `thread-mode` | `2s`; even IO/executor split over allowed CPUs |
 | `shards` | `-1`: `min(8 × initial executor count, 256)` |
-| `read-local`, `overlap`, `reorder`, `atomic`, `flip-auto` | `0` |
+| `read-local`, `reorder`, `atomic`, `flip-auto` | `0` |
 | `key-lb`, `client-lb` | `1`: independent key and client balancing |
 | `key-lb-damping` | `-1`: automatic key planner damping; `0` preserves the original policy with no damping allocation; positive `N` sets the level (boot-only) |
 | `net-io` | `uring` |

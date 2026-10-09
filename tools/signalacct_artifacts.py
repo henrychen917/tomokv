@@ -128,7 +128,7 @@ def prepare_witness():
     p.write_text(s)
     p = dest / 'src/core/io_loop.h'
     s = p.read_text()
-    start = s.index('                if constexpr (IoPipe) {\n                    if (__builtin_expect(!routing_forward_')
+    start = s.index('                if constexpr (Fused) {\n                    if (__builtin_expect(!routing_forward_')
     end = s.index('                did += flip_control_pass<kEp>();', start)
     # Defer only the ordinary ready-service block until the real sweep gets work.
     # The sweep invokes the same service code and must itself return nonzero. No

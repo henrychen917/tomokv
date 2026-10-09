@@ -43,7 +43,7 @@
         const auto parse = [&](Client& c) {
             if constexpr (Fused)
                 return f.io.template parse_and_dispatch<false, kGenthreadIfidBatchOps>(&c);
-            else return f.io.template parse_and_dispatch<false, 0, true, true>(&c);
+            else return f.io.template parse_and_dispatch<false, 0, true>(&c);
         };
         const std::string verb = mget ? "MGET" : "GET";
         const auto frame = [&](const std::string& name) { return "*2\r\n$" + std::to_string(verb.size()) + "\r\n" + verb +

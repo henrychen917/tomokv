@@ -29,16 +29,15 @@ import perf_gate as perf
 
 
 def feature_evidence():
-    knobs = {'thread-mode': '2s', 'read-local': 1, 'overlap': 1, 'reorder': 1,
+    knobs = {'thread-mode': '2s', 'read-local': 1, 'reorder': 1,
              'flip-auto': 1, 'atomic': 1, 'key-lb': 1, 'client-lb': 1}
-    keys = ('overlap_passes', 'overlap_interleaved_passes', 'atomic_groups',
+    keys = ('atomic_groups',
             'tomokv_keylb_ticks', 'tomokv_keylb_bucket_moves', 'tomokv_clientlb_moves',
             'flipctl_forced_triggers', 'flipctl_triggers')
     before = {key: '0' for key in keys}
-    before.update(reorder='0', reorder_retired='1', read_local_active_threads='1', schedule_stats_threads='2',
+    before.update(reorder='0', reorder_retired='1', read_local_active_threads='1',
                   tomokv_keylb_bucket_weight_spread_current='0',
                   tomokv_clientlb_weight_spread_current='0',
-                  overlap_schedule='split-io-overlap', overlap_enabled='1',
                   read_local_thread_0='role=ifid,shards=0,active=1,hits_total=0,mget_hits_total=0',
                   read_local_thread_1='role=ex,shards=16,active=0,hits_total=0,mget_hits_total=0')
     after = dict(before, **{key: '10' for key in keys})
@@ -49,7 +48,7 @@ def feature_evidence():
 
 
 def perf_evidence():
-    row = dict(thread_mode='2s', read_local='0', atomic='1', flip_auto='0', overlap='0', reorder='0',
+    row = dict(thread_mode='2s', read_local='0', atomic='1', flip_auto='0', reorder='0',
                keyspace_misses='0', rejected_connections='0', send_errors='0', peer_aborts='0',
                read_local_hits='0', read_local_mget_local_hits='0', cmdstat_get='calls=100')
     thread = dict(role='ex', clients=0, ops=100, busy_ns=1000, idle_ns=1000)
@@ -67,7 +66,7 @@ class FeatureFailures(unittest.TestCase):
         b, a, knobs = feature_evidence()
         fields = ('reorder_batches', 'reorder_multi_client_runs', 'reorder_permuted_runs')
         for row, value in ((b, '0'), (a, '10')):
-            row.update(reorder='1', reorder_retired='0', reorder_max_batch='32')
+            row.update(reorder='1', reorder_retired='0', reorder_max_batch='32', schedule_stats_threads='2')
             row.update({field: value for field in fields})
         feature.check_activity(b, a, knobs, 2, True)
         for field in fields:
@@ -106,60 +105,36 @@ class FeatureFailures(unittest.TestCase):
     def test_every_enabled_witness_must_fire(self):
         b, a, knobs = feature_evidence()
         feature.check_activity(b, a, knobs, 2, True)
-        for key in ('overlap_passes', 'overlap_interleaved_passes', 'atomic_groups',
+        for key in ('atomic_groups',
                     'tomokv_keylb_ticks', 'flipctl_forced_triggers',
                     'tomokv_keylb_bucket_weight_spread_current', 'tomokv_clientlb_weight_spread_current'):
             with self.subTest(key=key), self.assertRaises(AssertionError):
                 feature.check_activity(b, dict(a, **{key: '0'}), knobs, 2, True)
 
-    def test_fused_prefetch_requires_fresh_passes_and_no_split(self):
+    def test_retired_overlap_fields_are_rejected(self):
         b, a, knobs = feature_evidence()
-        knobs.update({'thread-mode': '1s', 'read-local': 0})
-        for row in (b, a):
-            for key in list(row):
-                if key.startswith('read_local_'):
-                    del row[key]
-            row['overlap_schedule'] = 'fused-overlap'
-            row['overlap_interleaved_passes'] = '0'
-            for key in ('read_local_hits', 'read_local_mget_local_hits', 'read_local_arms',
-                        'read_local_write_ring_sidecars', 'read_local_write_ring_records'):
-                row[key] = '0'
         feature.check_activity(b, a, knobs, 2, True)
-        for key in ('overlap_passes', 'overlap_interleaved_passes'):
-            poisoned = dict(a, **{key: '1' if key.endswith('interleaved_passes') else b[key]})
-            with self.subTest(key=key), self.assertRaisesRegex(AssertionError, 'overlap witness'):
-                feature.check_activity(b, poisoned, knobs, 2, True)
-            missing = dict(a)
-            del missing[key]
-            with self.subTest(missing=key), self.assertRaises(AssertionError):
-                feature.check_activity(b, missing, knobs, 2, True)
+        for key in ('overlap', 'overlap_enabled', 'overlap_schedule',
+                    'overlap_passes', 'overlap_interleaved_passes'):
+            with self.subTest(key=key), self.assertRaisesRegex(AssertionError, 'retired overlap'):
+                feature.check_activity(b, dict(a, **{key: '0'}), knobs, 2, True)
 
-    def test_fused_prefetch_reorder_off_tail_reports_witnesses(self):
+    def test_reorder_off_has_no_schedule_storage(self):
         b, a, knobs = feature_evidence()
-        knobs.update({'thread-mode': '1s', 'read-local': 0, 'reorder': 0, 'flip-auto': 0})
-        for row in (b, a):
-            for key in list(row):
-                if key.startswith('read_local_'):
-                    del row[key]
-            row.update(overlap_schedule='fused-overlap', overlap_enabled='1',
-                       overlap_interleaved_passes='0',
-                       flipctl_triggers='0')
-            for key in ('read_local_hits', 'read_local_mget_local_hits', 'read_local_arms',
-                        'read_local_write_ring_sidecars', 'read_local_write_ring_records'):
-                row[key] = '0'
+        knobs.update({'reorder': 0})
         feature.check_activity(b, a, knobs, 2, True)
+        with self.assertRaisesRegex(AssertionError, 'schedule counters'):
+            feature.check_activity(b, dict(a, schedule_stats_threads='2'), knobs, 2, True)
+        missing = dict(a)
+        del missing['reorder_retired']
+        with self.assertRaisesRegex(AssertionError, 'missing reorder capability'):
+            feature.check_activity(b, missing, knobs, 2, True)
         from abba_workloads import require_workload_witness
         tail = SimpleNamespace(op='REORDER', reorder=0, mode='1s')
         calls_before = {'cmdstat_get': 'calls=10', 'cmdstat_bitcount': 'calls=10'}
         calls_after = {'cmdstat_get': 'calls=100', 'cmdstat_bitcount': 'calls=20'}
         witness = require_workload_witness(tail, calls_before, calls_after, b, a)
         self.assertEqual(witness['reorder_witness'], 'retired, no-op')
-        for field in ('schedule_stats_threads', 'overlap_enabled', 'overlap_schedule',
-                      'overlap_passes', 'overlap_interleaved_passes', 'reorder_retired'):
-            missing = dict(a)
-            del missing[field]
-            with self.subTest(field=field), self.assertRaises(AssertionError):
-                feature.check_activity(b, missing, knobs, 2, True)
         with self.assertRaisesRegex(RuntimeError, 'live legacy'):
             require_workload_witness(tail, calls_before, calls_after, {}, {})
 
@@ -178,7 +153,7 @@ class FeatureFailures(unittest.TestCase):
 
     def test_disabled_features_cannot_fire(self):
         b, a, knobs = feature_evidence()
-        for key in ('overlap', 'atomic', 'key-lb', 'client-lb', 'flip-auto'):
+        for key in ('atomic', 'key-lb', 'client-lb', 'flip-auto'):
             with self.subTest(key=key), self.assertRaises(AssertionError):
                 feature.check_activity(b, a, dict(knobs, **{key: 0}), 2, True)
 

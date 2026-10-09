@@ -43,7 +43,7 @@ struct CoreConcurrencyTest {
         io.fused_executor_ = &local;
         const auto parse = [&](Client* client) {
             (void)io.template parse_and_dispatch<false,
-                Fused ? kGenthreadIfidBatchOps : 0, !Fused,
+                Fused ? kGenthreadIfidBatchOps : 0,
                 !Fused && ReadLocal>(client);
         };
         const auto accepted = [&](int fd, bool direct, uint64_t generation) {

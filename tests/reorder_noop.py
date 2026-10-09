@@ -6,9 +6,10 @@ from pathlib import Path
 
 POLICIES = {
     # Only emitted, surviving interfaces. Values are historical arities with
-    # the extra FALSE policy; the post-deadfused arities are accepted below too.
+    # the extra FALSE policy, except run_loop's current five arguments. The
+    # post-deadfused and pre-overlap-removal signatures are handled below too.
     'fused_pass_impl': 7, 'fused_sweep_impl': 6,
-    'fused_baseline_sweep': 1, 'run': 1, 'run_loop': 7, 'flush_ready': 6,
+    'fused_baseline_sweep': 1, 'run': 1, 'run_loop': 5, 'flush_ready': 6,
 }
 HEADER = re.compile(r'^([0-9a-f]+) <(.+)>:$')
 INSTRUCTION = re.compile(r'^\s*([0-9a-f]+):\s*((?:[0-9a-f]{2} )+)\s*(.*)$')
@@ -21,7 +22,7 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 def canonical(name):
-    # Map only the explicitly added compile-time FALSE argument; TRUE remains distinct.
+    # Map only explicitly retired disabled policies; enabled policies remain distinct.
     # Work inside-out because a filler closure names its enclosing IO specialization.
     pattern = re.compile(r'::([A-Za-z_][A-Za-z_0-9]*)<')
     matches = list(pattern.finditer(name))
@@ -44,18 +45,37 @@ def canonical(name):
             end += 1
         if depth: raise ValueError('unclosed demangled template')
         parts.append(name[begin:end-1].strip())
-        # IO cleanup removes exactly three false policies, keeping SplitLocal in
-        # its explicit fourth position. This is symbol correspondence only; the
-        # instruction comparison below remains strict and is not a raw ELF proof.
-        if method in ('parse_and_dispatch', 'r7_parse_and_dispatch') and len(parts) == 7:
-            if parts[3:6] != ['false', 'false', 'false']: continue
-            parts = parts[:3] + parts[6:]
+        # IO cleanup removed three false policies, then overlap removal dropped
+        # IoPipe. Preserve NoBorrow, BatchOps and SplitLocal, including in nested
+        # closure names. Enabled historical policies remain distinct.
+        if method in ('parse_and_dispatch', 'r7_parse_and_dispatch'):
+            if len(parts) == 7:
+                if parts[3:6] != ['false', 'false', 'false']: continue
+                parts = parts[:3] + parts[6:]
+            if len(parts) not in (3, 4):
+                raise ValueError(f'policy symbol arity changed: {method}: {len(parts)}')
+            if len(parts) == 4 and parts[2] == 'false':
+                parts = parts[:2] + parts[3:]
             name = name[:match.end()] + ', '.join(parts) + name[end-1:]
             continue
         if method == 'collect_retire_work' and len(parts) == 3 and parts[2] == 'false':
             name = name[:match.end()] + ', '.join(parts[:2]) + name[end-1:]
             continue
         policy = method.removeprefix('r7_')
+        if policy == 'run_loop':
+            # HasUnix, HasTls, kEp, Fused, SplitLocal all survive. Older loops
+            # inserted uint8_t Pipeline before SplitLocal and optionally the
+            # historical trailing R7 policy. Only the disabled values map;
+            # never erase SplitLocal or an enabled policy in either envelope.
+            expected = POLICIES[policy]
+            if len(parts) == expected: continue
+            if len(parts) not in (expected + 1, expected + 2):
+                raise ValueError(f'policy symbol arity changed: {method}: {len(parts)}')
+            if len(parts) == expected + 2 and parts[-1] != 'false': continue
+            if parts[4] != '(unsigned char)0': continue
+            parts = parts[:4] + parts[5:6]
+            name = name[:match.end()] + ', '.join(parts) + name[end-1:]
+            continue
         if policy in ('fused_pass_impl', 'fused_sweep_impl'):
             # Deadfused leaves BatchOps, ConsumeTasks, IofusedPrivateQueue and
             # InterleaveLocalReads in both ordinary and generated envelopes.
@@ -99,7 +119,7 @@ def category(name):
         '::drain_tasks<','::drain_tasks_read_local_interleaved<',
         '::exec_batch<','::exec_batch_prefetched<','::execute<','::fused_pass_impl<',
         '::fused_sweep_impl<','::fused_baseline_sweep()',
-        '::prefetch_overlap_batch(', '::sweep<','::run()']): return 'scheduler'
+        '::prefetch_overlap_batch(', '::prefetch_owner_batch(', '::sweep<','::run()']): return 'scheduler'
     if 'IoLoop::' in name and any(n in name for n in [
         '::run_loop<','::flush_ready<','::pipeline_pass<','::wb_prefetch<']): return 'envelope'
     return None
@@ -381,6 +401,38 @@ def self_test():
     assert canonical('void tomo::ExLoopT<true>::run<true>()')=='void tomo::ExLoopT<true>::run<true>()'
     for ns in ('tomo', 'tomo_db0'):
         for prefix in ('', 'r7_'):
+            parser = f'{ns}::IoLoop::{prefix}parse_and_dispatch'
+            for local in ('false', 'true'):
+                current = parser + f'<false, 32u, {local}>(X)'
+                old = parser + f'<false, 32u, false, {local}>(X)'
+                assert canonical(current) == current
+                assert canonical(old) == current
+                assert canonical(old.replace('32u, false', '32u, true')) != current
+                for changed in (current.replace('<false', '<true'),
+                                current.replace('32u', '64u'),
+                                current.replace(f'{local}>', f'{"true" if local == "false" else "false"}>')):
+                    assert canonical(changed) != current
+            loop = f'void {ns}::IoLoop::{prefix}run_loop'
+            for local in ('false', 'true'):
+                parts = ['false', 'false', 'true', 'true', local]
+                current = loop + '<' + ', '.join(parts) + '>()'
+                old = loop + '<' + ', '.join(parts[:4] + ['(unsigned char)0', local]) + '>()'
+                assert canonical(current) == current
+                assert canonical(old) == current
+                assert canonical(old.replace('>()', ', false>()')) == current
+                assert canonical(old.replace('(unsigned char)0', '(unsigned char)1')) != current
+                assert canonical(old.replace('>()', ', true>()')) != current
+                for index, value in enumerate(parts):
+                    changed = parts.copy()
+                    changed[index] = 'true' if value == 'false' else 'false'
+                    assert canonical(loop + '<' + ', '.join(changed) + '>()') != current
+            for arity in (4, 8):
+                try:
+                    canonical(loop + '<' + ', '.join(['false'] * arity) + '>()')
+                except ValueError as error:
+                    assert 'policy symbol arity changed' in str(error)
+                else:
+                    raise AssertionError('unexpected IO policy arity accepted')
             for local in ('false', 'true'):
                 owner = f'unsigned int {ns}::ExLoopT<true>::{prefix}'
                 old = owner + f'fused_pass_impl<32u, true, false, false, {local}, void>(void*)'

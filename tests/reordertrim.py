@@ -201,25 +201,25 @@ def boot(args):
         for mode in ('1s', '2s'):
             for value in (0, 1):
                 for local in (0, 1):
-                    for overlap in (0, 1):
-                        label = f'db{databases}-{mode}-r{value}-rl{local}-o{overlap}'
-                        flags = ['--databases', databases, '--shards', 16, '--thread-mode', mode,
-                                 '--reorder', value, '--read-local', local, '--overlap', overlap,
-                                 '--atomic', 1, '--key-lb', 0, '--client-lb', 0]
-                        if mode == '2s': flags += ['--ratio', '6:2']
-                        with server(binary, args.cores, args.port, args.output / label, flags) as (conn, _):
-                            row = info(conn, 'SERVER')
-                            assert row['thread_mode'] == mode and row['shards'] == '16', row
-                            effective = value if mode == '1s' else 0
-                            check_result(label, subprocess.CompletedProcess([], 0, row['reorder'] + '\n', ''),
-                                         effective)
-                            assert row['reorder_retired'] == ('0' if mode == '1s' else '1'), row
-                            assert row.get('schedule_stats_threads') == ('8' if overlap or effective else None), row
-                            assert not any(key.startswith('reorder_auto') for key in row), row
-                            assert conn.must('SET', 'reordertrim', 'value') == b'OK'
-                            assert conn.must('GET', 'reordertrim') == b'value'
-                            (args.output / label / 'info.json').write_text(json.dumps(row, indent=2) + '\n')
-                        print('PASS boot', label)
+                    label = f'db{databases}-{mode}-r{value}-rl{local}'
+                    flags = ['--databases', databases, '--shards', 16, '--thread-mode', mode,
+                             '--reorder', value, '--read-local', local,
+                             '--atomic', 1, '--key-lb', 0, '--client-lb', 0]
+                    if mode == '2s': flags += ['--ratio', '6:2']
+                    with server(binary, args.cores, args.port, args.output / label, flags) as (conn, _):
+                        row = info(conn, 'SERVER')
+                        assert row['thread_mode'] == mode and row['shards'] == '16', row
+                        effective = value if mode == '1s' else 0
+                        check_result(label, subprocess.CompletedProcess([], 0, row['reorder'] + '\n', ''),
+                                     effective)
+                        assert row['reorder_retired'] == ('0' if mode == '1s' else '1'), row
+                        assert row.get('schedule_stats_threads') == ('8' if effective else None), row
+                        assert not any(key.startswith('reorder_auto') for key in row), row
+                        assert conn.must('SET', 'reordertrim', 'value') == b'OK'
+                        assert conn.must('GET', 'reordertrim') == b'value'
+                        (args.output / label / 'info.json').write_text(json.dumps(row, indent=2) + '\n')
+                    print('PASS boot', label)
+
 
 
 if __name__ == '__main__':

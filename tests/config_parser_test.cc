@@ -111,7 +111,7 @@ void documented_example() {
         tomo::validate_config(config) != tomo::kConfigParsed)
         fail("documented config example must parse and validate");
     if (config.thread_mode != tomo::ThreadMode::Split || config.port != 6399 ||
-        config.shards != 16 || config.overlap || config.read_local || config.reorder ||
+        config.shards != 16 || config.read_local || config.reorder ||
         config.key_lb != 1 || config.client_lb != 1 || config.slowlog_log_slower_than != 10000 ||
         tomo::cfg_save_schedule_string(config.save) != "3600 1 300 100 60 10000")
         fail("documented config example posture differs");
@@ -398,67 +398,39 @@ int main() {
     if (network_default.net_io != tomo::NetIoEngine::Uring)
         fail("net-io default is not uring");
 
-    tomo::Config threads;
-    tomo::ConfigParseState threads_state;
-    const std::vector<const char*> threads_args = {
-        "--thread-mode", "1s", "--overlap", "1",
-    };
-    if (tomo::parse_config_args(threads_args, threads, threads_state, 2, "test") !=
-            tomo::kConfigParsed ||
-        tomo::validate_config(threads) != tomo::kConfigParsed ||
-        threads.thread_mode != tomo::ThreadMode::Fused || threads.overlap != 1)
-        fail("primary thread-mode/overlap grammar differs");
     tomo::Config thread_default;
-    if (thread_default.thread_mode != tomo::ThreadMode::Split ||
-        thread_default.overlap != 0)
-        fail("thread defaults are not 2s overlap 0");
-
-    auto parses_threads = [](std::initializer_list<const char*> values,
-                             tomo::ThreadMode mode, uint32_t pipeline) {
+    if (thread_default.thread_mode != tomo::ThreadMode::Split)
+        fail("thread default is not 2s");
+    auto parses_threads = [](std::initializer_list<const char*> values, tomo::ThreadMode mode) {
         tomo::Config cfg;
         tomo::ConfigParseState state;
         const std::vector<const char*> args(values);
         return tomo::parse_config_args(args, cfg, state, 2, "test") == tomo::kConfigParsed &&
-               tomo::validate_config(cfg) == tomo::kConfigParsed &&
-               cfg.thread_mode == mode && cfg.overlap == pipeline;
+               tomo::validate_config(cfg) == tomo::kConfigParsed && cfg.thread_mode == mode;
     };
-    if (!parses_threads({"--thread-mode", "2s", "--overlap", "1"},
-                        tomo::ThreadMode::Split, 1) ||
-        !parses_threads({"--thread-mode", "1s", "--overlap", "1"},
-                        tomo::ThreadMode::Fused, 1) ||
-        !parses_threads({"--thread-mode", "split"}, tomo::ThreadMode::Split, 0) ||
-        !parses_threads({"--thread-mode", "fused"}, tomo::ThreadMode::Fused, 0))
-        fail("thread-mode compatibility aliases differ");
-    if (!rejects({"--thread-mode", "two-stage"}) ||
-        !rejects({"--overlap", "2"}) ||
-        !rejects({"--overlap", "3"}) ||
-        !rejects({"--overlap", "-1"}) ||
-        !rejects({"--overlap", "yes"}) ||
-        !rejects({"--overlap", ""}) ||
-        !rejects({"--overlap"}) ||
-        !rejects({"--genthread-schedule", "streams0"}))
+    if (!parses_threads({"--thread-mode", "2s"}, tomo::ThreadMode::Split) ||
+        !parses_threads({"--thread-mode", "1s"}, tomo::ThreadMode::Fused) ||
+        !parses_threads({"--thread-mode", "split"}, tomo::ThreadMode::Split) ||
+        !parses_threads({"--thread-mode", "fused"}, tomo::ThreadMode::Fused))
+        fail("thread-mode grammar/aliases differ");
+    if (!rejects({"--thread-mode", "two-stage"}) || !rejects({"--genthread-schedule", "streams0"}))
         fail("invalid thread grammar was accepted");
-    if (rejection_text({"--overlap", "3"}) != "--overlap wants 0 or 1\n")
-        fail("overlap parser rejection text is not canonical");
-    for (const char* mode : {"1s", "2s"}) {
-        if (!rejects({"--thread-mode", mode, "--overlap", "2"}) ||
-            !rejects({"--overlap", "2", "--thread-mode", mode}))
-            fail("overlap 2 was accepted in a mode or argument order");
+    for (const char* name : {"--overlap", "--x-overlap", "--thread-pipeline"}) {
+        const std::string expected = std::string("unknown argument '") + name + "' (see --help)\n";
+        for (const char* value : {"0", "1", "2", "-1", "yes", ""})
+            for (const char* mode : {"1s", "2s"})
+                if (rejection_text({"--thread-mode", mode, name, value}) != expected ||
+                    rejection_text({name, value, "--thread-mode", mode}) != expected)
+                    fail("removed scheduling knob did not use ordinary unknown-option rejection");
+        if (rejection_text({name}) != expected)
+            fail("removed scheduling knob without argument was accepted");
     }
-    tomo::Config invalid_overlap;
-    invalid_overlap.overlap = 2;
-    {
-        StderrSilencer quiet;
-        if (tomo::validate_config(invalid_overlap) != tomo::kConfigError)
-            fail("programmatic overlap 2 was accepted");
-    }
-    if (!parses_threads({"--thread-mode", "1s", "--overlap", "1",
-                         "--net-io", "epoll"}, tomo::ThreadMode::Fused, 1))
+    if (!parses_threads({"--thread-mode", "1s", "--net-io", "epoll"}, tomo::ThreadMode::Fused))
         fail("owner prefetch rejected the ordinary fused engine");
     tomo::Config read_local;
     tomo::ConfigParseState read_local_state;
     const std::vector<const char*> read_local_args = {
-        "--thread-mode", "1s", "--overlap", "0", "--read-local", "1",
+        "--thread-mode", "1s", "--read-local", "1",
     };
     if (tomo::parse_config_args(read_local_args, read_local, read_local_state, 2, "test") !=
             tomo::kConfigParsed ||
@@ -480,12 +452,12 @@ int main() {
         read_local_split.thread_mode != tomo::ThreadMode::Split ||
         read_local_split.read_local != 1)
         fail("read-local split-mode lane was rejected");
-    auto parses_read_local_cell = [](const char* mode, const char* overlap,
+    auto parses_read_local_cell = [](const char* mode,
                                      const char* lane, const char* reorder, const char* engine) {
         tomo::Config cfg;
         tomo::ConfigParseState state;
         const std::vector<const char*> args = {
-            "--thread-mode", mode, "--overlap", overlap, "--read-local", lane,
+            "--thread-mode", mode, "--read-local", lane,
             "--reorder", reorder, "--net-io", engine,
         };
         return tomo::parse_config_args(args, cfg, state, 2, "test") ==
@@ -493,20 +465,17 @@ int main() {
                tomo::validate_config(cfg) == tomo::kConfigParsed &&
                cfg.thread_mode == ((!std::strcmp(mode, "1s") || !std::strcmp(mode, "fused"))
                    ? tomo::ThreadMode::Fused : tomo::ThreadMode::Split) &&
-               cfg.overlap == static_cast<uint32_t>(*overlap - '0') &&
-               cfg.overlap_enabled() == (*overlap == '1') &&
                cfg.reorder == static_cast<uint32_t>(std::atoi(reorder)) &&
                cfg.read_local == static_cast<uint32_t>(*lane - '0');
     };
     for (const char* mode : {"1s", "2s", "fused", "split"})
-        for (const char* overlap : {"0", "1"})
             for (const char* lane : {"0", "1"})
                 for (const char* reorder : {"0", "1"}) {
-                    if (!parses_read_local_cell(mode, overlap, lane, reorder, "uring"))
-                        fail("overlap/read-local/reorder boot cell was rejected");
+                    if (!parses_read_local_cell(mode, lane, reorder, "uring"))
+                        fail("read-local/reorder boot cell was rejected");
                     StderrSilencer quiet;
-                    if (!parses_read_local_cell(mode, overlap, lane, reorder, "epoll"))
-                        fail("epoll overlap/read-local/reorder validation differs");
+                    if (!parses_read_local_cell(mode, lane, reorder, "epoll"))
+                        fail("epoll read-local/reorder validation differs");
                 }
 
     tomo::Config reorder;

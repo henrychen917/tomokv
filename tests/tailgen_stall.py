@@ -41,7 +41,7 @@ def run(args):
     conn = Conn(args.host, args.port, timeout=30)
     try:
         require(info(conn, "server").get("shards") == "256", "tailgen needs the 256-shard tail boot")
-        for name, value in (("thread-mode", "1s"), ("atomic", "1"), ("overlap", "1"),
+        for name, value in (("thread-mode", "1s"), ("atomic", "1"),
                             ("read-local", "0"), ("key-lb", "1"), ("client-lb", "1")):
             require(conn.must("CONFIG", "GET", name) == [name.encode(), value.encode()],
                     f"tailgen boot did not retain {name}={value}")
@@ -144,7 +144,7 @@ join_workers(){ echo JOIN; }
 taskset(){ :; }
 row_begin(){ echo ROW; }
 boot_fused(){
-  [ "$*" = 'unused --shards 256 --atomic 1 --overlap 1' ] || exit 99
+  [ "$*" = 'unused --shards 256 --atomic 1' ] || exit 99
   return "$BOOT_RC"
 }
 py(){

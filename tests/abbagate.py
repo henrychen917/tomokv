@@ -1417,65 +1417,49 @@ def accepted(binary, name, value):
     raise RuntimeError(f"cannot probe {binary.name} --{name}: {p.stdout[:500]}")
 
 
-# Translate names and schedule values only. c8e61f646 accepts --x-overlap and
-# --x-ex-sched, but acceptance does not prove an equivalent effective state:
-# read-local is inert there outside fused overlap 0. Runner checks INFO SERVER
-# before population. Silently omitting --overlap 1 previously compared on against
-# off and reported "+17.02%" as a code win; a mapping cannot excuse that mismatch.
-LEGACY_KNOBS = {"overlap": "x-overlap", "reorder": "x-ex-sched"}
-
-
-def legacy_value(name, value, mode):
-    """Translate a candidate knob value into the reference's older grammar.
-
-    reorder maps directly (both accept 0|1), and so does 2s overlap. 1s overlap does NOT: the older
-    binary accepted 0|1|2 there, and the knob work collapsed 1s to 0|1 by mapping "on" to the
-    FULLEST schedule, which was old value 2. Old 1 was measured as a loser and no current knob
-    preserves it, so mapping 1s "on" to --x-overlap 1 would compare the candidate's surviving
-    schedule against an arm that was deleted for losing -- flattering the candidate.
-    """
-    if name == "overlap" and value and mode == "1s":
-        return 2
-    return value
+# Historical reorder spelling is still explicitly mapped for a matching reference.
+# Overlap is retired: ov=0 remains a recipe assertion, never a server flag.
+LEGACY_KNOBS = {"reorder": "x-ex-sched"}
 
 
 class NotComparable(RuntimeError):
-    """The reference cannot run this cell's knobs, so no verdict is meaningful."""
+    """An arm cannot realize this cell; no measurement verdict is meaningful."""
+
+
+class KnobNotAccepted(NotComparable):
+    """A required knob is unsupported, including an explicit zero/off value."""
+
+
+def require_retired_overlap_off(identity, arm):
+    # A PRE binary may still echo the retired default. A POST binary omits it.
+    # Fail before population if either arm reports the explored schedule enabled.
+    for name in ("overlap", "overlap_enabled", "x_overlap"):
+        if name in identity and identity[name] != "0":
+            raise KnobNotAccepted(
+                f"RETIRED_OVERLAP_ENABLED: arm={arm} INFO {name}={identity[name]!r}; ov=0 required")
 
 
 def knob_plan(cell, support):
-    wanted = {"thread-mode": cell.mode, "read-local": cell.read_local,
-              "overlap": cell.overlap, "reorder": cell.reorder}
-    plans, notes = {}, []
+    if cell.overlap != 0:
+        raise KnobNotAccepted(
+            f"RETIRED_KNOB: overlap={cell.overlap} in cell {cell.id}; only ov=0 is comparable")
+    wanted = {"thread-mode": cell.mode, "read-local": cell.read_local, "reorder": cell.reorder}
+    plans, notes = {}, ["ov=0 asserts the retired default: neither arm receives --overlap; "
+                        "each boot must report overlap absent or zero before population"]
     for arm in ("A", "B"):
         plans[arm] = {}
         for name, value in wanted.items():
-            if support[arm][name]:
+            if support[arm].get(name, False):
                 plans[arm][name] = value
             elif arm == "A" and name in LEGACY_KNOBS and support[arm].get(LEGACY_KNOBS[name]):
-                old, translated = LEGACY_KNOBS[name], legacy_value(name, value, cell.mode)
-                plans[arm][old] = translated
-                notes.append(f"reference takes --{name} {value} as --{old} {translated} "
-                             f"({cell.mode}); name/value mapping only; effective boot state is checked separately")
-            elif arm == "A" and name != "thread-mode" and not value:
-                # Omitting a knob the reference lacks is only sound when the cell asked for it OFF,
-                # because 0 IS this project's legacy behaviour for every knob ("0 means off and must
-                # allocate nothing"). Then both arms really are running the same experiment.
-                notes.append(f"reference predates --{name}; requested {value} is its legacy "
-                             f"behaviour, so the arms remain comparable")
-            elif arm == "A" and name != "thread-mode":
-                # Requested ON, and the reference cannot do it. Silently dropping the flag here
-                # compares the FEATURE against its own absence and reports the difference as if it
-                # were a code change. On 2026-09-10 that turned h12 (2s, --overlap 1) into a
-                # "+17.02%" candidate win that was nothing but overlap-on versus overlap-off: the
-                # reference c8e61f646 predates the knob. A cell whose knobs the reference cannot
-                # honour is NOT COMPARABLE against that reference, and must skip loudly rather than
-                # produce a verdict -- the note alone was printed and then ignored.
-                raise NotComparable(
-                    f"cell needs --{name} {value} but the reference predates that knob; "
-                    f"comparing against its legacy behaviour would measure the feature, not the code")
+                old = LEGACY_KNOBS[name]
+                plans[arm][old] = value
+                notes.append(f"reference takes --{name} {value} as --{old} {value}; "
+                             "effective boot state is checked separately")
             else:
-                raise RuntimeError(f"{arm} does not accept required --{name}")
+                raise KnobNotAccepted(
+                    f"KNOB_NOT_ACCEPTED: arm={arm} --{name} {value} required by cell {cell.id}; "
+                    "refusing to omit a requested knob")
     return plans, notes
 
 
@@ -1884,6 +1868,7 @@ class Runner:
                         if time.monotonic() >= deadline:
                             raise RuntimeError("server boot timed out")
                         time.sleep(0.1)
+                require_retired_overlap_off(identity, arm)
                 result.update(pid=srv.pid, boot_info=identity)
                 # CONFIG GET echoes the requested knob even when the old reference
                 # cannot arm it (split, or fused overlap on). INFO SERVER read_local
@@ -2465,8 +2450,7 @@ def main(args, *, diagnostic_monitor=None, diagnostic_profile=0,
               f"Cell connections are TOTAL, shared across load instances. Split uses reviewed ratio {split_ratio}, flip=0.", flush=True)
         quiet.check()
         support = {arm: {name: accepted(binary, name, value) for name, value in
-                        (("thread-mode", "1s"), ("read-local", 0), ("overlap", 0), ("reorder", 0),
-                         ("x-overlap", 0), ("x-ex-sched", 0))}
+                        (("thread-mode", "1s"), ("read-local", 0), ("reorder", 0), ("x-ex-sched", 0))}
                    for arm, binary in binaries.items()}
         quiet.check()
         report["accepted_knobs"] = support
@@ -3127,10 +3111,10 @@ def self_test():
             self.assertEqual(len(original), 64)
             axes = lambda cell: (cell.mode, cell.read_local, cell.overlap, cell.reorder, cell.op, cell.depth)
             self.assertEqual({axes(cell) for cell in original},
-                             set(product(("1s", "2s"), (0, 1), (0, 1), (0, 1), ("GET", "SET"), (1, 32))))
+                             set(product(("1s", "2s"), (0, 1), (0,), (0, 1), ("GET", "SET"), (1, 32))))
             multi = [cell for cell in cells if cell.id.startswith("m")]
             self.assertEqual({axes(cell) for cell in multi},
-                             set(product(("1s", "2s"), (0, 1), (0, 1), (0, 1), ("MGET", "MSET"), (1, 8, 32))))
+                             set(product(("1s", "2s"), (0, 1), (0,), (0, 1), ("MGET", "MSET"), (1, 8, 32))))
             self.assertEqual(len(multi), 96)
             self.assertEqual({cell.atomic for cell in cells}, {0, 1})
             self.assertEqual({cell.conns for cell in cells}, {512, 2048})
@@ -3141,7 +3125,7 @@ def self_test():
             for mode in ("1s", "2s"):
                 sweep = [cell for cell in cells if cell.mode == mode and cell.op == "GET"]
                 self.assertEqual({(cell.read_local, cell.overlap, cell.reorder) for cell in sweep},
-                                 {(1, 1, 1), (0, 1, 1), (1, 0, 1), (0, 0, 0)})
+                                 {(1, 0, 1), (0, 0, 1), (0, 0, 0)})
                 self.assertTrue(all(cell.depth == 32 for cell in sweep))
                 tail = [cell for cell in cells if cell.mode == mode and cell.op == "REORDER"]
                 # Both modes carry reorder off AND on -- reorder can only show against its own
@@ -3154,7 +3138,7 @@ def self_test():
             # contribution is measured in the posture it ships in rather than in isolation.
             synergy = {(c.read_local, c.overlap, c.reorder) for c in cells
                        if c.op == "REORDER" and c.read_local}
-            self.assertEqual(synergy, {(1, 1, 1), (1, 1, 0)})
+            self.assertEqual(synergy, {(1, 0, 1), (1, 0, 0)})
             self.assertEqual({cell.op for cell in cells}, {"GET", "SET", "MGET", "MSET", "REORDER"})
             self.assertIn(1, {cell.depth for cell in cells})
 
@@ -3902,7 +3886,7 @@ def self_test():
                 binary.write_bytes(b"test executable identity; never executed")
                 binary.chmod(0o700)
                 source = Path(tmp) / "unmeasured-cells"
-                source.write_text("u01 | 1s | rl=1 | ov=1 | ro=1 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1\n")
+                source.write_text("u01 | 1s | rl=1 | ov=0 | ro=1 | MGET | p8 | 512 | - | - | - | atomic=1 | score=rate | mix=- | smoke=1\n")
                 # Exercise the missing-pin precondition even inside a two-CPU gate worker.
                 # Synthetic placement is validated separately and never schedules real work here.
                 with mock.patch.dict(os.environ, {}, clear=True), \
@@ -4075,22 +4059,37 @@ def self_test():
             self.assertGreater(a["delta_pct"], 15)
             self.assertEqual(a["verdict"], "PASS")
 
-        def test_reference_lacking_a_requested_on_knob_is_not_comparable(self):
-            # h12 (2s, --overlap 1) against c8e61f646, which predates --overlap: dropping the flag
-            # measured overlap-on vs overlap-off and called it a "+17.02%" code win.
-            support = {"A": {"thread-mode": True, "read-local": True, "overlap": False,
-                             "reorder": False},
-                       "B": {"thread-mode": True, "read-local": True, "overlap": True,
-                             "reorder": True}}
-            on = Cell("h12", "2s", 0, 1, 0, "SET", 32, 512)
-            with self.assertRaises(NotComparable):
-                knob_plan(on, support)
-            # ... but a knob requested OFF is exactly the reference's legacy behaviour, so that
-            # cell stays comparable and only earns a note.
-            off = Cell("h01", "1s", 1, 0, 0, "GET", 32, 512)
-            plans, notes = knob_plan(off, support)
-            self.assertTrue(any("legacy behaviour" in n for n in notes))
+        def test_missing_required_knob_refuses_both_arms_even_when_off(self):
+            support = {arm: {name: True for name in ("thread-mode", "read-local", "reorder")}
+                       for arm in ("A", "B")}
+            cell = Cell("strict", "2s", 0, 0, 0, "SET", 32, 512)
+            for arm in ("A", "B"):
+                for name in ("read-local", "reorder"):
+                    for value in (0, 1):
+                        broken = {key: dict(row) for key, row in support.items()}
+                        broken[arm][name] = False
+                        wanted = replace(cell, **{name.replace("-", "_"): value})
+                        with self.subTest(arm=arm, name=name, value=value), self.assertRaisesRegex(
+                                KnobNotAccepted, f"KNOB_NOT_ACCEPTED: arm={arm} --{name} {value}"):
+                            knob_plan(wanted, broken)
+
+        def test_retired_overlap_refuses_enabled_recipes_and_boots(self):
+            support = {arm: {name: True for name in ("thread-mode", "read-local", "reorder")}
+                       for arm in ("A", "B")}
+            cell = Cell("strict", "2s", 0, 0, 0, "SET", 32, 512)
+            with self.assertRaisesRegex(KnobNotAccepted, "RETIRED_KNOB: overlap=1"):
+                knob_plan(replace(cell, overlap=1), support)
+            plans, notes = knob_plan(cell, support)
+            self.assertEqual(plans["A"], plans["B"])
             self.assertNotIn("overlap", plans["A"])
+            self.assertTrue(any("neither arm" in note for note in notes))
+            for arm in ("A", "B"):
+                require_retired_overlap_off({}, arm)
+                require_retired_overlap_off({"overlap": "0", "overlap_enabled": "0"}, arm)
+                for field in ("overlap", "overlap_enabled", "x_overlap"):
+                    for value in ("1", "2", "bad"):
+                        with self.assertRaisesRegex(KnobNotAccepted, "RETIRED_OVERLAP_ENABLED"):
+                            require_retired_overlap_off({field: value}, arm)
 
         def test_a_pinned_cell_needs_no_second_rung(self):
             pinned = Cell("hp", "2s", 0, 1, 0, "SET", 32, 512, instances=2)
@@ -4214,14 +4213,14 @@ def self_test():
                 self.assertIsNone(manifest_reference(directory, "abcdef0" + "0" * 33))
                 self.assertEqual(manifest_reference(directory, "1234567" + "0" * 33), binary)
 
-        def test_missing_knobs_are_reported_and_candidate_keeps_them(self):
-            support = {arm: {k: True for k in ("thread-mode", "read-local", "overlap", "reorder")}
+        def test_legacy_reorder_maps_explicitly_without_dropping_knobs(self):
+            support = {arm: {k: True for k in ("thread-mode", "read-local", "reorder")}
                        for arm in ("A", "B")}
-            support["A"].update(overlap=False, reorder=False)
-            plans, notes = knob_plan(self.cell, support)
-            self.assertEqual(len(notes), 2)
-            self.assertNotIn("overlap", plans["A"])
-            self.assertIn("overlap", plans["B"])
+            support["A"].update(reorder=False, **{"x-ex-sched": True})
+            plans, notes = knob_plan(replace(self.cell, overlap=0), support)
+            self.assertIn("x-ex-sched", plans["A"])
+            self.assertIn("reorder", plans["B"])
+            self.assertTrue(any("as --x-ex-sched" in note for note in notes))
 
         def test_idle_spinning_is_not_busy(self):
             start = {0: {"role": "fused", "busy": 0, "idle": 0}}
@@ -4767,8 +4766,8 @@ def self_test():
                 binary.chmod(0o700)
                 source = directory / "cells"
                 source.write_text(
-                    "n1 | 1s | rl=1 | ov=1 | ro=1 | GET | p32 | 512 | - | - | 4 | atomic=1 | score=rate | mix=- | smoke=1\n"
-                    "n2 | 2s | rl=0 | ov=1 | ro=1 | SET | p32 | 512 | - | - | 4 | atomic=1 | score=rate | mix=- | smoke=0\n")
+                    "n1 | 1s | rl=1 | ov=0 | ro=1 | GET | p32 | 512 | - | - | 4 | atomic=1 | score=rate | mix=- | smoke=1\n"
+                    "n2 | 2s | rl=0 | ov=0 | ro=1 | SET | p32 | 512 | - | - | 4 | atomic=1 | score=rate | mix=- | smoke=0\n")
                 epoch, ticks = int(time.time()) - 10000, [0.]
                 original_gmtime = time.gmtime
                 sequence = [0]

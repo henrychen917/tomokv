@@ -3,7 +3,7 @@
 
 Usage: read_local_lane.py HOST PORT
   RL1: read_local_lane.py HOST PORT --mget-fence (also needs --atomic 1)
-  boot: --thread-mode 1s|2s --overlap 0|1 --read-local 1 --enable-debug-command yes
+  boot: --thread-mode 1s|2s --read-local 1 --enable-debug-command yes
   serverless: read_local_lane.py --self-test [transient|delayed-drain|never-drains|leak-full|leak-quota]
   RL1 harness: read_local_lane.py --self-test mget-fence[-old|-unarmed|-stale]
 

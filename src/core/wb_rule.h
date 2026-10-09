@@ -128,28 +128,6 @@ inline bool defer(Connection& c, int policy = 1, unsigned small_pipe = kSmallPip
 // Both modes use the same acquire walk and FIFO lifetime rule. Coded preserves
 // each caller's existing encoder capability; it is not a policy selector.
 struct Phase2 {
-    // Overlap retains its existing stack scratch and send boundaries. The caller
-    // carries one captured visit count across chunks; callbacks cannot extend it.
-    template <class Loop, class Batch>
-    static inline uint32_t gather(Loop& loop, Batch& batch, size_t& left) {
-        if (left == SIZE_MAX) left = loop.pending_serve_.size();
-        while (left && batch.count < batch.clients.size() && !loop.pending_serve_.empty()) {
-            --left;
-            Client* client = loop.pending_serve_.front();
-            loop.pending_serve_.pop_front();
-            if (!client->dead() && defer(*client, loop.wb_config_)) {
-                loop.pending_serve_.push_back(client);
-                continue;
-            }
-            client->wb_deferrals() = 0; // served or dead: leaving the FIFO
-            client->set_serve_pending(false);
-            if (!client->dead()) {
-                batch.clients[batch.count] = client;
-                batch.submit_allowed[batch.count++] = true;
-            }
-        }
-        return batch.count;
-    }
     template <bool HasTls, bool kEp, class Loop, bool Coded = true>
     __attribute__((always_inline)) static inline uint32_t serve(Loop& loop) {
         using ServerType = std::remove_pointer_t<decltype(loop.srv_)>;

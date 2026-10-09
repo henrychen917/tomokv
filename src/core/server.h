@@ -399,7 +399,7 @@ public:
                 }
             }
         }
-        if (cfg_.overlap_enabled() || cfg_.reorder) {
+        if (cfg_.reorder) {
 #ifdef TOMO_R7_WITNESS
             if (cfg_.reorder) TOMO_R7_ALLOC();
 #endif

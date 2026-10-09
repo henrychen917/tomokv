@@ -336,8 +336,6 @@ void init_config(const Config& cfg) {
                         cfg.net_io == NetIoEngine::Epoll ? "epoll" : "uring", true});
     g_config.push_back({"thread-mode", ConfigKind::Enum,
                         cfg.thread_mode == ThreadMode::Fused ? "1s" : "2s", true});
-    g_config.push_back({"overlap", ConfigKind::Unsigned,
-                        std::to_string(cfg.overlap), true});
     g_config.push_back({"read-local", ConfigKind::Unsigned,
                         std::to_string(cfg.read_local), true});
     g_config.push_back({"reorder", ConfigKind::Signed,
@@ -2111,14 +2109,12 @@ void cmd_info(Shard&, Op& op) {
         // read_local is the effective boot state. Actual loop entry and successful completions
         // are separate observations: a configured but unreachable lane must be visible in INFO.
         appendf(body, "# Server\r\nredis_version:%s\r\ntomokv_version:%s\r\nredis_mode:standalone\r\n"
-                      "thread_mode:%s\r\nshards:%u\r\noverlap:%u\r\noverlap_enabled:%u\r\nreorder:%d\r\nreorder_retired:%u\r\nread_local:%u\r\natomic:%u\r\n"
+                      "thread_mode:%s\r\nshards:%u\r\nreorder:%d\r\nreorder_retired:%u\r\nread_local:%u\r\natomic:%u\r\n"
                       "arch_bits:%zu\r\nmultiplexing_api:%s\r\nprocess_id:%lld\r\n"
                       "run_id:%s\r\ntcp_port:%u\r\nuptime_in_seconds:%llu\r\nuptime_in_days:%llu\r\n"
                       "executable:%s\r\nconfig_file:%s\r\nio_threads_active:1\r\n",
                 kRedisCompatVersion, kTomoVersion, g_server ? g_server->thread_mode_name() : "2s",
                 g_server ? g_server->nshards() : 0u,
-                g_server ? g_server->cfg().overlap : 0u,
-                g_server && g_server->cfg().overlap_enabled() ? 1u : 0u,
                 g_server ? static_cast<int32_t>(g_server->cfg().reorder) : 0,
                 reorder_available() && g_server &&
                     reorder_for_mode(1, g_server->thread_mode()) ? 0u : 1u,
@@ -2163,8 +2159,7 @@ void cmd_info(Shard&, Op& op) {
         // its scratch buffers so the disabled INFO path keeps its old output without those arrays.
         if (g_server && g_server->read_local_enabled())
             append_read_local_thread_info(body, *g_server);
-        // Requested overlap reports explicit witnesses before any eligible batch runs.
-        if (g_server && (g_server->cfg().overlap || g_server->cfg().reorder))
+        if (g_server && g_server->cfg().reorder)
             append_mode_schedule_info(body, g_server->mode_schedule_stats(), g_server->nthreads());
         if (g_server && g_server->cfg().reorder)
             append_reorder_info(body, g_server->mode_schedule_stats(), g_server->nthreads());

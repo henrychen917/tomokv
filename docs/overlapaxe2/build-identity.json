@@ -1,0 +1,33 @@
+{
+  "upstream": "165d268bed1bae72947263fa951985d8a83eb0c8",
+  "merge": "56618ef9b220d048f639ed4ec18d3a4d144e4ef6",
+  "source_archive_files": 213,
+  "all_archive_blobs_match": true,
+  "compiler": "13.3.0",
+  "builds": {
+    "POST": "taskset -c 112-127 make -j16 all",
+    "BASE": "taskset -c 112-127 make -C build/overlapaxe2/BASE-src -j16 BUILD_ROOT=/home/user/Projects/cx-overlapaxe/build/overlapaxe2/BASE all"
+  },
+  "artifacts": {
+    "build/overlapaxe2/BASE/tomokv": {
+      "sha256": "e08a44f462e18561892a7d5d042c5cf553db5984ee1014c4862d5480a78df16e",
+      "bytes": 186605104,
+      "text_bytes": 7845932
+    },
+    "build/tomokv": {
+      "sha256": "3ec6574798039760af4fd6497eb3e08d72f4c16a0f0ebaade66ac611efd3be79",
+      "bytes": 187058280,
+      "text_bytes": 7582188
+    },
+    "build/overlapaxe/POST/tomokv": {
+      "sha256": "3ec6574798039760af4fd6497eb3e08d72f4c16a0f0ebaade66ac611efd3be79",
+      "bytes": 187058280,
+      "text_bytes": 7582188
+    },
+    "build/overlapaxe2/premerge-POST/tomokv": {
+      "sha256": "b692d35058948d20949870ef827d3118f7cd3479e2a4eb55544a22ce4cb110fe",
+      "bytes": 186864744,
+      "text_bytes": 7580741
+    }
+  }
+}

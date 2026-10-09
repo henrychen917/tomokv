@@ -27,9 +27,9 @@ from _gate_process import (Conn, cpus, delta, encode, info, install_signals, lb_
 
 
 MODES = ('1s', '2s')
-SWITCHES = ('read-local', 'overlap', 'reorder', 'flip-auto')
-MATRIX = [f'{mode}-{r}-{o}-{q}-{f}' for mode in MODES
-          for r, o, q, f in itertools.product((0, 1), repeat=4)]
+SWITCHES = ('read-local', 'client-lb', 'reorder', 'flip-auto')
+MATRIX = [f'{mode}-{r}-{c}-{q}-{f}' for mode in MODES
+          for r, c, q, f in itertools.product((0, 1), repeat=4)]
 TOPOLOGY = ('split-home-min', 'fused-home-max-nopin', 'split-shards-auto')
 # The refusal is part of the product surface, so its text is pinned here: a guard that starts
 # rejecting for a different reason is a different guard.
@@ -40,7 +40,7 @@ def refuses_boot(cell):
     """True for the cells the server must REJECT rather than boot."""
     if cell in TOPOLOGY:
         return False
-    mode, _read_local, _overlap, _reorder, flip_auto = cell.split('-')
+    mode, _read_local, _client_lb, _reorder, flip_auto = cell.split('-')
     return mode == '1s' and int(flip_auto) == 1
 CELLS = MATRIX + list(TOPOLOGY)
 
@@ -48,17 +48,17 @@ CELLS = MATRIX + list(TOPOLOGY)
 def config(cell, cpu_list, ratio):
     topo = cell in TOPOLOGY
     if not topo:
-        mode, r, o, q, f = cell.split('-')
-        r, o, q, f = map(int, (r, o, q, f))
+        mode, r, c, q, f = cell.split('-')
+        r, c, q, f = map(int, (r, c, q, f))
         # Each binary knob is explicit, including both independent LB controls and atomic.
-        knobs = dict(zip(SWITCHES, (r, o, q, f)))
-        knobs.update({'thread-mode': mode, 'atomic': r ^ o, 'key-lb': q, 'client-lb': o,
+        knobs = dict(zip(SWITCHES, (r, c, q, f)))
+        knobs.update({'thread-mode': mode, 'atomic': r ^ c, 'key-lb': q, 'client-lb': c,
                       'shards': 16})
         if mode == '2s':
             knobs['ratio'] = ratio
     else:
         mode = '1s' if cell.startswith('fused') else '2s'
-        knobs = {'thread-mode': mode, 'read-local': 1, 'overlap': 0, 'reorder': 0,
+        knobs = {'thread-mode': mode, 'read-local': 1, 'reorder': 0,
                  'flip-auto': 0, 'atomic': 1, 'key-lb': 0, 'client-lb': 0}
         if cell == 'split-shards-auto':
             knobs.update(shards=-1, ratio=ratio)
@@ -80,7 +80,7 @@ def config(cell, cpu_list, ratio):
 
 
 def inventory(cpu_list, ratio):
-    require(len(MATRIX) == 32 and len(set(MATRIX)) == 32, 'five-switch matrix lost a row')
+    require(len(MATRIX) == 32 and len(set(MATRIX)) == 32, 'mode/read-local/client-lb/reorder/flip matrix lost a row')
     values = {}
     for cell in CELLS:
         knobs, argv = config(cell, cpu_list, ratio)
@@ -155,26 +155,14 @@ def check_readers(before, after, enabled):
 
 def check_activity(before, after, knobs, nthreads, cross_owner):
     check_readers(before, after, knobs['read-local'])
-    require(after.get('overlap_enabled') == str(int(bool(knobs['overlap']))),
-            'wrong effective overlap mode')
-    expected_schedule = ('fused-overlap' if knobs['thread-mode'] == '1s'
-                         else 'split-io-overlap') if knobs['overlap'] else 'plain'
+    require(all(name not in after for name in ('overlap', 'overlap_enabled', 'overlap_schedule',
+                                               'overlap_passes', 'overlap_interleaved_passes')),
+            'retired overlap INFO field is visible')
     require(after.get('reorder_retired') in ('0', '1'), 'missing reorder capability')
     retired = after['reorder_retired'] == '1'
     reorder_on = knobs['reorder'] and not retired
-    stats_on = knobs['overlap'] or reorder_on
+    stats_on = reorder_on
     require(after.get('reorder') == str(int(bool(reorder_on))), 'wrong effective reorder mode')
-    require(after.get('overlap_schedule') == (expected_schedule if stats_on else None),
-            'wrong overlap schedule/allocation')
-    for field in ('overlap_passes', 'overlap_interleaved_passes'):
-        if not stats_on:
-            require(field not in after, 'disabled scheduling allocated counters')
-            continue
-        # Fused overlap is now whole-batch bucket prefetch. Require fresh preparation
-        # passes and an exact zero for the deleted A/B stage interleaving.
-        active = knobs['overlap'] and (field == 'overlap_passes' or knobs['thread-mode'] == '2s')
-        require((delta(before, after, field) > 0) if active
-                else number(after, field) == 0, f'overlap witness {field} did not match knob')
     for field in ('reorder_batches', 'reorder_multi_client_runs', 'reorder_permuted_runs', 'reorder_max_batch'):
         if not reorder_on:
             require(field not in after, 'disabled reorder exposed counters')

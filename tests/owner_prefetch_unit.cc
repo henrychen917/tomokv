@@ -9,13 +9,15 @@
 #include <string>
 #include <vector>
 #include <sched.h>
+static uint64_t owner_prefetch_passes;
+#define TOMO_OWNER_PREFETCH_WITNESS() (++owner_prefetch_passes)
 #include "src/core/ex_loop.h"
 
 namespace tomo {
 struct CoreConcurrencyTest {
     static void require(bool ok, const char* message) {
         if (!ok) {
-            std::fprintf(stderr, "FAIL overlap prefetch: %s\n", message);
+            std::fprintf(stderr, "FAIL owner prefetch: %s\n", message);
             std::_Exit(1);
         }
     }
@@ -28,7 +30,7 @@ struct CoreConcurrencyTest {
         ExLoopT<true> loop;
         uint32_t owner;
         uint64_t key_serial = 0;
-        Fixture(ThreadMode mode, uint32_t overlap) : owner(mode == ThreadMode::Fused ? 0 : 6) {
+        Fixture(ThreadMode mode, bool local) : owner(mode == ThreadMode::Fused ? 0 : 6) {
             cpu_set_t cpus;
             CPU_ZERO(&cpus);
             require(sched_getaffinity(0, sizeof(cpus), &cpus) == 0, "read test affinity");
@@ -48,36 +50,40 @@ struct CoreConcurrencyTest {
             Config config;
             config.thread_mode = mode;
             config.shards = 16;
-            config.overlap = overlap;
-            config.read_local = config.atomic = config.key_lb = config.client_lb = 1;
+            config.read_local = local;
+            config.atomic = config.key_lb = config.client_lb = 1;
             config.save.clear();
             require(server.init(config), "initialize in-memory fixture");
             require(server.nthreads() == 8 && server.nshards() == 16, "gate geometry");
             loop.srv_ = &server;
             loop.self_ = &server.thread(owner);
             loop.cached_now_ms_ = 1000;
-            loop.read_local_.impl = std::make_unique<ReadLocalExImpl>();
-            auto& deferred = loop.read_local_impl().deferred;
-            require(deferred.init(&server, loop.self_), "owner QSBR queue");
-            for (Shard* sh : loop.self_->shards())
-                sh->store().configure_read_local(true, *deferred.sink());
+            if (local) {
+                loop.read_local_.impl = std::make_unique<ReadLocalExImpl>();
+                auto& deferred = loop.read_local_impl().deferred;
+                require(deferred.init(&server, loop.self_), "owner QSBR queue");
+                for (Shard* sh : loop.self_->shards())
+                    sh->store().configure_read_local(true, *deferred.sink());
+            }
             server.bind_owner_notify_pending(owner, &loop.notify_keyless_pending_);
             loop.refresh_live_config();
             loop.slowlog_armed_ = false;
             if (mode == ThreadMode::Fused)
                 loop.bind_fused_completion(nullptr, [](void*, Client*) {});
-            require(loop.read_local_enabled() && server.atomic_enabled(), "armed owner paths");
-            require((server.mode_schedule_stats() != nullptr) == (overlap != 0),
-                    "overlap zero allocates no witness sidecar");
+            require(loop.read_local_enabled() == local && server.atomic_enabled(), "resolved owner paths");
+            require(server.mode_schedule_stats() == nullptr,
+                    "prefetch allocates no witness sidecar");
         }
         ~Fixture() {
-            loop.read_local_impl().deferred.drain_shutdown();
-            for (Shard* sh : loop.self_->shards()) sh->store().configure_read_local(false, {});
+            if (loop.read_local_.impl) {
+                loop.read_local_impl().deferred.drain_shutdown();
+                for (Shard* sh : loop.self_->shards()) sh->store().configure_read_local(false, {});
+            }
         }
         int32_t sid() const { return server.thread(owner).shards().front()->id(); }
         std::string key() {
             for (uint32_t tries = 0; tries < 100000; tries++) {
-                std::string s = "overlap-prefetch-" + std::to_string(key_serial++);
+                std::string s = "owner-prefetch-" + std::to_string(key_serial++);
                 if (server.router().shard_of(FlatStore::hash_key(slice(s))) == sid()) return s;
             }
             require(false, "bounded owner key search");
@@ -102,44 +108,30 @@ struct CoreConcurrencyTest {
             c.rob().publish();
             return task;
         }
-        uint64_t passes() const {
-            const auto* stats = server.mode_schedule_stats();
-            return stats ? stats[owner].overlap_passes.load() : 0;
-        }
+        uint64_t passes() const { return owner_prefetch_passes; }
         void witness(uint32_t n, uint64_t before) {
-            if (!server.cfg().overlap) return;
-            const auto& stats = server.mode_schedule_stats(owner);
             const bool warmed = server.thread_mode() == ThreadMode::Fused && n > 1;
-            require(stats.overlap_passes.load() == before + (warmed ? 1 : 0),
-                    "this batch must witness exactly its own prefetch, no inherited activity");
-            require(stats.overlap_interleaved_passes.load() == 0,
-                    "whole-batch prefetch must never claim split interleaving");
-            if (server.thread_mode() == ThreadMode::Split) {
-                require(stats.overlap_schedule.load() == OverlapSchedule::None &&
-                            stats.overlap_passes.load() == 0, "2s owner must not claim fused overlap");
-            } else if (n > 1) {
-                require(stats.overlap_schedule.load() == OverlapSchedule::Fused,
-                        "actual fused prefetch witness");
-            }
+            require(passes() == before + (warmed ? 1 : 0), "each eligible fused batch enters its prefetch body");
+            require(server.mode_schedule_stats() == nullptr, "fused prefetch allocates no schedule sidecar");
         }
     };
 
     static void eligibility(Fixture& f) {
-        const bool enabled = f.server.thread_mode() == ThreadMode::Fused || f.server.cfg().overlap;
+        const bool enabled = f.server.thread_mode() == ThreadMode::Fused;
         for (uint32_t n : {0u, 1u, 2u, 32u, 128u}) {
-            require(f.loop.overlap_prefetch_enabled(n) == (enabled && n > 1),
-                    "fused prefetch is unconditional; read-local split stays overlap-gated");
+            require(f.loop.owner_prefetch_enabled(n) == (enabled && n > 1),
+                    "fused prefetch is unconditional; read-local split retains ordinary prefetch");
             f.loop.slowlog_armed_ = true;
             f.loop.slowlog_state_.escalate_batches = 1;
-            require(!f.loop.overlap_prefetch_enabled(n), "exact slowlog escalation excludes prefetch");
+            require(!f.loop.owner_prefetch_enabled(n), "exact slowlog escalation excludes prefetch");
             f.loop.slowlog_armed_ = false;
             f.loop.slowlog_state_.escalate_batches = 0;
         }
         ExLoopT<false> split;
         split.srv_ = &f.server;
         if (f.server.thread_mode() == ThreadMode::Split)
-            require(split.overlap_prefetch_enabled(32) == (f.server.cfg().overlap != 0),
-                    "plain split executor keeps the same overlap gate");
+            require(!split.owner_prefetch_enabled(32),
+                    "plain split executor retains ordinary prefetch");
     }
 
     static void ordered(Fixture& f, uint32_t n) {
@@ -219,14 +211,15 @@ int main() {
     using T = tomo::CoreConcurrencyTest;
     T::require(tomo::command_registry_init(false), "command registry");
     for (auto mode : {tomo::ThreadMode::Fused, tomo::ThreadMode::Split}) {
-        for (uint32_t overlap : {0u, 1u}) {
-            T::Fixture fixture(mode, overlap);
+        for (bool local : {false, true})
+        {
+            T::Fixture fixture(mode, local);
             T::eligibility(fixture);
             for (uint32_t n : {0u, 1u, 2u, 3u, 31u, 32u, 127u, 128u}) T::ordered(fixture, n);
             for (uint32_t n : {1u, 2u, 3u, 32u, 128u})
                 for (uint32_t stop : {0u, n / 2, n - 1}) T::blocked(fixture, n, stop);
-            std::printf("PASS overlap prefetch %s overlap=%u read-local=atomic=key-lb=client-lb=1\n",
-                        mode == tomo::ThreadMode::Fused ? "1s" : "2s", overlap);
+            std::printf("PASS owner prefetch %s read-local=%d reorder=0 atomic=key-lb=client-lb=1\n",
+                        mode == tomo::ThreadMode::Fused ? "1s" : "2s", local);
         }
     }
 }

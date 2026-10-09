@@ -351,11 +351,7 @@ struct Config {
     uint32_t tcp_keepalive  = 300;       // live for newly accepted TCP clients, 0 = off
     uint32_t tcp_backlog    = 511;       // boot-only, passed directly to listen(2)
     NetIoEngine net_io      = NetIoEngine::Uring;  // boot-only: which network event engine io runs
-    // Split overlap warms owner buckets and interleaves IO writeback with parsing.
-    // Fused always warms eligible owner batches, with the ordinary IO loop and transports.
-    // The knob controls optional scheduling and witnesses; fused prefetch needs no sidecar.
-    uint32_t overlap = 0;
-    bool overlap_enabled() const { return overlap != 0; }
+    uint32_t network_reserved = 0;  // preserve Config and every following member offset
     ClientOutputBufferLimits client_output_buffer_limits;
 
     // ---- security / test commands ----------------------------------------------------------
@@ -837,12 +833,6 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                 return kConfigError;
             }
         }
-        else if (!std::strcmp(a, "--overlap")) {
-            if (!cfg_parse_u32(next(nullptr), cfg.overlap) || cfg.overlap > 1) {
-                std::fprintf(stderr, "--overlap wants 0 or 1\n");
-                return kConfigError;
-            }
-        }
         else if (!std::strcmp(a, "--read-local")) {
             if (!cfg_parse_u32(next(nullptr), cfg.read_local) || cfg.read_local > 1) {
                 std::fprintf(stderr, "--read-local wants 0 or 1\n");
@@ -1148,9 +1138,8 @@ inline int parse_config_args(const std::vector<const char*>& args, Config& cfg,
                         "  conf file: `name value` per line, # comments; same names as the flags\n"
                         "  without the leading --; `pin no` spells --no-pin. CLI flags override the\n"
                         "  file. See tomokv.conf in the repo root for the annotated full set.\n"
-                        "  threading: --thread-mode 2s|1s --overlap 0|1 --read-local 0|1 (defaults 2s, 0, 0)\n"
+                        "  threading: --thread-mode 2s|1s --read-local 0|1 (defaults 2s, 0)\n"
                         "             (split/fused are mode aliases)\n"
-                        "    --overlap 1                 2s: bucket prefetch + IO overlap; 1s: prefetch always on\n"
                         "    --reorder 0|1 (default 0) fused off/on shadow priority; 2s stays FIFO\n"
                         "    --wb-policy 0|1 (default 1) flush-all|composite half\n"
                         "    --wb-small-pipe 0..64 (default 16; 0 = half rule)\n"
@@ -1235,10 +1224,6 @@ inline int validate_config(const Config& cfg) {
     }
     if (cfg.reorder > 1) {
         std::fprintf(stderr, "--reorder wants 0 or 1\n");
-        return kConfigError;
-    }
-    if (cfg.overlap > 1) {
-        std::fprintf(stderr, "--overlap wants 0 or 1\n");
         return kConfigError;
     }
     if (cfg.thread_mode == ThreadMode::Fused && (cfg.even_ifid || cfg.even_ex)) {

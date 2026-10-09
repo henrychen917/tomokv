@@ -72,7 +72,7 @@ def machine(args):
                 window_seconds=args.window, warmup_seconds=args.warmup,
                 max_instances=args.max_instances, workers_per_cpu=1,
                 p1_connections=len(selected) * 2, p32_connections=len(selected) * 8,
-                knobs={'atomic': 1, 'flip-auto': 0, 'overlap': 0, 'reorder': 0,
+                knobs={'atomic': 1, 'flip-auto': 0, 'reorder': 0,
                        'key-lb': 0, 'client-lb': 0})
 
 
@@ -107,7 +107,7 @@ def summarize_window(before, after, cell, keymax):
     require(before['dbsize'] == after['dbsize'] == keymax, 'DBSIZE != keymax across cell')
     b, a = before['info'], after['info']
     for key, expected in (('thread_mode', mode), ('read_local', str(local)), ('atomic', '1'),
-                          ('flip_auto', '0'), ('overlap', '0'), ('reorder', '0')):
+                          ('flip_auto', '0'), ('reorder', '0')):
         require(b.get(key) == a.get(key) == expected, f'cell effective {key} mismatch')
     require(number(a, 'keyspace_misses') == number(b, 'keyspace_misses') == 0,
             'read miss path measured: keyspace_misses != 0')

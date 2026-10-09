@@ -370,8 +370,7 @@ struct CoreConcurrencyTest {
         self.stop_flag().store(true);
     }
     static void coverage() {
-        for (bool fused : {false, true}) for (bool reorder : {false, true})
-        for (bool overlap : {false, true}) {
+        for (bool fused : {false, true}) for (bool reorder : {false, true}) {
             Fixture f; f.server.cfg_.databases = 16; f.server.cfg_.read_local = 0;
             ThreadCtx self; self.init(1, Role::Ifid, 8, 0, 0);
             IoLoop io; io.srv_ = &f.server; io.self_ = &self;
@@ -379,10 +378,9 @@ struct CoreConcurrencyTest {
             expected_physical = 1;
             // The test hook returns before transport/control work; no ring/listener.
             const auto run_io = [&] {
-                if (reorder && fused) io.r7_run_loop<false, false, true, true, 0>();
-                else if (fused) io.run_loop<false, false, true, true, 0>();
-                else if (overlap) io.run_loop<false, false, true, false, 1>();
-                else io.run_loop<false, false, true, false, 0>();
+                if (reorder && fused) io.r7_run_loop<false, false, true, true>();
+                else if (fused) io.run_loop<false, false, true, true>();
+                else io.run_loop<false, false, true, false>();
             };
             run_io();
             require(load_windows == 1 && !(f.server.client_work_epoch(1) & 1),

@@ -1,0 +1,248 @@
+{
+  "total": 17600,
+  "equal": 15036,
+  "changed": 2564,
+  "handlers": 1213,
+  "handlers_equal": 1205,
+  "hot": 1771,
+  "hot_equal": 666,
+  "hot_nonerror_equal": 666,
+  "handlers_nonerror_equal": 1205,
+  "base": "165d268bed1bae72947263fa951985d8a83eb0c8",
+  "post_source": "56618ef9b220d048f639ed4ec18d3a4d144e4ef6",
+  "audit_command": "taskset -c 112-127 python3 tools/ccfix_audit.py build/overlapaxe2/BASE build build/overlapaxe2/body-audit",
+  "audit_returncode": 1,
+  "interpretation": "Hot-body identity FAIL, as in the original report. The audit retains opcodes, member offsets, and callee identities; no normalization was relaxed. The owner judged the earlier 18-cell nulls; this merge proof makes no new performance claim.",
+  "changed_by_object": {
+    "db0/src/cmd/t_server.o": 11,
+    "db0/src/core/genthread.o": 143,
+    "db0/src/core/reorder.o": 206,
+    "db0/src/core/rl2s.o": 537,
+    "db0/src/main.o": 359,
+    "src/cmd/t_server.o": 11,
+    "src/cmd/xshard.o": 4,
+    "src/core/genthread.o": 143,
+    "src/core/reorder.o": 205,
+    "src/core/rl2s.o": 557,
+    "src/main.o": 388
+  },
+  "changed_by_reason": {
+    "Removed CONFIG table entry and shifted cold dispatch/table references.": 5,
+    "Retired INFO rows/witnesses removed; reorder reporting retained.": 6,
+    "Compiler emission/relocation consequence in a translation unit whose included Config/IO/executor code changed; no direct source edit to this body. This is an unresolved byte-level difference, not a claimed performance-neutral change.": 298,
+    "Client migration extraction source is unchanged against merged upstream. Removing overlap CONFIG/INFO code in the same translation unit perturbs compiler code generation; this body grows by 16 bytes and is not byte-identical.": 2,
+    "Config reserved slot and reorder-only optional schedule allocation change initialization/validation.": 55,
+    "Retired overlap banner field removed; fused owner-prefetch description retained.": 8,
+    "Removed Pipeline/IoPipe template arguments and overlap-only branches; default/fused specializations re-emitted. Codegen/target differences are recorded, not treated as byte identity.": 952,
+    "Surviving IO dispatch re-emitted after removal of split overlap selector/templates; codegen and named relocation differences retained.": 590,
+    "Removed split owner-prefetch eligibility/witness plumbing or changed renamed/template call targets in the surrounding fused/executor body. Default behavior retained; byte identity not inferred.": 134,
+    "Preserved fused owner prefetch under its surviving name; test-only witness is absent in production.": 6,
+    "Fused owner prefetch renamed; optional overlap witness removed; no split caller survives.": 8,
+    "Helper emission disappears from this object after removal of the overlap instantiation graph. This records object-local emission, not deletion of its shared source implementation.": 381,
+    "Deleted split overlap schedule/helper specialization; fused shared helpers retained where instantiated.": 106,
+    "New out-of-line helper emission from the reduced instantiation graph; shared source implementation was not added by this lane.": 7,
+    "Retired parser/validation branches deleted; ordinary unknown-option fallback now handles overlap.": 4,
+    "No source change to xshard.cc against merged upstream. The retained ACL/blocking-key normalization is recompiled with the reduced overlap/header instantiation graph; compiler body/inlining and relocation differences are recorded, not asserted performance-neutral.": 1,
+    "No source change to xshard.cc. Compiler stack-frame changes in normalize_multi_blocking_pop also change this 45-byte cleanup body: LEA stack slot 0x50 -> 0x40 and saved-canary slot 0x148 -> 0x138. Equal size is not byte identity.": 1
+  },
+  "new_changed_vs_original_report": [
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 7347,
+      "post_size": 7393,
+      "reason": "Removed CONFIG table entry and shifted cold dispatch/table references."
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo32command_client_migration_extractEPNS_6ClientE",
+      "name": "tomo::command_client_migration_extract(tomo::Client*)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 624,
+      "post_size": 640,
+      "reason": "Client migration extraction source is unchanged against merged upstream. Removing overlap CONFIG/INFO code in the same translation unit perturbs compiler code generation; this body grows by 16 bytes and is not byte-identical."
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE",
+      "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 3454,
+      "post_size": 3308,
+      "reason": "No source change to xshard.cc against merged upstream. The retained ACL/blocking-key normalization is recompiled with the reduced overlap/header instantiation graph; compiler body/inlining and relocation differences are recorded, not asserted performance-neutral."
+    },
+    {
+      "object": "src/cmd/xshard.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_128normalize_multi_blocking_popERNS_12MultiCommandE.cold",
+      "name": "tomo::(anonymous namespace)::normalize_multi_blocking_pop(tomo::MultiCommand&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 45,
+      "post_size": 45,
+      "reason": "No source change to xshard.cc. Compiler stack-frame changes in normalize_multi_blocking_pop also change this 45-byte cleanup body: LEA stack slot 0x50 -> 0x40 and saved-canary slot 0x148 -> 0x138. Equal size is not byte identity."
+    }
+  ],
+  "now_equal_vs_original_report": [
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_116snapshot_commandERNS_2OpEb",
+      "name": "tomo::(anonymous namespace)::snapshot_command(tomo::Op&, bool)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 1027,
+      "post_size": 1027
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo9reply_errINS_2Op4SinkEEEvOT_PKc",
+      "name": "void tomo::reply_err<tomo::Op::Sink>(tomo::Op::Sink&&, char const*)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": true,
+      "pre_size": 774,
+      "post_size": 774
+    }
+  ],
+  "hot_inventory_signature_differences_vs_original_report": [],
+  "fused_objects": {
+    "total": 1638,
+    "equal": 1352,
+    "changed": 286
+  },
+  "fused_hot": {
+    "total": 296,
+    "equal": 108,
+    "changed": 188
+  },
+  "get_set_bodies": {
+    "total": 10,
+    "equal": 10,
+    "raw_equal": 10
+  },
+  "changed_handlers": [
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 16351,
+      "post_size": 16580,
+      "reason": "Retired INFO rows/witnesses removed; reorder reporting retained."
+    },
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo_db0::(anonymous namespace)::cmd_info(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 350,
+      "post_size": 338,
+      "reason": "Retired INFO rows/witnesses removed; reorder reporting retained."
+    },
+    {
+      "object": "db0/src/core/rl2s.o",
+      "symbol": "_ZNK8tomo_db02Op8cmd_nameEv",
+      "name": "tomo_db0::Op::cmd_name() const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 56,
+      "post_size": 0,
+      "reason": "Helper emission disappears from this object after removal of the overlap instantiation graph. This records object-local emission, not deletion of its shared source implementation."
+    },
+    {
+      "object": "db0/src/main.o",
+      "symbol": "_ZNK8tomo_db02Op8cmd_nameEv",
+      "name": "tomo_db0::Op::cmd_name() const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 56,
+      "post_size": 0,
+      "reason": "Helper emission disappears from this object after removal of the overlap instantiation graph. This records object-local emission, not deletion of its shared source implementation."
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_110cmd_configERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_config(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 7347,
+      "post_size": 7393,
+      "reason": "Removed CONFIG table entry and shifted cold dispatch/table references."
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 16880,
+      "post_size": 16848,
+      "reason": "Retired INFO rows/witnesses removed; reorder reporting retained."
+    },
+    {
+      "object": "src/cmd/t_server.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_18cmd_infoERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo::(anonymous namespace)::cmd_info(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": true,
+      "pre_size": 337,
+      "post_size": 337,
+      "reason": "Retired INFO rows/witnesses removed; reorder reporting retained."
+    },
+    {
+      "object": "src/main.o",
+      "symbol": "_ZNK4tomo2Op8cmd_nameEv",
+      "name": "tomo::Op::cmd_name() const",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 56,
+      "post_size": 0,
+      "reason": "Helper emission disappears from this object after removal of the overlap instantiation graph. This records object-local emission, not deletion of its shared source implementation."
+    }
+  ],
+  "prefetch": [
+    {
+      "arm": "BASE",
+      "symbol": "_ZN4tomo7ExLoopTILb1EE22prefetch_overlap_batchEPKNS_4TaskEj",
+      "bytes": 409,
+      "prefetcht0": 2
+    },
+    {
+      "arm": "BASE",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE22prefetch_overlap_batchEPKNS_4TaskEj",
+      "bytes": 393,
+      "prefetcht0": 2
+    },
+    {
+      "arm": "POST",
+      "symbol": "_ZN4tomo7ExLoopTILb1EE20prefetch_owner_batchEPKNS_4TaskEj",
+      "bytes": 333,
+      "prefetcht0": 2
+    },
+    {
+      "arm": "POST",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE20prefetch_owner_batchEPKNS_4TaskEj",
+      "bytes": 333,
+      "prefetcht0": 2
+    }
+  ]
+}

@@ -2227,14 +2227,10 @@ private:
     // Ineligible batches keep the walk above. Keep both ownership guards identical: even a hint must
     // not inspect a stale owner's mutable table. No store/slot pointer survives this call.
     __attribute__((noinline, flatten))
-    void prefetch_overlap_batch(const Task* batch, uint32_t n) {
-        // ExLoopT<true> is also used by read-local-armed split owners. Only fused placement
-        // reports this coarse prefetch pass; split IO reports its own stage schedule. Keeping
-        // the witness here makes a missing walk fail, without claiming A/B interleaving.
-        // Fused prefetch also runs with overlap off, when its witness sidecar may be absent.
-        if constexpr (Fused)
-            if (srv_->cfg().overlap != 0 && srv_->thread_mode() == ThreadMode::Fused)
-                srv_->mode_schedule_stats(self_->id()).note_overlap(OverlapSchedule::Fused, false);
+    void prefetch_owner_batch(const Task* batch, uint32_t n) {
+#ifdef TOMO_OWNER_PREFETCH_WITNESS
+        TOMO_OWNER_PREFETCH_WITNESS();
+#endif
         for (uint32_t i = 0; i < n; i++) {
             if (!batch[i].client) continue;
             const Op& op = batch[i].client->rob().at(batch[i].op_id);
@@ -2246,12 +2242,12 @@ private:
         }
     }
 
-    // Measured policy: always prefetch fused batches; split batches still require overlap.
+    // Measured policy: always prefetch eligible fused owner batches.
     // Fused is a capability, so read-local split owners must also check placement. A singleton cannot
     // amortize the walk, and exact slowlog escalation retains its original preparation path.
-    // No per-operation schedule state or additional storage is needed when overlap is off.
-    bool overlap_prefetch_enabled(uint32_t n) const {
-        return ((Fused && srv_->thread_mode() == ThreadMode::Fused) || srv_->cfg().overlap != 0) && n > 1 &&
+    // No per-operation schedule state or additional storage is needed.
+    bool owner_prefetch_enabled(uint32_t n) const {
+        return (Fused && srv_->thread_mode() == ThreadMode::Fused) && n > 1 &&
                (!slowlog_armed_ || !slowlog_state_.escalate_batches);
     }
 
@@ -2302,8 +2298,8 @@ private:
             for (uint32_t i = 0; i < n; i++) ordered_deferred_.push_back(batch[i]);
             return;
         }
-        if (__builtin_expect(overlap_prefetch_enabled(n), false)) {
-            prefetch_overlap_batch(batch, n);
+        if (__builtin_expect(owner_prefetch_enabled(n), false)) {
+            prefetch_owner_batch(batch, n);
             exec_batch_prefetched<IofusedPrivateQueue>(batch, n);
             return;
         }

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Same seeded RESP byte stream, same replies under every supported execution/knob combination.
 
-The 32 cells are mode x read-local x overlap x reorder x atomic; flip-auto is explicitly off
+The 16 cells are mode x read-local x reorder x atomic; flip-auto is explicitly off
 because fused+flip-auto is a documented refusal, already covered by feature_gate. One connection
 carries the seeded p32 stream, so cross-client order cannot make a legal schedule look divergent.
 Cross-owner scripts are drain boundaries: the documented four-cut admission limit can legally
@@ -38,8 +38,8 @@ from _differ_history import default_history, failing_seeds, record_leg
 from gateplan import permitted_cpus
 
 ROOT = Path(__file__).resolve().parents[1]
-CELLS = [f'{mode}-{r}-{o}-{q}-{a}' for mode in ('1s', '2s')
-         for r, o, q, a in itertools.product((0, 1), repeat=4)]
+CELLS = [f'{mode}-{r}-{q}-{a}' for mode in ('1s', '2s')
+         for r, q, a in itertools.product((0, 1), repeat=3)]
 EXCLUDED = ['clock/expiry-derived replies', 'random-member commands', 'unordered hash/set iteration',
             'SCAN cursors', 'INFO telemetry', 'connection/process identifiers']
 
@@ -150,9 +150,9 @@ def replay_chunks(operations, pipeline):
 
 
 def configuration(cell):
-    mode, read_local, overlap, reorder, atomic = cell.split('-')
-    knobs = dict(zip(('read-local', 'overlap', 'reorder', 'atomic'),
-                     map(int, (read_local, overlap, reorder, atomic))))
+    mode, read_local, reorder, atomic = cell.split('-')
+    knobs = dict(zip(('read-local', 'reorder', 'atomic'),
+                     map(int, (read_local, reorder, atomic))))
     knobs.update({'thread-mode': mode, 'shards': 16, 'flip-auto': 0, 'key-lb': 0, 'client-lb': 0})
     if mode == '2s':
         knobs['ratio'] = '6:2'
@@ -176,7 +176,7 @@ def self_test():
     from unittest import mock
     a, b, other = command_stream(7, 20), command_stream(7, 20), command_stream(19, 20)
     require(a == b and a != other, 'seed determinism/rotation control')
-    require(len(CELLS) == len(set(CELLS)) == 32, 'matrix lost a combination')
+    require(len(CELLS) == len(set(CELLS)) == 16, 'matrix lost a combination')
     require({configuration(cell)[0]['atomic'] for cell in CELLS} == {0, 1}, 'atomic axis missing')
     class Sink:
         def __init__(self): self.sends = []
@@ -254,7 +254,7 @@ def main(argv=None):
                                     '--output', str(args.output / f'seed-{seed}')])
             finally:
                 os.sched_setaffinity(0, affinity)
-            print(f'MODE EQUIVALENCE CORPUS: {len(seeds)} permanent streams, {len(seeds) * 32} cells, '
+            print(f'MODE EQUIVALENCE CORPUS: {len(seeds)} permanent streams, {len(seeds) * 16} cells, '
                   f'{failed} failing streams')
             return int(failed != 0)
     validate_geometry(args.server_cpus, args.load_cpus)
@@ -315,7 +315,7 @@ def main(argv=None):
         print(f'MODE EQUIVALENCE {cell} {report["verdict"]} {report["seconds"]:.2f}s '
               f'{report.get("reason", str(len(operations)) + " byte-identical replies; mechanisms witnessed")}', flush=True)
     failed = sum(report['verdict'] != 'ok' for report in reports)
-    print(f'MODE EQUIVALENCE: {len(reports) - failed}/32 cells, seed={args.seed}, '
+    print(f'MODE EQUIVALENCE: {len(reports) - failed}/16 cells, seed={args.seed}, '
           f'{len(manifest["commands"])} command types, {len(operations)} replies per cell')
     return int(failed != 0)
 

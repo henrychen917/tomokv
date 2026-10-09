@@ -73,25 +73,24 @@ void IoLoop::run_split_read_local_baseline() {
     const bool has_unix = unix_listen_fd_ >= 0 ||
                           (srv_->cfg().unixsocket && *srv_->cfg().unixsocket);
     const bool has_tls = tls_context_ != nullptr;
-    auto run = [&]<uint8_t Pipeline>() {
+    auto run = [&]() {
         if (epoll_) {
             if (has_tls) {
-                if (has_unix) run_loop<true, true, true, true, Pipeline, true>();
-                else run_loop<false, true, true, true, Pipeline, true>();
+                if (has_unix) run_loop<true, true, true, true, true>();
+                else run_loop<false, true, true, true, true>();
             } else {
-                if (has_unix) run_loop<true, false, true, true, Pipeline, true>();
-                else run_loop<false, false, true, true, Pipeline, true>();
+                if (has_unix) run_loop<true, false, true, true, true>();
+                else run_loop<false, false, true, true, true>();
             }
         } else if (has_tls) {
-            if (has_unix) run_loop<true, true, false, true, Pipeline, true>();
-            else run_loop<false, true, false, true, Pipeline, true>();
+            if (has_unix) run_loop<true, true, false, true, true>();
+            else run_loop<false, true, false, true, true>();
         } else {
-            if (has_unix) run_loop<true, false, false, true, Pipeline, true>();
-            else run_loop<false, false, false, true, Pipeline, true>();
+            if (has_unix) run_loop<true, false, false, true, true>();
+            else run_loop<false, false, false, true, true>();
         }
     };
-    if (srv_->cfg().overlap_enabled()) run.template operator()<1>();
-    else run.template operator()<0>();
+    run();
 }
 
 int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,

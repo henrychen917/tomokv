@@ -1,0 +1,7180 @@
+{
+  "all_eight_size_locks": true,
+  "all_surviving_member_offsets_equal": true,
+  "arms": {
+    "POST": {
+      "tomo": {
+        "layouts": {
+          "AtomicEntry": {
+            "fields": {
+              "allocation": [
+                112,
+                8
+              ],
+              "begin": [
+                120,
+                4
+              ],
+              "capacity": [
+                128,
+                4
+              ],
+              "conn_next": [
+                16,
+                8
+              ],
+              "conn_prev": [
+                24,
+                8
+              ],
+              "copied_group_keys": [
+                138,
+                1
+              ],
+              "count": [
+                124,
+                4
+              ],
+              "epoch": [
+                88,
+                8
+              ],
+              "foreign_read_unsafe_published": [
+                137,
+                1
+              ],
+              "group": [
+                40,
+                8
+              ],
+              "group_aborted": [
+                64,
+                8
+              ],
+              "group_epoch": [
+                48,
+                8
+              ],
+              "group_refs": [
+                56,
+                8
+              ],
+              "key_len": [
+                132,
+                4
+              ],
+              "key_ns": [
+                139,
+                1
+              ],
+              "linked": [
+                136,
+                1
+              ],
+              "membership": [
+                104,
+                8
+              ],
+              "next": [
+                0,
+                8
+              ],
+              "origin_conn_id": [
+                80,
+                8
+              ],
+              "owner_refs": [
+                72,
+                8
+              ],
+              "plain_hash": [
+                96,
+                8
+              ],
+              "pool_next": [
+                32,
+                8
+              ],
+              "prev": [
+                8,
+                8
+              ]
+            },
+            "size": 144
+          },
+          "Client": {
+            "fields": {
+              "acl_user_idx_": [
+                1976,
+                4
+              ],
+              "atomic_groups_io_": [
+                64,
+                4
+              ],
+              "authenticated_": [
+                1973,
+                1
+              ],
+              "barrier_owners_": [
+                52,
+                1
+              ],
+              "buf_": [
+                320,
+                1072
+              ],
+              "closing_": [
+                50,
+                1
+              ],
+              "connection_flags_": [
+                55,
+                1
+              ],
+              "dead_": [
+                51,
+                1
+              ],
+              "fd_": [
+                0,
+                4
+              ],
+              "fill_": [
+                40,
+                1
+              ],
+              "id_": [
+                1960,
+                8
+              ],
+              "ifid_thread_": [
+                1928,
+                4
+              ],
+              "in_active_": [
+                49,
+                1
+              ],
+              "inline_scanned_": [
+                76,
+                4
+              ],
+              "last_interaction_s_": [
+                12,
+                4
+              ],
+              "multi_session_": [
+                1936,
+                8
+              ],
+              "obuf_bytes_": [
+                56,
+                8
+              ],
+              "obuf_soft_since_s_": [
+                1968,
+                4
+              ],
+              "obuf_tracking_": [
+                1972,
+                1
+              ],
+              "parse_backpressure_": [
+                53,
+                1
+              ],
+              "r7_long_newest_": [
+                88,
+                8
+              ],
+              "r7_long_slots_": [
+                80,
+                8
+              ],
+              "rbuf_": [
+                16,
+                8
+              ],
+              "rcap_": [
+                24,
+                8
+              ],
+              "recv_armed_": [
+                41,
+                1
+              ],
+              "retire_queued_": [
+                1920,
+                1
+              ],
+              "rlen_": [
+                4,
+                4
+              ],
+              "rob_": [
+                128,
+                192
+              ],
+              "rpos_": [
+                8,
+                4
+              ],
+              "segmented_send_": [
+                43,
+                1
+              ],
+              "segments_": [
+                1392,
+                216
+              ],
+              "send_inflight_": [
+                42,
+                1
+              ],
+              "send_iov_": [
+                1608,
+                256
+              ],
+              "send_msg_": [
+                1864,
+                56
+              ],
+              "send_requested_": [
+                44,
+                4
+              ],
+              "serve_pending_": [
+                48,
+                1
+              ],
+              "session_": [
+                68,
+                4
+              ],
+              "subscriber_mode_": [
+                54,
+                1
+              ],
+              "tls_slot_": [
+                1980,
+                4
+              ],
+              "watch_dirty_": [
+                1956,
+                1
+              ],
+              "watch_generation_": [
+                1944,
+                8
+              ],
+              "watched_refs_": [
+                1952,
+                4
+              ],
+              "wb_deferrals_": [
+                72,
+                1
+              ],
+              "wb_slot_": [
+                1924,
+                4
+              ],
+              "wsent_": [
+                32,
+                8
+              ]
+            },
+            "size": 1984
+          },
+          "Config": {
+            "fields": {
+              "acl_pubsub_allchannels": [
+                184,
+                4
+              ],
+              "acl_users": [
+                200,
+                24
+              ],
+              "aclfile": [
+                176,
+                8
+              ],
+              "acllog_max_len": [
+                192,
+                8
+              ],
+              "aof_load_truncated": [
+                305,
+                1
+              ],
+              "aof_timestamp_enabled": [
+                304,
+                1
+              ],
+              "appenddirname": [
+                280,
+                8
+              ],
+              "appendfilename": [
+                272,
+                8
+              ],
+              "appendfsync": [
+                265,
+                1
+              ],
+              "appendonly": [
+                264,
+                1
+              ],
+              "atomic": [
+                344,
+                4
+              ],
+              "auto_aof_rewrite_min_size": [
+                296,
+                8
+              ],
+              "auto_aof_rewrite_percentage": [
+                288,
+                4
+              ],
+              "bind_addr": [
+                48,
+                8
+              ],
+              "client_lb": [
+                36,
+                4
+              ],
+              "client_output_buffer_limits": [
+                88,
+                72
+              ],
+              "client_query_buffer_limit": [
+                552,
+                8
+              ],
+              "conf_path": [
+                536,
+                8
+              ],
+              "databases": [
+                308,
+                4
+              ],
+              "dbfilename": [
+                232,
+                8
+              ],
+              "dir": [
+                224,
+                8
+              ],
+              "enable_debug_command": [
+                172,
+                1
+              ],
+              "encodings": [
+                352,
+                64
+              ],
+              "even_ex": [
+                12,
+                4
+              ],
+              "even_ifid": [
+                8,
+                4
+              ],
+              "flip_auto": [
+                40,
+                4
+              ],
+              "hll_sparse_max_bytes": [
+                508,
+                4
+              ],
+              "key_lb": [
+                32,
+                4
+              ],
+              "key_lb_damping": [
+                568,
+                4
+              ],
+              "latency_monitor_threshold": [
+                528,
+                4
+              ],
+              "layout_reserved": [
+                580,
+                44
+              ],
+              "maxclients": [
+                64,
+                4
+              ],
+              "maxmemory": [
+                328,
+                8
+              ],
+              "maxmemory_policy": [
+                336,
+                1
+              ],
+              "maxmemory_samples": [
+                340,
+                4
+              ],
+              "net_io": [
+                80,
+                1
+              ],
+              "network_reserved": [
+                84,
+                4
+              ],
+              "notify_events": [
+                416,
+                4
+              ],
+              "pin_threads": [
+                28,
+                1
+              ],
+              "place": [
+                0,
+                8
+              ],
+              "port": [
+                44,
+                2
+              ],
+              "protected_mode": [
+                168,
+                4
+              ],
+              "proto_max_bulk_len": [
+                312,
+                8
+              ],
+              "read_local": [
+                268,
+                4
+              ],
+              "reorder": [
+                420,
+                4
+              ],
+              "requirepass": [
+                160,
+                8
+              ],
+              "save": [
+                240,
+                24
+              ],
+              "shard_home": [
+                16,
+                8
+              ],
+              "shards": [
+                24,
+                4
+              ],
+              "slowlog_log_slower_than": [
+                512,
+                8
+              ],
+              "slowlog_max_len": [
+                520,
+                8
+              ],
+              "stream_limits": [
+                560,
+                8
+              ],
+              "tcp_backlog": [
+                76,
+                4
+              ],
+              "tcp_keepalive": [
+                72,
+                4
+              ],
+              "thread_mode": [
+                266,
+                1
+              ],
+              "timeout": [
+                68,
+                4
+              ],
+              "tls_auth_clients": [
+                472,
+                1
+              ],
+              "tls_ca_cert_dir": [
+                464,
+                8
+              ],
+              "tls_ca_cert_file": [
+                456,
+                8
+              ],
+              "tls_cert_file": [
+                440,
+                8
+              ],
+              "tls_ciphers": [
+                488,
+                8
+              ],
+              "tls_ciphersuites": [
+                496,
+                8
+              ],
+              "tls_key_file": [
+                448,
+                8
+              ],
+              "tls_port": [
+                432,
+                2
+              ],
+              "tls_prefer_server_ciphers": [
+                504,
+                1
+              ],
+              "tls_protocols": [
+                480,
+                8
+              ],
+              "tracking_table_max_keys": [
+                424,
+                8
+              ],
+              "unixsocket": [
+                56,
+                8
+              ],
+              "unixsocketperm": [
+                46,
+                2
+              ],
+              "wb_complete_visits": [
+                576,
+                4
+              ],
+              "wb_policy": [
+                544,
+                4
+              ],
+              "wb_small_pipe": [
+                572,
+                4
+              ],
+              "zc_min": [
+                320,
+                4
+              ]
+            },
+            "size": 624
+          },
+          "FlatStore": {
+            "fields": {
+              "active_expire_reap_lag_ms_max_": [
+                356,
+                4
+              ],
+              "aof_": [
+                712,
+                144
+              ],
+              "atomic_activity_": [
+                136,
+                8
+              ],
+              "atomic_chain_max_": [
+                160,
+                8
+              ],
+              "atomic_collapse_keys_": [
+                8,
+                24
+              ],
+              "atomic_collapse_retire_": [
+                56,
+                24
+              ],
+              "atomic_collapse_slots_": [
+                32,
+                24
+              ],
+              "atomic_entries_": [
+                184,
+                8
+              ],
+              "atomic_gauge_underflows_": [
+                192,
+                8
+              ],
+              "atomic_pending_": [
+                200,
+                8
+              ],
+              "atomic_predecessor_reads_": [
+                152,
+                8
+              ],
+              "atomic_promotions_": [
+                168,
+                8
+              ],
+              "atomic_read_epoch_": [
+                104,
+                8
+              ],
+              "atomic_read_origin_conn_id_": [
+                112,
+                8
+              ],
+              "atomic_records_freed_": [
+                176,
+                8
+              ],
+              "atomic_script_intents_": [
+                144,
+                8
+              ],
+              "atomic_seen_keys_": [
+                80,
+                24
+              ],
+              "atomic_ticket_ctx_": [
+                128,
+                8
+              ],
+              "atomic_ticket_fn_": [
+                120,
+                8
+              ],
+              "atomic_version_bytes_": [
+                0,
+                8
+              ],
+              "borrow_idx_": [
+                464,
+                24
+              ],
+              "borrow_tombs_": [
+                380,
+                4
+              ],
+              "borrows_": [
+                440,
+                24
+              ],
+              "cached_lru_clock_": [
+                400,
+                1
+              ],
+              "cached_now_ms_": [
+                392,
+                8
+              ],
+              "cap_": [
+                224,
+                8
+              ],
+              "evicted_counter_": [
+                272,
+                8
+              ],
+              "expired_counter_": [
+                408,
+                8
+              ],
+              "expires_": [
+                488,
+                80
+              ],
+              "field_expired_": [
+                936,
+                8
+              ],
+              "field_expires_": [
+                856,
+                80
+              ],
+              "field_ttl_gate_": [
+                244,
+                4
+              ],
+              "field_ttl_index_incomplete_": [
+                241,
+                1
+              ],
+              "live_": [
+                336,
+                8
+              ],
+              "mask_": [
+                232,
+                8
+              ],
+              "maxmemory_enabled_": [
+                242,
+                1
+              ],
+              "maxmemory_limit_": [
+                256,
+                8
+              ],
+              "maxmemory_policy_": [
+                243,
+                1
+              ],
+              "maxmemory_samples_": [
+                248,
+                4
+              ],
+              "no_touch_": [
+                401,
+                1
+              ],
+              "obj_bytes_": [
+                360,
+                8
+              ],
+              "outstanding_borrows_": [
+                376,
+                4
+              ],
+              "pending_bytes_": [
+                368,
+                8
+              ],
+              "random_state_": [
+                416,
+                8
+              ],
+              "read_local_enabled_": [
+                240,
+                1
+              ],
+              "reader_owner_gap_": [
+                308,
+                28
+              ],
+              "rehash_counter_": [
+                280,
+                8
+              ],
+              "rehash_pos_": [
+                352,
+                4
+              ],
+              "sample_cursor_": [
+                424,
+                8
+              ],
+              "snapshot_active_": [
+                403,
+                1
+              ],
+              "snapshot_build_": [
+                696,
+                8
+              ],
+              "snapshot_cut_ms_": [
+                296,
+                8
+              ],
+              "snapshot_epoch_": [
+                288,
+                8
+              ],
+              "snapshot_failed_": [
+                404,
+                1
+              ],
+              "snapshot_finished_": [
+                405,
+                1
+              ],
+              "snapshot_new_cap_": [
+                304,
+                4
+              ],
+              "snapshot_new_tab_": [
+                264,
+                8
+              ],
+              "snapshot_pos_": [
+                384,
+                4
+              ],
+              "snapshot_preimages_": [
+                432,
+                8
+              ],
+              "snapshot_prepared_": [
+                402,
+                1
+              ],
+              "snapshot_ready_": [
+                704,
+                8
+              ],
+              "snapshot_record_": [
+                568,
+                128
+              ],
+              "snapshot_sequence_": [
+                388,
+                4
+              ],
+              "snapshot_shard_id_": [
+                252,
+                4
+              ],
+              "tab_": [
+                208,
+                16
+              ],
+              "tombs_": [
+                344,
+                8
+              ]
+            },
+            "size": 944
+          },
+          "IoLoop": {
+            "fields": {
+              "accept_armed_": [
+                6459,
+                1
+              ],
+              "accept_cancel_generation_": [
+                2744,
+                8
+              ],
+              "accept_cancel_submitted_": [
+                6463,
+                1
+              ],
+              "accept_generation_": [
+                2736,
+                8
+              ],
+              "accept_pending_": [
+                6456,
+                1
+              ],
+              "accept_quiescing_": [
+                6462,
+                1
+              ],
+              "active_": [
+                6496,
+                24
+              ],
+              "active_role_": [
+                2753,
+                1
+              ],
+              "age_sample_rate_cached_": [
+                1412,
+                4
+              ],
+              "age_signals_armed_": [
+                1408,
+                1
+              ],
+              "aof_bound_": [
+                2755,
+                1
+              ],
+              "aof_gate_target_": [
+                6488,
+                8
+              ],
+              "backstop_pass_": [
+                1348,
+                1
+              ],
+              "cached_now_ms_": [
+                1392,
+                8
+              ],
+              "cached_now_s_": [
+                1400,
+                4
+              ],
+              "client_cron_beat_ms_": [
+                1352,
+                8
+              ],
+              "client_cron_cursor_": [
+                1384,
+                8
+              ],
+              "client_cron_was_armed_": [
+                1404,
+                1
+              ],
+              "client_lb_signal_armed_": [
+                1405,
+                1
+              ],
+              "client_migrations_": [
+                648,
+                24
+              ],
+              "client_query_buffer_limit_": [
+                7136,
+                8
+              ],
+              "client_transfer_failures_": [
+                672,
+                8
+              ],
+              "client_work_fences_": [
+                7080,
+                56
+              ],
+              "climon_armed_cached_": [
+                6976,
+                4
+              ],
+              "climon_armed_dirty_": [
+                6980,
+                1
+              ],
+              "climon_conn_": [
+                6864,
+                56
+              ],
+              "climon_local_monitors_": [
+                6992,
+                4
+              ],
+              "climon_local_reply_": [
+                7000,
+                4
+              ],
+              "climon_local_trackers_": [
+                6996,
+                4
+              ],
+              "climon_monitor_clock_ms_": [
+                7008,
+                8
+              ],
+              "climon_pause_deadline_ms_": [
+                6984,
+                8
+              ],
+              "climon_pending_": [
+                6808,
+                56
+              ],
+              "climon_track_keys_": [
+                6920,
+                56
+              ],
+              "configured_port_": [
+                2732,
+                2
+              ],
+              "dead_next_": [
+                2672,
+                24
+              ],
+              "dead_ready_": [
+                2696,
+                24
+              ],
+              "deferred_timers_": [
+                720,
+                24
+              ],
+              "dispatch_needed_": [
+                2156,
+                512
+              ],
+              "ep_": [
+                3092,
+                3080
+              ],
+              "epoll_": [
+                3088,
+                1
+              ],
+              "epoll_closes_": [
+                6176,
+                24
+              ],
+              "flip_client_": [
+                680,
+                8
+              ],
+              "flip_epoch_local_": [
+                696,
+                8
+              ],
+              "flip_op_id_": [
+                688,
+                8
+              ],
+              "flip_prepare_epoch_": [
+                704,
+                8
+              ],
+              "flip_pubsub_rehome_epoch_": [
+                712,
+                8
+              ],
+              "flip_stage_snapshot_": [
+                1410,
+                1
+              ],
+              "flush_tick_": [
+                1344,
+                4
+              ],
+              "fused_executor_": [
+                7072,
+                8
+              ],
+              "initialized_": [
+                2752,
+                1
+              ],
+              "lb_client_observations_": [
+                1424,
+                24
+              ],
+              "lb_client_signal_beat_ms_": [
+                1360,
+                8
+              ],
+              "lb_client_wake_pending_": [
+                1407,
+                1
+              ],
+              "lb_controller_armed_": [
+                1406,
+                1
+              ],
+              "lb_pause_id_": [
+                1368,
+                8
+              ],
+              "lb_wake_cursor_": [
+                1416,
+                4
+              ],
+              "listen_fd_": [
+                2720,
+                4
+              ],
+              "multi_deferred_": [
+                6520,
+                24
+              ],
+              "notify_armed_": [
+                6632,
+                1
+              ],
+              "notify_config_armed_": [
+                6633,
+                1
+              ],
+              "notify_config_version_": [
+                6624,
+                8
+              ],
+              "ntouched_": [
+                2152,
+                4
+              ],
+              "pending_handoffs_": [
+                568,
+                80
+              ],
+              "pending_multi_cleanups_": [
+                6544,
+                80
+              ],
+              "pending_releases_": [
+                488,
+                80
+              ],
+              "pending_serve_": [
+                408,
+                80
+              ],
+              "prepared_role_": [
+                2754,
+                1
+              ],
+              "proto_max_bulk_len_": [
+                6640,
+                8
+              ],
+              "pubsub_channels_": [
+                0,
+                56
+              ],
+              "pubsub_local_": [
+                136,
+                56
+              ],
+              "pubsub_local_events_": [
+                248,
+                80
+              ],
+              "pubsub_notification_chains_": [
+                6672,
+                80
+              ],
+              "pubsub_outbox_": [
+                328,
+                24
+              ],
+              "pubsub_outbox_dirty_": [
+                352,
+                24
+              ],
+              "pubsub_pass_pending_": [
+                376,
+                1
+              ],
+              "pubsub_patterns_": [
+                112,
+                24
+              ],
+              "pubsub_pending_": [
+                192,
+                56
+              ],
+              "pubsub_rehome_epoch_": [
+                384,
+                8
+              ],
+              "pubsub_shard_channels_": [
+                56,
+                56
+              ],
+              "random_state_": [
+                6480,
+                8
+              ],
+              "ring_": [
+                2760,
+                328
+              ],
+              "rob_age_generation_": [
+                1504,
+                8
+              ],
+              "rob_head_ages_": [
+                1448,
+                56
+              ],
+              "routing_forward_": [
+                7016,
+                56
+              ],
+              "save_config_armed_": [
+                6634,
+                1
+              ],
+              "save_cron_beat_ms_": [
+                1376,
+                8
+              ],
+              "save_cron_writer_": [
+                1409,
+                1
+              ],
+              "scatter_pool_": [
+                744,
+                600
+              ],
+              "self_": [
+                400,
+                8
+              ],
+              "slowlog_arm_": [
+                6656,
+                16
+              ],
+              "slowlog_armed_": [
+                6648,
+                1
+              ],
+              "srv_": [
+                392,
+                8
+              ],
+              "tls_accept_armed_": [
+                6460,
+                1
+              ],
+              "tls_accept_cancel_submitted_": [
+                6464,
+                1
+              ],
+              "tls_accept_pending_": [
+                6457,
+                1
+              ],
+              "tls_context_": [
+                6752,
+                8
+              ],
+              "tls_free_slots_": [
+                6784,
+                24
+              ],
+              "tls_listen_fd_": [
+                2724,
+                4
+              ],
+              "tls_slots_": [
+                6760,
+                24
+              ],
+              "touched_": [
+                1512,
+                128
+              ],
+              "touched_list_": [
+                1640,
+                512
+              ],
+              "unix_accept_armed_": [
+                6461,
+                1
+              ],
+              "unix_accept_pending_": [
+                6458,
+                1
+              ],
+              "unix_listen_fd_": [
+                2728,
+                4
+              ],
+              "unix_rr_": [
+                6472,
+                8
+              ],
+              "wb_": [
+                6200,
+                256
+              ],
+              "wb_config_": [
+                1349,
+                3
+              ]
+            },
+            "size": 7144
+          },
+          "ModeScheduleStats": {
+            "fields": {
+              "reorder_batches": [
+                16,
+                8
+              ],
+              "reorder_max_batch": [
+                40,
+                4
+              ],
+              "reorder_multi_client_runs": [
+                24,
+                8
+              ],
+              "reorder_permuted_runs": [
+                32,
+                8
+              ],
+              "reorder_reserved": [
+                48,
+                16
+              ],
+              "schedule_reserved": [
+                0,
+                16
+              ],
+              "schedule_reserved_tail": [
+                44,
+                4
+              ]
+            },
+            "size": 64
+          },
+          "Op": {
+            "fields": {
+              "argc_": [
+                204,
+                4
+              ],
+              "argv_cap_": [
+                200,
+                4
+              ],
+              "argv_heap_": [
+                192,
+                8
+              ],
+              "argv_inline_": [
+                208,
+                128
+              ],
+              "db": [
+                31,
+                1
+              ],
+              "direct": [
+                152,
+                8
+              ],
+              "direct_cap": [
+                160,
+                4
+              ],
+              "direct_len": [
+                164,
+                4
+              ],
+              "hash": [
+                16,
+                8
+              ],
+              "physical_db": [
+                185,
+                1
+              ],
+              "rbuf_off": [
+                24,
+                4
+              ],
+              "read_cut_lo": [
+                12,
+                4
+              ],
+              "reply": [
+                32,
+                120
+              ],
+              "reply_code_": [
+                29,
+                1
+              ],
+              "reply_code_ok_": [
+                30,
+                1
+              ],
+              "reply_ival_": [
+                188,
+                4
+              ],
+              "route_flags_": [
+                28,
+                1
+              ],
+              "secondary_db": [
+                186,
+                1
+              ],
+              "shard": [
+                8,
+                4
+              ],
+              "spec": [
+                0,
+                8
+              ],
+              "state": [
+                184,
+                1
+              ],
+              "target_db": [
+                187,
+                1
+              ],
+              "zc_len": [
+                176,
+                4
+              ],
+              "zc_ptr": [
+                168,
+                8
+              ],
+              "zc_shard": [
+                180,
+                4
+              ]
+            },
+            "size": 336
+          },
+          "Shard": {
+            "fields": {
+              "blocking_dirty_": [
+                1188,
+                1
+              ],
+              "blocking_registry_": [
+                1192,
+                8
+              ],
+              "blocking_waiters_": [
+                1200,
+                8
+              ],
+              "bucket_begin_": [
+                4,
+                2
+              ],
+              "bucket_end_": [
+                6,
+                2
+              ],
+              "flat_notify_sink_": [
+                1336,
+                24
+              ],
+              "has_watches_": [
+                8,
+                1
+              ],
+              "home_domain_": [
+                24,
+                4
+              ],
+              "id_": [
+                0,
+                4
+              ],
+              "lb_bucket_bytes_": [
+                1408,
+                8
+              ],
+              "lb_bucket_bytes_staging_": [
+                1416,
+                8
+              ],
+              "lb_bucket_samples_": [
+                1400,
+                8
+              ],
+              "lb_bytes_cursor_": [
+                1424,
+                8
+              ],
+              "notify_carrier_": [
+                1368,
+                8
+              ],
+              "notify_mask_": [
+                1360,
+                4
+              ],
+              "notify_order_base_": [
+                1364,
+                4
+              ],
+              "notify_pending_": [
+                1384,
+                8
+              ],
+              "notify_source_": [
+                1376,
+                8
+              ],
+              "notify_state_": [
+                1392,
+                8
+              ],
+              "now_ms_": [
+                16,
+                8
+              ],
+              "published_active_expire_reap_lag_ms_max_": [
+                44,
+                4
+              ],
+              "published_evicted_": [
+                48,
+                8
+              ],
+              "published_expires_": [
+                40,
+                4
+              ],
+              "published_obj_bytes_": [
+                32,
+                8
+              ],
+              "published_size_": [
+                28,
+                4
+              ],
+              "reserved_route_": [
+                9,
+                3
+              ],
+              "save_changes_": [
+                1432,
+                8
+              ],
+              "server_": [
+                1328,
+                8
+              ],
+              "stats_": [
+                1000,
+                152
+              ],
+              "store_": [
+                56,
+                944
+              ],
+              "stream_limits_": [
+                1208,
+                8
+              ],
+              "type_limits_": [
+                1152,
+                36
+              ],
+              "watch_reservations_": [
+                1272,
+                56
+              ],
+              "watchers_": [
+                1216,
+                56
+              ],
+              "zc_min_": [
+                12,
+                4
+              ]
+            },
+            "size": 1440
+          },
+          "ThreadCtx": {
+            "fields": {
+              "atomic_admission_state_": [
+                448,
+                64
+              ],
+              "atomic_groups_": [
+                392,
+                8
+              ],
+              "atomic_localfast_": [
+                400,
+                8
+              ],
+              "atomic_scan_holds_": [
+                120,
+                8
+              ],
+              "client_capacity_prepare_": [
+                56,
+                8
+              ],
+              "client_count_": [
+                952,
+                4
+              ],
+              "client_in_": [
+                80,
+                8
+              ],
+              "client_notify_": [
+                712,
+                16
+              ],
+              "client_registration_cancel_": [
+                48,
+                8
+              ],
+              "client_registration_prepare_": [
+                40,
+                8
+              ],
+              "clients_": [
+                928,
+                24
+              ],
+              "command_count_size_": [
+                112,
+                4
+              ],
+              "command_counts_": [
+                104,
+                8
+              ],
+              "cpu_": [
+                64,
+                4
+              ],
+              "depth_sample_next_us_": [
+                768,
+                8
+              ],
+              "domain_": [
+                68,
+                4
+              ],
+              "executor_progress_": [
+                1360,
+                8
+              ],
+              "flip_fingerprint_": [
+                128,
+                264
+              ],
+              "free_slots_": [
+                664,
+                24
+              ],
+              "fused_executor_context_": [
+                1352,
+                8
+              ],
+              "id_": [
+                0,
+                4
+              ],
+              "io_role_cancel_": [
+                32,
+                8
+              ],
+              "io_role_context_": [
+                16,
+                8
+              ],
+              "io_role_prepare_": [
+                24,
+                8
+              ],
+              "nchan_": [
+                760,
+                4
+              ],
+              "parked_": [
+                688,
+                1
+              ],
+              "pubsub_events_": [
+                816,
+                80
+              ],
+              "pubsub_mu_": [
+                776,
+                40
+              ],
+              "pubsub_notified_": [
+                896,
+                1
+              ],
+              "read_local_state_": [
+                1376,
+                8
+              ],
+              "ready_": [
+                512,
+                128
+              ],
+              "ready_role_": [
+                5,
+                1
+              ],
+              "release_in_": [
+                88,
+                8
+              ],
+              "release_notify_": [
+                728,
+                16
+              ],
+              "ring_": [
+                8,
+                8
+              ],
+              "role_": [
+                4,
+                1
+              ],
+              "shards_": [
+                904,
+                24
+              ],
+              "sig_": [
+                960,
+                384
+              ],
+              "slots_": [
+                640,
+                24
+              ],
+              "snapshot_start_": [
+                1368,
+                8
+              ],
+              "snapshot_writer_bound_": [
+                7,
+                1
+              ],
+              "stop_": [
+                6,
+                1
+              ],
+              "task_in_": [
+                72,
+                8
+              ],
+              "task_notify_": [
+                696,
+                16
+              ],
+              "total_commands_": [
+                408,
+                8
+              ],
+              "transfer_in_": [
+                96,
+                8
+              ],
+              "transfer_notify_": [
+                744,
+                16
+              ],
+              "wb_engine_": [
+                1344,
+                8
+              ]
+            },
+            "size": 1408
+          }
+        },
+        "sizes": {
+          "AtomicEntry": 144,
+          "Client": 1984,
+          "Config": 624,
+          "FlatStore": 944,
+          "Op": 336,
+          "Rob<64>": 192,
+          "Shard": 1440,
+          "ThreadCtx": 1408
+        }
+      },
+      "tomo_db0": {
+        "layouts": {
+          "AtomicEntry": {
+            "fields": {
+              "allocation": [
+                112,
+                8
+              ],
+              "begin": [
+                120,
+                4
+              ],
+              "capacity": [
+                128,
+                4
+              ],
+              "conn_next": [
+                16,
+                8
+              ],
+              "conn_prev": [
+                24,
+                8
+              ],
+              "copied_group_keys": [
+                138,
+                1
+              ],
+              "count": [
+                124,
+                4
+              ],
+              "epoch": [
+                88,
+                8
+              ],
+              "foreign_read_unsafe_published": [
+                137,
+                1
+              ],
+              "group": [
+                40,
+                8
+              ],
+              "group_aborted": [
+                64,
+                8
+              ],
+              "group_epoch": [
+                48,
+                8
+              ],
+              "group_refs": [
+                56,
+                8
+              ],
+              "key_len": [
+                132,
+                4
+              ],
+              "key_ns": [
+                139,
+                1
+              ],
+              "linked": [
+                136,
+                1
+              ],
+              "membership": [
+                104,
+                8
+              ],
+              "next": [
+                0,
+                8
+              ],
+              "origin_conn_id": [
+                80,
+                8
+              ],
+              "owner_refs": [
+                72,
+                8
+              ],
+              "plain_hash": [
+                96,
+                8
+              ],
+              "pool_next": [
+                32,
+                8
+              ],
+              "prev": [
+                8,
+                8
+              ]
+            },
+            "size": 144
+          },
+          "Client": {
+            "fields": {
+              "acl_user_idx_": [
+                1976,
+                4
+              ],
+              "atomic_groups_io_": [
+                64,
+                4
+              ],
+              "authenticated_": [
+                1973,
+                1
+              ],
+              "barrier_owners_": [
+                52,
+                1
+              ],
+              "buf_": [
+                320,
+                1072
+              ],
+              "closing_": [
+                50,
+                1
+              ],
+              "connection_flags_": [
+                55,
+                1
+              ],
+              "dead_": [
+                51,
+                1
+              ],
+              "fd_": [
+                0,
+                4
+              ],
+              "fill_": [
+                40,
+                1
+              ],
+              "id_": [
+                1960,
+                8
+              ],
+              "ifid_thread_": [
+                1928,
+                4
+              ],
+              "in_active_": [
+                49,
+                1
+              ],
+              "inline_scanned_": [
+                76,
+                4
+              ],
+              "last_interaction_s_": [
+                12,
+                4
+              ],
+              "multi_session_": [
+                1936,
+                8
+              ],
+              "obuf_bytes_": [
+                56,
+                8
+              ],
+              "obuf_soft_since_s_": [
+                1968,
+                4
+              ],
+              "obuf_tracking_": [
+                1972,
+                1
+              ],
+              "parse_backpressure_": [
+                53,
+                1
+              ],
+              "r7_long_newest_": [
+                88,
+                8
+              ],
+              "r7_long_slots_": [
+                80,
+                8
+              ],
+              "rbuf_": [
+                16,
+                8
+              ],
+              "rcap_": [
+                24,
+                8
+              ],
+              "recv_armed_": [
+                41,
+                1
+              ],
+              "retire_queued_": [
+                1920,
+                1
+              ],
+              "rlen_": [
+                4,
+                4
+              ],
+              "rob_": [
+                128,
+                192
+              ],
+              "rpos_": [
+                8,
+                4
+              ],
+              "segmented_send_": [
+                43,
+                1
+              ],
+              "segments_": [
+                1392,
+                216
+              ],
+              "send_inflight_": [
+                42,
+                1
+              ],
+              "send_iov_": [
+                1608,
+                256
+              ],
+              "send_msg_": [
+                1864,
+                56
+              ],
+              "send_requested_": [
+                44,
+                4
+              ],
+              "serve_pending_": [
+                48,
+                1
+              ],
+              "session_": [
+                68,
+                4
+              ],
+              "subscriber_mode_": [
+                54,
+                1
+              ],
+              "tls_slot_": [
+                1980,
+                4
+              ],
+              "watch_dirty_": [
+                1956,
+                1
+              ],
+              "watch_generation_": [
+                1944,
+                8
+              ],
+              "watched_refs_": [
+                1952,
+                4
+              ],
+              "wb_deferrals_": [
+                72,
+                1
+              ],
+              "wb_slot_": [
+                1924,
+                4
+              ],
+              "wsent_": [
+                32,
+                8
+              ]
+            },
+            "size": 1984
+          },
+          "Config": {
+            "fields": {
+              "acl_pubsub_allchannels": [
+                184,
+                4
+              ],
+              "acl_users": [
+                200,
+                24
+              ],
+              "aclfile": [
+                176,
+                8
+              ],
+              "acllog_max_len": [
+                192,
+                8
+              ],
+              "aof_load_truncated": [
+                305,
+                1
+              ],
+              "aof_timestamp_enabled": [
+                304,
+                1
+              ],
+              "appenddirname": [
+                280,
+                8
+              ],
+              "appendfilename": [
+                272,
+                8
+              ],
+              "appendfsync": [
+                265,
+                1
+              ],
+              "appendonly": [
+                264,
+                1
+              ],
+              "atomic": [
+                344,
+                4
+              ],
+              "auto_aof_rewrite_min_size": [
+                296,
+                8
+              ],
+              "auto_aof_rewrite_percentage": [
+                288,
+                4
+              ],
+              "bind_addr": [
+                48,
+                8
+              ],
+              "client_lb": [
+                36,
+                4
+              ],
+              "client_output_buffer_limits": [
+                88,
+                72
+              ],
+              "client_query_buffer_limit": [
+                552,
+                8
+              ],
+              "conf_path": [
+                536,
+                8
+              ],
+              "databases": [
+                308,
+                4
+              ],
+              "dbfilename": [
+                232,
+                8
+              ],
+              "dir": [
+                224,
+                8
+              ],
+              "enable_debug_command": [
+                172,
+                1
+              ],
+              "encodings": [
+                352,
+                64
+              ],
+              "even_ex": [
+                12,
+                4
+              ],
+              "even_ifid": [
+                8,
+                4
+              ],
+              "flip_auto": [
+                40,
+                4
+              ],
+              "hll_sparse_max_bytes": [
+                508,
+                4
+              ],
+              "key_lb": [
+                32,
+                4
+              ],
+              "key_lb_damping": [
+                568,
+                4
+              ],
+              "latency_monitor_threshold": [
+                528,
+                4
+              ],
+              "layout_reserved": [
+                580,
+                44
+              ],
+              "maxclients": [
+                64,
+                4
+              ],
+              "maxmemory": [
+                328,
+                8
+              ],
+              "maxmemory_policy": [
+                336,
+                1
+              ],
+              "maxmemory_samples": [
+                340,
+                4
+              ],
+              "net_io": [
+                80,
+                1
+              ],
+              "network_reserved": [
+                84,
+                4
+              ],
+              "notify_events": [
+                416,
+                4
+              ],
+              "pin_threads": [
+                28,
+                1
+              ],
+              "place": [
+                0,
+                8
+              ],
+              "port": [
+                44,
+                2
+              ],
+              "protected_mode": [
+                168,
+                4
+              ],
+              "proto_max_bulk_len": [
+                312,
+                8
+              ],
+              "read_local": [
+                268,
+                4
+              ],
+              "reorder": [
+                420,
+                4
+              ],
+              "requirepass": [
+                160,
+                8
+              ],
+              "save": [
+                240,
+                24
+              ],
+              "shard_home": [
+                16,
+                8
+              ],
+              "shards": [
+                24,
+                4
+              ],
+              "slowlog_log_slower_than": [
+                512,
+                8
+              ],
+              "slowlog_max_len": [
+                520,
+                8
+              ],
+              "stream_limits": [
+                560,
+                8
+              ],
+              "tcp_backlog": [
+                76,
+                4
+              ],
+              "tcp_keepalive": [
+                72,
+                4
+              ],
+              "thread_mode": [
+                266,
+                1
+              ],
+              "timeout": [
+                68,
+                4
+              ],
+              "tls_auth_clients": [
+                472,
+                1
+              ],
+              "tls_ca_cert_dir": [
+                464,
+                8
+              ],
+              "tls_ca_cert_file": [
+                456,
+                8
+              ],
+              "tls_cert_file": [
+                440,
+                8
+              ],
+              "tls_ciphers": [
+                488,
+                8
+              ],
+              "tls_ciphersuites": [
+                496,
+                8
+              ],
+              "tls_key_file": [
+                448,
+                8
+              ],
+              "tls_port": [
+                432,
+                2
+              ],
+              "tls_prefer_server_ciphers": [
+                504,
+                1
+              ],
+              "tls_protocols": [
+                480,
+                8
+              ],
+              "tracking_table_max_keys": [
+                424,
+                8
+              ],
+              "unixsocket": [
+                56,
+                8
+              ],
+              "unixsocketperm": [
+                46,
+                2
+              ],
+              "wb_complete_visits": [
+                576,
+                4
+              ],
+              "wb_policy": [
+                544,
+                4
+              ],
+              "wb_small_pipe": [
+                572,
+                4
+              ],
+              "zc_min": [
+                320,
+                4
+              ]
+            },
+            "size": 624
+          },
+          "FlatStore": {
+            "fields": {
+              "active_expire_reap_lag_ms_max_": [
+                356,
+                4
+              ],
+              "aof_": [
+                712,
+                144
+              ],
+              "atomic_activity_": [
+                136,
+                8
+              ],
+              "atomic_chain_max_": [
+                160,
+                8
+              ],
+              "atomic_collapse_keys_": [
+                8,
+                24
+              ],
+              "atomic_collapse_retire_": [
+                56,
+                24
+              ],
+              "atomic_collapse_slots_": [
+                32,
+                24
+              ],
+              "atomic_entries_": [
+                184,
+                8
+              ],
+              "atomic_gauge_underflows_": [
+                192,
+                8
+              ],
+              "atomic_pending_": [
+                200,
+                8
+              ],
+              "atomic_predecessor_reads_": [
+                152,
+                8
+              ],
+              "atomic_promotions_": [
+                168,
+                8
+              ],
+              "atomic_read_epoch_": [
+                104,
+                8
+              ],
+              "atomic_read_origin_conn_id_": [
+                112,
+                8
+              ],
+              "atomic_records_freed_": [
+                176,
+                8
+              ],
+              "atomic_script_intents_": [
+                144,
+                8
+              ],
+              "atomic_seen_keys_": [
+                80,
+                24
+              ],
+              "atomic_ticket_ctx_": [
+                128,
+                8
+              ],
+              "atomic_ticket_fn_": [
+                120,
+                8
+              ],
+              "atomic_version_bytes_": [
+                0,
+                8
+              ],
+              "borrow_idx_": [
+                464,
+                24
+              ],
+              "borrow_tombs_": [
+                380,
+                4
+              ],
+              "borrows_": [
+                440,
+                24
+              ],
+              "cached_lru_clock_": [
+                400,
+                1
+              ],
+              "cached_now_ms_": [
+                392,
+                8
+              ],
+              "cap_": [
+                224,
+                8
+              ],
+              "evicted_counter_": [
+                272,
+                8
+              ],
+              "expired_counter_": [
+                408,
+                8
+              ],
+              "expires_": [
+                488,
+                80
+              ],
+              "field_expired_": [
+                936,
+                8
+              ],
+              "field_expires_": [
+                856,
+                80
+              ],
+              "field_ttl_gate_": [
+                244,
+                4
+              ],
+              "field_ttl_index_incomplete_": [
+                241,
+                1
+              ],
+              "live_": [
+                336,
+                8
+              ],
+              "mask_": [
+                232,
+                8
+              ],
+              "maxmemory_enabled_": [
+                242,
+                1
+              ],
+              "maxmemory_limit_": [
+                256,
+                8
+              ],
+              "maxmemory_policy_": [
+                243,
+                1
+              ],
+              "maxmemory_samples_": [
+                248,
+                4
+              ],
+              "no_touch_": [
+                401,
+                1
+              ],
+              "obj_bytes_": [
+                360,
+                8
+              ],
+              "outstanding_borrows_": [
+                376,
+                4
+              ],
+              "pending_bytes_": [
+                368,
+                8
+              ],
+              "random_state_": [
+                416,
+                8
+              ],
+              "read_local_enabled_": [
+                240,
+                1
+              ],
+              "reader_owner_gap_": [
+                308,
+                28
+              ],
+              "rehash_counter_": [
+                280,
+                8
+              ],
+              "rehash_pos_": [
+                352,
+                4
+              ],
+              "sample_cursor_": [
+                424,
+                8
+              ],
+              "snapshot_active_": [
+                403,
+                1
+              ],
+              "snapshot_build_": [
+                696,
+                8
+              ],
+              "snapshot_cut_ms_": [
+                296,
+                8
+              ],
+              "snapshot_epoch_": [
+                288,
+                8
+              ],
+              "snapshot_failed_": [
+                404,
+                1
+              ],
+              "snapshot_finished_": [
+                405,
+                1
+              ],
+              "snapshot_new_cap_": [
+                304,
+                4
+              ],
+              "snapshot_new_tab_": [
+                264,
+                8
+              ],
+              "snapshot_pos_": [
+                384,
+                4
+              ],
+              "snapshot_preimages_": [
+                432,
+                8
+              ],
+              "snapshot_prepared_": [
+                402,
+                1
+              ],
+              "snapshot_ready_": [
+                704,
+                8
+              ],
+              "snapshot_record_": [
+                568,
+                128
+              ],
+              "snapshot_sequence_": [
+                388,
+                4
+              ],
+              "snapshot_shard_id_": [
+                252,
+                4
+              ],
+              "tab_": [
+                208,
+                16
+              ],
+              "tombs_": [
+                344,
+                8
+              ]
+            },
+            "size": 944
+          },
+          "IoLoop": {
+            "fields": {
+              "accept_armed_": [
+                6459,
+                1
+              ],
+              "accept_cancel_generation_": [
+                2744,
+                8
+              ],
+              "accept_cancel_submitted_": [
+                6463,
+                1
+              ],
+              "accept_generation_": [
+                2736,
+                8
+              ],
+              "accept_pending_": [
+                6456,
+                1
+              ],
+              "accept_quiescing_": [
+                6462,
+                1
+              ],
+              "active_": [
+                6496,
+                24
+              ],
+              "active_role_": [
+                2753,
+                1
+              ],
+              "age_sample_rate_cached_": [
+                1412,
+                4
+              ],
+              "age_signals_armed_": [
+                1408,
+                1
+              ],
+              "aof_bound_": [
+                2755,
+                1
+              ],
+              "aof_gate_target_": [
+                6488,
+                8
+              ],
+              "backstop_pass_": [
+                1348,
+                1
+              ],
+              "cached_now_ms_": [
+                1392,
+                8
+              ],
+              "cached_now_s_": [
+                1400,
+                4
+              ],
+              "client_cron_beat_ms_": [
+                1352,
+                8
+              ],
+              "client_cron_cursor_": [
+                1384,
+                8
+              ],
+              "client_cron_was_armed_": [
+                1404,
+                1
+              ],
+              "client_lb_signal_armed_": [
+                1405,
+                1
+              ],
+              "client_migrations_": [
+                648,
+                24
+              ],
+              "client_query_buffer_limit_": [
+                7136,
+                8
+              ],
+              "client_transfer_failures_": [
+                672,
+                8
+              ],
+              "client_work_fences_": [
+                7080,
+                56
+              ],
+              "climon_armed_cached_": [
+                6976,
+                4
+              ],
+              "climon_armed_dirty_": [
+                6980,
+                1
+              ],
+              "climon_conn_": [
+                6864,
+                56
+              ],
+              "climon_local_monitors_": [
+                6992,
+                4
+              ],
+              "climon_local_reply_": [
+                7000,
+                4
+              ],
+              "climon_local_trackers_": [
+                6996,
+                4
+              ],
+              "climon_monitor_clock_ms_": [
+                7008,
+                8
+              ],
+              "climon_pause_deadline_ms_": [
+                6984,
+                8
+              ],
+              "climon_pending_": [
+                6808,
+                56
+              ],
+              "climon_track_keys_": [
+                6920,
+                56
+              ],
+              "configured_port_": [
+                2732,
+                2
+              ],
+              "dead_next_": [
+                2672,
+                24
+              ],
+              "dead_ready_": [
+                2696,
+                24
+              ],
+              "deferred_timers_": [
+                720,
+                24
+              ],
+              "dispatch_needed_": [
+                2156,
+                512
+              ],
+              "ep_": [
+                3092,
+                3080
+              ],
+              "epoll_": [
+                3088,
+                1
+              ],
+              "epoll_closes_": [
+                6176,
+                24
+              ],
+              "flip_client_": [
+                680,
+                8
+              ],
+              "flip_epoch_local_": [
+                696,
+                8
+              ],
+              "flip_op_id_": [
+                688,
+                8
+              ],
+              "flip_prepare_epoch_": [
+                704,
+                8
+              ],
+              "flip_pubsub_rehome_epoch_": [
+                712,
+                8
+              ],
+              "flip_stage_snapshot_": [
+                1410,
+                1
+              ],
+              "flush_tick_": [
+                1344,
+                4
+              ],
+              "fused_executor_": [
+                7072,
+                8
+              ],
+              "initialized_": [
+                2752,
+                1
+              ],
+              "lb_client_observations_": [
+                1424,
+                24
+              ],
+              "lb_client_signal_beat_ms_": [
+                1360,
+                8
+              ],
+              "lb_client_wake_pending_": [
+                1407,
+                1
+              ],
+              "lb_controller_armed_": [
+                1406,
+                1
+              ],
+              "lb_pause_id_": [
+                1368,
+                8
+              ],
+              "lb_wake_cursor_": [
+                1416,
+                4
+              ],
+              "listen_fd_": [
+                2720,
+                4
+              ],
+              "multi_deferred_": [
+                6520,
+                24
+              ],
+              "notify_armed_": [
+                6632,
+                1
+              ],
+              "notify_config_armed_": [
+                6633,
+                1
+              ],
+              "notify_config_version_": [
+                6624,
+                8
+              ],
+              "ntouched_": [
+                2152,
+                4
+              ],
+              "pending_handoffs_": [
+                568,
+                80
+              ],
+              "pending_multi_cleanups_": [
+                6544,
+                80
+              ],
+              "pending_releases_": [
+                488,
+                80
+              ],
+              "pending_serve_": [
+                408,
+                80
+              ],
+              "prepared_role_": [
+                2754,
+                1
+              ],
+              "proto_max_bulk_len_": [
+                6640,
+                8
+              ],
+              "pubsub_channels_": [
+                0,
+                56
+              ],
+              "pubsub_local_": [
+                136,
+                56
+              ],
+              "pubsub_local_events_": [
+                248,
+                80
+              ],
+              "pubsub_notification_chains_": [
+                6672,
+                80
+              ],
+              "pubsub_outbox_": [
+                328,
+                24
+              ],
+              "pubsub_outbox_dirty_": [
+                352,
+                24
+              ],
+              "pubsub_pass_pending_": [
+                376,
+                1
+              ],
+              "pubsub_patterns_": [
+                112,
+                24
+              ],
+              "pubsub_pending_": [
+                192,
+                56
+              ],
+              "pubsub_rehome_epoch_": [
+                384,
+                8
+              ],
+              "pubsub_shard_channels_": [
+                56,
+                56
+              ],
+              "random_state_": [
+                6480,
+                8
+              ],
+              "ring_": [
+                2760,
+                328
+              ],
+              "rob_age_generation_": [
+                1504,
+                8
+              ],
+              "rob_head_ages_": [
+                1448,
+                56
+              ],
+              "routing_forward_": [
+                7016,
+                56
+              ],
+              "save_config_armed_": [
+                6634,
+                1
+              ],
+              "save_cron_beat_ms_": [
+                1376,
+                8
+              ],
+              "save_cron_writer_": [
+                1409,
+                1
+              ],
+              "scatter_pool_": [
+                744,
+                600
+              ],
+              "self_": [
+                400,
+                8
+              ],
+              "slowlog_arm_": [
+                6656,
+                16
+              ],
+              "slowlog_armed_": [
+                6648,
+                1
+              ],
+              "srv_": [
+                392,
+                8
+              ],
+              "tls_accept_armed_": [
+                6460,
+                1
+              ],
+              "tls_accept_cancel_submitted_": [
+                6464,
+                1
+              ],
+              "tls_accept_pending_": [
+                6457,
+                1
+              ],
+              "tls_context_": [
+                6752,
+                8
+              ],
+              "tls_free_slots_": [
+                6784,
+                24
+              ],
+              "tls_listen_fd_": [
+                2724,
+                4
+              ],
+              "tls_slots_": [
+                6760,
+                24
+              ],
+              "touched_": [
+                1512,
+                128
+              ],
+              "touched_list_": [
+                1640,
+                512
+              ],
+              "unix_accept_armed_": [
+                6461,
+                1
+              ],
+              "unix_accept_pending_": [
+                6458,
+                1
+              ],
+              "unix_listen_fd_": [
+                2728,
+                4
+              ],
+              "unix_rr_": [
+                6472,
+                8
+              ],
+              "wb_": [
+                6200,
+                256
+              ],
+              "wb_config_": [
+                1349,
+                3
+              ]
+            },
+            "size": 7144
+          },
+          "ModeScheduleStats": {
+            "fields": {
+              "reorder_batches": [
+                16,
+                8
+              ],
+              "reorder_max_batch": [
+                40,
+                4
+              ],
+              "reorder_multi_client_runs": [
+                24,
+                8
+              ],
+              "reorder_permuted_runs": [
+                32,
+                8
+              ],
+              "reorder_reserved": [
+                48,
+                16
+              ],
+              "schedule_reserved": [
+                0,
+                16
+              ],
+              "schedule_reserved_tail": [
+                44,
+                4
+              ]
+            },
+            "size": 64
+          },
+          "Op": {
+            "fields": {
+              "argc_": [
+                204,
+                4
+              ],
+              "argv_cap_": [
+                200,
+                4
+              ],
+              "argv_heap_": [
+                192,
+                8
+              ],
+              "argv_inline_": [
+                208,
+                128
+              ],
+              "db": [
+                31,
+                1
+              ],
+              "direct": [
+                152,
+                8
+              ],
+              "direct_cap": [
+                160,
+                4
+              ],
+              "direct_len": [
+                164,
+                4
+              ],
+              "hash": [
+                16,
+                8
+              ],
+              "physical_db": [
+                185,
+                1
+              ],
+              "rbuf_off": [
+                24,
+                4
+              ],
+              "read_cut_lo": [
+                12,
+                4
+              ],
+              "reply": [
+                32,
+                120
+              ],
+              "reply_code_": [
+                29,
+                1
+              ],
+              "reply_code_ok_": [
+                30,
+                1
+              ],
+              "reply_ival_": [
+                188,
+                4
+              ],
+              "route_flags_": [
+                28,
+                1
+              ],
+              "secondary_db": [
+                186,
+                1
+              ],
+              "shard": [
+                8,
+                4
+              ],
+              "spec": [
+                0,
+                8
+              ],
+              "state": [
+                184,
+                1
+              ],
+              "target_db": [
+                187,
+                1
+              ],
+              "zc_len": [
+                176,
+                4
+              ],
+              "zc_ptr": [
+                168,
+                8
+              ],
+              "zc_shard": [
+                180,
+                4
+              ]
+            },
+            "size": 336
+          },
+          "Shard": {
+            "fields": {
+              "blocking_dirty_": [
+                1188,
+                1
+              ],
+              "blocking_registry_": [
+                1192,
+                8
+              ],
+              "blocking_waiters_": [
+                1200,
+                8
+              ],
+              "bucket_begin_": [
+                4,
+                2
+              ],
+              "bucket_end_": [
+                6,
+                2
+              ],
+              "flat_notify_sink_": [
+                1336,
+                24
+              ],
+              "has_watches_": [
+                8,
+                1
+              ],
+              "home_domain_": [
+                24,
+                4
+              ],
+              "id_": [
+                0,
+                4
+              ],
+              "lb_bucket_bytes_": [
+                1408,
+                8
+              ],
+              "lb_bucket_bytes_staging_": [
+                1416,
+                8
+              ],
+              "lb_bucket_samples_": [
+                1400,
+                8
+              ],
+              "lb_bytes_cursor_": [
+                1424,
+                8
+              ],
+              "notify_carrier_": [
+                1368,
+                8
+              ],
+              "notify_mask_": [
+                1360,
+                4
+              ],
+              "notify_order_base_": [
+                1364,
+                4
+              ],
+              "notify_pending_": [
+                1384,
+                8
+              ],
+              "notify_source_": [
+                1376,
+                8
+              ],
+              "notify_state_": [
+                1392,
+                8
+              ],
+              "now_ms_": [
+                16,
+                8
+              ],
+              "published_active_expire_reap_lag_ms_max_": [
+                44,
+                4
+              ],
+              "published_evicted_": [
+                48,
+                8
+              ],
+              "published_expires_": [
+                40,
+                4
+              ],
+              "published_obj_bytes_": [
+                32,
+                8
+              ],
+              "published_size_": [
+                28,
+                4
+              ],
+              "reserved_route_": [
+                9,
+                3
+              ],
+              "save_changes_": [
+                1432,
+                8
+              ],
+              "server_": [
+                1328,
+                8
+              ],
+              "stats_": [
+                1000,
+                152
+              ],
+              "store_": [
+                56,
+                944
+              ],
+              "stream_limits_": [
+                1208,
+                8
+              ],
+              "type_limits_": [
+                1152,
+                36
+              ],
+              "watch_reservations_": [
+                1272,
+                56
+              ],
+              "watchers_": [
+                1216,
+                56
+              ],
+              "zc_min_": [
+                12,
+                4
+              ]
+            },
+            "size": 1440
+          },
+          "ThreadCtx": {
+            "fields": {
+              "atomic_admission_state_": [
+                448,
+                64
+              ],
+              "atomic_groups_": [
+                392,
+                8
+              ],
+              "atomic_localfast_": [
+                400,
+                8
+              ],
+              "atomic_scan_holds_": [
+                120,
+                8
+              ],
+              "client_capacity_prepare_": [
+                56,
+                8
+              ],
+              "client_count_": [
+                952,
+                4
+              ],
+              "client_in_": [
+                80,
+                8
+              ],
+              "client_notify_": [
+                712,
+                16
+              ],
+              "client_registration_cancel_": [
+                48,
+                8
+              ],
+              "client_registration_prepare_": [
+                40,
+                8
+              ],
+              "clients_": [
+                928,
+                24
+              ],
+              "command_count_size_": [
+                112,
+                4
+              ],
+              "command_counts_": [
+                104,
+                8
+              ],
+              "cpu_": [
+                64,
+                4
+              ],
+              "depth_sample_next_us_": [
+                768,
+                8
+              ],
+              "domain_": [
+                68,
+                4
+              ],
+              "executor_progress_": [
+                1360,
+                8
+              ],
+              "flip_fingerprint_": [
+                128,
+                264
+              ],
+              "free_slots_": [
+                664,
+                24
+              ],
+              "fused_executor_context_": [
+                1352,
+                8
+              ],
+              "id_": [
+                0,
+                4
+              ],
+              "io_role_cancel_": [
+                32,
+                8
+              ],
+              "io_role_context_": [
+                16,
+                8
+              ],
+              "io_role_prepare_": [
+                24,
+                8
+              ],
+              "nchan_": [
+                760,
+                4
+              ],
+              "parked_": [
+                688,
+                1
+              ],
+              "pubsub_events_": [
+                816,
+                80
+              ],
+              "pubsub_mu_": [
+                776,
+                40
+              ],
+              "pubsub_notified_": [
+                896,
+                1
+              ],
+              "read_local_state_": [
+                1376,
+                8
+              ],
+              "ready_": [
+                512,
+                128
+              ],
+              "ready_role_": [
+                5,
+                1
+              ],
+              "release_in_": [
+                88,
+                8
+              ],
+              "release_notify_": [
+                728,
+                16
+              ],
+              "ring_": [
+                8,
+                8
+              ],
+              "role_": [
+                4,
+                1
+              ],
+              "shards_": [
+                904,
+                24
+              ],
+              "sig_": [
+                960,
+                384
+              ],
+              "slots_": [
+                640,
+                24
+              ],
+              "snapshot_start_": [
+                1368,
+                8
+              ],
+              "snapshot_writer_bound_": [
+                7,
+                1
+              ],
+              "stop_": [
+                6,
+                1
+              ],
+              "task_in_": [
+                72,
+                8
+              ],
+              "task_notify_": [
+                696,
+                16
+              ],
+              "total_commands_": [
+                408,
+                8
+              ],
+              "transfer_in_": [
+                96,
+                8
+              ],
+              "transfer_notify_": [
+                744,
+                16
+              ],
+              "wb_engine_": [
+                1344,
+                8
+              ]
+            },
+            "size": 1408
+          }
+        },
+        "sizes": {
+          "AtomicEntry": 144,
+          "Client": 1984,
+          "Config": 624,
+          "FlatStore": 944,
+          "Op": 336,
+          "Rob<64>": 192,
+          "Shard": 1440,
+          "ThreadCtx": 1408
+        }
+      }
+    },
+    "PRE": {
+      "tomo": {
+        "layouts": {
+          "AtomicEntry": {
+            "fields": {
+              "allocation": [
+                112,
+                8
+              ],
+              "begin": [
+                120,
+                4
+              ],
+              "capacity": [
+                128,
+                4
+              ],
+              "conn_next": [
+                16,
+                8
+              ],
+              "conn_prev": [
+                24,
+                8
+              ],
+              "copied_group_keys": [
+                138,
+                1
+              ],
+              "count": [
+                124,
+                4
+              ],
+              "epoch": [
+                88,
+                8
+              ],
+              "foreign_read_unsafe_published": [
+                137,
+                1
+              ],
+              "group": [
+                40,
+                8
+              ],
+              "group_aborted": [
+                64,
+                8
+              ],
+              "group_epoch": [
+                48,
+                8
+              ],
+              "group_refs": [
+                56,
+                8
+              ],
+              "key_len": [
+                132,
+                4
+              ],
+              "key_ns": [
+                139,
+                1
+              ],
+              "linked": [
+                136,
+                1
+              ],
+              "membership": [
+                104,
+                8
+              ],
+              "next": [
+                0,
+                8
+              ],
+              "origin_conn_id": [
+                80,
+                8
+              ],
+              "owner_refs": [
+                72,
+                8
+              ],
+              "plain_hash": [
+                96,
+                8
+              ],
+              "pool_next": [
+                32,
+                8
+              ],
+              "prev": [
+                8,
+                8
+              ]
+            },
+            "size": 144
+          },
+          "Client": {
+            "fields": {
+              "acl_user_idx_": [
+                1976,
+                4
+              ],
+              "atomic_groups_io_": [
+                64,
+                4
+              ],
+              "authenticated_": [
+                1973,
+                1
+              ],
+              "barrier_owners_": [
+                52,
+                1
+              ],
+              "buf_": [
+                320,
+                1072
+              ],
+              "closing_": [
+                50,
+                1
+              ],
+              "connection_flags_": [
+                55,
+                1
+              ],
+              "dead_": [
+                51,
+                1
+              ],
+              "fd_": [
+                0,
+                4
+              ],
+              "fill_": [
+                40,
+                1
+              ],
+              "id_": [
+                1960,
+                8
+              ],
+              "ifid_thread_": [
+                1928,
+                4
+              ],
+              "in_active_": [
+                49,
+                1
+              ],
+              "inline_scanned_": [
+                76,
+                4
+              ],
+              "last_interaction_s_": [
+                12,
+                4
+              ],
+              "multi_session_": [
+                1936,
+                8
+              ],
+              "obuf_bytes_": [
+                56,
+                8
+              ],
+              "obuf_soft_since_s_": [
+                1968,
+                4
+              ],
+              "obuf_tracking_": [
+                1972,
+                1
+              ],
+              "parse_backpressure_": [
+                53,
+                1
+              ],
+              "r7_long_newest_": [
+                88,
+                8
+              ],
+              "r7_long_slots_": [
+                80,
+                8
+              ],
+              "rbuf_": [
+                16,
+                8
+              ],
+              "rcap_": [
+                24,
+                8
+              ],
+              "recv_armed_": [
+                41,
+                1
+              ],
+              "retire_queued_": [
+                1920,
+                1
+              ],
+              "rlen_": [
+                4,
+                4
+              ],
+              "rob_": [
+                128,
+                192
+              ],
+              "rpos_": [
+                8,
+                4
+              ],
+              "segmented_send_": [
+                43,
+                1
+              ],
+              "segments_": [
+                1392,
+                216
+              ],
+              "send_inflight_": [
+                42,
+                1
+              ],
+              "send_iov_": [
+                1608,
+                256
+              ],
+              "send_msg_": [
+                1864,
+                56
+              ],
+              "send_requested_": [
+                44,
+                4
+              ],
+              "serve_pending_": [
+                48,
+                1
+              ],
+              "session_": [
+                68,
+                4
+              ],
+              "subscriber_mode_": [
+                54,
+                1
+              ],
+              "tls_slot_": [
+                1980,
+                4
+              ],
+              "watch_dirty_": [
+                1956,
+                1
+              ],
+              "watch_generation_": [
+                1944,
+                8
+              ],
+              "watched_refs_": [
+                1952,
+                4
+              ],
+              "wb_deferrals_": [
+                72,
+                1
+              ],
+              "wb_slot_": [
+                1924,
+                4
+              ],
+              "wsent_": [
+                32,
+                8
+              ]
+            },
+            "size": 1984
+          },
+          "Config": {
+            "fields": {
+              "acl_pubsub_allchannels": [
+                184,
+                4
+              ],
+              "acl_users": [
+                200,
+                24
+              ],
+              "aclfile": [
+                176,
+                8
+              ],
+              "acllog_max_len": [
+                192,
+                8
+              ],
+              "aof_load_truncated": [
+                305,
+                1
+              ],
+              "aof_timestamp_enabled": [
+                304,
+                1
+              ],
+              "appenddirname": [
+                280,
+                8
+              ],
+              "appendfilename": [
+                272,
+                8
+              ],
+              "appendfsync": [
+                265,
+                1
+              ],
+              "appendonly": [
+                264,
+                1
+              ],
+              "atomic": [
+                344,
+                4
+              ],
+              "auto_aof_rewrite_min_size": [
+                296,
+                8
+              ],
+              "auto_aof_rewrite_percentage": [
+                288,
+                4
+              ],
+              "bind_addr": [
+                48,
+                8
+              ],
+              "client_lb": [
+                36,
+                4
+              ],
+              "client_output_buffer_limits": [
+                88,
+                72
+              ],
+              "client_query_buffer_limit": [
+                552,
+                8
+              ],
+              "conf_path": [
+                536,
+                8
+              ],
+              "databases": [
+                308,
+                4
+              ],
+              "dbfilename": [
+                232,
+                8
+              ],
+              "dir": [
+                224,
+                8
+              ],
+              "enable_debug_command": [
+                172,
+                1
+              ],
+              "encodings": [
+                352,
+                64
+              ],
+              "even_ex": [
+                12,
+                4
+              ],
+              "even_ifid": [
+                8,
+                4
+              ],
+              "flip_auto": [
+                40,
+                4
+              ],
+              "hll_sparse_max_bytes": [
+                508,
+                4
+              ],
+              "key_lb": [
+                32,
+                4
+              ],
+              "key_lb_damping": [
+                568,
+                4
+              ],
+              "latency_monitor_threshold": [
+                528,
+                4
+              ],
+              "layout_reserved": [
+                580,
+                44
+              ],
+              "maxclients": [
+                64,
+                4
+              ],
+              "maxmemory": [
+                328,
+                8
+              ],
+              "maxmemory_policy": [
+                336,
+                1
+              ],
+              "maxmemory_samples": [
+                340,
+                4
+              ],
+              "net_io": [
+                80,
+                1
+              ],
+              "notify_events": [
+                416,
+                4
+              ],
+              "overlap": [
+                84,
+                4
+              ],
+              "pin_threads": [
+                28,
+                1
+              ],
+              "place": [
+                0,
+                8
+              ],
+              "port": [
+                44,
+                2
+              ],
+              "protected_mode": [
+                168,
+                4
+              ],
+              "proto_max_bulk_len": [
+                312,
+                8
+              ],
+              "read_local": [
+                268,
+                4
+              ],
+              "reorder": [
+                420,
+                4
+              ],
+              "requirepass": [
+                160,
+                8
+              ],
+              "save": [
+                240,
+                24
+              ],
+              "shard_home": [
+                16,
+                8
+              ],
+              "shards": [
+                24,
+                4
+              ],
+              "slowlog_log_slower_than": [
+                512,
+                8
+              ],
+              "slowlog_max_len": [
+                520,
+                8
+              ],
+              "stream_limits": [
+                560,
+                8
+              ],
+              "tcp_backlog": [
+                76,
+                4
+              ],
+              "tcp_keepalive": [
+                72,
+                4
+              ],
+              "thread_mode": [
+                266,
+                1
+              ],
+              "timeout": [
+                68,
+                4
+              ],
+              "tls_auth_clients": [
+                472,
+                1
+              ],
+              "tls_ca_cert_dir": [
+                464,
+                8
+              ],
+              "tls_ca_cert_file": [
+                456,
+                8
+              ],
+              "tls_cert_file": [
+                440,
+                8
+              ],
+              "tls_ciphers": [
+                488,
+                8
+              ],
+              "tls_ciphersuites": [
+                496,
+                8
+              ],
+              "tls_key_file": [
+                448,
+                8
+              ],
+              "tls_port": [
+                432,
+                2
+              ],
+              "tls_prefer_server_ciphers": [
+                504,
+                1
+              ],
+              "tls_protocols": [
+                480,
+                8
+              ],
+              "tracking_table_max_keys": [
+                424,
+                8
+              ],
+              "unixsocket": [
+                56,
+                8
+              ],
+              "unixsocketperm": [
+                46,
+                2
+              ],
+              "wb_complete_visits": [
+                576,
+                4
+              ],
+              "wb_policy": [
+                544,
+                4
+              ],
+              "wb_small_pipe": [
+                572,
+                4
+              ],
+              "zc_min": [
+                320,
+                4
+              ]
+            },
+            "size": 624
+          },
+          "FlatStore": {
+            "fields": {
+              "active_expire_reap_lag_ms_max_": [
+                356,
+                4
+              ],
+              "aof_": [
+                712,
+                144
+              ],
+              "atomic_activity_": [
+                136,
+                8
+              ],
+              "atomic_chain_max_": [
+                160,
+                8
+              ],
+              "atomic_collapse_keys_": [
+                8,
+                24
+              ],
+              "atomic_collapse_retire_": [
+                56,
+                24
+              ],
+              "atomic_collapse_slots_": [
+                32,
+                24
+              ],
+              "atomic_entries_": [
+                184,
+                8
+              ],
+              "atomic_gauge_underflows_": [
+                192,
+                8
+              ],
+              "atomic_pending_": [
+                200,
+                8
+              ],
+              "atomic_predecessor_reads_": [
+                152,
+                8
+              ],
+              "atomic_promotions_": [
+                168,
+                8
+              ],
+              "atomic_read_epoch_": [
+                104,
+                8
+              ],
+              "atomic_read_origin_conn_id_": [
+                112,
+                8
+              ],
+              "atomic_records_freed_": [
+                176,
+                8
+              ],
+              "atomic_script_intents_": [
+                144,
+                8
+              ],
+              "atomic_seen_keys_": [
+                80,
+                24
+              ],
+              "atomic_ticket_ctx_": [
+                128,
+                8
+              ],
+              "atomic_ticket_fn_": [
+                120,
+                8
+              ],
+              "atomic_version_bytes_": [
+                0,
+                8
+              ],
+              "borrow_idx_": [
+                464,
+                24
+              ],
+              "borrow_tombs_": [
+                380,
+                4
+              ],
+              "borrows_": [
+                440,
+                24
+              ],
+              "cached_lru_clock_": [
+                400,
+                1
+              ],
+              "cached_now_ms_": [
+                392,
+                8
+              ],
+              "cap_": [
+                224,
+                8
+              ],
+              "evicted_counter_": [
+                272,
+                8
+              ],
+              "expired_counter_": [
+                408,
+                8
+              ],
+              "expires_": [
+                488,
+                80
+              ],
+              "field_expired_": [
+                936,
+                8
+              ],
+              "field_expires_": [
+                856,
+                80
+              ],
+              "field_ttl_gate_": [
+                244,
+                4
+              ],
+              "field_ttl_index_incomplete_": [
+                241,
+                1
+              ],
+              "live_": [
+                336,
+                8
+              ],
+              "mask_": [
+                232,
+                8
+              ],
+              "maxmemory_enabled_": [
+                242,
+                1
+              ],
+              "maxmemory_limit_": [
+                256,
+                8
+              ],
+              "maxmemory_policy_": [
+                243,
+                1
+              ],
+              "maxmemory_samples_": [
+                248,
+                4
+              ],
+              "no_touch_": [
+                401,
+                1
+              ],
+              "obj_bytes_": [
+                360,
+                8
+              ],
+              "outstanding_borrows_": [
+                376,
+                4
+              ],
+              "pending_bytes_": [
+                368,
+                8
+              ],
+              "random_state_": [
+                416,
+                8
+              ],
+              "read_local_enabled_": [
+                240,
+                1
+              ],
+              "reader_owner_gap_": [
+                308,
+                28
+              ],
+              "rehash_counter_": [
+                280,
+                8
+              ],
+              "rehash_pos_": [
+                352,
+                4
+              ],
+              "sample_cursor_": [
+                424,
+                8
+              ],
+              "snapshot_active_": [
+                403,
+                1
+              ],
+              "snapshot_build_": [
+                696,
+                8
+              ],
+              "snapshot_cut_ms_": [
+                296,
+                8
+              ],
+              "snapshot_epoch_": [
+                288,
+                8
+              ],
+              "snapshot_failed_": [
+                404,
+                1
+              ],
+              "snapshot_finished_": [
+                405,
+                1
+              ],
+              "snapshot_new_cap_": [
+                304,
+                4
+              ],
+              "snapshot_new_tab_": [
+                264,
+                8
+              ],
+              "snapshot_pos_": [
+                384,
+                4
+              ],
+              "snapshot_preimages_": [
+                432,
+                8
+              ],
+              "snapshot_prepared_": [
+                402,
+                1
+              ],
+              "snapshot_ready_": [
+                704,
+                8
+              ],
+              "snapshot_record_": [
+                568,
+                128
+              ],
+              "snapshot_sequence_": [
+                388,
+                4
+              ],
+              "snapshot_shard_id_": [
+                252,
+                4
+              ],
+              "tab_": [
+                208,
+                16
+              ],
+              "tombs_": [
+                344,
+                8
+              ]
+            },
+            "size": 944
+          },
+          "IoLoop": {
+            "fields": {
+              "accept_armed_": [
+                6459,
+                1
+              ],
+              "accept_cancel_generation_": [
+                2744,
+                8
+              ],
+              "accept_cancel_submitted_": [
+                6463,
+                1
+              ],
+              "accept_generation_": [
+                2736,
+                8
+              ],
+              "accept_pending_": [
+                6456,
+                1
+              ],
+              "accept_quiescing_": [
+                6462,
+                1
+              ],
+              "active_": [
+                6496,
+                24
+              ],
+              "active_role_": [
+                2753,
+                1
+              ],
+              "age_sample_rate_cached_": [
+                1412,
+                4
+              ],
+              "age_signals_armed_": [
+                1408,
+                1
+              ],
+              "aof_bound_": [
+                2755,
+                1
+              ],
+              "aof_gate_target_": [
+                6488,
+                8
+              ],
+              "backstop_pass_": [
+                1348,
+                1
+              ],
+              "cached_now_ms_": [
+                1392,
+                8
+              ],
+              "cached_now_s_": [
+                1400,
+                4
+              ],
+              "client_cron_beat_ms_": [
+                1352,
+                8
+              ],
+              "client_cron_cursor_": [
+                1384,
+                8
+              ],
+              "client_cron_was_armed_": [
+                1404,
+                1
+              ],
+              "client_lb_signal_armed_": [
+                1405,
+                1
+              ],
+              "client_migrations_": [
+                648,
+                24
+              ],
+              "client_query_buffer_limit_": [
+                7136,
+                8
+              ],
+              "client_transfer_failures_": [
+                672,
+                8
+              ],
+              "client_work_fences_": [
+                7080,
+                56
+              ],
+              "climon_armed_cached_": [
+                6976,
+                4
+              ],
+              "climon_armed_dirty_": [
+                6980,
+                1
+              ],
+              "climon_conn_": [
+                6864,
+                56
+              ],
+              "climon_local_monitors_": [
+                6992,
+                4
+              ],
+              "climon_local_reply_": [
+                7000,
+                4
+              ],
+              "climon_local_trackers_": [
+                6996,
+                4
+              ],
+              "climon_monitor_clock_ms_": [
+                7008,
+                8
+              ],
+              "climon_pause_deadline_ms_": [
+                6984,
+                8
+              ],
+              "climon_pending_": [
+                6808,
+                56
+              ],
+              "climon_track_keys_": [
+                6920,
+                56
+              ],
+              "configured_port_": [
+                2732,
+                2
+              ],
+              "dead_next_": [
+                2672,
+                24
+              ],
+              "dead_ready_": [
+                2696,
+                24
+              ],
+              "deferred_timers_": [
+                720,
+                24
+              ],
+              "dispatch_needed_": [
+                2156,
+                512
+              ],
+              "ep_": [
+                3092,
+                3080
+              ],
+              "epoll_": [
+                3088,
+                1
+              ],
+              "epoll_closes_": [
+                6176,
+                24
+              ],
+              "flip_client_": [
+                680,
+                8
+              ],
+              "flip_epoch_local_": [
+                696,
+                8
+              ],
+              "flip_op_id_": [
+                688,
+                8
+              ],
+              "flip_prepare_epoch_": [
+                704,
+                8
+              ],
+              "flip_pubsub_rehome_epoch_": [
+                712,
+                8
+              ],
+              "flip_stage_snapshot_": [
+                1410,
+                1
+              ],
+              "flush_tick_": [
+                1344,
+                4
+              ],
+              "fused_executor_": [
+                7072,
+                8
+              ],
+              "initialized_": [
+                2752,
+                1
+              ],
+              "lb_client_observations_": [
+                1424,
+                24
+              ],
+              "lb_client_signal_beat_ms_": [
+                1360,
+                8
+              ],
+              "lb_client_wake_pending_": [
+                1407,
+                1
+              ],
+              "lb_controller_armed_": [
+                1406,
+                1
+              ],
+              "lb_pause_id_": [
+                1368,
+                8
+              ],
+              "lb_wake_cursor_": [
+                1416,
+                4
+              ],
+              "listen_fd_": [
+                2720,
+                4
+              ],
+              "multi_deferred_": [
+                6520,
+                24
+              ],
+              "notify_armed_": [
+                6632,
+                1
+              ],
+              "notify_config_armed_": [
+                6633,
+                1
+              ],
+              "notify_config_version_": [
+                6624,
+                8
+              ],
+              "ntouched_": [
+                2152,
+                4
+              ],
+              "pending_handoffs_": [
+                568,
+                80
+              ],
+              "pending_multi_cleanups_": [
+                6544,
+                80
+              ],
+              "pending_releases_": [
+                488,
+                80
+              ],
+              "pending_serve_": [
+                408,
+                80
+              ],
+              "prepared_role_": [
+                2754,
+                1
+              ],
+              "proto_max_bulk_len_": [
+                6640,
+                8
+              ],
+              "pubsub_channels_": [
+                0,
+                56
+              ],
+              "pubsub_local_": [
+                136,
+                56
+              ],
+              "pubsub_local_events_": [
+                248,
+                80
+              ],
+              "pubsub_notification_chains_": [
+                6672,
+                80
+              ],
+              "pubsub_outbox_": [
+                328,
+                24
+              ],
+              "pubsub_outbox_dirty_": [
+                352,
+                24
+              ],
+              "pubsub_pass_pending_": [
+                376,
+                1
+              ],
+              "pubsub_patterns_": [
+                112,
+                24
+              ],
+              "pubsub_pending_": [
+                192,
+                56
+              ],
+              "pubsub_rehome_epoch_": [
+                384,
+                8
+              ],
+              "pubsub_shard_channels_": [
+                56,
+                56
+              ],
+              "random_state_": [
+                6480,
+                8
+              ],
+              "ring_": [
+                2760,
+                328
+              ],
+              "rob_age_generation_": [
+                1504,
+                8
+              ],
+              "rob_head_ages_": [
+                1448,
+                56
+              ],
+              "routing_forward_": [
+                7016,
+                56
+              ],
+              "save_config_armed_": [
+                6634,
+                1
+              ],
+              "save_cron_beat_ms_": [
+                1376,
+                8
+              ],
+              "save_cron_writer_": [
+                1409,
+                1
+              ],
+              "scatter_pool_": [
+                744,
+                600
+              ],
+              "self_": [
+                400,
+                8
+              ],
+              "slowlog_arm_": [
+                6656,
+                16
+              ],
+              "slowlog_armed_": [
+                6648,
+                1
+              ],
+              "srv_": [
+                392,
+                8
+              ],
+              "tls_accept_armed_": [
+                6460,
+                1
+              ],
+              "tls_accept_cancel_submitted_": [
+                6464,
+                1
+              ],
+              "tls_accept_pending_": [
+                6457,
+                1
+              ],
+              "tls_context_": [
+                6752,
+                8
+              ],
+              "tls_free_slots_": [
+                6784,
+                24
+              ],
+              "tls_listen_fd_": [
+                2724,
+                4
+              ],
+              "tls_slots_": [
+                6760,
+                24
+              ],
+              "touched_": [
+                1512,
+                128
+              ],
+              "touched_list_": [
+                1640,
+                512
+              ],
+              "unix_accept_armed_": [
+                6461,
+                1
+              ],
+              "unix_accept_pending_": [
+                6458,
+                1
+              ],
+              "unix_listen_fd_": [
+                2728,
+                4
+              ],
+              "unix_rr_": [
+                6472,
+                8
+              ],
+              "wb_": [
+                6200,
+                256
+              ],
+              "wb_config_": [
+                1349,
+                3
+              ]
+            },
+            "size": 7144
+          },
+          "ModeScheduleStats": {
+            "fields": {
+              "overlap_interleaved_passes": [
+                8,
+                8
+              ],
+              "overlap_passes": [
+                0,
+                8
+              ],
+              "overlap_schedule": [
+                44,
+                4
+              ],
+              "reorder_batches": [
+                16,
+                8
+              ],
+              "reorder_max_batch": [
+                40,
+                4
+              ],
+              "reorder_multi_client_runs": [
+                24,
+                8
+              ],
+              "reorder_permuted_runs": [
+                32,
+                8
+              ],
+              "reorder_reserved": [
+                48,
+                16
+              ]
+            },
+            "size": 64
+          },
+          "Op": {
+            "fields": {
+              "argc_": [
+                204,
+                4
+              ],
+              "argv_cap_": [
+                200,
+                4
+              ],
+              "argv_heap_": [
+                192,
+                8
+              ],
+              "argv_inline_": [
+                208,
+                128
+              ],
+              "db": [
+                31,
+                1
+              ],
+              "direct": [
+                152,
+                8
+              ],
+              "direct_cap": [
+                160,
+                4
+              ],
+              "direct_len": [
+                164,
+                4
+              ],
+              "hash": [
+                16,
+                8
+              ],
+              "physical_db": [
+                185,
+                1
+              ],
+              "rbuf_off": [
+                24,
+                4
+              ],
+              "read_cut_lo": [
+                12,
+                4
+              ],
+              "reply": [
+                32,
+                120
+              ],
+              "reply_code_": [
+                29,
+                1
+              ],
+              "reply_code_ok_": [
+                30,
+                1
+              ],
+              "reply_ival_": [
+                188,
+                4
+              ],
+              "route_flags_": [
+                28,
+                1
+              ],
+              "secondary_db": [
+                186,
+                1
+              ],
+              "shard": [
+                8,
+                4
+              ],
+              "spec": [
+                0,
+                8
+              ],
+              "state": [
+                184,
+                1
+              ],
+              "target_db": [
+                187,
+                1
+              ],
+              "zc_len": [
+                176,
+                4
+              ],
+              "zc_ptr": [
+                168,
+                8
+              ],
+              "zc_shard": [
+                180,
+                4
+              ]
+            },
+            "size": 336
+          },
+          "Shard": {
+            "fields": {
+              "blocking_dirty_": [
+                1188,
+                1
+              ],
+              "blocking_registry_": [
+                1192,
+                8
+              ],
+              "blocking_waiters_": [
+                1200,
+                8
+              ],
+              "bucket_begin_": [
+                4,
+                2
+              ],
+              "bucket_end_": [
+                6,
+                2
+              ],
+              "flat_notify_sink_": [
+                1336,
+                24
+              ],
+              "has_watches_": [
+                8,
+                1
+              ],
+              "home_domain_": [
+                24,
+                4
+              ],
+              "id_": [
+                0,
+                4
+              ],
+              "lb_bucket_bytes_": [
+                1408,
+                8
+              ],
+              "lb_bucket_bytes_staging_": [
+                1416,
+                8
+              ],
+              "lb_bucket_samples_": [
+                1400,
+                8
+              ],
+              "lb_bytes_cursor_": [
+                1424,
+                8
+              ],
+              "notify_carrier_": [
+                1368,
+                8
+              ],
+              "notify_mask_": [
+                1360,
+                4
+              ],
+              "notify_order_base_": [
+                1364,
+                4
+              ],
+              "notify_pending_": [
+                1384,
+                8
+              ],
+              "notify_source_": [
+                1376,
+                8
+              ],
+              "notify_state_": [
+                1392,
+                8
+              ],
+              "now_ms_": [
+                16,
+                8
+              ],
+              "published_active_expire_reap_lag_ms_max_": [
+                44,
+                4
+              ],
+              "published_evicted_": [
+                48,
+                8
+              ],
+              "published_expires_": [
+                40,
+                4
+              ],
+              "published_obj_bytes_": [
+                32,
+                8
+              ],
+              "published_size_": [
+                28,
+                4
+              ],
+              "reserved_route_": [
+                9,
+                3
+              ],
+              "save_changes_": [
+                1432,
+                8
+              ],
+              "server_": [
+                1328,
+                8
+              ],
+              "stats_": [
+                1000,
+                152
+              ],
+              "store_": [
+                56,
+                944
+              ],
+              "stream_limits_": [
+                1208,
+                8
+              ],
+              "type_limits_": [
+                1152,
+                36
+              ],
+              "watch_reservations_": [
+                1272,
+                56
+              ],
+              "watchers_": [
+                1216,
+                56
+              ],
+              "zc_min_": [
+                12,
+                4
+              ]
+            },
+            "size": 1440
+          },
+          "ThreadCtx": {
+            "fields": {
+              "atomic_admission_state_": [
+                448,
+                64
+              ],
+              "atomic_groups_": [
+                392,
+                8
+              ],
+              "atomic_localfast_": [
+                400,
+                8
+              ],
+              "atomic_scan_holds_": [
+                120,
+                8
+              ],
+              "client_capacity_prepare_": [
+                56,
+                8
+              ],
+              "client_count_": [
+                952,
+                4
+              ],
+              "client_in_": [
+                80,
+                8
+              ],
+              "client_notify_": [
+                712,
+                16
+              ],
+              "client_registration_cancel_": [
+                48,
+                8
+              ],
+              "client_registration_prepare_": [
+                40,
+                8
+              ],
+              "clients_": [
+                928,
+                24
+              ],
+              "command_count_size_": [
+                112,
+                4
+              ],
+              "command_counts_": [
+                104,
+                8
+              ],
+              "cpu_": [
+                64,
+                4
+              ],
+              "depth_sample_next_us_": [
+                768,
+                8
+              ],
+              "domain_": [
+                68,
+                4
+              ],
+              "executor_progress_": [
+                1360,
+                8
+              ],
+              "flip_fingerprint_": [
+                128,
+                264
+              ],
+              "free_slots_": [
+                664,
+                24
+              ],
+              "fused_executor_context_": [
+                1352,
+                8
+              ],
+              "id_": [
+                0,
+                4
+              ],
+              "io_role_cancel_": [
+                32,
+                8
+              ],
+              "io_role_context_": [
+                16,
+                8
+              ],
+              "io_role_prepare_": [
+                24,
+                8
+              ],
+              "nchan_": [
+                760,
+                4
+              ],
+              "parked_": [
+                688,
+                1
+              ],
+              "pubsub_events_": [
+                816,
+                80
+              ],
+              "pubsub_mu_": [
+                776,
+                40
+              ],
+              "pubsub_notified_": [
+                896,
+                1
+              ],
+              "read_local_state_": [
+                1376,
+                8
+              ],
+              "ready_": [
+                512,
+                128
+              ],
+              "ready_role_": [
+                5,
+                1
+              ],
+              "release_in_": [
+                88,
+                8
+              ],
+              "release_notify_": [
+                728,
+                16
+              ],
+              "ring_": [
+                8,
+                8
+              ],
+              "role_": [
+                4,
+                1
+              ],
+              "shards_": [
+                904,
+                24
+              ],
+              "sig_": [
+                960,
+                384
+              ],
+              "slots_": [
+                640,
+                24
+              ],
+              "snapshot_start_": [
+                1368,
+                8
+              ],
+              "snapshot_writer_bound_": [
+                7,
+                1
+              ],
+              "stop_": [
+                6,
+                1
+              ],
+              "task_in_": [
+                72,
+                8
+              ],
+              "task_notify_": [
+                696,
+                16
+              ],
+              "total_commands_": [
+                408,
+                8
+              ],
+              "transfer_in_": [
+                96,
+                8
+              ],
+              "transfer_notify_": [
+                744,
+                16
+              ],
+              "wb_engine_": [
+                1344,
+                8
+              ]
+            },
+            "size": 1408
+          }
+        },
+        "sizes": {
+          "AtomicEntry": 144,
+          "Client": 1984,
+          "Config": 624,
+          "FlatStore": 944,
+          "Op": 336,
+          "Rob<64>": 192,
+          "Shard": 1440,
+          "ThreadCtx": 1408
+        }
+      },
+      "tomo_db0": {
+        "layouts": {
+          "AtomicEntry": {
+            "fields": {
+              "allocation": [
+                112,
+                8
+              ],
+              "begin": [
+                120,
+                4
+              ],
+              "capacity": [
+                128,
+                4
+              ],
+              "conn_next": [
+                16,
+                8
+              ],
+              "conn_prev": [
+                24,
+                8
+              ],
+              "copied_group_keys": [
+                138,
+                1
+              ],
+              "count": [
+                124,
+                4
+              ],
+              "epoch": [
+                88,
+                8
+              ],
+              "foreign_read_unsafe_published": [
+                137,
+                1
+              ],
+              "group": [
+                40,
+                8
+              ],
+              "group_aborted": [
+                64,
+                8
+              ],
+              "group_epoch": [
+                48,
+                8
+              ],
+              "group_refs": [
+                56,
+                8
+              ],
+              "key_len": [
+                132,
+                4
+              ],
+              "key_ns": [
+                139,
+                1
+              ],
+              "linked": [
+                136,
+                1
+              ],
+              "membership": [
+                104,
+                8
+              ],
+              "next": [
+                0,
+                8
+              ],
+              "origin_conn_id": [
+                80,
+                8
+              ],
+              "owner_refs": [
+                72,
+                8
+              ],
+              "plain_hash": [
+                96,
+                8
+              ],
+              "pool_next": [
+                32,
+                8
+              ],
+              "prev": [
+                8,
+                8
+              ]
+            },
+            "size": 144
+          },
+          "Client": {
+            "fields": {
+              "acl_user_idx_": [
+                1976,
+                4
+              ],
+              "atomic_groups_io_": [
+                64,
+                4
+              ],
+              "authenticated_": [
+                1973,
+                1
+              ],
+              "barrier_owners_": [
+                52,
+                1
+              ],
+              "buf_": [
+                320,
+                1072
+              ],
+              "closing_": [
+                50,
+                1
+              ],
+              "connection_flags_": [
+                55,
+                1
+              ],
+              "dead_": [
+                51,
+                1
+              ],
+              "fd_": [
+                0,
+                4
+              ],
+              "fill_": [
+                40,
+                1
+              ],
+              "id_": [
+                1960,
+                8
+              ],
+              "ifid_thread_": [
+                1928,
+                4
+              ],
+              "in_active_": [
+                49,
+                1
+              ],
+              "inline_scanned_": [
+                76,
+                4
+              ],
+              "last_interaction_s_": [
+                12,
+                4
+              ],
+              "multi_session_": [
+                1936,
+                8
+              ],
+              "obuf_bytes_": [
+                56,
+                8
+              ],
+              "obuf_soft_since_s_": [
+                1968,
+                4
+              ],
+              "obuf_tracking_": [
+                1972,
+                1
+              ],
+              "parse_backpressure_": [
+                53,
+                1
+              ],
+              "r7_long_newest_": [
+                88,
+                8
+              ],
+              "r7_long_slots_": [
+                80,
+                8
+              ],
+              "rbuf_": [
+                16,
+                8
+              ],
+              "rcap_": [
+                24,
+                8
+              ],
+              "recv_armed_": [
+                41,
+                1
+              ],
+              "retire_queued_": [
+                1920,
+                1
+              ],
+              "rlen_": [
+                4,
+                4
+              ],
+              "rob_": [
+                128,
+                192
+              ],
+              "rpos_": [
+                8,
+                4
+              ],
+              "segmented_send_": [
+                43,
+                1
+              ],
+              "segments_": [
+                1392,
+                216
+              ],
+              "send_inflight_": [
+                42,
+                1
+              ],
+              "send_iov_": [
+                1608,
+                256
+              ],
+              "send_msg_": [
+                1864,
+                56
+              ],
+              "send_requested_": [
+                44,
+                4
+              ],
+              "serve_pending_": [
+                48,
+                1
+              ],
+              "session_": [
+                68,
+                4
+              ],
+              "subscriber_mode_": [
+                54,
+                1
+              ],
+              "tls_slot_": [
+                1980,
+                4
+              ],
+              "watch_dirty_": [
+                1956,
+                1
+              ],
+              "watch_generation_": [
+                1944,
+                8
+              ],
+              "watched_refs_": [
+                1952,
+                4
+              ],
+              "wb_deferrals_": [
+                72,
+                1
+              ],
+              "wb_slot_": [
+                1924,
+                4
+              ],
+              "wsent_": [
+                32,
+                8
+              ]
+            },
+            "size": 1984
+          },
+          "Config": {
+            "fields": {
+              "acl_pubsub_allchannels": [
+                184,
+                4
+              ],
+              "acl_users": [
+                200,
+                24
+              ],
+              "aclfile": [
+                176,
+                8
+              ],
+              "acllog_max_len": [
+                192,
+                8
+              ],
+              "aof_load_truncated": [
+                305,
+                1
+              ],
+              "aof_timestamp_enabled": [
+                304,
+                1
+              ],
+              "appenddirname": [
+                280,
+                8
+              ],
+              "appendfilename": [
+                272,
+                8
+              ],
+              "appendfsync": [
+                265,
+                1
+              ],
+              "appendonly": [
+                264,
+                1
+              ],
+              "atomic": [
+                344,
+                4
+              ],
+              "auto_aof_rewrite_min_size": [
+                296,
+                8
+              ],
+              "auto_aof_rewrite_percentage": [
+                288,
+                4
+              ],
+              "bind_addr": [
+                48,
+                8
+              ],
+              "client_lb": [
+                36,
+                4
+              ],
+              "client_output_buffer_limits": [
+                88,
+                72
+              ],
+              "client_query_buffer_limit": [
+                552,
+                8
+              ],
+              "conf_path": [
+                536,
+                8
+              ],
+              "databases": [
+                308,
+                4
+              ],
+              "dbfilename": [
+                232,
+                8
+              ],
+              "dir": [
+                224,
+                8
+              ],
+              "enable_debug_command": [
+                172,
+                1
+              ],
+              "encodings": [
+                352,
+                64
+              ],
+              "even_ex": [
+                12,
+                4
+              ],
+              "even_ifid": [
+                8,
+                4
+              ],
+              "flip_auto": [
+                40,
+                4
+              ],
+              "hll_sparse_max_bytes": [
+                508,
+                4
+              ],
+              "key_lb": [
+                32,
+                4
+              ],
+              "key_lb_damping": [
+                568,
+                4
+              ],
+              "latency_monitor_threshold": [
+                528,
+                4
+              ],
+              "layout_reserved": [
+                580,
+                44
+              ],
+              "maxclients": [
+                64,
+                4
+              ],
+              "maxmemory": [
+                328,
+                8
+              ],
+              "maxmemory_policy": [
+                336,
+                1
+              ],
+              "maxmemory_samples": [
+                340,
+                4
+              ],
+              "net_io": [
+                80,
+                1
+              ],
+              "notify_events": [
+                416,
+                4
+              ],
+              "overlap": [
+                84,
+                4
+              ],
+              "pin_threads": [
+                28,
+                1
+              ],
+              "place": [
+                0,
+                8
+              ],
+              "port": [
+                44,
+                2
+              ],
+              "protected_mode": [
+                168,
+                4
+              ],
+              "proto_max_bulk_len": [
+                312,
+                8
+              ],
+              "read_local": [
+                268,
+                4
+              ],
+              "reorder": [
+                420,
+                4
+              ],
+              "requirepass": [
+                160,
+                8
+              ],
+              "save": [
+                240,
+                24
+              ],
+              "shard_home": [
+                16,
+                8
+              ],
+              "shards": [
+                24,
+                4
+              ],
+              "slowlog_log_slower_than": [
+                512,
+                8
+              ],
+              "slowlog_max_len": [
+                520,
+                8
+              ],
+              "stream_limits": [
+                560,
+                8
+              ],
+              "tcp_backlog": [
+                76,
+                4
+              ],
+              "tcp_keepalive": [
+                72,
+                4
+              ],
+              "thread_mode": [
+                266,
+                1
+              ],
+              "timeout": [
+                68,
+                4
+              ],
+              "tls_auth_clients": [
+                472,
+                1
+              ],
+              "tls_ca_cert_dir": [
+                464,
+                8
+              ],
+              "tls_ca_cert_file": [
+                456,
+                8
+              ],
+              "tls_cert_file": [
+                440,
+                8
+              ],
+              "tls_ciphers": [
+                488,
+                8
+              ],
+              "tls_ciphersuites": [
+                496,
+                8
+              ],
+              "tls_key_file": [
+                448,
+                8
+              ],
+              "tls_port": [
+                432,
+                2
+              ],
+              "tls_prefer_server_ciphers": [
+                504,
+                1
+              ],
+              "tls_protocols": [
+                480,
+                8
+              ],
+              "tracking_table_max_keys": [
+                424,
+                8
+              ],
+              "unixsocket": [
+                56,
+                8
+              ],
+              "unixsocketperm": [
+                46,
+                2
+              ],
+              "wb_complete_visits": [
+                576,
+                4
+              ],
+              "wb_policy": [
+                544,
+                4
+              ],
+              "wb_small_pipe": [
+                572,
+                4
+              ],
+              "zc_min": [
+                320,
+                4
+              ]
+            },
+            "size": 624
+          },
+          "FlatStore": {
+            "fields": {
+              "active_expire_reap_lag_ms_max_": [
+                356,
+                4
+              ],
+              "aof_": [
+                712,
+                144
+              ],
+              "atomic_activity_": [
+                136,
+                8
+              ],
+              "atomic_chain_max_": [
+                160,
+                8
+              ],
+              "atomic_collapse_keys_": [
+                8,
+                24
+              ],
+              "atomic_collapse_retire_": [
+                56,
+                24
+              ],
+              "atomic_collapse_slots_": [
+                32,
+                24
+              ],
+              "atomic_entries_": [
+                184,
+                8
+              ],
+              "atomic_gauge_underflows_": [
+                192,
+                8
+              ],
+              "atomic_pending_": [
+                200,
+                8
+              ],
+              "atomic_predecessor_reads_": [
+                152,
+                8
+              ],
+              "atomic_promotions_": [
+                168,
+                8
+              ],
+              "atomic_read_epoch_": [
+                104,
+                8
+              ],
+              "atomic_read_origin_conn_id_": [
+                112,
+                8
+              ],
+              "atomic_records_freed_": [
+                176,
+                8
+              ],
+              "atomic_script_intents_": [
+                144,
+                8
+              ],
+              "atomic_seen_keys_": [
+                80,
+                24
+              ],
+              "atomic_ticket_ctx_": [
+                128,
+                8
+              ],
+              "atomic_ticket_fn_": [
+                120,
+                8
+              ],
+              "atomic_version_bytes_": [
+                0,
+                8
+              ],
+              "borrow_idx_": [
+                464,
+                24
+              ],
+              "borrow_tombs_": [
+                380,
+                4
+              ],
+              "borrows_": [
+                440,
+                24
+              ],
+              "cached_lru_clock_": [
+                400,
+                1
+              ],
+              "cached_now_ms_": [
+                392,
+                8
+              ],
+              "cap_": [
+                224,
+                8
+              ],
+              "evicted_counter_": [
+                272,
+                8
+              ],
+              "expired_counter_": [
+                408,
+                8
+              ],
+              "expires_": [
+                488,
+                80
+              ],
+              "field_expired_": [
+                936,
+                8
+              ],
+              "field_expires_": [
+                856,
+                80
+              ],
+              "field_ttl_gate_": [
+                244,
+                4
+              ],
+              "field_ttl_index_incomplete_": [
+                241,
+                1
+              ],
+              "live_": [
+                336,
+                8
+              ],
+              "mask_": [
+                232,
+                8
+              ],
+              "maxmemory_enabled_": [
+                242,
+                1
+              ],
+              "maxmemory_limit_": [
+                256,
+                8
+              ],
+              "maxmemory_policy_": [
+                243,
+                1
+              ],
+              "maxmemory_samples_": [
+                248,
+                4
+              ],
+              "no_touch_": [
+                401,
+                1
+              ],
+              "obj_bytes_": [
+                360,
+                8
+              ],
+              "outstanding_borrows_": [
+                376,
+                4
+              ],
+              "pending_bytes_": [
+                368,
+                8
+              ],
+              "random_state_": [
+                416,
+                8
+              ],
+              "read_local_enabled_": [
+                240,
+                1
+              ],
+              "reader_owner_gap_": [
+                308,
+                28
+              ],
+              "rehash_counter_": [
+                280,
+                8
+              ],
+              "rehash_pos_": [
+                352,
+                4
+              ],
+              "sample_cursor_": [
+                424,
+                8
+              ],
+              "snapshot_active_": [
+                403,
+                1
+              ],
+              "snapshot_build_": [
+                696,
+                8
+              ],
+              "snapshot_cut_ms_": [
+                296,
+                8
+              ],
+              "snapshot_epoch_": [
+                288,
+                8
+              ],
+              "snapshot_failed_": [
+                404,
+                1
+              ],
+              "snapshot_finished_": [
+                405,
+                1
+              ],
+              "snapshot_new_cap_": [
+                304,
+                4
+              ],
+              "snapshot_new_tab_": [
+                264,
+                8
+              ],
+              "snapshot_pos_": [
+                384,
+                4
+              ],
+              "snapshot_preimages_": [
+                432,
+                8
+              ],
+              "snapshot_prepared_": [
+                402,
+                1
+              ],
+              "snapshot_ready_": [
+                704,
+                8
+              ],
+              "snapshot_record_": [
+                568,
+                128
+              ],
+              "snapshot_sequence_": [
+                388,
+                4
+              ],
+              "snapshot_shard_id_": [
+                252,
+                4
+              ],
+              "tab_": [
+                208,
+                16
+              ],
+              "tombs_": [
+                344,
+                8
+              ]
+            },
+            "size": 944
+          },
+          "IoLoop": {
+            "fields": {
+              "accept_armed_": [
+                6459,
+                1
+              ],
+              "accept_cancel_generation_": [
+                2744,
+                8
+              ],
+              "accept_cancel_submitted_": [
+                6463,
+                1
+              ],
+              "accept_generation_": [
+                2736,
+                8
+              ],
+              "accept_pending_": [
+                6456,
+                1
+              ],
+              "accept_quiescing_": [
+                6462,
+                1
+              ],
+              "active_": [
+                6496,
+                24
+              ],
+              "active_role_": [
+                2753,
+                1
+              ],
+              "age_sample_rate_cached_": [
+                1412,
+                4
+              ],
+              "age_signals_armed_": [
+                1408,
+                1
+              ],
+              "aof_bound_": [
+                2755,
+                1
+              ],
+              "aof_gate_target_": [
+                6488,
+                8
+              ],
+              "backstop_pass_": [
+                1348,
+                1
+              ],
+              "cached_now_ms_": [
+                1392,
+                8
+              ],
+              "cached_now_s_": [
+                1400,
+                4
+              ],
+              "client_cron_beat_ms_": [
+                1352,
+                8
+              ],
+              "client_cron_cursor_": [
+                1384,
+                8
+              ],
+              "client_cron_was_armed_": [
+                1404,
+                1
+              ],
+              "client_lb_signal_armed_": [
+                1405,
+                1
+              ],
+              "client_migrations_": [
+                648,
+                24
+              ],
+              "client_query_buffer_limit_": [
+                7136,
+                8
+              ],
+              "client_transfer_failures_": [
+                672,
+                8
+              ],
+              "client_work_fences_": [
+                7080,
+                56
+              ],
+              "climon_armed_cached_": [
+                6976,
+                4
+              ],
+              "climon_armed_dirty_": [
+                6980,
+                1
+              ],
+              "climon_conn_": [
+                6864,
+                56
+              ],
+              "climon_local_monitors_": [
+                6992,
+                4
+              ],
+              "climon_local_reply_": [
+                7000,
+                4
+              ],
+              "climon_local_trackers_": [
+                6996,
+                4
+              ],
+              "climon_monitor_clock_ms_": [
+                7008,
+                8
+              ],
+              "climon_pause_deadline_ms_": [
+                6984,
+                8
+              ],
+              "climon_pending_": [
+                6808,
+                56
+              ],
+              "climon_track_keys_": [
+                6920,
+                56
+              ],
+              "configured_port_": [
+                2732,
+                2
+              ],
+              "dead_next_": [
+                2672,
+                24
+              ],
+              "dead_ready_": [
+                2696,
+                24
+              ],
+              "deferred_timers_": [
+                720,
+                24
+              ],
+              "dispatch_needed_": [
+                2156,
+                512
+              ],
+              "ep_": [
+                3092,
+                3080
+              ],
+              "epoll_": [
+                3088,
+                1
+              ],
+              "epoll_closes_": [
+                6176,
+                24
+              ],
+              "flip_client_": [
+                680,
+                8
+              ],
+              "flip_epoch_local_": [
+                696,
+                8
+              ],
+              "flip_op_id_": [
+                688,
+                8
+              ],
+              "flip_prepare_epoch_": [
+                704,
+                8
+              ],
+              "flip_pubsub_rehome_epoch_": [
+                712,
+                8
+              ],
+              "flip_stage_snapshot_": [
+                1410,
+                1
+              ],
+              "flush_tick_": [
+                1344,
+                4
+              ],
+              "fused_executor_": [
+                7072,
+                8
+              ],
+              "initialized_": [
+                2752,
+                1
+              ],
+              "lb_client_observations_": [
+                1424,
+                24
+              ],
+              "lb_client_signal_beat_ms_": [
+                1360,
+                8
+              ],
+              "lb_client_wake_pending_": [
+                1407,
+                1
+              ],
+              "lb_controller_armed_": [
+                1406,
+                1
+              ],
+              "lb_pause_id_": [
+                1368,
+                8
+              ],
+              "lb_wake_cursor_": [
+                1416,
+                4
+              ],
+              "listen_fd_": [
+                2720,
+                4
+              ],
+              "multi_deferred_": [
+                6520,
+                24
+              ],
+              "notify_armed_": [
+                6632,
+                1
+              ],
+              "notify_config_armed_": [
+                6633,
+                1
+              ],
+              "notify_config_version_": [
+                6624,
+                8
+              ],
+              "ntouched_": [
+                2152,
+                4
+              ],
+              "pending_handoffs_": [
+                568,
+                80
+              ],
+              "pending_multi_cleanups_": [
+                6544,
+                80
+              ],
+              "pending_releases_": [
+                488,
+                80
+              ],
+              "pending_serve_": [
+                408,
+                80
+              ],
+              "prepared_role_": [
+                2754,
+                1
+              ],
+              "proto_max_bulk_len_": [
+                6640,
+                8
+              ],
+              "pubsub_channels_": [
+                0,
+                56
+              ],
+              "pubsub_local_": [
+                136,
+                56
+              ],
+              "pubsub_local_events_": [
+                248,
+                80
+              ],
+              "pubsub_notification_chains_": [
+                6672,
+                80
+              ],
+              "pubsub_outbox_": [
+                328,
+                24
+              ],
+              "pubsub_outbox_dirty_": [
+                352,
+                24
+              ],
+              "pubsub_pass_pending_": [
+                376,
+                1
+              ],
+              "pubsub_patterns_": [
+                112,
+                24
+              ],
+              "pubsub_pending_": [
+                192,
+                56
+              ],
+              "pubsub_rehome_epoch_": [
+                384,
+                8
+              ],
+              "pubsub_shard_channels_": [
+                56,
+                56
+              ],
+              "random_state_": [
+                6480,
+                8
+              ],
+              "ring_": [
+                2760,
+                328
+              ],
+              "rob_age_generation_": [
+                1504,
+                8
+              ],
+              "rob_head_ages_": [
+                1448,
+                56
+              ],
+              "routing_forward_": [
+                7016,
+                56
+              ],
+              "save_config_armed_": [
+                6634,
+                1
+              ],
+              "save_cron_beat_ms_": [
+                1376,
+                8
+              ],
+              "save_cron_writer_": [
+                1409,
+                1
+              ],
+              "scatter_pool_": [
+                744,
+                600
+              ],
+              "self_": [
+                400,
+                8
+              ],
+              "slowlog_arm_": [
+                6656,
+                16
+              ],
+              "slowlog_armed_": [
+                6648,
+                1
+              ],
+              "srv_": [
+                392,
+                8
+              ],
+              "tls_accept_armed_": [
+                6460,
+                1
+              ],
+              "tls_accept_cancel_submitted_": [
+                6464,
+                1
+              ],
+              "tls_accept_pending_": [
+                6457,
+                1
+              ],
+              "tls_context_": [
+                6752,
+                8
+              ],
+              "tls_free_slots_": [
+                6784,
+                24
+              ],
+              "tls_listen_fd_": [
+                2724,
+                4
+              ],
+              "tls_slots_": [
+                6760,
+                24
+              ],
+              "touched_": [
+                1512,
+                128
+              ],
+              "touched_list_": [
+                1640,
+                512
+              ],
+              "unix_accept_armed_": [
+                6461,
+                1
+              ],
+              "unix_accept_pending_": [
+                6458,
+                1
+              ],
+              "unix_listen_fd_": [
+                2728,
+                4
+              ],
+              "unix_rr_": [
+                6472,
+                8
+              ],
+              "wb_": [
+                6200,
+                256
+              ],
+              "wb_config_": [
+                1349,
+                3
+              ]
+            },
+            "size": 7144
+          },
+          "ModeScheduleStats": {
+            "fields": {
+              "overlap_interleaved_passes": [
+                8,
+                8
+              ],
+              "overlap_passes": [
+                0,
+                8
+              ],
+              "overlap_schedule": [
+                44,
+                4
+              ],
+              "reorder_batches": [
+                16,
+                8
+              ],
+              "reorder_max_batch": [
+                40,
+                4
+              ],
+              "reorder_multi_client_runs": [
+                24,
+                8
+              ],
+              "reorder_permuted_runs": [
+                32,
+                8
+              ],
+              "reorder_reserved": [
+                48,
+                16
+              ]
+            },
+            "size": 64
+          },
+          "Op": {
+            "fields": {
+              "argc_": [
+                204,
+                4
+              ],
+              "argv_cap_": [
+                200,
+                4
+              ],
+              "argv_heap_": [
+                192,
+                8
+              ],
+              "argv_inline_": [
+                208,
+                128
+              ],
+              "db": [
+                31,
+                1
+              ],
+              "direct": [
+                152,
+                8
+              ],
+              "direct_cap": [
+                160,
+                4
+              ],
+              "direct_len": [
+                164,
+                4
+              ],
+              "hash": [
+                16,
+                8
+              ],
+              "physical_db": [
+                185,
+                1
+              ],
+              "rbuf_off": [
+                24,
+                4
+              ],
+              "read_cut_lo": [
+                12,
+                4
+              ],
+              "reply": [
+                32,
+                120
+              ],
+              "reply_code_": [
+                29,
+                1
+              ],
+              "reply_code_ok_": [
+                30,
+                1
+              ],
+              "reply_ival_": [
+                188,
+                4
+              ],
+              "route_flags_": [
+                28,
+                1
+              ],
+              "secondary_db": [
+                186,
+                1
+              ],
+              "shard": [
+                8,
+                4
+              ],
+              "spec": [
+                0,
+                8
+              ],
+              "state": [
+                184,
+                1
+              ],
+              "target_db": [
+                187,
+                1
+              ],
+              "zc_len": [
+                176,
+                4
+              ],
+              "zc_ptr": [
+                168,
+                8
+              ],
+              "zc_shard": [
+                180,
+                4
+              ]
+            },
+            "size": 336
+          },
+          "Shard": {
+            "fields": {
+              "blocking_dirty_": [
+                1188,
+                1
+              ],
+              "blocking_registry_": [
+                1192,
+                8
+              ],
+              "blocking_waiters_": [
+                1200,
+                8
+              ],
+              "bucket_begin_": [
+                4,
+                2
+              ],
+              "bucket_end_": [
+                6,
+                2
+              ],
+              "flat_notify_sink_": [
+                1336,
+                24
+              ],
+              "has_watches_": [
+                8,
+                1
+              ],
+              "home_domain_": [
+                24,
+                4
+              ],
+              "id_": [
+                0,
+                4
+              ],
+              "lb_bucket_bytes_": [
+                1408,
+                8
+              ],
+              "lb_bucket_bytes_staging_": [
+                1416,
+                8
+              ],
+              "lb_bucket_samples_": [
+                1400,
+                8
+              ],
+              "lb_bytes_cursor_": [
+                1424,
+                8
+              ],
+              "notify_carrier_": [
+                1368,
+                8
+              ],
+              "notify_mask_": [
+                1360,
+                4
+              ],
+              "notify_order_base_": [
+                1364,
+                4
+              ],
+              "notify_pending_": [
+                1384,
+                8
+              ],
+              "notify_source_": [
+                1376,
+                8
+              ],
+              "notify_state_": [
+                1392,
+                8
+              ],
+              "now_ms_": [
+                16,
+                8
+              ],
+              "published_active_expire_reap_lag_ms_max_": [
+                44,
+                4
+              ],
+              "published_evicted_": [
+                48,
+                8
+              ],
+              "published_expires_": [
+                40,
+                4
+              ],
+              "published_obj_bytes_": [
+                32,
+                8
+              ],
+              "published_size_": [
+                28,
+                4
+              ],
+              "reserved_route_": [
+                9,
+                3
+              ],
+              "save_changes_": [
+                1432,
+                8
+              ],
+              "server_": [
+                1328,
+                8
+              ],
+              "stats_": [
+                1000,
+                152
+              ],
+              "store_": [
+                56,
+                944
+              ],
+              "stream_limits_": [
+                1208,
+                8
+              ],
+              "type_limits_": [
+                1152,
+                36
+              ],
+              "watch_reservations_": [
+                1272,
+                56
+              ],
+              "watchers_": [
+                1216,
+                56
+              ],
+              "zc_min_": [
+                12,
+                4
+              ]
+            },
+            "size": 1440
+          },
+          "ThreadCtx": {
+            "fields": {
+              "atomic_admission_state_": [
+                448,
+                64
+              ],
+              "atomic_groups_": [
+                392,
+                8
+              ],
+              "atomic_localfast_": [
+                400,
+                8
+              ],
+              "atomic_scan_holds_": [
+                120,
+                8
+              ],
+              "client_capacity_prepare_": [
+                56,
+                8
+              ],
+              "client_count_": [
+                952,
+                4
+              ],
+              "client_in_": [
+                80,
+                8
+              ],
+              "client_notify_": [
+                712,
+                16
+              ],
+              "client_registration_cancel_": [
+                48,
+                8
+              ],
+              "client_registration_prepare_": [
+                40,
+                8
+              ],
+              "clients_": [
+                928,
+                24
+              ],
+              "command_count_size_": [
+                112,
+                4
+              ],
+              "command_counts_": [
+                104,
+                8
+              ],
+              "cpu_": [
+                64,
+                4
+              ],
+              "depth_sample_next_us_": [
+                768,
+                8
+              ],
+              "domain_": [
+                68,
+                4
+              ],
+              "executor_progress_": [
+                1360,
+                8
+              ],
+              "flip_fingerprint_": [
+                128,
+                264
+              ],
+              "free_slots_": [
+                664,
+                24
+              ],
+              "fused_executor_context_": [
+                1352,
+                8
+              ],
+              "id_": [
+                0,
+                4
+              ],
+              "io_role_cancel_": [
+                32,
+                8
+              ],
+              "io_role_context_": [
+                16,
+                8
+              ],
+              "io_role_prepare_": [
+                24,
+                8
+              ],
+              "nchan_": [
+                760,
+                4
+              ],
+              "parked_": [
+                688,
+                1
+              ],
+              "pubsub_events_": [
+                816,
+                80
+              ],
+              "pubsub_mu_": [
+                776,
+                40
+              ],
+              "pubsub_notified_": [
+                896,
+                1
+              ],
+              "read_local_state_": [
+                1376,
+                8
+              ],
+              "ready_": [
+                512,
+                128
+              ],
+              "ready_role_": [
+                5,
+                1
+              ],
+              "release_in_": [
+                88,
+                8
+              ],
+              "release_notify_": [
+                728,
+                16
+              ],
+              "ring_": [
+                8,
+                8
+              ],
+              "role_": [
+                4,
+                1
+              ],
+              "shards_": [
+                904,
+                24
+              ],
+              "sig_": [
+                960,
+                384
+              ],
+              "slots_": [
+                640,
+                24
+              ],
+              "snapshot_start_": [
+                1368,
+                8
+              ],
+              "snapshot_writer_bound_": [
+                7,
+                1
+              ],
+              "stop_": [
+                6,
+                1
+              ],
+              "task_in_": [
+                72,
+                8
+              ],
+              "task_notify_": [
+                696,
+                16
+              ],
+              "total_commands_": [
+                408,
+                8
+              ],
+              "transfer_in_": [
+                96,
+                8
+              ],
+              "transfer_notify_": [
+                744,
+                16
+              ],
+              "wb_engine_": [
+                1344,
+                8
+              ]
+            },
+            "size": 1408
+          }
+        },
+        "sizes": {
+          "AtomicEntry": 144,
+          "Client": 1984,
+          "Config": 624,
+          "FlatStore": 944,
+          "Op": 336,
+          "Rob<64>": 192,
+          "Shard": 1440,
+          "ThreadCtx": 1408
+        }
+      }
+    }
+  },
+  "retired_fields": [
+    {
+      "field": "overlap_passes",
+      "namespace": "tomo",
+      "old": [
+        0,
+        8
+      ],
+      "replacement": "reserved storage",
+      "type": "ModeScheduleStats"
+    },
+    {
+      "field": "overlap_interleaved_passes",
+      "namespace": "tomo",
+      "old": [
+        8,
+        8
+      ],
+      "replacement": "reserved storage",
+      "type": "ModeScheduleStats"
+    },
+    {
+      "field": "overlap_schedule",
+      "namespace": "tomo",
+      "old": [
+        44,
+        4
+      ],
+      "replacement": "reserved storage",
+      "type": "ModeScheduleStats"
+    },
+    {
+      "field": "overlap_passes",
+      "namespace": "tomo_db0",
+      "old": [
+        0,
+        8
+      ],
+      "replacement": "reserved storage",
+      "type": "ModeScheduleStats"
+    },
+    {
+      "field": "overlap_interleaved_passes",
+      "namespace": "tomo_db0",
+      "old": [
+        8,
+        8
+      ],
+      "replacement": "reserved storage",
+      "type": "ModeScheduleStats"
+    },
+    {
+      "field": "overlap_schedule",
+      "namespace": "tomo_db0",
+      "old": [
+        44,
+        4
+      ],
+      "replacement": "reserved storage",
+      "type": "ModeScheduleStats"
+    }
+  ]
+}

@@ -186,7 +186,7 @@ def main(args):
         from abba_reorder_control import attach
         attach(runner, report, cells)
         support = {name: abba.accepted(binary, name, value) for name, value in
-            (("thread-mode", "1s"), ("read-local", 0), ("overlap", 0), ("reorder", 0))}
+            (("thread-mode", "1s"), ("read-local", 0), ("reorder", 0))}
         report["accepted_knobs"] = {"B": support}
         for cell in cells:
             row = dict(cell=abba.cell_receipt(cell), status="FAIL", rounds=[])

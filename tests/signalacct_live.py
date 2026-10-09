@@ -121,7 +121,7 @@ def attempt(args, index):
     log_path = directory / 'server.log'
     command = ['taskset', '-c', args.cores, str(args.binary.resolve()), '--bind', '127.0.0.1',
                '--port', str(args.port), '--thread-mode', args.mode, '--shards', '16',
-               '--read-local', str(args.read_local), '--overlap', str(args.overlap),
+               '--read-local', str(args.read_local),
                '--reorder', str(args.reorder), '--databases', str(args.databases),
                '--net-io', args.net_io, '--flip-auto', '0', '--enable-debug-command', 'yes',
                '--save', '', '--protected-mode', 'no']
@@ -193,7 +193,6 @@ def main():
     parser.add_argument('--cores', default='0-7')
     parser.add_argument('--mode', choices=('1s', '2s'), required=True)
     parser.add_argument('--read-local', type=int, choices=(0, 1), required=True)
-    parser.add_argument('--overlap', type=int, choices=(0, 1), required=True)
     parser.add_argument('--reorder', type=int, choices=(0, 1), required=True)
     parser.add_argument('--databases', type=int, choices=(1, 16), default=1)
     parser.add_argument('--net-io', choices=('uring', 'epoll'), default='uring')

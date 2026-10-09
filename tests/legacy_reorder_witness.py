@@ -247,7 +247,7 @@ def finish_control(attempts, reorder):
 
 def translated_knobs(binary, mode, reorder, read_local=0):
     result = {}
-    for name, value in (("thread-mode", mode), ("read-local", read_local), ("overlap", 1), ("reorder", reorder)):
+    for name, value in (("thread-mode", mode), ("read-local", read_local), ("reorder", reorder)):
         if abba.accepted(binary, name, value):
             result[name] = value
         else:
@@ -646,7 +646,7 @@ def self_test():
                             control.close()
                     args = SimpleNamespace(server_cores="0-1", server_smt="", port=1,
                                            attempts=3, blocker_bytes=64, blocker_count=1, read_local=local)
-                    knobs = {"thread-mode": "1s", "read-local": local, "overlap": 1, "reorder": reorder}
+                    knobs = {"thread-mode": "1s", "read-local": local, "reorder": reorder}
                     real_conn = Conn
                     # The real RESP reader above must remain reachable after the
                     # module's connection constructor is replaced by FakeConn.

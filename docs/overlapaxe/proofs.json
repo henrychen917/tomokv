@@ -1,0 +1,87 @@
+{
+  "build": {
+    "command": "taskset -c 112-127 make -j16 all",
+    "result": "PASS both tomo and tomo_db0 linked",
+    "log": "build/overlapaxe/final-build.log",
+    "log_sha256": {
+      "build/overlapaxe/final-build.log": "fadee9041b93c7c9ed3208325e7837504301654512f77942511eac8b967819c1"
+    }
+  },
+  "gates_test": {
+    "command": "taskset -c 112-127 python3 tests/gates_test.py",
+    "result": "PASS 66 tests, 76.071 seconds",
+    "log": "build/overlapaxe/gates-final-test.log",
+    "log_sha256": {
+      "build/overlapaxe/gates-final-test.log": "7e4cad35de20f2767f2058a2e7f0a238f1a21a081cfd4316258da47b8bc75ca2"
+    }
+  },
+  "abbagate": {
+    "command": "taskset -c 112-127 python3 tests/abbagate.py --self-test",
+    "result": "PASS 116 primary tests; imported suites 10 + 9 + 16 also pass",
+    "log": "build/overlapaxe/abba-self-test.log",
+    "log_sha256": {
+      "build/overlapaxe/abba-self-test.log": "4c5cbfc101f41aed92f9d6ca69fab06ef062b105522ecce6bd834f5213fb3f1e"
+    }
+  },
+  "static": {
+    "result": "PASS docs drift (88 spellings and negative controls), mode equivalence, signalacct, TTL, R7 generation, wbland source, gateprod (8), tailgen (3)",
+    "log": "build/overlapaxe/final-static-tests.log",
+    "log_sha256": {
+      "build/overlapaxe/final-static-tests.log": "91e62d59a836ae6f0551128eca83623e14732de8f60b85c1147e27e00e44ee56"
+    }
+  },
+  "units": {
+    "result": "PASS 70 serverless invocations",
+    "log": "build/overlapaxe/final-unit-proofs.log",
+    "log_sha256": {
+      "build/overlapaxe/final-unit-proofs.log": "a9bec9d03961f8fcf0afc6b9e8d925b3377bc9bb77b068999e86f2b95bc99c42"
+    }
+  },
+  "prefetch_negative": {
+    "result": "PASS missing prefetch call rejected with required assertion",
+    "log": "build/overlapaxe/owner-prefetch-control.log",
+    "log_sha256": {
+      "build/overlapaxe/owner-prefetch-control.log": "391d3a94124e093bad08f8beca840eb6b2f99c0d8d1e25f3055554faf45cda03"
+    }
+  },
+  "smoke": {
+    "result": "PASS POST and PAD-A, 1s/2s and databases 1/16; 8 clean owned boots",
+    "log": "build/overlapaxe/smoke.log",
+    "log_sha256": {
+      "build/overlapaxe/smoke.log": "48177482dafa4cd3b68727472d4d113322c974774f05fe9f1ac725a5f935fc76"
+    }
+  },
+  "campaign_snapshot": {
+    "result": "PASS protected tool self-test plus null recipe dry-run against staged PRE binary; no workload started",
+    "logs": [
+      "build/overlapaxe/mkprobe-snapshot-self-test.log",
+      "build/overlapaxe/mkprobe-snapshot-dry-run.log"
+    ],
+    "log_sha256": {
+      "build/overlapaxe/mkprobe-snapshot-self-test.log": "524772d258d239cb64273e5242d41829a4de572e155dc0bd8690f42d368f8a32",
+      "build/overlapaxe/mkprobe-snapshot-dry-run.log": "f06ef5b35ee5d375aeac0c54b34dd0e8979bf08ab8eddc8da678df97a17bf136"
+    }
+  },
+  "campaign_native_post": {
+    "result": "EXPECTED INCOMPATIBILITY: frozen headline changed; re-audit recipes",
+    "log": "build/overlapaxe/mkprobe-native-post.log",
+    "log_sha256": {
+      "build/overlapaxe/mkprobe-native-post.log": "d1899df619b3c328777853190a21acbbed67e0feca2de3db3f6347382076fa14"
+    }
+  },
+  "body_audit": {
+    "result": "IDENTITY FAIL: hot bodies changed; complete receipts and PAD-A supplied",
+    "log": "build/overlapaxe/body-audit.log",
+    "log_sha256": {
+      "build/overlapaxe/body-audit.log": "b011fd987ce0e1e0817fd35cb463710070d3ab7ea4f0aa6c803e265fdee44a18"
+    }
+  },
+  "attempts": [
+    "A body audit was launched while make was still replacing objects and objdump rejected rl2s.o; discarded. Final audit ran only after build completion.",
+    "One 66-test rerun overlapped compilation and timed out in the one-slot scheduler fixture (exit 124). Unchanged suite passed after compilation finished; no timeout relaxed.",
+    "Initial gateprod self-test correctly refused changed frozen h01-h32 bytes; expected digest/product updated explicitly for ov=0. Final 8 tests pass.",
+    "Broad netcmd-unit-db0 config invocation cannot satisfy its two-database tracking SWAPDB assertion. The existing multi-DB config test remains intact; dedicated config-knobs entry now tests the same knob/INFO/rewrite fixture in both namespaces.",
+    "The isolated config-knobs entry exposed a fixture initialization dependency: create its private config file before INFO realpath setup. Final both namespaces pass.",
+    "Initial reorder engagement invocations used incorrect expected capabilities; on/shadow matches the built binary and internally exercises reorder 0 and 1. No assertion changed."
+  ]
+}

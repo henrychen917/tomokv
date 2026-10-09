@@ -27,7 +27,7 @@ def method(source, name):
 def emit(root, output):
     code = ['#include <cstdint>\n#include <cstdio>\n'
             'constexpr uint32_t kGenthreadIfidBatchOps = 32;\n'
-            'struct Policy { bool borrow; uint32_t batch; bool pipe, local, fused, build, discard; };']
+            'struct Policy { bool borrow; uint32_t batch; bool local, fused, build, discard; };']
     header = (root / 'src/core/genthread_pipeline.h').read_text()
     quantum = re.search(r'kGenthreadIfidBatchOps\s*=\s*([^;]+);', header)
     assert quantum, 'IFID quantum inventory'
@@ -43,9 +43,9 @@ def emit(root, output):
         code.append('namespace ' + ('r7' if prefix else 'fifo') + ' {\n' + defaults +
                     '\nconstexpr Policy ' + prefix + 'parse_and_dispatch(void*) {\n'
                     'constexpr bool Fused = ' + formula[1] + ';\n'
-                    'return {NoBorrow, BatchOps, IoPipe, SplitLocal, Fused, ' +
+                    'return {NoBorrow, BatchOps, SplitLocal, Fused, ' +
                     guards[0] + ', ' + guards[1] + '};\n}')
-        for name, overlap in [('flush_ready', False), ('ifid_parse_hash', True)]:
+        for name in ('flush_ready',):
             body = method(source, prefix + name)
             calls = re.findall(r'\b' + prefix + r'parse_and_dispatch<[^>]+>\(c\)', body)
             assert len(calls) == 6, (name, 'six TLS/plain/pause parse sites')
@@ -54,29 +54,27 @@ def emit(root, output):
                         'const Policy sites[] = {' + ',\n'.join(calls) + '};\n'
                         'for (unsigned i=0; i<6; ++i) { const auto p=sites[i];\n'
                         'if (p.local != SplitLocal || p.fused != Fused || p.borrow != no_borrow[i] ||\n'
-                        'p.pipe != ' + str(overlap).lower() + ' || p.batch != ' +
-                        ('0' if overlap else '(Fused ? kGenthreadIfidBatchOps : 0)') + ' ||\n'
+                        'p.batch != (Fused ? kGenthreadIfidBatchOps : 0) ||\n'
                         'p.build != (Fused && !SplitLocal) || p.discard != p.build) return false;\n'
                         '} return true; }')
-            modes = [(False, False), (True, True)] if overlap else [(False, False), (True, False), (True, True)]
+            modes = [(False, False), (True, False), (True, True)]
             for fused, local in modes:
                 code.append('static_assert(' + name + '<' + str(fused).lower() + ',' + str(local).lower() +
                             '>(), "' + ('r7: ' if prefix else 'fifo: ') + name + ' preserves SplitLocal and prebuild policy");')
         loop = method(source, prefix + 'run_loop')
         polls = re.findall(r'\b' + prefix + r'epoll_pass<([^>]+)>\((0|Ring::kWaitTimeoutMs)\)', loop)
         assert len(polls) == 3 and [p[1] for p in polls] == ['0', 'Ring::kWaitTimeoutMs', 'Ring::kWaitTimeoutMs'], 'epoll callback inventory'
-        code.append('template<bool U, bool T, bool F, uint8_t P> consteval bool ' + prefix +
+        code.append('template<bool U, bool T, bool F> consteval bool ' + prefix +
                     'epoll_pass(int) { return F; }\n'
-                    'template<bool HasUnix, bool HasTls, bool Fused, uint8_t Pipeline, bool SplitLocal>\n'
+                    'template<bool HasUnix, bool HasTls, bool Fused, bool SplitLocal>\n'
                     'consteval bool park() {\n'
                     'constexpr bool hot = ' + prefix + 'epoll_pass<' + polls[0][0] + '>(0);\n'
                     'if constexpr (Fused) return hot == ' + prefix + 'epoll_pass<' + polls[1][0] + '>(50);\n'
                     'else return hot == ' + prefix + 'epoll_pass<' + polls[2][0] + '>(50);\n}')
         for unix in ('false', 'true'):
             for tls in ('false', 'true'):
-                for fused, local, pipeline in [('false','false',0), ('false','false',1),
-                                               ('true','false',0), ('true','true',0), ('true','true',1)]:
-                    code.append(f'static_assert(park<{unix},{tls},{fused},{pipeline},{local}>(), '
+                for fused, local in [('false','false'), ('true','false'), ('true','true')]:
+                    code.append(f'static_assert(park<{unix},{tls},{fused},{local}>(), '
                                 '"' + ('r7: ' if prefix else 'fifo: ') + 'park/hot callback Fused policy mismatch");')
         code.append('}')
     code.append('int main() { std::puts("PASS splitlocal: FIFO/R7 forwarding, prebuild/discard, park policies"); }')
@@ -91,10 +89,10 @@ def check(binary, output):
     rows = []
     # Throwaway source overlays: no production file or production binary is changed.
     for name, old, new, marker in [
-        ('old-forwarding', 'Fused ? kGenthreadIfidBatchOps : 0, false, SplitLocal',
+        ('old-forwarding', 'Fused ? kGenthreadIfidBatchOps : 0, SplitLocal',
          'Fused ? kGenthreadIfidBatchOps : 0', 'flush_ready preserves SplitLocal and prebuild policy'),
-        ('old-park', 'epoll_pass<HasUnix, HasTls, Fused, Pipeline>(Ring::kWaitTimeoutMs)',
-         'epoll_pass<HasUnix, HasTls, !SplitLocal, Pipeline>(Ring::kWaitTimeoutMs)', 'park/hot callback Fused policy mismatch')]:
+        ('old-park', 'epoll_pass<HasUnix, HasTls, Fused>(Ring::kWaitTimeoutMs)',
+         'epoll_pass<HasUnix, HasTls, !SplitLocal>(Ring::kWaitTimeoutMs)', 'park/hot callback Fused policy mismatch')]:
         dest = output / name
         for relative in ('src/core/io_loop.h', 'src/core/reorder.cc', 'src/core/genthread_pipeline.h'):
             text = (ROOT / relative).read_text()

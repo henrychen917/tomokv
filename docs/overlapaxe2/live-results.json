@@ -1,0 +1,237 @@
+{
+  "binary": "/home/user/Projects/cx-overlapaxe/build/tomokv",
+  "sha256": "3ec6574798039760af4fd6497eb3e08d72f4c16a0f0ebaade66ac611efd3be79",
+  "driver_cpus": "112-127",
+  "server_cpus": "112-119",
+  "shards": 16,
+  "split_ratio": "6:2",
+  "rows": [
+    {
+      "label": "db1-1s-rl0-a1",
+      "databases": 1,
+      "mode": "1s",
+      "read_local": 0,
+      "atomic": 1,
+      "tests": [
+        "PING, SET/GET, MSET/MGET"
+      ],
+      "pid": 1082889,
+      "exit": {
+        "pid": 1082889,
+        "exited_before_cleanup": null,
+        "returncode": 0,
+        "forced_kill": false
+      },
+      "port_closed": true
+    },
+    {
+      "label": "db1-1s-rl1-a1",
+      "databases": 1,
+      "mode": "1s",
+      "read_local": 1,
+      "atomic": 1,
+      "tests": [
+        "PING, SET/GET, MSET/MGET"
+      ],
+      "pid": 1082934,
+      "exit": {
+        "pid": 1082934,
+        "exited_before_cleanup": null,
+        "returncode": 0,
+        "forced_kill": false
+      },
+      "port_closed": true
+    },
+    {
+      "label": "db1-2s-rl0-a1",
+      "databases": 1,
+      "mode": "2s",
+      "read_local": 0,
+      "atomic": 1,
+      "tests": [
+        "PING, SET/GET, MSET/MGET",
+        "knobs.py"
+      ],
+      "pid": 1082950,
+      "exit": {
+        "pid": 1082950,
+        "exited_before_cleanup": null,
+        "returncode": 0,
+        "forced_kill": false
+      },
+      "port_closed": true
+    },
+    {
+      "label": "db1-2s-rl1-a1",
+      "databases": 1,
+      "mode": "2s",
+      "read_local": 1,
+      "atomic": 1,
+      "tests": [
+        "PING, SET/GET, MSET/MGET"
+      ],
+      "pid": 1082972,
+      "exit": {
+        "pid": 1082972,
+        "exited_before_cleanup": null,
+        "returncode": 0,
+        "forced_kill": false
+      },
+      "port_closed": true
+    },
+    {
+      "label": "db16-1s-rl0-a0",
+      "databases": 16,
+      "mode": "1s",
+      "read_local": 0,
+      "atomic": 0,
+      "tests": [
+        "PING, SET/GET, MSET/MGET",
+        "aclkeys_wake_state.py"
+      ],
+      "pid": 1082984,
+      "exit": {
+        "pid": 1082984,
+        "exited_before_cleanup": null,
+        "returncode": 0,
+        "forced_kill": false
+      },
+      "port_closed": true
+    },
+    {
+      "label": "db16-1s-rl0-a1",
+      "databases": 16,
+      "mode": "1s",
+      "read_local": 0,
+      "atomic": 1,
+      "tests": [
+        "PING, SET/GET, MSET/MGET",
+        "aclkeys_wake_state.py"
+      ],
+      "pid": 1083010,
+      "exit": {
+        "pid": 1083010,
+        "exited_before_cleanup": null,
+        "returncode": 0,
+        "forced_kill": false
+      },
+      "port_closed": true
+    },
+    {
+      "label": "db16-1s-rl1-a0",
+      "databases": 16,
+      "mode": "1s",
+      "read_local": 1,
+      "atomic": 0,
+      "tests": [
+        "PING, SET/GET, MSET/MGET",
+        "aclkeys_wake_state.py"
+      ],
+      "pid": 1083040,
+      "exit": {
+        "pid": 1083040,
+        "exited_before_cleanup": null,
+        "returncode": 0,
+        "forced_kill": false
+      },
+      "port_closed": true
+    },
+    {
+      "label": "db16-1s-rl1-a1",
+      "databases": 16,
+      "mode": "1s",
+      "read_local": 1,
+      "atomic": 1,
+      "tests": [
+        "PING, SET/GET, MSET/MGET",
+        "aclkeys_wake_state.py"
+      ],
+      "pid": 1083060,
+      "exit": {
+        "pid": 1083060,
+        "exited_before_cleanup": null,
+        "returncode": 0,
+        "forced_kill": false
+      },
+      "port_closed": true
+    },
+    {
+      "label": "db16-2s-rl0-a0",
+      "databases": 16,
+      "mode": "2s",
+      "read_local": 0,
+      "atomic": 0,
+      "tests": [
+        "PING, SET/GET, MSET/MGET",
+        "aclkeys_wake_state.py",
+        "knobs.py"
+      ],
+      "pid": 1083094,
+      "exit": {
+        "pid": 1083094,
+        "exited_before_cleanup": null,
+        "returncode": 0,
+        "forced_kill": false
+      },
+      "port_closed": true
+    },
+    {
+      "label": "db16-2s-rl0-a1",
+      "databases": 16,
+      "mode": "2s",
+      "read_local": 0,
+      "atomic": 1,
+      "tests": [
+        "PING, SET/GET, MSET/MGET",
+        "aclkeys_wake_state.py",
+        "knobs.py"
+      ],
+      "pid": 1083124,
+      "exit": {
+        "pid": 1083124,
+        "exited_before_cleanup": null,
+        "returncode": 0,
+        "forced_kill": false
+      },
+      "port_closed": true
+    },
+    {
+      "label": "db16-2s-rl1-a0",
+      "databases": 16,
+      "mode": "2s",
+      "read_local": 1,
+      "atomic": 0,
+      "tests": [
+        "PING, SET/GET, MSET/MGET",
+        "aclkeys_wake_state.py"
+      ],
+      "pid": 1083165,
+      "exit": {
+        "pid": 1083165,
+        "exited_before_cleanup": null,
+        "returncode": 0,
+        "forced_kill": false
+      },
+      "port_closed": true
+    },
+    {
+      "label": "db16-2s-rl1-a1",
+      "databases": 16,
+      "mode": "2s",
+      "read_local": 1,
+      "atomic": 1,
+      "tests": [
+        "PING, SET/GET, MSET/MGET",
+        "aclkeys_wake_state.py"
+      ],
+      "pid": 1083196,
+      "exit": {
+        "pid": 1083196,
+        "exited_before_cleanup": null,
+        "returncode": 0,
+        "forced_kill": false
+      },
+      "port_closed": true
+    }
+  ]
+}

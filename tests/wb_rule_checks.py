@@ -24,7 +24,6 @@ MUTANTS = {
     "small-late": ("completion", POLICY, "const volatile bool complete = n <= small_pipe", "const volatile bool complete = n <= small_pipe + 1", "table", "bounded decision table"),
     "visits-early": ("completion", POLICY, "c.wb_deferrals() < complete_visits", "c.wb_deferrals() < complete_visits - 1", "table", "bounded decision table"),
     "visits-late": ("completion", POLICY, "c.wb_deferrals() < complete_visits", "c.wb_deferrals() <= complete_visits", "table", "bounded decision table"),
-    "gather-reset": ("completion", POLICY, "client->wb_deferrals() = 0;", "/* removed gather reset */", "lifetime", "served connection completes again next pipe"),
     "serve-reset": ("completion", POLICY, "c->wb_deferrals() = 0;", "/* removed serve reset */", "lifetime-serve", "served connection completes again next pipe"),
     "scatter-exit": ("policy", POLICY, "if (op.zc_ptr && op.zc_shard == Op::kScatterStateMarker) return false;", "/* removed scatter exit */", "markers", "Done scatter enters ordinary serve"),
     "fastpath": ("policy", POLICY, "if (n <= 1)", "if (false)", "fastpath", "fast path reads no staging or slots"),
@@ -60,16 +59,6 @@ MUTANTS = {
     "split-local": ("split-phase", POLICY, "!c->dead() && defer(*c, loop.wb_config_)", "false", "split-local", "2s reader capability shares composite writeback"),
     "split-budget": ("split-phase", POLICY, "const size_t serve_budget = ready_now", "const size_t serve_budget = 16", "split-budget", "exact mode-specific budget"),
     "split-aof": ("split-phase", IO, "if (!aof.reply_gate_ready(aof_gate_target_)) {\n                    aof.register_send_gate_wait(self_->id());\n                    return work;", "if (false) {\n                    aof.register_send_gate_wait(self_->id());\n                    return work;", "split-aof", "AOF refusal precedes composite selection"),
-    "gather-policy": ("split-overlap", POLICY, "!client->dead() && defer(*client, loop.wb_config_)", "false", "split-policy", "2s uses exact composite fraction"),
-    "gather-rotation": ("split-overlap", POLICY, "loop.pending_serve_.push_back(client);", "/* removed rotation */", "split-fifo", "deferred rotation preserves order"),
-    "gather-head": ("split-overlap", POLICY, "loop.pending_serve_.push_back(client);", "loop.pending_serve_.push_front(client);", "split-fifo", "younger eligible passes deferred head"),
-    "gather-pin": ("split-overlap", POLICY, "loop.pending_serve_.push_back(client);", "client->set_serve_pending(false); loop.pending_serve_.push_back(client);", "split-fifo", "deferred lifetime pins kept"),
-    "gather-capture": ("split-overlap", POLICY, "if (left == SIZE_MAX) left = loop.pending_serve_.size();", "left = loop.pending_serve_.size();", "split-capture-multi", "2s callback cannot extend captured chunks"),
-    "gather-visit": ("split-overlap", POLICY, "left = loop.pending_serve_.size();", "left = loop.pending_serve_.size() + 1;", "split-fifo", "deferred rotation preserves order"),
-    "gather-dead": ("split-overlap", POLICY, "!client->dead() && defer(*client, loop.wb_config_)", "defer(*client, loop.wb_config_)", "split-dead", "dead entry removed and unpinned"),
-    "gather-work": ("split-overlap", IO, "if (!pending_serve_.empty() && captured_left != SIZE_MAX) ++work;", "if (false) ++work;", "split-progress", "deferral alone is positive work"),
-    "gather-chunks": ("split-overlap", IO, "while (captured_left != SIZE_MAX && captured_left && !pending_serve_.empty())", "while (false)", "split-chunk", "2s captured pass crosses scratch bound"),
-    "gather-aof": ("split-overlap", IO, "if (!aof.reply_gate_ready(aof_gate_target_)) {\n                aof.register_send_gate_wait(self_->id());\n                return 0;", "if (false) {\n                aof.register_send_gate_wait(self_->id());\n                return 0;", "split-aof", "AOF refusal precedes composite selection"),
     "split-ex": ("stages", "src/core/ex_loop.h",
                  "template <uint32_t BatchOps = kGenthreadExBatchOps,\n              bool IofusedPrivateQueue = false>\n    uint32_t drain_tasks(",
                  "template <uint32_t BatchOps = 2 * kGenthreadExBatchOps,\n              bool IofusedPrivateQueue = false>\n    uint32_t drain_tasks(",
@@ -121,7 +110,7 @@ def check(group, build, controls=True):
             for case in ("split-ex", "split-ex-unmasked", "split-ex-timed", "fused-parse", "split-parse"):
                 run(build / f"wb-rule-{ns}phase-unit", case)
         else:
-            schedules = ((),) if group == "split-phase" else (("natural",), ("shallow",))
+            schedules = ((),)
             for extra in schedules:
                 for case in ("split-budget", "split-dead", "split-policy", "split-local", "split-fastpath",
                              "split-fifo", "split-capture", "split-progress", "split-chunk", "split-aof", "split-capture-multi"):
@@ -129,7 +118,7 @@ def check(group, build, controls=True):
             if group == "split-phase": run(build / f"wb-rule-{ns}phase-unit", "split-local-sweep")
     for name, (kind, _, _, _, case, assertion) in MUTANTS.items():
         if controls and kind == group:
-            for extra in (("natural",), ("shallow",)) if group == "split-overlap" else ((),):
+            for extra in ((),):
                 run(build / "wb-rule-controls" / name / "unit", case, assertion, extra)
     # Shared PHASE 2 lifecycle controls must fail in physical split too.
     if controls and group == "split-phase":
@@ -149,7 +138,7 @@ if __name__ == "__main__":
     emit_parser.add_argument("name", choices=MUTANTS)
     emit_parser.add_argument("output", type=Path)
     check_parser = sub.add_parser("check")
-    check_parser.add_argument("group", choices=("policy", "phase", "stages", "split-phase", "split-overlap"))
+    check_parser.add_argument("group", choices=("policy", "phase", "stages", "split-phase"))
     check_parser.add_argument("--build", type=Path, default=ROOT / "build")
     check_parser.add_argument("--positive-only", action="store_true", help="isolated study arm only; gate always includes controls")
     args = parser.parse_args()

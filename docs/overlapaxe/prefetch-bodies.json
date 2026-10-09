@@ -1,0 +1,133 @@
+{
+  "command_bodies": 10,
+  "equal_command_bodies": 10,
+  "prefetch": [
+    {
+      "arm": "PRE",
+      "symbol": "_ZN4tomo7ExLoopTILb1EE22prefetch_overlap_batchEPKNS_4TaskEj",
+      "bytes": 409,
+      "prefetcht0": 2
+    },
+    {
+      "arm": "PRE",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE22prefetch_overlap_batchEPKNS_4TaskEj",
+      "bytes": 393,
+      "prefetcht0": 2
+    },
+    {
+      "arm": "POST",
+      "symbol": "_ZN4tomo7ExLoopTILb1EE20prefetch_owner_batchEPKNS_4TaskEj",
+      "bytes": 333,
+      "prefetcht0": 2
+    },
+    {
+      "arm": "POST",
+      "symbol": "_ZN8tomo_db07ExLoopTILb1EE20prefetch_owner_batchEPKNS_4TaskEj",
+      "bytes": 333,
+      "prefetcht0": 2
+    }
+  ],
+  "raw_equal_command_bodies": 10,
+  "command_inventory": [
+    {
+      "object": "db0/src/cmd/t_string.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_17cmd_getILb0ELb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<false, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": true,
+      "pre_size": 1072,
+      "post_size": 1072
+    },
+    {
+      "object": "db0/src/cmd/t_string.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_17cmd_setILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_set<false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": true,
+      "pre_size": 2201,
+      "post_size": 2201
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_17cmd_getILb1ELb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, false>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": true,
+      "pre_size": 776,
+      "post_size": 776
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_17cmd_getILb1ELb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_get<true, true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": true,
+      "pre_size": 1088,
+      "post_size": 1088
+    },
+    {
+      "object": "db0/src/cmd/t_string_notify.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_17cmd_setILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo_db0::(anonymous namespace)::cmd_set<true>(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": true,
+      "pre_size": 2182,
+      "post_size": 2182
+    },
+    {
+      "object": "src/cmd/t_string.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_17cmd_getILb0ELb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_get<false, true>(tomo::Shard&, tomo::Op&)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": true,
+      "pre_size": 1072,
+      "post_size": 1072
+    },
+    {
+      "object": "src/cmd/t_string.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_17cmd_setILb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_set<false>(tomo::Shard&, tomo::Op&)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": true,
+      "pre_size": 2201,
+      "post_size": 2201
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_17cmd_getILb1ELb0EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_get<true, false>(tomo::Shard&, tomo::Op&)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": true,
+      "pre_size": 792,
+      "post_size": 792
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_17cmd_getILb1ELb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_get<true, true>(tomo::Shard&, tomo::Op&)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": true,
+      "pre_size": 1088,
+      "post_size": 1088
+    },
+    {
+      "object": "src/cmd/t_string_notify.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_17cmd_setILb1EEEvRNS_5ShardERNS_2OpE",
+      "name": "void tomo::(anonymous namespace)::cmd_set<true>(tomo::Shard&, tomo::Op&)",
+      "equal": true,
+      "error_callee_only": false,
+      "raw_equal": true,
+      "pre_size": 2182,
+      "post_size": 2182
+    }
+  ]
+}

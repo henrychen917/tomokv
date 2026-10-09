@@ -43,23 +43,22 @@ def main():
     positive = run(args.binary, 'positive')
     assert positive.returncode == 0 and 'positive control' in positive.stdout, positive.stdout
     rows = []
-    for overlap in (0, 1):
-        for read_local in (0, 1):
-            baseline = witness(run(args.binary, 0, overlap, read_local))
-            assert baseline['paths'] == baseline['reorder_allocations'] == 0
-            for requested in (0, 1):
-                observed = witness(run(args.binary, requested, overlap, read_local))
-                assert observed == baseline, (overlap, read_local, requested, baseline, observed)
-                rows.append(dict(overlap=overlap, read_local=read_local, requested=requested, **observed))
-            print(f'PASS split overlap={overlap} read-local={read_local}: raw 0/1, zero paths/state, identical allocations')
-            for leak in ('parse',):
-                negative = run(args.binary, 1, overlap, read_local, leak)
-                assert negative.returncode == 1 and 'reorder-specific path executed' in negative.stdout, negative.stdout
-            # This mutant frees its sidecar before inspection. The whole allocation
-            # trace, not the final pointer/counter, must detect the extra allocation.
-            allocation = witness(run(args.binary, 1, overlap, read_local, 'allocation'))
-            assert allocation != baseline and allocation['heap_calls'] == baseline['heap_calls'] + 1, (
-                baseline, allocation)
+    for read_local in (0, 1):
+        baseline = witness(run(args.binary, 0, read_local))
+        assert baseline['paths'] == baseline['reorder_allocations'] == 0
+        for requested in (0, 1):
+            observed = witness(run(args.binary, requested, read_local))
+            assert observed == baseline, (read_local, requested, baseline, observed)
+            rows.append(dict(read_local=read_local, requested=requested, **observed))
+        print(f'PASS split read-local={read_local}: raw 0/1, zero paths/state, identical allocations')
+        for leak in ('parse',):
+            negative = run(args.binary, 1, read_local, leak)
+            assert negative.returncode == 1 and 'reorder-specific path executed' in negative.stdout, negative.stdout
+        # This mutant frees its sidecar before inspection. The whole allocation
+        # trace, not the final pointer/counter, must detect the extra allocation.
+        allocation = witness(run(args.binary, 1, read_local, 'allocation'))
+        assert allocation != baseline and allocation['heap_calls'] == baseline['heap_calls'] + 1, (
+            baseline, allocation)
     args.receipt.parent.mkdir(parents=True, exist_ok=True)
     args.receipt.write_text(json.dumps(dict(binary=str(args.binary),
         sha256=hashlib.sha256(args.binary.read_bytes()).hexdigest(), rows=rows, positive=True,

@@ -1,7 +1,7 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
   "source_sha256": "8c1e51707e09366c289fbbe39466844d5936e8e027843897719adea590cb3304",
-  "purpose": "serverless expected-label fixture only, never evidence of lane execution",
+  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows",
   "labels": [
     "release build (+footprint locks)",
     "ASAN build",
@@ -40,7 +40,6 @@
     "writeback c12 phase witnesses + negative controls",
     "writeback c12 stages witnesses + negative controls",
     "writeback c12 split-phase witnesses + negative controls",
-    "writeback c12 split-overlap witnesses + negative controls",
     "writeback policy clauses witnesses + negative controls",
     "writeback policy paths witnesses + negative controls",
     "R7 generated envelope parity",

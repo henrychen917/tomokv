@@ -16,7 +16,7 @@ import reorder_sync as base
 
 IO = ('run_loop', 'sweep', 'flush_ready', 'admit_fd', 'adopt_client',
       'arm_tls_recv', 'drive_tls', 'epoll_accept', 'epoll_pass',
-      'ifid_parse_hash', 'ifid_rx', 'on_accept', 'on_cqe', 'on_recv', 'on_tls_recv',
+      'on_accept', 'on_cqe', 'on_recv', 'on_tls_recv',
       'on_tls_socket_poll', 'parse_and_dispatch', 'fused_demote_local_read_batch')
 
 
@@ -49,7 +49,7 @@ def removal_inventory(root):
             if path.suffix not in ('.h', '.cc', '.inc'):
                 continue
             for call in re.finditer(r'\b(?:r7_)?parse_and_dispatch\s*<([^>]*)>\s*\(', path.read_text()):
-                assert len(call[1].split(',')) <= 4, ('obsolete IO call arity', str(path), call[0])
+                assert len(call[1].split(',')) <= 3, ('obsolete IO call arity', str(path), call[0])
     return dict(okay=True, removed=list(removed), scope='all production C++ source')
 
 
@@ -138,7 +138,7 @@ def envelopes():
                 body = body[:opening] + '''
     // PAD A delegates to the inherited parser before any shadow scratch or scan.
     if (!r7::shadow_available())
-        return parse_and_dispatch<NoBorrow, BatchOps, IoPipe, SplitLocal>(c);
+        return parse_and_dispatch<NoBorrow, BatchOps, SplitLocal>(c);
     // Only R7 touches the otherwise uninitialized Client padding. The first
     // parser entry precedes every publication; migration retains Client + ROB.
     if (c->rob().dispatch_id() == 0) r7::ShadowLongIndex::initialize(*c);

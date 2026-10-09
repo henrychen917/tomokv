@@ -1,0 +1,78 @@
+{
+  "tests/gate.sh": {
+    "sha256": "a2d01ee765a135f4e4b373151a93e69504094023ef69ca49d23ba2a00de8fc58"
+  },
+  "tests/gates_test.py": {
+    "sha256": "cd85a95e6ca78e03147a7fb94d4bc677b5c4c581e4c4fec8337299a20474b03e"
+  },
+  "tests/aclkeys_wake_state.py": {
+    "sha256": "025a56f8915f6b8c0b07a72e593c079e2a4d8a0fdcdda46e9b0d8892ccd5642a",
+    "identical_to_origin_cpp": true
+  },
+  "tests/fixtures/nullrefresh-ledger-labels.json": {
+    "sha256": "00c616f5c241378c9332ef4d4086183a00ad9b2940814bf1cc06014d3bb7ae37"
+  },
+  "WAKE_RC_test_identical_to_origin_cpp": true,
+  "feature_geometry_matches_origin_cpp_except_retired_overlap": [
+    "1s-0-0-0-0",
+    "1s-0-0-0-1",
+    "1s-0-0-1-0",
+    "1s-0-0-1-1",
+    "1s-0-1-0-0",
+    "1s-0-1-0-1",
+    "1s-0-1-1-0",
+    "1s-0-1-1-1",
+    "1s-1-0-0-0",
+    "1s-1-0-0-1",
+    "1s-1-0-1-0",
+    "1s-1-0-1-1",
+    "1s-1-1-0-0",
+    "1s-1-1-0-1",
+    "1s-1-1-1-0",
+    "1s-1-1-1-1",
+    "2s-0-0-0-0",
+    "2s-0-0-0-1",
+    "2s-0-0-1-0",
+    "2s-0-0-1-1",
+    "2s-0-1-0-0",
+    "2s-0-1-0-1",
+    "2s-0-1-1-0",
+    "2s-0-1-1-1",
+    "2s-1-0-0-0",
+    "2s-1-0-0-1",
+    "2s-1-0-1-0",
+    "2s-1-0-1-1",
+    "2s-1-1-0-0",
+    "2s-1-1-0-1",
+    "2s-1-1-1-0",
+    "2s-1-1-1-1",
+    "split-home-min",
+    "fused-home-max-nopin",
+    "split-shards-auto"
+  ],
+  "job_multidb_byte_identical_to_origin_cpp": true,
+  "multidb_collecting_loop_byte_identical_to_origin_cpp": true,
+  "retired_row": "writeback c12 split-overlap witnesses + negative controls",
+  "fixture_labels": 528,
+  "wake_labels": [
+    "multidb (1s, read-local 0, atomic 0) XREAD wake after SWAPDB",
+    "multidb (1s, read-local 0, atomic 1) XREAD wake after SWAPDB",
+    "multidb (1s, read-local 1, atomic 0) XREAD wake after SWAPDB",
+    "multidb (1s, read-local 1, atomic 1) XREAD wake after SWAPDB",
+    "multidb (2s, read-local 0, atomic 0) XREAD wake after SWAPDB",
+    "multidb (2s, read-local 0, atomic 1) XREAD wake after SWAPDB",
+    "multidb (2s, read-local 1, atomic 0) XREAD wake after SWAPDB",
+    "multidb (2s, read-local 1, atomic 1) XREAD wake after SWAPDB"
+  ],
+  "counts": {
+    "EXPECT_QUICK": 511,
+    "EXPECT_FULL": 528
+  },
+  "lines": {
+    "1449": "for group in policy phase stages split-phase; do",
+    "3269": "collect_job wb_rule_units",
+    "3398": "collect_job \"multidb-$MD_MODE-$MD_RL-$MD_AT\"",
+    "3421": "if [ \"$TIER\" = quick ]; then",
+    "3424": "program_state \"$EXPECT_QUICK\""
+  }
+}
