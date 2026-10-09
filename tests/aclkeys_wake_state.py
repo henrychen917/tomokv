@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """One SWAPDB must not lose an XADD wake. Takes a fresh, gate-owned db16 listener.
 
-CLIENT LIST alone precedes owner registration. Require the physical waiter too:
+CLIENT LIST alone precedes owner registration. Require the parked counter too:
 otherwise registration's eager reprobe could mask the broken publish namespace.
 No listener, background traffic, DEBUG latch, or relaxed timeout is needed.
 """
@@ -14,7 +14,8 @@ from _differ_aclkeys import wait_blocked
 def registered(admin):
     deadline = time.monotonic() + 2
     while time.monotonic() < deadline:
-        if int(info(admin, "stats")["blocking_waiters"]) == 1:
+        fields = info(admin)
+        if int(fields["blocking_waiters"]) == 1 and int(fields["blocked_clients"]) == 1:
             return
         time.sleep(.001)
     raise AssertionError("XREAD owner registration never appeared")
@@ -29,8 +30,10 @@ def reproduce(admin, worker):
                  lambda conn, args: conn.cmd(*args), lambda value: value,
                  lambda _file: worker.read(), timeout=2)
     registered(admin)
+    started = time.monotonic()
     assert admin.cmd("XADD", "block:aclkeys", "1-0", "field", "value") == b"1-0"
     assert worker.read() == [[b"block:aclkeys", [[b"1-0", [b"field", b"value"]]]]]
+    assert time.monotonic() - started < 2, "XREAD exceeded the wake deadline"
 
 
 if __name__ == "__main__":
