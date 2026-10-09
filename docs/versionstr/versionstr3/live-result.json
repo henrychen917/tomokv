@@ -1,0 +1,13 @@
+{
+  "status": "NOT_RUN",
+  "cells_run": 0,
+  "planned_cells": 64,
+  "reason": "Optional infofix replay was not admitted after the required gate quiet/port checks were refused.",
+  "command": [
+    "python3",
+    "-u",
+    "docs/versionstr/versionstr2/live.py",
+    "build/versionstr3/POST/tomokv",
+    "build/versionstr3/live"
+  ]
+}

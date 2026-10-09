@@ -139,13 +139,13 @@ These instruction counts do not establish a performance verdict. The +208-byte c
 
 ## 2026-10-09 — versionstr3
 
-Static byte verdict: **PASS**. Default build and all current gate unit/witness targets: **PASS**. Partial gate: **pending quiet admission**. Evidence is in `docs/versionstr/versionstr3/`.
+Static byte verdict: **PASS**. Default build and all current gate unit/witness targets: **PASS**. Partial gate: **BLOCKED by four quiet/port preflight refusals over ten minutes (0/18 formerly failing rows rerun)**. Evidence is in `docs/versionstr/versionstr3/`.
 
 Merged `origin/cpp` at entry (`92e716dc6`), preserving both sides of the `MEASURE-REQUEST` report conflict, and fetched/merged again before final proof. PRE is merge-base `dab7409642bf0a6d125fb5f479e6d190c7636083`. The Makefile repair is `f1066d0ff`. The protected `src/main.cc`, `src/core/config.h`, and `src/core/boot_support.h` match this merge-base exactly; `src/core/version.cc` matches versionstr2 (`b812934fa`) exactly. The proof tools are unchanged.
 
 **Cause and repair.** `SRC += src/core/version.cc` put the wrapper in the shared object lists. The multi-database object is empty, but the DB0 object defines `__wrap_main` and refers to `__real_main`. Unit links do not pass `--wrap=main`. Replaying the original DB0 exbatch link recipe against its cached objects reproduced the undefined reference exactly (`reproduce-db0-link.log`). `SERVER_ONLY_SRC`, `SERVER_ONLY_OBJ`, and `DB0_SERVER_ONLY_OBJ` now keep the object out of the shared unit lists and include it explicitly in the wrapped server link. All 96 server objects retain their exact original order. No wrapper semantics or production source changed in this repair.
 
-**Build proof.** `build-inventory.json`, `expanded-unit-targets.txt`, and `unit-build-summary.json` record the targets derived from the gate's build paths/make invocations and every direct `DB0_TEST_OBJ` consumer. The default target and 45 current targets pass, including a separate successful `make build/exbatch-db0-unit`. All 11 current direct DB0 consumers have neither `__wrap_main` nor `__real_main` in their symbol tables. The gate's direct foreign-read compile, ASAN build, core/waits TSan builds, and both MDBQSBR boot-control builds also pass. The newly merged LB unit-control recipe required `mkdir -p build/lbosc3` before its log redirection; this artifact-directory preparation is recorded, and no unrelated Makefile rule was changed.
+**Build proof.** `build-inventory.json`, `expanded-unit-targets.txt`, and `unit-build-summary.json` record the targets derived from the gate's build paths/make invocations and every direct `DB0_TEST_OBJ` consumer. The default target and 45 current targets pass, including a separate successful `make build/exbatch-db0-unit`. All 11 current DB0 consumers have neither `__wrap_main` nor `__real_main` in their symbol tables. The gate's direct foreign-read compile, ASAN build, core/waits TSan builds, and both MDBQSBR boot-control builds also pass. The newly merged LB unit-control recipe required `mkdir -p build/lbosc3` before its log redirection; this artifact-directory preparation is recorded, and no unrelated Makefile rule was changed.
 
 The initial 46-target batch also attempted the non-gate historical `build/flushfix-pre-unit`. That target fails before linking because its frozen `e279aeb4c` source references removed `ReadLocalStats::mget_generation_retries` and `info_stats_sample_ops`. Both namespace compilations fail with identical diagnostics against fresh PRE and POST headers (`legacy-flushfix.json`). This is retained as a failure, not counted as a passing build. The gate uses the current `build/flushfix-units`, which builds successfully. The complete initial build log and the successful current-target replay are retained.
 
@@ -181,7 +181,16 @@ GATE_ONLY_JOBS="release_batteries asan_batteries exbatch_units wbland_units wb_r
   --server-smt '' --load-smt '' --ports 18340-18342
 ```
 
-Gate result: **PENDING**. Initial quiet admission was refused; three retries over ten minutes are in progress. No pending row is counted green. Optional infofix replay is pending admission.
+Gate result: **BLOCKED**, with **0/18 previously failing rows executed**. The existing `tools/quietcheck.sh` ran against CPUs 112–127 and all three assigned ports before any gate job could start. Initial admission plus three retries spanned ten minutes:
+
+| UTC, 2026-10-09 | Port 18340 / 18341 / 18342 preflight exit | Finding |
+| --- | --- | --- |
+| 00:00:43 | 2 / 2 / 2 | Assigned CPUs busy |
+| 00:04:03 | 2 / 2 / 2 | Assigned CPUs busy; compiler processes recorded on 120–127 |
+| 00:07:23 | 1 / 1 / 2 | Ports 18340/18341 occupied; CPU 123 busy |
+| 00:10:43 | 1 / 1 / 2 | Ports 18340/18341 occupied; CPU 123 busy |
+
+The runner exited 2 without invoking the gate or booting a server. `gate-result.json`, all four `gate-quiet-*.log` receipts, and `gate-row-verdicts.json` retain the complete outcome: every formerly failing row is **NOT_RUN**, never counted green. The required 18-row runtime proof remains for the maintainer on the quiet gate geometry. The optional infofix differential was also **not run (0/64 cells)** because admission was unavailable; `live-result.json` records the exact replay command. No listener or other lane's process was stopped to obtain admission.
 
 Rows **+0/+0**; `EXPECT_QUICK=502`, `EXPECT_FULL=519` unchanged. No row was added or retired on either side of the quick-tier exit, and `tests/gate.sh` matches PRE. Grep receipts cover plain, escaped, hex, Unicode, octal, URL, HTML and base64 spellings in `tests/` and `tools/`, including their 24 gzip artifacts. Presentation strings and test assertions were unchanged by versionstr3. No throughput measurement or performance claim is made; no measurement PAD arm is proposed.
 

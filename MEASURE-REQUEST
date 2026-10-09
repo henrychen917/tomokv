@@ -1,9 +1,9 @@
-versionstr3: static byte proof PASS; partial gate pending quiet admission.
+versionstr3: static byte proof PASS; partial gate BLOCKED by four quiet/port preflight refusals over ten minutes.
 Read the dated versionstr3 section in MEASURE-REQUEST-versionstr.md.
 PRE/POST: build/versionstr3/PRE/tomokv and build/versionstr3/POST/tomokv; generic build/tomokv refreshed.
 1492/1492 hot, 4836/4836 ordinary, 3021/3021 linked; zero unexplained; Makefile-only ELF byte-identical.
 Default and current gate unit/witness builds pass. Historical non-gate flushfix-pre-unit fails identically in PRE/POST.
-Rows +0/+0, EXPECT 502/519 unchanged. Quiet retries and the 18-row ledger comparison are pending.
+Rows +0/+0, EXPECT 502/519 unchanged. All 18 runtime rows remain NOT_RUN; optional infofix 0/64. Maintainer quiet-geometry reproof remains required.
 
 Lane lbosc3 (decision group 10): see MEASURE-REQUEST-lbosc3.md.
 Status UNTUNED: serverless proof and frozen arms only; no live measurements run.
