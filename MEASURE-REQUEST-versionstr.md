@@ -198,10 +198,77 @@ Rows **+0/+0**; `EXPECT_QUICK=502`, `EXPECT_FULL=519` unchanged. No row was adde
 
 ## 2026-10-09 — versionstr4
 
-Repair commit: `36cd5c0f1`. The full serverless gate self-test passes (66 top-level tests). Link and static byte proofs pass; final build/handler receipts follow in this section.
+**PASS:** full `tests/gates_test.py`, real core-TSAN build, release and representative unit builds in both namespaces, complete non-server link inventory, static byte proof, and direct production INFO/HELLO handlers. No server, benchmark or gate was started. No push. Evidence: `docs/versionstr/versionstr4/`.
 
-Entry HEAD `5911a55b6`; fetched and merged `origin/cpp` (`dab740964`), already up to date. The exact pre-fix TSAN wiring assertion is reproduced in `docs/versionstr/versionstr4/before-fix.log`. Its source is **not a Makefile variable**: `job_core_tsan_build` in `tests/gate.sh` independently expands `src/core/*.cc`, admitting `src/core/version.cc` despite the Makefile's `SERVER_ONLY_SRC` separation. The build now excludes that server entry source before calling `tests/parbuild.sh`; the self-test expected set is unchanged.
+Entry HEAD was `5911a55b6`. `git fetch origin cpp && git merge --no-edit origin/cpp` reported already up to date at `dab7409642bf0a6d125fb5f479e6d190c7636083`. Work continued on `cx-versionstr`. Repair commit: `36cd5c0f1`; self-test/link/static receipts: `025cca0f9`.
 
-The non-server inventory also found two Makefile test-object dependency globs and eight offline unit/control build helpers collecting sources or objects independently. Their build lists now omit the entry wrapper in both namespaces where applicable. Changes in Python files affect build input selection only; runtime checks and byte-comparison logic are untouched. The release link's ordered multi-db/DB0 object lists and both server-only version objects are unchanged. `production.diff` records only these build changes, relative to the entry HEAD.
+**Exact cause.** The source did not re-enter through a Makefile variable. `tests/gate.sh:job_core_tsan_build` independently expanded `src/core/*.cc`, which included `src/core/version.cc` despite the Makefile's `SERVER_ONLY_SRC` separation. That array went directly to `tests/parbuild.sh`, which compiled every supplied source and linked its object. The pre-fix assertion reproduces exactly (`before-fix.log`). The TSAN build now excludes the server entry source before supplying its array. The expected set in `tests/gates_test.py` is unchanged; the real 47-input TSAN build succeeds without the version source/object and publishes its ready marker.
 
-Rows **+0 quick / +0 full**; EXPECT_QUICK=502 and EXPECT_FULL=519 remain unchanged. No server, benchmark or gate is run by this lane. The first build quiet screen refused admission (exit 2); this is a refusal, not a build failure.
+The complete non-server search also found independent source/object collectors. Every change below is confined to a build input list; no assertion, handler, version constant, byte comparator or execution-loop source changed:
+
+| Build file and lines | Repaired input selection |
+| --- | --- |
+| `tests/gate.sh:3054–3058` | Core TSAN source array excludes `src/core/version.cc`. |
+| `Makefile:509,517` | Both test-object dependency globs exclude `SERVER_ONLY_SRC`. |
+| `tests/cdfix_checks.py:44,46,58` | Multi-db, DB0 and physical-slot control links exclude `version.o`. |
+| `tests/cd13b_checks.py:26,31–32` | Both namespace unit links exclude `version.o`. |
+| `tests/climonfix_artifacts.py:42` | Shutdown control links exclude `version.o`. |
+| `tools/storesize_artifacts.py:61–63` | Both namespace PRE-unit inputs exclude `version.o`. |
+| `tools/flipreport_proof.py:194,196` | Both namespace trace/control links exclude `version.o`. |
+| `tools/flipsettle_controls.py:106–107,121,125–126` | Mutant and both namespace transition links exclude `version.o`. |
+| `tools/iopass_receipts.py:102` | IO witness links exclude `version.o`. |
+| `tools/lbplanner_pre_receipt.py:71` | Generated planner-unit Makefile excludes `version.o`. |
+
+`production.diff` is the exact diff of these ten build files against entry HEAD; it is committed. There are no `src/` or `third_party/` changes. The ordered release link at `Makefile:92–93` still has all 96 objects, including `build/db0/src/core/version.o` and `build/src/core/version.o`, with `--wrap=main`. Its complete command is identical to versionstr3 (`server-link-identity.json`). Instrumented server builds remain server builds and retain their source lists.
+
+**Self-test and build evidence.** All work is pinned to CPUs 112–127; make uses `-j16`.
+
+```sh
+taskset -c 112-127 python3 tests/gates_test.py
+taskset -c 112-127 make -j16 all build/exbatch-unit build/exbatch-db0-unit build/netcmd-unit build/netcmd-unit-db0
+taskset -c 112-127 python3 docs/versionstr/versionstr4/build_core_tsan.py
+taskset -c 112-127 python3 tests/infofields_test.py
+```
+
+All exit 0: 66 top-level gate self-tests (plus their nested suites), the release server and four named unit links, the isolated core TSAN build, and 9 INFO-field controls. `gates-test.log`, `release-unit-build.log.gz`, `core-tsan-build.log.gz`, and `infofields-controls.log` retain the output. The isolated TSAN recipe is executed without the gate coordinator or TSAN runtime tests. Two initial build quiet screens refused admission (exit 2); the subsequent screen admitted the successful build (exit 0). Refusals are recorded in `quiet-build*.log`, not counted as failures or passes.
+
+**All non-server links.** `make-nonserver-links.txt.gz` lists all **159 expanded linker commands**; `nonserver-link-targets.txt` lists their outputs. Both namespace variants are included. None names `version.cc` or `version.o`. The dry run succeeds for 176 current target entries, and all 177 audited target dependency closures exclude the version source/object (`make-dependency-audit.json`). The extra historical `build/exbatch/PRE/unit` lacks 46 frozen dependencies; its link is expanded separately with those dependencies marked old, and no historical build success is claimed. The initial failed dry run is retained alongside the successful current-target run; its missing archived dependencies are not counted as a successful build.
+
+`fresh-unit-links.json` records the four actually rebuilt exbatch/netcmd linker commands and symbol checks: no `__wrap_main` or `__real_main` in either namespace. `core-tsan-build.json` records the real 47-object TSAN link without the version object; the waits-TSAN source-list receipt contains only `tests/waits_unit.cc`. `audit_offline_inputs.py` replays all 13 changed Python object-selection predicates over their original iterators: the only removed object is `version.o`, including both namespaces. `planner-input-control.json` separately proves the generated Makefile list excludes it. These are input/link proofs, not a claim that every historical offline suite was rebuilt and run.
+
+**Static server verdict.** The unchanged proof tools were rerun on the retained versionstr3 PRE/POST artifacts. After the fresh release build completed, the entire `build/tomokv` ELF and **all 96 fresh server objects** matched the retained POST byte for byte (`fresh-artifact-identity.json`). This binds the repeated proof to the current build without comparing an in-progress linker output. Source-tree IDs and all five proof-tool hashes also match versionstr3 (`source-and-tools.json`).
+
+| Static quantity | PRE | Current POST / verdict |
+| --- | ---: | ---: |
+| Common objects | 94 | 94 |
+| Hot bodies, raw and relocation-resolved | 1492 | 1492 equal |
+| Ordinary emitted bodies, relocation-resolved | 4836 | 4836 equal |
+| Ordinary emitted bodies, raw | 4836 | 4833 equal, same three relocation differences as versionstr3 |
+| Ordinary per-body instruction counts | 4836 | 4836 equal |
+| Ordinary instruction inventory | 1136424 | 1136424 |
+| Linked ordinary selections proven | 3021 | 3021 |
+| Locked sizes/member layouts | Both namespaces | Equal |
+| Changed existing bodies | — | Same 8 version-string bodies |
+| Unexplained changes | 0 | 0 |
+| `.text` bytes | 7845285 | 7845445 |
+| Complete ELF vs versionstr3 POST | — | Identical |
+
+The eight changed bodies remain INFO, INFO's cold clone, HELLO, and LOLWUT in each namespace; `changed-bodies.md` lists every one. The multi-db version object is empty; the DB0 object still defines only the 136-byte entry wrapper (`wrapper-symbols.json`). `proof/summary.json` and the changed-body list are exactly equal to versionstr3's receipts.
+
+```text
+PRE  build/versionstr3/PRE/tomokv
+     6def8f04df33af1c407ed27dbc980e9c34335b40fb935ae0fc4b222f4e582985
+POST build/tomokv = build/versionstr3/POST/tomokv
+     f1800a8e71de7f0644083ec5cd52a339aca0180282d168f8221b75d5a6be400a
+```
+
+Reproduce the static comparison:
+
+```sh
+taskset -c 112-127 python3 tools/lbstall_artifacts.py compare build/versionstr3/PRE build/versionstr3/POST build/versionstr4/hot-recheck.json
+taskset -c 112-127 python3 tools/versionstr_artifacts.py build/versionstr3/PRE build/versionstr3/POST build/versionstr4/proof-recheck
+```
+
+**Actual INFO/HELLO replies without booting a server.** `handler_check.cc` calls the production registry's handlers linked from the verified production objects, with no Server object, listener, worker, or io_uring instance. Both namespace executables pass: INFO SERVER emits `redis_version:7.4.10`, `tomokv_version:1.0-cpp`, and `redis_mode:standalone` in their established order with CRLF; HELLO 2 and HELLO 3 emit `version=7.4.10` with the correct array/map shape and protocol. Four wrong-version expectation runs fail as required. `handler-results.log`, `handler-results.json`, and `handler-build-commands.json` retain the checks and both version-free unit link lines. The existing 9 INFO-field controls additionally reject malformed versions and wrong HELLO replies. This proves the handlers directly; no live network replay is claimed.
+
+Rows **+0 quick / +0 full**. `EXPECT_QUICK=502` and `EXPECT_FULL=519` are unchanged. The existing ABBA self-test row is defined at line 2863 and collected at line 3377, before the quick-tier exit beginning at line 3406. `job_core_tsan_build` owns no row. No row was added or retired on either side of that exit (`gate-counts.json`). No performance improvement, ABBA measurement, or PAD arm is claimed or requested. The normal landing gate remains maintainer-owned.

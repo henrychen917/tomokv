@@ -1,0 +1,88 @@
+[
+  {
+    "namespace": "multi",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/versionstr4/handler-multi"
+    ],
+    "exit": 0,
+    "stdout": "INFO SERVER redis_version=7.4.10 tomokv_version=1.0-cpp\nHELLO 2 version=7.4.10\nHELLO 3 version=7.4.10\nPASS: production handlers; no server started\n",
+    "stderr": "",
+    "expected_exit": 0
+  },
+  {
+    "namespace": "multi",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/versionstr4/handler-multi",
+      "7.4.9",
+      "1.0-cpp"
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": "FAIL: INFO exact identity, field order and CRLF\n",
+    "expected_exit": 1
+  },
+  {
+    "namespace": "multi",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/versionstr4/handler-multi",
+      "7.4.10",
+      "0.1-cpp"
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": "FAIL: INFO exact identity, field order and CRLF\n",
+    "expected_exit": 1
+  },
+  {
+    "namespace": "db0",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/versionstr4/handler-db0"
+    ],
+    "exit": 0,
+    "stdout": "INFO SERVER redis_version=7.4.10 tomokv_version=1.0-cpp\nHELLO 2 version=7.4.10\nHELLO 3 version=7.4.10\nPASS: production handlers; no server started\n",
+    "stderr": "",
+    "expected_exit": 0
+  },
+  {
+    "namespace": "db0",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/versionstr4/handler-db0",
+      "7.4.9",
+      "1.0-cpp"
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": "FAIL: INFO exact identity, field order and CRLF\n",
+    "expected_exit": 1
+  },
+  {
+    "namespace": "db0",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/versionstr4/handler-db0",
+      "7.4.10",
+      "0.1-cpp"
+    ],
+    "exit": 1,
+    "stdout": "",
+    "stderr": "FAIL: INFO exact identity, field order and CRLF\n",
+    "expected_exit": 1
+  }
+]
