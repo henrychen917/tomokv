@@ -1,0 +1,80 @@
+test_bridge_failure_cannot_be_erased_by_matched_seed_results (__main__.self_test.<locals>.Experiments.test_bridge_failure_cannot_be_erased_by_matched_seed_results) ... ok
+test_complete_driver_calls_real_abba_loop_twenty_four_times (__main__.self_test.<locals>.Experiments.test_complete_driver_calls_real_abba_loop_twenty_four_times) ... ok
+test_contended_box_refuses_before_snapshot_priming (__main__.self_test.<locals>.Experiments.test_contended_box_refuses_before_snapshot_priming) ... ok
+test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block (__main__.self_test.<locals>.Experiments.test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block) ... 
+  test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block (__main__.self_test.<locals>.Experiments.test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block) (index=1) ... FAIL
+  test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block (__main__.self_test.<locals>.Experiments.test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block) (index=5) ... FAIL
+test_default_geometry_reserves_server_siblings (__main__.self_test.<locals>.Experiments.test_default_geometry_reserves_server_siblings) ... ok
+test_each_null_only_blocks_its_own_lever_and_failed_blocks_stay_visible (__main__.self_test.<locals>.Experiments.test_each_null_only_blocks_its_own_lever_and_failed_blocks_stay_visible) ... ok
+test_failed_first_null_is_retained_and_all_later_blocks_still_run (__main__.self_test.<locals>.Experiments.test_failed_first_null_is_retained_and_all_later_blocks_still_run) ... FAIL
+test_failed_null_prevents_adoption (__main__.self_test.<locals>.Experiments.test_failed_null_prevents_adoption) ... ok
+test_noisier_latency_cannot_hide_behind_stable_rate (__main__.self_test.<locals>.Experiments.test_noisier_latency_cannot_hide_behind_stable_rate) ... ok
+test_priming_cleanup_failure_prevents_every_scored_block (__main__.self_test.<locals>.Experiments.test_priming_cleanup_failure_prevents_every_scored_block) ... ok
+test_priming_saves_and_exits_before_measurement (__main__.self_test.<locals>.Experiments.test_priming_saves_and_exits_before_measurement) ... ok
+test_seeded_wire_and_fresh_hooks_are_distinct_and_never_save (__main__.self_test.<locals>.Experiments.test_seeded_wire_and_fresh_hooks_are_distinct_and_never_save) ... ok
+test_snapshot_headers_retain_exact_seed_and_reject_corruption (__main__.self_test.<locals>.Experiments.test_snapshot_headers_retain_exact_seed_and_reject_corruption) ... ok
+test_snapshot_hook_never_repopulates_or_saves (__main__.self_test.<locals>.Experiments.test_snapshot_hook_never_repopulates_or_saves) ... ok
+test_snapshot_null_cannot_erase_a_bad_direct_comparison (__main__.self_test.<locals>.Experiments.test_snapshot_null_cannot_erase_a_bad_direct_comparison) ... ok
+test_two_real_priming_hooks_restart_before_full_population (__main__.self_test.<locals>.Experiments.test_two_real_priming_hooks_restart_before_full_population) ... ok
+test_unsaturated_and_missing_windows_are_untestable (__main__.self_test.<locals>.Experiments.test_unsaturated_and_missing_windows_are_untestable) ... ok
+
+======================================================================
+FAIL: test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block (__main__.self_test.<locals>.Experiments.test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block) (index=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-ttlcell/build/ttlcell/baseline/tests/abba_experiments.py", line 516, in test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block
+    self.test_complete_driver_calls_real_abba_loop_twenty_four_times(first_null_fail=True, failed_index=index)
+  File "/home/user/Projects/cx-ttlcell/build/ttlcell/baseline/tests/abba_experiments.py", line 581, in test_complete_driver_calls_real_abba_loop_twenty_four_times
+    self.assertEqual(calls, expected)
+AssertionError: Lists differ: [(20,[200 chars]'), (10, 'A', 5, 4, 'fresh'), (10, 'B', 6, 4, [697 chars]ot')] != [(20,[200 chars]'), (20, 'A', 1, 4, 'fresh'), (20, 'B', 2, 4, [378 chars]ot')]
+
+First differing element 8:
+(10, 'A', 5, 4, 'fresh')
+(20, 'A', 1, 4, 'fresh')
+
+First list contains 12 additional elements.
+First extra element 24:
+(20, 'A', 1, 4, 'wire')
+
+Diff is 1061 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block (__main__.self_test.<locals>.Experiments.test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block) (index=5)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-ttlcell/build/ttlcell/baseline/tests/abba_experiments.py", line 516, in test_cross_lever_failure_keeps_real_driver_nonzero_and_every_block
+    self.test_complete_driver_calls_real_abba_loop_twenty_four_times(first_null_fail=True, failed_index=index)
+  File "/home/user/Projects/cx-ttlcell/build/ttlcell/baseline/tests/abba_experiments.py", line 581, in test_complete_driver_calls_real_abba_loop_twenty_four_times
+    self.assertEqual(calls, expected)
+AssertionError: Lists differ: [(20,[623 chars]hot'), (20, 'A', 5, 4, 'snapshot'), (20, 'B', [310 chars]ot')] != [(20,[623 chars]hot')]
+
+First list contains 12 additional elements.
+First extra element 24:
+(20, 'A', 5, 4, 'snapshot')
+
+Diff is 1195 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_failed_first_null_is_retained_and_all_later_blocks_still_run (__main__.self_test.<locals>.Experiments.test_failed_first_null_is_retained_and_all_later_blocks_still_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-ttlcell/build/ttlcell/baseline/tests/abba_experiments.py", line 511, in test_failed_first_null_is_retained_and_all_later_blocks_still_run
+    self.test_complete_driver_calls_real_abba_loop_twenty_four_times(first_null_fail=True)
+  File "/home/user/Projects/cx-ttlcell/build/ttlcell/baseline/tests/abba_experiments.py", line 581, in test_complete_driver_calls_real_abba_loop_twenty_four_times
+    self.assertEqual(calls, expected)
+AssertionError: Lists differ: [(20,[96 chars]'), (20, 'A', 5, 4, 'fresh'), (20, 'B', 6, 4, [801 chars]ot')] != [(20,[96 chars]'), (10, 'A', 1, 4, 'fresh'), (10, 'B', 2, 4, [482 chars]ot')]
+
+First differing element 4:
+(20, 'A', 5, 4, 'fresh')
+(10, 'A', 1, 4, 'fresh')
+
+First list contains 12 additional elements.
+First extra element 24:
+(20, 'A', 1, 4, 'wire')
+
+Diff is 1061 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 17 tests in 20.014s
+
+FAILED (failures=3)
