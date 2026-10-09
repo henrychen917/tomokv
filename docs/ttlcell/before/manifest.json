@@ -1,0 +1,26 @@
+{
+  "headline": {
+    "path": "/home/user/Projects/cx-ttlcell/tests/headline_cells.txt",
+    "count": 181,
+    "file_sha256": "d5c2b906668e4f49b4e6bed7aeee7c9610dadae3a239e333a9a2fd0f43dc1350",
+    "receipts_sha256": "136485dd2c34d6197417f5afd6e81b31c9aec667c2e479640ee88d13dddb5f4a",
+    "fingerprints_sha256": "5fc8757950d4b3977e6f7a2a2e918f2cf23eb9c4e377f539430de9faf09ede9f",
+    "coverage_sha256": "8d96346d839470eb840b7fc32d9c9c620c4cc803e217eae3d4f4967c2bdaab99"
+  },
+  "netio": {
+    "path": "/home/user/Projects/cx-ttlcell/tests/netio_cells.txt",
+    "count": 32,
+    "file_sha256": "d84a9df03e395c666d0c49bc43d1cf17de3436a1632638eb587776c90982c062",
+    "receipts_sha256": "217dc8c95fcc6a38f1fc7e65bc69d13a0517c750bb7227f4ef9944c17bf9f11e",
+    "fingerprints_sha256": "0295611927c1cf40ed8149a1bbb1efe2182196691558e53cfdd4a8dd7bf91a88",
+    "coverage_sha256": "bc21a5fa2de29fd8e71881feac836ee96c1c0f0ff5f5085d5325cdec67210544"
+  },
+  "generic": {
+    "path": "/tmp/claude-1000/generic_merit_cells.txt",
+    "count": 14,
+    "file_sha256": "de0e56e4696f780543c5adea21aa7d7283c12fa22110be6064370a69a2a68dc6",
+    "receipts_sha256": "20d48a50675ff72844288df593d8fb07405020452f4f5aa2953e6733c83a93d1",
+    "fingerprints_sha256": "1cb971144243f3f53857d8335fb95dbccbfd9a92c03cbb6b06ef884ab993572a",
+    "coverage_sha256": "b1d9d706a0f404caf02bf17fd26dc9b8b45d6749333271d3cb4bc83e0f0721f7"
+  }
+}
