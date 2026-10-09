@@ -1,0 +1,155 @@
+{
+  "policy": "selected-core-port-budget-v1",
+  "started_at": 1791393922.0536957,
+  "finished_at": 1791393927.064219,
+  "complete": false,
+  "samples": 6,
+  "cpu_samples": 6,
+  "sample_interval_seconds": 1.0,
+  "tick_seconds": 0.01,
+  "cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "requested_cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "ports": [
+    18540,
+    18541
+  ],
+  "listener_checks": 1,
+  "interference": {
+    "observed_at": 1791393927.063621,
+    "cpu_seconds": 1.3900000000000001,
+    "cpu_budget_seconds": 0.48,
+    "error": "selected-core CPU screening budget exceeded: 1.390000s > 0.480000s per 20s",
+    "cpus": [
+      {
+        "cpu": 112,
+        "total_ticks": 99,
+        "busy_ticks": 5
+      },
+      {
+        "cpu": 113,
+        "total_ticks": 100,
+        "busy_ticks": 4
+      },
+      {
+        "cpu": 114,
+        "total_ticks": 99,
+        "busy_ticks": 4
+      },
+      {
+        "cpu": 115,
+        "total_ticks": 101,
+        "busy_ticks": 24
+      },
+      {
+        "cpu": 116,
+        "total_ticks": 102,
+        "busy_ticks": 5
+      },
+      {
+        "cpu": 117,
+        "total_ticks": 99,
+        "busy_ticks": 5
+      },
+      {
+        "cpu": 118,
+        "total_ticks": 100,
+        "busy_ticks": 4
+      },
+      {
+        "cpu": 119,
+        "total_ticks": 99,
+        "busy_ticks": 11
+      },
+      {
+        "cpu": 120,
+        "total_ticks": 99,
+        "busy_ticks": 4
+      },
+      {
+        "cpu": 121,
+        "total_ticks": 101,
+        "busy_ticks": 23
+      },
+      {
+        "cpu": 122,
+        "total_ticks": 100,
+        "busy_ticks": 4
+      },
+      {
+        "cpu": 123,
+        "total_ticks": 100,
+        "busy_ticks": 5
+      },
+      {
+        "cpu": 124,
+        "total_ticks": 99,
+        "busy_ticks": 20
+      },
+      {
+        "cpu": 125,
+        "total_ticks": 100,
+        "busy_ticks": 6
+      },
+      {
+        "cpu": 126,
+        "total_ticks": 99,
+        "busy_ticks": 6
+      },
+      {
+        "cpu": 127,
+        "total_ticks": 100,
+        "busy_ticks": 5
+      }
+    ]
+  },
+  "sample_artifact": "/home/user/Projects/cx-aclkeys/docs/aclkeys/delivery-proof/quiet-0-samples.jsonl",
+  "generic_cpu_screening": {
+    "scope": "preflight",
+    "server_physical_cores": 8,
+    "sampled_physical_cores": 16,
+    "capacity_fraction": 0.0015,
+    "window_seconds": 20,
+    "cpu_budget_seconds": 0.48,
+    "preflight_seconds": null,
+    "peak_rolling": {
+      "cpu_ticks": 139,
+      "cpu_seconds": 1.3900000000000001
+    },
+    "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload"
+  },
+  "limitation": "preflight detects existing contention; runtime CPU counters cannot distinguish owned work"
+}

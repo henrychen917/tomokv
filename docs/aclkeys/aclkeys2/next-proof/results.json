@@ -1,0 +1,110 @@
+[
+  {
+    "geometry": "split",
+    "exit": 0,
+    "legs": [
+      {
+        "atomic": 0,
+        "seed": 7,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/split/aclkeys-a0-s7.txt",
+        "passed": true
+      },
+      {
+        "atomic": 0,
+        "seed": 19,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/split/aclkeys-a0-s19.txt",
+        "passed": true
+      },
+      {
+        "atomic": 0,
+        "seed": 20,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/split/aclkeys-a0-s20.txt",
+        "passed": true
+      },
+      {
+        "atomic": 0,
+        "seed": 23,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/split/aclkeys-a0-s23.txt",
+        "passed": true
+      },
+      {
+        "atomic": 1,
+        "seed": 7,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/split/aclkeys-a1-s7.txt",
+        "passed": true
+      },
+      {
+        "atomic": 1,
+        "seed": 19,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/split/aclkeys-a1-s19.txt",
+        "passed": true
+      },
+      {
+        "atomic": 1,
+        "seed": 20,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/split/aclkeys-a1-s20.txt",
+        "passed": true
+      },
+      {
+        "atomic": 1,
+        "seed": 23,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/split/aclkeys-a1-s23.txt",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "geometry": "armed-fused",
+    "exit": 0,
+    "legs": [
+      {
+        "atomic": 0,
+        "seed": 7,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/armed-fused/aclkeys-a0-s7.txt",
+        "passed": true
+      },
+      {
+        "atomic": 0,
+        "seed": 19,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/armed-fused/aclkeys-a0-s19.txt",
+        "passed": true
+      },
+      {
+        "atomic": 0,
+        "seed": 20,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/armed-fused/aclkeys-a0-s20.txt",
+        "passed": true
+      },
+      {
+        "atomic": 0,
+        "seed": 23,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/armed-fused/aclkeys-a0-s23.txt",
+        "passed": true
+      },
+      {
+        "atomic": 1,
+        "seed": 7,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/armed-fused/aclkeys-a1-s7.txt",
+        "passed": true
+      },
+      {
+        "atomic": 1,
+        "seed": 19,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/armed-fused/aclkeys-a1-s19.txt",
+        "passed": true
+      },
+      {
+        "atomic": 1,
+        "seed": 20,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/armed-fused/aclkeys-a1-s20.txt",
+        "passed": true
+      },
+      {
+        "atomic": 1,
+        "seed": 23,
+        "path": "/home/user/Projects/cx-aclkeys/docs/aclkeys/aclkeys2/next-proof/armed-fused/aclkeys-a1-s23.txt",
+        "passed": true
+      }
+    ]
+  }
+]

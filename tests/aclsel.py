@@ -10,6 +10,8 @@ import sys
 import threading
 import time
 
+from _client_wait import wait_client_state
+
 
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 CHECKS = 0
@@ -278,12 +280,13 @@ expect(admin.command("ACL", "SETUSER", "aclsel", "reset", "on", "nopass", "~*",
 admin.command("DEL", "sel:block:k")
 expect(admin.command("EXISTS", "sel:block:k"), 0, "blocking key clean slate")
 blocked = Conn()
+blocked_id = blocked.command("CLIENT", "ID")
 expect(blocked.command("AUTH", "aclsel", "unused"), b"OK", "blocking selector AUTH")
 blocking_reply = []
 thread = threading.Thread(target=lambda: blocking_reply.append(
     blocked.command("BLPOP", "sel:block:k", 0)))
 thread.start()
-time.sleep(0.25)
+wait_client_state(admin, blocked_id, "blocked")
 expect(admin.command("ACL", "SETUSER", "aclsel", "clearselectors",
                      "(~sel:other:* +blpop)"), b"OK", "revoke blocking selector key")
 expect(admin.command("LPUSH", "sel:block:k", "value"), 1, "wake selector BLPOP")

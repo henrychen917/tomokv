@@ -1,0 +1,4 @@
+2026-10-08 18:44:32 REFUSED QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 8.150000s > 0.480000s per 20s
+2026-10-08 18:47:52 REFUSED QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 8.090000s > 0.480000s per 20s
+2026-10-08 18:51:12 REFUSED QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 1.020000s > 0.480000s per 20s
+2026-10-08 18:54:34 REFUSED QUIET-BOX PRECONDITION FAILED: selected-core CPU screening budget exceeded: 0.600000s > 0.480000s per 20s

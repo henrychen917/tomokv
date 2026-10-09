@@ -1,0 +1,4 @@
+{"label": "split-a0-r1", "expected": true, "returncode": 0, "seconds": 1.5269232811406255, "negative": false, "test": "blocking.py"}
+{"label": "split-a1-r1", "expected": true, "returncode": 0, "seconds": 1.534501750022173, "negative": false, "test": "blocking.py"}
+{"label": "armed-fused-a0-r1", "expected": true, "returncode": 0, "seconds": 1.4065685686655343, "negative": false, "test": "blocking.py"}
+{"label": "armed-fused-a1-r1", "expected": true, "returncode": 0, "seconds": 1.4278711066581309, "negative": false, "test": "blocking.py"}

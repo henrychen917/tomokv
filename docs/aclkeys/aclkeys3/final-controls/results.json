@@ -1,0 +1,858 @@
+{
+  "timestamp": "2026-10-08T12:25:09.441292+00:00",
+  "revision": "0aded867887dc45b29edab79bc4b58ff7f7ace83",
+  "binaries": {
+    "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-wake/aclkeys-wake-unit": "b79045a0b6f0337cfcbe88db76e555a325559b4b2b6d18c1d05f76a8b0f2290d",
+    "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-wake/aclkeys-wake-db0-unit": "49bf53a496e3e1dbd659e685e0c0453b663859988ad81245f70562e3ebf78176",
+    "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit": "337fcecceeaad026f95f87fae7e428db6aa921c3ae389c9e91d0f4547f11ba91",
+    "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit": "4997f628ed415075b6499d82f2c5db2d815b0dfcc3eb9425943de996f7a1ffcb",
+    "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-hold/aclkeys-wake-unit": "3594bc1a3821859b2764fbf533fe86d07c5cb70aef8e7f86637f56919b3fec2e",
+    "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-hold/aclkeys-wake-db0-unit": "a7dca970a62e13925cf5905fe7bd8c5c09af75604f9ce39afb77ca5fe6ac9991"
+  },
+  "runs": [
+    {
+      "label": "no-wake-db16-split-a0-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-wake/aclkeys-wake-unit",
+        "split",
+        "0",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "last Task did not renew the consumed IO notification",
+      "passed": true
+    },
+    {
+      "label": "no-wake-db16-split-a1-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-wake/aclkeys-wake-unit",
+        "split",
+        "1",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "last Task did not renew the consumed IO notification",
+      "passed": true
+    },
+    {
+      "label": "no-wake-db16-fused-a0-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-wake/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "last Task did not renew the consumed IO notification",
+      "passed": true
+    },
+    {
+      "label": "no-wake-db16-fused-a1-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-wake/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "last Task did not renew the consumed IO notification",
+      "passed": true
+    },
+    {
+      "label": "no-wake-db0-split-a0-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-wake/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "last Task did not renew the consumed IO notification",
+      "passed": true
+    },
+    {
+      "label": "no-wake-db0-split-a1-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-wake/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "last Task did not renew the consumed IO notification",
+      "passed": true
+    },
+    {
+      "label": "no-wake-db0-fused-a0-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-wake/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "last Task did not renew the consumed IO notification",
+      "passed": true
+    },
+    {
+      "label": "no-wake-db0-fused-a1-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-wake/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "last Task did not renew the consumed IO notification",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-split-a0-window-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "split",
+        "0",
+        "window-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-split-a0-XREAD-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "split",
+        "0",
+        "XREAD-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-split-a0-BLMOVE-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "split",
+        "0",
+        "BLMOVE-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-split-a0-BRPOPLPUSH-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "split",
+        "0",
+        "BRPOPLPUSH-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-split-a0-group",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "split",
+        "0",
+        "XREADGROUP-denied"
+      ],
+      "exit": 0,
+      "expected_failure": null,
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-split-a1-window-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "split",
+        "1",
+        "window-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-split-a1-XREAD-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "split",
+        "1",
+        "XREAD-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-split-a1-BLMOVE-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "split",
+        "1",
+        "BLMOVE-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-split-a1-BRPOPLPUSH-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "split",
+        "1",
+        "BRPOPLPUSH-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-split-a1-group",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "split",
+        "1",
+        "XREADGROUP-denied"
+      ],
+      "exit": 0,
+      "expected_failure": null,
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-fused-a0-window-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "window-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-fused-a0-XREAD-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "XREAD-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-fused-a0-BLMOVE-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "BLMOVE-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-fused-a0-BRPOPLPUSH-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "BRPOPLPUSH-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-fused-a0-group",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "XREADGROUP-denied"
+      ],
+      "exit": 0,
+      "expected_failure": null,
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-fused-a1-window-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "window-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-fused-a1-XREAD-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "XREAD-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-fused-a1-BLMOVE-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "BLMOVE-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-fused-a1-BRPOPLPUSH-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "BRPOPLPUSH-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db16-fused-a1-group",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "XREADGROUP-denied"
+      ],
+      "exit": 0,
+      "expected_failure": null,
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-split-a0-window-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "window-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-split-a0-XREAD-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "XREAD-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-split-a0-BLMOVE-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "BLMOVE-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-split-a0-BRPOPLPUSH-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "BRPOPLPUSH-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-split-a0-group",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "XREADGROUP-denied"
+      ],
+      "exit": 0,
+      "expected_failure": null,
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-split-a1-window-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "window-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-split-a1-XREAD-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "XREAD-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-split-a1-BLMOVE-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "BLMOVE-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-split-a1-BRPOPLPUSH-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "BRPOPLPUSH-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-split-a1-group",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "XREADGROUP-denied"
+      ],
+      "exit": 0,
+      "expected_failure": null,
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-fused-a0-window-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "window-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-fused-a0-XREAD-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "XREAD-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-fused-a0-BLMOVE-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "BLMOVE-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-fused-a0-BRPOPLPUSH-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "BRPOPLPUSH-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-fused-a0-group",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "XREADGROUP-denied"
+      ],
+      "exit": 0,
+      "expected_failure": null,
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-fused-a1-window-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "window-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-fused-a1-XREAD-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "XREAD-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-fused-a1-BLMOVE-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "BLMOVE-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-fused-a1-BRPOPLPUSH-denied",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "BRPOPLPUSH-denied"
+      ],
+      "exit": 1,
+      "expected_failure": "exact admitted/revoked blocking reply",
+      "passed": true
+    },
+    {
+      "label": "no-acl-db0-fused-a1-group",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-acl/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "XREADGROUP-denied"
+      ],
+      "exit": 0,
+      "expected_failure": null,
+      "passed": true
+    },
+    {
+      "label": "no-hold-db16-split-a0-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-hold/aclkeys-wake-unit",
+        "split",
+        "0",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "owner registration really held",
+      "passed": true
+    },
+    {
+      "label": "no-hold-db16-split-a1-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-hold/aclkeys-wake-unit",
+        "split",
+        "1",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "owner registration really held",
+      "passed": true
+    },
+    {
+      "label": "no-hold-db16-fused-a0-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-hold/aclkeys-wake-unit",
+        "fused",
+        "0",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "owner registration really held",
+      "passed": true
+    },
+    {
+      "label": "no-hold-db16-fused-a1-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-hold/aclkeys-wake-unit",
+        "fused",
+        "1",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "owner registration really held",
+      "passed": true
+    },
+    {
+      "label": "no-hold-db0-split-a0-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-hold/aclkeys-wake-db0-unit",
+        "split",
+        "0",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "owner registration really held",
+      "passed": true
+    },
+    {
+      "label": "no-hold-db0-split-a1-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-hold/aclkeys-wake-db0-unit",
+        "split",
+        "1",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "owner registration really held",
+      "passed": true
+    },
+    {
+      "label": "no-hold-db0-fused-a0-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-hold/aclkeys-wake-db0-unit",
+        "fused",
+        "0",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "owner registration really held",
+      "passed": true
+    },
+    {
+      "label": "no-hold-db0-fused-a1-window",
+      "command": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-aclkeys/build/aclkeys3/no-hold/aclkeys-wake-db0-unit",
+        "fused",
+        "1",
+        "window"
+      ],
+      "exit": 1,
+      "expected_failure": "owner registration really held",
+      "passed": true
+    }
+  ],
+  "passed": 56,
+  "total": 56,
+  "rounds": 0,
+  "limitation": "Directed serverless schedules; not loaded gate runs or a measured loss rate."
+}

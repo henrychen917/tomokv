@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclkeys/tests/aclkeys_wake_state.py", line 44, in <module>
+    reproduce(admin, worker)
+  File "/home/user/Projects/cx-aclkeys/tests/aclkeys_wake_state.py", line 35, in reproduce
+    assert worker.read() == [[b"block:aclkeys", [[b"1-0", [b"field", b"value"]]]]]
+           ^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aclkeys/tests/_lib.py", line 161, in read
+    head = read(1)
+           ^^^^^^^
+  File "/home/user/Projects/cx-aclkeys/tests/_lib.py", line 124, in _read
+    return self.file.read(size)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: timed out

@@ -1,0 +1,2 @@
+FAIL aclkeys-wake: exact admitted/revoked blocking reply
+aclkeys-wake mode=split atomic=1 db=16 command=BRPOPLPUSH parked=1 final_notification=1

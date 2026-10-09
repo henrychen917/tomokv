@@ -429,22 +429,30 @@ py(){
     tests/mdbqsbr_live.py) return "$LIVE_RC";;
     tests/multidb.py) return "$MULTIDB_RC";;
     tests/multidb_serial.py) return "$SERIAL_RC";;
+    tests/aclkeys_wake_state.py) return "$WAKE_RC";;
     *) return 90;;
   esac
 }
 '''
         for mode in ('1s', '2s'):
-            for boot, multidb, serial, live, unit, wanted in (
-                    (0, 0, 0, 0, 0, ['ok', 'ok']), (1, 0, 0, 0, 0, ['FAIL', 'FAIL']),
-                    (0, 1, 0, 0, 0, ['FAIL', 'ok']), (0, 0, 1, 0, 0, ['ok', 'FAIL']),
-                    (0, 0, 0, 1, 0, ['FAIL', 'ok']), (0, 0, 0, 3, 0, ['FAIL', 'ok']),
-                    (0, 0, 0, 0, 1, ['FAIL', 'ok'])):
+            # The wake row boots afresh and does not depend on unit_ready or the
+            # earlier scripts. BOOT_RC applies to both of the independent boots.
+            for boot, multidb, serial, live, unit, wake, wanted in (
+                    (0, 0, 0, 0, 0, 0, ['ok', 'ok', 'ok']),
+                    (1, 0, 0, 0, 0, 0, ['FAIL', 'FAIL', 'FAIL']),
+                    (0, 1, 0, 0, 0, 0, ['FAIL', 'ok', 'ok']),
+                    (0, 0, 1, 0, 0, 0, ['ok', 'FAIL', 'ok']),
+                    (0, 0, 0, 1, 0, 0, ['FAIL', 'ok', 'ok']),
+                    (0, 0, 0, 3, 0, 0, ['FAIL', 'ok', 'ok']),
+                    (0, 0, 0, 0, 1, 0, ['FAIL', 'ok', 'ok']),
+                    (0, 0, 0, 0, 0, 1, ['ok', 'ok', 'FAIL']),
+                    (0, 0, 0, 0, 0, 3, ['ok', 'ok', 'FAIL'])):
                 with self.subTest(mode=mode, boot=boot, multidb=multidb, serial=serial,
-                                  live=live, unit=unit), \
+                                  live=live, unit=unit, wake=wake), \
                      tempfile.TemporaryDirectory(dir=root / 'build') as tmp:
                     env = dict(os.environ, TMPDIR=tmp, BOOT_RC=str(boot),
                                MULTIDB_RC=str(multidb), SERIAL_RC=str(serial),
-                               LIVE_RC=str(live), UNIT_RC=str(unit))
+                               LIVE_RC=str(live), UNIT_RC=str(unit), WAKE_RC=str(wake))
                     result = subprocess.run(['bash', '-c', stub + body +
                                              f'\njob_multidb multidb-{mode}-0-0\n'],
                                             cwd=root, env=env, text=True, capture_output=True, timeout=10)

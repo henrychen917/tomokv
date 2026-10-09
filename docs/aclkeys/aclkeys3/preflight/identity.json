@@ -1,0 +1,22 @@
+{
+  "start": "2026-10-08T05:50:34.299379+00:00",
+  "binary": "/home/user/Projects/cx-aclkeys/build/aclkeys3/INCIDENT/tomokv",
+  "sha256": "4f631f0398920d6699ff77670b56151304fbd5d91a9b418f526c6343fcafeb0d",
+  "revision": "8a0fb97194963594a76cd566294fcfb74ec801ab",
+  "affinity": [
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "arguments": [
+    "docs/aclkeys/aclkeys3/proof.py",
+    "quiet",
+    "build/aclkeys3/INCIDENT/tomokv",
+    "docs/aclkeys/aclkeys3/preflight"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "total": 17084,
+  "equal": 17022,
+  "changed": 62,
+  "hot": 1496,
+  "hot_equal": 1496,
+  "ordinary_handlers": 1207,
+  "ordinary_handlers_equal": 1207,
+  "unresolved": [
+    {
+      "object": "db0/src/cmd/t_server.o",
+      "symbol": "_ZN8tomo_db020kvobj_external_bytesEPKNS_5KvObjE",
+      "name": "tomo_db0::kvobj_external_bytes(tomo_db0::KvObj const*)",
+      "equal": false,
+      "pre_size": 1463,
+      "post_size": 1482,
+      "pre_canonical_sha256": "a584749ab570229b18f1a41ea8c0f0bfc72b02491ccafc6c955441bd3e33ae06",
+      "post_canonical_sha256": "59888f02f0ec5dd81889e546636717dbdd60a33f8523fd5186410d0cfc388dbb",
+      "reason": "UNRESOLVED outside-path code-generation drift"
+    }
+  ],
+  "layouts_equal": true,
+  "arms": {
+    "PRE": {
+      "sha256": "132adbd2e4e4a1a336f99dcb008117788ab68537deec6c97791fafb623eddca6",
+      "text_bytes": 7820053
+    },
+    "POST": {
+      "sha256": "ac4ad0d764f38407ec1473fef5a019e8ee2df3166d2ddd3e2d2d7129cbae2506",
+      "text_bytes": 7821564
+    }
+  }
+}

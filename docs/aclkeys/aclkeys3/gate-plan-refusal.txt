@@ -1,0 +1,1 @@
+gate resources: no reviewed abba io:ex ratio for 8 server threads; record the measured geometry in gate_measurements.json, never derive it from a core range

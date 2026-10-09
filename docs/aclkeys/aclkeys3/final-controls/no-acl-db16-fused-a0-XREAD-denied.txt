@@ -1,0 +1,2 @@
+FAIL aclkeys-wake: exact admitted/revoked blocking reply
+aclkeys-wake mode=fused atomic=0 db=16 command=XREAD parked=1 final_notification=1

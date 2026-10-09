@@ -1,0 +1,1 @@
+PASS: all 22 type/namespace sizes and field positions identical

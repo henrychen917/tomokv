@@ -295,3 +295,29 @@ to removed overlap overhead independently of compiler/layout changes.
 
 Commit sequence: `e7f22af1c` inventory; `0b54616a5` removal and exact row-count delta;
 `47d6cd442` cells/harness; `70a1b99a2` scoped proofs/artifacts; final report commit follows.
+
+## overlapaxe2
+
+Continued on `cx-overlapaxe` from `2b61a1fec`. Fetched and merged
+`origin/cpp` at `165d268bed1bae72947263fa951985d8a83eb0c8`; no push.
+The owner has judged the earlier 18-cell POST and PAD-A (kind A, default-behavior
+twin) nulls without regression and ruled "axe overlap". This follow-up is merge
+maintenance and scoped correctness verification, not a new performance claim.
+
+Resolved two conflicts: `tests/gate.sh` and
+`tests/fixtures/nullrefresh-ledger-labels.json`. Both retain all eight aclkeys4
+SWAPDB/XREAD wake rows and remove only
+`writeback c12 split-overlap witnesses + negative controls`. The complete
+`job_multidb` function and its collecting loop are byte-identical to `origin/cpp`:
+`1s/2s × read-local 0/1 × atomic 0/1`. They never used the overlap feature axis.
+The separate 32-cell feature product still uses client-lb with
+`atomic = read-local XOR client-lb` and `key-lb = reorder`.
+The fixture retains upstream's source digest and documents the one-row derivation.
+As explicitly requested, the merge sets **EXPECT_QUICK=511; EXPECT_FULL=528**
+(`512/529 - 1/-1`), retaining the upstream WAKE_RC LedgerWiring checks.
+
+Verification is in progress using CPUs 112–127 and `make -j16`. Final proof
+results, artifact digests, and the repeated body audit will be appended here.
+The earlier report explicitly records failed hot-body identity; this follow-up
+will report differences against the merged upstream base rather than imply that
+all fused bodies were previously identical.

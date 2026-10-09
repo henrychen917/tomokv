@@ -1,0 +1,15 @@
+{
+  "start": "2026-10-07T22:06:23.063011+00:00",
+  "binary": "/home/user/Projects/cx-aclkeys/build/aclkeys/POST/tomokv",
+  "sha256": "6ca2595f2d3c74e2579bffd18bb76ba5cb4a0dc1fd76a79e7ac6d1c4fc0b24e0",
+  "affinity": [
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "policy": "selected-core-port-budget-v1",
+  "started_at": 1791420567.7144942,
+  "finished_at": 1791420587.7220557,
+  "complete": true,
+  "samples": 21,
+  "cpu_samples": 21,
+  "sample_interval_seconds": 1.0,
+  "tick_seconds": 0.01,
+  "cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "requested_cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "ports": [
+    18540,
+    18541
+  ],
+  "listener_checks": 2,
+  "interference": null,
+  "sample_artifact": "docs/aclkeys/aclkeys2/next-proof/quiet-2-samples.jsonl",
+  "generic_cpu_screening": {
+    "scope": "preflight",
+    "server_physical_cores": 8,
+    "sampled_physical_cores": 16,
+    "capacity_fraction": 0.0015,
+    "window_seconds": 20,
+    "cpu_budget_seconds": 0.48,
+    "preflight_seconds": 20.000639014411718,
+    "peak_rolling": {
+      "cpu_ticks": 23,
+      "cpu_seconds": 0.23
+    },
+    "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload"
+  },
+  "limitation": "preflight detects existing contention; runtime CPU counters cannot distinguish owned work"
+}

@@ -4814,6 +4814,10 @@ if SUITE == "ccfix":
     from _differ_ccfix import run as run_ccfix
     sys.exit(run_ccfix(globals()))
 
+if SUITE == "aclkeys":
+    from _differ_aclkeys import run as run_aclkeys
+    sys.exit(run_aclkeys(globals()))
+
 if SUITE == "notify":
     sys.exit(1 if run_notify_suite(rng) else 0)
 
@@ -6683,6 +6687,7 @@ if LIST_GENERATORS:
         'climon',
         'compatintro',
         'aclsel',
+        'aclkeys',
         'cmdmeta',
         's6fix',
         'ccfix',

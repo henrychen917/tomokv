@@ -1,0 +1,22 @@
+{
+  "arms": {
+    "PRE": {
+      "sha256": "431d3d2d8da4d7a4f633ae7a2594f15b046eef1e93d5341ad4093eb62247915a",
+      "text_bytes": 7812565
+    },
+    "POST": {
+      "sha256": "833685b6244322188b5412af343b355fc0347aed00a755776389be0f73a38651",
+      "text_bytes": 7811022
+    },
+    "PAD-B": {
+      "sha256": "e94e8fdf8a2fa7507b9ffb097fe2dbbea0cb3816f3af1a9c86f7af9ba6e303ce",
+      "text_bytes": 7812565
+    }
+  },
+  "layouts_equal": true,
+  "new_object_bodies": 6,
+  "pad_kind": "B: candidate behavior plus padding restoring PRE total .text size",
+  "pad_bytes": 1543,
+  "pad_existing_text_addresses_equal": 9194,
+  "pad_limitation": "Does not restore PRE per-function addresses or data layout"
+}

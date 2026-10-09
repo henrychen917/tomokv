@@ -1,0 +1,131 @@
+{
+  "policy": "selected-core-port-budget-v1",
+  "started_at": 1791456271.9668624,
+  "finished_at": 1791456272.974756,
+  "complete": false,
+  "samples": 2,
+  "cpu_samples": 2,
+  "sample_interval_seconds": 1.0,
+  "tick_seconds": 0.01,
+  "cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "requested_cpus": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "ports": [
+    18340,
+    18341,
+    18342
+  ],
+  "listener_checks": 1,
+  "interference": {
+    "observed_at": 1791456272.9741244,
+    "cpu_seconds": 8.15,
+    "cpu_budget_seconds": 0.48,
+    "error": "selected-core CPU screening budget exceeded: 8.150000s > 0.480000s per 20s",
+    "cpus": [
+      {
+        "cpu": 112,
+        "total_ticks": 101,
+        "busy_ticks": 101
+      },
+      {
+        "cpu": 116,
+        "total_ticks": 101,
+        "busy_ticks": 101
+      },
+      {
+        "cpu": 118,
+        "total_ticks": 101,
+        "busy_ticks": 101
+      },
+      {
+        "cpu": 119,
+        "total_ticks": 102,
+        "busy_ticks": 102
+      },
+      {
+        "cpu": 120,
+        "total_ticks": 101,
+        "busy_ticks": 101
+      },
+      {
+        "cpu": 121,
+        "total_ticks": 101,
+        "busy_ticks": 101
+      },
+      {
+        "cpu": 122,
+        "total_ticks": 101,
+        "busy_ticks": 5
+      },
+      {
+        "cpu": 123,
+        "total_ticks": 101,
+        "busy_ticks": 101
+      },
+      {
+        "cpu": 125,
+        "total_ticks": 101,
+        "busy_ticks": 1
+      },
+      {
+        "cpu": 126,
+        "total_ticks": 99,
+        "busy_ticks": 1
+      },
+      {
+        "cpu": 127,
+        "total_ticks": 100,
+        "busy_ticks": 100
+      }
+    ]
+  },
+  "sample_artifact": "docs/aclkeys/aclkeys3/resume-preflight/quiet-0-samples.jsonl",
+  "generic_cpu_screening": {
+    "scope": "preflight",
+    "server_physical_cores": 8,
+    "sampled_physical_cores": 16,
+    "capacity_fraction": 0.0015,
+    "window_seconds": 20,
+    "cpu_budget_seconds": 0.48,
+    "preflight_seconds": null,
+    "peak_rolling": {
+      "cpu_ticks": 815,
+      "cpu_seconds": 8.15
+    },
+    "accounting": "selected /proc/stat CPUs only; runtime samples include owned workload"
+  },
+  "limitation": "preflight detects existing contention; runtime CPU counters cannot distinguish owned work"
+}
