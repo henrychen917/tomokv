@@ -292,6 +292,44 @@ void txn_intents(Server& server) {
             "unit removal does not decrement PIN owner accounting");
     store.atomic_script_unpin(hash, slice(key));
     require(!server.script_intents_active() && !store.atomic_has_records(), "final accounting");
+    for (bool exclusive : {false, true}) {
+        Client client{-1}; client.set_id(887);
+        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        require(state != nullptr, "shutdown attempt allocated");
+        state->shards.push_back(0);
+        state->exec_op_id = 0;
+        state->decision.exclusive = exclusive;
+        require(server.atomic_try_admit(0, state->admission_generation, true),
+                "shutdown attempt keeps admission credit");
+        state->admitted = true;
+        if (exclusive) {
+            require(server.txn_exclusive_claim(state), "shutdown attempt owns exclusive token");
+            server.txn_exclusive_barrier(true);
+        }
+        auto* op = client.rob().acquire();
+        require(op != nullptr, "shutdown carrier allocated");
+        op->attach_multi_state(state);
+        client.rob().publish();
+        client.atomic_group_started();
+        require(multi_touch_key(*state, server.shard(0), hash, slice(key), false),
+                "shutdown read intent armed");
+        require(server.txn_counter(TxnCounter::IntentsLive) == 1, "live shutdown intent counted");
+        store.atomic_shutdown_release_records();
+        require(!store.atomic_has_records() && !server.script_intents_active() &&
+                server.txn_counter(TxnCounter::IntentsLive) == 0,
+                "shutdown releases a live unit intent without a PIN accounting change");
+        require(state->decision.aborted.load() &&
+                state->decision.epoch.load() == kAtomicCancelledEpoch,
+                "shutdown withdraws optimistic and exclusive undecided attempts");
+        ScatterArenaPool pool;
+        std::vector<MultiExecState*> deferred;
+        multi_shutdown_attempt(state, pool, deferred);
+        require(deferred.empty() && !server.txn_exclusive_owner() && server.atomic_can_admit(0),
+                "shutdown releases pending attempt, exclusive token and barrier");
+        require(!op->multi_state() && op->state.load() == OpState::Done,
+                "shutdown leaves no carrier pointer to the discarded attempt");
+        require(!server.atomic_work_active(), "shutdown releases the admission credit");
+    }
 }
 
 void txn_help(Server& server) {

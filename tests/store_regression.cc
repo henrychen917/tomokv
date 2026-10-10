@@ -36,6 +36,7 @@ Slice xshard_atomic_key_slice(const ScatterState* s, uint32_t i) { return slice(
 // atomic-survivors-unit, which includes the actual scatter/transaction engine.
 void atomic_cancel_unit_record(AtomicEntry&) {}
 void atomic_cancel_unit_intent(AtomicScriptIntent&) { std::abort(); }
+void atomic_shutdown_unit_intent(AtomicScriptIntent&) { std::abort(); }
 bool AofProducer::record_delete(Slice key, uint64_t group) {
     require(group == 0, "eviction/expiry must emit an independent AOF delete");
     deletes.emplace_back(key.p, key.n);

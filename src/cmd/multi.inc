@@ -316,6 +316,25 @@ void multi_cancel_intent(AtomicScriptIntent& intent, const ScatterState* self) {
 
 void atomic_cancel_unit_record(AtomicEntry& entry) { multi_cancel_record(entry); }
 void atomic_cancel_unit_intent(AtomicScriptIntent& intent) { multi_cancel_intent(intent); }
+void atomic_shutdown_unit_intent(AtomicScriptIntent& intent) {
+    UnitRef& unit = atomic_intent_unit(intent);
+    if (unit.unit_kind != UnitRef::Kind::Txn) std::abort();
+    auto& decision = *reinterpret_cast<MultiDecision*>(unit.epoch);
+    auto& state = *decision.owner;
+    uint64_t undecided = 0;
+    if (decision.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
+                                               std::memory_order_relaxed)) {
+        // All producers have stopped. Shutdown may cancel an exclusive attempt
+        // too; it is not a writer conflict or a fallback-violation event.
+        state.cancel_cause_ready.store(true, std::memory_order_relaxed);
+        decision.aborted.store(true, std::memory_order_relaxed);
+        aof_abort_group(state.aof_group);
+    }
+    const uint32_t shard = intent.kind == 2 ? intent.hash
+        : state.server->router().shard_of(intent.hash);
+    state.server->note_txn(state.server->worker_of_shard(shard),
+                           TxnCounter::IntentsLive, uint64_t{0} - 1);
+}
 
 namespace {
 
@@ -2528,7 +2547,60 @@ void multi_close_entry(IoLoop& loop, Client& client) {
         loop.pending_multi_cleanups_.push_back(cleanup);
 }
 
+static void multi_shutdown_attempt(MultiExecState* state, ScatterArenaPool& pool,
+                                   std::vector<MultiExecState*>& deferred) {
+    state->server->txn_exclusive_release(state);
+    uint64_t undecided = 0;
+    if (state->decision.epoch.compare_exchange_strong(
+            undecided, kAtomicCancelledEpoch, std::memory_order_relaxed)) {
+        state->decision.aborted.store(true, std::memory_order_relaxed);
+        abort_multi_children(*state);
+        aof_abort_group(state->aof_group);
+    }
+    for (const MultiWatchedKey& watched : state->watched)
+        state->server->shard(watched.shard).watch_remove(
+            Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns),
+            state->client, state->watch_generation);
+    for (int32_t sid : state->shards)
+        state->server->shard(sid).watch_finish_exclusive(state);
+    if (state->snapshot_registered)
+        pool.unregister_snapshot(*state->server, state, state->owner_io);
+    if (!state->published) clear_unpublished_multi_record_refs(*state);
+    Op& op = state->client->rob().at(state->exec_op_id);
+    if (op.multi_state() != state) std::abort();
+    op.detach_scatter_state();
+    op.state.store(OpState::Done, std::memory_order_relaxed);
+    state->client->atomic_group_finished();
+    release_admission(*state);
+    state->retired = true;
+    if (multi_records_done(*state)) destroy_multi_state(state);
+    else deferred.push_back(state);
+}
+
 void multi_shutdown_entry(IoLoop& loop) {
+    if (loop.srv_ && loop.self_) {
+        // IoLoop destruction follows the join of every producer and the
+        // store-record drain. No node can arrive after this exchange. A first
+        // exclusive attempt has no owner tasks yet; a retry has finished all
+        // of them. Neither is allowed to keep a cut, credit or barrier alive.
+        if (auto* exclusive = static_cast<const MultiExecState*>(loop.srv_->txn_exclusive_owner());
+            exclusive && exclusive->owner_io == loop.self_->id())
+            loop.srv_->txn_exclusive_release(exclusive);
+        auto* pending = loop.srv_->multi_retry_lane(loop.self_->id()).head.exchange(
+            nullptr, std::memory_order_relaxed);
+        while (pending) {
+            auto* node = pending;
+            pending = node->next;
+            if (node->kind == MultiRetryNode::Kind::Fence) {
+                loop.srv_->multi_retry_lane(loop.self_->id()).fence_ack.store(
+                    node->generation, std::memory_order_relaxed);
+                continue;
+            }
+            multi_shutdown_attempt(static_cast<MultiExecState*>(node->unit),
+                                   loop.scatter_pool_, loop.multi_deferred_);
+        }
+        multi_owner_reap_entry(loop);
+    }
     for (MultiExecState* state : loop.pending_multi_cleanups_)
         multi_abandon_unpublished(state);
     loop.pending_multi_cleanups_.clear();

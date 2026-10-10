@@ -1095,6 +1095,16 @@ private:
 
     void atomic_destroy_pending() {
         if (!atomic_pending_) return;
+        // Only shutdown reaches this destructor, after all workers have joined.
+        // A stopped EXEC may still own read intents although its value records
+        // have just been rolled back. Release those cold nodes before the
+        // existing empty-list check; PIN accounting remains independent.
+        atomic_remove_unit_intents([](const UnitRef& ref) {
+            auto& intent = *const_cast<AtomicScriptIntent*>(
+                reinterpret_cast<const AtomicScriptIntent*>(&ref + 1));
+            atomic_shutdown_unit_intent(intent);
+            return true;
+        });
         if (atomic_pending_->live || atomic_pending_->script_intent_count) std::abort();
         const bool read_local_extended = atomic_pending_->read_local_extended;
         for (uint32_t cls = 0; cls < AtomicPendingState::kPoolClasses; cls++) {
