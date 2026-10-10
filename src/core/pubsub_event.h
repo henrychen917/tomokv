@@ -14,6 +14,8 @@
 
 namespace tomo {
 
+class Op;
+
 enum class PubSubEventKind : uint8_t {
     ModifyRequest,
     ModifyResult,
