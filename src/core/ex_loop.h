@@ -614,6 +614,9 @@ public:
                 Server::ClientWorkScope client_work(*srv_, self_->id());
                 Span busy(pass_ns);
                 if (self_->sample_depth(busy.start_ns() / 1000)) {
+                    // Same 100us diagnostic beat as IO; the CPU clock can be a
+                    // syscall. Keep it out of ordinary passes and reply submission.
+                    sig.cpu_ns = thread_cpu_ns();
                     const uint32_t age_rate = srv_->effective_age_sample_rate();
                     if (age_rate != age_sample_rate_cached_) {
                         age_sample_rate_cached_ = age_rate;
@@ -680,7 +683,6 @@ public:
             // MGET/MSET at 2:2 of 4: ex 97% "busy", three quarters of its passes empty; the model
             // read io = 0.73 of a 0.47 workload). One local and one branch per pass.
             if (did) sig.busy_ns += pass_ns; else sig.idle_ns += pass_ns;
-            sig.cpu_ns = thread_cpu_ns();
 
             // Flush prepared SQEs before looping. Recv re-arms and cross-ring wakes are
             // PREPARED during the work section but only reach the kernel on submit; taking
@@ -1486,6 +1488,7 @@ private:
         if (now != expire_beat_ms_) {
             expire_beat_ms_ = now;
             work += active_expire_cycle();
+            if constexpr (kSingleDatabase) keyspace_sample_cycle();
         }
         if constexpr (Fused)
             if (read_local_enabled() && read_local_impl().deferred.resize_pending()) work++;
@@ -1711,6 +1714,25 @@ private:
         return static_cast<int64_t>(ts.tv_sec) * 1000 + ts.tv_nsec / 1000000;
     }
 
+    // Monitoring is independent of active expiry and ordinary command batches.
+    // Bound both the cheap search and the expensive probes: inspect at most
+    // eight owned shards, sampling at most one volatile shard per owner beat.
+    // This numeric cursor names no shard-owned state and tolerates a new owner
+    // vector after migration; each store keeps its own expiry-index cursor.
+    __attribute__((noinline)) void keyspace_sample_cycle() {
+        if (snapshot_blocks_tasks()) return;
+        auto& shards = self_->shards();
+        const uint32_t visits = static_cast<uint32_t>(std::min<size_t>(shards.size(), 8));
+        for (uint32_t i = 0; i < visits; ++i) {
+            if (keyspace_shard_cursor_ >= shards.size()) keyspace_shard_cursor_ = 0;
+            Shard* shard = shards[keyspace_shard_cursor_++];
+            if (!shard->store().expire_count()) continue;
+            shard->set_cached_now_ms(cached_now_ms_, cached_lru_clock_);
+            shard->store().publish_keyspace_sample();
+            break;
+        }
+    }
+
     uint32_t active_expire_cycle() {
         if (!srv_->active_expire_enabled()) return 0;
         if (snapshot_blocks_tasks()) return 0;
@@ -1774,11 +1796,16 @@ private:
     template <bool IofusedPrivateQueue = false>
     uint32_t drain_tasks_read_local_interleaved(bool unmasked,
                                                 bool& owner_work_remains) {
-        Task batch[kReadLocalOwnerTaskChunkOps];
+        // A byte array supplies implicit-lifetime array storage in C++20.
+        // Only received slots contain Tasks; their trivial lifetime may be
+        // replaced when a full batch is reused. Empty polls initialize nothing.
+        static_assert(std::is_trivially_copyable_v<Task> && std::is_trivially_destructible_v<Task>);
+        alignas(Task) std::byte storage[sizeof(Task) * kReadLocalOwnerTaskChunkOps];
+        auto& batch = *reinterpret_cast<Task (*)[kReadLocalOwnerTaskChunkOps]>(storage);
         uint32_t held = 0;
         uint32_t local_work = 0;
         auto take = [&](const Task& task) {
-            batch[held++] = task;
+            std::construct_at(&batch[held++], task);
             if (held != kReadLocalOwnerTaskChunkOps) return false;
             exec_batch<IofusedPrivateQueue>(batch, held);
             held = 0;
@@ -1817,10 +1844,12 @@ private:
     template <uint32_t BatchOps = kGenthreadExBatchOps,
               bool IofusedPrivateQueue = false>
     uint32_t drain_tasks(bool unmasked = false) {
-        Task batch[BatchOps];
+        static_assert(std::is_trivially_copyable_v<Task> && std::is_trivially_destructible_v<Task>);
+        alignas(Task) std::byte storage[sizeof(Task) * BatchOps];
+        auto& batch = *reinterpret_cast<Task (*)[BatchOps]>(storage);
         uint32_t held = 0;
         auto take = [&](const Task& t) {
-            batch[held++] = t;
+            std::construct_at(&batch[held++], t);
             if (held == BatchOps) {
                 exec_batch<IofusedPrivateQueue>(batch, held);
                 held = 0;
@@ -2921,6 +2950,7 @@ private:
     uint32_t expire_beat_ms_ = 0; // existing alignment padding before snapshot_epoch_
     uint64_t snapshot_epoch_ = 0;
     bool snapshot_was_cancelled_ = false;
+    uint32_t keyspace_shard_cursor_ = 0; // existing padding before snapshot_prepare_cursor_
     size_t snapshot_prepare_cursor_ = 0;
     size_t snapshot_progress_cursor_ = 0;
     std::vector<uint8_t> snapshot_done_shards_;

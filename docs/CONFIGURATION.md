@@ -187,13 +187,20 @@ work. Neither mode reaps expired-but-resident keys merely to count them.
 
 INFO emits `dbN:keys=K,expires=E,avg_ttl=T` for each nonempty logical database. `keys` and
 `expires` have the same one-boundary publication lag. `avg_ttl` is a nonnegative
-millisecond estimate: with `databases 1`, at publication the owner samples at most 16 expiry-index
-slots, using a cursor separate from active expiry, then INFO subtracts the current
+millisecond estimate: with `databases 1`, the owner's existing millisecond beat
+inspects at most eight owned shards and samples at most one volatile shard
+(16 expiry-index slots), rotating independently of active expiry. Sampling also
+runs when active expiry is disabled. A parked owner's beat resumes on its existing
+wake or idle timeout; it does not add a timer or keep the owner awake. INFO subtracts the current
 wall clock from that sample's mean deadline. It is zero when no keys have an
 expiry or no sample has been recorded; an empty sample retains the preceding
-estimate. It is an estimate, not an exact average
+estimate. Ordinary batches still publish key/byte/expiry/eviction counts and
+hash-field TTL attention, without advancing the monitoring sample. It is an estimate, not an exact average
 over every deadline; polling INFO visits no objects. All existing structure-size
 locks remain unchanged; each store has a 16-byte cold sampling sidecar.
+The regression fixture averages 128 successive sample windows and requires that
+average to be within 10% of its known exact TTL mean; this is a fixture tolerance,
+not an accuracy guarantee for an individual 16-slot estimate.
 
 With `databases > 1`, each shard has 256 owner-private physical-namespace rows
 and separate published key/expiry pairs and mean deadlines. Key and deadline

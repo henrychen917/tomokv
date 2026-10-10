@@ -22,7 +22,7 @@ void Shard::publish_size() noexcept {
     const auto expires = store_.expire_count();
     if (published_expires_.load(std::memory_order_relaxed) != expires)
         published_expires_.store(expires, std::memory_order_relaxed);
-    if constexpr (kSingleDatabase) store_.publish_keyspace_sample();
+    if constexpr (kSingleDatabase) store_.publish_field_ttl_attention();
     if constexpr (!kSingleDatabase) store_.publish_database_counts();
     const auto evicted = stats_.evicted;
     if (published_evicted_.load(std::memory_order_relaxed) != evicted)
@@ -33,7 +33,7 @@ legacy:
     published_size_.store(store_.size(), std::memory_order_relaxed);
     published_obj_bytes_.store(store_.object_bytes(), std::memory_order_relaxed);
     published_expires_.store(store_.expire_count(), std::memory_order_relaxed);
-    if constexpr (kSingleDatabase) store_.publish_keyspace_sample();
+    if constexpr (kSingleDatabase) store_.publish_field_ttl_attention();
     if constexpr (!kSingleDatabase) store_.publish_database_counts();
     published_evicted_.store(stats_.evicted, std::memory_order_relaxed);
 }
@@ -67,7 +67,6 @@ void ExpireIndex::sample_readonly(uint64_t& cursor, uint32_t budget, Fn&& fn) co
 
 void FlatStore::publish_keyspace_sample() const noexcept {
     auto* storesize_ = storesize_state();
-    publish_field_ttl_attention();
     if (!expire_count()) return;
     unsigned __int128 sum = 0;
     uint32_t count = 0;
