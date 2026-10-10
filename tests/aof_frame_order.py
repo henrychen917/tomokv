@@ -37,6 +37,7 @@ import _lib  # noqa: E402
 # channel and block until the writer resumes. No timing delay stands in for that observation.
 LARGE_BYTES = 272 * 64 * 1024
 DEADLINE_S = 60.0
+EXPECTED_ENGINE = "epoll"
 
 # A cross-owner script write is the group source: it produces a GCMT under --atomic 0 as well as
 # --atomic 1, where a cross-shard MSET produces one only under --atomic 1.
@@ -112,7 +113,7 @@ def assert_surface(client):
     if client.cmd("CONFIG", "GET", "enable-debug-command") not in (
             [b"enable-debug-command", b"yes"], [b"enable-debug-command", b"local"]):
         raise AssertionError("aof_frame_order needs DEBUG SHARD to place keys")
-    for name, value in (("appendfsync", "no"), ("net-io", "epoll"),
+    for name, value in (("appendfsync", "no"), ("net-io", EXPECTED_ENGINE),
                         ("auto-aof-rewrite-percentage", "0"), ("aof-timestamp-enabled", "no"),
                         ("key-lb", "0"), ("client-lb", "0"), ("flip-auto", "0")):
         if client.cmd("CONFIG", "GET", name) != [name.encode(), value.encode()]:
@@ -370,6 +371,12 @@ def run(control, writer, writer_tid, pair, aof_dir):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        raise SystemExit("usage: tests/aof_frame_order.py HOST PORT AOF_DIR")
-    main(sys.argv[1], int(sys.argv[2]), sys.argv[3])
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("host")
+    parser.add_argument("port", type=int)
+    parser.add_argument("aof_dir")
+    parser.add_argument("--engine", choices=("epoll", "uring"), default="epoll")
+    args = parser.parse_args()
+    EXPECTED_ENGINE = args.engine
+    main(args.host, args.port, args.aof_dir)

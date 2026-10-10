@@ -1,0 +1,16 @@
+[
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tools/lbstall_artifacts.py",
+      "compare",
+      "build/aoffix2/pre",
+      "build",
+      "docs/aoffix2/identity-final/hot.json"
+    ],
+    "rc": 0
+  }
+]

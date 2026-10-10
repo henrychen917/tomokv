@@ -1,0 +1,36 @@
+[
+  {
+    "stage": "rows",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tools/aoffix2_proof.py",
+      "rows",
+      "--output",
+      "docs/aoffix2/post-final-rows"
+    ],
+    "rc": 1,
+    "seconds": 126.73210045415908,
+    "load_before": "58.36 97.39 107.54 69/4218 757911",
+    "load_after": "71.87 89.20 103.23 61/3690 856427"
+  },
+  {
+    "stage": "batteries",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tools/aoffix2_proof.py",
+      "batteries",
+      "--output",
+      "docs/aoffix2/batteries"
+    ],
+    "rc": 1,
+    "seconds": 206.6866049990058,
+    "load_before": "71.87 89.20 103.23 62/3691 856428",
+    "load_after": "81.76 83.76 98.06 87/4246 1094076"
+  }
+]

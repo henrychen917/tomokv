@@ -1,0 +1,49 @@
+[
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "bash",
+      "-n",
+      "tests/gate.sh"
+    ],
+    "rc": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "-m",
+      "py_compile",
+      "tests/aoffix2.py",
+      "tools/aoffix2_proof.py",
+      "tools/aoffix2_pad.py",
+      "tools/aoffix2_report.py"
+    ],
+    "rc": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/gate_ledger_fixture.py"
+    ],
+    "rc": 1
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "git",
+      "diff",
+      "--check"
+    ],
+    "rc": 0
+  }
+]

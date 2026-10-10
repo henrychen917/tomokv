@@ -1,0 +1,10 @@
+DIFFER FOCUSED PROOF: selected suites only; not a full differential matrix
+DIFFER suites (4): psfix multi xshard servertail
+DIFFER geometry: split (--ratio 6:2)
+DIFFER matrix: atomic={0 1} seeds={7 19 20 23} legs=32 logs=/home/user/Projects/cx-aoffix2/build/aoffix2/differ/split
+  vanilla Redis oracle boot                                  ok (pid=1095645 port=25005)
+  oracle identity                                            ok (vanilla redis_version=7.4.10)
+  target atomic=0 boot                                       ok (pid=1096213 port=25004)
+  differ psfix (atomic=0 seed=7)                             ok (DIFFER psfix: 27 exact/property checks, 0 diffs -> PASS)
+  differ multi (atomic=0 seed=7)                             ok (DIFFER multi: 4275 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)
+  differ xshard (atomic=0 seed=7)                            ok (DIFFER xshard: 4276 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)

@@ -127,12 +127,15 @@ def batteries():
                         continue  # This existing battery requires --atomic 1.
                     prefix = f'{geometry}-{atomic}-{name}'
                     def chain():
+                        # Match job_aof defaults; only the directed frame-order
+                        # battery purpose-boots stable ownership and placement.
+                        options = opt + ([] if name == 'frame' else ['--key-lb', '1', '--client-lb', '1'])
                         data = h.ARGS.artifacts / f'{name}-{atomic}'
-                        state = h.ARGS.artifacts / f'{name}-{atomic}.json'
+                        state = data / 'state.json'
                         def live(script, phase_args, suffix):
                             run(prefix + '-' + suffix, ['python3', 'tests/' + script + '.py',
                                 '127.0.0.1', '25003', *phase_args], timeout=120)
-                        with h.Server(opt, data=data) as s:
+                        with h.Server(options, data=data) as s:
                             assert s.ready, s.logpath
                             if name == 'aof':
                                 live('aof', ['populate', state], 'populate')
@@ -150,8 +153,8 @@ def batteries():
                                 s.p.wait(timeout=10)
                                 assert s.p.returncode == -signal.SIGKILL
                             else:
-                                live('aof_frame_order', [data / 'appendonlydir'], 'run')
-                        with h.Server(opt, data=data) as s:
+                                live('aof_frame_order', [data / 'appendonlydir', '--engine', engine], 'run')
+                        with h.Server(options, data=data) as s:
                             assert s.ready, s.logpath
                             if name == 'aof':
                                 live('aof', ['verify', state], 'verify')
@@ -173,7 +176,7 @@ def batteries():
                 def chain():
                     state = h.ARGS.artifacts / f'fsync-{policy}.json'
                     data = h.ARGS.artifacts / f'fsync-{policy}'
-                    opt = h.aof(policy) + ['--atomic', '1']
+                    opt = h.aof(policy) + ['--atomic', '1', '--key-lb', '1', '--client-lb', '1']
                     with h.Server(opt, data=data) as s:
                         run(prefix + '-populate', ['python3', 'tests/aof_fsync.py', '127.0.0.1',
                             '25003', 'populate', state, policy, '512'], timeout=120)
