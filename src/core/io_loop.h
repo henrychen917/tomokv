@@ -1775,9 +1775,11 @@ private:
     // skips its RMW when it still sees its bit, so a consumer can take that bit before the
     // producer's item is visible; the item is then reachable only unmasked. The FLIP stages wait
     // on exactly these inboxes (connection transfers; client/pub-sub markers): a stranded entry
-    // held ClientInstall forever in a POST epoll stress run. Drain them unmasked while live.
+    // held ClientInstall forever in a POST epoll stress run. Drain them unmasked while live. Not
+    // `cold` (that would mark the rest of the live pass cold and re-plan its inlining); `noipa`
+    // keeps this call opaque so it does not perturb the surrounding units' IPA decisions.
     template <bool kEp>
-    __attribute__((noinline, cold)) uint32_t flip_sweep_inbound() {
+    __attribute__((noinline, noipa)) uint32_t flip_sweep_inbound() {
         uint32_t work = drain_client_transfers<kEp>(true);
         if (unix_listen_fd_ >= 0 || (srv_->cfg().unixsocket && *srv_->cfg().unixsocket))
             work += collect_retire_work<true, kEp>(true);   // run_split's HasUnix selection
