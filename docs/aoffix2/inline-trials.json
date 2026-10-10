@@ -1,0 +1,180 @@
+[
+  {
+    "ns": "tomo",
+    "budget": 34400,
+    "hot": 9,
+    "diffs": []
+  },
+  {
+    "ns": "tomo",
+    "budget": 35200,
+    "hot": 9,
+    "diffs": [
+      {
+        "name": "tomo::FlatStore::erase(unsigned long, tomo::Slice)",
+        "pre_size": 819,
+        "post_size": 1320
+      }
+    ]
+  },
+  {
+    "ns": "tomo",
+    "budget": 36000,
+    "hot": 9,
+    "diffs": [
+      {
+        "name": "tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const",
+        "pre_size": 346,
+        "post_size": 540
+      },
+      {
+        "name": "tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)",
+        "pre_size": 538,
+        "post_size": 575
+      },
+      {
+        "name": "tomo::FlatStore::erase(unsigned long, tomo::Slice)",
+        "pre_size": 819,
+        "post_size": 1320
+      },
+      {
+        "name": "tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)",
+        "pre_size": 1511,
+        "post_size": 1527
+      }
+    ]
+  },
+  {
+    "ns": "tomo",
+    "budget": 36800,
+    "hot": 9,
+    "diffs": [
+      {
+        "name": "tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const",
+        "pre_size": 346,
+        "post_size": 540
+      },
+      {
+        "name": "tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)",
+        "pre_size": 538,
+        "post_size": 912
+      },
+      {
+        "name": "tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)",
+        "pre_size": 580,
+        "post_size": 621
+      },
+      {
+        "name": "tomo::FlatStore::erase(unsigned long, tomo::Slice)",
+        "pre_size": 819,
+        "post_size": 1399
+      },
+      {
+        "name": "tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)",
+        "pre_size": 1511,
+        "post_size": 1527
+      }
+    ]
+  },
+  {
+    "ns": "db0",
+    "budget": 34400,
+    "hot": 9,
+    "diffs": [
+      {
+        "name": "tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)",
+        "pre_size": 543,
+        "post_size": 479
+      }
+    ]
+  },
+  {
+    "ns": "db0",
+    "budget": 35200,
+    "hot": 9,
+    "diffs": [
+      {
+        "name": "tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)",
+        "pre_size": 1271,
+        "post_size": 1298
+      }
+    ]
+  },
+  {
+    "ns": "db0",
+    "budget": 36000,
+    "hot": 9,
+    "diffs": [
+      {
+        "name": "tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)",
+        "pre_size": 1592,
+        "post_size": 1557
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)",
+        "pre_size": 1271,
+        "post_size": 1361
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert_read_local(unsigned long, tomo_db0::KvObj*)",
+        "pre_size": 1274,
+        "post_size": 1287
+      },
+      {
+        "name": "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)",
+        "pre_size": 697,
+        "post_size": 1118
+      }
+    ]
+  },
+  {
+    "ns": "db0",
+    "budget": 36800,
+    "hot": 9,
+    "diffs": [
+      {
+        "name": "tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)",
+        "pre_size": 606,
+        "post_size": 647
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)",
+        "pre_size": 1592,
+        "post_size": 1682
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)",
+        "pre_size": 1271,
+        "post_size": 1361
+      },
+      {
+        "name": "tomo_db0::FlatStore::insert_read_local(unsigned long, tomo_db0::KvObj*)",
+        "pre_size": 1274,
+        "post_size": 1287
+      },
+      {
+        "name": "tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)",
+        "pre_size": 697,
+        "post_size": 1118
+      }
+    ]
+  },
+  {
+    "ns": "db0",
+    "budget": 34600,
+    "hot": 9,
+    "diffs": []
+  },
+  {
+    "ns": "db0",
+    "budget": 34800,
+    "hot": 9,
+    "diffs": []
+  },
+  {
+    "ns": "db0",
+    "budget": 35000,
+    "hot": 9,
+    "diffs": []
+  }
+]

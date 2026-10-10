@@ -1,0 +1,59 @@
+{
+  "note": "Self-test replaces job_body with a serverless stub, so new rows inside job_aof are never invoked. Actual scheduler execution, collectors, helpers and test code are unchanged.",
+  "checks": [
+    {
+      "section": "quick collectors",
+      "identical": true,
+      "sha256": "e306355953fb01db1c8b265c3b5fdfdb3444b3e8b6ca0b84f13b75dd43bffc37",
+      "bytes": 5305
+    },
+    {
+      "section": "full collectors",
+      "identical": true,
+      "sha256": "1cc52b6e1c2fd554bdf9a57f81735670c78c736a005f6d5dc4c6dc938f746108",
+      "bytes": 1272
+    },
+    {
+      "section": "ledger functions",
+      "identical": true,
+      "sha256": "4fd8cddd4e506c89d0126eaad2515b83be4a1ac32e44f4045be008e1567908eb",
+      "bytes": 10838
+    },
+    {
+      "section": "placement",
+      "identical": true,
+      "sha256": "b66387e9b4af5c701d27c930d21da49886c326106217f182a3a0aa1720b7a202",
+      "bytes": 445
+    },
+    {
+      "section": "scheduler execution",
+      "identical": true,
+      "sha256": "33291fe1a7677bc79428c65ab85dbf1e62b0957aad819260951c14d9dacb4d27",
+      "bytes": 20631
+    },
+    {
+      "file": "tests/gates_test.py",
+      "identical": true,
+      "sha256": "cd85a95e6ca78e03147a7fb94d4bc677b5c4c581e4c4fec8337299a20474b03e",
+      "bytes": 109055
+    },
+    {
+      "file": "tests/gate_subset.sh",
+      "identical": true,
+      "sha256": "88406335af97b13e383b31f4d25ce04cb625e1b105b3c2686cbadff46d5887d6",
+      "bytes": 2646
+    },
+    {
+      "file": "tests/gate_subset_test.py",
+      "identical": true,
+      "sha256": "e96a889c1a515313b908e317b82697eab55d7c6e53dc58bfa4fae6a732c09041",
+      "bytes": 4284
+    },
+    {
+      "file": "tests/gate_history.py",
+      "identical": true,
+      "sha256": "70cc58ba1032b4d3b366215097e2fc54b972a2442f2a38e92692f6d63d0a5ea4",
+      "bytes": 97652
+    }
+  ]
+}

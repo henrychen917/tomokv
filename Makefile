@@ -121,6 +121,10 @@ $(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growt
 # SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
 $(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31629 --param max-inline-insns-auto=16
+# PS4 AOF recovery adds cold code. Preserve 5146b78ee storage helper bodies
+# in both namespaces; the aoffix2 hot-body audit checks these compiler budgets.
+$(BUILD_ROOT)/src/persist/aof.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34400
+$(BUILD_ROOT)/db0/src/persist/aof.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34800
 # SV9 publishes save status only on cold completion/abort edges.
 $(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14584
 $(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14457

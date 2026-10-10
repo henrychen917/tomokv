@@ -285,8 +285,11 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # eight rows collected above the quick-tier exit (+8 quick, +8 full).
 # overlapaxe: retire only split-overlap WB row, collected before quick exit (-1/-1).
 # Matrix client-lb dimension preserves every former split correctness scenario.
-EXPECT_QUICK=511
-EXPECT_FULL=528                 # ABBA reports only; self-test remains counted.
+# aoffix2: job_aof adds 44 rows before the quick exit: 8 cases x 2 modes x 2
+# engines + 2 fsync policies x 2 modes x 2 engines + 4 fused large-value rows.
+# Maintainer action: DQ=+44, DF=+44; 511+44=555 quick, 528+44=572 full.
+EXPECT_QUICK=555
+EXPECT_FULL=572                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -2651,6 +2654,51 @@ AOF_OFF_SIZE=$(redis-cli -h 127.0.0.1 -p $PORT DBSIZE 2>/dev/null | tr -d '\r')
 [ "$AOF_OFF_SIZE" = 0 ] && [ ! -e "$AOF_OFF_DIR/appendonlydir" ] \
     && ok "AOF-off negative control lost data" || bad "AOF-off negative control"
 stop
+
+# All child boots below own the job's PORT only after the historical AOF server
+# is reaped. Keeping these in job_aof also serializes its persistence row timings.
+for AOFFIX_MODE in 1s 2s; do
+  for AOFFIX_CASE in snapshot filename error tickets exec_tickets resurrection rewrite_fail2 manifest_missing; do
+    row_begin "aoffix2 $AOFFIX_CASE ($AOFFIX_MODE, $NET_IO)"
+    quiet_wait
+    if python3 tests/aoffix2.py "$AOFFIX_CASE" --binary "$CANDIDATE_BINARY" \
+        --mode "$AOFFIX_MODE" --engine "$NET_IO" --cores "$CORES" --ratio "$GATE_RATIO" \
+        --port "$PORT" --artifacts "$TMPDIR/aoffix2-$AOFFIX_CASE-$AOFFIX_MODE-$NET_IO" \
+        >"$TMPDIR/aoffix2-$AOFFIX_CASE-$AOFFIX_MODE-$NET_IO.log" 2>&1; then
+      ok "aoffix2 $AOFFIX_CASE ($AOFFIX_MODE, $NET_IO)"
+    else
+      bad "aoffix2 $AOFFIX_CASE ($AOFFIX_MODE, $NET_IO)" \
+          "see $TMPDIR/aoffix2-$AOFFIX_CASE-$AOFFIX_MODE-$NET_IO.log"
+    fi
+  done
+  for AOFFIX_POLICY in everysec always; do
+    row_begin "aoffix2 off-writer acknowledgement $AOFFIX_POLICY ($AOFFIX_MODE, $NET_IO)"
+    quiet_wait
+    if python3 tests/aoffix2.py latency --binary "$CANDIDATE_BINARY" \
+        --mode "$AOFFIX_MODE" --engine "$NET_IO" --policy "$AOFFIX_POLICY" \
+        --cores "$CORES" --ratio "$GATE_RATIO" --port "$PORT" \
+        --artifacts "$TMPDIR/aoffix2-latency-$AOFFIX_POLICY-$AOFFIX_MODE-$NET_IO" \
+        >"$TMPDIR/aoffix2-latency-$AOFFIX_POLICY-$AOFFIX_MODE-$NET_IO.log" 2>&1; then
+      ok "aoffix2 off-writer acknowledgement $AOFFIX_POLICY ($AOFFIX_MODE, $NET_IO)"
+    else
+      bad "aoffix2 off-writer acknowledgement $AOFFIX_POLICY ($AOFFIX_MODE, $NET_IO)" \
+          "see $TMPDIR/aoffix2-latency-$AOFFIX_POLICY-$AOFFIX_MODE-$NET_IO.log"
+    fi
+  done
+done
+for AOFFIX_LARGE_CASE in large large_placed; do
+row_begin "aoffix2 $AOFFIX_LARGE_CASE (1s, $NET_IO)"
+quiet_wait
+if python3 tests/aoffix2.py "$AOFFIX_LARGE_CASE" --binary "$CANDIDATE_BINARY" \
+    --mode 1s --engine "$NET_IO" --cores "$CORES" --port "$PORT" \
+    --artifacts "$TMPDIR/aoffix2-$AOFFIX_LARGE_CASE-$NET_IO" \
+    >"$TMPDIR/aoffix2-$AOFFIX_LARGE_CASE-$NET_IO.log" 2>&1; then
+  ok "aoffix2 $AOFFIX_LARGE_CASE (1s, $NET_IO)"
+else
+  bad "aoffix2 $AOFFIX_LARGE_CASE (1s, $NET_IO)" \
+      "see $TMPDIR/aoffix2-$AOFFIX_LARGE_CASE-$NET_IO.log"
+fi
+done
 }
 
 job_aof_frame(){

@@ -1,0 +1,32 @@
+[
+  {
+    "label": "latency-always-2s-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aoffix2.py",
+      "latency",
+      "--binary",
+      "build/tomokv",
+      "--mode",
+      "2s",
+      "--engine",
+      "uring",
+      "--policy",
+      "always",
+      "--cores",
+      "112-119",
+      "--port",
+      "25000",
+      "--artifacts",
+      "build/aoffix2/post-recheck/latency-always-2s-uring"
+    ],
+    "rc": 0,
+    "seconds": 0.8242521570064127,
+    "load_before": "33.03 43.22 67.16 31/3453 1631181",
+    "load_after": "33.03 43.22 67.16 26/3441 1631213",
+    "reason": "Fresh strict rerun after all own compiles completed; threshold and sample count unchanged"
+  }
+]

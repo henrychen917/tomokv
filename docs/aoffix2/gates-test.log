@@ -1,0 +1,1276 @@
+.............................test_banner_without_owned_listener_is_not_ready (persistfix.self_test.<locals>.IdentityTests.test_banner_without_owned_listener_is_not_ready) ... ok
+test_both_boots_guard_and_record_distinct_identities (persistfix.self_test.<locals>.IdentityTests.test_both_boots_guard_and_record_distinct_identities) ... ok
+test_empty_and_wrong_logs_never_probe (persistfix.self_test.<locals>.IdentityTests.test_empty_and_wrong_logs_never_probe) ... ok
+test_exercise_wraps_boot_get_and_report_failures (persistfix.self_test.<locals>.IdentityTests.test_exercise_wraps_boot_get_and_report_failures) ... ok
+test_foreign_arrival_after_handshake_is_fatal (persistfix.self_test.<locals>.IdentityTests.test_foreign_arrival_after_handshake_is_fatal) ... ok
+test_foreign_info_is_fatal_without_ping_or_retry (persistfix.self_test.<locals>.IdentityTests.test_foreign_info_is_fatal_without_ping_or_retry) ... ok
+test_foreign_listener_fails_before_connection (persistfix.self_test.<locals>.IdentityTests.test_foreign_listener_fails_before_connection) ... ok
+test_half_open_and_reset_probes_never_count_as_ready (persistfix.self_test.<locals>.IdentityTests.test_half_open_and_reset_probes_never_count_as_ready) ... ok
+test_live_assertion_and_reaped_report_failures_keep_original_reason (persistfix.self_test.<locals>.IdentityTests.test_live_assertion_and_reaped_report_failures_keep_original_reason) ... ok
+test_missing_identity_and_bad_ping_fail (persistfix.self_test.<locals>.IdentityTests.test_missing_identity_and_bad_ping_fail) ... ok
+test_own_banner_and_info_ping_keep_the_same_connection (persistfix.self_test.<locals>.IdentityTests.test_own_banner_and_info_ping_keep_the_same_connection) ... ok
+test_preflight_foreign_owner_never_spawns_at_either_boot (persistfix.self_test.<locals>.IdentityTests.test_preflight_foreign_owner_never_spawns_at_either_boot) ... ok
+test_real_socket_owner_reports_pid_cmdline_and_refuses_boot (persistfix.self_test.<locals>.IdentityTests.test_real_socket_owner_reports_pid_cmdline_and_refuses_boot) ... ok
+test_reload_crashes_show_status_and_tail_even_when_exit_is_delayed (persistfix.self_test.<locals>.IdentityTests.test_reload_crashes_show_status_and_tail_even_when_exit_is_delayed) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.561s
+
+OK
+............FFF.F.FFFF.FFF............
+======================================================================
+FAIL: test_empty_fragment_and_explicit_failure_cannot_turn_green (__main__.SchedulerWiring.test_empty_fragment_and_explicit_failure_cannot_turn_green) (behavior='empty')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1298, in test_empty_fragment_and_explicit_failure_cannot_turn_green
+    result = self.run_scheduler(failure='flipctl', behavior=behavior)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 908, in run_scheduler
+    return copy.deepcopy(prepared.result() if prepared is not None else self.prepare_fixture(options))
+                         ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 902, in prepare_fixture
+    return self._run_scheduler(_cpus=cpus, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1153, in _run_scheduler
+    self.assertEqual(result.returncode, 0, output)
+AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release
+  correctness family release                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family asan
+  correctness family asan                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family config_unit
+  correctness family config_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip_unit
+  correctness family flip_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family filter_unit
+  correctness family filter_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family ring_unit
+  correctness family ring_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family climonfix
+  correctness family climonfix                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lbplanner_units
+  correctness family lbplanner_units                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_units
+  correctness family exbatch_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_live
+  correctness family exbatch_live                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family persistfix_units
+  correctness family persistfix_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family core_units
+  correctness family core_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_rule_units
+  correctness family wb_rule_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wbland_units
+  correctness family wbland_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_sync
+  correctness family reorder_sync                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_engagement
+  correctness family reorder_engagement                ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_identity
+  correctness family reorder_identity                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_policy
+  correctness family wb_policy                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-1s
+  correctness family lb-stationary-1s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-2s
+  correctness family lb-stationary-2s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-1s
+  correctness family netio-1s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-2s
+  correctness family netio-2s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family splitlocal_units
+  correctness family splitlocal_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family storage_units
+  correctness family storage_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family atomic_units
+  correctness family atomic_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcmd_units
+  correctness family netcmd_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcap
+  correctness family netcap                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family respcompat
+  correctness family respcompat                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family acl_metadata
+  correctness family acl_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family boot_grammar
+  correctness family boot_grammar                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family cmd_metadata
+  correctness family cmd_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wait_units
+  correctness family wait_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family readonly
+  correctness family readonly                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family release_batteries
+  correctness family release_batteries                 ok
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+
+Scheduler failure artifacts: /home/user/Projects/cx-aoffix2/build/scheduler-failure-r1eqsw7r
+
+
+======================================================================
+FAIL: test_empty_fragment_and_explicit_failure_cannot_turn_green (__main__.SchedulerWiring.test_empty_fragment_and_explicit_failure_cannot_turn_green) (behavior='red')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1298, in test_empty_fragment_and_explicit_failure_cannot_turn_green
+    result = self.run_scheduler(failure='flipctl', behavior=behavior)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 908, in run_scheduler
+    return copy.deepcopy(prepared.result() if prepared is not None else self.prepare_fixture(options))
+                         ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 902, in prepare_fixture
+    return self._run_scheduler(_cpus=cpus, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1153, in _run_scheduler
+    self.assertEqual(result.returncode, 0, output)
+AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release
+  correctness family release                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family asan
+  correctness family asan                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family config_unit
+  correctness family config_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip_unit
+  correctness family flip_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family filter_unit
+  correctness family filter_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family ring_unit
+  correctness family ring_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family climonfix
+  correctness family climonfix                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lbplanner_units
+  correctness family lbplanner_units                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_units
+  correctness family exbatch_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_live
+  correctness family exbatch_live                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family persistfix_units
+  correctness family persistfix_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family core_units
+  correctness family core_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_rule_units
+  correctness family wb_rule_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wbland_units
+  correctness family wbland_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_sync
+  correctness family reorder_sync                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_engagement
+  correctness family reorder_engagement                ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_identity
+  correctness family reorder_identity                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_policy
+  correctness family wb_policy                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-1s
+  correctness family lb-stationary-1s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-2s
+  correctness family lb-stationary-2s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-1s
+  correctness family netio-1s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-2s
+  correctness family netio-2s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family splitlocal_units
+  correctness family splitlocal_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family storage_units
+  correctness family storage_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family atomic_units
+  correctness family atomic_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcmd_units
+  correctness family netcmd_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcap
+  correctness family netcap                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family respcompat
+  correctness family respcompat                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family acl_metadata
+  correctness family acl_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family boot_grammar
+  correctness family boot_grammar                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family cmd_metadata
+  correctness family cmd_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wait_units
+  correctness family wait_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family readonly
+  correctness family readonly                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family release_batteries
+  correctness family release_batteries                 ok
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+
+Scheduler failure artifacts: /home/user/Projects/cx-aoffix2/build/scheduler-failure-q3u8a6jq
+
+
+======================================================================
+FAIL: test_failed_prerequisite_cannot_leave_the_queue_waiting_forever (__main__.SchedulerWiring.test_failed_prerequisite_cannot_leave_the_queue_waiting_forever)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1368, in test_failed_prerequisite_cannot_leave_the_queue_waiting_forever
+    result = self.run_scheduler(slots=2, ordered=False, failure='release', behavior='crash')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 908, in run_scheduler
+    return copy.deepcopy(prepared.result() if prepared is not None else self.prepare_fixture(options))
+                         ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 902, in prepare_fixture
+    return self._run_scheduler(_cpus=cpus, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1153, in _run_scheduler
+    self.assertEqual(result.returncode, 0, output)
+AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release
+  correctness family release                           FAIL (family exited 17 before this row produced a verdict)
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family asan
+  correctness family asan                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family config_unit
+  correctness family config_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip_unit
+  correctness family flip_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family filter_unit
+  correctness family filter_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family ring_unit
+  correctness family ring_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family climonfix
+  correctness family climonfix                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lbplanner_units
+  correctness family lbplanner_units                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_units
+  correctness family exbatch_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_live
+  correctness family exbatch_live                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family persistfix_units
+  correctness family persistfix_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family core_units
+  correctness family core_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_rule_units
+  correctness family wb_rule_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wbland_units
+  correctness family wbland_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_sync
+  correctness family reorder_sync                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_engagement
+  correctness family reorder_engagement                ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_identity
+  correctness family reorder_identity                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_policy
+  correctness family wb_policy                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-1s
+  correctness family lb-stationary-1s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-2s
+  correctness family lb-stationary-2s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-1s
+  correctness family netio-1s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-2s
+  correctness family netio-2s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family splitlocal_units
+  correctness family splitlocal_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family storage_units
+  correctness family storage_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family atomic_units
+  correctness family atomic_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcmd_units
+  correctness family netcmd_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcap
+  correctness family netcap                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family respcompat
+  correctness family respcompat                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family acl_metadata
+  correctness family acl_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family boot_grammar
+  correctness family boot_grammar                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family cmd_metadata
+  correctness family cmd_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wait_units
+  correctness family wait_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family readonly
+  correctness family readonly                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family release_batteries
+  correctness family release_batteries                 ok
+
+Scheduler failure artifacts: /home/user/Projects/cx-aoffix2/build/scheduler-failure-edq509v8
+
+
+======================================================================
+FAIL: test_large_gate_script_avoids_single_argument_limit (__main__.SchedulerWiring.test_large_gate_script_avoids_single_argument_limit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1241, in test_large_gate_script_avoids_single_argument_limit
+    result = self.run_scheduler(_gate_path=gate_path, slots=3, ordered=False)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 908, in run_scheduler
+    return copy.deepcopy(prepared.result() if prepared is not None else self.prepare_fixture(options))
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 902, in prepare_fixture
+    return self._run_scheduler(_cpus=cpus, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1153, in _run_scheduler
+    self.assertEqual(result.returncode, 0, output)
+AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release
+  correctness family release                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family asan
+  correctness family asan                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family config_unit
+  correctness family config_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip_unit
+  correctness family flip_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family filter_unit
+  correctness family filter_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family ring_unit
+  correctness family ring_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family climonfix
+  correctness family climonfix                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lbplanner_units
+  correctness family lbplanner_units                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_units
+  correctness family exbatch_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_live
+  correctness family exbatch_live                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family persistfix_units
+  correctness family persistfix_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family core_units
+  correctness family core_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_rule_units
+  correctness family wb_rule_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wbland_units
+  correctness family wbland_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_sync
+  correctness family reorder_sync                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_engagement
+  correctness family reorder_engagement                ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_identity
+  correctness family reorder_identity                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_policy
+  correctness family wb_policy                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-1s
+  correctness family lb-stationary-1s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-2s
+  correctness family lb-stationary-2s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-1s
+  correctness family netio-1s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-2s
+  correctness family netio-2s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family splitlocal_units
+  correctness family splitlocal_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family storage_units
+  correctness family storage_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family atomic_units
+  correctness family atomic_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcmd_units
+  correctness family netcmd_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcap
+  correctness family netcap                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family respcompat
+  correctness family respcompat                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family acl_metadata
+  correctness family acl_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family boot_grammar
+  correctness family boot_grammar                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family cmd_metadata
+  correctness family cmd_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wait_units
+  correctness family wait_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family readonly
+  correctness family readonly                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family release_batteries
+  correctness family release_batteries                 ok
+
+Scheduler failure artifacts: /home/user/Projects/cx-aoffix2/build/scheduler-failure-tevp6l6d
+
+
+======================================================================
+FAIL: test_missing_helper_witness_stays_red_and_keeps_its_explanation (__main__.SchedulerWiring.test_missing_helper_witness_stays_red_and_keeps_its_explanation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1269, in test_missing_helper_witness_stays_red_and_keeps_its_explanation
+    self.assertIn('core_tsan_build', message)
+AssertionError: 'core_tsan_build' not found in '124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release\n  correctness family release                           ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family asan\n  correctness family asan                              ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family config_unit\n  correctness family config_unit                       ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip_unit\n  correctness family flip_unit                         ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family filter_unit\n  correctness family filter_unit                       ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family ring_unit\n  correctness family ring_unit                         ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family climonfix\n  correctness family climonfix                         ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family lbplanner_units\n  correctness family lbplanner_units                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_units\n  correctness family exbatch_units                     ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_live\n  correctness family exbatch_live                      ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family persistfix_units\n  correctness family persistfix_units                  ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family core_units\n  correctness family core_units                        ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_rule_units\n  correctness family wb_rule_units                     ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family wbland_units\n  correctness family wbland_units                      ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_sync\n  correctness family reorder_sync                      ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_engagement\n  correctness family reorder_engagement                ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_identity\n  correctness family reorder_identity                  ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_policy\n  correctness family wb_policy                         ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-1s\n  correctness family lb-stationary-1s                  ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-2s\n  correctness family lb-stationary-2s                  ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-1s\n  correctness family netio-1s                          ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-2s\n  correctness family netio-2s                          ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family splitlocal_units\n  correctness family splitlocal_units                  ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family storage_units\n  correctness family storage_units                     ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family atomic_units\n  correctness family atomic_units                      ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcmd_units\n  correctness family netcmd_units                      ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcap\n  correctness family netcap                            ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family respcompat\n  correctness family respcompat                        ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family acl_metadata\n  correctness family acl_metadata                      ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family boot_grammar\n  correctness family boot_grammar                      ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family cmd_metadata\n  correctness family cmd_metadata                      ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family wait_units\n  correctness family wait_units                        ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family readonly\n  correctness family readonly                          ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family release_batteries\n  correctness family release_batteries                 ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family atomic_batteries\n  correctness family atomic_batteries                  ok\n  row budget: 900s; median=-s; no-history-conservative-default; s6 battery (atomic 0)\n  s6 battery (atomic 0)                                ok\n  row budget: 900s; median=-s; no-history-conservative-default; s6 battery (atomic 1)\n  s6 battery (atomic 1)                                ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family fused-0\n  correctness family fused-0                           ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family fused-1\n  correctness family fused-1                           ok\n  row budget: 900s; median=-s; no-history-conservative-default; fused+armed boot line (atomic 0)\n  fused+armed boot line (atomic 0)                     ok\n  row budget: 900s; median=-s; no-history-conservative-default; fused+armed boot line (atomic 1)\n  fused+armed boot line (atomic 1)                     ok\n  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (split, atomic 0)\n  eviction lfu battery (split, atomic 0)               ok\n  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (fused+armed, atomic 0)\n  eviction lfu battery (fused+armed, atomic 0)         ok\n  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (split, atomic 0)\n  eviction lruclock battery (split, atomic 0)          ok\n  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (fused+armed, atomic 0)\n  eviction lruclock battery (fused+armed, atomic 0)    ok\n  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (split, atomic 1)\n  eviction lfu battery (split, atomic 1)               ok\n  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (fused+armed, atomic 1)\n  eviction lfu battery (fused+armed, atomic 1)         ok\n  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (split, atomic 1)\n  eviction lruclock battery (split, atomic 1)          ok\n  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (fused+armed, atomic 1)\n  eviction lruclock battery (fused+armed, atomic 1)    ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family bplus\n  correctness family bplus                             ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family acl_recheck\n  correctness family acl_recheck                       ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family sort\n  correctness family sort                              ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family debug-0\n  correctness family debug-0                           ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family debug-1\n  correctness family debug-1                           ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family script_bounds\n  correctness family script_bounds                     ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family efficiency\n  correctness family efficiency                        ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family dump_restore\n  correctness family dump_restore                      ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family auth\n  correctness family auth                              ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family snapshot-epoll\n  correctness family snapshot-epoll                    ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family snapshot-uring\n  correctness family snapshot-uring                    ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family notify\n  correctness family notify                            ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip\n  correctness family flip                              ok\n  row budget: 900s; median=-s; no-history-conservative-default; flip controller: ramp gate, hold, surge + mix re-maneuvers\n  flip controller: ramp gate, hold, surge + mix re-maneuvers ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip_saturated\n  correctness family flip_saturated                    ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family atomic_floor\n  correctness family atomic_floor                      ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family aof-epoll\n  correctness family aof-epoll                         ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family aof-uring\n  correctness family aof-uring                         ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family aof_frame\n  correctness family aof_frame                         ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family tls\n  correctness family tls                               ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-0-0-0\n  feature 1s-0-0-0-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-0-0-1\n  feature 1s-0-0-0-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-0-1-0\n  feature 1s-0-0-1-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-0-1-1\n  feature 1s-0-0-1-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-1-0-0\n  feature 1s-0-1-0-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-1-0-1\n  feature 1s-0-1-0-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-1-1-0\n  feature 1s-0-1-1-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-1-1-1\n  feature 1s-0-1-1-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-0-0-0\n  feature 1s-1-0-0-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-0-0-1\n  feature 1s-1-0-0-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-0-1-0\n  feature 1s-1-0-1-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-0-1-1\n  feature 1s-1-0-1-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-1-0-0\n  feature 1s-1-1-0-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-1-0-1\n  feature 1s-1-1-0-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-1-1-0\n  feature 1s-1-1-1-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-1-1-1\n  feature 1s-1-1-1-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-0-0-0\n  feature 2s-0-0-0-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-0-0-1\n  feature 2s-0-0-0-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-0-1-0\n  feature 2s-0-0-1-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-0-1-1\n  feature 2s-0-0-1-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-1-0-0\n  feature 2s-0-1-0-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-1-0-1\n  feature 2s-0-1-0-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-1-1-0\n  feature 2s-0-1-1-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-1-1-1\n  feature 2s-0-1-1-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-0-0-0\n  feature 2s-1-0-0-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-0-0-1\n  feature 2s-1-0-0-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-0-1-0\n  feature 2s-1-0-1-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-0-1-1\n  feature 2s-1-0-1-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-1-0-0\n  feature 2s-1-1-0-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-1-0-1\n  feature 2s-1-1-0-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-1-1-0\n  feature 2s-1-1-1-0                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-1-1-1-1\n  feature 2s-1-1-1-1                                   ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature split-home-min\n  feature split-home-min                               ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature fused-home-max-nopin\n  feature fused-home-max-nopin                         ok\n  row budget: 900s; median=-s; no-history-conservative-default; feature split-shards-auto\n  feature split-shards-auto                            ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family abba_selftest\n  correctness family abba_selftest                     ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family multidb-1s-0-0\n  correctness family multidb-1s-0-0                    ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family multidb-1s-0-1\n  correctness family multidb-1s-0-1                    ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family multidb-1s-1-0\n  correctness family multidb-1s-1-0                    ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family multidb-1s-1-1\n  correctness family multidb-1s-1-1                    ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family multidb-2s-0-0\n  correctness family multidb-2s-0-0                    ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family multidb-2s-0-1\n  correctness family multidb-2s-0-1                    ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family multidb-2s-1-0\n  correctness family multidb-2s-1-0                    ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family multidb-2s-1-1\n  correctness family multidb-2s-1-1                    ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family asan_batteries\n  correctness family asan_batteries                    ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family replyoff\n  correctness family replyoff                          ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family zc\n  correctness family zc                                ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family rldbg\n  correctness family rldbg                             ok\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family rlcache\n  correctness family rlcache                           ok\n  row budget: 900s; median=-s; no-history-conservative-default; Redis 7.4 differential part (split, atomic 0)\n  Redis 7.4 differential part (split, atomic 0)        ok\n  row budget: 900s; median=-s; no-history-conservative-default; Redis 7.4 differential part (split, atomic 1)\n  Redis 7.4 differential part (split, atomic 1)        ok\n  row budget: 900s; median=-s; no-history-conservative-default; mode equivalence part (all execution modes and knobs)\n  mode equivalence part (all execution modes and knobs) ok\n  row budget: 900s; median=-s; no-history-conservative-default; Redis 7.4 differential part (armed fused, atomic 0)\n  Redis 7.4 differential part (armed fused, atomic 0)  ok\n\nScheduler failure artifacts: /home/user/Projects/cx-aoffix2/build/scheduler-failure-0db0q5kb\n'
+
+======================================================================
+FAIL: test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment (__main__.SchedulerWiring.test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1309, in test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment
+    result = self.run_scheduler(failure='flipctl', behavior='return')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 908, in run_scheduler
+    return copy.deepcopy(prepared.result() if prepared is not None else self.prepare_fixture(options))
+                         ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 902, in prepare_fixture
+    return self._run_scheduler(_cpus=cpus, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1153, in _run_scheduler
+    self.assertEqual(result.returncode, 0, output)
+AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release
+  correctness family release                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family asan
+  correctness family asan                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family config_unit
+  correctness family config_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip_unit
+  correctness family flip_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family filter_unit
+  correctness family filter_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family ring_unit
+  correctness family ring_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family climonfix
+  correctness family climonfix                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lbplanner_units
+  correctness family lbplanner_units                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_units
+  correctness family exbatch_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_live
+  correctness family exbatch_live                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family persistfix_units
+  correctness family persistfix_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family core_units
+  correctness family core_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_rule_units
+  correctness family wb_rule_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wbland_units
+  correctness family wbland_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_sync
+  correctness family reorder_sync                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_engagement
+  correctness family reorder_engagement                ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_identity
+  correctness family reorder_identity                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_policy
+  correctness family wb_policy                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-1s
+  correctness family lb-stationary-1s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-2s
+  correctness family lb-stationary-2s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-1s
+  correctness family netio-1s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-2s
+  correctness family netio-2s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family splitlocal_units
+  correctness family splitlocal_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family storage_units
+  correctness family storage_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family atomic_units
+  correctness family atomic_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcmd_units
+  correctness family netcmd_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcap
+  correctness family netcap                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family respcompat
+  correctness family respcompat                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family acl_metadata
+  correctness family acl_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family boot_grammar
+  correctness family boot_grammar                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family cmd_metadata
+  correctness family cmd_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wait_units
+  correctness family wait_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family readonly
+  correctness family readonly                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family release_batteries
+  correctness family release_batteries                 ok
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+
+Scheduler failure artifacts: /home/user/Projects/cx-aoffix2/build/scheduler-failure-v7rcnxtd
+
+
+======================================================================
+FAIL: test_one_slot_uses_the_same_queue_without_losing_coverage (__main__.SchedulerWiring.test_one_slot_uses_the_same_queue_without_losing_coverage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1361, in test_one_slot_uses_the_same_queue_without_losing_coverage
+    result = self.run_scheduler(slots=1)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 908, in run_scheduler
+    return copy.deepcopy(prepared.result() if prepared is not None else self.prepare_fixture(options))
+                         ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 902, in prepare_fixture
+    return self._run_scheduler(_cpus=cpus, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1153, in _run_scheduler
+    self.assertEqual(result.returncode, 0, output)
+AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release
+  correctness family release                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family asan
+  correctness family asan                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family config_unit
+  correctness family config_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip_unit
+  correctness family flip_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family filter_unit
+  correctness family filter_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family ring_unit
+  correctness family ring_unit                         ok
+
+Scheduler failure artifacts: /home/user/Projects/cx-aoffix2/build/scheduler-failure-qrlin4k_
+
+
+======================================================================
+FAIL: test_opposite_completion_orders_have_byte_identical_canonical_ledgers (__main__.SchedulerWiring.test_opposite_completion_orders_have_byte_identical_canonical_ledgers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1282, in test_opposite_completion_orders_have_byte_identical_canonical_ledgers
+    forward = self.run_scheduler()
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 908, in run_scheduler
+    return copy.deepcopy(prepared.result() if prepared is not None else self.prepare_fixture(options))
+                         ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 902, in prepare_fixture
+    return self._run_scheduler(_cpus=cpus, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1153, in _run_scheduler
+    self.assertEqual(result.returncode, 0, output)
+AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release
+  correctness family release                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family asan
+  correctness family asan                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family config_unit
+  correctness family config_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip_unit
+  correctness family flip_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family filter_unit
+  correctness family filter_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family ring_unit
+  correctness family ring_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family climonfix
+  correctness family climonfix                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lbplanner_units
+  correctness family lbplanner_units                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_units
+  correctness family exbatch_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_live
+  correctness family exbatch_live                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family persistfix_units
+  correctness family persistfix_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family core_units
+  correctness family core_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_rule_units
+  correctness family wb_rule_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wbland_units
+  correctness family wbland_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_sync
+  correctness family reorder_sync                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_engagement
+  correctness family reorder_engagement                ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_identity
+  correctness family reorder_identity                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_policy
+  correctness family wb_policy                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-1s
+  correctness family lb-stationary-1s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-2s
+  correctness family lb-stationary-2s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-1s
+  correctness family netio-1s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-2s
+  correctness family netio-2s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family splitlocal_units
+  correctness family splitlocal_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family storage_units
+  correctness family storage_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family atomic_units
+  correctness family atomic_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcmd_units
+  correctness family netcmd_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcap
+  correctness family netcap                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family respcompat
+  correctness family respcompat                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family acl_metadata
+  correctness family acl_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family boot_grammar
+  correctness family boot_grammar                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family cmd_metadata
+  correctness family cmd_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wait_units
+  correctness family wait_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family readonly
+  correctness family readonly                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family release_batteries
+  correctness family release_batteries                 ok
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+
+Scheduler failure artifacts: /home/user/Projects/cx-aoffix2/build/scheduler-failure-jf7_wat8
+
+
+======================================================================
+FAIL: test_release_boots_do_not_wait_for_independent_asan_build (__main__.SchedulerWiring.test_release_boots_do_not_wait_for_independent_asan_build)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1375, in test_release_boots_do_not_wait_for_independent_asan_build
+    result = self.run_scheduler(slots=2, ordered=False, dependency_probe=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 908, in run_scheduler
+    return copy.deepcopy(prepared.result() if prepared is not None else self.prepare_fixture(options))
+                         ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 902, in prepare_fixture
+    return self._run_scheduler(_cpus=cpus, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1153, in _run_scheduler
+    self.assertEqual(result.returncode, 0, output)
+AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release
+  correctness family release                           ok
+/home/user/Projects/cx-aoffix2/build/tmpsgtzcdlm/scheduler.sh: line 463: 4038582 Aborted                 (core dumped) ( local name=$1 slot=$2 started=$EPOCHREALTIME ended rc CLEANUP_OWNER=$BASHPID; WORKER_PIDS=(); SRV=0; GLOBCASE_ORACLE=0; MMPID=0; PAUSABLE_PID=0; PASS=0; FAIL=0; ROW_ID=; ROW_WATCHDOG=0; ROW_EXPIRED=0; export TMPDIR="$RUN_DIR/jobs/$name"; mkdir -p "$TMPDIR"; LEDGER="$TMPDIR/ledger"; TIMINGS="$TMPDIR/timings"; : > "$LEDGER"; : > "$TIMINGS"; trap 'job_finalize "$?" >>"$TMPDIR/output.log" 2>&1' EXIT; trap 'exit 130' INT TERM; set_slot "$slot"; BUILD_CORES="$CORES,$LOAD_CORES"; BUILD_JOBS=$(taskset -c "$BUILD_CORES" nproc); export PARBUILD_JOBS="$BUILD_JOBS"; quiet_wait; started=$(date +%s.%N); ROW_T=$started; job_body "$name" > "$TMPDIR/output.log" 2>&1; rc=$?; exit "$rc" )
+
+Scheduler failure artifacts: /home/user/Projects/cx-aoffix2/build/scheduler-failure-0826ie6h
+
+
+======================================================================
+FAIL: test_removing_atomic_exclusivity_fails_before_its_boot (__main__.SchedulerWiring.test_removing_atomic_exclusivity_fails_before_its_boot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1354, in test_removing_atomic_exclusivity_fails_before_its_boot
+    result = self.run_scheduler(slots=2, ordered=False, remove_atomic_dependency=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 908, in run_scheduler
+    return copy.deepcopy(prepared.result() if prepared is not None else self.prepare_fixture(options))
+                         ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 902, in prepare_fixture
+    return self._run_scheduler(_cpus=cpus, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1153, in _run_scheduler
+    self.assertEqual(result.returncode, 0, output)
+AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release
+  correctness family release                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family asan
+  correctness family asan                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family config_unit
+  correctness family config_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip_unit
+  correctness family flip_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family filter_unit
+  correctness family filter_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family ring_unit
+  correctness family ring_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family climonfix
+  correctness family climonfix                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lbplanner_units
+  correctness family lbplanner_units                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_units
+  correctness family exbatch_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_live
+  correctness family exbatch_live                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family persistfix_units
+  correctness family persistfix_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family core_units
+  correctness family core_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_rule_units
+  correctness family wb_rule_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wbland_units
+  correctness family wbland_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_sync
+  correctness family reorder_sync                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_engagement
+  correctness family reorder_engagement                ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_identity
+  correctness family reorder_identity                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_policy
+  correctness family wb_policy                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-1s
+  correctness family lb-stationary-1s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-2s
+  correctness family lb-stationary-2s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-1s
+  correctness family netio-1s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-2s
+  correctness family netio-2s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family splitlocal_units
+  correctness family splitlocal_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family storage_units
+  correctness family storage_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family atomic_units
+  correctness family atomic_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcmd_units
+  correctness family netcmd_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcap
+  correctness family netcap                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family respcompat
+  correctness family respcompat                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family acl_metadata
+  correctness family acl_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family boot_grammar
+  correctness family boot_grammar                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family cmd_metadata
+  correctness family cmd_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wait_units
+  correctness family wait_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family readonly
+  correctness family readonly                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family release_batteries
+  correctness family release_batteries                 ok
+atomic boot preceded completion of release_batteries
+  correctness family atomic_batteries                  FAIL (worker exited 19 after its rows)
+  row budget: 900s; median=-s; no-history-conservative-default; s6 battery (atomic 0)
+  s6 battery (atomic 0)                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; s6 battery (atomic 1)
+  s6 battery (atomic 1)                                ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family fused-0
+  correctness family fused-0                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family fused-1
+  correctness family fused-1                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed boot line (atomic 0)
+  fused+armed boot line (atomic 0)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; fused+armed boot line (atomic 1)
+  fused+armed boot line (atomic 1)                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (split, atomic 0)
+  eviction lfu battery (split, atomic 0)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (fused+armed, atomic 0)
+  eviction lfu battery (fused+armed, atomic 0)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (split, atomic 0)
+  eviction lruclock battery (split, atomic 0)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (fused+armed, atomic 0)
+  eviction lruclock battery (fused+armed, atomic 0)    ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (split, atomic 1)
+  eviction lfu battery (split, atomic 1)               ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lfu battery (fused+armed, atomic 1)
+  eviction lfu battery (fused+armed, atomic 1)         ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (split, atomic 1)
+  eviction lruclock battery (split, atomic 1)          ok
+  row budget: 900s; median=-s; no-history-conservative-default; eviction lruclock battery (fused+armed, atomic 1)
+  eviction lruclock battery (fused+armed, atomic 1)    ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family bplus
+  correctness family bplus                             ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family acl_recheck
+  correctness family acl_recheck                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family sort
+  correctness family sort                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family debug-0
+  correctness family debug-0                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family debug-1
+  correctness family debug-1                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family script_bounds
+  correctness family script_bounds                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family efficiency
+  correctness family efficiency                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family dump_restore
+  correctness family dump_restore                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family auth
+  correctness family auth                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family snapshot-epoll
+  correctness family snapshot-epoll                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family snapshot-uring
+  correctness family snapshot-uring                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family notify
+  correctness family notify                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip
+  correctness family flip                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; flip controller: ramp gate, hold, surge + mix re-maneuvers
+  flip controller: ramp gate, hold, surge + mix re-maneuvers ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip_saturated
+  correctness family flip_saturated                    ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family atomic_floor
+  correctness family atomic_floor                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family aof-epoll
+  correctness family aof-epoll                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family aof-uring
+  correctness family aof-uring                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family aof_frame
+  correctness family aof_frame                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family tls
+  correctness family tls                               ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-0-0-0
+  feature 1s-0-0-0-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-0-0-1
+  feature 1s-0-0-0-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-0-1-0
+  feature 1s-0-0-1-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-0-1-1
+  feature 1s-0-0-1-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-1-0-0
+  feature 1s-0-1-0-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-1-0-1
+  feature 1s-0-1-0-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-1-1-0
+  feature 1s-0-1-1-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-0-1-1-1
+  feature 1s-0-1-1-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-0-0-0
+  feature 1s-1-0-0-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-0-0-1
+  feature 1s-1-0-0-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-0-1-0
+  feature 1s-1-0-1-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-0-1-1
+  feature 1s-1-0-1-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-1-0-0
+  feature 1s-1-1-0-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-1-0-1
+  feature 1s-1-1-0-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-1-1-0
+  feature 1s-1-1-1-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 1s-1-1-1-1
+  feature 1s-1-1-1-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-0-0-0
+  feature 2s-0-0-0-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-0-0-1
+  feature 2s-0-0-0-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-0-1-0
+  feature 2s-0-0-1-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-0-1-1
+  feature 2s-0-0-1-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-1-0-0
+  feature 2s-0-1-0-0                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-1-0-1
+  feature 2s-0-1-0-1                                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; feature 2s-0-1-1-0
+  feature 2s-0-1-1-0                                   ok
+
+Scheduler failure artifacts: /home/user/Projects/cx-aoffix2/build/scheduler-failure-yi3x9stx
+
+
+======================================================================
+FAIL: test_worker_exit_before_done_is_a_failure (__main__.SchedulerWiring.test_worker_exit_before_done_is_a_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1304, in test_worker_exit_before_done_is_a_failure
+    result = self.run_scheduler(failure=self.canonical[-1], behavior='crash')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 908, in run_scheduler
+    return copy.deepcopy(prepared.result() if prepared is not None else self.prepare_fixture(options))
+                         ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 902, in prepare_fixture
+    return self._run_scheduler(_cpus=cpus, **options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/gates_test.py", line 1153, in _run_scheduler
+    self.assertEqual(result.returncode, 0, output)
+AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release
+  correctness family release                           ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family asan
+  correctness family asan                              ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family config_unit
+  correctness family config_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip_unit
+  correctness family flip_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family filter_unit
+  correctness family filter_unit                       ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family ring_unit
+  correctness family ring_unit                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family climonfix
+  correctness family climonfix                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lbplanner_units
+  correctness family lbplanner_units                   ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_units
+  correctness family exbatch_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_live
+  correctness family exbatch_live                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family persistfix_units
+  correctness family persistfix_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family core_units
+  correctness family core_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_rule_units
+  correctness family wb_rule_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wbland_units
+  correctness family wbland_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_sync
+  correctness family reorder_sync                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_engagement
+  correctness family reorder_engagement                ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_identity
+  correctness family reorder_identity                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_policy
+  correctness family wb_policy                         ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-1s
+  correctness family lb-stationary-1s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-2s
+  correctness family lb-stationary-2s                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-1s
+  correctness family netio-1s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-2s
+  correctness family netio-2s                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family splitlocal_units
+  correctness family splitlocal_units                  ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family storage_units
+  correctness family storage_units                     ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family atomic_units
+  correctness family atomic_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcmd_units
+  correctness family netcmd_units                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcap
+  correctness family netcap                            ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family respcompat
+  correctness family respcompat                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family acl_metadata
+  correctness family acl_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family boot_grammar
+  correctness family boot_grammar                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family cmd_metadata
+  correctness family cmd_metadata                      ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family wait_units
+  correctness family wait_units                        ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family readonly
+  correctness family readonly                          ok
+  row budget: 900s; median=-s; no-history-conservative-default; correctness family release_batteries
+  correctness family release_batteries                 ok
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+Terminated
+
+Scheduler failure artifacts: /home/user/Projects/cx-aoffix2/build/scheduler-failure-gisp6_w4
+
+
+----------------------------------------------------------------------
+Ran 66 tests in 246.541s
+
+FAILED (failures=11)

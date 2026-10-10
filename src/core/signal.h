@@ -403,6 +403,16 @@ public:
         }
     }
 
+    // Persistence writers do not arm these channels in ThreadCtx's park. Their
+    // empty->flagged mask edge owns one unconditional wake, amortized per batch.
+    // A failed SQE reservation must not consume that edge without a notification.
+    void wake_edge(Ring& my_ring, LoopSignals& sig, Ring* peer_ring) {
+        if (!peer_ring || peer_ring == &my_ring) return;
+        while (!my_ring.msg_to(*peer_ring, ur_tag(UrKind::Wake, nullptr)))
+            my_ring.submit_and_reap();
+        sig.wakes_sent++;
+    }
+
     // ---- consumer side --------------------------------------------------------------------------
     bool recv(T& out) { return q_.pop(out); }
 

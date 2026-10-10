@@ -1,0 +1,3 @@
+AOF LIVE POLICY PASS: armed 3 tail bytes; no refused unchanged; yes recovered and truncated
+AOF SCRIPT RECOVERY PASS: values=7 readonly_absent=3
+AOF BYTE-EXACT PASS: 54 static replies + live monotonic PTTL
