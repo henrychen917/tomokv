@@ -259,6 +259,15 @@ def filename():
             emit('manifest', name=name, text=manifest.read_text())
         with Server(opt, data=data) as s:
             assert s.client().cmd('GET', 'k') == b'value', 'PS4.2: quoted name did not replay'
+        if not ARGS.oracle and not any(char.isspace() for char in name):
+            # Old manifests used bare names, including literal quotes. A format
+            # repair must continue to read those previously valid version-1 files.
+            text = manifest.read_text()
+            for suffix in ('.2.base.tomo', '.2.incr.tomo'):
+                text = text.replace(json.dumps(name + suffix), name + suffix)
+            manifest.write_text(text)
+            with Server(opt, data=data) as s:
+                assert s.client().cmd('GET', 'k') == b'value', 'legacy bare filename did not replay'
 
 
 def large():

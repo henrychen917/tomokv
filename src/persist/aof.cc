@@ -285,8 +285,18 @@ bool read_manifest(const std::string& path, bool& exists, AofManifestData& manif
         if (line.empty()) continue;
         std::vector<std::string> fields;
         if (!cfg_split_args(line.c_str(), fields)) {
-            error = "invalid AOF manifest quoting";
-            return false;
+            // Version-1 writers used bare >> tokens. A previously valid name
+            // can contain a literal quote before its .N.base/incr suffix. Keep
+            // those legacy entries loadable; the strict field/count checks
+            // below still reject a whitespace-split or incomplete entry.
+            fields.clear();
+            std::istringstream legacy(line);
+            std::string field;
+            while (legacy >> field) fields.push_back(std::move(field));
+            if (fields.empty() || fields[0] != "file") {
+                error = "invalid AOF manifest quoting";
+                return false;
+            }
         }
         if (fields.empty()) continue;
         const auto number = [&](size_t index, uint64_t& value) {
@@ -1058,11 +1068,14 @@ void Server::restore_aof_ticket_floor(uint64_t floor) {
     atomic_commit_safe_.store(floor, std::memory_order_relaxed);
 }
 
-void AofManager::drain_for_producer(uint32_t producer, Ring& ring) {
+void AofManager::drain_for_producer(uint32_t producer, Ring&) {
     if (!writer_is(producer)) return;
     ThreadCtx& writer = server_->thread(producer);
+    Ring& ring = *writer_ring_.load(std::memory_order_acquire);
     // A fused writer cannot wait for its own full channel. Reap only persistence
     // CQEs here, and never start a snapshot in the middle of serializing a record.
+    // Fused execution has a separate EX ring: outstanding writes/fsyncs belong
+    // to the bound IO writer ring, even though both rings run on this thread.
     chunk_in_[producer].sealing_on_writer = true;
     writer_pass(writer, ring, true);
     ring.submit_and_reap();
