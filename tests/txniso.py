@@ -363,35 +363,42 @@ class Battery:
         assert self.admin.must("MGET", *expected) == list(expected.values()), "discarded attempt in AOF"
 
     def fallback(self):
-        a, b = self.pair()
-        self.admin.must("MSET", a, 0, b, 0)
-        exclusive = self.counter("atomic_txn_exclusive")
         self.hook("TXN-OCC-LIMIT", 1)
-        stop = threading.Event()
-        counts = [0] * 4
-        def hammer(index):
-            c = self.conn(timeout=5)
-            while not stop.is_set():
-                assert isinstance(c.must("INCR", a), int)
-                counts[index] += 1
+        end = time.monotonic() + 15
         try:
-            with concurrent.futures.ThreadPoolExecutor(4) as pool:
-                writers = [pool.submit(hammer, i) for i in range(4)]
-                try:
+            # A scheduler can finish all 200 short EXECs between the writers'
+            # turns. That arm did not exercise fallback. Re-arm on fresh keys;
+            # never turn a missing exclusive witness into a passing check.
+            for arm in range(4):
+                a, b = self.pair()
+                self.admin.must("MSET", a, 0, b, 0)
+                exclusive = self.counter("atomic_txn_exclusive")
+                stop = threading.Event()
+                counts = [0] * 4
+                def hammer(index):
                     c = self.conn(timeout=5)
-                    end = time.monotonic() + 15
-                    for _ in range(200):
-                        result = self.transaction(c, [("INCR", a), ("INCR", b)])
-                        assert isinstance(result, list) and len(result) == 2, result
-                        assert time.monotonic() < end, "fallback deadline"
-                finally:
-                    stop.set()
-                    for writer in writers:
-                        writer.result(timeout=5)
-            assert self.admin.must("MGET", a, b) == [str(200 + sum(counts)).encode(), b"200"], counts
-            self.advanced("atomic_txn_exclusive", exclusive)
-            for name in ("atomic_txn_exclusive_violations", "atomic_txn_exclusive_drain_timeouts"):
-                assert self.counter(name) in (0, None), name
+                    while not stop.is_set():
+                        assert isinstance(c.must("INCR", a), int)
+                        counts[index] += 1
+                with concurrent.futures.ThreadPoolExecutor(4) as pool:
+                    writers = [pool.submit(hammer, i) for i in range(4)]
+                    try:
+                        c = self.conn(timeout=5)
+                        for _ in range(200):
+                            result = self.transaction(c, [("INCR", a), ("INCR", b)])
+                            assert isinstance(result, list) and len(result) == 2, result
+                            assert time.monotonic() < end, "fallback deadline"
+                    finally:
+                        stop.set()
+                        for writer in writers:
+                            writer.result(timeout=5)
+                assert self.admin.must("MGET", a, b) == [str(200 + sum(counts)).encode(), b"200"], counts
+                for name in ("atomic_txn_exclusive_violations", "atomic_txn_exclusive_drain_timeouts"):
+                    assert self.counter(name) in (0, None), name
+                if exclusive is None or self.counter("atomic_txn_exclusive") > exclusive:
+                    return
+                print("re-arm X1: no exclusive attempt on fresh arm", arm + 1, flush=True)
+            raise AssertionError("four fresh X1 arms never entered exclusive fallback")
         finally:
             self.hook("TXN-OCC-LIMIT", 8)
 

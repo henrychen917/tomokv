@@ -8,4 +8,4 @@ Design reconciliation: section 3.12 documents a remaining reservation/dispatch h
 
 The deterministic txn_help unit parks a second participant before arrival: the first participant must not create a claim, so a writer remains free to run. After both arrive, both claims must block writers until the attempt decides. Removing the arrival guard makes the first assertion fail.
 
-POST evidence will be appended after build and focused validation.
+The first arrival-guard image passes all ten watchlive gate cells (60 fresh boots): both modes, three atomic-1 WATCH connection counts, one no-WATCH control, and the atomic-0 WATCH arm. Every armed cell records reservation contention. Receipts: watch-arrival-post/runs.json. The guard also covers exclusive attempts without WATCH; that final generalization and the deterministic unit are being rebuilt with the IO signal change.

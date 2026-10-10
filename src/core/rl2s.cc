@@ -143,6 +143,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
             bind_thread_arena();
+            multi_bind_retry_lane(srv, tid);
             bool ok = self.init_task_inbox_local(srv.placement().ifid_threads(),
                                                  srv.placement().ex_threads());
             if (ok) ok = executors[tid].init(&srv, &self, true);

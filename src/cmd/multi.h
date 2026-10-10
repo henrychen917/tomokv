@@ -51,6 +51,7 @@ struct alignas(64) MultiRetryLane {
     uint32_t age_seq = 0;              // IO-owned, used only at first admission
     MultiRetryNode fence{nullptr, nullptr, 0, MultiRetryNode::Kind::Fence};
     std::atomic<uint64_t> fence_ack{0};
+    std::atomic<std::atomic<bool>*> signal{nullptr}; // worker TLS; bound before serving
 };
 
 // Cold writer visitors; self is a scatter writer (possibly an EXEC child).
@@ -96,6 +97,7 @@ void multi_mark_queue_error(Client& client);
 // parse/dispatch and retirement paths.
 bool multi_dispatch_entry(IoLoop& loop, Client& client, Op& op, uint32_t consumed);
 void multi_retire_entry(IoLoop& loop, Client& client, Op& op);
+void multi_bind_retry_lane(Server& server, uint32_t io);
 uint32_t multi_owner_pass_entry(IoLoop& loop);
 uint32_t multi_owner_reap_entry(IoLoop& loop);
 void multi_close_entry(IoLoop& loop, Client& client);

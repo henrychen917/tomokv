@@ -255,6 +255,21 @@ void write_latest(Server& server) {
     release_records(server);
 }
 void txn_intents(Server& server) {
+    {
+        auto& lane = server.multi_retry_lane(0);
+        MultiRetryNode first, second;
+        multi_enqueue_node(server, 0, first);
+        multi_bind_retry_lane(server, 0);
+        require(multi_retry_signal.pending.load() && lane.head.load() == &first,
+                "binding a late worker signals a previously queued startup fence");
+        multi_retry_signal.pending.store(false, std::memory_order_release);
+        require(lane.head.exchange(nullptr, std::memory_order_acq_rel) == &first,
+                "first retry drained after resetting the signal");
+        multi_enqueue_node(server, 0, second);
+        require(multi_retry_signal.pending.load() && lane.head.exchange(nullptr) == &second,
+                "a producer after the drain raises a new signal");
+        multi_retry_signal.pending.store(false);
+    }
     static_assert(sizeof(AtomicScriptIntent) == 32);
     static_assert(sizeof(AtomicPendingState) == 1352);
     auto& store = server.shard(0).store();

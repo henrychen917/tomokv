@@ -233,13 +233,22 @@ struct alignas(8) MultiExecState : SnapshotCut {
 namespace {
 
 thread_local uint64_t multi_io_age_ns = 0;
+// Only retry producers write this dedicated cold line. The IO pass can test it
+// without loading Server, ThreadCtx or an indexed inbox address.
+struct alignas(64) MultiRetrySignal { std::atomic<bool> pending{false}; };
+static_assert(sizeof(MultiRetrySignal) == 64);
+constinit thread_local MultiRetrySignal multi_retry_signal;
 
 void multi_enqueue_node(Server& server, uint32_t io, MultiRetryNode& node) {
-    auto& head = server.multi_retry_lane(io).head;
-    auto* prior = head.load(std::memory_order_relaxed);
+    auto& lane = server.multi_retry_lane(io);
+    auto* prior = lane.head.load(std::memory_order_relaxed);
     do { node.next = prior; }
-    while (!head.compare_exchange_weak(prior, &node,
-                std::memory_order_release, std::memory_order_relaxed));
+    while (!lane.head.compare_exchange_weak(prior, &node,
+                std::memory_order_seq_cst, std::memory_order_relaxed));
+    // Pair with the one-time binder's SC store/load. If a startup fence reaches
+    // a worker before it binds, the binder observes the queued head instead.
+    if (auto* signal = lane.signal.load(std::memory_order_seq_cst))
+        signal->store(true, std::memory_order_release);
 }
 void multi_enqueue_retry(MultiExecState& state) {
     state.retry.unit = &state;
@@ -2362,13 +2371,23 @@ MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
 }
 }
 
+void multi_bind_retry_lane(Server& server, uint32_t io) {
+    auto& lane = server.multi_retry_lane(io);
+    multi_retry_signal.pending.store(false, std::memory_order_relaxed);
+    lane.signal.store(&multi_retry_signal.pending, std::memory_order_seq_cst);
+    if (lane.head.load(std::memory_order_seq_cst))
+        multi_retry_signal.pending.store(true, std::memory_order_release);
+}
+
 template <bool IofusedPrivateQueue>
-uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
-    uint32_t work = multi_owner_reap_entry(loop);
+__attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
+    uint32_t work = 0;
+    // Reset before the acquire/release exchange. A producer after the exchange
+    // acquires this reset before setting the signal; an earlier node is drained.
+    multi_retry_signal.pending.store(false, std::memory_order_release);
     auto& inbox = loop.srv_->multi_retry_lane(loop.self_->id()).head;
-    // The only new work on an empty IO pass is this owner-local load and branch.
     if (__builtin_expect(inbox.load(std::memory_order_relaxed) != nullptr, false)) {
-        MultiRetryNode* stack = inbox.exchange(nullptr, std::memory_order_acquire);
+        MultiRetryNode* stack = inbox.exchange(nullptr, std::memory_order_acq_rel);
         MultiRetryNode* pending = nullptr;
         while (stack) {
             auto* next = stack->next;
@@ -2555,7 +2574,12 @@ uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
 }
 
 uint32_t multi_owner_pass_entry(IoLoop& loop) {
-    return multi_owner_pass_entry_impl<false>(loop);
+    uint32_t work = multi_owner_reap_entry(loop);
+    // Keep allocation, posting and their large stack frame off an empty pass.
+    if (__builtin_expect(multi_retry_signal.pending.load(std::memory_order_relaxed), false) ||
+        !loop.pending_multi_cleanups_.empty())
+        work += multi_owner_pass_entry_impl<false>(loop);
+    return work;
 }
 
 void multi_close_entry(IoLoop& loop, Client& client) {

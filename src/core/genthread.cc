@@ -115,6 +115,7 @@ int run_fused_server(Server& srv, const SnapshotLoadPlan* aof_base_plan,
             ThreadCtx& self = srv.thread(tid);
             self.latch_placement(srv.topo());
             bind_thread_arena();
+            multi_bind_retry_lane(srv, tid);
             bool ok = self.init_task_inbox_local_fused();
             if (ok) ok = executors[tid].init(&srv, &self, true);
             std::string local_error;

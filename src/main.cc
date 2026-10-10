@@ -405,6 +405,7 @@ int main(int argc, char** argv) {
             if (ok)
                 ok = ios[tid].init(&srv, &self, cfg.bind_addr, cfg.port, -1,
                                    tls_context.get(), true);
+            if (ok) multi_bind_retry_lane(srv, tid);
             if (ok)
                 self.bind_io_role_hooks(
                     &ios[tid],
@@ -547,6 +548,7 @@ int main(int argc, char** argv) {
                 }
                 (void)unix_listener.release_fd();
             }
+            multi_bind_retry_lane(srv, tid);
             self.bind_io_role_hooks(
                 &ios[tid],
                 [](void* p) { return static_cast<IoLoop*>(p)->prepare_activation(); },
