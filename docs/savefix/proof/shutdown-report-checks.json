@@ -1,0 +1,938 @@
+[
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-1s-command-epoll-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-1s-command-epoll-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-1s-command-epoll-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-1s-command-uring-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-1s-command-uring-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-1s-command-uring-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-1s-sigterm-epoll-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-1s-sigterm-epoll-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-1s-sigterm-epoll-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-1s-sigterm-uring-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-1s-sigterm-uring-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-1s-sigterm-uring-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-2s-command-epoll-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-2s-command-epoll-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-2s-command-epoll-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-2s-command-uring-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-2s-command-uring-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-2s-command-uring-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-2s-sigterm-epoll-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-2s-sigterm-epoll-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-2s-sigterm-epoll-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-2s-sigterm-uring-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-2s-sigterm-uring-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/acks-2s-sigterm-uring-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-1s-0-epoll-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-1s-0-epoll-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-1s-0-epoll-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-1s-0-uring-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-1s-0-uring-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-1s-0-uring-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-1s-1-epoll-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-1s-1-epoll-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-1s-1-epoll-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-1s-1-uring-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-1s-1-uring-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-1s-1-uring-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-2s-0-epoll-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-2s-0-epoll-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-2s-0-epoll-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-2s-0-uring-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-2s-0-uring-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-2s-0-uring-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-2s-1-epoll-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-2s-1-epoll-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-2s-1-epoll-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-2s-1-uring-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-2s-1-uring-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/bgsave-2s-1-uring-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-1s-0-epoll-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-1s-0-epoll-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-1s-0-epoll-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-1s-0-uring-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-1s-0-uring-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-1s-0-uring-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-1s-1-epoll-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-1s-1-epoll-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-1s-1-epoll-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-1s-1-uring-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-1s-1-uring-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-1s-1-uring-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-2s-0-epoll-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-2s-0-epoll-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-2s-0-epoll-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-2s-0-uring-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-2s-0-uring-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-2s-0-uring-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-2s-1-epoll-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-2s-1-epoll-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-2s-1-epoll-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-2s-1-uring-attempt-1-write.log",
+      "present"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-2s-1-uring-attempt-1-write.log",
+      "io"
+    ],
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/shutdown_report.py",
+      "docs/savefix/proof/post/rewrite-2s-1-uring-attempt-1-write.log",
+      "persistence"
+    ],
+    "exit_code": 0,
+    "output": ""
+  }
+]

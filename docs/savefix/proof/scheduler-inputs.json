@@ -1,0 +1,29 @@
+{
+  "quick_collector": {
+    "equal": true,
+    "sha256_pre": "e306355953fb01db1c8b265c3b5fdfdb3444b3e8b6ca0b84f13b75dd43bffc37",
+    "sha256_post": "e306355953fb01db1c8b265c3b5fdfdb3444b3e8b6ca0b84f13b75dd43bffc37"
+  },
+  "full_collector": {
+    "equal": true,
+    "sha256_pre": "1cc52b6e1c2fd554bdf9a57f81735670c78c736a005f6d5dc4c6dc938f746108",
+    "sha256_post": "1cc52b6e1c2fd554bdf9a57f81735670c78c736a005f6d5dc4c6dc938f746108"
+  },
+  "ledger_functions": {
+    "equal": true,
+    "sha256_pre": "4fd8cddd4e506c89d0126eaad2515b83be4a1ac32e44f4045be008e1567908eb",
+    "sha256_post": "4fd8cddd4e506c89d0126eaad2515b83be4a1ac32e44f4045be008e1567908eb"
+  },
+  "placement": {
+    "equal": true,
+    "sha256_pre": "b66387e9b4af5c701d27c930d21da49886c326106217f182a3a0aa1720b7a202",
+    "sha256_post": "b66387e9b4af5c701d27c930d21da49886c326106217f182a3a0aa1720b7a202"
+  },
+  "scheduler": {
+    "equal": false,
+    "sha256_pre": "a3ce4535eec5fa9879421d0d1dc6e652a789d89ca5b15f4422fdff6da1889f80",
+    "sha256_post": "96c5ae8a5972816910fe415fb36b2a3365891980b4743328146b535930e2ed33",
+    "equal_except_job_snapshot_and_job_aof_bodies": true,
+    "note": "The fixture replaces job_body with its stub; these production job bodies are not called."
+  }
+}

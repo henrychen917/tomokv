@@ -367,6 +367,7 @@ int main(int argc, char** argv) {
         if (cfg.pin_threads) pin_to(srv.placement().cpu_of_thread(tid));
     };
     auto report_graceful_shutdown = [&] {
+        srv.snapshot().cancel_after_join(srv);
         // All owners and readers are quiescent. Release pending-entry references before IoLoop
         // destruction, then return their deferred ScatterState arenas to the correct IO-owned
         // pools. Server normally outlives those pools, so leaving this to FlatStore destructors
@@ -386,6 +387,7 @@ int main(int argc, char** argv) {
     for (uint32_t tid : srv.placement().ex_threads())
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            SnapshotManager::WorkerLifetime snapshot_worker(srv.snapshot(), srv.thread(tid));
             AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);
@@ -513,6 +515,7 @@ int main(int argc, char** argv) {
     for (uint32_t tid : srv.placement().ifid_threads())
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            SnapshotManager::WorkerLifetime snapshot_worker(srv.snapshot(), srv.thread(tid));
             AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);

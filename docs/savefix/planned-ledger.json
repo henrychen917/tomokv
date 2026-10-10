@@ -1,0 +1,11 @@
+{
+  "unchanged_quick": 511,
+  "unchanged_full": 528,
+  "source_labels": 552,
+  "fixture_labels": 552,
+  "DQ": 24,
+  "DF": 24,
+  "required_quick": 535,
+  "required_full": 552,
+  "check": "in-memory proposed count only; raw checker refusal retained"
+}
