@@ -1393,6 +1393,10 @@
     }
 
     bool pubsub_disconnect_ready(Client* client) {
+        // FLIP pin (IO4.1/IO4.4): both teardown paths pass this gate before the connection leaves
+        // ThreadCtx::clients and before cleanup reads Placement. While a FLIP holds this IO's
+        // connection set, the close waits here (still owned, counted and allocated).
+        if (__builtin_expect(flip_close_pin_, false) && flip_close_held()) return false;
         auto it = pubsub_local_.find(client->id());
         if (it == pubsub_local_.end()) return true;
         PubSubLocalConn& local = it->second;
