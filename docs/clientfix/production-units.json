@@ -462,6 +462,30 @@
       ],
       "exit_code": 0,
       "log": "docs/clientfix/fresh-climon-mask-unit.log.gz"
+    },
+    {
+      "name": "mdbqsbr-live-arms-build",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-j16",
+        "mdbqsbr-live-arms"
+      ],
+      "exit_code": 0,
+      "log": "docs/clientfix/mdbqsbr-live-arms-build.log.gz"
+    },
+    {
+      "name": "climon-mask-unit",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "build/climon-mask-unit"
+      ],
+      "exit_code": 0,
+      "log": "docs/clientfix/climon-mask-unit.log.gz"
     }
   ]
 }

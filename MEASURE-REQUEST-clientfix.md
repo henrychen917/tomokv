@@ -35,7 +35,7 @@ each mode, with 16 shards and a 6:2 split in 2s.
 | CC4.2 | Missing foreign invalidation in 20/20 pipelines per axis | Exact `invalidate [key]` in 20/20 per axis; no own NOLOOP push | `src/cmd/tracking.cc`, `climon.inc`, `climon.cc`; `src/core/io_loop.h`, `wb_rule.h`, generated `reorder.cc`; `src/net/wb.h` | `clientfix tracking-pipeline (1s)` / `(2s)` |
 | WB4.12, WB4.13 | 240 leaked replies out of 480 trials per mode; MONITOR WAIT 11/5 lines (1s/2s), BLPOP 2/2 | 480/480 exact reply sequences per mode; one WAIT and one BLPOP MONITOR line | `src/cmd/climon.cc`, `climon.inc`, `src/core/io_loop.h`, generated `reorder.cc` | `clientfix reply-skip (1s)` / `(2s)` |
 | CC4.11 | keep:one reaches zero subscribers; empty channel reaches the corrupted keep subscriber | Exact `[pmessage, keep:*, keep:one, after]`; empty channel reaches zero | `src/core/pubsub.inc` | `clientfix pattern-cleanup (1s)` / `(2s)` |
-| SV4.4 | SET returns at 100.205/100.224 ms (1s/2s) | Still pending at 300.412/304.483 ms; returns at 1007.685/1020.720 ms | `src/core/server.h` | `clientfix pause-deadline (1s)` / `(2s)` |
+| SV4.4 | SET returns at 111.868/115.457 ms (1s/2s) | Still pending at 300.672/304.413 ms; returns at 1021.701/1025.851 ms | `src/core/server.h` | `clientfix pause-deadline (1s)` / `(2s)` |
 | CD4.1 | Wrong nearest-five selection at 20/20 centres in both modes | Correct selection at 20/20 for GEOSEARCH and GEORADIUS | `src/cmd/geo.cc` | `clientfix geo-count (1s)` / `(2s)` |
 | CD4.1 STORE | Wrong stored nearest-five set at 20/20 centres in both modes | Correct sets at 20/20 for GEOSEARCHSTORE and GEORADIUS STORE | `src/cmd/geo.cc` | `clientfix geo-store (1s)` / `(2s)` |
 
@@ -44,8 +44,11 @@ boot. The SKIP row covers PING, GET, WAIT, SCRIPT, FUNCTION, BLPOP, XREAD BLOCK
 and a FLIP error, in older-GET, pipelined-SKIP and separate-write shapes, with
 20 repetitions each. Redis has seven targets because FLIP is Tomo-specific.
 GEO rows also check explicit DESC and ANY controls. The PAUSE row requires an
-observed window; if scheduling obscures it, it rearms on fresh state at most
-three times and then fails. No assertion is skipped or tolerance widened.
+observed window and completion no earlier than the full original 1000 ms
+(minus the server's 1 ms clock flooring). If scheduling obscures the window,
+it rearms on fresh state at most three times and then fails. The tightened
+check was rerun on both PRE/POST modes and Redis; [receipt](docs/clientfix/pause-proof.json).
+No assertion is skipped or tolerance widened.
 
 **Changes at the cause.** The 1024-event collector limit strips only keyspace
 publication routes; it retains tracking records. This adds constant work per
@@ -97,13 +100,13 @@ claimed fixed by this lane.
 |---|---|
 | `make -j16 all` | PASS, [build log](docs/clientfix/post-build-final.log.gz) |
 | All 28 `job_production_units` targets, including netcmd | PASS build and 28/28 `make -q`; [exact commands](docs/clientfix/production-units.json) |
-| `build/climon-mask-unit` | Built and fresh; execution pending the build driver |
-| `make -j16 mdbqsbr-live-arms` | Running |
+| `build/climon-mask-unit` | PASS build, freshness and execution; [log](docs/clientfix/climon-mask-unit.log.gz) |
+| `make -j16 mdbqsbr-live-arms` | PASS, both park/no-wake proof binaries; [log](docs/clientfix/mdbqsbr-live-arms-build.log.gz) |
 | New rows on PRE / POST | 14 intended FAIL / 14 PASS; [POST receipt](docs/clientfix/post-proof.json) |
 | Redis 7.4.10 focused probes | 7/7 PASS |
 | tracking, pubsub, climon, climon2, geo, replyoff_xshard | 12/12 PASS across 1s and 2s; [logs](docs/clientfix/batteries/) |
-| Differential matrix | Running: 8 suites × 4 seeds × 2 atomics × 2 geometries |
-| `python3 tests/gates_test.py` | Rerun pending completion of builds; initial concurrent-build run hit scheduler-fixture timeouts |
+| Differential matrix | Split 64/64 PASS; armed-fused running. 8 suites × 4 seeds × 2 atomics × 2 geometries |
+| `python3 tests/gates_test.py` | Rerun on 124–127 in progress, serializing fixtures with every test/timeout unchanged; initial run on 112–127 hit scheduler-fixture timeouts |
 | `python3 tests/wbland_checks.py check clauses` | PASS, 83/83 strict outcomes; [log](docs/clientfix/wbland-clauses.log) |
 | `python3 tests/gate_ledger_fixture.py` | Refuses unchanged EXPECT_FULL=528 versus 542 declared labels; no missing/extra labels |
 | Eight locked layouts and IoLoop field offsets, both namespaces | PASS, [layout receipt](docs/clientfix/layouts.json) |
@@ -116,7 +119,7 @@ from the current job before building and checks each with `make -q`.
 `tests/wb_rule_completion_unit.cc` adds the tracking bit to its fake server mask.
 The core_units row list is unchanged.
 
-DQ **+14**, DF **+14**. `collect_job clientfix` is above the quick-tier exit;
+DQ **+14**, DF **+14**. `collect_job clientfix` is at line 3279, above the quick-tier exit at line 3434;
 all seven case names expand once per mode before that exit. The comment above
 EXPECT gives **511 + 14 = 525** quick and **528 + 14 = 542** full. Assignments
 remain **511/528**, as explicitly required. Fixture/source both have all 542
@@ -170,8 +173,11 @@ was received, so the table is explicitly pending the maintainer's quiet-box run.
 `tests/clientfix_widths.py` uses one open-loop MSET connection and one idle
 RESP3 tracking observer, existing keys, widths 1/32/256/1024, OFF/unmatched
 `BCAST PREFIX never:`/default-preread, PRE and POST in both modes, Redis 7.4.10,
-three boots per arm and 1000 samples per cell at **100 MSET/s**. It fixes writer
-and observer ownership within each boot, interleaves PRE/POST/Redis arms,
+three boots per arm and 1000 samples per cell at **100 MSET/s**. Tomo uses 16
+shards, split ratio 6:2, atomic/read-local/reorder/key-lb/client-lb/flip-auto all
+0; slowlog and latency monitoring are off for every arm. Disabling the two
+balancers and reusing connections fixes writer and observer ownership within
+each boot. The driver interleaves PRE/POST/Redis arms,
 reverses arm order on alternating boots, and rotates cell order. Default mode
 reads each cell's keys once before timed writes, as requested; it does not add
 refresh reads to the timed workload.

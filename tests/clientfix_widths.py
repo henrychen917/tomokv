@@ -120,9 +120,13 @@ def main():
     with args.output.open('x') as output:
         for boot in range(args.boots):
             for arm, mode in arms if boot % 2 == 0 else reversed(arms):
+                extra_flags = ['--slowlog-log-slower-than', '-1', '--latency-monitor-threshold', '0']
+                if arm != 'redis':
+                    extra_flags += ['--reorder', '0', '--key-lb', '0', '--client-lb', '0']
                 config = argparse.Namespace(binary=getattr(args, arm), port=args.port,
                                             cores=args.oracle_cores if arm == 'redis' else args.cores,
-                                            ratio=args.ratio, mode=mode, oracle=arm == 'redis')
+                                            ratio=args.ratio, mode=mode, oracle=arm == 'redis',
+                                            extra_flags=extra_flags)
                 with server(config) as port, Conn(args.port) as writer, Conn(args.port) as observer:
                     # Keep connection ownership fixed across every OFF/ON cell in this boot.
                     ids = dict(writer=writer.cmd('CLIENT', 'ID'), observer=observer.cmd('CLIENT', 'ID'))
@@ -132,7 +136,9 @@ def main():
                         row = cell(writer, observer, width, tracking, args.samples, args.rate)
                         row['client_ids'] = ids
                         row.update(arm=arm, mode=mode, boot=boot, sha256=hashes[arm],
-                                   client_affinity=sorted(os.sched_getaffinity(0)))
+                                   client_affinity=sorted(os.sched_getaffinity(0)),
+                                   server_cores=config.cores, ratio=args.ratio,
+                                   atomic=0, read_local=0, extra_flags=extra_flags)
                         output.write(json.dumps(row) + '\n')
                         output.flush()
                         print(json.dumps({k: row[k] for k in ('arm', 'mode', 'boot', 'width',

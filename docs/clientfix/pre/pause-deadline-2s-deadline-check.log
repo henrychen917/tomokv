@@ -1,0 +1,4 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/clientfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25072", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-bvlt5_66", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "82.44 84.05 98.54 81/4276 1067289", "pid": 1067286}
+{"attempt": 0, "case": "pause-deadline", "completed": 0.1154569867067039, "observed": 0.1154300170019269, "ready": true, "reply": "OK"}
+{"exit": 0, "lifecycle": "stop", "load": "82.44 84.05 98.54 80/4267 1067484", "pid": 1067286}
+{"case": "pause-deadline", "failures": [{"atomic": 0, "error": "shorter PAUSE replaced the original deadline", "read_local": 0}], "mode": "2s", "result": "FAIL"}

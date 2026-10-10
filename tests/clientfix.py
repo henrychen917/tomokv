@@ -109,6 +109,7 @@ def server(args, atomic=0, read_local=0):
                         '--flip-auto', '0', '--enable-debug-command', 'yes']
             if args.mode == '2s':
                 command += ['--ratio', args.ratio]
+        command += getattr(args, 'extra_flags', [])
         log_path = Path(directory) / 'server.log'
         with log_path.open('w') as log:
             process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)
@@ -263,6 +264,8 @@ def pause_deadline(port):
             emit(case='pause-deadline', ready=ready, observed=observed,
                  completed=completed, reply=reply, attempt=attempt)
             assert not ready and reply == b'OK', 'shorter PAUSE replaced the original deadline'
+            # The server floors its clock to milliseconds when setting the deadline.
+            assert completed >= 1.0 - .001, 'SET escaped before the original 1000 ms deadline'
             break
         else:
             raise AssertionError('original PAUSE deadline window never witnessed')
