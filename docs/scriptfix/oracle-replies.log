@@ -1,0 +1,31 @@
+{"start": ["taskset", "-c", "120", "/home/user/Projects/redis/src/redis-server", "--bind", "127.0.0.1", "--port", "25057", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-scriptfix/build/scriptfix/runtime/replies-1s-22at4d2j"], "pid": 3313006}
+{"actual": 10000, "check": "RESP2 array depth 4", "expected": 10000, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 100000, "check": "RESP2 array depth 5", "expected": 100000, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 21110, "check": "RESP2 map depth 4", "expected": 21110, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 211110, "check": "RESP2 map depth 5", "expected": 211110, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 10000, "check": "RESP2 set depth 4", "expected": 10000, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 100000, "check": "RESP2 set depth 5", "expected": 100000, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 211110, "check": "oracle FCALL map", "expected": 211110, "pass": true}
+{"actual": "PONG", "check": "PING after FCALL conversion", "expected": "PONG", "pass": true}
+{"actual": 10000, "check": "RESP3 array depth 4", "expected": 10000, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 100000, "check": "RESP3 array depth 5", "expected": 100000, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 21110, "check": "RESP3 map depth 4", "expected": 21110, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 211110, "check": "RESP3 map depth 5", "expected": 211110, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 10000, "check": "RESP3 set depth 4", "expected": 10000, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 100000, "check": "RESP3 set depth 5", "expected": 100000, "pass": true}
+{"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
+{"actual": 211110, "check": "oracle FCALL map", "expected": 211110, "pass": true}
+{"actual": "PONG", "check": "PING after FCALL conversion", "expected": "PONG", "pass": true}
+{"stop": 3313006, "exit": 0, "port_closed": true}
+{"case": "replies", "mode": "1s", "checks": 28, "failures": 0, "seconds": 11.897}

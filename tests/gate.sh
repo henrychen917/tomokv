@@ -285,6 +285,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # eight rows collected above the quick-tier exit (+8 quick, +8 full).
 # overlapaxe: retire only split-overlap WB row, collected before quick exit (-1/-1).
 # Matrix client-lb dimension preserves every former split correctness scenario.
+# scriptfix: eight rows (four cases x two modes), collected before the quick exit.
+# DQ=+8, DF=+8: 511+8=519 quick; 528+8=536 full. Owner updates EXPECT.
 EXPECT_QUICK=511
 EXPECT_FULL=528                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -1030,7 +1032,7 @@ plan_jobs(){
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
-              release_batteries atomic_batteries bplus acl_recheck sort script_bounds
+              release_batteries atomic_batteries bplus acl_recheck sort script_bounds scriptfix
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -2099,6 +2101,26 @@ for XS_MODE in limit window; do
              "see $TMPDIR/gate-xscript-$XS_MODE.txt"
   stop
 done
+}
+
+job_scriptfix(){
+  # These rows own their boots and their one slot port. Never leave the slot's
+  # preboot running while the Python lifetime guard starts a candidate.
+  stop
+  local mode case label
+  for mode in 1s 2s; do
+    for case in sandbox functions replies dump; do
+      label="scriptfix $case ($mode)"
+      row_begin "$label"
+      if py tests/scriptfix.py "$case" --binary "$CANDIDATE_BINARY" \
+          --port "$PORT" --cores "$CORES" --mode "$mode" \
+          --output "$TMPDIR/scriptfix" >"$TMPDIR/scriptfix-$case-$mode.log" 2>&1; then
+        ok "$label"
+      else
+        bad "$label" "see $TMPDIR/scriptfix-$case-$mode.log"
+      fi
+    done
+  done
 }
 
 job_efficiency(){
@@ -3337,6 +3359,7 @@ collect_job sort
 for AT in 0 1; do collect_job "debug-$AT"; done
 
 collect_job script_bounds
+collect_job scriptfix
 
 collect_job efficiency
 
