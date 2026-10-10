@@ -1,0 +1,95 @@
+{
+  "commit": "5146b78ee89b64748dd46db970efa8086f653fa0",
+  "binary": "/home/user/Projects/cx-txnfix/build/txnfix/pre/tomokv",
+  "sha256": "34d805081806001bc7e29f4530e040034c935ae0209ca153a5eeed48d52d6c9e",
+  "runs": [
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "121-127",
+        "python3",
+        "tests/txnfix_audit/t15_exec_only_stress.py",
+        "--binary",
+        "/home/user/Projects/cx-txnfix/build/txnfix/pre/tomokv",
+        "--port",
+        "22600",
+        "--cores",
+        "112-119",
+        "--output",
+        "/home/user/Projects/cx-txnfix/docs/txnfix/pre",
+        "--atomic",
+        "0",
+        "tomo",
+        "2s",
+        "16",
+        "2000",
+        "4"
+      ],
+      "exit_code": 1,
+      "log": "docs/txnfix/pre/t15_exec_only_stress.log"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "121-127",
+        "python3",
+        "tests/txnfix_audit/t03_mover_replay.py",
+        "--binary",
+        "/home/user/Projects/cx-txnfix/build/txnfix/pre/tomokv",
+        "--port",
+        "22600",
+        "--cores",
+        "112-119",
+        "--output",
+        "/home/user/Projects/cx-txnfix/docs/txnfix/pre",
+        "1",
+        "2s"
+      ],
+      "exit_code": 1,
+      "log": "docs/txnfix/pre/t03_mover_replay.log"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "121-127",
+        "python3",
+        "tests/txnfix_audit/t10_msetnx_hold.py",
+        "--binary",
+        "/home/user/Projects/cx-txnfix/build/txnfix/pre/tomokv",
+        "--port",
+        "22600",
+        "--cores",
+        "112-119",
+        "--output",
+        "/home/user/Projects/cx-txnfix/docs/txnfix/pre",
+        "2s"
+      ],
+      "exit_code": 1,
+      "log": "docs/txnfix/pre/t10_msetnx_hold.log"
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "121-127",
+        "python3",
+        "tests/txnfix_audit/t19_crossed_watch.py",
+        "--binary",
+        "/home/user/Projects/cx-txnfix/build/txnfix/pre/tomokv",
+        "--port",
+        "22600",
+        "--cores",
+        "112-119",
+        "--output",
+        "/home/user/Projects/cx-txnfix/docs/txnfix/pre",
+        "--mode",
+        "2s"
+      ],
+      "exit_code": 1,
+      "log": "docs/txnfix/pre/t19_crossed_watch.log"
+    }
+  ]
+}

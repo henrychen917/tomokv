@@ -565,7 +565,7 @@ uint32_t notify_ex_pass_entry(Server& server, Shard& shard, uint32_t producer,
 NotifyBatch* notify_take_batch(Op& op) {
     if (op.has_multi_state()) {
         auto* multi = static_cast<MultiExecState*>(op.multi_state());
-        if (multi->aborted.load(std::memory_order_acquire) ||
+        if (multi->decision.aborted.load(std::memory_order_acquire) ||
             multi->watch_failed.load(std::memory_order_acquire)) {
             NotifyBatch* discarded = multi->notify.exchange(nullptr, std::memory_order_acq_rel);
             notify_discard_batch(discarded);

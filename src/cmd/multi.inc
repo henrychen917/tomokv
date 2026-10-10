@@ -189,11 +189,10 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::vector<uint8_t> execution_noted;
     std::vector<MultiOwnerRecordRefs> owner_record_refs;
     ScatterArenaPool scatter_pool;
-    std::atomic<uint64_t> epoch{0};
+    MultiDecision decision;
     std::atomic<uint32_t> record_refs{0};
     bool record_refs_precounted = false;
     std::atomic<uint32_t> watch_refs{0};
-    std::atomic<bool> aborted{false};
     std::atomic<bool> watch_failed{false};
     std::atomic<bool> watch_phase_done{false};
     std::atomic<uint32_t> watch_pending{0};
@@ -253,7 +252,7 @@ void release_admission(MultiExecState& state) {
 }
 
 // Does `group_epoch` name a word THIS transaction publishes through? A transaction is one logical
-// unit spread over several epoch words: the plain per-key installs publish through `state.epoch`,
+// unit spread over several epoch words: the plain per-key installs publish through `state.decision.epoch`,
 // and every cross-shard command lowered inside the same EXEC keeps its own ScatterState and
 // publishes through that one. Anything asking "is there an undecided record here that is not mine"
 // has to accept all of them, or the transaction answers yes against its own RENAME/LMPOP child.
@@ -262,7 +261,7 @@ void release_admission(MultiExecState& state) {
 // while a fragment is still executing -- so this walk is stable on an owner thread.
 bool multi_state_owns_epoch(const MultiExecState& state, const void* group_epoch) {
     if (!group_epoch) return false;
-    if (group_epoch == static_cast<const void*>(&state.epoch)) return true;
+    if (group_epoch == static_cast<const void*>(&state.decision.epoch)) return true;
     for (const auto& command : state.commands)
         if (command && command->scatter &&
             group_epoch == static_cast<const void*>(&command->scatter->epoch))
@@ -821,6 +820,7 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
                                MultiStateKind kind) {
     auto* state = new (std::nothrow) MultiExecState;
     if (!state) return nullptr;
+    state->decision.owner = state;
     state->server = &server;
     state->client = &client;
     state->owner_io = owner_io;
@@ -947,7 +947,7 @@ void set_state_reply(MultiExecState& state, Op& public_op) {
         reply_null_array(public_op.sink(), public_op.resp3());
         return;
     }
-    if (state.aborted.load(std::memory_order_acquire)) {
+    if (state.decision.aborted.load(std::memory_order_acquire)) {
         reply_err(public_op.sink(), "EXECABORT Transaction discarded because of an execution error.");
         return;
     }
@@ -1029,7 +1029,7 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
         g_exec_order_late.fetch_add(1, std::memory_order_relaxed);
     if (!shard.watch_write_ready(key, &state)) return MultiPrepareWrite::Retry;
     shard.watch_reserve_write(key, state.client, state.watch_generation, watch_token,
-                              &state.epoch, &state.aborted, watch_refs);
+                              &state.decision.epoch, &state.decision.aborted, watch_refs);
     const auto snapshot = shard.store().snapshot_prepare_write(hash, key);
     if (snapshot == FlatStore::SnapshotWriteResult::Pending) return MultiPrepareWrite::Retry;
     if (snapshot == FlatStore::SnapshotWriteResult::Error) return MultiPrepareWrite::Error;
@@ -1053,8 +1053,8 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
     uint32_t* owner_refs = &owner_progress.nodes;
     void* entry = nullptr;
     if (!shard.store().atomic_prepare_transaction(
-            key, hash, state.origin_conn_id, &state.epoch, &state.record_refs,
-            &state.aborted, owner_refs, entry)) {
+            key, hash, state.origin_conn_id, &state.decision.epoch, &state.record_refs,
+            &state.decision.aborted, owner_refs, entry)) {
         shard.store().atomic_unadmit(clone);
         if (clone) kvobj_free(clone);
         shard.store().atomic_clear_read_epoch();
@@ -1087,7 +1087,7 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
     if (!(command.queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) return true;
     std::vector<uint32_t> unique;
     try { unique.reserve(command.key_args.size()); }
-    catch (const std::bad_alloc&) { state.aborted.store(true, std::memory_order_release); return false; }
+    catch (const std::bad_alloc&) { state.decision.aborted.store(true, std::memory_order_release); return false; }
     for (size_t i = 0; i < command.key_args.size(); i++) {
         if (command.key_shards[i] != shard.id()) continue;
         const uint32_t arg = command.key_args[i];
@@ -1104,7 +1104,7 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
         const auto snapshot = shard.store().snapshot_prepare_write(FlatStore::hash_key(key), key);
         if (snapshot == FlatStore::SnapshotWriteResult::Pending) return false;
         if (snapshot == FlatStore::SnapshotWriteResult::Error) {
-            state.aborted.store(true, std::memory_order_release);
+            state.decision.aborted.store(true, std::memory_order_release);
             return false;
         }
     }
@@ -1114,7 +1114,7 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
             server, state, shard, key, FlatStore::hash_key(key), owner_thread_id);
         if (result == MultiPrepareWrite::Retry) return false;
         if (result == MultiPrepareWrite::Error) {
-            state.aborted.store(true, std::memory_order_release);
+            state.decision.aborted.store(true, std::memory_order_release);
             return false;
         }
     }
@@ -1211,7 +1211,7 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
         const bool ok = shard.watch_database_swap(first, second,
             command.swap_physical[0], command.swap_physical[1], &state.database_watch[shard.id()]);
         shard.store().atomic_clear_read_epoch();
-        if (!ok) state.aborted.store(true, std::memory_order_release);
+        if (!ok) state.decision.aborted.store(true, std::memory_order_release);
         return true;
     }
     Op& op = *command.op;
@@ -1263,13 +1263,13 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
                 return false;
             }
             if (prepared == MultiPrepareWrite::Error) {
-                state.aborted.store(true, std::memory_order_release);
+                state.decision.aborted.store(true, std::memory_order_release);
                 break;
             }
             const WorkError stored = store_xstring_selected(
                 notify, shard, key, FlatStore::hash_key(key), op.arg(arg + 1));
             if (stored != WorkError::None) {
-                state.aborted.store(true, std::memory_order_release);
+                state.decision.aborted.store(true, std::memory_order_release);
                 break;
             }
             if (notify) notify_record(shard, op, NOTIFY_STRING, NotifyEventId::Set, key);
@@ -1296,7 +1296,7 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
                 return false;
             }
             if (prepared == MultiPrepareWrite::Error) {
-                state.aborted.store(true, std::memory_order_release);
+                state.decision.aborted.store(true, std::memory_order_release);
                 break;
             }
             removed += notify ? shard.store_erase<true>(FlatStore::hash_key(key), key)
@@ -1365,13 +1365,13 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
             if (state.database_map[watched.db] != watched.ns) continue;
             const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
             if (!shard.watch_validate_and_reserve(
-                    key, state.client, state.watch_generation, &state, &state.epoch,
-                    &state.aborted, &state.watch_refs,
+                    key, state.client, state.watch_generation, &state, &state.decision.epoch,
+                    &state.decision.aborted, &state.watch_refs,
                     state_writes_key(state, watched))) return false;
         }
         if (state.client->watch_dirty()) {
             state.watch_failed.store(true, std::memory_order_release);
-            state.aborted.store(true, std::memory_order_release);
+            state.decision.aborted.store(true, std::memory_order_release);
         }
         for (const MultiWatchedKey& watched : state.watched) {
             if (watched.shard != shard.id()) continue;
@@ -1401,7 +1401,7 @@ void finalize_reservations(MultiExecState& state, Shard& shard) {
     if (state.final_shard_done[static_cast<uint32_t>(shard.id())]) return;
     if (!state.database_watch.empty()) {
         auto& targets = state.database_watch[shard.id()];
-        const bool committed = !state.aborted.load(std::memory_order_acquire);
+        const bool committed = !state.decision.aborted.load(std::memory_order_acquire);
         for (auto [client, generation] : targets) {
             if (committed && client->watch_generation() == generation) client->set_watch_dirty();
             client->watch_unref();
@@ -1493,7 +1493,7 @@ void publish_multi_child_epochs(MultiExecState& state, uint64_t ticket) {
 void abort_multi_children(MultiExecState& state) {
     // EXECABORT also decides the parent's WATCH reservations. Without this
     // publication a queue-time error leaves epoch=0/aborted=false forever.
-    state.aborted.store(true, std::memory_order_release);
+    state.decision.aborted.store(true, std::memory_order_release);
     for (const auto& command : state.commands)
         if (command->scatter)
             command->scatter->aborted.store(true, std::memory_order_release);
@@ -2155,7 +2155,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     owner_thread_id, command.scatter, &command.scatter->watch_refs);
                 if (prepared == MultiPrepareWrite::Retry) return MultiTaskResult::Retry;
                 if (prepared == MultiPrepareWrite::Error) {
-                    state.aborted.store(true, std::memory_order_release);
+                    state.decision.aborted.store(true, std::memory_order_release);
                     command.scatter->aborted.store(true, std::memory_order_release);
                     execute_child = false;
                 }
@@ -2220,7 +2220,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
             return MultiTaskResult::Retry;
         }
         bool executed = true;
-        if (state.aborted.load(std::memory_order_acquire)) {
+        if (state.decision.aborted.load(std::memory_order_acquire)) {
             // Still join the command barrier; another owner may already have installed a
             // private candidate which the shared abort flag will hide.
         } else if (command.kind == MultiCommandKind::Local ||
@@ -2248,12 +2248,12 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
             if (state.finalizer_claimed.compare_exchange_strong(
                     expected, true, std::memory_order_acq_rel)) {
                 if (state.watch_failed.load(std::memory_order_acquire))
-                    state.aborted.store(true, std::memory_order_release);
-                if (!state.aborted.load(std::memory_order_acquire) &&
+                    state.decision.aborted.store(true, std::memory_order_release);
+                if (!state.decision.aborted.load(std::memory_order_acquire) &&
                     state.final_reply == MultiFinalReply::Exec) {
                     assemble_ownerless_replies(state);
                     const uint64_t ticket = server.atomic_commit_group(
-                        state.epoch,
+                        state.decision.epoch,
                         [&](uint64_t shared) {
                             publish_multi_child_epochs(state, shared);
                             if (state.database_publish)
@@ -2296,7 +2296,7 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
     if (state->kind == MultiStateKind::Execute &&
         state->final_reply == MultiFinalReply::Exec &&
         !state->watch_failed.load(std::memory_order_acquire) &&
-        !state->aborted.load(std::memory_order_acquire)) {
+        !state->decision.aborted.load(std::memory_order_acquire)) {
         // Connection-local handlers deliberately return to their owning IO thread.  This preserves
         // their thread-local client/snapshot context and keeps every shard-owning handler on EX.
         for (const auto& command : state->commands)

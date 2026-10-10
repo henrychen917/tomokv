@@ -1,0 +1,7 @@
+tomo mode=2s C=16 N=2000 P=4: k1=22273 k2=22763 expected 32000 each; lost k1=9727 k2=9237; duplicated INCR k2 replies=9237  24.9s
+server rc 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/txnfix_audit/t15_exec_only_stress.py", line 46, in <module>
+    assert (v1, v2, dup, sum(seen.values())) == (C*N, C*N, 0, C*N), "lost or duplicated INCR"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: lost or duplicated INCR

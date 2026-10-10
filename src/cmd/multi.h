@@ -5,7 +5,9 @@
 #pragma once
 
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
+#include <type_traits>
 #include <vector>
 
 namespace tomo {
@@ -19,6 +21,20 @@ struct MultiExecState;
 struct MultiSession;
 struct Task;
 struct AofOwnerContext;
+
+// A transaction record points to epoch. Standard layout and the zero offset
+// let the cold conflict visitor recover the enclosing attempt decision safely.
+struct MultiDecision {
+    std::atomic<uint64_t> epoch{0};
+    std::atomic<bool> aborted{false};
+    bool exclusive = false;
+    uint64_t age_ns = 0;
+    uint32_t age_io = 0;
+    uint32_t age_seq = 0;
+    MultiExecState* owner = nullptr;
+};
+static_assert(std::is_standard_layout_v<MultiDecision>);
+static_assert(offsetof(MultiDecision, epoch) == 0);
 
 enum class MultiIoAction : uint8_t {
     NotHandled,

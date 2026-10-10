@@ -325,7 +325,7 @@ static std::string transaction(Server& server, Client& client,
             const int s = state->shards[i];
             auto result = multi_execute_task(server, multi_make_task(&client, 0, s, state),
                 server.shard(s), server.worker_of_shard(s), 0, nullptr);
-            require(server.databases().capture().epoch == before_epoch || state->epoch.load() != 0,
+            require(server.databases().capture().epoch == before_epoch || state->decision.epoch.load() != 0,
                     "map publication shares the MVCC decision");
             if (result != MultiTaskResult::Retry) { done[i] = true; --remaining; }
         }
