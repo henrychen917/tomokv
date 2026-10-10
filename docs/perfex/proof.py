@@ -44,6 +44,7 @@ def units():
     for target in targets:
         status = subprocess.run(["taskset", "-c", "112-127", "make", "-q", target], cwd=ROOT).returncode
         freshness.append(dict(target=target, exit_code=status))
+    RESULTS.extend(freshness)
     arms = run(["make", "-j16", "mdbqsbr-live-arms"], "mdbqsbr-live-arms-build")
     (OUT / "production-units.json").write_text(json.dumps(
         dict(build=row, freshness=freshness, live_arms=arms), indent=2) + "\n")
@@ -77,19 +78,25 @@ def correctness():
 
 def audit():
     run(["python3", "tools/lbstall_artifacts.py", "compare", "build/perfex/pre/src", "build/src",
-         "docs/perfex/hot-tomo.json"], "hot-tomo")
+         OUT / "hot-tomo.json"], "hot-tomo")
     run(["python3", "tools/lbstall_artifacts.py", "compare", "build/perfex/pre/db0/src", "build/db0/src",
-         "docs/perfex/hot-db0.json"], "hot-db0")
-    run(["python3", "tools/ccfix_audit.py", "build/perfex/pre", "build", "docs/perfex/full"], "full")
+         OUT / "hot-db0.json"], "hot-db0")
+    run(["python3", "tools/ccfix_audit.py", "build/perfex/pre", "build", OUT / "full"], "full")
     run(["python3", "docs/deadswitch/linked_bytes.py", "build/perfex/pre/tomokv", "build/tomokv",
-         "docs/perfex/linked.json"], "linked")
+         OUT / "linked.json"], "linked")
 
 
 def main():
+    global OUT
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("stage", choices=("units", "correctness", "audit", "wiring"))
+    p.add_argument("--output", type=Path, default=OUT,
+                   help="new proof directory; preserve earlier attempts separately")
     a = p.parse_args()
     assert os.sched_getaffinity(0) <= set(range(112, 128)), "proof escaped CPUs 112-127"
+    OUT = a.output.resolve()
+    assert OUT.is_relative_to(ROOT), "proof output escaped worktree"
+    OUT.mkdir(parents=True, exist_ok=True)
     if a.stage == "wiring":
         run(["python3", "tests/gates_test.py"], "gates-test")
         run(["python3", "tests/gate_ledger_fixture.py"], "ledger")
