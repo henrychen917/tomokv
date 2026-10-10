@@ -1,0 +1,72 @@
+{
+  "subset": "full",
+  "count": 12,
+  "ids": [
+    "ttl-get32",
+    "ttl-set32",
+    "ttl-get1",
+    "ttl-set1",
+    "flush-set32",
+    "info-set32",
+    "tracking-mset1024",
+    "tls-4k-single",
+    "tls-16k-single",
+    "tls-4k-512",
+    "tls-16k-512",
+    "stream-get32"
+  ],
+  "modes": [
+    "1s"
+  ],
+  "operations": [
+    "GET",
+    "MSET",
+    "SET"
+  ],
+  "commands": [
+    "GET",
+    "MSET",
+    "SET"
+  ],
+  "depths": [
+    1,
+    32
+  ],
+  "connections": [
+    1,
+    512
+  ],
+  "data_bytes": [
+    64,
+    4096,
+    16384
+  ],
+  "atomic": [
+    1
+  ],
+  "scores": [
+    "latency_ms",
+    "rate"
+  ],
+  "pending_pins": [],
+  "server_flags": {
+    "flush-set32": "--databases 16"
+  },
+  "poll": {
+    "info-set32": "info1hz"
+  },
+  "keys": {
+    "ttl-get32": 1024,
+    "ttl-set32": 1024,
+    "ttl-get1": 1024,
+    "ttl-set1": 1024,
+    "flush-set32": 1000000,
+    "info-set32": 1000000,
+    "tracking-mset1024": 1024,
+    "tls-4k-single": 1024,
+    "tls-16k-single": 1024,
+    "tls-4k-512": 1024,
+    "tls-16k-512": 1024,
+    "stream-get32": 1024
+  }
+}

@@ -1,0 +1,15 @@
+# Private 15-field abbagate cells. Stateful setup is in confirm.py; --list-cells is serverless.
+# pfconfirm2: all scoring cells use the paper baseline read-local 0.
+# id | mode | rl | ov | ro | op[:bytes] | depth | connections | reserved | reserved | instances | atomic | score | mix | smoke
+ttl-get32 | 1s | rl=0 | ov=1 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1024
+ttl-set32 | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1024
+ttl-get1 | 1s | rl=0 | ov=1 | ro=0 | GET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=1 | keys=1024
+ttl-set1 | 1s | rl=0 | ov=1 | ro=0 | SET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=1 | keys=1024
+flush-set32 | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | srv=--databases 16 | dbs=0 | keys=1000000
+info-set32 | 1s | rl=0 | ov=1 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1000000 | poll=info1hz
+tracking-mset1024 | 1s | rl=0 | ov=1 | ro=0 | MSET | p1 | 512 | - | - | 8 | atomic=1 | score=latency | mix=- | smoke=1 | keys=1024
+tls-4k-single | 1s | rl=0 | ov=1 | ro=0 | GET:4096 | p32 | 1 | - | - | 1 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1024
+tls-16k-single | 1s | rl=0 | ov=1 | ro=0 | GET:16384 | p32 | 1 | - | - | 1 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1024
+tls-4k-512 | 1s | rl=0 | ov=1 | ro=0 | GET:4096 | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1024
+tls-16k-512 | 1s | rl=0 | ov=1 | ro=0 | GET:16384 | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1024
+stream-get32 | 1s | rl=0 | ov=1 | ro=0 | GET | p32 | 1 | - | - | 1 | atomic=1 | score=rate | mix=- | smoke=1 | keys=1024
