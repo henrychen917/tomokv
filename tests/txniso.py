@@ -119,15 +119,21 @@ class Battery:
             waits = self.counter("atomic_txn_waits")
             commands = [("INCR", a), ("MGET", a, b), ("INCR", b)]
             if kind == "D3":
-                commands = [("MGET", a, b), ("GET", a)]
+                shard = self.admin.must("DEBUG", "SHARD", a)
+                marker = next(a + ":marker:" + str(i) for i in range(4096)
+                              if self.admin.must("DEBUG", "SHARD", a + ":marker:" + str(i)) == shard)
+                # The cut counter witnesses dispatch, not the lead read. A write
+                # to a distinct key in that same owner turn proves the lead ran
+                # before the foreign writer, including on PRE without intents.
+                commands = [("INCR", marker), ("MGET", a, b), ("GET", a)]
             watched = a + ":watch" if kind.startswith("D4") else None
             try:
-                with self.parked(commands, kind != "D3", watched) as holder:
+                with self.parked(commands, True, watched) as holder:
                     writer = self.conn()
                     if kind == "D2":
                         self.queue(writer, [("INCR", a)])
                         writer.send("EXEC")
-                        result = holder.must_read() if hasattr(holder, "must_read") else holder.read()
+                        result = holder.read()
                         foreign = writer.read()[0]
                     else:
                         foreign = writer.must("SET", a, "new") if kind == "D3" else writer.must("INCR", a)
@@ -137,7 +143,7 @@ class Battery:
                             writer.must("SET", watched, "changed")
                         result = holder.read()
                     if kind == "D3":
-                        assert result[0][0] == result[1], ("read changed inside EXEC", result)
+                        assert result[1][0] == result[2], ("read changed inside EXEC", result)
                     elif kind == "D4b":
                         assert result is None, ("changed WATCH must yield null", result)
                         assert self.admin.must("MGET", a, b) == [b"1", b"0"]

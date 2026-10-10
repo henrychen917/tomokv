@@ -173,6 +173,9 @@ class Server:
                     args[index + 1] = value
                 else:
                     args.extend((flag, value))
+            if "--thread-mode" in args and args[args.index("--thread-mode") + 1] == "1s":
+                index = args.index("--ratio")
+                del args[index:index + 2]
         if oracle:
             argv = ["taskset", "-c", cpus, ORACLE, "--bind", "127.0.0.1", "--port", str(port),
                     "--save", "", "--appendonly", "no"] + list(args)
