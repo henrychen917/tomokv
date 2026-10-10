@@ -2,7 +2,8 @@
 
 Worktree `/home/user/Projects/cx-perfex`, branch `cx-perfex`; no push.
 PRE: `5146b78ee89b64748dd46db970efa8086f653fa0` after the required initial
-fetch/merge (already current). Production fixes: `97411ff12`, `43b454f87`.
+fetch/merge (already current). Production fixes: `97411ff12`, `43b454f87`,
+`8880c47c7`, `3aa525fd9`; compiler budgets: `2da33be5e`.
 **Proof in progress; this is not a merge/gate/performance approval.**
 
 The early, self-contained pfconfirm compatibility commit for perfio is
@@ -16,15 +17,16 @@ Caps, verdict rules, workloads and guards remain unchanged.
 |---|---|---|
 | Built PRE | `build/perfex/pre/tomokv` | `bafacf2dc91dc3e16e53724bcd7733f6119be9447636d7d5094b85d1b809e48e` |
 | Mainline PRE headline | `/home/user/Projects/bench-bins/tomokv-headline-5146b78ee` | `29637fabb42ed4ac9c5b663572c75aa3ae7f6d2745befbc3134a9c59cb5a01fc` |
-| POST | `build/tomokv` | pending final build |
+| POST | `build/tomokv` | `81b0b26dceaea4d78201fd26b84c3af9929613467549710a53c1915b8e759d54` |
+| PAD B | `build/perfex/pad-b/tomokv` | `1e15bc3ef66baf627c2e3fc1410db2d1597059f83872bafa860fa1e799f0dcf7` |
 
 ### Findings and rows
 
 | Finding | PRE result (before production edits) | POST | Files / new row |
 |---|---|---|---|
-| EX4.2 / ST4.2 / PFKEYSPA.1 | At fixed realtime, 16/16 unrelated batches advance avg_ttl in both split and fused | pending | `src/cmd/storesize.cc`, `src/core/ex_loop.h`; `perfex TTL sampler beat (1s)` and `(2s)` |
-| EX4.12 | CPU clock reachable on sample_depth(false) in all four linked executor run bodies | pending | `src/core/ex_loop.h`; `perfex clock binary regression` |
-| EX4.13 | All six ordinary linked drain bodies call memset before receiving a task | pending | `src/core/ex_loop.h`; `perfex batch binary regression` |
+| EX4.2 / ST4.2 / PFKEYSPA.1 | At fixed realtime, 16/16 unrelated batches advance avg_ttl in both split and fused | 0/16 unrelated batches advance the sampler in either mode; 128-window mean error 0.306% fused / 1.976% split (limit 10%); all-shard coverage and counts pass | `src/cmd/storesize.cc`, `src/core/ex_loop.h`; `perfex TTL sampler beat (1s)` and `(2s)` |
+| EX4.12 | CPU clock reachable on sample_depth(false) in all four linked executor run bodies | All four linked run bodies sample on the beat only; diagnostics remain present | `src/core/ex_loop.h`; `perfex clock binary regression` |
+| EX4.13 | All six ordinary linked drain bodies call memset before receiving a task | All six linked drain bodies have no batch zero-fill | `src/core/ex_loop.h`; `perfex batch binary regression` |
 
 PRE failing output is retained in `docs/perfex/pre-{clock,batch,sampler-1s,sampler-2s}.log`.
 The sampler regression uses an isolated LD_PRELOAD realtime fixture. A production
@@ -50,9 +52,21 @@ rollups; `src/core/shutdown_report.h` snapshots and emits final text/JSON report
 The placement/demand model in `src/core/server.h` uses busy/idle, not cpu_ns.
 These consumers retain monotone cumulative diagnostics, now sampled like IO and
 fused IO (not a per-pass value).
+External consumers are `tests/_lib.py`'s LBSIGNALS parser, the live checks in
+`tests/lbsignals.py`, `tests/abba_saturation.py` and its saturation controls
+(CPU deltas/lower-bound occupancy), and `tools/lb_episodes.py` (occupancy deltas).
+Their field names, units and cumulative-counter meaning are unchanged.
 
-Task itself is unchanged. C++20 byte-array storage and construct_at copy each
-received slot; existing batch lengths gate every read. The ordinary and
+The first POST placement exposed stale cached wall time in split HPTTL replies:
+the unchanged deadline checker failed all eight hexpire legs, while PRE passed
+8/8. Moving the one existing wall-clock read after the sampled CPU-clock syscall
+made the diagnostic link pass 8/8; no tolerance changed. The final default build
+independently passes the complete requested matrix: 24/24 split legs and
+26/26 armed-fused outcomes (24 legs plus two arming witnesses). See
+`docs/perfex/clock-order-proof.json` and `docs/perfex/final/differ-*.log`.
+
+Task itself is unchanged. [C++20 implicit-lifetime byte-array storage](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p0593r6.html)
+and construct_at copy each received slot; existing batch lengths gate every read. The ordinary and
 read-local interleaved drains reuse trivially destructible slots. The separate
 `Task posts[256]` arrays in `src/cmd/scatter_engine.inc` (AT4.7), and the opt-in R7
 queue's scratch array, remain outside this change.
@@ -60,8 +74,9 @@ queue's scratch array, remain outside this change.
 ### Counts and ledger
 
 Merged base: EXPECT_QUICK=511, EXPECT_FULL=528. The two binary rows in
-job_perfex_units and the two live rows in job_perfex_live are collected before
-the quick-tier exit: **DQ=4, DF=4; 511+4=515, 528+4=532**. Arithmetic is documented
+job_perfex_units and the two live rows in job_perfex_live are collected at
+`tests/gate.sh:3296` and `:3297`, before the quick-tier block at `:3452`
+(and its exit at `:3456`): **DQ=4, DF=4; 511+4=515, 528+4=532**. Arithmetic is documented
 above the unchanged constants. The source inventory and label fixture both have
 532 rows with no missing/extra labels. The raw ledger validator necessarily
 refuses EXPECT_FULL=528 until the maintainer changes the constant. Its refusal
@@ -106,6 +121,17 @@ Rate at the same offered load decides merit; cycles/op, instructions/op and IPC
 explain it. perf_stat.py retains the PMU/command endpoint envelope, so those short
 ratios are diagnostics rather than an ABBA verdict.
 
+**PAD kind B (inverse control): candidate behavior plus padding restoring PRE's
+total .text size.** PRE is 7,582,188 bytes; POST is 7,580,604; PAD B adds 1,584
+unused NOP bytes. This controls total text size, not every PRE function address
+or internal instruction layout. No padding enters the POST binary. Build recipe,
+exact link command and digest are in `docs/perfex/pad-b.json`; rebuild with
+`taskset -c 112-127 python3 docs/perfex/pad_text.py`. Measure PAD B as a third arm
+for the generic/split cells above, replacing `--candidate-binary "$POST"` with
+`--candidate-binary "$PWD/build/perfex/pad-b/tomokv"` and choosing new output
+directories. POST and PAD B should move together against PRE; a split result
+requires investigation before attributing a gain to the mechanisms.
+
 ### Smoke and measurement evidence
 
 PRE pfconfirm smoke was **REFUSED before boot** by the unchanged quiet screen:
@@ -129,18 +155,80 @@ claim is inferred from either attempt. POST smoke, perf-stat and TTL receipts pe
 
 ### Correctness/build/identity proof
 
-Pending final build, production targets/freshness checks, source merge, focused
-differential matrix (edgetime, hexpire, infofix; seeds 7/19/20/23; atomic 0/1;
-split 6:2 and armed fused), INFO/storesize checks and byte/layout audit.
+Normal `make -j16 all` passed and `make -q all` confirmed freshness. The required
+fetch/merge before this proof remained at origin/cpp `5146b78ee`; the build's
+source commit is `2da33be5e`. Source-boundary checks pass, including the shared
+counter/channel files, capture/admission and AOF regions, and untouched EXPECT
+constants. All 28 job_production_units targets build and pass their individual
+make -q checks; mdbqsbr-live-arms builds. Storesize positive/negative controls pass
+in both namespaces. Exbatch publication/watch/metadata pass 4/20/8 checks;
+wbland clauses pass 83/83. Receipts: `docs/perfex/final/production-units.json`,
+`commands.jsonl` and the corresponding logs. The differential matrix passes all 48 requested legs and both read-local arming
+witnesses. Final LBSIGNALS passes 59 checks in split and 47 in fused (the existing
+seven fused inapplicable checks remain reported as skipped). The final scheduler harness passes 66/66 in 88.49 seconds without this lane's
+compilers running. The pfconfirm unit suite passes 28/28.
 PRE make -j16 BUILD_ROOT=build/perfex/pre all passed. The first POST compile caught
 a private-helper access and was corrected by using the existing public count
 publication API, preserving the hash-field attention flag without a header change.
-The first gates_test run under build contention timed out 14 scheduler fixtures;
-it will be rerun after compilation. Clauses await their production-unit build.
+The first two gates_test runs under build contention timed out 14 and 7 scheduler
+fixtures; the final run without this lane's compilers passes 66/66. Those failures
+remain retained. No scheduler timeout or test outcome was weakened.
 
-Expected changed body families: ordinary drain/receive lambdas (construct received
-Task slots), executor run (CPU beat), owner-control tail and its inline callers
-(millisecond monitoring hook), publish_size (remove monitoring walk), monitoring
-sampler (field attention stays with batch publication), and cold initialization
-of the padding cursor. Every unrelated hot body must remain identical; final
-per-namespace tables and complete changed-body reasons pending.
+The standalone INFO test exposed an immediate-after-SET avg_ttl assumption once
+sampling became periodic (split: 1/41 failed, fused: 41/41 passed). It now waits
+at most one second for a nonzero estimate, then applies its original range check.
+A missing sampler still fails; the dedicated sampler row additionally requires
+explicit clock-step progress. The original failure is retained as
+`docs/perfex/final/infofix-2s.log`; the bounded-wait reruns pass 41/41 in
+both modes (`infofix-beat-{1s,2s}.log`). PAD B passes the clock and batch binary
+rows. Gate shell syntax also passes.
+
+The unmodified ttlclean-method checkers retain every difference. The lane classifier
+then verifies that all changed bodies in the supplied hot inventory are directly
+explained by this change, and that every command handler is identical.
+
+| Identity inventory | Total | Identical | Changed |
+|---|---:|---:|---:|
+| lbstall tomo | 601 | 594 | 7 |
+| lbstall tomo_db0 | 603 | 593 | 10 |
+| Combined hot inventory including four executor run bodies | 1,208 | 1,187 | 21 |
+| Command handlers | 1,210 | 1,210 | 0 |
+| Complete object-body inventory | 16,297 | 16,221 | 76 |
+
+The 21 selected hot changes are ordinary drains/receive lambdas, executor run,
+and db0 fused pass/R7 fused pass/sweep callers of the changed drains or owner
+maintenance. The complete 76-body list gives each symbol, object, size and reason
+in `docs/perfex/final/changed-body-reasons.json`. It includes publish_size, the
+monitoring sampler, owner tail, inline copies, and cold cursor initialization.
+**25 additional compiler changes lie outside the supplied hot selection**, including
+pub/sub, client adoption, a writeback pump instantiation and FlatStore helpers.
+They are retained, not described as whole-binary identity. The main-command merit
+run remains necessary. Raw byte checkers exit 1 because intended differences are
+present; `identity.py` passes with zero unexplained selected hot changes and
+1,210/1,210 identical handlers.
+
+DWARF confirms all eight locked sizes (336/1984/1408/1440/944/192/144/624), every
+existing member offset in both namespaces, and both executor layouts unchanged.
+The new cursor occupies existing padding. See `docs/perfex/final/layouts.json`.
+`linked.json` retains section/address differences; PAD B is the size control,
+not a claim of identical linked placement.
+
+
+Focused proof can be rerun in a **new** output directory (never overwrite retained
+failures). The stage runs are sequential so this lane does not compile during
+live deadline checks or measure during tests:
+
+```sh
+taskset -c 112-127 make -j16 all
+taskset -c 112-127 python3 docs/perfex/proof.py units --output docs/perfex/reproof
+taskset -c 112-127 python3 docs/perfex/proof.py correctness --output docs/perfex/reproof
+taskset -c 112-127 python3 docs/perfex/proof.py wiring --output docs/perfex/reproof
+```
+
+`units` extracts the exact 28 production targets from gate.sh, builds each,
+checks each with make -q, then builds mdbqsbr-live-arms and runs the focused unit
+controls. `correctness` runs the four new rows, INFO and LBSIGNALS in both modes,
+then the unchanged differential harness with suites edgetime/hexpire/infofix,
+seeds 7/19/20/23 and both atomic settings. It pins target 112-119, Redis 7.4 oracle
+120, and differential load 121-127; ports 25103/25104. `wiring` retains the raw
+ledger refusal until the maintainer updates EXPECT.

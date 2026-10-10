@@ -1,0 +1,15 @@
+{
+  "command": "taskset -c 112-127 make -j16 all",
+  "source_commit": "2da33be5e",
+  "exit_code": 0,
+  "artifacts": [
+    {
+      "source": "build/perfex/final-build.log",
+      "artifact": "docs/perfex/final/normal-build.log.gz"
+    },
+    {
+      "source": "build/perfex/final-proof-base",
+      "artifact": "docs/perfex/final/build-base.txt"
+    }
+  ]
+}

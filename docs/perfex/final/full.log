@@ -90,3 +90,19 @@ src/core/flipctl.o 73 bodies
 src/core/genthread.o 767 bodies
 src/core/lbplanner.o 73 bodies
 src/core/lbstall.o 12 bodies
+src/core/reorder.o 832 bodies
+src/core/rl2s.o 696 bodies
+src/core/version.o 0 bodies
+src/main.o 653 bodies
+src/net/tls.o 38 bodies
+src/persist/aof.o 297 bodies
+src/persist/aof_frame_debug.o 6 bodies
+src/snapshot/snapshot.o 124 bodies
+{"total": 16297, "equal": 16221, "changed": 76, "handlers": 1210, "handlers_equal": 1210, "hot": 1208, "hot_equal": 1187, "hot_nonerror_equal": 1187, "handlers_nonerror_equal": 1210}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-perfex/tools/ccfix_audit.py", line 155, in <module>
+    main()
+  File "/home/user/Projects/cx-perfex/tools/ccfix_audit.py", line 149, in main
+    assert not report['other_hot'], 'ordinary hot-path bytes changed'
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ordinary hot-path bytes changed
