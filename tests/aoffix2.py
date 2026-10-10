@@ -243,7 +243,11 @@ def snapshot():
 
 
 def filename():
-    for i, name in enumerate(('has space.aof', 'quote"slash\\.aof', "single'quote.aof", 'tabs\tlines\n.aof')):
+    # Redis also forbids backslashes at CONFIG validation; TomoKV deliberately
+    # retains its existing validation. The oracle checks the reported space case.
+    names = ('has space.aof',) if ARGS.oracle else (
+        'has space.aof', 'quote"slash\\.aof', "single'quote.aof", 'tabs\tlines\n.aof')
+    for i, name in enumerate(names):
         data = ARGS.artifacts / f'filename-{i}'
         opt = aof('always') + ['--appendfilename', name]
         with Server(opt, data=data) as s:
@@ -431,7 +435,10 @@ def latency():
     before = load()
     # defaults really means the shipped geometry and balancers; only persistence
     # and the temporary destination/port differ, as in ack_default.py.
-    with Server(aof(), defaults=(ARGS.shape == 'defaults')) as s:
+    opt = aof()
+    if ARGS.shape == 'defaults' and ARGS.policy != 'off':
+        opt = ['--appendonly', 'yes', '--appendfsync', ARGS.policy]
+    with Server(opt, defaults=(ARGS.shape == 'defaults')) as s:
         per = []
         nconn = 1 if ARGS.shape == 'seq' else 12
         for n in range(nconn):
