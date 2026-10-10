@@ -36,6 +36,8 @@
     "core concurrency notify",
     "read-local topology demotion (1s)",
     "read-local topology demotion (2s)",
+    "FLIP planned-connection close lifetime (ASAN+TSAN)",
+    "FLIP fingerprint publication (ASAN+TSAN)",
     "writeback c12 policy witnesses + negative controls",
     "writeback c12 phase witnesses + negative controls",
     "writeback c12 stages witnesses + negative controls",
@@ -372,6 +374,9 @@
     "FLIP under verified load",
     "FLIP TTL + expiry events",
     "partial-frame conn parks (no io spin)",
+    "FLIP close during FLIP (uring)",
+    "FLIP close during FLIP (epoll)",
+    "FLIP signal stop during FLIP + second SIGINT",
     "flip controller: ramp gate, hold, surge + mix re-maneuvers",
     "FLIP applies under saturated load",
     "flip battery shutdown invariants",
@@ -756,6 +761,16 @@
     "labels": [
       "netcmd wb-small-pipe regression",
       "netcmd wb-complete-visits regression"
+    ]
+  },
+  "flipfix_supplement": {
+    "purpose": "lane flipfix +5 quick/full source inventory (3 live rows in job_flip, 2 serverless rows in job_flipfix_units), not execution evidence",
+    "labels": [
+      "FLIP close during FLIP (uring)",
+      "FLIP close during FLIP (epoll)",
+      "FLIP signal stop during FLIP + second SIGINT",
+      "FLIP planned-connection close lifetime (ASAN+TSAN)",
+      "FLIP fingerprint publication (ASAN+TSAN)"
     ]
   }
 }

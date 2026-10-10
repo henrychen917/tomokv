@@ -285,8 +285,11 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # eight rows collected above the quick-tier exit (+8 quick, +8 full).
 # overlapaxe: retire only split-overlap WB row, collected before quick exit (-1/-1).
 # Matrix client-lb dimension preserves every former split correctness scenario.
-EXPECT_QUICK=511
-EXPECT_FULL=528                 # ABBA reports only; self-test remains counted.
+# flipfix (IO4.1/IO4.2/IO4.4/CT4.3): +3 live rows in job_flip (close during FLIP on uring and
+# epoll, signal stop during FLIP + second SIGINT) and +2 serverless rows in job_flipfix_units;
+# both jobs are collected before the quick-tier exit: 511+5 = 516 quick, 528+5 = 533 full.
+EXPECT_QUICK=516
+EXPECT_FULL=533                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -1029,7 +1032,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
+              core_units flipfix_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1274,6 +1277,30 @@ g++ -std=c++20 -O2 -I. tests/flipctl_unit.cc src/core/flipctl.cc -o $TMPDIR/tomo
     && $TMPDIR/tomokv-flipctl-unit >>$TMPDIR/gate-flipctl-unit.txt 2>&1 \
     && ok "flip controller model unit" \
     || bad "flip controller model unit" "see $TMPDIR/gate-flipctl-unit.txt"
+}
+
+job_flipfix_units(){
+# flipfix IO4.4/CT4.3: two serverless rows, collected BEFORE the quick-tier exit (+2/+2). Each runs
+# the core fixture's selection under ASAN/UBSAN (production_units) and under TSAN (core_tsan_build):
+# a planned connection closing during FLIP must stay owned and allocated until its source drops it,
+# and the monitor must read fingerprint windows through the release/acquire publication.
+flipfix_unit(){
+  quiet_wait
+  unit_ready core-concurrency-unit && \
+      ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 \
+      taskset -c "$CORES" ./build/core-concurrency-unit "$1" \
+          >"$TMPDIR/gate-$1.txt" 2>&1 && \
+      tsan_unit "$CORE_TSAN" core-concurrency-tsan \
+          "PASS core concurrency $1 (state assertions fired)" "$1"
+}
+row_begin "FLIP planned-connection close lifetime (ASAN+TSAN)"
+flipfix_unit flipfix-plan \
+    && ok "FLIP planned-connection close lifetime (ASAN+TSAN)" \
+    || bad "FLIP planned-connection close lifetime (ASAN+TSAN)" "see $TMPDIR/gate-flipfix-plan.txt and $TMPDIR/tsan-core-concurrency-tsan-flipfix-plan.log"
+row_begin "FLIP fingerprint publication (ASAN+TSAN)"
+flipfix_unit flipfix-fingerprint \
+    && ok "FLIP fingerprint publication (ASAN+TSAN)" \
+    || bad "FLIP fingerprint publication (ASAN+TSAN)" "see $TMPDIR/gate-flipfix-fingerprint.txt and $TMPDIR/tsan-core-concurrency-tsan-flipfix-fingerprint.log"
 }
 
 job_filter_unit(){
@@ -2356,6 +2383,24 @@ row_begin "partial-frame conn parks (no io spin)"
 py tests/spinprobe.py $PORT "$SRV" >$TMPDIR/gate-spinprobe.txt 2>&1 \
     && ok "partial-frame conn parks (no io spin)" || bad "partial-frame conn parks (no io spin)" "see $TMPDIR/gate-spinprobe.txt"
 stop
+# flipfix (IO4.1, IO4.2). Each row owns its boots on this slot's $PORT, now free. Closing peers
+# during FLIPs once wedged the server or held each FLIP to its 5 s deadline; with save clauses
+# armed a SIGTERM during a FLIP was not served and a second SIGINT was absorbed.
+for NET_IO in uring epoll; do
+  row_begin "FLIP close during FLIP ($NET_IO)"
+  py tests/flipfix.py close --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --net-io "$NET_IO" --output "$TMPDIR/flipfix-close-$NET_IO" \
+      >"$TMPDIR/gate-flipfix-close-$NET_IO.txt" 2>&1 \
+      && ok "FLIP close during FLIP ($NET_IO)" \
+      || bad "FLIP close during FLIP ($NET_IO)" "see $TMPDIR/gate-flipfix-close-$NET_IO.txt"
+done
+row_begin "FLIP signal stop during FLIP + second SIGINT"
+{ py tests/flipfix.py sigterm --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/flipfix-sigterm" &&
+  py tests/flipfix.py sigint --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/flipfix-sigint"; } >"$TMPDIR/gate-flipfix-signal.txt" 2>&1 \
+    && ok "FLIP signal stop during FLIP + second SIGINT" \
+    || bad "FLIP signal stop during FLIP + second SIGINT" "see $TMPDIR/gate-flipfix-signal.txt"
 }
 
 job_flip_saturated(){
@@ -3170,7 +3215,7 @@ job_dependencies(){
         [ "$dependency" = atomic_batteries ] || printf '%s\n' "$dependency"
       done;;
     release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync) ;;
-    core_units) echo 'production_units core_tsan_build';;
+    core_units|flipfix_units) echo 'production_units core_tsan_build';;
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*|aof_frame) echo 'release production_units';;
@@ -3256,6 +3301,8 @@ collect_job exbatch_live
 
 collect_job persistfix_units
 collect_job core_units
+# flipfix: two serverless sanitizer rows before the quick exit (+2 quick / +2 full).
+collect_job flipfix_units
 
 collect_job wb_rule_units
 
