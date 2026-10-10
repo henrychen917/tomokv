@@ -574,6 +574,7 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
         }
         flush_xshard_commits();
         if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
+            !shutdown_snapshot_blocks_tasks() &&
             cached_now_ms_ >= blocking_beat_ms_) {
             did += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
             blocking_beat_ms_ = cached_now_ms_ + 10;
@@ -714,7 +715,8 @@ uint32_t ExLoopT<Fused>::r7_sweep() {
     flush_xshard_commits();
     n += active_expire_cycle() + atomic_cleanup_cycle(64);
     n += drain_notify_keyless(self_->sig(), /*force=*/true);
-    if (__builtin_expect(srv_->blocking_waiters() != 0, false))
+    if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
+        !shutdown_snapshot_blocks_tasks())
         n += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
     n += aof_flush_pass();
     // Normally flush_xshard_commits empties the queue synchronously. The DEBUG hold can
@@ -2959,6 +2961,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
     // read from the server so the LB's unix_owner_tid_ and the actual attach point cannot drift.
     const uint32_t unix_owner = srv.unix_owner_tid();
     auto report_graceful_shutdown = [&] {
+        srv.snapshot().cancel_after_join(srv);
         if (srv.read_local_enabled()) {
             // Joined fused readers cannot run another grace callback. Empty their private
             // retirement queues and disarm every store hook before taking the immutable report;
@@ -2983,6 +2986,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
     for (uint32_t tid = 0; tid < nthreads; tid++)
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            SnapshotManager::WorkerLifetime snapshot_worker(srv.snapshot(), srv.thread(tid));
             AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             if (cfg.pin_threads) pin_fused_thread(srv.placement().cpu_of_thread(tid));
             ThreadCtx& self = srv.thread(tid);
