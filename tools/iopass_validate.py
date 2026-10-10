@@ -51,9 +51,8 @@ for row in ('admission', 'closure', 'script_keys', 'rename_overlay', 'write_late
 for row in ('streams', 'zpop', 'notify-oom', 'notify-retry', 'flush', 'output', 'pubsub', 'receive', 'config', 'hexpire-oom'):
     unit('netcmd-unit', row)
 for row in ('unlinked', 'randomkey', 'rehash', 'rollback', 'snapshot-eviction', 'aof-eviction',
-            'intents', 'imported-hash', 'field-index-failure', 'hash-bytes'):
+            'intents', 'imported-hash', 'field-index-failure', 'hash-bytes', 'deadline-allocation-failure'):
     unit('store-regression', row)
-unit('store-regression-sidecar', 'deadline-sidecar')
 unit('rehash-waits-unit', 'retirement')
 py('splitlocal_checks.py', 'check')
 py('r7shadow_sync.py')

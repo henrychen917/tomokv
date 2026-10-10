@@ -155,8 +155,7 @@ public:
     bool migrating() const { return cap_[1] != 0; }
     size_t memory_bytes() const {
         return static_cast<size_t>((static_cast<uint64_t>(cap_[0]) + cap_[1]) *
-                                   (sizeof(uint64_t) + sizeof(uint8_t) +
-                                    (kTtlDeadlineSidecar ? sizeof(int64_t) : 0)));
+                                   (sizeof(uint64_t) + sizeof(uint8_t)));
     }
     void clear() {
         release(0);
@@ -165,7 +164,7 @@ public:
         migrate_ = 0;
     }
 
-    bool insert(uint64_t hash, int64_t deadline = kNoTtlDeadline) {
+    bool insert(uint64_t hash) {
         if (rehashing()) {
             migrate(kMigrateSlotsPerOp);
             // Backstop only. At the shipped step rate the new table is at most ~41% loaded when the
@@ -191,29 +190,19 @@ public:
         // A deadline re-registered while the move is in flight must leave the old table, or live_
         // double-counts it until the migration catches up.
         if (rehashing()) (void)erase_in(0, hash);
-        return insert_raw(rehashing() ? 1 : 0, hash, deadline);
+        return insert_raw(rehashing() ? 1 : 0, hash);
     }
 
     // Erasing from an index with nothing LIVE in it is a PROVEN no-op, not an approximation:
     // erase_in() only ever clears a kLive slot, and it changes nothing else. So this guard is
     // exact, and it is the only skip that is. Do NOT make the erase conditional on "the key has a
-    // deadline" instead -- see track_expire() for the two things that would break.
+    // deadline" instead -- see track_expire() for the expiry-count invariant.
     bool erase(uint64_t hash) {
         if (size() == 0) return false;
         bool removed = erase_in(1, hash);
         if (!removed) removed = erase_in(0, hash);
         if (removed && size() == 0) collapse_empty();
         return removed;
-    }
-
-    // Selector-on prototype: owner-side TTL reads can pay one probe here while ordinary keys pay
-    // none.  The inline slot remains the authoritative fallback because this hash-only index
-    // cannot yet distinguish an exact 64-bit collision or preserve every MVCC version.
-    int64_t deadline(uint64_t hash, int64_t fallback) const {
-        if constexpr (!kTtlDeadlineSidecar) return fallback;
-        int64_t value = fallback;
-        if (deadline_in(1, hash, value) || deadline_in(0, hash, value)) return value;
-        return fallback;
     }
 
     template <typename Fn>
@@ -288,15 +277,7 @@ private:
     bool rehashing() const { return cap_[1] != 0; }
 
     uint8_t* states(int t) const {
-        if (!sidecars_[t]) return nullptr;
-        auto* bytes = sidecars_[t];
-        if constexpr (kTtlDeadlineSidecar) bytes += cap_[t] * sizeof(int64_t);
-        return bytes;
-    }
-
-    int64_t* deadlines(int t) const {
-        if constexpr (!kTtlDeadlineSidecar) return nullptr;
-        return reinterpret_cast<int64_t*>(sidecars_[t]);
+        return sidecars_[t];
     }
 
     void release(int t) {
@@ -313,9 +294,7 @@ private:
     // one operation's critical path -- which is the stall this change exists to remove.
     bool allocate(int t, size_t cap) {
         auto* hashes = static_cast<uint64_t*>(flatstore_table_calloc(cap, sizeof(uint64_t)));
-        const size_t sidecar_width = sizeof(uint8_t) +
-                                     (kTtlDeadlineSidecar ? sizeof(int64_t) : 0);
-        auto* sidecar = static_cast<uint8_t*>(flatstore_table_calloc(cap, sidecar_width));
+        auto* sidecar = static_cast<uint8_t*>(flatstore_table_calloc(cap, sizeof(uint8_t)));
         if (!hashes || !sidecar) { std::free(hashes); std::free(sidecar); return false; }
         std::free(hashes_[t]);
         std::free(sidecars_[t]);
@@ -355,12 +334,11 @@ private:
             const size_t pos = migrate_++;
             slots--;
             if (states(0)[pos] != kLive) continue;
-            const int64_t deadline = kTtlDeadlineSidecar ? deadlines(0)[pos] : kNoTtlDeadline;
             states(0)[pos] = kTomb;
             live_[0]--;
             tombs_[0]++;
             // Cannot fail: the destination was sized for every live entry plus headroom.
-            (void)insert_raw(1, hashes_[0][pos], deadline);
+            (void)insert_raw(1, hashes_[0][pos]);
         }
         if (migrate_ >= cap_[0]) finish_migration();
     }
@@ -369,11 +347,10 @@ private:
         while (migrate_ < cap_[0]) {
             const size_t pos = migrate_++;
             if (states(0)[pos] != kLive) continue;
-            const int64_t deadline = kTtlDeadlineSidecar ? deadlines(0)[pos] : kNoTtlDeadline;
             states(0)[pos] = kTomb;
             live_[0]--;
             tombs_[0]++;
-            (void)insert_raw(1, hashes_[0][pos], deadline);
+            (void)insert_raw(1, hashes_[0][pos]);
         }
         std::free(hashes_[0]);
         std::free(sidecars_[0]);
@@ -394,7 +371,7 @@ private:
         return static_cast<size_t>(mix64(hash)) & (cap_[t] - 1);
     }
 
-    bool insert_raw(int t, uint64_t hash, int64_t deadline) {
+    bool insert_raw(int t, uint64_t hash) {
         const size_t cap = cap_[t];
         if (!cap) return false;
         size_t pos = start(t, hash);
@@ -403,7 +380,6 @@ private:
             if (states(t)[pos] == kEmpty) {
                 if (first_tomb != cap) { pos = first_tomb; tombs_[t]--; }
                 hashes_[t][pos] = hash;
-                if constexpr (kTtlDeadlineSidecar) deadlines(t)[pos] = deadline;
                 states(t)[pos] = kLive;
                 live_[t]++;
                 return true;
@@ -411,7 +387,6 @@ private:
             if (states(t)[pos] == kTomb) {
                 if (first_tomb == cap) first_tomb = pos;
             } else if (hashes_[t][pos] == hash) {
-                if constexpr (kTtlDeadlineSidecar) deadlines(t)[pos] = deadline;
                 return true;
             }
             pos = (pos + 1) & (cap - 1);
@@ -429,22 +404,6 @@ private:
                 states(t)[pos] = kTomb;
                 live_[t]--;
                 tombs_[t]++;
-                return true;
-            }
-            pos = (pos + 1) & (cap - 1);
-        }
-        return false;
-    }
-
-    bool deadline_in(int t, uint64_t hash, int64_t& out) const {
-        if constexpr (!kTtlDeadlineSidecar) return false;
-        const size_t cap = cap_[t];
-        if (!cap) return false;
-        size_t pos = start(t, hash);
-        for (size_t probes = 0; probes < cap; probes++) {
-            if (states(t)[pos] == kEmpty) return false;
-            if (states(t)[pos] == kLive && hashes_[t][pos] == hash) {
-                out = deadlines(t)[pos];
                 return true;
             }
             pos = (pos + 1) & (cap - 1);
@@ -1435,18 +1394,10 @@ public:
         if (KvObj* object = find_in(0, h, key)) return object;
         return rehashing() ? find_in(1, h, key) : nullptr;
     }
-    // Owner-only deadline accessor. With the prototype selector enabled, a physically TTL-capable
-    // object pays one ExpireIndex probe; objects without the slot return before touching sidecar
-    // memory. Atomic/snapshot versions retain their inline transport value and bypass the hash-only
-    // prototype because one index entry cannot describe multiple versions of the same key.
-    int64_t deadline(uint64_t h, const KvObj* object) const {
+    // Owner-only deadline accessor. Each immutable object version carries its own deadline.
+    int64_t deadline(uint64_t, const KvObj* object) const {
         if (!object || !object->has_ttl_slot()) return kNoTtlDeadline;
         const int64_t inline_deadline = object->expire_at_ms();
-        if constexpr (kTtlDeadlineSidecar) {
-            if (snapshot_active_ || (atomic_pending_ && atomic_pending_->live != 0))
-                return inline_deadline;
-            return expires_.deadline(h, inline_deadline);
-        }
         return inline_deadline;
     }
     bool deadline_elapsed(uint64_t h, const KvObj* object, int64_t now_ms) const {
@@ -1962,26 +1913,18 @@ private:
         if (!object) return true;
         const int64_t at = object->expire_at_ms();
         if (at >= 0) {
-            if (expires_.insert(hash, at)) return true;
-            // An extension may have failed while growing an existing index. A missing sidecar
-            // falls back to the object's deadline; a stale sidecar would expire it too soon.
-            if constexpr (kTtlDeadlineSidecar) expires_.erase(hash);
+            if (expires_.insert(hash)) return true;
             return false;
         }
         // The un-TTL'd store never reaches the index at all. Repeated here rather than left to
         // ExpireIndex::erase() so the CALL goes too, which is most of what it cost.
         //
         // The erase itself STAYS, and it is load-bearing. `SET k v EX 10` then `SET k v` clears
-        // the deadline (redis semantics) and this is what takes the hash back out. Two things
-        // break if a stale entry is allowed to survive instead:
-        //   - INFO keyspace `expires` is expires_.size(); tests/expireindex.py asserts that count
-        //     EXACTLY (== n, == 0), so it would over-report until active expiry happened to
-        //     resample the hash;
-        //   - with TOMO_TTL_DEADLINE_SIDECAR=1 (src/store/store_ttl.h) deadline() reads the
-        //     deadline back OUT of this index, so a stale entry resurrects the TTL the SET just
-        //     cleared -- a wrong answer, not a slow one.
+        // the deadline (redis semantics) and this is what takes the hash back out. INFO keyspace
+        // `expires` is expires_.size(); tests/expireindex.py asserts that count EXACTLY (== n,
+        // == 0), so a stale entry would over-report until active expiry resampled the hash.
         // Reaping alone would tolerate a false positive (active_expire() cleans stale trackers,
-        // and the index is documented hash-only, "may carry a deadline"); those two do not.
+        // and the index is documented hash-only, "may carry a deadline"); expiry counts do not.
         if (expires_.size() == 0) return true;
         expires_.erase(hash);
         return true;

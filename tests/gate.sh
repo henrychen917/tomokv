@@ -1199,14 +1199,13 @@ reject_boot(){
 
 store_build(){
   local variant=${1:-} flags=${CXXFLAGS-'-std=c++20 -O2 -g -Wall -Wextra -march=native -pthread'}
-  # Match the three Makefile recipes, including the later -O1 override for TSan. Their former
+  # Match the two Makefile recipes, including the later -O1 override for TSan. Their former
   # single compiler invocation serialized the large translation units on every cache miss.
   # Reuse the header-aware cache and keep compilation on this slot while other batteries run.
   if [ "$variant" = tsan ]; then
     flags+=' -O1 -fsanitize=thread -fno-omit-frame-pointer -no-pie'
   fi
   flags+=' -ffunction-sections -fdata-sections -DTOMO_STORE_REGRESSION_TEST'
-  [ "$variant" != sidecar ] || flags+=' -DTOMO_TTL_DEADLINE_SIDECAR=1'
   flags+=' -I.'
   pausable taskset -c "$CORES,$LOAD_CORES" tests/parbuild.sh \
       "$PWD/build/store-regression${variant:+-$variant}" \
@@ -1552,14 +1551,12 @@ job_storage_units(){
 # Twelve storage regressions, all BEFORE the quick-tier exit. The hash reaper is production code;
 # store-boundary spies make held epochs, capture cursors, eviction and allocation failures exact.
 # No case skips. Build failure makes every dependent row red. EXPECT constants are maintainer-owned.
-STORE_REGRESSION_BUILT=0; STORE_TSAN_BUILT=0; STORE_SIDECAR_BUILT=0
+STORE_REGRESSION_BUILT=0; STORE_TSAN_BUILT=0
 store_build >$TMPDIR/gate-store-build.txt 2>&1 & store_pid=$!
 store_build tsan >$TMPDIR/gate-store-flags-build.txt 2>&1 & store_tsan_pid=$!
-store_build sidecar >$TMPDIR/gate-store-sidecar.txt 2>&1 & store_sidecar_pid=$!
 wait "$store_pid" && STORE_REGRESSION_BUILT=1
 wait "$store_tsan_pid" && STORE_TSAN_BUILT=1
-wait "$store_sidecar_pid" && STORE_SIDECAR_BUILT=1
-for STORE_CASE in unlinked randomkey rehash rollback snapshot-eviction flags aof-eviction intents imported-hash field-index-failure hash-bytes; do
+for STORE_CASE in unlinked randomkey rehash rollback snapshot-eviction flags aof-eviction intents imported-hash field-index-failure hash-bytes deadline-allocation-failure; do
   row_begin "storage $STORE_CASE regression"
   STORE_RUN=(./build/store-regression "$STORE_CASE")
   STORE_CASE_BUILT=$STORE_REGRESSION_BUILT
@@ -1579,12 +1576,6 @@ for STORE_CASE in unlinked randomkey rehash rollback snapshot-eviction flags aof
     bad "storage $STORE_CASE regression" "see $TMPDIR/gate-store-build.txt, $TMPDIR/gate-store-$STORE_CASE-build.txt and $TMPDIR/gate-store-$STORE_CASE.txt"
   fi
 done
-row_begin "storage deadline-sidecar regression"
-[ "$STORE_SIDECAR_BUILT" = 1 ] \
-    && ./build/store-regression-sidecar deadline-sidecar \
-        >>$TMPDIR/gate-store-sidecar.txt 2>&1 \
-    && ok "storage deadline-sidecar regression" \
-    || bad "storage deadline-sidecar regression" "see $TMPDIR/gate-store-sidecar.txt"
 }
 
 job_atomic_units(){

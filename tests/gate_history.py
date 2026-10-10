@@ -55,7 +55,7 @@ CACHED_BUILD_ROWS = frozenset(("release build (+footprint locks)", "ASAN build",
     "read-local ownership-invariant build", "atomic survivors unit build",
     "netcmd regression build", "waits config publication + admission unit",
     "reads never wait for retirement quiescence", "storage flags regression",
-    "storage deadline-sidecar regression"))
+    "storage deadline-allocation-failure regression"))
 
 
 def protect_mechanism_budget(label: str, row: dict) -> dict:
