@@ -1,0 +1,157 @@
+Hot bodies: 1204; raw byte equal: 1036; bytes + resolved relocation targets equal: 1048
+DIFF db0/src/cmd/climon.o 2224 2177 tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF db0/src/core/genthread.o 9538 9602 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/genthread.o 414 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/core/genthread.o 414 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#2}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/core/genthread.o 18416 18345 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/genthread.o 18320 18196 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/genthread.o 3712 3712 unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false, false>()
+DIFF db0/src/core/genthread.o 2849 2849 unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, false, false>()
+DIFF db0/src/core/genthread.o 3664 3664 unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true, false>()
+DIFF db0/src/core/genthread.o 2857 2857 unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, true, false>()
+DIFF db0/src/core/genthread.o 3030 3030 unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, false>()
+DIFF db0/src/core/genthread.o 2340 2340 unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, false, false>()
+DIFF db0/src/core/genthread.o 3014 3014 unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true, false>()
+DIFF db0/src/core/genthread.o 2324 2324 unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, true, false>()
+DIFF db0/src/core/genthread.o 3030 3030 unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false, false>()
+DIFF db0/src/core/genthread.o 2340 2340 unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, false, false>()
+DIFF db0/src/core/genthread.o 3014 3014 unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true, false>()
+DIFF db0/src/core/genthread.o 2324 2324 unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, true, false>()
+DIFF db0/src/core/genthread.o 3712 3712 unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false, false>()
+DIFF db0/src/core/genthread.o 2849 2849 unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, false, false>()
+DIFF db0/src/core/genthread.o 3664 3664 unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true, false>()
+DIFF db0/src/core/genthread.o 2857 2857 unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, true, false>()
+DIFF db0/src/core/reorder.o 9522 9554 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/reorder.o 414 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 414 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#2}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 1212 984 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 1212 984 tomo_db0::WbEngine::serve_impl<true, true, false, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 18353 18263 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/reorder.o 18269 18121 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/reorder.o 18252 18131 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/reorder.o 18149 18051 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo_db0::Client*)
+DIFF db0/src/core/reorder.o 3715 3715 unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, false, false>()
+DIFF db0/src/core/reorder.o 796 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+DIFF db0/src/core/reorder.o 3715 3715 unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, true, false>()
+DIFF db0/src/core/reorder.o 2693 2693 unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, true, false>()
+DIFF db0/src/core/reorder.o 2693 2693 unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, true, false>()
+DIFF db0/src/core/reorder.o 3041 3041 unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, true, false>()
+DIFF db0/src/core/reorder.o 3041 3041 unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, true, true, false>()
+DIFF db0/src/core/reorder.o 3344 3344 unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, true, false>()
+DIFF db0/src/core/reorder.o 3344 3344 unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, true, false>()
+DIFF db0/src/core/reorder.o 3715 3715 unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, true, true, false>()
+DIFF db0/src/core/reorder.o 2693 2693 unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, true, false, false>()
+DIFF db0/src/core/reorder.o 2693 2693 unsigned int tomo_db0::IoLoop::r7_flush_ready<false, false, true, false, false, false>()
+DIFF db0/src/core/reorder.o 3025 3025 unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, true, false, false>()
+DIFF db0/src/core/reorder.o 3025 3025 unsigned int tomo_db0::IoLoop::r7_flush_ready<false, true, true, false, false, false>()
+DIFF db0/src/core/reorder.o 3328 3328 unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, false, false, false>()
+DIFF db0/src/core/reorder.o 3328 3328 unsigned int tomo_db0::IoLoop::r7_flush_ready<true, false, true, true, false, false>()
+DIFF db0/src/core/reorder.o 3715 3715 unsigned int tomo_db0::IoLoop::r7_flush_ready<true, true, true, false, false, false>()
+DIFF db0/src/core/rl2s.o 11888 11955 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/rl2s.o 21169 21097 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/rl2s.o 63 63 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0] [clone .cold]
+DIFF db0/src/core/rl2s.o 21083 20940 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]
+DIFF db0/src/core/rl2s.o 414 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/core/rl2s.o 414 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#2}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/core/rl2s.o 21051 20993 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+DIFF db0/src/core/rl2s.o 20985 20861 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+DIFF db0/src/core/rl2s.o 4095 4095 unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false, true>()
+DIFF db0/src/core/rl2s.o 2711 2711 unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, false, true>()
+DIFF db0/src/core/rl2s.o 2711 2711 unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, false, true>()
+DIFF db0/src/core/rl2s.o 3045 3045 unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, false, true>()
+DIFF db0/src/core/rl2s.o 3045 3045 unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, false, true>()
+DIFF db0/src/core/rl2s.o 3386 3386 unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, false, true>()
+DIFF db0/src/core/rl2s.o 3386 3386 unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, false, true>()
+DIFF db0/src/core/rl2s.o 4095 4095 unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, false, true>()
+DIFF db0/src/core/rl2s.o 4031 4031 unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, true, true, true>()
+DIFF db0/src/core/rl2s.o 2695 2695 unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, true, true, true>()
+DIFF db0/src/core/rl2s.o 2695 2695 unsigned int tomo_db0::IoLoop::flush_ready<false, false, true, false, true, true>()
+DIFF db0/src/core/rl2s.o 3029 3029 unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, true, true, true>()
+DIFF db0/src/core/rl2s.o 3029 3029 unsigned int tomo_db0::IoLoop::flush_ready<false, true, true, false, true, true>()
+DIFF db0/src/core/rl2s.o 3370 3370 unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, true, true, true>()
+DIFF db0/src/core/rl2s.o 3370 3370 unsigned int tomo_db0::IoLoop::flush_ready<true, false, true, false, true, true>()
+DIFF db0/src/core/rl2s.o 4031 4031 unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, true, true>()
+DIFF db0/src/main.o 414 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#1}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/main.o 414 451 tomo_db0::IoLoop::init(tomo_db0::Server*, tomo_db0::ThreadCtx*, char const*, unsigned short, int, tomo_db0::TlsContext const*, bool)::{lambda(void*, tomo_db0::Client&, tomo_db0::Op&)#2}::operator()(void*, tomo_db0::Client&, tomo_db0::Op&) const
+DIFF db0/src/main.o 12000 12185 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)
+DIFF db0/src/main.o 12149 12192 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)
+DIFF db0/src/main.o 6266 6266 unsigned int tomo_db0::IoLoop::flush_ready<true, true, false, false, false, false>()
+DIFF db0/src/main.o 3263 3263 unsigned int tomo_db0::IoLoop::flush_ready<false, true, false, false, false, false>()
+DIFF db0/src/main.o 4783 4783 unsigned int tomo_db0::IoLoop::flush_ready<true, false, false, false, false, false>()
+DIFF db0/src/main.o 2583 2583 unsigned int tomo_db0::IoLoop::flush_ready<false, false, false, false, false, false>()
+DIFF src/cmd/climon.o 2224 2177 tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const
+DIFF src/core/genthread.o 9822 9698 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/genthread.o 414 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#1}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/core/genthread.o 414 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#2}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/core/genthread.o 18292 18278 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+DIFF src/core/genthread.o 18260 18262 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+DIFF src/core/genthread.o 3062 3062 unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false, false>()
+DIFF src/core/genthread.o 2318 2318 unsigned int tomo::IoLoop::flush_ready<false, false, true, false, false, false>()
+DIFF src/core/genthread.o 3046 3046 unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true, false>()
+DIFF src/core/genthread.o 2302 2302 unsigned int tomo::IoLoop::flush_ready<false, false, true, false, true, false>()
+DIFF src/core/genthread.o 3482 3482 unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false, false>()
+DIFF src/core/genthread.o 2881 2881 unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+DIFF src/core/genthread.o 3482 3482 unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true, false>()
+DIFF src/core/genthread.o 2889 2889 unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, false>()
+DIFF src/core/genthread.o 3062 3062 unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false, false>()
+DIFF src/core/genthread.o 2318 2318 unsigned int tomo::IoLoop::flush_ready<false, false, true, true, false, false>()
+DIFF src/core/genthread.o 3046 3046 unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true, false>()
+DIFF src/core/genthread.o 2302 2302 unsigned int tomo::IoLoop::flush_ready<false, false, true, true, true, false>()
+DIFF src/core/genthread.o 3482 3482 unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false, false>()
+DIFF src/core/genthread.o 2881 2881 unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, false>()
+DIFF src/core/genthread.o 3482 3482 unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true, false>()
+DIFF src/core/genthread.o 2889 2889 unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true, false>()
+DIFF src/core/reorder.o 9880 9784 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/reorder.o 414 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#1}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/core/reorder.o 414 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#2}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/core/reorder.o 18130 18136 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+DIFF src/core/reorder.o 18143 18135 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+DIFF src/core/reorder.o 18158 18197 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+DIFF src/core/reorder.o 18296 18301 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+DIFF src/core/reorder.o 3744 3744 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()
+DIFF src/core/reorder.o 3744 3744 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()
+DIFF src/core/reorder.o 2388 2388 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()
+DIFF src/core/reorder.o 2388 2388 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()
+DIFF src/core/reorder.o 2960 2960 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()
+DIFF src/core/reorder.o 2960 2960 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()
+DIFF src/core/reorder.o 3078 3078 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()
+DIFF src/core/reorder.o 3078 3078 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()
+DIFF src/core/reorder.o 3744 3744 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()
+DIFF src/core/reorder.o 2372 2372 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()
+DIFF src/core/reorder.o 2372 2372 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()
+DIFF src/core/reorder.o 2944 2944 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()
+DIFF src/core/reorder.o 2944 2944 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()
+DIFF src/core/reorder.o 3062 3062 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()
+DIFF src/core/reorder.o 3062 3062 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()
+DIFF src/core/reorder.o 3744 3744 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()
+DIFF src/core/rl2s.o 12261 12304 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 20973 21008 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 20920 20868 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 414 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#1}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/core/rl2s.o 414 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#2}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/core/rl2s.o 20932 20941 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+DIFF src/core/rl2s.o 20884 20877 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)
+DIFF src/core/rl2s.o 4127 4127 unsigned int tomo::IoLoop::flush_ready<true, true, true, false, false, true>()
+DIFF src/core/rl2s.o 2743 2743 unsigned int tomo::IoLoop::flush_ready<false, false, true, false, false, true>()
+DIFF src/core/rl2s.o 2743 2743 unsigned int tomo::IoLoop::flush_ready<false, false, true, true, false, true>()
+DIFF src/core/rl2s.o 3077 3077 unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, true>()
+DIFF src/core/rl2s.o 3077 3077 unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, true>()
+DIFF src/core/rl2s.o 3418 3418 unsigned int tomo::IoLoop::flush_ready<true, false, true, true, false, true>()
+DIFF src/core/rl2s.o 3418 3418 unsigned int tomo::IoLoop::flush_ready<true, false, true, false, false, true>()
+DIFF src/core/rl2s.o 4127 4127 unsigned int tomo::IoLoop::flush_ready<true, true, true, true, false, true>()
+DIFF src/core/rl2s.o 4063 4063 unsigned int tomo::IoLoop::flush_ready<true, true, true, false, true, true>()
+DIFF src/core/rl2s.o 2727 2727 unsigned int tomo::IoLoop::flush_ready<false, false, true, true, true, true>()
+DIFF src/core/rl2s.o 2727 2727 unsigned int tomo::IoLoop::flush_ready<false, false, true, false, true, true>()
+DIFF src/core/rl2s.o 3061 3061 unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true, true>()
+DIFF src/core/rl2s.o 3061 3061 unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, true>()
+DIFF src/core/rl2s.o 3402 3402 unsigned int tomo::IoLoop::flush_ready<true, false, true, false, true, true>()
+DIFF src/core/rl2s.o 3402 3402 unsigned int tomo::IoLoop::flush_ready<true, false, true, true, true, true>()
+DIFF src/core/rl2s.o 4063 4063 unsigned int tomo::IoLoop::flush_ready<true, true, true, true, true, true>()
+DIFF src/main.o 414 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#1}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/main.o 414 451 tomo::IoLoop::init(tomo::Server*, tomo::ThreadCtx*, char const*, unsigned short, int, tomo::TlsContext const*, bool)::{lambda(void*, tomo::Client&, tomo::Op&)#2}::operator()(void*, tomo::Client&, tomo::Op&) const
+DIFF src/main.o 12502 12339 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)
+DIFF src/main.o 12375 12297 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)
+DIFF src/main.o 6298 6298 unsigned int tomo::IoLoop::flush_ready<true, true, false, false, false, false>()
+DIFF src/main.o 3295 3295 unsigned int tomo::IoLoop::flush_ready<false, true, false, false, false, false>()
+DIFF src/main.o 4815 4815 unsigned int tomo::IoLoop::flush_ready<true, false, false, false, false, false>()
+DIFF src/main.o 2615 2615 unsigned int tomo::IoLoop::flush_ready<false, false, false, false, false, false>()

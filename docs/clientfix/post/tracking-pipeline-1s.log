@@ -1,0 +1,10 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-y7_m6q4p", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "94.90 93.76 81.05 103/4499 96233", "pid": 96232}
+{"attempts": 20, "case": "tracking-pipeline", "failures": []}
+{"exit": 0, "lifecycle": "stop", "load": "94.83 93.77 81.12 105/4522 98331", "pid": 96232}
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-rviv8suq", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "94.83 93.77 81.12 103/4520 98431", "pid": 98431}
+{"attempts": 20, "case": "tracking-pipeline", "failures": []}
+{"exit": 0, "lifecycle": "stop", "load": "94.83 93.77 81.12 104/4515 100898", "pid": 98431}
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-5b7ah196", "--shards", "16", "--thread-mode", "1s", "--read-local", "1", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "94.83 93.77 81.12 104/4513 101049", "pid": 101049}
+{"attempts": 20, "case": "tracking-pipeline", "failures": []}
+{"exit": 0, "lifecycle": "stop", "load": "95.73 93.97 81.26 98/4502 103784", "pid": 101049}
+{"axes": [[0, 0], [1, 0], [1, 1]], "case": "tracking-pipeline", "mode": "1s", "result": "PASS"}

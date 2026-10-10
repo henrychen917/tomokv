@@ -1,1 +1,10 @@
 {"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-bt64cj00", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "94.90 93.76 81.05 92/4512 94165", "pid": 94165}
+{"case": "tracking-cap", "invalidated": 1100, "missing": 0, "sample": [], "tracked": 1100}
+{"exit": 0, "lifecycle": "stop", "load": "94.90 93.76 81.05 93/4521 94671", "pid": 94165}
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-25r08t8a", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "94.90 93.76 81.05 102/4511 94785", "pid": 94780}
+{"case": "tracking-cap", "invalidated": 1100, "missing": 0, "sample": [], "tracked": 1100}
+{"exit": 0, "lifecycle": "stop", "load": "94.90 93.76 81.05 100/4505 95225", "pid": 94780}
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-p6p66813", "--shards", "16", "--thread-mode", "1s", "--read-local", "1", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "94.90 93.76 81.05 101/4512 95369", "pid": 95367}
+{"case": "tracking-cap", "invalidated": 1100, "missing": 0, "sample": [], "tracked": 1100}
+{"exit": 0, "lifecycle": "stop", "load": "94.90 93.76 81.05 100/4501 95820", "pid": 95367}
+{"axes": [[0, 0], [1, 0], [1, 1]], "case": "tracking-cap", "mode": "1s", "result": "PASS"}

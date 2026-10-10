@@ -1,0 +1,12 @@
+{
+  "pre": {
+    "source": "5146b78ee89b64748dd46db970efa8086f653fa0",
+    "path": "build/clientfix/pre/tomokv",
+    "sha256": "839187cc59a9fdfe89040ae2630bd15bd4408bce23d038b3f9d0fa23c1092a5a"
+  },
+  "post": {
+    "source": "e6f6d01d8",
+    "path": "build/tomokv",
+    "sha256": "6fd0478024b5d564f51a81b834b6511e3183bf00c6324077435def7fd6a14fc2"
+  }
+}

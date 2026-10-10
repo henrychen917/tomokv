@@ -31,69 +31,69 @@ def load_snapshot():
                       if row.split()[0] in {f'cpu{i}' for i in range(112, 128)}})
 
 
-def cell(port, width, tracking, samples, rate):
+def cell(writer, observer, width, tracking, samples, rate):
     keys = [f'pf:{i:04d}' for i in range(width)]
     command = enc(['MSET', *[arg for key in keys for arg in (key, 'v')]])
-    with Conn(port) as writer, Conn(port) as observer:
-        writer.s.settimeout(30)
-        observer.cmd('HELLO', 3)
-        # Existing keys and a warmed command path, all outside the timed interval.
-        for _ in range(20):
-            writer.s.sendall(command)
-            assert writer.read() == b'OK'
-        if tracking == 'bcast':
-            assert observer.cmd('CLIENT', 'TRACKING', 'ON', 'BCAST', 'PREFIX', 'never:') == b'OK'
-        elif tracking == 'default':
-            assert observer.cmd('CLIENT', 'TRACKING', 'ON') == b'OK'
-            assert observer.cmd('MGET', *keys) == [b'v'] * width
-        before = load_snapshot()
-        origin = time.perf_counter_ns() + 50_000_000
-        period = round(1e9 / rate)
-        sent = [0] * samples
-        received = []
-        errors = []
+    assert observer.cmd("CLIENT", "TRACKING", "OFF") == b"OK"
+    writer.s.settimeout(30)
+    observer.cmd('HELLO', 3)
+    # Existing keys and a warmed command path, all outside the timed interval.
+    for _ in range(20):
+        writer.s.sendall(command)
+        assert writer.read() == b'OK'
+    if tracking == 'bcast':
+        assert observer.cmd('CLIENT', 'TRACKING', 'ON', 'BCAST', 'PREFIX', 'never:') == b'OK'
+    elif tracking == 'default':
+        assert observer.cmd('CLIENT', 'TRACKING', 'ON') == b'OK'
+        assert observer.cmd('MGET', *keys) == [b'v'] * width
+    before = load_snapshot()
+    origin = time.perf_counter_ns() + 50_000_000
+    period = round(1e9 / rate)
+    sent = [0] * samples
+    received = []
+    errors = []
 
-        def send():
-            try:
-                for index in range(samples):
-                    deadline = origin + index * period
-                    remaining = deadline - time.perf_counter_ns()
-                    if remaining > 0:
-                        time.sleep(remaining / 1e9)
-                    sent[index] = time.perf_counter_ns()
-                    writer.s.sendall(command)
-            except BaseException as exc:
-                errors.append(repr(exc))
-
-        sender = threading.Thread(target=send)
-        sender.start()
+    def send():
         try:
-            for _ in range(samples):
-                assert writer.read() == b'OK'
-                received.append(time.perf_counter_ns())
-        finally:
-            sender.join(timeout=30)
-        assert not sender.is_alive() and not errors, errors
-        after = load_snapshot()
-        pushes = observer.drain(.05)
-        invalidated = {key for frame in pushes if isinstance(frame, Push)
-                       and frame[0] == b'invalidate' and frame[1] is not None
-                       for key in frame[1]}
-        if tracking == 'default':
-            assert invalidated == {key.encode() for key in keys}, len(invalidated)
-        else:
-            assert not pushes, pushes
-        latency = [(end - origin - i * period) / 1000 for i, end in enumerate(received)]
-        service = [(end - start) / 1000 for end, start in zip(received, sent)]
-        lag = [(start - origin - i * period) / 1000 for i, start in enumerate(sent)]
-        return dict(width=width, tracking=tracking, samples=samples, rate=rate,
-                    p50_us=percentile(latency, .5), p99_us=percentile(latency, .99),
-                    send_to_reply_p50_us=percentile(service, .5),
-                    send_to_reply_p99_us=percentile(service, .99),
-                    lag_p99_us=percentile(lag, .99),
-                    below_offered_period=percentile(latency, .99) < period / 1000,
-                    latency_us=latency, service_us=service, lag_us=lag,
-                    load_before=before, load_after=after)
+            for index in range(samples):
+                deadline = origin + index * period
+                remaining = deadline - time.perf_counter_ns()
+                if remaining > 0:
+                    time.sleep(remaining / 1e9)
+                sent[index] = time.perf_counter_ns()
+                writer.s.sendall(command)
+        except BaseException as exc:
+            errors.append(repr(exc))
+
+    sender = threading.Thread(target=send)
+    sender.start()
+    try:
+        for _ in range(samples):
+            assert writer.read() == b'OK'
+            received.append(time.perf_counter_ns())
+    finally:
+        sender.join(timeout=30)
+    assert not sender.is_alive() and not errors, errors
+    after = load_snapshot()
+    pushes = observer.drain(.05)
+    invalidated = {key for frame in pushes if isinstance(frame, Push)
+                   and frame[0] == b'invalidate' and frame[1] is not None
+                   for key in frame[1]}
+    if tracking == 'default':
+        assert invalidated == {key.encode() for key in keys}, len(invalidated)
+    else:
+        assert not pushes, pushes
+    latency = [(end - origin - i * period) / 1000 for i, end in enumerate(received)]
+    service = [(end - start) / 1000 for end, start in zip(received, sent)]
+    lag = [(start - origin - i * period) / 1000 for i, start in enumerate(sent)]
+    return dict(width=width, tracking=tracking, samples=samples, rate=rate,
+                p50_us=percentile(latency, .5), p99_us=percentile(latency, .99),
+                send_to_reply_p50_us=percentile(service, .5),
+                send_to_reply_p99_us=percentile(service, .99),
+                lag_p99_us=percentile(lag, .99),
+                below_offered_period=percentile(latency, .99) < period / 1000,
+                latency_us=latency, service_us=service, lag_us=lag,
+                load_before=before, load_after=after)
 
 
 def main():
@@ -123,11 +123,14 @@ def main():
                 config = argparse.Namespace(binary=getattr(args, arm), port=args.port,
                                             cores=args.oracle_cores if arm == 'redis' else args.cores,
                                             ratio=args.ratio, mode=mode, oracle=arm == 'redis')
-                with server(config) as port:
+                with server(config) as port, Conn(args.port) as writer, Conn(args.port) as observer:
+                    # Keep connection ownership fixed across every OFF/ON cell in this boot.
+                    ids = dict(writer=writer.cmd('CLIENT', 'ID'), observer=observer.cmd('CLIENT', 'ID'))
                     # Rotate cell order as well as the interleaved PRE/POST boot order.
                     order = shapes[boot:] + shapes[:boot]
                     for width, tracking in order:
-                        row = cell(port, width, tracking, args.samples, args.rate)
+                        row = cell(writer, observer, width, tracking, args.samples, args.rate)
+                        row['client_ids'] = ids
                         row.update(arm=arm, mode=mode, boot=boot, sha256=hashes[arm],
                                    client_affinity=sorted(os.sched_getaffinity(0)))
                         output.write(json.dumps(row) + '\n')
