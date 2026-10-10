@@ -18,9 +18,8 @@ Traceback (most recent call last):
   File "/home/user/Projects/cx-aoffix2/tests/aoffix2.py", line 172, in client
     assert self.ready, self.logpath.read_text(errors='replace')[-2000:]
            ^^^^^^^^^^
-AssertionError: 
+AssertionError:
 *** FATAL CONFIG FILE ERROR (Redis 7.4.10) ***
 Reading the configuration file, at line 11
 >>> 'appendfilename "quote\"slash\\.aof"'
 appendfilename can't be a path, just a filename
-

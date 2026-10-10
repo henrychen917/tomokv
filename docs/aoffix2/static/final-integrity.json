@@ -6,7 +6,8 @@
       "112-127",
       "git",
       "diff",
-      "--check"
+      "--check",
+      "5146b78ee"
     ],
     "rc": 0,
     "stdout": "",

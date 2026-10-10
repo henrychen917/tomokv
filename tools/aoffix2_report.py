@@ -66,7 +66,7 @@ for shape in ("1s-seq", "2s-seq", "1s-conns", "2s-conns", "defaults", "2s-conns-
                     load_after=rows[0]["load_after"]["loadavg"]))
         lines.append(f"| {shape} | {policy} | {data['PRE'][0]} | {data['POST'][0]} | {data['PRE'][1]} | {data['POST'][1]} |")
 with (OUT / "latency-connections.csv").open("w") as target:
-    writer = csv.DictWriter(target, fieldnames=list(connections[0]))
+    writer = csv.DictWriter(target, fieldnames=list(connections[0]), lineterminator="\n")
     writer.writeheader()
     writer.writerows(connections)
 lines += ["", "### Snapshot wake and reply head of line", "",
@@ -109,7 +109,7 @@ for mode in ("1s", "2s"):
                                 load_after=row["load_after"]["loadavg"]))
         lines.append(f"| {mode} | {size // 1024} KiB | {data['PRE'][0]} | {data['POST'][0]} | {data['PRE'][1]} | {data['POST'][1]} |")
 with (OUT / "tls-connections.csv").open("w") as target:
-    writer = csv.DictWriter(target, fieldnames=list(tls[0]))
+    writer = csv.DictWriter(target, fieldnames=list(tls[0]), lineterminator="\n")
     writer.writeheader()
     writer.writerows(tls)
 (OUT / "timings.md").write_text("\n".join(lines) + "\n")

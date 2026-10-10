@@ -458,5 +458,20 @@
     "DF": 44,
     "required_quick": 555,
     "required_full": 572
+  },
+  "gates_self_test": {
+    "status": "needs quiet-allocation rerun",
+    "best_full_attempt": "64/66 plus 14/14 nested controls",
+    "best_failure_entries": 2,
+    "serial_failure_entries": 5,
+    "unchanged_watchdog_seconds": 45,
+    "scheduler_source_unchanged": true
+  },
+  "ledger_fixture": {
+    "status": "maintainer EXPECT_FULL update required",
+    "current_expected_full": 528,
+    "fixture_labels": 572,
+    "missing_labels": [],
+    "extra_labels": []
   }
 }

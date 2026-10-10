@@ -24,7 +24,10 @@ performance claims.
 
 The Redis 7.4.10 oracle boots empty for PS4.1 and PS4.9. This lane deliberately
 uses the task's allowed alternatives: preserve the imported snapshot, and refuse
-ambiguous recovery. A crash before snapshot-import manifest publication also
+ambiguous recovery. Oracle snapshot, space-containing filename, always-policy error,
+and missing-manifest shapes passed. The oracle filename control uses the
+reported space case because Redis rejects backslashes in configuration; TomoKV
+keeps its existing filename validation. A crash before snapshot-import manifest publication also
 fails closed with the snapshot and partial import files preserved; it needs
 operator repair instead of silently choosing an empty dataset. The AOF frame and
 manifest versions remain 1. Quoted manifest tokens extend the existing grammar.
@@ -64,6 +67,8 @@ and fused AOF-off 5 MiB controls also pass in both engines on both arms.
 Owned server logs and events are retained in
 [the receipt archive](docs/aoffix2/owned-server-receipts.tar.gz), with
 [a SHA-256 file index](docs/aoffix2/owned-server-receipts.json).
+Display logs normalize trailing whitespace; the affected original outputs are
+retained in [this archive](docs/aoffix2/original-log-whitespace.tar.gz).
 
 Per-finding production files:
 
@@ -81,7 +86,8 @@ Per-finding production files:
 `Makefile` pins only the two AOF translation units' compiler inlining budgets
 (34400 / 34800 for `tomo` / `tomo_db0`). Without those budgets, cold-code growth
 changed three emitted storage helpers. With them, the final 1,204-body hot audit
-is **1,204/1,204 raw-byte and relocation-target identical**. No runtime selector
+is **1,204/1,204 raw-byte and relocation-target identical** in the relocatable
+objects (the requested audit method). No runtime selector
 or per-command branch was added for this compiler control.
 
 ### Focused build and correctness proof
@@ -109,6 +115,27 @@ or per-command branch was added for this compiler control.
   matrix with four fresh uring frame runs. All restart checks passed.
   [Matrix](docs/aoffix2/batteries-final/commands.json),
   [uring frame witnesses](docs/aoffix2/uring-frame/commands.json).
+
+**Outstanding proof: `python3 tests/gates_test.py` is not green on this shared
+allocation.** The best full-affinity attempt passed 64/66 tests plus all 14 nested
+persistence identity controls; the one-slot queue and opposite-completion-order
+fixtures hit their unchanged 45-second watchdogs. The first heavily contended
+attempt recorded 11 failure entries. A final four-core serial retry recorded
+five failure entries (including subtests), again at the scheduler watchdog.
+Its CPU sample shows all reserved CPUs at 100% activity, with concurrent compiler
+processes. No deadline, assertion, scheduler implementation, or source inventory
+was changed to get a pass.
+
+[Full-affinity result](docs/aoffix2/gates-final.log),
+[serial result and load](docs/aoffix2/gates-serial/receipt.json),
+[serial test output](docs/aoffix2/gates-serial/output.log),
+[per-CPU sample](docs/aoffix2/gates-serial/load-sample.json),
+[all retained timeout fixtures](docs/aoffix2/scheduler-timeout-artifacts.tar.gz).
+The [source identity check](docs/aoffix2/scheduler-input-identity.json) confirms
+the scheduler execution, collectors, helpers and self-test code match PRE.
+These fixtures override job_body, so they do not execute the new AOF rows.
+**Maintainer rerun required on a quiet allocation:**
+`taskset -c 112-127 python3 tests/gates_test.py`.
 
 The first AOF battery runner put its state file outside the database directory;
 `aof.py` deliberately locates increments beside that state. It also tried the
@@ -224,6 +251,8 @@ its selected bodies are byte-identical. PFPERSIS.1 remains outside this lane.
 | Eight locked layouts, both namespaces | All sizes **and field offsets** identical |
 | Manager/server layouts, both namespaces | All sizes **and field offsets** identical |
 
+These body counts compare relocatable objects, including resolved relocation
+targets; they do not assert byte identity of linked call displacements.
 **Changed hot bodies: none.** All 162 changed emitted bodies are in the two
 namespaces' AOF, snapshot, main, and xshard objects: cold recovery/rewrite/wake
 work and generated helpers affected by those additions or the recovery-plan
@@ -259,7 +288,8 @@ Receipts: [hot](docs/aoffix2/identity-final/hot.log),
 DQ **+44**, DF **+44**: eight ordinary cases × two modes × two engines =32;
 two acknowledgement policies × two modes × two engines =8; two fused large-value
 cases × two engines =4. Row declarations are at `tests/gate.sh:2662`, `:2675`,
-and `:2690`; both job_aof collections are before the quick-tier exit. Required
+and `:2690`; the two-engine collection is at **line 3406**, before the
+quick-tier exit at **line 3460**. Required
 counts: **511+44=555 quick; 528+44=572 full**. The arithmetic comment is above
 the constants; their values remain **511/528**, as instructed.
 
@@ -273,7 +303,8 @@ or count assertion was weakened; a projected in-memory count check verifies the
 
 ### Mainline measurement request
 
-After merging and updating the two EXPECT constants, run the normal correctness
+First obtain a green scheduler self-test on a quiet allocation. After merging
+and updating the two EXPECT constants, run the normal correctness
 gate and the default-build AOF-off performance null on a quiet box. Use PRE
 `build/aoffix2/pre/tomokv`, POST `build/tomokv`, and PAD-A
 `build/aoffix2/pad/tomokv` in ABBA order with the gate's own instrument.

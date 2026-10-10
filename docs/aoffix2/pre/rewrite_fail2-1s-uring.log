@@ -18,4 +18,3 @@ Traceback (most recent call last):
            ^^^^^^^^^^
 AssertionError: AOF load plan failed: AOF base metadata does not match the manifest
 TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-

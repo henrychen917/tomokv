@@ -22,4 +22,3 @@ Traceback (most recent call last):
 AssertionError: --net-io epoll: using syscall persistence (no io_uring ring)
 AOF load plan failed: duplicate AOF GCMT ticket
 TomoKV 1.0-cpp (Redis 7.4.10 compatible)
-
