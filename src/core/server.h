@@ -146,6 +146,7 @@ static_assert(alignof(AtomicApplySlot) == 64);
 
 class Server {
     friend struct CoreConcurrencyTest;
+    friend struct AtomicSurvivorsTest;
     friend struct LbPlannerTest;
 public:
     // Done releases the ROB slot, but executor code may still be notifying its IO.
@@ -2589,6 +2590,21 @@ public:
         // A cancelled attempt still reserved a ticket and opened a bracket.
         atomic_commit_publish();
         return won ? ticket : 0;
+    }
+    // The ordinary publication bracket is conservative: A can sample `drawn`,
+    // B can reserve and publish, then A can decrement the last reference and
+    // publish its older sample. Rule-P waiters need an eventual watermark even
+    // when no further writer arrives. Sample the sequence BEFORE observing an
+    // empty bracket: every ticket in that sample has then finished publication.
+    // A subsequent reservation has a newer ticket and cannot ride this update.
+    // Only the cold transaction touch path calls this helper.
+    bool atomic_publish_quiescent() {
+        const uint64_t drawn = commit_seq_.load(std::memory_order_seq_cst);
+        if (atomic_commit_inflight_.load(std::memory_order_seq_cst)) return false;
+        uint64_t safe = atomic_commit_safe_.load(std::memory_order_relaxed);
+        while (safe < drawn && !atomic_commit_safe_.compare_exchange_weak(
+                   safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}
+        return true;
     }
     void note_txn(uint32_t owner, TxnCounter counter, uint64_t count = 1) {
         txn_counters_[owner].values[static_cast<unsigned>(counter)].fetch_add(

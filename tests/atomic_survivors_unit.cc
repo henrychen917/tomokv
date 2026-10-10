@@ -38,6 +38,20 @@ void* operator new[](std::size_t size, const std::nothrow_t&) noexcept {
 void operator delete(void* p, const std::nothrow_t&) noexcept { std::free(p); }
 void operator delete[](void* p, const std::nothrow_t&) noexcept { std::free(p); }
 
+namespace tomo {
+struct AtomicSurvivorsTest {
+    static void publish_stale_sample(Server& server, uint64_t drawn) {
+        // Exactly the last half of A's publication, after B reserved and
+        // published between A's sequence load and A's decrement.
+        if (server.atomic_commit_inflight_.fetch_sub(1, std::memory_order_acq_rel) != 1)
+            std::abort();
+        uint64_t safe = server.atomic_commit_safe_.load(std::memory_order_relaxed);
+        while (safe < drawn && !server.atomic_commit_safe_.compare_exchange_weak(
+                   safe, drawn, std::memory_order_release, std::memory_order_relaxed)) {}
+    }
+};
+}
+
 using namespace tomo;
 namespace {
 void require(bool yes, const char* why) {
@@ -281,6 +295,35 @@ void txn_intents(Server& server) {
 }
 
 void txn_help(Server& server) {
+    {
+        const auto key = key_on(server, 0, "txn-rule-p");
+        auto& shard = server.shard(0);
+        auto& store = shard.store();
+        const auto first = server.atomic_commit_reserve();
+        const auto last = server.atomic_commit_reserve();
+        void* entry = nullptr;
+        KvObj* tombstone = nullptr;
+        require(store.atomic_prepare_plain(slice(key), FlatStore::hash_key(slice(key)), 0, entry),
+                "Rule P foreign version prepared");
+        store.atomic_install_plain(FlatStore::hash_key(slice(key)), slice(key), entry, tombstone, last);
+        store.atomic_clear_read_epoch();
+        server.atomic_commit_publish();
+        AtomicSurvivorsTest::publish_stale_sample(server, first);
+        require(server.atomic_snapshot() == first, "completed commit left a conservative watermark");
+        Client client{-1}; client.set_id(889);
+        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        require(state != nullptr, "Rule P attempt allocated");
+        require(multi_touch_key(*state, shard, FlatStore::hash_key(slice(key)), slice(key), false),
+                "Rule P advances a quiescent watermark instead of waiting forever");
+        require(server.atomic_snapshot() == last, "quiescent publication caught up");
+        (void)server.atomic_commit_reserve();
+        require(!server.atomic_publish_quiescent() && server.atomic_snapshot() == last,
+                "Rule P cannot advance across an open commit bracket");
+        server.atomic_commit_publish();
+        finalize_reservations(*state, shard);
+        release_records(server);
+        destroy_multi_state(state);
+    }
     {
         const auto key = key_on(server, 0, "txn-cancel-handler");
         require(local(server, {"LPUSH", key, "seed"}) == ":1\r\n", "collection predecessor");

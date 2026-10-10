@@ -197,6 +197,7 @@ struct alignas(8) MultiExecState : SnapshotCut {
     ScatterArenaPool scatter_pool;
     MultiDecision decision;
     std::atomic<bool> writer_cancelled{false};
+    std::atomic<bool> cancel_cause_ready{false};
     uint32_t writer_dooms = 0;
     bool doomed = false;               // published by finalized
     MultiRetryNode retry;
@@ -272,6 +273,10 @@ uint64_t multi_cancel_decision(MultiDecision& decision, uint32_t shard,
         if (writer_cause && (cause == TxnCounter::Dooms || cause == TxnCounter::SelfDooms))
             state.writer_cancelled.store(true, std::memory_order_relaxed);
         state.server->note_txn(state.server->worker_of_shard(shard), cause);
+        // Epoch cancellation is visible before this metadata. The last owner
+        // can finish meanwhile; the IO must acquire this publication before
+        // inheriting the writer-doom count for the bounded fallback.
+        state.cancel_cause_ready.store(true, std::memory_order_release);
         decision.aborted.store(true, std::memory_order_release);
         return kAtomicCancelledEpoch;
     }
@@ -1147,6 +1152,7 @@ bool multi_touch_key(MultiExecState& state, Shard& shard, uint64_t hash, Slice k
     auto published = [&](uint64_t epoch, uint64_t connection) {
         if (epoch && epoch != kAtomicCancelledEpoch && connection != state.origin_conn_id &&
             epoch > server.atomic_snapshot()) {
+            if (server.atomic_publish_quiescent() && epoch <= server.atomic_snapshot()) return;
             // Rule P: the following ordinary command reads at the safe watermark.
             server.note_txn(server.worker_of_shard(shard.id()), TxnCounter::Waits);
             ready = false;
@@ -2398,6 +2404,11 @@ uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 continue;
             }
             if (loop.srv_->txn_retry_held(previous) || now_ns() < previous->retry_after_ns) {
+                multi_enqueue_retry(*previous);
+                continue;
+            }
+            if (previous->doomed &&
+                !previous->cancel_cause_ready.load(std::memory_order_acquire)) {
                 multi_enqueue_retry(*previous);
                 continue;
             }
