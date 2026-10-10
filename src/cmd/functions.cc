@@ -829,12 +829,15 @@ bool decode_dump(Slice payload, std::vector<std::string>& sources) {
     uint32_t pos = sizeof(kDumpMagic);
     const uint32_t count = snapshot_get_u32(bytes + pos);
     pos += 4;
-    if (count > 4096) return false;
+    // Every source needs at least its four-byte length. Bound reserve by this frame's bytes,
+    // not a library-count ceiling absent from LOAD/DUMP, and reject impossible counts before
+    // allocating. Every structurally valid dump this server emits remains restorable.
+    if (count > (payload.n - 8 - pos) / 4) return false;
     try {
         sources.clear();
         sources.reserve(count);
         for (uint32_t i = 0; i < count; i++) {
-            if (pos + 4 > payload.n - 8) return false;
+            if (payload.n - 8 - pos < 4) return false;
             const uint32_t length = snapshot_get_u32(bytes + pos);
             pos += 4;
             if (length > payload.n - 8 - pos) return false;
