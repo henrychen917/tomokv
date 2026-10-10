@@ -261,6 +261,11 @@ int main(int argc, char** argv) {
                 std::fprintf(stderr, "snapshot load plan failed: %s\n", error.c_str());
                 return 1;
             }
+            if (cfg.appendonly &&
+                !AofManager::seed_snapshot(cfg, load_path, *load_plan, error)) {
+                std::fprintf(stderr, "AOF snapshot import failed: %s\n", error.c_str());
+                return 1;
+            }
         } else if (errno != ENOENT) {
             std::fprintf(stderr, "snapshot stat failed for '%s': %s\n",
                          load_path.c_str(), std::strerror(errno));

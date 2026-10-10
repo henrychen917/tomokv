@@ -546,7 +546,7 @@ bool SnapshotManager::post_chunk(uint32_t producer, std::unique_ptr<SnapshotChun
     chunk.release();
     if (chunk_notify_.set(producer) && !blocking()) {
         Ring* target = writer_ring_.load(std::memory_order_acquire);
-        chunk_in_[producer].wake(producer_ring, signals, target);
+        chunk_in_[producer].wake_edge(producer_ring, signals, target);
     }
     return true;
 }

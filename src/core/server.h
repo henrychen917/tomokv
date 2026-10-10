@@ -2522,8 +2522,8 @@ public:
     // the drawn sequence it read BEFORE its own decrement into atomic_commit_safe_: at that
     // instant every ticket at or below that value has already stored its epoch, because a
     // committer that had not would still be holding the count up. Readers load one word exactly
-    // as before -- the cost is on the commit side, and it is two RMWs on a line commits already
-    // own.
+    // as before -- the commit side pays two RMWs on a line commits already own.
+    void restore_aof_ticket_floor(uint64_t floor); // Boot only, before owners run.
     uint64_t atomic_commit_reserve(uint64_t tickets = 1) {
         if (!tickets) std::abort();
         atomic_commit_inflight_.fetch_add(1, std::memory_order_seq_cst);
