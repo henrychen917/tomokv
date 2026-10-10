@@ -1,0 +1,17 @@
+{
+  "base": "4897ca189fb54a0bd2ad2e4085ae7aacbbc3207e",
+  "source_commit": "05776d837b8ce0c7cc77b507cd8edbe94ef103c3",
+  "deadswitch_files": 140,
+  "deadswitch_sha256_unchanged": true,
+  "removed_symbol_pattern": "TOMO_TTL_DEADLINE_SIDECAR|kTtlDeadlineSidecar|store-regression-sidecar|ttl-sidecar|ttl-pad-b",
+  "active_source_matches": [],
+  "expect_lines": [
+    "EXPECT_QUICK=511",
+    "EXPECT_FULL=528                 # ABBA reports only; self-test remains counted."
+  ],
+  "quick_delta": 0,
+  "full_delta": 0,
+  "adapted_row": "storage deadline-allocation-failure regression",
+  "row_source_line": 1559,
+  "quick_exit_line": 3416
+}

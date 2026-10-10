@@ -1,0 +1,8 @@
+{
+  "control": "Change only ExpireIndex insert growth trigger from 70 to 90 percent; the 11-entry fixture no longer triggers growth on extension.",
+  "build_exit": 0,
+  "expected_exit": 1,
+  "exit_code": 1,
+  "expected_failure": "expiry-index growth allocation failed",
+  "passed": true
+}

@@ -1,0 +1,114 @@
+{
+  "post_sha256": "3aaec5b6814548c32fd698119f41376662d30eded6440a7b25857289cf831f59",
+  "runs": [
+    {
+      "geometry": "split",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "tests/differ_gate.sh",
+        "/home/user/Projects/cx-ttlclean/build/tomokv",
+        "18790",
+        "18791",
+        "112-119",
+        "3"
+      ],
+      "environment": {
+        "REDIS74_ROOT": "/home/user/Projects/redis74",
+        "GATE_LOAD_CORES": "121-127",
+        "GATE_DIFFER_ORACLE_CORES": "120",
+        "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-ttlclean/docs/deadswitch/06-differ-suites.txt",
+        "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-ttlclean/docs/deadswitch/06-differ-seeds.txt",
+        "GATE_DIFFER_GEOMETRY": "split",
+        "GATE_DIFFER_OUT": "/home/user/Projects/cx-ttlclean/build/ttlclean/differ-split"
+      },
+      "exit_code": 1,
+      "log": "build/ttlclean/differ-split.log",
+      "seconds": 0.703,
+      "invocation_error": "Historical ratio 3 spelling refused; current parser requires 6:2. No differential leg ran.",
+      "receipt_log": "docs/ttlclean/differ-split.log"
+    },
+    {
+      "geometry": "armed-fused",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "tests/differ_gate.sh",
+        "/home/user/Projects/cx-ttlclean/build/tomokv",
+        "18790",
+        "18791",
+        "112-119",
+        "3"
+      ],
+      "environment": {
+        "REDIS74_ROOT": "/home/user/Projects/redis74",
+        "GATE_LOAD_CORES": "121-127",
+        "GATE_DIFFER_ORACLE_CORES": "120",
+        "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-ttlclean/docs/deadswitch/06-differ-suites.txt",
+        "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-ttlclean/docs/deadswitch/06-differ-seeds.txt",
+        "GATE_DIFFER_GEOMETRY": "armed-fused",
+        "GATE_DIFFER_OUT": "/home/user/Projects/cx-ttlclean/build/ttlclean/differ-armed-fused"
+      },
+      "exit_code": 0,
+      "log": "build/ttlclean/differ-armed-fused.log",
+      "seconds": 6.063,
+      "receipt_log": "docs/ttlclean/differ-armed-fused.log"
+    },
+    {
+      "geometry": "split",
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "tests/differ_gate.sh",
+        "/home/user/Projects/cx-ttlclean/build/tomokv",
+        "18790",
+        "18791",
+        "112-119",
+        "6:2"
+      ],
+      "environment": {
+        "REDIS74_ROOT": "/home/user/Projects/redis74",
+        "GATE_LOAD_CORES": "121-127",
+        "GATE_DIFFER_ORACLE_CORES": "120",
+        "GATE_DIFFER_GEOMETRY": "split",
+        "GATE_DIFFER_OUT": "/home/user/Projects/cx-ttlclean/build/ttlclean/differ-split-6to2",
+        "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-ttlclean/docs/deadswitch/06-differ-suites.txt",
+        "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-ttlclean/docs/deadswitch/06-differ-seeds.txt"
+      },
+      "exit_code": 0,
+      "log": "build/ttlclean/differ-split-6to2.log",
+      "seconds": 4.799,
+      "receipt_log": "docs/ttlclean/differ-split-6to2.log"
+    }
+  ],
+  "oracle": {
+    "binary": "/home/user/Projects/redis74/src/redis-server",
+    "version": "7.4.10",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"
+  },
+  "matrix": {
+    "suites": [
+      "edgetime",
+      "hexpire"
+    ],
+    "seeds": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "atomics": [
+      0,
+      1
+    ],
+    "geometries": [
+      "split",
+      "armed-fused"
+    ],
+    "passing_legs": 32,
+    "read_local_nonvacuity_checks": 2
+  }
+}
