@@ -392,7 +392,10 @@ void set_global_raw(lua_State* state, const char* name) {
     lua_insert(state, -2);
     lua_pushstring(state, name);
     lua_insert(state, -2);
+    const int readonly = lua_isreadonlytable(state, -3);
+    lua_enablereadonlytable(state, -3, 0);
     lua_rawset(state, -3);
+    lua_enablereadonlytable(state, -1, readonly);
     lua_pop(state, 1);
 }
 
@@ -442,7 +445,9 @@ bool run_library_body(lua_State* state, Slice code, RegisterSink& sink,
     lua_createtable(state, 0, 1);
     lua_pushcfunction(state, fn_missing_index);
     lua_setfield(state, -2, "__index");
+    lua_enablereadonlytable(state, -1, 1);
     lua_setmetatable(state, -2);
+    lua_enablereadonlytable(state, -1, 1);
     set_global_raw(state, "redis");
 
     lua_pushvalue(state, chunk);

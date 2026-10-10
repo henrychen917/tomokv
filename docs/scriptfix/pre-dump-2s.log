@@ -1,0 +1,13 @@
+{"start": ["taskset", "-c", "112-119", "/home/user/Projects/cx-scriptfix/build/scriptfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25056", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-scriptfix/build/scriptfix/runtime/dump-2s-cbn7f23b", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--flip-auto", "0", "--atomic", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "pid": 3680824}
+{"actual": 4096, "check": "4096 libraries loaded", "expected": 4096, "pass": true}
+{"libraries": 4096, "dump_bytes": 313192}
+{"actual": "OK", "check": "restore 4096", "expected": "OK", "pass": true}
+{"actual": "l4096", "check": "load 4097", "expected": "l4096", "pass": true}
+{"libraries": 4097, "dump_bytes": 313269}
+{"actual": {"error": "ERR DUMP payload version or checksum are wrong"}, "check": "restore 4097", "expected": "OK", "pass": false}
+{"actual": 4097, "check": "all libraries retained", "expected": 4097, "pass": true}
+{"actual": [], "check": "all 4097 functions callable", "expected": [], "pass": true}
+{"actual": {"error": "ERR DUMP payload version or checksum are wrong"}, "check": "checksum still checked", "expected": {"error": "ERR DUMP payload version or checksum are wrong"}, "pass": true}
+{"actual": "PONG", "check": "PING after restore", "expected": "PONG", "pass": true}
+{"stop": 3680824, "exit": 0, "port_closed": true}
+{"case": "dump", "mode": "2s", "checks": 8, "failures": 1, "seconds": 1.016}

@@ -1,8 +1,8 @@
 # CC4.6: one mutable state per library — owner decision
 
 The reset fix is independent of the remaining executor split. Each executor
-retains a function interpreter; library revision changes replace only that
-library's closures, and SCRIPT FLUSH owns a separate EVAL interpreter. This is
+retains its interpreter; library revision changes replace only that library's
+closures, and SCRIPT FLUSH invalidates only the compiled EVAL chunk cache. This is
 not Redis's one process-wide function state. `tests/scriptfix.py functions
 --single-state` is the executable failing witness, retained alongside the
 passing reset row. No single-state candidate is enabled in production.
@@ -16,7 +16,7 @@ calls would still execute on their existing shard owner. This is insufficient:
    `src/cmd/scatter_engine.inc` invokes the handler against a private workbench.
    The library upvalues change immediately; the staged key changes are not yet
    visible to their owners.
-2. `finish_script`'s Run/Validate transitions can clear the attempt, restage,
+2. The script coordinator's Run/Validate transitions can clear the attempt, restage,
    and call Lua again after certification or read-set conflicts. A counter can
    increment more than once for one successful FCALL. A failed attempt can
    also leave closure state modified without publishing its key writes.
