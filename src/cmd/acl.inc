@@ -10,12 +10,21 @@ __attribute__((noinline)) AclDeniedReason acl_check_metadata_keys(
 
 namespace {
 
+// A user handle (Client::acl_user_idx) is its slot plus kAclMaxUsers per earlier reuse of that
+// slot. The slot array bounds simultaneously LIVE users only: a deleted user's slot is reused,
+// oldest deletion first, once no never-used slot remains. Reuse publishes a new handle, so a
+// stale handle still held by a closing client of the deleted user resolves to no user and is
+// denied; it can never name the new account. Handle 0 is always the default user's.
 constexpr uint32_t kAclMaxUsers = 65536;
+constexpr uint32_t kAclSlotMask = kAclMaxUsers - 1;
+static_assert((kAclMaxUsers & kAclSlotMask) == 0, "handle slot bits need a power-of-two slot count");
 std::mutex g_acl_mu;
 std::array<std::atomic<AclUser*>, kAclMaxUsers> g_acl_slots{};
-std::unordered_map<std::string, uint32_t> g_acl_names;
-uint32_t g_acl_next_index = 1;
+std::unordered_map<std::string, uint32_t> g_acl_names;   // name -> live handle
+uint32_t g_acl_next_index = 1;                           // first never-used slot
 uint32_t g_acl_live_users = 0;
+std::deque<uint32_t> g_acl_free_handles;                 // deleted handles, oldest first
+std::vector<AclUser*> g_acl_retired_users;               // replaced tombstones, freed at shutdown
 bool g_acl_initialized = false;
 bool g_acl_pubsub_default_all = false;
 Server* g_acl_server = nullptr;
@@ -224,6 +233,17 @@ AclUserImage acl_new_image(const std::string& name) {
     return image;
 }
 
+// Redis ACLStringHasSpaces: isspace() in the C locale, or NUL. ACL SAVE writes patterns raw and
+// ACL LOAD splits on single spaces, so a pattern holding one of these could never reload.
+bool acl_has_spaces(Slice value) {
+    for (uint32_t i = 0; i < value.n; i++) {
+        const char byte = value.p[i];
+        if (byte == ' ' || byte == '\t' || byte == '\n' || byte == '\v' || byte == '\f' ||
+            byte == '\r' || byte == '\0') return true;
+    }
+    return false;
+}
+
 bool acl_apply_permission_rule(AclSelector& perm, Slice rule, std::string& error) {
     if (acl_equal_icase(rule, "allkeys") || acl_equal_icase(rule, "~*")) {
         perm.flags |= AclAllKeys;
@@ -249,10 +269,18 @@ bool acl_apply_permission_rule(AclSelector& perm, Slice rule, std::string& error
             error = "Adding a pattern after the * pattern (or the 'allkeys' flag) is not valid and does not have any effect. Try 'resetkeys' to start with an empty list of patterns";
             return false;
         }
+        if (acl_has_spaces(Slice(rule.p + 1, rule.n - 1))) {
+            error = "Syntax error";
+            return false;
+        }
         acl_add_unique(perm.key_patterns, Slice(rule.p + 1, rule.n - 1));
     } else if (rule.p[0] == '&') {
         if (perm.flags & AclAllChannels) {
             error = "Adding a pattern after the * pattern (or the 'allchannels' flag) is not valid and does not have any effect. Try 'resetchannels' to start with an empty list of channels";
+            return false;
+        }
+        if (acl_has_spaces(Slice(rule.p + 1, rule.n - 1))) {
+            error = "Syntax error";
             return false;
         }
         acl_add_unique(perm.channel_patterns, Slice(rule.p + 1, rule.n - 1));
@@ -432,9 +460,9 @@ std::string acl_describe_image(const AclUserImage& image) {
     return result;
 }
 
-AclUser* acl_slot(uint32_t index) {
-    if (index >= kAclMaxUsers) return nullptr;
-    return g_acl_slots[index].load(std::memory_order_acquire);
+AclUser* acl_slot(uint32_t handle) {
+    AclUser* user = g_acl_slots[handle & kAclSlotMask].load(std::memory_order_acquire);
+    return user && user->index == handle ? user : nullptr;
 }
 
 bool acl_default_permission_unrestricted_locked() {
@@ -481,21 +509,35 @@ void acl_tombstone_user_locked(uint32_t index) {
         g_acl_retired_permissions.push_back(retired);
         if (g_acl_server) g_acl_server->acl_perm_retired();
     }
+    // The tombstone keeps answering its stale handle until the slot is reused. A slot whose next
+    // handle would wrap back to an earlier generation is never reused.
+    if (index <= UINT32_MAX - kAclMaxUsers) g_acl_free_handles.push_back(index);
 }
 
 AclUser* acl_create_locked(AclUserImage&& image, uint32_t requested_index = UINT32_MAX) {
-    const uint32_t index = requested_index == UINT32_MAX ? g_acl_next_index++ : requested_index;
-    if (index >= kAclMaxUsers || g_acl_names.count(image.name)) return nullptr;
+    if (g_acl_names.count(image.name)) return nullptr;
+    // Choose without consuming: a refused creation leaves every slot and the free list unchanged.
+    uint32_t handle = requested_index;
+    const bool fresh = handle == UINT32_MAX && g_acl_next_index < kAclMaxUsers;
+    if (fresh) handle = g_acl_next_index;
+    else if (handle == UINT32_MAX && !g_acl_free_handles.empty())
+        handle = g_acl_free_handles.front() + kAclMaxUsers;
+    else if (handle == UINT32_MAX) return nullptr;
     auto* user = new (std::nothrow) AclUser;
     if (!user) return nullptr;
     user->name = image.name;
-    user->index = index;
+    user->index = handle;
     if (!acl_publish_image_locked(user, std::move(image))) {
         delete user;
         return nullptr;
     }
-    g_acl_names.emplace(user->name, index);
-    g_acl_slots[index].store(user, std::memory_order_release);
+    g_acl_names.emplace(user->name, handle);
+    // Readers may still hold a replaced tombstone (acl_username's name, a denied permission set):
+    // like retired permissions it is reclaimed only at shutdown.
+    AclUser* replaced = g_acl_slots[handle & kAclSlotMask].exchange(user, std::memory_order_acq_rel);
+    if (replaced) g_acl_retired_users.push_back(replaced);
+    if (fresh) g_acl_next_index++;
+    else if (requested_index == UINT32_MAX) g_acl_free_handles.pop_front();
     g_acl_live_users++;
     return user;
 }
@@ -517,29 +559,66 @@ bool acl_command_allowed(const AclSelector& perm, const CommandSpec& spec) {
     return !(spec.flags & CmdFlags::ScriptRoute) || (perm.flags & AclAllCommands);
 }
 
+// A SORT/SORT_RO option denial is reported as a key denial whose argument carries this bit: it is
+// the command's own error in Redis, so it is answered without an ACL LOG entry or denial counter.
+constexpr uint32_t kAclSortOptionDenied = 0x80000000u;
+
+bool acl_parse_log_count(Slice value, int64_t& count);  // string2ll grammar, defined below
+
+// Redis sort.c parses SORT/SORT_RO options left to right and replies to the first error it meets.
+// Without unrestricted key access, GET and a BY pattern containing '*' are such errors. Return the
+// index of the first one the parse reaches, or UINT32_MAX if it ends first, including at a syntax
+// or LIMIT integer error that the command reports itself. The '*' test covers the whole pattern
+// (not strchr's prefix), exactly the bytes TomoKV's SORT dereferences.
+template <typename GetArg>
+uint32_t acl_sort_restricted_option(uint32_t argc, GetArg&& get_arg, bool readonly) {
+    for (uint32_t arg = 2; arg < argc; arg++) {
+        const Slice option = get_arg(arg);
+        const uint32_t operands = argc - arg - 1;
+        int64_t ignored = 0;
+        if (option.eq_icase("asc") || option.eq_icase("desc") || option.eq_icase("alpha")) {
+            continue;
+        } else if (option.eq_icase("limit") && operands >= 2) {
+            if (!acl_parse_log_count(get_arg(arg + 1), ignored) ||
+                !acl_parse_log_count(get_arg(arg + 2), ignored)) return UINT32_MAX;
+            arg += 2;
+        } else if (!readonly && option.eq_icase("store") && operands >= 1) {
+            arg++;
+        } else if (option.eq_icase("by") && operands >= 1) {
+            const Slice pattern = get_arg(arg + 1);
+            if (pattern.n && std::memchr(pattern.p, '*', pattern.n)) return arg;
+            arg++;
+        } else if (option.eq_icase("get") && operands >= 1) {
+            return arg;
+        } else {
+            return UINT32_MAX;
+        }
+    }
+    return UINT32_MAX;
+}
+
 template <typename GetArg>
 AclDeniedReason acl_check_keys(const AclSelector& perm, const CommandSpec& spec, uint32_t argc,
                                GetArg&& get_arg, uint32_t* denied_arg) {
     if (perm.flags & AclAllKeys) return AclDeniedReason::None;
-    const Slice command(spec.name, static_cast<uint32_t>(std::strlen(spec.name)));
-    if (command.eq_icase("sort")) {
-        for (uint32_t arg = 2; arg < argc; arg++) {
-            if (get_arg(arg).eq_icase("by") || get_arg(arg).eq_icase("get")) {
-                if (denied_arg) *denied_arg = arg;
-                return AclDeniedReason::Key;
-            }
-            if (get_arg(arg).eq_icase("store") && arg + 1 < argc &&
-                !acl_pattern_allowed(perm, get_arg(arg + 1))) {
-                if (denied_arg) *denied_arg = arg + 1;
-                return AclDeniedReason::Key;
-            }
-        }
-    }
     using Arguments = std::remove_reference_t<GetArg>;
-    return acl_check_metadata_keys(perm, spec, argc, &get_arg,
+    // The declared keys first (SORT's source and final STORE target, as sortGetKeys): Redis's
+    // ACL check precedes the command, so a denied key answers NOPERM before any option error.
+    const AclDeniedReason keys = acl_check_metadata_keys(perm, spec, argc, &get_arg,
         [](const void* arguments, uint32_t arg) {
             return (*static_cast<const Arguments*>(arguments))(arg);
         }, denied_arg);
+    if (keys != AclDeniedReason::None) return keys;
+    const Slice command(spec.name, static_cast<uint32_t>(std::strlen(spec.name)));
+    const bool sort = command.eq_icase("sort");
+    if (sort || command.eq_icase("sort_ro")) {
+        const uint32_t option = acl_sort_restricted_option(argc, get_arg, !sort);
+        if (option != UINT32_MAX) {
+            if (denied_arg) *denied_arg = option | kAclSortOptionDenied;
+            return AclDeniedReason::Key;
+        }
+    }
+    return AclDeniedReason::None;
 }
 
 template <typename GetArg>
@@ -547,7 +626,7 @@ __attribute__((noinline)) AclDeniedReason acl_check_permission(
         uint32_t user_index, const CommandSpec& spec, uint32_t argc,
         GetArg&& get_arg, uint32_t* denied_arg = nullptr) {
     if (spec.flags & CmdFlags::AclExempt) return AclDeniedReason::None;
-    AclUser* user = g_acl_slots[user_index].load(std::memory_order_acquire);
+    AclUser* user = acl_slot(user_index);
     if (!user) return AclDeniedReason::Command;
     const AclPerm* permissions = user->perm.load(std::memory_order_acquire);
     if (!permissions) return AclDeniedReason::Command;
@@ -575,6 +654,13 @@ __attribute__((noinline)) AclDeniedReason acl_check_permission(
 void acl_reply_denied(Client& client, Op& op, uint32_t user_index, AclDeniedReason reason,
                       uint32_t denied_arg, ThreadCtx& thread,
                       AclLogContext context = AclLogContext::Toplevel) {
+    if (reason == AclDeniedReason::Key && (denied_arg & kAclSortOptionDenied)) {
+        // sort.c's own error reply: Redis neither logs it nor counts an ACL denial.
+        reply_err(op.sink(), op.arg(denied_arg & ~kAclSortOptionDenied).eq_icase("by")
+            ? "ERR BY option of SORT denied due to insufficient ACL permissions."
+            : "ERR GET option of SORT denied due to insufficient ACL permissions.");
+        return;
+    }
     LoopSignals& signals = thread.sig();
     const char* username_text = acl_username(user_index);
     const Slice username(username_text, static_cast<uint32_t>(std::strlen(username_text)));
@@ -597,18 +683,6 @@ void acl_reply_denied(Client& client, Op& op, uint32_t user_index, AclDeniedReas
         reply_err(op.sink(), message.c_str());
     } else if (reason == AclDeniedReason::Key) {
         signals.acl_access_denied_key++;
-        if (op.cmd_name().eq_icase("sort")) {
-            for (uint32_t arg = 2; arg < op.argc(); arg++) {
-                if (op.arg(arg).eq_icase("by")) {
-                    reply_err(op.sink(), "ERR BY option of SORT denied due to insufficient ACL permissions.");
-                    return;
-                }
-                if (op.arg(arg).eq_icase("get")) {
-                    reply_err(op.sink(), "ERR GET option of SORT denied due to insufficient ACL permissions.");
-                    return;
-                }
-            }
-        }
         reply_err(op.sink(), "NOPERM No permissions to access a key");
     } else if (reason == AclDeniedReason::Channel) {
         signals.acl_access_denied_channel++;
@@ -638,15 +712,33 @@ bool acl_parse_file(const std::string& filename, std::vector<AclUserImage>& imag
         const size_t end = newline == std::string::npos ? contents.size() : newline;
         std::string line = contents.substr(position, end - position);
         position = newline == std::string::npos ? contents.size() : newline + 1;
-        const char* first = line.c_str();
-        while (*first && std::isspace(static_cast<unsigned char>(*first))) first++;
-        if (!*first || *first == '#') continue;
+        // Redis ACLLoadFromFile: trim " \t\r\n" from the line, split it on single spaces with no
+        // quoting or escapes (ACL SAVE writes every rule raw), and trim "\t\r\n" from each rule.
+        const auto line_space = [](char byte) {
+            return byte == ' ' || byte == '\t' || byte == '\r' || byte == '\n';
+        };
+        size_t first = 0, last = line.size();
+        while (first < last && line_space(line[first])) first++;
+        while (last > first && line_space(line[last - 1])) last--;
+        if (first == last || line[first] == '#') continue;
         std::vector<std::string> words;
-        if (!cfg_split_args(first, words)) {
-            errors += filename + ":" + std::to_string(lineno) + ": unbalanced quotes in acl line. ";
-            continue;
+        for (size_t start = first;;) {
+            size_t space = line.find(' ', start);
+            if (space == std::string::npos || space > last) space = last;
+            words.emplace_back(line, start, space - start);
+            if (space == last) break;
+            start = space + 1;
         }
-        if (words.empty()) continue;
+        for (size_t word = 2; word < words.size(); word++) {
+            std::string& rule = words[word];
+            const auto rule_space = [](char byte) {
+                return byte == '\t' || byte == '\r' || byte == '\n';
+            };
+            size_t begin = 0, finish = rule.size();
+            while (begin < finish && rule_space(rule[begin])) begin++;
+            while (finish > begin && rule_space(rule[finish - 1])) finish--;
+            rule = rule.substr(begin, finish - begin);
+        }
         if (words[0] != "user" || words.size() < 2) {
             errors += filename + ":" + std::to_string(lineno) +
                       " should start with user keyword followed by the username. ";
@@ -1039,13 +1131,22 @@ void acl_shutdown() {
     // only safe point at which both retired and current images can be reclaimed without an IO ack.
     for (const AclPerm* permissions : g_acl_retired_permissions) delete permissions;
     g_acl_retired_permissions.clear();
-    for (uint32_t index = 0; index < g_acl_next_index; index++) {
+    // Never past the slot array, whatever the creation history.
+    for (uint32_t index = 0; index < std::min(g_acl_next_index, kAclMaxUsers); index++) {
         AclUser* user = g_acl_slots[index].exchange(nullptr, std::memory_order_acq_rel);
         if (!user) continue;
         const AclPerm* permissions = user->perm.load(std::memory_order_relaxed);
         if (permissions && permissions != &g_acl_denied_permissions) delete permissions;
         delete user;
     }
+    // Replaced tombstones hold the shared denied set; their own image was retired above.
+    for (AclUser* user : g_acl_retired_users) {
+        const AclPerm* permissions = user->perm.load(std::memory_order_relaxed);
+        if (permissions && permissions != &g_acl_denied_permissions) delete permissions;
+        delete user;
+    }
+    g_acl_retired_users.clear();
+    g_acl_free_handles.clear();
     g_acl_names.clear();
     g_acl_next_index = 1;
     g_acl_live_users = 0;
@@ -1124,7 +1225,11 @@ __attribute__((cold, noinline)) bool acl_finish_dispatch_denial(
         AclDeniedReason denied, uint32_t denied_arg) {
     multi_mark_queue_error(client);
     client.advance_parse(consumed);
-    loop.self_->note_command_rejected(op.spec->id);
+    // Redis counts a SORT option denial as a call of SORT (its own error reply), not a rejection.
+    if (denied == AclDeniedReason::Key && (denied_arg & kAclSortOptionDenied))
+        loop.self_->note_command(op.spec->id);
+    else
+        loop.self_->note_command_rejected(op.spec->id);
     loop.flip_fingerprint_note(*op.spec, op);
     acl_reply_denied(client, op, client.acl_user_idx(), denied, denied_arg, *loop.self_);
     loop.finish_prebuilt(&client, op);
@@ -1187,15 +1292,16 @@ bool acl_pubsub_channel_entry(Client& client, Op& op, bool pattern, ThreadCtx& t
     return false;
 }
 
-void acl_recheck_blocking(Client& client, Op& op, ThreadCtx& thread) {
-    if (!g_acl_server || !g_acl_server->acl_active()) return;
+bool acl_recheck_blocking(Client& client, Op& op, ThreadCtx& thread) {
+    if (!g_acl_server || !g_acl_server->acl_active()) return false;
     uint32_t denied_arg = UINT32_MAX;
     const AclDeniedReason denied = acl_check_permission(
         client.acl_user_idx(), *op.spec, op.argc(),
         [&](uint32_t arg) { return op.arg(arg); }, &denied_arg);
-    if (denied == AclDeniedReason::None) return;
+    if (denied == AclDeniedReason::None) return false;
     op.clear_reply();   // direct bytes and the reply code too, or the denial is a SECOND reply
     acl_reply_denied(client, op, client.acl_user_idx(), denied, denied_arg, thread);
+    return true;
 }
 
 static constexpr SubcommandArity kAclSubcommands[] = {
@@ -1241,7 +1347,12 @@ void acl_command_entry(IoLoop& loop, Client& client, Op& op) {
         if (!acl_apply_rules(image, rules, 0, error, &failed)) {
             std::string message = "ERR ";
             if (error.rfind("Unmatched parenthesis", 0) == 0) message += error;
-            else message += "Error in ACL SETUSER modifier '" + failed + "': " + error;
+            else {
+                // Redis formats the modifier with %s: a NUL ends the modifier, not the reply.
+                message += "Error in ACL SETUSER modifier '";
+                message += failed.c_str();
+                message += "': " + error;
+            }
             reply_err(op.sink(), message.c_str());
             return;
         }

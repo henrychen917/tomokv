@@ -1,0 +1,40 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-aclfix/build/aclfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25042", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aclfix/docs/aclfix/pre-1s/capacity", "--aclfile", "/home/user/Projects/cx-aclfix/docs/aclfix/pre-1s/capacity/users.acl", "--shards", "16", "--thread-mode", "1s", "--read-local", "1"], "case": "capacity"}
+65535 create/delete pairs; extra creations: RespError(b'ERR out of memory') RespError(b'ERR out of memory')
+SIGTERM exit -11
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 376, in listener
+    yield
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 408, in main
+    {"sort": sort_case, "streams-name": streams_case, "save-load": save_case,
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 236, in capacity_case
+    check(first, b"OK", "first creation after churn")
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 34, in check
+    assert got == want, f"{label}: got {got!r}, expected {want!r}"
+           ^^^^^^^^^^^
+AssertionError: first creation after churn: got RespError(b'ERR out of memory'), expected b'OK'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 407, in main
+    with listener(args), connection(args.port) as admin:
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 390, in listener
+    assert process.returncode == 0, (args.output / "server.log").read_text()[-12000:]
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [112,113,114,115,116,117,118,119]
+tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=jemalloc, reorder=0, read-local=1
+  thread t0: role=unified cpu=112 L3=0 shards=2 send=self
+  thread t1: role=unified cpu=113 L3=0 shards=2 send=self
+  thread t2: role=unified cpu=114 L3=0 shards=2 send=self
+  thread t3: role=unified cpu=115 L3=0 shards=2 send=self
+  thread t4: role=unified cpu=116 L3=0 shards=2 send=self
+  thread t5: role=unified cpu=117 L3=0 shards=2 send=self
+  thread t6: role=unified cpu=118 L3=0 shards=2 send=self
+  thread t7: role=unified cpu=119 L3=0 shards=2 send=self
+listening on 127.0.0.1:25042
+
+aclfix capacity FAIL (6.368s)

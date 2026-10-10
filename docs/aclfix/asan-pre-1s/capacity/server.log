@@ -1,0 +1,63 @@
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [112,113,114,115,116,117,118,119]
+tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=libc-malloc, reorder=0, read-local=1
+  thread t0: role=unified cpu=112 L3=0 shards=2 send=self
+  thread t1: role=unified cpu=113 L3=0 shards=2 send=self
+  thread t2: role=unified cpu=114 L3=0 shards=2 send=self
+  thread t3: role=unified cpu=115 L3=0 shards=2 send=self
+  thread t4: role=unified cpu=116 L3=0 shards=2 send=self
+  thread t5: role=unified cpu=117 L3=0 shards=2 send=self
+  thread t6: role=unified cpu=118 L3=0 shards=2 send=self
+  thread t7: role=unified cpu=119 L3=0 shards=2 send=self
+listening on 127.0.0.1:25042
+=================================================================
+==1604364==ERROR: AddressSanitizer: global-buffer-overflow on address 0x5774d3efd760 at pc 0x5774c7e0169f bp 0x7fff3f1f9d40 sp 0x7fff3f1f9d30
+WRITE of size 8 at 0x5774d3efd760 thread T0
+    #0 0x5774c7e0169e in std::__atomic_base<tomo_db0::AclUser*>::exchange(tomo_db0::AclUser*, std::memory_order) /usr/include/c++/13/bits/atomic_base.h:855
+    #1 0x5774c7e0169e in std::atomic<tomo_db0::AclUser*>::exchange(tomo_db0::AclUser*, std::memory_order) /usr/include/c++/13/atomic:586
+    #2 0x5774c7e0169e in tomo_db0::acl_shutdown() src/cmd/acl.inc:1043
+    #3 0x5774c85bdd59 in operator() src/core/genthread.cc:107
+    #4 0x5774c85c0b80 in tomo_db0::run_fused_server(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&) src/core/genthread.cc:259
+    #5 0x5774c88de4d9 in tomo_db0::run_fused_server_selected(tomo_db0::Server&, tomo_db0::SnapshotLoadPlan const*, std::vector<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> >, std::allocator<std::unique_ptr<tomo_db0::AofReplayPlan, std::default_delete<tomo_db0::AofReplayPlan> > > > const&, tomo_db0::SnapshotLoadPlan const*, tomo_db0::TlsContext*, tomo_db0::LateUnixListener&, tomo_db0::ShutdownReportFinalLine&) src/core/reorder.cc:3150
+    #6 0x5774c7703e5c in main src/main.cc:332
+    #7 0x5774c89ef49c in __wrap_main src/core/version.cc:21
+    #8 0x79b821a2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #9 0x79b821a2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #10 0x5774c76fbd54 in _start (/home/user/Projects/cx-aclfix/build/aclfix/pre-source/build/tomokv-asan+0x8bcad54) (BuildId: 40ec0ed8ee9509dcea8ff40307c47e9627aac5cc)
+
+0x5774d3efd760 is located 32 bytes before global variable 'g_acl_mu' defined in 'src/cmd/acl.inc:14:12' (0x5774d3efd780) of size 40
+0x5774d3efd760 is located 0 bytes after global variable 'g_acl_slots' defined in 'src/cmd/acl.inc:15:49' (0x5774d3e7d760) of size 524288
+SUMMARY: AddressSanitizer: global-buffer-overflow /usr/include/c++/13/bits/atomic_base.h:855 in std::__atomic_base<tomo_db0::AclUser*>::exchange(tomo_db0::AclUser*, std::memory_order)
+Shadow bytes around the buggy address:
+  0x5774d3efd480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5774d3efd500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5774d3efd580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5774d3efd600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5774d3efd680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x5774d3efd700: 00 00 00 00 00 00 00 00 00 00 00 00[f9]f9 f9 f9
+  0x5774d3efd780: 00 00 00 00 00 f9 f9 f9 f9 f9 f9 f9 00 00 00 00
+  0x5774d3efd800: 00 00 00 f9 f9 f9 f9 f9 00 00 00 00 00 f9 f9 f9
+  0x5774d3efd880: f9 f9 f9 f9 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5774d3efd900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x5774d3efd980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1604364==ABORTING

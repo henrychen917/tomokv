@@ -1,0 +1,25 @@
+POST python ACL tests on build/tomokv (sha256 19e49a0aae78c9037e02ad1dd70a7a4d71911d9c6c3feed15e17392c318c40cd), booted as tests/gate.sh does:
+server taskset 112-119 port 25048 --shards 16 --save ''; clients taskset 121-127. 2026-10-10T19:15:33Z
+
+aclkeys_test                   OK
+acl_categories                 
+acl-nofile                     acl: PASS (no-aclfile errors)
+acl-atomic0                    acl: PASS (grammar, AUTH, enforcement/closure, revocation, ACL LOG, SAVE/LOAD)
+acl-atomic1                    acl: PASS (grammar, AUTH, enforcement/closure, revocation, ACL LOG, SAVE/LOAD)
+aclreply-2s                    aclreply: all rows ok
+aclreply-1s                    aclreply: all rows ok
+aclkeys_wake_state-2s-rl0-a0   aclkeys SWAPDB/XREAD wake PASS (registered, exact reply within 2 s)
+aclkeys_wake_state-2s-rl0-a1   aclkeys SWAPDB/XREAD wake PASS (registered, exact reply within 2 s)
+aclkeys_wake_state-2s-rl1-a0   aclkeys SWAPDB/XREAD wake PASS (registered, exact reply within 2 s)
+aclkeys_wake_state-2s-rl1-a1   aclkeys SWAPDB/XREAD wake PASS (registered, exact reply within 2 s)
+aclkeys_wake_state-1s-rl0-a0   aclkeys SWAPDB/XREAD wake PASS (registered, exact reply within 2 s)
+aclkeys_wake_state-1s-rl0-a1   aclkeys SWAPDB/XREAD wake PASS (registered, exact reply within 2 s)
+aclkeys_wake_state-1s-rl1-a0   aclkeys SWAPDB/XREAD wake PASS (registered, exact reply within 2 s)
+aclkeys_wake_state-1s-rl1-a1   aclkeys SWAPDB/XREAD wake PASS (registered, exact reply within 2 s)
+aclkeys_wake-2s                {"arm": "post", "condition": "idle", "iterations": 1000, "missed": 0, "loss_rate": 0.0, "timeout_seconds": 2, "endpoint": "127.0.0.1:25048", "limitati
+aclkeys_wake-1s                {"arm": "post", "condition": "idle", "iterations": 1000, "missed": 0, "loss_rate": 0.0, "timeout_seconds": 2, "endpoint": "127.0.0.1:25048", "limitati
+
+boots: base/acl-categories/acl-nofile = --ratio 6:2; acl-atomic0/1 = --ratio 6:2 --aclfile <empty> [--atomic 1];
+aclreply = --enable-debug-command yes (2s --ratio 6:2; 1s --thread-mode fused); aclkeys_wake_state = --databases 16
+--atomic {0,1} --read-local {0,1} in 2s and fused; aclkeys_wake = 1000 iterations, 2s and fused read-local 1.
+acl_categories prints nothing on success (assertion-based, exit 0).

@@ -292,6 +292,9 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # DQ=+8, DF=+8: 511+8=519 quick; 528+8=536 full. Owner updates EXPECT.
 # savefix: 12 rows per network engine in snapshot/aof, collected BEFORE quick exit.
 # DQ=DF=24; owner update required: 511+24=535 quick, 528+24=552 full.
+# aclfix: six round-4 ACL reproductions per thread mode (sort, streams-name, save-load, capacity,
+# wake-pop, wake-scatter x 1s/2s), emitted by job_aclfix and collected after acl_recheck, above
+# the quick-tier exit: DQ=+12, DF=+12. Quick 511+12 = 523; full 528+12 = 540.
 EXPECT_QUICK=555
 EXPECT_FULL=572                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -1037,7 +1040,7 @@ plan_jobs(){
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
-              release_batteries atomic_batteries bplus acl_recheck sort script_bounds scriptfix
+              release_batteries atomic_batteries bplus acl_recheck aclfix sort script_bounds scriptfix
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -2017,6 +2020,29 @@ py tests/aclreply.py 127.0.0.1 "$PORT" >$TMPDIR/gate-aclreply-1s.txt 2>&1 \
     && ok "ACL recheck one-reply battery (1s)" \
     || bad "ACL recheck one-reply battery (1s)" "see $TMPDIR/gate-aclreply-1s.txt"
 stop
+}
+
+job_aclfix(){
+# ---- round-4 ACL reproductions: each row boots its own listener (tests/aclfix.py) -------------
+# sort CC4.8, streams-name CC4.9, save-load CC4.10, capacity CC4.24, wake-pop AT4.4 and
+# wake-scatter AT4.6, in both thread modes on this slot's CORES/PORT: 16 shards, 2s at
+# GATE_RATIO, 1s with read-local 1. Expectations are Redis 7.4.10 replies; the woken rows also
+# require the element/PEL state the denial must leave. A row stays under 60 s (capacity's
+# 65535 create/delete pairs plus the live-slot ceiling are about 8 s here).
+  local mode case label
+  for mode in 1s 2s; do
+    for case in sort streams-name save-load capacity wake-pop wake-scatter; do
+      label="aclfix $case ($mode)"
+      row_begin "$label"
+      if py tests/aclfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+          --mode "$mode" --ratio "$GATE_RATIO" --case "$case" \
+          --output "$TMPDIR/aclfix-$case-$mode" >"$TMPDIR/aclfix-$case-$mode.log" 2>&1; then
+        ok "$label"
+      else
+        bad "$label" "see $TMPDIR/aclfix-$case-$mode.log"
+      fi
+    done
+  done
 }
 
 job_sort(){
@@ -3445,6 +3471,7 @@ done
 collect_job bplus
 
 collect_job acl_recheck
+collect_job aclfix
 
 collect_job sort
 
