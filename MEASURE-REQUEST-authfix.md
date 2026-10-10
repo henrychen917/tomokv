@@ -1,20 +1,26 @@
-## authfix
+## authfix (original run)
 
-**WIP; not ready to merge.** Branch `cx-authfix`, based on
+**Authfix2 completes the ACL fix and required build, row, differential, and hot-body
+checks; final results are in [authfix2](#authfix2).** Its scheduler rerun remains
+deadline-failing for the mainline quiet-box landing gate.
+
+This section retains the original run at `711cc96dc`, before the ACL integration
+approval. Its POST and preview references describe those historical binaries.
+Branch `cx-authfix` was based on
 `5146b78ee89b64748dd46db970efa8086f653fa0`. No push, benchmark, performance
 measurement, or full gate. All work and correctness processes use CPUs 112–127;
 database listeners use ports 25028–25041.
 
-The committed source fixes config-line arity, carries decoded requirepass lengths
-through startup CONFIG metadata/publication, and redacts SLOWLOG at capture time.
-One additional bootstrap read in **acl.inc still truncates the password** after
-that publication. The task reserves that file for aclfix, so it is untouched.
-The exact [two-line integration patch](docs/authfix/acl-integration.patch) is
-prepared and checked with `git apply --check`; the shared-file exception was
-requested and remains unanswered. Its temporary build copy passes **all five
-new rows**. It is a review arm, not the default POST executable.
+The original source fixed config-line arity, carried decoded requirepass lengths
+through startup CONFIG metadata/publication, and redacted SLOWLOG at capture time.
+At that handoff, one bootstrap read in **acl.inc still truncated the password**
+after publication. The file was reserved for aclfix, so the first run left it
+untouched. The exact [two-line integration patch](docs/authfix/acl-integration.patch)
+was prepared and checked with `git apply --check`; the shared-file exception was
+then unanswered. Its temporary review build passed **all five new rows**, while
+the original default POST still failed the two bootstrap-dependent rows.
 
-| Finding / new gate row | PRE 5146b78ee | Committed-source POST | ACL patch review arm |
+| Finding / new gate row | PRE 5146b78ee | Original POST before ACL integration | ACL patch review arm |
 |---|---|---|---|
 | CG4.1 — `authfix CG4.1 binary config requirepass` | Fails: embedded NUL accepts the prefix; leading NUL permits unauthenticated SET | Fails at ACL bootstrap; CONFIG metadata now retains the bytes | Pass, both modes and both NUL positions; prefix refused, full AUTH/GET preserved |
 | CG4.2 — `authfix CG4.2 missing config value refuses boot` | Fails: final missing requirepass boots without authentication; following-line arity also lost | Pass: exit 1, no listener, `wrong number of arguments` | Pass |
@@ -149,15 +155,14 @@ DEBUG-disabled slowlog attempts under `standard/`, are retained as setup failure
 They are not the negative controls or passing slowlog proof. The authoritative
 paths are `pre-verified/`, `post/`, `acl-preview/`, and `slowlog-debug/`.
 
-After the ACL ownership decision, apply the prepared change, rebuild the default
-POST and all required unit/live-arm targets, and repeat proof against that final
-source. The review arm has only the five new-row checks; the full differential
-matrix above belongs to the current default POST. Resolve the scheduler failures
-and have the owner update the counts before declaring the landing green. Mainline
-then runs the gate and its ordinary performance null on the quiet box, comparing
-the fixed default POST to PRE using the existing cells and verdict rules. The helper/text changes
-above are the reason a performance null is still needed. No PAD arm or performance
-result is supplied by this correctness lane.
+The original handoff required applying the ACL change after approval, rebuilding
+the default POST and required unit/live-arm targets, and repeating the proof.
+The review arm covered only the five new rows; the matrix above covered the
+original default POST. Authfix2 below supplies the approved integration and final
+reruns. Mainline still owns the quiet-box gate, scheduler rerun, count update,
+and ordinary PRE/POST performance null using the existing cells and verdict
+rules. The helper/text changes above are the reason a performance null remains
+needed. No PAD arm or performance result is supplied by this correctness lane.
 
 Reproduce any new row (substitute `config-nul`, `arity`, `rewrite`, `slowlog-1s`,
 or `slowlog-2s`, and use a fresh output directory):
@@ -177,3 +182,141 @@ Identity commands and binary/source identities are retained in
 Final upstream check: `git fetch origin cpp` still resolves to
 `5146b78ee89b64748dd46db970efa8086f653fa0`; no merge was needed.
 Default `make -q all`, patch applicability, and `git diff --check` pass.
+
+## authfix2
+
+Continuation of `cx-authfix` at `711cc96dc`, using the owner-approved shared-file
+exception. Commit `488bcdaa9` applies exactly the prepared two-line ACL bootstrap
+change; nothing else in `src/cmd/acl.inc` changed. `cfg_requirepass(config)` now
+supplies both the nonempty check and the digest input, retaining leading and
+embedded NUL bytes. Commit `6976bcc53` extends the existing arity row to both
+thread modes, preserving its assertions and adding no gate row.
+
+All builds and correctness processes use CPUs **112–127**. Live authfix rows use
+ports **25028–25032**, 16 shards, cores **112–119**, and split ratio **6:2**.
+The final executable is the ordinary **`build/tomokv`**, with the applied ACL
+change; the old preview executable is not used in this rerun.
+
+| Final authfix row | Mode coverage | PRE negative control | Final default POST |
+|---|---|---|---|
+| `config-nul` | 1s and 2s | FAIL, 18 failed checks | PASS, 38/38 checks |
+| `arity` | 1s and 2s | FAIL, 96 failed checks | PASS, 114/114 checks |
+| `rewrite` | 1s and 2s | FAIL, 18 failed checks | PASS, 68/68 checks |
+| `slowlog-1s` | 1s | FAIL, 8 failed checks | PASS, 28/28 checks |
+| `slowlog-2s` | 2s | FAIL, 8 failed checks | PASS, 28/28 checks |
+
+All **five POST rows / 276 checks pass**. Every row's Redis 7.4.10 oracle checks
+also pass. All five rerun PRE controls exit 1 with assertion failures recorded
+in `results.json`; none is credited for a traceback or setup failure. The PRE
+binary still matches the original digest. Each row completes within 16 seconds.
+Receipts: [POST rows](docs/authfix/authfix2/post/rows.json),
+[PRE rows](docs/authfix/authfix2/pre/rows.json), and the per-case results, logs,
+configuration files, and process lifecycles beneath those directories.
+
+| Build or freshness check | Result |
+|---|---|
+| Default `taskset -c 112-127 make -j16 all` | PASS |
+| All 28 targets named by `job_production_units` | PASS |
+| `make -j16 mdbqsbr-live-arms`, both binaries | PASS |
+| `make -q all`, 28 individual targets, and live arms | 30/30 PASS |
+
+The target list was extracted from the current gate function, not copied from an
+older receipt. [Build commands, exits and freshness](docs/authfix/authfix2/builds.json)
+link to the compressed compiler logs. No compiler budgets or build flags changed.
+
+| Default PRE versus final default POST identity | Result |
+|---|---|
+| Production object inventory | 100 PRE / 100 POST |
+| Selected hot bodies, `tomo` | 601/601 identical |
+| Selected hot bodies, `tomo_db0` | 603/603 identical |
+| Full inventory hot selection, including executor run bodies | 1,208/1,208 identical |
+| Changed hot bodies | **None (`[]`)** in both checkers |
+| Command-handler entries | 1,206/1,210 identical |
+| Full function inventory | 16,234/16,304 identical; 70 changed entries |
+| Linked `.text` | 7,582,188 → 7,590,380 bytes (**+8,192**) |
+
+Body identity uses the unchanged checkers' relocation normalization, retaining
+instructions and target identities; it does not require equal load addresses.
+All 1,208 selected hot bodies also have identical raw object-body bytes.
+The 70-entry list includes the original 52 differences plus 18 ACL-object entries
+in the two namespaces. These include `acl_initialize`, `acl_command_entry`, and
+emitted ACL/pubsub/reply helpers outside the selected hot set. This does not claim
+complete request-path or linked-image identity. The hot and full inventory
+checkers exit 0; the linked-image checker exits 1 because runtime sections differ.
+[Identity summary](docs/authfix/authfix2/identity-summary.json),
+[changed function list](docs/authfix/authfix2/full/changed-bodies.json),
+[hot inventory](docs/authfix/authfix2/hot.json),
+[linked sections](docs/authfix/authfix2/linked.json). Exact commands and exits are
+retained alongside each artifact; the checkers are unchanged.
+
+| Binary | SHA-256 |
+|---|---|
+| PRE `build/authfix/pre/tomokv` | `4661985986b2f31f08bd62f146ba21d5133e0a3288b042920ae7fba5684414d4` |
+| Final default POST `build/tomokv` | `2b57bd798786221bdb06ae3f061c7777bd6ef7cd719c05cc48d3f55f524ac6f2` |
+
+Final differential rerun on the same default POST:
+
+| Geometry | Comparison legs | Read-local witnesses | Differences | Runtime |
+|---|---:|---:|---:|---|
+| Split, 6:2, 16 shards | 40/40 PASS | N/A | 0 | 11m49s |
+| Armed-fused, read-local 1, 16 shards | 40/40 PASS | 2/2 PASS | 0 | 10m49s |
+
+Combined: **80/80 comparison legs, zero differences, 2/2 read-local witnesses**.
+The unchanged matrix uses `servertail`, `compatintro`, `ccfix`, `aclsel`, and
+`climon`; seeds **7, 19, 20, 23**; atomics **0/1**. Target cores are **112–119**,
+oracle core **120**, driver cores **121–127**, and ports **25038/25039**. Both
+armed witnesses observed **736 hits at peak** and **734 final hits**; counter
+resets are handled by the existing sampler, with no added synthetic reads.
+This repeats the original focused 80-leg matrix, not every differential suite.
+[Commands, environment, binary hashes, and outcomes](docs/authfix/authfix2/differ.json),
+[split log](docs/authfix/authfix2/differ-split.log),
+[armed-fused log](docs/authfix/authfix2/differ-armed-fused.log).
+
+All matrix listeners stopped cleanly. Every assigned port **25028–25041** is
+closed after the final run. All 141 authfix PRE/POST/oracle lifecycle records
+also show closed ports and no forced kills.
+[Final port check](docs/authfix/authfix2/closed-ports.json),
+[row lifecycle summary](docs/authfix/authfix2/row-summary.json). The final default
+binary still matches the SHA-256 above, and final `make -q all` passes.
+
+`tests/gates_test.py` was run **once** as `taskset -c 112-127 python3
+tests/gates_test.py -v`: **FAIL**, 66 tests in 232.525 seconds, **13 failure entries
+across 12 test methods**. Every failure is rooted in the unchanged 45-second
+fixture deadline (timeout exit **124**). Twelve entries directly assert on 124;
+`test_missing_helper_witness_stays_red_and_keeps_its_explanation` instead reports
+that the expected helper name is absent from that timeout diagnostic. No other
+failure cause was observed. Assertions, deadlines, and the entire scheduler test
+source remain unchanged; its SHA-256 is recorded in
+[the outcome receipt](docs/authfix/authfix2/gates-test.json).
+[Full single-run log](docs/authfix/authfix2/gates-test.log.gz).
+
+The failing `SchedulerWiring` methods are:
+
+- `test_atomic_boot_waits_for_all_other_families_and_their_cleanup`
+- `test_completion_is_not_visible_before_its_record_is_written`
+- `test_empty_fragment_and_explicit_failure_cannot_turn_green` (both `empty` and `red` subtests)
+- `test_failed_prerequisite_cannot_leave_the_queue_waiting_forever`
+- `test_limited_workers_reuse_slots_without_losing_or_repeating_jobs`
+- `test_missing_helper_witness_stays_red_and_keeps_its_explanation`
+- `test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment`
+- `test_one_slot_uses_the_same_queue_without_losing_coverage`
+- `test_opposite_completion_orders_have_byte_identical_canonical_ledgers`
+- `test_release_boots_do_not_wait_for_independent_asan_build`
+- `test_removing_atomic_exclusivity_fails_before_its_boot`
+- `test_worker_exit_before_done_is_a_failure`
+
+This is a failed scheduler receipt, not a passing gate. Per the owner's ruling,
+mainline reruns it on the quiet box in the landing gate.
+
+**Gate accounting remains DQ +5 / DF +5.** `collect_job authfix` is at line 3378,
+before the quick-tier exit at line 3445. `tests/gate.sh`, its EXPECT constants,
+and the row inventory are unchanged by authfix2. [Line accounting](docs/authfix/authfix2/ledger.json).
+The landing computes EXPECT
+from `origin/cpp`; the earlier section's absolute counts belong to its old base.
+
+The maintainer runs the landing gate and ordinary PRE/POST performance null on
+the quiet box. This lane supplies correctness and byte inventories, with no
+performance claim or PAD arm. No push or full gate was run.
+
+Items 1–2 are complete, so the WIP banner is removed. The failed scheduler
+receipt above remains explicit. [Final proof summary](docs/authfix/authfix2/proof.json).
