@@ -67,7 +67,7 @@
     "receipt": "docs/scriptfix/single-state.json"
   },
   "gates_test": {
-    "status": "final run pending",
+    "status": "FAILED: scheduler fixture deadlines under shared CPU contention",
     "command": [
       "taskset",
       "-c",
@@ -77,7 +77,13 @@
       "124-127",
       "python3",
       "tests/gates_test.py"
-    ]
+    ],
+    "exit_code": 1,
+    "tests": 66,
+    "failures": 11,
+    "nested_tests_passed": 14,
+    "runs": "docs/scriptfix/gates-test-runs.json",
+    "required_next": "rerun the unchanged full suite with quiet CPUs 112-127 before landing"
   },
   "performance": "not run; mainline null requested"
 }

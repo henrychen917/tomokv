@@ -5,6 +5,12 @@ mutable function state still lives per executor.** The permitted owner-decision
 fallback, including its FCALL cost estimate, is retained in
 [single-state-design.md](docs/scriptfix/single-state-design.md).
 
+**Landing still requires a quiet rerun of `tests/gates_test.py` and the owner
+EXPECT update below.** The scheduler suite did not pass under shared CPU
+contention; all three failures are retained. The Lua-specific checks, differential
+proof, required builds and hot-body identity checks passed. The consolidated
+receipt is [proof.json](docs/scriptfix/proof.json).
+
 Worktree `/home/user/Projects/cx-scriptfix`, branch `cx-scriptfix`; no push.
 PRE is `5146b78ee89b64748dd46db970efa8086f653fa0`, built with default production
 flags into `build/scriptfix/pre/tomokv`; POST is `build/tomokv`. Fetching
@@ -114,15 +120,19 @@ Build and correctness proof:
   passed their individual `make -q` checks. **`mdbqsbr-live-arms` passed**, building
   both park and no-wake variants. [Commands, target list, exit codes and archived
   build logs](docs/scriptfix/production-units.json). Final `make -q all` also passes.
-- `python3 tests/gates_test.py`: final rerun in progress on CPUs 124–127, after
-  this lane's compilation ended. Two earlier runs during compilation had nine
-  and fourteen scheduler fixture deadline failures (their nested 14 tests
-  passed). The second run serialized scenarios on CPUs 112–115; every failure
-  traced to timeout exit 124. More than 100 compiler processes were then sharing
-  the 16 allowed CPUs. Original outputs are retained in
-  [initial run](docs/scriptfix/gates-test-initial-timeout.log.gz) and
-  [serialized run](docs/scriptfix/gates-test-serialized-timeout.log.gz).
-  No assertions, deadlines, or job inventory were changed.
+- **`python3 tests/gates_test.py` did not pass.** Three full runs had 9, 14 and
+  11 scheduler fixture deadline failures, respectively; their nested 14 tests
+  passed each time. The final run used CPUs 124–127 after this lane's compilation
+  ended, while other lanes continued compiling on the allowed CPUs. All 11 final
+  failures trace to timeout exit 124. More than 100 compiler processes were
+  observed during the earlier attempts; the final run still overlapped dozens.
+  [All run commands/results](docs/scriptfix/gates-test-runs.json),
+  [final full output](docs/scriptfix/gates-test.log),
+  [initial output](docs/scriptfix/gates-test-initial-timeout.log.gz), and
+  [second output](docs/scriptfix/gates-test-serialized-timeout.log.gz).
+  The two narrower runs serialized complete fixture scenarios by affinity.
+  No assertions, deadlines, or job inventory were changed. **Rerun the unchanged
+  full suite on quiet CPUs 112–127 before landing; this proof remains unresolved.**
 - Differential `script` suite: **16/16 legs, 80896 comparisons, zero differences**;
   seeds 7/19/20/23, atomic 0/1, split 6:2 with 16 shards and armed-fused with
   read-local enabled. Every leg has nonzero cross-owner activations and
