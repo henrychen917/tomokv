@@ -595,7 +595,6 @@ public:
             if constexpr (Fused)
                 srv_->debug_assert_read_local_sinks_follow_ownership(self_->id());
 #endif
-            cached_now_ms_ = realtime_ms();
             const bool flip_frozen = srv_->flip_stage() >= FlipStage::ExDrain;
             const bool lb_frozen = lb_controller_armed_ && srv_->lb_dispatch_paused();
             const bool placement_frozen = flip_frozen || lb_frozen;
@@ -603,9 +602,6 @@ public:
             // those vectors after ExDrain acknowledgement, so a frozen executor must not even run
             // the otherwise-cold configuration refresh path.
             if (!placement_frozen) refresh_live_config();
-            if (maxmemory_enabled_)
-                cached_lru_clock_ = static_cast<uint8_t>(
-                    (static_cast<uint64_t>(cached_now_ms_ / 1000) >> kLruClockShift) & 0x1f);
             sig.iterations++;
 
             uint32_t did = 0;
@@ -623,6 +619,13 @@ public:
                         self_->sig().configure_age_sampling(age_rate);
                     }
                 }
+                // Sample wall time after the diagnostic CPU-clock syscall: a
+                // delayed sample must not leave newly arrived tasks with a
+                // timestamp from before their request. Still one read per pass.
+                cached_now_ms_ = realtime_ms();
+                if (maxmemory_enabled_)
+                    cached_lru_clock_ = static_cast<uint8_t>(
+                        (static_cast<uint64_t>(cached_now_ms_ / 1000) >> kLruClockShift) & 0x1f);
                 if (placement_frozen) {
                     // Once ExDrain is acknowledged this loop is a hard safe point: no expiry,
                     // cleanup, waiter walk, or task can reacquire a moved FlatStore before FLIP
