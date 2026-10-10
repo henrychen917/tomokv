@@ -958,9 +958,16 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
         const int map = lua_gettop(state);
         uint32_t count = 0;
         lua_pushnil(state);
-        while (lua_next(state, map)) {
+        for (;;) {
+            // Like arrays, charge the shared budget for each child and the terminating
+            // scan. A map entry has two children; its key may itself be an aggregate.
+            if (++elements > kReplyMaxElements) {
+                error = "script reply has too many elements"; return false;
+            }
+            if (!lua_next(state, map)) break;
             lua_pop(state, 1);
-            if (++count > kReplyMaxElements) {
+            count++;
+            if (++elements > kReplyMaxElements) {
                 error = "script reply has too many elements"; return false;
             }
         }
@@ -986,11 +993,13 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
         const int set = lua_gettop(state);
         uint32_t count = 0;
         lua_pushnil(state);
-        while (lua_next(state, set)) {
-            lua_pop(state, 1);
-            if (++count > kReplyMaxElements) {
+        for (;;) {
+            if (++elements > kReplyMaxElements) {
                 error = "script reply has too many elements"; return false;
             }
+            if (!lua_next(state, set)) break;
+            lua_pop(state, 1);
+            count++;
         }
         reply_set_header(output, count, outer_resp3);
         lua_pushnil(state);
