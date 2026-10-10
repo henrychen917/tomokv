@@ -97,7 +97,9 @@ def server(args, atomic=0, read_local=0):
     check = subprocess.run(['ss', '-ltnH', 'sport', '=', str(args.port)],
                            capture_output=True, text=True, check=True)
     assert not check.stdout.strip(), f'port {args.port} occupied'
-    with tempfile.TemporaryDirectory(prefix='clientfix-') as directory:
+    runtime = Path(__file__).resolve().parents[1] / 'build/clientfix/runtime'
+    runtime.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix='clientfix-', dir=runtime) as directory:
         command = ['taskset', '-c', args.cores, str(Path(args.binary).resolve()),
                    '--bind', '127.0.0.1', '--port', str(args.port), '--save', '',
                    '--appendonly', 'no', '--dir', directory]

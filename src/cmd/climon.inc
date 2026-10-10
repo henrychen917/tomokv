@@ -48,6 +48,9 @@
         uint64_t gate_op_id = UINT64_MAX;
         bool gate_reply_skip = false;
         std::unordered_map<Op*, std::vector<std::string>> tracking_reads;
+        // key -> latest pending read. Both maps move with the existing
+        // connection migration node in its ownership commit section.
+        std::unordered_map<std::string, Op*> tracking_pending;
 
         bool idle() const {
             return reply_mode == kClimonReplyOn && !monitor && !tracking_on && !broken_redirect;
@@ -145,10 +148,6 @@
     // key -> ids of THIS owner's tracking clients. Single-owner: only this io thread reads or
     // writes it, so no lock sits on any armed path.
     std::unordered_map<std::string, std::vector<uint64_t>> climon_track_keys_;
-    // Pending reads are invalidation obligations, not completed registrations.
-    // key -> (client -> latest pending Op). Migration waits until these
-    // reads retire, then transfers the ordinary registration table as before.
-    std::unordered_map<std::string, std::unordered_map<uint64_t, Op*>> climon_track_pending_;
     uint32_t climon_armed_cached_ = 0;
     bool climon_armed_dirty_ = false;   // a cold command changed the armed word mid-pass
     uint64_t climon_pause_deadline_ms_ = 0;

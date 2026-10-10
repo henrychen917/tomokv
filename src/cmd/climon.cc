@@ -236,8 +236,6 @@ void IoLoop::climon_track_client(Client* client) {
 
 bool IoLoop::climon_migration_ready(const Client* client) const {
     if (!client || climon_pending_.find(client->id()) != climon_pending_.end()) return false;
-    auto tracking = climon_conn_.find(client->id());
-    if (tracking != climon_conn_.end() && !tracking->second.tracking_reads.empty()) return false;
     auto pubsub = pubsub_local_.find(client->id());
     return pubsub == pubsub_local_.end() ||
            (!pubsub->second.pending && !pubsub->second.cleanup_started);
