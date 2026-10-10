@@ -146,7 +146,13 @@ def server(args):
                     process.kill()
                     process.wait(timeout=2)
                     raise AssertionError("owned server needed SIGKILL")
-            assert not listening(args.port), f"owned port {args.port} did not close"
+            # The kernel may release an io_uring-held listener a few ms after the
+            # process exits; poll with a bounded deadline, as savefix.py's boot() does.
+            deadline = time.monotonic() + 5
+            while listening(args.port):
+                if time.monotonic() >= deadline:
+                    raise AssertionError(f"owned port {args.port} did not close")
+                time.sleep(.01)
             print(json.dumps({"stop": process.pid, "exit": process.returncode,
                               "port_closed": True}), flush=True)
             assert process.returncode == 0, (directory / "server.log").read_text()
