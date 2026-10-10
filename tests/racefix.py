@@ -167,6 +167,11 @@ def climon(args, result):
         require(0 < final['park_serial'] < final['other_arm_serial'] < final['final_serial'],
                 'A zero publication did not follow B arming')
         require(final['monitor_clients'] == 1, 'live monitor disappeared')
+        # A reply from A proves its entire cold refresh has returned (including
+        # any repair after the deliberately stale publication). PING cannot
+        # itself refresh the armed word. This fence is identical on PRE/POST.
+        require(arm.must('PING') == b'PONG', 'closing owner did not finish its refresh')
+        result['settled'] = status(control)
         require(control.must('SET', 'racefix-after-marker', 'value') == b'OK', 'marker SET')
         require(control.must('GET', 'racefix-after-marker') == b'value', 'marker GET')
         result['final_frame'] = marker(n, 'racefix-after-marker')

@@ -584,7 +584,7 @@ public:
                     conn.commit_write(static_cast<uint32_t>(res));
                 }
                 stats_.bytes_sent += static_cast<uint64_t>(res);
-                tls_signals_->net_output_bytes += static_cast<uint64_t>(res);
+                tls_signals_->net_output_bytes.store(tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(res), std::memory_order_relaxed);
                 c.set_last_interaction_s(*cached_now_s_);
                 if (static_cast<uint32_t>(res) < conn.send_requested()) stats_.short_writes++;
                 const bool drained = conn.segmented_send()
@@ -644,7 +644,7 @@ public:
                 return false;
             }
             stats_.bytes_sent += cipher_sent;
-            tls_signals_->net_output_bytes += cipher_sent;
+            tls_signals_->net_output_bytes.store(tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + cipher_sent, std::memory_order_relaxed);
             tls_signals_->tls_ciphertext_output_bytes += cipher_sent;
             c.set_last_interaction_s(*cached_now_s_);
             if (cipher_sent < c.send_requested()) stats_.short_writes++;
@@ -683,7 +683,7 @@ public:
                 c.commit_write(static_cast<uint32_t>(res));
             }
             stats_.bytes_sent += static_cast<uint64_t>(res);
-            tls_signals_->net_output_bytes += static_cast<uint64_t>(res);
+            tls_signals_->net_output_bytes.store(tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(res), std::memory_order_relaxed);
         }
         teardown(c);
     }
@@ -694,7 +694,7 @@ public:
             const uint32_t cipher_sent = static_cast<uint32_t>(res);
             if (tls.consume_output(cipher_sent)) {
                 stats_.bytes_sent += cipher_sent;
-                tls_signals_->net_output_bytes += cipher_sent;
+                tls_signals_->net_output_bytes.store(tls_signals_->net_output_bytes.load(std::memory_order_relaxed) + cipher_sent, std::memory_order_relaxed);
                 tls_signals_->tls_ciphertext_output_bytes += cipher_sent;
             }
         }

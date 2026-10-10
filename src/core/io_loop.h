@@ -1280,7 +1280,7 @@ private:
             if (!tls_socket) {
                 const ssize_t sent = ::send(fd, kErr, sizeof(kErr) - 1,
                                             MSG_NOSIGNAL | MSG_DONTWAIT);
-                if (sent > 0) self_->sig().net_output_bytes += static_cast<uint64_t>(sent);
+                if (sent > 0) self_->sig().net_output_bytes.store(self_->sig().net_output_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(sent), std::memory_order_relaxed);
             }
             ::close(fd);
             srv_->note_rejected_conn();
@@ -1293,7 +1293,7 @@ private:
             if (!tls_socket) {
                 const ssize_t sent = ::send(fd, kDenied, sizeof(kDenied) - 1,
                                             MSG_NOSIGNAL | MSG_DONTWAIT);
-                if (sent > 0) self_->sig().net_output_bytes += static_cast<uint64_t>(sent);
+                if (sent > 0) self_->sig().net_output_bytes.store(self_->sig().net_output_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(sent), std::memory_order_relaxed);
             }
             ::close(fd);
             srv_->note_rejected_connection();
@@ -2315,7 +2315,7 @@ private:
     template <bool HasTls, bool kEp, bool Fused = false>
     void on_recv(Client* c, int res) {
         c->set_recv_armed(false);       // the kernel has released its pointer
-        if (res > 0) self_->sig().net_input_bytes += static_cast<uint64_t>(res);
+        if (res > 0) self_->sig().net_input_bytes.store(self_->sig().net_input_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(res), std::memory_order_relaxed);
         if (find_client_migration(c)) {
             // The original Recv CQE, not the cancel CQE, is the old-ring pointer fence. Preserve
             // bytes which won the race with cancellation but do not parse them on the losing owner.
@@ -2496,7 +2496,7 @@ private:
     template <bool kEp, bool Fused = false>
     void on_tls_recv(Client* c, int res) {
         c->set_recv_armed(false);
-        if (res > 0) self_->sig().net_input_bytes += static_cast<uint64_t>(res);
+        if (res > 0) self_->sig().net_input_bytes.store(self_->sig().net_input_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(res), std::memory_order_relaxed);
         TlsConn* tls = tls_engine(c);
         if (!tls) { close_client(c); return; }
         if (c->dead()) { tls->abandon_input(); return; }

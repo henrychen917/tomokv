@@ -285,6 +285,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # eight rows collected above the quick-tier exit (+8 quick, +8 full).
 # overlapaxe: retire only split-overlap WB row, collected before quick exit (-1/-1).
 # Matrix client-lb dimension preserves every former split correctness scenario.
+# racefix: two rows collected before the quick-tier exit: DQ=+2, DF=+2.
+# Maintainer updates EXPECT: 511+2=513 quick; 528+2=530 full.
 EXPECT_QUICK=511
 EXPECT_FULL=528                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -1005,7 +1007,7 @@ plan_jobs(){
   # Correctness traffic is modest and stays on each slot's two or more physical load cores.
   # Compilers use that slot's server+load cores. The release build alone unlocks release jobs;
   # ASAN and standalone units do not delay boots, and full-only builds start immediately too.
-  JOB_NAMES=(release asan core_tsan_build waits_tsan_build tailgen_build)
+  JOB_NAMES=(release asan core_tsan_build waits_tsan_build racefix_tsan_build tailgen_build)
   [ "$TIER" != full ] || JOB_NAMES+=(rldbg)
   JOB_NAMES+=(config_unit flip_unit filter_unit ring_unit storage_units
               production_units acl_metadata cmd_metadata abba_selftest)
@@ -1029,7 +1031,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
+              core_units climonfix racefix_counters racefix_climon persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -3086,6 +3088,44 @@ tsan_unit(){
   fi
 }
 
+# SV4.9 uses a fully instrumented server, with its own object cache and readiness
+# marker, just like core_tsan_build/waits_tsan_build. Build failure is a red row.
+job_racefix_tsan_build(){
+  mkdir -p "$RUN_DIR/unit-ready"
+  pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" tsan \
+      >"$TMPDIR/build.log" 2>&1 && : > "$RUN_DIR/unit-ready/racefix-tsan"
+}
+job_racefix_counters(){
+  local mode failed=0
+  row_begin "INFO counter reads (TSan, both modes)"
+  if unit_ready racefix-tsan; then
+    for mode in 2s 1s; do
+      py tests/racefix.py counters --binary build/tomokv-tsan --mode "$mode" \
+          --cores "$CORES" --port "$PORT" --output "$TMPDIR/counters-$mode" \
+          >"$TMPDIR/counters-$mode.log" 2>&1 || failed=1
+    done
+  else failed=1; fi
+  if [ "$failed" = 0 ]; then ok "INFO counter reads (TSan, both modes)"
+  else bad "INFO counter reads (TSan, both modes)" "see $TMPDIR/counters-*.log"; fi
+}
+job_racefix_climon(){
+  local mode control failed=0
+  row_begin "Climon armed refresh + stale-store suppression control"
+  if unit_ready racefix-climon; then
+    for mode in 2s 1s; do
+      for control in store suppress; do
+        local args=()
+        [ "$control" != suppress ] || args+=(--suppress-stale)
+        py tests/racefix.py climon --binary build/racefix-climon --mode "$mode" \
+            --cores "$CORES" --port "$PORT" --output "$TMPDIR/climon-$mode-$control" \
+            "${args[@]}" >"$TMPDIR/climon-$mode-$control.log" 2>&1 || failed=1
+      done
+    done
+  else failed=1; fi
+  if [ "$failed" = 0 ]; then ok "Climon armed refresh + stale-store suppression control"
+  else bad "Climon armed refresh + stale-store suppression control" "see $TMPDIR/climon-*.log"; fi
+}
+
 job_tailgen_build(){
   mkdir -p "$RUN_DIR/unit-ready"
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" build/tailgen \
@@ -3098,10 +3138,10 @@ job_production_units(){
   pausable taskset -c "$BUILD_CORES" make -k -j"$BUILD_JOBS" \
       build/at15-unit build/at15-db0-unit build/execabort-watch-unit build/execabort-watch-db0-unit build/core-concurrency-unit build/atomic-survivors-unit build/netcmd-unit build/encodingfix-unit build/netcap-unit \
       build/waits-unit build/rehash-waits-unit build/multidb-unit build/multidb-boundary-unit build/storesize-unit \
-      build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 >"$TMPDIR/build.log" 2>&1
+      build/exbatch-unit build/exbatch-db0-unit build/wb-rule-units build/wbland-units build/rltopo-unit build/lbplanner-units build/shutdown-unit build/persistfix-units build/ktls-keyupdate build/ktls-keyupdate-unit build/flushfix-units build/splitlocal-unit build/reorder-engagement-unit build/reorder-engagement-unit-db0 build/racefix-climon >"$TMPDIR/build.log" 2>&1
   # -q verifies prerequisites as well as output existence: a failed compile cannot reuse a stale
   # executable. Each dependent historical row owns the failure; this helper adds no gate row.
-  for target in at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0; do
+  for target in at15-unit at15-db0-unit execabort-watch-unit execabort-watch-db0-unit core-concurrency-unit atomic-survivors-unit netcmd-unit encodingfix-unit netcap-unit waits-unit rehash-waits-unit multidb-unit multidb-boundary-unit storesize-unit wb-rule-units wbland-units rltopo-unit lbplanner-units shutdown-unit persistfix-units exbatch-unit exbatch-db0-unit ktls-keyupdate ktls-keyupdate-unit flushfix-units splitlocal-unit reorder-engagement-unit reorder-engagement-unit-db0 racefix-climon; do
     make -q "build/$target" && : > "$RUN_DIR/unit-ready/$target"
   done
   pausable taskset -c "$BUILD_CORES" make -j"$BUILD_JOBS" mdbqsbr-live-arms \
@@ -3169,8 +3209,10 @@ job_dependencies(){
       for dependency in "${JOB_NAMES[@]}"; do
         [ "$dependency" = atomic_batteries ] || printf '%s\n' "$dependency"
       done;;
-    release|asan|rldbg|core_tsan_build|waits_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync) ;;
+    release|asan|rldbg|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build|config_unit|flip_unit|filter_unit|ring_unit|storage_units|acl_metadata|cmd_metadata|abba_selftest|reorder_sync) ;;
     core_units) echo 'production_units core_tsan_build';;
+    racefix_counters) echo racefix_tsan_build;;
+    racefix_climon) echo production_units;;
     tls) echo 'release production_units';;
     wait_units) echo 'production_units waits_tsan_build';;
     debug-*|aof_frame) echo 'release production_units';;
@@ -3247,6 +3289,8 @@ collect_job ring_unit
 
 # SV2: collect all seven shutdown rows before the quick-tier exit.
 collect_job climonfix
+collect_job racefix_counters
+collect_job racefix_climon
 collect_job lbplanner_units
 
 # EX1/EX3/EX6: three unit rows and two live rows, all before the quick exit.

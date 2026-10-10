@@ -20,10 +20,14 @@ def main():
     shutil.copy2(root / 'Makefile', output / 'Makefile')
     server = output / 'src/core/server.h'
     text = server.read_text()
-    anchor = '        climon_armed_.store(armed, std::memory_order_release);'
-    assert text.count(anchor) == 1, 'refresh store anchor changed; review the witness'
-    text = text.replace(anchor, '        if (racefix_test::before_store(armed)) return;\n' +
-                        anchor + '\n        racefix_test::after_store(armed);')
+    anchors = ('        climon_armed_.store(armed, std::memory_order_release);',
+               '            climon_armed_.exchange(armed, std::memory_order_acq_rel);')
+    found = [anchor for anchor in anchors if text.count(anchor) == 1]
+    assert len(found) == 1, 'refresh publication anchor changed; review the witness'
+    anchor = found[0]
+    indent = anchor[:len(anchor) - len(anchor.lstrip())]
+    text = text.replace(anchor, indent + 'if (racefix_test::before_store(armed)) return;\n' +
+                        anchor + '\n' + indent + 'racefix_test::after_store(armed);')
     text = text.replace('namespace tomo {', '#include "tests/racefix_hook.h"\n\nnamespace tomo {', 1)
     server.write_text(text)
     debug = output / 'src/cmd/t_server.cc'

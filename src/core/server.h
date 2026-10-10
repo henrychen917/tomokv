@@ -3208,12 +3208,25 @@ private:
     }
 
     void refresh_climon_armed() {
-        uint32_t armed = 0;
-        if (climon_monitors_.load(std::memory_order_relaxed)) armed |= kClimonMonitor;
-        if (climon_tracking_.load(std::memory_order_relaxed)) armed |= kClimonTracking;
-        if (climon_pause_end_ms_.load(std::memory_order_relaxed)) armed |= kClimonPause;
-        if (climon_reply_.load(std::memory_order_relaxed)) armed |= kClimonReply;
-        climon_armed_.store(armed, std::memory_order_release);
+        const auto snapshot = [this] {
+            uint32_t armed = 0;
+            if (climon_monitors_.load(std::memory_order_relaxed)) armed |= kClimonMonitor;
+            if (climon_tracking_.load(std::memory_order_relaxed)) armed |= kClimonTracking;
+            if (climon_pause_end_ms_.load(std::memory_order_relaxed)) armed |= kClimonPause;
+            if (climon_reply_.load(std::memory_order_relaxed)) armed |= kClimonReply;
+            return armed;
+        };
+        uint32_t armed = snapshot();
+        for (;;) {
+            // The acquire half observes all mutations preceding earlier refreshes
+            // in the word's modification order. Recheck AFTER publishing so a
+            // delayed remover cannot leave its stale zero after a newer armer.
+            // Only this cold writer retries; per-batch readers retain one load.
+            climon_armed_.exchange(armed, std::memory_order_acq_rel);
+            const uint32_t current = snapshot();
+            if (current == armed) return;
+            armed = current;
+        }
     }
 
     void refresh_client_cron_armed() {

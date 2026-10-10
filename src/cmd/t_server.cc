@@ -1779,8 +1779,8 @@ void collect_stat_totals(StatBaseline& out) {
         out.acl_denied_key += sig.acl_access_denied_key;
         out.acl_denied_channel += sig.acl_access_denied_channel;
         out.acl_denied_auth += sig.acl_access_denied_auth;
-        out.net_input_bytes += sig.net_input_bytes;
-        out.net_output_bytes += sig.net_output_bytes;
+        out.net_input_bytes += sig.net_input_bytes.load(std::memory_order_relaxed);
+        out.net_output_bytes += sig.net_output_bytes.load(std::memory_order_relaxed);
     }
     if (g_server->read_local_enabled()) {
         for (uint32_t t = 0; t < g_server->nthreads(); t++)
@@ -1953,8 +1953,8 @@ void cmd_info(Shard&, Op& op) {
             tls_ktls_fallback += sig.tls_ktls_fallback;
             epoll_events += sig.epoll_events;
             epoll_recvs += sig.epoll_recvs;
-            net_input_bytes += sig.net_input_bytes;
-            net_output_bytes += sig.net_output_bytes;
+            net_input_bytes += sig.net_input_bytes.load(std::memory_order_relaxed);
+            net_output_bytes += sig.net_output_bytes.load(std::memory_order_relaxed);
             if (const WbEngine* wb = g_server->thread(t).wb_engine()) {
                 const WbEngine::Stats& stats = wb->stats();
                 sends_submitted += stats.sends_submitted;
