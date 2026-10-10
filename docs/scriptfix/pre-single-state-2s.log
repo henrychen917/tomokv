@@ -27,3 +27,5 @@
 {"actual": "OK", "check": "FUNCTION FLUSH", "expected": "OK", "pass": true}
 {"actual": {"error": "ERR Function not found"}, "check": "flushed function absent", "expected": {"error": "ERR Function not found"}, "pass": true}
 {"actual": 1, "check": "reload after flush starts fresh", "expected": 1, "pass": true}
+{"stop": 246775, "exit": 0, "port_closed": true}
+{"case": "functions", "mode": "2s", "checks": 27, "failures": 11, "seconds": 0.737}
