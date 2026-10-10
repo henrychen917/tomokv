@@ -313,8 +313,8 @@ class Battery:
                     (("__keyspace@0__:" + a).encode(), b"incrby"): 2,
                     (("__keyspace@0__:" + b).encode(), b"incrby"): 1}), events
             elif kind == "V2":
-                assert listener.read() == [b"message", a.encode(), b"one"]
                 assert result[-1] == 1, result
+                assert listener.read() == [b"message", a.encode(), b"one"]
             elif kind == "V3":
                 remaining = set(self.admin.must("SMEMBERS", collection))
                 assert members - remaining == {result[1]} and len(remaining) == 15, (result, remaining)
@@ -435,6 +435,9 @@ def main():
     battery = Battery(args)
     try:
         battery.script_intents_before = battery.counter("script_intents_live")
+        assert _lib.thread_mode(battery.admin) == args.mode
+        print("geometry", args.mode, "atomic", battery.admin.must("CONFIG", "GET", "atomic")[1],
+              "databases", battery.admin.must("CONFIG", "GET", "databases")[1], flush=True)
         for knob in ("key-lb", "client-lb", "flip-auto"):
             assert battery.admin.must("CONFIG", "GET", knob)[1] == b"0", knob
         for name in ("D1", "D2", "D3", "D4a", "D4b"):

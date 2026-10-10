@@ -1,53 +1,17 @@
 #!/usr/bin/env python3
-"""EXEC is never weaker than the same command run bare -- the in-EXEC cross-shard read gate.
+"""Cross-shard reads inside EXEC remain coherent under concurrent writes.
 
 Usage: execiso.py HOST PORT
 
-THE DEFECT THIS GATE LOCKS
---------------------------
-A cross-shard MGET wrapped in MULTI/EXEC TORE, while the identical BARE MGET against the same
-server, the same keys and the same concurrent writer did not.  MULTI therefore gave a cross-shard
-read LESS isolation than running the command without MULTI.
+Originally this guarded EXEC's missing fan-out read cut. Transaction isolation
+now uses intents and transparent retries; the registered cut remains a cleanup
+pin. Armed EXEC readers race plain writers, because a younger transaction would
+wait for the older reader. A writer cancels the parked attempt, and its replacement
+must return the fully updated generation. Cut, doom and retry counters all prove
+the path ran. Bare-reference arms retain their atomic transaction writer and
+finite read cut. Geometry is discovered from DEBUG SHARD on every boot.
 
-Mechanism: a MULTI child ran with `!force_atomic`, which is the term that keeps a fragment out of
-the read-cut machinery, and every child then bound the UNBOUND read context (multi.inc,
-`atomic_set_read_context(UINT64_MAX, ...)`).  Each of the read's eight fragments therefore answered
-"newest committed at the instant THIS fragment runs".  A foreign transaction publishing its one
-ticket while the fan-out was in flight was seen by the fragments that ran after it and missed by
-those that ran before: one MGET, two generations, e.g. [8,8,8,8,8,8,8,7].
-
-The counter is the proof of the mechanism: on the clean bare arm `atomic_fanout_cuts` advanced by
-one per read, and on the tearing in-EXEC arm it advanced by ZERO -- the MULTI children provably
-never entered the machinery at all.
-
-THE CONTRACT, STATED NARROWLY
------------------------------
-EXEC must never be weaker than the same commands executed bare.  A bare cross-shard read is atomic,
-so a read inside MULTI must be at least as atomic.  That is the whole bar.  It does NOT promise a
-transaction-wide snapshot and it does NOT change write visibility -- see NOTES-EXECISO.md.
-
-NOT VACUOUS, BY CONSTRUCTION
-----------------------------
-- GEOMETRY.  The hash seed is drawn from the kernel at every boot, so this battery asks DEBUG SHARD
-  for the real owner of every key and refuses to pass unless the read spans more than one owner.
-- DETERMINISM.  DEBUG ATOMIC-FANOUT-DEFER now parks MULTI-child fragments as well as ordinary
-  scatter fragments: every fragment of the transaction except the one on its lead shard is
-  re-queued until the deadline.  A park, not a stall -- the executor stays free, so the foreign
-  transaction really does commit BETWEEN two fragments of one in-EXEC read.
-- THE WINDOW REALLY OPENED.  Every armed round asserts the foreign transaction's reply landed
-  BEFORE the parked read's, and that the read was held for a real fraction of the park.  An unarmed
-  control asserts the same shape completes in a small fraction of that time, so a passing armed
-  round cannot be explained by "the hook did nothing".
-- COUNTER.  atomic_exec_read_cuts counts transactions that published a read cut because they carry
-  a multi-owner read.  It is separate from atomic_fanout_cuts precisely so background bare traffic
-  cannot satisfy the assertion.  Every armed arm demands it advanced, in BOTH atomic modes.
-- BARE REFERENCE.  The same straddle shape is run against a BARE read in the same round, because
-  bare is the bar the contract names.
-- NEGATIVE CONTROLS.  A same-owner read and a write-only transaction must register NO cut: the fix
-  is scoped to multi-owner read fragments and must cost nothing outside them.  A cut must be a cut
-  and not a freeze, and it must never hide the reading connection's own writes.
-
-Boot: --enable-debug-command yes.  Without it the armed arms cannot run and the battery says so.
+Boot with --enable-debug-command yes. Both atomic settings are exercised.
 """
 
 import socket

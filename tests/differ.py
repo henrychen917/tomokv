@@ -6371,6 +6371,23 @@ def infofields_sections(raw):
     return sections
 
 
+INFOFIELDS_TXN_STATS = {
+    b"atomic_txn_attempts", b"atomic_txn_retries", b"atomic_txn_dooms", b"atomic_txn_wounds",
+    b"atomic_txn_self_dooms", b"atomic_txn_waits", b"atomic_txn_forced_writes",
+    b"atomic_txn_exclusive", b"atomic_txn_exclusive_violations",
+    b"atomic_txn_exclusive_drain_timeouts", b"atomic_txn_intents", b"atomic_txn_intents_live",
+    b"atomic_group_dooms", b"atomic_group_retries", b"atomic_group_exclusive",
+}
+
+
+def infofields_txn_stats(target):
+    stats = target.get(b"Stats", {})
+    assert INFOFIELDS_TXN_STATS <= stats.keys(), ("missing transaction stats", INFOFIELDS_TXN_STATS - stats.keys())
+    for name in INFOFIELDS_TXN_STATS:
+        assert stats[name].isdigit(), (name, stats[name])
+        assert not any(name in values for section, values in target.items() if section != b"Stats"), name
+
+
 def infofields_names(target, oracle):
     for section, required in INFOFIELDS_REQUIRED.items():
         assert required <= target.get(section, {}).keys(), ("missing target", section, required)
@@ -6434,6 +6451,7 @@ def run_infofields_properties(peers):
 
     all_fields = [info(peer, "all") for peer in peers]
     infofields_names(*all_fields)
+    infofields_txn_stats(all_fields[0])
     versions = infofields_server_versions(*(rows[b"Server"] for rows in all_fields))
     for protocol in (2, 3):
         for side, peer, version in zip(("target", "oracle"), peers, versions):
