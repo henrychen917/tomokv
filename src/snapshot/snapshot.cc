@@ -172,22 +172,30 @@ SnapshotManager::~SnapshotManager() {
     }
 }
 
+void SnapshotManager::worker_shutdown(ThreadCtx& writer) {
+    if (!writer_is(writer.id())) return;
+    fail(epoch(), "snapshot cancelled by shutdown");
+    // SINGLE_ISSUER/DEFER_TASKRUN require the physical writer to reap its
+    // submitted IO. Main cannot finish these requests on a joined worker's ring.
+    Ring* ring = writer_ring_.load(std::memory_order_acquire);
+    while (io_inflight_) {
+        if (!ring) std::abort();
+        ring->submit_and_reap();
+        pump_io_completions(writer, *ring);
+        std::this_thread::yield();
+    }
+    // Peers can still be leaving their final owner pass. Keep their stores and
+    // channel chunks alive until cancel_after_join has the global join edge.
+}
+
 void SnapshotManager::cancel_after_join(Server& server) {
     // A no-save stop can leave captures pinned while atomic entries still name
     // IO-owned arenas. Collapse must not run until those captures are gone.
     // With workers joined, main owns both the manager and every shard here.
     if (in_progress()) {
         fail(epoch(), "snapshot cancelled by shutdown");
-        // Submitted writes still own their chunk/iovec buffers. Reap only this
-        // manager's CQEs; Failed completions cannot resubmit or publish the file.
-        Ring* ring = writer_ring_.load(std::memory_order_acquire);
-        const uint32_t tid = writer_tid_.load(std::memory_order_relaxed);
-        while (io_inflight_) {
-            if (!ring || tid >= server.nthreads()) std::abort();
-            ring->submit_and_reap();
-            pump_io_completions(server.thread(tid), *ring);
-            std::this_thread::yield();
-        }
+        // The writer's physical lifetime guard already reaped every request.
+        if (io_inflight_) std::abort();
         discard_chunks();
         // Also ends an AOF rewrite through rewrite_abort, after the ordinary
         // AOF worker/writer shutdown rendezvous has drained acknowledged writes.

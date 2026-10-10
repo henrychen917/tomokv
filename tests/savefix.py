@@ -85,12 +85,13 @@ def boot(args, directory, label, recovery=False):
 
 def seed(args, conn):
     value = b'x' * args.value_bytes
-    for begin in range(0, args.keys, 256):
-        commands = [encode('SET', 'savefix:pop:%d' % index, value)
-                    for index in range(begin, min(begin + 256, args.keys))]
-        conn.raw(b''.join(commands))
-        for _ in commands:
-            assert conn.read() == b'OK'
+    # The audited probe used batched MSET to populate. Keep each frame below
+    # 1 MiB; seed traffic must not turn a shutdown row into an AOF throughput run.
+    batch = max(1, min(2000, 524288 // (args.value_bytes + 64)))
+    for begin in range(0, args.keys, batch):
+        words = [part for index in range(begin, min(begin + batch, args.keys))
+                 for part in ('savefix:pop:%d' % index, value)]
+        assert conn.must('MSET', *words) == b'OK'
     assert conn.must('DBSIZE') == args.keys
 
 
@@ -101,6 +102,8 @@ class Writers:
         self.sent = [0] * 8
         self.errors = []
         self.stopping = threading.Event()
+        self.paused = threading.Event()
+        self.parked = [False] * 8
         self.threads = [threading.Thread(target=self.run, args=(index,)) for index in range(8)]
 
     def keys(self, index):
@@ -112,6 +115,12 @@ class Writers:
             conn = Conn('127.0.0.1', self.args.port, timeout=15)
             generation = 0
             while not self.stopping.is_set():
+                if self.paused.is_set():
+                    self.parked[index] = True
+                    while self.paused.is_set() and not self.stopping.wait(.001):
+                        pass
+                    self.parked[index] = False
+                    continue
                 keys = self.keys(index)
                 if self.args.case == 'acks' and self.args.atomic == 0:
                     conn.send('SET', keys[0], generation)
@@ -146,6 +155,13 @@ class Writers:
         while min(self.acked) < 3 and time.monotonic() < deadline:
             time.sleep(.001)
         assert min(self.acked) >= 3, ('writers did not arm', self.acked, self.errors)
+
+    def pause(self):
+        self.paused.set()
+        deadline = time.monotonic() + 5
+        while not all(self.parked) and time.monotonic() < deadline:
+            time.sleep(.001)
+        assert all(self.parked), ('group writers did not quiesce for rewrite admission', self.errors)
 
     def finish(self):
         self.stopping.set()
@@ -191,9 +207,19 @@ def attempt(args, directory):
                         break
                     time.sleep(.001)
             else:
+                if args.case == 'rewrite':
+                    # Rewrites wait for atomic_inflight == 0 before starting.
+                    # Eight continuous group streams can prevent that admission
+                    # altogether. Open the real capture first, then put the same
+                    # streams back in flight while its partial file is observed.
+                    writers.pause()
                 reply = conn.must('BGSAVE' if args.case == 'bgsave' else 'BGREWRITEAOF')
                 emit('capture_started', reply=reply.decode())
                 deadline = time.monotonic() + 5
+                if args.case == 'rewrite':
+                    while not prefix(args, directory) and time.monotonic() < deadline:
+                        time.sleep(.001)
+                    writers.paused.clear()
                 while process.poll() is None and time.monotonic() < deadline:
                     current = info(conn, 'all')
                     partial = prefix(args, directory)
@@ -264,7 +290,7 @@ def main():
     parser.add_argument('--net-io', choices=('uring', 'epoll'), default='uring')
     parser.add_argument('--ratio', default='6:2')
     parser.add_argument('--keys', type=int, default=131072)
-    parser.add_argument('--value-bytes', type=int, default=1024)
+    parser.add_argument('--value-bytes', type=int, default=200)
     parser.add_argument('--databases', type=int, default=1)
     parser.add_argument('--read-local', type=int, choices=(0, 1), default=0)
     parser.add_argument('--aof', action='store_true')

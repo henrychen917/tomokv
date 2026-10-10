@@ -382,6 +382,7 @@ int main(int argc, char** argv) {
     for (uint32_t tid : srv.placement().ex_threads())
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            SnapshotManager::WorkerLifetime snapshot_worker(srv.snapshot(), srv.thread(tid));
             AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);
@@ -509,6 +510,7 @@ int main(int argc, char** argv) {
     for (uint32_t tid : srv.placement().ifid_threads())
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            SnapshotManager::WorkerLifetime snapshot_worker(srv.snapshot(), srv.thread(tid));
             AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);
