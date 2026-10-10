@@ -1,0 +1,126 @@
+{
+  "binary": "/home/user/Projects/redis/src/redis-server",
+  "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "checks": [
+    {
+      "label": "redis-embedded NOAUTH before AUTH",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "redis-embedded unauthenticated SET refused",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "redis-embedded full AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-embedded full CONFIG GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "cg4\u0000tail"
+      ]
+    },
+    {
+      "label": "redis-embedded authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "redis-embedded RESET",
+      "passed": true,
+      "actual": "RESET"
+    },
+    {
+      "label": "redis-embedded prefix refused",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "redis-leading NOAUTH before AUTH",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "redis-leading unauthenticated SET refused",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "redis-leading full AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-leading full CONFIG GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "\u0000tail"
+      ]
+    },
+    {
+      "label": "redis-leading authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "redis-leading RESET",
+      "passed": true,
+      "actual": "RESET"
+    },
+    {
+      "label": "redis-leading prefix refused",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "redis-override AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-override PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "redis-override GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "cli-password"
+      ]
+    },
+    {
+      "label": "redis-empty PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "redis-empty GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        ""
+      ]
+    }
+  ],
+  "slowlog": {}
+}
