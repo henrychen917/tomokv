@@ -248,13 +248,14 @@ void multi_help_child(AtomicEntry& entry, uint64_t ticket) {
 }
 
 uint64_t multi_cancel_decision(MultiDecision& decision, uint32_t shard,
-                               TxnCounter cause = TxnCounter::Dooms, bool force = false) {
+                               TxnCounter cause = TxnCounter::Dooms, bool force = false,
+                               bool writer_cause = true) {
     uint64_t epoch = decision.epoch.load(std::memory_order_acquire);
     if ((decision.exclusive && !force) || decision.aborted.load(std::memory_order_acquire)) return epoch;
     if (epoch == 0 && decision.epoch.compare_exchange_strong(
             epoch, kAtomicCancelledEpoch, std::memory_order_acq_rel)) {
         MultiExecState& state = *decision.owner;
-        if (cause == TxnCounter::Dooms || cause == TxnCounter::SelfDooms)
+        if (writer_cause && (cause == TxnCounter::Dooms || cause == TxnCounter::SelfDooms))
             state.writer_cancelled.store(true, std::memory_order_relaxed);
         state.server->note_txn(state.server->worker_of_shard(shard), cause);
         decision.aborted.store(true, std::memory_order_release);
@@ -1081,6 +1082,130 @@ bool load_clone(Shard& shard, Slice key, KvObj* visible, KvObj*& clone) {
 // this anonymous namespace, next to multi_task_owns_epoch().
 std::atomic<uint64_t> g_exec_order_late{0};
 
+bool multi_older(const MultiDecision& a, const MultiDecision& b) {
+    if (a.exclusive != b.exclusive) return a.exclusive;
+    if (a.age_ns != b.age_ns) return a.age_ns < b.age_ns;
+    if (a.age_io != b.age_io) return a.age_io < b.age_io;
+    return a.age_seq < b.age_seq;
+}
+
+void multi_self_doom(MultiExecState& state, Shard& shard, bool writer_cause) {
+    state.backoff.store(true, std::memory_order_relaxed);
+    if (state.decision.exclusive)
+        state.server->note_txn(state.server->worker_of_shard(shard.id()),
+                               TxnCounter::ExclusiveViolations);
+    multi_cancel_decision(state.decision, shard.id(), TxnCounter::SelfDooms,
+                          /*force=*/true, writer_cause);
+}
+
+bool multi_wait(MultiExecState& state, Shard& shard) {
+    // A WATCH holder must release its claims before waiting for another unit.
+    // Otherwise two transactions watching one another's writes form a cycle.
+    if (!state.watched.empty() || state.decision.exclusive) {
+        multi_self_doom(state, shard, false);
+        return false;
+    }
+    state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::Waits);
+    return false;
+}
+
+bool multi_touch_key(MultiExecState& state, Shard& shard, uint64_t hash, Slice key,
+                     bool write, bool wildcard = false) {
+    if (state.decision.aborted.load(std::memory_order_acquire)) return false;
+    Server& server = *state.server;
+    bool ready = true, covered = false;
+    auto published = [&](uint64_t epoch, uint64_t connection) {
+        if (epoch && epoch != kAtomicCancelledEpoch && connection != state.origin_conn_id &&
+            epoch > server.atomic_snapshot()) {
+            // Rule P: the following ordinary command reads at the safe watermark.
+            server.note_txn(server.worker_of_shard(shard.id()), TxnCounter::Waits);
+            ready = false;
+        }
+    };
+    auto transaction = [&](MultiDecision& foreign, AtomicEntry* entry) {
+        if (&foreign == &state.decision) { if (!wildcard) covered = true; return; }
+        uint64_t epoch = foreign.epoch.load(std::memory_order_acquire);
+        if (epoch == kAtomicCancelledEpoch || foreign.aborted.load(std::memory_order_acquire)) return;
+        if (epoch) {
+            if (entry) multi_help_child(*entry, epoch);
+            published(epoch, foreign.owner->origin_conn_id);
+            return;
+        }
+        if (!entry && !write && !foreign.exclusive) return;
+        if (foreign.owner->origin_conn_id == state.origin_conn_id) {
+            g_exec_order_late.fetch_add(1, std::memory_order_relaxed);
+            ready = multi_wait(state, shard);
+        } else if (foreign.exclusive || !multi_older(state.decision, foreign)) {
+            ready = multi_wait(state, shard);
+        } else if (state.decision.exclusive) {
+            // The exclusive drain must have decided every older unit.
+            multi_self_doom(state, shard, false);
+            ready = false;
+        } else {
+            epoch = multi_cancel_decision(foreign, shard.id(), TxnCounter::Wounds);
+            if (entry) multi_help_child(*entry, epoch);
+            published(epoch, foreign.owner->origin_conn_id);
+        }
+    };
+    shard.store().atomic_visit_unit_records(hash, key, wildcard, [&](AtomicEntry& entry) {
+        if (!ready) return;
+        if (auto* decision = multi_record_decision(entry)) {
+            transaction(*decision, &entry);
+            return;
+        }
+        const uint64_t epoch = entry.group_epoch
+            ? entry.group_epoch->load(std::memory_order_acquire) : entry.epoch;
+        if (epoch == kAtomicCancelledEpoch ||
+            (entry.group_aborted && entry.group_aborted->load(std::memory_order_acquire))) return;
+        if (epoch) { published(epoch, entry.origin_conn_id); return; }
+        if (entry.origin_conn_id == state.origin_conn_id) {
+            g_exec_order_late.fetch_add(1, std::memory_order_relaxed);
+            ready = multi_wait(state, shard);
+        } else if (write && entry.group && entry.group->kind == Kind::Script) {
+            multi_cancel_record(entry);
+            published(entry.group_epoch->load(std::memory_order_acquire), entry.origin_conn_id);
+        } else {
+            // An undecided blind image cannot be a transaction's clone base.
+            multi_self_doom(state, shard, true);
+            ready = false;
+        }
+    });
+    shard.store().atomic_visit_unit_intents(hash, key, wildcard, [&](AtomicScriptIntent& intent) {
+        if (!ready) return;
+        UnitRef& unit = atomic_intent_unit(intent);
+        if (unit.unit == &state) {
+            if (!wildcard || intent.kind == 2) covered = true;
+        } else if (unit.unit_kind == UnitRef::Kind::Txn) {
+            transaction(*reinterpret_cast<MultiDecision*>(unit.epoch), nullptr);
+        }
+    });
+    if (!ready || state.decision.aborted.load(std::memory_order_acquire)) return false;
+    if (write || covered) return true;
+    auto& count = state.per_shard_intents[shard.id()];
+    wildcard |= count >= kTxnIntentsPerShard;
+    UnitRef ref{&state.decision.epoch, &state.decision.aborted, &state, UnitRef::Kind::Txn,
+                state.decision.exclusive, state.decision.age_ns,
+                state.decision.age_io, state.decision.age_seq};
+    const int added = shard.store().atomic_unit_pin(
+        ref, wildcard ? static_cast<uint64_t>(shard.id()) : hash, key, wildcard);
+    if (added < 0) {
+        state.decision.aborted.store(true, std::memory_order_release);
+        return false;
+    }
+    if (added) {
+        const uint32_t owner = server.worker_of_shard(shard.id());
+        server.note_txn(owner, TxnCounter::Intents);
+        server.note_txn(owner, TxnCounter::IntentsLive);
+        ++count;
+        if (wildcard) {
+            const uint32_t removed = shard.store().atomic_unit_unpin(&state, /*keys_only=*/true);
+            server.note_txn(owner, TxnCounter::IntentsLive, uint64_t{0} - removed);
+            count = kTxnIntentsPerShard + 1;
+        }
+    }
+    return true;
+}
+
 enum class MultiPrepareWrite : uint8_t { Ready, Retry, Error };
 
 MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard& shard,
@@ -1088,12 +1213,7 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
                                     const void* watch_token = nullptr,
                                     std::atomic<uint32_t>* watch_refs = nullptr) {
     if (!watch_token) watch_token = &state;
-    shard.store().atomic_visit_unit_records(hash, key, false, [&](AtomicEntry& entry) {
-        if (multi_record_decision(entry) != &state.decision) multi_cancel_record(entry);
-    });
-    shard.store().atomic_visit_unit_intents(hash, key, false, [&](AtomicScriptIntent& intent) {
-        if (atomic_intent_unit(intent).unit != &state) multi_cancel_intent(intent);
-    });
+    if (!multi_touch_key(state, shard, hash, key, true)) return MultiPrepareWrite::Retry;
     if (!watch_refs) watch_refs = &state.watch_refs;
     // THE FALSIFIER, and it must read ZERO. It asks EXACTLY the question the dispatch-time park in
     // ExLoop::execute() asks -- does this owner still hold an undecided record belonging to a
@@ -1127,7 +1247,7 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
                 return multi_state_owns_epoch(state, group_epoch);
             }))
         g_exec_order_late.fetch_add(1, std::memory_order_relaxed);
-    if (!shard.watch_write_ready(key, &state)) return MultiPrepareWrite::Retry;
+    if (!shard.watch_txn_write_ready(key, state)) return MultiPrepareWrite::Retry;
     shard.watch_reserve_write(key, state.client, state.watch_generation, watch_token,
                               &state.decision.epoch, &state.decision.aborted, watch_refs);
     const auto snapshot = shard.store().snapshot_prepare_write(hash, key);
@@ -1200,7 +1320,8 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
     // command installed merely because another EXEC still owns a watched key.
     for (uint32_t arg : unique) {
         const Slice key = command.op->arg(arg);
-        if (!shard.watch_write_ready(key, &state)) return false;
+        if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, true) ||
+            !shard.watch_txn_write_ready(key, state)) return false;
         const auto snapshot = shard.store().snapshot_prepare_write(FlatStore::hash_key(key), key);
         if (snapshot == FlatStore::SnapshotWriteResult::Pending) return false;
         if (snapshot == FlatStore::SnapshotWriteResult::Error) {
@@ -1221,14 +1342,9 @@ bool prepare_local_write_keys(Server& server, MultiExecState& state, MultiComman
     return true;
 }
 
-// The cut a multi-owner READ fragment of this transaction resolves at.  UINT64_MAX means "newest
-// committed at the instant this fragment runs", which is what every MULTI child used before this
-// lane; that is exactly the behaviour that let one MGET's eight fragments straddle a foreign
-// transaction's single ticket.  A transaction that registered no cut (write-only, single-owner, or
-// the cut was never drawn) keeps the old value, so nothing else in the file changes shape.
-uint64_t multi_read_cut(const MultiExecState& state) {
-    return state.snapshot_registered ? state.snapshot : UINT64_MAX;
-}
+// The registered snapshot is a cleanup pin. Reads validate through intents and
+// must include every write committed before the intent was registered.
+uint64_t multi_read_cut(const MultiExecState&) { return UINT64_MAX; }
 
 uint64_t multi_tripwire_slot(const Shard& shard, size_t key_index) {
     return (static_cast<uint64_t>(static_cast<uint32_t>(shard.id())) << 32) |
@@ -1269,6 +1385,15 @@ void multi_tripwire_read_execution(MultiExecState& state, MultiCommand& command,
 
 bool execute_local_command(Server& server, MultiExecState& state, MultiCommand& command,
                            Shard& shard, uint32_t owner_thread_id) {
+    if (!(command.queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
+        if (has_name(command.queued, "scan")) {
+            if (!multi_touch_key(state, shard, 0, {}, false, true)) return false;
+        } else for (size_t i = 0; i < command.key_args.size(); ++i) {
+            if (command.key_shards[i] != shard.id()) continue;
+            const Slice key = command.op->arg(command.key_args[i]);
+            if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, false)) return false;
+        }
+    }
     if (!prepare_local_write_keys(server, state, command, shard, owner_thread_id)) return false;
     if (command.op->spec->flags & CmdFlags::NotifySelected)
         notify_execute_source(shard, *command.op, command.notify_order_base);
@@ -1318,15 +1443,17 @@ bool execute_cross_command(Server& server, MultiExecState& state, MultiCommand& 
     const bool notify = (op.spec->flags & CmdFlags::NotifySelected) != 0;
     if (notify)
         notify_execute_source(shard, op, command.notify_order_base);
-    // MGET/EXISTS/TOUCH are the read kinds here and reach this function only with a key set that
-    // spans more than one shard, i.e. exactly the fan-out that could straddle. They resolve at the
-    // transaction's cut. MSET/MSETNX/DEL keep UINT64_MAX on purpose: their clone base must stay
-    // the newest committed value, or a read-modify-write inside EXEC would overwrite a concurrent
-    // commit from a stale image. Write visibility is deliberately untouched by this lane.
     const bool read_kind = command.kind == MultiCommandKind::Mget ||
-                           command.kind == MultiCommandKind::Exists;
-    shard.store().atomic_set_read_context(
-        read_kind ? multi_read_cut(state) : UINT64_MAX, state.origin_conn_id);
+                           command.kind == MultiCommandKind::Exists ||
+                           (command.kind == MultiCommandKind::Msetnx && stage == 0);
+    // All touches precede this command's first install on this shard.
+    for (size_t i = 0; i < command.key_args.size(); ++i) {
+        if (command.key_shards[i] != shard.id()) continue;
+        const Slice key = op.arg(command.key_args[i]);
+        if (!multi_touch_key(state, shard, FlatStore::hash_key(key), key, !read_kind) ||
+            (!read_kind && !shard.watch_txn_write_ready(key, state))) return false;
+    }
+    shard.store().atomic_set_read_context(UINT64_MAX, state.origin_conn_id);
     if (command.kind == MultiCommandKind::Mget) {
         for (size_t i = 0; i < command.key_args.size(); i++) {
             if (command.key_shards[i] != shard.id()) continue;
@@ -1499,6 +1626,9 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
 
 void finalize_reservations(MultiExecState& state, Shard& shard) {
     if (state.final_shard_done[static_cast<uint32_t>(shard.id())]) return;
+    const uint32_t intents = shard.store().atomic_unit_unpin(&state);
+    state.server->note_txn(state.server->worker_of_shard(shard.id()),
+                           TxnCounter::IntentsLive, uint64_t{0} - intents);
     if (!state.database_watch.empty()) {
         auto& targets = state.database_watch[shard.id()];
         const bool committed = !state.decision.aborted.load(std::memory_order_acquire);
@@ -1894,20 +2024,7 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
         // close. register_snapshot may have adopted a confirmed newer cut, so the children are
         // stamped from dispatch->snapshot afterwards, never from the value asked for.
         server.note_atomic_exec_read_cut();
-        for (const auto& command : dispatch->commands) {
-            if (command->kind != MultiCommandKind::Xshard || !command->scatter) continue;
-            const bool sort_deref_read = command->scatter->kind == Kind::Sort &&
-                                         command->scatter->sort_options.deref;
-            if (!sort_deref_read &&
-                (command->queued.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)))
-                continue;
-            if (!sort_deref_read && command->scatter->nsub <= 1) continue;
-            // The child never registers on its own: it lives in the transaction's private
-            // ScatterArenaPool, which does not own this thread's floor slot. It only borrows the
-            // cut the transaction published, and xshard_destroy skips unregistering it because
-            // snapshot_registered stays false.
-            command->scatter->snapshot = dispatch->snapshot;
-        }
+        // Children read newest committed. This registration is only a cleanup pin.
         // TEST HOOK arming, after the participant set exists so a lead shard can be named. Only a
         // transaction carrying a multi-owner read arms it -- the writer transaction the battery
         // races must stay free to run and publish its ticket inside the window.
@@ -2358,6 +2475,10 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         const uint32_t stage = command.stage.load(std::memory_order_acquire);
         uint8_t& done = command.shard_done[shard_id];
         if (command.kind == MultiCommandKind::Xshard) {
+            if (!state.decision.aborted.load(std::memory_order_acquire) &&
+                command.scatter->kind == Kind::Sort && command.scatter->sort_options.deref &&
+                !multi_touch_key(state, shard, 0, {}, false, true))
+                return MultiTaskResult::Retry;
             // Membership is published with `stage`, not discovered from ScatterState::groups.
             // The latter is a reusable table: source/gather/apply transitions rewrite it on the
             // last owner of the old stage.  Reading it from a barrier-only task before the release
@@ -2370,11 +2491,34 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                 if (command.finished.load(std::memory_order_acquire)) continue;
                 return MultiTaskResult::Retry;
             }
+            if (!state.decision.aborted.load(std::memory_order_acquire)) {
+                ShardGroup& group = *group_for(*command.scatter, shard.id());
+                const bool writes = command.queued.spec->flags &
+                    (CmdFlags::Write | CmdFlags::SnapshotWrite);
+                if (group.count == 0 || command.scatter->kind == Kind::DatabaseInfo) {
+                    if (!multi_touch_key(state, shard, 0, {}, false, true))
+                        return MultiTaskResult::Retry;
+                } else if (!sort_deref_gathering(*command.scatter)) {
+                    for (uint32_t i = 0; i < group.count; ++i) {
+                        const KeyRef& key = command.scatter->keys[
+                            command.scatter->key_order[group.begin + i]];
+                        const Slice bytes = command.op->arg(key.arg);
+                        // A source can become a phase-two write (pop/move/rename).
+                        // Conservatively resolve all keyed write-child roles as Write.
+                        if (!multi_touch_key(state, shard, key.hash, bytes, writes) ||
+                            (writes && !shard.watch_txn_write_ready(bytes, state)))
+                            return MultiTaskResult::Retry;
+                        // Its phase-one image is a read dependency until install.
+                        if (!multi_touch_key(state, shard, key.hash, bytes, false))
+                            return MultiTaskResult::Retry;
+                    }
+                }
+            } else command.scatter->aborted.store(true, std::memory_order_release);
             if (notify)
                 notify_execute_source(shard, *command.op, command.notify_order_base);
             const Task child_task{state.client, task.op_id, shard.id(), command.scatter};
-            bool execute_child = true;
-            if (command.scatter->atomic_pop && command.scatter->phase == 2) {
+            bool execute_child = !state.decision.aborted.load(std::memory_order_acquire);
+            if (execute_child && command.scatter->atomic_pop && command.scatter->phase == 2) {
                 ShardGroup* group = group_for(*command.scatter, shard.id());
                 if (!group || group->count != 1) std::abort();
                 const uint32_t pos = command.scatter->key_order[group->begin];
@@ -2825,6 +2969,30 @@ bool Shard::watch_write_ready(Slice key, const void* token) {
         for (const WatchReservation& reservation : existing->second)
             if (reservation.token == token) return true;
     return watch_finalize_reservation(owned);
+}
+
+bool Shard::watch_txn_write_ready(Slice key, MultiExecState& state) {
+    if (!has_watches()) return true;
+    const std::string owned = watch_key_string(key);
+    watch_finalize_reservation(owned);
+    auto found = watch_reservations_.find(owned);
+    if (found == watch_reservations_.end()) return true;
+    for (const WatchReservation& reservation : found->second) {
+        if (!reservation.blocking || reservation.token == &state ||
+            multi_state_owns_epoch(state, reservation.epoch)) continue;
+        auto& holder = *static_cast<MultiExecState*>(const_cast<void*>(reservation.token));
+        if (holder.decision.exclusive || !multi_older(state.decision, holder.decision))
+            return multi_wait(state, *this);
+        multi_cancel_decision(holder.decision, id(), TxnCounter::Wounds);
+    }
+    // Own validation claims do not block this attempt. Foreign wounded claims
+    // can now retire, including their state-lifetime references.
+    watch_finalize_reservation(owned);
+    if (auto left = watch_reservations_.find(owned); left != watch_reservations_.end())
+        for (const WatchReservation& reservation : left->second)
+            if (reservation.blocking && !multi_state_owns_epoch(state, reservation.epoch))
+                return multi_wait(state, *this);
+    return true;
 }
 
 void Shard::watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,

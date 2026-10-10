@@ -1076,6 +1076,10 @@ uint32_t xshard_cleanup_shard(Server& server, Shard& shard, uint32_t budget) {
 
 uint32_t xshard_cleanup_shard_at(Shard& shard, uint64_t floor, uint64_t cleanup_cutoff,
                                  uint32_t budget) {
+    const uint32_t intents = shard.store().atomic_cleanup_unit_intents();
+    if (intents && shard.server())
+        shard.server()->note_txn(shard.server()->worker_of_shard(shard.id()),
+                                  TxnCounter::IntentsLive, uint64_t{0} - intents);
     return shard.store().atomic_sweep(floor, cleanup_cutoff, budget);
 }
 
