@@ -1,0 +1,31 @@
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/flipfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/runs/pre-late-3/late", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "uring", "--enable-debug-command", "yes"], "event": "boot", "label": "late", "loadavg": [67.0322265625, 60.5712890625, 57.82177734375]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/flipfix/pre/tomokv", "label": "late", "pid": 2839292}
+{"attempt": 0, "closes": 18, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 1, "closes": 28, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 2, "closes": 27, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"event": "stop", "label": "late", "loadavg": [61.0517578125, 59.63916015625, 57.5732421875], "log": "/home/user/Projects/cx-flipfix/build/flipfix/runs/pre-late-3/late/late.log", "rc": 0}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 276, in late_closes
+    reply = admin.read()
+            ^^^^^^^^^^^^
+  File "/home/user/Projects/cx-flipfix/tests/_lib.py", line 161, in read
+    head = read(1)
+           ^^^^^^^
+  File "/home/user/Projects/cx-flipfix/tests/_lib.py", line 124, in _read
+    return self.file.read(size)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 455, in <module>
+    main()
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 447, in main
+    late_closes(args)
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 278, in late_closes
+    raise AssertionError(f'FLIP {heavy} {total - heavy} unanswered (attempt '
+AssertionError: FLIP 6 2 unanswered (attempt 3): wedged

@@ -1,0 +1,11 @@
+load 6.71 11.89 13.76 1/3106 1137816
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/final-rows/post-sigterm-uring/sigterm", "--save", "3600 1", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "uring", "--enable-debug-command", "yes"], "event": "boot", "label": "sigterm", "loadavg": [6.7099609375, 11.88916015625, 13.75732421875]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/tomokv", "label": "sigterm", "pid": 1137820}
+{"acknowledged": 1000, "case": "sigterm", "event": "armed", "moving": 1}
+{"elapsed": 1.0147, "event": "sigterm-exit", "status": 0}
+{"event": "flip-reply", "reply": "RespError(b'ERR FLIP aborted: the server is shutting down')"}
+{"event": "stop", "label": "sigterm", "loadavg": [6.7099609375, 11.88916015625, 13.75732421875], "log": "/home/user/Projects/cx-flipfix/build/flipfix/final-rows/post-sigterm-uring/sigterm/sigterm.log", "rc": 0}
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/final-rows/post-sigterm-uring/sigterm", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "uring", "--enable-debug-command", "yes"], "event": "boot", "label": "restart", "loadavg": [6.7099609375, 11.88916015625, 13.75732421875]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/tomokv", "label": "restart", "pid": 1137834}
+{"case": "sigterm", "recovered": 1000, "result": "PASS"}
+{"event": "stop", "label": "restart", "loadavg": [6.7099609375, 11.88916015625, 13.75732421875], "log": "/home/user/Projects/cx-flipfix/build/flipfix/final-rows/post-sigterm-uring/sigterm/restart.log", "rc": 0}

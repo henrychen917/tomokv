@@ -1,0 +1,35 @@
+load 7.21 12.07 13.83 1/3106 1137784
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/final-rows/post-close-uring/close", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "uring", "--enable-debug-command", "yes"], "event": "boot", "label": "close", "loadavg": [7.20703125, 12.0732421875, 13.82666015625]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/tomokv", "label": "close", "pid": 1137788}
+{"attempt": 0, "elapsed": 0.0066, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 1, "elapsed": 0.0019, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 2, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 3, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 4, "elapsed": 0.0007, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 5, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 6, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 7, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 8, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 9, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 10, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 11, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 12, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 13, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 14, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 15, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 16, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 17, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 18, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 19, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 20, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 21, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 22, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 23, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 24, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 25, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 26, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 27, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 28, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 29, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"applied": 30, "case": "close", "closed": 300, "connector": {"ok": 0, "refused": 0}, "engine": "uring", "outcomes": {"OK": 30}, "result": "PASS", "witnessed": 30}
+{"event": "stop", "label": "close", "loadavg": [6.7099609375, 11.88916015625, 13.75732421875], "log": "/home/user/Projects/cx-flipfix/build/flipfix/final-rows/post-close-uring/close/close.log", "rc": 0}

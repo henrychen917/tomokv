@@ -1,0 +1,5 @@
+flip rc=0 wall=.124762277
+flip_under_load rc=0 wall=1.039583452
+flip_ttl rc=0 wall=1.458831316
+spinprobe rc=0 wall=2.231329345
+spscmask_flip rc=0 wall=4.439610895

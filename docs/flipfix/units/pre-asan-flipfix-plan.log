@@ -1,0 +1,66 @@
+=================================================================
+==480439==ERROR: AddressSanitizer: heap-use-after-free on address 0x51d000001208 at pc 0x00000078155a bp 0x7ffdfa8e8b30 sp 0x7ffdfa8e8b20
+READ of size 4 at 0x51d000001208 thread T0
+    #0 0x781559 in std::__atomic_base<unsigned int>::load(std::memory_order) const /usr/include/c++/13/bits/atomic_base.h:505
+    #1 0x781559 in tomo::Client::ifid_thread() const src/core/../net/conn.h:584
+    #2 0x781559 in tomo::IoLoop::flip_candidate_clients_ready(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) const src/core/io_loop.h:1720
+    #3 0x825021 in unsigned int tomo::IoLoop::flip_control_pass<false>() (/home/user/Projects/cx-flipfix/build/flipfix/source/build/core-concurrency-unit+0x825021) (BuildId: 5c0b87bf194f24345ac779f809d82a18d5282f6c)
+    #4 0x949245 in tomo::CoreConcurrencyTest::FlipfixPlan::prepare_and_finish(char const*) (/home/user/Projects/cx-flipfix/build/flipfix/source/build/core-concurrency-unit+0x949245) (BuildId: 5c0b87bf194f24345ac779f809d82a18d5282f6c)
+    #5 0x9567ae in tomo::CoreConcurrencyTest::flipfix_plan_lifetime() (/home/user/Projects/cx-flipfix/build/flipfix/source/build/core-concurrency-unit+0x9567ae) (BuildId: 5c0b87bf194f24345ac779f809d82a18d5282f6c)
+    #6 0x40dca7 in main tests/core_concurrency_unit.cc:1197
+    #7 0x71974e82a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #8 0x71974e82a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #9 0x40ccf4 in _start (/home/user/Projects/cx-flipfix/build/flipfix/source/build/core-concurrency-unit+0x40ccf4) (BuildId: 5c0b87bf194f24345ac779f809d82a18d5282f6c)
+
+0x51d000001208 is located 1928 bytes inside of 1984-byte region [0x51d000000a80,0x51d000001240)
+freed by thread T0 here:
+    #0 0x71974feffdd5 in operator delete(void*, unsigned long, std::align_val_t) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:182
+    #1 0x9188a5 in tomo::IoLoop::reap_dead() src/core/io_loop.h:4861
+    #2 0x95679b in tomo::CoreConcurrencyTest::flipfix_plan_lifetime() (/home/user/Projects/cx-flipfix/build/flipfix/source/build/core-concurrency-unit+0x95679b) (BuildId: 5c0b87bf194f24345ac779f809d82a18d5282f6c)
+    #3 0x40dca7 in main tests/core_concurrency_unit.cc:1197
+    #4 0x71974e82a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x71974e82a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x40ccf4 in _start (/home/user/Projects/cx-flipfix/build/flipfix/source/build/core-concurrency-unit+0x40ccf4) (BuildId: 5c0b87bf194f24345ac779f809d82a18d5282f6c)
+
+previously allocated by thread T0 here:
+    #0 0x71974fefeaf8 in operator new(unsigned long, std::align_val_t) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:107
+    #1 0x8ef183 in tomo::CoreConcurrencyTest::FlipfixPlan::FlipfixPlan(unsigned int) (/home/user/Projects/cx-flipfix/build/flipfix/source/build/core-concurrency-unit+0x8ef183) (BuildId: 5c0b87bf194f24345ac779f809d82a18d5282f6c)
+    #2 0x955639 in tomo::CoreConcurrencyTest::flipfix_plan_lifetime() (/home/user/Projects/cx-flipfix/build/flipfix/source/build/core-concurrency-unit+0x955639) (BuildId: 5c0b87bf194f24345ac779f809d82a18d5282f6c)
+    #3 0x40dca7 in main tests/core_concurrency_unit.cc:1197
+    #4 0x71974e82a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #5 0x71974e82a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #6 0x40ccf4 in _start (/home/user/Projects/cx-flipfix/build/flipfix/source/build/core-concurrency-unit+0x40ccf4) (BuildId: 5c0b87bf194f24345ac779f809d82a18d5282f6c)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /usr/include/c++/13/bits/atomic_base.h:505 in std::__atomic_base<unsigned int>::load(std::memory_order) const
+Shadow bytes around the buggy address:
+  0x51d000000f80: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51d000001000: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51d000001080: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51d000001100: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51d000001180: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+=>0x51d000001200: fd[fd]fd fd fd fd fd fd fa fa fa fa fa fa fa fa
+  0x51d000001280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000001300: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000001380: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000001400: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d000001480: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==480439==ABORTING

@@ -1,0 +1,25 @@
+==================
+WARNING: ThreadSanitizer: data race (pid=480457)
+  Write of size 8 at 0x726800006108 by thread T1:
+    #0 std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::CoreConcurrencyTest::flipfix_fingerprint()::{lambda()#1}> > >::_M_run() <null> (core-concurrency-tsan+0x40be78) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+    #1 <null> <null> (libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+
+  Previous read of size 8 at 0x726800006108 by main thread:
+    #0 tomo::FlipController::sample_fingerprint(tomo::Server&) src/core/flipctl.cc:303 (core-concurrency-tsan+0x524f19) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+    #1 tomo::CoreConcurrencyTest::flipfix_fingerprint() <null> (core-concurrency-tsan+0x4c8dfb) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+    #2 main tests/core_concurrency_unit.cc:1200 (core-concurrency-tsan+0x40ae29) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+
+  Location is heap block of size 1408 at 0x726800006000 allocated by main thread:
+    #0 operator new(unsigned long, std::align_val_t) ../../../../src/libsanitizer/tsan/tsan_new_delete.cpp:88 (libtsan.so.2+0xa7254) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 tomo::Server::init(tomo::Config const&, tomo::AofReplayPlan const*) <null> (core-concurrency-tsan+0x4afbbe) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+    #2 tomo::CoreConcurrencyTest::Fixture<false>::Fixture(bool, unsigned int, unsigned int, unsigned int, unsigned int, bool, int) <null> (core-concurrency-tsan+0x4c69a1) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+    #3 tomo::CoreConcurrencyTest::flipfix_fingerprint() <null> (core-concurrency-tsan+0x4c8b20) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+    #4 main tests/core_concurrency_unit.cc:1200 (core-concurrency-tsan+0x40ae29) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+
+  Thread T1 (tid=480459, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) <null> (libstdc++.so.6+0xeceb0) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #2 main tests/core_concurrency_unit.cc:1200 (core-concurrency-tsan+0x40ae29) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022)
+
+SUMMARY: ThreadSanitizer: data race (/home/user/Projects/cx-flipfix/build/flipfix/units-pre/core-concurrency-tsan+0x40be78) (BuildId: 9aaff9d64fb715b50fe3251ded572dcda29d7022) in std::thread::_State_impl<std::thread::_Invoker<std::tuple<tomo::CoreConcurrencyTest::flipfix_fingerprint()::{lambda()#1}> > >::_M_run()
+==================

@@ -1,0 +1,173 @@
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/runs/pre-asan-churn-uring-1/churn", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "uring", "--enable-debug-command", "yes"], "event": "boot", "label": "churn", "loadavg": [50.11279296875, 70.5029296875, 87.78271484375]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv", "label": "churn", "pid": 1386348}
+{"attempt": 0, "elapsed": 0.1022, "moving": 0, "reply": "OK", "target": 2}
+{"event": "stop", "label": "churn", "loadavg": [48.822265625, 69.896484375, 87.49365234375], "log": "/home/user/Projects/cx-flipfix/build/flipfix/runs/pre-asan-churn-uring-1/churn/churn.log", "rc": -6}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 108, in boot
+    yield conn, process, directory
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 207, in disconnects
+    reply = admin.read()
+            ^^^^^^^^^^^^
+  File "/home/user/Projects/cx-flipfix/tests/_lib.py", line 163, in read
+    raise EOFError("server closed the connection")
+EOFError: server closed the connection
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 405, in <module>
+    main()
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 397, in main
+    disconnects(args, args.case == 'churn')
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 158, in disconnects
+    with boot(args, 'churn' if churn else 'close') as (admin, process, _):
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 123, in boot
+    assert not hits, f'sanitizer report {hits} in {path}:\n' + text[-20000:]
+           ^^^^^^^^
+AssertionError: sanitizer report ['ERROR: AddressSanitizer'] in /home/user/Projects/cx-flipfix/build/flipfix/runs/pre-asan-churn-uring-1/churn/churn.log:
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [112,113,114,115,116,117,118,119]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=libc-malloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=112 L3=0 shards=0
+  thread t1: role=ifid cpu=113 L3=0 shards=0
+  thread t2: role=ifid cpu=114 L3=0 shards=0
+  thread t3: role=ifid cpu=115 L3=0 shards=0
+  thread t4: role=ifid cpu=116 L3=0 shards=0
+  thread t5: role=ifid cpu=117 L3=0 shards=0
+  thread t6: role=ex cpu=118 L3=0 shards=8
+  thread t7: role=ex cpu=119 L3=0 shards=8
+listening on 127.0.0.1:25084
+=================================================================
+==1386348==ERROR: AddressSanitizer: heap-use-after-free on address 0x51d0003e7428 at pc 0x608e18445a2e bp 0x7d4f81e07180 sp 0x7d4f81e07170
+READ of size 8 at 0x51d0003e7428 thread T3
+    #0 0x608e18445a2d in tomo_db0::Server::flip_build_client_plan(tomo_db0::Client*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8e89a2d) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+    #1 0x608e18491f7d in unsigned int tomo_db0::IoLoop::flip_control_pass<false>() src/core/io_loop.h:2169
+    #2 0x608e1854d5bf in void tomo_db0::IoLoop::run_loop<false, false, false, false, false>() (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8f915bf) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+    #3 0x608e185639a1 in tomo_db0::IoLoop::run_split() (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8fa79a1) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+    #4 0x608e181983d6 in tomo_db0::IoLoop::run() src/core/io_loop.h:432
+    #5 0x608e181983d6 in operator() src/main.cc:571
+    #6 0x608e181983d6 in __invoke_impl<void, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61
+    #7 0x608e181983d6 in __invoke<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96
+    #8 0x608e181983d6 in _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292
+    #9 0x608e181983d6 in operator() /usr/include/c++/13/bits/std_thread.h:299
+    #10 0x608e181983d6 in _M_run /usr/include/c++/13/bits/std_thread.h:244
+    #11 0x7d4f888ecdb3  (/lib/x86_64-linux-gnu/libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #12 0x7d4f8925ea41 in asan_thread_start ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+    #13 0x7d4f87c9cb83 in start_thread nptl/pthread_create.c:447
+    #14 0x7d4f87d29ecb in clone3 ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+0x51d0003e7428 is located 1960 bytes inside of 1984-byte region [0x51d0003e6c80,0x51d0003e7440)
+freed by thread T4 here:
+    #0 0x7d4f892ffdd5 in operator delete(void*, unsigned long, std::align_val_t) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:182
+    #1 0x608e184a5657 in tomo_db0::IoLoop::reap_dead() src/core/io_loop.h:4861
+    #2 0x608e1854cdc5 in void tomo_db0::IoLoop::run_loop<false, false, false, false, false>() (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8f90dc5) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+    #3 0x608e185639a1 in tomo_db0::IoLoop::run_split() (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8fa79a1) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+    #4 0x608e181983d6 in tomo_db0::IoLoop::run() src/core/io_loop.h:432
+    #5 0x608e181983d6 in operator() src/main.cc:571
+    #6 0x608e181983d6 in __invoke_impl<void, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61
+    #7 0x608e181983d6 in __invoke<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96
+    #8 0x608e181983d6 in _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292
+    #9 0x608e181983d6 in operator() /usr/include/c++/13/bits/std_thread.h:299
+    #10 0x608e181983d6 in _M_run /usr/include/c++/13/bits/std_thread.h:244
+    #11 0x7d4f888ecdb3  (/lib/x86_64-linux-gnu/libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #12 0x7d4f8925ea41 in asan_thread_start ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+    #13 0x7d4f87c9cb83 in start_thread nptl/pthread_create.c:447
+
+previously allocated by thread T5 here:
+    #0 0x7d4f892fee08 in operator new(unsigned long, std::align_val_t, std::nothrow_t const&) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:113
+    #1 0x608e18505f84 in void tomo_db0::IoLoop::admit_fd<false, false>(int, tomo_db0::UrKind) (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8f49f84) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+    #2 0x608e18508095 in void tomo_db0::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo_db0::UrKind) (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8f4c095) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+    #3 0x608e185258e8 in void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*) (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8f698e8) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+    #4 0x608e18527917 in tomo_db0::IoLoop::run_loop<false, false, false, false, false>()::{lambda(io_uring_cqe*)#1}::operator()(io_uring_cqe*) const (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8f6b917) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+    #5 0x608e185289eb in unsigned int tomo_db0::Ring::for_each_cqe<tomo_db0::IoLoop::run_loop<false, false, false, false, false>()::{lambda(io_uring_cqe*)#1}>(tomo_db0::IoLoop::run_loop<false, false, false, false, false>()::{lambda(io_uring_cqe*)#1}&&) (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8f6c9eb) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+    #6 0x608e1854d070 in void tomo_db0::IoLoop::run_loop<false, false, false, false, false>() (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8f91070) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+    #7 0x608e185639a1 in tomo_db0::IoLoop::run_split() (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8fa79a1) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+    #8 0x608e181983d6 in tomo_db0::IoLoop::run() src/core/io_loop.h:432
+    #9 0x608e181983d6 in operator() src/main.cc:571
+    #10 0x608e181983d6 in __invoke_impl<void, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61
+    #11 0x608e181983d6 in __invoke<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96
+    #12 0x608e181983d6 in _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292
+    #13 0x608e181983d6 in operator() /usr/include/c++/13/bits/std_thread.h:299
+    #14 0x608e181983d6 in _M_run /usr/include/c++/13/bits/std_thread.h:244
+    #15 0x7d4f888ecdb3  (/lib/x86_64-linux-gnu/libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #16 0x7d4f8925ea41 in asan_thread_start ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+    #17 0x7d4f87c9cb83 in start_thread nptl/pthread_create.c:447
+
+Thread T3 created by T0 here:
+    #0 0x7d4f892f51f9 in pthread_create ../../../../src/libsanitizer/asan/asan_interceptors.cpp:245
+    #1 0x7d4f888eceb0 in std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xeceb0) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #2 0x608e18189811 in thread<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/std_thread.h:164
+    #3 0x608e18191067 in construct_at<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/stl_construct.h:97
+    #4 0x608e18191067 in construct<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/alloc_traits.h:540
+    #5 0x608e18191067 in _M_realloc_insert<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/vector.tcc:468
+    #6 0x608e18191067 in emplace_back<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/vector.tcc:123
+    #7 0x608e18191067 in main src/main.cc:509
+    #8 0x608e1947a49c in __wrap_main src/core/version.cc:21
+    #9 0x7d4f87c2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7d4f87c2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #11 0x608e18186d54 in _start (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8bcad54) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+
+Thread T4 created by T0 here:
+    #0 0x7d4f892f51f9 in pthread_create ../../../../src/libsanitizer/asan/asan_interceptors.cpp:245
+    #1 0x7d4f888eceb0 in std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xeceb0) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #2 0x608e18189811 in thread<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/std_thread.h:164
+    #3 0x608e18190d5b in construct_at<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/stl_construct.h:97
+    #4 0x608e18190d5b in construct<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/alloc_traits.h:540
+    #5 0x608e18190d5b in emplace_back<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/vector.tcc:117
+    #6 0x608e18190d5b in main src/main.cc:509
+    #7 0x608e1947a49c in __wrap_main src/core/version.cc:21
+    #8 0x7d4f87c2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #9 0x7d4f87c2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #10 0x608e18186d54 in _start (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8bcad54) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+
+Thread T5 created by T0 here:
+    #0 0x7d4f892f51f9 in pthread_create ../../../../src/libsanitizer/asan/asan_interceptors.cpp:245
+    #1 0x7d4f888eceb0 in std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) (/lib/x86_64-linux-gnu/libstdc++.so.6+0xeceb0) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #2 0x608e18189811 in thread<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/std_thread.h:164
+    #3 0x608e18191067 in construct_at<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/stl_construct.h:97
+    #4 0x608e18191067 in construct<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/alloc_traits.h:540
+    #5 0x608e18191067 in _M_realloc_insert<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/vector.tcc:468
+    #6 0x608e18191067 in emplace_back<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/vector.tcc:123
+    #7 0x608e18191067 in main src/main.cc:509
+    #8 0x608e1947a49c in __wrap_main src/core/version.cc:21
+    #9 0x7d4f87c2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #10 0x7d4f87c2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #11 0x608e18186d54 in _start (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8bcad54) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9)
+
+SUMMARY: AddressSanitizer: heap-use-after-free (/home/user/Projects/cx-flipfix/build/flipfix/pre-asan/tomokv+0x8e89a2d) (BuildId: 3e02efa258d0c6b49011b7272a6b73b487b5f2f9) in tomo_db0::Server::flip_build_client_plan(tomo_db0::Client*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&)
+Shadow bytes around the buggy address:
+  0x51d0003e7180: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51d0003e7200: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51d0003e7280: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51d0003e7300: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x51d0003e7380: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+=>0x51d0003e7400: fd fd fd fd fd[fd]fd fd fa fa fa fa fa fa fa fa
+  0x51d0003e7480: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d0003e7500: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d0003e7580: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d0003e7600: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x51d0003e7680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1386348==ABORTING
+
