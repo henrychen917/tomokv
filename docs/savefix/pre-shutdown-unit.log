@@ -1,0 +1,3 @@
+Errors trying to SHUTDOWN: injected snapshot refusal; server remains running
+Errors trying to SHUTDOWN: shutdown timed out waiting for snapshot/placement; retry SHUTDOWN; server remains running
+FAIL shutdown: capture completion never opens post-cut admission

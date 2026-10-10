@@ -230,6 +230,37 @@ struct CoreConcurrencyTest {
         for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
             require(server.thread(tid).stop_flag(), "successful finalization stops every owner");
     }
+    static void cancelled_capture() {
+        auto f = std::make_unique<Fixture>();
+        auto& server = f->server;
+        auto& store = server.shard(0).store();
+        const Slice key("shutdown:live-record");
+        const uint64_t hash = FlatStore::hash_key(key);
+        void* entry = nullptr;
+        require(store.atomic_prepare_plain(key, hash, 42, entry), "shutdown MVCC entry allocated");
+        KvObj* value = kvobj_new_string(key, Slice("acknowledged"));
+        require(value != nullptr, "shutdown MVCC value allocated");
+        store.atomic_install_plain(hash, key, entry, value, 2);
+        store.atomic_finish_plain();
+        require(store.atomic_has_records(), "shutdown has live MVCC records");
+        require(store.snapshot_prepare(1, 1000) == FlatStore::SnapshotWriteResult::Ready &&
+                store.snapshot_mark(0, 1000), "shutdown has an active store capture");
+        auto& snapshot = server.snapshot();
+        char path[] = "build/shutdown-capture-XXXXXX";
+        snapshot.fd_ = ::mkstemp(path);
+        require(snapshot.fd_ >= 0, "shutdown has a real temporary snapshot file");
+        snapshot.temp_path_ = path;
+        snapshot.server_ = &server;
+        snapshot.phase_.store(SnapshotManager::Phase::Capture);
+        server.finish_shutdown();
+        snapshot.cancel_after_join(server);
+        require(!store.snapshot_active() && !snapshot.in_progress() && snapshot.fd_ == -1 &&
+                !std::filesystem::exists(path), "post-join cancellation releases capture and temp file");
+        store.atomic_shutdown_release_records();
+        require(!store.atomic_has_records() && store.find(hash, key) != nullptr,
+                "cancelled capture permits atomic collapse without losing the committed value");
+        snapshot.cancel_after_join(server);
+    }
     template<bool Fused>
     static void shutdown_hold(Server& server) {
         auto loop = std::make_unique<ExLoopT<Fused>>();
@@ -237,9 +268,12 @@ struct CoreConcurrencyTest {
         loop->srv_ = &server; loop->self_ = &owner;
         loop->snapshot_manager_ = &server.snapshot();
         using State = typename ExLoopT<Fused>::SnapshotOwnerState;
-        loop->snapshot_owner_state_ = State::Draining;
+        loop->snapshot_owner_state_ = State::Capturing;
         server.set_shutdown_snapshot_active(true);
-        loop->snapshot_control_pass();
+        // This is the same pass that posts the final chunk. It must not expose
+        // a Draining turn that admits Ready writes before the next control pass.
+        loop->progress_snapshot_capture();
+        require(loop->snapshot_blocks_tasks(), "capture completion never opens post-cut admission");
         require(server.shutdown_snapshot_holds() == 1, "held owner prevents admission of another snapshot");
         Ring unopened;
         std::string error;
@@ -308,6 +342,7 @@ int main() {
     CoreConcurrencyTest::shutdown_hold<true>(f->server);
     CoreConcurrencyTest::finalize(f->server);
     f.reset();
+    CoreConcurrencyTest::cancelled_capture();
     using Phase = SnapshotManager::Phase;
     for (auto phase : {Phase::Idle, Phase::Preparing, Phase::Freeze, Phase::Mark, Phase::Capture}) {
         CoreConcurrencyTest::saving_owner<false>(phase);

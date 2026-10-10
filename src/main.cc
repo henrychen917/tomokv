@@ -362,6 +362,7 @@ int main(int argc, char** argv) {
         if (cfg.pin_threads) pin_to(srv.placement().cpu_of_thread(tid));
     };
     auto report_graceful_shutdown = [&] {
+        srv.snapshot().cancel_after_join(srv);
         // All owners and readers are quiescent. Release pending-entry references before IoLoop
         // destruction, then return their deferred ScatterState arenas to the correct IO-owned
         // pools. Server normally outlives those pools, so leaving this to FlatStore destructors

@@ -172,6 +172,34 @@ SnapshotManager::~SnapshotManager() {
     }
 }
 
+void SnapshotManager::cancel_after_join(Server& server) {
+    // A no-save stop can leave captures pinned while atomic entries still name
+    // IO-owned arenas. Collapse must not run until those captures are gone.
+    // With workers joined, main owns both the manager and every shard here.
+    if (in_progress()) {
+        fail(epoch(), "snapshot cancelled by shutdown");
+        // Submitted writes still own their chunk/iovec buffers. Reap only this
+        // manager's CQEs; Failed completions cannot resubmit or publish the file.
+        Ring* ring = writer_ring_.load(std::memory_order_acquire);
+        const uint32_t tid = writer_tid_.load(std::memory_order_relaxed);
+        while (io_inflight_) {
+            if (!ring || tid >= server.nthreads()) std::abort();
+            ring->submit_and_reap();
+            pump_io_completions(server.thread(tid), *ring);
+            std::this_thread::yield();
+        }
+        discard_chunks();
+        // Also ends an AOF rewrite through rewrite_abort, after the ordinary
+        // AOF worker/writer shutdown rendezvous has drained acknowledged writes.
+        abort_file();
+        phase_.store(Phase::Idle, std::memory_order_release);
+    }
+    for (uint32_t sid = 0; sid < server.nshards(); ++sid)
+        server.shard(static_cast<int32_t>(sid)).store().snapshot_cancel();
+    server.set_snapshot_atomic_barrier(false);
+    server.set_shutdown_snapshot_active(false);
+}
+
 void SnapshotManager::init(uint32_t nthreads, uint32_t nshards, uint32_t executor_count,
                            const char* dir, const char* dbfilename,
                            PersistIoEngine engine) {

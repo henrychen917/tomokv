@@ -459,6 +459,7 @@ public:
             }
             flush_xshard_commits();
             if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
+                !shutdown_snapshot_blocks_tasks() &&
                 cached_now_ms_ >= blocking_beat_ms_) {
                 did += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
                 blocking_beat_ms_ = cached_now_ms_ + 10;
@@ -661,6 +662,7 @@ public:
                     }
                     flush_xshard_commits();
                     if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
+                        !shutdown_snapshot_blocks_tasks() &&
                         cached_now_ms_ >= blocking_beat_ms_) {
                         did += blocking_owner_cycle(
                             *srv_, *self_, ring_, cached_now_ms_, true);
@@ -1675,7 +1677,8 @@ private:
         flush_xshard_commits();
         n += active_expire_cycle() + atomic_cleanup_cycle(64);
         n += drain_notify_keyless(self_->sig(), /*force=*/true);
-        if (__builtin_expect(srv_->blocking_waiters() != 0, false))
+        if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
+            !shutdown_snapshot_blocks_tasks())
             n += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
         n += aof_flush_pass();
         // Normally flush_xshard_commits empties the queue synchronously. The DEBUG hold can
@@ -1846,6 +1849,12 @@ private:
                snapshot_manager_ && snapshot_manager_->blocking();
     }
 
+    // Parked blocking operations and self-directed stale tasks can mutate outside
+    // the ordinary inbox drain. They owe the final shutdown cut the same hold.
+    bool shutdown_snapshot_blocks_tasks() const {
+        return snapshot_blocks_tasks() && srv_->shutdown_snapshot_active();
+    }
+
     void begin_snapshot(SnapshotManager* manager) {
         if (!manager || snapshot_owner_state_ != SnapshotOwnerState::None) return;
         snapshot_manager_ = manager;
@@ -1935,12 +1944,6 @@ private:
             return progress_snapshot_capture();
         }
         if (snapshot_owner_state_ == SnapshotOwnerState::Draining) {
-            if (!snapshot_was_cancelled_ && srv_->shutdown_snapshot_active()) {
-                snapshot_owner_state_ = SnapshotOwnerState::ShutdownHeld;
-                srv_->shutdown_snapshot_hold();
-                snapshot_manager_->owner_finished(snapshot_epoch_);
-                return 1;
-            }
             const uint32_t n = service_snapshot_backlogs<IofusedPrivateQueue>(
                 BatchOps, false);
             if (snapshot_backlogs_empty()) {
@@ -1954,10 +1957,23 @@ private:
         return 0;
     }
 
+    void snapshot_capture_finished() {
+        // Do this on the final-chunk pass, before its caller checks admission.
+        // Going through Draining even for one turn admits Ready post-cut writes
+        // whose acknowledged values cannot appear in the final snapshot.
+        if (srv_->shutdown_snapshot_active()) {
+            snapshot_owner_state_ = SnapshotOwnerState::ShutdownHeld;
+            srv_->shutdown_snapshot_hold();
+            snapshot_manager_->owner_finished(snapshot_epoch_);
+        } else {
+            snapshot_owner_state_ = SnapshotOwnerState::Draining;
+        }
+    }
+
     uint32_t progress_snapshot_capture() {
         auto& shards = self_->shards();
         if (shards.empty()) {
-            snapshot_owner_state_ = SnapshotOwnerState::Draining;
+            snapshot_capture_finished();
             return 1;
         }
         uint32_t work = 0;
@@ -2004,7 +2020,7 @@ private:
         for (Shard* shard : shards)
             all_done &= snapshot_done_shards_[static_cast<uint32_t>(shard->id())] != 0;
         if (all_done) {
-            snapshot_owner_state_ = SnapshotOwnerState::Draining;
+            snapshot_capture_finished();
         }
         return work;
     }
@@ -2714,6 +2730,7 @@ private:
             if (sid < 0) std::abort();
             const uint32_t target = srv_->worker_of_shard(sid);
             if (target == self_->id()) {
+                if (shutdown_snapshot_blocks_tasks()) break;
                 if constexpr (Fused) {
                     // A read-local fallback reached this FIFO after its own or an older group
                     // member's SPSC refusal. Executing it directly would jump the older queued
