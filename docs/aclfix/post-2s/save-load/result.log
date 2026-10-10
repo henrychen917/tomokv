@@ -18,4 +18,4 @@ invalid selector RespError(b'ERR Error in ACL SETUSER modifier \'(&"channel with
 saved b'user default on nopass sanitize-payload ~* &* +@all\nuser roundtrip on nopass sanitize-payload ~a"b ~a\'b ~a\\b resetchannels &a"b &a\'b &a\\b -@all +get\n'
 reload b'OK'
 SIGTERM exit 0
-aclfix save-load PASS (0.123s)
+aclfix save-load PASS (0.036s)

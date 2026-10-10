@@ -9,4 +9,4 @@ XREADGROUP key reply RespError(b'NOPERM No permissions to access a key') src [[b
 XREADGROUP command reply RespError(b"NOPERM User woken has no permissions to run the 'xreadgroup' command") src [[b'1-0', [b'f', b'v']]] dst [] pending 0
 woken denials logged 8 of 8
 SIGTERM exit 0
-aclfix wake-scatter PASS (0.350s)
+aclfix wake-scatter PASS (0.099s)

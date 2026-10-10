@@ -2,4 +2,4 @@
 65535 create/delete pairs; extra creations: b'OK' b'OK'
 live-slot boundary: two exact RespError(b'ERR out of memory') replies
 SIGTERM exit 0
-aclfix capacity PASS (8.567s)
+aclfix capacity PASS (3.048s)

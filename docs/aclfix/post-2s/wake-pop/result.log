@@ -13,4 +13,4 @@ BZMPOP key reply RespError(b'NOPERM No permissions to access a key') src [b'v'] 
 BZMPOP command reply RespError(b"NOPERM User woken has no permissions to run the 'bzmpop' command") src [b'v'] dst [] pending 0
 woken denials logged 12 of 12
 SIGTERM exit 0
-aclfix wake-pop PASS (1.023s)
+aclfix wake-pop PASS (0.095s)
