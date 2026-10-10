@@ -1,0 +1,83 @@
+{
+  "checked_at": "2026-10-10T18:16:01.455136+00:00",
+  "base": "5146b78ee89b64748dd46db970efa8086f653fa0",
+  "origin_cpp": "5146b78ee89b64748dd46db970efa8086f653fa0",
+  "source_commit": "ee40d755a6e4fdb65b886d4c513f7efb7a9899f9",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "affinity": [
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127
+  ],
+  "binary_sha256": {
+    "build/scriptfix/pre/tomokv": "400d44aba36c90ade1fddace91eb2d8ee59b06f228219e1f6c3f41d7fe87e12f",
+    "build/tomokv": "31c1c264c3089ea90d5b99830e4bb1d14fc108cd1ba106df13dd74feade95612"
+  },
+  "source_sha256": {
+    "src/cmd/scripting.cc": "af4e1a28d56312c60df482358984381c9b62444d70a929e6e83f46a4b7a4af1c",
+    "src/cmd/scripting.h": "b57d7315db8fbec246f3eaecc26a01a8738f7a8ebdd6309f88b9dcce4c3a6a23",
+    "src/cmd/functions.cc": "ef322468d367fecc7e2d4cfe7a07bf27fe842dd89c809f28688a72095eeea8ee"
+  },
+  "new_rows": {
+    "pre_failed": 8,
+    "post_passed": 8,
+    "receipt": "docs/scriptfix/rows.json"
+  },
+  "differential": {
+    "passed": 16,
+    "failed": 0,
+    "receipt": "docs/scriptfix/differ.json"
+  },
+  "existing_batteries": {
+    "passed": 8,
+    "failed": 0,
+    "receipt": "docs/scriptfix/batteries.json"
+  },
+  "production_units": {
+    "built": 28,
+    "fresh": 28,
+    "live_arms_build_exit": 0,
+    "receipt": "docs/scriptfix/production-units.json"
+  },
+  "hot_bodies_changed": 0,
+  "identity_receipt": "docs/scriptfix/identity.json",
+  "gate_counts": {
+    "DQ": 8,
+    "DF": 8,
+    "required_quick": 519,
+    "required_full": 536,
+    "constants_unchanged": true,
+    "fixture_check_exit": 1
+  },
+  "single_state": {
+    "status": "owner decision; POST witness remains failing",
+    "receipt": "docs/scriptfix/single-state.json"
+  },
+  "gates_test": {
+    "status": "final run pending",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "taskset",
+      "-c",
+      "124-127",
+      "python3",
+      "tests/gates_test.py"
+    ]
+  },
+  "performance": "not run; mainline null requested"
+}

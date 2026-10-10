@@ -110,15 +110,19 @@ Build and correctness proof:
 - PRE `make -j16 BUILD_ROOT=build/scriptfix/pre all` and POST `make -j16 all`
   succeeded, under `taskset -c 112-127`. Logs:
   [PRE](docs/scriptfix/pre-build.log.gz), [POST](docs/scriptfix/post-build.log.gz).
-- The exact 28 targets extracted from `job_production_units`, each target's
-  `make -q` check, and `mdbqsbr-live-arms`: final receipt pending completion of
-  the live-arm builds.
-- `python3 tests/gates_test.py`: final rerun in progress. The first run, during
-  parallel compilation, had nine scheduler fixture deadline failures (its
-  nested 14 tests passed). The original failure output is retained in
-  [gates-test-initial-timeout.log.gz](docs/scriptfix/gates-test-initial-timeout.log.gz).
-  The rerun limits its affinity to 112–115 to serialize complete fixture
-  scenarios without changing assertions, deadlines, or job inventory.
+- The exact **28/28 targets** extracted from `job_production_units` built and
+  passed their individual `make -q` checks. **`mdbqsbr-live-arms` passed**, building
+  both park and no-wake variants. [Commands, target list, exit codes and archived
+  build logs](docs/scriptfix/production-units.json). Final `make -q all` also passes.
+- `python3 tests/gates_test.py`: final rerun in progress on CPUs 124–127, after
+  this lane's compilation ended. Two earlier runs during compilation had nine
+  and fourteen scheduler fixture deadline failures (their nested 14 tests
+  passed). The second run serialized scenarios on CPUs 112–115; every failure
+  traced to timeout exit 124. More than 100 compiler processes were then sharing
+  the 16 allowed CPUs. Original outputs are retained in
+  [initial run](docs/scriptfix/gates-test-initial-timeout.log.gz) and
+  [serialized run](docs/scriptfix/gates-test-serialized-timeout.log.gz).
+  No assertions, deadlines, or job inventory were changed.
 - Differential `script` suite: **16/16 legs, 80896 comparisons, zero differences**;
   seeds 7/19/20/23, atomic 0/1, split 6:2 with 16 shards and armed-fused with
   read-local enabled. Every leg has nonzero cross-owner activations and
