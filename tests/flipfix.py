@@ -10,6 +10,7 @@ any sanitizer report, abort or unanswered FLIP into a failure. No throughput con
                requested split, and every closed connection must be reaped afterwards.
   churn        IO4.1/IO4.4 under connection churn (fresh connects + closes); meant for the
                ASAN/TSAN builds, where a lifetime or ordering defect is a sanitizer report.
+  late         IO4.1 abort branch: closes spread over FLIPs that turn executors into IOs.
   sigterm      IO4.2: save clauses armed, 1000 acknowledged SETs, a FLIP held live by a blocked
                client, SIGTERM: the server must save and exit 0 promptly; restart sees 1000 keys.
   sigint       IO4.2: same live FLIP, SIGINT twice (the second only after the first was
@@ -247,6 +248,50 @@ def disconnects(args, churn=False):
              applied=applied, outcomes=outcomes, closed=closed, connector=connector_stats)
 
 
+def late_closes(args):
+    """IO4.1 abort branch probe. From an io-light split, a FLIP to an io-heavy one moves idle
+    connections onto threads that become IO only at the role store. Closes are spread over the
+    FLIP's lifetime, so some land after their source detached them (no source EOF) and are first
+    seen by the new IO after its RoleReady acknowledgement: PRE then aborts in
+    flip_complete_active (or wedges when a close lands earlier). Every FLIP must answer, the
+    server must survive, and every closed connection must be reaped."""
+    with boot(args, 'late') as (admin, process, _):
+        idle = [Idle(args) for _ in range(args.idle)]
+        observer = conn(args)
+        outcomes = {}
+        try:
+            shape = report(admin)
+            total = shape[b'live_io'] + shape[b'live_ex']
+            light, heavy = max(1, total // 4), total - max(1, total // 4)
+            for attempt in range(args.attempts):
+                assert admin.must('FLIP', light, total - light) == b'OK', 'io-light setup FLIP'
+                admin.send('FLIP', heavy, total - heavy)
+                deadline = time.monotonic() + args.spread
+                closes = 0
+                while time.monotonic() < deadline and idle and closes < args.closes:
+                    idle.pop().close()
+                    closes += 1
+                    time.sleep(args.spread / max(1, args.closes))
+                try:
+                    reply = admin.read()
+                except (TimeoutError, socket.timeout) as error:
+                    raise AssertionError(f'FLIP {heavy} {total - heavy} unanswered (attempt '
+                                         f'{attempt}): wedged') from error
+                except (EOFError, ConnectionError) as error:
+                    raise AssertionError(f'server died during FLIP (attempt {attempt})') from error
+                key = 'OK' if reply == b'OK' else reply.message.decode(errors='replace')
+                outcomes[key] = outcomes.get(key, 0) + 1
+                assert process.poll() is None, 'server exited'
+                emit(attempt=attempt, reply=key, closes=closes)
+        finally:
+            for peer in idle:
+                peer.close()
+            observer.close()
+        wait_for(lambda: int(info_field(admin, 'CLIENTS', 'connected_clients')) == 1, 10,
+                 'closed connections to be reaped')
+        emit(result='PASS', case=args.case, outcomes=outcomes)
+
+
 def signal_pending(pid, signum):
     """True while `signum` is still pending (not yet delivered) for the process."""
     status = Path(f'/proc/{pid}/status').read_text()
@@ -370,7 +415,8 @@ def controllers(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('case', choices=('close', 'churn', 'sigterm', 'sigint', 'controllers'))
+    parser.add_argument('case', choices=('close', 'churn', 'late', 'sigterm', 'sigint',
+                                         'controllers'))
     parser.add_argument('--binary', required=True, type=Path)
     parser.add_argument('--port', required=True, type=int)
     parser.add_argument('--cores', required=True)
@@ -386,6 +432,8 @@ def main():
     parser.add_argument('--stop-bound', type=float, default=3.0)
     parser.add_argument('--second-bound', type=float, default=.75)
     parser.add_argument('--seconds', type=float, default=20.0)
+    parser.add_argument('--spread', type=float, default=.02,
+                        help='late: seconds over which the closes of one FLIP are spread')
     parser.add_argument('--evidence', action='store_true',
                         help='close/churn: record stalls and refusals instead of failing on them '
                              '(PRE sanitizer evidence runs; wedges and reports still fail)')
@@ -395,6 +443,8 @@ def main():
     args.output.mkdir(parents=True, exist_ok=False)
     if args.case in ('close', 'churn'):
         disconnects(args, args.case == 'churn')
+    elif args.case == 'late':
+        late_closes(args)
     elif args.case == 'controllers':
         controllers(args)
     else:
