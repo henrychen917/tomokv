@@ -200,10 +200,14 @@ class Run:
                                [b'requirepass', password])
 
     def arity(self):
+        for mode in self.modes():
+            self.arity_mode(mode)
+
+    def arity_mode(self, mode):
         for suffix, tail in [('final', ''), ('middle', 'bind 127.0.0.1\n')]:
-            label = 'requirepass-' + suffix
+            label = mode + '-requirepass-' + suffix
             conf = self.conf(label, 'requirepass cg4-required\nrequirepass\n' + tail)
-            with Server(self, label, '2s', conf, refusal=True) as s:
+            with Server(self, label, mode, conf, refusal=True) as s:
                 self.check(label + ' no listener', s.booted, False)
                 self.check(label + ' exit 1', s.process.poll(), 1)
             log = (s.path / 'server.log').read_text()
@@ -215,9 +219,9 @@ class Run:
                  'latency-monitor-threshold', 'ratio', 'shard-home', 'place',
                  'dir', 'dbfilename', 'appendfilename', 'appenddirname']
         for name in names:
-            label = 'missing-' + name
+            label = mode + '-missing-' + name
             conf = self.conf(label, name + '\n')
-            with Server(self, label, '2s', conf, refusal=True) as s:
+            with Server(self, label, mode, conf, refusal=True) as s:
                 self.check(label + ' no listener', s.booted, False)
                 self.check(label + ' exit 1', s.process.poll(), 1)
             log = (s.path / 'server.log').read_text().lower()
