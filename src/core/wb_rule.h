@@ -154,7 +154,8 @@ struct Phase2 {
             // CLIENT REPLY OFF/SKIP. ONE predicted-false test per SERVED CONNECTION -- not per
             // operation: a p32 batch amortises it over 32 replies. The suppressed drain lives in
             // the cold object and discards bytes instead of staging them.
-            if (__builtin_expect((loop.climon_armed_cached_ & ServerType::kClimonReply) != 0, false) &&
+            if (__builtin_expect((loop.climon_armed_cached_ &
+                                  (ServerType::kClimonReply | ServerType::kClimonTracking)) != 0, false) &&
                 loop.climon_reply_suppressed(c)) {
                 work += loop.climon_serve_suppressed(c);
                 if constexpr (kEp) if (loop.wb_.take_send_failure()) loop.epoll_close_now(c);

@@ -1,0 +1,4 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/clientfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/tmp/clientfix-lzttz_rq", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "32.58 75.05 57.09 5/3454 3705928", "pid": 3705928}
+{"case": "geo-count", "centers": 20, "failures": 20, "sample": [{"center": 0, "expected": ["p237", "p298", "p47", "p128", "p246"], "got": ["p31", "p250", "p184", "p289", "p222"], "radius": ["p31", "p250", "p184", "p289", "p222"]}]}
+{"exit": 0, "lifecycle": "stop", "load": "32.58 75.05 57.09 2/3451 3705936", "pid": 3705928}
+{"case": "geo-count", "failures": [{"atomic": 0, "error": "COUNT without ANY did not select the nearest members", "read_local": 0}], "mode": "2s", "result": "FAIL"}

@@ -105,6 +105,8 @@ public:
             static_cast<IoLoop*>(ctx)->queue_borrow_release(shard, ptr);
         }, this, [](void* ctx, Client& client, Op& op) {
             auto* loop = static_cast<IoLoop*>(ctx);
+            if (__builtin_expect(loop->climon_local_trackers_ != 0, false))
+                loop->tracking_retire_read(client, op);
             const bool was_blocked = client.blocked();
             NotifyBatch* notifications = nullptr;
             if (op.has_scatter_state()) {
@@ -3324,10 +3326,6 @@ private:
                     break;
                 }
             }
-            if (__builtin_expect(notify_armed, false) &&
-                __builtin_expect(climon_armed_gate(c, *op), false)) break;
-            if (__builtin_expect(security_check, false) &&
-                acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
             if (__builtin_expect(flip_pause_this_pass, false) &&
                 !(spec->flags & CmdFlags::FlipAsync) &&
                 !(!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))) {
@@ -3338,6 +3336,12 @@ private:
                 c->set_flip_backpressure(true);
                 break;
             }
+            // FLIP holds precede stateful hooks. Later backpressure exits may
+            // reparse this frame; the armed gate keys its receipt by ROB number.
+            if (__builtin_expect(notify_armed, false) &&
+                __builtin_expect(climon_armed_gate(c, *op), false)) break;
+            if (__builtin_expect(security_check, false) &&
+                acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
             if constexpr (Fused) {
                 // This must follow the per-frame FLIP gate above: demotion itself publishes owner
                 // Tasks. Non-point routes may touch any key, so move every unresolved local read

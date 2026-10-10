@@ -1,0 +1,4 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-eri03wqy", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "95.53 94.02 81.48 94/4469 122316", "pid": 122315}
+{"case": "geo-store", "centers": 20, "failures": 0, "sample": []}
+{"exit": 0, "lifecycle": "stop", "load": "95.53 94.02 81.48 96/4485 122717", "pid": 122315}
+{"axes": [[0, 0]], "case": "geo-store", "mode": "1s", "result": "PASS"}

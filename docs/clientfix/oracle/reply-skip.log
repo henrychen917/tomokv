@@ -1,0 +1,4 @@
+{"command": ["taskset", "-c", "120", "/home/user/Projects/redis/src/redis-server", "--bind", "127.0.0.1", "--port", "25073", "--save", "", "--appendonly", "no", "--dir", "/tmp/clientfix-8j8mysol"], "lifecycle": "start", "load": "139.34 97.67 56.06 121/4507 3281379", "pid": 3281375}
+{"case": "reply-skip", "failures": 0, "monitor": {"BLPOP": 1, "WAIT": 1}, "repetitions": 20, "sample": [], "targets": 7}
+{"exit": 0, "lifecycle": "stop", "load": "130.81 98.49 57.22 87/4661 3302165", "pid": 3281375}
+{"axes": [[0, 0]], "case": "reply-skip", "mode": "2s", "result": "PASS"}

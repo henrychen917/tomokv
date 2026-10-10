@@ -300,7 +300,10 @@
         size_t out = 0;
         for (size_t i = 0; i < pubsub_patterns_.size(); i++) {
             if (pubsub_patterns_[i].ref == ref) srv_->pubsub_home_entry_removed();
-            else pubsub_patterns_[out++] = std::move(pubsub_patterns_[i]);
+            else {
+                if (out != i) pubsub_patterns_[out] = std::move(pubsub_patterns_[i]);
+                out++;
+            }
         }
         pubsub_patterns_.resize(out);
     }

@@ -1,0 +1,63 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "exit_code": 1,
+  "tests": 66,
+  "failures": [
+    {
+      "name": "FAIL: test_atomic_boot_waits_for_all_other_families_and_their_cleanup (__main__.SchedulerWiring.test_atomic_boot_waits_for_all_other_families_and_their_cleanup)",
+      "timeout_124": true
+    },
+    {
+      "name": "FAIL: test_completion_is_not_visible_before_its_record_is_written (__main__.SchedulerWiring.test_completion_is_not_visible_before_its_record_is_written)",
+      "timeout_124": true
+    },
+    {
+      "name": "FAIL: test_empty_fragment_and_explicit_failure_cannot_turn_green (__main__.SchedulerWiring.test_empty_fragment_and_explicit_failure_cannot_turn_green) (behavior='empty')",
+      "timeout_124": true
+    },
+    {
+      "name": "FAIL: test_empty_fragment_and_explicit_failure_cannot_turn_green (__main__.SchedulerWiring.test_empty_fragment_and_explicit_failure_cannot_turn_green) (behavior='red')",
+      "timeout_124": true
+    },
+    {
+      "name": "FAIL: test_limited_workers_reuse_slots_without_losing_or_repeating_jobs (__main__.SchedulerWiring.test_limited_workers_reuse_slots_without_losing_or_repeating_jobs)",
+      "timeout_124": true
+    },
+    {
+      "name": "FAIL: test_missing_helper_witness_stays_red_and_keeps_its_explanation (__main__.SchedulerWiring.test_missing_helper_witness_stays_red_and_keeps_its_explanation)",
+      "timeout_124": true
+    },
+    {
+      "name": "FAIL: test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment (__main__.SchedulerWiring.test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment)",
+      "timeout_124": true
+    },
+    {
+      "name": "FAIL: test_one_slot_uses_the_same_queue_without_losing_coverage (__main__.SchedulerWiring.test_one_slot_uses_the_same_queue_without_losing_coverage)",
+      "timeout_124": true
+    },
+    {
+      "name": "FAIL: test_opposite_completion_orders_have_byte_identical_canonical_ledgers (__main__.SchedulerWiring.test_opposite_completion_orders_have_byte_identical_canonical_ledgers)",
+      "timeout_124": true
+    },
+    {
+      "name": "FAIL: test_release_boots_do_not_wait_for_independent_asan_build (__main__.SchedulerWiring.test_release_boots_do_not_wait_for_independent_asan_build)",
+      "timeout_124": true
+    },
+    {
+      "name": "FAIL: test_removing_atomic_exclusivity_fails_before_its_boot (__main__.SchedulerWiring.test_removing_atomic_exclusivity_fails_before_its_boot)",
+      "timeout_124": true
+    },
+    {
+      "name": "FAIL: test_worker_exit_before_done_is_a_failure (__main__.SchedulerWiring.test_worker_exit_before_done_is_a_failure)",
+      "timeout_124": true
+    }
+  ],
+  "elapsed_seconds": 214.862,
+  "note": "Final attempt after own builds and servers stopped; 16 shared-CPU compiler processes observed before launch. No deadline or assertion changes."
+}

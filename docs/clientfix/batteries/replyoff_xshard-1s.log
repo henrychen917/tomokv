@@ -1,0 +1,16 @@
+  ok   boot has zero-copy enabled (borrowed MGET values are reachable)
+  ok   control MGET (REPLY ON) returns every value intact
+  skip control MGET borrowed its values (zc_sends moved) -- fused read-local path takes no borrow (0 -> 0: boot with zero-copy enabled)
+  ok   REPLY OFF: cross-shard MGET leaves NOTHING on the wire
+  skip suppressed MGET returned its borrows (zc_releases moved) -- fused read-local path takes no borrow (0 -> 0)
+  skip suppressed MGET submitted no borrowed send (zc_sends unchanged) -- fused read-local path takes no borrow (0 -> 0)
+  ok   REPLY SKIP: cross-shard MGET leaves NOTHING on the wire
+  ok   REPLY SKIP; MGET; REPLY ON pipelined: the skipped MGET leaves NOTHING on the wire
+  skip SKIP+ON: skipped MGET returned its borrows (zc_releases moved) -- fused read-local path takes no borrow (0 -> 0)
+  skip SKIP+ON: skipped MGET submitted no borrowed send (zc_sends unchanged) -- fused read-local path takes no borrow (0 -> 0)
+  ok   REPLY OFF; MGET; RESET pipelined: the suppressed MGET leaves NOTHING on the wire
+  skip OFF+RESET: suppressed MGET returned its borrows (zc_releases moved) -- fused read-local path takes no borrow (0 -> 0)
+  skip OFF+RESET: suppressed MGET submitted no borrowed send (zc_sends unchanged) -- fused read-local path takes no borrow (0 -> 0)
+  ok   connection still in sync after suppression
+  ok   a later REPLY ON MGET on the same connection is intact
+replyoff_xshard: 0 failed

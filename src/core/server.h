@@ -2239,7 +2239,10 @@ public:
     static constexpr uint8_t kPauseWrite = 1;
     void climon_set_pause(uint64_t end_ms, uint8_t mode) {
         climon_pause_mode_.store(mode, std::memory_order_relaxed);
-        climon_pause_end_ms_.store(end_ms, std::memory_order_relaxed);
+        uint64_t previous = climon_pause_end_ms_.load(std::memory_order_relaxed);
+        while (previous < end_ms &&
+               !climon_pause_end_ms_.compare_exchange_weak(
+                   previous, end_ms, std::memory_order_relaxed)) {}
         refresh_climon_armed();
     }
     void climon_clear_pause() {

@@ -1,0 +1,10 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-d83k2ju3", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "101.92 95.65 82.35 99/3981 148869", "pid": 148861}
+{"case": "tracking-cap", "invalidated": 1100, "missing": 0, "sample": [], "tracked": 1100}
+{"exit": 0, "lifecycle": "stop", "load": "100.96 95.56 82.39 90/3973 149425", "pid": 148861}
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-ulj1_qod", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "100.96 95.56 82.39 92/3981 149521", "pid": 149521}
+{"case": "tracking-cap", "invalidated": 1100, "missing": 0, "sample": [], "tracked": 1100}
+{"exit": 0, "lifecycle": "stop", "load": "100.96 95.56 82.39 85/3963 150026", "pid": 149521}
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-b107nu8q", "--shards", "16", "--thread-mode", "2s", "--read-local", "1", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "100.96 95.56 82.39 95/3961 150145", "pid": 150139}
+{"case": "tracking-cap", "invalidated": 1100, "missing": 0, "sample": [], "tracked": 1100}
+{"exit": 0, "lifecycle": "stop", "load": "100.96 95.56 82.39 88/3964 150659", "pid": 150139}
+{"axes": [[0, 0], [1, 0], [1, 1]], "case": "tracking-cap", "mode": "2s", "result": "PASS"}

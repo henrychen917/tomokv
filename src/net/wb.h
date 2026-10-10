@@ -307,7 +307,9 @@ private:
             // a suppressed op can take exactly those back instead of leaking a partial array.
             const uint32_t segments_before = conn.output_list_length();
             const bool fill_was_staged = conn.has_pending_fill();
-            if (op.zc_ptr) retire_fn_(retire_ctx_, conn, op);
+            // This cold drain also serves tracking connections: even a small
+            // GET must enroll its read at retirement, in connection order.
+            retire_fn_(retire_ctx_, conn, op);
             if (op.reply_skip()) {
                 if (op.zc_ptr && op.zc_shard >= 0) release(op.zc_shard, op.zc_ptr);
                 // Everything past the frontier is this op's reply -- except the seal, which moved
