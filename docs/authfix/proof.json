@@ -1,0 +1,10 @@
+{
+  "pre_commit": "5146b78ee89b64748dd46db970efa8086f653fa0",
+  "pre_binary": "build/authfix/pre/tomokv",
+  "pre_sha256": "4661985986b2f31f08bd62f146ba21d5133e0a3288b042920ae7fba5684414d4",
+  "affinity": "112-127",
+  "target_cores": "112-119",
+  "port_range": "25028-25041",
+  "pre_build_command": "taskset -c 112-127 make -j16 BUILD_ROOT=build/authfix/pre all",
+  "pre_build_exit": 0
+}

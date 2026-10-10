@@ -408,8 +408,9 @@ void init_config(const Config& cfg) {
                cfg.stream_limits.node_max_bytes);
     add_config("stream-node-max-entries", ConfigKind::Uint32,
                cfg.stream_limits.node_max_entries);
+    const Slice boot_password = cfg_requirepass(cfg);
     g_config.push_back({"requirepass", ConfigKind::String,
-                        cfg.requirepass ? cfg.requirepass : ""});
+                        std::string(boot_password.p, boot_password.n)});
     g_config.push_back({"protected-mode", ConfigKind::Bool,
                         cfg.protected_mode != 0 ? "yes" : "no"});
     g_config.push_back({"aclfile", ConfigKind::String, cfg.aclfile ? cfg.aclfile : "", true});
@@ -425,8 +426,7 @@ void init_config(const Config& cfg) {
                              cfg.enable_debug_command == DebugCommandMode::Local ? "local" : "no";
     g_config.push_back({"enable-debug-command", ConfigKind::String, debug_mode, true});
     if (g_server) {
-        const char* password = cfg.requirepass ? cfg.requirepass : "";
-        auth_publish_requirepass(*g_server, Slice(password, std::strlen(password)));
+        auth_publish_requirepass(*g_server, boot_password);
     }
 }
 

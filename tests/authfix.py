@@ -88,7 +88,9 @@ class Server:
         self.args += ['--bind', '127.0.0.1', '--port', str(self.port), '--save', '',
                       '--appendonly', 'no', '--dir', str(self.directory), '--protected-mode', 'no']
         if not run.oracle:
-            self.args += ['--thread-mode', mode, '--shards', '16', '--ratio', run.args.ratio]
+            self.args += ['--thread-mode', mode, '--shards', '16']
+            if mode == '2s':
+                self.args += ['--ratio', run.args.ratio]
         self.args += list(extra)
         self.refusal = refusal
         self.booted = False
