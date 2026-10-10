@@ -1,0 +1,160 @@
+{
+  "production_targets": 29,
+  "rows": [
+    {
+      "target": "build/at15-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/at15-db0-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/netcmd-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/netcap-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/waits-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/multidb-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/storesize-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/wb-rule-units",
+      "present": true,
+      "make_q": 0
+    },
+    {
+      "target": "build/wbland-units",
+      "present": true,
+      "make_q": 0
+    },
+    {
+      "target": "build/rltopo-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/lbplanner-units",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/shutdown-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/persistfix-units",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/exbatch-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/flushfix-units",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "present": false,
+      "make_q": 1
+    },
+    {
+      "target": "build/racefix-climon",
+      "present": true,
+      "make_q": 0
+    },
+    {
+      "target": "build/climon-mask-unit",
+      "present": true,
+      "make_q": 0
+    },
+    {
+      "target": "build/climon-mask-old-unit",
+      "present": true,
+      "make_q": 0
+    }
+  ]
+}
