@@ -272,8 +272,13 @@ class Battery:
                     progress[index] = (i, "barrier")
                     turn.wait(timeout=5)
                     progress[index] = (i, "exec")
-                    result = self.transaction(c, [("DEBUG", "SLEEP", ".001"), ("SET", write, i)])
-                    assert result is None or result == [b"OK", b"OK"], result
+                    # One directed overlap proves the crossed reservation
+                    # cycle. The other 499 turns are the specified stress
+                    # shape, without 499 artificial all-owner sleep barriers.
+                    commands = ([("DEBUG", "SLEEP", ".2")] if i == 0 else [])
+                    commands.append(("SET", write, i))
+                    result = self.transaction(c, commands)
+                    assert result is None or result == [b"OK"] * len(commands), result
                     progress[index] = (i, "complete")
                     turn.wait(timeout=5)
             except BaseException:
@@ -290,6 +295,11 @@ class Battery:
                     key: int(value) - int(before.get(key, 0)) for key, value in after.items()
                     if key.startswith("atomic_txn_")}, flush=True)
                 raise
+        if not self.args.pre:
+            after = self.stats()
+            conflicts = sum(int(after[key]) - int(before[key]) for key in
+                            ("atomic_txn_wounds", "atomic_txn_self_dooms"))
+            assert conflicts > 0, "crossed WATCH reservation conflict never occurred"
 
     def invisible(self, kind):
         a, b = self.pair()

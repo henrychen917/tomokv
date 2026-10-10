@@ -1,0 +1,11 @@
+  rep 0: 9336 ops, 500 store cycles cross-owner of 500, 0 violations
+  rep 1: 9336 ops, 500 store cycles cross-owner of 500, 0 violations
+  rep 2: 9336 ops, 500 store cycles cross-owner of 500, 0 violations
+  rep 3: 9336 ops, 500 store cycles cross-owner of 500, 0 violations
+  rep 4: 9336 ops, 500 store cycles cross-owner of 500, 0 violations
+  rep 5: 9336 ops, 500 store cycles cross-owner of 500, 0 violations
+  rep 6: 9336 ops, 500 store cycles cross-owner of 500, 0 violations
+  rep 7: 9336 ops, 500 store cycles cross-owner of 500, 0 violations
+  rep 8: 9336 ops, 500 store cycles cross-owner of 500, 0 violations
+  rep 9: 9336 ops, 476 store cycles cross-owner of 500, 0 violations
+storeorder: 15004 checks, 0 failures -> PASS  [10 reps, 15000 store cycles, 4976 cross-owner, 16 shards, checker self-test 4/4]
