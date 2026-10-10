@@ -1,0 +1,22 @@
+{
+  "post": {
+    "rows": 5,
+    "candidate_checks": 276,
+    "failed_checks": 0,
+    "lifecycles": 85,
+    "all_ports_closed": true,
+    "forced_kills": 0,
+    "server_affinity": "112-119",
+    "ports": "25028-25032"
+  },
+  "pre": {
+    "rows": 5,
+    "candidate_checks": 276,
+    "failed_checks": 148,
+    "lifecycles": 56,
+    "all_ports_closed": true,
+    "forced_kills": 0,
+    "server_affinity": "112-119",
+    "ports": "25028-25032"
+  }
+}
