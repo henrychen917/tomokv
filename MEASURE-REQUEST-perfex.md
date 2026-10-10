@@ -4,7 +4,8 @@ Worktree `/home/user/Projects/cx-perfex`, branch `cx-perfex`; no push.
 PRE: `5146b78ee89b64748dd46db970efa8086f653fa0` after the required initial
 fetch/merge (already current). Production fixes: `97411ff12`, `43b454f87`,
 `8880c47c7`, `3aa525fd9`; compiler budgets: `2da33be5e`.
-**Proof in progress; this is not a merge/gate/performance approval.**
+**Code and focused correctness proof are committed. Performance proof is blocked
+by the unchanged quiet screen. This is not a full-gate or merge approval.**
 
 The early, self-contained pfconfirm compatibility commit for perfio is
 `d867a1073` (`pfconfirm: runnable on the current tree`), following the requested
@@ -93,8 +94,8 @@ POST=/home/user/Projects/cx-perfex/build/tomokv
 REF=/home/user/Projects/bench-bins/tomokv-headline-5146b78ee
 
 # Functional only; both arms must report SMOKE_OK. Choose new output directories.
-taskset -c 112-127 docs/pfconfirm/run.sh --smoke --only PFKEYSPA.1 --binary "$PRE" --sha256 "$(sha256sum "$PRE" | cut -d' ' -f1)" --port 25120 --output docs/perfex/pfconfirm-smoke-pre-quiet
-taskset -c 112-127 docs/pfconfirm/run.sh --smoke --only PFKEYSPA.1 --binary "$POST" --sha256 "$(sha256sum "$POST" | cut -d' ' -f1)" --port 25120 --output docs/perfex/pfconfirm-smoke-post
+taskset -c 112-127 docs/pfconfirm/run.sh --smoke --only PFKEYSPA.1 --binary "$PRE" --sha256 "$(sha256sum "$PRE" | cut -d' ' -f1)" --port 25120 --output docs/perfex/pfconfirm-smoke-pre-rerun
+taskset -c 112-127 docs/pfconfirm/run.sh --smoke --only PFKEYSPA.1 --binary "$POST" --sha256 "$(sha256sum "$POST" | cut -d' ' -f1)" --port 25120 --output docs/perfex/pfconfirm-smoke-post-rerun
 
 # Full confirmation: PRE CONFIRMED, POST NOT CONFIRMED; preserve all cells/caps/verdict rules.
 taskset -c 0-111 docs/pfconfirm/run.sh --only PFKEYSPA.1 --binary "$PRE" --sha256 "$(sha256sum "$PRE" | cut -d' ' -f1)" --port 25000 --output docs/perfex/pfconfirm-full-pre
@@ -106,11 +107,11 @@ taskset -c 0-111 python3 tests/abbagate.py --cells /tmp/claude-1000/generic_meri
 taskset -c 0-111 python3 tests/abbagate.py --cells docs/perfex/split-cells.txt --candidate-binary "$POST" --reference-binary "$REF" --build-reference 0 --server-cores 0-31 --load-cores 32-111 --load-smt '' --ports 25020-25029 --output build/perfex/split-merit
 
 # Short executor-only perf stat; 64,000 offered ops/s in both arms, plus idle second.
-taskset -c 112-127 python3 docs/perfex/perf_stat.py --binary "$PRE" --sha256 "$(sha256sum "$PRE" | cut -d' ' -f1)" --port 25110 --output docs/perfex/perf-stat-pre
-taskset -c 112-127 python3 docs/perfex/perf_stat.py --binary "$POST" --sha256 "$(sha256sum "$POST" | cut -d' ' -f1)" --port 25110 --output docs/perfex/perf-stat-post
+taskset -c 112-127 python3 docs/perfex/perf_stat.py --binary "$PRE" --sha256 "$(sha256sum "$PRE" | cut -d' ' -f1)" --port 25110 --output docs/perfex/perf-stat-pre-rerun
+taskset -c 112-127 python3 docs/perfex/perf_stat.py --binary "$POST" --sha256 "$(sha256sum "$POST" | cut -d' ' -f1)" --port 25110 --output docs/perfex/perf-stat-post-rerun
 
 # TTL behavior, original ttls cell (20M keys); identical population in both arms.
-taskset -c 112-127 python3 tests/abbagate.py --cells tests/ttl_cells.txt --only ttls --candidate-binary "$POST" --reference-binary "$PRE" --build-reference 0 --server-cores 112-119 --load-cores 120-127 --load-smt '' --ports 25112-25119 --output docs/perfex/ttl-local
+taskset -c 112-127 python3 tests/abbagate.py --cells tests/ttl_cells.txt --only ttls --candidate-binary "$POST" --reference-binary "$PRE" --build-reference 0 --server-cores 112-119 --load-cores 120-127 --load-smt '' --ports 25112-25119 --output docs/perfex/ttl-local-rerun
 # Full geometry: compare INFO active_expire_reap_lag_ms_max and expired_keys delta / window_seconds.
 taskset -c 0-111 python3 tests/abbagate.py --cells tests/ttl_cells.txt --only ttls --candidate-binary "$POST" --reference-binary "$PRE" --build-reference 0 --server-cores 0-31 --load-cores 32-111 --load-smt '' --ports 25030-25039 --output build/perfex/ttl-full
 ```
@@ -134,24 +135,46 @@ requires investigation before attributing a gain to the mechanisms.
 
 ### Smoke and measurement evidence
 
-PRE pfconfirm smoke was **REFUSED before boot** by the unchanged quiet screen:
-16.70 selected-core CPU-seconds > 0.48-second budget in 20 seconds. Receipt:
-`docs/perfex/pfconfirm-smoke-pre/`. An earlier invocation with too narrow a parent
-affinity was also refused before boot and is retained separately. No performance
-claim is inferred from either attempt. POST smoke, perf-stat and TTL receipts pending.
+Every final attempt was **REFUSED before boot** by the unchanged quiet screen,
+after this lane's builds, correctness tests and scheduler fixtures had exited.
+The first one-second sample already exceeded the 20-second rolling budget;
+the monitor did not need to wait the full 20 seconds to reject it.
+
+| Attempt | Selected-core CPU seconds at refusal | Budget | Receipt |
+|---|---:|---:|---|
+| PFKEYSPA.1 PRE smoke | 16.27 | 0.48 | `docs/perfex/pfconfirm-smoke-pre-final/` |
+| PFKEYSPA.1 POST smoke | 16.49 | 0.48 | `docs/perfex/pfconfirm-smoke-post-final/` |
+| Executor perf-stat PRE | 16.30 | 0.48 | `docs/perfex/perf-stat-pre/` |
+| Executor perf-stat POST | 16.36 | 0.48 | `docs/perfex/perf-stat-post/` |
+| TTL ttls ABBA | 16.10 | 0.48 | `docs/perfex/ttl-local/` |
+
+Neither pfconfirm arm reached SMOKE_OK. No PMU window or TTL workload ran, so no
+rates, cycle savings, expired_keys rate, or non-regression claim can be reported.
+The perf-stat driver is prepared but its post-preflight execution is unverified.
+Earlier PRE quiet-screen and parent-affinity refusals remain retained separately.
+The TTL driver also reports that the standing null's instrument fingerprint is
+stale; mainline needs a current standing null before trusting an ABBA verdict.
+No cap, quiet rule, standing null, or verdict rule was altered.
 
 | Shape | PRE cycles/op | POST cycles/op | PRE instructions/op | POST instructions/op | IPC PRE / POST |
 |---|---:|---:|---:|---:|---|
-| GET p8, 64K offered | pending | pending | pending | pending | pending |
-| SET p8, 64K offered | pending | pending | pending | pending | pending |
-| GET p32, 64K offered | pending | pending | pending | pending | pending |
-| SET p32, 64K offered | pending | pending | pending | pending | pending |
-| Idle, executor cycles/s | pending | pending | — | — | — |
+| GET p8, 64K offered | N/A | N/A | N/A | N/A | N/A |
+| SET p8, 64K offered | N/A | N/A | N/A | N/A | N/A |
+| GET p32, 64K offered | N/A | N/A | N/A | N/A | N/A |
+| SET p32, 64K offered | N/A | N/A | N/A | N/A | N/A |
+| Idle, executor cycles/s | N/A | N/A | — | — | — |
 
 | TTL ttls | PRE | POST |
-|---|---:|---:|
-| active_expire_reap_lag_ms_max | pending | pending |
-| expired_keys/s | pending | pending |
+|---|---|---|
+| active_expire_reap_lag_ms_max | Not measured: quiet refusal | Not measured: quiet refusal |
+| expired_keys/s | Not measured: quiet refusal | Not measured: quiet refusal |
+
+Mainline must still obtain both SMOKE_OK results, PRE CONFIRMED / POST NOT
+CONFIRMED for PFKEYSPA.1, the 14-cell generic null and four split cells (plus PAD B),
+and an expiry comparison that does not get worse. The full gate was not run.
+Use fresh output directories when rerunning the exact commands above. Actual
+attempt argv, status and log paths are retained in `docs/perfex/final/commands.jsonl`;
+`summary.json` gives the final result inventory.
 
 ### Correctness/build/identity proof
 
@@ -159,18 +182,17 @@ Normal `make -j16 all` passed and `make -q all` confirmed freshness. The require
 fetch/merge before this proof remained at origin/cpp `5146b78ee`; the build's
 source commit is `2da33be5e`. Source-boundary checks pass, including the shared
 counter/channel files, capture/admission and AOF regions, and untouched EXPECT
-constants. All 28 job_production_units targets build and pass their individual
-make -q checks; mdbqsbr-live-arms builds. Storesize positive/negative controls pass
+constants. The final freshness receipt also verifies the three binary digests
+and no remaining owned server, load generator or compiler process
+(`docs/perfex/final/final-freshness.json`). All 28 job_production_units targets
+build and pass their individual make -q checks; mdbqsbr-live-arms builds. Storesize positive/negative controls pass
 in both namespaces. Exbatch publication/watch/metadata pass 4/20/8 checks;
 wbland clauses pass 83/83. Receipts: `docs/perfex/final/production-units.json`,
-`commands.jsonl` and the corresponding logs. The differential matrix passes all 48 requested legs and both read-local arming
-witnesses. Final LBSIGNALS passes 59 checks in split and 47 in fused (the existing
-seven fused inapplicable checks remain reported as skipped). The final scheduler harness passes 66/66 in 88.49 seconds without this lane's
-compilers running. The pfconfirm unit suite passes 28/28.
-PRE make -j16 BUILD_ROOT=build/perfex/pre all passed. The first POST compile caught
-a private-helper access and was corrected by using the existing public count
-publication API, preserving the hash-field attention flag without a header change.
-The first two gates_test runs under build contention timed out 14 and 7 scheduler
+`commands.jsonl` and the corresponding logs. The differential matrix passes all
+48 requested legs and both read-local arming witnesses. Final LBSIGNALS passes 59 checks in split and 47 in fused (the existing
+seven fused inapplicable checks remain reported as skipped). The final scheduler
+harness passes 66/66 in 88.49 seconds without this lane's compilers running. The pfconfirm unit suite passes 28/28.
+PRE make -j16 BUILD_ROOT=build/perfex/pre all passed. The first two gates_test runs under build contention timed out 14 and 7 scheduler
 fixtures; the final run without this lane's compilers passes 66/66. Those failures
 remain retained. No scheduler timeout or test outcome was weakened.
 
