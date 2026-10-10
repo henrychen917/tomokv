@@ -6,5 +6,52 @@
   "target_cores": "112-119",
   "port_range": "25028-25041",
   "pre_build_command": "taskset -c 112-127 make -j16 BUILD_ROOT=build/authfix/pre all",
-  "pre_build_exit": 0
+  "pre_build_exit": 0,
+  "post_source_commit": "528323485",
+  "post_binary": "build/tomokv",
+  "post_sha256": "3b689290c66d46797da49c1ef0d11568528b63ab611d5580e89cb367a8e9fc1d",
+  "post_build_exit": 0,
+  "post_build_command": "taskset -c 112-127 make -j16 all",
+  "acl_integration": "unapplied; awaits shared-file ownership decision",
+  "preview_binary": "build/authfix/acl-preview/tomokv",
+  "preview_sha256": "cdbd4f1c7d7b3f4b7277e74138bba3334fbddf0c750f15abc0a256e0f6785492",
+  "identity_commands": [
+    [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tools/lbstall_artifacts.py",
+      "compare",
+      "build/authfix/pre",
+      "build",
+      "docs/authfix/hot.json"
+    ],
+    [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tools/ccfix_audit.py",
+      "build/authfix/pre",
+      "build",
+      "docs/authfix/full"
+    ],
+    [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "docs/deadswitch/linked_bytes.py",
+      "build/authfix/pre/tomokv",
+      "build/tomokv",
+      "docs/authfix/linked.json"
+    ]
+  ],
+  "identity_exit_codes": [
+    0,
+    0,
+    1
+  ],
+  "oracle_version": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746"
 }
