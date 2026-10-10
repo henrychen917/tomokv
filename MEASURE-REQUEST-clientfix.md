@@ -2,9 +2,14 @@
 
 The six requested correctness fixes are implemented on `cx-clientfix`. All 14
 new regression rows fail on PRE and pass on POST. The seven oracle probes and
-all 12 requested existing battery runs pass. Production targets are built and
-fresh; the remaining proof status is listed below. No push, full gate, or
-performance measurement has been run.
+all 12 requested existing battery runs pass. The 128 differential legs pass,
+and production targets are built and fresh.
+The scheduler proof remains red from timeout failures; the ledger awaits the
+maintainer-owned count update. Measurements remain a handoff. No push, full gate,
+or performance measurement has been run.
+The final [proof summary](docs/clientfix/proof-summary.json) cross-checks the
+receipts, source and hashes. A final `git fetch origin cpp` still resolved to
+5146b78ee, so no merge was needed.
 
 Worktree: `/home/user/Projects/cx-clientfix`. PRE source:
 `5146b78ee89b64748dd46db970efa8086f653fa0`; POST production source: `e6f6d01d8`
@@ -19,7 +24,7 @@ Worktree: `/home/user/Projects/cx-clientfix`. PRE source:
 PRE was built before any production source edits, using
 `taskset -c 112-127 make -j16 BUILD_ROOT=build/clientfix/pre all`.
 All proof commands stay within CPUs 112–127: candidates 112–119, Redis 7.4.10
-oracle 120, clients 121–127. Ports are 25070–25083. The focused task's PROOF
+oracle 120, clients 121–127. Live server ports are 25070–25083. The focused task's PROOF
 instruction authorizes these correctness boots. Lifecycle receipts include box
 load and clean server exits. Sibling lanes share these CPUs; these are
 correctness results, not latency or performance claims.
@@ -107,7 +112,7 @@ claimed fixed by this lane.
 | Redis 7.4.10 focused probes | 7/7 PASS |
 | tracking, pubsub, climon, climon2, geo, replyoff_xshard | 12/12 PASS across 1s and 2s; [logs](docs/clientfix/batteries/) |
 | Differential matrix | **128/128 comparison legs PASS**, plus two armed-fused witnesses; [split](docs/clientfix/differ-split.log), [armed-fused](docs/clientfix/differ-armed-fused.log) |
-| `python3 tests/gates_test.py` | **FAIL**, 66 tests / 11 failures, all cite fixture timeout exit 124; [result](docs/clientfix/gates-test-result.json), [log](docs/clientfix/gates-test.log). Final unmodified run under lighter shared load is in progress |
+| `python3 tests/gates_test.py` | **FAIL**, final run: 66 tests / 12 failures, all cite fixture timeout exit 124; [result](docs/clientfix/gates-test-final-result.json), [log](docs/clientfix/gates-test-final.log). Quiet rerun required |
 | `python3 tests/wbland_checks.py check clauses` | PASS, 83/83 strict outcomes; [log](docs/clientfix/wbland-clauses.log) |
 | `python3 tests/gate_ledger_fixture.py` | Refuses unchanged EXPECT_FULL=528 versus 542 declared labels; no missing/extra labels |
 | Eight locked layouts and IoLoop field offsets, both namespaces | PASS, [layout receipt](docs/clientfix/layouts.json) |
@@ -125,8 +130,10 @@ failures; its rerun on 124–127 serialized the fixtures without changing any
 check or the 45-second deadline and had 11 timeout failures in 729.913 seconds.
 The saved output shows the timeout status while fixture jobs were completing;
 37 compiler processes were observed confined to shared CPUs 112–127 immediately
-afterward. This is evidence of the run conditions, not a passing result or a
-proof that every failure would disappear on a quiet box. Initial failures are
+afterward. A final unmodified run on 112–127, after all own builds and servers
+stopped and the observed shared compiler count fell to 16, still had 12 timeout
+failures in 214.862 seconds. These run conditions do not establish a passing
+result or prove that every failure would disappear on a quiet box. Initial failures are
 retained in `docs/clientfix/gates-test-initial.log.gz`; preserved fixture trees
 remain under the exact `build/scheduler-failure-*` paths named in the logs.
 The first clause-check attempt ran before its unit existed and failed with
@@ -206,8 +213,7 @@ was received, so the table is explicitly pending the maintainer's quiet-box run.
 RESP3 tracking observer, existing keys, widths 1/32/256/1024, OFF/unmatched
 `BCAST PREFIX never:`/default-preread, PRE and POST in both modes, Redis 7.4.10,
 the kind-A PAD-A control in both modes, three boots per arm and 1000 samples
-per cell at **100 MSET/s**. Tomo uses 16
-shards, split ratio 6:2, atomic/read-local/reorder/key-lb/client-lb/flip-auto all
+per cell at **100 MSET/s**. Tomo uses 16 shards, split ratio 6:2, atomic/read-local/reorder/key-lb/client-lb/flip-auto all
 0; slowlog and latency monitoring are off for every arm. Disabling the two
 balancers and reusing connections fixes writer and observer ownership within
 each boot. The driver interleaves PRE/PAD-A/POST/Redis arms,
@@ -219,8 +225,8 @@ Latency starts at the scheduled issue time; send-to-reply latency and sender
 lag are also retained. Each cell records /proc/loadavg, CPU pressure and
 CPU112–127 occupancy, so sibling load is visible beside the timings. A p99 at
 or above the offered period flags an unsuitable under-capacity comparison.
-Do not compile during this run. The command below produces 252 cells / 252,000 samples including PAD-A
-(about 42 minutes of timed traffic). Omitting the optional `--pad-a` produces
+Do not compile during this run. The command below produces 252 cells / 252,000
+samples including PAD-A (about 42 minutes of timed traffic). Omitting the optional `--pad-a` produces
 the 180-cell PRE/POST/Redis matrix.
 
 ```sh
@@ -233,6 +239,6 @@ and unequal sample counts. It reports pooled p50/p99, ON/OFF ratios beside
 Redis's matching ratios, and every per-boot latency/load row. Its arithmetic and
 missing-boot control were checked with synthetic data only. The deciding numbers
 are the ON/OFF p50 and p99 ratios at matched offered load, plus POST/PRE and
-PAD-A/PRE by cell;
-saturated/late-sender cells or changing sibling contention support no merit
+PAD-A/PRE by cell. Saturated/late-sender cells or changing sibling contention
+support no merit
 claim. The supplied audit's saturation ratios are not substituted for this table.
