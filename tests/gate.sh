@@ -285,6 +285,9 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # eight rows collected above the quick-tier exit (+8 quick, +8 full).
 # overlapaxe: retire only split-overlap WB row, collected before quick exit (-1/-1).
 # Matrix client-lb dimension preserves every former split correctness scenario.
+# clientfix: 7 findings/forms x 2 modes = DQ +14 / DF +14. job_clientfix is
+# collected BEFORE the quick-tier exit: required EXPECT = 511+14=525 / 528+14=542.
+# EXPECT assignments remain maintainer-owned.
 EXPECT_QUICK=511
 EXPECT_FULL=528                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -1029,7 +1032,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
+              core_units climonfix clientfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1403,6 +1406,24 @@ job_exbatch_live(){
       bad "$label" "see $TMPDIR/exbatch-$mode.log and $SRVLOG"
     fi
     stop
+  done
+}
+
+job_clientfix(){
+  local mode case label
+  # Each regression owns its boot on this job's assigned port; no preboot to collide with.
+  for mode in 1s 2s; do
+    for case in tracking-cap tracking-pipeline reply-skip pattern-cleanup pause-deadline geo-count geo-store; do
+      label="clientfix $case ($mode)"
+      row_begin "$label"
+      if py tests/clientfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" \
+          --cores "$CORES" --ratio "$GATE_RATIO" --mode "$mode" --case "$case" \
+          >"$TMPDIR/clientfix-$case-$mode.log" 2>&1; then
+        ok "$label"
+      else
+        bad "$label" "see $TMPDIR/clientfix-$case-$mode.log"
+      fi
+    done
   done
 }
 
@@ -3255,6 +3276,7 @@ collect_job exbatch_units
 collect_job exbatch_live
 
 collect_job persistfix_units
+collect_job clientfix
 collect_job core_units
 
 collect_job wb_rule_units
