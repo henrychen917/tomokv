@@ -187,12 +187,19 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::vector<uint8_t> final_shard_done;
     std::vector<uint8_t> aof_shard_done;
     std::vector<uint8_t> execution_noted;
+    std::vector<uint16_t> per_shard_intents;
     std::vector<MultiOwnerRecordRefs> owner_record_refs;
     ScatterArenaPool scatter_pool;
     MultiDecision decision;
     std::atomic<bool> writer_cancelled{false};
     uint32_t writer_dooms = 0;
     bool doomed = false;               // published by finalized
+    MultiExecState* retry_next = nullptr;
+    uint64_t exec_op_id = UINT64_MAX;
+    uint32_t attempt = 0;
+    bool reexecutable = true;
+    std::atomic<bool> backoff{false};
+    uint64_t retry_after_ns = 0;
     std::atomic<uint32_t> record_refs{0};
     bool record_refs_precounted = false;
     std::atomic<uint32_t> watch_refs{0};
@@ -212,6 +219,17 @@ struct alignas(8) MultiExecState : SnapshotCut {
 };
 
 namespace {
+
+thread_local uint64_t multi_io_age_ns = 0;
+
+void multi_enqueue_retry(MultiExecState& state) {
+    auto& head = state.server->multi_retry_lane(state.owner_io).head;
+    auto* prior = head.load(std::memory_order_relaxed);
+    do { state.retry_next = prior; }
+    while (!head.compare_exchange_weak(prior, &state,
+                std::memory_order_release, std::memory_order_relaxed));
+}
+
 MultiDecision* multi_record_decision(const AtomicEntry& entry) {
     if (entry.plain())
         return entry.group_epoch ? reinterpret_cast<MultiDecision*>(entry.group_epoch) : nullptr;
@@ -230,9 +248,9 @@ void multi_help_child(AtomicEntry& entry, uint64_t ticket) {
 }
 
 uint64_t multi_cancel_decision(MultiDecision& decision, uint32_t shard,
-                               TxnCounter cause = TxnCounter::Dooms) {
+                               TxnCounter cause = TxnCounter::Dooms, bool force = false) {
     uint64_t epoch = decision.epoch.load(std::memory_order_acquire);
-    if (decision.exclusive || decision.aborted.load(std::memory_order_acquire)) return epoch;
+    if ((decision.exclusive && !force) || decision.aborted.load(std::memory_order_acquire)) return epoch;
     if (epoch == 0 && decision.epoch.compare_exchange_strong(
             epoch, kAtomicCancelledEpoch, std::memory_order_acq_rel)) {
         MultiExecState& state = *decision.owner;
@@ -892,6 +910,11 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
     auto* state = new (std::nothrow) MultiExecState;
     if (!state) return nullptr;
     state->decision.owner = state;
+    if (kind == MultiStateKind::Execute) {
+        state->decision.age_ns = multi_io_age_ns ? multi_io_age_ns : now_ns();
+        state->decision.age_io = owner_io;
+        state->decision.age_seq = ++server.multi_retry_lane(owner_io).age_seq;
+    }
     state->server = &server;
     state->client = &client;
     state->owner_io = owner_io;
@@ -907,6 +930,7 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
         state->final_shard_done.assign(server.nshards(), 0);
         state->aof_shard_done.assign(server.nshards(), 0);
         state->execution_noted.assign(server.nshards(), 0);
+        state->per_shard_intents.assign(server.nshards(), 0);
     } catch (const std::bad_alloc&) {
         delete state;
         return nullptr;
@@ -1812,50 +1836,33 @@ MultiIoAction multi_handle_io(Server& server, Client& client, Op& op, uint32_t o
     return MultiIoAction::LocalDone;
 }
 
-template <bool IofusedPrivateQueue>
-bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t consumed) {
-    MultiSession* queue_session = client.multi_session();
-    const bool was_queueing = queue_session && queue_session->active;
-    const uint64_t op_id = client.rob().dispatch_id();
-    if (was_queueing && op_id != queue_session->next_queue_op_id)
-        queue_session->queue_error = true;
-    MultiExecState* dispatch = nullptr;
-    const MultiIoAction action =
-        multi_handle_io(*loop.srv_, client, op, loop.self_->id(), dispatch);
-    if (action == MultiIoAction::NotHandled) return false;
-    if (action == MultiIoAction::Backpressure) {
-        client.set_atomic_backpressure(true);
-        return true;
-    }
-    if (was_queueing) queue_session->next_queue_op_id = op_id + 1;
-    if (action == MultiIoAction::LocalDone) {
-        client.advance_parse(consumed);
-        loop.self_->note_command(op.spec->id);
-        loop.flip_fingerprint_note(*op.spec, op);
-        loop.finish_prebuilt(&client, op);
-        return true;
-    }
-
+// Shared first-dispatch/retry tail. Only begin_dispatch publishes the initial
+// ROB slot; a retry supplies an empty callback and preserves that slot/barrier.
+template <bool IofusedPrivateQueue, typename Begin>
+bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& pool,
+                            Client& client, Op& op, MultiExecState* dispatch, uint64_t op_id,
+                            bool* touched, uint32_t* touched_list, uint32_t& ntouched,
+                            Begin&& begin_dispatch) {
     uint32_t needed[kMaxThreads] = {};
     const uint32_t count = multi_dispatch_count(dispatch);
     for (uint32_t i = 0; i < count; i++) {
         const int32_t sid = multi_dispatch_shard(dispatch, i);
-        needed[loop.srv_->worker_of_shard(sid)]++;
+        needed[server.worker_of_shard(sid)]++;
     }
-    for (uint32_t tid = 0; tid < loop.srv_->nthreads(); tid++) {
+    for (uint32_t tid = 0; tid < server.nthreads(); tid++) {
         if (!needed[tid]) continue;
-        ThreadCtx& owner = loop.srv_->thread(tid);
+        ThreadCtx& owner = server.thread(tid);
         const uint32_t free_slots = [&] {
             if constexpr (IofusedPrivateQueue)
-                return owner.iofused_task_free_slots(loop.self_->id());
+                return owner.iofused_task_free_slots(self.id());
             else
-                return owner.task_free_slots(loop.self_->id());
+                return owner.task_free_slots(self.id());
         }();
         if (free_slots < needed[tid]) {
             // Returning through the one parse-loop continuation reaches the existing top-of-loop
             // backpressure check, which has the same effect as the old in-line break.
             client.set_atomic_backpressure(true);
-            return true;
+            return false;
         }
     }
 
@@ -1868,25 +1875,25 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     // about which of them is older. Untaken -- and therefore free -- for any transaction that
     // carries no multi-owner read.
     if (__builtin_expect(dispatch->exec_read_fanout, false)) {
-        if (!loop.scatter_pool_.can_register_snapshot()) {
+        if (!pool.can_register_snapshot()) {
             // The unresolved-cut window is full on this IO thread. Falling through without a cut
             // would silently restore the defect, so this is backpressure: the state stays in
             // session->pending and the same EXEC is re-dispatched on a later pass.
             client.set_atomic_backpressure(true);
-            return true;
+            return false;
         }
-        dispatch->snapshot = op.has_read_cut() ? op.read_cut(loop.srv_->atomic_snapshot())
-                                               : loop.srv_->atomic_snapshot();
-        if (!loop.scatter_pool_.register_snapshot(*loop.srv_, dispatch, loop.self_->id())) {
+        dispatch->snapshot = op.has_read_cut() ? op.read_cut(server.atomic_snapshot())
+                                               : server.atomic_snapshot();
+        if (!pool.register_snapshot(server, dispatch, self.id())) {
             dispatch->snapshot = UINT64_MAX;
             client.set_atomic_backpressure(true);
-            return true;
+            return false;
         }
         // Vacuous-validation guard: one per transaction that really entered the machinery. A gate
         // row for this defect that never moves this counter never armed the window it claims to
         // close. register_snapshot may have adopted a confirmed newer cut, so the children are
         // stamped from dispatch->snapshot afterwards, never from the value asked for.
-        loop.srv_->note_atomic_exec_read_cut();
+        server.note_atomic_exec_read_cut();
         for (const auto& command : dispatch->commands) {
             if (command->kind != MultiCommandKind::Xshard || !command->scatter) continue;
             const bool sort_deref_read = command->scatter->kind == Kind::Sort &&
@@ -1904,7 +1911,7 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
         // TEST HOOK arming, after the participant set exists so a lead shard can be named. Only a
         // transaction carrying a multi-owner read arms it -- the writer transaction the battery
         // races must stay free to run and publish its ticket inside the window.
-        const uint32_t fanout_defer = loop.srv_->debug_atomic_fanout_defer();
+        const uint32_t fanout_defer = server.debug_atomic_fanout_defer();
         if (__builtin_expect(fanout_defer != 0, false) && dispatch->shards.size() > 1) {
             dispatch->debug_fanout_lead = dispatch->shards[0];
             dispatch->debug_fanout_deadline =
@@ -1925,29 +1932,66 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
     // A pending EXEC may survive queue or snapshot-window backpressure while shard ownership
     // migrates. Derive owner sentinels only on the final, no-failure path immediately before the
     // first task can become visible, so their slots match the routes used by this publication.
-    Rob<kRobWindow>& rob = client.rob();
+    server.atomic_apply_open(self.id(), dispatch->apply_open);
+    dispatch->exec_op_id = op_id;
     op.attach_multi_state(dispatch);
-    client.atomic_group_started();
-    rob.publish();
+    begin_dispatch();
     multi_dispatch_started(client, dispatch);
-    LoopSignals& sig = loop.self_->sig();
+    if (dispatch->kind == MultiStateKind::Execute)
+        server.note_txn(self.id(), TxnCounter::Attempts);
+    LoopSignals& sig = self.sig();
     for (uint32_t i = 0; i < count; i++) {
         const int32_t sid = multi_dispatch_shard(dispatch, i);
-        const uint32_t tid = loop.srv_->worker_of_shard(sid);
-        ThreadCtx& owner = loop.srv_->thread(tid);
+        const uint32_t tid = server.worker_of_shard(sid);
+        ThreadCtx& owner = server.thread(tid);
         const Task task = multi_make_task(&client, op_id, sid, dispatch);
         const bool posted = [&] {
             if constexpr (IofusedPrivateQueue)
-                return owner.post_iofused_task_quiet(loop.self_->id(), task, sig);
+                return owner.post_iofused_task_quiet(self.id(), task, sig);
             else
-                return owner.post_task_quiet(loop.self_->id(), task, sig);
+                return owner.post_task_quiet(self.id(), task, sig);
         }();
         if (!posted) std::abort();
-        if (!loop.touched_[tid]) {
-            loop.touched_[tid] = true;
-            loop.touched_list_[loop.ntouched_++] = tid;
+        if (!touched[tid]) {
+            touched[tid] = true;
+            touched_list[ntouched++] = tid;
         }
     }
+    return true;
+}
+
+template <bool IofusedPrivateQueue>
+bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t consumed) {
+    MultiSession* queue_session = client.multi_session();
+    const bool was_queueing = queue_session && queue_session->active;
+    const uint64_t op_id = client.rob().dispatch_id();
+    if (was_queueing && op_id != queue_session->next_queue_op_id)
+        queue_session->queue_error = true;
+    MultiExecState* dispatch = nullptr;
+    multi_io_age_ns = loop.cached_now_ms_ * 1000000ull;
+    const MultiIoAction action =
+        multi_handle_io(*loop.srv_, client, op, loop.self_->id(), dispatch);
+    if (action == MultiIoAction::NotHandled) return false;
+    if (action == MultiIoAction::Backpressure) {
+        client.set_atomic_backpressure(true);
+        return true;
+    }
+    if (was_queueing) queue_session->next_queue_op_id = op_id + 1;
+    if (action == MultiIoAction::LocalDone) {
+        client.advance_parse(consumed);
+        loop.self_->note_command(op.spec->id);
+        loop.flip_fingerprint_note(*op.spec, op);
+        loop.finish_prebuilt(&client, op);
+        return true;
+    }
+
+    if (!multi_dispatch_attempt<IofusedPrivateQueue>(
+            *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, dispatch, op_id,
+            loop.touched_, loop.touched_list_, loop.ntouched_, [&] {
+                client.atomic_group_started();
+                client.rob().publish();
+            })) return true;
+    LoopSignals& sig = loop.self_->sig();
     loop.self_->note_command(op.spec->id);
     loop.flip_fingerprint_note(*op.spec, op);
     client.advance_parse(consumed);
@@ -2000,9 +2044,118 @@ uint32_t multi_owner_reap_entry(IoLoop& loop) {
     return multi_reap_deferred(loop.multi_deferred_);
 }
 
+namespace {
+MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
+    Server& server = *previous.server;
+    auto* next = allocate_state(server, *previous.client, previous.owner_io, MultiStateKind::Execute);
+    if (!next) return nullptr;
+    try {
+        std::vector<MultiQueuedCommand> queue;
+        queue.reserve(previous.commands.size());
+        // Old child Ops retain slices into these strings until record retirement.
+        for (const auto& command : previous.commands) queue.push_back(command->queued);
+        if (!prepare_commands(server, *next, queue)) throw std::bad_alloc();
+        next->watched = previous.watched;
+        for (const auto& key : next->watched) add_shard(next->shards, key.shard);
+        if ((!next->write_keys.empty() || next->database_publish) && server.aof().recording()) {
+            std::vector<uint32_t> participants;
+            for (const auto& write : next->write_keys) participants.push_back(write.shard);
+            if (next->database_publish) participants.push_back(0);
+            next->aof_group = aof_create_group(server.aof(), participants);
+            if (!next->aof_group) throw std::bad_alloc();
+        }
+    } catch (const std::bad_alloc&) {
+        destroy_multi_state(next);
+        return nullptr;
+    }
+    next->decision.age_ns = previous.decision.age_ns;
+    next->decision.age_io = previous.decision.age_io;
+    next->decision.age_seq = previous.decision.age_seq;
+    next->writer_dooms = previous.writer_dooms +
+        previous.writer_cancelled.load(std::memory_order_acquire);
+    next->attempt = previous.attempt + 1;
+    next->exec_op_id = previous.exec_op_id;
+    next->reexecutable &= previous.reexecutable;
+    next->watch_generation = previous.watch_generation;
+    next->reset_watch = true;
+    next->final_reply = MultiFinalReply::Exec;
+    const auto count = static_cast<uint32_t>(next->shards.size());
+    next->watch_pending.store(count, std::memory_order_relaxed);
+    next->lists_pending.store(count, std::memory_order_relaxed);
+    next->tasks_pending.store(count, std::memory_order_relaxed);
+    return next;
+}
+}
+
 template <bool IofusedPrivateQueue>
 uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
     uint32_t work = multi_owner_reap_entry(loop);
+    auto& inbox = loop.srv_->multi_retry_lane(loop.self_->id()).head;
+    // The only new work on an empty IO pass is this owner-local load and branch.
+    if (__builtin_expect(inbox.load(std::memory_order_relaxed) != nullptr, false)) {
+        MultiExecState* stack = inbox.exchange(nullptr, std::memory_order_acquire);
+        MultiExecState* pending = nullptr;
+        while (stack) {
+            auto* next = stack->retry_next;
+            stack->retry_next = pending;
+            pending = stack;
+            stack = next;
+        }
+        while (pending) {
+            auto* previous = pending;
+            pending = previous->retry_next;
+            Client& client = *previous->client;
+            Op& op = client.rob().at(previous->exec_op_id);
+            if (client.closing() || client.dead()) {
+                if (auto* session = ensure_multi_session(client))
+                    session->watched = std::move(previous->watched);
+                multi_close_entry(loop, client);
+                op.state.store(OpState::Done, std::memory_order_release);
+                loop.mark_active(&client);
+                ++work;
+                continue;
+            }
+            if (loop.srv_->txn_retry_held() || now_ns() < previous->retry_after_ns) {
+                multi_enqueue_retry(*previous);
+                continue;
+            }
+            // No owner can still read P. Release its cleanup pin before asking
+            // for N's slot, or eight cancelled cut holders deadlock the window.
+            if (previous->snapshot_registered)
+                loop.scatter_pool_.unregister_snapshot(*loop.srv_, previous, loop.self_->id());
+            MultiExecState* next = multi_rebuild_attempt(*previous);
+            if (!next) {
+                previous->retry_after_ns = now_ns() + 1000000;
+                multi_enqueue_retry(*previous);
+                continue;
+            }
+            try { loop.multi_deferred_.reserve(loop.multi_deferred_.size() + 1); }
+            catch (const std::bad_alloc&) {
+                destroy_multi_state(next);
+                multi_enqueue_retry(*previous);
+                continue;
+            }
+            next->admitted = previous->admitted;
+            next->admission_generation = previous->admission_generation;
+            previous->admitted = false;
+            if (!multi_dispatch_attempt<IofusedPrivateQueue>(
+                    *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, next,
+                    previous->exec_op_id, loop.touched_, loop.touched_list_, loop.ntouched_, [] {})) {
+                previous->admitted = next->admitted;
+                next->admitted = false;
+                destroy_multi_state(next);
+                multi_enqueue_retry(*previous);
+                continue;
+            }
+            previous->watched.clear();
+            previous->retired = true;
+            loop.multi_deferred_.push_back(previous);
+            loop.srv_->note_txn(loop.self_->id(), TxnCounter::Retries);
+            loop.flush_ifid_posts();
+            loop.mark_active(&client);
+            ++work;
+        }
+    }
     while (!loop.pending_multi_cleanups_.empty()) {
         MultiExecState* state = loop.pending_multi_cleanups_.front();
         uint32_t needed[kMaxThreads] = {};
@@ -2367,6 +2520,13 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
 
     if (task.op_id == UINT64_MAX) {
         destroy_multi_state(&state);
+        return MultiTaskResult::Complete;
+    }
+    if (state.doomed) {
+        state.exec_op_id = task.op_id;
+        multi_enqueue_retry(state);
+        if (Ring* ring = server.thread(owner_thread_id).ring())
+            server.thread(state.owner_io).wake_if_parked(*ring, server.thread(owner_thread_id).sig());
         return MultiTaskResult::Complete;
     }
     return MultiTaskResult::Final;

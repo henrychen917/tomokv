@@ -238,8 +238,11 @@
             atomic_activity_->fetch_sub(1, std::memory_order_release);
         return removed;
     }
-    uint32_t atomic_unit_unpin(const void* unit) {
-        return atomic_remove_unit_intents([&](const UnitRef& ref) { return ref.unit == unit; });
+    uint32_t atomic_unit_unpin(const void* unit, bool keys_only = false) {
+        return atomic_remove_unit_intents([&](const UnitRef& ref) {
+            return ref.unit == unit && (!keys_only ||
+                reinterpret_cast<const AtomicScriptIntent*>(&ref + 1)->kind != 2);
+        });
     }
     uint32_t atomic_cleanup_unit_intents() {
         return atomic_remove_unit_intents([](const UnitRef& ref) {

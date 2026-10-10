@@ -25,6 +25,12 @@ struct AtomicEntry;
 struct AtomicScriptIntent;
 struct ScatterState;
 
+inline constexpr uint32_t kTxnWriterDoomBound = 8;
+inline constexpr uint32_t kTxnIntentsPerShard = 256;
+inline constexpr uint32_t kTxnRetryBackoffMin = 1; // one IO pass
+inline constexpr uint64_t kTxnRetryBackoffMax = 1000000; // ns
+inline constexpr uint64_t kTxnExclusiveDrainMax = 1000000000; // ns
+
 enum class TxnCounter : uint8_t {
     Attempts, Retries, Dooms, Wounds, SelfDooms, Waits, ForcedWrites,
     Exclusive, ExclusiveViolations, ExclusiveDrainTimeouts, Intents, IntentsLive,
@@ -32,6 +38,10 @@ enum class TxnCounter : uint8_t {
 };
 struct alignas(64) TxnOwnerCounters {
     std::atomic<uint64_t> values[static_cast<unsigned>(TxnCounter::Count)]{};
+};
+struct alignas(64) MultiRetryLane {
+    std::atomic<MultiExecState*> head{nullptr};
+    uint32_t age_seq = 0;              // IO-owned, used only at first admission
 };
 
 // Cold writer visitors; self is a scatter writer (possibly an EXEC child).

@@ -42,6 +42,7 @@ namespace tomo {
 class Client;
 class Op;
 class Server;
+struct MultiExecState;
 struct ShardLayoutLock;
 
 // 16,384 buckets. Chosen so changing the shard count reassigns bucket RANGES rather than rehashing
@@ -297,6 +298,7 @@ public:
                                     std::atomic<bool>* aborted,
                                     std::atomic<uint32_t>* refs, bool mutates);
     bool watch_write_ready(Slice key, const void* token = nullptr);
+    bool watch_txn_write_ready(Slice key, MultiExecState& state);
     void watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,
                              const void* token, std::atomic<uint64_t>* epoch,
                              std::atomic<bool>* aborted, std::atomic<uint32_t>* refs);

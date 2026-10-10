@@ -2600,6 +2600,10 @@ public:
                 std::memory_order_relaxed);
         return total;
     }
+    MultiRetryLane& multi_retry_lane(uint32_t io) { return multi_retry_lanes_[io]; }
+    bool txn_retry_held() const {
+        return snapshot_atomic_barrier_.load(std::memory_order_acquire);
+    }
     // Same-owner tickets (a localfast plain version, FLUSH's logical clear) have no window: the
     // shard that draws them installs their records before it yields, and no other task may touch
     // that shard in between. They still travel through the bracket so the watermark can never
@@ -3603,6 +3607,7 @@ private:
     // Transaction-only counters live after the established Server layout. Each
     // slot has one physical owner writer; INFO reads them with relaxed loads.
     TxnOwnerCounters txn_counters_[kMaxThreads];
+    MultiRetryLane multi_retry_lanes_[kMaxThreads];
 
 };
 
