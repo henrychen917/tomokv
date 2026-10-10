@@ -274,7 +274,7 @@ def sampler_check(host, port, clock_file):
 
 
 @contextmanager
-def server(binary, port, cores, mode="2s", read_local=0, clock_file=None):
+def server(binary, port, cores, mode="2s", read_local=0, clock_file=None, balancing=False):
     """Only the explicit --binary live invocation starts this isolated child."""
     root = Path(__file__).resolve().parents[1] / "build/perfex/runs"
     root.mkdir(parents=True, exist_ok=True)
@@ -283,7 +283,7 @@ def server(binary, port, cores, mode="2s", read_local=0, clock_file=None):
         argv = ["taskset", "-c", cores, str(Path(binary).resolve()), "--port", str(port),
                 "--bind", "127.0.0.1", "--thread-mode", mode,
                 "--shards", "16", "--read-local", str(read_local), "--databases", "1",
-                "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0",
+                "--key-lb", str(int(balancing)), "--client-lb", str(int(balancing)), "--flip-auto", "0",
                 "--enable-debug-command", "yes", "--save", "", "--appendonly", "no"]
         if mode == "2s":
             argv += ["--ratio", "6:2"]
