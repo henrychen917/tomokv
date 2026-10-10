@@ -1,0 +1,23 @@
+== 1. TIMEOUT: the reply is a CODED null, and the discard must drop the code
+  FAIL BLPOP timeout, command revoked (RESP2)
+         got  b'*-1\r\n'
+         want b"-NOPERM User u has no permissions to run the 'blpop' command\r\n"
+  FAIL BLPOP timeout, command revoked (RESP3)
+         got  b'_\r\n'
+         want b"-NOPERM User u has no permissions to run the 'blpop' command\r\n"
+  FAIL BZPOPMIN timeout, command revoked (RESP2)
+         got  b'*-1\r\n'
+         want b"-NOPERM User u has no permissions to run the 'bzpopmin' command\r\n"
+  FAIL BLMPOP timeout, command revoked (RESP3)
+         got  b'_\r\n'
+         want b"-NOPERM User u has no permissions to run the 'blmpop' command\r\n"
+== 2. WOKEN: the reply is real data, and the discard must drop the bytes
+  ok   BLPOP woken then command revoked (RESP2)
+  ok   BLPOP woken then command revoked (RESP3)
+  ok   BZPOPMIN woken then command revoked
+  ok   BLPOP woken then KEY revoked
+== 3. STILL PERMITTED: the recheck must not disturb an allowed reply
+  ok   BLPOP timeout, still permitted (RESP2)
+  ok   BLPOP timeout, still permitted (RESP3)
+  ok   BLPOP woken, still permitted
+aclreply: 4 FAILURES: BLPOP timeout, command revoked (RESP2), BLPOP timeout, command revoked (RESP3), BZPOPMIN timeout, command revoked (RESP2), BLMPOP timeout, command revoked (RESP3)

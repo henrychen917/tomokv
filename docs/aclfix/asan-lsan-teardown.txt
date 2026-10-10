@@ -69,3 +69,8 @@ Indirect leak of 2696 byte(s) in 1 object(s) allocated from:
     #13 0x5d16d4dc93d6 in _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292
     #14 0x5d16d4dc93d6 in operator() /usr/include/c++/13/bits/std_thread.h:299
     #15 0x5d16d4dc93d6 in _M_run /usr/include/c++/13/bits/std_thread.h:244
+
+Final ASAN build (budget-tuned), all 12 rows: 10 clean on the first run; 1s streams-name and 1s
+save-load each hit the same report (Direct leak: the 1984-byte Client from IoLoop::admit_fd;
+indirect: its ROB slots' reply buffers, e.g. ACL GETUSER replies in save-load). Both passed every
+reply assertion and were re-run clean; the failing receipts are kept in asan-lsan-flake-1s-*/.

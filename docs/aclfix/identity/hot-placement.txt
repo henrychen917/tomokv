@@ -1,0 +1,4 @@
+Hot symbols (lbstall selection) present in both linked binaries: 544
+Same offset within a 64-byte line (PRE vs POST): 0 ; different: 544
+tomo_db0: address shift (bytes) -> count: {402: 6, 1184: 6, 1232: 67, 7984: 193}
+tomo: address shift (bytes) -> count: {808: 6, 7952: 6, 7984: 66, 13920: 194}

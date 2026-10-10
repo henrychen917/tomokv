@@ -35,4 +35,4 @@ sort key denials calls/rejected delta (0, 3)
 sort_ro key denials calls/rejected delta (0, 1)
 key denials logged (5, 5)
 SIGTERM exit 0
-aclfix sort PASS (0.484s)
+aclfix sort PASS (0.394s)
