@@ -188,6 +188,11 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::vector<uint8_t> aof_shard_done;
     std::vector<uint8_t> execution_noted;
     std::vector<uint16_t> per_shard_intents;
+    // A remote cancellation must not change a running collection handler's
+    // selected object from its private clone to a mutable predecessor. The
+    // parent word decides visibility immediately (cancelled remains epoch 0);
+    // only this shard's owner releases its private overlay at finalization.
+    std::unique_ptr<std::atomic<bool>[]> shard_aborted;
     std::vector<MultiOwnerRecordRefs> owner_record_refs;
     ScatterArenaPool scatter_pool;
     MultiDecision decision;
@@ -198,6 +203,8 @@ struct alignas(8) MultiExecState : SnapshotCut {
     uint64_t exec_op_id = UINT64_MAX;
     uint32_t attempt = 0;
     bool reexecutable = true;
+    bool has_publication = false;
+    bool publication_started = false; // IO-owned after all participant tasks finish
     std::atomic<bool> backoff{false};
     uint64_t retry_after_ns = 0;
     uint64_t exclusive_since_ns = 0;
@@ -393,6 +400,7 @@ void destroy_multi_state(MultiExecState* state) {
     // floor is pinned to a dead transaction, so cleanup would stop advancing server-wide. That is
     // an engine invariant, not an input condition; make it loud rather than silently degrading.
     if (state->snapshot_registered) std::abort();
+    notify_discard_batch(state->notify.exchange(nullptr, std::memory_order_acq_rel));
     destroy_multi_children(*state);
     release_admission(*state);
     delete state;
@@ -880,6 +888,8 @@ bool prepare_commands(Server& server, MultiExecState& state,
                 if (command->participants.empty()) add_shard(command->participants, 0);
             }
             command->shard_done.assign(server.nshards(), 0);
+            state.has_publication |= command->kind == MultiCommandKind::IoLocal &&
+                (has_name(command->queued, "publish") || has_name(command->queued, "spublish"));
             // SCOPE: multi-owner READ fragments, nothing else.  Mget/Exists are reached only when
             // classify_multi_command already found the key set spanning more than one shard, and an
             // Xshard child carries its own participant count.  A single-owner read resolves inside
@@ -951,6 +961,7 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
         state->aof_shard_done.assign(server.nshards(), 0);
         state->execution_noted.assign(server.nshards(), 0);
         state->per_shard_intents.assign(server.nshards(), 0);
+        state->shard_aborted = std::make_unique<std::atomic<bool>[]>(server.nshards());
     } catch (const std::bad_alloc&) {
         delete state;
         return nullptr;
@@ -1293,7 +1304,7 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
     void* entry = nullptr;
     if (!shard.store().atomic_prepare_transaction(
             key, hash, state.origin_conn_id, &state.decision.epoch, &state.record_refs,
-            &state.decision.aborted, owner_refs, entry)) {
+            &state.shard_aborted[shard.id()], owner_refs, entry)) {
         shard.store().atomic_unadmit(clone);
         if (clone) kvobj_free(clone);
         shard.store().atomic_clear_read_epoch();
@@ -1667,6 +1678,8 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
 
 void finalize_reservations(MultiExecState& state, Shard& shard) {
     if (state.final_shard_done[static_cast<uint32_t>(shard.id())]) return;
+    state.shard_aborted[shard.id()].store(
+        state.decision.aborted.load(std::memory_order_acquire), std::memory_order_release);
     const uint32_t intents = shard.store().atomic_unit_unpin(&state);
     state.server->note_txn(state.server->worker_of_shard(shard.id()),
                            TxnCounter::IntentsLive, uint64_t{0} - intents);
@@ -2332,8 +2345,43 @@ uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 continue;
             }
             auto* previous = static_cast<MultiExecState*>(node->unit);
+            // The IO's existing park decision consumes this hook's work count.
+            // A held/requeued attempt is still work: returning zero can park
+            // with the only retry already in our own inbox and nobody left to wake us.
+            ++work;
             Client& client = *previous->client;
             Op& op = client.rob().at(previous->exec_op_id);
+            if (previous->finalized.load(std::memory_order_acquire) && !previous->doomed) {
+                if (!previous->publication_started) {
+                    std::shared_ptr<PubSubNotificationChain> chain;
+                    try {
+                        chain = std::make_shared<PubSubNotificationChain>();
+                        for (const auto& command : previous->commands) {
+                            if (command->kind != MultiCommandKind::IoLocal ||
+                                !(has_name(command->queued, "publish") ||
+                                  has_name(command->queued, "spublish"))) continue;
+                            chain->items.push_back(PubSubNotificationItem{
+                                command->queued.argv[1], command->queued.argv[2], command->op.get(),
+                                has_name(command->queued, "spublish")});
+                        }
+                        chain->completed = [](void* context) {
+                            multi_enqueue_retry(*static_cast<MultiExecState*>(context));
+                        };
+                        chain->completion = previous;
+                        loop.pubsub_notification_enqueue(chain);
+                        previous->publication_started = true;
+                    } catch (const std::bad_alloc&) {
+                        // No publication was queued; retain this already committed
+                        // attempt until the IO can allocate its one effect batch.
+                        multi_enqueue_retry(*previous);
+                    }
+                } else {
+                    op.state.store(OpState::Done, std::memory_order_release);
+                    loop.mark_active(&client);
+                }
+                ++work;
+                continue;
+            }
             if (client.closing() || client.dead()) {
                 loop.srv_->txn_exclusive_release(previous);
                 previous->decision.aborted.store(true, std::memory_order_release);
@@ -2827,7 +2875,9 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
         destroy_multi_state(&state);
         return MultiTaskResult::Complete;
     }
-    if (state.doomed) {
+    if (state.doomed || (state.has_publication &&
+                        !state.decision.aborted.load(std::memory_order_acquire) &&
+                        state.final_reply == MultiFinalReply::Exec)) {
         state.exec_op_id = task.op_id;
         if (state.backoff.load(std::memory_order_relaxed))
             state.retry_after_ns = now_ns() + std::min(
@@ -2850,7 +2900,9 @@ void multi_retire(Client& client, Op& op, std::vector<MultiExecState*>& deferred
         // Connection-local handlers deliberately return to their owning IO thread.  This preserves
         // their thread-local client/snapshot context and keeps every shard-owning handler on EX.
         for (const auto& command : state->commands)
-            if (command->kind == MultiCommandKind::IoLocal)
+            if (command->kind == MultiCommandKind::IoLocal &&
+                !(state->publication_started &&
+                  (has_name(command->queued, "publish") || has_name(command->queued, "spublish"))))
                 command->op->spec->handler(state->server->shard(0), *command->op);
     }
     set_state_reply(*state, op);

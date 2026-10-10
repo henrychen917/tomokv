@@ -281,6 +281,33 @@ void txn_intents(Server& server) {
 }
 
 void txn_help(Server& server) {
+    {
+        const auto key = key_on(server, 0, "txn-cancel-handler");
+        require(local(server, {"LPUSH", key, "seed"}) == ":1\r\n", "collection predecessor");
+        Client client{-1}; client.set_id(888);
+        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        require(state != nullptr, "collection attempt allocated");
+        Request request({"LPUSH", key, "ghost"});
+        std::vector<MultiQueuedCommand> queue(1);
+        require(queued_copy(request.op, queue[0]) && prepare_commands(server, *state, queue),
+                "collection attempt prepared");
+        initialize_multi_owner_record_refs(*state);
+        Shard& shard = server.shard(0);
+        require(prepare_local_write_keys(server, *state, *state->commands[0], shard,
+                    server.worker_of_shard(0)), "private collection clone installed");
+        multi_cancel_decision(state->decision, 0);
+        // A different owner can cancel exactly here, after prepare and before
+        // the collection handler's find(). It must still mutate its clone.
+        state->commands[0]->op->spec->handler(shard, *state->commands[0]->op);
+        shard.store().atomic_clear_read_epoch();
+        require(local(server, {"LRANGE", key, "0", "-1"}) == "*1\r\n$4\r\nseed\r\n",
+                "cancelled handler did not mutate the committed predecessor");
+        state->doomed = true;
+        finalize_reservations(*state, shard);
+        complete_multi_owner_record_refs(*state, server.worker_of_shard(0));
+        release_records(server);
+        destroy_multi_state(state);
+    }
     const auto a = key_on(server, 0, "txn-help-a"), b = key_on(server, 1, "txn-help-b");
     require(local(server, {"SET", a, "old"}) == "+OK\r\n", "help predecessor");
     MultiExecState parent;

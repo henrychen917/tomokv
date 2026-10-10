@@ -404,7 +404,7 @@
         pubsub_outbox_for(io).results.push_back(PubSubResult{conn_id, op_id, count});
     }
 
-    void pubsub_home_publish(PubSubEvent& request, bool reply_to_publisher = true) {
+    uint64_t pubsub_home_publish(PubSubEvent& request, bool reply_to_publisher = true) {
         auto& index = request.shard ? pubsub_shard_channels_ : pubsub_channels_;
         auto exact = index.find(request.channel);
         const bool has_exact = exact != index.end();
@@ -413,7 +413,7 @@
         if (!has_exact && !walk_patterns) {
             if (reply_to_publisher)
                 pubsub_queue_result(request.origin_io, request.conn_id, request.op_id, 0);
-            return;
+            return 0;
         }
 
         uint64_t receivers = 0;
@@ -436,6 +436,7 @@
         pubsub_blob_unref(blob);   // drop the builder reference; zero receivers frees it right here
         if (reply_to_publisher)
             pubsub_queue_result(request.origin_io, request.conn_id, request.op_id, receivers);
+        return receivers;
     }
 
     // One pass' worth of resolved fanout, posted as ONE event per destination IO.  The publisher
@@ -497,6 +498,7 @@
         request->origin_io = chain->coordinator_io;
         request->channel = std::move(item.channel);
         request->message = std::move(item.message);
+        request->shard = item.shard;
         request->notification = chain;
         pubsub_post(pubsub_home_for(request->channel), request);
     }
@@ -513,6 +515,8 @@
         const std::shared_ptr<PubSubNotificationChain> chain = std::move(event.notification);
         if (!chain || pubsub_notification_chains_.empty() ||
             pubsub_notification_chains_.front() != chain) std::abort();
+        if (Op* reply = chain->items[chain->index].reply)
+            reply_int(reply->sink(), event.count);
         if (++chain->index < chain->items.size()) {
             pubsub_notification_send(chain);
             return;
@@ -520,6 +524,7 @@
         pubsub_notification_chains_.pop_front();
         if (!pubsub_notification_chains_.empty())
             pubsub_notification_send(pubsub_notification_chains_.front());
+        if (chain->completed) chain->completed(chain->completion);
     }
 
     void pubsub_handle_home_request(PubSubEvent& event) {
@@ -565,7 +570,7 @@
                 pubsub_home_publish(event);
                 break;
             case PubSubEventKind::NotificationRequest:
-                pubsub_home_publish(event, false);
+                event.count = pubsub_home_publish(event, false);
                 // Keyspace notifications are a serialized chain across homes: this home's
                 // deliveries must reach their owners BEFORE the coordinator is allowed to send the
                 // next link, or two homes could race the same subscriber out of order. Flushing
@@ -574,6 +579,7 @@
                 {
                     PubSubEvent* continuation =
                         pubsub_new_event(PubSubEventKind::NotificationContinue);
+                    continuation->count = event.count;
                     continuation->notification = std::move(event.notification);
                     pubsub_post(continuation->notification->coordinator_io, continuation);
                 }
