@@ -32,6 +32,10 @@ namespace tomo {
 struct ScatterState { std::vector<std::string> keys; };
 uint64_t xshard_atomic_key_hash(const ScatterState* s, uint32_t i) { return hash(s->keys.at(i)); }
 Slice xshard_atomic_key_slice(const ScatterState* s, uint32_t i) { return slice(s->keys.at(i)); }
+// This fixture creates only blind groups; unit decisions are tested by
+// atomic-survivors-unit, which includes the actual scatter/transaction engine.
+void atomic_cancel_unit_record(AtomicEntry&) {}
+void atomic_cancel_unit_intent(AtomicScriptIntent&) { std::abort(); }
 bool AofProducer::record_delete(Slice key, uint64_t group) {
     require(group == 0, "eviction/expiry must emit an independent AOF delete");
     deletes.emplace_back(key.p, key.n);

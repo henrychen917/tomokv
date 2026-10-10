@@ -17,15 +17,17 @@ std::atomic<uint64_t> g_plain_stale_cuts{0};
 // Reads continue to resolve immutable predecessors without any retry or wait.
 void cancel_applied_scripts(FlatStore& store, uint64_t hash, Slice key,
                             const ScatterState* self) {
-    store.atomic_visit_key_groups(hash, key, [&](ScatterState& script) {
-        if (&script == self || script.kind != Kind::Script ||
-            script.aborted.load(std::memory_order_acquire)) return;
-        uint64_t undecided = 0;
-        if (script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
-                                                 std::memory_order_acq_rel)) {
-            script.script_conflict.store(true, std::memory_order_release);
-            script.aborted.store(true, std::memory_order_release);
-        }
+    store.atomic_visit_key_groups(hash, key, [&](auto& record) {
+        if constexpr (std::is_same_v<std::remove_reference_t<decltype(record)>, AtomicEntry>)
+            multi_cancel_record(record, self);
+        else
+            multi_cancel_intent(record, self);
+    });
+}
+
+void cancel_wildcard_units(FlatStore& store) {
+    store.atomic_visit_unit_intents(0, {}, true, [](AtomicScriptIntent& intent) {
+        if (intent.kind == 2) multi_cancel_intent(intent);
     });
 }
 
@@ -47,7 +49,10 @@ WorkError begin_plain_version(Server& server, Shard& shard, Slice key, uint64_t 
         if (snapshot != UINT64_MAX) store.atomic_set_read_context(snapshot, origin_conn_id);
         return WorkError::None;
     }
-    if (script_forced) server.note_script_forced_write();
+    if (script_forced) {
+        if (store.atomic_has_script_pin(hash, key)) server.note_script_forced_write();
+        else server.note_txn(server.worker_of_shard(shard.id()), TxnCounter::ForcedWrites);
+    }
 
     // Writers must clone the newest committed version, even while an unrelated reservation
     // holds the safe read watermark behind a completed foreign write.
@@ -190,7 +195,15 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
                 // One hash probe of both tables answers "is there a physical candidate"; the
                 // previous full for_each walk of the shard ran on every Retry of this arm and
                 // stalled the owner for the whole table while the foreign group was undecided.
-                if (store.atomic_has_physical(key.hash, op.arg(key.arg)))
+                bool undecided = false;
+                store.atomic_visit_unit_records(key.hash, op.arg(key.arg), false,
+                    [&](AtomicEntry& entry) {
+                        if (entry.group != &state && entry.group_epoch &&
+                            !entry.group_epoch->load(std::memory_order_acquire) &&
+                            !(entry.group_aborted && entry.group_aborted->load(std::memory_order_acquire)))
+                            undecided = true;
+                    });
+                if (undecided && store.atomic_has_physical(key.hash, op.arg(key.arg)))
                     return ScatterTaskResult::Retry;
             }
         }
@@ -893,8 +906,10 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
             if (allocation_failed) return;
             if (!store.atomic_needs_version(hash, key)) return;
             if (!store.atomic_has_record(hash, key) &&
-                (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)))
-                server.note_script_forced_write();
+                (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
+                if (store.atomic_has_script_pin(hash, key)) server.note_script_forced_write();
+                else server.note_txn(server.worker_of_shard(shard.id()), TxnCounter::ForcedWrites);
+            }
             for (const RecordedKey& prior : recorded)
                 if (prior.hash == hash && prior.key == key) return;
             try { recorded.push_back(RecordedKey{hash, key}); }
@@ -921,6 +936,8 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
         }
         if (!enumerated) return false;
         if (allocation_failed) { set_oom(op); return false; }
+        if (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))
+            cancel_wildcard_units(store);
         if (recorded.empty()) return true;
 
         if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
@@ -1011,7 +1028,11 @@ bool xshard_plain_prepare(Server& server, Shard& shard, Op& op, uint64_t origin_
     // physical path).
     const Slice routed = op_routed_key(op);
     store.atomic_promote_key(op.hash, routed, floor, cleanup_cutoff);
-    if (!store.atomic_needs_version(op.hash, routed)) return true;
+    if (!store.atomic_needs_version(op.hash, routed)) {
+        if (op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))
+            cancel_wildcard_units(store);
+        return true;
+    }
     if (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite))) {
         store.atomic_set_read_context(
             plain_read_cut(server, op, cleanup_cutoff), origin_conn_id);

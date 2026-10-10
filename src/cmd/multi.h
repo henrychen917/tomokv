@@ -21,6 +21,22 @@ struct MultiExecState;
 struct MultiSession;
 struct Task;
 struct AofOwnerContext;
+struct AtomicEntry;
+struct AtomicScriptIntent;
+struct ScatterState;
+
+enum class TxnCounter : uint8_t {
+    Attempts, Retries, Dooms, Wounds, SelfDooms, Waits, ForcedWrites,
+    Exclusive, ExclusiveViolations, ExclusiveDrainTimeouts, Intents, IntentsLive,
+    GroupDooms, GroupRetries, GroupExclusive, Count
+};
+struct alignas(64) TxnOwnerCounters {
+    std::atomic<uint64_t> values[static_cast<unsigned>(TxnCounter::Count)]{};
+};
+
+// Cold writer visitors; self is a scatter writer (possibly an EXEC child).
+void multi_cancel_record(AtomicEntry&, const ScatterState* self = nullptr);
+void multi_cancel_intent(AtomicScriptIntent&, const ScatterState* self = nullptr);
 
 // A transaction record points to epoch. Standard layout and the zero offset
 // let the cold conflict visitor recover the enclosing attempt decision safely.

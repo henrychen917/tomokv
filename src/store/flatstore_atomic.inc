@@ -50,17 +50,19 @@
         return atomic_key_pending(hash, key);
     }
     template <typename Visit>
+    __attribute__((noinline))
     void atomic_visit_key_groups(uint64_t hash, Slice key, Visit&& visit) {
-        if (!atomic_pending_ || !atomic_pending_->live) return;
+        if (!atomic_pending_) return;
         const uint64_t bit = atomic_membership_bit(hash);
         for (AtomicEntry* entry = atomic_pending_->head; entry; entry = entry->next) {
-            if (!entry->group || !(entry->membership & bit)) continue;
+            if (!(entry->membership & bit)) continue;
             for (uint32_t i = 0; i < entry->count; ++i)
                 if (atomic_entry_hash(*entry, i) == hash && atomic_entry_key(*entry, i).key_eq(key)) {
-                    visit(*entry->group);
+                    visit(*entry);
                     break;
                 }
         }
+        atomic_visit_unit_intents(hash, key, false, visit);
     }
     bool atomic_has_script_intent(uint64_t hash, Slice key) const {
         if (!atomic_pending_ || !atomic_pending_->script_intent_count) return false;
@@ -810,6 +812,18 @@
     // subsequent table clear sees tombstones for tracked keys, so protected predecessors remain
     // parked while unrelated plain keys are reclaimed immediately.
     bool atomic_tombstone_all(int namespace_filter = -1) {
+        if (atomic_pending_) {
+            for (auto* entry = atomic_pending_->head; entry; entry = entry->next)
+                for (uint32_t i = 0; i < entry->count; ++i)
+                    if (namespace_filter < 0 || atomic_entry_key(*entry, i).ns == unsigned(namespace_filter)) {
+                        atomic_cancel_unit_record(*entry);
+                        break;
+                    }
+            for (auto* intent = atomic_pending_->script_intents; intent; intent = intent->next)
+                if (intent->kind != 0 && (intent->kind == 2 || namespace_filter < 0 ||
+                                          intent->key_ns == unsigned(namespace_filter)))
+                    atomic_cancel_unit_intent(*intent);
+        }
         if (!atomic_pending_ || atomic_pending_->live == 0) return true;
         struct PreparedClear { uint64_t hash; std::string key; uint8_t ns; AtomicEntry* entry; };
         std::vector<PreparedClear> prepared;

@@ -37,6 +37,7 @@
 #include "../net/conn.h"   // kRobWindow: one source of truth for the window size
 #include "../net/wb.h"
 #include "../cmd/command.h"
+#include "../cmd/multi.h"
 #include "../cmd/multidb.h"
 #include "../snapshot/snapshot.h"
 #include "climon_mask.h"
@@ -2574,6 +2575,31 @@ public:
     uint64_t atomic_commit_group(std::atomic<uint64_t>& epoch) {
         return atomic_commit_group(epoch, [](uint64_t) {});
     }
+    template <typename PublishMembers>
+    uint64_t atomic_commit_group_cas(std::atomic<uint64_t>& epoch,
+                                     PublishMembers&& publish_members) {
+        const uint64_t ticket = atomic_commit_reserve();
+        const uint32_t stall = debug_hop_delay_.load(std::memory_order_relaxed);
+        if (__builtin_expect(stall != 0, false)) debug_stall_us(stall);
+        uint64_t undecided = 0;
+        const bool won = epoch.compare_exchange_strong(
+            undecided, ticket, std::memory_order_acq_rel);
+        if (won) publish_members(ticket);
+        // A cancelled attempt still reserved a ticket and opened a bracket.
+        atomic_commit_publish();
+        return won ? ticket : 0;
+    }
+    void note_txn(uint32_t owner, TxnCounter counter, uint64_t count = 1) {
+        txn_counters_[owner].values[static_cast<unsigned>(counter)].fetch_add(
+            count, std::memory_order_relaxed);
+    }
+    uint64_t txn_counter(TxnCounter counter) const {
+        uint64_t total = 0;
+        for (uint32_t owner = 0; owner < nthreads(); ++owner)
+            total += txn_counters_[owner].values[static_cast<unsigned>(counter)].load(
+                std::memory_order_relaxed);
+        return total;
+    }
     // Same-owner tickets (a localfast plain version, FLUSH's logical clear) have no window: the
     // shard that draws them installs their records before it yields, and no other task may touch
     // that shard in between. They still travel through the bracket so the watermark can never
@@ -3573,6 +3599,10 @@ private:
         std::atomic<uint32_t> client_readers{0}; // cold record lifetime; absent when LB=0
     };
     std::unique_ptr<LbPlan> lb_plan_; // absent with both balancers off
+
+    // Transaction-only counters live after the established Server layout. Each
+    // slot has one physical owner writer; INFO reads them with relaxed loads.
+    TxnOwnerCounters txn_counters_[kMaxThreads];
 
 };
 

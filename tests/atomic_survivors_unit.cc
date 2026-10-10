@@ -280,6 +280,42 @@ void txn_intents(Server& server) {
     require(!server.script_intents_active() && !store.atomic_has_records(), "final accounting");
 }
 
+void txn_help(Server& server) {
+    const auto a = key_on(server, 0, "txn-help-a"), b = key_on(server, 1, "txn-help-b");
+    require(local(server, {"SET", a, "old"}) == "+OK\r\n", "help predecessor");
+    MultiExecState parent;
+    parent.server = &server;
+    parent.decision.owner = &parent;
+    ScatterRun run(server, {"MSET", a, "new", b, "new"});
+    run.state->multi_child = true;
+    run.state->multi_parent = &parent;
+    for (uint32_t i = 0; i < run.state->nsub; ++i) {
+        const int shard = run.state->groups[i].shard;
+        require(xshard_execute(Task{&run.client, 0, shard, run.state}, server.shard(shard),
+                run.request.op, server.worker_of_shard(shard)) == ScatterTaskResult::Complete,
+                "child candidate installed");
+    }
+    require(run.state->epoch.load() == 0, "child is still undecided");
+    require(local(server, {"GET", a}) == "$3\r\nold\r\n", "foreign read skips undecided child");
+    const uint64_t ticket = server.atomic_commit_reserve();
+    parent.decision.epoch.store(ticket, std::memory_order_release);
+    cancel_applied_scripts(server.shard(0).store(), FlatStore::hash_key(slice(a)), slice(a));
+    require(run.state->epoch.load() == ticket && !parent.decision.aborted.load(),
+            "writer helps the won parent ticket into the child");
+    auto& store = server.shard(0).store();
+    store.atomic_set_read_context(UINT64_MAX, 91);
+    auto* visible = store.find(FlatStore::hash_key(slice(a)), slice(a));
+    require(visible && visible->str_value() == Slice("new", 3), "writer clone sees the helped child");
+    store.atomic_clear_read_epoch();
+    server.atomic_commit_publish();
+    MultiDecision cancelled;
+    cancelled.epoch.store(kAtomicCancelledEpoch);
+    const auto before = server.atomic_snapshot();
+    require(!server.atomic_commit_group_cas(cancelled.epoch, [](uint64_t) { std::abort(); }),
+            "cancelled decision cannot commit");
+    require(server.atomic_snapshot() > before, "lost CAS closes its reserved ticket bracket");
+}
+
 void script_apply(Server& server) {
     const auto x = key_on(server, 0, "apply-x"), y = key_on(server, 1, "apply-y");
     require(local(server, {"SET", x, "B"}) == "+OK\r\n", "seed script image");
@@ -531,6 +567,7 @@ int main(int argc, char** argv) {
     else if (name.starts_with("collapse_")) atomiccollapse_checks(name.substr(9));
     else if (name == "script_keys") script_keys(server);
     else if (name == "txn_intents") txn_intents(server);
+    else if (name == "txn_help") txn_help(server);
     else if (name == "rename_overlay" || name == "watch_parent") rename(server, name == "watch_parent");
     else if (name == "write_latest") write_latest(server);
     else if (name == "script_apply") script_apply(server);

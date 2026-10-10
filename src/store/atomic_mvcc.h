@@ -111,6 +111,8 @@ inline UnitRef& atomic_intent_unit(AtomicScriptIntent& intent) {
 inline const UnitRef& atomic_intent_unit(const AtomicScriptIntent& intent) {
     return *(reinterpret_cast<const UnitRef*>(&intent) - 1);
 }
+void atomic_cancel_unit_record(AtomicEntry&);
+void atomic_cancel_unit_intent(AtomicScriptIntent&);
 
 struct AtomicPendingState {
     struct FreeValue {

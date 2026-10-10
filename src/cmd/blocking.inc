@@ -652,6 +652,7 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
     BlockingKey& key = state.keys[state.selected];
     const Slice key_slice = blocking_key_slice(key);
     Op& op = state.client->rob().at(state.op_id);
+    if (shard.store().atomic_has_records()) cancel_wildcard_units(shard.store());
     if (state.kind == BlockingKind::Xreadgroup) {
         if (!stream_xreadgroup_execute(shard, op)) return false;
         AofOwnerContext context{self.id(), &ring, &self.sig()};

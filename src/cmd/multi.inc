@@ -190,6 +190,9 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::vector<MultiOwnerRecordRefs> owner_record_refs;
     ScatterArenaPool scatter_pool;
     MultiDecision decision;
+    std::atomic<bool> writer_cancelled{false};
+    uint32_t writer_dooms = 0;
+    bool doomed = false;               // published by finalized
     std::atomic<uint32_t> record_refs{0};
     bool record_refs_precounted = false;
     std::atomic<uint32_t> watch_refs{0};
@@ -207,6 +210,74 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::atomic<NotifyBatch*> notify{nullptr};
     std::shared_ptr<AofGroupDecision> aof_group;
 };
+
+namespace {
+MultiDecision* multi_record_decision(const AtomicEntry& entry) {
+    if (entry.plain())
+        return entry.group_epoch ? reinterpret_cast<MultiDecision*>(entry.group_epoch) : nullptr;
+    if (!entry.group->multi_child || !entry.group->multi_parent) return nullptr;
+    return &const_cast<MultiExecState*>(
+        static_cast<const MultiExecState*>(entry.group->multi_parent))->decision;
+}
+
+// An owner that sees the parent's won CAS may run before the finalizer reaches
+// this child's epoch store. Help before find() can skip that committed image.
+void multi_help_child(AtomicEntry& entry, uint64_t ticket) {
+    if (!entry.group || !entry.group->multi_child || !ticket ||
+        ticket == kAtomicCancelledEpoch) return;
+    uint64_t zero = 0;
+    entry.group->epoch.compare_exchange_strong(zero, ticket, std::memory_order_acq_rel);
+}
+
+uint64_t multi_cancel_decision(MultiDecision& decision, uint32_t shard,
+                               TxnCounter cause = TxnCounter::Dooms) {
+    uint64_t epoch = decision.epoch.load(std::memory_order_acquire);
+    if (decision.exclusive || decision.aborted.load(std::memory_order_acquire)) return epoch;
+    if (epoch == 0 && decision.epoch.compare_exchange_strong(
+            epoch, kAtomicCancelledEpoch, std::memory_order_acq_rel)) {
+        MultiExecState& state = *decision.owner;
+        if (cause == TxnCounter::Dooms || cause == TxnCounter::SelfDooms)
+            state.writer_cancelled.store(true, std::memory_order_relaxed);
+        state.server->note_txn(state.server->worker_of_shard(shard), cause);
+        decision.aborted.store(true, std::memory_order_release);
+        return kAtomicCancelledEpoch;
+    }
+    return epoch;
+}
+}
+
+void multi_cancel_record(AtomicEntry& entry, const ScatterState* self) {
+    if (MultiDecision* decision = multi_record_decision(entry)) {
+        if (self && self->multi_parent == decision->owner) return;
+        const uint32_t shard = entry.plain()
+            ? decision->owner->server->router().shard_of(entry.plain_hash)
+            : entry.group->keys[entry.group->key_order[entry.begin]].shard;
+        multi_help_child(entry, multi_cancel_decision(*decision, shard));
+        return;
+    }
+    if (!entry.group || entry.group == self) return;
+    ScatterState& script = *entry.group;
+    if (script.kind != Kind::Script || script.aborted.load(std::memory_order_acquire)) return;
+    uint64_t undecided = 0;
+    if (script.epoch.compare_exchange_strong(undecided, kAtomicCancelledEpoch,
+                                            std::memory_order_acq_rel)) {
+        script.script_conflict.store(true, std::memory_order_release);
+        script.aborted.store(true, std::memory_order_release);
+    }
+}
+
+void multi_cancel_intent(AtomicScriptIntent& intent, const ScatterState* self) {
+    UnitRef& unit = atomic_intent_unit(intent);
+    if (unit.unit_kind != UnitRef::Kind::Txn || unit.exclusive ||
+        (self && self->multi_parent == unit.unit)) return;
+    auto& decision = *reinterpret_cast<MultiDecision*>(unit.epoch);
+    const uint32_t shard = intent.kind == 2 ? intent.hash
+        : decision.owner->server->router().shard_of(intent.hash);
+    multi_cancel_decision(decision, shard);
+}
+
+void atomic_cancel_unit_record(AtomicEntry& entry) { multi_cancel_record(entry); }
+void atomic_cancel_unit_intent(AtomicScriptIntent& intent) { multi_cancel_intent(intent); }
 
 namespace {
 
@@ -993,7 +1064,12 @@ MultiPrepareWrite prepare_write_key(Server& server, MultiExecState& state, Shard
                                     const void* watch_token = nullptr,
                                     std::atomic<uint32_t>* watch_refs = nullptr) {
     if (!watch_token) watch_token = &state;
-    cancel_applied_scripts(shard.store(), hash, key);
+    shard.store().atomic_visit_unit_records(hash, key, false, [&](AtomicEntry& entry) {
+        if (multi_record_decision(entry) != &state.decision) multi_cancel_record(entry);
+    });
+    shard.store().atomic_visit_unit_intents(hash, key, false, [&](AtomicScriptIntent& intent) {
+        if (atomic_intent_unit(intent).unit != &state) multi_cancel_intent(intent);
+    });
     if (!watch_refs) watch_refs = &state.watch_refs;
     // THE FALSIFIER, and it must read ZERO. It asks EXACTLY the question the dispatch-time park in
     // ExLoop::execute() asks -- does this owner still hold an undecided record belonging to a
@@ -2252,14 +2328,18 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                 if (!state.decision.aborted.load(std::memory_order_acquire) &&
                     state.final_reply == MultiFinalReply::Exec) {
                     assemble_ownerless_replies(state);
-                    const uint64_t ticket = server.atomic_commit_group(
+                    const uint64_t ticket = server.atomic_commit_group_cas(
                         state.decision.epoch,
                         [&](uint64_t shared) {
                             publish_multi_child_epochs(state, shared);
                             if (state.database_publish)
                                 server.databases().publish_prepared(std::move(state.database_publish));
                         });
-                    if (aof_context)
+                    if (!ticket) {
+                        state.decision.aborted.store(true, std::memory_order_release);
+                        abort_multi_children(state);
+                        aof_abort_group(state.aof_group);
+                    } else if (aof_context)
                         (void)aof_commit_group(server.aof(), state.aof_group, ticket,
                                                *aof_context);
                 } else {
@@ -2269,6 +2349,8 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                     abort_multi_children(state);
                     aof_abort_group(state.aof_group);
                 }
+                state.doomed = state.decision.epoch.load(std::memory_order_acquire) ==
+                               kAtomicCancelledEpoch;
                 state.finalized.store(true, std::memory_order_release);
                 // Every owner has joined and the one commit decision is made: nothing this
                 // transaction writes can land on a shard after this point, so it can no longer
