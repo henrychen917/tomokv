@@ -531,7 +531,7 @@
     "Redis 7.4 differential matrix",
     "Redis 7.4 differential matrix (armed fused + read-local)",
     "glob/scan grammar parity vs Redis 7.4",
-    "INFO counter reads (TSan, both modes)",
+    "INFO command/socket counters (TSan, both modes)",
     "Climon armed refresh + stale-store suppression control"
   ],
   "supplement": {

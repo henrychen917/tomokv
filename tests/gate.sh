@@ -3097,7 +3097,7 @@ job_racefix_tsan_build(){
 }
 job_racefix_counters(){
   local mode failed=0
-  row_begin "INFO counter reads (TSan, both modes)"
+  row_begin "INFO command/socket counters (TSan, both modes)"
   if unit_ready racefix-tsan; then
     for mode in 2s 1s; do
       py tests/racefix.py counters --binary build/tomokv-tsan --mode "$mode" \
@@ -3105,8 +3105,8 @@ job_racefix_counters(){
           >"$TMPDIR/counters-$mode.log" 2>&1 || failed=1
     done
   else failed=1; fi
-  if [ "$failed" = 0 ]; then ok "INFO counter reads (TSan, both modes)"
-  else bad "INFO counter reads (TSan, both modes)" "see $TMPDIR/counters-*.log"; fi
+  if [ "$failed" = 0 ]; then ok "INFO command/socket counters (TSan, both modes)"
+  else bad "INFO command/socket counters (TSan, both modes)" "see $TMPDIR/counters-*.log"; fi
 }
 job_racefix_climon(){
   local mode control failed=0
