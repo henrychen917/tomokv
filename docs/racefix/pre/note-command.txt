@@ -1,0 +1,16 @@
+
+build/racefix/pre/src/core/genthread.o:     file format elf64-x86-64
+
+
+Disassembly of section .text._ZN4tomo9ThreadCtx12note_commandEt:
+
+0000000000000000 <tomo::ThreadCtx::note_command(unsigned short)>:
+   0:	f3 0f 1e fa          	endbr64
+   4:	0f b7 c6             	movzwl %si,%eax
+   7:	3b 47 70             	cmp    0x70(%rdi),%eax
+   a:	73 0b                	jae    17 <tomo::ThreadCtx::note_command(unsigned short)+0x17>
+   c:	48 8b 47 68          	mov    0x68(%rdi),%rax
+  10:	0f b7 f6             	movzwl %si,%esi
+  13:	48 ff 04 f0          	incq   (%rax,%rsi,8)
+  17:	48 ff 87 98 01 00 00 	incq   0x198(%rdi)
+  1e:	c3                   	ret

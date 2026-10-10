@@ -111,8 +111,8 @@ void info_stats_tick(Server& server) {
     for (uint32_t t = 0; t < server.nthreads(); ++t) {
         ThreadCtx& thread = server.thread(t);
         totals[0] += thread.total_commands();
-        totals[1] += thread.sig().net_input_bytes;
-        totals[2] += thread.sig().net_output_bytes;
+        totals[1] += thread.sig().net_input_bytes.load(std::memory_order_relaxed);
+        totals[2] += thread.sig().net_output_bytes.load(std::memory_order_relaxed);
     }
     sample(sampled_ns, totals, used_memory(server));
 }

@@ -56,6 +56,13 @@ DB0_SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 
 all: $(BIN)
 
+# SV4.10: the DEBUG parser and pre-store hook exist only in this copied test
+# tree. Default production objects never contain a hook, branch or test state.
+build/racefix-climon: tools/racefix_build.py tests/racefix_hook.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	python3 tools/racefix_build.py build/racefix-climon-source
+	$(MAKE) -C build/racefix-climon-source BUILD_ROOT=$(abspath build/racefix-climon-objects) all
+	cp build/racefix-climon-objects/tomokv $@
+
 # Optional teardown-only diagnostics; no code or storage in normal binaries.
 .PHONY: connreset-trace
 connreset-trace:

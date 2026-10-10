@@ -1,0 +1,23 @@
+
+build/src/core/genthread.o:     file format elf64-x86-64
+
+
+Disassembly of section .text._ZN4tomo9ThreadCtx12note_commandEt:
+
+0000000000000000 <tomo::ThreadCtx::note_command(unsigned short)>:
+   0:	f3 0f 1e fa          	endbr64
+   4:	0f b7 c6             	movzwl %si,%eax
+   7:	3b 47 70             	cmp    0x70(%rdi),%eax
+   a:	72 14                	jb     20 <tomo::ThreadCtx::note_command(unsigned short)+0x20>
+   c:	48 8b 87 98 01 00 00 	mov    0x198(%rdi),%rax
+  13:	48 ff c0             	inc    %rax
+  16:	48 89 87 98 01 00 00 	mov    %rax,0x198(%rdi)
+  1d:	c3                   	ret
+  1e:	66 90                	xchg   %ax,%ax
+  20:	48 8b 47 68          	mov    0x68(%rdi),%rax
+  24:	0f b7 f6             	movzwl %si,%esi
+  27:	48 8d 14 f0          	lea    (%rax,%rsi,8),%rdx
+  2b:	48 8b 02             	mov    (%rdx),%rax
+  2e:	48 ff c0             	inc    %rax
+  31:	48 89 02             	mov    %rax,(%rdx)
+  34:	eb d6                	jmp    c <tomo::ThreadCtx::note_command(unsigned short)+0xc>
