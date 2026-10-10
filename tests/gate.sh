@@ -285,6 +285,9 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # eight rows collected above the quick-tier exit (+8 quick, +8 full).
 # overlapaxe: retire only split-overlap WB row, collected before quick exit (-1/-1).
 # Matrix client-lb dimension preserves every former split correctness scenario.
+# aclfix: six reproductions in each thread mode, emitted by job_aclfix and
+# collected before the quick-tier exit: DQ=+12, DF=+12; 511+12=523 / 528+12=540.
+# EXPECT_QUICK/EXPECT_FULL remain maintainer-owned.
 EXPECT_QUICK=511
 EXPECT_FULL=528                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -1030,7 +1033,7 @@ plan_jobs(){
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
-              release_batteries atomic_batteries bplus acl_recheck sort script_bounds
+              release_batteries atomic_batteries bplus acl_recheck aclfix sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
@@ -2010,6 +2013,24 @@ py tests/aclreply.py 127.0.0.1 "$PORT" >$TMPDIR/gate-aclreply-1s.txt 2>&1 \
     && ok "ACL recheck one-reply battery (1s)" \
     || bad "ACL recheck one-reply battery (1s)" "see $TMPDIR/gate-aclreply-1s.txt"
 stop
+}
+
+job_aclfix(){
+  local mode case label
+  for mode in 1s 2s; do
+    for case in sort streams-name save-load capacity wake-pop wake-scatter; do
+      label="aclfix $case ($mode)"
+      row_begin "$label"
+      if timeout --foreground 60 taskset -c "$LOAD_CORES" python3 tests/aclfix.py \
+          --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+          --mode "$mode" --case "$case" --output "$TMPDIR/aclfix-$case-$mode" \
+          >"$TMPDIR/aclfix-$case-$mode.log" 2>&1; then
+        ok "$label"
+      else
+        bad "$label" "see $TMPDIR/aclfix-$case-$mode.log"
+      fi
+    done
+  done
 }
 
 job_sort(){
@@ -3331,6 +3352,7 @@ done
 collect_job bplus
 
 collect_job acl_recheck
+collect_job aclfix
 
 collect_job sort
 

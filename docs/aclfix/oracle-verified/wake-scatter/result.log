@@ -1,0 +1,11 @@
+{"command": ["taskset", "-c", "120", "/home/user/Projects/redis/src/redis-server", "--bind", "127.0.0.1", "--port", "25043", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aclfix/docs/aclfix/oracle-verified/wake-scatter", "--aclfile", "/home/user/Projects/cx-aclfix/docs/aclfix/oracle-verified/wake-scatter/users.acl"], "case": "wake-scatter"}
+BLMOVE key reply RespError(b'NOPERM No permissions to access a key') src [b'v'] dst [] pending 0
+BLMOVE command reply RespError(b"NOPERM User woken has no permissions to run the 'blmove' command") src [b'v'] dst [] pending 0
+BRPOPLPUSH key reply RespError(b'NOPERM No permissions to access a key') src [b'v'] dst [] pending 0
+BRPOPLPUSH command reply RespError(b"NOPERM User woken has no permissions to run the 'brpoplpush' command") src [b'v'] dst [] pending 0
+XREAD key reply RespError(b'NOPERM No permissions to access a key') src [[b'1-0', [b'f', b'v']]] dst [] pending 0
+XREAD command reply RespError(b"NOPERM User woken has no permissions to run the 'xread' command") src [[b'1-0', [b'f', b'v']]] dst [] pending 0
+XREADGROUP key reply RespError(b'NOPERM No permissions to access a key') src [[b'1-0', [b'f', b'v']]] dst [] pending 0
+XREADGROUP command reply RespError(b"NOPERM User woken has no permissions to run the 'xreadgroup' command") src [[b'1-0', [b'f', b'v']]] dst [] pending 0
+SIGTERM exit 0
+aclfix wake-scatter PASS (0.190s)

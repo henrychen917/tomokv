@@ -1,0 +1,13 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/bench-bins/tomokv-headline-6b50f447f", "--bind", "127.0.0.1", "--port", "25042", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aclfix/docs/aclfix/audited-streams-name", "--aclfile", "/home/user/Projects/cx-aclfix/docs/aclfix/audited-streams-name/users.acl", "--shards", "16", "--thread-mode", "2s", "--ratio", "6:2", "--read-local", "0"], "case": "streams-name"}
+XREADGROUP [[b'secret:stream', [[b'1-0', [b'f', b'v']]]]] pending [1, b'1-0', b'1-0', [[b'consumer', b'1']]]
+SIGTERM exit 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 286, in main
+    {"sort": sort_case, "streams-name": streams_case, "save-load": save_case,
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 79, in streams_case
+    check(got, DENIED, "group named STREAMS")
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 27, in check
+    assert got == want, f"{label}: got {got!r}, expected {want!r}"
+           ^^^^^^^^^^^
+AssertionError: group named STREAMS: got [[b'secret:stream', [[b'1-0', [b'f', b'v']]]]], expected RespError(b'NOPERM No permissions to access a key')
+aclfix streams-name FAIL (0.172s)
