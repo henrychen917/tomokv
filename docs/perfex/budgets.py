@@ -33,30 +33,43 @@ def main():
     p.add_argument("object", help="e.g. src/core/genthread.o or db0/src/core/rl2s.o")
     p.add_argument("values", type=int, nargs="+")
     p.add_argument("--jobs", type=int, default=4)
+    p.add_argument("--max-auto", type=int, help="optional max-inline-insns-auto trial")
+    p.add_argument("--source-root", type=Path, default=ROOT)
+    p.add_argument("--tag", help="separate an isolated source experiment's objects")
     a = p.parse_args()
     assert os.sched_getaffinity(0) <= set(range(112, 128))
+    source = a.source_root.resolve()
+    assert source.is_relative_to(ROOT)
+    assert (source == ROOT) or a.tag, "isolated sources need a separate artifact tag"
     relative = Path(a.object)
     assert not relative.is_absolute() and ".." not in relative.parts
     pre = ROOT / "build/perfex/pre" / relative
     old = inventory(pre)
     assert old
-    dry = subprocess.check_output(["make", "-n", "-B", str(Path("build") / relative)], cwd=ROOT, text=True)
+    dry = subprocess.check_output(["make", "-n", "-B", str(Path("build") / relative)], cwd=source, text=True)
     compile_lines = [shlex.split(line) for line in dry.splitlines()
                      if line.startswith("g++ ") and " -o " + str(Path("build") / relative) in line]
     assert len(compile_lines) == 1
     original = compile_lines[0]
     folder = ROOT / "build/perfex/budgets" / str(relative).replace("/", "-")
+    if a.tag:
+        assert re.fullmatch(r"[a-z0-9-]+", a.tag)
+        folder = folder / a.tag
+    if a.max_auto is not None:
+        folder = folder / f"auto-{a.max_auto}"
     folder.mkdir(parents=True, exist_ok=True)
-    source_sha = hashlib.sha256((ROOT / "src/core/ex_loop.h").read_bytes()).hexdigest()
+    source_sha = hashlib.sha256((source / "src/core/ex_loop.h").read_bytes()).hexdigest()
 
     def trial(value):
         target = folder / f"{value}.o"
         command = [f"large-unit-insns={value}" if token.startswith("large-unit-insns=")
                    else "-g0" if token == "-g" else token for token in original]
         assert any(token.startswith("large-unit-insns=") for token in command)
+        if a.max_auto is not None:
+            command += ["--param", f"max-inline-insns-auto={a.max_auto}"]
         command[command.index("-o") + 1] = str(target)
         with (folder / f"{value}.log").open("w") as log:
-            subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
+            subprocess.run(command, cwd=source, stdout=log, stderr=subprocess.STDOUT, check=True)
         new = inventory(target)
         changed = []
         for name in sorted(old.keys() | new.keys()):
