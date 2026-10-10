@@ -12,9 +12,9 @@
 namespace tomo {
 
 // Every cross-thread counter read goes through this. The owners write these fields with plain
-// stores (single-writer law); a relaxed atomic load is the same MOV on x86 and keeps the race
-// defined. Monotonic uint64 counters make torn semantic values impossible to act on: any read is
-// some value the owner actually published.
+// stores (single-writer law). NOT race-free in C++: an atomic load of a plainly written field is
+// still a data race (TSan reports it; flipfix CT4.3 leaves the hot writers to an owner decision).
+// x86 MOVs keep each read a value the owner wrote; diagnostic only, never a publication contract.
 static inline uint64_t rd(const uint64_t& f) {
     return __atomic_load_n(&f, __ATOMIC_RELAXED);
 }

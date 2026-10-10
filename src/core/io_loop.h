@@ -2091,7 +2091,7 @@ private:
         const FlipStage stage = srv_->flip_stage();
         if (flip_stage_snapshot_ != kNoFlipSnapshot) flip_stage_snapshot_ = stage;
         if (stage == FlipStage::Idle) {
-            flip_close_pin_ = false; // the FLIP retired: held closes resume (see close_client)
+            flip_close_pin_ = false; // the FLIP retired: held closes resume (pubsub_disconnect_ready)
             return 0;
         }
         if constexpr (!kSingleDatabase)
