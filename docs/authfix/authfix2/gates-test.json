@@ -1,0 +1,122 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "python3",
+    "tests/gates_test.py",
+    "-v"
+  ],
+  "exit": 1,
+  "seconds": 232.87119036912918,
+  "source_sha256": "cd85a95e6ca78e03147a7fb94d4bc677b5c4c581e4c4fec8337299a20474b03e",
+  "summary": [
+    "Ran 14 tests in 0.559s",
+    "OK",
+    "Ran 66 tests in 232.525s",
+    "FAILED (failures=13)"
+  ],
+  "failures": [
+    {
+      "test": "FAIL: test_atomic_boot_waits_for_all_other_families_and_their_cleanup (__main__.SchedulerWiring.test_atomic_boot_waits_for_all_other_families_and_their_cleanup)",
+      "reasons": [
+        "AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release"
+      ]
+    },
+    {
+      "test": "FAIL: test_completion_is_not_visible_before_its_record_is_written (__main__.SchedulerWiring.test_completion_is_not_visible_before_its_record_is_written)",
+      "reasons": [
+        "AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release"
+      ]
+    },
+    {
+      "test": "FAIL: test_empty_fragment_and_explicit_failure_cannot_turn_green (__main__.SchedulerWiring.test_empty_fragment_and_explicit_failure_cannot_turn_green) (behavior='empty')",
+      "reasons": [
+        "AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release"
+      ]
+    },
+    {
+      "test": "FAIL: test_empty_fragment_and_explicit_failure_cannot_turn_green (__main__.SchedulerWiring.test_empty_fragment_and_explicit_failure_cannot_turn_green) (behavior='red')",
+      "reasons": [
+        "AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release"
+      ]
+    },
+    {
+      "test": "FAIL: test_failed_prerequisite_cannot_leave_the_queue_waiting_forever (__main__.SchedulerWiring.test_failed_prerequisite_cannot_leave_the_queue_waiting_forever)",
+      "reasons": [
+        "AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release"
+      ]
+    },
+    {
+      "test": "FAIL: test_limited_workers_reuse_slots_without_losing_or_repeating_jobs (__main__.SchedulerWiring.test_limited_workers_reuse_slots_without_losing_or_repeating_jobs)",
+      "reasons": [
+        "AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release"
+      ]
+    },
+    {
+      "test": "FAIL: test_missing_helper_witness_stays_red_and_keeps_its_explanation (__main__.SchedulerWiring.test_missing_helper_witness_stays_red_and_keeps_its_explanation)",
+      "reasons": [
+        "AssertionError: 'core_tsan_build' not found in '124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release\\n  correctness family release                           ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family asan\\n  correctness family asan                              ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family config_unit\\n  correctness family config_unit                       ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family flip_unit\\n  correctness family flip_unit                         ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family filter_unit\\n  correctness family filter_unit                       ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family ring_unit\\n  correctness family ring_unit                         ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family climonfix\\n  correctness family climonfix                         ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family lbplanner_units\\n  correctness family lbplanner_units                   ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_units\\n  correctness family exbatch_units                     ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family exbatch_live\\n  correctness family exbatch_live                      ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family persistfix_units\\n  correctness family persistfix_units                  ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family core_units\\n  correctness family core_units                        ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_rule_units\\n  correctness family wb_rule_units                     ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family wbland_units\\n  correctness family wbland_units                      ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_sync\\n  correctness family reorder_sync                      ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_engagement\\n  correctness family reorder_engagement                ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family reorder_identity\\n  correctness family reorder_identity                  ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family wb_policy\\n  correctness family wb_policy                         ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-1s\\n  correctness family lb-stationary-1s                  ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family lb-stationary-2s\\n  correctness family lb-stationary-2s                  ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-1s\\n  correctness family netio-1s                          ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family netio-2s\\n  correctness family netio-2s                          ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family splitlocal_units\\n  correctness family splitlocal_units                  ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family storage_units\\n  correctness family storage_units                     ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family atomic_units\\n  correctness family atomic_units                      ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcmd_units\\n  correctness family netcmd_units                      ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family netcap\\n  correctness family netcap                            ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family respcompat\\n  correctness family respcompat                        ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family acl_metadata\\n  correctness family acl_metadata                      ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family boot_grammar\\n  correctness family boot_grammar                      ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family cmd_metadata\\n  correctness family cmd_metadata                      ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family wait_units\\n  correctness family wait_units                        ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family readonly\\n  correctness family readonly                          ok\\n  row budget: 900s; median=-s; no-history-conservative-default; correctness family release_batteries\\n  correctness family release_batteries                 ok\\n\\nScheduler failure artifacts: /home/user/Projects/cx-authfix/build/scheduler-failure-3az5nso5\\n'"
+      ]
+    },
+    {
+      "test": "FAIL: test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment (__main__.SchedulerWiring.test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment)",
+      "reasons": [
+        "AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release"
+      ]
+    },
+    {
+      "test": "FAIL: test_one_slot_uses_the_same_queue_without_losing_coverage (__main__.SchedulerWiring.test_one_slot_uses_the_same_queue_without_losing_coverage)",
+      "reasons": [
+        "AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release"
+      ]
+    },
+    {
+      "test": "FAIL: test_opposite_completion_orders_have_byte_identical_canonical_ledgers (__main__.SchedulerWiring.test_opposite_completion_orders_have_byte_identical_canonical_ledgers)",
+      "reasons": [
+        "AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release"
+      ]
+    },
+    {
+      "test": "FAIL: test_release_boots_do_not_wait_for_independent_asan_build (__main__.SchedulerWiring.test_release_boots_do_not_wait_for_independent_asan_build)",
+      "reasons": [
+        "AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release"
+      ]
+    },
+    {
+      "test": "FAIL: test_removing_atomic_exclusivity_fails_before_its_boot (__main__.SchedulerWiring.test_removing_atomic_exclusivity_fails_before_its_boot)",
+      "reasons": [
+        "AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release"
+      ]
+    },
+    {
+      "test": "FAIL: test_worker_exit_before_done_is_a_failure (__main__.SchedulerWiring.test_worker_exit_before_done_is_a_failure)",
+      "reasons": [
+        "AssertionError: 124 != 0 :   row budget: 900s; median=-s; no-history-conservative-default; correctness family release"
+      ]
+    }
+  ],
+  "tests": 66,
+  "failure_entries": 13,
+  "failing_test_methods": [
+    "SchedulerWiring.test_atomic_boot_waits_for_all_other_families_and_their_cleanup",
+    "SchedulerWiring.test_completion_is_not_visible_before_its_record_is_written",
+    "SchedulerWiring.test_empty_fragment_and_explicit_failure_cannot_turn_green",
+    "SchedulerWiring.test_failed_prerequisite_cannot_leave_the_queue_waiting_forever",
+    "SchedulerWiring.test_limited_workers_reuse_slots_without_losing_or_repeating_jobs",
+    "SchedulerWiring.test_missing_helper_witness_stays_red_and_keeps_its_explanation",
+    "SchedulerWiring.test_nonzero_worker_return_cannot_be_hidden_by_a_pass_fragment",
+    "SchedulerWiring.test_one_slot_uses_the_same_queue_without_losing_coverage",
+    "SchedulerWiring.test_opposite_completion_orders_have_byte_identical_canonical_ledgers",
+    "SchedulerWiring.test_release_boots_do_not_wait_for_independent_asan_build",
+    "SchedulerWiring.test_removing_atomic_exclusivity_fails_before_its_boot",
+    "SchedulerWiring.test_worker_exit_before_done_is_a_failure"
+  ],
+  "deadline_only": true,
+  "fixture_deadline_seconds": 45,
+  "root_failure_return_codes": [
+    124
+  ],
+  "classification_note": "Twelve failure entries directly assert timeout exit 124; the missing-helper-witness entry asserts on the diagnostic produced by the same exit 124.",
+  "log": "docs/authfix/authfix2/gates-test.log.gz"
+}

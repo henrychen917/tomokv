@@ -1,0 +1,427 @@
+{
+  "binary": "/home/user/Projects/cx-authfix/build/tomokv",
+  "sha256": "2b57bd798786221bdb06ae3f061c7777bd6ef7cd719c05cc48d3f55f524ac6f2",
+  "checks": [
+    {
+      "label": "1s-leading SET",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-leading-before NOAUTH before AUTH",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "1s-leading-before unauthenticated SET refused",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "1s-leading-before full AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-leading-before full CONFIG GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "\u0000audit-suffix"
+      ]
+    },
+    {
+      "label": "1s-leading-before authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-leading-before RESET",
+      "passed": true,
+      "actual": "RESET"
+    },
+    {
+      "label": "1s-leading-before prefix refused",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "1s-leading REWRITE",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-leading escaped bytes persisted",
+      "passed": true,
+      "actual": [
+        "requirepass \"\\x00audit-suffix\""
+      ]
+    },
+    {
+      "label": "1s-leading-after NOAUTH before AUTH",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "1s-leading-after unauthenticated SET refused",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "1s-leading-after full AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-leading-after full CONFIG GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "\u0000audit-suffix"
+      ]
+    },
+    {
+      "label": "1s-leading-after authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-leading-after RESET",
+      "passed": true,
+      "actual": "RESET"
+    },
+    {
+      "label": "1s-leading-after prefix refused",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "1s-embedded SET",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-embedded-before NOAUTH before AUTH",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "1s-embedded-before unauthenticated SET refused",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "1s-embedded-before full AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-embedded-before full CONFIG GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "audit\u0000suffix"
+      ]
+    },
+    {
+      "label": "1s-embedded-before authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-embedded-before RESET",
+      "passed": true,
+      "actual": "RESET"
+    },
+    {
+      "label": "1s-embedded-before prefix refused",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "1s-embedded REWRITE",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-embedded escaped bytes persisted",
+      "passed": true,
+      "actual": [
+        "requirepass \"audit\\x00suffix\""
+      ]
+    },
+    {
+      "label": "1s-embedded-after NOAUTH before AUTH",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "1s-embedded-after unauthenticated SET refused",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "1s-embedded-after full AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "1s-embedded-after full CONFIG GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "audit\u0000suffix"
+      ]
+    },
+    {
+      "label": "1s-embedded-after authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "1s-embedded-after RESET",
+      "passed": true,
+      "actual": "RESET"
+    },
+    {
+      "label": "1s-embedded-after prefix refused",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "2s-leading SET",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-leading-before NOAUTH before AUTH",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "2s-leading-before unauthenticated SET refused",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "2s-leading-before full AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-leading-before full CONFIG GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "\u0000audit-suffix"
+      ]
+    },
+    {
+      "label": "2s-leading-before authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-leading-before RESET",
+      "passed": true,
+      "actual": "RESET"
+    },
+    {
+      "label": "2s-leading-before prefix refused",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "2s-leading REWRITE",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-leading escaped bytes persisted",
+      "passed": true,
+      "actual": [
+        "requirepass \"\\x00audit-suffix\""
+      ]
+    },
+    {
+      "label": "2s-leading-after NOAUTH before AUTH",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "2s-leading-after unauthenticated SET refused",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "2s-leading-after full AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-leading-after full CONFIG GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "\u0000audit-suffix"
+      ]
+    },
+    {
+      "label": "2s-leading-after authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-leading-after RESET",
+      "passed": true,
+      "actual": "RESET"
+    },
+    {
+      "label": "2s-leading-after prefix refused",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "2s-embedded SET",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-embedded-before NOAUTH before AUTH",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "2s-embedded-before unauthenticated SET refused",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "2s-embedded-before full AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-embedded-before full CONFIG GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "audit\u0000suffix"
+      ]
+    },
+    {
+      "label": "2s-embedded-before authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-embedded-before RESET",
+      "passed": true,
+      "actual": "RESET"
+    },
+    {
+      "label": "2s-embedded-before prefix refused",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "2s-embedded REWRITE",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-embedded escaped bytes persisted",
+      "passed": true,
+      "actual": [
+        "requirepass \"audit\\x00suffix\""
+      ]
+    },
+    {
+      "label": "2s-embedded-after NOAUTH before AUTH",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "2s-embedded-after unauthenticated SET refused",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "2s-embedded-after full AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "2s-embedded-after full CONFIG GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "audit\u0000suffix"
+      ]
+    },
+    {
+      "label": "2s-embedded-after authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "2s-embedded-after RESET",
+      "passed": true,
+      "actual": "RESET"
+    },
+    {
+      "label": "2s-embedded-after prefix refused",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    }
+  ],
+  "slowlog": {}
+}

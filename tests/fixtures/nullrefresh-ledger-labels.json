@@ -1,7 +1,7 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
   "source_sha256": "8c1e51707e09366c289fbbe39466844d5936e8e027843897719adea590cb3304",
-  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full); scriptfix declares eight focused Lua/function rows before the quick exit (+8 quick/+8 full); savefix adds 24 witnessed shutdown-save/capture rows (+24 quick/+24 full); aclfix adds six reproductions per thread mode before the quick exit (+12 quick/+12 full)",
+  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full); scriptfix declares eight focused Lua/function rows before the quick exit (+8 quick/+8 full); savefix adds 24 witnessed shutdown-save/capture rows (+24 quick/+24 full); aclfix adds six reproductions per thread mode before the quick exit (+12 quick/+12 full); authfix adds five config/auth/slowlog regression rows before the quick exit (+5 quick/+5 full)",
   "labels": [
     "release build (+footprint locks)",
     "ASAN build",
@@ -618,7 +618,12 @@
     "shutdown cancels BGSAVE capture (2s, atomic 0, epoll)",
     "shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)",
     "shutdown cancels BGSAVE capture (2s, atomic 1, epoll)",
-    "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)"
+    "shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)",
+    "authfix CG4.1 binary config requirepass",
+    "authfix CG4.2 missing config value refuses boot",
+    "authfix SV4.2 binary requirepass rewrite restart",
+    "authfix SV4.1 slowlog credential redaction (1s)",
+    "authfix SV4.1 slowlog credential redaction (2s)"
   ],
   "supplement": {
     "source": "origin/cpp 4329c26f0 tests/gate.sh job_wb_rule_units",

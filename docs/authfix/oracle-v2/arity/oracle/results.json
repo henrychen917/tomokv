@@ -1,0 +1,292 @@
+{
+  "binary": "/home/user/Projects/redis/src/redis-server",
+  "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "checks": [
+    {
+      "label": "requirepass-final no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "requirepass-final exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "requirepass-final wrong-number error",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 2\n>>> 'requirepass'\nwrong number of arguments\n"
+    },
+    {
+      "label": "requirepass-middle no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "requirepass-middle exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "requirepass-middle wrong-number error",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 2\n>>> 'requirepass'\nwrong number of arguments\n"
+    },
+    {
+      "label": "missing-tls-cert-file no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-tls-cert-file exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-tls-cert-file diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'tls-cert-file'\nwrong number of arguments\n"
+    },
+    {
+      "label": "missing-tls-key-file no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-tls-key-file exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-tls-key-file diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'tls-key-file'\nwrong number of arguments\n"
+    },
+    {
+      "label": "missing-tls-ca-cert-file no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-tls-ca-cert-file exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-tls-ca-cert-file diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'tls-ca-cert-file'\nwrong number of arguments\n"
+    },
+    {
+      "label": "missing-tls-ca-cert-dir no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-tls-ca-cert-dir exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-tls-ca-cert-dir diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'tls-ca-cert-dir'\nwrong number of arguments\n"
+    },
+    {
+      "label": "missing-tls-protocols no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-tls-protocols exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-tls-protocols diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'tls-protocols'\nwrong number of arguments\n"
+    },
+    {
+      "label": "missing-tls-ciphers no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-tls-ciphers exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-tls-ciphers diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'tls-ciphers'\nwrong number of arguments\n"
+    },
+    {
+      "label": "missing-tls-ciphersuites no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-tls-ciphersuites exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-tls-ciphersuites diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'tls-ciphersuites'\nwrong number of arguments\n"
+    },
+    {
+      "label": "missing-unixsocket no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-unixsocket exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-unixsocket diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'unixsocket'\nwrong number of arguments\n"
+    },
+    {
+      "label": "missing-aclfile no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-aclfile exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-aclfile diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'aclfile'\nwrong number of arguments\n"
+    },
+    {
+      "label": "missing-latency-monitor-threshold no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-latency-monitor-threshold exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-latency-monitor-threshold diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'latency-monitor-threshold'\nwrong number of arguments\n"
+    },
+    {
+      "label": "missing-ratio no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-ratio exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-ratio diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'ratio'\nbad directive or wrong number of arguments\n"
+    },
+    {
+      "label": "missing-shard-home no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-shard-home exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-shard-home diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'shard-home'\nbad directive or wrong number of arguments\n"
+    },
+    {
+      "label": "missing-place no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-place exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-place diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'place'\nbad directive or wrong number of arguments\n"
+    },
+    {
+      "label": "missing-dir no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-dir exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-dir diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'dir'\nwrong number of arguments\n"
+    },
+    {
+      "label": "missing-dbfilename no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-dbfilename exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-dbfilename diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'dbfilename'\nwrong number of arguments\n"
+    },
+    {
+      "label": "missing-appendfilename no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-appendfilename exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-appendfilename diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'appendfilename'\nwrong number of arguments\n"
+    },
+    {
+      "label": "missing-appenddirname no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-appenddirname exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-appenddirname diagnostic",
+      "passed": true,
+      "actual": "\n*** fatal config file error (redis 7.4.10) ***\nreading the configuration file, at line 1\n>>> 'appenddirname'\nwrong number of arguments\n"
+    }
+  ],
+  "slowlog": {}
+}

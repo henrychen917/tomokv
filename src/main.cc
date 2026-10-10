@@ -164,7 +164,7 @@ int main(int argc, char** argv) {
     Config cfg;
     ConfigParseState parse_state;
     std::vector<std::string> token_store;      // owns conf-file tokens; Config keeps views into it
-    std::vector<const char*> conf_tokens, cli_tokens;
+    std::vector<const char*> cli_tokens;
 
     // Redis-style optional first argument: ./tomokv tomokv.conf. Flags override that file.
     const char* conf_path = nullptr;
@@ -177,9 +177,9 @@ int main(int argc, char** argv) {
     }
     cfg.conf_path = conf_path;   // retained for CONFIG REWRITE; points into argv, which outlives us
     if (conf_path) {
-        if (!load_conf_file(conf_path, token_store)) return 1;
-        for (const std::string& t : token_store) conf_tokens.push_back(t.c_str());
-        const int rc = parse_config_args(conf_tokens, cfg, parse_state, 1, argv[0]);
+        std::vector<size_t> conf_line_ends;
+        if (!load_conf_file(conf_path, token_store, &conf_line_ends)) return 1;
+        const int rc = parse_config_file(token_store, conf_line_ends, cfg, parse_state, argv[0]);
         if (rc != kConfigParsed) {
             if (rc == kConfigError) std::fprintf(stderr, "(while parsing %s)\n", conf_path);
             return rc == kConfigHelp ? 0 : 1;

@@ -1,0 +1,292 @@
+{
+  "binary": "/home/user/Projects/cx-authfix/build/tomokv",
+  "sha256": "3b689290c66d46797da49c1ef0d11568528b63ab611d5580e89cb367a8e9fc1d",
+  "checks": [
+    {
+      "label": "requirepass-final no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "requirepass-final exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "requirepass-final wrong-number error",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/requirepass-final.conf:2: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "requirepass-middle no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "requirepass-middle exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "requirepass-middle wrong-number error",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/requirepass-middle.conf:2: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-tls-cert-file no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-tls-cert-file exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-tls-cert-file diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-tls-cert-file.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-tls-key-file no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-tls-key-file exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-tls-key-file diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-tls-key-file.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-tls-ca-cert-file no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-tls-ca-cert-file exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-tls-ca-cert-file diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-tls-ca-cert-file.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-tls-ca-cert-dir no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-tls-ca-cert-dir exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-tls-ca-cert-dir diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-tls-ca-cert-dir.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-tls-protocols no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-tls-protocols exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-tls-protocols diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-tls-protocols.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-tls-ciphers no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-tls-ciphers exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-tls-ciphers diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-tls-ciphers.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-tls-ciphersuites no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-tls-ciphersuites exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-tls-ciphersuites diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-tls-ciphersuites.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-unixsocket no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-unixsocket exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-unixsocket diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-unixsocket.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-aclfile no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-aclfile exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-aclfile diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-aclfile.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-latency-monitor-threshold no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-latency-monitor-threshold exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-latency-monitor-threshold diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-latency-monitor-threshold.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-ratio no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-ratio exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-ratio diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-ratio.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-shard-home no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-shard-home exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-shard-home diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-shard-home.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-place no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-place exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-place diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-place.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-dir no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-dir exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-dir diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-dir.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-dbfilename no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-dbfilename exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-dbfilename diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-dbfilename.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-appendfilename no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-appendfilename exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-appendfilename diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-appendfilename.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    },
+    {
+      "label": "missing-appenddirname no listener",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "label": "missing-appenddirname exit 1",
+      "passed": true,
+      "actual": 1
+    },
+    {
+      "label": "missing-appenddirname diagnostic",
+      "passed": true,
+      "actual": "/home/user/projects/cx-authfix/docs/authfix/post/arity/candidate/missing-appenddirname.conf:1: wrong number of arguments\ntomokv 1.0-cpp (redis 7.4.10 compatible)\n"
+    }
+  ],
+  "slowlog": {}
+}
