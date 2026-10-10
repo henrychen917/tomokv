@@ -1,0 +1,24 @@
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/runs/post-late-final/late", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "uring", "--enable-debug-command", "yes"], "event": "boot", "label": "late", "loadavg": [18.17626953125, 12.51318359375, 13.66064453125]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/tomokv", "label": "late", "pid": 1144449}
+{"attempt": 0, "closes": 28, "reply": "OK"}
+{"attempt": 1, "closes": 28, "reply": "OK"}
+{"attempt": 2, "closes": 28, "reply": "OK"}
+{"attempt": 3, "closes": 28, "reply": "OK"}
+{"attempt": 4, "closes": 28, "reply": "OK"}
+{"attempt": 5, "closes": 28, "reply": "OK"}
+{"attempt": 6, "closes": 28, "reply": "OK"}
+{"attempt": 7, "closes": 28, "reply": "OK"}
+{"attempt": 8, "closes": 28, "reply": "OK"}
+{"attempt": 9, "closes": 28, "reply": "OK"}
+{"attempt": 10, "closes": 28, "reply": "OK"}
+{"attempt": 11, "closes": 28, "reply": "OK"}
+{"attempt": 12, "closes": 28, "reply": "OK"}
+{"attempt": 13, "closes": 28, "reply": "OK"}
+{"attempt": 14, "closes": 28, "reply": "OK"}
+{"attempt": 15, "closes": 28, "reply": "OK"}
+{"attempt": 16, "closes": 28, "reply": "OK"}
+{"attempt": 17, "closes": 28, "reply": "OK"}
+{"attempt": 18, "closes": 28, "reply": "OK"}
+{"attempt": 19, "closes": 28, "reply": "OK"}
+{"case": "late", "outcomes": {"OK": 20}, "result": "PASS"}
+{"event": "stop", "label": "late", "loadavg": [18.17626953125, 12.51318359375, 13.66064453125], "log": "/home/user/Projects/cx-flipfix/build/flipfix/runs/post-late-final/late/late.log", "rc": 0}

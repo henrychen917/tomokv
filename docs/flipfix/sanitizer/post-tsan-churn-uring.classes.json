@@ -1,0 +1,66 @@
+{
+ "log": "build/flipfix/final-san/post-tsan-churn-uring/churn/churn.log",
+ "reports": 25,
+ "classes": {
+  "diagnostic": 19,
+  "other": 4,
+  "flip": 2
+ },
+ "groups": [
+  [
+   "diagnostic",
+   4,
+   "data race :: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl <-> tomo_db0::ThreadCtx::total_commands() const"
+  ],
+  [
+   "diagnostic",
+   3,
+   "data race :: tomo_db0::ExLoopT<false>::run() <-> tomo_db0::Server::lb_fold_signals(unsigned long)"
+  ],
+  [
+   "diagnostic",
+   3,
+   "data race :: tomo_db0::IoTenure<tomo_db0::IoAccountingClock, 100000ul>::account(unsigned long) <-> tomo_db0::Server::lb_fold_signals(unsigned long)"
+  ],
+  [
+   "diagnostic",
+   3,
+   "data race :: tomo_db0::Server::lb_fold_signals(unsigned long) <-> void tomo_db0::IoLoop::run_loop<false, false, false, false, false>()"
+  ],
+  [
+   "diagnostic",
+   2,
+   "data race :: tomo_db0::info_stats_tick(tomo_db0::Server&) <-> void tomo_db0::IoLoop::on_recv<false, false, false>(tomo_db0::Client*, int)"
+  ],
+  [
+   "diagnostic",
+   2,
+   "data race :: bool tomo_db0::WbEngine::on_send_complete<true, false>(tomo_db0::Client&, int) <-> tomo_db0::info_stats_tick(tomo_db0::Server&)"
+  ],
+  [
+   "other",
+   2,
+   "data race :: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl <-> void tomo_db0::IoLoop::admit_fd<false, false>(int, tomo_db0::UrKind)"
+  ],
+  [
+   "diagnostic",
+   2,
+   "data race :: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl <-> tomo_db0::ThreadCtx::command_calls(unsigned int) const"
+  ],
+  [
+   "flip",
+   2,
+   "data race :: tomo_db0::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<ch <-> unsigned int tomo_db0::IoLoop::flip_control_pass<false>()"
+  ],
+  [
+   "other",
+   1,
+   "data race :: bool tomo_db0::WbEngine::submit_legacy<false, false>(tomo_db0::Client&, unsigned long, unsigned long <-> tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl"
+  ],
+  [
+   "other",
+   1,
+   "data race :: bool tomo_db0::WbEngine::on_send_complete<true, false>(tomo_db0::Client&, int) <-> tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl"
+  ]
+ ]
+}

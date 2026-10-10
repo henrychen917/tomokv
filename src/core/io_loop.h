@@ -204,6 +204,10 @@ public:
     bool activate() {
         if (!initialized_) return false;
         refresh_save_cron_writer();
+        // An IO tenure that begins inside a live FLIP (EX -> IO, after the role store) holds its
+        // closes until that FLIP retires, like every IO that acknowledged IoDrain: RoleReady and
+        // completion compare its transferred connections with its quota exactly.
+        flip_close_pin_ = flip_stage_holds_closes(srv_->flip_stage());
         if (active_role_) {
             self_->set_ring(&ring_);
             self_->set_wb_engine(&wb_);
@@ -1699,9 +1703,14 @@ private:
         // lifetime fence releases live_clients. Such a connection stays active
         // for retry. Planning before that retry would see a false ownership-count
         // violation; committing could also strand its cleanup on a former IO.
-        for (Client* client : active_.v)
-            if (client->closing() && !client->dead()) return false;
+        // While this IO's FLIP pin holds (a later drain of the same FLIP), a closing
+        // connection is held BEFORE that removal: it is still owned and counted, it stays
+        // on this surviving IO, and waiting for it here would wait for the FLIP itself.
+        if (!flip_close_pin_)
+            for (Client* client : active_.v)
+                if (client->closing() && !client->dead()) return false;
         for (Client* client : self_->clients()) {
+            if (flip_close_pin_ && client->closing()) continue;
             const bool coordinator_op = self_->id() == srv_->flip_coordinator() &&
                 client == flip_client_ && flip_epoch_local_ == srv_->flip_epoch();
             if (coordinator_op) {
@@ -1723,6 +1732,9 @@ private:
                 error = "the weighted FLIP connection set changed after planning";
                 return false;
             }
+            // Pinned, so still allocated and owned here. A planned connection that is closing
+            // never becomes transferable: it is dropped when this source claims the epoch.
+            if (client->closing()) continue;
             std::string refused;
             if (!client_transfer_ready(
                     client, srv_->flip_client_destination(self_->id(), ordinal), refused)) {
@@ -1731,6 +1743,55 @@ private:
             }
         }
         return true;
+    }
+
+    // Source side, after this IO claimed the ClientPrepare epoch. A non-null planned entry is
+    // either still pinned here (allocated and owned) or a detached transfer. A closing entry that
+    // is not detached is dropped exactly once: forgotten in the plan row (so it is never read
+    // again once the pin is released) and its quota unit moved off its planned destination.
+    void flip_drop_closing_planned(uint32_t planned, bool converting_to_ex) {
+        for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
+            Client* client = srv_->flip_client_at(self_->id(), ordinal);
+            if (!client || !client->closing() || find_client_migration(client)) continue;
+            srv_->flip_drop_planned_client(self_->id(),
+                                           srv_->flip_client_destination(self_->id(), ordinal),
+                                           !converting_to_ex);
+            srv_->flip_forget_planned_client(self_->id(), ordinal);
+            flip_dropped_local_++;
+        }
+    }
+
+    // IoDrain ordering (IO4.4a). The plan reads every IO's client vector once all acknowledged,
+    // so nothing may still be on its way into one: an LB connection move admitted before the FLIP
+    // is posted before LB leaves ClientMoving, and the UNIX owner's pending hand-offs are posted
+    // before it acknowledges. Acknowledging after both makes this IO's drain see them.
+    bool flip_io_drain_ordered() const {
+        if (srv_->lb_stage() == LbStage::ClientMoving) return false;
+        const uint32_t unix_owner = srv_->unix_owner_tid();
+        return unix_owner >= srv_->nthreads() || unix_owner == self_->id() ||
+               srv_->flip_acked(unix_owner, FlipStage::IoDrain);
+    }
+
+    // A live FLIP never parks this loop (flip_control_pass reports work every pass), so the
+    // mask-independent sweep the idle path runs before parking never runs either. NotifyMask::set
+    // skips its RMW when it still sees its bit, so a consumer can take that bit before the
+    // producer's item is visible; the item then waits with no bit. The FLIP stages wait on exactly
+    // these inboxes (connection transfers; client/pub-sub markers): a stranded transfer held
+    // ClientInstall forever in a POST epoll stress run. While live, re-flag every inbox that holds
+    // an item; this loop's next masked drains take it. Out of line and opaque (`noipa`), so the
+    // units that instantiate flip_control_pass keep their inlining decisions.
+    __attribute__((noinline, noipa)) void flip_reflag_inbound() { self_->flag_pending_io_inbound(); }
+
+    static bool flip_stage_holds_closes(FlipStage stage) {
+        return stage >= FlipStage::Planning && stage <= FlipStage::Rollback;
+    }
+
+    // Reached only while flip_close_pin_ is set: the teardown gate (pubsub_disconnect_ready)
+    // holds a close until the FLIP that set the pin retires, then clears the stale flag.
+    __attribute__((noinline, cold)) bool flip_close_held() {
+        if (flip_stage_holds_closes(srv_->flip_stage())) return true;
+        flip_close_pin_ = false;
+        return false;
     }
 
     void flip_wake_all() {
@@ -2041,13 +2102,24 @@ private:
         // and a new epoch started during this pass; its stage/ACK must not use the old sample.
         const FlipStage stage = srv_->flip_stage();
         if (flip_stage_snapshot_ != kNoFlipSnapshot) flip_stage_snapshot_ = stage;
-        if (stage == FlipStage::Idle) return 0;
+        if (stage == FlipStage::Idle) {
+            flip_close_pin_ = false; // the FLIP retired: held closes resume (pubsub_disconnect_ready)
+            return 0;
+        }
         if constexpr (!kSingleDatabase)
             if (stage <= FlipStage::DatabaseRun) return database_control_pass();
+        flip_reflag_inbound();
 
-        if (stage == FlipStage::IoDrain && !srv_->flip_acked(self_->id(), stage) &&
-            flip_io_drained()) {
-            srv_->flip_ack(self_->id(), stage);
+        if (stage == FlipStage::IoDrain && !srv_->flip_acked(self_->id(), stage)) {
+            // A pin left by an earlier FLIP must not hide a detached close from this drain.
+            flip_close_pin_ = false;
+            if (flip_io_drained() && flip_io_drain_ordered()) {
+                // From this acknowledgement the plan reads this IO's client vector: hold every
+                // close before it leaves ThreadCtx::clients until the FLIP retires (a converting
+                // IO releases the pin once its ClientPrepare is decided).
+                flip_close_pin_ = true;
+                srv_->flip_ack(self_->id(), stage);
+            }
         } else if (stage == FlipStage::IoPrepare &&
                    !srv_->flip_acked(self_->id(), stage)) {
             if (!prepare_client_transfer_capacity(srv_->flip_incoming_clients(self_->id())))
@@ -2077,6 +2149,7 @@ private:
                     }
                 } else {
                     flip_prepare_epoch_ = srv_->flip_epoch();
+                    flip_dropped_local_ = 0;
                     if (!reserve_client_transfer_state(planned)) {
                         srv_->flip_note_failure(
                             "ERR FLIP could not reserve source connection state");
@@ -2084,6 +2157,7 @@ private:
                         for (uint32_t ordinal = 0; ordinal < planned; ordinal++) {
                             Client* client = srv_->flip_client_at(self_->id(), ordinal);
                             if (!client) std::abort();
+                            if (client->closing()) continue; // dropped below, never detached
                             std::string error;
                             if (!prepare_client_transfer(
                                     client, srv_->flip_client_destination(self_->id(), ordinal),
@@ -2104,11 +2178,22 @@ private:
             // actually ran for THIS flip epoch.
             const bool prepared_this_epoch =
                 planned == 0 || flip_prepare_epoch_ == srv_->flip_epoch();
-            if (prepared_this_epoch && client_transfers_prepared() &&
-                client_migrations_.size() == planned && accepts_ready)
+            // A planned connection closing before its detach, or whose detach lost the race with
+            // its peer's EOF (cancelled, then held closing by the pin), stays out of the transfer.
+            if (planned && prepared_this_epoch) flip_drop_closing_planned(planned, converting_to_ex);
+            const uint32_t expected = planned - (planned ? flip_dropped_local_ : 0);
+            const bool transfers_prepared = client_transfers_prepared();
+            // A converting IO keeps no connection. Once every remaining planned connection is
+            // detached (none can close any more), its dropped ones finish closing before
+            // ClientInstall, which waits for them while reading Placement before any role store.
+            if (converting_to_ex && prepared_this_epoch && transfers_prepared &&
+                client_migrations_.size() == expected)
+                flip_close_pin_ = false;
+            if (prepared_this_epoch && transfers_prepared &&
+                client_migrations_.size() == expected && accepts_ready)
                 srv_->flip_ack(self_->id(), stage);
-            else if (prepared_this_epoch && client_transfers_prepared() &&
-                     client_migrations_.size() != planned)
+            else if (prepared_this_epoch && transfers_prepared &&
+                     client_migrations_.size() != expected)
                 srv_->flip_note_failure(
                     "ERR FLIP source connection set changed during reversible preflight");
         } else if (stage == FlipStage::ClientCommit &&
@@ -2156,6 +2241,12 @@ private:
         if (self_->id() != srv_->flip_coordinator()) return 1;
 
         std::string failure;
+        // IO4.2: a pending SIGTERM/SIGINT stop is served by the save cron, which no IO runs while
+        // a FLIP stage is live. Withdraw a reversible FLIP at once (later stages are bounded and
+        // complete); a FLIP begun while the stop is pending is withdrawn the same way.
+        if (stage < FlipStage::ClientCommit && stage != FlipStage::Rollback &&
+            srv_->signal_shutdown_pending())
+            srv_->flip_note_failure("ERR FLIP aborted: the server is shutting down");
         if (stage < FlipStage::ClientCommit && stage != FlipStage::Rollback &&
             srv_->flip_timed_out())
             srv_->flip_note_failure("ERR FLIP timed out before the ownership commit");
@@ -4917,8 +5008,17 @@ ordinary_shard_ready:
     bool     save_cron_writer_ = false; // elected owner, independent of live save/shutdown policy
     static constexpr FlipStage kNoFlipSnapshot = static_cast<FlipStage>(UINT8_MAX);
     FlipStage flip_stage_snapshot_ = kNoFlipSnapshot;
+    // FLIP connection-set pin (IO4.1/IO4.4). Set at this IO's IoDrain acknowledgement (or at an
+    // IO tenure activated inside a live FLIP); close_client then stops BEFORE the connection
+    // leaves ThreadCtx::clients until the FLIP retires. Counts stay equal to the plan's quotas,
+    // planned Client* stay allocated, and no close reads Placement while roles are stored. A
+    // converting IO releases it once its ClientPrepare is decided. Occupies an existing hole.
+    bool      flip_close_pin_ = false;
     uint32_t age_sample_rate_cached_ = 0;
     uint32_t lb_wake_cursor_ = UINT32_MAX;
+    // Planned connections this source dropped (closing at ClientPrepare) in flip_prepare_epoch_.
+    // Owner-private; occupies the existing hole before lb_client_observations_.
+    uint32_t  flip_dropped_local_ = 0;
     std::vector<LbClientObservation> lb_client_observations_;
     struct RobHeadAge {
         uint64_t head_id = 0;

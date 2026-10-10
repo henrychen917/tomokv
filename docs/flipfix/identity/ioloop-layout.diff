@@ -1,0 +1,4 @@
+56a57
+> /* 1411 | 1 */ bool flip_close_pin_;
+58a60
+> /* 1420 | 4 */ uint32_t flip_dropped_local_;

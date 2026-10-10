@@ -1,0 +1,3 @@
+{"argv": ["taskset", "-c", "112-119", "gdb", "-nx", "-q", "-x", "/home/user/Projects/cx-flipfix/build/flipfix/runs/pre-abort-probe-final/probe.gdb", "--args", "/home/user/Projects/cx-flipfix/build/flipfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/runs/pre-abort-probe-final/data", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "uring"], "event": "boot", "loadavg": [2.8427734375, 9.623046875, 12.82373046875]}
+{"event": "result", "reply": "connection lost: TimeoutError", "server_alive": false, "sigabrt": true}
+{"result": "FAIL"}

@@ -1049,6 +1049,7 @@ struct CoreConcurrencyTest {
 #include "flipsettle_checks.inc"
 #include "lanefull_checks.inc"
 #include "flipreport_checks.inc"
+#include "flipfix_checks.inc"
 
     static void snapshot_forward() {
         Fixture f;
@@ -1193,6 +1194,10 @@ int main(int argc, char** argv) {
     if (row == "watch") T::watch_disconnect();
     else if (row == "lifetime") { T::lifetime(); T::close_cycles(); T::flip_close(); }
     else if (row == "flip-close") T::flip_close();
+    else if (row == "flipfix-plan") { T::flipfix_plan_lifetime(); T::flipfix_plan_race(); }
+    else if (row == "flipfix-plan-race") T::flipfix_plan_race();
+    else if (row == "flipfix-plan-lifetime") T::flipfix_plan_lifetime();
+    else if (row == "flipfix-fingerprint") T::flipfix_fingerprint();
     else if (row == "close-cycle") T::close_cycles();
     else if (row == "drain") T::drain_ack();
     else if (row == "route") { T::route_order(); T::lb_stalls(); T::lb_signals(); T::signalacct(); T::flipsettle_all(); T::lanefull_all(); T::flipreport_all(); }

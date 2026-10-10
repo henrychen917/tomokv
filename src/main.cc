@@ -63,9 +63,18 @@ static_assert(std::atomic<uint32_t>::is_always_lock_free);
 static_assert(std::atomic<bool>::is_always_lock_free);
 static_assert(std::atomic<uint8_t>::is_always_lock_free);
 
-static void on_signal(int) {
+static void on_signal(int sig) {
     if (!g_signal_armed.load(std::memory_order_acquire)) return;
     if (Server* server = g_signal_server.load(std::memory_order_acquire)) {
+        // Redis 7.4: SIGINT while a signal stop is already scheduled means "exit now" without
+        // waiting for the save (exit status 1: not a clean shutdown). Only async-signal-safe
+        // calls: two atomic loads, write(2) and _exit(2).
+        if (sig == SIGINT && (server->signal_shutdown_pending() ||
+                              server->shutting_down().load(std::memory_order_relaxed))) {
+            static constexpr char kInsist[] = "You insist... exiting now.\n";
+            (void)!::write(STDERR_FILENO, kInsist, sizeof(kInsist) - 1);
+            ::_exit(1);
+        }
         // Keep owners alive until the ordinary IO save path has persisted the final cut.
         // No sticky terminal wake yet: the save cron's existing timer bounds request latency.
         if (server->request_signal_shutdown()) return;

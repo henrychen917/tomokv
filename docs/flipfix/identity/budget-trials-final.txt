@@ -1,0 +1,785 @@
+=== trialv-v4-db0_src_core_genthread.o.out
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129350", "hot_changed": 1, "equal": 740, "intended": 20, "reloc-only": 0, "collateral": 4}
+    HOT 9538->9698 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:1817->1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    code:845->781 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+    code:2262->2519 void std::deque<tomo_db0::PubSubEvent*, std::allocator<tomo_db0::PubSubEvent*> >::_M_insert_aux<std::_Deque_it
+=== trialv-v4-db0_src_core_reorder.o.out
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147736", "hot_changed": 1, "equal": 804, "intended": 20, "reloc-only": 0, "collateral": 4}
+    HOT 18353->18361 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:2252->2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    code:1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    code:964->820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_
+=== trialv-v4-db0_src_core_rl2s.o.out
+{"object": "db0/src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162000", "hot_changed": 5, "equal": 672, "intended": 20, "reloc-only": 0, "collateral": 1}
+    HOT 21083->20807 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra
+    HOT 21051->20800 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)
+    HOT 11888->11635 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    HOT 21169->20955 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.
+    HOT 20985->20743 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+=== trialv-v4-db0_src_main.o.out
+{"object": "db0/src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=146928 --param max-inline-insns-auto=18", "hot_changed": 2, "equal": 625, "intended": 20, "reloc-only": 9, "collateral": 3}
+    HOT 12000->11717 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)
+    HOT 12149->11832 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:9176->9177 main
+    code:4819->4819 main.cold
+=== trialv-v4-genthread-db0-scan.out
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129226", "hot_changed": 1, "equal": 739, "intended": 20, "reloc-only": 0, "collateral": 5}
+    HOT 9538->9730 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    code:1219->1201 tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:1173->886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    code:931->867 tomo_db0::FlatStore::random_volatile_candidate()
+    code:845->781 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129230", "hot_changed": 1, "equal": 739, "intended": 20, "reloc-only": 0, "collateral": 5}
+    HOT 9538->9746 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    code:1219->1201 tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:1173->886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    code:931->867 tomo_db0::FlatStore::random_volatile_candidate()
+    code:845->781 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129250", "hot_changed": 1, "equal": 740, "intended": 20, "reloc-only": 0, "collateral": 4}
+    HOT 9538->9730 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    code:1219->1201 tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:1173->886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    code:845->781 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129290", "hot_changed": 1, "equal": 739, "intended": 20, "reloc-only": 0, "collateral": 5}
+    HOT 9538->9730 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:1817->1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    code:1173->886 bool tomo_db0::WbEngine::pump<false, false>(tomo_db0::Client&)
+    code:845->781 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+    code:2262->2519 void std::deque<tomo_db0::PubSubEvent*, std::allocator<tomo_db0::PubSubEvent*> >::_M_insert_aux<std::_Deque_it
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129310", "hot_changed": 1, "equal": 741, "intended": 20, "reloc-only": 0, "collateral": 3}
+    HOT 9538->9730 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    code:1219->1201 tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:845->781 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129330", "hot_changed": 1, "equal": 741, "intended": 20, "reloc-only": 0, "collateral": 3}
+    HOT 9538->9730 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:1817->1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    code:845->781 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129340", "hot_changed": 1, "equal": 739, "intended": 20, "reloc-only": 0, "collateral": 5}
+    HOT 9538->9746 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    code:1219->1201 tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:3713->3777 tomo_db0::IoLoop::pubsub_finish_pending(unsigned long)
+    code:1817->1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    code:845->781 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129360", "hot_changed": 1, "equal": 739, "intended": 20, "reloc-only": 0, "collateral": 5}
+    HOT 9538->9730 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    code:1219->1201 tomo_db0::IoLoop::pubsub_deliver_one(tomo_db0::PubSubDelivery const&)
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:1817->1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    code:845->781 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+    code:2262->2519 void std::deque<tomo_db0::PubSubEvent*, std::allocator<tomo_db0::PubSubEvent*> >::_M_insert_aux<std::_Deque_it
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129370", "hot_changed": 1, "equal": 742, "intended": 20, "reloc-only": 0, "collateral": 2}
+    HOT 9538->9730 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:845->781 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+{"object": "db0/src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129390", "hot_changed": 1, "equal": 741, "intended": 20, "reloc-only": 0, "collateral": 3}
+    HOT 9538->9698 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:1817->1858 tomo_db0::IoLoop::pubsub_shutdown_events()
+    code:845->781 tomo_db0::FlatStore::hash_key(tomo_db0::Slice) [clone .isra.0]
+=== trialv-v4-genthread-scan.out
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129021", "hot_changed": 0, "equal": 750, "intended": 18, "reloc-only": 0, "collateral": 5}
+    code:6102->6036 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, s
+    added:0->187 tomo::IoLoop::flip_reflag_inbound()
+    code:800->683 tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)
+    code:1749->1381 tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    code:3713->3392 tomo::IoLoop::pubsub_finish_pending(unsigned long)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129029", "hot_changed": 0, "equal": 749, "intended": 18, "reloc-only": 0, "collateral": 6}
+    code:6102->6036 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, s
+    code:3557->3621 tomo::IoLoop::lb_control_pass()
+    added:0->187 tomo::IoLoop::flip_reflag_inbound()
+    code:800->683 tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)
+    code:1749->1381 tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    code:3713->3392 tomo::IoLoop::pubsub_finish_pending(unsigned long)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129037", "hot_changed": 0, "equal": 748, "intended": 18, "reloc-only": 0, "collateral": 7}
+    code:6102->6036 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, s
+    added:0->187 tomo::IoLoop::flip_reflag_inbound()
+    code:800->683 tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)
+    code:1980->1958 tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    code:1749->1744 tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    code:3713->3392 tomo::IoLoop::pubsub_finish_pending(unsigned long)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129045", "hot_changed": 0, "equal": 749, "intended": 18, "reloc-only": 0, "collateral": 6}
+    code:6102->6036 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, s
+    added:0->187 tomo::IoLoop::flip_reflag_inbound()
+    code:800->683 tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)
+    code:1980->1958 tomo::IoLoop::pubsub_start_command(tomo::Client*, tomo::Op&)
+    code:1749->1744 tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    code:3713->3392 tomo::IoLoop::pubsub_finish_pending(unsigned long)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129065", "hot_changed": 0, "equal": 751, "intended": 18, "reloc-only": 0, "collateral": 4}
+    added:0->187 tomo::IoLoop::flip_reflag_inbound()
+    code:800->683 tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)
+    code:1749->1744 tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    code:3713->3392 tomo::IoLoop::pubsub_finish_pending(unsigned long)
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129185", "hot_changed": 2, "equal": 747, "intended": 20, "reloc-only": 0, "collateral": 6}
+    HOT 18292->18335 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 18260->18292 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    code:6102->6036 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, s
+    code:3557->3621 tomo::IoLoop::lb_control_pass()
+    added:0->187 tomo::IoLoop::flip_reflag_inbound()
+    code:1749->1744 tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    code:519->645 tomo::FlatStore::retire_obj(tomo::KvObj*)
+    removed:63->0 tomo::ExLoopT<true>::read_local_lane_quota(unsigned long) const
+=== trialv-v4-reorder-db0-scan.out
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147704", "hot_changed": 2, "equal": 803, "intended": 19, "reloc-only": 0, "collateral": 5}
+    HOT 9522->9538 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    HOT 1212->984 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:2252->2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    code:1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    code:964->820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_
+    code:1212->984 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147716", "hot_changed": 1, "equal": 803, "intended": 18, "reloc-only": 0, "collateral": 6}
+    HOT 1212->984 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:2252->2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    code:1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    code:663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    code:964->820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_
+    code:1212->984 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147724", "hot_changed": 1, "equal": 804, "intended": 19, "reloc-only": 0, "collateral": 5}
+    HOT 3623->3557 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:2252->2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    code:3623->3557 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+    code:1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    code:964->820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147728", "hot_changed": 2, "equal": 803, "intended": 20, "reloc-only": 0, "collateral": 5}
+    HOT 9522->9538 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    HOT 3623->3557 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:2252->2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    code:3623->3557 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+    code:1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    code:964->820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147732", "hot_changed": 0, "equal": 805, "intended": 19, "reloc-only": 0, "collateral": 4}
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:2252->2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    code:1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    code:964->820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147740", "hot_changed": 0, "equal": 805, "intended": 18, "reloc-only": 0, "collateral": 4}
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:2252->2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    code:1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    code:964->820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147744", "hot_changed": 1, "equal": 804, "intended": 19, "reloc-only": 0, "collateral": 4}
+    HOT 9522->9538 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:2252->2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    code:1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    code:964->820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147752", "hot_changed": 0, "equal": 806, "intended": 18, "reloc-only": 0, "collateral": 3}
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    code:964->820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147760", "hot_changed": 1, "equal": 803, "intended": 19, "reloc-only": 0, "collateral": 5}
+    HOT 18353->18361 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:2252->2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    code:1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    code:663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    code:964->820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147776", "hot_changed": 1, "equal": 804, "intended": 18, "reloc-only": 0, "collateral": 5}
+    HOT 1195->1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:2252->2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    code:1195->1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    code:1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    code:964->820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147800", "hot_changed": 1, "equal": 804, "intended": 18, "reloc-only": 0, "collateral": 5}
+    HOT 1195->1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:1195->1404 unsigned int tomo_db0::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    code:1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    code:663->628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    code:964->820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=147664", "hot_changed": 3, "equal": 802, "intended": 19, "reloc-only": 0, "collateral": 6}
+    HOT 18353->18361 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)
+    HOT 1212->984 tomo_db0::WbEngine::serve_impl<true, true, false, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1
+    HOT 1212->984 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}
+    added:0->187 tomo_db0::IoLoop::flip_reflag_inbound()
+    code:2252->2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    code:1011->1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    code:964->820 unsigned int tomo_db0::FlatStore::scan_home<tomo_db0::Shard::lb_scan_bucket_bytes(unsigned int)::{lambda(tomo_
+    code:1212->984 tomo_db0::WbEngine::serve_impl<true, true, false, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_d
+    code:1212->984 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db
+=== trialv-v4-src_core_genthread.o.out
+{"object": "src/core/genthread.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=129025", "hot_changed": 0, "equal": 751, "intended": 18, "reloc-only": 0, "collateral": 4}
+    added:0->187 tomo::IoLoop::flip_reflag_inbound()
+    code:800->683 tomo::IoLoop::pubsub_delete_event(tomo::PubSubEvent*)
+    code:1749->1381 tomo::IoLoop::pubsub_start_publish(tomo::Client*, tomo::Op&, bool)
+    code:3713->3392 tomo::IoLoop::pubsub_finish_pending(unsigned long)
+=== trialv-v4-src_core_reorder.o.out
+{"object": "src/core/reorder.o", "params": "", "hot_changed": 0, "equal": 813, "intended": 20, "reloc-only": 0, "collateral": 7}
+    code:424->544 void tomo::IoLoop::r7_on_recv<false, false, true>(tomo::Client*, int)
+    code:424->544 void tomo::IoLoop::r7_on_recv<false, true, true>(tomo::Client*, int)
+    code:2733->2733 void tomo::IoLoop::adopt_client<false, false>(tomo::Client*, bool, bool)
+    code:1684->1668 bool tomo::IoLoop::r7_drive_tls<false, true>(tomo::Client*) [clone .isra.0]
+    added:0->187 tomo::IoLoop::flip_reflag_inbound()
+    code:2041->2094 tomo::IoLoop::pubsub_reply_restricted(tomo::Op&) [clone .isra.0]
+    code:6876->7039 tomo::FlatStore::atomic_collapse(unsigned long, unsigned long)
+=== trialv-v4-src_core_rl2s.o.out
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162035", "hot_changed": 5, "equal": 679, "intended": 24, "reloc-only": 0, "collateral": 1}
+    HOT 20920->20761 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]
+    HOT 20932->20916 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12261->11706 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT 20973->20932 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]
+    HOT 20884->20914 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)
+    added:0->187 tomo::IoLoop::flip_reflag_inbound()
+=== trialv-v4-src_main.o.out
+{"object": "src/main.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=146891", "hot_changed": 2, "equal": 625, "intended": 24, "reloc-only": 8, "collateral": 4}
+    HOT 12502->12003 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)
+    HOT 12375->12127 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)
+    code:13409->13409 tomokv_multidb_main(int, char**)
+    code:4095->4095 tomokv_multidb_main(int, char**) [clone .cold]
+    added:0->187 tomo::IoLoop::flip_reflag_inbound()
+    code:13897->13897 tomo::Server::init(tomo::Config const&, tomo::AofReplayPlan const*)
+=== trialhot1-reorder.out
+{"object": "src/core/reorder.o", "params": "--param large-unit-insns=113690", "hot_changed": 57, "equal": 630, "intended": 27, "reloc-only": 0, "collateral": 183}
+    HOT 3087->3425 void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()
+    HOT 18130->18725 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 9880->10418 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT 18158->18720 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 18143->18755 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 18296->18735 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 1737->1937 bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+    HOT 3250->3588 unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+    HOT 566->973 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 882->1548 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()
+    HOT 1195->1623 unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()
+    HOT 3480->3718 bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)
+    HOT 3329->3569 bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+    HOT 1213->1261 tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1166->1207 tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)
+    HOT 1631->1842 tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1144->1375 tomo::FlatStore::erase(unsigned long, tomo::Slice)
+    HOT 885->971 tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)
+    HOT 2349->2705 unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task 
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operato
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)#
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    removed:160->0 tomo::u64_to_dec(char*, unsigned long)
+    removed:374->0 tomo::ExpireIndex::migrate(unsigned int)
+    code:748->752 tomo::MaskedSpscArray<tomo::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int
+    code:2085->4005 tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    code:6102->7020 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, s
+    code:714->772 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+{"object": "src/core/reorder.o", "params": "--param large-unit-insns=113700", "hot_changed": 57, "equal": 630, "intended": 27, "reloc-only": 0, "collateral": 183}
+    HOT 3087->3425 void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()
+    HOT 18130->18725 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 9880->10418 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT 18158->18738 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 18143->18755 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 18296->18735 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 1737->1937 bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+    HOT 3250->3588 unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+    HOT 566->973 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 882->1548 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()
+    HOT 1195->1623 unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()
+    HOT 3480->3718 bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)
+    HOT 3329->3569 bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+    HOT 1213->1261 tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1166->1207 tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)
+    HOT 1631->1842 tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1144->1375 tomo::FlatStore::erase(unsigned long, tomo::Slice)
+    HOT 885->971 tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)
+    HOT 2349->2705 unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task 
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operato
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)#
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    removed:160->0 tomo::u64_to_dec(char*, unsigned long)
+    removed:374->0 tomo::ExpireIndex::migrate(unsigned int)
+    code:748->752 tomo::MaskedSpscArray<tomo::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int
+    code:2085->4005 tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    code:6102->7020 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, s
+    code:714->772 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+{"object": "src/core/reorder.o", "params": "--param large-unit-insns=113720", "hot_changed": 57, "equal": 630, "intended": 27, "reloc-only": 0, "collateral": 183}
+    HOT 3087->3425 void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()
+    HOT 18130->18725 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 9880->10418 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT 18158->18742 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 18143->18755 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 18296->18735 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 1737->1937 bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+    HOT 3250->3588 unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+    HOT 566->973 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 882->1548 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()
+    HOT 1195->1623 unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()
+    HOT 3480->3718 bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)
+    HOT 3329->3569 bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+    HOT 1213->1261 tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1166->1207 tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)
+    HOT 1631->1842 tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1144->1375 tomo::FlatStore::erase(unsigned long, tomo::Slice)
+    HOT 885->971 tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)
+    HOT 2349->2705 unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task 
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operato
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)#
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    removed:160->0 tomo::u64_to_dec(char*, unsigned long)
+    removed:374->0 tomo::ExpireIndex::migrate(unsigned int)
+    code:748->752 tomo::MaskedSpscArray<tomo::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int
+    code:2085->4005 tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    code:6102->7020 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, s
+    code:714->772 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+{"object": "src/core/reorder.o", "params": "--param large-unit-insns=113760", "hot_changed": 57, "equal": 627, "intended": 27, "reloc-only": 0, "collateral": 186}
+    HOT 3087->3425 void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()
+    HOT 18130->18728 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 9880->10418 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT 18158->18720 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 18143->18755 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 18296->18735 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 1737->1937 bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+    HOT 3250->3588 unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+    HOT 3983->5868 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+    HOT 566->973 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 882->1548 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()
+    HOT 1195->1623 unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()
+    HOT 3480->3718 bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)
+    HOT 3329->3569 bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+    HOT 1213->1261 tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1166->1207 tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)
+    HOT 1631->1842 tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1144->1375 tomo::FlatStore::erase(unsigned long, tomo::Slice)
+    HOT 885->971 tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)
+    HOT 2349->2705 unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task 
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operato
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)#
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    removed:160->0 tomo::u64_to_dec(char*, unsigned long)
+    removed:374->0 tomo::ExpireIndex::migrate(unsigned int)
+    code:748->752 tomo::MaskedSpscArray<tomo::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int
+    code:2085->4005 tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    code:6102->7020 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, s
+    code:714->772 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=159148", "hot_changed": 57, "equal": 630, "intended": 27, "reloc-only": 0, "collateral": 183}
+    HOT 3087->3425 void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()
+    HOT 18130->18728 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 9880->10418 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT 18158->18720 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 18143->18755 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 18296->18735 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 1737->1937 bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+    HOT 3250->3588 unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+    HOT 566->973 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 882->1548 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()
+    HOT 1195->1623 unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()
+    HOT 3480->3718 bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)
+    HOT 3329->3569 bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+    HOT 1213->1261 tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1166->1207 tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)
+    HOT 1631->1842 tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1144->1375 tomo::FlatStore::erase(unsigned long, tomo::Slice)
+    HOT 885->971 tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)
+    HOT 2349->2705 unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task 
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operato
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)#
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    removed:160->0 tomo::u64_to_dec(char*, unsigned long)
+    removed:374->0 tomo::ExpireIndex::migrate(unsigned int)
+    code:748->752 tomo::MaskedSpscArray<tomo::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int
+    code:2085->4005 tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    code:6102->7020 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, s
+    code:714->772 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=159152", "hot_changed": 57, "equal": 630, "intended": 27, "reloc-only": 0, "collateral": 183}
+    HOT 3087->3425 void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()
+    HOT 18130->18768 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 9880->10418 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT 18158->18720 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 18143->18755 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 18296->18735 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 1737->1937 bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+    HOT 3250->3588 unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+    HOT 566->973 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 882->1548 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()
+    HOT 1195->1623 unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()
+    HOT 3480->3718 bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)
+    HOT 3329->3569 bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+    HOT 1213->1261 tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1166->1207 tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)
+    HOT 1631->1842 tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1144->1375 tomo::FlatStore::erase(unsigned long, tomo::Slice)
+    HOT 885->971 tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)
+    HOT 2349->2705 unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task 
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operato
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)#
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    removed:160->0 tomo::u64_to_dec(char*, unsigned long)
+    removed:374->0 tomo::ExpireIndex::migrate(unsigned int)
+    code:748->752 tomo::MaskedSpscArray<tomo::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int
+    code:2085->4005 tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    code:6102->7020 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, s
+    code:714->772 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=159156", "hot_changed": 57, "equal": 630, "intended": 27, "reloc-only": 0, "collateral": 183}
+    HOT 3087->3425 void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()
+    HOT 18130->18728 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 9880->10418 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT 18158->18720 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 18143->18755 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 18296->18735 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 1737->1937 bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+    HOT 3250->3588 unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+    HOT 566->973 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 882->1548 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()
+    HOT 1195->1623 unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()
+    HOT 3480->3718 bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)
+    HOT 3329->3617 bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+    HOT 1213->1261 tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1166->1207 tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)
+    HOT 1631->1842 tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1144->1375 tomo::FlatStore::erase(unsigned long, tomo::Slice)
+    HOT 885->971 tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)
+    HOT 2349->2705 unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task 
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operato
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)#
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    removed:160->0 tomo::u64_to_dec(char*, unsigned long)
+    removed:374->0 tomo::ExpireIndex::migrate(unsigned int)
+    code:748->752 tomo::MaskedSpscArray<tomo::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int
+    code:2085->4005 tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    code:6102->7020 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, s
+    code:714->772 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+{"object": "src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=159164", "hot_changed": 57, "equal": 630, "intended": 27, "reloc-only": 0, "collateral": 183}
+    HOT 3087->3425 void tomo::r7::ExReorderQueues<32ul>::submit<tomo::ExLoopT<true>::r7_drain_tasks_impl<false, 32u, false>(bool)::{lambda(
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, false, true, false>()
+    HOT 2372->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, false, false>()
+    HOT 2388->2743 unsigned int tomo::IoLoop::r7_flush_ready<false, false, true, true, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, false, true, false>()
+    HOT 2944->3077 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, false, false>()
+    HOT 2960->3093 unsigned int tomo::IoLoop::r7_flush_ready<false, true, true, true, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, false, true, false>()
+    HOT 3062->3418 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, false, false>()
+    HOT 3078->3434 unsigned int tomo::IoLoop::r7_flush_ready<true, false, true, true, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, false, true, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, false, false>()
+    HOT 3744->4127 unsigned int tomo::IoLoop::r7_flush_ready<true, true, true, true, true, false>()
+    HOT 18130->18725 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 9880->10418 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT 18158->18720 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 18143->18755 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<false, 32u, false>(tomo::Client*)
+    HOT 18296->18735 tomo::IoLoop::DispatchResult tomo::IoLoop::r7_parse_and_dispatch<true, 32u, false>(tomo::Client*)
+    HOT 1737->1937 bool tomo::IoLoop::drive_tls<true, false>(tomo::Client*) [clone .isra.0]
+    HOT 3250->3588 unsigned int tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+    HOT 3983->5499 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+    HOT 4290->5604 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+    HOT 566->973 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    HOT 882->1548 unsigned int tomo::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, true>()
+    HOT 1195->1623 unsigned int tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, bool&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, true>()
+    HOT 3480->3718 bool tomo::ExLoopT<true>::execute<false, false>(tomo::Task const&)
+    HOT 3329->3569 bool tomo::ExLoopT<true>::execute<false, true>(tomo::Task const&)
+    HOT 1536->2218 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+    HOT 1794->3043 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+    HOT 1213->1261 tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1166->1207 tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)
+    HOT 1631->1842 tomo::FlatStore::insert_into_read_local(int, unsigned long, tomo::KvObj*, bool)
+    HOT 1144->1375 tomo::FlatStore::erase(unsigned long, tomo::Slice)
+    HOT 885->971 tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)
+    HOT 2349->2705 unsigned int tomo::ThreadCtx::drain_tasks<false, tomo::ExLoopT<true>::drain_tasks<32u, false>(bool)::{lambda(tomo::Task 
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operato
+    HOT 1201->1441 tomo::WbEngine::serve_impl<false, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 936->1176 tomo::WbEngine::serve_impl<false, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator
+    HOT 1249->1489 tomo::WbEngine::serve_impl<true, false, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, false, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator(
+    HOT 984->1224 tomo::WbEngine::serve_impl<true, true, true, true, false, true>(tomo::Client&, bool*)::{lambda(tomo::Op&)#1}::operator()
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&
+    HOT 952->1192 tomo::WbEngine::serve_tls_impl<false, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)
+    HOT 1016->1240 tomo::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo::Client&, tomo::TlsConn&, bool*)::{lambda(tomo::Op&)#
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    HOT 2184->2667 tomo::ThreadCtx::drain_task_producer_chunks<false, tomo::ExLoopT<true>::drain_tasks_read_local_interleaved<false>(bool, 
+    removed:160->0 tomo::u64_to_dec(char*, unsigned long)
+    removed:374->0 tomo::ExpireIndex::migrate(unsigned int)
+    code:748->752 tomo::MaskedSpscArray<tomo::Task, 128u>::remask_quiesced(std::vector<unsigned int, std::allocator<unsigned int
+    code:2085->4005 tomo::LateUnixListener::open(unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::alloc
+    code:6102->7020 tomo::weighted_lb_partition(std::vector<tomo::WeightedLbItem, std::allocator<tomo::WeightedLbItem> > const&, s
+    code:714->772 tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)
+=== trialcalls-rl2s.out
+{"params": "162035", "call_diff_bodies": 5, "call_delta_abs": 26, "collateral": 0}
+{"params": "162011", "call_diff_bodies": 5, "call_delta_abs": 27, "collateral": 0}
+{"params": "162019", "call_diff_bodies": 5, "call_delta_abs": 27, "collateral": 0}
+{"params": "162027", "call_diff_bodies": 5, "call_delta_abs": 28, "collateral": 0}
+{"params": "162043", "call_diff_bodies": 5, "call_delta_abs": 27, "collateral": 0}
+{"params": "162051", "call_diff_bodies": 5, "call_delta_abs": 28, "collateral": 0}
+{"params": "162067", "call_diff_bodies": 5, "call_delta_abs": 27, "collateral": 0}
+{"params": "162099", "call_diff_bodies": 5, "call_delta_abs": 28, "collateral": 0}
+{"params": "161995", "call_diff_bodies": 5, "call_delta_abs": 27, "collateral": 0}
+{"params": "162003", "call_diff_bodies": 5, "call_delta_abs": 28, "collateral": 0}
+{"params": "161979", "call_diff_bodies": 5, "call_delta_abs": 28, "collateral": 0}
+{"params": "162131", "call_diff_bodies": 5, "call_delta_abs": 29, "collateral": 0}
+=== trialcalls-rl2s-db0.out
+{"params": "162000", "call_diff_bodies": 1, "call_delta_abs": 1, "collateral": 0}
+{"params": "161976", "call_diff_bodies": 1, "call_delta_abs": 1, "collateral": 0}
+{"params": "161984", "call_diff_bodies": 1, "call_delta_abs": 1, "collateral": 0}
+{"params": "161992", "call_diff_bodies": 1, "call_delta_abs": 1, "collateral": 0}
+{"params": "162008", "call_diff_bodies": 1, "call_delta_abs": 1, "collateral": 0}
+{"params": "162016", "call_diff_bodies": 1, "call_delta_abs": 1, "collateral": 0}
+{"params": "162032", "call_diff_bodies": 1, "call_delta_abs": 1, "collateral": 0}
+{"params": "162064", "call_diff_bodies": 1, "call_delta_abs": 1, "collateral": 0}
+=== trialcalls-b79-rl2s.out
+{"params": "162035", "call_diff_bodies": 5, "call_delta_abs": 22, "collateral": 0}
+=== trialcalls-b79-rl2s-db0.out
+{"params": "162000", "call_diff_bodies": 1, "call_delta_abs": 1, "collateral": 0}

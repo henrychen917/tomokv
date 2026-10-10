@@ -1063,6 +1063,15 @@ public:
         }
     }
 
+    // FLIP-only (IoLoop::flip_reflag_inbound): flag every IO inbox that holds an item, so the
+    // owner's next masked drain takes it even when the producer skipped its notify RMW.
+    void flag_pending_io_inbound() {
+        for (uint32_t p = 0; p < nchan_; p++) {
+            if (client_in_[p].depth()) client_notify_.set(p);
+            if (transfer_in_[p].depth()) transfer_notify_.set(p);
+        }
+    }
+
     // Park predicates must match what the current loop can actually drain. A generic union of all
     // channel families turns one misrouted/stale entry into a permanent busy-spin: the loop sees
     // work forever, but none of its drain functions can consume that family.

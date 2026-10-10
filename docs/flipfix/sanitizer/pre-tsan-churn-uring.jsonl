@@ -1,0 +1,180 @@
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["setarch", "x86_64", "-R", "taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/flipfix/pre-tsan/tomokv", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/runs/pre-tsan-churn-uring-1/churn", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "uring", "--enable-debug-command", "yes"], "event": "boot", "label": "churn", "loadavg": [45.302734375, 67.71826171875, 86.400390625]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/flipfix/pre-tsan/tomokv", "label": "churn", "pid": 1391362}
+{"attempt": 0, "elapsed": 0.1358, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 1, "elapsed": 4.9985, "moving": 1, "reply": "ERR FLIP timed out before the ownership commit", "target": 4}
+{"attempt": 2, "elapsed": 0.0819, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 3, "elapsed": 0.0955, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 4, "elapsed": 0.0746, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 5, "elapsed": 0.0649, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 6, "elapsed": 0.0154, "moving": 1, "reply": "ERR FLIP connection ownership count is not conserved", "target": 6}
+{"attempt": 7, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 8, "elapsed": 0.0636, "moving": 0, "reply": "OK", "target": 2}
+{"attempt": 9, "elapsed": 4.9943, "moving": 1, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread", "target": 4}
+{"attempt": 10, "elapsed": 0.0592, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 11, "elapsed": 0.0663, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 12, "elapsed": 0.0263, "moving": 1, "reply": "ERR FLIP coordinator connection left the ownership set", "target": 2}
+{"attempt": 13, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 4}
+{"event": "stop", "label": "churn", "loadavg": [42.0361328125, 65.5048828125, 85.2724609375], "log": "/home/user/Projects/cx-flipfix/build/flipfix/runs/pre-tsan-churn-uring-1/churn/churn.log", "rc": 66}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 207, in disconnects
+    reply = admin.read()
+            ^^^^^^^^^^^^
+  File "/home/user/Projects/cx-flipfix/tests/_lib.py", line 161, in read
+    head = read(1)
+           ^^^^^^^
+  File "/home/user/Projects/cx-flipfix/tests/_lib.py", line 124, in _read
+    return self.file.read(size)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 108, in boot
+    yield conn, process, directory
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 209, in disconnects
+    raise AssertionError(
+AssertionError: FLIP 6 2 unanswered after 6.5s (attempt 14): wedged
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 405, in <module>
+    main()
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 397, in main
+    disconnects(args, args.case == 'churn')
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 158, in disconnects
+    with boot(args, 'churn' if churn else 'close') as (admin, process, _):
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 123, in boot
+    assert not hits, f'sanitizer report {hits} in {path}:\n' + text[-20000:]
+           ^^^^^^^^
+AssertionError: sanitizer report ['WARNING: ThreadSanitizer', 'ThreadSanitizer:'] in /home/user/Projects/cx-flipfix/build/flipfix/runs/pre-tsan-churn-uring-1/churn/churn.log:
+dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #7 __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58 (libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)
+
+SUMMARY: ThreadSanitizer: data race (/home/user/Projects/cx-flipfix/build/flipfix/pre-tsan/tomokv+0xe8c19) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4) in tomo_db0::ExLoopT<false>::run()
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1391362)
+  Write of size 8 at 0x7268000075d0 by thread T6:
+    #0 tomo_db0::ExLoopT<false>::run() <null> (tomokv+0xe697a) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #1 operator() src/main.cc:577 (tomokv+0x26e14) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #2 __invoke_impl<void, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61 (tomokv+0x26e14)
+    #3 __invoke<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96 (tomokv+0x26e14)
+    #4 _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292 (tomokv+0x26e14)
+    #5 operator() /usr/include/c++/13/bits/std_thread.h:299 (tomokv+0x26e14)
+    #6 _M_run /usr/include/c++/13/bits/std_thread.h:244 (tomokv+0x26e14)
+    #7 <null> <null> (libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+
+  Previous atomic read of size 8 at 0x7268000075d0 by thread T8 (mutexes: write M0, write M1):
+    #0 tomo_db0::Server::lb_fold_signals(unsigned long) src/core/server.h:611 (tomokv+0x44e46) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #1 tomo_db0::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >&) <null> (tomokv+0x885b0) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #2 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*) <null> (tomokv+0x115fdb) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #3 void tomo_db0::IoLoop::on_recv<false, false, false>(tomo_db0::Client*, int) <null> (tomokv+0x11d315) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #4 void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*) <null> (tomokv+0x11d61d) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #5 void tomo_db0::IoLoop::run_loop<false, false, false, false, false>() <null> (tomokv+0x12c291) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #6 tomo_db0::IoLoop::run_split() src/core/io_loop.h:426 (tomokv+0x26a95) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #7 tomo_db0::IoLoop::run() src/core/io_loop.h:432 (tomokv+0x26a95)
+    #8 operator() src/main.cc:571 (tomokv+0x26a95)
+    #9 __invoke_impl<void, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61 (tomokv+0x26a95)
+    #10 __invoke<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96 (tomokv+0x26a95)
+    #11 _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292 (tomokv+0x26a95)
+    #12 operator() /usr/include/c++/13/bits/std_thread.h:299 (tomokv+0x26a95)
+    #13 _M_run /usr/include/c++/13/bits/std_thread.h:244 (tomokv+0x26a95)
+    #14 <null> <null> (libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+
+  Location is heap block of size 1408 at 0x726800007200 allocated by main thread:
+    #0 operator new(unsigned long, std::align_val_t) ../../../../src/libsanitizer/tsan/tsan_new_delete.cpp:88 (libtsan.so.2+0xa7254) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 tomo_db0::Server::init(tomo_db0::Config const&, tomo_db0::AofReplayPlan const*) <null> (tomokv+0xda798) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #2 main src/main.cc:294 (tomokv+0x241c0) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #3 __wrap_main src/core/version.cc:21 (tomokv+0x54baa2) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #4 __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58 (libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)
+
+  Mutex M0 (0x7fffffff44b8) created at:
+    #0 pthread_mutex_lock ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1341 (libtsan.so.2+0x59a13) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 __gthread_mutex_lock /usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:749 (tomokv+0x4ca373) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #2 std::mutex::lock() /usr/include/c++/13/bits/std_mutex.h:113 (tomokv+0x4ca373)
+    #3 std::lock_guard<std::mutex>::lock_guard(std::mutex&) /usr/include/c++/13/bits/std_mutex.h:249 (tomokv+0x4ca373)
+    #4 tomo_db0::Server::lb_controller_tick(unsigned int, unsigned long) src/core/lbplanner.cc:165 (tomokv+0x4ca373)
+    #5 tomo_db0::Server::monitor_controllers() src/core/lbplanner.cc:504 (tomokv+0x4ccb3c) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #6 main src/main.cc:589 (tomokv+0x2597a) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #7 __wrap_main src/core/version.cc:21 (tomokv+0x54baa2) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #8 __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58 (libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)
+
+  Mutex M1 (0x7fffffff7568) created at:
+    #0 pthread_mutex_lock ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1341 (libtsan.so.2+0x59a13) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 tomo_db0::IoLoop::lb_client_signal_pass() <null> (tomokv+0xaad3d) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #2 void tomo_db0::IoLoop::run_loop<false, false, false, false, false>() <null> (tomokv+0x12c6b3) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #3 tomo_db0::IoLoop::run_split() src/core/io_loop.h:426 (tomokv+0x26a95) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #4 tomo_db0::IoLoop::run() src/core/io_loop.h:432 (tomokv+0x26a95)
+    #5 operator() src/main.cc:571 (tomokv+0x26a95)
+    #6 __invoke_impl<void, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61 (tomokv+0x26a95)
+    #7 __invoke<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96 (tomokv+0x26a95)
+    #8 _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292 (tomokv+0x26a95)
+    #9 operator() /usr/include/c++/13/bits/std_thread.h:299 (tomokv+0x26a95)
+    #10 _M_run /usr/include/c++/13/bits/std_thread.h:244 (tomokv+0x26a95)
+    #11 <null> <null> (libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+
+  Thread T6 (tid=1391370, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) <null> (libstdc++.so.6+0xeceb0) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #2 construct_at<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/stl_construct.h:97 (tomokv+0x2577a) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #3 construct<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/alloc_traits.h:540 (tomokv+0x2577a)
+    #4 emplace_back<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/vector.tcc:117 (tomokv+0x2577a)
+    #5 main src/main.cc:509 (tomokv+0x2577a)
+    #6 __wrap_main src/core/version.cc:21 (tomokv+0x54baa2) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #7 __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58 (libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)
+
+  Thread T8 (tid=1391372, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) <null> (libstdc++.so.6+0xeceb0) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #2 construct_at<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/stl_construct.h:97 (tomokv+0x2577a) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #3 construct<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/alloc_traits.h:540 (tomokv+0x2577a)
+    #4 emplace_back<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/vector.tcc:117 (tomokv+0x2577a)
+    #5 main src/main.cc:509 (tomokv+0x2577a)
+    #6 __wrap_main src/core/version.cc:21 (tomokv+0x54baa2) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4)
+    #7 __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58 (libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)
+
+SUMMARY: ThreadSanitizer: data race (/home/user/Projects/cx-flipfix/build/flipfix/pre-tsan/tomokv+0xe697a) (BuildId: 4dd2daa61b8f41761d5f19999127ae7a7ea8f9e4) in tomo_db0::ExLoopT<false>::run()
+==================
+persistence: enabled=0 posted=0 flushed=0 durable=0 refused=0 pending_chunks=0 producers_with_pending=0 drain_gave_up=0 failed=0
+
+thread role          ops      iters   busy_ms   idle_ms    cpu_ms   wake_tx  wake_rx
+t0     io              7    2642763   18586.9    1188.9    8293.2        22   460951
+io_tenure t0/0 busy_ns=18586896565 idle_ns=1188871441 entry_ns=3313036963293876 begin_ns=3313036963294176 end_ns=3313056739062182 exit_ns=3313056739062662 role_exit=0 stopped=1
+t1     io              1    1890021    7078.1   11015.2    3141.3         7   460853
+io_tenure t1/0 busy_ns=142893328 idle_ns=861396686 entry_ns=3313038265333936 begin_ns=3313038265334227 end_ns=3313039269624241 exit_ns=3313039269624771 role_exit=1 stopped=0
+io_tenure t1/1 busy_ns=195228102 idle_ns=39808742 entry_ns=3313044410031917 begin_ns=3313044410032317 end_ns=3313044645069161 exit_ns=3313044645070271 role_exit=1 stopped=0
+io_tenure t1/2 busy_ns=6629389895 idle_ns=84652775 entry_ns=3313050027041671 begin_ns=3313050027041941 end_ns=3313056741084611 exit_ns=3313056741085211 role_exit=0 stopped=1
+t2     io              9    1191790    7098.9   11049.9    2906.4        15   460945
+io_tenure t2/0 busy_ns=158351640 idle_ns=845917174 entry_ns=3313038265362847 begin_ns=3313038265363137 end_ns=3313039269631951 exit_ns=3313039269632271 role_exit=1 stopped=0
+io_tenure t2/1 busy_ns=190036460 idle_ns=41979610 entry_ns=3313044410042147 begin_ns=3313044410042407 end_ns=3313044642058477 exit_ns=3313044642059367 role_exit=1 stopped=0
+io_tenure t2/2 busy_ns=6639814494 idle_ns=72736159 entry_ns=3313050026600299 begin_ns=3313050026600589 end_ns=3313056739151242 exit_ns=3313056739152333 role_exit=0 stopped=1
+t3     io              2    2088526    6817.2   11193.0    3284.4         8   460938
+io_tenure t3/0 busy_ns=163780898 idle_ns=841877043 entry_ns=3313038264367952 begin_ns=3313038264368262 end_ns=3313039270026203 exit_ns=3313039270026863 role_exit=1 stopped=0
+io_tenure t3/1 busy_ns=93997531 idle_ns=67028669 entry_ns=3313044741012447 begin_ns=3313044741012737 end_ns=3313044902038937 exit_ns=3313044902039977 role_exit=1 stopped=0
+io_tenure t3/2 busy_ns=6462895342 idle_ns=0 entry_ns=3313050276034700 begin_ns=3313050276035050 end_ns=3313056738930392 exit_ns=3313056738930852 role_exit=0 stopped=1
+t4     ex              2     202676    1683.9   17527.1    1090.0         8   460936
+io_tenure t4/0 busy_ns=1421092146 idle_ns=882759327 entry_ns=3313036965791498 begin_ns=3313036965791798 end_ns=3313039269643271 exit_ns=3313039269643661 role_exit=1 stopped=0
+io_tenure t4/1 busy_ns=80491417 idle_ns=14697646 entry_ns=3313050026688209 begin_ns=3313050026688479 end_ns=3313050121877542 exit_ns=3313050121878122 role_exit=1 stopped=0
+t5     io              3     463519   17889.4     818.3    8358.6   3226457  3226478
+io_tenure t5/0 busy_ns=17889365614 idle_ns=818287881 entry_ns=3313038031395058 begin_ns=3313038031395387 end_ns=3313056739048882 exit_ns=3313056739049362 role_exit=0 stopped=1
+t6     io              0    2115128    6783.9   11760.7    3419.8         2   460926
+io_tenure t6/0 busy_ns=111599521 idle_ns=17423939 entry_ns=3313044410041977 begin_ns=3313044410042227 end_ns=3313044539065687 exit_ns=3313044539066297 role_exit=1 stopped=0
+io_tenure t6/1 busy_ns=96663629 idle_ns=65358696 entry_ns=3313044741028377 begin_ns=3313044741028697 end_ns=3313044903051022 exit_ns=3313044903051871 role_exit=1 stopped=0
+io_tenure t6/2 busy_ns=6463015242 idle_ns=0 entry_ns=3313050276034790 begin_ns=3313050276035080 end_ns=3313056739050322 exit_ns=3313056739050862 role_exit=0 stopped=1
+t7     ex              0     238900     403.1   18723.5    1110.1         0   460768
+io_tenure t7/0 busy_ns=117202385 idle_ns=12804670 entry_ns=3313044410037137 begin_ns=3313044410037467 end_ns=3313044540044522 exit_ns=3313044540045022 role_exit=1 stopped=0
+io_tenure t7/1 busy_ns=73725885 idle_ns=21294257 entry_ns=3313050027041211 begin_ns=3313050027041481 end_ns=3313050122061623 exit_ns=3313050122062333 role_exit=1 stopped=0
+wb: retired=2235 direct=0 sends=2235/2235 short=0 err=0 peer_aborts=0 bytes=24808 zc_sends=0 zc_bytes=0 zc_releases=0 serves=10825 empty=8590
+tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0
+stuck: live_conns=279 rob_not_quiesced=1 unsent_bytes_pending=0 | slots done=0 issued=0 free=1 flag_set=0
+shutdown: dispatched=22 executed=2 accepts=2179 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0
+shutdown_report {"schema":1,"thread_mode":"2s","work":{"kind":"split","dispatched":22,"executed":2},"threads":[{"tid":0,"role":"io","ops":7,"iterations":2642763,"busy_ns":18586896565,"idle_ns":1188871441,"cpu_ns":8293214231,"wake_tx":22,"wake_rx":460951,"io_tenures":[{"entry_ns":3313036963293876,"begin_ns":3313036963294176,"end_ns":3313056739062182,"exit_ns":3313056739062662,"busy_ns":18586896565,"idle_ns":1188871441,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":1,"role":"io","ops":1,"iterations":1890021,"busy_ns":7078117790,"idle_ns":11015245928,"cpu_ns":3141332610,"wake_tx":7,"wake_rx":460853,"io_tenures":[{"entry_ns":3313038265333936,"begin_ns":3313038265334227,"end_ns":3313039269624241,"exit_ns":3313039269624771,"busy_ns":142893328,"idle_ns":861396686,"role_exit":true,"stopped":false,"did_submit":0,"sweep_submit":0,"park":0},{"entry_ns":3313044410031917,"begin_ns":3313044410032317,"end_ns":3313044645069161,"exit_ns":3313044645070271,"busy_ns":195228102,"idle_ns":39808742,"role_exit":true,"stopped":false,"did_submit":0,"sweep_submit":0,"park":0},{"entry_ns":3313050027041671,"begin_ns":3313050027041941,"end_ns":3313056741084611,"exit_ns":3313056741085211,"busy_ns":6629389895,"idle_ns":84652775,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":2,"role":"io","ops":9,"iterations":1191790,"busy_ns":7098896877,"idle_ns":11049919888,"cpu_ns":2906416239,"wake_tx":15,"wake_rx":460945,"io_tenures":[{"entry_ns":3313038265362847,"begin_ns":3313038265363137,"end_ns":3313039269631951,"exit_ns":3313039269632271,"busy_ns":158351640,"idle_ns":845917174,"role_exit":true,"stopped":false,"did_submit":0,"sweep_submit":0,"park":0},{"entry_ns":3313044410042147,"begin_ns":3313044410042407,"end_ns":3313044642058477,"exit_ns":3313044642059367,"busy_ns":190036460,"idle_ns":41979610,"role_exit":true,"stopped":false,"did_submit":0,"sweep_submit":0,"park":0},{"entry_ns":3313050026600299,"begin_ns":3313050026600589,"end_ns":3313056739151242,"exit_ns":3313056739152333,"busy_ns":6639814494,"idle_ns":72736159,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":3,"role":"io","ops":2,"iterations":2088526,"busy_ns":6817210384,"idle_ns":11193030651,"cpu_ns":3284395723,"wake_tx":8,"wake_rx":460938,"io_tenures":[{"entry_ns":3313038264367952,"begin_ns":3313038264368262,"end_ns":3313039270026203,"exit_ns":3313039270026863,"busy_ns":163780898,"idle_ns":841877043,"role_exit":true,"stopped":false,"did_submit":0,"sweep_submit":0,"park":0},{"entry_ns":3313044741012447,"begin_ns":3313044741012737,"end_ns":3313044902038937,"exit_ns":3313044902039977,"busy_ns":93997531,"idle_ns":67028669,"role_exit":true,"stopped":false,"did_submit":0,"sweep_submit":0,"park":0},{"entry_ns":3313050276034700,"begin_ns":3313050276035050,"end_ns":3313056738930392,"exit_ns":3313056738930852,"busy_ns":6462895342,"idle_ns":0,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":4,"role":"ex","ops":2,"iterations":202676,"busy_ns":1683919083,"idle_ns":17527132900,"cpu_ns":1090002735,"wake_tx":8,"wake_rx":460936,"io_tenures":[{"entry_ns":3313036965791498,"begin_ns":3313036965791798,"end_ns":3313039269643271,"exit_ns":3313039269643661,"busy_ns":1421092146,"idle_ns":882759327,"role_exit":true,"stopped":false,"did_submit":0,"sweep_submit":0,"park":0},{"entry_ns":3313050026688209,"begin_ns":3313050026688479,"end_ns":3313050121877542,"exit_ns":3313050121878122,"busy_ns":80491417,"idle_ns":14697646,"role_exit":true,"stopped":false,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":5,"role":"io","ops":3,"iterations":463519,"busy_ns":17889365614,"idle_ns":818287881,"cpu_ns":8358560210,"wake_tx":3226457,"wake_rx":3226478,"io_tenures":[{"entry_ns":3313038031395058,"begin_ns":3313038031395387,"end_ns":3313056739048882,"exit_ns":3313056739049362,"busy_ns":17889365614,"idle_ns":818287881,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":6,"role":"io","ops":0,"iterations":2115128,"busy_ns":6783861277,"idle_ns":11760663697,"cpu_ns":3419771879,"wake_tx":2,"wake_rx":460926,"io_tenures":[{"entry_ns":3313044410041977,"begin_ns":3313044410042227,"end_ns":3313044539065687,"exit_ns":3313044539066297,"busy_ns":111599521,"idle_ns":17423939,"role_exit":true,"stopped":false,"did_submit":0,"sweep_submit":0,"park":0},{"entry_ns":3313044741028377,"begin_ns":3313044741028697,"end_ns":3313044903051022,"exit_ns":3313044903051871,"busy_ns":96663629,"idle_ns":65358696,"role_exit":true,"stopped":false,"did_submit":0,"sweep_submit":0,"park":0},{"entry_ns":3313050276034790,"begin_ns":3313050276035080,"end_ns":3313056739050322,"exit_ns":3313056739050862,"busy_ns":6463015242,"idle_ns":0,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":7,"role":"ex","ops":0,"iterations":238900,"busy_ns":403066955,"idle_ns":18723486651,"cpu_ns":1110066264,"wake_tx":0,"wake_rx":460768,"io_tenures":[{"entry_ns":3313044410037137,"begin_ns":3313044410037467,"end_ns":3313044540044522,"exit_ns":3313044540045022,"busy_ns":117202385,"idle_ns":12804670,"role_exit":true,"stopped":false,"did_submit":0,"sweep_submit":0,"park":0},{"entry_ns":3313050027041211,"begin_ns":3313050027041481,"end_ns":3313050122061623,"exit_ns":3313050122062333,"busy_ns":73725885,"idle_ns":21294257,"role_exit":true,"stopped":false,"did_submit":0,"sweep_submit":0,"park":0}]}],"wb":{"retired":2235,"direct":0,"sends_completed":2235,"sends_submitted":2235,"short_writes":0,"send_errors":0,"peer_aborts":0,"bytes_sent":24808,"zc_sends":0,"zc_bytes":0,"zc_releases":0,"serves":10825,"serves_empty":8590},"tls":{"accepts":0,"handshakes_completed":0,"handshakes_started":0,"handshakes_failed":0,"connections_freed":0,"want_read":0,"want_write":0,"ciphertext_input_bytes":0,"plaintext_input_bytes":0,"ciphertext_output_bytes":0,"plaintext_output_bytes":0,"zc_suppressed":0,"ktls_active":0,"ktls_fallback":0},"stuck":{"live_conns":279,"rob_not_quiesced":1,"unsent_bytes_pending":0,"slots_done":0,"slots_issued":0,"slots_free":1,"flag_set":0},"epoll":{"enabled":false,"events":0,"recvs":0},"persistence":{"enabled":false,"recording":false,"failed":false,"drain_gave_up":false,"posted":0,"flushed":0,"durable":0,"refused":0,"pending_chunks":0,"records_written":0,"producers_with_pending":0,"producers_stopped":0,"producers_expected":0,"completions_pending":0},"accept":{"accepts":2179,"accept_err":0,"rearm":0,"sqe_starved":0,"notify_drop":0}}
+ThreadSanitizer: reported 28 warnings
+
