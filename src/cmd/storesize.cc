@@ -22,8 +22,7 @@ void Shard::publish_size() noexcept {
     const auto expires = store_.expire_count();
     if (published_expires_.load(std::memory_order_relaxed) != expires)
         published_expires_.store(expires, std::memory_order_relaxed);
-    if constexpr (kSingleDatabase) store_.publish_field_ttl_attention();
-    if constexpr (!kSingleDatabase) store_.publish_database_counts();
+    store_.publish_database_counts(); // single-DB: publish field-TTL attention only
     const auto evicted = stats_.evicted;
     if (published_evicted_.load(std::memory_order_relaxed) != evicted)
         published_evicted_.store(evicted, std::memory_order_relaxed);
@@ -33,8 +32,7 @@ legacy:
     published_size_.store(store_.size(), std::memory_order_relaxed);
     published_obj_bytes_.store(store_.object_bytes(), std::memory_order_relaxed);
     published_expires_.store(store_.expire_count(), std::memory_order_relaxed);
-    if constexpr (kSingleDatabase) store_.publish_field_ttl_attention();
-    if constexpr (!kSingleDatabase) store_.publish_database_counts();
+    store_.publish_database_counts(); // single-DB: publish field-TTL attention only
     published_evicted_.store(stats_.evicted, std::memory_order_relaxed);
 }
 

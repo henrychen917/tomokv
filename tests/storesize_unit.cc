@@ -138,7 +138,15 @@ void census(Server& server, unsigned db, uint64_t expected) {
     }
 }
 
+void monitoring_beat(Server& server) {
+    // This fixture has no owner loop/clock beat. Explicitly service monitoring
+    // before asserting the estimate; count publication alone no longer samples.
+    if constexpr (kSingleDatabase)
+        for (unsigned sid = 0; sid < server.nshards(); ++sid)
+            server.shard(sid).store().publish_keyspace_sample();
+}
 void row(Server& server, unsigned db, uint64_t keys, uint64_t expires) {
+    monitoring_beat(server);
     census(server, db, keys);
     for (auto args : {std::initializer_list<std::string>{"INFO"}, {"INFO", "KEYSPACE"}}) {
         const auto info = run(server, db, args);
@@ -311,6 +319,7 @@ void checks(bool legacy, bool fused = false, bool armed = false) {
     census(server, 0, 0);
     require(run(server, 0, {"INFO", "KEYSPACE"}).find("db0:") == std::string::npos, "empty DB omitted");
     require(run(server, 0, {"SET", "ttl", "v", "PX", "600000"}) == "+OK\r\n", "volatile SET");
+    monitoring_beat(server);
     const auto info = run(server, 0, {"INFO", "KEYSPACE"});
     require(info.find("db0:keys=1,expires=1,avg_ttl=") != std::string::npos, "INFO keyspace fields");
     const auto avg = std::stoull(info.substr(info.find("avg_ttl=") + 8));

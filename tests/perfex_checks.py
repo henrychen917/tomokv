@@ -193,9 +193,8 @@ def sampler_check(host, port, clock_file):
         origin = time.time_ns() // 1_000_000
         def freeze(ms):
             clock[:] = struct.pack("q", ms)
-            # Explicitly observe the shim through the production TIME handler.
-            # The deadline-boundary test below also independently detects a shim
-            # that never freezes time. No window is silently skipped.
+            # The PTTL boundary witness below detects a shim that never
+            # freezes time. No window is silently skipped.
             time.sleep(.06)  # exceeds the existing 50 ms idle wait, not a precision window
         freeze(origin)
         topo = topology(c)
