@@ -10,10 +10,10 @@ XREADGROUP command reply RespError(b"NOPERM User woken has no permissions to run
 woken denials logged 2 of 8
 SIGTERM exit 0
 Traceback (most recent call last):
-  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 370, in main
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 408, in main
     {"sort": sort_case, "streams-name": streams_case, "save-load": save_case,
-  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 306, in wake_case
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 342, in wake_case
     assert not failures, failures
            ^^^^^^^^^^^^
 AssertionError: [('BLMOVE', 'key', b'v', [], [b'v'], 0), ('BLMOVE', 'command', b'v', [], [b'v'], 0), ('BRPOPLPUSH', 'key', b'v', [], [b'v'], 0), ('BRPOPLPUSH', 'command', b'v', [], [b'v'], 0), ('XREAD', 'key', [[b'src', [[b'1-0', [b'f', b'v']]]]], [[b'1-0', [b'f', b'v']]], [], 0), ('XREAD', 'command', [[b'src', [[b'1-0', [b'f', b'v']]]]], [[b'1-0', [b'f', b'v']]], [], 0), ('XREADGROUP', 'key', RespError(b'NOPERM No permissions to access a key'), [[b'1-0', [b'f', b'v']]], [], 1), ('XREADGROUP', 'command', RespError(b"NOPERM User woken has no permissions to run the 'xreadgroup' command"), [[b'1-0', [b'f', b'v']]], [], 1), ('one ACL LOG record per woken denial', 2, 8)]
-aclfix wake-scatter FAIL (0.487s)
+aclfix wake-scatter FAIL (0.368s)

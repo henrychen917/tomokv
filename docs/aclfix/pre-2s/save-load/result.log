@@ -19,24 +19,10 @@ saved b'user default on nopass sanitize-payload ~* &* +@all\nuser roundtrip on n
 reload RespError(b'ERR /home/user/Projects/cx-aclfix/docs/aclfix/pre-2s/save-load/users.acl:2: unbalanced quotes in acl line. WARNING: ACL errors detected, no change to the previously active ACL rules was performed')
 SIGTERM exit 0
 Traceback (most recent call last):
-  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 332, in listener
-    yield
-  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 363, in main
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 408, in main
     {"sort": sort_case, "streams-name": streams_case, "save-load": save_case,
-  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 174, in save_case
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 217, in save_case
     assert not failures, failures
            ^^^^^^^^^^^^
 AssertionError: [(b'~key with-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '~key with-space': Syntax error")), (b'~key\twith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '~key\twith-space': Syntax error")), (b'~key\nwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '~key with-space': Syntax error")), (b'~key\rwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '~key with-space': Syntax error")), (b'~key\x0bwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '~key\x0bwith-space': Syntax error")), (b'~key\x0cwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '~key\x0cwith-space': Syntax error")), (b'~key\x00with-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '~key': Syntax error")), (b'&key with-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '&key with-space': Syntax error")), (b'&key\twith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '&key\twith-space': Syntax error")), (b'&key\nwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '&key with-space': Syntax error")), (b'&key\rwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '&key with-space': Syntax error")), (b'&key\x0bwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '&key\x0bwith-space': Syntax error")), (b'&key\x0cwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '&key\x0cwith-space': Syntax error")), (b'&key\x00with-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '&key': Syntax error")), ('roundtrip', RespError(b'ERR /home/user/Projects/cx-aclfix/docs/aclfix/pre-2s/save-load/users.acl:2: unbalanced quotes in acl line. WARNING: ACL errors detected, no change to the previously active ACL rules was performed'))]
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 362, in main
-    with listener(args), connection(args.port) as admin:
-  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
-    self.gen.throw(value)
-  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 346, in listener
-    assert probe.connect_ex(("127.0.0.1", args.port)) != 0, "listener survived stop"
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: listener survived stop
-aclfix save-load FAIL (0.253s)
+aclfix save-load FAIL (0.149s)

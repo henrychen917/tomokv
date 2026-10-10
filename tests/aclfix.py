@@ -106,47 +106,56 @@ def sort_case(admin, port, _args):
         ("SORT", "allowed:list", "GET", "#", "STORE", "other:dst"),
     )
     failures = []
-    with connection(port) as user:
-        check(user.cmd("AUTH", "sorter", "x"), b"OK", "AUTH")
-        check(admin.cmd("ACL", "LOG", "RESET"), b"OK", "empty ACL LOG")
-        denied_keys = stat(admin, b"acl_access_denied_key")
-        before = {name: command_stats(admin, name) for name in (b"sort", b"sort_ro")}
-        for command, (arguments, want) in options:
+    names = (b"sort", b"sort_ro")
+
+    def run(cases):
+        for command, (arguments, want) in cases:
             got = user.cmd(command, "allowed:list", *arguments)
             print(command, arguments, repr(got), flush=True)
             if got != want:
                 failures.append((command, arguments, got, want))
-        # An option error is sort.c's own reply: no ACL LOG entry, no ACL denial counter.
+
+    def counted(label, before, issued, expected_rejected):
+        # Only ACL-relevant accounting: TomoKV's uncounted parser-error calls are not this lane's.
+        for name in names:
+            calls, rejected = command_stats(admin, name)
+            delta = (calls - before[name][0], rejected - before[name][1])
+            want = (issued[name], expected_rejected[name])
+            print(name.decode(), label, "calls/rejected delta", delta, flush=True)
+            if delta != want:
+                failures.append((name, label, delta, want))
+
+    option_errors = [case for case in options if isinstance(case[1][1], RespError) and
+                     case[1][1].args[0].endswith(b"denied due to insufficient ACL permissions.")]
+    with connection(port) as user:
+        check(user.cmd("AUTH", "sorter", "x"), b"OK", "AUTH")
+        check(admin.cmd("ACL", "LOG", "RESET"), b"OK", "empty ACL LOG")
+        denied_keys = stat(admin, b"acl_access_denied_key")
+        before = {name: command_stats(admin, name) for name in names}
+        run(option_errors)
+        # An option error is sort.c's own reply: a call of the command, never a rejected call,
+        # an ACL LOG entry or an ACL denial counter.
+        counted("option denials", before,
+                {name: sum(c.lower().encode() == name for c, _ in option_errors) for name in names},
+                {name: 0 for name in names})
         logged = (acl_log_total(admin), stat(admin, b"acl_access_denied_key") - denied_keys)
         print("option denials logged", logged, flush=True)
         if logged != (0, 0):
             failures.append(("option denials reached ACL LOG/INFO", logged))
-        # ... and it is a call of the command, never a rejected call.
-        for name in (b"sort", b"sort_ro"):
-            calls, rejected = command_stats(admin, name)
-            issued = sum(command.lower().encode() == name for command, _ in options)
-            delta = (calls - before[name][0], rejected - before[name][1])
-            print(name.decode(), "calls/rejected delta", delta, flush=True)
-            if delta != (issued, 0):
-                failures.append((name, "option replies counted as", delta, (issued, 0)))
+        run([case for case in options if case not in option_errors])
         check(user.cmd("GET", "other:a"), DENIED, "direct GET")
+        before = {name: command_stats(admin, name) for name in names}
         for argv in keys:
             got = user.cmd(*argv)
             print(argv, repr(got), flush=True)
             if got != DENIED:
                 failures.append((argv, got, DENIED))
+        counted("key denials", before, {name: 0 for name in names},
+                {name: sum(argv[0].lower().encode() == name for argv in keys) for name in names})
         logged = (acl_log_total(admin), stat(admin, b"acl_access_denied_key") - denied_keys)
         print("key denials logged", logged, flush=True)
         if logged != (1 + len(keys), 1 + len(keys)):
             failures.append(("each key denial is logged once", logged))
-        for name in (b"sort", b"sort_ro"):
-            calls, rejected = command_stats(admin, name)
-            issued = sum(command.lower().encode() == name for command, _ in options)
-            refused = sum(argv[0].lower().encode() == name for argv in keys)
-            delta = (calls - before[name][0], rejected - before[name][1])
-            print(name.decode(), "calls/rejected delta after key denials", delta, flush=True)
-            if delta != (issued, refused):
-                failures.append((name, "key denials counted as", delta, (issued, refused)))
     assert not failures, failures
 
 

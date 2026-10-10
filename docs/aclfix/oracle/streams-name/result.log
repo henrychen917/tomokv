@@ -1,4 +1,4 @@
 {"command": ["taskset", "-c", "120", "/home/user/Projects/redis/src/redis-server", "--bind", "127.0.0.1", "--port", "25043", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aclfix/docs/aclfix/oracle/streams-name", "--aclfile", "/home/user/Projects/cx-aclfix/docs/aclfix/oracle/streams-name/users.acl"], "case": "streams-name"}
 XREADGROUP RespError(b'NOPERM No permissions to access a key') pending [0, None, None, None]
 SIGTERM exit 0
-aclfix streams-name PASS (0.192s)
+aclfix streams-name PASS (0.145s)

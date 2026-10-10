@@ -11,13 +11,13 @@ BLMPOP key reply RespError(b'NOPERM No permissions to access a key') src [] dst 
 BLMPOP command reply RespError(b"NOPERM User woken has no permissions to run the 'blmpop' command") src [] dst [] pending 0
 BZMPOP key reply RespError(b'NOPERM No permissions to access a key') src [] dst [] pending 0
 BZMPOP command reply RespError(b"NOPERM User woken has no permissions to run the 'bzmpop' command") src [] dst [] pending 0
-woken denials logged 12 of 12
+woken denials logged 11 of 12
 SIGTERM exit 0
 Traceback (most recent call last):
-  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 363, in main
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 408, in main
     {"sort": sort_case, "streams-name": streams_case, "save-load": save_case,
-  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 299, in wake_case
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 342, in wake_case
     assert not failures, failures
            ^^^^^^^^^^^^
-AssertionError: [('BLPOP', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BLPOP', 'command', RespError(b"NOPERM User woken has no permissions to run the 'blpop' command"), [], [], 0), ('BRPOP', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BRPOP', 'command', RespError(b"NOPERM User woken has no permissions to run the 'brpop' command"), [], [], 0), ('BZPOPMIN', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BZPOPMIN', 'command', RespError(b"NOPERM User woken has no permissions to run the 'bzpopmin' command"), [], [], 0), ('BZPOPMAX', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BZPOPMAX', 'command', RespError(b"NOPERM User woken has no permissions to run the 'bzpopmax' command"), [], [], 0), ('BLMPOP', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BLMPOP', 'command', RespError(b"NOPERM User woken has no permissions to run the 'blmpop' command"), [], [], 0), ('BZMPOP', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BZMPOP', 'command', RespError(b"NOPERM User woken has no permissions to run the 'bzmpop' command"), [], [], 0)]
-aclfix wake-pop FAIL (1.196s)
+AssertionError: [('BLPOP', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BLPOP', 'command', RespError(b"NOPERM User woken has no permissions to run the 'blpop' command"), [], [], 0), ('BRPOP', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BRPOP', 'command', RespError(b"NOPERM User woken has no permissions to run the 'brpop' command"), [], [], 0), ('BZPOPMIN', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BZPOPMIN', 'command', RespError(b"NOPERM User woken has no permissions to run the 'bzpopmin' command"), [], [], 0), ('BZPOPMAX', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BZPOPMAX', 'command', RespError(b"NOPERM User woken has no permissions to run the 'bzpopmax' command"), [], [], 0), ('BLMPOP', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BLMPOP', 'command', RespError(b"NOPERM User woken has no permissions to run the 'blmpop' command"), [], [], 0), ('BZMPOP', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BZMPOP', 'command', RespError(b"NOPERM User woken has no permissions to run the 'bzmpop' command"), [], [], 0), ('one ACL LOG record per woken denial', 11, 12)]
+aclfix wake-pop FAIL (0.581s)

@@ -2,12 +2,12 @@
 XREADGROUP [[b'secret:stream', [[b'1-0', [b'f', b'v']]]]] pending [1, b'1-0', b'1-0', [[b'consumer', b'1']]]
 SIGTERM exit 0
 Traceback (most recent call last):
-  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 370, in main
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 408, in main
     {"sort": sort_case, "streams-name": streams_case, "save-load": save_case,
-  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 137, in streams_case
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 173, in streams_case
     check(got, DENIED, "group named STREAMS")
   File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 34, in check
     assert got == want, f"{label}: got {got!r}, expected {want!r}"
            ^^^^^^^^^^^
 AssertionError: group named STREAMS: got [[b'secret:stream', [[b'1-0', [b'f', b'v']]]]], expected RespError(b'NOPERM No permissions to access a key')
-aclfix streams-name FAIL (0.189s)
+aclfix streams-name FAIL (0.111s)

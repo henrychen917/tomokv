@@ -1,0 +1,16 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-aclfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25042", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aclfix/docs/aclfix/post-2s/wake-pop", "--aclfile", "/home/user/Projects/cx-aclfix/docs/aclfix/post-2s/wake-pop/users.acl", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--ratio", "6:2"], "case": "wake-pop"}
+BLPOP key reply RespError(b'NOPERM No permissions to access a key') src [b'v'] dst [] pending 0
+BLPOP command reply RespError(b"NOPERM User woken has no permissions to run the 'blpop' command") src [b'v'] dst [] pending 0
+BRPOP key reply RespError(b'NOPERM No permissions to access a key') src [b'v'] dst [] pending 0
+BRPOP command reply RespError(b"NOPERM User woken has no permissions to run the 'brpop' command") src [b'v'] dst [] pending 0
+BZPOPMIN key reply RespError(b'NOPERM No permissions to access a key') src [b'v'] dst [] pending 0
+BZPOPMIN command reply RespError(b"NOPERM User woken has no permissions to run the 'bzpopmin' command") src [b'v'] dst [] pending 0
+BZPOPMAX key reply RespError(b'NOPERM No permissions to access a key') src [b'v'] dst [] pending 0
+BZPOPMAX command reply RespError(b"NOPERM User woken has no permissions to run the 'bzpopmax' command") src [b'v'] dst [] pending 0
+BLMPOP key reply RespError(b'NOPERM No permissions to access a key') src [b'v'] dst [] pending 0
+BLMPOP command reply RespError(b"NOPERM User woken has no permissions to run the 'blmpop' command") src [b'v'] dst [] pending 0
+BZMPOP key reply RespError(b'NOPERM No permissions to access a key') src [b'v'] dst [] pending 0
+BZMPOP command reply RespError(b"NOPERM User woken has no permissions to run the 'bzmpop' command") src [b'v'] dst [] pending 0
+woken denials logged 12 of 12
+SIGTERM exit 0
+aclfix wake-pop PASS (1.023s)
