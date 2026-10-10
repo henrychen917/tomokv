@@ -654,7 +654,26 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
     Op& op = state.client->rob().at(state.op_id);
     if (shard.store().atomic_has_records()) cancel_wildcard_units(shard.store());
     if (state.kind == BlockingKind::Xreadgroup) {
-        if (!stream_xreadgroup_execute(shard, op)) return false;
+        for (const auto& stream : state.keys)
+            if (stream.shard == shard.id() && !shard.watch_write_ready(blocking_key_slice(stream)))
+                return false;
+        for (const auto& stream : state.keys) {
+            if (stream.shard != shard.id()) continue;
+            const Slice bytes = blocking_key_slice(stream);
+            if (!shard.store().atomic_needs_version(stream.hash, bytes)) continue;
+            const WorkError prepared = begin_plain_version(
+                *state.server, shard, bytes, stream.hash, UINT64_MAX, state.client->id());
+            if (prepared != WorkError::None) {
+                shard.store().atomic_finish_plain();
+                reply_work_error(op, prepared);
+                blocking_publish_completion(state, self, ring);
+                return true;
+            }
+        }
+        shard.store().atomic_set_read_context(UINT64_MAX, state.client->id());
+        const bool executed = stream_xreadgroup_execute(shard, op);
+        shard.store().atomic_finish_plain();
+        if (!executed) return false;
         AofOwnerContext context{self.id(), &ring, &self.sig()};
         for (const auto& stream : state.keys)
             if (stream.shard == shard.id())
@@ -663,6 +682,7 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
         blocking_publish_completion(state, self, ring);
         return true;
     }
+    if (!shard.watch_write_ready(key_slice)) return false;
     bool plain_active = false;
     if (shard.store().atomic_needs_version(key.hash, key_slice)) {
         const uint64_t snapshot = UINT64_MAX;

@@ -686,6 +686,18 @@ bool prepare_commands(Server& server, MultiExecState& state,
             command->notify_order_base =
                 static_cast<uint32_t>(state.commands.size()) * 0x10000u;
             command->queued = std::move(queued);
+            // These handlers publish effects outside the attempt's private MVCC,
+            // AOF and notification state. They must run exactly once under the
+            // exclusive lane, including when lowered to an all-shards child.
+            if (has_name(command->queued, "swapdb") ||
+                (has_name(command->queued, "debug") &&
+                 (command->queued.argv.size() < 2 ||
+                  !Slice(command->queued.argv[1].data(), command->queued.argv[1].size())
+                       .eq_icase("sleep"))) ||
+                (has_name(command->queued, "config") && command->queued.argv.size() > 1 &&
+                 !Slice(command->queued.argv[1].data(), command->queued.argv[1].size())
+                      .eq_icase("get")))
+                state.reexecutable = false;
             command->blocking_pop = multi_blocking_pop(command->queued);
             command_key_args(command->queued, command->key_args);
             if (!make_child_op(*command)) return false;
@@ -1102,7 +1114,7 @@ bool multi_wait(MultiExecState& state, Shard& shard) {
     // A WATCH holder must release its claims before waiting for another unit.
     // Otherwise two transactions watching one another's writes form a cycle.
     if (!state.watched.empty() || state.decision.exclusive) {
-        multi_self_doom(state, shard, false);
+        multi_self_doom(state, shard, !state.watched.empty());
         return false;
     }
     state.server->note_txn(state.server->worker_of_shard(shard.id()), TxnCounter::Waits);
@@ -2048,7 +2060,8 @@ bool multi_dispatch_attempt(Server& server, ThreadCtx& self, ScatterArenaPool& p
     // A pending EXEC may survive queue or snapshot-window backpressure while shard ownership
     // migrates. Derive owner sentinels only on the final, no-failure path immediately before the
     // first task can become visible, so their slots match the routes used by this publication.
-    server.atomic_apply_open(self.id(), dispatch->apply_open);
+    if (!dispatch->apply_open.load(std::memory_order_relaxed))
+        server.atomic_apply_open(self.id(), dispatch->apply_open);
     dispatch->exec_op_id = op_id;
     op.attach_multi_state(dispatch);
     begin_dispatch();
@@ -2413,6 +2426,10 @@ bool multi_aof_emit_fragment(MultiExecState& state, Shard& shard) {
 MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shard,
                                    uint32_t owner_thread_id, uint32_t owner_domain,
                                    AofOwnerContext* aof_context) {
+    struct DeferBlockingPublication {
+        DeferBlockingPublication() { blocking_defer_plain_publication(true); }
+        ~DeferBlockingPublication() { blocking_defer_plain_publication(false); }
+    } defer_blocking_publication;
     // A carrier-less fragment is not an error: multi_close_entry posts the watch-release fragment
     // of a vanished connection with client=nullptr and op_id=UINT64_MAX, and this function's own
     // tail already destroys the state on that path. Only the notify scope wanted an Op, and a
@@ -2635,9 +2652,24 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                         state.decision.aborted.store(true, std::memory_order_release);
                         abort_multi_children(state);
                         aof_abort_group(state.aof_group);
-                    } else if (aof_context)
-                        (void)aof_commit_group(server.aof(), state.aof_group, ticket,
-                                               *aof_context);
+                    } else {
+                        if (aof_context)
+                            (void)aof_commit_group(server.aof(), state.aof_group, ticket,
+                                                   *aof_context);
+                        // Private pushes must never claim a blocked client. Once
+                        // the CAS wins, sweep participant registries on their owners.
+                        bool owners[kMaxThreads] = {};
+                        for (int32_t sid : state.shards) {
+                            Shard& participant = server.shard(sid);
+                            if (!participant.has_blocking_waiters()) continue;
+                            participant.set_blocking_dirty();
+                            owners[server.worker_of_shard(sid)] = true;
+                        }
+                        ThreadCtx& self = server.thread(owner_thread_id);
+                        if (Ring* ring = self.ring())
+                            for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
+                                if (owners[tid]) server.thread(tid).wake_if_parked(*ring, self.sig());
+                    }
                 } else {
                     // Child entries no longer point at the parent's abort word, because doing so
                     // made a normal child error abort every other command. A genuine transaction
