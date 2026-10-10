@@ -39,9 +39,18 @@ enum class TxnCounter : uint8_t {
 struct alignas(64) TxnOwnerCounters {
     std::atomic<uint64_t> values[static_cast<unsigned>(TxnCounter::Count)]{};
 };
+struct MultiRetryNode {
+    enum class Kind : uint8_t { Execute, Fence, Group };
+    MultiRetryNode* next = nullptr;
+    void* unit = nullptr;
+    uint64_t generation = 0;
+    Kind kind = Kind::Execute;
+};
 struct alignas(64) MultiRetryLane {
-    std::atomic<MultiExecState*> head{nullptr};
+    std::atomic<MultiRetryNode*> head{nullptr};
     uint32_t age_seq = 0;              // IO-owned, used only at first admission
+    MultiRetryNode fence{nullptr, nullptr, 0, MultiRetryNode::Kind::Fence};
+    std::atomic<uint64_t> fence_ack{0};
 };
 
 // Cold writer visitors; self is a scatter writer (possibly an EXEC child).

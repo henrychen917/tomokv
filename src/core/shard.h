@@ -299,6 +299,8 @@ public:
                                     std::atomic<uint32_t>* refs, bool mutates);
     bool watch_write_ready(Slice key, const void* token = nullptr);
     bool watch_txn_write_ready(Slice key, MultiExecState& state);
+    bool watch_reserve_exclusive(Slice key, MultiExecState& state, bool whole_shard = false);
+    void watch_finish_exclusive(const void* unit);
     void watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,
                              const void* token, std::atomic<uint64_t>* epoch,
                              std::atomic<bool>* aborted, std::atomic<uint32_t>* refs);

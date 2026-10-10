@@ -194,12 +194,15 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::atomic<bool> writer_cancelled{false};
     uint32_t writer_dooms = 0;
     bool doomed = false;               // published by finalized
-    MultiExecState* retry_next = nullptr;
+    MultiRetryNode retry;
     uint64_t exec_op_id = UINT64_MAX;
     uint32_t attempt = 0;
     bool reexecutable = true;
     std::atomic<bool> backoff{false};
     uint64_t retry_after_ns = 0;
+    uint64_t exclusive_since_ns = 0;
+    uint64_t exclusive_generation = 0;
+    std::vector<uint32_t> exclusive_fences;
     std::atomic<uint32_t> record_refs{0};
     bool record_refs_precounted = false;
     std::atomic<uint32_t> watch_refs{0};
@@ -222,12 +225,16 @@ namespace {
 
 thread_local uint64_t multi_io_age_ns = 0;
 
-void multi_enqueue_retry(MultiExecState& state) {
-    auto& head = state.server->multi_retry_lane(state.owner_io).head;
+void multi_enqueue_node(Server& server, uint32_t io, MultiRetryNode& node) {
+    auto& head = server.multi_retry_lane(io).head;
     auto* prior = head.load(std::memory_order_relaxed);
-    do { state.retry_next = prior; }
-    while (!head.compare_exchange_weak(prior, &state,
+    do { node.next = prior; }
+    while (!head.compare_exchange_weak(prior, &node,
                 std::memory_order_release, std::memory_order_relaxed));
+}
+void multi_enqueue_retry(MultiExecState& state) {
+    state.retry.unit = &state;
+    multi_enqueue_node(*state.server, state.owner_io, state.retry);
 }
 
 MultiDecision* multi_record_decision(const AtomicEntry& entry) {
@@ -1590,6 +1597,33 @@ void assemble_cross_reply(MultiCommand& command) {
 
 bool execute_watch_phase(MultiExecState& state, Shard& shard) {
     if (state.watch_shard_done[static_cast<uint32_t>(shard.id())]) return true;
+    if (state.decision.exclusive && !state.decision.aborted.load(std::memory_order_acquire)) {
+        uint32_t keys = 0;
+        bool whole_shard = false;
+        for (const auto& command : state.commands) {
+            if (std::find(command->participants.begin(), command->participants.end(), shard.id()) ==
+                command->participants.end()) continue;
+            const auto* child = command->scatter;
+            whole_shard |= has_name(command->queued, "scan") ||
+                (child && (child->kind == Kind::Sort && child->sort_options.deref)) ||
+                (child && (child->kind == Kind::AllShards || child->kind == Kind::DatabaseInfo ||
+                           child->kind == Kind::DbsizeExact || child->kind == Kind::RandomKey ||
+                           child->kind == Kind::Keys));
+            for (size_t i = 0; i < command->key_args.size(); ++i) {
+                if (command->key_shards[i] != shard.id()) continue;
+                if (++keys > kTxnIntentsPerShard) { whole_shard = true; break; }
+                if (!shard.watch_reserve_exclusive(command->op->arg(command->key_args[i]), state))
+                    return false;
+            }
+            if (child) for (uint32_t i = 0; i < child->key_count; ++i) {
+                if (child->keys[i].shard != shard.id()) continue;
+                if (++keys > kTxnIntentsPerShard) { whole_shard = true; break; }
+                if (!shard.watch_reserve_exclusive(command->op->arg(child->keys[i].arg), state))
+                    return false;
+            }
+        }
+        if (whole_shard && !shard.watch_reserve_exclusive({}, state, true)) return false;
+    }
     if (state.kind == MultiStateKind::WatchAdd) {
         for (const MultiWatchedKey& watched : state.watched) {
             if (watched.shard != shard.id()) continue;
@@ -1636,6 +1670,7 @@ void finalize_reservations(MultiExecState& state, Shard& shard) {
     const uint32_t intents = shard.store().atomic_unit_unpin(&state);
     state.server->note_txn(state.server->worker_of_shard(shard.id()),
                            TxnCounter::IntentsLive, uint64_t{0} - intents);
+    if (state.decision.exclusive) shard.watch_finish_exclusive(&state);
     if (!state.database_watch.empty()) {
         auto& targets = state.database_watch[shard.id()];
         const bool committed = !state.decision.aborted.load(std::memory_order_acquire);
@@ -2114,7 +2149,19 @@ bool multi_dispatch_entry_impl(IoLoop& loop, Client& client, Op& op, uint32_t co
         return true;
     }
 
-    if (!multi_dispatch_attempt<IofusedPrivateQueue>(
+    const bool first_exclusive = dispatch->kind == MultiStateKind::Execute &&
+        (!dispatch->reexecutable || loop.srv_->debug_txn_occ_limit() == 0);
+    if (first_exclusive) {
+        // Publish once on the parse path. Admission and the ROB slot stay owned
+        // while the cold lane drains; no owner task is visible yet.
+        loop.srv_->atomic_apply_close(loop.self_->id(), dispatch->apply_open);
+        dispatch->exec_op_id = op_id;
+        op.attach_multi_state(dispatch);
+        client.atomic_group_started();
+        client.rob().publish();
+        if (auto* session = client.multi_session()) session->pending = nullptr;
+        multi_enqueue_retry(*dispatch);
+    } else if (!multi_dispatch_attempt<IofusedPrivateQueue>(
             *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, dispatch, op_id,
             loop.touched_, loop.touched_list_, loop.ntouched_, [&] {
                 client.atomic_group_started();
@@ -2174,6 +2221,51 @@ uint32_t multi_owner_reap_entry(IoLoop& loop) {
 }
 
 namespace {
+bool multi_exclusive_ready(Server& server, MultiExecState& state, ThreadCtx& self, Ring& ring) {
+    if (server.txn_retry_held(&state)) return false;
+    if (server.txn_exclusive_owner() != &state && !server.txn_exclusive_claim(&state)) return false;
+    if (!state.exclusive_generation) {
+        // A closing predecessor can release its token before all IOs consumed
+        // its fence nodes. Never reuse a node still owned by an inbox.
+        for (uint32_t tid = 0; tid < server.nthreads(); ++tid) {
+            auto& lane = server.multi_retry_lane(tid);
+            if (lane.fence_ack.load(std::memory_order_acquire) != lane.fence.generation) return false;
+        }
+        try {
+            state.exclusive_fences.clear();
+            for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
+                if (server.serves_clients(tid)) state.exclusive_fences.push_back(tid);
+        } catch (const std::bad_alloc&) {
+            server.txn_exclusive_release(&state);
+            return false;
+        }
+        server.txn_exclusive_barrier(true);
+        state.exclusive_since_ns = now_ns();
+        state.exclusive_generation = server.txn_exclusive_generation();
+        for (uint32_t tid : state.exclusive_fences) {
+            auto& lane = server.multi_retry_lane(tid);
+            lane.fence.generation = state.exclusive_generation;
+            if (tid == self.id()) {
+                lane.fence_ack.store(state.exclusive_generation, std::memory_order_release);
+            } else {
+                multi_enqueue_node(server, tid, lane.fence);
+                server.thread(tid).wake_if_parked(ring, self.sig());
+            }
+        }
+    }
+    bool fenced = true;
+    for (uint32_t tid : state.exclusive_fences)
+        fenced &= server.multi_retry_lane(tid).fence_ack.load(std::memory_order_acquire) ==
+                  state.exclusive_generation;
+    if (fenced && server.atomic_apply_inflight() == 0) return true;
+    if (now_ns() - state.exclusive_since_ns >= kTxnExclusiveDrainMax) {
+        server.note_txn(self.id(), TxnCounter::ExclusiveDrainTimeouts);
+        server.txn_exclusive_barrier(false);
+        state.exclusive_generation = 0;
+    }
+    return false;
+}
+
 MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
     Server& server = *previous.server;
     auto* next = allocate_state(server, *previous.client, previous.owner_io, MultiStateKind::Execute);
@@ -2222,20 +2314,29 @@ uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
     auto& inbox = loop.srv_->multi_retry_lane(loop.self_->id()).head;
     // The only new work on an empty IO pass is this owner-local load and branch.
     if (__builtin_expect(inbox.load(std::memory_order_relaxed) != nullptr, false)) {
-        MultiExecState* stack = inbox.exchange(nullptr, std::memory_order_acquire);
-        MultiExecState* pending = nullptr;
+        MultiRetryNode* stack = inbox.exchange(nullptr, std::memory_order_acquire);
+        MultiRetryNode* pending = nullptr;
         while (stack) {
-            auto* next = stack->retry_next;
-            stack->retry_next = pending;
+            auto* next = stack->next;
+            stack->next = pending;
             pending = stack;
             stack = next;
         }
         while (pending) {
-            auto* previous = pending;
-            pending = previous->retry_next;
+            auto* node = pending;
+            pending = node->next;
+            if (node->kind == MultiRetryNode::Kind::Fence) {
+                loop.srv_->multi_retry_lane(loop.self_->id()).fence_ack.store(
+                    node->generation, std::memory_order_release);
+                ++work;
+                continue;
+            }
+            auto* previous = static_cast<MultiExecState*>(node->unit);
             Client& client = *previous->client;
             Op& op = client.rob().at(previous->exec_op_id);
             if (client.closing() || client.dead()) {
+                loop.srv_->txn_exclusive_release(previous);
+                previous->decision.aborted.store(true, std::memory_order_release);
                 if (auto* session = ensure_multi_session(client))
                     session->watched = std::move(previous->watched);
                 multi_close_entry(loop, client);
@@ -2244,8 +2345,30 @@ uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 ++work;
                 continue;
             }
-            if (loop.srv_->txn_retry_held() || now_ns() < previous->retry_after_ns) {
+            if (loop.srv_->txn_retry_held(previous) || now_ns() < previous->retry_after_ns) {
                 multi_enqueue_retry(*previous);
+                continue;
+            }
+            const bool exclusive = !previous->reexecutable ||
+                previous->writer_dooms + previous->writer_cancelled.load(std::memory_order_acquire) >=
+                    loop.srv_->debug_txn_occ_limit() ||
+                loop.srv_->txn_exclusive_owner() == previous;
+            if (exclusive && !multi_exclusive_ready(*loop.srv_, *previous, *loop.self_, loop.ring_)) {
+                multi_enqueue_retry(*previous);
+                continue;
+            }
+            if (!previous->published) {
+                previous->decision.exclusive = true;
+                if (!multi_dispatch_attempt<IofusedPrivateQueue>(
+                        *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, previous,
+                        previous->exec_op_id, loop.touched_, loop.touched_list_, loop.ntouched_, [] {})) {
+                    multi_enqueue_retry(*previous);
+                    continue;
+                }
+                loop.srv_->note_txn(loop.self_->id(), TxnCounter::Exclusive);
+                loop.flush_ifid_posts();
+                loop.mark_active(&client);
+                ++work;
                 continue;
             }
             // No owner can still read P. Release its cleanup pin before asking
@@ -2267,9 +2390,12 @@ uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
             next->admitted = previous->admitted;
             next->admission_generation = previous->admission_generation;
             previous->admitted = false;
+            next->decision.exclusive = exclusive;
+            if (exclusive) loop.srv_->txn_exclusive_transfer(previous, next);
             if (!multi_dispatch_attempt<IofusedPrivateQueue>(
                     *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, next,
                     previous->exec_op_id, loop.touched_, loop.touched_list_, loop.ntouched_, [] {})) {
+                if (exclusive) loop.srv_->txn_exclusive_transfer(next, previous);
                 previous->admitted = next->admitted;
                 next->admitted = false;
                 destroy_multi_state(next);
@@ -2280,6 +2406,7 @@ uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
             previous->retired = true;
             loop.multi_deferred_.push_back(previous);
             loop.srv_->note_txn(loop.self_->id(), TxnCounter::Retries);
+            if (exclusive) loop.srv_->note_txn(loop.self_->id(), TxnCounter::Exclusive);
             loop.flush_ifid_posts();
             loop.mark_active(&client);
             ++work;
@@ -2649,6 +2776,8 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                                 server.databases().publish_prepared(std::move(state.database_publish));
                         });
                     if (!ticket) {
+                        if (state.decision.exclusive)
+                            server.note_txn(owner_thread_id, TxnCounter::ExclusiveViolations);
                         state.decision.aborted.store(true, std::memory_order_release);
                         abort_multi_children(state);
                         aof_abort_group(state.aof_group);
@@ -2684,6 +2813,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                 // transaction writes can land on a shard after this point, so it can no longer
                 // straddle a snapshot cut. Closed here, on an OWNER, not at reply retirement.
                 server.atomic_apply_close(owner_thread_id, state.apply_open);
+                if (state.decision.exclusive) server.txn_exclusive_release(&state);
             }
         }
     }
@@ -2998,6 +3128,13 @@ bool Shard::watch_validate_and_reserve(Slice key, Client* client, uint64_t gener
 
 bool Shard::watch_write_ready(Slice key, const void* token) {
     if (!has_watches()) return true;
+    // The empty registry key is an exclusive whole-shard hold; real keys
+    // always contain at least their physical namespace byte.
+    if (auto hold = watch_reservations_.find(""); hold != watch_reservations_.end()) {
+        bool own = false;
+        for (const auto& reservation : hold->second) own |= reservation.token == token;
+        if (!own && !watch_finalize_reservation("")) return false;
+    }
     const std::string owned = watch_key_string(key);
     if (auto existing = watch_reservations_.find(owned); existing != watch_reservations_.end())
         for (const WatchReservation& reservation : existing->second)
@@ -3027,6 +3164,36 @@ bool Shard::watch_txn_write_ready(Slice key, MultiExecState& state) {
             if (reservation.blocking && !multi_state_owns_epoch(state, reservation.epoch))
                 return multi_wait(state, *this);
     return true;
+}
+
+bool Shard::watch_reserve_exclusive(Slice key, MultiExecState& state, bool whole_shard) {
+    const std::string owned = whole_shard ? std::string{} : watch_key_string(key);
+    watch_finalize_reservation(owned);
+    if (auto found = watch_reservations_.find(owned); found != watch_reservations_.end()) {
+        for (const auto& reservation : found->second) {
+            if (reservation.token == &state) return true;
+            if (reservation.blocking) {
+                multi_self_doom(state, *this, false);
+                return false;
+            }
+        }
+    }
+    if (!watch_append_reservation(owned, WatchReservation{
+            &state, &state.decision.epoch, &state.decision.aborted, &state.watch_refs,
+            state.client, state.watch_generation, false, true})) {
+        state.decision.aborted.store(true, std::memory_order_release);
+        return false;
+    }
+    return true;
+}
+
+void Shard::watch_finish_exclusive(const void* unit) {
+    for (auto it = watch_reservations_.begin(); it != watch_reservations_.end();) {
+        auto current = it++;
+        bool matches = false;
+        for (const auto& reservation : current->second) matches |= reservation.token == unit;
+        if (matches) watch_finalize_reservation(current->first);
+    }
 }
 
 void Shard::watch_reserve_write(Slice key, Client* writer, uint64_t writer_generation,

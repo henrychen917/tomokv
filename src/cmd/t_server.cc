@@ -1168,6 +1168,17 @@ void cmd_debug_impl(Shard& shard, Op& op) {
     // between the lead fragment's answer and the rest. That straddle is the shape of the defect:
     // a reader with no pinned cut reports one key from after the transaction and the others from
     // before it. Production 0.
+    if (eq_icase(subcommand, "txn-occ-limit") && op.argc() == 3) {
+        uint64_t limit = 0;
+        if (!parse_u64(op.arg(2), limit) || limit > UINT32_MAX) {
+            reply_err(op.sink(), "ERR value is not an integer or out of range");
+            return;
+        }
+        if (!g_server) { reply_err(op.sink(), "ERR no server context"); return; }
+        g_server->set_debug_txn_occ_limit(static_cast<uint32_t>(limit));
+        reply_ok(op.sink());
+        return;
+    }
     if (eq_icase(subcommand, "atomic-fanout-defer") && op.argc() == 3) {
         uint64_t microseconds = 0;
         if (!parse_u64(op.arg(2), microseconds) || microseconds > 10000000) {
@@ -2623,6 +2634,17 @@ void cmd_info(Shard&, Op& op) {
                     g_server ? g_server->barrier_owner_overlaps() : 0),
                 static_cast<unsigned long long>(
                     g_server ? g_server->barrier_releases_held() : 0));
+        static constexpr const char* txn_fields[] = {
+            "atomic_txn_attempts", "atomic_txn_retries", "atomic_txn_dooms", "atomic_txn_wounds",
+            "atomic_txn_self_dooms", "atomic_txn_waits", "atomic_txn_forced_writes",
+            "atomic_txn_exclusive", "atomic_txn_exclusive_violations",
+            "atomic_txn_exclusive_drain_timeouts", "atomic_txn_intents", "atomic_txn_intents_live",
+            "atomic_group_dooms", "atomic_group_retries", "atomic_group_exclusive"
+        };
+        static_assert(std::size(txn_fields) == static_cast<unsigned>(TxnCounter::Count));
+        for (unsigned i = 0; i < std::size(txn_fields); ++i)
+            appendf(body, "%s:%llu\r\n", txn_fields[i], static_cast<unsigned long long>(
+                g_server ? g_server->txn_counter(static_cast<TxnCounter>(i)) : 0));
         appendf(body,
                 "flip_completed:%llu\r\nflip_refused:%llu\r\n"
                 "flip_clients_transferred:%llu\r\nflip_last_transfers:%llu\r\n"
