@@ -172,15 +172,17 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # TUs. Preserve PRE's ordinary parser/TLS/writeback bodies; lbstall_artifacts checks
 # both complete hot inventories. No override changes in unaffected TUs.
 $(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=146503
-$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128865
-$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161715
+# PERFEX changes executor drains/diagnostics only. Keep audited parser/serve
+# bodies at their PRE bytes; docs/perfex retains the compiler search.
+$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128765
+$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161697
 # CC18/ST3 composition: smallest current hot-body delta; ccfix4 retains the search.
 $(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146540 --param max-inline-insns-auto=18
 # RL1: retain the measured ALT spelling and its fused GET placement controls.
 # docs/rlfence2/alt.patch and MEASURE-REQUEST-rlfence3.md record the byte proofs.
-$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128910 -Wa,--defsym,tomo_rlfence_text_pad=16
+$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128770 -Wa,--defsym,tomo_rlfence_text_pad=16
 $(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161680
-$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=147304
+$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=147504
 $(BUILD_ROOT)/db0/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Separate C++ namespaces prevent accidental cross-variant inline/COMDAT binding.

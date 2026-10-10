@@ -48,7 +48,7 @@ def units():
     arms = run(["make", "-j16", "mdbqsbr-live-arms"], "mdbqsbr-live-arms-build")
     (OUT / "production-units.json").write_text(json.dumps(
         dict(build=row, freshness=freshness, live_arms=arms), indent=2) + "\n")
-    run(["build/storesize-unit"], "storesize-unit")
+    run(["python3", "tests/storesize_checks.py", "check-all", "build/storesize-unit"], "storesize-unit")
     for group in ("publication", "watch", "metadata"):
         run(["python3", "tests/exbatch_checks.py", group], "exbatch-" + group)
     run(["python3", "tests/wbland_checks.py", "check", "clauses"], "wbland-clauses")
