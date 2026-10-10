@@ -184,11 +184,6 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
             if (pos != 1) continue;
             const KeyRef& key = state.keys[pos];
             store.atomic_clear_read_epoch();
-            if (store.find(key.hash, op.arg(key.arg))) {
-                state.conditional_failed.store(true, std::memory_order_release);
-                state.aborted.store(true, std::memory_order_release);
-                return ScatterTaskResult::Complete;
-            }
             if (store.atomic_has_record(key.hash, op.arg(key.arg))) {
                 // A foreign undecided value is deliberately invisible to ordinary reads. For an
                 // NX validator it is a reservation: let its group decide, then re-run validation.
@@ -205,6 +200,14 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
                     });
                 if (undecided && store.atomic_has_physical(key.hash, op.arg(key.arg)))
                     return ScatterTaskResult::Retry;
+            }
+            // A foreign finalizer can publish its ticket during this owner turn.
+            // Check decisions before reading: finding absence first, then seeing
+            // a committed word here, could incorrectly pass both validations.
+            if (store.find(key.hash, op.arg(key.arg))) {
+                state.conditional_failed.store(true, std::memory_order_release);
+                state.aborted.store(true, std::memory_order_release);
+                return ScatterTaskResult::Complete;
             }
         }
     }

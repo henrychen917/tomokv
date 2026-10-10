@@ -1,0 +1,39 @@
+{
+  "active_ms": 100.0,
+  "command": "multi-mset",
+  "detector_selftest": {
+    "clean_control_zero": true,
+    "cycle_control_zero": true,
+    "cycle_positive_fired": true,
+    "torn_positive_fired": true
+  },
+  "elapsed_seconds": 60.005446122959256,
+  "errors": [],
+  "final_drain_probes": 1,
+  "host": "127.0.0.1",
+  "keys_per_write": 8,
+  "pattern": "full",
+  "pause_failures": 0,
+  "port": 22601,
+  "prefix": "wstress:813789:1791663929243441334",
+  "quiescent_probes": 529,
+  "requested_seconds": 60.0,
+  "settle_ms": 10.0,
+  "status": "clean",
+  "tomokv": {
+    "atomic_groups_after": 568775,
+    "atomic_groups_before": 0,
+    "atomic_groups_delta": 568775,
+    "atomic_inflight_final": 0,
+    "atomic_pending_entries_final": 0,
+    "configured_atomic": 0
+  },
+  "violation_samples": [],
+  "violations": 0,
+  "writers": 2,
+  "writes_by_writer": [
+    277794,
+    290981
+  ],
+  "writes_total": 568775
+}
