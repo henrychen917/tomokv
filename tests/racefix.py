@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import posixpath
 import re
 import subprocess
 import time
@@ -27,9 +28,11 @@ def server(args, directory, result):
     require(not listeners.strip(), f'port already owned: {listeners}')
     argv = ['taskset', '-c', args.cores, str(args.binary.resolve()), '--bind', '127.0.0.1',
             '--port', str(args.port), '--dir', str(data.resolve()), '--thread-mode', args.mode,
-            '--ratio', '6:2', '--shards', '16', '--key-lb', '0', '--client-lb', '0',
+            '--shards', '16', '--key-lb', '0', '--client-lb', '0',
             '--flip-auto', '0', '--slowlog-log-slower-than', '-1', '--save', '',
             '--appendonly', 'no', '--enable-debug-command', 'yes']
+    if args.mode == '2s':
+        argv += ['--ratio', '6:2']
     env = os.environ.copy()
     if args.case == 'counters':
         argv = ['setarch', 'x86_64', '-R', *argv]
@@ -181,7 +184,33 @@ def climon(args, result):
             c.close()
 
 
+def symbolize(log, binary):
+    # GCC's TSan sometimes omits inline locations in the large loop templates.
+    # Resolve only those PCs against the exact hashed ELF; keep the raw log too.
+    pattern = re.compile(r'\(' + re.escape(binary.name) + r'\+(0x[0-9a-f]+)\)')
+    addresses = sorted({m[1] for line in log.splitlines() if '<null>' in line
+                        for m in pattern.finditer(line)})
+    if not addresses:
+        return log
+    output = subprocess.check_output(['addr2line', '-afiCe', str(binary), *addresses], text=True)
+    resolved, address = {}, None
+    for line in output.splitlines():
+        if re.fullmatch(r'0x[0-9a-f]+', line):
+            address = hex(int(line, 16))
+            resolved[address] = []
+        elif address is not None:
+            resolved[address].append(line)
+    lines = []
+    for line in log.splitlines():
+        lines.append(line)
+        match = pattern.search(line) if '<null>' in line else None
+        if match:
+            lines.extend('    [addr2line] ' + value for value in resolved[match[1]])
+    return '\n'.join(lines) + '\n'
+
+
 def tsan_reports(log):
+    log = re.sub(r'\bsrc/[A-Za-z0-9_/.\-]+', lambda m: posixpath.normpath(m[0]), log)
     reports = re.findall(r'WARNING: ThreadSanitizer:.*?(?=\n={8,}|\Z)', log, re.S)
     # Accept a PRE confirmation only when both named sides are in the same
     # report. Other warnings remain explicit diagnostics, never confirmation.
@@ -220,7 +249,9 @@ def main():
     except Exception as error:
         result['error'] = f'{type(error).__name__}: {error}'
     if args.case == 'counters' and (args.output / 'server.log').exists():
-        result['tsan'] = tsan_reports((args.output / 'server.log').read_text())
+        log = symbolize((args.output / 'server.log').read_text(), args.binary)
+        (args.output / 'symbolized.log').write_text(log)
+        result['tsan'] = tsan_reports(log)
         if result['tsan']['counter_reports'] or result['tsan']['runtime_failure']:
             result['passed'] = False
         if result.get('exit_code') not in (0, 66):
