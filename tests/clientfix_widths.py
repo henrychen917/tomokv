@@ -32,7 +32,7 @@ def load_snapshot():
 
 
 def cell(port, width, tracking, samples, rate):
-    keys = [f'clientfix:width:{i}' for i in range(width)]
+    keys = [f'pf:{i:04d}' for i in range(width)]
     command = enc(['MSET', *[arg for key in keys for arg in (key, 'v')]])
     with Conn(port) as writer, Conn(port) as observer:
         writer.s.settimeout(30)

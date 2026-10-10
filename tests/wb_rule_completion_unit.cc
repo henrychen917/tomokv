@@ -108,6 +108,7 @@ static void exits() {
 }
 struct ServerStub {
     static constexpr unsigned kClimonReply = 1;
+    static constexpr unsigned kClimonTracking = 2;
     struct Config { int wb_policy = 1; } config;
     const Config& cfg() { return config; }
 };
