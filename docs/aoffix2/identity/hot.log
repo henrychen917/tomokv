@@ -1,0 +1,4 @@
+Hot bodies: 1204; raw byte equal: 1201; bytes + resolved relocation targets equal: 1201
+DIFF db0/src/persist/aof.o 543 479 tomo_db0::FlatStore::erase(unsigned long, tomo_db0::Slice)
+DIFF src/persist/aof.o 1511 1274 tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+DIFF src/persist/aof.o 1589 1376 tomo::FlatStore::insert(unsigned long, tomo::KvObj*)

@@ -13,6 +13,7 @@ import signal
 import subprocess
 import sys
 import time
+import traceback
 from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -100,6 +101,17 @@ def units():
     assert all(row['rc'] == 0 for row in ROWS)
 
 
+def battery_chain(label, action):
+    try:
+        action()
+    except Exception:
+        trace = traceback.format_exc()
+        (OUT / (label + '-chain-error.log')).write_text(trace)
+        ROWS.append(dict(label=label + '-chain-error', rc=1, error=trace))
+        (OUT / 'commands.json').write_text(json.dumps(ROWS, indent=2) + '\n')
+        print(trace, flush=True)
+
+
 def batteries():
     for engine in ('uring', 'epoll'):
         for mode in ('1s', '2s'):
@@ -111,63 +123,76 @@ def batteries():
             for atomic in ('0', '1'):
                 opt = h.aof('no') + ['--atomic', atomic]
                 for name in ('aof', 'rewrite', 'triggers', 'torn', 'frame'):
+                    if name == 'torn' and atomic != '1':
+                        continue  # This existing battery requires --atomic 1.
                     prefix = f'{geometry}-{atomic}-{name}'
-                    data = h.ARGS.artifacts / f'{name}-{atomic}'
-                    state = h.ARGS.artifacts / f'{name}-{atomic}.json'
-                    def live(script, phase_args, suffix):
-                        run(prefix + '-' + suffix, ['python3', 'tests/' + script + '.py',
-                            '127.0.0.1', '25003', *phase_args], timeout=120)
-                    with h.Server(opt, data=data) as s:
-                        assert s.ready, s.logpath
-                        if name == 'aof':
-                            live('aof', ['populate', state], 'populate')
-                            live('aof', ['loadaof', state], 'loadaof')
-                            live('aof', ['snapshot', data / 'dump.tomo'], 'snapshot')
-                            s.stop(signal.SIGKILL)
-                        elif name == 'rewrite':
-                            live('aof_rewrite', ['populate', state, '2048'], 'populate')
-                            live('aof_rewrite', ['rewrite', state, data], 'rewrite')
-                            live('aof_rewrite', ['manifest', data], 'manifest')
-                        elif name == 'triggers':
-                            live('aof_rewrite_triggers', ['run', state, data, atomic], 'run')
-                        elif name == 'torn':
-                            live('aof_torn_group', ['prepare', state], 'prepare')
-                            s.p.wait(timeout=10)
-                            assert s.p.returncode == -signal.SIGKILL
-                        else:
-                            live('aof_frame_order', [data / 'appendonlydir'], 'run')
-                    with h.Server(opt, data=data) as s:
-                        assert s.ready, s.logpath
-                        if name == 'aof':
-                            live('aof', ['verify', state], 'verify')
-                        elif name == 'rewrite':
-                            live('aof_rewrite', ['verify', state], 'verify')
-                        elif name == 'triggers':
-                            live('aof_rewrite_triggers', ['verify', state, data, atomic], 'verify')
-                        elif name == 'torn':
-                            live('aof_torn_group', ['verify', state], 'verify')
-                            live('aof_torn_group', ['scan', data / 'appendonlydir/appendonly.aof.1.incr.tomo'], 'scan')
+                    def chain():
+                        data = h.ARGS.artifacts / f'{name}-{atomic}'
+                        state = h.ARGS.artifacts / f'{name}-{atomic}.json'
+                        def live(script, phase_args, suffix):
+                            run(prefix + '-' + suffix, ['python3', 'tests/' + script + '.py',
+                                '127.0.0.1', '25003', *phase_args], timeout=120)
+                        with h.Server(opt, data=data) as s:
+                            assert s.ready, s.logpath
+                            if name == 'aof':
+                                live('aof', ['populate', state], 'populate')
+                                live('aof', ['loadaof', state], 'loadaof')
+                                live('aof', ['snapshot', data / 'dump.tomo'], 'snapshot')
+                                s.stop(signal.SIGKILL)
+                            elif name == 'rewrite':
+                                live('aof_rewrite', ['populate', state, '2048'], 'populate')
+                                live('aof_rewrite', ['rewrite', state, data], 'rewrite')
+                                live('aof_rewrite', ['manifest', data], 'manifest')
+                            elif name == 'triggers':
+                                live('aof_rewrite_triggers', ['run', state, data, atomic], 'run')
+                            elif name == 'torn':
+                                live('aof_torn_group', ['prepare', state], 'prepare')
+                                s.p.wait(timeout=10)
+                                assert s.p.returncode == -signal.SIGKILL
+                            else:
+                                live('aof_frame_order', [data / 'appendonlydir'], 'run')
+                        with h.Server(opt, data=data) as s:
+                            assert s.ready, s.logpath
+                            if name == 'aof':
+                                live('aof', ['verify', state], 'verify')
+                                live('aof', ['snapshot', data / 'dump.tomo'], 'snapshot-post')
+                                def model(suffix):
+                                    text = (OUT / (prefix + '-' + suffix + '.log')).read_text()
+                                    return next(line for line in text.splitlines() if line.startswith('SNAPSHOT BYTE MODEL:'))
+                                assert model('snapshot') == model('snapshot-post')
+                            elif name == 'rewrite':
+                                live('aof_rewrite', ['verify', state], 'verify')
+                            elif name == 'triggers':
+                                live('aof_rewrite_triggers', ['verify', state, data, atomic], 'verify')
+                            elif name == 'torn':
+                                live('aof_torn_group', ['verify', state], 'verify')
+                                live('aof_torn_group', ['scan', data / 'appendonlydir/appendonly.aof.1.incr.tomo'], 'scan')
+                    battery_chain(prefix, chain)
             for policy in ('no', 'everysec', 'always'):
                 prefix = f'{geometry}-fsync-{policy}'
-                state = h.ARGS.artifacts / f'fsync-{policy}.json'
-                data = h.ARGS.artifacts / f'fsync-{policy}'
-                opt = h.aof(policy) + ['--atomic', '1']
-                with h.Server(opt, data=data) as s:
-                    run(prefix + '-populate', ['python3', 'tests/aof_fsync.py', '127.0.0.1',
-                        '25003', 'populate', state, policy, '512'], timeout=120)
-                    s.stop(signal.SIGKILL)
-                if policy == 'everysec':
-                    incr = data / 'appendonlydir/appendonly.aof.1.incr.tomo'
-                    with incr.open('r+b') as out:
-                        out.truncate(incr.stat().st_size - 7)
-                with h.Server(opt, data=data):
-                    run(prefix + '-verify', ['python3', 'tests/aof_fsync.py', '127.0.0.1',
-                        '25003', 'verify', state, policy, '512'], timeout=120)
+                def chain():
+                    state = h.ARGS.artifacts / f'fsync-{policy}.json'
+                    data = h.ARGS.artifacts / f'fsync-{policy}'
+                    opt = h.aof(policy) + ['--atomic', '1']
+                    with h.Server(opt, data=data) as s:
+                        run(prefix + '-populate', ['python3', 'tests/aof_fsync.py', '127.0.0.1',
+                            '25003', 'populate', state, policy, '512'], timeout=120)
+                        s.stop(signal.SIGKILL)
+                    if policy == 'everysec':
+                        incr = data / 'appendonlydir/appendonly.aof.1.incr.tomo'
+                        with incr.open('r+b') as out:
+                            out.truncate(incr.stat().st_size - 7)
+                    with h.Server(opt, data=data):
+                        run(prefix + '-verify', ['python3', 'tests/aof_fsync.py', '127.0.0.1',
+                            '25003', 'verify', state, policy, '512'], timeout=120)
+                battery_chain(prefix, chain)
             for case in ('kill', 'term'):
                 prefix = f'{geometry}-persistfix-{case}'
                 run(prefix, ['python3', 'tests/persistfix.py', '--binary', ARGS.binary,
                     '--mode', mode, '--case', case, '--net-io', engine, '--cores', '112-119',
-                    '--ratio', '6:2', '--port', '25003', '--artifacts', WORK / prefix], timeout=120)
+                    '--ratio', '6:2', '--port', '25003', '--artifacts', WORK / prefix], timeout=120, check=False)
+
+    assert all(row['rc'] == 0 for row in ROWS), OUT / 'commands.json'
 
 
 def differ():
