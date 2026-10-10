@@ -14,6 +14,7 @@ Worktree: `/home/user/Projects/cx-clientfix`. PRE source:
 |---|---|---|
 | PRE | `build/clientfix/pre/tomokv` | `839187cc59a9fdfe89040ae2630bd15bd4408bce23d038b3f9d0fa23c1092a5a` |
 | POST | `build/tomokv` | `6fd0478024b5d564f51a81b834b6511e3183bf00c6324077435def7fd6a14fc2` |
+| PAD-A, kind A | `build/clientfix/pad-a/tomokv` | `ba7e9856a82ac529e65741912275896b9042536347f5bde62072ca602fe898c2` |
 
 PRE was built before any production source edits, using
 `taskset -c 112-127 make -j16 BUILD_ROOT=build/clientfix/pre all`.
@@ -105,8 +106,8 @@ claimed fixed by this lane.
 | New rows on PRE / POST | 14 intended FAIL / 14 PASS; [POST receipt](docs/clientfix/post-proof.json) |
 | Redis 7.4.10 focused probes | 7/7 PASS |
 | tracking, pubsub, climon, climon2, geo, replyoff_xshard | 12/12 PASS across 1s and 2s; [logs](docs/clientfix/batteries/) |
-| Differential matrix | Split 64/64 PASS; armed-fused running. 8 suites × 4 seeds × 2 atomics × 2 geometries |
-| `python3 tests/gates_test.py` | Rerun on 124–127 in progress, serializing fixtures with every test/timeout unchanged; initial run on 112–127 hit scheduler-fixture timeouts |
+| Differential matrix | **128/128 comparison legs PASS**, plus two armed-fused witnesses; [split](docs/clientfix/differ-split.log), [armed-fused](docs/clientfix/differ-armed-fused.log) |
+| `python3 tests/gates_test.py` | **FAIL**, 66 tests / 11 failures, all cite fixture timeout exit 124; [result](docs/clientfix/gates-test-result.json), [log](docs/clientfix/gates-test.log). Final unmodified run under lighter shared load is in progress |
 | `python3 tests/wbland_checks.py check clauses` | PASS, 83/83 strict outcomes; [log](docs/clientfix/wbland-clauses.log) |
 | `python3 tests/gate_ledger_fixture.py` | Refuses unchanged EXPECT_FULL=528 versus 542 declared labels; no missing/extra labels |
 | Eight locked layouts and IoLoop field offsets, both namespaces | PASS, [layout receipt](docs/clientfix/layouts.json) |
@@ -118,6 +119,19 @@ The production build recipe extracts and asserts the exact 28 target names
 from the current job before building and checks each with `make -q`.
 `tests/wb_rule_completion_unit.cc` adds the tracking bit to its fake server mask.
 The core_units row list is unchanged.
+
+The scheduler proof is not green. Its first run on 112–127 had 13 timeout
+failures; its rerun on 124–127 serialized the fixtures without changing any
+check or the 45-second deadline and had 11 timeout failures in 729.913 seconds.
+The saved output shows the timeout status while fixture jobs were completing;
+37 compiler processes were observed confined to shared CPUs 112–127 immediately
+afterward. This is evidence of the run conditions, not a passing result or a
+proof that every failure would disappear on a quiet box. Initial failures are
+retained in `docs/clientfix/gates-test-initial.log.gz`; preserved fixture trees
+remain under the exact `build/scheduler-failure-*` paths named in the logs.
+The first clause-check attempt ran before its unit existed and failed with
+FileNotFoundError; its original output is retained too. The post-build clause
+rerun passed all 83 outcomes.
 
 DQ **+14**, DF **+14**. `collect_job clientfix` is at line 3279, above the quick-tier exit at line 3434;
 all seven case names expand once per mode before that exit. The comment above
@@ -159,8 +173,26 @@ performance null, not evidence that the changes are free.
 All eight locks remain Op 336 / Client 1984 / ThreadCtx 1408 / Shard 1440 /
 FlatStore 944 / Rob<64> 192 / AtomicEntry 144 / Config 624. The armed heap
 `ClimonConn` sidecar grows to hold receipts and pending reads; fixed/default
-object layouts and all named IoLoop offsets are unchanged. No PAD arm is
-named or performance gain claimed. The mainline performance null is pending.
+object layouts and all named IoLoop offsets are unchanged. ClimonConn itself is
+56 → 184 bytes in both namespaces: [sidecar layouts](docs/clientfix/sidecar-layouts.json).
+
+**PAD-A is kind A, a behavior twin:** PRE behavior with the candidate's exact
+ClimonConn field layout and total `.text` size. The builder archives PRE source,
+adds only the candidate's unused sidecar fields, builds it, then links 6112
+unreachable NOP bytes. Its base `.text` is 7,587,340 bytes; the final 7,593,452
+bytes exactly match POST. Every fixed layout and named IoLoop offset also
+matches POST. This controls sidecar layout and total text size, not every
+function address or compiler inlining decision.
+
+All 14 regression cases reproduce the same PRE defect symptoms on PAD-A, and
+every owned process exits cleanly. Receipts: [build](docs/clientfix/pad-a.json),
+[source patch](docs/clientfix/pad-a.patch), [builder](docs/clientfix/build_pad.py),
+[layout comparison](docs/clientfix/pad-a-layouts.json), and
+[negative controls](docs/clientfix/pad-a-repros.json). No performance gain is
+claimed. The mainline performance null should compare PRE/POST/PAD-A using its
+existing default cells: a POST movement with a flat kind-A control separates
+behavior from the controlled layout/text-size change, subject to the function
+placement limitation above.
 
 **PFMESSAG.1 measurement handoff.** No optimization was made for this finding.
 The standing competition-lane rule says not to run measurements; no exception
@@ -173,11 +205,12 @@ was received, so the table is explicitly pending the maintainer's quiet-box run.
 `tests/clientfix_widths.py` uses one open-loop MSET connection and one idle
 RESP3 tracking observer, existing keys, widths 1/32/256/1024, OFF/unmatched
 `BCAST PREFIX never:`/default-preread, PRE and POST in both modes, Redis 7.4.10,
-three boots per arm and 1000 samples per cell at **100 MSET/s**. Tomo uses 16
+the kind-A PAD-A control in both modes, three boots per arm and 1000 samples
+per cell at **100 MSET/s**. Tomo uses 16
 shards, split ratio 6:2, atomic/read-local/reorder/key-lb/client-lb/flip-auto all
 0; slowlog and latency monitoring are off for every arm. Disabling the two
 balancers and reusing connections fixes writer and observer ownership within
-each boot. The driver interleaves PRE/POST/Redis arms,
+each boot. The driver interleaves PRE/PAD-A/POST/Redis arms,
 reverses arm order on alternating boots, and rotates cell order. Default mode
 reads each cell's keys once before timed writes, as requested; it does not add
 refresh reads to the timed workload.
@@ -186,11 +219,12 @@ Latency starts at the scheduled issue time; send-to-reply latency and sender
 lag are also retained. Each cell records /proc/loadavg, CPU pressure and
 CPU112–127 occupancy, so sibling load is visible beside the timings. A p99 at
 or above the offered period flags an unsuitable under-capacity comparison.
-Do not compile during this run. The command produces 180 cells / 180,000 samples
-with the defaults (about 30 minutes of timed traffic).
+Do not compile during this run. The command below produces 252 cells / 252,000 samples including PAD-A
+(about 42 minutes of timed traffic). Omitting the optional `--pad-a` produces
+the 180-cell PRE/POST/Redis matrix.
 
 ```sh
-taskset -c 112-127 taskset -c 121-127 python3 tests/clientfix_widths.py --pre build/clientfix/pre/tomokv --post build/tomokv --redis /tmp/claude-1000/redis74/src/redis-server --port 25080 --cores 112-119 --oracle-cores 120 --boots 3 --samples 1000 --rate 100 --output build/clientfix/widths.jsonl
+taskset -c 112-127 taskset -c 121-127 python3 tests/clientfix_widths.py --pre build/clientfix/pre/tomokv --post build/tomokv --pad-a build/clientfix/pad-a/tomokv --redis /tmp/claude-1000/redis74/src/redis-server --port 25080 --cores 112-119 --oracle-cores 120 --boots 3 --samples 1000 --rate 100 --output build/clientfix/widths.jsonl
 taskset -c 112-127 python3 docs/clientfix/summarize_widths.py build/clientfix/widths.jsonl > MEASURE-RESULT-clientfix.md
 ```
 
@@ -198,6 +232,7 @@ The table generator refuses missing boots/cells, changing hashes, mixed rates,
 and unequal sample counts. It reports pooled p50/p99, ON/OFF ratios beside
 Redis's matching ratios, and every per-boot latency/load row. Its arithmetic and
 missing-boot control were checked with synthetic data only. The deciding numbers
-are the ON/OFF p50 and p99 ratios at matched offered load, plus POST/PRE by cell;
+are the ON/OFF p50 and p99 ratios at matched offered load, plus POST/PRE and
+PAD-A/PRE by cell;
 saturated/late-sender cells or changing sibling contention support no merit
 claim. The supplied audit's saturation ratios are not substituted for this table.

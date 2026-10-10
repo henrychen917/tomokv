@@ -100,6 +100,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--pre', required=True)
     parser.add_argument('--post', required=True)
+    parser.add_argument('--pad-a', help='Kind A: PRE behavior with POST sidecar layout/text size')
     parser.add_argument('--redis', required=True)
     parser.add_argument('--port', type=int, required=True)
     parser.add_argument('--cores', required=True)
@@ -115,6 +116,10 @@ def main():
     hashes = {arm: hashlib.sha256(Path(getattr(args, arm)).read_bytes()).hexdigest()
               for arm in ('pre', 'post', 'redis')}
     arms = [('pre', '1s'), ('post', '1s'), ('redis', 'oracle'), ('post', '2s'), ('pre', '2s')]
+    if args.pad_a:
+        hashes['pad-a'] = hashlib.sha256(Path(args.pad_a).read_bytes()).hexdigest()
+        arms.insert(1, ('pad-a', '1s'))
+        arms.insert(-1, ('pad-a', '2s'))
     shapes = [(width, tracking) for width in (1, 32, 256, 1024)
               for tracking in ('off', 'bcast', 'default')]
     with args.output.open('x') as output:
@@ -123,7 +128,8 @@ def main():
                 extra_flags = ['--slowlog-log-slower-than', '-1', '--latency-monitor-threshold', '0']
                 if arm != 'redis':
                     extra_flags += ['--reorder', '0', '--key-lb', '0', '--client-lb', '0']
-                config = argparse.Namespace(binary=getattr(args, arm), port=args.port,
+                binary = args.pad_a if arm == 'pad-a' else getattr(args, arm)
+                config = argparse.Namespace(binary=binary, port=args.port,
                                             cores=args.oracle_cores if arm == 'redis' else args.cores,
                                             ratio=args.ratio, mode=mode, oracle=arm == 'redis',
                                             extra_flags=extra_flags)

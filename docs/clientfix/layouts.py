@@ -9,7 +9,7 @@ LOCKS = dict(Op=336, Client=1984, ThreadCtx=1408, Shard=1440,
              FlatStore=944, **{'Rob<64>': 192}, AtomicEntry=144, Config=624)
 
 
-def inventory(binary):
+def inventory(binary, types=None):
     script = '''import gdb, json
 result = {}
 for ns in ('tomo', 'tomo_db0'):
@@ -22,7 +22,7 @@ for ns in ('tomo', 'tomo_db0'):
     fields[f.name] = f.bitpos
   result[typename] = dict(size=t.sizeof, fields_bitpos=fields)
 print('CLIENTFIX_LAYOUT=' + json.dumps(result, sort_keys=True))
-''' % (list(LOCKS) + ['IoLoop'],)
+''' % (list(LOCKS) + ['IoLoop'] if types is None else types,)
     command = ['taskset', '-c', '112-127', 'gdb', '-nx', '--batch', str(binary),
                '-ex', 'python exec(' + repr(script) + ')']
     result = subprocess.run(command, text=True, capture_output=True)

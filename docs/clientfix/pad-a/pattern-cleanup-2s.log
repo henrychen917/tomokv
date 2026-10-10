@@ -1,0 +1,4 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/clientfix/pad-a/tomokv", "--bind", "127.0.0.1", "--port", "25073", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-z75sd5q7", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "37.67 41.72 64.16 28/4426 1734619", "pid": 1734618}
+{"case": "pattern-cleanup", "count": 0, "empty_count": 1, "empty_frames": [["message", "", "empty"]], "frames": []}
+{"exit": 0, "lifecycle": "stop", "load": "37.67 41.72 64.16 26/4424 1735344", "pid": 1734618}
+{"case": "pattern-cleanup", "failures": [{"atomic": 0, "error": "", "read_local": 0}], "mode": "2s", "result": "FAIL"}

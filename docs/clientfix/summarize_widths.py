@@ -26,7 +26,8 @@ def render(rows):
         assert len(row['latency_us']) == row['samples']
         groups[row['arm'], row['mode'], row['width'], row['tracking']].append(row)
         hashes[row['arm']].add(row['sha256'])
-    arms = [('pre', '1s'), ('post', '1s'), ('pre', '2s'), ('post', '2s'), ('redis', 'oracle')]
+    variants = ['pre'] + (['pad-a'] if 'pad-a' in hashes else []) + ['post']
+    arms = [(arm, mode) for mode in ('1s', '2s') for arm in variants] + [('redis', 'oracle')]
     expected = {(arm, mode, width, tracking) for arm, mode in arms
                 for width in (1, 32, 256, 1024) for tracking in ('off', 'bcast', 'default')}
     assert set(groups) == expected, f'incomplete shape matrix: {expected - set(groups)}'
@@ -47,6 +48,9 @@ def render(rows):
            'Latency includes sender lag. Per-boot values and shared-CPU load appear below.', '']
     for arm, values in hashes.items():
         out.append(f'- {arm} SHA-256: `{next(iter(values))}`')
+    if 'pad-a' in hashes:
+        out += ['', 'PAD-A is a kind-A behavior twin: PRE behavior with POST sidecar layout and total',
+                '.text size. It does not match every function address.']
     invalid = [row for row in rows if not row['below_offered_period']]
     if invalid:
         out += ['', f'**No under-capacity verdict: {len(invalid)} cells have p99 at or above the offered period.**']

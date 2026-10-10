@@ -569,5 +569,20 @@
       "6:2"
     ],
     "exit_code": 0
+  },
+  {
+    "name": "differ-armed-fused",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-clientfix/build/tomokv",
+      "25074",
+      "25075",
+      "112-119",
+      "6:2"
+    ],
+    "exit_code": 0
   }
 ]

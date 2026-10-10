@@ -1,0 +1,4 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/clientfix/pad-a/tomokv", "--bind", "127.0.0.1", "--port", "25073", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-ib2kfaa3", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "37.25 41.97 64.85 49/3966 1693014", "pid": 1693010}
+{"case": "geo-store", "centers": 20, "failures": 20, "sample": [{"center": 0, "expected": ["p237", "p298", "p47", "p128", "p246"], "got": ["p31", "p250", "p184", "p289", "p222"], "radius": ["p31", "p250", "p184", "p289", "p222"]}]}
+{"exit": 0, "lifecycle": "stop", "load": "37.25 41.97 64.85 43/3963 1693274", "pid": 1693010}
+{"case": "geo-store", "failures": [{"atomic": 0, "error": "COUNT without ANY did not select the nearest members", "read_local": 0}], "mode": "1s", "result": "FAIL"}
