@@ -264,6 +264,7 @@ def sampler_check(host, port, clock_file):
                     f"rotating sampler did not refresh every volatile shard: {row}")
             require(c.must("DBSIZE") == 4096, "DBSIZE publication differs")
             pipeline(c, [("PERSIST", f"all:{i}") for i in range(4096)], 1)
+            require(c.must("DBSIZE", "NOW") == 4096, "PERSIST publication boundary")
             row = keyspace(c)
             require(row["keys"] == 4096 and row["expires"] == row["avg_ttl"] == 0,
                     "zero-expiry publication differs")
@@ -276,6 +277,8 @@ def sampler_check(host, port, clock_file):
 @contextmanager
 def server(binary, port, cores, mode="2s", read_local=0, clock_file=None, balancing=False):
     """Only the explicit --binary live invocation starts this isolated child."""
+    from gate_quiet import occupied_ports
+    require(not occupied_ports((port,)), f"port {port} is already listening")
     root = Path(__file__).resolve().parents[1] / "build/perfex/runs"
     root.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=root) as directory:
