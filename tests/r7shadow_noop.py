@@ -144,6 +144,9 @@ if __name__ == '__main__':
         # fused owner prefetch remains in the audit; only split prefetch is gone.
         for namespace in expected:
             expected[namespace] -= 51
+            # perfex: ExLoopT<false>::exec_batch<false, 32ul> is inlined into drain_tasks once the
+            # task batch needs no zero-fill, so one split scheduler body per runtime is gone (147 -> 146).
+            expected[namespace] -= 1
             owner = f'{namespace}::ExLoopT<true>::prefetch_owner_batch({namespace}::Task const*, unsigned int)'
             for binary in (pre, post):
                 assert len(binary.groups.get(owner, ())) == 1, f'missing owner prefetch body: {namespace}'
