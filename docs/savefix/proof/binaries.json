@@ -1,0 +1,17 @@
+{
+  "PRE": {
+    "path": "build/savefix/pre/tomokv",
+    "sha256": "67d5cdd5432f8517c031ac35a1ff525dffcbf6d391ef2fcce35e4bfdf20dd900",
+    "bytes": 187037296
+  },
+  "POST": {
+    "path": "build/tomokv",
+    "sha256": "520d03703f5b0719cc92223b66073777d9c9c863efa8e44f88a9312c58fdd1be",
+    "bytes": 187065040
+  },
+  "oracle": {
+    "path": "/tmp/claude-1000/redis74/src/redis-server",
+    "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+    "bytes": 17663696
+  }
+}

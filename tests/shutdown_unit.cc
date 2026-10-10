@@ -204,9 +204,16 @@ struct CoreConcurrencyTest {
             require(!server.snapshot().in_progress() && !server.snapshot_atomic_barrier_.load() &&
                     !server.shutdown_snapshot_holds(),
                     "saving owner resumes and releases cancelled epoch and barrier");
+            // The retry is also a serverless schedule. Keep its clock virtual:
+            // real wall time otherwise charges shared-box descheduling against
+            // the 10s production timeout while the fixture scans old tables.
+            // Driver::progress still fails if 4096 owner passes do not finish.
+            test_clock_ns = 1;
             real_save = true;
-            require(f->command({"SHUTDOWN"}).empty(), "shutdown retry completes after owner resumes");
-            real_save = false;
+            const auto retry = f->command({"SHUTDOWN"});
+            if (!retry.empty()) std::fprintf(stderr, "shutdown retry reply: %s\n", retry.c_str());
+            require(retry.empty(), "shutdown retry completes after owner resumes");
+            real_save = false; test_clock_ns = 0;
         } else require(reply.empty(), "real snapshot shutdown succeeds on saving owner");
         require(server.shutting_down(), "saving owner stops only after successful finalization");
         std::string error;

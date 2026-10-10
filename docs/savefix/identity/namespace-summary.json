@@ -1,0 +1,18 @@
+{
+  "tomo": {
+    "bodies": 8397,
+    "equal": 8331,
+    "changed": 66,
+    "handlers": 606,
+    "handlers_equal": 606,
+    "changed_hot": 21
+  },
+  "tomo_db0": {
+    "bodies": 7910,
+    "equal": 7840,
+    "changed": 70,
+    "handlers": 604,
+    "handlers_equal": 604,
+    "changed_hot": 20
+  }
+}

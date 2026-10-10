@@ -1,0 +1,258 @@
+[
+  {
+    "label": "shutdown-unit",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/shutdown-unit"
+    ],
+    "exit_code": 1,
+    "expected": false,
+    "seconds": 19.716
+  },
+  {
+    "label": "at15-unit-1s",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/at15-unit",
+      "1s"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.121
+  },
+  {
+    "label": "at15-unit-2s",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/at15-unit",
+      "2s"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.129
+  },
+  {
+    "label": "at15-db0-unit-1s",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/at15-db0-unit",
+      "1s"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.115
+  },
+  {
+    "label": "at15-db0-unit-2s",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/at15-db0-unit",
+      "2s"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.141
+  },
+  {
+    "label": "execabort-watch-unit-1s",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/execabort-watch-unit",
+      "1s"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.045
+  },
+  {
+    "label": "execabort-watch-unit-1s-no-watch",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/execabort-watch-unit",
+      "1s",
+      "no-watch"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.036
+  },
+  {
+    "label": "execabort-watch-unit-1s-no-error",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/execabort-watch-unit",
+      "1s",
+      "no-error"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.038
+  },
+  {
+    "label": "execabort-watch-unit-2s",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/execabort-watch-unit",
+      "2s"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.034
+  },
+  {
+    "label": "execabort-watch-unit-2s-no-watch",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/execabort-watch-unit",
+      "2s",
+      "no-watch"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.032
+  },
+  {
+    "label": "execabort-watch-unit-2s-no-error",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/execabort-watch-unit",
+      "2s",
+      "no-error"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.033
+  },
+  {
+    "label": "execabort-watch-unit-2s-no-arm",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/execabort-watch-unit",
+      "2s",
+      "no-arm"
+    ],
+    "exit_code": 1,
+    "expected": true,
+    "seconds": 0.045
+  },
+  {
+    "label": "execabort-watch-db0-unit-1s",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/execabort-watch-db0-unit",
+      "1s"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.034
+  },
+  {
+    "label": "execabort-watch-db0-unit-1s-no-watch",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/execabort-watch-db0-unit",
+      "1s",
+      "no-watch"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.043
+  },
+  {
+    "label": "execabort-watch-db0-unit-1s-no-error",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/execabort-watch-db0-unit",
+      "1s",
+      "no-error"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.039
+  },
+  {
+    "label": "execabort-watch-db0-unit-2s",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/execabort-watch-db0-unit",
+      "2s"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.035
+  },
+  {
+    "label": "execabort-watch-db0-unit-2s-no-watch",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/execabort-watch-db0-unit",
+      "2s",
+      "no-watch"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.034
+  },
+  {
+    "label": "execabort-watch-db0-unit-2s-no-error",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/execabort-watch-db0-unit",
+      "2s",
+      "no-error"
+    ],
+    "exit_code": 0,
+    "expected": true,
+    "seconds": 0.054
+  },
+  {
+    "label": "execabort-watch-db0-unit-2s-no-arm",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "build/execabort-watch-db0-unit",
+      "2s",
+      "no-arm"
+    ],
+    "exit_code": 1,
+    "expected": true,
+    "seconds": 0.037
+  }
+]
