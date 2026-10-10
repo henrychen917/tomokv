@@ -1,0 +1,22 @@
+{
+  "pre_binary": "build/authfix/pre/tomokv",
+  "pre_commit": "5146b78ee89b64748dd46db970efa8086f653fa0",
+  "pre_sha256": "4661985986b2f31f08bd62f146ba21d5133e0a3288b042920ae7fba5684414d4",
+  "production_source_commit": "488bcdaa96112fb95f8f9723363632f65184350d",
+  "test_source_commit": "6976bcc5346e1553c5c87c3988bf405be05f8b56",
+  "gates_test_sha256": "cd85a95e6ca78e03147a7fb94d4bc677b5c4c581e4c4fec8337299a20474b03e",
+  "gate_sh_sha256": "8c8867f7e93cd0891431bebca71081d990f36eb8c6fd504ca13984202e3b4578",
+  "oracle": "/tmp/claude-1000/redis74/src/redis-server",
+  "oracle_sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "affinity": "112-127",
+  "target_cores": "112-119",
+  "ports": "25028-25041",
+  "gate_delta": {
+    "DQ": 5,
+    "DF": 5
+  },
+  "expect_constants_edited": false,
+  "post_binary": "build/tomokv",
+  "post_sha256": "2b57bd798786221bdb06ae3f061c7777bd6ef7cd719c05cc48d3f55f524ac6f2",
+  "acl_integration": "applied in 488bcdaa9"
+}
