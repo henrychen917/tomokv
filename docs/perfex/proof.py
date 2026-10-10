@@ -64,6 +64,8 @@ def correctness():
         with server(ROOT / "build/tomokv", 25102, "112-119", mode):
             run(["taskset", "-c", "120-127", "python3", "tests/infofix.py", "127.0.0.1", "25102"],
                 "infofix-" + mode)
+            run(["taskset", "-c", "120-127", "python3", "tests/lbsignals.py", "127.0.0.1", "25102"],
+                "lbsignals-" + mode)
     (OUT / "differ-suites.txt").write_text("edgetime\nhexpire\ninfofix\n")
     (OUT / "differ-seeds.txt").write_text("7\n19\n20\n23\n")
     for geometry in ("split", "armed-fused"):
