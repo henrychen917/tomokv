@@ -226,11 +226,18 @@ try:
          c.cmd("SCRIPT", "EXISTS", sha) == [0] and c2.cmd("SCRIPT", "EXISTS", sha) == [0])
     note("EVALSHA after flush is NOSCRIPT",
          str(c2.cmd("EVALSHA", sha, 0)).startswith("NOSCRIPT "))
-    # The interpreter state itself must rebuild, and EVAL must still work afterwards.
-    rebuilds_before = after["script_interpreter_builds"]
-    note("EVAL still works after flush", c2.cmd("EVAL", "return 7", 0) == 7)
-    note("interpreter rebuilt after flush",
-         info_counters(c)["script_interpreter_builds"] > rebuilds_before)
+    # Prove invalidation of a known compiled chunk on the same executor. FLUSH must
+    # preserve the interpreter's FUNCTION closures, so interpreter builds are not a witness.
+    flush_key = keys[0]
+    note("prime the chunk before flush", c2.cmd("EVAL", "return 7", 1, flush_key) == 7)
+    hits_before = info_counters(c)["script_chunk_cache_hits"]
+    note("same-owner chunk cache is armed", c2.cmd("EVAL", "return 7", 1, flush_key) == 7 and
+         info_counters(c)["script_chunk_cache_hits"] == hits_before + 1)
+    misses_before = info_counters(c)["script_chunk_cache_misses"]
+    note("second SCRIPT FLUSH ok", c.cmd("SCRIPT", "FLUSH") == b"OK")
+    note("EVAL still works after flush", c2.cmd("EVAL", "return 7", 1, flush_key) == 7)
+    note("compiled chunk invalidated after flush",
+         info_counters(c)["script_chunk_cache_misses"] == misses_before + 1)
 
     # ---- 3. SCRIPT subcommand surface ------------------------------------------------------
     print("[3] SCRIPT KILL / DEBUG / HELP / errors")

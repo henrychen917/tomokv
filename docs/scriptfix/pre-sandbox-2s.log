@@ -1,0 +1,40 @@
+{"start": ["taskset", "-c", "112-119", "/home/user/Projects/cx-scriptfix/build/scriptfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25056", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-scriptfix/build/scriptfix/runtime/sandbox-2s-osms5nne", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--flip-auto", "0", "--atomic", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "pid": 3676669}
+{"actual": "OK", "check": "seed", "expected": "OK", "pass": true}
+{"actual": "real", "check": "control", "expected": "real", "pass": true}
+{"actual": "armed", "check": "redis.call is readonly", "expected": {"error": "ERR user_script:1: Attempt to modify a readonly table script: 92222a3639098e9e4763c3cf947607899f271d40, on @user_script:1."}, "pass": false}
+{"actual": "changed", "check": "other client script GET", "expected": "real", "pass": false}
+{"actual": "real", "check": "direct GET", "expected": "real", "pass": true}
+{"actual": "OK", "check": "SCRIPT FLUSH", "expected": "OK", "pass": true}
+{"actual": "real", "check": "after flush", "expected": "real", "pass": true}
+{"actual": null, "check": "_G.tonumber=1", "expected": {"error": "ERR user_script:1: Attempt to modify a readonly table script: febdf0462aece4ad13e36b5c846f5fc6cef35be4, on @user_script:1."}, "pass": false}
+{"actual": "OK", "check": "flush after mutation", "expected": "OK", "pass": true}
+{"actual": {"error": "ERR user_script:1: Script attempted to create global variable 'cc4new' script: 2f68e71f5807d766473cdaeb1332cc21becc317e, on @user_script:1."}, "check": "_G.cc4new=1", "expected": {"error": "ERR user_script:1: Attempt to modify a readonly table script: 2f68e71f5807d766473cdaeb1332cc21becc317e, on @user_script:1."}, "pass": false}
+{"actual": "OK", "check": "flush after mutation", "expected": "OK", "pass": true}
+{"actual": null, "check": "rawset(_G,'cc4new',1)", "expected": {"error": "ERR Attempt to modify a readonly table script: f7d1a56b35bdb138bde1ffa86af8f727315eab46, on @user_script:1."}, "pass": false}
+{"actual": "OK", "check": "flush after mutation", "expected": "OK", "pass": true}
+{"actual": null, "check": "rawset(redis,'call',1)", "expected": {"error": "ERR Attempt to modify a readonly table script: 30e0507a07cf5c1ec0b6f95003ffce8872477c0d, on @user_script:1."}, "pass": false}
+{"actual": "OK", "check": "flush after mutation", "expected": "OK", "pass": true}
+{"actual": null, "check": "setmetatable(redis,{})", "expected": {"error": "ERR Attempt to modify a readonly table script: a18f585618b56883ed11c1069707ee6d306dd00b, on @user_script:1."}, "pass": false}
+{"actual": "OK", "check": "flush after mutation", "expected": "OK", "pass": true}
+{"actual": null, "check": "string.byte=1", "expected": {"error": "ERR user_script:1: Attempt to modify a readonly table script: af4041a0ee2e6cdd4e9978f71c458df9629f990c, on @user_script:1."}, "pass": false}
+{"actual": "OK", "check": "flush after mutation", "expected": "OK", "pass": true}
+{"actual": null, "check": "math.abs=1", "expected": {"error": "ERR user_script:1: Attempt to modify a readonly table script: 261120025da66bf041595dfd21093f6171abf16a, on @user_script:1."}, "pass": false}
+{"actual": "OK", "check": "flush after mutation", "expected": "OK", "pass": true}
+{"actual": null, "check": "table.insert=1", "expected": {"error": "ERR user_script:1: Attempt to modify a readonly table script: ff4dfd71cfbab08d92ca442e67257fed280599c0, on @user_script:1."}, "pass": false}
+{"actual": "OK", "check": "flush after mutation", "expected": "OK", "pass": true}
+{"actual": null, "check": "table.insert(redis,1)", "expected": {"error": "ERR Attempt to modify a readonly table script: 3a23258ee49a94b81503b4867b0064d44bda462d, on @user_script:1."}, "pass": false}
+{"actual": "OK", "check": "flush after mutation", "expected": "OK", "pass": true}
+{"actual": null, "check": "getmetatable('').__index.byte=1", "expected": {"error": "ERR user_script:1: Attempt to modify a readonly table script: 0114b5494d72b19d9f495836ff12dba6cb3c4946, on @user_script:1."}, "pass": false}
+{"actual": "OK", "check": "flush after mutation", "expected": "OK", "pass": true}
+{"actual": null, "check": "getmetatable('').__index={}", "expected": {"error": "ERR user_script:1: Attempt to modify a readonly table script: 54636923f966866e0553b8997afdc2b1a4c5c6de, on @user_script:1."}, "pass": false}
+{"actual": "OK", "check": "flush after mutation", "expected": "OK", "pass": true}
+{"actual": null, "check": "getmetatable(_G).__index=1", "expected": {"error": "ERR user_script:1: Attempt to modify a readonly table script: 96d1db64a1931c322badf9841a84e590bd69d9ac, on @user_script:1."}, "pass": false}
+{"actual": "OK", "check": "flush after mutation", "expected": "OK", "pass": true}
+{"actual": "function", "check": "no environment replacement API: getfenv", "expected": {"error": "ERR user_script:1: Script attempted to access nonexistent global variable 'getfenv' script: d2c7282719af3bf866eec648f4592730ecb3a75f, on @user_script:1."}, "pass": false}
+{"actual": "function", "check": "no environment replacement API: setfenv", "expected": {"error": "ERR user_script:1: Script attempted to access nonexistent global variable 'setfenv' script: ceaddaad3558d2f10cbb8082ea10e1b63f3ac0ea, on @user_script:1."}, "pass": false}
+{"actual": [7, 8, 97, 3], "check": "ordinary mutable tables", "expected": [7, 8, 97, 3], "pass": true}
+{"actual": "cc4readonly", "check": "function load", "expected": "cc4readonly", "pass": true}
+{"actual": null, "check": "function sandbox readonly", "expected": {"error": "ERR user_function:2: Attempt to modify a readonly table script: cc4readonly, on @user_function:2."}, "pass": false}
+{"actual": {"error": "ERR user_script:1: attempt to call field 'call' (a number value) script: 620cd258c2c9c88c9d10db67812ccf663d96bdc6, on @user_script:1."}, "check": "function cannot poison EVAL", "expected": "real", "pass": false}
+{"stop": 3676669, "exit": 0, "port_closed": true}
+{"case": "sandbox", "mode": "2s", "checks": 37, "failures": 18, "seconds": 0.141}

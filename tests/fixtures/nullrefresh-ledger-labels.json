@@ -1,7 +1,7 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
   "source_sha256": "8c1e51707e09366c289fbbe39466844d5936e8e027843897719adea590cb3304",
-  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full)",
+  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full); scriptfix declares eight focused Lua/function rows before the quick exit (+8 quick/+8 full)",
   "labels": [
     "release build (+footprint locks)",
     "ASAN build",
@@ -333,6 +333,14 @@
     "xscript battery (atomic 1)",
     "xscript limit control",
     "xscript window control",
+    "scriptfix sandbox (1s)",
+    "scriptfix functions (1s)",
+    "scriptfix replies (1s)",
+    "scriptfix dump (1s)",
+    "scriptfix sandbox (2s)",
+    "scriptfix functions (2s)",
+    "scriptfix replies (2s)",
+    "scriptfix dump (2s)",
     "expire-index growth bound",
     "borrow-registry growth bound",
     "cross-shard dispatch scaling",
