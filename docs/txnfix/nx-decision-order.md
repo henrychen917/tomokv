@@ -26,3 +26,18 @@ nx-decision-order proof directory. The earlier diagnostic returned process
 status zero even when its result tuple contained an anomaly; that status is
 not a semantic pass. The diagnostic driver now returns nonzero for anomalies.
 The detector's data checks are unchanged.
+
+An explicit fresh-boot replay of the retained bad image then produced two
+failures in256 races: both replies were1, both sources were gone, and only
+winner-b remained. See nx-decision-order/before-0.log.
+
+Reviewing the reordered guard exposed a separate pre-existing own-parent
+failure. On PRE and the first ordering repair, `MULTI; SET a 1; SET b 2;
+RENAMENX a b; EXEC` times out when a/b have different owners. Receipts are in
+nx-parent-before/runs.json. The validator erased its own-connection context,
+then treated the parent's private destination as an undecided foreign image.
+It could therefore wait for its own commit. S1/S6 govern: the child now keeps
+its own origin context and excludes its parent and sibling records from the
+foreign-decision check. execfix.py exercises both RENAMENX and COPY against a
+destination written earlier in the same EXEC. The earlier control build was
+stopped before editing source; its partial log is marked interrupted.

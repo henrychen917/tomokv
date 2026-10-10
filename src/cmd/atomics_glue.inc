@@ -183,7 +183,8 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
             const uint32_t pos = state.key_order[group.begin + i];
             if (pos != 1) continue;
             const KeyRef& key = state.keys[pos];
-            store.atomic_clear_read_epoch();
+            store.atomic_set_read_context(UINT64_MAX,
+                state.multi_child ? state.origin_conn_id : 0);
             if (store.atomic_has_record(key.hash, op.arg(key.arg))) {
                 // A foreign undecided value is deliberately invisible to ordinary reads. For an
                 // NX validator it is a reservation: let its group decide, then re-run validation.
@@ -193,6 +194,15 @@ ScatterTaskResult execute_atomic_apply(const Task& task, Shard& shard, Op& op,
                 bool undecided = false;
                 store.atomic_visit_unit_records(key.hash, op.arg(key.arg), false,
                     [&](AtomicEntry& entry) {
+                        if (state.multi_parent) {
+                            // A child validates against earlier private writes
+                            // of its parent, including sibling child installs.
+                            const void* parent = entry.plain()
+                                ? (entry.group_epoch ? reinterpret_cast<MultiDecision*>(
+                                       entry.group_epoch)->owner : nullptr)
+                                : (entry.group->multi_child ? entry.group->multi_parent : nullptr);
+                            if (parent == state.multi_parent) return;
+                        }
                         if (entry.group != &state && entry.group_epoch &&
                             !entry.group_epoch->load(std::memory_order_acquire) &&
                             !(entry.group_aborted && entry.group_aborted->load(std::memory_order_acquire)))
