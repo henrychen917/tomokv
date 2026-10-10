@@ -1,7 +1,7 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
   "source_sha256": "8c1e51707e09366c289fbbe39466844d5936e8e027843897719adea590cb3304",
-  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full)",
+  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full); perfex adds two binary regressions and two live TTL sampler rows before quick exit (+4 quick/+4 full)",
   "labels": [
     "release build (+footprint locks)",
     "ASAN build",
@@ -27,6 +27,10 @@
     "exbatch publication and WATCH lifecycle (1s)",
     "exbatch publication and WATCH lifecycle (2s)",
     "AOF publication/shutdown witnesses + negative controls",
+    "perfex clock binary regression",
+    "perfex batch binary regression",
+    "perfex TTL sampler beat (1s)",
+    "perfex TTL sampler beat (2s)",
     "core concurrency watch",
     "core concurrency lifetime",
     "core concurrency drain",

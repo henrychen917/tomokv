@@ -285,6 +285,9 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # eight rows collected above the quick-tier exit (+8 quick, +8 full).
 # overlapaxe: retire only split-overlap WB row, collected before quick exit (-1/-1).
 # Matrix client-lb dimension preserves every former split correctness scenario.
+# perfex: two binary rows plus two live sampler rows (1s/2s), all collected
+# before the quick-tier exit: DQ=4, DF=4; 511+4=515 quick, 528+4=532 full.
+# EXPECT constants remain maintainer-owned.
 EXPECT_QUICK=511
 EXPECT_FULL=528                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -1029,7 +1032,7 @@ plan_jobs(){
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
               wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
-              core_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
+              core_units climonfix persistfix_units perfex_units perfex_live lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
               efficiency dump_restore auth notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
@@ -1360,6 +1363,41 @@ if unit_ready lbplanner-units && taskset -c "$CORES" python3 tests/lbplanner_che
 else
   bad "LB monitor plan handoff + negative controls" "see $TMPDIR/lbplanner-unit.log"
 fi
+}
+
+job_perfex_units(){
+  local check label
+  for check in clock batch; do
+    label="perfex $check binary regression"
+    row_begin "$label"
+    if taskset -c "$CORES" python3 tests/perfex_checks.py "$check" --binary "$CANDIDATE_BINARY" \
+        >"$TMPDIR/perfex-$check.log" 2>&1; then
+      ok "$label"
+    else
+      bad "$label" "see $TMPDIR/perfex-$check.log"
+    fi
+  done
+}
+
+job_perfex_live(){
+  local mode label launch_fn
+  for mode in 1s 2s; do
+    label="perfex TTL sampler beat ($mode)"
+    row_begin "$label"
+    launch_fn=boot; [ "$mode" != 1s ] || launch_fn=boot_fused
+    # A failed boot is this row's failure; never run the client against an old listener.
+    if py tests/perfex_checks.py prepare --clock-file "$TMPDIR/perfex-clock" &&
+        LD_PRELOAD="$TMPDIR/perfex-clock.so" TOMO_PERFEX_CLOCK="$TMPDIR/perfex-clock" "$launch_fn" "$CANDIDATE_BINARY" --atomic 1 --read-local 0 --databases 1 \
+        --key-lb 0 --client-lb 0 --flip-auto 0 --enable-debug-command yes \
+        --save '' --appendonly no && \
+        py tests/perfex_checks.py sampler --port "$PORT" --clock-file "$TMPDIR/perfex-clock" \
+          >"$TMPDIR/perfex-sampler-$mode.log" 2>&1; then
+      ok "$label"
+    else
+      bad "$label" "see $TMPDIR/perfex-sampler-$mode.log and $SRVLOG"
+    fi
+    stop
+  done
 }
 
 job_persistfix_units(){
@@ -3255,6 +3293,8 @@ collect_job exbatch_units
 collect_job exbatch_live
 
 collect_job persistfix_units
+collect_job perfex_units
+collect_job perfex_live
 collect_job core_units
 
 collect_job wb_rule_units

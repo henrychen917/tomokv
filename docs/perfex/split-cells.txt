@@ -1,0 +1,5 @@
+# Split rl0 executor merit: explicit single-db image, GET/SET at p8/p32.
+split-get8 | 2s | rl=0 | ov=0 | ro=0 | GET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 1
+split-set8 | 2s | rl=0 | ov=0 | ro=0 | SET | p8 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 1
+split-get32 | 2s | rl=0 | ov=0 | ro=0 | GET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 1
+split-set32 | 2s | rl=0 | ov=0 | ro=0 | SET | p32 | 512 | - | - | 8 | atomic=1 | score=rate | mix=- | smoke=0 | srv=--databases 1
