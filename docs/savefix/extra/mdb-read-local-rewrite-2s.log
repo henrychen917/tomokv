@@ -1,0 +1,22 @@
+{"event": "start", "load": {"cpu_ticks": ["cpu112 10073152 357 2688985 313977696 3008800 0 989417 0 0 0", "cpu113 9378265 373 2423058 315028268 3068043 0 843260 0 0 0", "cpu114 9300128 256 2321054 315259497 3059930 0 808024 0 0 0", "cpu115 9169120 86 2283604 315449384 3033217 0 809108 0 0 0", "cpu116 9389797 448 2227326 315321521 3014847 0 787847 0 0 0", "cpu117 9092815 272 2186845 315636970 3045258 0 790740 0 0 0", "cpu118 9896878 356 2477590 315047795 2436656 0 892251 0 0 0", "cpu119 9993677 733 2577016 314739295 2471345 0 941729 0 0 0", "cpu120 9982339 926 2484993 316775921 507842 0 939016 0 0 0", "cpu121 9371899 845 2313123 317674262 493160 0 844100 0 0 0", "cpu122 9121074 1141 2135058 318115090 530781 0 790282 0 0 0", "cpu123 8932321 1057 2089740 318385348 509279 0 768587 0 0 0", "cpu124 8951084 770 2076791 318492940 431615 0 752959 0 0 0", "cpu125 8988762 2535 2062140 318473925 438965 0 749148 0 0 0", "cpu126 9285475 1210 2244225 317872777 441527 0 875934 0 0 0", "cpu127 9926937 1077 2528246 316634359 428143 0 1111308 0 0 0"], "cpus": [112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127], "loadavg": "123.34 129.66 109.04 100/4087 533828"}, "sha256": "520d03703f5b0719cc92223b66073777d9c9c863efa8e44f88a9312c58fdd1be"}
+{"argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-savefix/build/tomokv", "--bind", "127.0.0.1", "--port", "25015", "--dir", "/home/user/Projects/cx-savefix/build/savefix/extra/mdb-read-local-rewrite-2s/attempt-1", "--save", "", "--appendonly", "yes", "--appendfsync", "everysec", "--auto-aof-rewrite-percentage", "0", "--thread-mode", "2s", "--net-io", "uring", "--shards", "16", "--atomic", "1", "--databases", "16", "--read-local", "1", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "event": "boot", "pid": 533847}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-savefix/tests/savefix.py", line 334, in <module>
+    main()
+  File "/home/user/Projects/cx-savefix/tests/savefix.py", line 325, in main
+    result = attempt(args, directory)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-savefix/tests/savefix.py", line 190, in attempt
+    seed(args, conn)
+  File "/home/user/Projects/cx-savefix/tests/savefix.py", line 94, in seed
+    assert conn.must('MSET', *words) == b'OK'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-savefix/tests/_lib.py", line 204, in must
+    reply = self.cmd(*args)
+            ^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-savefix/tests/_lib.py", line 201, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-savefix/tests/_lib.py", line 163, in read
+    raise EOFError("server closed the connection")
+EOFError: server closed the connection

@@ -2767,5 +2767,379 @@
         ]
       }
     }
+  },
+  {
+    "label": "rewrite-1s-0-epoll",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/savefix.py",
+      "--binary",
+      "build/savefix/pre/tomokv",
+      "--port",
+      "25014",
+      "--cores",
+      "112-119",
+      "--output",
+      "build/savefix/pre-final-rows/rewrite-1s-0-epoll",
+      "--case",
+      "rewrite",
+      "--mode",
+      "1s",
+      "--net-io",
+      "epoll",
+      "--atomic",
+      "0"
+    ],
+    "exit_code": 1,
+    "expected": true,
+    "seconds": 6.008,
+    "result": {
+      "witness": {
+        "prefix": {
+          "path": "/home/user/Projects/cx-savefix/build/savefix/pre-final-rows/rewrite-1s-0-epoll/attempt-1/appendonlydir/appendonly.aof.2.base.tomo.tmp.4182468.1",
+          "bytes": 3606320
+        },
+        "in_progress": 1,
+        "atomic_pending_entries": 4,
+        "acked": [
+          4,
+          6,
+          6,
+          5,
+          5,
+          5,
+          4,
+          5
+        ]
+      },
+      "status": -6,
+      "acked": [
+        4,
+        6,
+        6,
+        5,
+        5,
+        5,
+        4,
+        6
+      ],
+      "sent": [
+        6,
+        8,
+        8,
+        7,
+        7,
+        7,
+        6,
+        8
+      ],
+      "temporary": [
+        "appendonlydir/appendonly.aof.2.base.tomo.tmp.4182468.1"
+      ],
+      "shutdown_report": false,
+      "load": {
+        "loadavg": "89.09 97.49 79.71 86/3945 4184329",
+        "cpus": [
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127
+        ],
+        "cpu_ticks": [
+          "cpu112 9978848 357 2679028 313977696 3008793 0 989399 0 0 0",
+          "cpu113 9282772 373 2414285 315028268 3068041 0 843241 0 0 0",
+          "cpu114 9203175 256 2313739 315259497 3059930 0 808005 0 0 0",
+          "cpu115 9071972 86 2276494 315449384 3033216 0 809079 0 0 0",
+          "cpu116 9291947 448 2220909 315321521 3014846 0 787827 0 0 0",
+          "cpu117 8994874 272 2180532 315636970 3045257 0 790707 0 0 0",
+          "cpu118 9800032 356 2470162 315047795 2436654 0 892239 0 0 0",
+          "cpu119 9896506 733 2569906 314739295 2471345 0 941723 0 0 0",
+          "cpu120 9884871 926 2478217 316775920 507842 0 938975 0 0 0",
+          "cpu121 9274484 845 2306265 317674261 493160 0 844086 0 0 0",
+          "cpu122 9021872 1141 2129991 318115090 530781 0 790262 0 0 0",
+          "cpu123 8832787 1057 2085005 318385347 509279 0 768569 0 0 0",
+          "cpu124 8852518 770 2071084 318492939 431615 0 752946 0 0 0",
+          "cpu125 8889513 2535 2057120 318473924 438965 0 749131 0 0 0",
+          "cpu126 9186721 1210 2238708 317872775 441527 0 875918 0 0 0",
+          "cpu127 9826924 1077 2523983 316634359 428143 0 1111295 0 0 0"
+        ]
+      },
+      "restored": [
+        [
+          5,
+          5,
+          5
+        ],
+        [
+          6,
+          6,
+          6
+        ],
+        [
+          6,
+          6,
+          6
+        ],
+        [
+          5,
+          5,
+          5
+        ],
+        [
+          6,
+          6,
+          6
+        ],
+        [
+          6,
+          6,
+          6
+        ],
+        [
+          5,
+          5,
+          5
+        ],
+        [
+          6,
+          6,
+          6
+        ]
+      ],
+      "lost": [],
+      "dbsize": 131096
+    }
+  },
+  {
+    "label": "rewrite-1s-1-epoll",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/savefix.py",
+      "--binary",
+      "build/savefix/pre/tomokv",
+      "--port",
+      "25014",
+      "--cores",
+      "112-119",
+      "--output",
+      "build/savefix/pre-final-rows/rewrite-1s-1-epoll",
+      "--case",
+      "rewrite",
+      "--mode",
+      "1s",
+      "--net-io",
+      "epoll",
+      "--atomic",
+      "1"
+    ],
+    "exit_code": 1,
+    "expected": false,
+    "seconds": 31.549,
+    "result": null
+  },
+  {
+    "label": "rewrite-2s-0-epoll",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/savefix.py",
+      "--binary",
+      "build/savefix/pre/tomokv",
+      "--port",
+      "25014",
+      "--cores",
+      "112-119",
+      "--output",
+      "build/savefix/pre-final-rows/rewrite-2s-0-epoll",
+      "--case",
+      "rewrite",
+      "--mode",
+      "2s",
+      "--net-io",
+      "epoll",
+      "--atomic",
+      "0"
+    ],
+    "exit_code": 1,
+    "expected": false,
+    "seconds": 30.878,
+    "result": null
+  },
+  {
+    "label": "rewrite-2s-1-epoll",
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/savefix.py",
+      "--binary",
+      "build/savefix/pre/tomokv",
+      "--port",
+      "25014",
+      "--cores",
+      "112-119",
+      "--output",
+      "build/savefix/pre-final-rows/rewrite-2s-1-epoll",
+      "--case",
+      "rewrite",
+      "--mode",
+      "2s",
+      "--net-io",
+      "epoll",
+      "--atomic",
+      "1"
+    ],
+    "exit_code": 1,
+    "expected": true,
+    "seconds": 7.64,
+    "result": {
+      "witness": {
+        "prefix": {
+          "path": "/home/user/Projects/cx-savefix/build/savefix/pre-final-rows/rewrite-2s-1-epoll/attempt-1/appendonlydir/appendonly.aof.2.base.tomo.tmp.24181.1",
+          "bytes": 3868592
+        },
+        "in_progress": 1,
+        "atomic_pending_entries": 2,
+        "acked": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ]
+      },
+      "status": -6,
+      "acked": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "sent": [
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6
+      ],
+      "temporary": [
+        "appendonlydir/appendonly.aof.2.base.tomo.tmp.24181.1"
+      ],
+      "shutdown_report": false,
+      "load": {
+        "loadavg": "80.18 93.15 79.50 65/3938 26208",
+        "cpus": [
+          112,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127
+        ],
+        "cpu_ticks": [
+          "cpu112 9985018 357 2679914 313977696 3008794 0 989400 0 0 0",
+          "cpu113 9289155 373 2414956 315028268 3068042 0 843243 0 0 0",
+          "cpu114 9209765 256 2314208 315259497 3059930 0 808006 0 0 0",
+          "cpu115 9078522 86 2277002 315449384 3033217 0 809080 0 0 0",
+          "cpu116 9298803 448 2221112 315321521 3014846 0 787827 0 0 0",
+          "cpu117 9001713 272 2180752 315636970 3045257 0 790708 0 0 0",
+          "cpu118 9806738 356 2470514 315047795 2436655 0 892239 0 0 0",
+          "cpu119 9903233 733 2570238 314739295 2471345 0 941723 0 0 0",
+          "cpu120 9891623 926 2478522 316775920 507842 0 938977 0 0 0",
+          "cpu121 9281183 845 2306625 317674261 493160 0 844086 0 0 0",
+          "cpu122 9028563 1141 2130359 318115090 530781 0 790262 0 0 0",
+          "cpu123 8839543 1057 2085306 318385347 509279 0 768571 0 0 0",
+          "cpu124 8859277 770 2071383 318492939 431615 0 752946 0 0 0",
+          "cpu125 8896225 2535 2057466 318473924 438965 0 749132 0 0 0",
+          "cpu126 9193493 1210 2238995 317872775 441527 0 875918 0 0 0",
+          "cpu127 9833704 1077 2524261 316634359 428143 0 1111296 0 0 0"
+        ]
+      },
+      "restored": [
+        [
+          4,
+          4,
+          4
+        ],
+        [
+          4,
+          4,
+          4
+        ],
+        [
+          4,
+          4,
+          4
+        ],
+        [
+          4,
+          4,
+          4
+        ],
+        [
+          4,
+          4,
+          4
+        ],
+        [
+          4,
+          4,
+          4
+        ],
+        [
+          4,
+          4,
+          4
+        ],
+        [
+          4,
+          4,
+          4
+        ]
+      ],
+      "lost": [],
+      "dbsize": 131096
+    }
   }
 ]

@@ -1,0 +1,29 @@
+{"event": "start", "load": {"cpu_ticks": ["cpu112 9981848 357 2679453 313977696 3008793 0 989400 0 0 0", "cpu113 9285926 373 2414555 315028268 3068042 0 843243 0 0 0", "cpu114 9206380 256 2313961 315259497 3059930 0 808005 0 0 0", "cpu115 9075151 86 2276741 315449384 3033217 0 809079 0 0 0", "cpu116 9295295 448 2220989 315321521 3014846 0 787827 0 0 0", "cpu117 8998221 272 2180613 315636970 3045257 0 790707 0 0 0", "cpu118 9803312 356 2470308 315047795 2436654 0 892239 0 0 0", "cpu119 9899801 733 2570038 314739295 2471345 0 941723 0 0 0", "cpu120 9888162 926 2478352 316775920 507842 0 938976 0 0 0", "cpu121 9277758 845 2306417 317674261 493160 0 844086 0 0 0", "cpu122 9025156 1141 2130133 318115090 530781 0 790262 0 0 0", "cpu123 8836103 1057 2085115 318385347 509279 0 768570 0 0 0", "cpu124 8855824 770 2071204 318492939 431615 0 752946 0 0 0", "cpu125 8892792 2535 2057267 318473924 438965 0 749132 0 0 0", "cpu126 9190031 1210 2238825 317872775 441527 0 875918 0 0 0", "cpu127 9830244 1077 2524089 316634359 428143 0 1111296 0 0 0"], "cpus": [112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127], "loadavg": "84.44 95.41 79.67 81/3945 6872"}, "sha256": "67d5cdd5432f8517c031ac35a1ff525dffcbf6d391ef2fcce35e4bfdf20dd900"}
+{"argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-savefix/build/savefix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25014", "--dir", "/home/user/Projects/cx-savefix/build/savefix/pre-final-rows/rewrite-2s-0-epoll/attempt-1", "--save", "", "--appendonly", "yes", "--appendfsync", "everysec", "--auto-aof-rewrite-percentage", "0", "--thread-mode", "2s", "--net-io", "epoll", "--shards", "16", "--atomic", "0", "--databases", "1", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "event": "boot", "pid": 6915}
+{"event": "capture_started", "reply": "Background append only file rewriting started"}
+{"event": "shutdown_request", "load": {"cpu_ticks": ["cpu112 9982205 357 2679534 313977696 3008793 0 989400 0 0 0", "cpu113 9286329 373 2414591 315028268 3068042 0 843243 0 0 0", "cpu114 9206794 256 2313985 315259497 3059930 0 808006 0 0 0", "cpu115 9075566 86 2276765 315449384 3033217 0 809079 0 0 0", "cpu116 9295728 448 2220995 315321521 3014846 0 787827 0 0 0", "cpu117 8998645 272 2180627 315636970 3045257 0 790707 0 0 0", "cpu118 9803717 356 2470342 315047795 2436654 0 892239 0 0 0", "cpu119 9900217 733 2570061 314739295 2471345 0 941723 0 0 0", "cpu120 9888584 926 2478369 316775920 507842 0 938976 0 0 0", "cpu121 9278171 845 2306444 317674261 493160 0 844086 0 0 0", "cpu122 9025562 1141 2130166 318115090 530781 0 790262 0 0 0", "cpu123 8836514 1057 2085142 318385347 509279 0 768570 0 0 0", "cpu124 8856233 770 2071234 318492939 431615 0 752946 0 0 0", "cpu125 8893187 2535 2057310 318473924 438965 0 749132 0 0 0", "cpu126 9190449 1210 2238845 317872775 441527 0 875918 0 0 0", "cpu127 9830664 1077 2524108 316634359 428143 0 1111296 0 0 0"], "cpus": [112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127], "loadavg": "83.44 95.02 79.63 82/3951 9466"}, "witness": {"acked": [8, 6, 6, 5, 8, 6, 6, 4], "atomic_pending_entries": 6, "in_progress": 1, "prefix": {"bytes": 1573744, "path": "/home/user/Projects/cx-savefix/build/savefix/pre-final-rows/rewrite-2s-0-epoll/attempt-1/appendonlydir/appendonly.aof.2.base.tomo.tmp.6915.1"}}}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-savefix/tests/savefix.py", line 236, in attempt
+    status = process.wait(timeout=15)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['taskset', '-c', '112-119', '/home/user/Projects/cx-savefix/build/savefix/pre/tomokv', '--bind', '127.0.0.1', '--port', '25014', '--dir', '/home/user/Projects/cx-savefix/build/savefix/pre-final-rows/rewrite-2s-0-epoll/attempt-1', '--save', '', '--appendonly', 'yes', '--appendfsync', 'everysec', '--auto-aof-rewrite-percentage', '0', '--thread-mode', '2s', '--net-io', 'epoll', '--shards', '16', '--atomic', '0', '--databases', '1', '--read-local', '0', '--key-lb', '0', '--client-lb', '0', '--flip-auto', '0', '--enable-debug-command', 'yes', '--ratio', '6:2']' timed out after 15 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-savefix/tests/savefix.py", line 316, in <module>
+    main()
+  File "/home/user/Projects/cx-savefix/tests/savefix.py", line 307, in main
+    result = attempt(args, directory)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-savefix/tests/savefix.py", line 246, in attempt
+    writers.finish()
+  File "/home/user/Projects/cx-savefix/tests/savefix.py", line 171, in finish
+    assert not self.errors, self.errors
+           ^^^^^^^^^^^^^^^
+AssertionError: ["TimeoutError('timed out')", "TimeoutError('timed out')", "TimeoutError('timed out')", "TimeoutError('timed out')", "TimeoutError('timed out')", "TimeoutError('timed out')", "TimeoutError('timed out')", "TimeoutError('timed out')"]

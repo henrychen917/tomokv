@@ -19,6 +19,7 @@ import time
 
 from _lib import Conn, encode, info, wait_ready
 from persistfix import check_port_owner, guard_port
+from shutdown_report import load_report, require_io_conservation, require_persistence
 
 
 def emit(event, **fields):
@@ -193,6 +194,20 @@ def attempt(args, directory):
         writers.start()
         try:
             if args.case == 'acks':
+                background = None
+                if args.bgsave_first:
+                    conn.must('BGSAVE')
+                    deadline = time.monotonic() + 5
+                    while process.poll() is None and time.monotonic() < deadline:
+                        current = info(conn, 'all')
+                        partial = prefix(args, directory)
+                        if partial and int(current.get('rdb_bgsave_in_progress', 0)) and (
+                                not args.atomic or int(current.get('atomic_pending_entries', 0))):
+                            background = dict(prefix=partial, atomic_pending_entries=
+                                              int(current.get('atomic_pending_entries', 0)))
+                            break
+                        time.sleep(.001)
+                    emit('prior_capture', witness=background)
                 emit('shutdown_request', acked=writers.acked[:], load=load())
                 if args.action == 'sigterm':
                     process.send_signal(signal.SIGTERM)
@@ -201,9 +216,10 @@ def attempt(args, directory):
                 deadline = time.monotonic() + 15
                 while process.poll() is None and time.monotonic() < deadline:
                     partial = prefix(args, directory)
-                    if partial and min(writers.acked) >= 3:
+                    if partial and min(writers.acked) >= 3 and (
+                            not args.bgsave_first or background is not None):
                         witness = dict(prefix=partial, acked=writers.acked[:],
-                                       sent=writers.sent[:])
+                                       sent=writers.sent[:], prior_capture=background)
                         break
                     time.sleep(.001)
             else:
@@ -231,6 +247,24 @@ def attempt(args, directory):
                                        atomic_pending_entries=entries, acked=writers.acked[:])
                         break
                     time.sleep(.001)
+                if not args.writers_inflight:
+                    # The cancellation law needs retained, acknowledged MVCC
+                    # records. Quiesce the requests, then re-witness those
+                    # records AND the incomplete capture. Undecided EXEC/AOF
+                    # shutdown also hangs on PRE with no capture at all; keep
+                    # that independent stress case available explicitly below.
+                    writers.pause()
+                    current = info(conn, 'all')
+                    partial = prefix(args, directory)
+                    active = int(current.get('rdb_bgsave_in_progress', 0)) if args.case == 'bgsave' \
+                        else int(current.get('aof_rewrite_in_progress', 0))
+                    entries = int(current.get('atomic_pending_entries', 0))
+                    emit('capture_rechecked', prefix=partial, in_progress=active,
+                         atomic_pending_entries=entries, writers_parked=all(writers.parked))
+                    witness = dict(prefix=partial, in_progress=active,
+                                   atomic_pending_entries=entries, acked=writers.acked[:],
+                                   writers_parked=all(writers.parked)) if (
+                                       active and partial and (entries > 0 or args.oracle)) else None
                 emit('shutdown_request', witness=witness, load=load())
                 process.send_signal(signal.SIGTERM)
             status = process.wait(timeout=15)
@@ -272,6 +306,11 @@ def attempt(args, directory):
     (directory / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
     assert status == 0, ('shutdown must exit cleanly', result)
     assert result['shutdown_report'] or args.oracle, ('missing normal shutdown report', result)
+    if not args.oracle:
+        report = load_report(directory / 'write.log')
+        require_io_conservation(report)
+        if args.case != 'acks' and not args.writers_inflight:
+            require_persistence(report)
     assert not temporary, ('orphan capture temporary file', result)
     assert not result.get('lost'), ('acknowledged writes missing from final dump', result)
     return result
@@ -289,14 +328,24 @@ def main():
     parser.add_argument('--atomic', choices=(0, 1), type=int, default=0)
     parser.add_argument('--net-io', choices=('uring', 'epoll'), default='uring')
     parser.add_argument('--ratio', default='6:2')
-    parser.add_argument('--keys', type=int, default=131072)
+    parser.add_argument('--keys', type=int,
+                        help='default 524288 for rewrite, 131072 for the snapshot rows')
     parser.add_argument('--value-bytes', type=int, default=200)
     parser.add_argument('--databases', type=int, default=1)
     parser.add_argument('--read-local', type=int, choices=(0, 1), default=0)
     parser.add_argument('--aof', action='store_true')
+    parser.add_argument('--bgsave-first', action='store_true',
+                        help='T27c: request a configured shutdown during an older BGSAVE')
+    parser.add_argument('--writers-inflight', type=int, choices=(0, 1), default=0,
+                        help='also exercise the independent undecided EXEC/AOF shutdown path')
     parser.add_argument('--oracle', action='store_true')
     args = parser.parse_args()
+    if args.keys is None:
+        # AOF acknowledgements must finish while a substantial capture remains.
+        # Enlarge fresh state, keeping the same strict half-file witness.
+        args.keys = 524288 if args.case == 'rewrite' else 131072
     assert args.keys >= 1024 and args.value_bytes >= 200
+    assert not args.bgsave_first or (args.case == 'acks' and args.action == 'sigterm')
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=False)

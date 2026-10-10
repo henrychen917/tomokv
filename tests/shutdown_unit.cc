@@ -197,10 +197,12 @@ struct CoreConcurrencyTest {
             if (stall_phase == Phase::Capture)
                 require(server.snapshot().frame_count_ != 0, "capture timeout occurs after a real frame write");
             driver.stall_phase = Phase::Idle;
-            for (unsigned pass = 0; pass < 128 && server.snapshot().in_progress(); ++pass) {
+            for (unsigned pass = 0; pass < 128 && (server.snapshot().in_progress() ||
+                    server.shutdown_snapshot_holds()); ++pass) {
                 driver.progress(); server.snapshot().writer_pass(writer, f->ring, true);
             }
-            require(!server.snapshot().in_progress() && !server.snapshot_atomic_barrier_.load(),
+            require(!server.snapshot().in_progress() && !server.snapshot_atomic_barrier_.load() &&
+                    !server.shutdown_snapshot_holds(),
                     "saving owner resumes and releases cancelled epoch and barrier");
             real_save = true;
             require(f->command({"SHUTDOWN"}).empty(), "shutdown retry completes after owner resumes");
