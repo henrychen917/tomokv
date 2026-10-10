@@ -329,7 +329,7 @@ def main():
     parser.add_argument('--net-io', choices=('uring', 'epoll'), default='uring')
     parser.add_argument('--ratio', default='6:2')
     parser.add_argument('--keys', type=int,
-                        help='default 524288 for rewrite, 131072 for the snapshot rows')
+                        help='default 524288 for rewrite and bgsave, 131072 for the acks rows')
     parser.add_argument('--value-bytes', type=int, default=200)
     parser.add_argument('--databases', type=int, default=1)
     parser.add_argument('--read-local', type=int, choices=(0, 1), default=0)
@@ -342,8 +342,10 @@ def main():
     args = parser.parse_args()
     if args.keys is None:
         # AOF acknowledgements must finish while a substantial capture remains.
-        # Enlarge fresh state, keeping the same strict half-file witness.
-        args.keys = 524288 if args.case == 'rewrite' else 131072
+        # Enlarge fresh state, keeping the same strict half-file witness. On idle
+        # CPUs a 131072-key BGSAVE capture completes in about 60 ms, before the
+        # post-pause re-check, so BGSAVE cancellation uses the same larger dataset.
+        args.keys = 524288 if args.case in ('rewrite', 'bgsave') else 131072
     assert args.keys >= 1024 and args.value_bytes >= 200
     assert not args.bgsave_first or (args.case == 'acks' and args.action == 'sigterm')
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
