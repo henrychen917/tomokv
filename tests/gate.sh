@@ -285,6 +285,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # eight rows collected above the quick-tier exit (+8 quick, +8 full).
 # overlapaxe: retire only split-overlap WB row, collected before quick exit (-1/-1).
 # Matrix client-lb dimension preserves every former split correctness scenario.
+# txnfix: Stage A adds 4 rows before the quick exit: DQ=4, DF=4;
+# maintainer update required: 511+4=515 quick, 528+4=532 full (EXPECT is owner-owned).
 EXPECT_QUICK=511
 EXPECT_FULL=528                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -1916,6 +1918,22 @@ shutdown_clean \
     && ok "atomic shutdown invariants" || bad "atomic shutdown invariants"
 }
 
+txniso_checks(){
+  local mode=$1 atomic=$2 log=$3 passed=1 boot_fn=boot
+  [ "$mode" != 1s ] || boot_fn=boot_fused
+  py tests/txniso.py 127.0.0.1 "$PORT" --mode "$mode" >"$log" 2>&1 || passed=0
+  unit_ready atomic-survivors-unit \
+      && taskset -c "$CORES" ./build/atomic-survivors-unit txn_intents >>"$log" 2>&1 \
+      && taskset -c "$CORES" ./build/atomic-survivors-unit txn_help >>"$log" 2>&1 || passed=0
+  stop
+  "$boot_fn" "$CANDIDATE_BINARY" --atomic "$atomic" --enable-debug-command yes \
+      --key-lb 0 --client-lb 0 --flip-auto 0 --appendonly yes --appendfsync no \
+      && py tests/txniso.py 127.0.0.1 "$PORT" --mode "$mode" --only V4 >>"$log" 2>&1 \
+      || passed=0
+  stop
+  [ "$passed" = 1 ]
+}
+
 job_fused(){
 # ---- FUSED mode: one boot per atomic mode, coarse three-stream production subset --------------
 local AT=${1##*-}
@@ -1949,6 +1967,13 @@ local AT=${1##*-}
       && ok "fused shutdown report (atomic $AT)" \
       || bad "fused shutdown report (atomic $AT)" \
              "mode=$FUSED_REPORT_MODE kind=$FUSED_REPORT_KIND; see $SRVLOG"
+  row_begin "fused txniso battery (atomic $AT)"
+  boot_fused "$CANDIDATE_BINARY" --atomic "$AT" --enable-debug-command yes \
+      --key-lb 0 --client-lb 0 --flip-auto 0 \
+      && txniso_checks 1s "$AT" "$TMPDIR/gate-fused-txniso-$AT.txt" \
+      && ok "fused txniso battery (atomic $AT)" \
+      || bad "fused txniso battery (atomic $AT)" "see $TMPDIR/gate-fused-txniso-$AT.txt"
+  stop
 }
 
 job_bplus(){
@@ -2078,12 +2103,18 @@ local AT=${1##*-}
   # print PASS on a run where no transaction fragment ever met an undecided same-connection unit,
   # and its committed-MSETNX control asserts read-your-own-writes still crosses the two units --
   # a "fix" that merely hid the group's candidate would fail there.
-  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix multires multirace session_monotonic xacct xmove xscript; do
+  for t in lbsignals slowlog atomfix scriptatomic execatomic execiso execfix multires multirace session_monotonic xacct xmove xscript txniso; do
     FEATURE_ARGS=()
     [ "$t" = xmove ] && FEATURE_ARGS+=(--release-build)
     row_begin "$t battery (atomic $AT)"
-    py tests/$t.py 127.0.0.1 $PORT "${FEATURE_ARGS[@]}" >$TMPDIR/gate-$t-$AT.txt 2>&1 \
+    if [ "$t" = txniso ]; then
+      txniso_checks 2s "$AT" "$TMPDIR/gate-txniso-$AT.txt" \
+          && ok "txniso battery (atomic $AT)" \
+          || bad "txniso battery (atomic $AT)" "see $TMPDIR/gate-txniso-$AT.txt"
+    else
+      py tests/$t.py 127.0.0.1 $PORT "${FEATURE_ARGS[@]}" >$TMPDIR/gate-$t-$AT.txt 2>&1 \
         && ok "$t battery (atomic $AT)" || bad "$t battery (atomic $AT)" "see $TMPDIR/gate-$t-$AT.txt"
+    fi
   done
   stop
 }

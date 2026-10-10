@@ -244,6 +244,8 @@ def straddle_arm(mode, kind):
     keys = SETS if kind == "SUNION" else KEYS
     torn, detail, opened = 0, [], 0
     before_cuts = info_field("atomic_exec_read_cuts")
+    before_dooms = info_field("atomic_txn_dooms")
+    before_retries = info_field("atomic_txn_retries")
     for round_id in range(ROUNDS):
         old, new = "g%d-old" % round_id, "g%d-new" % round_id
         if kind == "EXISTS":
@@ -280,8 +282,11 @@ def straddle_arm(mode, kind):
             return
         reader.send("EXEC")
         time.sleep(0.05)                     # the lead fragment has answered; the rest are parked
+        arm(0)                              # replacement attempts must not inherit the park
         writer = Resp()
-        reply = transaction(writer, commands)
+        # A younger EXEC now waits for this older reader. Plain writers cancel
+        # its read intents and preserve the intended foreign-write window.
+        reply = [writer.cmd(*command) for command in commands]
         exec_done = time.time()
         writer.close()
         outer = reader.read()
@@ -292,7 +297,7 @@ def straddle_arm(mode, kind):
         expected_writes = len(commands)
         if not isinstance(reply, list) or len(reply) != expected_writes or \
                 any(isinstance(r, RespError) for r in reply):
-            detail.append("round %d foreign EXEC=%r" % (round_id, reply))
+            detail.append("round %d foreign writes=%r" % (round_id, reply))
             torn += 1
             continue
         if not isinstance(outer, list) or len(outer) != 1:
@@ -308,20 +313,22 @@ def straddle_arm(mode, kind):
             opened += 1
         if kind == "MGET":
             ok = bool(values) and all(value == values[0] for value in values[1:])
-            # The cut was pinned before the foreign transaction arrived: the answer is the OLD world.
-            ok = ok and values[0] == old.encode()
+            # The cancelled attempt is invisible; its replacement sees all writes.
+            ok = ok and values[0] == new.encode()
         elif kind == "EXISTS":
             ok = values in (0, len(keys))
         else:
-            ok = isinstance(values, list) and len(values) == 1 and values[0] == old.encode()
+            ok = isinstance(values, list) and len(values) == 1 and values[0] == new.encode()
         if not ok:
             torn += 1
             if len(detail) < 3:
                 detail.append("round %d saw %r" % (round_id, values))
     cuts = info_field("atomic_exec_read_cuts") - before_cuts
-    ok = torn == 0 and opened == ROUNDS and cuts >= ROUNDS
-    note(label, ok, "rounds=%d torn=%d windows_opened=%d exec_read_cuts=+%d %r"
-         % (ROUNDS, torn, opened, cuts, detail[:2]))
+    dooms = info_field("atomic_txn_dooms") - before_dooms
+    retries = info_field("atomic_txn_retries") - before_retries
+    ok = torn == 0 and opened == ROUNDS and cuts >= ROUNDS and dooms >= ROUNDS and retries >= ROUNDS
+    note(label, ok, "rounds=%d torn=%d windows_opened=%d exec_read_cuts=+%d dooms=+%d retries=+%d %r"
+         % (ROUNDS, torn, opened, cuts, dooms, retries, detail[:2]))
 
 
 # ---- 2. the bar itself: the same shape run BARE ------------------------------------------------

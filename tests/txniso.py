@@ -5,11 +5,13 @@ Run against a debug-enabled server with key/client balancing and automatic FLIP
 disabled. --pre suppresses only assertions on newly introduced counters.
 """
 import argparse
+import collections
 import concurrent.futures
 import contextlib
 import select
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -28,8 +30,8 @@ class Battery:
         self.serial = 0
         self.failures = []
 
-    def conn(self, timeout=10):
-        c = _lib.Conn(self.args.host, self.args.port, timeout=timeout)
+    def conn(self, timeout=10, buffering=1 << 20):
+        c = _lib.Conn(self.args.host, self.args.port, timeout=timeout, buffering=buffering)
         self.connections.append(c)
         return c
 
@@ -104,6 +106,11 @@ class Battery:
             if select.select([holder.sock], [], [], 0)[0]:
                 raise WindowMiss("holder already replied")
             yield holder
+        except WindowMiss:
+            # Retire the missed attempt before arming a fresh one, so its late
+            # counter movement cannot witness the replacement window.
+            holder.read()
+            raise
         finally:
             self.hook("ATOMIC-FANOUT-DEFER", 0)
             holder.close()
@@ -219,6 +226,189 @@ class Battery:
         assert self.transaction(c, [("SET", b, 1)]) is None
         assert self.admin.must("GET", b) is None
 
+    def same_shard(self, key):
+        names = [key + ":local:" + str(i) for i in range(1024)]
+        shard = self.admin.must("DEBUG", "SHARD", key)
+        routes = self.admin.must("DEBUG", "SHARDS", *names)
+        return next(name for name, route in zip(names, routes) if route[0] == shard)
+
+    def read_skew(self):
+        a, b = self.pair()
+        self.admin.must("MSET", a, 0, b, 0)
+        start = threading.Barrier(8)
+        def worker(index):
+            c = self.conn()
+            torn = 0
+            start.wait(timeout=5)
+            for i in range(300):
+                if index < 4:
+                    value = index * 300 + i
+                    result = self.transaction(c, [("SET", a, value), ("SET", b, value)])
+                    assert result == [b"OK", b"OK"], result
+                else:
+                    result = self.transaction(c, [("GET", a), ("GET", b)])
+                    assert isinstance(result, list) and len(result) == 2, result
+                    torn += result[0] != result[1]
+            return torn
+        with concurrent.futures.ThreadPoolExecutor(8) as pool:
+            torn = sum(pool.map(worker, range(8)))
+        print("read skew torn", torn, flush=True)
+        assert torn == 0, torn
+
+    def crossed_watch(self):
+        a, b = self.pair()
+        self.admin.must("MSET", a, 0, b, 0)
+        turn = threading.Barrier(2)
+        end = time.monotonic() + 20
+        def worker(watch, write):
+            c = self.conn(timeout=5)
+            try:
+                for i in range(500):
+                    assert time.monotonic() < end, "crossed WATCH deadline"
+                    c.must("WATCH", watch)
+                    turn.wait(timeout=5)
+                    result = self.transaction(c, [("DEBUG", "SLEEP", ".001"), ("SET", write, i)])
+                    assert result is None or result == [b"OK", b"OK"], result
+                    turn.wait(timeout=5)
+            except BaseException:
+                turn.abort()
+                raise
+        with concurrent.futures.ThreadPoolExecutor(2) as pool:
+            futures = [pool.submit(worker, a, b), pool.submit(worker, b, a)]
+            for future in futures:
+                future.result(timeout=20)
+
+    def invisible(self, kind):
+        a, b = self.pair()
+        self.admin.must("MSET", a, 0, b, 0)
+        commands = [("INCR", a), ("MGET", a, b), ("INCR", b)]
+        listener = None
+        previous_notify = None
+        if kind == "V1":
+            previous_notify = self.admin.must("CONFIG", "GET", "notify-keyspace-events")[1]
+            self.admin.must("CONFIG", "SET", "notify-keyspace-events", "KEA")
+            listener = self.conn(buffering=0)
+            listener.send("SUBSCRIBE", "__keyspace@0__:" + a, "__keyspace@0__:" + b)
+            assert listener.read()[0] == listener.read()[0] == b"subscribe"
+        elif kind == "V2":
+            listener = self.conn(buffering=0)
+            assert listener.must("SUBSCRIBE", a)[0] == b"subscribe"
+            commands.append(("PUBLISH", a, "one"))
+        elif kind == "V3":
+            members = {str(i).encode() for i in range(16)}
+            collection = self.same_shard(a)
+            self.admin.must("SADD", collection, *members)
+            commands.insert(1, ("SPOP", collection))
+        retries = self.counter("atomic_txn_retries")
+        try:
+            with self.parked(commands, writes=True) as holder:
+                assert self.admin.must("INCR", a) == 1
+                result = holder.read()
+            assert result is not None and result[0] == 2, result
+            self.advanced("atomic_txn_retries", retries)
+            if kind == "V1":
+                events = [listener.read() for _ in range(3)]
+                counts = collections.Counter((event[1], event[2]) for event in events)
+                assert counts == collections.Counter({
+                    (("__keyspace@0__:" + a).encode(), b"incrby"): 2,
+                    (("__keyspace@0__:" + b).encode(), b"incrby"): 1}), events
+            elif kind == "V2":
+                assert listener.read() == [b"message", a.encode(), b"one"]
+                assert result[-1] == 1, result
+            elif kind == "V3":
+                remaining = set(self.admin.must("SMEMBERS", collection))
+                assert members - remaining == {result[1]} and len(remaining) == 15, (result, remaining)
+            if listener:
+                assert not select.select([listener.sock], [], [], .1)[0], "duplicate published effect"
+        finally:
+            if previous_notify is not None:
+                self.admin.must("CONFIG", "SET", "notify-keyspace-events", previous_notify)
+
+    def aof_replay(self):
+        assert self.admin.must("CONFIG", "GET", "appendonly")[1] == b"yes", "V4 needs its own AOF boot"
+        expected = {}
+        for _ in range(3):
+            a, b = self.pair()
+            self.admin.must("MSET", a, 0, b, 0)
+            retries = self.counter("atomic_txn_retries")
+            with self.parked([("INCR", a), ("MGET", a, b), ("INCR", b)], writes=True) as holder:
+                self.admin.must("INCR", a)
+                assert holder.read() == [2, [b"2", b"0"], 1]
+            self.advanced("atomic_txn_retries", retries)
+            expected.update({a: b"2", b: b"1"})
+        assert self.admin.must("DEBUG", "LOADAOF") == b"OK"
+        assert self.admin.must("MGET", *expected) == list(expected.values()), "discarded attempt in AOF"
+
+    def fallback(self):
+        a, b = self.pair()
+        self.admin.must("MSET", a, 0, b, 0)
+        exclusive = self.counter("atomic_txn_exclusive")
+        self.hook("TXN-OCC-LIMIT", 1)
+        stop = threading.Event()
+        counts = [0] * 4
+        def hammer(index):
+            c = self.conn(timeout=5)
+            while not stop.is_set():
+                assert isinstance(c.must("INCR", a), int)
+                counts[index] += 1
+        try:
+            with concurrent.futures.ThreadPoolExecutor(4) as pool:
+                writers = [pool.submit(hammer, i) for i in range(4)]
+                try:
+                    c = self.conn(timeout=5)
+                    end = time.monotonic() + 15
+                    for _ in range(200):
+                        result = self.transaction(c, [("INCR", a), ("INCR", b)])
+                        assert isinstance(result, list) and len(result) == 2, result
+                        assert time.monotonic() < end, "fallback deadline"
+                finally:
+                    stop.set()
+                    for writer in writers:
+                        writer.result(timeout=5)
+            assert self.admin.must("MGET", a, b) == [str(200 + sum(counts)).encode(), b"200"], counts
+            self.advanced("atomic_txn_exclusive", exclusive)
+            for name in ("atomic_txn_exclusive_violations", "atomic_txn_exclusive_drain_timeouts"):
+                assert self.counter(name) in (0, None), name
+        finally:
+            self.hook("TXN-OCC-LIMIT", 8)
+
+    def exclusive_admin(self):
+        a, b = self.pair()
+        self.admin.must("MSET", a, 0, b, 0)
+        timeout = self.admin.must("CONFIG", "GET", "timeout")[1]
+        before = self.counter("atomic_txn_exclusive")
+        # Put the all-owner CONFIG barrier after the witnessed park. Classification
+        # must still select exclusive before the first command of attempt one.
+        commands = [("INCR", a), ("MGET", a, b), ("CONFIG", "SET", "timeout", timeout), ("INCR", b)]
+        with self.parked(commands, writes=True) as holder:
+            writer = self.conn()
+            writer.send("INCR", a)
+            assert holder.read() == [1, [b"1", b"0"], b"OK", 1]
+            assert writer.read() == 2
+        assert self.admin.must("MGET", a, b) == [b"2", b"1"]
+        if before is not None:
+            assert self.counter("atomic_txn_exclusive") == before + 1
+
+    def rest(self):
+        self.wait(lambda: self.counter("atomic_pending_entries") == 0,
+                  "pending entries did not drain", timeout=1)
+        for name in ("atomic_txn_intents_live", "atomic_exec_order_late", "atomic_gauge_underflows",
+                     "atomic_txn_exclusive_violations", "atomic_txn_exclusive_drain_timeouts"):
+            assert self.counter(name) in (0, None), (name, self.counter(name))
+        assert self.counter("script_intents_live") == self.script_intents_before
+
+    def plain_rest(self):
+        a, b = self.pair()
+        before = {k: v for k, v in self.stats().items() if k.startswith("atomic_txn_")}
+        end = time.monotonic() + 1
+        while time.monotonic() < end:
+            self.admin.must("SET", a, 1)
+            assert self.admin.must("GET", a) == b"1"
+            self.admin.must("MSET", a, 2, b, 2)
+            assert self.admin.must("MGET", a, b) == [b"2", b"2"]
+        after = {k: v for k, v in self.stats().items() if k.startswith("atomic_txn_")}
+        assert after == before, (before, after)
+
     def run(self, name, function):
         if self.args.only and name not in self.args.only.split(","):
             return
@@ -244,6 +434,7 @@ def main():
     args = parser.parse_args()
     battery = Battery(args)
     try:
+        battery.script_intents_before = battery.counter("script_intents_live")
         for knob in ("key-lb", "client-lb", "flip-auto"):
             assert battery.admin.must("CONFIG", "GET", knob)[1] == b"0", knob
         for name in ("D1", "D2", "D3", "D4a", "D4b"):
@@ -257,6 +448,17 @@ def main():
         battery.run("S4", lambda: battery.audit("t17_queue_exec.py", "tomo", args.mode, extra=("--operations", "500")))
         battery.run("W1", lambda: battery.audit("t18_watch_cas.py", "tomo", args.mode, 4, 100))
         battery.run("W2", battery.watch_before)
+        battery.run("S5", battery.read_skew)
+        battery.run("W3", battery.crossed_watch)
+        for name in ("V1", "V2", "V3"):
+            battery.run(name, lambda n=name: battery.invisible(n))
+        # The gate appends this companion check from a separate appendonly boot.
+        if args.only and "V4" in args.only.split(","):
+            battery.run("V4", battery.aof_replay)
+        battery.run("X1", battery.fallback)
+        battery.run("X2", battery.exclusive_admin)
+        battery.run("Z1", battery.rest)
+        battery.run("Z2", battery.plain_rest)
     finally:
         battery.close()
     return bool(battery.failures)

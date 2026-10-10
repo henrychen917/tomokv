@@ -1,7 +1,7 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
   "source_sha256": "8c1e51707e09366c289fbbe39466844d5936e8e027843897719adea590cb3304",
-  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full)",
+  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full); txnfix Stage A adds four EXEC serializability rows before the quick exit; maintainer-owned EXPECT update is pending",
   "labels": [
     "release build (+footprint locks)",
     "ASAN build",
@@ -530,7 +530,11 @@
     "read-local ownership invariants",
     "Redis 7.4 differential matrix",
     "Redis 7.4 differential matrix (armed fused + read-local)",
-    "glob/scan grammar parity vs Redis 7.4"
+    "glob/scan grammar parity vs Redis 7.4",
+    "txniso battery (atomic 0)",
+    "txniso battery (atomic 1)",
+    "fused txniso battery (atomic 0)",
+    "fused txniso battery (atomic 1)"
   ],
   "supplement": {
     "source": "origin/cpp 4329c26f0 tests/gate.sh job_wb_rule_units",
