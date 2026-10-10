@@ -1,0 +1,90 @@
+[
+  {
+    "label": "split-large-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aoffix2.py",
+      "large",
+      "--binary",
+      "build/tomokv",
+      "--mode",
+      "2s",
+      "--engine",
+      "uring",
+      "--cores",
+      "112-119",
+      "--port",
+      "25006",
+      "--artifacts",
+      "build/aoffix2/post-controls/split-uring"
+    ],
+    "rc": 0,
+    "seconds": 1.1329522132873535,
+    "load_before": "60.87 54.48 63.09 34/3736 2173109",
+    "load_after": "60.87 54.48 63.09 43/3733 2175164"
+  },
+  {
+    "label": "fused-off-large-uring",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "-c",
+      "from pathlib import Path\nfrom types import SimpleNamespace\nimport sys\nsys.path.insert(0,'tests')\nimport aoffix2 as h\nh.ARGS=SimpleNamespace(binary=Path('build/tomokv').resolve(),cores='112-119',port=25006,mode='1s',engine=sys.argv[1],ratio='6:2',oracle=False,artifacts=Path(sys.argv[2]))\nh.ARGS.artifacts.mkdir(parents=True)\nwith h.Server(h.aof('off'),single=True) as s:\n c=s.client();v=b'x'*(5*1024*1024)\n assert c.cmd('SET','big',v)==b'OK'\n assert c.cmd('GET','big')==v\n assert c.cmd('PING')==b'PONG'\n h.emit('aof_off_large_control',size=len(v),passed=True)\n",
+      "uring",
+      "build/aoffix2/post-controls/off-uring"
+    ],
+    "rc": 0,
+    "seconds": 0.5169610977172852,
+    "load_before": "60.87 54.48 63.09 44/3733 2175164",
+    "load_after": "60.87 54.48 63.09 37/3732 2176085"
+  },
+  {
+    "label": "split-large-epoll",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aoffix2.py",
+      "large",
+      "--binary",
+      "build/tomokv",
+      "--mode",
+      "2s",
+      "--engine",
+      "epoll",
+      "--cores",
+      "112-119",
+      "--port",
+      "25006",
+      "--artifacts",
+      "build/aoffix2/post-controls/split-epoll"
+    ],
+    "rc": 0,
+    "seconds": 1.0703327655792236,
+    "load_before": "60.87 54.48 63.09 39/3732 2176085",
+    "load_after": "59.76 54.35 63.00 38/3738 2178112"
+  },
+  {
+    "label": "fused-off-large-epoll",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "-c",
+      "from pathlib import Path\nfrom types import SimpleNamespace\nimport sys\nsys.path.insert(0,'tests')\nimport aoffix2 as h\nh.ARGS=SimpleNamespace(binary=Path('build/tomokv').resolve(),cores='112-119',port=25006,mode='1s',engine=sys.argv[1],ratio='6:2',oracle=False,artifacts=Path(sys.argv[2]))\nh.ARGS.artifacts.mkdir(parents=True)\nwith h.Server(h.aof('off'),single=True) as s:\n c=s.client();v=b'x'*(5*1024*1024)\n assert c.cmd('SET','big',v)==b'OK'\n assert c.cmd('GET','big')==v\n assert c.cmd('PING')==b'PONG'\n h.emit('aof_off_large_control',size=len(v),passed=True)\n",
+      "epoll",
+      "build/aoffix2/post-controls/off-epoll"
+    ],
+    "rc": 0,
+    "seconds": 0.47013044357299805,
+    "load_before": "59.76 54.35 63.00 42/3738 2178112",
+    "load_after": "59.76 54.35 63.00 42/3738 2178789"
+  }
+]

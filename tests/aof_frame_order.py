@@ -379,4 +379,11 @@ if __name__ == "__main__":
     parser.add_argument("--engine", choices=("epoll", "uring"), default="epoll")
     args = parser.parse_args()
     EXPECTED_ENGINE = args.engine
+    if args.engine == "uring":
+        # Async fragment readiness arrives on the write CQE. With only 273
+        # frames, LargeEnd can be submitted just after the first 256-frame
+        # batch, before that batch completes: no ready-GCMT window exists.
+        # Four full writer batches retain the same mandatory deferral witness
+        # while giving the first write a chance to complete before LargeEnd.
+        LARGE_BYTES = 4 * 256 * 64 * 1024
     main(args.host, args.port, args.aof_dir)

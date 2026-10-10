@@ -32,5 +32,22 @@
     "seconds": 206.6866049990058,
     "load_before": "71.87 89.20 103.23 62/3691 856428",
     "load_after": "81.76 83.76 98.06 87/4246 1094076"
+  },
+  {
+    "stage": "differ",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tools/aoffix2_proof.py",
+      "differ",
+      "--output",
+      "docs/aoffix2/differ"
+    ],
+    "rc": 0,
+    "seconds": 417.4866168317385,
+    "load_before": "81.76 83.76 98.06 89/4245 1094078",
+    "load_after": "54.64 73.00 89.03 41/3639 1381625"
   }
 ]

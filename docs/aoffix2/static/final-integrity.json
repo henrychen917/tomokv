@@ -1,0 +1,59 @@
+[
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "git",
+      "diff",
+      "--check"
+    ],
+    "rc": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "bash",
+      "-n",
+      "tests/gate.sh"
+    ],
+    "rc": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "-m",
+      "py_compile",
+      "tests/aoffix2.py",
+      "tests/aof_frame_order.py",
+      "tools/aoffix2_report.py",
+      "tools/aoffix2_proof.py",
+      "tools/aoffix2_pad.py"
+    ],
+    "rc": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "all"
+    ],
+    "rc": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

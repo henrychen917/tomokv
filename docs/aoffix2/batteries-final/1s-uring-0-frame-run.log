@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/aof_frame_order.py", line 382, in <module>
+    main(args.host, args.port, args.aof_dir)
+  File "/home/user/Projects/cx-aoffix2/tests/aof_frame_order.py", line 303, in main
+    run(control, writer, writer_tid, pair, aof_dir)
+  File "/home/user/Projects/cx-aoffix2/tests/aof_frame_order.py", line 334, in run
+    fired, groups_window, elapsed = directed_window(control, writer, pair, aof_dir, writer_tid)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/aof_frame_order.py", line 273, in directed_window
+    raise AssertionError("ready GCMT was never held out of the open large record; "
+AssertionError: ready GCMT was never held out of the open large record; queued=[7, 65, 186], deferrals=0

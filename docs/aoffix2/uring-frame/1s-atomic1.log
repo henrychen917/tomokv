@@ -1,0 +1,1 @@
+AOF FRAME ORDER PASS: negative-control groups=40 deferrals=0; window seconds=1.052 groups=1 deferrals=3; segments=1 bytes=67150333 frames=1028 large_records=1 control_frames=1 interleaves=0

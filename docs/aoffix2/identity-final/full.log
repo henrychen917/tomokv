@@ -76,3 +76,26 @@ src/cmd/t_hash.o 233 bodies
 src/cmd/t_hash_ttl.o 94 bodies
 src/cmd/t_list.o 193 bodies
 src/cmd/t_server.o 229 bodies
+src/cmd/t_set.o 205 bodies
+src/cmd/t_sort.o 22 bodies
+src/cmd/t_stream.o 251 bodies
+src/cmd/t_stream_groups.o 160 bodies
+src/cmd/t_string.o 144 bodies
+src/cmd/t_string_notify.o 173 bodies
+src/cmd/t_zset.o 293 bodies
+src/cmd/t_zset_ops.o 1 bodies
+src/cmd/tracking.o 68 bodies
+src/cmd/xshard.o 880 bodies
+src/core/flipctl.o 73 bodies
+src/core/genthread.o 767 bodies
+src/core/lbplanner.o 73 bodies
+src/core/lbstall.o 12 bodies
+src/core/reorder.o 832 bodies
+src/core/rl2s.o 696 bodies
+src/core/version.o 0 bodies
+src/main.o 653 bodies
+src/net/tls.o 38 bodies
+src/persist/aof.o 320 bodies
+src/persist/aof_frame_debug.o 6 bodies
+src/snapshot/snapshot.o 124 bodies
+{"total": 16337, "equal": 16175, "changed": 162, "handlers": 1210, "handlers_equal": 1210, "hot": 1208, "hot_equal": 1208, "hot_nonerror_equal": 1208, "handlers_nonerror_equal": 1210}

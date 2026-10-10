@@ -1,0 +1,4217 @@
+[
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/events.jsonl",
+    "bytes": 45792,
+    "sha256": "8668d513c0575f334f4121ac8cbfc36411403fbc31822708152ef4ed4bc96100"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-41.log",
+    "bytes": 7738,
+    "sha256": "1c60b09c1612e609b29731807344a693c25c39b69fa83849e18e867e72cb821f"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-42.log",
+    "bytes": 7810,
+    "sha256": "8ddd0d0c6d094ed82c7b0a3a126f6ae92793ab8a88f26bcfb008b80b69c4d2c1"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-43.log",
+    "bytes": 7689,
+    "sha256": "be1a682400134fb5259cc61719880a4e21aaa641a0538026e4ac0cc6960f9eae"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-44.log",
+    "bytes": 7972,
+    "sha256": "bd00c133e5203acc17036e6598b19836703a903e6516386d7e1452d556288f06"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-45.log",
+    "bytes": 7655,
+    "sha256": "9f4a1026f7df4bf33b47a49f43fe9d816af997681504b9688112383cd2e32994"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-46.log",
+    "bytes": 7752,
+    "sha256": "3ade2b1beaca6f30c16f90ecd9721e6cc752ba1701b0b4672780f5de900b83fc"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-47.log",
+    "bytes": 7574,
+    "sha256": "0312c45433aa339a7f1372e3ab00977bebdb90a660ab61d21a7e37dc32b3c757"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-48.log",
+    "bytes": 7738,
+    "sha256": "7d3c4f330c6fff0ebc2f299e6941d1e38c21ee988c0203822ec1ff2f24624737"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-49.log",
+    "bytes": 7826,
+    "sha256": "86c4ef6243cf687d186df9792283312da6d459332b515bcc5bd07522b3d1fae1"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-50.log",
+    "bytes": 7696,
+    "sha256": "feba697b82ea49eb518f47c9d859683e8031efe6028269d329f46a969768b46d"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-51.log",
+    "bytes": 7975,
+    "sha256": "a32c4a13892a18a88cd8f9539719accd28cc9151fbaca154b8d41d255174846e"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-52.log",
+    "bytes": 7655,
+    "sha256": "b00cc16a8f17130d6177852d873ed6869f22560590b474d08cb285acf2837186"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-53.log",
+    "bytes": 803,
+    "sha256": "e79d35eb5774fa65bda79506dcbabcc653b61e88c358aa0d854c5df0334f18d3"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-54.log",
+    "bytes": 7622,
+    "sha256": "ddd21fafd59462fb34e87535bc5e23cc9426b95f10b3dc9c6165201e360a315d"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-55.log",
+    "bytes": 7764,
+    "sha256": "072b7c87ca9b475292356cf443e665d5e555b5606c0d8925332f997ae5cc2baa"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-56.log",
+    "bytes": 7577,
+    "sha256": "24cb64e00292adcec075674dcbf54b609fba2bd3edd2fc59535f7715cb8d0f9b"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-57.log",
+    "bytes": 803,
+    "sha256": "e79d35eb5774fa65bda79506dcbabcc653b61e88c358aa0d854c5df0334f18d3"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-58.log",
+    "bytes": 7653,
+    "sha256": "305e6af80c866fc612fd809745d7c90d2864bdf7bcad009a49a8deaa0d9e521a"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-59.log",
+    "bytes": 803,
+    "sha256": "e79d35eb5774fa65bda79506dcbabcc653b61e88c358aa0d854c5df0334f18d3"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-60.log",
+    "bytes": 7714,
+    "sha256": "427d01b317d50bf857f9e1d88da751b3a4796058962bd14ea05452bcf7eb6d57"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-61.log",
+    "bytes": 803,
+    "sha256": "e79d35eb5774fa65bda79506dcbabcc653b61e88c358aa0d854c5df0334f18d3"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll/server-62.log",
+    "bytes": 7653,
+    "sha256": "43be80b82c98085928c3c0f2cf7ef689e495dc0d6ae27bf999be58e2e885b3a6"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll-persistfix-kill/1s-kill-9xfisxoi/server-1.log",
+    "bytes": 803,
+    "sha256": "e79d35eb5774fa65bda79506dcbabcc653b61e88c358aa0d854c5df0334f18d3"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll-persistfix-kill/1s-kill-9xfisxoi/server-2.log",
+    "bytes": 7628,
+    "sha256": "5d6be81ca68a3473ff7538a58ce8f53e38812b2a80debb0cf25901489baab082"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll-persistfix-term/1s-term-btt6gzpv/server-1.log",
+    "bytes": 7821,
+    "sha256": "3dd3ae3430e2194aeddf72a4e7c12b2b95330ec5a93d22abd443ef77f9141a48"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-epoll-persistfix-term/1s-term-btt6gzpv/server-2.log",
+    "bytes": 7858,
+    "sha256": "f3e42a4a13a961702d7449282b7c077916e97809353b9cd4ddb336bc490d1a0f"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/events.jsonl",
+    "bytes": 41658,
+    "sha256": "5a42eb476b0def9127e9c6d2ad9e8415f79b176880317a9dd3f310c51facfcd4"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-1.log",
+    "bytes": 7630,
+    "sha256": "d0d339fcd380e93370de4db8578eb53342f1b40621fb679c2976f0ec8e8ee6db"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-10.log",
+    "bytes": 7884,
+    "sha256": "38aa8440ab14e59a1aa03a7c4c338f7398766d80bb52631f1ab8221ded4e39fe"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-11.log",
+    "bytes": 7565,
+    "sha256": "11b5a7cd2b119a6f123ec726016150c043303e35699d6c622da48c2a04ab22d9"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-12.log",
+    "bytes": 745,
+    "sha256": "c3312d17bf1c651ae0529133de830a172b5d0d4cf15db3dff3297e6a96a3de83"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-13.log",
+    "bytes": 7535,
+    "sha256": "e4b8572fdf3c28ac07f4f24bf68be1c1832af49f80dcbebd0d2bc0ddd360e6b8"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-14.log",
+    "bytes": 7521,
+    "sha256": "ecc861db76188192a25e6c29fa27b6fa70f7fddf593b136d316b96c78498647f"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-15.log",
+    "bytes": 745,
+    "sha256": "c3312d17bf1c651ae0529133de830a172b5d0d4cf15db3dff3297e6a96a3de83"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-16.log",
+    "bytes": 7560,
+    "sha256": "731358959170deee95152f88a7652a0982159338282cd87a2a87fefeabab9300"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-17.log",
+    "bytes": 745,
+    "sha256": "c3312d17bf1c651ae0529133de830a172b5d0d4cf15db3dff3297e6a96a3de83"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-18.log",
+    "bytes": 7621,
+    "sha256": "80a58736b1acda6a5e11f4f93de444dc6b10aef51b68ab610ec99479ead11e01"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-19.log",
+    "bytes": 745,
+    "sha256": "c3312d17bf1c651ae0529133de830a172b5d0d4cf15db3dff3297e6a96a3de83"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-2.log",
+    "bytes": 7703,
+    "sha256": "71e1be185a3b8d1324f4376bfcc08f4bf7078456b8d5b7eae00994b706c3ad54"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-20.log",
+    "bytes": 7562,
+    "sha256": "532ed3b545809f72a2937203e0507c4824699f123cdfbd6d19e927214b1025ee"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-3.log",
+    "bytes": 7598,
+    "sha256": "f88bdca32ae55c9c4d43427d7e5694ae44c35a87ec4304625255dfa5b7a743b8"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-4.log",
+    "bytes": 7885,
+    "sha256": "7449fb13ff5434c62f5d830070eeedc1ed4b6a95e51e5333f38b60a82de5dad4"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-5.log",
+    "bytes": 7568,
+    "sha256": "12168362877940e77197b584ae89f4889bc1f25bc00de85a7370d31a8161232a"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-6.log",
+    "bytes": 7522,
+    "sha256": "0b2a7aa680183456680eabbc8ecbf8a57d784d15eed24365ea003dff28d2f6a0"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-7.log",
+    "bytes": 7641,
+    "sha256": "be76f2f8238304d13e4ef31e17ade5b508a19ea1b3b3e6f6677a54f3bf4bd0f6"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-8.log",
+    "bytes": 7738,
+    "sha256": "0fa32df19dd8abeb525dfe4233e7abffa4bbeaf50139aef520444f32dc10f8f4"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring/server-9.log",
+    "bytes": 7597,
+    "sha256": "80f50e52a5e0c55afe1fa649ad6b5ba13bf12a82a419db315f5ced93c80fbd5f"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring-persistfix-kill/1s-kill-_8zo6swq/server-1.log",
+    "bytes": 745,
+    "sha256": "c3312d17bf1c651ae0529133de830a172b5d0d4cf15db3dff3297e6a96a3de83"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring-persistfix-kill/1s-kill-_8zo6swq/server-2.log",
+    "bytes": 7507,
+    "sha256": "1c5ca763c53ab3d2941f041a430d6ff21faef03e01c3cc1e26eaf7b3db1b6f3e"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring-persistfix-term/1s-term-m61xx8uq/server-1.log",
+    "bytes": 7730,
+    "sha256": "cfb6cc54d931578fca25e496e981173a7c6aaff7bfc737b1fbb4c2d071855dea"
+  },
+  {
+    "path": "build/aoffix2/batteries/1s-uring-persistfix-term/1s-term-m61xx8uq/server-2.log",
+    "bytes": 7732,
+    "sha256": "46cfaaa6582b6667e659c067474b52c95976d36e519202d7bbc10509bdc69945"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/events.jsonl",
+    "bytes": 46194,
+    "sha256": "6826ac605ab8241fc0ea0ddc81ed7c7011c5d182d7c85b63ae4aedeab00a11f5"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-63.log",
+    "bytes": 6823,
+    "sha256": "c7b32b8bac3dd0c8ec93d698ac8ce9e5e4b6234df311bc1e877156bff9b5b70e"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-64.log",
+    "bytes": 6850,
+    "sha256": "282cc90c3f100ced735bcebaa8ed58fd3d55a93072c5d124f2924e17c91b9c00"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-65.log",
+    "bytes": 6785,
+    "sha256": "da246ffa7dda5b5f5afedb752882a66355561f26250995d62b88b7406333a4c6"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-66.log",
+    "bytes": 7043,
+    "sha256": "37acdb08df062b53a05e9f164689ede304a177d0a32b5ee7cd97e8eb22801693"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-67.log",
+    "bytes": 6743,
+    "sha256": "b458284f1e5f1825e665f8258d32b92ff6fe7df38b0c4fa27a75c9ab46e7ae25"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-68.log",
+    "bytes": 6834,
+    "sha256": "0bb8fa78238aca19cecf0ab15e17dbe3198eabbcd15930a8b75c9ba648b673f9"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-69.log",
+    "bytes": 6661,
+    "sha256": "3d1a820f370d36c7052854a20be6db9138eb788d3d890f74018352da8952dc63"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-70.log",
+    "bytes": 6816,
+    "sha256": "d4838ff2de60db16e17b02309642ad8507c6aaece43b8757aa11597d370f39ab"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-71.log",
+    "bytes": 6858,
+    "sha256": "3e39b9d8a7277668a5bf463527e6881c3334f661d5e682f307c566ec4360f39d"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-72.log",
+    "bytes": 6790,
+    "sha256": "56a4dede77f50a74ecdb57b3a6981d29acc4f44ac99c82e92d4afbad20ca638b"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-73.log",
+    "bytes": 7058,
+    "sha256": "f85a7d0243427f15949a1bc294dfd0329b25c581b412e929d5d05a065857cb26"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-74.log",
+    "bytes": 6764,
+    "sha256": "1d1168159e2bb948ffc49c65c3c2cb82f421333a12436162fe398674cce0c8db"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-75.log",
+    "bytes": 679,
+    "sha256": "a81497456f10a5ea78584d109b66164c2937446a4ad7de33c609226c16d34124"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-76.log",
+    "bytes": 6722,
+    "sha256": "b7da478b74114c076eedf54e577b585afefa13fedb3fbcb8b155e3df43fd54ba"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-77.log",
+    "bytes": 6841,
+    "sha256": "6dace0e9dac4f8b73f5a20961d7c6fb77ce147836fdb7c7548e68cc532295244"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-78.log",
+    "bytes": 6664,
+    "sha256": "139dbea4ca8d4bbe6a9539865418e92a1ead04752497ae40f42f9a0ea92e6cd5"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-79.log",
+    "bytes": 679,
+    "sha256": "a81497456f10a5ea78584d109b66164c2937446a4ad7de33c609226c16d34124"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-80.log",
+    "bytes": 6734,
+    "sha256": "0a0221e126d1136d45e88c664d0def7b3db80bd523bfa15c96577278e7d45a6e"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-81.log",
+    "bytes": 679,
+    "sha256": "a81497456f10a5ea78584d109b66164c2937446a4ad7de33c609226c16d34124"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-82.log",
+    "bytes": 6791,
+    "sha256": "601c941dca48975de306959a9d063f4e14162334787f2971250a42f058278d13"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-83.log",
+    "bytes": 679,
+    "sha256": "a81497456f10a5ea78584d109b66164c2937446a4ad7de33c609226c16d34124"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll/server-84.log",
+    "bytes": 6732,
+    "sha256": "36e1d0bc97200c121dd7c9d1459d6ef1012989d722814adedcf11aba48b6a1e4"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll-persistfix-kill/2s-kill-blpj8pgr/server-1.log",
+    "bytes": 679,
+    "sha256": "a81497456f10a5ea78584d109b66164c2937446a4ad7de33c609226c16d34124"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll-persistfix-kill/2s-kill-blpj8pgr/server-2.log",
+    "bytes": 6696,
+    "sha256": "2371d2896d5e7d38af2084928c591d72eb3f8ce8a09d8c9e108f7b0013c76fc6"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll-persistfix-term/2s-term-6vh_kbwi/server-1.log",
+    "bytes": 6911,
+    "sha256": "77968ae2756b3b4160bbcbfa38111d78cfaff35e01a83ba3fda55793b3c7e12c"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-epoll-persistfix-term/2s-term-6vh_kbwi/server-2.log",
+    "bytes": 6888,
+    "sha256": "b57a06634b452b1e6c679920bb96cacc407986a1e50c1d543596c84129ac234b"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/events.jsonl",
+    "bytes": 41944,
+    "sha256": "b14deb288ffcaf9c5e3cdf5b6824720e54aac132ae83bb45c272fb20641776c7"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-21.log",
+    "bytes": 6725,
+    "sha256": "5e571636cec5f9d6e55d1af19d7e7517c7462fe4fe28bbcb924a81082b4849d7"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-22.log",
+    "bytes": 6751,
+    "sha256": "002bd71353611ba103e15284289e98ac7cdb9e80539515ea09e125c8071b5eab"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-23.log",
+    "bytes": 6670,
+    "sha256": "84005b3c90afbb8f560195cd4f437498dae52bc9133a3dc59e6b567aeed8d4e6"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-24.log",
+    "bytes": 6961,
+    "sha256": "1cd5b86c5bc3dc9d20bbe634f655e4ad4089338ef87a4b73f1dd1ec8078850b4"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-25.log",
+    "bytes": 6637,
+    "sha256": "8e815bf64dd64424c7a5b5c936a3c2ec3d6dd4c15889b6282071423a9f0d53c8"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-26.log",
+    "bytes": 6603,
+    "sha256": "ba3af1cfb976bf16c0defc6a3822aa5684e9f77961df8b87a99a1701f3272ab6"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-27.log",
+    "bytes": 6724,
+    "sha256": "a1412a045d1e2d3c91c1cbbb1ce20758f89b498f6f90832c3b8441ab520e8f79"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-28.log",
+    "bytes": 6776,
+    "sha256": "946d77b4aaa8468ac49e80e546449e679ce1d8d3e09c32ee39e2c79cdcea4993"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-29.log",
+    "bytes": 6695,
+    "sha256": "b5546c7f1eefe75d28a4cec88bcdbfa8ddc9d89663bdfeae81d51acf86ee5aee"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-30.log",
+    "bytes": 6957,
+    "sha256": "6736651ab030a5ced35171d9df5dc802dd507fb056f14b09bcf36aaf38ade4a9"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-31.log",
+    "bytes": 6645,
+    "sha256": "bdd1f237f07395720c4c6be2b39e02964c281bbb3e06743dd862cae423095c21"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-32.log",
+    "bytes": 621,
+    "sha256": "61f9ac34c522f80caba23da64b664a00b89e9aa82c7a066964cc3a976f653453"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-33.log",
+    "bytes": 6625,
+    "sha256": "aab1f1516895b517470eb8b73d0080eb4921453d98493ebe3818d93ca018cfff"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-34.log",
+    "bytes": 6615,
+    "sha256": "31f50535b10baf855680b3d6dccf7bf16bb0530882d03691732c8030c5fb5f9f"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-35.log",
+    "bytes": 621,
+    "sha256": "61f9ac34c522f80caba23da64b664a00b89e9aa82c7a066964cc3a976f653453"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-36.log",
+    "bytes": 6638,
+    "sha256": "859043944c412c9528619c7433dcced9303cf1e1813119f8a6366561f60a5d53"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-37.log",
+    "bytes": 621,
+    "sha256": "61f9ac34c522f80caba23da64b664a00b89e9aa82c7a066964cc3a976f653453"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-38.log",
+    "bytes": 6702,
+    "sha256": "e9c4e160113a82f0b6bf4f03f5f37e0839f95f7d90cb0845080329307233822e"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-39.log",
+    "bytes": 621,
+    "sha256": "61f9ac34c522f80caba23da64b664a00b89e9aa82c7a066964cc3a976f653453"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring/server-40.log",
+    "bytes": 6645,
+    "sha256": "65911ca2a9120026523f9d7c95953821cd2fece078870afd7b4a13482614039c"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring-persistfix-kill/2s-kill-a3wiv2am/server-1.log",
+    "bytes": 621,
+    "sha256": "61f9ac34c522f80caba23da64b664a00b89e9aa82c7a066964cc3a976f653453"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring-persistfix-kill/2s-kill-a3wiv2am/server-2.log",
+    "bytes": 6644,
+    "sha256": "0b77b2b2cb052f6be3cc2eb31bdc14ca16e4ea236eed3a3b5a853d1efaf5752c"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring-persistfix-term/2s-term-3jm5q2y3/server-1.log",
+    "bytes": 6809,
+    "sha256": "d14231b44f34695497d64068cfb9491ee73c57fc7a29393daa177794149d7c02"
+  },
+  {
+    "path": "build/aoffix2/batteries/2s-uring-persistfix-term/2s-term-3jm5q2y3/server-2.log",
+    "bytes": 6791,
+    "sha256": "991231b1c6b76c6fcf7f02dbc4560b5e65d33a45e91263d0b52c1e2d0db19265"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/events.jsonl",
+    "bytes": 50978,
+    "sha256": "65ee46229d5dd960dab86aa829f1c67c8fcef8f6ba57033c5e26e03e2a9445e5"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-45.log",
+    "bytes": 803,
+    "sha256": "e79d35eb5774fa65bda79506dcbabcc653b61e88c358aa0d854c5df0334f18d3"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-46.log",
+    "bytes": 7681,
+    "sha256": "8322a5463332aea81a09ed8597177ed1ec0789eb68309b2ffcd385393bfb4fda"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-47.log",
+    "bytes": 7755,
+    "sha256": "32a22b1366501b72a449db18a6e102559f61aa619eadd9387d9c396065f19d8b"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-48.log",
+    "bytes": 7680,
+    "sha256": "0b9ef0786d8e056bb364123b84a696489593c14f2c580f36bfd6cd3e4f2dfe97"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-49.log",
+    "bytes": 7965,
+    "sha256": "cd2aa115967a4e4dd647b6103d95795b6eee9f9d27d963925b469c52107c1584"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-50.log",
+    "bytes": 7649,
+    "sha256": "f7a4ef482571504e6296a97b508a3f0b4416e96b6f3bfccc9d11b92520850623"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-51.log",
+    "bytes": 7726,
+    "sha256": "9ca64dcac1c340206d9f6e8e367079e191f794b092ef64f86323e85c051b60bc"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-52.log",
+    "bytes": 7109,
+    "sha256": "766b2b8302951464331f0a499e02b19f6100c72c0dad74d19c8a43e141a6224f"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-53.log",
+    "bytes": 803,
+    "sha256": "e79d35eb5774fa65bda79506dcbabcc653b61e88c358aa0d854c5df0334f18d3"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-54.log",
+    "bytes": 7682,
+    "sha256": "db3408eda1d213aae2cc7a45d1300dca672000cf543368d53bc0e9af125d960a"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-55.log",
+    "bytes": 7775,
+    "sha256": "079aa984b44fa59b9c2fab94d103a9c7f23906ee914ec6ab663a48d027034bcd"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-56.log",
+    "bytes": 7684,
+    "sha256": "ce90a19099f773d4a419ae2f765df36bda860df7d2eaf47f90c418da978a60f8"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-57.log",
+    "bytes": 7971,
+    "sha256": "f483bff406c1249195ee43f69c255f348280b90758251e5ed8991f44e3125dcf"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-58.log",
+    "bytes": 7649,
+    "sha256": "c4e09ba7f5cba0a35f1d1dec470418c44e69907850a3d723ca0550b4af4871c8"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-59.log",
+    "bytes": 803,
+    "sha256": "e79d35eb5774fa65bda79506dcbabcc653b61e88c358aa0d854c5df0334f18d3"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-60.log",
+    "bytes": 7599,
+    "sha256": "3c2ec9b884cb23662172367f4387500123b6fd4a24a57e6013e64d92c48627f6"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-61.log",
+    "bytes": 7726,
+    "sha256": "737de47435b01906b348e3500260d44156bd0a9cd6e8e8dde8369e8ca825392c"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-62.log",
+    "bytes": 7103,
+    "sha256": "5ea1a4263bc229ed98985cbba7cd8d38171d29f95dacb9cb4f40d43a385ac8d1"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-63.log",
+    "bytes": 803,
+    "sha256": "e79d35eb5774fa65bda79506dcbabcc653b61e88c358aa0d854c5df0334f18d3"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-64.log",
+    "bytes": 7646,
+    "sha256": "8e2df12a54076ffaaaf2170d35e47759c46640c9125887f4b8082bde0922570a"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-65.log",
+    "bytes": 803,
+    "sha256": "e79d35eb5774fa65bda79506dcbabcc653b61e88c358aa0d854c5df0334f18d3"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-66.log",
+    "bytes": 7706,
+    "sha256": "e059055ed2f71029b409ecb52bbb8153ef3b917f2fd71f1c7fbb67cb5ab67a5c"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-67.log",
+    "bytes": 803,
+    "sha256": "e79d35eb5774fa65bda79506dcbabcc653b61e88c358aa0d854c5df0334f18d3"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll/server-68.log",
+    "bytes": 7647,
+    "sha256": "98a1cf6db7ad58617b42b6da2a110f6f5c7309ff75d271b9d4cb154c0aa4c223"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll-persistfix-kill/1s-kill-x7v06hzz/server-1.log",
+    "bytes": 803,
+    "sha256": "e79d35eb5774fa65bda79506dcbabcc653b61e88c358aa0d854c5df0334f18d3"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll-persistfix-kill/1s-kill-x7v06hzz/server-2.log",
+    "bytes": 7574,
+    "sha256": "ac586933df2bd38002db3d04f3cd7608710f0145ad3a373f417d67d90d895a64"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll-persistfix-term/1s-term-kfqh7nrf/server-1.log",
+    "bytes": 7810,
+    "sha256": "999cea5dfe2dc9e9ac0ba9b8051d65ff1016342bb1f805463da4502a5d4cb99c"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-epoll-persistfix-term/1s-term-kfqh7nrf/server-2.log",
+    "bytes": 7786,
+    "sha256": "c4eed233fc5c8651699ed895dde17b4ae219b0ba9d54618a5022fa04833db2cf"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/events.jsonl",
+    "bytes": 46694,
+    "sha256": "6b90ada46c72f32e8de3289ee30c57256023eeb912ab8f79a99e08eed62c1f8f"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-1.log",
+    "bytes": 745,
+    "sha256": "c3312d17bf1c651ae0529133de830a172b5d0d4cf15db3dff3297e6a96a3de83"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-10.log",
+    "bytes": 7697,
+    "sha256": "0f5096e85ed6db02dbceb5476653151857de78a5fd96a4a761e9b295b790e584"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-11.log",
+    "bytes": 7596,
+    "sha256": "993680a23ab90c4dc2021ef00f4464ad1f5ec33a0e76db39346130b26d6bcfd1"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-12.log",
+    "bytes": 7884,
+    "sha256": "bfa20df3025e4c512a66e7068f1cf30cdc83422b6867e67527eddb9d2286d515"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-13.log",
+    "bytes": 7567,
+    "sha256": "26a30241e94035c22049a2f9039cc2d93fea0efe057c1eb88aea323dfeda1cef"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-14.log",
+    "bytes": 745,
+    "sha256": "c3312d17bf1c651ae0529133de830a172b5d0d4cf15db3dff3297e6a96a3de83"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-15.log",
+    "bytes": 7526,
+    "sha256": "305921bb551e4311da2e4b1a1762d55d11426114820e51ea0885a75b0c9094de"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-16.log",
+    "bytes": 7632,
+    "sha256": "de60b303e56b810657a868e4d7280175af3ed9f38021b1f4ecba766bfc166cd0"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-17.log",
+    "bytes": 745,
+    "sha256": "c3312d17bf1c651ae0529133de830a172b5d0d4cf15db3dff3297e6a96a3de83"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-18.log",
+    "bytes": 7560,
+    "sha256": "56e4247ddf336ddced85a730d7f1c6fded384dc9cd0d6305e191388b62801ded"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-19.log",
+    "bytes": 745,
+    "sha256": "c3312d17bf1c651ae0529133de830a172b5d0d4cf15db3dff3297e6a96a3de83"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-2.log",
+    "bytes": 7595,
+    "sha256": "c796aafea3012e6b488225880a09c28b83c182c7c02ca0a3561074486f94b780"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-20.log",
+    "bytes": 7624,
+    "sha256": "be3c7de16a846282fd184c40afe01b4f692e19efbd07e153a5c703f9dbfc7b77"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-21.log",
+    "bytes": 745,
+    "sha256": "c3312d17bf1c651ae0529133de830a172b5d0d4cf15db3dff3297e6a96a3de83"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-22.log",
+    "bytes": 7560,
+    "sha256": "d1056f84ca49acc2786a50d2270e5f29aa928c569d73b3ac34d15383e6526c0d"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-3.log",
+    "bytes": 7665,
+    "sha256": "542aced06cae7de38f5c9d94365e4fc9d17917c7ce132186587dce45531280ed"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-4.log",
+    "bytes": 7600,
+    "sha256": "3a9ff84097caa533bd76d82c1247116ec28ba71b3e025087a94b758da76fcf05"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-5.log",
+    "bytes": 7876,
+    "sha256": "7fa7a8f4dedb45cd17287186e5053fbbd81c54c6ee789cde31b263a721d1dba2"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-6.log",
+    "bytes": 7567,
+    "sha256": "952b2e474a9b4bdf1fcb042db4c9d9e82cf1787dfa6e280e31f98877f6994591"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-7.log",
+    "bytes": 7628,
+    "sha256": "d69b81fc051c36b09372df9e15951332c01300cacba9f44e3fac69f83b2580c4"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-8.log",
+    "bytes": 745,
+    "sha256": "c3312d17bf1c651ae0529133de830a172b5d0d4cf15db3dff3297e6a96a3de83"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring/server-9.log",
+    "bytes": 7595,
+    "sha256": "24596142405c87d722a484d095a59c40416cb873bb15997e830a0c93e9b00479"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring-persistfix-kill/1s-kill-qbj98ase/server-1.log",
+    "bytes": 745,
+    "sha256": "c3312d17bf1c651ae0529133de830a172b5d0d4cf15db3dff3297e6a96a3de83"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring-persistfix-kill/1s-kill-qbj98ase/server-2.log",
+    "bytes": 7500,
+    "sha256": "a76fc82a15785d7366450124f94cbe518c76863bcd56f4a69a18ec7a86c9ca24"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring-persistfix-term/1s-term-vexlay56/server-1.log",
+    "bytes": 7726,
+    "sha256": "73c8c65a759fb040487624c626b23d49e1dcade5b9731a04ace9299812f7b860"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/1s-uring-persistfix-term/1s-term-vexlay56/server-2.log",
+    "bytes": 7705,
+    "sha256": "172172d4462e64eee67492df2b130611aa3700b046d7f7648082f1226488e037"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/events.jsonl",
+    "bytes": 51436,
+    "sha256": "d9dcc6f901c34893362756ce70b3aa0fde61bf9e06a4bc685ceea0805eb7b058"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-69.log",
+    "bytes": 679,
+    "sha256": "a81497456f10a5ea78584d109b66164c2937446a4ad7de33c609226c16d34124"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-70.log",
+    "bytes": 6748,
+    "sha256": "8180a52ac475781d1d2f7793386af70ce0699fee7bef6b725090d2796cd3479b"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-71.log",
+    "bytes": 6818,
+    "sha256": "0a14029a15c3b2fecd1a56ff511336dff745904a3eae07ca25c3b1808af26a47"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-72.log",
+    "bytes": 6748,
+    "sha256": "801575186add4f43d3ba9ca12e5521da4782b44a2303349fc2c1bc35deaf4965"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-73.log",
+    "bytes": 7039,
+    "sha256": "e82156d678c5be9f5a62d9f37f7eb322b14c186e808968feb792f0a148fa6e4e"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-74.log",
+    "bytes": 6725,
+    "sha256": "d220af0fd3d106c4c1851a05cabd882f46ac6b5d680cb17e0e55cab200234f1b"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-75.log",
+    "bytes": 6816,
+    "sha256": "857731dccd6da739f5b19998e82e075072fd67b035a64176c16739559204b9ee"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-76.log",
+    "bytes": 6613,
+    "sha256": "c285e78002889d0a6614a1cc471dce8e5b0bebfadabd4d02c2d32c2baf9cf452"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-77.log",
+    "bytes": 679,
+    "sha256": "a81497456f10a5ea78584d109b66164c2937446a4ad7de33c609226c16d34124"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-78.log",
+    "bytes": 6761,
+    "sha256": "6fe1b74b6fc0bdd0cba3fe40db967434994b370513a99aae347aea378a98ab4c"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-79.log",
+    "bytes": 6812,
+    "sha256": "44aa5a69223ab942dd3672de8e04f6423dec4bb73fcd8141bb678178d0d5c0ef"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-80.log",
+    "bytes": 6753,
+    "sha256": "8760834857ac1d89af8a5b9f0b89272cce9d27e1dd36b03721c2d712320e4270"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-81.log",
+    "bytes": 7043,
+    "sha256": "8a188370619aa85d491e6ab84baaeb3fd30941e93cf76f79c8b19e045c677b5c"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-82.log",
+    "bytes": 6725,
+    "sha256": "945328bb6c07cd7a9f8c05089b188532fd950bd2bff7cf1f7a336b1f97c53b7c"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-83.log",
+    "bytes": 679,
+    "sha256": "a81497456f10a5ea78584d109b66164c2937446a4ad7de33c609226c16d34124"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-84.log",
+    "bytes": 6703,
+    "sha256": "8d20ac6f3dcaf0e288be99a0a5d11e9046c3b39aec888803d092c90070eca728"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-85.log",
+    "bytes": 6813,
+    "sha256": "383c0eb160546832a545af0e38308144df1e9d8ff1a1371abac8778a5f1d1b63"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-86.log",
+    "bytes": 6631,
+    "sha256": "16deb0d851da48e22f9719e38c5f12d26336c1997b7f9ad6ef30c128aa0b7dcb"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-87.log",
+    "bytes": 679,
+    "sha256": "a81497456f10a5ea78584d109b66164c2937446a4ad7de33c609226c16d34124"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-88.log",
+    "bytes": 6721,
+    "sha256": "2b4a35c042d9cd14b7f9eead62bdb4f28b74f535008cae87577c453ae9e13087"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-89.log",
+    "bytes": 679,
+    "sha256": "a81497456f10a5ea78584d109b66164c2937446a4ad7de33c609226c16d34124"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-90.log",
+    "bytes": 6781,
+    "sha256": "00206b24d636cd40920a7ad14c8665a30cf14f03cf1dc28d4417e7613f4ed118"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-91.log",
+    "bytes": 679,
+    "sha256": "a81497456f10a5ea78584d109b66164c2937446a4ad7de33c609226c16d34124"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll/server-92.log",
+    "bytes": 6715,
+    "sha256": "7b8da14d0505c5e13516cb936b379d2c7be293090f44a9b245187b4a9471a098"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll-persistfix-kill/2s-kill-oe3xvh91/server-1.log",
+    "bytes": 679,
+    "sha256": "a81497456f10a5ea78584d109b66164c2937446a4ad7de33c609226c16d34124"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll-persistfix-kill/2s-kill-oe3xvh91/server-2.log",
+    "bytes": 6677,
+    "sha256": "bc4269b38b950c37027883e42a7927f41745afd455f549fbc3664ac266cb8d0a"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll-persistfix-term/2s-term-voro2z_r/server-1.log",
+    "bytes": 6898,
+    "sha256": "c67c88db5d48410f8fe40540e35bb98143cd2b3650adc5a91d01000c13f4c19d"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-epoll-persistfix-term/2s-term-voro2z_r/server-2.log",
+    "bytes": 6836,
+    "sha256": "90c6faf467d1edb39b356577dadf6cd21ea7162ca3a343991a79b2038fd8155d"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/events.jsonl",
+    "bytes": 47251,
+    "sha256": "302989bf2fdc8bfb37613faa94c3439ec8c4adb80b3a7b148aa14389989a2749"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-23.log",
+    "bytes": 621,
+    "sha256": "61f9ac34c522f80caba23da64b664a00b89e9aa82c7a066964cc3a976f653453"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-24.log",
+    "bytes": 6671,
+    "sha256": "22b74713021766fad59036a4c441ed42ac423b2773607602fbb0c71d80974642"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-25.log",
+    "bytes": 6704,
+    "sha256": "09eb51f39b8ea014c24ba4762e80db3ba8f3f523410f68c838f4132911e652c6"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-26.log",
+    "bytes": 6665,
+    "sha256": "ab7dd336de4b2a129493bda2cea9ab00f29cd7d505396fd2cf2ba27732b42db9"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-27.log",
+    "bytes": 6955,
+    "sha256": "777df0df989a9befb395728bac82f96472912cc8c2448a3d2305e3cf36c943e3"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-28.log",
+    "bytes": 6641,
+    "sha256": "db2906fd79697d56487a37585ba41b799261f31d9138316c7447240e8a4f161d"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-29.log",
+    "bytes": 6720,
+    "sha256": "690bdf7f3b7a9773dbb70e51465d4e12389e25155105e6cd10b1ad797375301b"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-30.log",
+    "bytes": 621,
+    "sha256": "61f9ac34c522f80caba23da64b664a00b89e9aa82c7a066964cc3a976f653453"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-31.log",
+    "bytes": 6669,
+    "sha256": "fe4def3f8a568e3dcccf7edb9e3880b39a29af693043f898f7dad1d47794c2c0"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-32.log",
+    "bytes": 6733,
+    "sha256": "047aae05e67566cf44cc1e2e307b2e5a1454ea20d2fb8a5c23f8aea471f3239d"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-33.log",
+    "bytes": 6661,
+    "sha256": "2f3f9227463b100ddd3fa6ca4aa9a8325a9a195840376cb3b1a12553e4a39409"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-34.log",
+    "bytes": 6957,
+    "sha256": "807bc8666f947391b0a0af9244bebe9c5ded8a075f4c9623123aa8be72f0cf57"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-35.log",
+    "bytes": 6647,
+    "sha256": "7d5db0a02145286231931d7b5ad3528a4ff64c56a5209557f635029c1c193e9e"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-36.log",
+    "bytes": 621,
+    "sha256": "61f9ac34c522f80caba23da64b664a00b89e9aa82c7a066964cc3a976f653453"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-37.log",
+    "bytes": 6616,
+    "sha256": "cb050536759e06567dd4e70b8f71b9b61968b6c4f6a81fd9cb4ccbf9929e10a6"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-38.log",
+    "bytes": 6735,
+    "sha256": "a70db629123ac4bd0e1b41fcda71252dae737c2f5afd49622e781f201392a15e"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-39.log",
+    "bytes": 621,
+    "sha256": "61f9ac34c522f80caba23da64b664a00b89e9aa82c7a066964cc3a976f653453"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-40.log",
+    "bytes": 6636,
+    "sha256": "57a489cd53fdf414b1772e1fa822d30b820116f2c5ea750f2b7bbd5cf6e21e61"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-41.log",
+    "bytes": 621,
+    "sha256": "61f9ac34c522f80caba23da64b664a00b89e9aa82c7a066964cc3a976f653453"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-42.log",
+    "bytes": 6699,
+    "sha256": "14c02fcfd6ec0c279eb1436e63e3e1fb62e33046bd13188bf2960b6715651a49"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-43.log",
+    "bytes": 621,
+    "sha256": "61f9ac34c522f80caba23da64b664a00b89e9aa82c7a066964cc3a976f653453"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring/server-44.log",
+    "bytes": 6638,
+    "sha256": "46ee943967ba90c6aa99559ff649dcce09d4293f8373b3b879b83c68b1ad6023"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring-persistfix-kill/2s-kill-dtbzmtch/server-1.log",
+    "bytes": 621,
+    "sha256": "61f9ac34c522f80caba23da64b664a00b89e9aa82c7a066964cc3a976f653453"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring-persistfix-kill/2s-kill-dtbzmtch/server-2.log",
+    "bytes": 6596,
+    "sha256": "14d59cf9a26cf1c68da3d78979d1bdb782e72a19ab47925b32da515965d5e4d5"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring-persistfix-term/2s-term-h0lrl8f7/server-1.log",
+    "bytes": 6817,
+    "sha256": "e4e12343bb118dcfd90eb763d3687431020f83091d4a576d57dee6bc918f6008"
+  },
+  {
+    "path": "build/aoffix2/batteries-final/2s-uring-persistfix-term/2s-term-h0lrl8f7/server-2.log",
+    "bytes": 6746,
+    "sha256": "8ccd219fd625fcef16a40163dab55aa868660a35da9d2cb416765d333bba9f38"
+  },
+  {
+    "path": "build/aoffix2/post-controls/off-epoll/events.jsonl",
+    "bytes": 2037,
+    "sha256": "edc1e5623521e62b4ec8bfdc31e294b2aa1a10e3fda2a9b936017f923aed1b3c"
+  },
+  {
+    "path": "build/aoffix2/post-controls/off-epoll/server-1.log",
+    "bytes": 2898,
+    "sha256": "f1747b774da2c4fa7339f91fb2fdbf634cdf9c700e11fde8bf59bdb08782e2d3"
+  },
+  {
+    "path": "build/aoffix2/post-controls/off-uring/events.jsonl",
+    "bytes": 2047,
+    "sha256": "0bdab702b75be359d840448a3e8e65e88e843438082a19279aa9cf45b388276b"
+  },
+  {
+    "path": "build/aoffix2/post-controls/off-uring/server-1.log",
+    "bytes": 2809,
+    "sha256": "51e64408f5f90d5e1e0706b5449a2f8c179b1f44bca6d43205c61469fb43d573"
+  },
+  {
+    "path": "build/aoffix2/post-controls/split-epoll/events.jsonl",
+    "bytes": 4352,
+    "sha256": "e3aba2f2e3fd4a35ba1bf86c928c0cb683b281e23c8ebdd42f9fa31b27208354"
+  },
+  {
+    "path": "build/aoffix2/post-controls/split-epoll/server-1.log",
+    "bytes": 6745,
+    "sha256": "3cf7c42f436963ac896f5a2485547abdf5fd7306439ab0170f3c813349b66e7f"
+  },
+  {
+    "path": "build/aoffix2/post-controls/split-epoll/server-2.log",
+    "bytes": 6669,
+    "sha256": "4cb87103e913d2fafe7688571220c39b41b4d16a1227bee91da0439fe2aadc31"
+  },
+  {
+    "path": "build/aoffix2/post-controls/split-uring/events.jsonl",
+    "bytes": 4371,
+    "sha256": "7b1420e6cf3efec595d631a93f341ccb121d87456934b7418c97fb3420014895"
+  },
+  {
+    "path": "build/aoffix2/post-controls/split-uring/server-1.log",
+    "bytes": 6658,
+    "sha256": "d50bc30e7163c2a458ab6b4d74d85ecd2cdf13cd179d0d9141267e65bd15a6d1"
+  },
+  {
+    "path": "build/aoffix2/post-controls/split-uring/server-2.log",
+    "bytes": 6594,
+    "sha256": "38454421e2ecd0fbf57fc492ecb8d4fd51089b8a700658b5a973a50b823c43d2"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/error-1s-epoll/events.jsonl",
+    "bytes": 3124,
+    "sha256": "92b5767151ad6afe20c219ed09661c0e7e2f17423abdfce1c89eca78f7c8c95e"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/error-1s-epoll/server-1.log",
+    "bytes": 934,
+    "sha256": "d5473f87961f63a121032264008b469c2399b786e1488978c95077f002982836"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/error-1s-uring/events.jsonl",
+    "bytes": 3048,
+    "sha256": "ede6075cc7a80abdde73b8b8b7c7b8f067e56c4da389f965b70cc3a1065bb539"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/error-1s-uring/server-1.log",
+    "bytes": 862,
+    "sha256": "59d515d4f90610562c198aa8d5c7e268254b7ac165d2c2a2067c3e4739d88350"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/error-2s-epoll/events.jsonl",
+    "bytes": 3019,
+    "sha256": "d92a809d9e96809f10aed249f047ea1c0005b16af40e7e21a87ce668db28eeea"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/error-2s-epoll/server-1.log",
+    "bytes": 810,
+    "sha256": "4c77232f996485579df32c9f7c4f4ed70199d5a7ee207fd9e17499fa8af34223"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/error-2s-uring/events.jsonl",
+    "bytes": 2946,
+    "sha256": "cab4f0dcfd5afbacf2b2996b0331c2e6919049e7658befe64ba0b28cd9329574"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/error-2s-uring/server-1.log",
+    "bytes": 738,
+    "sha256": "d44551cfde4cdde499ab2bc702087c009a7dd61f37fb8d2042a5c75765f5ea4f"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-1s-epoll/events.jsonl",
+    "bytes": 12931,
+    "sha256": "8d678a3e6a2b01db8b7b979ac03bae3808dca2b22da59edfb6068e06347e42ab"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-1s-epoll/server-1.log",
+    "bytes": 7709,
+    "sha256": "b7941c27902227cd9807e0597d8560894ae43a79ac310078d71ec6a407994c81"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-1s-epoll/server-2.log",
+    "bytes": 7652,
+    "sha256": "1dd1d959d7d25a9e73ea063f60352b6de10925aa4908d4ff03c6491ebd1daae8"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-1s-epoll/server-3.log",
+    "bytes": 7667,
+    "sha256": "9ebe81bd60fc52ee893967e1b8abe1167bc89e6ecc1fc028acc718353fb9b7ec"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-1s-epoll/server-4.log",
+    "bytes": 7580,
+    "sha256": "7e5fb686903447542d7cf1d9880079f08feabb98421c49c467ca4db5ce681c8f"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-1s-uring/events.jsonl",
+    "bytes": 12904,
+    "sha256": "1b8d342c8518c83f44c245fb2668ccb85748f85407e47e374c3ef7e3940442a5"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-1s-uring/server-1.log",
+    "bytes": 7571,
+    "sha256": "f2df660cd7d6c5b4be4b5a4ca24ef46a4bbe06a5cadc39b3893f72f4e9722b1d"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-1s-uring/server-2.log",
+    "bytes": 7626,
+    "sha256": "c10043704b1e51197f426aacab3032e01ef753e5c3d1ada55b588bd455cd0549"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-1s-uring/server-3.log",
+    "bytes": 7558,
+    "sha256": "8ed1c60ff649e659bb620dc8b9c10b28ca2666214c9d987d7f8fede2bbf952e7"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-1s-uring/server-4.log",
+    "bytes": 7504,
+    "sha256": "99b831ed74f9177df6e1ba59d5ea41469dcae8a1ca9ef22eae947e37a187f4a6"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-2s-epoll/events.jsonl",
+    "bytes": 12996,
+    "sha256": "aefa33661f65b645c89a71025cb00cf902af23a9bf907b9753fff57f528ccab8"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-2s-epoll/server-1.log",
+    "bytes": 6716,
+    "sha256": "cac7f2c90273602247c6502a40e2775bd46efb0d66d4dc7e87c6b638f1cfe89f"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-2s-epoll/server-2.log",
+    "bytes": 6713,
+    "sha256": "7bb5a883da3832e533c6780a155a7c5aad49edd1ae285f36e918c04a52fb7e82"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-2s-epoll/server-3.log",
+    "bytes": 6720,
+    "sha256": "5fd73003a13692240e80fb9bbbaf1d180595179cc80049b83089a384bf7281c3"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-2s-epoll/server-4.log",
+    "bytes": 6688,
+    "sha256": "4bfffeb7e14920c6eef4918504e8fd5fd801d6600ef93a5aec4aadb1b749b94b"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-2s-uring/events.jsonl",
+    "bytes": 12998,
+    "sha256": "04e1ff1210049b8c383bcfdf7a58eb3de8e8c3a95dbcc44bef25e6e4caa14c58"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-2s-uring/server-1.log",
+    "bytes": 6631,
+    "sha256": "e03ce37dc010b5feb1ccc1c1c0ad32a60c310bda164cf942cc369ba22656bd57"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-2s-uring/server-2.log",
+    "bytes": 6637,
+    "sha256": "e69296daec5ac1ec7333f3d7e9606b01706eb016ef08576e6f9752904f308572"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-2s-uring/server-3.log",
+    "bytes": 6637,
+    "sha256": "67a1459e5848725f68e657e3656c7e7eff0a2831cc5a3362f033943fc4d374de"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/exec_tickets-2s-uring/server-4.log",
+    "bytes": 6610,
+    "sha256": "9e1bf1e6acaeb8444022563606a0911b8b2457aa443c850ddfc6148ea6983db0"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-epoll/events.jsonl",
+    "bytes": 22519,
+    "sha256": "fecbac63b3c49b78348d61dc7033d66ec957f57f1afad0065f841a14ec49a581"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-epoll/server-1.log",
+    "bytes": 7637,
+    "sha256": "47e9ebd91550a18f072aa4c7103af51596933694603417642fcb3a2829f93cbc"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-epoll/server-10.log",
+    "bytes": 7578,
+    "sha256": "a136f23a7e686abf8237420e2f7b07723689ac6b224e807b6429b9a7da8f47a3"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-epoll/server-2.log",
+    "bytes": 7586,
+    "sha256": "d366e816ab862f14a59ae7ceda39146dd0357b2b713221f60a94df357e7f4cd0"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-epoll/server-3.log",
+    "bytes": 7636,
+    "sha256": "0999e964f18fe265d32384b9a20302fd3442089d460b9d69e873015988953cee"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-epoll/server-4.log",
+    "bytes": 7592,
+    "sha256": "6676538a4ac02dee39481dd46608cb664f29c672c16b01d549184c7930cebe0c"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-epoll/server-5.log",
+    "bytes": 7579,
+    "sha256": "9cc5117cacbeaed05bde673563720351127baae11cd239fb354f6b5e10ddad23"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-epoll/server-6.log",
+    "bytes": 7636,
+    "sha256": "36c7464540e7fba91c93b97951c2da87d87e04414445f6a4e50c102866915d2f"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-epoll/server-7.log",
+    "bytes": 7583,
+    "sha256": "bbaf29bb5bea96d4a8f6319fbaee7b1246317729604eba3d65b41e26d6635562"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-epoll/server-8.log",
+    "bytes": 7590,
+    "sha256": "d2c8f69f215c6bbff49f94b53d3ba5fb3998b845debc73a750faf5d46f208ed7"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-epoll/server-9.log",
+    "bytes": 7621,
+    "sha256": "e8092e9a29585db251623360ce082a8b4588ed12a667248087ef1e935f141bad"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-uring/events.jsonl",
+    "bytes": 22487,
+    "sha256": "d1751315bec67546da68939ac7f151eb428106b35821abf29b1635cce6ff9a26"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-uring/server-1.log",
+    "bytes": 7551,
+    "sha256": "865192f62845a6368f31b3035bd229c44bb69435c9434026894c5de676b60504"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-uring/server-10.log",
+    "bytes": 7506,
+    "sha256": "a72daedc00e114855df71aed1e973af852937478a41ed4f9b932f4ee3f5edbf7"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-uring/server-2.log",
+    "bytes": 7496,
+    "sha256": "10fd5626a79f27cd583161b011f5e52109b23c36f96105cebbf74466a11b51d1"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-uring/server-3.log",
+    "bytes": 7551,
+    "sha256": "78d64c31b95c3e061ddf99da5a438e9655adfb0a3fffb7c0dcb23bc09c96ab8a"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-uring/server-4.log",
+    "bytes": 7502,
+    "sha256": "6a67ed5da0b7056a73b1a6c72f3b4c0da7e948c276f2a28b2b76c03f77a9febe"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-uring/server-5.log",
+    "bytes": 7500,
+    "sha256": "19ba701713c9cc3f46b1d990ea0df4ca1c3f04cb273241e4fd668a331d47e0c8"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-uring/server-6.log",
+    "bytes": 7551,
+    "sha256": "6cccb51de67673f1006177b3258e1701d7bfc10aea6db8dbad44d0b18911f975"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-uring/server-7.log",
+    "bytes": 7492,
+    "sha256": "28099371799808aaeb30c3ae86ccbb79857c250d890422662f29fbe880022a0d"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-uring/server-8.log",
+    "bytes": 7499,
+    "sha256": "088dd1b8d0c51c6dafbfc3d50032ad6f8719168b72673da11808fae9a5c9f195"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-1s-uring/server-9.log",
+    "bytes": 7551,
+    "sha256": "fcc24975234be970bdc2847b5d48782acf911f3d842c4a2a8a2fa9bbe9a137b7"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-epoll/events.jsonl",
+    "bytes": 22683,
+    "sha256": "9906efdb9ac69db2f3fe0622102cf46c359edd6cb43d523f81d09ea3a23514dd"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-epoll/server-1.log",
+    "bytes": 6713,
+    "sha256": "75ff0e08db884061374ef12733b015c3092a58333a8338b0ca0deec4fb7e1d52"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-epoll/server-10.log",
+    "bytes": 6678,
+    "sha256": "b107ee94777751d51b1628144adc201d7b00af4b796460e6db440353f5d70ca0"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-epoll/server-2.log",
+    "bytes": 6676,
+    "sha256": "4f6bc272c9f0cbf6d959d06014124707b095c203f6d5db715da9beeb10b8845e"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-epoll/server-3.log",
+    "bytes": 6713,
+    "sha256": "3305d5aa32af22c39b2044af1c24baa27f8a5cf199bd4e79e691d0b29e18dc2d"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-epoll/server-4.log",
+    "bytes": 6674,
+    "sha256": "67815ee4944c43d9175b1e06daabe516fde4e34452d75c35d8c27b75b23bb95c"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-epoll/server-5.log",
+    "bytes": 6675,
+    "sha256": "f9e52ed1d7e3b21dc8f6b56db802cfb37790e66eddc03d8edb6f86f8af304480"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-epoll/server-6.log",
+    "bytes": 6708,
+    "sha256": "ec321c1920a69557c373a5241342bc234d9b9b9e7ec249ae1d22004beaf4635d"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-epoll/server-7.log",
+    "bytes": 6676,
+    "sha256": "dd1cccd5f569f972a051914e08ee4c52424a95e103290e9f9b773032bc09c715"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-epoll/server-8.log",
+    "bytes": 6675,
+    "sha256": "dbf5284bc822879bad531ed8ce562b3c78e373aa3fa016f0f5c68f8ced29f8d7"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-epoll/server-9.log",
+    "bytes": 6696,
+    "sha256": "92cdfbe7bdda37a9c3d1660181c91f1a453887e44402a96534e8b718d15d52c9"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-uring/events.jsonl",
+    "bytes": 22701,
+    "sha256": "7857a1ae65e592449d527da807a9c3b7eb90b6306eb5942c7bd42e92b4037ebf"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-uring/server-1.log",
+    "bytes": 6629,
+    "sha256": "3089dea5e01b2de00f9d0770f865c2e41a73d4c52a011a13295ef4eefd34f547"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-uring/server-10.log",
+    "bytes": 6592,
+    "sha256": "af91036e60b413339efd39895599bc0f5c6b73ba42aadb38842a0da1620b202b"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-uring/server-2.log",
+    "bytes": 6596,
+    "sha256": "02ca19c93d9d44af3590874141cec5962b8a3a0697d5e2464561e6721f2f2855"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-uring/server-3.log",
+    "bytes": 6629,
+    "sha256": "b6fb07d75718cb2ace24e4f5416c1bf1537bc5ef02f69712bb98d5cbefbcf59e"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-uring/server-4.log",
+    "bytes": 6592,
+    "sha256": "92632b49475e11e012d6f82bf2027beeb1d50a568f699ded86bed19148743b74"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-uring/server-5.log",
+    "bytes": 6595,
+    "sha256": "c5f7cc1eaa4c8ba12665a8e5772003672064b3d1d92b7b12cf43a28b2e14bb71"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-uring/server-6.log",
+    "bytes": 6628,
+    "sha256": "8b50c1d69072f25124f6dc4f8cd1a952868c300473aced94e6296c014c8ce26f"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-uring/server-7.log",
+    "bytes": 6596,
+    "sha256": "36879c6785525a594a8bd6a1ed00d81fd7febe70b2c11f21092a2a2c9cc3eb34"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-uring/server-8.log",
+    "bytes": 6596,
+    "sha256": "faa9683fc8cd31abfa4881132f1f729e9c050a6054fe7b81ca929c3e46118f1b"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/filename-2s-uring/server-9.log",
+    "bytes": 6631,
+    "sha256": "ee3078081b10e70495c568e50acd3f154d8cf14b697fe877e68db6aca34bce09"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/large-1s-epoll/events.jsonl",
+    "bytes": 4381,
+    "sha256": "269fa26f1ae2a4ecc837b17274e96fd41e771db0bc9d9b66eb2cb306517fc48d"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/large-1s-epoll/server-1.log",
+    "bytes": 2920,
+    "sha256": "e692101e1dd58324bbf88f6a4a5d642568ef13e1bcfe16dd5479217be10ff91e"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/large-1s-epoll/server-2.log",
+    "bytes": 2860,
+    "sha256": "9061a8a7bc2c41067b15c0aa61d04d49b4e20b7a263ab2f6021cfea81af02147"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/large-1s-uring/events.jsonl",
+    "bytes": 4372,
+    "sha256": "e71eb19e14362b5448e99a2a9491da2ac1d33b61517d8556d0fa9b4c7b17572e"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/large-1s-uring/server-1.log",
+    "bytes": 2828,
+    "sha256": "3ec2d41d0cad05d32465f76a562e031f76cf0d001b2ad331c47ad937722e9b9c"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/large-1s-uring/server-2.log",
+    "bytes": 2780,
+    "sha256": "d5ccae62571c5ad08d18102afc011322b45a56486851e5c422a39a6cc18a6787"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/large_placed-1s-epoll/events.jsonl",
+    "bytes": 2208,
+    "sha256": "4dd51045d107e6bc9d8bd4082c9963d5f847084a6b0c01bcecd6732afdfe113e"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/large_placed-1s-epoll/server-1.log",
+    "bytes": 7611,
+    "sha256": "235b5711096dc100496b6b08ec77fbb04365a42009ac5511f49ab9445467c7ef"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/large_placed-1s-uring/events.jsonl",
+    "bytes": 2206,
+    "sha256": "4ed96dd01f212f636289aacb5d92cb974d055f4fc49dfa196ceaac38b1e3a4e5"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/large_placed-1s-uring/server-1.log",
+    "bytes": 7539,
+    "sha256": "1b1228718b88de2f3c2ea3915aa246765043e235236376d156525557b56858de"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-always-1s-epoll/events.jsonl",
+    "bytes": 4941,
+    "sha256": "04b52418a70ca02a6906fcc56cca90e93a5bd8f2651cfa11cdad69adbe9fde2b"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-always-1s-epoll/server-1.log",
+    "bytes": 7654,
+    "sha256": "1531d46df6fb7c631b878565c8f02da66e9c583c984f9b0c0967e2e883d66432"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-always-1s-uring/events.jsonl",
+    "bytes": 4940,
+    "sha256": "19b3e726610afbd57da55d4568dd953cd9165fcfbda8acb70ba84de2d037bbb0"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-always-1s-uring/server-1.log",
+    "bytes": 7562,
+    "sha256": "76c469a0f1bdfa709bfb90f78d1b0fd4a4a2f96699bb859190ce89cb710113d5"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-always-2s-epoll/events.jsonl",
+    "bytes": 4973,
+    "sha256": "8eec6a13c642036bb6d265b4e0c9df89e74ede3aa2ce2d6cd8c3c58ad15a0b2a"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-always-2s-epoll/server-1.log",
+    "bytes": 6755,
+    "sha256": "986d89a06a3b0b72ac17ce99d09214620a47590b04007d7fc583f04a12c74361"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-always-2s-uring/events.jsonl",
+    "bytes": 5051,
+    "sha256": "67ae7dec596c925d09ff2624f8620a76f66aa619270a79b0c39ebc49ba1d58ec"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-always-2s-uring/server-1.log",
+    "bytes": 6687,
+    "sha256": "8efa6fee5efc2459ec1e52a8c13b4e5b148f0fce01b8cfbc267931c181741ac0"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-everysec-1s-epoll/events.jsonl",
+    "bytes": 4953,
+    "sha256": "44ef602f16eb24d6fd054c70068dbd6e19b4d370654b1da632e0fb23ea1a32d9"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-everysec-1s-epoll/server-1.log",
+    "bytes": 7643,
+    "sha256": "5e3265adcc35d96097a078db7725242ef331a39bbd1959a3261229b80f865a33"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-everysec-1s-uring/events.jsonl",
+    "bytes": 4923,
+    "sha256": "5e14a2fee48e8f9268a210b492a4c37c274905bab6db7d52adffe0d8339d3c58"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-everysec-1s-uring/server-1.log",
+    "bytes": 7556,
+    "sha256": "9b6530f12731b3c168202fb8908d1e8f5dfd3858401a0737920c968dad103c84"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-everysec-2s-epoll/events.jsonl",
+    "bytes": 4976,
+    "sha256": "cad4c828c63e97edbb77244fb05500362f2a200c18eedd7f157d00030434ae5a"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-everysec-2s-epoll/server-1.log",
+    "bytes": 6745,
+    "sha256": "280b78567371db010e7aa9b2ddadba40471268866cd8ccc9f2ec398d01da2fe7"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-everysec-2s-uring/events.jsonl",
+    "bytes": 4944,
+    "sha256": "84fea5fd107e1454c982cf07a09c26f60fa5bbfa4eab4b9c26f34c1d6fd28f63"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/latency-everysec-2s-uring/server-1.log",
+    "bytes": 6683,
+    "sha256": "886e1f361acf4e7b516bb1ad5efa6bc9db1a6265eb0ea69c598206c0f3721616"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/manifest_missing-1s-epoll/events.jsonl",
+    "bytes": 4724,
+    "sha256": "700885a1de50913346c497c5d7609c646a3da9f0727c79a9ea80867a17950da0"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/manifest_missing-1s-epoll/server-1.log",
+    "bytes": 7640,
+    "sha256": "b3b0525eaf66951121fe4770289bfb2caf56feb23735b2a880c8238b0cc94913"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/manifest_missing-1s-epoll/server-2.log",
+    "bytes": 189,
+    "sha256": "8f59e45d6bde4186e3f68b383dcffefd79a1e62601e9d5ecbf182d1fb722a985"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/manifest_missing-1s-uring/events.jsonl",
+    "bytes": 4710,
+    "sha256": "86896d5e3ddae59778b2cc545569bff8e36c02b5a38d514292c4981caaf4a298"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/manifest_missing-1s-uring/server-1.log",
+    "bytes": 7548,
+    "sha256": "65eaf133daafb1f58625987a1b23616dc0a2ed01318f9434c85a163aed438c5e"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/manifest_missing-1s-uring/server-2.log",
+    "bytes": 128,
+    "sha256": "b697f0be5adb368b323bda0427925c94d9675582c71bab4a1a405d8ab2cfe1b4"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/manifest_missing-2s-epoll/events.jsonl",
+    "bytes": 4756,
+    "sha256": "1bf6577c3ca5a64548a179428e23a277c776509c848c6ca7e29e2afe6fefbda7"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/manifest_missing-2s-epoll/server-1.log",
+    "bytes": 6697,
+    "sha256": "9dd1278f8005c19236e830a2e5bab35960ecf7fdb01c229cbb6cca190be61396"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/manifest_missing-2s-epoll/server-2.log",
+    "bytes": 189,
+    "sha256": "8f59e45d6bde4186e3f68b383dcffefd79a1e62601e9d5ecbf182d1fb722a985"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/manifest_missing-2s-uring/events.jsonl",
+    "bytes": 4754,
+    "sha256": "28b2be828a60f75e029ab11774403d01db5d710bcd765a735b731c50b1f395f1"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/manifest_missing-2s-uring/server-1.log",
+    "bytes": 6620,
+    "sha256": "df1b998799812775f2070eaf538b9dc82b4c216149e96e681dbf4aae05081e10"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/manifest_missing-2s-uring/server-2.log",
+    "bytes": 128,
+    "sha256": "b697f0be5adb368b323bda0427925c94d9675582c71bab4a1a405d8ab2cfe1b4"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-1s-epoll/events.jsonl",
+    "bytes": 12487,
+    "sha256": "71b8529cb09cfa317507ee3ee6d8fc0068e58b44aad7323724cf11418555e244"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-1s-epoll/server-1.log",
+    "bytes": 803,
+    "sha256": "6ed769acf8557964d2592c08009a1bae816545aeb8f463d76f68e58cebe8ec0b"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-1s-epoll/server-2.log",
+    "bytes": 7668,
+    "sha256": "04248751df4b2e84dd5bde5ea685f5bc328f7c4e85578502b593995857d32fc5"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-1s-epoll/server-3.log",
+    "bytes": 7586,
+    "sha256": "7faccd392e45d23702966dfa26dd97eeaf95b863189efc4d9e82baec085af1e1"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-1s-epoll/server-4.log",
+    "bytes": 7595,
+    "sha256": "2fe5f2e2aaac2a6d06a83cbfa0e01851477c9bd4a24f40f595a7a4997a14ef07"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-1s-uring/events.jsonl",
+    "bytes": 12493,
+    "sha256": "d0c2839a9716161130ea518d7652453c9aaafe24ea9b0e3ff926e7eccca46d17"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-1s-uring/server-1.log",
+    "bytes": 745,
+    "sha256": "63498357ea700e7d248fcfe3482b18e6157737ab1b24cfc95f2a2442ce8e1bea"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-1s-uring/server-2.log",
+    "bytes": 7590,
+    "sha256": "0ab96cd7d645dbbd30b46617f12d30295ff83a2a3b514e20e97b7a4e9a6c3348"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-1s-uring/server-3.log",
+    "bytes": 7525,
+    "sha256": "753470158ff90442c63b79879ae8f39ccf77cd817dc122ef1e0db6700b0fb434"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-1s-uring/server-4.log",
+    "bytes": 7505,
+    "sha256": "ca7a80f1597a1043d45189ef7b80a5a4200bfbc4ea999e33311642bce698e6ad"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-2s-epoll/events.jsonl",
+    "bytes": 12539,
+    "sha256": "7ae8a1a17d54a99756930b9d1f5c22e7fd4e5aae50587995a9f8ef4c1bdd9b3b"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-2s-epoll/server-1.log",
+    "bytes": 679,
+    "sha256": "ee056d39f28f578979eaad3aed2e96b0b80537a7a9431b9f8a2fa9b0aaa7dec7"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-2s-epoll/server-2.log",
+    "bytes": 6699,
+    "sha256": "3ec8ae3879803afebcaa03a30e6fafd43419aae34642d70e7702c8a67f3187d5"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-2s-epoll/server-3.log",
+    "bytes": 6690,
+    "sha256": "ce5696605763ecc28ad9224a8f33e28d7b7de5f3999d21efaa0daaab59560f4b"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-2s-epoll/server-4.log",
+    "bytes": 6690,
+    "sha256": "9ae91b69881deeba1ad137120255ce398ba22e9c4e3da9382b69c222aeef4e56"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-2s-uring/events.jsonl",
+    "bytes": 12545,
+    "sha256": "165836be5c3c8b4681e4f0111a96b42c8573e3de3e7c1562b82b0343e1fb60e4"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-2s-uring/server-1.log",
+    "bytes": 621,
+    "sha256": "38c515abbdf24dbb67078d05ab770ccf47edd8afdd15d023f8cde1773bdd09e5"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-2s-uring/server-2.log",
+    "bytes": 6624,
+    "sha256": "b045f988d9d6b54538cd772ad3366aceec826e9f7aa566dd7c40f1955455dbb0"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-2s-uring/server-3.log",
+    "bytes": 6608,
+    "sha256": "97b36375dc4fd17acead60cc3cdbc89d2c9703e6a636e6060b3f5a4f108490d1"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/resurrection-2s-uring/server-4.log",
+    "bytes": 6612,
+    "sha256": "41a43b072f1eafb246414962f3467ecc089b5646783d5da7d69b420e4fa1a3f9"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/rewrite_fail2-1s-epoll/events.jsonl",
+    "bytes": 5006,
+    "sha256": "a1d6c166f9b29a6e083c1e5c35be94174b4f09904eb43138244c6406dc91eb7a"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/rewrite_fail2-1s-epoll/server-1.log",
+    "bytes": 7658,
+    "sha256": "b10ae7ab85de2343a107cdbc0c9791c1a347f7e8c2c4ee7b7aa7299e89db3a82"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/rewrite_fail2-1s-epoll/server-2.log",
+    "bytes": 7572,
+    "sha256": "0133471185c11bcb66d455f6ea9c7ed586a4ab86d69a9480ce9a346cc4b0e2a6"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/rewrite_fail2-1s-uring/events.jsonl",
+    "bytes": 5001,
+    "sha256": "63d9e6463045348783dac0b65863ff6fe64a664a55cc260033e9c4af42bff7e6"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/rewrite_fail2-1s-uring/server-1.log",
+    "bytes": 7576,
+    "sha256": "ea61312545997596e84af2e307fff05658b46c3c1cf8e3b99457bd2be5c5d250"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/rewrite_fail2-1s-uring/server-2.log",
+    "bytes": 7501,
+    "sha256": "a36d54015ed72b02f07a85214bb035a487eceba550486988276faef1d1adb752"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/rewrite_fail2-2s-epoll/events.jsonl",
+    "bytes": 5037,
+    "sha256": "47f34a8e9e8357f3c72a1ff2ad50c865f46103481a27261b3fde93bc9cd310b5"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/rewrite_fail2-2s-epoll/server-1.log",
+    "bytes": 6727,
+    "sha256": "00c5480ad13eaab75226f80339c6fb96bf8154065257ad3abc39e3594d16a45f"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/rewrite_fail2-2s-epoll/server-2.log",
+    "bytes": 6681,
+    "sha256": "5f80385161e91f371514fe2e0418c94ee621cf99cbab64c2a9c88f60e01ab13a"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/rewrite_fail2-2s-uring/events.jsonl",
+    "bytes": 5040,
+    "sha256": "883615fc0c51ffe586d82ec75b286937e15af7cf4342f0ccb998cc1607f3466a"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/rewrite_fail2-2s-uring/server-1.log",
+    "bytes": 6643,
+    "sha256": "eab78b832e319f7db2e98fd5f562331963d604fe3b0058ec92a9640a12c9e58b"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/rewrite_fail2-2s-uring/server-2.log",
+    "bytes": 6603,
+    "sha256": "7590d08a8a3bcc68d6e7d4d99fba9cf61a6ee1cd282567d6624a7a2500921217"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-1s-epoll/events.jsonl",
+    "bytes": 6317,
+    "sha256": "80281687abf2168ade616627aeb4836cd46948b77be479c5eac617a66563dda8"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-1s-epoll/server-1.log",
+    "bytes": 7626,
+    "sha256": "568af4877a1f7410ac22ef6d6f9ed6be53e9a5d6600fad7256e7109ecca70653"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-1s-epoll/server-2.log",
+    "bytes": 7596,
+    "sha256": "a43a19c05d5dab2d362b78de2ab6ad61c5a09e91b93b301c1fcefc44883917e2"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-1s-epoll/server-3.log",
+    "bytes": 7580,
+    "sha256": "4c066ba1cf2cd3be6af4d375899f1789e44592693d12593acc9881573d47b88f"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-1s-uring/events.jsonl",
+    "bytes": 6328,
+    "sha256": "e044a666ae73c4b03159adb0cd870b4358910848997918649147faf74d4a78c1"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-1s-uring/server-1.log",
+    "bytes": 7539,
+    "sha256": "8a33259f2c521912782dac29a5b9d77647ccb34b3c98a01fac85415f3db4da45"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-1s-uring/server-2.log",
+    "bytes": 7504,
+    "sha256": "d57908c8e6dfb8b8b977a663bc59b3f80118516ea4cec620402bdbe59a8187f7"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-1s-uring/server-3.log",
+    "bytes": 7501,
+    "sha256": "ccb17bcba82c31b12efb326a5656d80f66588404e74b917b736cc29310ed025c"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-2s-epoll/events.jsonl",
+    "bytes": 6382,
+    "sha256": "674cab38d8d7884c0845675fb6c6a6f67ff24c72ac307f6c7a9011366791e2a8"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-2s-epoll/server-1.log",
+    "bytes": 6700,
+    "sha256": "b537a6a03d6b5f91467dacf3b20d4932bfd745fb1d1b23d335bf0dc8b98ef18d"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-2s-epoll/server-2.log",
+    "bytes": 6680,
+    "sha256": "61f7b176f56b8f2f0d8d6e484d5db607e17fc6d23c41b583d28b1d05f998f308"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-2s-epoll/server-3.log",
+    "bytes": 6678,
+    "sha256": "ccd3a452b67ee98eafc332d9463a06785f8e7db2babf3008beec7f17eca6cac9"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-2s-uring/events.jsonl",
+    "bytes": 6361,
+    "sha256": "0c575176fee44b9ae8b3570ff86d972a888f32a10c015cfd680d1deb65566147"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-2s-uring/server-1.log",
+    "bytes": 6623,
+    "sha256": "38ba528cc81ec78ffa234bb580471f9beedf39a61af68594c10fc303d6ad8f1e"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-2s-uring/server-2.log",
+    "bytes": 6600,
+    "sha256": "467ceedffef6ca715e736e93ee81a14ab9a661bdb99dccfe3894ddb202c999ca"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/snapshot-2s-uring/server-3.log",
+    "bytes": 6600,
+    "sha256": "e10053886b44a3e99b4dc2510d5dd099dd1f1d9db65a80ea707dcd0a8fa161f5"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-1s-epoll/events.jsonl",
+    "bytes": 12840,
+    "sha256": "9f5806dc0e977236a024c0df0939411bbf765d3a1814b0f760431d7342ad1d5f"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-1s-epoll/server-1.log",
+    "bytes": 7687,
+    "sha256": "396e4df383a539d3a6a0b3b01d941de77a86ffb2e66e9bf6641fbc2372066676"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-1s-epoll/server-2.log",
+    "bytes": 7672,
+    "sha256": "8ae478cb156c066b4190d1d8edb2ca021a627d6b0bc237e391c8e3cfe7b3cea9"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-1s-epoll/server-3.log",
+    "bytes": 7672,
+    "sha256": "231356f0671e244b506e4525dd21d17d34270e829485e4fa8f12733bfe002b3a"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-1s-epoll/server-4.log",
+    "bytes": 7591,
+    "sha256": "d15bf0ecdd6eb6bc055200b73420aca006faf620e6f6511ce6be94fe7be6c652"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-1s-uring/events.jsonl",
+    "bytes": 12866,
+    "sha256": "620bbd8f5507800b7b3f41473fe9d7397005d549050e890883e4c33de2c82992"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-1s-uring/server-1.log",
+    "bytes": 7572,
+    "sha256": "7f4f5fe5a73cfdac7f466c7c3f257538a9faa403c29c5d2f527f90a1a295c7dc"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-1s-uring/server-2.log",
+    "bytes": 7554,
+    "sha256": "1ddceddddb7ea66dd550054d1e0d433422166787f8176df76c03bf2ba0bdc9a4"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-1s-uring/server-3.log",
+    "bytes": 7589,
+    "sha256": "6aa1c0775f2ef60e4935795d3b94964ab4b2c374b478b42a75544684b8f31c98"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-1s-uring/server-4.log",
+    "bytes": 7509,
+    "sha256": "d71a130813a1df8677c7dcf4189ba981460b5bd6d88c0e943a58a667b9467f3f"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-2s-epoll/events.jsonl",
+    "bytes": 12962,
+    "sha256": "48c50db1826afccab94b51004ea9bfde4d67db6bc912e1fdc565e980552bf9b0"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-2s-epoll/server-1.log",
+    "bytes": 6705,
+    "sha256": "54e68a332d8ffd3ede64e20478f44d7574bd49c561059d4309ce5ed0774871e4"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-2s-epoll/server-2.log",
+    "bytes": 6704,
+    "sha256": "b131715dc7754f71de29ba16611dc6a48871d6edaa8db4c041238614ac2134ed"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-2s-epoll/server-3.log",
+    "bytes": 6704,
+    "sha256": "964afe760138a2af50261674588702c723591bd5f7e5a1cc0db400eb688e361d"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-2s-epoll/server-4.log",
+    "bytes": 6688,
+    "sha256": "9225938d0b07a0e3ad31d146c9017c59357d48c45725bdb34e3dad516c5b8e86"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-2s-uring/events.jsonl",
+    "bytes": 12961,
+    "sha256": "bdc9650df0ddbb70048251fa859202095321e9e87f1165a7e48e0c74154ca594"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-2s-uring/server-1.log",
+    "bytes": 6621,
+    "sha256": "a2026e613baa817da59818a8768ee567e66976319c0ee2fb121f3e6205f3e428"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-2s-uring/server-2.log",
+    "bytes": 6622,
+    "sha256": "17505e86920495e8ec64eeaaa8ce0f77305e39e5f45b38eaaaa3490b2bf51e7e"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-2s-uring/server-3.log",
+    "bytes": 6624,
+    "sha256": "874ae44474f879eb0243b6bbbac8c7f5588a7637b908cd22d1844611470ee0e6"
+  },
+  {
+    "path": "build/aoffix2/post-final-rows/tickets-2s-uring/server-4.log",
+    "bytes": 6613,
+    "sha256": "fe188854dbc1c51a9493f40808f6bd2c4204cb86bc23e2d1b2e7640560243f15"
+  },
+  {
+    "path": "build/aoffix2/post-recheck/latency-always-2s-uring/events.jsonl",
+    "bytes": 4985,
+    "sha256": "e3d55e44a39d68e3da0c12fa19860fe04ba8ddc822d9bdd42d1fcb3337b93be8"
+  },
+  {
+    "path": "build/aoffix2/post-recheck/latency-always-2s-uring/server-1.log",
+    "bytes": 6655,
+    "sha256": "f5636c703b70d4c915cc9cbd9d4bd02b3840be760354e61f79fdf600d2b4c3c0"
+  },
+  {
+    "path": "build/aoffix2/post-rows/error-1s-epoll/events.jsonl",
+    "bytes": 3116,
+    "sha256": "f922425aa821840ef9304c5dd682facfbf0baa93c49c59258419231659c26660"
+  },
+  {
+    "path": "build/aoffix2/post-rows/error-1s-epoll/server-1.log",
+    "bytes": 934,
+    "sha256": "d5473f87961f63a121032264008b469c2399b786e1488978c95077f002982836"
+  },
+  {
+    "path": "build/aoffix2/post-rows/error-1s-uring/events.jsonl",
+    "bytes": 3033,
+    "sha256": "8ae9b4556e6365a47af52ec36c4c150fae625eda56fdc2772e3e0ddeff2e08f0"
+  },
+  {
+    "path": "build/aoffix2/post-rows/error-1s-uring/server-1.log",
+    "bytes": 862,
+    "sha256": "59d515d4f90610562c198aa8d5c7e268254b7ac165d2c2a2067c3e4739d88350"
+  },
+  {
+    "path": "build/aoffix2/post-rows/error-2s-epoll/events.jsonl",
+    "bytes": 2974,
+    "sha256": "3ff7a3ee80495b1e8c1bcbab4116b0146541244a36964a3070a38b187040428b"
+  },
+  {
+    "path": "build/aoffix2/post-rows/error-2s-epoll/server-1.log",
+    "bytes": 810,
+    "sha256": "4c77232f996485579df32c9f7c4f4ed70199d5a7ee207fd9e17499fa8af34223"
+  },
+  {
+    "path": "build/aoffix2/post-rows/error-2s-uring/events.jsonl",
+    "bytes": 2922,
+    "sha256": "f3487ff4804a2dcaea3ce7058c6303f0b99211f81d89eeec76f6add76a1e7dc6"
+  },
+  {
+    "path": "build/aoffix2/post-rows/error-2s-uring/server-1.log",
+    "bytes": 738,
+    "sha256": "d44551cfde4cdde499ab2bc702087c009a7dd61f37fb8d2042a5c75765f5ea4f"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-1s-epoll/events.jsonl",
+    "bytes": 12872,
+    "sha256": "f039b7c1dd643effa9a6bd4e7c4589622aebffd924c73bf61359adc7f79b90e3"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-1s-epoll/server-1.log",
+    "bytes": 7649,
+    "sha256": "ea4d14f718a169ce01264f09ccc04bb158eba0058877720ec98d14b2be57ceab"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-1s-epoll/server-2.log",
+    "bytes": 7696,
+    "sha256": "e4d88a5c172641da4e559edf29f18fcd2c9de078d92ff328fdd75fe9ad2fed91"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-1s-epoll/server-3.log",
+    "bytes": 7670,
+    "sha256": "86f4d4623c6eda653b40ba651baae7e99b68ddbf3db24b6475cc88adeac04a48"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-1s-epoll/server-4.log",
+    "bytes": 7581,
+    "sha256": "ac0badbc76fc3d7b421ba184b4bd4e106d5b1bfc2f92a1cd6c4999ed3c2ec694"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-1s-uring/events.jsonl",
+    "bytes": 12849,
+    "sha256": "8b8f020b98371c64f5e0d0c69181f9e045cfef6e7ff10c7db29404ec99af3e52"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-1s-uring/server-1.log",
+    "bytes": 7548,
+    "sha256": "3850c17fffbff66cb8741ac864c5be724a5c826bfb24403380ee8d8b50e00401"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-1s-uring/server-2.log",
+    "bytes": 7610,
+    "sha256": "c8ca0797c46404e818bb3d27e84bf42502d38164eaa7b3889ff26e5cc5f663d9"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-1s-uring/server-3.log",
+    "bytes": 7622,
+    "sha256": "997b7183e2b0c55ccc4bf408cc72a41e15e8b9d62e3d45a5f346886f3e16f228"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-1s-uring/server-4.log",
+    "bytes": 7509,
+    "sha256": "fa054b106232cda6edbaccbd4a196c333121f2fd3de6a3d98c1238363b17181b"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-2s-epoll/events.jsonl",
+    "bytes": 12896,
+    "sha256": "3da70c69dd147495c2976b72ffafd9d4f73aae6308beab271ee4fb2b4f9e33d7"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-2s-epoll/server-1.log",
+    "bytes": 6717,
+    "sha256": "210f38a0464b03723097395da5d95ae54e4a8bb7a5f8db909aa8f638a3905828"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-2s-epoll/server-2.log",
+    "bytes": 6719,
+    "sha256": "9a0a27997605ed7402707931ad35a4c092109129329e49da21d48ebd28e2647a"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-2s-epoll/server-3.log",
+    "bytes": 6719,
+    "sha256": "712d711c62e0204e47fef2aff95d6f5da60add273df5b73bac7d1570c07d23b9"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-2s-epoll/server-4.log",
+    "bytes": 6688,
+    "sha256": "153d7caeaf1dd6d6b05591de79482a3c7a07a7953d4866da08595e36fc8fc424"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-2s-uring/events.jsonl",
+    "bytes": 12881,
+    "sha256": "9554dd48df03807189804bfae47d9593662cec31604de435d0ea9027d75580df"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-2s-uring/server-1.log",
+    "bytes": 6628,
+    "sha256": "e506f6318bf9da190641e82bc9281f262e89063a194ed3fbb400558c5f35de6f"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-2s-uring/server-2.log",
+    "bytes": 6630,
+    "sha256": "8fef9ddd4b46817102842545b1e5033d1b99583ea13b6776b5689e76eaeb7fa3"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-2s-uring/server-3.log",
+    "bytes": 6631,
+    "sha256": "1f01a64b2427e3729d6973c113b44c3b8d50dfcc5cea1df8273c2b4482f8416a"
+  },
+  {
+    "path": "build/aoffix2/post-rows/exec_tickets-2s-uring/server-4.log",
+    "bytes": 6606,
+    "sha256": "76d7a9ed1eb5c1967a578adb9a01d8a8002c0fd74b5c4f645b16d33441c57844"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-epoll/events.jsonl",
+    "bytes": 18140,
+    "sha256": "a2266da29d4f93ff4162a026e824a847437b745336702128134af9a9c1b16f14"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-epoll/server-1.log",
+    "bytes": 7632,
+    "sha256": "dbbbd22c7fae86930f5db961314d8bf767a394792008bd0d517248a893721455"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-epoll/server-2.log",
+    "bytes": 7574,
+    "sha256": "e215f414651ffd7f6111779dbccd56d83b6b401b1cd3e01ab4da7660d4c2e69f"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-epoll/server-3.log",
+    "bytes": 7637,
+    "sha256": "2da9262839fbd60e61aa200f752a65c23790120d891b564aeb73b23e82c00854"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-epoll/server-4.log",
+    "bytes": 7571,
+    "sha256": "1e197998c25558b151e1f2f83ef7e6d612700c86cbcf606b643461309bba1f4d"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-epoll/server-5.log",
+    "bytes": 7634,
+    "sha256": "b4f2147fc3b95cf04490214335843b24e05b31ea0de9f079f02366ded3ec707a"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-epoll/server-6.log",
+    "bytes": 7578,
+    "sha256": "be48904d384f82e91b761ee59b0446284e3d637ac00928efda866c93a0a5d2c9"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-epoll/server-7.log",
+    "bytes": 7632,
+    "sha256": "5bd62a952ac4601174fc5efbb31971e3e744bd4e11f19d4e41d583a8d209a120"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-epoll/server-8.log",
+    "bytes": 7575,
+    "sha256": "42c29c5fadc302357b7df4f3f62b852b04b4d95c9aa7f85dd6d984f6f9043582"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-uring/events.jsonl",
+    "bytes": 18087,
+    "sha256": "a5c5ae705ad9ccf5a1a82c00e99e41451a3819a107bb4fab7fa054750234a0cc"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-uring/server-1.log",
+    "bytes": 7539,
+    "sha256": "92eaa2026a7f5565efecd6a8c6bf1224cd58eead11e7fd2bc4f21de3c03233d1"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-uring/server-2.log",
+    "bytes": 7497,
+    "sha256": "001fc3e8bf2dfd17a57b02b5ffe6af2fa41737105469555009b39454baa5f598"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-uring/server-3.log",
+    "bytes": 7538,
+    "sha256": "3a9cfc0df5a7b2af42a3b03b08f1ebffdac41a1f76def17e353c737b55071435"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-uring/server-4.log",
+    "bytes": 7517,
+    "sha256": "849dfd6e98cba4d01a99f6a47b632cb8d31bee578f0806f050d601b6fbee1de5"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-uring/server-5.log",
+    "bytes": 7555,
+    "sha256": "08564331f1ea4d13188e4cf2f003aab093119ea58563cba0c98a95448d6e8237"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-uring/server-6.log",
+    "bytes": 7517,
+    "sha256": "82ebac11b74dac532bc802c37784159564b5613f6d76a22d8494b40e6ae8525f"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-uring/server-7.log",
+    "bytes": 7540,
+    "sha256": "705691a9e8cd7de5a5fe5e55aab8b89be187a26f3e18e8f0481be82b839838cf"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-1s-uring/server-8.log",
+    "bytes": 7496,
+    "sha256": "83b1d03b01def7814ea4882a3c1d27ccb293c57dcde2e25ebe16c360af03733f"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-epoll/events.jsonl",
+    "bytes": 18013,
+    "sha256": "ccbbdde30a88ac0d4f32c87fb8ac24f0a0ffcbb4e5ae5ee76b20a62e4198020d"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-epoll/server-1.log",
+    "bytes": 6713,
+    "sha256": "61d139e9be3126d1e601bda8ea72056cab5d8cfe3325babf5b4a95ebacba2516"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-epoll/server-2.log",
+    "bytes": 6675,
+    "sha256": "e199a48dfe6a30590f6e609d0c7bfce8c57d77e267b58051ba1b5aa6ed286f71"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-epoll/server-3.log",
+    "bytes": 6712,
+    "sha256": "0e9c73a9c220d1f10c40130049b2e3bf24f924c8c0a2ff5cefaa41df06a33677"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-epoll/server-4.log",
+    "bytes": 6678,
+    "sha256": "c875980a589e65e3a9f9f0d5c57abec505eeac4a8e238db18b67ba4658818930"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-epoll/server-5.log",
+    "bytes": 6713,
+    "sha256": "2f2300510481b122464a17ea4f77c2f23a78e8033a3481908076e48d261bac0f"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-epoll/server-6.log",
+    "bytes": 6675,
+    "sha256": "a65e76fbc1684150f71fb104bee7337841d89b30507b04d419c2942f11545e7f"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-epoll/server-7.log",
+    "bytes": 6696,
+    "sha256": "f0dd539b5494724d9c3acb2f8eb8725f752114352a5b088c74e97e8b0617212b"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-epoll/server-8.log",
+    "bytes": 6675,
+    "sha256": "b2780075ba3a0ab387c8d9c4a56ae0e86925f7d2215c50a84930eb64d575131b"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-uring/events.jsonl",
+    "bytes": 18190,
+    "sha256": "e6a376a563491e7394d2e27c28f457b177b2e01098abf09c8e89dc872106e154"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-uring/server-1.log",
+    "bytes": 6632,
+    "sha256": "3e83dae8e5d1a01fb300e51a45028aa42dc496c93409c4f10370d0f2da3d5d19"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-uring/server-2.log",
+    "bytes": 6596,
+    "sha256": "1ab7dccaf4c9a11d9375a18d9dfb7b2c2781664f9b8e120c57ca550a06e02e4d"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-uring/server-3.log",
+    "bytes": 6629,
+    "sha256": "a254b0f99ae2259ac0febb885e5c5762eea0963fd68a42850b155b1155702ddd"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-uring/server-4.log",
+    "bytes": 6596,
+    "sha256": "c33ebe6340bbb49b72920722e177fe9c267d0ca76bfc7efdaabdfdfeabb32915"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-uring/server-5.log",
+    "bytes": 6632,
+    "sha256": "a1b92329a54dc894919b65d56df230f5b61b09c5cdd320e8a47bcc9ee65c4c88"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-uring/server-6.log",
+    "bytes": 6596,
+    "sha256": "8e2b82588b1635d647fac7de399acf62a911a75df159fc6972a3051ce6e9cfe1"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-uring/server-7.log",
+    "bytes": 6629,
+    "sha256": "b42885b2e10f951fb354b1075d41bd1c5119c7afbb499f555579d9c97ca344f8"
+  },
+  {
+    "path": "build/aoffix2/post-rows/filename-2s-uring/server-8.log",
+    "bytes": 6596,
+    "sha256": "f45112d6699a2537cd7012a3774620d37cdb7b10b41b1746dd9419bb8a599a8c"
+  },
+  {
+    "path": "build/aoffix2/post-rows/large-1s-epoll/events.jsonl",
+    "bytes": 4355,
+    "sha256": "0cd232029daa50c20ab666e161304116063781d76e3a3b40ecf6a7d926ccc853"
+  },
+  {
+    "path": "build/aoffix2/post-rows/large-1s-epoll/server-1.log",
+    "bytes": 2920,
+    "sha256": "22b1cd2efa65d54a0da8506f479e40d51c0c82f8bdf69f794a67c58272bbd64b"
+  },
+  {
+    "path": "build/aoffix2/post-rows/large-1s-epoll/server-2.log",
+    "bytes": 2860,
+    "sha256": "4f3e24d2f2605cacf76d147835b670ddc01f238da94093960ccc6e141d35979c"
+  },
+  {
+    "path": "build/aoffix2/post-rows/large-1s-uring/events.jsonl",
+    "bytes": 2282,
+    "sha256": "1018e40f47dc643b6f387cdd921b01f8ebea10d30999bef68eb0060b530ca605"
+  },
+  {
+    "path": "build/aoffix2/post-rows/large-1s-uring/server-1.log",
+    "bytes": 340,
+    "sha256": "cc38976b6ef897ded9c932430d726f8763bce18639c8e5a49cbe8f8d24b7626b"
+  },
+  {
+    "path": "build/aoffix2/post-rows/large_placed-1s-epoll/events.jsonl",
+    "bytes": 2189,
+    "sha256": "99f37ba89ec2dfc3463b4d502728e23e7ff084509c1bd0be90e72d3c1a1e7959"
+  },
+  {
+    "path": "build/aoffix2/post-rows/large_placed-1s-epoll/server-1.log",
+    "bytes": 7621,
+    "sha256": "1e8ac24c8a8a54ddcb105ab0e2479972383a5e33de1260709b3b8c2fafc2af92"
+  },
+  {
+    "path": "build/aoffix2/post-rows/large_placed-1s-uring/events.jsonl",
+    "bytes": 2227,
+    "sha256": "3863544ecaa995f0c18c0e59f5b43a50c8c3aa96fffaa679d0b242a9719c282a"
+  },
+  {
+    "path": "build/aoffix2/post-rows/large_placed-1s-uring/server-1.log",
+    "bytes": 745,
+    "sha256": "63498357ea700e7d248fcfe3482b18e6157737ab1b24cfc95f2a2442ce8e1bea"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-always-1s-epoll/events.jsonl",
+    "bytes": 4906,
+    "sha256": "9e400ee9fc28a0280320d4a55792643f156dde142385fec36c5fee5249b5b1bc"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-always-1s-epoll/server-1.log",
+    "bytes": 7654,
+    "sha256": "19fb217226163f5374856e86c6213af4995d644ab12dd7c6b1f86766ac9d7097"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-always-1s-uring/events.jsonl",
+    "bytes": 4912,
+    "sha256": "11f419ec02080992ad33aeca2487c27be3f9ec1cc56388824efaf75479daa6bf"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-always-1s-uring/server-1.log",
+    "bytes": 7563,
+    "sha256": "5e6b17b04f1517cb88ac884c83079abdecf5da273b2bb5e4ba81a9831094abe8"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-always-2s-epoll/events.jsonl",
+    "bytes": 4960,
+    "sha256": "039aae79d7f18b1c53dffbd0c32a5ad4fc072456d4cf9bfe67be8ba837584d81"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-always-2s-epoll/server-1.log",
+    "bytes": 6756,
+    "sha256": "2bf0f5a17787fec24ccc85ea473803cd42b4018837a24dc9e2afaca0ba9aa5e4"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-always-2s-uring/events.jsonl",
+    "bytes": 4936,
+    "sha256": "4fec48dda6ec7520458766aecd0af0a2b913842f19e25778548e8eff667af8ce"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-always-2s-uring/server-1.log",
+    "bytes": 6686,
+    "sha256": "0132a71c97831c1ae6801bbffca33146d7cfca579d96df0374c2ffeaebf1839d"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-everysec-1s-epoll/events.jsonl",
+    "bytes": 4919,
+    "sha256": "533ddd3359372d52b3e51bc0d78bd43dd248c2346a51356e632755c684cd7ee4"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-everysec-1s-epoll/server-1.log",
+    "bytes": 7643,
+    "sha256": "a5496c5543dacd5da526d6eb2652f012ea27e051249ef2dfc9c31a6d41d34e1d"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-everysec-1s-uring/events.jsonl",
+    "bytes": 4926,
+    "sha256": "9a3eed4632704c837a5aae10accee6c986573f69e404f7612a373ce2789fedac"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-everysec-1s-uring/server-1.log",
+    "bytes": 7585,
+    "sha256": "85020659ac58fe35bc2dca484c41fb2f965f546a10cc1d4708906de8d097122f"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-everysec-2s-epoll/events.jsonl",
+    "bytes": 4923,
+    "sha256": "7c7b06323e302b1e5edadb306d6c35e2793c7f4901049b47475870119f8a66d0"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-everysec-2s-epoll/server-1.log",
+    "bytes": 6751,
+    "sha256": "8d1d4b670d8e0695cc5d388d1a26567445dbf44aa61830b827d37bca4d76d79d"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-everysec-2s-uring/events.jsonl",
+    "bytes": 4943,
+    "sha256": "49a45f3b877a327f51fd0b05ef42c55b7a6f078c6890e85e1042b94a397fa82b"
+  },
+  {
+    "path": "build/aoffix2/post-rows/latency-everysec-2s-uring/server-1.log",
+    "bytes": 6663,
+    "sha256": "9fdd87be58c6156c3d721fc698080b2a74ebd65faee9d502341a38c6a2a6f4a9"
+  },
+  {
+    "path": "build/aoffix2/post-rows/manifest_missing-1s-epoll/events.jsonl",
+    "bytes": 4677,
+    "sha256": "41313e2d71c17255a8a5f583a4e2843da2a20f8fac963956b44f5ece530c9a94"
+  },
+  {
+    "path": "build/aoffix2/post-rows/manifest_missing-1s-epoll/server-1.log",
+    "bytes": 7632,
+    "sha256": "4a831da4101ffb00af5d76fd666fb6f80fd78d9b017fad8132d6d9e4e19b1629"
+  },
+  {
+    "path": "build/aoffix2/post-rows/manifest_missing-1s-epoll/server-2.log",
+    "bytes": 189,
+    "sha256": "8f59e45d6bde4186e3f68b383dcffefd79a1e62601e9d5ecbf182d1fb722a985"
+  },
+  {
+    "path": "build/aoffix2/post-rows/manifest_missing-1s-uring/events.jsonl",
+    "bytes": 4689,
+    "sha256": "4d2226d88cd022ffad25f628f0674fd17e92b2809536a9aa89d7fee209b54d2c"
+  },
+  {
+    "path": "build/aoffix2/post-rows/manifest_missing-1s-uring/server-1.log",
+    "bytes": 7547,
+    "sha256": "6a0bec337379500c6a6f92f66d97f1f7a7782cdfa26754ab26625588bb3c2bc7"
+  },
+  {
+    "path": "build/aoffix2/post-rows/manifest_missing-1s-uring/server-2.log",
+    "bytes": 128,
+    "sha256": "b697f0be5adb368b323bda0427925c94d9675582c71bab4a1a405d8ab2cfe1b4"
+  },
+  {
+    "path": "build/aoffix2/post-rows/manifest_missing-2s-epoll/events.jsonl",
+    "bytes": 4723,
+    "sha256": "e54b30539a03a39fc30168ebd6bd9f9218d7c409858a93676818dd722829071f"
+  },
+  {
+    "path": "build/aoffix2/post-rows/manifest_missing-2s-epoll/server-1.log",
+    "bytes": 6713,
+    "sha256": "9f2e89727a83bbf4b5ed802058f52319cf4bc561eec85485e557b197347a0421"
+  },
+  {
+    "path": "build/aoffix2/post-rows/manifest_missing-2s-epoll/server-2.log",
+    "bytes": 189,
+    "sha256": "8f59e45d6bde4186e3f68b383dcffefd79a1e62601e9d5ecbf182d1fb722a985"
+  },
+  {
+    "path": "build/aoffix2/post-rows/manifest_missing-2s-uring/events.jsonl",
+    "bytes": 4722,
+    "sha256": "db1adb36ae12edaf03c2bed6152d46a673c1f4505f28161d0e431781902b5c42"
+  },
+  {
+    "path": "build/aoffix2/post-rows/manifest_missing-2s-uring/server-1.log",
+    "bytes": 6621,
+    "sha256": "f5bf1a86403703f2a57317ee789ae0f1ef7be296fa9102354cd78e433b844049"
+  },
+  {
+    "path": "build/aoffix2/post-rows/manifest_missing-2s-uring/server-2.log",
+    "bytes": 128,
+    "sha256": "b697f0be5adb368b323bda0427925c94d9675582c71bab4a1a405d8ab2cfe1b4"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-1s-epoll/events.jsonl",
+    "bytes": 12435,
+    "sha256": "c4bc943777205b4f96344d90935305de2ff0f927a1149f464c9ac39a7635f216"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-1s-epoll/server-1.log",
+    "bytes": 803,
+    "sha256": "6ed769acf8557964d2592c08009a1bae816545aeb8f463d76f68e58cebe8ec0b"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-1s-epoll/server-2.log",
+    "bytes": 7673,
+    "sha256": "a5892e28a81fc387aec227abe4813743cbba36cd2feb271047342825bcee1ac8"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-1s-epoll/server-3.log",
+    "bytes": 7580,
+    "sha256": "ea14cf4a45ed91c7252381528f3b391e92ca71663435505c12b57d3cb62a65b4"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-1s-epoll/server-4.log",
+    "bytes": 7592,
+    "sha256": "f1e804c14d68c940a2af55eb33351243f46cba4168a198dec0f7cc7ae23acef4"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-1s-uring/events.jsonl",
+    "bytes": 12411,
+    "sha256": "5c1af79e5a1763c14851ecfadd426d7aba7f261e1136226e80a1b160a46a1c65"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-1s-uring/server-1.log",
+    "bytes": 745,
+    "sha256": "63498357ea700e7d248fcfe3482b18e6157737ab1b24cfc95f2a2442ce8e1bea"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-1s-uring/server-2.log",
+    "bytes": 7558,
+    "sha256": "f33750c8372f3265fc12d1e6be6d755493b8ba67c866c0ef9935b9e8a2e941bf"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-1s-uring/server-3.log",
+    "bytes": 7525,
+    "sha256": "f1bb2ac11547c0d903222d4067506dc9207827eaf5923435f76d8ca7dcba2a2c"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-1s-uring/server-4.log",
+    "bytes": 7508,
+    "sha256": "088ae9e1f2f3faf585848f8f435d0bfb041b4d2a5b2e24afa096ed7d41db15c8"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-2s-epoll/events.jsonl",
+    "bytes": 12420,
+    "sha256": "a129a54dae8946f6b7e09404bba8c01bf075c4461a3976bac8bb6f8b281137b3"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-2s-epoll/server-1.log",
+    "bytes": 679,
+    "sha256": "ee056d39f28f578979eaad3aed2e96b0b80537a7a9431b9f8a2fa9b0aaa7dec7"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-2s-epoll/server-2.log",
+    "bytes": 6706,
+    "sha256": "e8d6c802a0787691c469b09e3d17e82524b8f8fce3e81a10cbd055d6ac6d4bed"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-2s-epoll/server-3.log",
+    "bytes": 6687,
+    "sha256": "7094d61a28e7a25850d6632b45840666888528d7147183d580213219e6cc3344"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-2s-epoll/server-4.log",
+    "bytes": 6691,
+    "sha256": "8be0a8f09d007f68934f86d9bfb8d0801340ce203b50f37c07b3c77d8ecd98c6"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-2s-uring/events.jsonl",
+    "bytes": 12452,
+    "sha256": "8b60f00e024ea5a494b60f31b6146ea01b32e90b17b566e775f233ab8e114035"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-2s-uring/server-1.log",
+    "bytes": 621,
+    "sha256": "38c515abbdf24dbb67078d05ab770ccf47edd8afdd15d023f8cde1773bdd09e5"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-2s-uring/server-2.log",
+    "bytes": 6625,
+    "sha256": "e913b3634a7767c5c1523983697ef120ae6fd44d10076a342d43553a26d2742e"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-2s-uring/server-3.log",
+    "bytes": 6608,
+    "sha256": "ede76000c32458398db74ae7553ac7795f73ab78723b9dd6d7c4650695c44e59"
+  },
+  {
+    "path": "build/aoffix2/post-rows/resurrection-2s-uring/server-4.log",
+    "bytes": 6615,
+    "sha256": "d359d468e4abedf6fc8ecfa26754ad4e9f2363e6eadd9a42cb9d615b9ed7fb21"
+  },
+  {
+    "path": "build/aoffix2/post-rows/rewrite_fail2-1s-epoll/events.jsonl",
+    "bytes": 4969,
+    "sha256": "8e55e48cdff1799bcea5afe5408fea3d7c7c792ea7e36612b5b18138c598e318"
+  },
+  {
+    "path": "build/aoffix2/post-rows/rewrite_fail2-1s-epoll/server-1.log",
+    "bytes": 7662,
+    "sha256": "cb4671f981b484e95f43cd609e50b4e8efb66491fbf71b6ff46d75aaf7aee571"
+  },
+  {
+    "path": "build/aoffix2/post-rows/rewrite_fail2-1s-epoll/server-2.log",
+    "bytes": 7584,
+    "sha256": "f0e3894f645027dca5c40fb5b5b83480e15d5901e77dc970887f2f05f2f8c447"
+  },
+  {
+    "path": "build/aoffix2/post-rows/rewrite_fail2-1s-uring/events.jsonl",
+    "bytes": 4961,
+    "sha256": "96e2900e4d453d001cd62d088d8c12bf6282c598e6fc70c6ea7280c7b2018e74"
+  },
+  {
+    "path": "build/aoffix2/post-rows/rewrite_fail2-1s-uring/server-1.log",
+    "bytes": 7573,
+    "sha256": "7415199d79aef96380e7c4e602a17b2b1ed08a185fbf19105948a6402496eebd"
+  },
+  {
+    "path": "build/aoffix2/post-rows/rewrite_fail2-1s-uring/server-2.log",
+    "bytes": 7517,
+    "sha256": "48d7f0485f5f74eb1fb7634ae18f595d59574e1ecd9af78d71d28be81fc3aa72"
+  },
+  {
+    "path": "build/aoffix2/post-rows/rewrite_fail2-2s-epoll/events.jsonl",
+    "bytes": 4997,
+    "sha256": "6147537589fa6de6b07f76057c74619734ea1e0ce9f89b9afa7d7fc7cd0470d9"
+  },
+  {
+    "path": "build/aoffix2/post-rows/rewrite_fail2-2s-epoll/server-1.log",
+    "bytes": 6731,
+    "sha256": "5fdcb5146d9eaa704c07e9052ea92c52ab3b87699b5bafc44ccee2ffd9b7ce4b"
+  },
+  {
+    "path": "build/aoffix2/post-rows/rewrite_fail2-2s-epoll/server-2.log",
+    "bytes": 6683,
+    "sha256": "0e33d6965f46968478108f00a308ce1635aa6555626da4d7ce2b8e2f493fadd6"
+  },
+  {
+    "path": "build/aoffix2/post-rows/rewrite_fail2-2s-uring/events.jsonl",
+    "bytes": 5009,
+    "sha256": "bbbfe0914171ba4b12d0d0f16c46f78b82e50547ace5ab87991167e8eb5e4cc6"
+  },
+  {
+    "path": "build/aoffix2/post-rows/rewrite_fail2-2s-uring/server-1.log",
+    "bytes": 6632,
+    "sha256": "4fa3f61fbb1e123c7557e89dab16628f07062c387c89d35cb336b060f5b3842b"
+  },
+  {
+    "path": "build/aoffix2/post-rows/rewrite_fail2-2s-uring/server-2.log",
+    "bytes": 6599,
+    "sha256": "991df2fc1477d90dadb4f44ad24b09e3187268d3478536b3d3c0e30a0bc95781"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-1s-epoll/events.jsonl",
+    "bytes": 6270,
+    "sha256": "dd330023e2b612dd4dae69c42ea3726785fc13ad218af3e6bb9b8561ba6325f0"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-1s-epoll/server-1.log",
+    "bytes": 7625,
+    "sha256": "4f4f34eec8a1d18a4a3acbf4e0896b58d04a127d83e334aacb45f966fa9ab20d"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-1s-epoll/server-2.log",
+    "bytes": 7582,
+    "sha256": "87a25370319187c6335fa92c9474f8a60b46057fe667ace01bded61269aa5c1f"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-1s-epoll/server-3.log",
+    "bytes": 7579,
+    "sha256": "0f129e972d76f4bb3ca9bd3c74d78366b099cbd6f27b283d1fcc055fb87c4314"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-1s-uring/events.jsonl",
+    "bytes": 6267,
+    "sha256": "23e2f02aded2df889fe4ef49d79d11c84abcab0bfa4a16498ae3878ba227d9a9"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-1s-uring/server-1.log",
+    "bytes": 7565,
+    "sha256": "7abf2652ccefea463d50c9e7cee1acea926c8045f7cfdf6de93546db1e774aad"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-1s-uring/server-2.log",
+    "bytes": 7518,
+    "sha256": "13ae9128655d93a44f15547df6223a1b0e7f1de60d23c98247e0133290654b64"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-1s-uring/server-3.log",
+    "bytes": 7519,
+    "sha256": "345b80bd03836934e258a559186643d0e828fd88635ba7ef51b362d9fcecee3a"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-2s-epoll/events.jsonl",
+    "bytes": 6289,
+    "sha256": "87956f262ec23b60b2eef26fa7568ed2a78baf4c7ec0456aac661cfef6359ddf"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-2s-epoll/server-1.log",
+    "bytes": 6701,
+    "sha256": "58678d52b21b665353585ca97f28f3c763e74671472c34a4a24f2f3e14453efa"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-2s-epoll/server-2.log",
+    "bytes": 6685,
+    "sha256": "dc4a99cf86034d69cfbf47728a57a9e1b8618d0e6d8239b7785d092159e15d1d"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-2s-epoll/server-3.log",
+    "bytes": 6679,
+    "sha256": "87d74b91e8d268388670f4d33eb0724299342f816237829222a5f1a5bbedff06"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-2s-uring/events.jsonl",
+    "bytes": 6320,
+    "sha256": "166d10dc7fabd7d69baab1434476eb5fca75f66b857601bc21e73a4f34bab22d"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-2s-uring/server-1.log",
+    "bytes": 6627,
+    "sha256": "5a34f22a68cb17522c6d2a8ecfdbeddcd7aeaaf3507b4959f423a145ce912955"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-2s-uring/server-2.log",
+    "bytes": 6600,
+    "sha256": "7049fd2a0aa8ed5c38c2e4284dcba0ecc065f37f0d4d6e9506670b9d186e91e8"
+  },
+  {
+    "path": "build/aoffix2/post-rows/snapshot-2s-uring/server-3.log",
+    "bytes": 6600,
+    "sha256": "2ceb11afeb3a2877b6fd9e21c2ea6fd1fe497d6594059baa19001ca3a8e3f9ea"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-1s-epoll/events.jsonl",
+    "bytes": 12839,
+    "sha256": "9ffdac33c994d29099cd693a8ba695460d8092d11ec513560f09ef7cef0cf1a6"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-1s-epoll/server-1.log",
+    "bytes": 7657,
+    "sha256": "c54e0cf50dc45685b1f9c5a425c0c1c0f72d8b393212b69ed7204a9a2324f1fb"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-1s-epoll/server-2.log",
+    "bytes": 7639,
+    "sha256": "a535be481069f8a4d7de2e35f02a0e311e85827ec4822e8452537985ea243348"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-1s-epoll/server-3.log",
+    "bytes": 7664,
+    "sha256": "b8f55eafad95f7b57fb54ad9ecc2a53209603df819c538026541748b344009a1"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-1s-epoll/server-4.log",
+    "bytes": 7588,
+    "sha256": "9061fc21ac0432388ec0bade85dc3a642d0787594383d3ea00899116d52aa608"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-1s-uring/events.jsonl",
+    "bytes": 12826,
+    "sha256": "9a9050f2df2a152d2030fcce726e47d144dd1ba16a0da699967e18902ea41acf"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-1s-uring/server-1.log",
+    "bytes": 7576,
+    "sha256": "b30803ea46c1eb8a4eb6e08929e7be389bdbf542868ecb69a09e1d6d5f2382e1"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-1s-uring/server-2.log",
+    "bytes": 7584,
+    "sha256": "dff01438a11e81782b4f60f20014b37cd9eeef9d3d52a2c0c0c449afbd6068ee"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-1s-uring/server-3.log",
+    "bytes": 7555,
+    "sha256": "dfe9283aa9e9ca720575c360dbd74937ef51231a0431b5a609b18a8dadddfdd7"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-1s-uring/server-4.log",
+    "bytes": 7516,
+    "sha256": "36d43c756f84051eb7a0ce3dec71dfadb5578f6445e4b4fc625202d1f7c4e5f9"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-2s-epoll/events.jsonl",
+    "bytes": 12846,
+    "sha256": "39e01d597069533d29b446da4d142643d6bac842997a3dd29de5064749fa4a40"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-2s-epoll/server-1.log",
+    "bytes": 6704,
+    "sha256": "5c24ca01efceb9142264c8ac3b7e3616e39bbaec055fb8c5ae6a3345f5f41750"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-2s-epoll/server-2.log",
+    "bytes": 6708,
+    "sha256": "0e27e91cd8e6984ad9a991b3aabf40d958afd5dec87b55353c1a69f9b30392b8"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-2s-epoll/server-3.log",
+    "bytes": 6708,
+    "sha256": "f2b5c2fb7bd83d984b08c5ea2b2e395169c33a6a0a3023df1e97e7c1cefff2db"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-2s-epoll/server-4.log",
+    "bytes": 6689,
+    "sha256": "e1975c55ac9465368516c1f82036a216af0dc50baaec7bd471e8920b43c593f2"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-2s-uring/events.jsonl",
+    "bytes": 12892,
+    "sha256": "bfe121b2ff319465ed2b228e2cb44c9bb1b201927db262aa48d2dcfadb5c0ef6"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-2s-uring/server-1.log",
+    "bytes": 6621,
+    "sha256": "86982d23c734f126430340b4281ceeabdeb223a9154f881b14780e35156ae615"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-2s-uring/server-2.log",
+    "bytes": 6624,
+    "sha256": "6f7f41e6242ec80ce1b505c17be0af0af55d86959634884d56f631917d8160d8"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-2s-uring/server-3.log",
+    "bytes": 6621,
+    "sha256": "043d57e1632d98342019d89c84da1b2f8dca55349f35d0b5ee776d95690cb991"
+  },
+  {
+    "path": "build/aoffix2/post-rows/tickets-2s-uring/server-4.log",
+    "bytes": 6602,
+    "sha256": "635eadc022c20a8231e1a3cb265e71da85f6f59cb58774cfdd5968555d3cc916"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-conns-always/events.jsonl",
+    "bytes": 5895,
+    "sha256": "e646594a07fc529df5bf553e27ddf1b18ebe7cf345e3b62cf7d8e615d261cef4"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-conns-always/server-1.log",
+    "bytes": 7669,
+    "sha256": "da72cedeb3bfce85f750ad2a38be910da531f9074900bced90831d3acf0af253"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-conns-everysec/events.jsonl",
+    "bytes": 5911,
+    "sha256": "f6cd9ec1cd4a8ea40a381602bdeb4db3be94df933c0ad3d65b5f2f4bba76c6b4"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-conns-everysec/server-1.log",
+    "bytes": 7635,
+    "sha256": "43c342aa428fad4f911d594922567ab476135133f78c611758a0e6a06a49ed19"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-conns-no/events.jsonl",
+    "bytes": 5877,
+    "sha256": "c70fb63278645de12921a67bd188d3757cc32b328f2aed31da55142adf2525ce"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-conns-no/server-1.log",
+    "bytes": 7637,
+    "sha256": "dbedebdbcd3c76d0ecdbdd573a6779adee8ef3e4ef76dc8c9c2d58619db16cad"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-conns-off/events.jsonl",
+    "bytes": 5838,
+    "sha256": "d3ebeacfcb2e6aef8990d3da846da5857217a69ee753c2b51314ed4d1f39e16b"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-conns-off/server-1.log",
+    "bytes": 7616,
+    "sha256": "559e401a5780aaa77a2824ff14dd1b5e0ae37cd3fc840a62c2419fe633dd7576"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-seq-always/events.jsonl",
+    "bytes": 4949,
+    "sha256": "4e33f99a4694720a61af38bb64ecef638e9476bffbe1663f90013c5ef310bc5f"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-seq-always/server-1.log",
+    "bytes": 7630,
+    "sha256": "24a317994a132109f14f26110a78454c67b0e9ec03a27330d6322dea32ad0bf4"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-seq-everysec/events.jsonl",
+    "bytes": 4947,
+    "sha256": "6e04896613133325d31e4117a44482bebd5a2f63f37977363005bfb414766007"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-seq-everysec/server-1.log",
+    "bytes": 7604,
+    "sha256": "6df70ccd1a2f757b82b4e1b3392889d7c0c7426c1b7b5f169728205587dc0520"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-seq-no/events.jsonl",
+    "bytes": 4918,
+    "sha256": "721c16b2eb17d00a0db160d4346910469ae22f41ce3ab79e935a05f1a136354e"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-seq-no/server-1.log",
+    "bytes": 7604,
+    "sha256": "cdf4045447d321f4dc4eb7c8124f8f7c03724449c5862f42cca3cb29f47db84c"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-seq-off/events.jsonl",
+    "bytes": 4872,
+    "sha256": "7934dfac771c4bb467e6fdd7914d6fe635b83577948ee56a7a30c9ab1881c18c"
+  },
+  {
+    "path": "build/aoffix2/post-timings/1s-seq-off/server-1.log",
+    "bytes": 7585,
+    "sha256": "43a534a6322ba9f3f28e8cd7658c9d89419be5f6e6307617616751b4eec4a360"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-conns-always/events.jsonl",
+    "bytes": 5891,
+    "sha256": "225100845f78a3fbc84df1236da0be6088c3e48dbf63dcc55ace06042fb65702"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-conns-always/server-1.log",
+    "bytes": 6755,
+    "sha256": "0e51bd5ed981fef1abe5944850353fa441a08b51528ef58eced300c163b5067c"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-conns-everysec/events.jsonl",
+    "bytes": 5934,
+    "sha256": "79e709609964a7e1c5760ce8f1bb85c7e13a6aebbb98346b3c0b14e5a7796e52"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-conns-everysec/server-1.log",
+    "bytes": 6739,
+    "sha256": "6bbc48836fee95317830eab3af64e5e7c276c1c6edefe9b39d1f3f69eb86877c"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-conns-everysec-ratio1to1/events.jsonl",
+    "bytes": 5930,
+    "sha256": "3ef7fff20c5a9e37b2587967edc40d7c8242070f8f5fd4020d92bac68d52987f"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-conns-everysec-ratio1to1/server-1.log",
+    "bytes": 3117,
+    "sha256": "676989ec491f654933ce72bf90cc64c5485adfa83392d312eb3361e856b9e02e"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-conns-no/events.jsonl",
+    "bytes": 5859,
+    "sha256": "618ac76e9412599b3ccde7c6163d2765fe9a1e31feb1dd3dbbb6bb9447326f1a"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-conns-no/server-1.log",
+    "bytes": 6727,
+    "sha256": "4c55434b96117734fa2255ccbe3ce64fe898a9256599066fb286ddb9d2ea4189"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-conns-off/events.jsonl",
+    "bytes": 5804,
+    "sha256": "05b4e84097da8d969fe08087dab4ef99fbdb28a7839d6d4557e2ab4e4012c58e"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-conns-off/server-1.log",
+    "bytes": 6711,
+    "sha256": "71c27d1239c5c8f6649e6ae80814045a46c109f599e67d590026c8d1bec7f49e"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-gate-hol/events.jsonl",
+    "bytes": 5096,
+    "sha256": "f95ff139490afa590f4b865348b317675cc1c6df739787538029cb83c25de8d7"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-gate-hol/server-1.log",
+    "bytes": 6660,
+    "sha256": "b10b67603d2a7160f533a176876692535157552be250e1f9e19be54e63b0f509"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-seq-always/events.jsonl",
+    "bytes": 4951,
+    "sha256": "967363e6bfcfe27b667d70379bcdb8865992434e6d86c813e82ecee21f9b6b31"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-seq-always/server-1.log",
+    "bytes": 6724,
+    "sha256": "5bd3f05305a56ac3249cc2eea2a80f7a587b408ea9ae03bb97640430bc523a69"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-seq-everysec/events.jsonl",
+    "bytes": 4970,
+    "sha256": "a96f31d0d94c126a98a44a6dda9a2515c9a54565162a8b50e3a3d0c24e79635b"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-seq-everysec/server-1.log",
+    "bytes": 6696,
+    "sha256": "7b299d15b4cf410f491e0e126e6f72c2bdc8235e7c89bccdb517d3d62ef7541f"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-seq-no/events.jsonl",
+    "bytes": 4941,
+    "sha256": "d0d9a6dcb948ec9dc4e076152cba945bdaa4d2b1b9041ff8fd29c621bd31c7af"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-seq-no/server-1.log",
+    "bytes": 6694,
+    "sha256": "96231cb86deaae63b40ee2e4ed7278c80a9d637db63a884b27f55544337af9a8"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-seq-off/events.jsonl",
+    "bytes": 4877,
+    "sha256": "60df08b883c328f20ca89b5b99a6f37f9d157fd1dc10c9293d4da62ffc41d731"
+  },
+  {
+    "path": "build/aoffix2/post-timings/2s-seq-off/server-1.log",
+    "bytes": 6668,
+    "sha256": "9942a4a134bf8a45f3c4b0beef685e7ab042c4bf36588a4eeead908f1d54492f"
+  },
+  {
+    "path": "build/aoffix2/post-timings/bgsave-1s/events.jsonl",
+    "bytes": 7366,
+    "sha256": "3aaa7784c7b0473550bd4f1ef2028a047f275338caf806c4aa0c4091c7965cb6"
+  },
+  {
+    "path": "build/aoffix2/post-timings/bgsave-1s/server-1.log",
+    "bytes": 7741,
+    "sha256": "4ea9eb4cccdd435349e37aef7a62b45f39cd24936a3d0ea356126ed5ffc54d73"
+  },
+  {
+    "path": "build/aoffix2/post-timings/bgsave-2s/events.jsonl",
+    "bytes": 7297,
+    "sha256": "87677d2d04cd99d51233244f93058fb80af2d44b3153848c01a149031a6a4b28"
+  },
+  {
+    "path": "build/aoffix2/post-timings/bgsave-2s/server-1.log",
+    "bytes": 6724,
+    "sha256": "87375b40be09a92b063606c6ec83be40938add18db970d66ac81a32b6d7cbc85"
+  },
+  {
+    "path": "build/aoffix2/post-timings/defaults-always/events.jsonl",
+    "bytes": 5604,
+    "sha256": "2a5c15048d9f055687d8fa8bcbde742f909071c668ce31f4d909f70a3722eb5d"
+  },
+  {
+    "path": "build/aoffix2/post-timings/defaults-always/server-1.log",
+    "bytes": 5979,
+    "sha256": "a1df0ea186ad0c743d738706e16265be142b98db134f8e0c8667f9c3e26a88c6"
+  },
+  {
+    "path": "build/aoffix2/post-timings/defaults-everysec/events.jsonl",
+    "bytes": 5648,
+    "sha256": "9fe1fc82549c6b93b3090bc87972f7e4dfc8402e007ddbf78e6319e0cf0f0c1f"
+  },
+  {
+    "path": "build/aoffix2/post-timings/defaults-everysec/server-1.log",
+    "bytes": 5961,
+    "sha256": "1fdb6be0400aff1564a2507fa508d044574fc95a39bcba3e5f70850e3fc7856c"
+  },
+  {
+    "path": "build/aoffix2/post-timings/defaults-no/events.jsonl",
+    "bytes": 5652,
+    "sha256": "a48b5a77b396df66df9192becd17ac99ea2e254e01c0847fd42428d0df9791a3"
+  },
+  {
+    "path": "build/aoffix2/post-timings/defaults-no/server-1.log",
+    "bytes": 5960,
+    "sha256": "6b6377cda1309c7fa7d1248b6e69f23eab6ae9908c15b7ba64cfb2afc6a9ad31"
+  },
+  {
+    "path": "build/aoffix2/post-timings/defaults-off/events.jsonl",
+    "bytes": 5620,
+    "sha256": "c1a550c8d46f6c64166608dcf2fd96d1e39021ac5684740020086f8454c3b364"
+  },
+  {
+    "path": "build/aoffix2/post-timings/defaults-off/server-1.log",
+    "bytes": 5936,
+    "sha256": "522f46452b2914c8be51856f3f26f75f2c726e381cb5eb10fdf717c611beb1b5"
+  },
+  {
+    "path": "build/aoffix2/post-timings/tlswake-1s/events.jsonl",
+    "bytes": 56796,
+    "sha256": "fea84abb9342fed07bc13fdbbd72c52c924ed141821eab54f9d8c4d5fc0d5c3b"
+  },
+  {
+    "path": "build/aoffix2/post-timings/tlswake-1s/server-1.log",
+    "bytes": 2885,
+    "sha256": "f3056c77918751c85e9ace4bf4473cec2f58fed0f5f78f335dae8d54adfefb8f"
+  },
+  {
+    "path": "build/aoffix2/post-timings/tlswake-1s/server-2.log",
+    "bytes": 2887,
+    "sha256": "0e9ddda4b3d1abba4dd5a71b2852d38db97b216462a6b63a67de9cf26fb43d10"
+  },
+  {
+    "path": "build/aoffix2/post-timings/tlswake-1s/server-3.log",
+    "bytes": 2885,
+    "sha256": "1aa39a8aaaa6f4c2438158fd3137fc69d125a9095d061c41fa6a9c30e7482264"
+  },
+  {
+    "path": "build/aoffix2/post-timings/tlswake-2s/events.jsonl",
+    "bytes": 56799,
+    "sha256": "01a601d00a3221f2650e783785755f46c69058a687e7bcae64f93598f021823e"
+  },
+  {
+    "path": "build/aoffix2/post-timings/tlswake-2s/server-1.log",
+    "bytes": 3172,
+    "sha256": "d86e39a2f29e9f996c0529a97ba47a6bf3b11ed1598a717162d06261ace87097"
+  },
+  {
+    "path": "build/aoffix2/post-timings/tlswake-2s/server-2.log",
+    "bytes": 3174,
+    "sha256": "92706c7b3d0acbe7aac7c5656d6745dbd8539aa1e8c76e3ac0e73c7eb003d543"
+  },
+  {
+    "path": "build/aoffix2/post-timings/tlswake-2s/server-3.log",
+    "bytes": 3170,
+    "sha256": "2e6801e7133a23cd339819c9309c3b718600aa1eaecb523f27f5eed4003219a4"
+  },
+  {
+    "path": "build/aoffix2/pre-controls/epoll/events.jsonl",
+    "bytes": 2020,
+    "sha256": "16d0b2e2ea5566a0d60214f5c728e4ba1557a6b3b80ba1bc17e35e0d6d16a10b"
+  },
+  {
+    "path": "build/aoffix2/pre-controls/epoll/server-2.log",
+    "bytes": 2898,
+    "sha256": "c6afd4d964b72f6e381296ff88132d191e893b5b29ac407d6176dcba93c5b2d0"
+  },
+  {
+    "path": "build/aoffix2/pre-controls/uring/events.jsonl",
+    "bytes": 2015,
+    "sha256": "93c0ccc96254af98c35d81f7f4141e21aa6a16107c24aa3bbffcaf831044139e"
+  },
+  {
+    "path": "build/aoffix2/pre-controls/uring/server-1.log",
+    "bytes": 2809,
+    "sha256": "82173b8b727b9a76f2e6e345755d715e6a118866d03a70740ca4c73ae311d3f7"
+  },
+  {
+    "path": "build/aoffix2/pre-extra/2s-conns-everysec-ratio1to1/events.jsonl",
+    "bytes": 5928,
+    "sha256": "9ddfdc19507851f942b382a855a86f04a1d01ac63c7ba804ca5815067135665f"
+  },
+  {
+    "path": "build/aoffix2/pre-extra/2s-conns-everysec-ratio1to1/server-1.log",
+    "bytes": 3121,
+    "sha256": "fb0ba427f630b032d3dd4fb2562f3a3640d238644e45de8709648fc04b6ebbf7"
+  },
+  {
+    "path": "build/aoffix2/pre-extra/2s-gate-hol/events.jsonl",
+    "bytes": 5129,
+    "sha256": "fd5a047151be31a1906f7a0053ec1d3d93aa00a3059c3fac6b37a37f4ce4228b"
+  },
+  {
+    "path": "build/aoffix2/pre-extra/2s-gate-hol/server-1.log",
+    "bytes": 6668,
+    "sha256": "5264b216d2dec60655c87f4085566eedff99c30877189b83db5698404d95a0d3"
+  },
+  {
+    "path": "build/aoffix2/pre-extra/tlswake-2s/events.jsonl",
+    "bytes": 56597,
+    "sha256": "fcfe86d722e09f364962730f0eda14fd7b7f6f746650ad5351da01f76a866009"
+  },
+  {
+    "path": "build/aoffix2/pre-extra/tlswake-2s/server-1.log",
+    "bytes": 3179,
+    "sha256": "734dd9304718956523e83440c0ec9b88691df580d30c54b621a57ff378bd3c69"
+  },
+  {
+    "path": "build/aoffix2/pre-extra/tlswake-2s/server-2.log",
+    "bytes": 3179,
+    "sha256": "893d6f5b04a4a1553f97c40220268eaa5f5f01c7e116e958c33e6ab731de7c32"
+  },
+  {
+    "path": "build/aoffix2/pre-extra/tlswake-2s/server-3.log",
+    "bytes": 3179,
+    "sha256": "615fc304baba768e3eaab791c2c63e6c643e22f5dacfe38efa140f6974b1f451"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/error-1s-epoll/events.jsonl",
+    "bytes": 2218,
+    "sha256": "2912a3fabbe0bd7b567c80206b8bd36cc0445de336e87fdec832a56343b66c4d"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/error-1s-epoll/server-1.log",
+    "bytes": 7753,
+    "sha256": "93eb5c38f90f525e9bd6b030dcc1e19d615fe8fb3c08e24eabf34f71d7a7cee9"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/error-1s-uring/events.jsonl",
+    "bytes": 2288,
+    "sha256": "aa40d48b60c6b27380de223c7ddaadcb9764a82d8f67d264c15529caf021839a"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/error-1s-uring/server-1.log",
+    "bytes": 7637,
+    "sha256": "b8ce8f65448a6d31b5d474616588f1ae9c5a284c96e5115904aad0ae69f48d3a"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/error-2s-epoll/events.jsonl",
+    "bytes": 2226,
+    "sha256": "c443fdb1d73d6f7b3250769f1e28699c8fe1f7bbbda2b64c8dd89ee7b09b434f"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/error-2s-epoll/server-1.log",
+    "bytes": 6831,
+    "sha256": "b1d3645f7e8fe62896c500e60b0d8e813744f1e48de33c5d8315255840f55e1e"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/error-2s-uring/events.jsonl",
+    "bytes": 2306,
+    "sha256": "f9fa2f72ce0c66fa7783aa5d0cd0ec54f1a3c792a3d47e41423513dd968c31e5"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/error-2s-uring/server-1.log",
+    "bytes": 6730,
+    "sha256": "e289050c3b2e8dacaf2fdf6d57104fbc376ea4983c362143a0373748a20f10a1"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-1s-epoll/events.jsonl",
+    "bytes": 8784,
+    "sha256": "7eb2d87616f9ed4b5f8b0856df98d31575ab65b697dfe49081dda657fd7031a3"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-1s-epoll/server-1.log",
+    "bytes": 7664,
+    "sha256": "24fba333c364a9c48c58770e94de0a5bdf30880fd0816885dea0aed7be6f57b2"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-1s-epoll/server-2.log",
+    "bytes": 7607,
+    "sha256": "69492afac9a38d4cd856c1e3557b3ceb9deaccacf1fa5dc7d950b200aa70ecae"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-1s-epoll/server-3.log",
+    "bytes": 150,
+    "sha256": "f3bd165b45b8fb4b141d1a4967f137b4f079f847e0253c7ec3832ca307b3e472"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-1s-uring/events.jsonl",
+    "bytes": 8965,
+    "sha256": "3f2cc4cb97debccacbaba0dae7a640b4e7d80d3efaf7c2f5cf610275e9498a3f"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-1s-uring/server-1.log",
+    "bytes": 7523,
+    "sha256": "664b6da893b433897a4fa9609a1aac705cff3d392a0c47de11f105089040f7dd"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-1s-uring/server-2.log",
+    "bytes": 7538,
+    "sha256": "51c3867ebf5a988ee83fa14a52d2f1513101b9c26031b680e1747c60ab6aa778"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-1s-uring/server-3.log",
+    "bytes": 89,
+    "sha256": "5fcf1204dbb3d9c3c8801e99f42fe70dfb50280fe6bd546f37439f957a907926"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-2s-epoll/events.jsonl",
+    "bytes": 8843,
+    "sha256": "2fd2a05dc2005351438d0fd302bd493e3b30d95bbab8de83217fe41538ade68f"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-2s-epoll/server-1.log",
+    "bytes": 6719,
+    "sha256": "962ef337e0a504027bf4eb8d7e5f3290cec691b4d69440de316040fcf3e4b1e2"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-2s-epoll/server-2.log",
+    "bytes": 6715,
+    "sha256": "04405a1f795bd098173d5feef1446b2f11707c81e4c39baa5ada5afdb2a82707"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-2s-epoll/server-3.log",
+    "bytes": 150,
+    "sha256": "f3bd165b45b8fb4b141d1a4967f137b4f079f847e0253c7ec3832ca307b3e472"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-2s-uring/events.jsonl",
+    "bytes": 9019,
+    "sha256": "f125fa8fabb42435542928c7bd5c5ae47d1a0d507236e7d7aa8256310ff19e28"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-2s-uring/server-1.log",
+    "bytes": 6597,
+    "sha256": "f452979f8da9c3cc8d99b7660d6d9a833f6b69d4233041abd24d325408174976"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-2s-uring/server-2.log",
+    "bytes": 6599,
+    "sha256": "2f722dac421bef7eebbc749bf88c9a9c9d0ee9f052e8541fde0e12f16d39f48d"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/exec_tickets-2s-uring/server-3.log",
+    "bytes": 89,
+    "sha256": "5fcf1204dbb3d9c3c8801e99f42fe70dfb50280fe6bd546f37439f957a907926"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/filename-1s-epoll/events.jsonl",
+    "bytes": 4752,
+    "sha256": "31f57099dcdd99a417000a366c0a9ab8035a02b69ed111834631228d69ecc59e"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/filename-1s-epoll/server-1.log",
+    "bytes": 7636,
+    "sha256": "7b756f601c180e33eb724b14f99b98a9ff1a65c978c678509acac2d129602ec8"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/filename-1s-epoll/server-2.log",
+    "bytes": 156,
+    "sha256": "8a0f18af1e3c8ee625ebcae7e5f492de9f7000a8acf465f1c6abf658b35d7812"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/filename-1s-uring/events.jsonl",
+    "bytes": 4875,
+    "sha256": "f8df5da3d7466da0fe859d9f87f6b73fb0575dc236682bb177a68947e8d662fb"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/filename-1s-uring/server-1.log",
+    "bytes": 7542,
+    "sha256": "acf8b3d50def780c59eb99be3b2050d4253a59d148dd8f520ccc4d48220ff081"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/filename-1s-uring/server-2.log",
+    "bytes": 95,
+    "sha256": "8c7138f11f9122a2ac56993e7d7555f357de8fcf107c45ace9a3a1e37c9a3d02"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/filename-2s-epoll/events.jsonl",
+    "bytes": 4797,
+    "sha256": "371edb2294d5f2612f7f445960fc13be6598e6b2463d0fd1593fa3dce4206f91"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/filename-2s-epoll/server-1.log",
+    "bytes": 6714,
+    "sha256": "b838c6ee11776e797ff9e6f513845b87586686aaf863d03abf15ac20e131afd4"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/filename-2s-epoll/server-2.log",
+    "bytes": 156,
+    "sha256": "8a0f18af1e3c8ee625ebcae7e5f492de9f7000a8acf465f1c6abf658b35d7812"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/filename-2s-uring/events.jsonl",
+    "bytes": 4886,
+    "sha256": "55407167e63c2e209da2282adac62ac3ef99aea6897d7365a72e1714e39fa00a"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/filename-2s-uring/server-1.log",
+    "bytes": 6628,
+    "sha256": "9a1fb6e05dbbfecc3c0cb0b5e719f22305ddd2fa5f17441fc88ac13325583065"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/filename-2s-uring/server-2.log",
+    "bytes": 95,
+    "sha256": "8c7138f11f9122a2ac56993e7d7555f357de8fcf107c45ace9a3a1e37c9a3d02"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/large-1s-epoll/events.jsonl",
+    "bytes": 2294,
+    "sha256": "d2c560f8d7cd74c33f53aa7b3db0fcaa28b75ccab1dfdf20ba234631c72804bf"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/large-1s-epoll/server-1.log",
+    "bytes": 398,
+    "sha256": "cd4c0a630ca37b7a0eeae2b518266f32546a708fffe831927ad711d306c539f2"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/large-1s-uring/events.jsonl",
+    "bytes": 2374,
+    "sha256": "d419e97c86e32686afb967e18d66f04a2c2b08e1e36914efe492d03644eb309b"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/large-1s-uring/server-1.log",
+    "bytes": 340,
+    "sha256": "cc38976b6ef897ded9c932430d726f8763bce18639c8e5a49cbe8f8d24b7626b"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/large-2s-epoll/events.jsonl",
+    "bytes": 4372,
+    "sha256": "ef65316affc4c8022817918f2e42cd91b92a4257a69988be72dab4d5cb314390"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/large-2s-epoll/server-1.log",
+    "bytes": 6740,
+    "sha256": "e8626686b237a7d7a9aaafc47663e7a9744d79640ff416bdfe47d62801ca207a"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/large-2s-epoll/server-2.log",
+    "bytes": 6643,
+    "sha256": "18bb40345fabcf2bcb2d994565d0efdd61cab79146b2bbc649dc2af88fa30226"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/large-2s-uring/events.jsonl",
+    "bytes": 4523,
+    "sha256": "019a996592877b2154c545718cf3d1bf3184b067acdff6595cfa7ebfcd7899b3"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/large-2s-uring/server-1.log",
+    "bytes": 6650,
+    "sha256": "f1686acc78523cdd70eea7e118e41c7cd13c0a0db9b8ae63c17d333db787a34a"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/large-2s-uring/server-2.log",
+    "bytes": 6568,
+    "sha256": "4e47b249d0f3e08103eee5be35ab8244d10015d93fbcf1ff386f09cd8bc3c794"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/large_placed-1s-epoll/events.jsonl",
+    "bytes": 2270,
+    "sha256": "d083ba1a5513759e4573d15dac45421f692335a970073e0e752037ba7e39b465"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/large_placed-1s-epoll/server-1.log",
+    "bytes": 803,
+    "sha256": "6ed769acf8557964d2592c08009a1bae816545aeb8f463d76f68e58cebe8ec0b"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/large_placed-1s-uring/events.jsonl",
+    "bytes": 2355,
+    "sha256": "bcbcf7a2eef3c07143802a4c8a99742dc9c847c6edda309ab85af5955dab55ff"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/large_placed-1s-uring/server-1.log",
+    "bytes": 745,
+    "sha256": "63498357ea700e7d248fcfe3482b18e6157737ab1b24cfc95f2a2442ce8e1bea"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-always-1s-epoll/events.jsonl",
+    "bytes": 5025,
+    "sha256": "378c7ea7f6c667532247b04796aed5338880f7033645406b7307f0d7ce5fceec"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-always-1s-epoll/server-1.log",
+    "bytes": 7680,
+    "sha256": "1acc60575f1445096c1cb0f6cbecb1b840b948a07e291ac276daa448eb655b9d"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-always-1s-uring/events.jsonl",
+    "bytes": 5240,
+    "sha256": "80f8f3dd0cf3b4c0d6b638bdf9ee49677cbf34f1db82652db2a090ad34575c13"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-always-1s-uring/server-1.log",
+    "bytes": 7578,
+    "sha256": "f4d4544fb365b3a45c1577c36e36b597dbb796257ef68ec20828752a32eb12bf"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-always-2s-epoll/events.jsonl",
+    "bytes": 5028,
+    "sha256": "0480919e89d75d15f1956d24dcb3a31939ce7f67ccae262482e79a3ffe28b801"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-always-2s-epoll/server-1.log",
+    "bytes": 6779,
+    "sha256": "f90ad080906ee6aaf6fca116219e58e416be1d171503bdea9dcabe3f837d99b0"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-always-2s-uring/events.jsonl",
+    "bytes": 5285,
+    "sha256": "2e56cef6d66d4dc6104183adbfe3ae791600ba224dfc6a0ce8eb88b043379a15"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-always-2s-uring/server-1.log",
+    "bytes": 6672,
+    "sha256": "7ee2a1c265f65594835fa8ca6446ff6765a11124664b45e075404709a19a4e98"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-everysec-1s-epoll/events.jsonl",
+    "bytes": 5044,
+    "sha256": "5a3d6d0ab9a0fff1dad44309c9ad147b66d84b0959454a797c5d5698af3f47a9"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-everysec-1s-epoll/server-1.log",
+    "bytes": 7671,
+    "sha256": "f965f530814db636ba26ae0d78d2b62a77c23845462b7f04f73983ff1e40c94e"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-everysec-1s-uring/events.jsonl",
+    "bytes": 5247,
+    "sha256": "f662b3f4f0f993d9e600cd35c9b64752ccd6ebbfb655e18c7697ca5a80c87933"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-everysec-1s-uring/server-1.log",
+    "bytes": 7577,
+    "sha256": "ba1688083ea10ca9f50b0879e56ced37720d3825a977a123febd8cda39d264bc"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-everysec-2s-epoll/events.jsonl",
+    "bytes": 5034,
+    "sha256": "f42d2f06bcbb4c2f6198d1149ed965ee68ec09e4511c7e23c30d47227da3b4d0"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-everysec-2s-epoll/server-1.log",
+    "bytes": 6772,
+    "sha256": "b540a769e522d8e85b28361d30b4b078a87294486772041a4dc367c27a4a1304"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-everysec-2s-uring/events.jsonl",
+    "bytes": 5268,
+    "sha256": "dfbb89f16574fc481fc9a978c3f38521d62a2589b31e4f21a3e4a2eeba5189cf"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/latency-everysec-2s-uring/server-1.log",
+    "bytes": 6676,
+    "sha256": "74a39bef2cb8429cdd7f79f3e8087713698c4cf8cc789b125b51a6e7746a3add"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/manifest_missing-1s-epoll/events.jsonl",
+    "bytes": 4616,
+    "sha256": "db211b27248c3eba1e55c3419fbfd9a8c172163778abb5e47621f849a7285841"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/manifest_missing-1s-epoll/server-1.log",
+    "bytes": 7631,
+    "sha256": "15166580baa8277d3ce5be05e640e6cc8e5d7e0bdc646c8118f6ad941ff47243"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/manifest_missing-1s-epoll/server-2.log",
+    "bytes": 7545,
+    "sha256": "228f2ccf9efab8e81ece481399f453acc0d1ae18a1c7ece80a88cf27cc41d565"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/manifest_missing-1s-uring/events.jsonl",
+    "bytes": 4782,
+    "sha256": "5be5c0bf6262a87a2dad55fc8bccb20a917267260ba7ad3d3b84b24f7296e472"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/manifest_missing-1s-uring/server-1.log",
+    "bytes": 7534,
+    "sha256": "29b5df062bee44bc36c0e74479ff34ce60aa986f53bc6a0f0b01b42218371ddd"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/manifest_missing-1s-uring/server-2.log",
+    "bytes": 7459,
+    "sha256": "347534dc87c6625183eda546f804aa18a288871f711faee391958ba3c25bc660"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/manifest_missing-2s-epoll/events.jsonl",
+    "bytes": 4666,
+    "sha256": "c028eee0f5a8dee5e39aae1cbfb484426df52042aa12e08096e1ad0c3af7ead2"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/manifest_missing-2s-epoll/server-1.log",
+    "bytes": 6713,
+    "sha256": "64045314194798c7412733356548f49beed5af92c56a496eb2c0df92feb275ad"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/manifest_missing-2s-epoll/server-2.log",
+    "bytes": 6664,
+    "sha256": "e8777a8b1bf84663fcece1c29846bda30504b94e99a295d95df3a54745906cb6"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/manifest_missing-2s-uring/events.jsonl",
+    "bytes": 4813,
+    "sha256": "9f7029453e85c3eb2f5d0687f7b56c5717c12929ad2dfa337fd0c7e078f433af"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/manifest_missing-2s-uring/server-1.log",
+    "bytes": 6616,
+    "sha256": "54b8451fad3807cdd50d535c3abebbd36f02b0d53be286bf4257c9ae02804323"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/manifest_missing-2s-uring/server-2.log",
+    "bytes": 6556,
+    "sha256": "f463c73571f9594f5d3b51462bf7f22bc205de36dc5a35bbb6d36ff44cbcd5d1"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-1s-epoll/events.jsonl",
+    "bytes": 9149,
+    "sha256": "afdad68059e1cc8b21d06057db1ff8d35b56f13c605cc6fe6ee21bfbd73b4a88"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-1s-epoll/server-1.log",
+    "bytes": 803,
+    "sha256": "6ed769acf8557964d2592c08009a1bae816545aeb8f463d76f68e58cebe8ec0b"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-1s-epoll/server-2.log",
+    "bytes": 7594,
+    "sha256": "64f771b8380d50c7748e5b62055f2db0a58aea54d0fff8b6fd24e2080e0aa840"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-1s-epoll/server-3.log",
+    "bytes": 7556,
+    "sha256": "8864a2105c373845b9eeba2fcddd25e1cefeab279356a92dcced5ed73cf36d89"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-1s-uring/events.jsonl",
+    "bytes": 9666,
+    "sha256": "cf4f4e5f372c117437eb8dba85188539134f2481bf41373b235a41d694ead54e"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-1s-uring/server-1.log",
+    "bytes": 745,
+    "sha256": "63498357ea700e7d248fcfe3482b18e6157737ab1b24cfc95f2a2442ce8e1bea"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-1s-uring/server-2.log",
+    "bytes": 7506,
+    "sha256": "70e6a633be2e3b18ad62db37b0a425fe87622e4bc5c67864c8ffe703b1c3704f"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-1s-uring/server-3.log",
+    "bytes": 7474,
+    "sha256": "aadc8318d9b1474e36b46b36520a4f202c93769af71cd302a32bcefcb9853534"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-2s-epoll/events.jsonl",
+    "bytes": 9221,
+    "sha256": "28c47fc2d99599c8644285baa57475df738aa5a5633577f1ca7957ec24f34b9c"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-2s-epoll/server-1.log",
+    "bytes": 679,
+    "sha256": "ee056d39f28f578979eaad3aed2e96b0b80537a7a9431b9f8a2fa9b0aaa7dec7"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-2s-epoll/server-2.log",
+    "bytes": 6703,
+    "sha256": "fac11dd053b2cd8fea2992cbb8a3376e45df8a965a1430e067e9cf309a6024fb"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-2s-epoll/server-3.log",
+    "bytes": 6688,
+    "sha256": "ab976eaadd957265c1533c8242a6bc875186268df6dabfb45a4c4f9735049a1f"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-2s-uring/events.jsonl",
+    "bytes": 9709,
+    "sha256": "d6e154c7425a883f5d5662c8455d3a6fe5f397702fc4ed96f7af8e32f9f05286"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-2s-uring/server-1.log",
+    "bytes": 621,
+    "sha256": "38c515abbdf24dbb67078d05ab770ccf47edd8afdd15d023f8cde1773bdd09e5"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-2s-uring/server-2.log",
+    "bytes": 6592,
+    "sha256": "8f7c89287d08ed74db688ca0037905022200cc326959bcb1bd4dab48ff8d694e"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/resurrection-2s-uring/server-3.log",
+    "bytes": 6572,
+    "sha256": "997c966e5eca4c08741f679aa661452631c9f0af39b18449bdf0083774eb7a94"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/rewrite_fail2-1s-epoll/events.jsonl",
+    "bytes": 5203,
+    "sha256": "b36f5a39393fbe47e44a2413831d1c6742063d2043cfec336271552e66395f90"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/rewrite_fail2-1s-epoll/server-1.log",
+    "bytes": 7652,
+    "sha256": "b21e9eb948f01cdbc7824e8bc394bb6de8b8ceef3a637dbab1e16490c7e0c49c"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/rewrite_fail2-1s-epoll/server-2.log",
+    "bytes": 170,
+    "sha256": "431f26eead364715c28d734cb4b2e5053592d416566c86847bab57c6c6f9d861"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/rewrite_fail2-1s-uring/events.jsonl",
+    "bytes": 5289,
+    "sha256": "3b0f85614c6ba5dc8aa1016821d9f8928580320d651158847a868c8a1dea325a"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/rewrite_fail2-1s-uring/server-1.log",
+    "bytes": 7561,
+    "sha256": "70f6a2bf4fd1986656a3173ce3ae6feeafaf2e48a0acbacc92e3de5e494514e2"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/rewrite_fail2-1s-uring/server-2.log",
+    "bytes": 109,
+    "sha256": "ee51fa2d8ccdcfc3dc9b65c95956bb8afacad3be7d713e4dadb88b418a79ea79"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/rewrite_fail2-2s-epoll/events.jsonl",
+    "bytes": 5244,
+    "sha256": "8a3245a84dbb81d1313e8e0322690a0168a9577e5f61bf1874700766cc1e2577"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/rewrite_fail2-2s-epoll/server-1.log",
+    "bytes": 6739,
+    "sha256": "1b82b7c1d91101fdf3f9ea37e94b864442ee5271e256e938589ff726db57b373"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/rewrite_fail2-2s-epoll/server-2.log",
+    "bytes": 170,
+    "sha256": "431f26eead364715c28d734cb4b2e5053592d416566c86847bab57c6c6f9d861"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/rewrite_fail2-2s-uring/events.jsonl",
+    "bytes": 5341,
+    "sha256": "d24d3852e4b37d4f5e40c8018ab73529dba0dbbfb4d637a200218c6c124d30ca"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/rewrite_fail2-2s-uring/server-1.log",
+    "bytes": 6638,
+    "sha256": "fd8bd85ccc6a974ae3707ca7903a3ebf9e58be4222a026fce1e8a3cad1a1e5bb"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/rewrite_fail2-2s-uring/server-2.log",
+    "bytes": 109,
+    "sha256": "ee51fa2d8ccdcfc3dc9b65c95956bb8afacad3be7d713e4dadb88b418a79ea79"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-1s-epoll/events.jsonl",
+    "bytes": 6386,
+    "sha256": "f6c96ea5e11e4737d3bfefda30d4ff5ec61749044de13599b1eb0be3e9bbc2c2"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-1s-epoll/server-1.log",
+    "bytes": 7592,
+    "sha256": "cd627540734484b91a789f2cd38092601c8ebbd32945e90074204c52c5e38a55"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-1s-epoll/server-2.log",
+    "bytes": 7553,
+    "sha256": "91bd9e23e4da23df2cfe205485fff16d13b12581d54079181694a71e957c5e99"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-1s-epoll/server-3.log",
+    "bytes": 7532,
+    "sha256": "83477201c5d612d22ac0f5b9d55d30ddb96497206cdbb11e67a30b55e7c3a676"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-1s-uring/events.jsonl",
+    "bytes": 6640,
+    "sha256": "9fd30fa79c687b4bc342bb08d30a04e1448e8f385c0218cb782007544a70b643"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-1s-uring/server-1.log",
+    "bytes": 7503,
+    "sha256": "de2d98f6239d50c649ee2cd0a6cb1bf547d610671f9bb8742bb8f7b0403cecc4"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-1s-uring/server-2.log",
+    "bytes": 7468,
+    "sha256": "9ca75d2fc92e4a9c17945978c4be5953dd2bc7148279c05dce2622e77ead1555"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-1s-uring/server-3.log",
+    "bytes": 7467,
+    "sha256": "278165ba9e51936ff1ee4d983805f6482bbca5ccdf596c3a20b50d211c68f40b"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-2s-epoll/events.jsonl",
+    "bytes": 6456,
+    "sha256": "b4337098e4bf420da2975fdb97d0f2456a6b29390319a15500f21b3ba9f8d3bc"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-2s-epoll/server-1.log",
+    "bytes": 6699,
+    "sha256": "f02e988a79884f1e09450b017f295b7f5ceaac711e8619ede0241c637dd03139"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-2s-epoll/server-2.log",
+    "bytes": 6667,
+    "sha256": "d0f5fddcc97cfecce102167db29a9b57afb0a55b5d000029eede3a9aac5c1a2d"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-2s-epoll/server-3.log",
+    "bytes": 6672,
+    "sha256": "bfe1e6b2008c9ff7e0566d0aac862e1588a7241f5ac217ee7709f3ca2012c6f2"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-2s-uring/events.jsonl",
+    "bytes": 6688,
+    "sha256": "536ca49a4bdf97f4d7eb2a06cf7678f9a40ae715448474ae8db4e9185571dd53"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-2s-uring/server-1.log",
+    "bytes": 6576,
+    "sha256": "011396a113f39cb5e4f570711c13656efafe927c9949cc162630bf30d2227448"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-2s-uring/server-2.log",
+    "bytes": 6576,
+    "sha256": "5435d03f93ddb82775c477cf8eceff2786c1cd75b97b18ca2fd5ed218d806305"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/snapshot-2s-uring/server-3.log",
+    "bytes": 6569,
+    "sha256": "2a661d608989b10ec6457f940b21898633493d92e7a29e92b84f05fd66a65c35"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-1s-epoll/events.jsonl",
+    "bytes": 8754,
+    "sha256": "454e606ad2033324d8e21066bbbe05bbf7355421def6a4fb894d17cb9939c128"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-1s-epoll/server-1.log",
+    "bytes": 7594,
+    "sha256": "3f5ed1e75c89307f6ce4ef9e05918c5882f622fbc5874dc8d68e0cb1018dae8f"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-1s-epoll/server-2.log",
+    "bytes": 7590,
+    "sha256": "bcccaf9fdb7f9ea9fb9fe2cbffdd59104cbf77c9859c893f3ba8da2dcdb611a8"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-1s-epoll/server-3.log",
+    "bytes": 150,
+    "sha256": "f3bd165b45b8fb4b141d1a4967f137b4f079f847e0253c7ec3832ca307b3e472"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-1s-uring/events.jsonl",
+    "bytes": 8930,
+    "sha256": "15f1f9be1e7bf3f6442e9d2d5db4bcefe2ad556aa6b75a92adc20e6795e450af"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-1s-uring/server-1.log",
+    "bytes": 7532,
+    "sha256": "a0efa6cea0694755bb330c52e12d43de870aae2a15f7da9ab65a0d8103d7ba59"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-1s-uring/server-2.log",
+    "bytes": 7497,
+    "sha256": "25324ca41acd3a9d420c82c45a1f5f3259d3605b5bbd79eb4046c1b39d54f657"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-1s-uring/server-3.log",
+    "bytes": 89,
+    "sha256": "5fcf1204dbb3d9c3c8801e99f42fe70dfb50280fe6bd546f37439f957a907926"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-2s-epoll/events.jsonl",
+    "bytes": 8788,
+    "sha256": "796b93382e6da87ada63d4ac737a9694190e3c5208fe28ee2062db64b97629f5"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-2s-epoll/server-1.log",
+    "bytes": 6703,
+    "sha256": "1779e38518da835b4adcf1280c7107b084a155b85a8ef1f10bf8ad4ee81bab14"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-2s-epoll/server-2.log",
+    "bytes": 6699,
+    "sha256": "20e23f4b566b815d01a3baba582d887ece7e2b77f6a2a8a274faa0727f7713bd"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-2s-epoll/server-3.log",
+    "bytes": 150,
+    "sha256": "f3bd165b45b8fb4b141d1a4967f137b4f079f847e0253c7ec3832ca307b3e472"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-2s-uring/events.jsonl",
+    "bytes": 8975,
+    "sha256": "f968ed584cb0186fd4febb34f026f22f3e6da03ea9a0e434f5f22eb0e45eb25e"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-2s-uring/server-1.log",
+    "bytes": 6587,
+    "sha256": "034e40784b6e6b3cdc0e4a8f1cc051d12f5d6ea504b4aecef2bf2ef4221e5f47"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-2s-uring/server-2.log",
+    "bytes": 6592,
+    "sha256": "1afa8c12e35b1944af0f36cc6f2d2f000ca5df1f7ae863c13c94a002319df256"
+  },
+  {
+    "path": "build/aoffix2/pre-rows/tickets-2s-uring/server-3.log",
+    "bytes": 89,
+    "sha256": "5fcf1204dbb3d9c3c8801e99f42fe70dfb50280fe6bd546f37439f957a907926"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-conns-always/events.jsonl",
+    "bytes": 5831,
+    "sha256": "68fa59ec35c4cb2c250f0d068095802b9c286f7db0998c4842959534fa790feb"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-conns-always/server-1.log",
+    "bytes": 7702,
+    "sha256": "4fc4d620a4d4aced2ff76b82f84654fdce1bc122bd32d64d9f5a2e8e8d3bca2c"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-conns-everysec/events.jsonl",
+    "bytes": 5871,
+    "sha256": "0d273320487ac2d6b46d6000c05c9d60f79087f639ef2196d28c3ac37f65ee46"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-conns-everysec/server-1.log",
+    "bytes": 7691,
+    "sha256": "5f6b50a3152c11deba9a48ebe8124768bfb1ccc3e5a556d98e1b87fbf043e712"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-conns-no/events.jsonl",
+    "bytes": 5861,
+    "sha256": "9752ce95b5be9653d25fc94978ebfc963cfe9f95f27ceb94d8899a71e1d924dc"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-conns-no/server-1.log",
+    "bytes": 7658,
+    "sha256": "767cb47a70c11043afe2694fd89626a58e4d019e25bf485fa32e58f4eb491ff0"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-conns-off/events.jsonl",
+    "bytes": 5797,
+    "sha256": "e68733a8b7ba85e6b297130c1754ec05910bd30449ac63278d8f41b3bbc8e971"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-conns-off/server-1.log",
+    "bytes": 7641,
+    "sha256": "27de92320229ef931a924119e685b7910c9db1a2eb2e2ba44b07154d4e895b79"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-seq-always/events.jsonl",
+    "bytes": 4915,
+    "sha256": "1ba08a746e8278655fc58c326886cf0ea0dc8227977153eeed1b2e7c3c59353c"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-seq-always/server-1.log",
+    "bytes": 7686,
+    "sha256": "d8fb7042ab97034dac144fa9694f84ad039da0c84b84849b795bbe1a0f4d641e"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-seq-everysec/events.jsonl",
+    "bytes": 4928,
+    "sha256": "77811f3b645fdf3d76d38a6df081ff7b7d69cbb36ec0118af5b658b400850577"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-seq-everysec/server-1.log",
+    "bytes": 7657,
+    "sha256": "5609e696ac96e5f000eced6f14374e5c25b5ef3d6e93bf34ae51385cad4f3773"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-seq-no/events.jsonl",
+    "bytes": 4863,
+    "sha256": "fe5af4ae9056d502234aa90f1fde23c12b31ab59783a790f3af63481e71bed60"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-seq-no/server-1.log",
+    "bytes": 7609,
+    "sha256": "5b7d369f184d4f8a9d0abdd928bbfb1ce8dac422751d3b842af6e5ff54c27770"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-seq-off/events.jsonl",
+    "bytes": 4824,
+    "sha256": "12addf902387a8c40438445c741104094aab60dea40b5e1a03fb111dd004a488"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/1s-seq-off/server-1.log",
+    "bytes": 7610,
+    "sha256": "f65c96b5207c182e8ba0920a01861ea9ee697fd87e1f2f1923a4a1df1c1adf93"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-conns-always/events.jsonl",
+    "bytes": 5872,
+    "sha256": "b357f718a67cb01160efe7c0dd8a9eed8345a357dc936d4184089c0ca470a82b"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-conns-always/server-1.log",
+    "bytes": 6786,
+    "sha256": "0f2a2b28f30155b977f0cf99096260c4f55b323babe92f4f4fb92d726d038ee0"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-conns-everysec/events.jsonl",
+    "bytes": 5886,
+    "sha256": "50941eb0a4134a09e38f6e0a8df81c7dfadab4fc22ffd4de600cc8ef56d86589"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-conns-everysec/server-1.log",
+    "bytes": 6789,
+    "sha256": "2765873483944e0e27e24da9725110a9ebd55450e3f5ea0baf55b764e1df6d12"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-conns-no/events.jsonl",
+    "bytes": 5853,
+    "sha256": "0b0cfee04b3dfce1ed634a1e33f34a8b31330ea1298b98890030b7a11e22e9b4"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-conns-no/server-1.log",
+    "bytes": 6756,
+    "sha256": "8496a8ceb865a47524df6ff8793c72befcb9773daa16076f3e6d81369e30d377"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-conns-off/events.jsonl",
+    "bytes": 5767,
+    "sha256": "67f16237c438f202da217da7f4074f6e6f2d7c8882357da639bac3e58d1a590d"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-conns-off/server-1.log",
+    "bytes": 6734,
+    "sha256": "81bb16e02920daf10db2957749fbbbf754cb17da4e78f234acf1ac97a622e065"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-seq-always/events.jsonl",
+    "bytes": 4950,
+    "sha256": "404252bdb7ff46a6a6aab95476cde0facf6ba49b6be5d34317bbb620d8397573"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-seq-always/server-1.log",
+    "bytes": 6773,
+    "sha256": "d1154c46f500efcb67a76a6b8fe42413bac1b84020ea98e6a9bd850dfa39bf7c"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-seq-everysec/events.jsonl",
+    "bytes": 4924,
+    "sha256": "38af7486751e4a44ec56c9ff145d6d48a6d8c31b3f78bcf6b38cc47fe6822cc1"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-seq-everysec/server-1.log",
+    "bytes": 6773,
+    "sha256": "440564adf570f4d47546d70c4de6437bf3d2df0362f30855464effa767061277"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-seq-no/events.jsonl",
+    "bytes": 4900,
+    "sha256": "0a2403c8be93c2a5056f0714b87ce426c41e962e0758d410c530623fd6adbeed"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-seq-no/server-1.log",
+    "bytes": 6716,
+    "sha256": "3029427d9434c76a5134056d910c5b061eee3302104583405eae7102e44c6085"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-seq-off/events.jsonl",
+    "bytes": 4828,
+    "sha256": "2e511cb1bc6caca503eecec0fc0a27ac3e51bb2907d31b00940acca2ccd3d015"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/2s-seq-off/server-1.log",
+    "bytes": 6700,
+    "sha256": "9a4b43c43c7c902ef186c05bf9b5bac42f06021ca5887b43d96a86ec7863bc13"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/bgsave-1s/events.jsonl",
+    "bytes": 7341,
+    "sha256": "d7d9f4d49f8a80ead6b0e1fab9f02dd610282373850664c05def5e7ae507f42a"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/bgsave-1s/server-1.log",
+    "bytes": 7739,
+    "sha256": "aa70342c0d0284aac18dc5eca0eb367bf9cf1498c7088eaab45ba662623a936c"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/bgsave-2s/events.jsonl",
+    "bytes": 7337,
+    "sha256": "d77af6daba3b88e468539f1b9a16c219df5d257c4da86ee9f863416c1b914d66"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/bgsave-2s/server-1.log",
+    "bytes": 6731,
+    "sha256": "bd4f98f9124e2708f410b2f0b2080bc3ca792e46c6e9a8fd397a7b184866ac9f"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/defaults-always/events.jsonl",
+    "bytes": 5637,
+    "sha256": "18641265d1ef41c007067671c837f57282ba940ff3aa8ff83d7ccc0c2a1a601f"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/defaults-always/server-1.log",
+    "bytes": 6015,
+    "sha256": "a96be3177f84f300b429ef283e864fe22274bdb926596a86c8f3f96e304714b1"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/defaults-everysec/events.jsonl",
+    "bytes": 5595,
+    "sha256": "acbe8686ea3f21286062c6b295132997e65f24deee0ef06d0d04bd25e5576da3"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/defaults-everysec/server-1.log",
+    "bytes": 6011,
+    "sha256": "9ecc61d40139f3d81d314460cdc3f2071eab9c70e40ed4b6bc447dd659ade0da"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/defaults-no/events.jsonl",
+    "bytes": 5597,
+    "sha256": "5232a2fb22bd1db6d2cf944775f006dcea297d12da277973cb992b9da00f522f"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/defaults-no/server-1.log",
+    "bytes": 5975,
+    "sha256": "ff2ff1c9ddde4fa5b1d9333cdbda83f97e3d9208f089a33b817c09e2b7cf5202"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/defaults-off/events.jsonl",
+    "bytes": 5574,
+    "sha256": "bed60febd1c79e49035d425ea1342ad3f38d83dca5201fd8c7634ecc91ef00a3"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/defaults-off/server-1.log",
+    "bytes": 5954,
+    "sha256": "c9154dc3bae649a8d5f194bb233ee732495eb189e1fddeb6999914cc662df210"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/tlswake-1s/events.jsonl",
+    "bytes": 56618,
+    "sha256": "0d5f724749474c14a81e238bd58044b62fb17f7a140e15fa1fa1a0500fe99501"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/tlswake-1s/server-1.log",
+    "bytes": 2890,
+    "sha256": "a4956825876c3d55730c491e3c3eec31d63c5fd7c40d5f4e16ccfb86e445f69e"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/tlswake-1s/server-2.log",
+    "bytes": 2890,
+    "sha256": "32c522aa022aa17d1044f259ab2face6d8b7f5026ff2db1641b2c881432f53f8"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/tlswake-1s/server-3.log",
+    "bytes": 2887,
+    "sha256": "6bcc0be36b5d1144b95e78ef093e104c9d616b51d3be027edb960593472c15bb"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/tlswake-2s/events.jsonl",
+    "bytes": 2467,
+    "sha256": "9e8400370cd89348d4093f65db93ca640353de5742c54e5e5f46d01dee4ec99e"
+  },
+  {
+    "path": "build/aoffix2/pre-timings/tlswake-2s/server-1.log",
+    "bytes": 84,
+    "sha256": "07203bee54a148cbf9db3c6c5617dbeb25bed51c9be2ddd35c2fa8673a0cb605"
+  },
+  {
+    "path": "build/aoffix2/uring-frame/1s-atomic0/events.jsonl",
+    "bytes": 4046,
+    "sha256": "ade9b8a116d173f4adf221b11b2084ea7c66d080e017a3bf069125e6f0473e9b"
+  },
+  {
+    "path": "build/aoffix2/uring-frame/1s-atomic0/server-1.log",
+    "bytes": 7672,
+    "sha256": "c90dbcb1328bd18734449a85f6a494a341022f92780061afc809a803d8502a5b"
+  },
+  {
+    "path": "build/aoffix2/uring-frame/1s-atomic0/server-2.log",
+    "bytes": 7413,
+    "sha256": "5729ca8c53a9c3c1a36b6a2ffcde4e6026f44b5e9c38c8c29693190e75d53382"
+  },
+  {
+    "path": "build/aoffix2/uring-frame/1s-atomic1/events.jsonl",
+    "bytes": 4062,
+    "sha256": "8de2d57fce898ecf9de1e1abc85650c39ae6b66c8be13679e0397478ba97ac15"
+  },
+  {
+    "path": "build/aoffix2/uring-frame/1s-atomic1/server-3.log",
+    "bytes": 7667,
+    "sha256": "6dffc2a5753c226262aae3406ce3592429c28c4502192064a6814a5a662ca4fa"
+  },
+  {
+    "path": "build/aoffix2/uring-frame/1s-atomic1/server-4.log",
+    "bytes": 7416,
+    "sha256": "524379005c8b6abc91d55861665eb5f0a08ff82cd65280eb68b5f1e73e2330d1"
+  },
+  {
+    "path": "build/aoffix2/uring-frame/2s-atomic0/events.jsonl",
+    "bytes": 4093,
+    "sha256": "3def711925c414bb9646005604c4a8a7cebbf4b92c857b00ce2f748abaf32c59"
+  },
+  {
+    "path": "build/aoffix2/uring-frame/2s-atomic0/server-5.log",
+    "bytes": 6745,
+    "sha256": "109424094872565a5b55b1b4047032e628ca8a99b9bc2493461b1243889b54a8"
+  },
+  {
+    "path": "build/aoffix2/uring-frame/2s-atomic0/server-6.log",
+    "bytes": 6537,
+    "sha256": "c56eb465ffd762af9e535813d7df399270b1b8511e01ed5adaf490797b8f5778"
+  },
+  {
+    "path": "build/aoffix2/uring-frame/2s-atomic1/events.jsonl",
+    "bytes": 4093,
+    "sha256": "889c880fdea833d74e35f6698ac05c95567654887381900b850de3438f871372"
+  },
+  {
+    "path": "build/aoffix2/uring-frame/2s-atomic1/server-7.log",
+    "bytes": 6752,
+    "sha256": "64065000fa90380bb8b483bddfeca8a8a96c548fbde1376f1fc73d32f91c3241"
+  },
+  {
+    "path": "build/aoffix2/uring-frame/2s-atomic1/server-8.log",
+    "bytes": 5339,
+    "sha256": "8bf7df97107c93d10bafcbc195857c4c430e5ba71da319468987c6b3c7bfca92"
+  }
+]

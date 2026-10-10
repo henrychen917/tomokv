@@ -12,5 +12,31 @@
       "docs/aoffix2/identity-final/hot.json"
     ],
     "rc": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tools/ccfix_audit.py",
+      "build/aoffix2/pre",
+      "build",
+      "docs/aoffix2/identity-final/full"
+    ],
+    "rc": 0
+  },
+  {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "docs/deadswitch/linked_bytes.py",
+      "build/aoffix2/pre/tomokv",
+      "build/tomokv",
+      "docs/aoffix2/identity-final/linked.json"
+    ],
+    "rc": 1
   }
 ]

@@ -1,0 +1,38 @@
+[
+  {
+    "label": "split",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-aoffix2/build/tomokv",
+      "25004",
+      "25005",
+      "112-119",
+      "6:2"
+    ],
+    "rc": 0,
+    "seconds": 255.9212448359467,
+    "load_before": "81.76 83.76 98.06 84/4248 1094358",
+    "load_after": "80.77 84.54 94.98 65/3789 1332887"
+  },
+  {
+    "label": "armed-fused",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-aoffix2/build/tomokv",
+      "25004",
+      "25005",
+      "112-119",
+      "6:2"
+    ],
+    "rc": 0,
+    "seconds": 161.27028812281787,
+    "load_before": "80.77 84.54 94.98 65/3789 1332887",
+    "load_after": "54.64 73.00 89.03 42/3639 1381624"
+  }
+]

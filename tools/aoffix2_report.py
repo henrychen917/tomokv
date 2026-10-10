@@ -64,7 +64,7 @@ for shape in ("1s-seq", "2s-seq", "1s-conns", "2s-conns", "defaults", "2s-conns-
                 connections.append(dict(arm=arm, shape=shape, policy=policy, connection=index,
                     **row, load_before=rows[0]["load_before"]["loadavg"],
                     load_after=rows[0]["load_after"]["loadavg"]))
-        lines.append(f"| {shape} | {policy} | {data[PRE][0]} | {data[POST][0]} | {data[PRE][1]} | {data[POST][1]} |")
+        lines.append(f"| {shape} | {policy} | {data['PRE'][0]} | {data['POST'][0]} | {data['PRE'][1]} | {data['POST'][1]} |")
 with (OUT / "latency-connections.csv").open("w") as target:
     writer = csv.DictWriter(target, fieldnames=list(connections[0]))
     writer.writeheader()
@@ -79,8 +79,8 @@ for mode in ("1s", "2s"):
     for arm in ("PRE", "POST"):
         rows = events(arm, f"bgsave-{mode}", "bgsave_seconds")
         assert len(rows) == 2 and {row["poked"] for row in rows} == {False, True}
-        data[arm] = ("/".join(f"{next(r[seconds] for r in rows if r[poked] == poked):.3f}" for poked in (False, True)), load_range(rows))
-    lines.append(f"| {mode} | {data[PRE][0]} | {data[POST][0]} | {data[PRE][1]} | {data[POST][1]} |")
+        data[arm] = ("/".join(f"{next(r['seconds'] for r in rows if r['poked'] == poked):.3f}" for poked in (False, True)), load_range(rows))
+    lines.append(f"| {mode} | {data['PRE'][0]} | {data['POST'][0]} | {data['PRE'][1]} | {data['POST'][1]} |")
 lines += ["", "For two connections proven on the same nonwriter IO thread, the median PING",
           "latency alone / behind SET (five pairs) was:", ""]
 for arm in ("PRE", "POST"):
@@ -102,12 +102,12 @@ for mode in ("1s", "2s"):
         for arm in ("PRE", "POST"):
             rows = [row for row in events(arm, f"tlswake-{mode}", "tlswake_ms") if row["size"] == size]
             assert len(rows) == 6
-            data[arm] = ("/".join(f"{statistics.median(r[latency][p50] for r in rows if r[poked] == poked):.3f}" for poked in (False, True)), load_range(rows))
+            data[arm] = ("/".join(f"{statistics.median(r['latency']['p50'] for r in rows if r['poked'] == poked):.3f}" for poked in (False, True)), load_range(rows))
             for row in rows:
                 tls.append(dict(arm=arm, mode=mode, size=size, rep=row["rep"], poked=row["poked"],
                                 **row["latency"], load_before=row["load_before"]["loadavg"],
                                 load_after=row["load_after"]["loadavg"]))
-        lines.append(f"| {mode} | {size // 1024} KiB | {data[PRE][0]} | {data[POST][0]} | {data[PRE][1]} | {data[POST][1]} |")
+        lines.append(f"| {mode} | {size // 1024} KiB | {data['PRE'][0]} | {data['POST'][0]} | {data['PRE'][1]} | {data['POST'][1]} |")
 with (OUT / "tls-connections.csv").open("w") as target:
     writer = csv.DictWriter(target, fieldnames=list(tls[0]))
     writer.writeheader()
