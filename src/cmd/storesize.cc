@@ -22,7 +22,8 @@ void Shard::publish_size() noexcept {
     const auto expires = store_.expire_count();
     if (published_expires_.load(std::memory_order_relaxed) != expires)
         published_expires_.store(expires, std::memory_order_relaxed);
-    store_.publish_database_counts(); // single-DB: publish field-TTL attention only
+    // Single-DB: publish field-TTL attention only.
+    store_.publish_database_counts();
     const auto evicted = stats_.evicted;
     if (published_evicted_.load(std::memory_order_relaxed) != evicted)
         published_evicted_.store(evicted, std::memory_order_relaxed);
@@ -32,7 +33,8 @@ legacy:
     published_size_.store(store_.size(), std::memory_order_relaxed);
     published_obj_bytes_.store(store_.object_bytes(), std::memory_order_relaxed);
     published_expires_.store(store_.expire_count(), std::memory_order_relaxed);
-    store_.publish_database_counts(); // single-DB: publish field-TTL attention only
+    // Single-DB: publish field-TTL attention only.
+    store_.publish_database_counts();
     published_evicted_.store(stats_.evicted, std::memory_order_relaxed);
 }
 
@@ -65,6 +67,7 @@ void ExpireIndex::sample_readonly(uint64_t& cursor, uint32_t budget, Fn&& fn) co
 
 void FlatStore::publish_keyspace_sample() const noexcept {
     auto* storesize_ = storesize_state();
+    // Field-TTL attention follows batch count publication.
     if (!expire_count()) return;
     unsigned __int128 sum = 0;
     uint32_t count = 0;
