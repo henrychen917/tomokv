@@ -1053,6 +1053,10 @@ public:
         if (source >= nthreads() || ordinal >= flip_client_plan_[source].size()) std::abort();
         flip_client_plan_[source][ordinal] = nullptr;
     }
+    // Signal-safe read of a pending SIGTERM/SIGINT stop that the save cron has not yet served.
+    bool signal_shutdown_pending() const {
+        return live_save_armed_.load(std::memory_order_acquire) & kSignalShutdown;
+    }
     uint32_t flip_shard_destination(uint32_t sid) const {
         return sid < nshards() ? flip_shard_destination_[sid] : UINT32_MAX;
     }

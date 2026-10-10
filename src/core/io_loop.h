@@ -2228,6 +2228,12 @@ private:
         if (self_->id() != srv_->flip_coordinator()) return 1;
 
         std::string failure;
+        // IO4.2: a pending SIGTERM/SIGINT stop is served by the save cron, which no IO runs while
+        // a FLIP stage is live. Withdraw a reversible FLIP at once (later stages are bounded and
+        // complete); a FLIP begun while the stop is pending is withdrawn the same way.
+        if (stage < FlipStage::ClientCommit && stage != FlipStage::Rollback &&
+            srv_->signal_shutdown_pending())
+            srv_->flip_note_failure("ERR FLIP aborted: the server is shutting down");
         if (stage < FlipStage::ClientCommit && stage != FlipStage::Rollback &&
             srv_->flip_timed_out())
             srv_->flip_note_failure("ERR FLIP timed out before the ownership commit");
