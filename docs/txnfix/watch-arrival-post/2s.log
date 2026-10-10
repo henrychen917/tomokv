@@ -1,0 +1,3 @@
+watchlive gate (port 22605, cores 112-119, reps 6, fresh server per repetition)
+  ok   watch conns=4  --atomic 1   wedged 0/6  (reservation contention 925328)
+  ok   watch conns=8  --atomic 1   wedged 0/6  (reservation contention 381429)

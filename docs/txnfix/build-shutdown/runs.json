@@ -1,0 +1,50 @@
+[
+  {
+    "name": "all",
+    "command": [
+      "make",
+      "-j16",
+      "all"
+    ],
+    "exit_code": 0,
+    "seconds": 90.46689831698313
+  },
+  {
+    "name": "units",
+    "command": [
+      "make",
+      "-k",
+      "-j16",
+      "at15-unit",
+      "at15-db0-unit",
+      "execabort-watch-unit",
+      "execabort-watch-db0-unit",
+      "core-concurrency-unit",
+      "atomic-survivors-unit",
+      "netcmd-unit",
+      "encodingfix-unit",
+      "netcap-unit",
+      "waits-unit",
+      "rehash-waits-unit",
+      "multidb-unit",
+      "multidb-boundary-unit",
+      "storesize-unit",
+      "exbatch-unit",
+      "exbatch-db0-unit",
+      "wb-rule-units",
+      "wbland-units",
+      "rltopo-unit",
+      "lbplanner-units",
+      "shutdown-unit",
+      "persistfix-units",
+      "ktls-keyupdate",
+      "ktls-keyupdate-unit",
+      "flushfix-units",
+      "splitlocal-unit",
+      "reorder-engagement-unit",
+      "reorder-engagement-unit-db0"
+    ],
+    "exit_code": 2,
+    "seconds": 27.468723775818944
+  }
+]

@@ -1,0 +1,7 @@
+[
+  {
+    "run": 1,
+    "verdict": "wedged",
+    "detail": "conns stuck=[0, 1, 2, 3] ping=0.1ms"
+  }
+]

@@ -217,6 +217,7 @@ struct alignas(8) MultiExecState : SnapshotCut {
     std::atomic<bool> watch_failed{false};
     std::atomic<bool> watch_phase_done{false};
     std::atomic<uint32_t> watch_pending{0};
+    std::atomic<uint32_t> watch_arrived{0};
     std::atomic<uint32_t> lists_pending{0};
     std::atomic<bool> finalizer_claimed{false};
     std::atomic<bool> finalized{false};
@@ -1633,6 +1634,21 @@ void assemble_cross_reply(MultiCommand& command) {
 
 bool execute_watch_phase(MultiExecState& state, Shard& shard) {
     if (state.watch_shard_done[static_cast<uint32_t>(shard.id())]) return true;
+    if (state.kind == MultiStateKind::Execute &&
+        (!state.watched.empty() || state.decision.exclusive)) {
+        // A WATCH claim can park a plain/group writer. The executor then stops
+        // draining its inbox, which may still contain another fragment of this
+        // EXEC. Wait for every fragment to pass dispatch-time ordering before
+        // placing the first claim; otherwise the watch barrier waits on a task
+        // hidden behind the writer that its own earlier fragment has blocked.
+        uint8_t& noted = state.execution_noted[static_cast<uint32_t>(shard.id())];
+        if (!(noted & 4u)) {
+            noted |= 4u;
+            state.watch_arrived.fetch_add(1, std::memory_order_acq_rel);
+        }
+        if (state.watch_arrived.load(std::memory_order_acquire) != state.shards.size())
+            return false;
+    }
     if (state.decision.exclusive && !state.decision.aborted.load(std::memory_order_acquire)) {
         uint32_t keys = 0;
         bool whole_shard = false;

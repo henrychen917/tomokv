@@ -334,6 +334,39 @@ void txn_intents(Server& server) {
 
 void txn_help(Server& server) {
     {
+        const auto a = key_on(server, 0, "txn-watch-arrive-a");
+        const auto b = key_on(server, 1, "txn-watch-arrive-b");
+        Client client{-1}; client.set_id(890);
+        auto* state = allocate_state(server, client, 0, MultiStateKind::Execute);
+        require(state != nullptr, "WATCH arrival attempt allocated");
+        state->shards = {0, 1};
+        state->database_map = server.databases().capture();
+        state->watched = {{a, FlatStore::hash_key(slice(a)), 0, 0, 0},
+                          {b, FlatStore::hash_key(slice(b)), 1, 0, 0}};
+        state->watch_pending.store(2);
+        for (const auto& key : state->watched)
+            require(server.shard(key.shard).watch_add(slice(key.key), &client,
+                        state->watch_generation), "WATCH arrival registry armed");
+        require(!execute_watch_phase(*state, server.shard(0)),
+                "first fragment waits for all participants before reserving");
+        require(server.shard(0).watch_write_ready(slice(a)),
+                "a writer cannot hide missing EXEC fragments behind a WATCH claim");
+        require(!execute_watch_phase(*state, server.shard(0)) &&
+                state->watch_arrived.load() == 1, "arrival is counted once per shard");
+        require(execute_watch_phase(*state, server.shard(1)) &&
+                execute_watch_phase(*state, server.shard(0)),
+                "all arrivals allow the existing WATCH validation barrier to finish");
+        require(!server.shard(0).watch_write_ready(slice(a)) &&
+                !server.shard(1).watch_write_ready(slice(b)),
+                "validated WATCH claims still block ordinary writers");
+        state->decision.aborted.store(true);
+        finalize_reservations(*state, server.shard(0));
+        finalize_reservations(*state, server.shard(1));
+        require(server.shard(0).watch_write_ready(slice(a)) &&
+                server.shard(1).watch_write_ready(slice(b)), "decided claims are released");
+        destroy_multi_state(state);
+    }
+    {
         const auto key = key_on(server, 0, "txn-rule-p");
         auto& shard = server.shard(0);
         auto& store = shard.store();

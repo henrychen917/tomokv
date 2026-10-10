@@ -2,11 +2,11 @@
 
 ## txnfix
 
-**WIP — not ready to merge or measure.** Stage A is implemented and committed; the new EXEC batteries pass, but broader regression and byte-identity proof are still open. Stage B has not started because the design requires Stage A to be green first. This is not an owner decision to omit AT4.2/AT4.3, nor a measured Stage B cost-bar failure.
+**WIP — not ready to merge or measure.** Stage A is implemented; the new EXEC batteries pass, but the dedicated WATCH liveness gate found an additional reservation/inbox cycle. Its repair and the strict IO-pass cost bar are still open. Stage B has not started because the design requires Stage A to be green first. This is not an owner decision to omit AT4.2/AT4.3, nor a measured Stage B cost-bar failure.
 
 PRE source: `5146b78ee89b64748dd46db970efa8086f653fa0`. Both the initial and repeat `git fetch origin cpp && git merge --no-edit origin/cpp` found the same base. No push.
 
-PRE binary: `build/txnfix/pre/tomokv`, SHA-256 `34d805081806001bc7e29f4530e040034c935ae0209ca153a5eeed48d52d6c9e`. Repaired Stage A binary: `build/tomokv`, SHA-256 `98c16cab8fd0055575e07efd4412a22f6d7083dbc54ab142422dd83314b76cf1`, built from source `e6da23f52`. Further shutdown work and final proof remain pending; this is not a final completion receipt.
+PRE binary: `build/txnfix/pre/tomokv`, SHA-256 `34d805081806001bc7e29f4530e040034c935ae0209ca153a5eeed48d52d6c9e`. Shutdown-repaired Stage A binary: SHA-256 `5b182b60806bc534dcb5f7c9f8347a9aaa46b3c179709c6a07c004a054332b32`, built from source `6ea8d4291`. The earlier watermark-repaired image was `98c16cab8fd0055575e07efd4412a22f6d7083dbc54ab142422dd83314b76cf1` at `e6da23f52`. `build/tomokv` is being rebuilt for the subsequent WATCH repair; this is not a final completion receipt.
 
 ### Findings and current evidence
 
@@ -44,9 +44,9 @@ Every ConfigRoute/Admin family and the other side effects are classified in [sid
 
 ### Build and proof status
 
-`make -j16 all` built PRE and the tested Stage A image. Every target in job_production_units built successfully, as did mdbqsbr-live-arms. A source edit invalidated the first freshness run. The repaired image was then rebuilt and all 28 production-unit targets passed make -q; [receipt](docs/txnfix/build-watermark/build.json). Both added unit cases pass, including the forced watermark interleaving. mdbqsbr-live-arms still needs rebuilding after the repair.
+`make -j16 all` built PRE and the tested Stage A image. Every target in job_production_units built successfully, as did mdbqsbr-live-arms. A source edit invalidated the first freshness run. The repaired image was then rebuilt and all 28 production-unit targets passed make -q; [receipt](docs/txnfix/build-watermark/build.json). Both added unit cases pass, including the forced watermark interleaving. The shutdown image also rebuilt all 28 targets and mdbqsbr-live-arms, with every make -q check passing; [receipts](docs/txnfix/build-shutdown/corrected.json). An initial invocation used short unit names instead of build/ targets and failed with no-rule; the corrected command and its success are retained.
 
-INFO-field tests: 10 passed. `gates_test.py`: the initial compile-concurrent run had 11 scheduler failures/timeouts; the quiet rerun passes all 66 tests. Ledger self-tests pass 9/10, with the current-inventory test failing only the protected count mismatch described above. Broad live regression receipts preserve all failures. atomic_plain was initially invoked without its required --atomic argument. Correct invocations then exposed an incompatible holder: it read the racing keys, so OCC correctly made younger EXEC writers wait. Its cleanup-cut holder now reads fresh unrelated keys on the same owners. All four mode/atomic combinations and its self-tests pass; the window witnesses, four-attempt bound and data assertions are unchanged. No full gate or benchmark was run. The Redis differential matrix, full original-parameter audit matrix, remaining shutdown/FLIP/persistence checks and final proof remain outstanding.
+INFO-field tests: 10 passed. `gates_test.py`: the initial compile-concurrent run had 11 scheduler failures/timeouts; the quiet rerun passes all 66 tests. Ledger self-tests pass 9/10, with the current-inventory test failing only the protected count mismatch described above. Broad live regression receipts preserve all failures. atomic_plain was initially invoked without its required --atomic argument. Correct invocations then exposed an incompatible holder: it read the racing keys, so OCC correctly made younger EXEC writers wait. Its cleanup-cut holder now reads fresh unrelated keys on the same owners. All four mode/atomic combinations and its self-tests pass; the window witnesses, four-attempt bound and data assertions are unchanged. No full gate or benchmark was run. On the shutdown image, the requested Redis differential matrix passes 112/112 legs plus both armed-fused lane witnesses (7 suites × 4 seeds × 2 atomics × 2 geometries). The original-parameter EXEC audits T01/T02/T02b/T14/T15/T17 pass all 24 POST legs and fail all 24 PRE legs on data. T18 passes all four PRE and all four POST controls. Live shutdown with parked read intents passes both modes and exclusive settings after the repair; the prior Stage A image aborted in both modes. Dedicated watchlive_gate.sh subsequently found wedges in both modes; its controls pass, and a fresh PRE boot also wedges. Debugger evidence and the arrival-barrier repair are in [watch-arrival.md](docs/txnfix/watch-arrival.md). Remaining FLIP/persistence checks and final proof are outstanding.
 
 All executed commands were confined to CPUs 112-127; correctness servers used 112-119, clients 121-127, ports 22600-22699. The generic no-server rule was read with the task-specific focused PROOF authorization. No measurements were run while builds were active.
 
@@ -58,12 +58,12 @@ All executed commands were confined to CPUs 112-127; correctness servers used 11
 | AtomicScriptIntent / AtomicPendingState | 32 / 1352, equal |
 | Server prior offsets including barrier byte | Equal; cold tail grows by 24,640 bytes |
 | ex_loop.h / io_loop.h source | Unchanged |
-| Hot object bodies (lbstall tool) | 1,178 / 1,204 equal; **26 differ** |
-| Full canonical inventory (ccfix tool) | 15,722 / 16,441 equal |
+| Hot object bodies (lbstall tool), shutdown image | 1,176 / 1,204 equal; **28 differ** |
+| Full canonical inventory (ccfix tool), shutdown image | 15,687 / 16,470 equal; 783 changed |
 | Command-handler inventory | 1,199 / 1,210 equal; all GET/SET handler bodies equal |
 | Linked runtime sections | Differ; no byte-identity claim |
 
-[Layouts](docs/txnfix/layouts-stage-a.json), [hot bodies](docs/txnfix/hot-stage-a.json), [full inventory](docs/txnfix/identity-stage-a/summary.json), [all changed bodies](docs/txnfix/identity-stage-a/changed-bodies.json), [linked sections and digests](docs/txnfix/linked-stage-a.json).
+[Layouts](docs/txnfix/layouts-shutdown.json), [hot bodies](docs/txnfix/identity-shutdown/hot.json), [full inventory](docs/txnfix/identity-shutdown/full/summary.json), [all changed bodies](docs/txnfix/identity-shutdown/full/changed-bodies.json), [linked sections and digests](docs/txnfix/identity-shutdown/linked.json).
 
 The following hot-body differences are unresolved. Cold transaction/pubsub/store additions changed GCC inlining decisions; that is an inference from identical hot source and the budget probe, not a proof of zero added executed instructions. An offline xshard budget probe improved identity but did not eliminate the differences and was not adopted.
 
@@ -73,14 +73,20 @@ The following hot-body differences are unresolved. Cold transaction/pubsub/store
 | `db0/src/cmd/xshard.o` — `tomo_db0::FlatStore::erase_in_read_local(int, unsigned long, tomo_db0::Slice, bool*)` | 732 → 606 |
 | `db0/src/cmd/xshard.o` — `tomo_db0::FlatStore::insert_into_read_local(int, unsigned long, tomo_db0::KvObj*, bool)` | 1602 → 1493 |
 | `db0/src/cmd/xshard.o` — `tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)` | 975 → 899 |
+| `db0/src/cmd/xshard.o` — `tomo_db0::FlatStore::erase_in(int, unsigned long, tomo_db0::Slice, bool*)` | 692 → 564 |
 | `db0/src/cmd/xshard.o` — `tomo_db0::FlatStore::erase_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*, tomo_db0::FlatStore::EraseEvent)` | 933 → 673 |
 | `db0/src/cmd/xshard.o` — `tomo_db0::FlatStore::insert_notify(unsigned long, tomo_db0::KvObj*, tomo_db0::FlatNotifySink*)` | 941 → 737 |
 | `db0/src/cmd/xshard.o` — `tomo_db0::FlatStore::find(unsigned long, tomo_db0::Slice)` | 1017 → 806 |
 | `db0/src/cmd/xshard.o` — `tomo_db0::FlatStore::find_notify(unsigned long, tomo_db0::Slice, tomo_db0::FlatNotifySink*)` | 942 → 782 |
+| `db0/src/core/genthread.o` — `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]` | 9538 → 9522 |
+| `db0/src/core/genthread.o` — `bool tomo_db0::IoLoop::drive_tls<true, false>(tomo_db0::Client*) [clone .isra.0]` | 1737 → 1737 |
+| `db0/src/core/genthread.o` — `bool tomo_db0::IoLoop::drive_tls<false, true>(tomo_db0::Client*) [clone .isra.0]` | 1684 → 1684 |
+| `db0/src/core/genthread.o` — `bool tomo_db0::IoLoop::drive_tls<true, true>(tomo_db0::Client*) [clone .isra.0]` | 1737 → 1737 |
 | `db0/src/core/reorder.o` — `tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const` | 1212 → 984 |
+| `db0/src/core/reorder.o` — `tomo_db0::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const` | 1244 → 1016 |
 | `db0/src/core/reorder.o` — `tomo_db0::WbEngine::serve_impl<true, true, false, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const` | 1212 → 984 |
 | `db0/src/core/reorder.o` — `bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)` | 3623 → 3557 |
-| `db0/src/core/reorder.o` — `tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*)` | 18353 → 18361 |
+| `db0/src/core/reorder.o` — `unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()` | 796 → 729 |
 | `src/cmd/xshard.o` — `tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const` | 630 → 346 |
 | `src/cmd/xshard.o` — `tomo::FlatStore::erase_in_read_local(int, unsigned long, tomo::Slice, bool*)` | 871 → 538 |
 | `src/cmd/xshard.o` — `tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)` | 1014 → 942 |
@@ -89,12 +95,13 @@ The following hot-body differences are unresolved. Cold transaction/pubsub/store
 | `src/cmd/xshard.o` — `tomo::FlatStore::erase(unsigned long, tomo::Slice)` | 1109 → 543 |
 | `src/cmd/xshard.o` — `tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)` | 1590 → 1287 |
 | `src/cmd/xshard.o` — `tomo::FlatStore::erase_notify(unsigned long, tomo::Slice, tomo::FlatNotifySink*, tomo::FlatStore::EraseEvent)` | 812 → 673 |
-| `src/core/reorder.o` — `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]` | 9880 → 9896 |
 | `src/core/reorder.o` — `unsigned int tomo::ExLoopT<true>::sweep<32u, true, false, false>()` | 1536 → 1338 |
 | `src/core/rl2s.o` — `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)` | 20932 → 20939 |
 | `src/core/rl2s.o` — `tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)` | 20884 → 20932 |
 | `src/snapshot/snapshot.o` — `tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const` | 540 → 346 |
 | `src/snapshot/snapshot.o` — `tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)` | 621 → 580 |
+
+The shutdown image also misses the explicit IO-pass condition: its empty hook prefix has 30 instructions before the pre-existing cleanup test, versus 19 on PRE (+11), including address setup and a larger frame. This is a measured disassembly difference, not a throughput result. [Disassembly](docs/txnfix/io-pass-cost/prefixes.json). A cold-helper/notification change is being considered; no claim of meeting the bar is made.
 
 ### Measurement requested after correctness and identity work
 
@@ -134,4 +141,6 @@ taskset -c 0-127 tests/gate.sh perf --subset full \
 
 Compare matched-load ops/s, cycles/op, instructions/op and IPC for GET/SET/MGET/MSET in both thread modes; use the gate instrument and its standing null. Static hot-body differences are enumerated above, so main-command cost is not yet accepted. No PAD arm has been built or named in this request; an appropriate labelled control remains part of the unfinished cost work.
 
-Latest focused receipts: [eight batteries](docs/txnfix/post-watermark/txniso.json), [30 fused execfix repetitions](docs/txnfix/execfix-watermark/runs.json), [atomic_plain guards](docs/txnfix/atomic-plain-guards/runs.json), [serverless checks](docs/txnfix/serverless-watermark/runs.json). The shutdown retry-inbox/token audit is still open.
+Latest focused receipts: [eight batteries](docs/txnfix/post-watermark/txniso.json), [30 fused execfix repetitions](docs/txnfix/execfix-watermark/runs.json), [atomic_plain guards](docs/txnfix/atomic-plain-guards/runs.json), [serverless checks](docs/txnfix/serverless-watermark/runs.json). Shutdown retry-inbox/token cleanup is covered by the extended txn_intents unit and four live parked-intent exits. Newer receipts: [original audits](docs/txnfix/original-audits/runs.json), [PRE originals](docs/txnfix/pre/original-audits/runs.json), [PRE WATCH controls](docs/txnfix/pre/watch-original/runs.json), [differential](docs/txnfix/differ-stage-a/runs.json), [shutdown](docs/txnfix/shutdown-intent-after/runs.json), [WATCH liveness failure](docs/txnfix/watchlive-stage-a/runs.json).
+
+The external round-4 REGISTER.md is outside this lane's worktree and was not edited. The reviewable status addendum is [register-status.md](docs/txnfix/register-status.md).

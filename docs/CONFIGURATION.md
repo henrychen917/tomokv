@@ -58,7 +58,30 @@ the allowed CPU set and complete SMT sibling units (`src/core/placement.h:73`).
 | `flip-auto` | T | u32, 0 or 1 | `0` | Boot/GET | `flip_auto`, `flip_fingerprint_window` (derived) | Automatic IO/executor split controller; 1s rejects 1; `src/core/config.h:863`, `:1168`. |
 | `hash` | T | `mix64` or `siphash` | `mix64` | Boot | `hash` | Select key hash implementation; `src/core/config.h:1057`. |
 | `zc-min` | T | u32 bytes | `16384` | Live | `zc_min` | Single GET borrow threshold (0 disables); scatter cutover has a separate zero caveat below; `src/core/config.h:1042`. |
-| `atomic` | T | u32, 0 or 1 | `0` | Live | `atomic` | Enable the optional multi-key epoch-MVCC path; EXEC/script atomic machinery has separate admission; `src/core/config.h:1049`, `src/cmd/scatter_engine.inc:1742`. |
+| `atomic` | T | u32, 0 or 1 | `0` | Live | `atomic` | Enable grouping for ordinary multi-key mutations. EXEC and cross-shard scripts use the shared admission window at either setting; see `Server::atomic_try_admit` and `src/cmd/scatter_engine.inc`. |
+
+EXEC records its read dependencies and installs private versions. A conflicting
+writer can cancel an undecided attempt; the connection's IO thread then rebuilds
+it in the same reply slot. Only the final attempt supplies replies, notifications
+and AOF effects. WATCH registrations survive cancellation, so a watched-key
+change between attempts still produces the ordinary null EXEC reply. The old
+EXEC read cut remains a cleanup pin; attempted reads use newest committed data.
+
+After eight writer-caused cancellations, an exclusive attempt pauses new atomic
+admissions, drains existing apply work, and reserves its keys. CONFIG and DEBUG
+commands with effects, and SWAPDB, use this path from their first attempt.
+`DEBUG TXN-OCC-LIMIT n` overrides the bound for tests; zero requests exclusive
+execution immediately. The fallback remains an owner decision in the txnfix
+branch. Its counters, constants and outstanding proof are recorded in
+[the txnfix report](../MEASURE-REQUEST-txnfix.md).
+
+Whole-shard reads inside EXEC protect against phantoms with wildcard intents.
+INFO keyspace hit/miss counts may include discarded attempts. `atomic 0` does
+not disable EXEC, script intents or fanout cleanup cuts. At `atomic 1`, blind
+DEL/UNLINK groups can undercount keys created concurrently; their count reply is
+a documented constraint. The bare read-dependent group fixes (AT4.2/AT4.3) are
+still pending in this branch, so the EXEC work does not establish isolation for
+bare SMOVE/LMOVE/PFMERGE or MSETNX.
 
 The file-only spelling `pin yes` leaves the default alone; `pin no` translates
 to the valueless `--no-pin`. A later `pin yes` does not undo an earlier `pin no`
