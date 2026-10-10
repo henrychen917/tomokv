@@ -260,23 +260,36 @@ class Battery:
         self.admin.must("MSET", a, 0, b, 0)
         turn = threading.Barrier(2)
         end = time.monotonic() + 20
-        def worker(watch, write):
+        progress = [(-1, "start"), (-1, "start")]
+        before = self.stats()
+        def worker(index, watch, write):
             c = self.conn(timeout=5)
             try:
                 for i in range(500):
+                    progress[index] = (i, "watch")
                     assert time.monotonic() < end, "crossed WATCH deadline"
                     c.must("WATCH", watch)
+                    progress[index] = (i, "barrier")
                     turn.wait(timeout=5)
+                    progress[index] = (i, "exec")
                     result = self.transaction(c, [("DEBUG", "SLEEP", ".001"), ("SET", write, i)])
                     assert result is None or result == [b"OK", b"OK"], result
+                    progress[index] = (i, "complete")
                     turn.wait(timeout=5)
             except BaseException:
                 turn.abort()
                 raise
         with concurrent.futures.ThreadPoolExecutor(2) as pool:
-            futures = [pool.submit(worker, a, b), pool.submit(worker, b, a)]
-            for future in futures:
-                future.result(timeout=20)
+            futures = [pool.submit(worker, 0, a, b), pool.submit(worker, 1, b, a)]
+            try:
+                for future in futures:
+                    future.result(timeout=20)
+            except BaseException:
+                after = self.stats()
+                print("crossed WATCH progress", progress, "counters", {
+                    key: int(value) - int(before.get(key, 0)) for key, value in after.items()
+                    if key.startswith("atomic_txn_")}, flush=True)
+                raise
 
     def invisible(self, kind):
         a, b = self.pair()

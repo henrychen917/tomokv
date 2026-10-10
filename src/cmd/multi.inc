@@ -2368,13 +2368,17 @@ uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                             multi_enqueue_retry(*static_cast<MultiExecState*>(context));
                         };
                         chain->completion = previous;
-                        loop.pubsub_notification_enqueue(chain);
-                        previous->publication_started = true;
                     } catch (const std::bad_alloc&) {
                         // No publication was queued; retain this already committed
                         // attempt until the IO can allocate its one effect batch.
                         multi_enqueue_retry(*previous);
+                        continue;
                     }
+                    // Enqueue can start publishing immediately. Its allocation
+                    // failures follow the existing pub/sub policy; they must
+                    // never be mistaken for an unqueued batch and replayed.
+                    previous->publication_started = true;
+                    loop.pubsub_notification_enqueue(chain);
                 } else {
                     op.state.store(OpState::Done, std::memory_order_release);
                     loop.mark_active(&client);
