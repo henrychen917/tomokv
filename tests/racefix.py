@@ -178,6 +178,8 @@ def climon(args, result):
         result['monitor_lines_before'] = baseline
         result['monitor_lines_after'] = int(info(control, 'STATS')['monitor_feed_lines'])
         require(result['final_frame'], 'live MONITOR received no marker within 1 second')
+        require(result['settled']['armed_word'] == 1 and
+                result['settled']['monitor_clients'] == 1, 'settled armed word does not match live monitor')
         require(result['monitor_lines_after'] > baseline, 'monitor feed counter did not advance')
     finally:
         if control:
