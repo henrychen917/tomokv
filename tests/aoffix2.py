@@ -134,7 +134,7 @@ class Server:
                      '--read-local', '0', '--reorder', '0', '--enable-debug-command', 'yes']
             if single:
                 argv += ['--place', 'ifid@' + str(cpus(ARGS.cores)[0])]
-            elif ARGS.mode == '2s':
+            elif ARGS.mode == '2s' and '--place' not in extra:
                 argv += ['--ratio', ARGS.ratio]
         argv += list(extra)
 
@@ -457,6 +457,33 @@ def latency():
             assert max(row['p50'] for row in per) < 10, 'PS4.7: acknowledgement waits for 50 ms park'
 
 
+def gate_hol():
+    with Server(aof('everysec')) as s:
+        a = off_writer(s)
+        owner = a.cmd('DEBUG', 'IO-THREAD')
+        b = None
+        for _ in range(128):
+            candidate = s.client()
+            if candidate.cmd('DEBUG', 'IO-THREAD') == owner:
+                b = candidate
+                break
+        assert b is not None, 'second off-writer connection was never armed'
+        before, pairs = load(), []
+        for n in range(5):
+            time.sleep(.2)
+            start = time.perf_counter()
+            assert b.cmd('PING') == b'PONG'
+            alone = (time.perf_counter() - start) * 1000
+            a.send('SET', f'hol:{n}', 'x')
+            time.sleep(.002)
+            start = time.perf_counter()
+            assert b.cmd('PING') == b'PONG'
+            behind = (time.perf_counter() - start) * 1000
+            assert a.read() == b'OK'
+            pairs.append(dict(alone=alone, behind=behind))
+        emit('gate_hol_ms', owner=owner, pairs=pairs, load_before=before, load_after=load())
+
+
 def rewrite_fail2():
     with Server(aof()) as s:
         c = s.client()
@@ -529,7 +556,7 @@ def bgsave():
 CASES = dict(snapshot=snapshot, filename=filename, large=large, large_placed=large_placed,
              error=error, tickets=tickets, exec_tickets=tickets, resurrection=resurrection,
              latency=latency, rewrite_fail2=rewrite_fail2, manifest_missing=manifest_missing,
-             bgsave=bgsave, tlswake=tlswake)
+             bgsave=bgsave, tlswake=tlswake, gate_hol=gate_hol)
 
 
 if __name__ == '__main__':

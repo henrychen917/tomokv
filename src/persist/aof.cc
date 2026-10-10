@@ -2299,6 +2299,9 @@ bool AofManager::defer_completion(uint32_t producer, Op& op, Client* client) {
     if (!configured_ || fsync_policy() != AppendFsyncPolicy::Always ||
         (!(op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
          !op.has_multi_state())) return false; // EXEC's public spec is ConnLocal|Transaction
+    // Also covers changing appendfsync to always after an earlier no/everysec
+    // error: no new completion may enter a permanently failed receipt queue.
+    if (failed()) fail("cannot acknowledge writes after an AOF failure");
     // Blocking completion can be offered by the last task and by a registry wake.
     // Only that path needs a claim. Ordinary completions retain their single-owner
     // release store: no added RMW on SET. Both states pin the ROB slot and Client.
@@ -2334,7 +2337,11 @@ uint32_t AofManager::finish_completions(uint32_t producer, bool all_posted,
     if (all_posted)
         channel.published.store(channel.buffered.load(std::memory_order_relaxed),
                                 std::memory_order_release);
-    if (failed()) return 0;
+    if (failed()) {
+        if (fsync_policy() == AppendFsyncPolicy::Always)
+            fail("cannot complete writes after an AOF failure");
+        return 0;
+    }
     if (all_posted && !channel.pending.empty()) {
         try {
             CompletionBatch batch;
