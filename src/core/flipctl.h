@@ -54,6 +54,24 @@ struct FlipFingerprintWindow {
     uint64_t closed_windows = 0;
 };
 
+// The cross-thread form of the cumulative window (CT4.3). Only the owning IO writes it, with
+// relaxed atomic stores of every counter and then a RELEASE store of closed_windows; a reader
+// ACQUIRE-loads closed_windows, compares it with the count it last consumed, and only then copies
+// the counters with relaxed loads. Every counter is then at least as new as that window; one may
+// already include a later window, which the reader's cumulative delta absorbs on its next beat.
+// No reader retry and no seqlock. Same size and alignment as FlipFingerprintWindow (ThreadCtx).
+struct FlipFingerprintPublication {
+    std::array<std::atomic<uint64_t>, 4> pass_depth{};
+    std::array<std::atomic<uint64_t>, kFlipFingerprintClasses> command_class{};
+    std::atomic<uint64_t> commands{0};
+    std::atomic<uint64_t> multikey_keys{0};
+    std::atomic<uint64_t> multikey_ops{0};
+    std::atomic<uint64_t> value_bytes{0};
+    std::atomic<uint64_t> closed_windows{0};
+};
+static_assert(sizeof(FlipFingerprintPublication) == sizeof(FlipFingerprintWindow) &&
+              alignof(FlipFingerprintPublication) == alignof(FlipFingerprintWindow));
+
 // SAMPLED BY PARSE PASS. A per-op countdown would restore the store this sampler removes: no
 // existing io-side command counter covers both the point paths and all io-local commands.
 // The io loop asks pass_sampled() once per dispatched frame -- one load of this writer's own word,
@@ -81,7 +99,13 @@ public:
         // rather than one gap. Dark: the gate word must never read 0.
         pass_countdown_ = commands_per_sample ? 0 : 1;
         partial_ = {};
-        published_ = {};
+        for (auto& field : published_.pass_depth) field.store(0, std::memory_order_relaxed);
+        for (auto& field : published_.command_class) field.store(0, std::memory_order_relaxed);
+        published_.commands.store(0, std::memory_order_relaxed);
+        published_.multikey_keys.store(0, std::memory_order_relaxed);
+        published_.multikey_ops.store(0, std::memory_order_relaxed);
+        published_.value_bytes.store(0, std::memory_order_relaxed);
+        published_.closed_windows.store(0, std::memory_order_release);
     }
 
     bool enabled() const { return work_window_ != 0; }
@@ -113,24 +137,7 @@ public:
             pass_countdown_--;
             return false;
         }
-        const uint64_t frames = partial_.commands;
-        if (frames) {
-            const size_t bucket = frames == 1 ? 0 : frames <= 4 ? 1 : frames <= 16 ? 2 : 3;
-            partial_.pass_depth[bucket]++;
-            for (size_t i = 0; i < published_.pass_depth.size(); i++)
-                published_.pass_depth[i] += partial_.pass_depth[i];
-            for (size_t i = 0; i < published_.command_class.size(); i++)
-                published_.command_class[i] += partial_.command_class[i];
-            published_.commands += partial_.commands;
-            published_.multikey_keys += partial_.multikey_keys;
-            published_.multikey_ops += partial_.multikey_ops;
-            published_.value_bytes += partial_.value_bytes;
-            // Keep this as the last owner store. The exceptional monitor reader checks this field
-            // before consuming the cumulative counters, matching the tree's other owner-local INFO
-            // counters without adding an atomic publication to the request path.
-            published_.closed_windows++;
-            partial_ = {};
-        }
+        if (partial_.commands) publish_sampled_pass();
         return true;
     }
 
@@ -141,13 +148,60 @@ public:
     }
     void arm(uint64_t random) { pass_countdown_ = gap_for(random, work_window_); }
 
-    const FlipFingerprintWindow& published() const { return published_; }
+    // Cross-thread reader (CT4.3): one acquire of the owner's window count. Returns false, reading
+    // no counter, when no window closed since `seen_windows`; otherwise copies every counter
+    // (each at least as new as the returned closed_windows). No retry, no seqlock.
+    bool published_since(uint64_t seen_windows, FlipFingerprintWindow& out) const {
+        const uint64_t windows = published_.closed_windows.load(std::memory_order_acquire);
+        if (windows == seen_windows) return false;
+        for (size_t i = 0; i < out.pass_depth.size(); i++)
+            out.pass_depth[i] = published_.pass_depth[i].load(std::memory_order_relaxed);
+        for (size_t i = 0; i < out.command_class.size(); i++)
+            out.command_class[i] = published_.command_class[i].load(std::memory_order_relaxed);
+        out.commands = published_.commands.load(std::memory_order_relaxed);
+        out.multikey_keys = published_.multikey_keys.load(std::memory_order_relaxed);
+        out.multikey_ops = published_.multikey_ops.load(std::memory_order_relaxed);
+        out.value_bytes = published_.value_bytes.load(std::memory_order_relaxed);
+        out.closed_windows = windows;
+        return true;
+    }
+    // Snapshot of the cumulative publication (unit tests and cold diagnostics).
+    FlipFingerprintWindow published() const {
+        FlipFingerprintWindow out;
+        (void)published_since(UINT64_MAX, out);
+        return out;
+    }
 
 private:
+    // Sampled pass end with frames: bucket the pass depth and publish. Out of line: it runs once
+    // per sampled pass (one in W), never on the per-frame path. The owner is the only writer, so
+    // each counter is a relaxed load+store; closed_windows is stored last with release.
+    __attribute__((noinline)) void publish_sampled_pass() {
+        const uint64_t frames = partial_.commands;
+        const size_t bucket = frames == 1 ? 0 : frames <= 4 ? 1 : frames <= 16 ? 2 : 3;
+        partial_.pass_depth[bucket]++;
+        auto add = [](std::atomic<uint64_t>& field, uint64_t delta) {
+            field.store(field.load(std::memory_order_relaxed) + delta, std::memory_order_relaxed);
+        };
+        for (size_t i = 0; i < published_.pass_depth.size(); i++)
+            add(published_.pass_depth[i], partial_.pass_depth[i]);
+        for (size_t i = 0; i < published_.command_class.size(); i++)
+            add(published_.command_class[i], partial_.command_class[i]);
+        add(published_.commands, partial_.commands);
+        add(published_.multikey_keys, partial_.multikey_keys);
+        add(published_.multikey_ops, partial_.multikey_ops);
+        add(published_.value_bytes, partial_.value_bytes);
+        // The release store publishes every counter above to the acquire in published_since().
+        published_.closed_windows.store(
+            published_.closed_windows.load(std::memory_order_relaxed) + 1,
+            std::memory_order_release);
+        partial_ = {};
+    }
+
     uint32_t work_window_ = 0;
     uint32_t pass_countdown_ = 1;
     FlipFingerprintWindow partial_{};
-    FlipFingerprintWindow published_{};
+    FlipFingerprintPublication published_{};
 };
 
 struct FlipSignature {
