@@ -218,7 +218,7 @@ def save_case(admin, _port, args):
 
 
 def capacity_case(admin, port, args):
-    deadline = time.monotonic() + 45
+    deadline = time.monotonic() + args.capacity_seconds
     for base in range(0, 65535, 256):
         count = min(256, 65535 - base)
         admin.raw(b"".join(encode(*command) for _ in range(count) for command in
@@ -227,7 +227,7 @@ def capacity_case(admin, port, args):
         for i in range(count):
             check(admin.read(), b"OK", f"create {base+i}")
             check(admin.read(), 1, f"delete {base+i}")
-        assert time.monotonic() < deadline, "churn exceeded 45 seconds"
+        assert time.monotonic() < deadline, f"churn exceeded {args.capacity_seconds} seconds"
     first = admin.cmd("ACL", "SETUSER", "fresh", "on")
     second = admin.cmd("ACL", "SETUSER", "fresh2", "on")
     print("65535 create/delete pairs; extra creations:", repr(first), repr(second), flush=True)
@@ -243,7 +243,7 @@ def capacity_case(admin, port, args):
                            for i in range(base, base + count)))
         for i in range(count):
             check(admin.read(), b"OK", f"fill slot {base+i}")
-        assert time.monotonic() < deadline, "capacity setup exceeded 45 seconds"
+        assert time.monotonic() < deadline, f"capacity setup exceeded {args.capacity_seconds} seconds"
     expected = b"OK" if args.oracle else RespError(b"ERR out of memory")
     check(admin.cmd("ACL", "SETUSER", "overflow1", "on"), expected, "first full-slot creation")
     check(admin.cmd("ACL", "SETUSER", "overflow2", "on"), expected, "second full-slot creation")
@@ -251,7 +251,7 @@ def capacity_case(admin, port, args):
     for base in range(0, 65533, 256):
         names = [f"cap:{i}" for i in range(base, min(65533, base + 256))]
         check(admin.cmd("ACL", "DELUSER", *names), len(names), "free full-slot users")
-        assert time.monotonic() < deadline, "capacity cleanup exceeded 45 seconds"
+        assert time.monotonic() < deadline, f"capacity cleanup exceeded {args.capacity_seconds} seconds"
     # A deleted authenticated user's handle must not name a new account.
     check(admin.cmd("ACL", "SETUSER", "held", "on", "nopass", "~*", "+@all"), b"OK", "held user")
     with connection(port) as old:
@@ -378,11 +378,11 @@ def listener(args):
             if process.poll() is None:
                 process.terminate()
             try:
-                process.wait(timeout=8)
+                process.wait(timeout=args.stop_seconds)
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait(timeout=2)
-                raise AssertionError("SIGTERM did not finish in eight seconds")
+                raise AssertionError(f"SIGTERM did not finish in {args.stop_seconds} seconds")
             # A reaped exit status of 0 after SIGTERM is the clean stop (CC4.24's PRE dies with
             # SIGSEGV here). A post-stop connect probe was dropped: on this shared box it can only
             # observe a foreign listener on the reused port, never this process.
@@ -397,6 +397,10 @@ def main():
     parser.add_argument("--cores", required=True)
     parser.add_argument("--mode", choices=("1s", "2s"), default="2s")
     parser.add_argument("--ratio", default="6:2", help="2s io:ex ratio (the gate's GATE_RATIO)")
+    parser.add_argument("--capacity-seconds", type=float, default=45,
+                        help="capacity case bound (raise only for sanitizer builds)")
+    parser.add_argument("--stop-seconds", type=float, default=8,
+                        help="SIGTERM-to-exit bound (raise only for sanitizer builds)")
     parser.add_argument("--case", choices=CASES, required=True)
     parser.add_argument("--oracle", action="store_true")
     parser.add_argument("--output", type=Path, required=True)

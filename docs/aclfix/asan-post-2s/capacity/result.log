@@ -1,0 +1,5 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-aclfix/build/tomokv-asan", "--bind", "127.0.0.1", "--port", "25042", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aclfix/docs/aclfix/asan-post-2s/capacity", "--aclfile", "/home/user/Projects/cx-aclfix/docs/aclfix/asan-post-2s/capacity/users.acl", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--ratio", "6:2"], "case": "capacity"}
+65535 create/delete pairs; extra creations: b'OK' b'OK'
+live-slot boundary: two exact RespError(b'ERR out of memory') replies
+SIGTERM exit 0
+aclfix capacity PASS (13.140s)

@@ -1,0 +1,61 @@
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [112,113,114,115,116,117,118,119]
+tomokv-cpp: 8 threads (6 io + 2 ex), 16 shard(s), thread-mode=2s, io_uring, alloc=libc-malloc, reorder=0, read-local=0
+  thread t0: role=ifid cpu=112 L3=0 shards=0
+  thread t1: role=ifid cpu=113 L3=0 shards=0
+  thread t2: role=ifid cpu=114 L3=0 shards=0
+  thread t3: role=ifid cpu=115 L3=0 shards=0
+  thread t4: role=ifid cpu=116 L3=0 shards=0
+  thread t5: role=ifid cpu=117 L3=0 shards=0
+  thread t6: role=ex cpu=118 L3=0 shards=8
+  thread t7: role=ex cpu=119 L3=0 shards=8
+listening on 127.0.0.1:25042
+=================================================================
+==1604066==ERROR: AddressSanitizer: global-buffer-overflow on address 0x6219e9c3e760 at pc 0x6219ddb4269f bp 0x7ffd6bdbf210 sp 0x7ffd6bdbf200
+WRITE of size 8 at 0x6219e9c3e760 thread T0
+    #0 0x6219ddb4269e in std::__atomic_base<tomo_db0::AclUser*>::exchange(tomo_db0::AclUser*, std::memory_order) /usr/include/c++/13/bits/atomic_base.h:855
+    #1 0x6219ddb4269e in std::atomic<tomo_db0::AclUser*>::exchange(tomo_db0::AclUser*, std::memory_order) /usr/include/c++/13/atomic:586
+    #2 0x6219ddb4269e in tomo_db0::acl_shutdown() src/cmd/acl.inc:1043
+    #3 0x6219dd441844 in operator() src/main.cc:375
+    #4 0x6219dd447348 in main src/main.cc:592
+    #5 0x6219de73049c in __wrap_main src/core/version.cc:21
+    #6 0x76b701c2a1c9 in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #7 0x76b701c2a28a in __libc_start_main_impl ../csu/libc-start.c:360
+    #8 0x6219dd43cd54 in _start (/home/user/Projects/cx-aclfix/build/aclfix/pre-source/build/tomokv-asan+0x8bcad54) (BuildId: 40ec0ed8ee9509dcea8ff40307c47e9627aac5cc)
+
+0x6219e9c3e760 is located 32 bytes before global variable 'g_acl_mu' defined in 'src/cmd/acl.inc:14:12' (0x6219e9c3e780) of size 40
+0x6219e9c3e760 is located 0 bytes after global variable 'g_acl_slots' defined in 'src/cmd/acl.inc:15:49' (0x6219e9bbe760) of size 524288
+SUMMARY: AddressSanitizer: global-buffer-overflow /usr/include/c++/13/bits/atomic_base.h:855 in std::__atomic_base<tomo_db0::AclUser*>::exchange(tomo_db0::AclUser*, std::memory_order)
+Shadow bytes around the buggy address:
+  0x6219e9c3e480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x6219e9c3e500: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x6219e9c3e580: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x6219e9c3e600: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x6219e9c3e680: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x6219e9c3e700: 00 00 00 00 00 00 00 00 00 00 00 00[f9]f9 f9 f9
+  0x6219e9c3e780: 00 00 00 00 00 f9 f9 f9 f9 f9 f9 f9 00 00 00 00
+  0x6219e9c3e800: 00 00 00 f9 f9 f9 f9 f9 00 00 00 00 00 f9 f9 f9
+  0x6219e9c3e880: f9 f9 f9 f9 00 00 00 00 00 00 00 00 00 00 00 00
+  0x6219e9c3e900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x6219e9c3e980: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==1604066==ABORTING

@@ -1,0 +1,4 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-aclfix/build/tomokv-asan", "--bind", "127.0.0.1", "--port", "25042", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aclfix/docs/aclfix/asan-post-2s/streams-name", "--aclfile", "/home/user/Projects/cx-aclfix/docs/aclfix/asan-post-2s/streams-name/users.acl", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--ratio", "6:2"], "case": "streams-name"}
+XREADGROUP RespError(b'NOPERM No permissions to access a key') pending [0, None, None, None]
+SIGTERM exit 0
+aclfix streams-name PASS (0.569s)
