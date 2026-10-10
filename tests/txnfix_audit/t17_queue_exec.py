@@ -4,7 +4,7 @@
 import sys, threading, time, collections
 from resp import *
 port = int(sys.argv[1]); which = sys.argv[2]; mode = sys.argv[3] if len(sys.argv) > 3 else "2s"
-NP, NC, N = 4, 4, 3000
+NP, NC, N = 4, 4, AUDIT_OPERATIONS or 3000
 if which == "oracle":
     srv = Server(port, oracle=True, cpus=CPUS)
 else:

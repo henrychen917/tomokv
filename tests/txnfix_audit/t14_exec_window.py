@@ -14,7 +14,7 @@ try:
     owner = {cands[i]: geo[i][1] for i in range(len(cands))}
     k1 = cands[0]; k2 = next(k for k in cands[1:] if owner[k] != owner[k1])
     c.cmd("DEBUG", "ATOMIC-COMMIT-DELAY", 2000)
-    conns = [srv.conn(timeout=120) for _ in range(400)]
+    conns = [srv.conn(timeout=120) for _ in range(AUDIT_CLIENTS or 400)]
     for x in conns: x.send_many([["MULTI"], ["INCR", k1], ["INCR", k2], ["EXEC"]])
     time.sleep(0.2)
     mid = info(c)
@@ -30,4 +30,4 @@ try:
 finally:
     print("server rc", srv.stop())
 
-assert totals == [400, 400], ("acknowledged INCR lost", totals)
+assert totals == [AUDIT_CLIENTS or 400] * 2, ("acknowledged INCR lost", totals)

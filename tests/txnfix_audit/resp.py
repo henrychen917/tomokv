@@ -7,6 +7,10 @@ from pathlib import Path
 # workload arguments. --port supplies the historical first positional argument.
 _parser = argparse.ArgumentParser(add_help=False)
 _parser.add_argument("--binary", default="build/tomokv")
+_parser.add_argument("--attach", action="store_true")
+_parser.add_argument("--host", default="127.0.0.1")
+_parser.add_argument("--operations", type=int)
+_parser.add_argument("--clients", type=int)
 _parser.add_argument("--port", type=int)
 _parser.add_argument("--cores", default="112-119")
 _parser.add_argument("--atomic", choices=("0", "1"))
@@ -146,6 +150,10 @@ class Server:
     """Start a server pinned to our cores; record the PID of the server process itself."""
 
     def __init__(self, port, args=(), binary=HEADLINE, cpus=CPUS, log=None, oracle=False):
+        self.attached = _options.attach
+        self.port = port
+        if self.attached:
+            return
         assert 22600 <= port <= 22699, "port outside the server-atomics range"
         if port_open(port):
             raise RuntimeError("port %d already in use" % port)
@@ -193,9 +201,12 @@ class Server:
         raise RuntimeError("server did not answer PING on %d" % port)
 
     def conn(self, timeout=10.0):
-        return Conn(self.port, timeout=timeout)
+        return Conn(self.port, host=_options.host, timeout=timeout)
 
     def stop(self, sig=signal.SIGTERM, wait=30):
+        if self.attached:
+            assert not _thread_errors, ("worker exceptions", _thread_errors)
+            return 0
         if self.proc.poll() is None:
             os.kill(self.pid, sig)
             try:
@@ -217,3 +228,6 @@ class Server:
 
     def __exit__(self, *exc):
         self.stop()
+
+AUDIT_OPERATIONS = _options.operations
+AUDIT_CLIENTS = _options.clients
