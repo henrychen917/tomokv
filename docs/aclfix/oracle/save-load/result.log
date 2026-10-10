@@ -18,11 +18,4 @@ invalid selector RespError(b'ERR Error in ACL SETUSER modifier \'(&"channel with
 saved b'user default on nopass sanitize-payload ~* &* +@all\nuser roundtrip on nopass sanitize-payload ~a"b ~a\'b ~a\\b resetchannels &a"b &a\'b &a\\b -@all +get\n'
 reload b'OK'
 SIGTERM exit 0
-Traceback (most recent call last):
-  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 284, in main
-    {"sort": sort_case, "streams-name": streams_case, "save-load": save_case,
-  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 122, in save_case
-    assert not failures, failures
-           ^^^^^^^^^^^^
-AssertionError: [(b'~key\nwith-space', RespError(b"ERR Error in ACL SETUSER modifier '~key with-space': Syntax error"), RespError(b"ERR Error in ACL SETUSER modifier '~key\nwith-space': Syntax error")), (b'~key\rwith-space', RespError(b"ERR Error in ACL SETUSER modifier '~key with-space': Syntax error"), RespError(b"ERR Error in ACL SETUSER modifier '~key\rwith-space': Syntax error")), (b'&key\nwith-space', RespError(b"ERR Error in ACL SETUSER modifier '&key with-space': Syntax error"), RespError(b"ERR Error in ACL SETUSER modifier '&key\nwith-space': Syntax error")), (b'&key\rwith-space', RespError(b"ERR Error in ACL SETUSER modifier '&key with-space': Syntax error"), RespError(b"ERR Error in ACL SETUSER modifier '&key\rwith-space': Syntax error"))]
-aclfix save-load FAIL (0.153s)
+aclfix save-load PASS (0.275s)

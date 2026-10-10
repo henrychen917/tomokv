@@ -285,11 +285,11 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # eight rows collected above the quick-tier exit (+8 quick, +8 full).
 # overlapaxe: retire only split-overlap WB row, collected before quick exit (-1/-1).
 # Matrix client-lb dimension preserves every former split correctness scenario.
-# aclfix: six reproductions in each thread mode, emitted by job_aclfix and
-# collected before the quick-tier exit: DQ=+12, DF=+12; 511+12=523 / 528+12=540.
-# EXPECT_QUICK/EXPECT_FULL remain maintainer-owned.
-EXPECT_QUICK=511
-EXPECT_FULL=528                 # ABBA reports only; self-test remains counted.
+# aclfix: six round-4 ACL reproductions per thread mode (sort, streams-name, save-load, capacity,
+# wake-pop, wake-scatter x 1s/2s), emitted by job_aclfix and collected after acl_recheck, above
+# the quick-tier exit: DQ=+12, DF=+12. Quick 511+12 = 523; full 528+12 = 540.
+EXPECT_QUICK=523
+EXPECT_FULL=540                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
 canonical_label(){ sed -E \
       -e 's/(direct|hits|records|skipped|suppressed|zc_sends)=[0-9]+/\1=N/g' \
@@ -2016,15 +2016,20 @@ stop
 }
 
 job_aclfix(){
+# ---- round-4 ACL reproductions: each row boots its own listener (tests/aclfix.py) -------------
+# sort CC4.8, streams-name CC4.9, save-load CC4.10, capacity CC4.24, wake-pop AT4.4 and
+# wake-scatter AT4.6, in both thread modes on this slot's CORES/PORT: 16 shards, 2s at
+# GATE_RATIO, 1s with read-local 1. Expectations are Redis 7.4.10 replies; the woken rows also
+# require the element/PEL state the denial must leave. A row stays under 60 s (capacity's
+# 65535 create/delete pairs plus the live-slot ceiling are about 8 s here).
   local mode case label
   for mode in 1s 2s; do
     for case in sort streams-name save-load capacity wake-pop wake-scatter; do
       label="aclfix $case ($mode)"
       row_begin "$label"
-      if timeout --foreground 60 taskset -c "$LOAD_CORES" python3 tests/aclfix.py \
-          --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
-          --mode "$mode" --case "$case" --output "$TMPDIR/aclfix-$case-$mode" \
-          >"$TMPDIR/aclfix-$case-$mode.log" 2>&1; then
+      if py tests/aclfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+          --mode "$mode" --ratio "$GATE_RATIO" --case "$case" \
+          --output "$TMPDIR/aclfix-$case-$mode" >"$TMPDIR/aclfix-$case-$mode.log" 2>&1; then
         ok "$label"
       else
         bad "$label" "see $TMPDIR/aclfix-$case-$mode.log"

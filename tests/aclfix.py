@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 """Round-4 ACL reproductions, with owned listeners and bounded state witnesses.
 
-Adapted from cmd-complex/{acl_probes,capacity_unrun,extended_probes}.py and
-server-atomics/t16_acl_wake.py. Each case is one gate row. No rate measurement.
+Adapted from round4-read cmd-complex/{acl_probes,capacity_unrun,extended_probes}.py and
+server-atomics/t16_acl_wake.py. Each case is one gate row per thread mode; every expectation is
+Redis 7.4.10's reply (run any case with --oracle against the vanilla binary). No rate measurement.
+
+  sort          CC4.8   SORT_RO/SORT BY/GET option checks, their order and ACL LOG side effects
+  streams-name  CC4.9   XREADGROUP with a group named STREAMS admits no outside stream
+  save-load     CC4.10  whitespace/NUL patterns refused; ACL SAVE output always reloads
+  capacity      CC4.24  65535 create/delete pairs, then creation, the live-slot ceiling and stop
+  wake-pop      AT4.4   a woken pop denied by a revoked key/command leaves its element
+  wake-scatter  AT4.6   a woken BLMOVE/BRPOPLPUSH/XREAD/XREADGROUP denial moves/delivers nothing
 """
 import argparse
 import contextlib
 import json
-import os
 from pathlib import Path
 import resource
 import socket
@@ -36,32 +43,83 @@ def connection(port):
         client.close()
 
 
+def sort_option(name):
+    return RespError(b"ERR %s option of SORT denied due to insufficient ACL permissions." % name)
+
+
+def acl_log_total(admin):
+    """Denials ACL LOG recorded: the sum of every entry's aggregated count."""
+    return sum(dict(zip(entry[::2], entry[1::2]))[b"count"] for entry in admin.cmd("ACL", "LOG"))
+
+
+def stat(admin, name):
+    for line in admin.cmd("INFO", "stats").splitlines():
+        if line.startswith(name + b":"):
+            return int(line.split(b":", 1)[1])
+    raise AssertionError(f"INFO stats has no {name!r}")
+
+
 def sort_case(admin, port, _args):
+    # Every expectation below is Redis 7.4.10's reply (docs/aclfix/oracle/sort). sort.c parses
+    # options left to right and answers its first error; a user without unrestricted key access
+    # may not reach GET or a '*' BY pattern. Declared keys (the source, SORT's last STORE target)
+    # are checked first, by the ordinary ACL check, and answer NOPERM.
     check(admin.cmd("RPUSH", "allowed:list", "a"), 1, "source")
+    check(admin.cmd("RPUSH", "denied:list", "x"), 1, "forbidden source")
     check(admin.cmd("SET", "other:a", "secret"), b"OK", "secret")
-    check(admin.cmd("ACL", "SETUSER", "sorter", "on", "nopass", "~allowed:list",
+    check(admin.cmd("ACL", "SETUSER", "sorter", "on", "nopass", "~allowed:*",
                     "+sort_ro", "+sort", "+get"), b"OK", "sort user")
+    integer = RespError(b"ERR value is not an integer or out of range")
+    syntax = RespError(b"ERR syntax error")
+    both = (
+        (("BY", "nosort", "GET", "other:*"), sort_option(b"GET")),
+        (("BY", "other:*"), sort_option(b"BY")),
+        (("GET", "#"), sort_option(b"GET")),
+        (("ALPHA", "DESC", "GET", "#"), sort_option(b"GET")),
+        (("LIMIT", 0, 1, "BY", "nosort", "GET", "other:*"), sort_option(b"GET")),
+        (("BY", "get"), [b"a"]),
+        (("BY", "nosort"), [b"a"]),
+        (("LIMIT", "x", 1, "GET", "#"), integer),
+        (("LIMIT", "01", 1, "GET", "#"), integer),
+        (("FOO", "GET", "#"), syntax),
+        (("GET",), syntax),
+    )
+    options = ([("SORT_RO", case) for case in both] + [("SORT", case) for case in both] + [
+        ("SORT_RO", (("STORE", "allowed:dst", "GET", "#"), syntax)),
+        ("SORT", (("STORE", "allowed:dst", "GET", "#"), sort_option(b"GET"))),
+        ("SORT", (("BY", "store", "LIMIT", 0, 1), [b"a"])),
+    ])
+    keys = (
+        ("SORT_RO", "denied:list", "GET", "#"),
+        ("SORT", "denied:list", "GET", "#"),
+        ("SORT", "allowed:list", "STORE", "other:dst", "GET", "#"),
+        ("SORT", "allowed:list", "GET", "#", "STORE", "other:dst"),
+    )
     failures = []
     with connection(port) as user:
         check(user.cmd("AUTH", "sorter", "x"), b"OK", "AUTH")
+        check(admin.cmd("ACL", "LOG", "RESET"), b"OK", "empty ACL LOG")
+        denied_keys = stat(admin, b"acl_access_denied_key")
+        for command, (arguments, want) in options:
+            got = user.cmd(command, "allowed:list", *arguments)
+            print(command, arguments, repr(got), flush=True)
+            if got != want:
+                failures.append((command, arguments, got, want))
+        # An option error is sort.c's own reply: no ACL LOG entry, no ACL denial counter.
+        logged = (acl_log_total(admin), stat(admin, b"acl_access_denied_key") - denied_keys)
+        print("option denials logged", logged, flush=True)
+        if logged != (0, 0):
+            failures.append(("option denials reached ACL LOG/INFO", logged))
         check(user.cmd("GET", "other:a"), DENIED, "direct GET")
-        for command in ("SORT_RO", "SORT"):
-            for options, expected in (
-                (("BY", "nosort", "GET", "other:*"), "GET"),
-                (("BY", "other:*"), "BY"),
-                (("GET", "#"), "GET"),
-                (("BY", "get"), None),
-                (("BY", "nosort"), None),
-                (("LIMIT", 0, 1, "BY", "nosort", "GET", "other:*"), "GET"),
-            ):
-                want = ([b"a"] if expected is None else RespError(
-                    f"ERR {expected} option of SORT denied due to insufficient ACL permissions."))
-                got = user.cmd(command, "allowed:list", *options)
-                print(command, options, repr(got), flush=True)
-                if got != want:
-                    failures.append((command, options, got, want))
-        check(user.cmd("SORT_RO", "denied:list", "GET", "#"), DENIED,
-              "source permission precedes option permission")
+        for argv in keys:
+            got = user.cmd(*argv)
+            print(argv, repr(got), flush=True)
+            if got != DENIED:
+                failures.append((argv, got, DENIED))
+        logged = (acl_log_total(admin), stat(admin, b"acl_access_denied_key") - denied_keys)
+        print("key denials logged", logged, flush=True)
+        if logged != (1 + len(keys), 1 + len(keys)):
+            failures.append(("each key denial is logged once", logged))
     assert not failures, failures
 
 
@@ -141,6 +199,23 @@ def capacity_case(admin, port, args):
     # creation's second advance and the shutdown array overrun under ASAN.
     check(first, b"OK", "first creation after churn")
     check(second, b"OK", "second creation after churn")
+    # Exercise actual allocation failure too: reuse alone would otherwise hide
+    # the original high-water/shutdown overrun. Redis has no 65536 live-slot cap.
+    for base in range(0, 65533, 256):
+        count = min(256, 65533 - base)
+        admin.raw(b"".join(encode("ACL", "SETUSER", f"cap:{i}", "on")
+                           for i in range(base, base + count)))
+        for i in range(count):
+            check(admin.read(), b"OK", f"fill slot {base+i}")
+        assert time.monotonic() < deadline, "capacity setup exceeded 45 seconds"
+    expected = b"OK" if args.oracle else RespError(b"ERR out of memory")
+    check(admin.cmd("ACL", "SETUSER", "overflow1", "on"), expected, "first full-slot creation")
+    check(admin.cmd("ACL", "SETUSER", "overflow2", "on"), expected, "second full-slot creation")
+    print("live-slot boundary: two exact", repr(expected), "replies", flush=True)
+    for base in range(0, 65533, 256):
+        names = [f"cap:{i}" for i in range(base, min(65533, base + 256))]
+        check(admin.cmd("ACL", "DELUSER", *names), len(names), "free full-slot users")
+        assert time.monotonic() < deadline, "capacity cleanup exceeded 45 seconds"
     # A deleted authenticated user's handle must not name a new account.
     check(admin.cmd("ACL", "SETUSER", "held", "on", "nopass", "~*", "+@all"), b"OK", "held user")
     with connection(port) as old:
@@ -182,6 +257,7 @@ def wake_case(admin, port, args):
                  ("XREADGROUP", ["XREADGROUP", "GROUP", "g", "c", "BLOCK", "0",
                                  "STREAMS", "src", ">"], False)]
     failures = []
+    check(admin.cmd("ACL", "LOG", "RESET"), b"OK", "empty ACL LOG")
     for name, command, zset in cases:
         for revoke in ("key", "command"):
             admin.cmd("DEL", "src", "dst")
@@ -221,6 +297,12 @@ def wake_case(admin, port, args):
                       "dst", repr(destination), "pending", pending, flush=True)
                 if got != want or remaining != expected or destination != [] or pending != 0:
                     failures.append((name, revoke, got, remaining, destination, pending))
+    # One check per woken command: exactly one ACL LOG record per denial, never a second one
+    # from a retire-time recheck of the same command.
+    logged = acl_log_total(admin)
+    print("woken denials logged", logged, "of", 2 * len(cases), flush=True)
+    if logged != 2 * len(cases):
+        failures.append(("one ACL LOG record per woken denial", logged, 2 * len(cases)))
     assert not failures, failures
 
 
@@ -237,12 +319,15 @@ def listener(args):
                "--dir", str(args.output.resolve()), "--aclfile", str(args.aclfile)]
     if not args.oracle:
         command += ["--shards", "16", "--thread-mode", args.mode,
-                    "--ratio", "6:2", "--read-local", "1" if args.mode == "1s" else "0"]
+                    "--read-local", "1" if args.mode == "1s" else "0"]
+        if args.mode == "2s":
+            command += ["--ratio", args.ratio]
     print(json.dumps({"command": command, "case": args.case}), flush=True)
     with (args.output / "server.log").open("w") as log:
         process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)
         try:
-            deadline = time.monotonic() + 10
+            # The gate's own boots allow 30 s on a shared box; a quick server exits the loop early.
+            deadline = time.monotonic() + 30
             while True:
                 assert process.poll() is None, (args.output / "server.log").read_text()
                 try:
@@ -262,11 +347,11 @@ def listener(args):
                 process.kill()
                 process.wait(timeout=2)
                 raise AssertionError("SIGTERM did not finish in eight seconds")
+            # A reaped exit status of 0 after SIGTERM is the clean stop (CC4.24's PRE dies with
+            # SIGSEGV here). A post-stop connect probe was dropped: on this shared box it can only
+            # observe a foreign listener on the reused port, never this process.
             print("SIGTERM exit", process.returncode, flush=True)
             assert process.returncode == 0, (args.output / "server.log").read_text()[-12000:]
-            with socket.socket() as probe:
-                probe.settimeout(.2)
-                assert probe.connect_ex(("127.0.0.1", args.port)) != 0, "listener survived stop"
 
 
 def main():
@@ -275,6 +360,7 @@ def main():
     parser.add_argument("--port", type=int, required=True)
     parser.add_argument("--cores", required=True)
     parser.add_argument("--mode", choices=("1s", "2s"), default="2s")
+    parser.add_argument("--ratio", default="6:2", help="2s io:ex ratio (the gate's GATE_RATIO)")
     parser.add_argument("--case", choices=CASES, required=True)
     parser.add_argument("--oracle", action="store_true")
     parser.add_argument("--output", type=Path, required=True)

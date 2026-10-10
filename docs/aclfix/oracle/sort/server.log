@@ -1,11 +1,11 @@
-3176983:C 11 Oct 2026 01:23:04.661 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
-3176983:C 11 Oct 2026 01:23:04.661 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-3176983:C 11 Oct 2026 01:23:04.661 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=3176983, just started
-3176983:C 11 Oct 2026 01:23:04.661 * Configuration loaded
-3176983:M 11 Oct 2026 01:23:04.665 * monotonic clock: POSIX clock_gettime
-3176983:M 11 Oct 2026 01:23:04.665 * Running mode=standalone, port=25043.
-3176983:M 11 Oct 2026 01:23:04.666 * Server initialized
-3176983:M 11 Oct 2026 01:23:04.666 * Ready to accept connections tcp
-3176983:signal-handler (1791652984) Received SIGTERM scheduling shutdown...
-3176983:M 11 Oct 2026 01:23:04.774 * User requested shutdown...
-3176983:M 11 Oct 2026 01:23:04.774 # Redis is now ready to exit, bye bye...
+417177:C 11 Oct 2026 01:59:38.766 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+417177:C 11 Oct 2026 01:59:38.766 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+417177:C 11 Oct 2026 01:59:38.766 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=417177, just started
+417177:C 11 Oct 2026 01:59:38.766 * Configuration loaded
+417177:M 11 Oct 2026 01:59:38.767 * monotonic clock: POSIX clock_gettime
+417177:M 11 Oct 2026 01:59:38.767 * Running mode=standalone, port=25043.
+417177:M 11 Oct 2026 01:59:38.767 * Server initialized
+417177:M 11 Oct 2026 01:59:38.767 * Ready to accept connections tcp
+417177:signal-handler (1791655178) Received SIGTERM scheduling shutdown...
+417177:M 11 Oct 2026 01:59:38.975 * User requested shutdown...
+417177:M 11 Oct 2026 01:59:38.975 # Redis is now ready to exit, bye bye...

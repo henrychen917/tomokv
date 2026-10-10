@@ -1,0 +1,23 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-aclfix/build/aclfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25042", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aclfix/docs/aclfix/pre-2s/wake-pop", "--aclfile", "/home/user/Projects/cx-aclfix/docs/aclfix/pre-2s/wake-pop/users.acl", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--ratio", "6:2"], "case": "wake-pop"}
+BLPOP key reply RespError(b'NOPERM No permissions to access a key') src [] dst [] pending 0
+BLPOP command reply RespError(b"NOPERM User woken has no permissions to run the 'blpop' command") src [] dst [] pending 0
+BRPOP key reply RespError(b'NOPERM No permissions to access a key') src [] dst [] pending 0
+BRPOP command reply RespError(b"NOPERM User woken has no permissions to run the 'brpop' command") src [] dst [] pending 0
+BZPOPMIN key reply RespError(b'NOPERM No permissions to access a key') src [] dst [] pending 0
+BZPOPMIN command reply RespError(b"NOPERM User woken has no permissions to run the 'bzpopmin' command") src [] dst [] pending 0
+BZPOPMAX key reply RespError(b'NOPERM No permissions to access a key') src [] dst [] pending 0
+BZPOPMAX command reply RespError(b"NOPERM User woken has no permissions to run the 'bzpopmax' command") src [] dst [] pending 0
+BLMPOP key reply RespError(b'NOPERM No permissions to access a key') src [] dst [] pending 0
+BLMPOP command reply RespError(b"NOPERM User woken has no permissions to run the 'blmpop' command") src [] dst [] pending 0
+BZMPOP key reply RespError(b'NOPERM No permissions to access a key') src [] dst [] pending 0
+BZMPOP command reply RespError(b"NOPERM User woken has no permissions to run the 'bzmpop' command") src [] dst [] pending 0
+woken denials logged 12 of 12
+SIGTERM exit 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 363, in main
+    {"sort": sort_case, "streams-name": streams_case, "save-load": save_case,
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 299, in wake_case
+    assert not failures, failures
+           ^^^^^^^^^^^^
+AssertionError: [('BLPOP', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BLPOP', 'command', RespError(b"NOPERM User woken has no permissions to run the 'blpop' command"), [], [], 0), ('BRPOP', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BRPOP', 'command', RespError(b"NOPERM User woken has no permissions to run the 'brpop' command"), [], [], 0), ('BZPOPMIN', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BZPOPMIN', 'command', RespError(b"NOPERM User woken has no permissions to run the 'bzpopmin' command"), [], [], 0), ('BZPOPMAX', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BZPOPMAX', 'command', RespError(b"NOPERM User woken has no permissions to run the 'bzpopmax' command"), [], [], 0), ('BLMPOP', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BLMPOP', 'command', RespError(b"NOPERM User woken has no permissions to run the 'blmpop' command"), [], [], 0), ('BZMPOP', 'key', RespError(b'NOPERM No permissions to access a key'), [], [], 0), ('BZMPOP', 'command', RespError(b"NOPERM User woken has no permissions to run the 'bzmpop' command"), [], [], 0)]
+aclfix wake-pop FAIL (1.196s)

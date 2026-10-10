@@ -1,0 +1,13 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-aclfix/build/aclfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25042", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aclfix/docs/aclfix/pre-1s/streams-name", "--aclfile", "/home/user/Projects/cx-aclfix/docs/aclfix/pre-1s/streams-name/users.acl", "--shards", "16", "--thread-mode", "1s", "--read-local", "1"], "case": "streams-name"}
+XREADGROUP RespError(b'NOPERM No permissions to access a key') pending [0, None, None, None]
+SIGTERM exit 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 362, in main
+    with listener(args), connection(args.port) as admin:
+  File "/usr/lib/python3.12/contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 346, in listener
+    assert probe.connect_ex(("127.0.0.1", args.port)) != 0, "listener survived stop"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: listener survived stop
+aclfix streams-name FAIL (0.213s)
