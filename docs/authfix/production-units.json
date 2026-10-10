@@ -70,6 +70,19 @@
       "log": "build/authfix/production-units-build.log",
       "exit": 0,
       "seconds": 1064.4006601781584
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-j16",
+        "mdbqsbr-live-arms"
+      ],
+      "log": "build/authfix/mdbqsbr-build.log",
+      "exit": 0,
+      "seconds": 1154.1782127479091
     }
   ],
   "freshness": {

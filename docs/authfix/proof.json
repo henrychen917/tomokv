@@ -53,5 +53,18 @@
     0,
     1
   ],
-  "oracle_version": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746"
+  "oracle_version": "Redis server v=7.4.10 sha=f103d127:0 malloc=jemalloc-5.3.0 bits=64 build=f39586913084a746",
+  "production_builds": "28/28 targets built and fresh; both mdbqsbr-live-arms built",
+  "differential_comparison_legs": 80,
+  "differential_failures": 0,
+  "read_local_witnesses": 2,
+  "scheduler_tests": "FAIL: 9 of 66 in initial run; 14 of 66 in serial-fixture replay",
+  "gate_counts": {
+    "dq": 5,
+    "df": 5,
+    "expected_quick_owner_update": 516,
+    "expected_full_owner_update": 533
+  },
+  "final_origin_cpp": "5146b78ee89b64748dd46db970efa8086f653fa0",
+  "default_build_freshness_exit": 0
 }

@@ -1,0 +1,62 @@
+{
+  "split": {
+    "pass": 40,
+    "fail": 0,
+    "runtime": "18m10s",
+    "comparison_legs": 40,
+    "suites": [
+      "servertail",
+      "compatintro",
+      "ccfix",
+      "aclsel",
+      "climon"
+    ],
+    "seeds": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "atomics": [
+      0,
+      1
+    ],
+    "target_cores": "112-119",
+    "oracle_cores": "120",
+    "load_cores": "121-127",
+    "ports": [
+      25038,
+      25039
+    ]
+  },
+  "armed-fused": {
+    "pass": 42,
+    "fail": 0,
+    "runtime": "19m17s",
+    "comparison_legs": 40,
+    "suites": [
+      "servertail",
+      "compatintro",
+      "ccfix",
+      "aclsel",
+      "climon"
+    ],
+    "seeds": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "atomics": [
+      0,
+      1
+    ],
+    "target_cores": "112-119",
+    "oracle_cores": "120",
+    "load_cores": "121-127",
+    "ports": [
+      25038,
+      25039
+    ]
+  }
+}

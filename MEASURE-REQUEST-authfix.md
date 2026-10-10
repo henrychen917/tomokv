@@ -124,16 +124,19 @@ non-padding field offsets remain fixed. Config's reserved tail starts at byte
 584 instead of 580, leaving 40 spare bytes after the new length word.
 [Full layout receipt](docs/authfix/layouts.json).
 
-Proof completed so far:
+Proof on the committed default POST:
 
 - PRE and POST `make -j16 all`: pass. All 28 `job_production_units` targets:
   build pass and **28/28 make -q freshness checks pass**, including netcmd-unit.
-  The two `mdbqsbr-live-arms` binaries are still building.
+  Both `mdbqsbr-live-arms` binaries also built successfully.
 - Config parser unit and `tests/docs_drift.py --self-test`: pass.
 - POST `tests/auth.py` and `tests/slowlog.py`: pass in both modes. The latter's
   successful replay uses its required `--enable-debug-command yes` boot option.
 - Differential split: **40/40 pass**, five requested suites, four requested
-  seeds, atomics 0/1, 6:2 and 16 shards. Armed-fused is still running.
+  seeds, atomics 0/1, 6:2 and 16 shards. Armed-fused: **40/40 pass**, plus
+  both read-local execution witnesses. Combined: **80/80 differential legs**,
+  zero differences, and **2/2 armed witnesses**. Both servers stopped after
+  each geometry; all assigned ports are closed. [Matrix receipt](docs/authfix/differ.json).
 - `tests/gates_test.py`: **not passing**. The first all-16-CPU run finished
   66 tests with nine scheduler deadline failures. A repeat limited to one
   four-CPU fixture group finished with 14 failures. Both use unchanged
@@ -146,9 +149,13 @@ DEBUG-disabled slowlog attempts under `standard/`, are retained as setup failure
 They are not the negative controls or passing slowlog proof. The authoritative
 paths are `pre-verified/`, `post/`, `acl-preview/`, and `slowlog-debug/`.
 
-After the ACL ownership decision and count update, mainline must run the gate
-and its ordinary performance null on the quiet box, comparing the fixed default
-POST to PRE using the existing cells and verdict rules. The helper/text changes
+After the ACL ownership decision, apply the prepared change, rebuild the default
+POST and all required unit/live-arm targets, and repeat proof against that final
+source. The review arm has only the five new-row checks; the full differential
+matrix above belongs to the current default POST. Resolve the scheduler failures
+and have the owner update the counts before declaring the landing green. Mainline
+then runs the gate and its ordinary performance null on the quiet box, comparing
+the fixed default POST to PRE using the existing cells and verdict rules. The helper/text changes
 above are the reason a performance null is still needed. No PAD arm or performance
 result is supplied by this correctness lane.
 
@@ -166,3 +173,7 @@ Identity commands and binary/source identities are retained in
 [proof.json](docs/authfix/proof.json). The full byte comparison uses
 `tools/lbstall_artifacts.py compare`, `tools/ccfix_audit.py` and
 `docs/deadswitch/linked_bytes.py`, as requested.
+
+Final upstream check: `git fetch origin cpp` still resolves to
+`5146b78ee89b64748dd46db970efa8086f653fa0`; no merge was needed.
+Default `make -q all`, patch applicability, and `git diff --check` pass.
