@@ -285,6 +285,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # eight rows collected above the quick-tier exit (+8 quick, +8 full).
 # overlapaxe: retire only split-overlap WB row, collected before quick exit (-1/-1).
 # Matrix client-lb dimension preserves every former split correctness scenario.
+# authfix: five rows collected before quick exit; DQ=+5 / DF=+5.
+# Maintainer must set EXPECT_QUICK=511+5=516 and EXPECT_FULL=528+5=533.
 EXPECT_QUICK=511
 EXPECT_FULL=528                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -1031,7 +1033,7 @@ plan_jobs(){
               reorder_sync reorder_engagement reorder_identity
               core_units climonfix persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck sort script_bounds
-              efficiency dump_restore auth notify flip flip_saturated atomic_floor
+              efficiency dump_restore auth authfix notify flip flip_saturated atomic_floor
               aof_frame tls fused-0 fused-1)
   [ "$TIER" != full ] || JOB_NAMES+=(asan_batteries replyoff zc rlcache globcase)
   for FM in 1s 2s; do
@@ -2155,6 +2157,36 @@ row_begin "DUMP/RESTORE restart shutdown invariants"
 shutdown_clean \
     && ok "DUMP/RESTORE restart shutdown invariants" \
     || bad "DUMP/RESTORE restart shutdown invariants"
+}
+
+job_authfix(){
+# Each row owns fresh config files, server PIDs and this worker's reserved port.
+stop
+row_begin "authfix CG4.1 binary config requirepass"
+py tests/authfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" \
+    --case config-nul --output "$TMPDIR/authfix-config" >"$TMPDIR/authfix-config.log" 2>&1 \
+    && ok "authfix CG4.1 binary config requirepass" \
+    || bad "authfix CG4.1 binary config requirepass" "see $TMPDIR/authfix-config.log"
+row_begin "authfix CG4.2 missing config value refuses boot"
+py tests/authfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" \
+    --case arity --output "$TMPDIR/authfix-arity" >"$TMPDIR/authfix-arity.log" 2>&1 \
+    && ok "authfix CG4.2 missing config value refuses boot" \
+    || bad "authfix CG4.2 missing config value refuses boot" "see $TMPDIR/authfix-arity.log"
+row_begin "authfix SV4.2 binary requirepass rewrite restart"
+py tests/authfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" \
+    --case rewrite --output "$TMPDIR/authfix-rewrite" >"$TMPDIR/authfix-rewrite.log" 2>&1 \
+    && ok "authfix SV4.2 binary requirepass rewrite restart" \
+    || bad "authfix SV4.2 binary requirepass rewrite restart" "see $TMPDIR/authfix-rewrite.log"
+row_begin "authfix SV4.1 slowlog credential redaction (1s)"
+py tests/authfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" \
+    --case slowlog-1s --output "$TMPDIR/authfix-slowlog-1s" >"$TMPDIR/authfix-slowlog-1s.log" 2>&1 \
+    && ok "authfix SV4.1 slowlog credential redaction (1s)" \
+    || bad "authfix SV4.1 slowlog credential redaction (1s)" "see $TMPDIR/authfix-slowlog-1s.log"
+row_begin "authfix SV4.1 slowlog credential redaction (2s)"
+py tests/authfix.py --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" --ratio "$GATE_RATIO" \
+    --case slowlog-2s --output "$TMPDIR/authfix-slowlog-2s" >"$TMPDIR/authfix-slowlog-2s.log" 2>&1 \
+    && ok "authfix SV4.1 slowlog credential redaction (2s)" \
+    || bad "authfix SV4.1 slowlog credential redaction (2s)" "see $TMPDIR/authfix-slowlog-2s.log"
 }
 
 job_auth(){
@@ -3343,6 +3375,7 @@ collect_job efficiency
 collect_job dump_restore
 
 collect_job auth
+collect_job authfix
 
 for NET_IO in epoll uring; do collect_job "snapshot-$NET_IO"; done
 

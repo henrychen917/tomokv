@@ -1,0 +1,5 @@
+
+*** FATAL CONFIG FILE ERROR (Redis 7.4.10) ***
+Reading the configuration file, at line 1
+>>> 'dir'
+wrong number of arguments

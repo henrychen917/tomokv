@@ -133,7 +133,7 @@ class Server:
         while listeners(self.port) and time.monotonic() < deadline:
             time.sleep(.02)
         self.meta.update(exit=self.process.returncode, port_closed=not listeners(self.port))
-        (self.path / 'lifecycle.json').write_text(json.dumps(self.meta, indent=2) + '\n')
+        (self.path / 'lifecycle.json').write_text(json.dumps(clean(self.meta), indent=2) + '\n')
         assert self.meta['port_closed'] and not self.meta.get('forced_kill'), self.meta
 
     def client(self):
