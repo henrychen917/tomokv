@@ -285,6 +285,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # eight rows collected above the quick-tier exit (+8 quick, +8 full).
 # overlapaxe: retire only split-overlap WB row, collected before quick exit (-1/-1).
 # Matrix client-lb dimension preserves every former split correctness scenario.
+# savefix: 12 rows per network engine in snapshot/aof, collected BEFORE quick exit.
+# DQ=DF=24; owner update required: 511+24=535 quick, 528+24=552 full.
 EXPECT_QUICK=511
 EXPECT_FULL=528                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -2303,6 +2305,32 @@ local NET_IO=${1##*-}
       || bad "typed snapshot race reload ($NET_IO)" \
              "see $TMPDIR/gate-snapshot-race-${NET_IO}.txt"
   stop
+
+  # Each savefix row owns its boot and recovery; stop the job's listener first.
+  for SAVEFIX_MODE in 1s 2s; do
+    for SAVEFIX_ACTION in sigterm command; do
+      row_begin "shutdown keeps acknowledged writes ($SAVEFIX_MODE, $SAVEFIX_ACTION, $NET_IO)"
+      py tests/savefix.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+          --case acks --mode "$SAVEFIX_MODE" --action "$SAVEFIX_ACTION" \
+          --net-io "$NET_IO" --ratio "$GATE_RATIO" \
+          --output "$TMPDIR/savefix-acks-$SAVEFIX_MODE-$SAVEFIX_ACTION" \
+          >"$TMPDIR/savefix-acks-$SAVEFIX_MODE-$SAVEFIX_ACTION.log" 2>&1 \
+          && ok "shutdown keeps acknowledged writes ($SAVEFIX_MODE, $SAVEFIX_ACTION, $NET_IO)" \
+          || bad "shutdown keeps acknowledged writes ($SAVEFIX_MODE, $SAVEFIX_ACTION, $NET_IO)" \
+                 "see $TMPDIR/savefix-acks-$SAVEFIX_MODE-$SAVEFIX_ACTION.log"
+    done
+    for SAVEFIX_ATOMIC in 0 1; do
+      row_begin "shutdown cancels BGSAVE capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)"
+      py tests/savefix.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+          --case bgsave --mode "$SAVEFIX_MODE" --atomic "$SAVEFIX_ATOMIC" \
+          --net-io "$NET_IO" --ratio "$GATE_RATIO" \
+          --output "$TMPDIR/savefix-bgsave-$SAVEFIX_MODE-$SAVEFIX_ATOMIC" \
+          >"$TMPDIR/savefix-bgsave-$SAVEFIX_MODE-$SAVEFIX_ATOMIC.log" 2>&1 \
+          && ok "shutdown cancels BGSAVE capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)" \
+          || bad "shutdown cancels BGSAVE capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)" \
+                 "see $TMPDIR/savefix-bgsave-$SAVEFIX_MODE-$SAVEFIX_ATOMIC.log"
+    done
+  done
 }
 
 job_notify(){
@@ -2570,6 +2598,22 @@ for PERSIST_MODE in 2s 1s; do
       bad "AOF in-window $PERSIST_CASE recovery ($PERSIST_MODE, $NET_IO)" \
           "see $TMPDIR/persistfix-$PERSIST_MODE-$PERSIST_CASE.log"
     fi
+  done
+done
+
+# persistfix rows above own and reap their processes. This row owns the same
+# now-free port, including its recovery boot; the following boot takes it back.
+for SAVEFIX_MODE in 1s 2s; do
+  for SAVEFIX_ATOMIC in 0 1; do
+    row_begin "shutdown cancels AOF rewrite capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)"
+    py tests/savefix.py --binary "$CANDIDATE_BINARY" --cores "$CORES" --port "$PORT" \
+        --case rewrite --mode "$SAVEFIX_MODE" --atomic "$SAVEFIX_ATOMIC" \
+        --net-io "$NET_IO" --ratio "$GATE_RATIO" \
+        --output "$TMPDIR/savefix-rewrite-$SAVEFIX_MODE-$SAVEFIX_ATOMIC" \
+        >"$TMPDIR/savefix-rewrite-$SAVEFIX_MODE-$SAVEFIX_ATOMIC.log" 2>&1 \
+        && ok "shutdown cancels AOF rewrite capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)" \
+        || bad "shutdown cancels AOF rewrite capture ($SAVEFIX_MODE, atomic $SAVEFIX_ATOMIC, $NET_IO)" \
+               "see $TMPDIR/savefix-rewrite-$SAVEFIX_MODE-$SAVEFIX_ATOMIC.log"
   done
 done
 

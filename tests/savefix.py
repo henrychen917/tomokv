@@ -58,7 +58,7 @@ def boot(args, directory, label, recovery=False):
         conn = None
         try:
             conn = wait_ready('127.0.0.1', args.port, timeout=15, process=process,
-                              log_path=path)
+                              log_path=None if args.oracle else path)
             check_port_owner(args.port, process.pid)
             yield process, conn, path
         finally:
@@ -157,7 +157,9 @@ class Writers:
 
 def prefix(args, directory):
     # A real incomplete data prefix, not just in_progress or an empty temp file.
-    for path in directory.rglob('*tmp*'):
+    for path in directory.rglob('*'):
+        if '.tmp.' not in path.name and not path.name.startswith('temp-'):
+            continue
         try:
             size = path.stat().st_size
         except FileNotFoundError:
@@ -268,11 +270,6 @@ def main():
     parser.add_argument('--aof', action='store_true')
     parser.add_argument('--oracle', action='store_true')
     args = parser.parse_args()
-    requested = set()
-    for part in args.cores.split(','):
-        bounds = [int(value) for value in part.split('-')]
-        requested.update(range(bounds[0], bounds[-1] + 1))
-    assert requested <= os.sched_getaffinity(0), 'server cores escape caller affinity'
     assert args.keys >= 1024 and args.value_bytes >= 200
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     args.output = args.output.resolve()

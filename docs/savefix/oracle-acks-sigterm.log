@@ -1,0 +1,19 @@
+{"event": "start", "load": {"cpu_ticks": ["cpu112 9870642 357 2666973 313977656 3004260 0 989379 0 0 0", "cpu113 9174823 373 2403376 315028209 3062150 0 843215 0 0 0", "cpu114 9095819 256 2303009 315259437 3053258 0 807980 0 0 0", "cpu115 8963537 86 2267682 315449187 3025858 0 809054 0 0 0", "cpu116 9184549 448 2210846 315321443 3007586 0 787799 0 0 0", "cpu117 8887159 272 2170636 315636903 3038109 0 790691 0 0 0", "cpu118 9692044 356 2460301 315047732 2429733 0 892228 0 0 0", "cpu119 9787644 733 2560765 314739221 2464576 0 941708 0 0 0", "cpu120 9776185 926 2469176 316768804 507841 0 938958 0 0 0", "cpu121 9164107 845 2297591 317668458 493158 0 844076 0 0 0", "cpu122 8911646 1141 2122541 318107925 530773 0 790256 0 0 0", "cpu123 8721486 1057 2078753 318378041 509279 0 768563 0 0 0", "cpu124 8743137 770 2062642 318485911 431614 0 752938 0 0 0", "cpu125 8776705 2535 2049729 318469264 438964 0 749125 0 0 0", "cpu126 9072489 1210 2232733 317868123 441526 0 875911 0 0 0", "cpu127 9715119 1077 2518721 316626578 428142 0 1111287 0 0 0"], "cpus": [112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127], "loadavg": "145.74 90.63 51.59 141/4330 3209244"}, "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b"}
+{"argv": ["taskset", "-c", "120", "/home/user/Projects/redis/src/redis-server", "--bind", "127.0.0.1", "--port", "25027", "--dir", "/home/user/Projects/cx-savefix/build/savefix/oracle-acks-sigterm/attempt-1", "--save", "3600 1", "--appendonly", "no", "--appendfsync", "everysec", "--auto-aof-rewrite-percentage", "0", "--protected-mode", "no"], "event": "boot", "pid": 3209291}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-savefix/tests/savefix.py", line 290, in <module>
+    main()
+  File "/home/user/Projects/cx-savefix/tests/savefix.py", line 281, in main
+    result = attempt(args, directory)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-savefix/tests/savefix.py", line 173, in attempt
+    with boot(args, directory, 'write') as (process, conn, log):
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-savefix/tests/savefix.py", line 60, in boot
+    conn = wait_ready('127.0.0.1', args.port, timeout=15, process=process,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-savefix/tests/_lib.py", line 307, in wait_ready
+    raise TimeoutError("server readiness timed out after %.3fs: %s" % (timeout, last))
+TimeoutError: server readiness timed out after 15.000s: ready banner absent
