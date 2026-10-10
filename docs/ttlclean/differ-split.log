@@ -1,0 +1,17 @@
+DIFFER FOCUSED PROOF: selected suites only; not a full differential matrix
+DIFFER suites (2): edgetime hexpire
+DIFFER geometry: split (--ratio 3)
+DIFFER matrix: atomic={0 1} seeds={7 19 20 23} legs=16 logs=/home/user/Projects/cx-ttlclean/build/ttlclean/differ-split
+  vanilla Redis oracle boot                                  ok (pid=2262544 port=18791)
+  oracle identity                                            ok (vanilla redis_version=7.4.10)
+  target atomic=0 boot                                       FAIL (see /home/user/Projects/cx-ttlclean/build/ttlclean/differ-split/target-atomic-0.log)
+  oracle stop                                                ok (port 18791 free)
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-ttlclean/tests/_differ_history.py", line 281, in <module>
+    main()
+  File "/home/user/Projects/cx-ttlclean/tests/_differ_history.py", line 269, in main
+    summarize(args.directory)
+  File "/home/user/Projects/cx-ttlclean/tests/_differ_history.py", line 154, in summarize
+    raise ValueError('no executed differential comparison coverage artifacts')
+ValueError: no executed differential comparison coverage artifacts
+DIFFER FOCUSED PROOF: pass=0 fail=2 runtime=0m01s

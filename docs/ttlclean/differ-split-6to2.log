@@ -1,0 +1,30 @@
+DIFFER FOCUSED PROOF: selected suites only; not a full differential matrix
+DIFFER suites (2): edgetime hexpire
+DIFFER geometry: split (--ratio 6:2)
+DIFFER matrix: atomic={0 1} seeds={7 19 20 23} legs=16 logs=/home/user/Projects/cx-ttlclean/build/ttlclean/differ-split-6to2
+  vanilla Redis oracle boot                                  ok (pid=2264372 port=18791)
+  oracle identity                                            ok (vanilla redis_version=7.4.10)
+  target atomic=0 boot                                       ok (pid=2264397 port=18790)
+  differ edgetime (atomic=0 seed=7)                          ok (DIFFER edgetime: 4427 ops, 0 diffs, 77 deadline-bounded TTL checks -> PASS)
+  differ hexpire (atomic=0 seed=7)                           ok (DIFFER hexpire: 4288 ops, 0 diffs, 299 deadline-bounded TTL checks -> PASS)
+  differ edgetime (atomic=0 seed=19)                         ok (DIFFER edgetime: 4427 ops, 0 diffs, 73 deadline-bounded TTL checks -> PASS)
+  differ hexpire (atomic=0 seed=19)                          ok (DIFFER hexpire: 4288 ops, 0 diffs, 291 deadline-bounded TTL checks -> PASS)
+  differ edgetime (atomic=0 seed=20)                         ok (DIFFER edgetime: 4427 ops, 0 diffs, 64 deadline-bounded TTL checks -> PASS)
+  differ hexpire (atomic=0 seed=20)                          ok (DIFFER hexpire: 4288 ops, 0 diffs, 280 deadline-bounded TTL checks -> PASS)
+  differ edgetime (atomic=0 seed=23)                         ok (DIFFER edgetime: 4427 ops, 0 diffs, 61 deadline-bounded TTL checks -> PASS)
+  differ hexpire (atomic=0 seed=23)                          ok (DIFFER hexpire: 4288 ops, 0 diffs, 327 deadline-bounded TTL checks -> PASS)
+  target atomic=0 stop                                       ok (port 18790 free)
+  target atomic=1 boot                                       ok (pid=2264464 port=18790)
+  differ edgetime (atomic=1 seed=7)                          ok (DIFFER edgetime: 4427 ops, 0 diffs, 77 deadline-bounded TTL checks -> PASS)
+  differ hexpire (atomic=1 seed=7)                           ok (DIFFER hexpire: 4288 ops, 0 diffs, 299 deadline-bounded TTL checks -> PASS)
+  differ edgetime (atomic=1 seed=19)                         ok (DIFFER edgetime: 4427 ops, 0 diffs, 73 deadline-bounded TTL checks -> PASS)
+  differ hexpire (atomic=1 seed=19)                          ok (DIFFER hexpire: 4288 ops, 0 diffs, 291 deadline-bounded TTL checks -> PASS)
+  differ edgetime (atomic=1 seed=20)                         ok (DIFFER edgetime: 4427 ops, 0 diffs, 64 deadline-bounded TTL checks -> PASS)
+  differ hexpire (atomic=1 seed=20)                          ok (DIFFER hexpire: 4288 ops, 0 diffs, 280 deadline-bounded TTL checks -> PASS)
+  differ edgetime (atomic=1 seed=23)                         ok (DIFFER edgetime: 4427 ops, 0 diffs, 61 deadline-bounded TTL checks -> PASS)
+  differ hexpire (atomic=1 seed=23)                          ok (DIFFER hexpire: 4288 ops, 0 diffs, 327 deadline-bounded TTL checks -> PASS)
+  target atomic=1 stop                                       ok (port 18790 free)
+  oracle stop                                                ok (port 18791 free)
+DIFFER COMMAND COVERAGE: diffed 48 of 245 registered commands (69720 recorded comparison witnesses, 16 legs)
+  not observed in compared replies/properties: ACL, APPEND, ASKING, AUTH, BGREWRITEAOF, BGSAVE, BITCOUNT, BITFIELD, BITFIELD_RO, BITOP, BITPOS, BLMOVE, BLMPOP, BLPOP, BRPOP, BRPOPLPUSH, BZMPOP, BZPOPMAX, BZPOPMIN, CLIENT, COMMAND, CONFIG, DBSIZE, DECR, DECRBY, DISCARD, DUMP, ECHO, EVAL, EVALSHA, EVALSHA_RO, EVAL_RO, EXEC, FAILOVER, FCALL, FCALL_RO, FLIP, FLUSHALL, FLUSHDB, FUNCTION, GEOADD, GEODIST, GEOHASH, GEOPOS, GEORADIUS, GEORADIUSBYMEMBER, GEORADIUSBYMEMBER_RO, GEORADIUS_RO, GEOSEARCH, GEOSEARCHSTORE, GETBIT, GETDEL, GETRANGE, GETSET, HELLO, HINCRBYFLOAT, HKEYS, HMSET, HRANDFIELD, HSCAN, HVALS, INCR, INCRBY, INCRBYFLOAT, INFO, LASTSAVE, LATENCY, LCS, LINDEX, LINSERT, LLEN, LMOVE, LMPOP, LOLWUT, LPOP, LPOS, LPUSH, LPUSHX, LRANGE, LREM, LSET, LTRIM, MONITOR, MOVE, MSETNX, MULTI, OBJECT, PFADD, PFCOUNT, PFDEBUG, PFMERGE, PFSELFTEST, PING, PSUBSCRIBE, PUBLISH, PUBSUB, PUNSUBSCRIBE, QUIT, RANDOMKEY, READONLY, READWRITE, RENAMENX, REPLICAOF, RESET, RESTORE, RESTORE-ASKING, ROLE, RPOP, RPOPLPUSH, RPUSH, RPUSHX, SAVE, SCAN, SCARD, SCRIPT, SDIFF, SDIFFSTORE, SELECT, SETBIT, SETNX, SETRANGE, SHUTDOWN, SINTER, SINTERCARD, SISMEMBER, SLAVEOF, SLOWLOG, SMISMEMBER, SMOVE, SORT, SORT_RO, SPOP, SPUBLISH, SRANDMEMBER, SREM, SSCAN, SSUBSCRIBE, SUBSCRIBE, SUBSTR, SUNION, SUNIONSTORE, SUNSUBSCRIBE, SWAPDB, TIME, UNLINK, UNSUBSCRIBE, UNWATCH, WAIT, WAITAOF, WATCH, XACK, XADD, XAUTOCLAIM, XCLAIM, XDEL, XGROUP, XINFO, XLEN, XPENDING, XRANGE, XREAD, XREADGROUP, XREVRANGE, XSETID, XTRIM, ZADD, ZCARD, ZCOUNT, ZDIFF, ZDIFFSTORE, ZINCRBY, ZINTER, ZINTERCARD, ZINTERSTORE, ZLEXCOUNT, ZMPOP, ZMSCORE, ZPOPMAX, ZPOPMIN, ZRANDMEMBER, ZRANGE, ZRANGEBYLEX, ZRANGEBYSCORE, ZRANGESTORE, ZRANK, ZREM, ZREMRANGEBYLEX, ZREMRANGEBYRANK, ZREMRANGEBYSCORE, ZREVRANGE, ZREVRANGEBYLEX, ZREVRANGEBYSCORE, ZREVRANK, ZSCAN, ZSCORE, ZUNION, ZUNIONSTORE
+DIFFER FOCUSED PROOF: pass=16 fail=0 runtime=0m05s

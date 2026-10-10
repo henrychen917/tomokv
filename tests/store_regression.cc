@@ -465,17 +465,16 @@ static void hash_bytes() {
     }
 }
 
-static void deadline_sidecar() {
-    require(kTtlDeadlineSidecar, "deadline case must run a sidecar-enabled build");
+static void deadline_allocation_failure() {
     FlatStore s; s.set_cached_now_ms(100);
     for (unsigned i = 0; i < 11; i++) put(s, "ttl-" + std::to_string(i), "value", 200);
     require(s.expire_count() == 11, "index at allocation-triggering occupancy");
     flatstore_debug_fail_table_allocations(1);
     require(s.set_expire(hash("ttl-0"), slice(std::string("ttl-0")), 400) == FlatStore::TtlResult::Updated,
             "deadline extension completes despite attention allocation failure");
-    require(g_flatstore_table_alloc_failures.load() == 0, "sidecar growth allocation failed");
+    require(g_flatstore_table_alloc_failures.load() == 0, "expiry-index growth allocation failed");
     s.set_cached_now_ms(201); KvObj* o = s.find(hash("ttl-0"), slice(std::string("ttl-0")));
-    require(o && s.deadline(hash("ttl-0"), o) == 400, "stale sidecar cannot expire extended deadline");
+    require(o && s.deadline(hash("ttl-0"), o) == 400, "inline deadline survives index allocation failure");
     s.set_cached_now_ms(401);
     require(s.find(hash("ttl-0"), slice(std::string("ttl-0"))) == nullptr, "extended deadline still expires");
 }
@@ -486,7 +485,8 @@ int main(int argc, char** argv) {
     const Case cases[] = {{"unlinked", unlinked}, {"randomkey", randomkey}, {"rehash", rehash_capacity},
         {"rollback", rollback}, {"snapshot-eviction", snapshot_eviction}, {"flags", flags},
         {"aof-eviction", aof_eviction}, {"intents", intents}, {"imported-hash", imported_hash},
-        {"field-index-failure", field_index_failure}, {"hash-bytes", hash_bytes}, {"deadline-sidecar", deadline_sidecar}};
+        {"field-index-failure", field_index_failure}, {"hash-bytes", hash_bytes},
+        {"deadline-allocation-failure", deadline_allocation_failure}};
     for (const auto& c : cases) if (std::strcmp(argv[1], c.name) == 0) {
         c.run(); std::printf("PASS storage %s\n", c.name); return 0;
     }

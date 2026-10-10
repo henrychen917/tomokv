@@ -1,0 +1,1 @@
+DIFFER hexpire: 4288 ops, 0 diffs, 327 deadline-bounded TTL checks -> PASS

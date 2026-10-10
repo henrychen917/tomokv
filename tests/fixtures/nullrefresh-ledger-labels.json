@@ -1,7 +1,7 @@
 {
   "source": "/home/user/Projects/cx-final/build/gate-ledger-iteration.txt",
   "source_sha256": "8c1e51707e09366c289fbbe39466844d5936e8e027843897719adea590cb3304",
-  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows",
+  "purpose": "serverless expected-label fixture only, never evidence of lane execution; derived from the cited source by removing the retired split-overlap-only writeback row (overlapaxe, -1 quick/-1 full), retaining all eight aclkeys4 SWAPDB/XREAD wake rows; ttlclean adapts the deadline-sidecar row to inline deadline-allocation-failure coverage (+0 quick/+0 full)",
   "labels": [
     "release build (+footprint locks)",
     "ASAN build",
@@ -62,7 +62,7 @@
     "storage imported-hash regression",
     "storage field-index-failure regression",
     "storage hash-bytes regression",
-    "storage deadline-sidecar regression",
+    "storage deadline-allocation-failure regression",
     "flushfix flush witnesses",
     "flushfix headers witnesses",
     "multidb serverless owners",
