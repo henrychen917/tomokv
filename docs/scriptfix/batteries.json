@@ -1,0 +1,142 @@
+[
+  {
+    "mode": "2s",
+    "read_local": 0,
+    "battery": "lua_scripting",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/lua_scripting.py",
+      "127.0.0.1",
+      "25064"
+    ],
+    "exit_code": 0,
+    "log": "docs/scriptfix/lua_scripting-2s.log",
+    "seconds": 0.628
+  },
+  {
+    "mode": "2s",
+    "read_local": 0,
+    "battery": "scriptsurf",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/scriptsurf.py",
+      "127.0.0.1",
+      "25064",
+      "127.0.0.1",
+      "25065"
+    ],
+    "exit_code": 0,
+    "log": "docs/scriptfix/scriptsurf-2s.log",
+    "seconds": 2.628
+  },
+  {
+    "mode": "2s",
+    "read_local": 0,
+    "battery": "xscript",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/xscript.py",
+      "127.0.0.1",
+      "25064"
+    ],
+    "exit_code": 0,
+    "log": "docs/scriptfix/xscript-2s.log",
+    "seconds": 4.751
+  },
+  {
+    "mode": "2s",
+    "read_local": 0,
+    "battery": "scriptatomic",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/scriptatomic.py",
+      "127.0.0.1",
+      "25064"
+    ],
+    "exit_code": 0,
+    "log": "docs/scriptfix/scriptatomic-2s.log",
+    "seconds": 2.813
+  },
+  {
+    "mode": "1s",
+    "read_local": 1,
+    "battery": "lua_scripting",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/lua_scripting.py",
+      "127.0.0.1",
+      "25064"
+    ],
+    "exit_code": 0,
+    "log": "docs/scriptfix/lua_scripting-1s.log",
+    "seconds": 0.676
+  },
+  {
+    "mode": "1s",
+    "read_local": 1,
+    "battery": "scriptsurf",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/scriptsurf.py",
+      "127.0.0.1",
+      "25064",
+      "127.0.0.1",
+      "25065"
+    ],
+    "exit_code": 0,
+    "log": "docs/scriptfix/scriptsurf-1s.log",
+    "seconds": 1.832
+  },
+  {
+    "mode": "1s",
+    "read_local": 1,
+    "battery": "xscript",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/xscript.py",
+      "127.0.0.1",
+      "25064"
+    ],
+    "exit_code": 0,
+    "log": "docs/scriptfix/xscript-1s.log",
+    "seconds": 4.855
+  },
+  {
+    "mode": "1s",
+    "read_local": 1,
+    "battery": "scriptatomic",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/scriptatomic.py",
+      "127.0.0.1",
+      "25064"
+    ],
+    "exit_code": 0,
+    "log": "docs/scriptfix/scriptatomic-1s.log",
+    "seconds": 1.085
+  }
+]

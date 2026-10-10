@@ -115,7 +115,7 @@ def server(args):
            "--bind", "127.0.0.1", "--port", str(args.port), "--save", "",
            "--appendonly", "no", "--dir", str(directory)]
     if args.engine == "tomo":
-        cmd += ["--shards", "16", "--thread-mode", args.mode, "--read-local", "0",
+        cmd += ["--shards", "16", "--thread-mode", args.mode, "--read-local", str(args.read_local),
                 "--flip-auto", "0", "--atomic", str(args.atomic),
                 "--enable-debug-command", "yes"]
         if args.mode == "2s":
@@ -360,6 +360,7 @@ def main():
     ap.add_argument("--mode", choices=("1s", "2s"), required=True)
     ap.add_argument("--engine", choices=("tomo", "redis"), default="tomo")
     ap.add_argument("--atomic", type=int, choices=(0, 1), default=0)
+    ap.add_argument("--read-local", type=int, choices=(0, 1), default=0)
     ap.add_argument("--single-state", action="store_true")
     ap.add_argument("--output", default="build/scriptfix/runtime")
     args = ap.parse_args()
