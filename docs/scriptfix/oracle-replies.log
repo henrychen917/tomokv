@@ -1,4 +1,4 @@
-{"start": ["taskset", "-c", "120", "/home/user/Projects/redis/src/redis-server", "--bind", "127.0.0.1", "--port", "25057", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-scriptfix/build/scriptfix/runtime/replies-1s-22at4d2j"], "pid": 3313006}
+{"start": ["taskset", "-c", "120", "/home/user/Projects/redis/src/redis-server", "--bind", "127.0.0.1", "--port", "25057", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-scriptfix/build/scriptfix/runtime/replies-1s-ocey05rl"], "pid": 3800731}
 {"actual": 10000, "check": "RESP2 array depth 4", "expected": 10000, "pass": true}
 {"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
 {"actual": 100000, "check": "RESP2 array depth 5", "expected": 100000, "pass": true}
@@ -13,6 +13,18 @@
 {"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
 {"actual": 211110, "check": "oracle FCALL map", "expected": 211110, "pass": true}
 {"actual": "PONG", "check": "PING after FCALL conversion", "expected": "PONG", "pass": true}
+{"actual": 99799, "check": "RESP2 array budget 100000", "expected": 99799, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 99800, "check": "RESP2 array budget 100001", "expected": 99800, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 99799, "check": "RESP2 map budget 100000", "expected": 99799, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 99800, "check": "RESP2 map budget 100001", "expected": 99800, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 99799, "check": "RESP2 set budget 100000", "expected": 99799, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 99800, "check": "RESP2 set budget 100001", "expected": 99800, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
 {"actual": 10000, "check": "RESP3 array depth 4", "expected": 10000, "pass": true}
 {"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
 {"actual": 100000, "check": "RESP3 array depth 5", "expected": 100000, "pass": true}
@@ -27,5 +39,17 @@
 {"actual": "PONG", "check": "PING after conversion", "expected": "PONG", "pass": true}
 {"actual": 211110, "check": "oracle FCALL map", "expected": 211110, "pass": true}
 {"actual": "PONG", "check": "PING after FCALL conversion", "expected": "PONG", "pass": true}
-{"stop": 3313006, "exit": 0, "port_closed": true}
-{"case": "replies", "mode": "1s", "checks": 28, "failures": 0, "seconds": 11.897}
+{"actual": 99799, "check": "RESP3 array budget 100000", "expected": 99799, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 99800, "check": "RESP3 array budget 100001", "expected": 99800, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 99799, "check": "RESP3 map budget 100000", "expected": 99799, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 99800, "check": "RESP3 map budget 100001", "expected": 99800, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 99799, "check": "RESP3 set budget 100000", "expected": 99799, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"actual": 99800, "check": "RESP3 set budget 100001", "expected": 99800, "pass": true}
+{"actual": "PONG", "check": "PING after boundary", "expected": "PONG", "pass": true}
+{"stop": 3800731, "exit": 0, "port_closed": true}
+{"case": "replies", "mode": "1s", "checks": 52, "failures": 0, "seconds": 10.026}

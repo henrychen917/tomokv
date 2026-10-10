@@ -299,6 +299,24 @@ def replies(port, args, check):
             else:
                 check.equal("oracle FCALL map", scalar_count(got), 211110)
             check.equal("PING after FCALL conversion", c.cmd("PING"), b"PONG")
+            # Shared-budget boundary, including arrays' existing terminating scan.
+            # 99 repeated aggregates plus a final array charge exactly 100000;
+            # one more scalar must fail. Maps charge both key and value.
+            for kind in bodies:
+                width, tail = (498, 1195) if kind == "map" else (997, 1096)
+                for extra in (0, 1):
+                    wrap = "t" if kind == "array" else "{" + kind + "=t}"
+                    source = (f"local t={{}}; for i=1,{width} do t[i]='v' end; t={wrap}; "
+                              f"local u={{}}; for i=1,{tail + extra} do u[i]='v' end; "
+                              "local r={}; for i=1,99 do r[i]=t end; r[100]=u; return r")
+                    got = c.cmd("EVAL", source, 0)
+                    label = f"RESP{resp} {kind} budget {100000 + extra}"
+                    if extra and args.engine == "tomo":
+                        actual = got if isinstance(got, Error) else f"{type(got).__name__}: {scalar_count(got)} scalars"
+                        check.equal(label, actual, bound)
+                    else:
+                        check.equal(label, scalar_count(got), 99799 + extra)
+                    check.equal("PING after boundary", c.cmd("PING"), b"PONG")
 
 
 def dump(port, args, check):

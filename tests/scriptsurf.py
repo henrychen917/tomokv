@@ -229,13 +229,15 @@ try:
     # Prove invalidation of a known compiled chunk on the same executor. FLUSH must
     # preserve the interpreter's FUNCTION closures, so interpreter builds are not a witness.
     flush_key = keys[0]
-    c2.cmd("EVAL", "return 7", 1, flush_key)
-    c2.cmd("EVAL", "return 7", 1, flush_key)
-    misses_before = info_counters(c)["script_compile_misses"]
+    note("prime the chunk before flush", c2.cmd("EVAL", "return 7", 1, flush_key) == 7)
+    hits_before = info_counters(c)["script_chunk_cache_hits"]
+    note("same-owner chunk cache is armed", c2.cmd("EVAL", "return 7", 1, flush_key) == 7 and
+         info_counters(c)["script_chunk_cache_hits"] == hits_before + 1)
+    misses_before = info_counters(c)["script_chunk_cache_misses"]
     note("second SCRIPT FLUSH ok", c.cmd("SCRIPT", "FLUSH") == b"OK")
     note("EVAL still works after flush", c2.cmd("EVAL", "return 7", 1, flush_key) == 7)
     note("compiled chunk invalidated after flush",
-         info_counters(c)["script_compile_misses"] == misses_before + 1)
+         info_counters(c)["script_chunk_cache_misses"] == misses_before + 1)
 
     # ---- 3. SCRIPT subcommand surface ------------------------------------------------------
     print("[3] SCRIPT KILL / DEBUG / HELP / errors")
