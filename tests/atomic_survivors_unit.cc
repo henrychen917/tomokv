@@ -240,6 +240,46 @@ void write_latest(Server& server) {
     server.atomic_commit_publish();
     release_records(server);
 }
+void txn_intents(Server& server) {
+    static_assert(sizeof(AtomicScriptIntent) == 32);
+    static_assert(sizeof(AtomicPendingState) == 1352);
+    auto& store = server.shard(0).store();
+    const std::string key = key_on(server, 0, "txn-intent");
+    const auto hash = FlatStore::hash_key(slice(key));
+    MultiDecision first, second;
+    UnitRef one{&first.epoch, &first.aborted, &first};
+    UnitRef two{&second.epoch, &second.aborted, &second};
+    require(!store.atomic_has_records() && !server.script_intents_active(), "idle intent state");
+    require(store.atomic_unit_pin(one, hash, slice(key)) == 1, "first unit intent installed");
+    require(store.atomic_unit_pin(one, hash, slice(key)) == 0, "unit key intent deduplicated");
+    require(store.atomic_has_records() && store.atomic_needs_version(hash, slice(key)),
+            "unit intent forces the existing versioning path");
+    require(server.atomic_work_active() && !server.script_intents_active(),
+            "unit activity does not arm the script PIN guard");
+    require(store.atomic_script_pin(hash, slice(key)), "PIN coexists with a unit on the same key");
+    require(store.atomic_script_pin(hash, slice(key)), "duplicate PIN increments only PIN refs");
+    require(store.atomic_has_script_pins() && server.script_intents_active(), "PIN prefix armed");
+    require(store.atomic_unit_pin(two, 0, {}, true) == 1, "wildcard inserted after PIN prefix");
+    require(!store.atomic_has_script_intent(0, {}), "wildcard cannot match ordinary key predicate");
+    store.atomic_script_unpin(hash, slice(key));
+    require(store.atomic_has_script_pins(), "one duplicate PIN remains");
+    store.atomic_script_unpin(hash, slice(key));
+    require(!store.atomic_has_script_pins() && !server.script_intents_active(),
+            "last PIN disarms guard even while unit intents remain");
+    require(store.atomic_unit_unpin(&first) == 1 && store.atomic_has_records(),
+            "exact unit removal leaves wildcard alive");
+    require(store.atomic_cleanup_unit_intents() == 0, "cleanup retains undecided unit");
+    second.epoch.store(kAtomicCancelledEpoch, std::memory_order_release);
+    require(store.atomic_cleanup_unit_intents() == 1, "cleanup reaps decided wildcard");
+    require(!store.atomic_has_records() && !server.atomic_work_active(), "activity balances to zero");
+    require(store.atomic_script_pin(hash, slice(key)), "PIN prefix re-arms from empty");
+    require(store.atomic_unit_pin(one, hash, slice(key)) == 1, "unit appended to PIN prefix");
+    require(store.atomic_unit_unpin(&first) == 1 && server.script_intents_active(),
+            "unit removal does not decrement PIN owner accounting");
+    store.atomic_script_unpin(hash, slice(key));
+    require(!server.script_intents_active() && !store.atomic_has_records(), "final accounting");
+}
+
 void script_apply(Server& server) {
     const auto x = key_on(server, 0, "apply-x"), y = key_on(server, 1, "apply-y");
     require(local(server, {"SET", x, "B"}) == "+OK\r\n", "seed script image");
@@ -490,6 +530,7 @@ int main(int argc, char** argv) {
     else if (name == "admission") { admission(server); atomiccollapse_checks(); }
     else if (name.starts_with("collapse_")) atomiccollapse_checks(name.substr(9));
     else if (name == "script_keys") script_keys(server);
+    else if (name == "txn_intents") txn_intents(server);
     else if (name == "rename_overlay" || name == "watch_parent") rename(server, name == "watch_parent");
     else if (name == "write_latest") write_latest(server);
     else if (name == "script_apply") script_apply(server);
