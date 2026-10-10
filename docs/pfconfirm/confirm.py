@@ -34,8 +34,8 @@ from abba_workloads import MULTI_KEYS, command_histogram, command_stat, percenti
 from gate_quiet import QuietMonitor, QuietViolation
 from gateplan import read_topology
 
-HEADLINE = "/home/user/Projects/bench-bins/tomokv-headline-165d268be"
-DIGEST = "fa9c128af17a32a68b1eece3c5ad68f00ce5f3477b65eb1b4f44c8141e5b8434"
+HEADLINE = "/home/user/Projects/bench-bins/tomokv-headline-5146b78ee"
+DIGEST = "29637fabb42ed4ac9c5b663572c75aa3ae7f6d2745befbc3134a9c59cb5a01fc"
 SPECS = {
     "PFKEYSPA.1": ("ttl-", 40),
     "PFKEYSPA.3": ("flush-", 10),
@@ -284,7 +284,7 @@ class Campaign:
         self.server = list(range(112, 120)) if args.smoke else list(range(32))
         self.load = list(range(120, 128)) if args.smoke else list(range(32, 112))
         self.seconds = 2 if args.smoke else 20
-        self.port = 25000
+        self.port = args.port
         self.binary = self.out / "headline"
         self.cert = self.out / "cert.pem"
         self.key = self.out / "key.pem"
@@ -336,12 +336,15 @@ class Campaign:
         argv = ["taskset", "-c", cpu_string(self.server), str(self.binary),
                 "--port", str(self.port), "--bind", "127.0.0.1", "--save", "", "--appendonly", "no",
                 "--dir", str(folder), "--thread-mode", cell.mode, "--shards", str(shards),
-                "--read-local", str(cell.read_local), "--overlap", str(cell.overlap), "--reorder", "0",
+                "--read-local", str(cell.read_local), "--reorder", "0",
                 "--atomic", str(cell.atomic), "--key-lb", "1", "--client-lb", "1", "--flip-auto", "0",
                 "--enable-debug-command", "yes"]
         if cell.mode == "2s":
             argv += ["--ratio", measured_ratio("abba", len(self.server))]
-        argv += server_arguments(cell.server_flags)
+        extra = server_arguments(cell.server_flags)
+        if not any(arg == "--databases" or arg.startswith("--databases=") for arg in extra):
+            argv += ["--databases", "1"]
+        argv += extra
         if kind == "tls":
             argv += ["--tls-port", str(self.port + 1), "--tls-auth-clients", "no", "--tls-protocols", "TLSv1.3",
                      "--tls-cert-file", str(self.cert), "--tls-key-file", str(self.key)]
@@ -656,6 +659,7 @@ def main():
     parser.add_argument("--output", type=Path, required=True, help="new directory inside this worktree")
     parser.add_argument("--binary", type=Path, default=Path(HEADLINE))
     parser.add_argument("--sha256", default=DIGEST)
+    parser.add_argument("--port", type=int, default=25000)
     parser.add_argument("--memtier", default="memtier_benchmark")
     args = parser.parse_args()
     require(args.output.resolve().is_relative_to(ROOT), "output must stay inside this worktree")
@@ -689,7 +693,8 @@ def main():
         campaign.place_observer()
         # No boot/probe/load/build before the repository's strict, latched quiet screen.
         monitor = QuietMonitor(campaign.server, campaign.load, window_seconds=20,
-                               ports=(25000, 25001), sample_artifact=args.output / "quiet-samples.jsonl")
+                               ports=(campaign.port, campaign.port + 1),
+                               sample_artifact=args.output / "quiet-samples.jsonl")
         monitor.start()
         campaign.prepare()
         if not args.smoke:
