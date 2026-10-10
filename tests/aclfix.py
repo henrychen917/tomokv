@@ -59,6 +59,16 @@ def stat(admin, name):
     raise AssertionError(f"INFO stats has no {name!r}")
 
 
+def command_stats(admin, name):
+    """(calls, rejected_calls) from INFO commandstats; failed_calls is TomoKV's known CC18 gap."""
+    prefix = b"cmdstat_" + name + b":"
+    for line in admin.cmd("INFO", "commandstats").splitlines():
+        if line.startswith(prefix):
+            fields = dict(item.split(b"=", 1) for item in line[len(prefix):].split(b","))
+            return int(fields[b"calls"]), int(fields[b"rejected_calls"])
+    return 0, 0
+
+
 def sort_case(admin, port, _args):
     # Every expectation below is Redis 7.4.10's reply (docs/aclfix/oracle/sort). sort.c parses
     # options left to right and answers its first error; a user without unrestricted key access
@@ -100,6 +110,7 @@ def sort_case(admin, port, _args):
         check(user.cmd("AUTH", "sorter", "x"), b"OK", "AUTH")
         check(admin.cmd("ACL", "LOG", "RESET"), b"OK", "empty ACL LOG")
         denied_keys = stat(admin, b"acl_access_denied_key")
+        before = {name: command_stats(admin, name) for name in (b"sort", b"sort_ro")}
         for command, (arguments, want) in options:
             got = user.cmd(command, "allowed:list", *arguments)
             print(command, arguments, repr(got), flush=True)
@@ -110,6 +121,14 @@ def sort_case(admin, port, _args):
         print("option denials logged", logged, flush=True)
         if logged != (0, 0):
             failures.append(("option denials reached ACL LOG/INFO", logged))
+        # ... and it is a call of the command, never a rejected call.
+        for name in (b"sort", b"sort_ro"):
+            calls, rejected = command_stats(admin, name)
+            issued = sum(command.lower().encode() == name for command, _ in options)
+            delta = (calls - before[name][0], rejected - before[name][1])
+            print(name.decode(), "calls/rejected delta", delta, flush=True)
+            if delta != (issued, 0):
+                failures.append((name, "option replies counted as", delta, (issued, 0)))
         check(user.cmd("GET", "other:a"), DENIED, "direct GET")
         for argv in keys:
             got = user.cmd(*argv)
@@ -120,6 +139,14 @@ def sort_case(admin, port, _args):
         print("key denials logged", logged, flush=True)
         if logged != (1 + len(keys), 1 + len(keys)):
             failures.append(("each key denial is logged once", logged))
+        for name in (b"sort", b"sort_ro"):
+            calls, rejected = command_stats(admin, name)
+            issued = sum(command.lower().encode() == name for command, _ in options)
+            refused = sum(argv[0].lower().encode() == name for argv in keys)
+            delta = (calls - before[name][0], rejected - before[name][1])
+            print(name.decode(), "calls/rejected delta after key denials", delta, flush=True)
+            if delta != (issued, refused):
+                failures.append((name, "key denials counted as", delta, (issued, refused)))
     assert not failures, failures
 
 
