@@ -6,13 +6,13 @@
 
 PRE source: `5146b78ee89b64748dd46db970efa8086f653fa0`. Both the initial and repeat `git fetch origin cpp && git merge --no-edit origin/cpp` found the same base. No push.
 
-PRE binary: `build/txnfix/pre/tomokv`, SHA-256 `34d805081806001bc7e29f4530e040034c935ae0209ca153a5eeed48d52d6c9e`. Tested Stage A binary: `build/tomokv`, SHA-256 `83cb85c8bcafeb27b2622a94bde8b9da1370cfb8812af6d325ff5c44ea60345d`. The subsequent publication-OOM ordering edit requires a fresh default build and final proof; these hashes are not a final source receipt.
+PRE binary: `build/txnfix/pre/tomokv`, SHA-256 `34d805081806001bc7e29f4530e040034c935ae0209ca153a5eeed48d52d6c9e`. Repaired Stage A binary: `build/tomokv`, SHA-256 `98c16cab8fd0055575e07efd4412a22f6d7083dbc54ab142422dd83314b76cf1`, built from source `e6da23f52`. Further shutdown work and final proof remain pending; this is not a final completion receipt.
 
 ### Findings and current evidence
 
 | Finding | PRE | Stage A POST | Files / rows |
 |---|---|---|---|
-| AT4.1 EXEC isolation | T15: 22,273 / 22,763 of 32,000 increments; 9,237 duplicated INCR replies. D1/D1b/D2/D3/D5/S1 fail on data. Crossed WATCH timed out. | New txniso batteries pass split/fused, atomic 0/1, databases 1/16; V4 reload passes both modes/settings. The fused execfix timeout reproduced again on diagnostic run 19; a Rule-P watermark repair and deterministic unit are now implemented but await fresh proof. | multi.inc/h, atomics_glue.inc, atomic_mvcc.h, flatstore_atomic.inc, server.h, blocking.inc, pubsub.inc/event.h, notify.inc, shard.h, t_server.cc; four txniso rows. |
+| AT4.1 EXEC isolation | T15: 22,273 / 22,763 of 32,000 increments; 9,237 duplicated INCR replies. D1/D1b/D2/D3/D5/S1 fail on data. Crossed WATCH timed out. | New txniso batteries pass split/fused, atomic 0/1, databases 1/16; V4 reload passes both modes/settings. The fused execfix timeout reproduced on diagnostic run 19; the Rule-P watermark repair passes its deterministic unit and 30 fresh-boot execfix repetitions. All eight new battery configurations pass again after the repair. | multi.inc/h, atomics_glue.inc, atomic_mvcc.h, flatstore_atomic.inc, server.h, blocking.inc, pubsub.inc/event.h, notify.inc, shard.h, t_server.cc; four txniso rows. |
 | AT4.2 stale atomic group images | T03 loses concurrent SMOVE/LMOVE destination writes; PFMERGE 3 versus expected 6. | Bare group fix is not implemented. One atomic_torn RENAMENX anomaly was observed in split mode; provenance against PRE is pending. | Stage B / txngroup rows pending. |
 | AT4.3 MSETNX validation | T10 returns 1 and overwrites the acknowledged SET. | Not implemented; no POST success claim. | Stage B / txngroup rows pending. |
 
@@ -44,9 +44,9 @@ Every ConfigRoute/Admin family and the other side effects are classified in [sid
 
 ### Build and proof status
 
-`make -j16 all` built PRE and the tested Stage A image. Every target in job_production_units built successfully, as did mdbqsbr-live-arms. A source edit during that build invalidated most subsequent make -q checks; the full freshness proof must be repeated on the final source. The two added atomic-survivors cases pass, including cancellation between cloning and the collection handler.
+`make -j16 all` built PRE and the tested Stage A image. Every target in job_production_units built successfully, as did mdbqsbr-live-arms. A source edit invalidated the first freshness run. The repaired image was then rebuilt and all 28 production-unit targets passed make -q; [receipt](docs/txnfix/build-watermark/build.json). Both added unit cases pass, including the forced watermark interleaving. mdbqsbr-live-arms still needs rebuilding after the repair.
 
-INFO-field tests: 10 passed. `gates_test.py`: 11 scheduler failures/timeouts in the first run while compilation was active; not a pass, rerun pending. Broad live regression receipts preserve all failures. atomic_plain was initially invoked without its required --atomic argument; those two invocations are invalid and need rerunning. No full gate or benchmark was run. The Redis differential matrix, full original-parameter audit matrix, remaining shutdown/FLIP/persistence checks and final proof remain outstanding.
+INFO-field tests: 10 passed. `gates_test.py`: the initial compile-concurrent run had 11 scheduler failures/timeouts; the quiet rerun passes all 66 tests. Ledger self-tests pass 9/10, with the current-inventory test failing only the protected count mismatch described above. Broad live regression receipts preserve all failures. atomic_plain was initially invoked without its required --atomic argument. Correct invocations then exposed an incompatible holder: it read the racing keys, so OCC correctly made younger EXEC writers wait. Its cleanup-cut holder now reads fresh unrelated keys on the same owners. All four mode/atomic combinations and its self-tests pass; the window witnesses, four-attempt bound and data assertions are unchanged. No full gate or benchmark was run. The Redis differential matrix, full original-parameter audit matrix, remaining shutdown/FLIP/persistence checks and final proof remain outstanding.
 
 All executed commands were confined to CPUs 112-127; correctness servers used 112-119, clients 121-127, ports 22600-22699. The generic no-server rule was read with the task-specific focused PROOF authorization. No measurements were run while builds were active.
 
@@ -59,7 +59,7 @@ All executed commands were confined to CPUs 112-127; correctness servers used 11
 | Server prior offsets including barrier byte | Equal; cold tail grows by 24,640 bytes |
 | ex_loop.h / io_loop.h source | Unchanged |
 | Hot object bodies (lbstall tool) | 1,178 / 1,204 equal; **26 differ** |
-| Full canonical inventory (ccfix tool) | 15,723 / 16,441 equal |
+| Full canonical inventory (ccfix tool) | 15,722 / 16,441 equal |
 | Command-handler inventory | 1,199 / 1,210 equal; all GET/SET handler bodies equal |
 | Linked runtime sections | Differ; no byte-identity claim |
 
@@ -106,12 +106,21 @@ No cost table has been measured. Do not interpret absent data as meeting the cos
 | Contended EXEC, 2 hot keys + 4 plain INCR clients | pending | pending | pending |
 | GET/SET/MGET/MSET ABBA null | mainline | mainline | n/a | n/a |
 
-The existing benchtxn exec driver only emits SETs to disjoint per-connection keys. It cannot express the requested contended cell; an explicit driver extension remains necessary. No fabricated contended command or rate is supplied. Existing uncontended command (owner only, after a quiet boot):
+The extended benchtxn exec driver accepts numeric INCR / KEYSPACE / PLAIN_CLIENTS arguments and optional explicit shared key names. It reports transaction ops/s separately from plain INCR ops/s, and retry/exclusive deltas and rates over an explicit counter interval. A missing PRE counter prints -1. It rejects error replies and broken connections; it has been compiled, not benchmarked. Use the same driver for both arms. Uncontended commands (owner only, fresh quiet boot per cell):
 
 ```sh
 taskset -c 112-127 make build/benchtxn
-taskset -c 121-127 build/benchtxn exec 127.0.0.1 22601 20 64 4 4 2
+taskset -c 121-127 build/benchtxn exec 127.0.0.1 22601 20 64 4 4 2 1 0 0
 ```
+
+
+For the contended cell, choose two fresh names with different owners using DEBUG SHARDS on each boot, then pass them explicitly. Fixed names can hash to one owner because the boot seed changes. With those names in shell variables key0 and key1:
+
+```sh
+taskset -c 121-127 build/benchtxn exec 127.0.0.1 22601 20 64 4 4 2 1 2 4 "$key0" "$key1"
+```
+
+Full-box EXEC geometry for the owner: server on `0-7` with `--shards 16 --ratio 6:2` (2s), or `--thread-mode 1s --read-local 1` (1s); key/client balancing and automatic FLIP disabled. Use a fresh boot for each PRE/POST/POST/PRE arm, atomic 0 and 1. Uncontended client: `taskset -c 8-127 build/benchtxn exec 127.0.0.1 22601 20 64 16 4 2 1 0 0`. Contended client: `taskset -c 8-127 build/benchtxn exec 127.0.0.1 22601 20 64 16 4 2 1 2 4 "$key0" "$key1"`. Retain DEBUG SHARDS geometry alongside every arm. Matched cell ops/s is the verdict; retry and exclusive rates explain the contended cost.
 
 Mainline full-geometry ABBA request (owner runs on the quiet full box, not this lane):
 
@@ -124,3 +133,5 @@ taskset -c 0-127 tests/gate.sh perf --subset full \
 ```
 
 Compare matched-load ops/s, cycles/op, instructions/op and IPC for GET/SET/MGET/MSET in both thread modes; use the gate instrument and its standing null. Static hot-body differences are enumerated above, so main-command cost is not yet accepted. No PAD arm has been built or named in this request; an appropriate labelled control remains part of the unfinished cost work.
+
+Latest focused receipts: [eight batteries](docs/txnfix/post-watermark/txniso.json), [30 fused execfix repetitions](docs/txnfix/execfix-watermark/runs.json), [atomic_plain guards](docs/txnfix/atomic-plain-guards/runs.json), [serverless checks](docs/txnfix/serverless-watermark/runs.json). The shutdown retry-inbox/token audit is still open.

@@ -9,6 +9,10 @@
 //
 //   ./benchtxn exec   HOST PORT SECS CONNS THREADS PIPE NCMDS   — PIPE txns in flight/conn,
 //                                                                 NCMDS SETs per MULTI..EXEC
+//                    [INCR KEYSPACE PLAIN_CLIENTS]: INCR=1 selects integer writes;
+//                    KEYSPACE=0 uses private keys, positive = shared key count.
+//                    PLAIN_CLIENTS concurrently INCR the shared keys. All default to 0.
+//                    Optional trailing KEY ... supplies exactly KEYSPACE shared key names.
 //   ./benchtxn blpop  HOST PORT SECS PAIRS THREADS              — PAIRS (pusher,popper) pairs,
 //                                                                 poppers block on private keys
 //   ./benchtxn fanout HOST PORT SECS SUBS PUBS THREADS PIPE [s] — SUBS subscribers on one channel,
@@ -31,6 +35,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cerrno>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -68,6 +73,7 @@ static bool send_all(int fd, const char* p, size_t n) {
 // stack held as a counter, since arrays only nest as counts here).
 struct RespCounter {
     uint64_t done = 0;
+    uint64_t errors = 0;
     // parser state
     int stage = 0;           // 0 = at type byte, 1 = reading line, 2 = reading bulk body
     long need = 0;           // bulk bytes (+2 crlf) still to consume in stage 2
@@ -95,6 +101,7 @@ struct RespCounter {
                 if (!nl) return;
                 while (!line.empty() && (line.back() == '\n' || line.back() == '\r'))
                     line.pop_back();
+                if (type == '-') errors++;
                 if (type == '$') {
                     long len = atol(line.c_str());
                     if (len < 0) { close_frame(); }
@@ -142,14 +149,70 @@ static std::string cmd(std::initializer_list<std::string> parts) {
 // ---- exec mode ----------------------------------------------------------------------------------
 // Each connection keeps PIPE transactions in flight; a transaction is MULTI + NCMDS SETs + EXEC =
 // (NCMDS + 2) replies. We count EXEC completions = total replies / (NCMDS + 2).
+struct ExecStats {
+    int64_t retries = -1;
+    int64_t exclusive = -1;
+};
+
+static ExecStats exec_stats(const char* host, int port) {
+    const int fd = dial(host, port);
+    if (fd < 0) { fprintf(stderr, "INFO dial failed\n"); exit(2); }
+    timeval timeout{5, 0};
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout);
+    const std::string request = cmd({"INFO", "stats"});
+    if (!send_all(fd, request.data(), request.size())) {
+        fprintf(stderr, "INFO send failed\n"); exit(2);
+    }
+    std::string response;
+    size_t header = std::string::npos, length = 0;
+    for (;;) {
+        char buffer[16384];
+        const ssize_t got = recv(fd, buffer, sizeof buffer, 0);
+        if (got <= 0) { fprintf(stderr, "INFO read failed\n"); exit(2); }
+        response.append(buffer, static_cast<size_t>(got));
+        if (header == std::string::npos) {
+            header = response.find("\r\n");
+            if (header != std::string::npos) {
+                if (response[0] != '$') { fprintf(stderr, "INFO was not bulk\n"); exit(2); }
+                const long bytes = strtol(response.c_str() + 1, nullptr, 10);
+                if (bytes < 0) { fprintf(stderr, "INFO was null\n"); exit(2); }
+                length = static_cast<size_t>(bytes);
+            }
+        }
+        if (header != std::string::npos && response.size() >= header + 2 + length + 2) break;
+    }
+    close(fd);
+    ExecStats result;
+    const auto counter = [&](const char* name) -> int64_t {
+        const std::string field = "\r\n" + std::string(name) + ":";
+        const size_t pos = response.find(field);
+        return pos == std::string::npos ? -1 : strtoll(response.c_str() + pos + field.size(), nullptr, 10);
+    };
+    result.retries = counter("atomic_txn_retries");
+    result.exclusive = counter("atomic_txn_exclusive");
+    return result;
+}
+
 static void run_exec(const char* host, int port, int secs, int conns, int nthreads, int pipe_depth,
-                     int ncmds) {
+                     int ncmds, int incr, int keyspace, int plain_clients,
+                     const std::vector<std::string>& shared_keys) {
+    if (secs <= 0 || conns <= 0 || nthreads <= 0 || nthreads > conns || pipe_depth <= 0 ||
+        ncmds <= 0 || (incr != 0 && incr != 1) || keyspace < 0 || plain_clients < 0 ||
+        (plain_clients && (!incr || !keyspace)) ||
+        (!shared_keys.empty() && shared_keys.size() != static_cast<size_t>(keyspace))) {
+        fprintf(stderr, "invalid exec geometry; plain clients require shared INCR keys\n"); exit(1);
+    }
     std::atomic<uint64_t> total{0};
+    std::atomic<uint64_t> plain_total{0};
     std::atomic<bool> stop{false};
     std::vector<std::thread> ts;
-    const int per = conns / nthreads > 0 ? conns / nthreads : 1;
+    const auto shared_key = [&](int index) {
+        index %= keyspace;
+        return shared_keys.empty() ? "txhot" + std::to_string(index) : shared_keys[index];
+    };
     for (int t = 0; t < nthreads; t++)
         ts.emplace_back([&, t] {
+            const int per = conns / nthreads + (t < conns % nthreads);
             std::vector<int> fds;
             std::vector<RespCounter> cnt(static_cast<size_t>(per));
             std::vector<std::string> blob(static_cast<size_t>(per));
@@ -160,14 +223,16 @@ static void run_exec(const char* host, int port, int secs, int conns, int nthrea
                 std::string txn;
                 for (int p = 0; p < pipe_depth; p++) {
                     txn += cmd({"MULTI"});
-                    for (int k = 0; k < ncmds; k++)
-                        txn += cmd({"SET", "tx" + std::to_string(t) + "_" + std::to_string(c) +
-                                               "_" + std::to_string(k),
-                                    "v0123456789abcdef"});
+                    for (int k = 0; k < ncmds; k++) {
+                        const std::string key = keyspace > 0
+                            ? shared_key(k)
+                            : "tx" + std::to_string(t) + "_" + std::to_string(c) + "_" + std::to_string(k);
+                        txn += incr ? cmd({"INCR", key}) : cmd({"SET", key, "v0123456789abcdef"});
+                    }
                     txn += cmd({"EXEC"});
                 }
                 blob[static_cast<size_t>(c)] = txn;
-                send_all(fd, txn.data(), txn.size());
+                if (!send_all(fd, txn.data(), txn.size())) exit(2);
             }
             const long replies_per_txn = ncmds + 2;
             char buf[1 << 16];
@@ -175,10 +240,12 @@ static void run_exec(const char* host, int port, int secs, int conns, int nthrea
             while (!stop.load(std::memory_order_relaxed)) {
                 for (int c = 0; c < per; c++) {
                     ssize_t r = recv(fds[static_cast<size_t>(c)], buf, sizeof buf, MSG_DONTWAIT);
-                    if (r <= 0) continue;
+                    if (r < 0 && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) continue;
+                    if (r <= 0) { fprintf(stderr, "EXEC connection closed\n"); exit(2); }
                     RespCounter& rc = cnt[static_cast<size_t>(c)];
                     const uint64_t before = rc.done;
                     rc.feed(buf, static_cast<size_t>(r));
+                    if (rc.errors) { fprintf(stderr, "EXEC reply contained an error\n"); exit(2); }
                     const uint64_t txns =
                         rc.done / static_cast<uint64_t>(replies_per_txn) -
                         before / static_cast<uint64_t>(replies_per_txn);
@@ -189,27 +256,64 @@ static void run_exec(const char* host, int port, int secs, int conns, int nthrea
                         if (credits[static_cast<size_t>(c)] >=
                             static_cast<uint64_t>(pipe_depth)) {
                             credits[static_cast<size_t>(c)] -= static_cast<uint64_t>(pipe_depth);
-                            send_all(fds[static_cast<size_t>(c)], blob[static_cast<size_t>(c)].data(),
-                                     blob[static_cast<size_t>(c)].size());
+                            if (!send_all(fds[static_cast<size_t>(c)], blob[static_cast<size_t>(c)].data(),
+                                          blob[static_cast<size_t>(c)].size())) exit(2);
                         }
                     }
                 }
             }
             for (int fd : fds) close(fd);
         });
-    const uint64_t t0 = now_us();
+    for (int c = 0; c < plain_clients; ++c)
+        ts.emplace_back([&, c] {
+            const int fd = dial(host, port);
+            if (fd < 0) { fprintf(stderr, "plain INCR dial failed\n"); exit(2); }
+            // Each writer uses one key; four writers and keyspace=2 give two per key.
+            const std::string request = cmd({"INCR", shared_key(c)});
+            RespCounter counter;
+            char buffer[4096];
+            if (!send_all(fd, request.data(), request.size())) exit(2);
+            while (!stop.load(std::memory_order_relaxed)) {
+                const ssize_t got = recv(fd, buffer, sizeof buffer, MSG_DONTWAIT);
+                if (got < 0 && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) continue;
+                if (got <= 0) { fprintf(stderr, "plain INCR connection closed\n"); exit(2); }
+                const uint64_t before = counter.done;
+                counter.feed(buffer, static_cast<size_t>(got));
+                if (counter.errors) { fprintf(stderr, "plain INCR error\n"); exit(2); }
+                if (counter.done != before) {
+                    plain_total.fetch_add(counter.done - before, std::memory_order_relaxed);
+                    if (!send_all(fd, request.data(), request.size())) exit(2);
+                }
+            }
+            close(fd);
+        });
     // warm 20%, then measure
     std::this_thread::sleep_for(std::chrono::milliseconds(secs * 200));
+    const ExecStats stats1 = exec_stats(host, port);
+    const uint64_t stats_t1 = now_us();
     const uint64_t warm_ops = total.load();
+    const uint64_t warm_plain = plain_total.load();
     const uint64_t t1 = now_us();
     std::this_thread::sleep_for(std::chrono::milliseconds(secs * 800));
     const uint64_t t2 = now_us();
     const uint64_t ops = total.load() - warm_ops;
+    const uint64_t plain_ops = plain_total.load() - warm_plain;
+    const ExecStats stats2 = exec_stats(host, port);
+    const uint64_t stats_t2 = now_us();
     stop.store(true);
     for (auto& th : ts) th.join();
-    (void)t0;
-    printf("exec ops %llu secs %.3f rate %.0f\n", static_cast<unsigned long long>(ops),
-           (t2 - t1) / 1e6, ops / ((t2 - t1) / 1e6));
+    const double counter_secs = (stats_t2 - stats_t1) / 1e6;
+    const auto delta = [](int64_t before, int64_t after) {
+        return before < 0 || after < before ? int64_t{-1} : after - before;
+    };
+    const int64_t retries = delta(stats1.retries, stats2.retries);
+    const int64_t exclusive = delta(stats1.exclusive, stats2.exclusive);
+    printf("exec ops %llu secs %.3f rate %.0f plain_ops %llu plain_rate %.0f "
+           "counter_secs %.6f retries %lld retries_rate %.3f exclusive %lld exclusive_rate %.3f\n",
+           static_cast<unsigned long long>(ops), (t2 - t1) / 1e6, ops / ((t2 - t1) / 1e6),
+           static_cast<unsigned long long>(plain_ops), plain_ops / ((t2 - t1) / 1e6),
+           counter_secs, static_cast<long long>(retries), retries < 0 ? -1 : retries / counter_secs,
+           static_cast<long long>(exclusive), exclusive < 0 ? -1 : exclusive / counter_secs);
 }
 
 // ---- blpop mode ---------------------------------------------------------------------------------
@@ -478,16 +582,20 @@ static void run_mcmd(const char* host, int port, int secs, int conns, int nthrea
 }
 
 int main(int argc, char** argv) {
-    if (argc < 3) {
+    if (argc < 4) {
         fprintf(stderr, "usage: benchtxn exec|blpop|fanout|mcmd HOST PORT ... (see header)\n");
         return 1;
     }
     const std::string mode = argv[1];
     const char* host = argv[2];
     const int port = atoi(argv[3]);
-    if (mode == "exec" && argc >= 9)
+    if (mode == "exec" && argc >= 9) {
+        std::vector<std::string> keys;
+        for (int i = 12; i < argc; ++i) keys.emplace_back(argv[i]);
         run_exec(host, port, atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
-                 atoi(argv[8]));
+                 atoi(argv[8]), argc >= 10 ? atoi(argv[9]) : 0,
+                 argc >= 11 ? atoi(argv[10]) : 0, argc >= 12 ? atoi(argv[11]) : 0, keys);
+    }
     else if (mode == "blpop" && argc >= 6)
         run_blpop(host, port, atoi(argv[4]), atoi(argv[5]), atoi(argv[6]));
     else if (mode == "fanout" && argc >= 8)
