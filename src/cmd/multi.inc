@@ -1600,11 +1600,6 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
             state.watch_failed.store(true, std::memory_order_release);
             state.decision.aborted.store(true, std::memory_order_release);
         }
-        for (const MultiWatchedKey& watched : state.watched) {
-            if (watched.shard != shard.id()) continue;
-            shard.watch_remove(Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns),
-                               state.client, state.watch_generation);
-        }
     } else {
         for (const MultiWatchedKey& watched : state.watched) {
             if (watched.shard != shard.id()) continue;
@@ -1640,8 +1635,12 @@ void finalize_reservations(MultiExecState& state, Shard& shard) {
     }
     for (const MultiWatchedKey& watched : state.watched) {
         if (watched.shard != shard.id()) continue;
-        shard.watch_write_ready(
-            Slice(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns), nullptr);
+        const Slice key(watched.key.data(), static_cast<uint32_t>(watched.key.size()), watched.ns);
+        shard.watch_write_ready(key, nullptr);
+        // Cancellation discards only an attempt. Keep the original watch entry
+        // and deadline so a write between attempts still gives EXEC's legal null.
+        if (!state.doomed && state.kind == MultiStateKind::Execute)
+            shard.watch_remove(key, state.client, state.watch_generation);
     }
     for (const MultiWriteKey& write : state.write_keys) {
         if (write.shard != shard.id()) continue;
@@ -2668,6 +2667,9 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
     }
     if (state.doomed) {
         state.exec_op_id = task.op_id;
+        if (state.backoff.load(std::memory_order_relaxed))
+            state.retry_after_ns = now_ns() + std::min(
+                kTxnRetryBackoffMax, uint64_t{1000} << std::min(state.attempt, uint32_t{10}));
         multi_enqueue_retry(state);
         if (Ring* ring = server.thread(owner_thread_id).ring())
             server.thread(state.owner_io).wake_if_parked(*ring, server.thread(owner_thread_id).sig());
