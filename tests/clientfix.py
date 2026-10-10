@@ -319,14 +319,21 @@ def main():
     axes = [(0, 0)]
     if not args.oracle and args.case.startswith('tracking-'):
         axes += [(1, 0), (1, 1)]
+    failures = []
     for atomic, read_local in axes:
-        with server(args, atomic, read_local) as port:
-            if args.case == 'reply-skip':
-                reply_skip(port, args.oracle)
-            elif args.case.startswith('geo-'):
-                geo_count(port, args.case == 'geo-store')
-            else:
-                globals()[args.case.replace('-', '_')](port)
+        try:
+            with server(args, atomic, read_local) as port:
+                if args.case == 'reply-skip':
+                    reply_skip(port, args.oracle)
+                elif args.case.startswith('geo-'):
+                    geo_count(port, args.case == 'geo-store')
+                else:
+                    globals()[args.case.replace('-', '_')](port)
+        except AssertionError as exc:
+            failures.append(dict(atomic=atomic, read_local=read_local, error=str(exc)))
+    if failures:
+        emit(result='FAIL', case=args.case, mode=args.mode, failures=failures)
+        raise SystemExit(1)
     emit(result='PASS', case=args.case, mode=args.mode, axes=axes)
 
 

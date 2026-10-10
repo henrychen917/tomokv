@@ -343,6 +343,8 @@ bool parse_search(Op& op, GeoSearchOptions& options) {
         } else { reply_syntax(op.sink()); return false; }
     }
     (void)count_seen;
+    if (options.count && options.order == GeoOrder::None && !options.any)
+        options.order = GeoOrder::Asc;
     if (options.store && (options.with_coord || options.with_dist || options.with_hash)) {
         reply_err(op.sink(), search_store
             ? "ERR GEOSEARCHSTORE is not compatible with WITHDIST, WITHHASH and WITHCOORD options"

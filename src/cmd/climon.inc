@@ -43,6 +43,11 @@
         bool broken_redirect = false;
         uint64_t redirect = 0;
         std::vector<std::string> prefixes;
+        // The ROB dispatch number survives reparse; Op::reset does not. Only
+        // armed connections carry this retry receipt, outside the locked Client.
+        uint64_t gate_op_id = UINT64_MAX;
+        bool gate_reply_skip = false;
+        std::unordered_map<Op*, std::vector<std::string>> tracking_reads;
 
         bool idle() const {
             return reply_mode == kClimonReplyOn && !monitor && !tracking_on && !broken_redirect;
@@ -119,6 +124,8 @@
     void tracking_reply_trackinginfo(Client* client, Op& op);
     ClimonStartResult tracking_client_subcommand(Client* client, Op& op);
     void tracking_register_read(Client* client, ClimonConn& state, Op& op);
+    void tracking_retire_read(Client& client, Op& op);
+    void tracking_register_key(uint64_t id, const std::string& key);
     void tracking_forget_client(uint64_t id, ClimonConn& state);
     void tracking_invalidate_local(Slice key, uint64_t writer_id);
     void tracking_handle_event(PubSubEvent& event);
@@ -138,6 +145,10 @@
     // key -> ids of THIS owner's tracking clients. Single-owner: only this io thread reads or
     // writes it, so no lock sits on any armed path.
     std::unordered_map<std::string, std::vector<uint64_t>> climon_track_keys_;
+    // Pending reads are invalidation obligations, not completed registrations.
+    // key -> (client -> latest pending Op). Migration waits until these
+    // reads retire, then transfers the ordinary registration table as before.
+    std::unordered_map<std::string, std::unordered_map<uint64_t, Op*>> climon_track_pending_;
     uint32_t climon_armed_cached_ = 0;
     bool climon_armed_dirty_ = false;   // a cold command changed the armed word mid-pass
     uint64_t climon_pause_deadline_ms_ = 0;

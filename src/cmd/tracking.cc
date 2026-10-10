@@ -9,9 +9,10 @@
 //     A single global table would have put a lock on the tracking-armed write path, which is
 //     precisely where writes live.
 //
-//   * Read registration is io-side, inside the one armed gate parse_and_dispatch already reaches
-//     (climon_armed_gate). The io thread already holds the connection, the command spec and the
-//     parsed key range at that point, so registration is a hash insert with no cross-thread hop.
+//   * Read registration is io-side at in-order retirement. The armed dispatch gate records
+//     only pending invalidation obligations: a foreign write between execution and retirement
+//     must invalidate the pending result too. An earlier same-connection write cannot erase the
+//     later read's completed registration, because that registration does not exist yet.
 //     A read from a NON-tracking connection never reaches this file.
 //
 //   * The invalidation SOURCE is the executor-side keyspace-notification chassis: the armed write
@@ -127,48 +128,78 @@ void IoLoop::tracking_register_read(Client* client, ClimonConn& state, Op& op) {
     if (!first) return;
     const uint64_t id = client->id();
     const int32_t step = spec->key_step > 0 ? spec->key_step : 1;
-    for (uint32_t i = first; i < end;
-         i += static_cast<uint32_t>(step)) {
+    auto& keys = state.tracking_reads[&op];
+    for (uint32_t i = first; i < end; i += static_cast<uint32_t>(step)) {
         const Slice key = op.arg(i);
-        if (srv_->cfg().tracking_table_max_keys &&
-            climon_track_keys_.size() >= srv_->cfg().tracking_table_max_keys &&
-            climon_track_keys_.find(std::string(key.p, key.n)) == climon_track_keys_.end()) {
-            // Bounded table: redis evicts a random entry and tells its owner the cached value is
-            // no longer tracked. We do exactly that -- an eviction is an invalidation.
-            // Sample buckets without walking the whole table. Randomize within the bucket as
-            // well: always taking its first entry would strand older colliding keys forever.
-            size_t bucket;
-            do { bucket = next_random() % climon_track_keys_.bucket_count(); }
-            while (climon_track_keys_.bucket_size(bucket) == 0);
-            auto sampled = climon_track_keys_.begin(bucket);
-            std::advance(sampled, next_random() % climon_track_keys_.bucket_size(bucket));
-            auto victim = climon_track_keys_.find(sampled->first);
-            if (victim != climon_track_keys_.end()) {
-                const Slice vkey(victim->first.data(),
-                                 static_cast<uint32_t>(victim->first.size()));
-                for (uint64_t owner : victim->second) {
-                    ClimonConn* target = climon_conn_find(owner);
-                    if (target) tracking_deliver_frame(*target, owner, vkey, false);
-                }
-                srv_->climon_note_tracking_item_delta(
-                    -static_cast<int64_t>(victim->second.size()));
-                srv_->climon_note_tracking_key_delta(-1);
-                climon_track_keys_.erase(victim);
-            }
-        }
-        std::vector<uint64_t>& owners = climon_track_keys_[std::string(key.p, key.n)];
-        if (owners.empty()) srv_->climon_note_tracking_key_delta(1);
-        if (std::find(owners.begin(), owners.end(), id) == owners.end()) {
-            owners.push_back(id);
-            srv_->climon_note_tracking_item_delta(1);
-        }
-        // Tracking reports raw key names across databases. Its table and event
-        // transport both use those bytes, so the membership filter must too.
+        keys.emplace_back(key.p, key.n);
+        climon_track_pending_[keys.back()][id] = &op;
+        // Publish interest before execution. A foreign write cannot pass the
+        // monotonic filter just because this read has not retired yet.
         track_filter_add(FlatStore::hash_key(Slice(key.p, key.n)));
     }
 }
 
+void IoLoop::tracking_register_key(uint64_t id, const std::string& name) {
+    const Slice key(name.data(), static_cast<uint32_t>(name.size()));
+    if (srv_->cfg().tracking_table_max_keys &&
+        climon_track_keys_.size() >= srv_->cfg().tracking_table_max_keys &&
+        climon_track_keys_.find(name) == climon_track_keys_.end()) {
+        // Keep the existing bounded-table policy: evicting a completed
+        // registration sends an invalidation, never a silent removal.
+        size_t bucket;
+        do { bucket = next_random() % climon_track_keys_.bucket_count(); }
+        while (climon_track_keys_.bucket_size(bucket) == 0);
+        auto sampled = climon_track_keys_.begin(bucket);
+        std::advance(sampled, next_random() % climon_track_keys_.bucket_size(bucket));
+        auto victim = climon_track_keys_.find(sampled->first);
+        if (victim != climon_track_keys_.end()) {
+            const Slice vkey(victim->first.data(), static_cast<uint32_t>(victim->first.size()));
+            for (uint64_t owner : victim->second) {
+                ClimonConn* target = climon_conn_find(owner);
+                if (target) tracking_deliver_frame(*target, owner, vkey, false);
+            }
+            srv_->climon_note_tracking_item_delta(-static_cast<int64_t>(victim->second.size()));
+            srv_->climon_note_tracking_key_delta(-1);
+            climon_track_keys_.erase(victim);
+        }
+    }
+    auto& owners = climon_track_keys_[name];
+    if (owners.empty()) srv_->climon_note_tracking_key_delta(1);
+    if (std::find(owners.begin(), owners.end(), id) == owners.end()) {
+        owners.push_back(id);
+        srv_->climon_note_tracking_item_delta(1);
+    }
+    track_filter_add(FlatStore::hash_key(key));
+}
+
+void IoLoop::tracking_retire_read(Client& client, Op& op) {
+    ClimonConn* state = climon_conn_find(client.id());
+    if (!state || !state->tracking_on) return;
+    auto read = state->tracking_reads.find(&op);
+    if (read == state->tracking_reads.end()) return;
+    for (const std::string& key : read->second) {
+        auto pending = climon_track_pending_.find(key);
+        if (pending != climon_track_pending_.end()) {
+            auto owner = pending->second.find(client.id());
+            if (owner != pending->second.end() && owner->second == &op)
+                pending->second.erase(owner);
+            if (pending->second.empty()) climon_track_pending_.erase(pending);
+        }
+        tracking_register_key(client.id(), key);
+    }
+    state->tracking_reads.erase(read);
+}
+
 void IoLoop::tracking_forget_client(uint64_t id, ClimonConn& state) {
+    for (const auto& read : state.tracking_reads) {
+        for (const std::string& key : read.second) {
+            auto pending = climon_track_pending_.find(key);
+            if (pending == climon_track_pending_.end()) continue;
+            pending->second.erase(id);
+            if (pending->second.empty()) climon_track_pending_.erase(pending);
+        }
+    }
+    state.tracking_reads.clear();
     for (auto it = climon_track_keys_.begin(); it != climon_track_keys_.end();) {
         auto& owners = it->second;
         auto found = std::find(owners.begin(), owners.end(), id);
@@ -349,9 +380,23 @@ void IoLoop::tracking_invalidate_local(Slice key, uint64_t writer_id) {
         for (size_t matches = track_prefix_match_count(state.prefixes, key); matches; matches--)
             tracking_deliver_frame(state, entry.first, key, false);
     }
-    // 2. Per-key remembering. Redis forgets the key once it has reported it.
+    // 2. A foreign write may complete after a read executed but before its
+    // registration retires. Defer its invalidation behind the read's reply via
+    // the normal OOB frontier. Same-connection writes retire in program order:
+    // an older write must not invalidate a younger read's pending obligation.
+    const std::string name(key.p, key.n);
+    auto pending = climon_track_pending_.find(name);
+    if (pending != climon_track_pending_.end()) {
+        for (const auto& owner : pending->second) {
+            if (owner.first == writer_id) continue;
+            ClimonConn* state = climon_conn_find(owner.first);
+            if (state && state->tracking_on)
+                tracking_deliver_frame(*state, owner.first, key, false);
+        }
+    }
+    // 3. Per-key remembering. Redis forgets the key once it has reported it.
     if (climon_track_keys_.empty()) return;
-    auto found = climon_track_keys_.find(std::string(key.p, key.n));
+    auto found = climon_track_keys_.find(name);
     if (found == climon_track_keys_.end()) return;
     std::vector<uint64_t> owners;
     owners.swap(found->second);
@@ -359,6 +404,9 @@ void IoLoop::tracking_invalidate_local(Slice key, uint64_t writer_id) {
     srv_->climon_note_tracking_key_delta(-1);
     climon_track_keys_.erase(found);
     for (uint64_t owner : owners) {
+        // A pending read above already received this key's invalidation.
+        if (owner != writer_id && pending != climon_track_pending_.end() &&
+            pending->second.find(owner) != pending->second.end()) continue;
         if (owner == writer_id) {
             ClimonConn* state = climon_conn_find(owner);
             if (state && state->noloop) continue;
