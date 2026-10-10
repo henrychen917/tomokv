@@ -189,11 +189,12 @@ def tsan_reports(log):
     root = Path(__file__).resolve().parents[1]
     for name in ('src/core/io_loop.h', 'src/core/reorder.cc', 'src/net/wb.h'):
         for line, text in enumerate((root / name).read_text().splitlines(), 1):
-            if re.search(r'net_(?:input|output)_bytes\s*\+=', text):
+            if re.search(r'net_(?:input|output)_bytes(?:\s*\+=|\.store)', text):
                 sites.append(re.escape(name) + ':' + str(line) + r'\b')
     writer = r'ThreadCtx::note_command|'+ '|'.join(sites)
     confirmed = [r for r in reports if 'info_stats_tick' in r and re.search(writer, r)]
-    family = [r for r in reports if r in confirmed or re.search(
+    family = [r for r in reports if r in confirmed or
+              (re.search(writer, r) and 'src/cmd/t_server.cc' in r) or re.search(
         r'ThreadCtx::(?:note_command|total_commands|command_calls|command_rejected_calls|command_failed_calls)', r)]
     return dict(reports=len(reports), cron_writer_pairs=len(confirmed),
                 counter_reports=len(family), other_reports=len(reports) - len(family),
@@ -222,6 +223,10 @@ def main():
         result['tsan'] = tsan_reports((args.output / 'server.log').read_text())
         if result['tsan']['counter_reports'] or result['tsan']['runtime_failure']:
             result['passed'] = False
+        if result.get('exit_code') not in (0, 66):
+            result['passed'] = False
+    elif result.get('exit_code') != 0:
+        result['passed'] = False
     result['seconds'] = time.monotonic() - started
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
