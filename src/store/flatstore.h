@@ -164,7 +164,9 @@ public:
         migrate_ = 0;
     }
 
-    bool insert(uint64_t hash) {
+    // Preserve the shipped calling shape so GCC keeps the default inlining decisions.
+    // The deadline argument carries no index state; insert_raw ignores it.
+    bool insert(uint64_t hash, int64_t deadline = kNoTtlDeadline) {
         if (rehashing()) {
             migrate(kMigrateSlotsPerOp);
             // Backstop only. At the shipped step rate the new table is at most ~41% loaded when the
@@ -190,7 +192,7 @@ public:
         // A deadline re-registered while the move is in flight must leave the old table, or live_
         // double-counts it until the migration catches up.
         if (rehashing()) (void)erase_in(0, hash);
-        return insert_raw(rehashing() ? 1 : 0, hash);
+        return insert_raw(rehashing() ? 1 : 0, hash, deadline);
     }
 
     // Erasing from an index with nothing LIVE in it is a PROVEN no-op, not an approximation:
@@ -277,7 +279,9 @@ private:
     bool rehashing() const { return cap_[1] != 0; }
 
     uint8_t* states(int t) const {
-        return sidecars_[t];
+        if (!sidecars_[t]) return nullptr;
+        auto* bytes = sidecars_[t];
+        return bytes;
     }
 
     void release(int t) {
@@ -338,7 +342,7 @@ private:
             live_[0]--;
             tombs_[0]++;
             // Cannot fail: the destination was sized for every live entry plus headroom.
-            (void)insert_raw(1, hashes_[0][pos]);
+            (void)insert_raw(1, hashes_[0][pos], kNoTtlDeadline);
         }
         if (migrate_ >= cap_[0]) finish_migration();
     }
@@ -350,7 +354,7 @@ private:
             states(0)[pos] = kTomb;
             live_[0]--;
             tombs_[0]++;
-            (void)insert_raw(1, hashes_[0][pos]);
+            (void)insert_raw(1, hashes_[0][pos], kNoTtlDeadline);
         }
         std::free(hashes_[0]);
         std::free(sidecars_[0]);
@@ -371,7 +375,7 @@ private:
         return static_cast<size_t>(mix64(hash)) & (cap_[t] - 1);
     }
 
-    bool insert_raw(int t, uint64_t hash) {
+    bool insert_raw(int t, uint64_t hash, int64_t) {
         const size_t cap = cap_[t];
         if (!cap) return false;
         size_t pos = start(t, hash);
@@ -870,6 +874,59 @@ public:
     // The existing captured hook below witnesses the later topology-check window.
     inline static void (*test_read_local_capture_entered)(const FlatStore&) = nullptr;
 #endif
+
+    // TTL selector removal also preserves the later assertion line below.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Preserve the source span through the capture entry: pack()'s release assert
     // embeds __LINE__. Removing this space changes executable assertion arguments.
@@ -1913,7 +1970,7 @@ private:
         if (!object) return true;
         const int64_t at = object->expire_at_ms();
         if (at >= 0) {
-            if (expires_.insert(hash)) return true;
+            if (expires_.insert(hash, at)) return true;
             return false;
         }
         // The un-TTL'd store never reaches the index at all. Repeated here rather than left to
