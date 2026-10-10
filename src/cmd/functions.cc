@@ -4,8 +4,10 @@
 // sandbox, the undo log, the eviction guard, the RESP converter — belongs to scripting.cc and is
 // reached through the narrow seam in scripting.h. This file owns the *library registry*: process-
 // wide control-plane state (like ACL users), a cold-path mutex, and a generation counter. Executor
-// threads never touch that map on the hot side of a call: each thread materializes the libraries
-// into its own Lua state once per generation and answers FCALL out of a Lua registry table.
+// threads never touch that map on the hot side of a call: each thread synchronizes library
+// revisions after a registry change and answers FCALL out of a Lua registry table. Unchanged
+// libraries keep their closures and mutable upvalues. State is still per executor; process-wide
+// state also needs the scatter commit/retry protocol (docs/scriptfix/single-state-design.md).
 //
 // The Lua amalgamation is compiled exactly once, in scripting.cc. This translation unit includes
 // only the vendored public headers and links against those definitions.
@@ -42,6 +44,7 @@ constexpr uint32_t kLibraryMaxBytes = 1024 * 1024;
 constexpr const char* kFunctionChunkName = "@user_function";
 constexpr const char* kRegistryFunctions = "tomo_functions";
 constexpr const char* kRegistryGeneration = "tomo_fn_generation";
+constexpr const char* kRegistryRevisions = "tomo_fn_revisions";
 constexpr char kDumpMagic[8] = {'T', 'O', 'M', 'O', 'F', 'U', 'N', '1'};
 
 // Redis 7 function flags. Only no-writes has behaviour here (it makes every activation of the
@@ -77,6 +80,7 @@ struct LibraryDef {
     std::string name;
     std::string code;
     std::vector<FunctionDef> functions;   // sorted by name: FUNCTION LIST must be deterministic
+    uint64_t revision = 0;               // identity changes even for REPLACE of identical source
 };
 
 // ---- reply helpers ---------------------------------------------------------------------------
@@ -215,6 +219,7 @@ private:
                     }
         }
         try {
+            library.revision = generation_.load(std::memory_order_relaxed) + 1;
             libraries_[library.name] = std::move(library);
         } catch (const std::bad_alloc&) {
             return AddResult::Oom;
@@ -573,40 +578,82 @@ bool compile_library(Slice source, LibraryDef& library, std::string& error) {
 
 // ---- per-thread materialization ------------------------------------------------------------------
 
-// Rebuilds this thread's function table when the registry generation moved. The stamp lives in the
-// thread's own Lua registry, so a state that SCRIPT FLUSH rebuilt loses it and re-materializes —
-// there is no separate thread_local to keep in step with the interpreter's lifetime.
+// Registry stamps are opaque eight-byte strings, not Lua doubles: revisions must remain exact
+// beyond 2^53. They never cross the wire or escape to Lua code.
+void push_revision(lua_State* state, uint64_t revision) {
+    lua_pushlstring(state, reinterpret_cast<const char*>(&revision), sizeof(revision));
+}
+
+bool matches_revision(lua_State* state, int index, uint64_t revision) {
+    if (lua_type(state, index) != LUA_TSTRING) return false;
+    size_t length = 0;
+    const char* bytes = lua_tolstring(state, index, &length);
+    return length == sizeof(revision) && !std::memcmp(bytes, &revision, sizeof(revision));
+}
+
+// Publish a new name/revision index after a registry mutation, retaining callbacks for every
+// unchanged library. Stage the entire index so a failed materialization cannot destroy existing
+// closure state. SCRIPT FLUSH only drops EVAL chunks and never invalidates these registry roots.
 bool function_thread_sync(lua_State* state, std::string& error) {
     const uint64_t current = g_functions.generation();
     lua_getfield(state, LUA_REGISTRYINDEX, kRegistryGeneration);
-    const bool stamped = lua_isnumber(state, -1);
-    const uint64_t loaded = stamped ? static_cast<uint64_t>(lua_tonumber(state, -1)) : 0;
+    const bool synced = matches_revision(state, -1, current);
     lua_pop(state, 1);
-    if (stamped && loaded == current) return true;
+    if (synced) return true;
 
     std::vector<LibraryDef> libraries;
     uint64_t stamp = 0;
     if (!g_functions.snapshot(libraries, stamp)) { error = "out of memory"; return false; }
 
+    const int base = lua_gettop(state);
+    lua_getfield(state, LUA_REGISTRYINDEX, kRegistryFunctions);
+    const int previous_functions = lua_gettop(state);
+    lua_getfield(state, LUA_REGISTRYINDEX, kRegistryRevisions);
+    const int previous_revisions = lua_gettop(state);
     lua_newtable(state);
+    const int functions = lua_gettop(state);
+    lua_pushvalue(state, functions);
     lua_setfield(state, LUA_REGISTRYINDEX, kRegistryFunctions);
+    lua_newtable(state);
+    const int revisions = lua_gettop(state);
     RegisterSink sink;
     sink.store_callbacks = true;
     for (const LibraryDef& library : libraries) {
-        bool compile_failed = false;
-        std::string body_error;
-        const Slice code(library.code.data(), static_cast<uint32_t>(library.code.size()));
-        if (!run_library_body(state, code, sink, compile_failed, body_error)) {
-            // A library that validated at LOAD time failed here: report it rather than serving a
-            // half-materialized table, and leave the stamp unset so the next call retries.
-            error = "Error materializing library " + library.name + ": " + body_error;
-            lua_newtable(state);
-            lua_setfield(state, LUA_REGISTRYINDEX, kRegistryFunctions);
-            return false;
+        bool reuse = false;
+        if (lua_istable(state, previous_revisions)) {
+            lua_pushlstring(state, library.name.data(), library.name.size());
+            lua_rawget(state, previous_revisions);
+            reuse = matches_revision(state, -1, library.revision);
+            lua_pop(state, 1);
         }
+        if (reuse) {
+            for (const FunctionDef& fn : library.functions) {
+                lua_pushlstring(state, fn.name.data(), fn.name.size());
+                lua_pushvalue(state, -1);
+                lua_rawget(state, previous_functions);
+                lua_rawset(state, functions);
+            }
+        } else {
+            bool compile_failed = false;
+            std::string body_error;
+            const Slice code(library.code.data(), static_cast<uint32_t>(library.code.size()));
+            if (!run_library_body(state, code, sink, compile_failed, body_error)) {
+                error = "Error materializing library " + library.name + ": " + body_error;
+                lua_pushvalue(state, previous_functions);
+                lua_setfield(state, LUA_REGISTRYINDEX, kRegistryFunctions);
+                lua_settop(state, base);
+                return false;
+            }
+        }
+        lua_pushlstring(state, library.name.data(), library.name.size());
+        push_revision(state, library.revision);
+        lua_rawset(state, revisions);
     }
-    lua_pushnumber(state, static_cast<lua_Number>(stamp));
+    lua_pushvalue(state, revisions);
+    lua_setfield(state, LUA_REGISTRYINDEX, kRegistryRevisions);
+    push_revision(state, stamp);
     lua_setfield(state, LUA_REGISTRYINDEX, kRegistryGeneration);
+    lua_settop(state, base);
     g_thread_rebuilds.fetch_add(1, std::memory_order_relaxed);
     return true;
 }

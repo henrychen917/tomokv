@@ -1067,11 +1067,11 @@ lua_State* script_thread_state() {
     LuaEngine& engine = t_lua_engine;
     if (engine.state &&
         engine.flush_generation != g_script_flushes.load(std::memory_order_acquire)) {
-        // SCRIPT FLUSH invalidates every thread's compiled-chunk cache; rebuilding the whole
-        // state is the simple correct form and FLUSH is admin-cold. It also drops the FUNCTION
-        // library materialization, whose generation stamp lives in the same registry.
-        lua_close(engine.state);
-        engine.state = nullptr;
+        // EVAL's compiled chunks belong to SCRIPT FLUSH; FUNCTION closures and their mutable
+        // upvalues do not. Keep the readonly environment and the function registry roots alive.
+        lua_newtable(engine.state);
+        lua_setfield(engine.state, LUA_REGISTRYINDEX, "tomo_chunks");
+        engine.flush_generation = g_script_flushes.load(std::memory_order_acquire);
     }
     if (!engine.state) {
         engine.state = luaL_newstate();
