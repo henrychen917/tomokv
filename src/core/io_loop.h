@@ -1770,6 +1770,22 @@ private:
                srv_->flip_acked(unix_owner, FlipStage::IoDrain);
     }
 
+    // A live FLIP never parks this loop (flip_control_pass reports work every pass), so the
+    // mask-independent sweep the idle path runs before parking never runs either. NotifyMask::set
+    // skips its RMW when it still sees its bit, so a consumer can take that bit before the
+    // producer's item is visible; the item is then reachable only unmasked. The FLIP stages wait
+    // on exactly these inboxes (connection transfers; client/pub-sub markers): a stranded entry
+    // held ClientInstall forever in a POST epoll stress run. Drain them unmasked while live.
+    template <bool kEp>
+    __attribute__((noinline, cold)) uint32_t flip_sweep_inbound() {
+        uint32_t work = drain_client_transfers<kEp>(true);
+        if (unix_listen_fd_ >= 0 || (srv_->cfg().unixsocket && *srv_->cfg().unixsocket))
+            work += collect_retire_work<true, kEp>(true);   // run_split's HasUnix selection
+        else
+            work += collect_retire_work<false, kEp>(true);
+        return work;
+    }
+
     static bool flip_stage_holds_closes(FlipStage stage) {
         return stage >= FlipStage::Planning && stage <= FlipStage::Rollback;
     }
@@ -2096,6 +2112,7 @@ private:
         }
         if constexpr (!kSingleDatabase)
             if (stage <= FlipStage::DatabaseRun) return database_control_pass();
+        flip_sweep_inbound<kEp>();
 
         if (stage == FlipStage::IoDrain && !srv_->flip_acked(self_->id(), stage)) {
             // A pin left by an earlier FLIP must not hide a detached close from this drain.

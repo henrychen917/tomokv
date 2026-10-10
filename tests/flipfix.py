@@ -207,6 +207,14 @@ def disconnects(args, churn=False):
                 try:
                     reply = admin.read()
                 except (TimeoutError, socket.timeout) as error:
+                    try:  # FLIP's report form is FlipAsync: it answers while the FLIP is live.
+                        emit(event='wedged', attempt=attempt, target=target,
+                             report={k.decode(): v for k, v in report(observer).items()})
+                    except Exception as detail:  # noqa: BLE001 -- diagnostics only
+                        emit(event='wedged', attempt=attempt, report_error=repr(detail))
+                    if args.hold_on_wedge:
+                        emit(event='holding', pid=process.pid, seconds=args.hold_on_wedge)
+                        time.sleep(args.hold_on_wedge)
                     raise AssertionError(
                         f'FLIP {target} {total - target} unanswered after {REPLY_BOUND_S}s '
                         f'(attempt {attempt}): wedged') from error
@@ -432,6 +440,8 @@ def main():
     parser.add_argument('--stop-bound', type=float, default=3.0)
     parser.add_argument('--second-bound', type=float, default=.75)
     parser.add_argument('--seconds', type=float, default=20.0)
+    parser.add_argument('--hold-on-wedge', type=float, default=0,
+                        help='close/churn: keep a wedged server alive this many seconds for a debugger')
     parser.add_argument('--spread', type=float, default=.02,
                         help='late: seconds over which the closes of one FLIP are spread')
     parser.add_argument('--evidence', action='store_true',
