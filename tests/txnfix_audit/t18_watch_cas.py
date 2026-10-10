@@ -40,3 +40,5 @@ try:
     c.close()
 finally:
     print("server rc", srv.stop())
+
+assert (vk, vk2, dup, sum(seen.values())) == (C*N, C*N, 0, C*N), "WATCH CAS accounting"

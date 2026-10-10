@@ -47,6 +47,9 @@ try:
     missing = len(produced - set(consumed))
     print("%s mode=%s: produced %d (counter %s), consumed+left %d distinct, duplicates %d, missing %d"
           % (which, mode, len(produced), c.cmd("GET", ctr), len(consumed), dup, missing))
+    counter_value = int(c.cmd("GET", ctr))
     c.close()
 finally:
     print("server rc", srv.stop())
+
+assert not missing and not dup and counter_value == NP*N and set(consumed) == produced, "queue accounting"

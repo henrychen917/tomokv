@@ -25,7 +25,7 @@ try:
     for i in range(0, N, 500):
         batch = ["e%d" % j for j in range(i, min(N, i + 500))]
         c.cmd("SADD" if kind == "smove" else "RPUSH", src, *batch)
-    acked = [0]; errs = []
+    acked = [0]; errs = []; popped = []
     lock = threading.Lock()
     def mover(lo, hi):
         x = srv.conn(timeout=60)
@@ -34,6 +34,7 @@ try:
             r = x.cmd("SMOVE", src, dst, "e%d" % j) if kind == "smove" else x.cmd("RPOPLPUSH", src, dst)
             if (kind == "smove" and r == 1) or (kind != "smove" and isinstance(r, bytes)): n += 1
             elif isinstance(r, RespError): errs.append(r)
+            if kind != "smove" and isinstance(r, bytes): popped.append(r)
         with lock: acked[0] += n
         x.close()
     step = N // W
@@ -50,3 +51,6 @@ try:
     c.close()
 finally:
     print("server rc", srv.stop())
+
+assert not errs and a + b == N and b == acked[0], "members lost or duplicated"
+assert len(popped) == len(set(popped)), "RPOPLPUSH duplicated a delivery"

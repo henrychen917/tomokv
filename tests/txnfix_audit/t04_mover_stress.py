@@ -49,3 +49,5 @@ try:
     c.close()
 finally:
     print("server rc", srv.stop())
+
+assert not errs and card == exp and srccard + moved[0] == N, "members lost or duplicated"

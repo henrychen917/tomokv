@@ -1,6 +1,6 @@
 # resp.py -- minimal RESP2 client + server lifecycle helpers for the round-4 server-atomics tests.
 # Black box only: talks to a running server over TCP. No redis-py.
-import argparse, os, socket, subprocess, sys, tempfile, time, signal
+import argparse, os, socket, subprocess, sys, tempfile, threading, time, signal
 from pathlib import Path
 
 # Shared named options are removed before the historical script reads its positional
@@ -23,6 +23,16 @@ CPUS = _options.cores
 OUTPUT = Path(_options.output).resolve()
 OUTPUT.mkdir(parents=True, exist_ok=True)
 
+
+
+_thread_errors = []
+_default_excepthook = threading.excepthook
+
+def _record_thread_error(args):
+    _thread_errors.append(repr(args.exc_value))
+    _default_excepthook(args)
+
+threading.excepthook = _record_thread_error
 
 
 class RespError(Exception):
@@ -199,6 +209,7 @@ class Server:
                 break
             time.sleep(0.1)
         assert not port_open(self.port), "port %d still open after stop" % self.port
+        assert not _thread_errors, ("worker exceptions", _thread_errors)
         return self.proc.returncode
 
     def __enter__(self):
