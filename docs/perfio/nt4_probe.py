@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import time
 from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -53,6 +54,18 @@ def main():
                         for _ in range(64): assert c.read() == b"OK"
                 if command == "MSET": c.must("MSET", "memtier-1", "v")
                 if command == "SET": c.must("SET", "memtier-1", "v")
+                if command == "MSET":
+                    # A directed split proves the observer can see the claimed path.
+                    armed = info(c, "stats")
+                    frame = encode("MSET", *[x for i in range(8) for x in (f"arm-{i}", "v")])
+                    c.raw(frame[:-9])
+                    time.sleep(.02)
+                    c.raw(frame[-9:])
+                    assert c.read() == b"OK"
+                    fired = info(c, "stats")
+                    assert int(fired["perfio_incomplete"]) > int(armed["perfio_incomplete"])
+                    assert int(fired["perfio_reparsed_arguments"]) > int(armed["perfio_reparsed_arguments"])
+                    print(json.dumps(dict(observer_control="PASS", mode=mode)), flush=True)
                 before = snapshot(c, command)
                 threads = 1 if conns == 1 else 4
                 clients = conns//threads

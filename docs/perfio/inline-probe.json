@@ -1,0 +1,16 @@
+[
+  {
+    "object": "db0/src/core/genthread.o",
+    "budget": 129652,
+    "unit": 101529,
+    "hot_changes": [],
+    "output": "build/perfio/inline-probe/db0_src_core_genthread.o.o"
+  },
+  {
+    "object": "src/core/rl2s.o",
+    "budget": 162312,
+    "unit": 110355,
+    "hot_changes": [],
+    "output": "build/perfio/inline-probe/src_core_rl2s.o.o"
+  }
+]

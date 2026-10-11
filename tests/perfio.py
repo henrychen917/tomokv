@@ -94,7 +94,8 @@ def epoll_snapshot(pid):
 
 def audit(pid, phase):
     row, registered = epoll_snapshot(pid)
-    emit(event="epoll", phase=phase, **row)
+    emit(event="epoll", phase=phase, stale=len(row["stale"]),
+         duplicates=len(row["duplicates"]), registrations=row["registrations"])
     assert not row["stale"] and not row["duplicates"], (phase, row)
     return registered
 
@@ -128,11 +129,20 @@ def epoll_flip(args):
         total = shape[b"live_io"] + shape[b"live_ex"]
         audit(p.pid, "initial")
         events(admin, peers[:64], "initial")
+        failures = []
         for i, nio in enumerate([total//4, total//2, total*3//4, total//2]*3):
-            assert admin.must("FLIP", nio, total-nio) == b"OK"
+            reply = admin.cmd("FLIP", nio, total-nio)
+            if reply != b"OK":
+                failures.append(f"FLIP {i}: {reply}")
+                break
             traffic(peers, 2)
-            audit(p.pid, f"flip-{i}")
-            events(admin, peers[:64], f"flip-{i}")
+            # Retain both T16's growth and T16b's event amplification on a broken arm.
+            # Every failed assertion is retained and fails the row after collection.
+            for check in (lambda: audit(p.pid, f"flip-{i}"),
+                          lambda: events(admin, peers[:64], f"flip-{i}")):
+                try: check()
+                except AssertionError as error: failures.append(str(error))
+        assert not failures, failures
 
 
 def epoll_lb(args):
@@ -143,6 +153,7 @@ def epoll_lb(args):
         traffic(peers, 1)
         assert admin.must("SET", "perfio-lb", "v") == b"OK"
         registered = audit(p.pid, "lb-initial")
+        events(admin, peers, "lb-initial")
         ports = {}
         for line in Path(f"/proc/{p.pid}/net/tcp").read_text().splitlines()[1:]:
             columns = line.split()
