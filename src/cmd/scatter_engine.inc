@@ -2178,7 +2178,10 @@ ScatterPrepare xshard_prepare(Server& server, Op& op, ScatterArenaPool& pool,
             state->debug_script_defer_us = stage_defer;
     }
     state->pending.store(initialize_owner_completion(*state), std::memory_order_relaxed);
-    if (state->atomic_group && !force_atomic &&
+    // Keep the existing group-only arm off ordinary preparation's fallthrough.
+    // The attempt and AOF setup share this predicate; ordinary scatters never
+    // inspect the attempt's ownership bit or pointer here.
+    if (__builtin_expect(state->atomic_group && !force_atomic, false) &&
         ((!txn_group_prepare(*state, server, owner_io, &pool)) ||
          ((state->atomic_write || state->atomic_direct) &&
           !aof_prepare_scatter_group(*state)))) {
