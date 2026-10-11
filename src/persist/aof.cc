@@ -440,11 +440,14 @@ void AofProducer::init(AofManager* manager, int32_t sid, uint32_t next_sequence)
 
 bool AofProducer::enabled() const { return manager_ && manager_->recording(); }
 
-std::unique_ptr<AofChunk> AofProducer::make_chunk(uint32_t flags) {
+std::unique_ptr<AofChunk> AofProducer::make_chunk(uint32_t flags, uint64_t ticket) {
     try {
         auto chunk = std::make_unique<AofChunk>();
         chunk->sid = sid_;
         chunk->flags = flags;
+        // Before post_chunk assigns a transport sequence, this owner-private word holds the
+        // plain record's commit ticket. It is staging metadata, never a new on-disk field.
+        chunk->post_sequence = ticket;
         chunk->bytes.reserve(kAofChunkBytes);
         manager_->note_buffered(sid_);
         return chunk;
@@ -619,9 +622,34 @@ bool AofProducer::record_group_post_image_impl(FlatStore& store, uint64_t hash, 
                                                bool physical) {
     if (!active_group_) return false;
     PendingGroup& group = *active_group_;
+    AtomicEntry* last = nullptr;
+    if (store.atomic_pending_) {
+        for (AtomicEntry* entry = store.atomic_pending_->head; entry; entry = entry->next)
+            for (uint32_t i = 0; i < entry->count; ++i)
+                if (store.atomic_entry_hash(*entry, i) == hash &&
+                    store.atomic_entry_key(*entry, i).key_eq(key)) last = entry;
+    }
+    // EXEC supplies an origin to resolve its private overlay, including aborted children.
+    // A pop or local script instead brackets an already-visible plain mutation: its later
+    // GCMT ticket is an identity, not its MVCC rank. Preserve the actual mutation's rank/image.
+    const bool plain_group = (physical || !store.atomic_read_origin_conn_id()) &&
+        (!last || !last->group_epoch);
+    const uint64_t plain_ticket = plain_group ? staging_ticket(AofRecordKind::Put, 0, key) : 0;
+    if (plain_group && last) physical = true;
+    auto record = [&](AofRecordKind kind, KvObj* object, uint8_t encoding,
+                      const SnapshotTypeHooks* hooks, SnapshotSaveCursor* cursor) {
+        const bool ok = record_group_bytes(group, kind, object ? object->type : 0, encoding,
+            object ? object->key() : key, object ? object->expire_at_ms() : -1, hooks, cursor);
+        if (ok && plain_group) {
+            // Zero selects the real group decision; ticket + 1 encodes a plain mutation rank.
+            AofChunk& first = group.chunks.empty() ? *group.build : *group.chunks.front();
+            if (!first.post_sequence || first.post_sequence > plain_ticket + 1)
+                first.post_sequence = plain_ticket + 1;
+        }
+        return ok;
+    };
     KvObj* object = physical ? store.aof_physical(hash, key) : store.find(hash, key);
-    if (!object) return record_group_bytes(group, AofRecordKind::GroupDel,
-                                           0, 0, key, -1, nullptr, nullptr);
+    if (!object) return record(AofRecordKind::GroupDel, nullptr, 0, nullptr, nullptr);
     const SnapshotTypeHooks& hooks = snapshot_type_hooks(static_cast<Type>(object->type));
     SnapshotSaveCursor cursor;
     uint8_t encoding = 0;
@@ -630,9 +658,7 @@ bool AofProducer::record_group_post_image_impl(FlatStore& store, uint64_t hash, 
         manager_->fail("AOF group type serialization failed");
         return false;
     }
-    return record_group_bytes(group, AofRecordKind::GroupPut,
-                              object->type, encoding, object->key(),
-                              object->expire_at_ms(), &hooks, &cursor);
+    return record(AofRecordKind::GroupPut, object, encoding, &hooks, &cursor);
 }
 
 bool AofProducer::record_group_post_image(FlatStore& store, uint64_t hash, Slice key) {
@@ -661,6 +687,7 @@ bool AofProducer::make_ready(std::unique_ptr<AofChunk> chunk) {
     if (!chunk) return true;
     chunk->sid = sid_;
     chunk->sequence = sequence_++;
+    chunk->post_sequence = 0; // Drop staging rank before post_chunk allocates its transport ordinal.
     try {
         ready_.push_back(std::move(chunk));
         return true;
@@ -672,20 +699,46 @@ bool AofProducer::make_ready(std::unique_ptr<AofChunk> chunk) {
 
 bool AofProducer::resolve_groups() {
     if (active_group_) return false;
-    while (!staged_.empty()) {
-        StagedItem& item = staged_.front();
+    if (staged_.empty()) return true;
+    // Install order is not commit order: a foreign plain writer can commit below an undecided
+    // group, and two groups can install in opposite orders on their participants. An undecided
+    // AOF decision can even have an already-published live ticket, so do not treat zero as a
+    // promise of a future, larger ticket. Retain the staging window until its decisions exist.
+    // The existing owner completion fence already waits for every producer to have no pending
+    // bytes (ExLoopT::aof_flush_pass); command execution and that reply rule are unchanged.
+    for (auto& item : staged_) {
+        if (!item.plain && !item.group.decision->aborted.load(std::memory_order_acquire) &&
+            !item.group.decision->ticket.load(std::memory_order_acquire)) return true;
+    }
+    std::vector<StagedItem*> ordered;
+    try {
+        ordered.reserve(staged_.size());
+        for (auto& item : staged_) ordered.push_back(&item);
+        const auto rank = [](const StagedItem* item) {
+            if (item->plain) return item->plain->post_sequence;
+            const auto& group = item->group;
+            if (!group.chunks.empty() && group.chunks.front()->post_sequence)
+                return group.chunks.front()->post_sequence - 1;
+            return group.decision->ticket.load(std::memory_order_relaxed);
+        };
+        std::stable_sort(ordered.begin(), ordered.end(), [&](const auto* a, const auto* b) {
+            return rank(a) < rank(b);
+        });
+    } catch (const std::bad_alloc&) {
+        manager_->fail("out of memory ordering AOF staging window");
+        return false;
+    }
+    for (StagedItem* next : ordered) {
+        StagedItem& item = *next;
         if (item.plain) {
             if (!make_ready(std::move(item.plain))) return false;
-            staged_.pop_front();
             continue;
         }
         PendingGroup& group = item.group;
         if (group.decision->aborted.load(std::memory_order_acquire)) {
-            staged_.pop_front();
             continue;
         }
         const uint64_t ticket = group.decision->ticket.load(std::memory_order_acquire);
-        if (!ticket) break;
         for (auto& chunk : group.chunks) {
             chunk->group = group.decision;
             for (uint32_t offset : chunk->group_ticket_offsets) {
@@ -697,8 +750,8 @@ bool AofProducer::resolve_groups() {
             }
             if (!make_ready(std::move(chunk))) return false;
         }
-        staged_.pop_front();
     }
+    staged_.clear();
     return true;
 }
 
@@ -738,17 +791,17 @@ bool AofProducer::seal(uint32_t flags, AofOwnerContext* context) {
 }
 
 bool AofProducer::emit(const uint8_t* bytes, uint64_t length, bool large,
-                       AofOwnerContext* context) {
+                       AofOwnerContext* context, uint64_t ticket) {
     while (length) {
         if (!build_) {
             // record_bytes marked the first frame; emit only allocates continuations.
-            build_ = make_chunk(0);
+            build_ = make_chunk(0, ticket);
             if (!build_) return false;
         }
         const size_t room = kAofChunkBytes - build_->bytes.size();
         if (!room) {
             if (!seal(0, context)) return false;
-            build_ = make_chunk(0);
+            build_ = make_chunk(0, ticket);
             if (!build_) return false;
             continue;
         }
@@ -776,6 +829,30 @@ bool AofProducer::maybe_timestamp(int64_t now_ms, AofOwnerContext* context) {
                         static_cast<uint64_t>(second), nullptr, 0, nullptr, nullptr, context);
 }
 
+uint64_t AofProducer::staging_ticket(AofRecordKind kind, uint8_t type, Slice key) const {
+    if (staged_.empty()) return 0;
+    Server& server = *manager_->server_;
+    FlatStore& store = server.shard(sid_).store();
+    // Unversioned keys cannot overlap an installed candidate. The drawn frontier places their
+    // post-images before any group subsequently installed on this owner. Versioned writes use
+    // their actual ticket: a remote group may have drawn a newer one while this command ran.
+    uint64_t ticket = server.atomic_commit_drawn();
+    if (!store.atomic_pending_) return ticket;
+    const bool flush = kind == AofRecordKind::Flush;
+    const uint64_t hash = FlatStore::hash_key(key);
+    for (AtomicEntry* entry = store.atomic_pending_->head; entry; entry = entry->next) {
+        for (uint32_t i = 0; i < entry->count; ++i) {
+            const Slice candidate = store.atomic_entry_key(*entry, i);
+            const bool matches = flush ? (!type || candidate.ns == key.ns)
+                : (store.atomic_entry_hash(*entry, i) == hash && candidate.key_eq(key));
+            if (!matches) continue;
+            const uint64_t epoch = atomic_epoch(*entry);
+            if (epoch && epoch != kAtomicCancelledEpoch) ticket = epoch;
+        }
+    }
+    return ticket;
+}
+
 bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encoding, Slice key,
                                int64_t expire_at_ms, uint64_t group, const uint8_t* payload,
                                uint64_t payload_len, const SnapshotTypeHooks* hooks,
@@ -790,6 +867,8 @@ bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encodin
     }
     const uint64_t total = kRecordHeaderBytes + static_cast<uint64_t>(key.n) + payload_len;
     const bool large = total > kAofChunkBytes;
+    const uint64_t ticket = staging_ticket(kind, type, key);
+    if (build_ && build_->post_sequence != ticket && !seal(0, context)) return false;
     if (large) {
         if (!seal(0, context)) return false;
     } else if (build_ && build_->bytes.size() + total > kAofChunkBytes) {
@@ -797,7 +876,7 @@ bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encodin
     }
     if (!build_) {
         build_ = make_chunk(
-            large ? static_cast<uint32_t>(AofFrameLargeBegin) : 0);
+            large ? static_cast<uint32_t>(AofFrameLargeBegin) : 0, ticket);
         if (!build_) return false;
     }
 
@@ -812,19 +891,19 @@ bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encodin
     snapshot_put_u64(header + 16, payload_len);
     snapshot_put_u64(header + 24, static_cast<uint64_t>(expire_at_ms));
     snapshot_put_u64(header + 32, group);
-    if (!emit(header, sizeof(header), large, context) ||
-        !emit(reinterpret_cast<const uint8_t*>(key.p), key.n, large, context)) return false;
+    if (!emit(header, sizeof(header), large, context, ticket) ||
+        !emit(reinterpret_cast<const uint8_t*>(key.p), key.n, large, context, ticket)) return false;
 
     if (hooks && cursor) {
         while (cursor->offset < cursor->total) {
             if (!build_) {
-                build_ = make_chunk(large ? 0 : 0);
+                build_ = make_chunk(0, ticket);
                 if (!build_) return false;
             }
             size_t room = kAofChunkBytes - build_->bytes.size();
             if (!room) {
                 if (!seal(0, context)) return false;
-                build_ = make_chunk(0);
+                build_ = make_chunk(0, ticket);
                 if (!build_) return false;
                 room = kAofChunkBytes;
             }
@@ -848,7 +927,7 @@ bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encodin
             }
             build_->bytes.resize(old_size + written);
         }
-    } else if (payload_len && !emit(payload, payload_len, large, context)) {
+    } else if (payload_len && !emit(payload, payload_len, large, context, ticket)) {
         return false;
     }
 
@@ -864,7 +943,20 @@ bool AofProducer::record_bytes(AofRecordKind kind, uint8_t type, uint8_t encodin
 bool AofProducer::record_post_image_impl(FlatStore& store, uint64_t hash, Slice key,
                                          AofOwnerContext* context, uint64_t group) {
     if (!enabled()) return true;
-    KvObj* object = store.find(hash, key);
+    AtomicEntry* physical = nullptr;
+    if (!group && store.atomic_pending_) {
+        for (AtomicEntry* entry = store.atomic_pending_->head; entry; entry = entry->next)
+            for (uint32_t i = 0; i < entry->count; ++i)
+                if (store.atomic_entry_hash(*entry, i) == hash &&
+                    store.atomic_entry_key(*entry, i).key_eq(key)) physical = entry;
+    }
+    // Pair a plain ticket with that plain write's image. A remote group can commit between
+    // the handler and this callback; logical find() would then copy the group's winner into
+    // an ungrouped record, leaking one key if recovery subsequently lacks that group's GCMT.
+    // If the physical owner is still a group, the command made no plain install (for example
+    // the outer OOM gate refused it). Its already-staged group image needs no duplicate Put.
+    if (physical && physical->group_epoch) return true;
+    KvObj* object = physical ? store.aof_physical(hash, key) : store.find(hash, key);
     if (!object) {
         const AofRecordKind kind = group ? AofRecordKind::GroupDel : AofRecordKind::Del;
         return record_bytes(kind, 0, 0, key, -1, group, nullptr, 0,

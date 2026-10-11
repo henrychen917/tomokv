@@ -3604,7 +3604,7 @@ private:
         }
     }
 
-    friend struct FlatStoreLayoutLock;
+    friend struct FlatStoreLayoutLock; friend class AofProducer;
 #ifdef TOMO_STORE_REGRESSION_TEST
     friend struct FlatStoreRegressionTest;
 #endif
