@@ -8,4 +8,4 @@ The first Python gate wiring run exposed the new job being collected without reg
 
 A production-unit build using a custom BUILD_ROOT ran into pre-existing negative-control recipes that assume `build/` paths. The final proof uses the ordinary build root, rebuilds controls, and checks freshness of all 30 targets. The failed custom-root log remains in `build/aoforder/production-final`.
 
-The first serverless shutdown-unit invocation inherited only CPUs 108–111; its fixture explicitly requires eight allowed CPUs for 6:2, so it refused before exercising the unit. The final invocation must use 96–103 after live proof finishes; no fixture changed.
+The first serverless shutdown-unit invocation inherited only CPUs 108–111; its fixture explicitly requires eight allowed CPUs for 6:2, so it refused before exercising the unit. The final invocation used 96–103 after the differential finished and passed; no fixture changed.

@@ -4,11 +4,18 @@ Lane `cx-aoforder`, base `991d48f651d3c6e1324c061bd9ea801ac085afe8`.
 No push. Correctness work only; no benchmark or full gate. All commands and
 children are confined to CPUs 96–111, listeners to ports 25700–25799.
 
-**F3 is reproduced and repaired.** The three required shapes fail on PRE in all
-24 cells and pass on POST in all 24 cells. Fix commits: `895623bff` and
+**F3 candidate implemented; the broader goal remains blocked.** The three
+required shapes fail on PRE in all 24 cells and pass on POST in all 24 cells.
+A further deterministic probe found that HGET field expiry can erase an
+undecided MSET candidate: both PRE and POST live states tear, while POST replays
+the intact group and therefore differs from live. PRE also tears with AOF off.
+This branch is **not a blanket persistence-correctness or merge-ready claim**.
+The [six failure receipts, source evidence and owner options](docs/aoforder/hash-expiry/README.md)
+are part of the handoff. Fixing the live tear requires hash read/expiry changes
+outside the requested AOF/group-resolution-only body constraint. No further
+production changes were made after confirming it. Fix commits: `895623bff` and
 `8a715d60c`; gate integration and AOF-only compiler budgets: `00f7382ef`,
-`b63f5a07b`. The exact final-binary Redis differential is still running; results
-will be added before handoff. This is not a full-gate receipt.
+`b63f5a07b`. The exact final-binary Redis differential passes in both geometries. This is not a full-gate receipt.
 
 The read-only design source is
 `/home/user/Projects/round4-read/design-txnorder.md`, section 7 F3 and decision D9.
@@ -135,12 +142,15 @@ the scheduled binaries as performance arms.
 | Aoffix2, persistfix kill/term, acknowledgement, savefix rewrite | 70/70 cells | [drivers](docs/aoforder/persistence-drivers/summary.json) |
 | Rewrite stage/corruption and automatic-trigger matrices | 16/16 cells | [rewrite](docs/aoforder/persistence-rewrite/summary.json) |
 | Snapshot cut/group/typed roundtrip/race and shutdown/cancellation | 26/26 cells | [snapshot](docs/aoforder/persistence-snapshot-corrected/summary.json) |
+| Native snapshot byte equality after AOF replay, AOF-off negative controls, applicable split configuration purpose boots | 16/16 cells | [supplementary](docs/aoforder/persistence-supplementary/summary.json) |
+| Shutdown policy/signal/capture unit | pass on eight allowed CPUs | [log](docs/aoforder/shutdown-unit.log.gz) |
 | Persistence schedules plus three clause-deletion controls | pass | [unit proofs](docs/aoforder/persistfix-proofs.json) |
 | Large-frame unit schedules and Python controls | pass; 9/9 Python | [unit](docs/aoforder/persistfix-frameorder.log.gz), [Python](docs/aoforder/frame-order-test.log.gz) |
 | `make all`, every production-unit target, `mdbqsbr-live-arms` | pass; all 30 targets fresh | [build](docs/aoforder/production-units.json) |
 | `python3 tests/gates_test.py` | 66/66 pass; no deadline failures | [log](docs/aoforder/gates-test.log.gz) |
 | Ledger fixture self-test | 9/10; only owner EXPECT count mismatch | [log](docs/aoforder/ledger.log) |
-| Redis differential, seeds 7/19/20/23, both modes and atomics | exact final-binary run in progress | final receipt pending |
+| Additional hash-expiry/live-group counterexample | **six expected assertion failures**, including PRE AOF-off controls | [unfixed finding](docs/aoforder/hash-expiry/README.md) |
+| Redis differential, seeds 7/19/20/23, both modes and atomics | split 376/376; fused 370/370; zero failures | [final digest and commands](docs/aoforder/differ-final/summary.json) |
 
 Primary persistence covers 1s/2s × databases 1/16 × atomic 0/1 × uring/epoll,
 with appendfsync everysec, always, and no. The fsync arms crash/recover; everysec
@@ -155,6 +165,15 @@ manifest failure and missing-file, resurrection, large records, and the existing
 EXEC/private-overlay checks are included. The reproducible invocation driver is
 [persist_proof.py](docs/aoforder/persist_proof.py), with exact commands and server
 arguments in the compressed receipts.
+
+The differential uses every discovered generator (47 on split; the unchanged
+runner omits the split-specific SORT suite on fused). Split performs 376
+comparison legs with 1,702,771 witnesses; fused performs 368 comparison legs
+with 1,665,658 witnesses plus two mandatory read-local activity checks. Both
+observe 232 of the 245 currently registered commands; this is not a claim that
+all commands were compared. Full coverage inventories, seed receipts and per-leg
+logs are retained in [differ-final](docs/aoforder/differ-final). An earlier
+intermediate-binary run also passed, but is not used as the final digest proof.
 
 The ledger fixture has exactly 645 declared and expected labels, with no missing
 or extra labels. Its one failing assertion compares those against the untouched
@@ -204,14 +223,23 @@ Run the gate's ABBA instrument on the 16 explicit cells in
 read-local=0, reorder=0, appendonly=no. Preserve the instrument's population,
 value sizes, measured load floors, null controls and rejection rules. Use only
 server CPUs 96–103, load CPUs 105–111, ports 25760–25779, no SMT siblings; split
-is 6:2 and fused is eight workers. Compare PRE/POST and PRE/PAD-A, then POST/PAD-A
+is 6:2 (16 shards) and fused is eight workers (64 shards, the instrument's
+existing formula). The requested split ratio first needs owner qualification:
+`gate_measurements.ratio("abba", 8)` currently refuses because no reviewed
+eight-thread ABBA geometry exists. Do not fall back to the instrument's larger
+core defaults. Compare PRE/POST and PRE/PAD-A, then POST/PAD-A
 for any moved cell. Report rate at matched offered load, latency for depth 1,
 and cycles/op, instructions/op, IPC for every arm. A repeatable ordinary-command
 regression outside the instrument's identical-arm envelope rejects this build.
 No instruction-count-only verdict and no performance gain is claimed here.
+The cell file has been parsed with the instrument's `--list-cells` path (which
+starts no workload): [parsed coverage](docs/aoforder/measure-cells-parsed.json).
 
-For AOF cost, repeat the SET and MSET cells with appendonly=yes under everysec
+For AOF cost, request the SET and MSET cells with appendonly=yes under everysec
 and always, fresh persistence directories per arm, and the same offered load.
+The present ABBA runner owns appendonly=no and forbids an srv= override, so
+these AOF-on cells need owner-approved instrument support before execution;
+no wrapper here bypasses that guard. [Prerequisite receipt](docs/aoforder/measurement-prerequisites.json).
 These are cost measurements of the correctness repair, not evidence for relaxing
 its replay assertions. Keep rewrite disabled in those rate cells; the directed
 rewrite correctness cells above supply the cut/replay proof. Record completed
