@@ -379,7 +379,7 @@ ledger checker must report that ten-row discrepancy until the maintainer
 updates them. A Stage-A-only selection with NX but without groups is +8/+8,
 requiring **633/650**; it must not retain the two rejected Stage B rows.
 
-### Final build and proof (running)
+### Final build and proof
 
 The frozen POST builds with `make -j16 all`; all **29** targets currently listed
 in `job_production_units` build successfully, as does `mdbqsbr-live-arms`.
@@ -457,3 +457,10 @@ data assertions as required, including lost updates and read skew; their
 new-counter-dependent failures are not used as negative proof. PRE battery
 receipts carry PRE's hash, independently of the POST companion hashes.
 [Final companions](docs/txnfix/txnfix2/final-extras/runs.json).
+
+The complete, sequential `tests/gates_test.py` rerun passes **66/66** in
+93 seconds; the initial 300-second overall timeout is retained in the earlier
+receipt. No assertions or internal deadlines changed. The ledger self-tests
+pass 9/10: only current inventory fails, solely because the protected
+EXPECT_FULL is 642 while both source and fixture contain 652 labels, with
+no missing or extra labels. [Final serverless receipts](docs/txnfix/txnfix2/final-serverless/runs.json).
