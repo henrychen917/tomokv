@@ -1,0 +1,79 @@
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162262", "lane": 1, "hot": 4, "other": 3}
+    OTHER 5851 -> 5393 unsigned int tomo::IoLoop::flip_control_pass<false>()
+    OTHER 5579 -> 5393 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21003 -> 20743 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]
+    HOT 21058 -> 21072 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11939 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT 21099 -> 20952 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]
+    OTHER 0 -> 308 void tomo::IoLoop::cancel_client_transfer<false>(tomo::Client*)
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162278", "lane": 1, "hot": 2, "other": 3}
+    OTHER 5851 -> 5393 unsigned int tomo::IoLoop::flip_control_pass<false>()
+    OTHER 5579 -> 5393 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT 21099 -> 20952 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]
+    OTHER 0 -> 308 void tomo::IoLoop::cancel_client_transfer<false>(tomo::Client*)
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162294", "lane": 1, "hot": 2, "other": 3}
+    OTHER 5851 -> 5393 unsigned int tomo::IoLoop::flip_control_pass<false>()
+    OTHER 5579 -> 5393 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21072 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    OTHER 0 -> 308 void tomo::IoLoop::cancel_client_transfer<false>(tomo::Client*)
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162302", "lane": 1, "hot": 1, "other": 1}
+    OTHER 5579 -> 5488 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162310", "lane": 1, "hot": 0, "other": 1}
+    OTHER 5579 -> 5488 unsigned int tomo::IoLoop::flip_control_pass<true>()
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162314", "lane": 1, "hot": 2, "other": 1}
+    OTHER 5579 -> 5488 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21049 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11939 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162318", "lane": 1, "hot": 1, "other": 1}
+    OTHER 5579 -> 5554 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 12093 -> 11939 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162322", "lane": 1, "hot": 1, "other": 1}
+    OTHER 5579 -> 5554 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162324", "lane": 1, "hot": 1, "other": 1}
+    OTHER 5579 -> 5554 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162326", "lane": 1, "hot": 2, "other": 1}
+    OTHER 5579 -> 5554 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21107 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162328", "lane": 1, "hot": 2, "other": 1}
+    OTHER 5579 -> 5554 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21072 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162330", "lane": 1, "hot": 2, "other": 1}
+    OTHER 5579 -> 5554 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21072 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162334", "lane": 1, "hot": 0, "other": 1}
+    OTHER 5579 -> 5554 unsigned int tomo::IoLoop::flip_control_pass<true>()
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162338", "lane": 1, "hot": 2, "other": 1}
+    OTHER 5579 -> 5554 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21049 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11939 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162342", "lane": 1, "hot": 2, "other": 1}
+    OTHER 5579 -> 5554 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21049 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162350", "lane": 1, "hot": 3, "other": 1}
+    OTHER 5579 -> 5554 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21049 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT 21006 -> 21055 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162358", "lane": 1, "hot": 3, "other": 1}
+    OTHER 5579 -> 5554 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21049 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11939 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT 21006 -> 20992 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162374", "lane": 1, "hot": 2, "other": 1}
+    OTHER 5579 -> 5554 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21049 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 21006 -> 20992 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162390", "lane": 1, "hot": 3, "other": 1}
+    OTHER 5579 -> 5683 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 21058 -> 21044 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+    HOT 21006 -> 20992 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)

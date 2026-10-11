@@ -1,0 +1,3 @@
+{"object": "src/core/rl2s.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=162300", "lane": 1, "hot": 1, "other": 1}
+    OTHER 5579 -> 5488 unsigned int tomo::IoLoop::flip_control_pass<true>()
+    HOT 12093 -> 11931 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]

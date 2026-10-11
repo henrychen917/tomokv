@@ -1,0 +1,7 @@
+{"object": "db0/src/core/reorder.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=148258", "lane": 1, "hot": 3, "other": 3}
+    HOT 9554 -> 9602 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]
+    OTHER 2252 -> 2273 tomo_db0::IoLoop::pubsub_start_command(tomo_db0::Client*, tomo_db0::Op&)
+    HOT 796 -> 729 unsigned int tomo_db0::ExLoopT<true>::r7_fused_sweep_impl<32u, true, false, false>()
+    OTHER 1011 -> 1011 tomo_db0::FlatStore::budget_admit(tomo_db0::Slice)
+    OTHER 663 -> 628 tomo_db0::FlatStore::snapshot_progress(unsigned int, unsigned int)
+    HOT 1212 -> 984 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
