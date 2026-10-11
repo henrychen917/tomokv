@@ -1850,10 +1850,10 @@ job_respresume(){
   row_begin "$label"
   if [ "$mode" = 1s ]; then
     boot_fused "$CANDIDATE_BINARY" --read-local 1 --reorder 1 --net-io "$engine" \
-      --client-lb 0 --key-lb 0 --save '' && booted=1
+      --client-lb 0 --key-lb 0 --enable-debug-command yes --save '' && booted=1
   else
     boot "$CANDIDATE_BINARY" --thread-mode 2s --net-io "$engine" \
-      --client-lb 0 --key-lb 0 --save '' && booted=1
+      --client-lb 0 --key-lb 0 --enable-debug-command yes --save '' && booted=1
   fi
   if [ "$booted" = 1 ] && [ "$kind" = fragment ]; then
     guard_port "$oracle_port"

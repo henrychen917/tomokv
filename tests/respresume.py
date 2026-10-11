@@ -95,7 +95,7 @@ def corpus():
         [('PFADD', 'hll', 'v'), ('PFCOUNT', 'hll')], [('EVAL', 'return ARGV[1]', 0, 'v')],
         [('FUNCTION', 'LIST')], [('MULTI',), ('SET', 'k', 'v'), ('EXEC',)],
         [('WATCH', 'k'), ('UNWATCH',)], [('LMOVE', 'a', 'b', 'LEFT', 'RIGHT')],
-        [('SCAN', 0)], [('SORT', 'empty')], [('EXISTS', 'empty'), ('TYPE', 'empty')],
+        [('SADD', 'small', 'a'), ('SSCAN', 'small', 0)], [('SORT', 'empty')], [('EXISTS', 'empty'), ('TYPE', 'empty')],
         [('EXPIRE', 'empty', 10)], [('DUMP', 'empty')], [('RESTORE', 'k', 0, 'invalid')],
         [('GET',)], [('HELLO', 'invalid')], [('SELECT', 0)], [('DBSIZE',)],
         [('CLIENT', 'SETNAME', 'respresume'), ('CLIENT', 'GETNAME')],
@@ -162,7 +162,7 @@ def cpu_seconds(pid):
 
 def cpu_bound(args):
     samples = []
-    payload = trickle_frame(200000)
+    payload = trickle_frame(args.cpu_args)
     for _ in range(3):
         with closing(Conn(args.host, args.port, timeout=15)) as c:
             start = cpu_seconds(args.pid)
@@ -230,8 +230,12 @@ def main():
     ap.add_argument('port', type=int)
     ap.add_argument('--oracle-port', type=int)
     ap.add_argument('--pid', type=int)
-    ap.add_argument('--cpu-limit', type=float, default=.20)
-    ap.add_argument('--median-ms', type=float, default=4)
+    # Correctness bounds, not speed claims. Measured on the gate's 1s/2s x epoll/uring boots
+    # (8 server cores): POST median 0.02-0.05 s per trickled 400k frame and 0.022 ms neighbour
+    # median; PRE 0.69-0.72 s and 5.3-7.9 ms. Each bound sits ~3x / 5x from PRE and POST.
+    ap.add_argument('--cpu-args', type=int, default=400000)
+    ap.add_argument('--cpu-limit', type=float, default=.2)
+    ap.add_argument('--median-ms', type=float, default=1)
     ap.add_argument('--tls', action='store_true')
     args = ap.parse_args()
     def expired(_signal, _frame):
