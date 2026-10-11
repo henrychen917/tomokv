@@ -16,7 +16,7 @@ import subprocess
 
 from ccfix_audit import audit
 
-PATTERN = re.compile(r'::(?:xshard_|ScatterState::|ScatterArenaPool::)|'
+PATTERN = re.compile(r'::xshard_|\b(?:ScatterState|ScatterArenaPool|ScatterDispatch)\b|'
                      r'::(?:free_state_contents|free_state_key_anchors|finish_phase[12]|'
                      r'publish_phase2|publish_sort_deref|prepare_sort_deref|finish_sort_deref)\b')
 
