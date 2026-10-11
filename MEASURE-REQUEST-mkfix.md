@@ -177,3 +177,57 @@ cuts), and common-arena hits/misses/overflow frees. Instrumentation sources,
 libraries and instrumented objects remain ignored under `build/mkfix2/scratch`.
 Uninstrumented reply/send counts are collected separately. Results and production
 commit-prefix artifacts will be appended below; no new result is claimed here.
+
+### PRE confirmation
+
+36 uninstrumented WB cells and 36 scratch allocation/mechanism cells completed,
+each with 65,536 checked commands after 128 warm commands per connection; GET,
+MGET-8 and MSET-8, p8/p32/p128, both modes and atomic 0/1. Raw receipts:
+[WB](docs/mkfix2/pre-wb.jsonl.gz), [mechanisms](docs/mkfix2/pre-counts.jsonl.gz).
+These are one finite-count replica per cell, not rate or latency evidence.
+
+A reproduces: atomic-1 MSET stays near one reply/send at all three depths in both
+modes. The Done scatter marker bypasses the WB prefix rule; atomic same-connection
+key hazards make those ready prefixes arrive one operation at a time. Successful
+MSET already has a known five-byte reply, but PRE postpones its representation
+until IO retirement. Commit tickets and same-connection parking remain necessary.
+
+B and C are **confirmed, distinct mechanisms**, not one allocation-room failure:
+1s atomic-0 MGET p32 has 0.6551 common-arena misses/frees per command and **zero**
+abandoned prepares. At p128 it has 1.5394 abandoned registered prepares/command;
+2s p32/p128 has 0.2745/6.0903. Surplus retries hit the just-returned arena:
+2s p128 has 7.0903 ready prepares, 6.3734 pool hits and 0.7169 misses/command.
+The late room test is SPSC inbox capacity, whereas the 64-block bound only limits
+retained *free* arenas. All measured abandoned MGET preparations carry a registered
+cut. No counter source or patch is committed.
+
+### A — known atomic MSET result at Done
+
+Successful atomic MSET publishes its existing `+OK` representation before Done,
+with a completed-scatter descriptor tag. Its arena still goes through the same IO
+retire hook exactly once. Errors and gathers keep their opaque marker. Commit
+ordering, AOF completion, RYOW parking, `wb_rule.h`, both policy values, S=16 and
+D=3 are unchanged. The focused standalone unit checks five-byte accounting,
+retirement identity and the original half/completion/policy-zero exits.
+
+| Mode | PRE p8/p32/p128 replies/send | A p8/p32/p128 replies/send |
+|---|---|---|
+| 1s | 1.001 / 1.001 / 1.000 | 1.425 / 2.640 / 4.506 |
+| 2s | 1.003 / 1.005 / 1.004 | 1.306 / 2.364 / 4.317 |
+
+This fixes the one-send-per-opaque-completion bypass; **it does not reach plain
+MSET's batching ratios** in the 64-connection fixed-key cells. Same-key groups
+still park behind undecided predecessors, and the unchanged 256-credit admission
+window at 16 shards limits outstanding groups. No constants/credit/parking change
+is included to force a numerical match. This limitation must be judged with A.
+[All 36 WB cells](docs/mkfix2/a-wb.jsonl.gz),
+[all 36 allocation/mechanism cells](docs/mkfix2/a-counts.jsonl.gz).
+
+A's full audit retains **1,211/1,211 command bodies**, including every GET/SET
+handler. It changes **89/16,440 emitted bodies**, including **40/1,208 selected
+hot bodies** (parser/scatter arms, IO retirement callbacks, one R7 sweep).
+The complete list is [a-full/changed-bodies.json](docs/mkfix2/a-full/changed-bodies.json).
+Per-object `large-unit-insns +32` trials on both genthread/rl2s objects and db0
+reorder did not reduce any changed-hot count; no compiler setting is changed.
+[Trial receipts](docs/mkfix2/a-budget-trials.json.gz). **Keep for maintainer merit,
+not a hot-path-identity pass.** No throughput claim.

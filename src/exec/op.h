@@ -82,6 +82,9 @@ public:
     static constexpr int32_t kLocalXshardMarker  = -3;
     static constexpr int32_t kBlockingStateMarker = -4;
     static constexpr int32_t kMultiStateMarker   = -5;
+    // A scatter whose final RESP/code is already in this Op. Its state still needs the
+    // ordinary IO retire hook, but WB can count the reply without walking the arena.
+    static constexpr int32_t kScatterReplyMarker = -6;
     Op() = default;
     ~Op() { std::free(argv_heap_); }
     Op(const Op&) = delete;
@@ -388,7 +391,8 @@ public:
     }
 
     bool has_scatter_state() const {
-        return zc_ptr != nullptr && zc_shard == kScatterStateMarker;
+        return zc_ptr != nullptr &&
+               (zc_shard == kScatterStateMarker || zc_shard == kScatterReplyMarker);
     }
     ScatterState* scatter_state() const {
         return has_scatter_state()

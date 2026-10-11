@@ -200,9 +200,9 @@ def case(args, mode, command, atomic, pipeline, keys, rep):
             # old mkfix interposers leave the version word zero and retain their old schema.
             if totals[135] == 2:
                 events = ['prepare_ready', 'abandoned', 'abandoned_snapshot',
-                          'pool_hit', 'pool_miss', 'pool_overflow_free',
-                          'wb_scatter_bypass', 'commit_done']
+                          'pool_hit', 'pool_miss', 'pool_overflow_free']
                 result['mechanisms'] = dict(zip(events, totals[136:136 + len(events)]))
+                result['mechanisms']['commit_done'] = totals[143]
                 result['mechanisms_per_call'] = {
                     key: value / measured for key, value in result['mechanisms'].items()}
         if args.profile:

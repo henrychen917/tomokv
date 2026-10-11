@@ -4061,6 +4061,15 @@ void xshard_flush_commits(Server& server, ThreadCtx& self, Ring& ring,
                 notify_xshard_finished(server.shard(state->commit_shard), op, *state);
             server.atomic_apply_close(self.id(), state->apply_open);
 
+            // Successful atomic MSET already has its final result. Publish that result with
+            // Done instead of advertising an opaque gather that forces WB to serve at once.
+            // Keep the arena attached: IO still owns group retirement and all lifetime pins.
+            // Errors and gathers retain their ordinary assembly/unknown-size marker.
+            if (state->kind == Kind::Mset && !state->aborted.load(std::memory_order_acquire)) {
+                reply_ok(op.sink());
+                op.zc_shard = Op::kScatterReplyMarker;
+            }
+
             // Capture `next` above: a fused self-notification may immediately retire the Op and
             // destroy this arena state. The release store remains the one reply-visibility edge.
             if (!server.aof().configured() ||
@@ -4207,7 +4216,8 @@ void xshard_retire(Server& server, ThreadCtx& self, Ring& ring, Client& client, 
     (void)ring;
     ScatterState* state = op.scatter_state();
     if (!state) return;
-    assemble_final(client, op, *state, release_ctx, release_fn, suppressed_fn);
+    if (op.zc_shard != Op::kScatterReplyMarker)
+        assemble_final(client, op, *state, release_ctx, release_fn, suppressed_fn);
     // A terminal error can bypass normal MGET assembly. Return any already-gathered borrows through
     // the same IO->owner channel used by send completion and teardown.
     if (state->kind == Kind::Mget && state->values) {
