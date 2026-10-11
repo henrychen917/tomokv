@@ -166,7 +166,8 @@ payload, and by a partial header exactly at the limit; a frame exactly at the li
 pre-AUTH count 11 and bulk 16385 split across reads; a valid pre-AUTH 4-pair MSET of
 16384-byte bulks split mid-payload; a split AUTH; a 1 MiB pre-AUTH inline request.
 **PRE and POST are byte-identical with identical close behavior in all 36 case×boot
-pairs** (`proof/limits-*.jsonl.gz`). The gate's `NET1 inline + query cap` rows (pre-AUTH
+pairs** (`proof/limits-*.jsonl.gz`; the four boots' outcome files are byte-identical,
+so the behavior does not depend on thread mode or engine). The gate's `NET1 inline + query cap` rows (pre-AUTH
 1 MiB inline window, live query cap with a pending 2 MiB bulk, queued MULTI argv) pass
 on both, with identical output (`proof/existing-rows/*-gate-netcap-*.txt`).
 
