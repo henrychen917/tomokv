@@ -134,8 +134,9 @@ $(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=
 $(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31330
 # SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
-# txnfix3's cold DEBUG witness grows this unit; 31800 restores the PRE SCAN helper.
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31800 --param max-inline-insns-auto=16
+# txnfix3's cold DEBUG witness grows this unit; 31850 retains all unrelated handlers,
+# including both the SCAN helper and RANDOMKEY (31800 perturbed RANDOMKEY).
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31850 --param max-inline-insns-auto=16
 # PS4 AOF recovery adds cold code. Preserve 5146b78ee storage helper bodies
 # in both namespaces; the aoffix2 hot-body audit checks these compiler budgets.
 $(BUILD_ROOT)/src/persist/aof.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34400
