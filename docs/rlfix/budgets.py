@@ -19,6 +19,8 @@ def main():
     p.add_argument("--objects", nargs="+", required=True)
     p.add_argument("--deltas", nargs="+", type=int, required=True)
     p.add_argument("--jobs", type=int, default=8)
+    p.add_argument("--auto", type=int)
+    p.add_argument("--speedup", type=int)
     a = p.parse_args()
     baseline = {name: inventory(ROOT / "build/rlfix/pre" / name) for name in a.objects}
     commands = {}
@@ -37,6 +39,12 @@ def main():
         budget = int(command[index].split("=")[1]) + delta
         command[index] = f"large-unit-insns={budget}"
         folder = ROOT / "build/rlfix/budgets" / tree[:12] / name.replace("/", "_") / str(budget)
+        if a.auto is not None:
+            command += ["--param", f"max-inline-insns-auto={a.auto}"]
+            folder = folder / f"auto-{a.auto}"
+        if a.speedup is not None:
+            command += ["--param", f"inline-min-speedup={a.speedup}"]
+            folder = folder / f"speedup-{a.speedup}"
         folder.mkdir(parents=True, exist_ok=True)
         receipt = folder / "result.json"
         if receipt.exists():
@@ -51,8 +59,8 @@ def main():
             result = dict(object=name, delta=delta, budget=budget, source_sha256=tree,
                           command=command, **compare(baseline[name], inventory(folder / "unit.o")))
             receipt.write_text(json.dumps(result, indent=2) + "\n")
-        # The feature necessarily changes the armed parser and local resolver.
-        # Preserve the complete list; do not hide these from the standard auditors.
+        # Keep every changed body, including intentional feature code. The ranking
+        # only guides compile-only trials; the standard auditors see all bodies.
         unexpected = [r for r in result["rows"] if not any(s in r["name"] for s in
                       ("parse_and_dispatch<true", "prepare_local_read", "drain_local_reads_bounded_impl",
                        "read_local_command_is_", "ReadLocalDemotionPlan::prepare"))]

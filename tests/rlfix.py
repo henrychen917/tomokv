@@ -61,6 +61,29 @@ def events(listener, count):
     return out
 
 
+def write_window(host, port, ctl, setup, frames, expected, inflight):
+    for attempt in range(3):
+        for command in setup:
+            ctl.must(*command)
+        c = armed_connection(host, port, ctl)
+        try:
+            before = snapshot(ctl)
+            c.sock.sendall(b"".join(_lib.encode(*frame) for frame in frames))
+            replies = [c.read() for _ in frames]
+            d = delta(before, snapshot(ctl))
+            expect(replies, expected, "same-connection replies/RYOW")
+            held = d.get("read_local_fallback_inflight_write", 0)
+            if held >= inflight or d.get("read_local_fallbacks", 0) != held:
+                return d, replies
+            # The owner can finish before the parser reaches a younger GET.
+            # Reinsert the deleted values and re-arm a fresh ROB; never accept
+            # such a run as a witness or relax its exact counter assertions.
+            print(json.dumps(dict(rearm=attempt + 1, counters=d)), flush=True)
+        finally:
+            c.close()
+    raise AssertionError("write window never opened on three fresh connections")
+
+
 def misses(host, port, oracle=False):
     ctl = _lib.Conn(host, port)
     saved_notify = ctl.must("CONFIG", "GET", "notify-keyspace-events")[1]
@@ -158,45 +181,30 @@ def deletes(host, port):
             ctl.must("SET", key, key)
         for command in ("DEL", "UNLINK", "dEl", "uNlInK"):
             for broad in (False, True):
-                ctl.must("SET", a, "old-a")
-                ctl.must("SET", b, "old-b")
-                c = armed_connection(host, port, ctl)
-                try:
-                    write = (command, a, b) if broad else (command, a)
-                    frames = [("GET", key) for key in keys[:3]]
-                    frames += [write, ("GET", keys[3]), ("GET", a)]
-                    expected = [key.encode() for key in keys[:3]]
-                    expected += [2 if broad else 1, keys[3].encode(), None]
-                    before = snapshot(ctl)
-                    c.sock.sendall(b"".join(_lib.encode(*frame) for frame in frames))
-                    replies = [c.read() for _ in frames]
-                    d = delta(before, snapshot(ctl))
-                    # The final GET is an exact same-connection RYOW witness, not
-                    # an independent connection's eventual view of the deletion.
-                    expect(replies, expected, f"{command} broad={broad} replies/RYOW")
-                    counted(d, {"read_local_hits": 0 if broad else 4,
-                                "read_local_keyspace_hits": 0 if broad else 4,
-                                "read_local_keyspace_misses": 0,
-                                "read_local_fallbacks": 5 if broad else 1,
-                                "read_local_fallback_inflight_write": 5 if broad else 1,
-                                "read_local_write_ring_records": 0 if broad else 1,
-                                "keyspace_hits": 4, "keyspace_misses": 1})
-                    print(json.dumps(dict(command=command, broad=broad, counters=d,
-                                          replies=repr(replies))), flush=True)
-                finally:
-                    c.close()
+                write = (command, a, b) if broad else (command, a)
+                frames = [("GET", key) for key in keys[:3]]
+                frames += [write, ("GET", keys[3]), ("GET", a)]
+                expected = [key.encode() for key in keys[:3]]
+                expected += [2 if broad else 1, keys[3].encode(), None]
+                d, replies = write_window(host, port, ctl,
+                    [("SET", a, "old-a"), ("SET", b, "old-b")], frames, expected,
+                    5 if broad else 1)
+                # The final GET is an exact same-connection RYOW witness, not
+                # an independent connection's eventual view of the deletion.
+                counted(d, {"read_local_hits": 0 if broad else 4,
+                            "read_local_keyspace_hits": 0 if broad else 4,
+                            "read_local_keyspace_misses": 0,
+                            "read_local_fallbacks": 5 if broad else 1,
+                            "read_local_fallback_inflight_write": 5 if broad else 1,
+                            "read_local_write_ring_records": 0 if broad else 1,
+                            "keyspace_hits": 4, "keyspace_misses": 1})
+                print(json.dumps(dict(command=command, broad=broad, counters=d,
+                                      replies=repr(replies))), flush=True)
             # An older read of the deleted key must execute before the delete.
-            ctl.must("SET", a, "old-a")
-            c = armed_connection(host, port, ctl)
-            try:
-                before = snapshot(ctl)
-                frames = [("GET", a), (command, a), ("GET", a)]
-                c.sock.sendall(b"".join(_lib.encode(*frame) for frame in frames))
-                expect([c.read() for _ in frames], [b"old-a", 1, None], command + " older/younger RYOW")
-                counted(delta(before, snapshot(ctl)), {"read_local_hits": 0,
-                        "read_local_fallback_inflight_write": 2})
-            finally:
-                c.close()
+            frames = [("GET", a), (command, a), ("GET", a)]
+            d, _ = write_window(host, port, ctl, [("SET", a, "old-a")], frames,
+                                [b"old-a", 1, None], 2)
+            counted(d, {"read_local_hits": 0, "read_local_fallback_inflight_write": 2})
     finally:
         ctl.must("CONFIG", "SET", "notify-keyspace-events", saved_notify)
         ctl.close()
