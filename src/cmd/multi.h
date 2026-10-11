@@ -45,7 +45,9 @@ struct MultiRetryNode {
     void* unit = nullptr;
     uint64_t generation = 0;
     Kind kind = Kind::Execute;
+    uint32_t owner_io = 0;            // fits the existing tail padding
 };
+static_assert(sizeof(MultiRetryNode) == 32);
 struct alignas(64) MultiRetryLane {
     std::atomic<MultiRetryNode*> head{nullptr};
     uint32_t age_seq = 0;              // IO-owned, used only at first admission

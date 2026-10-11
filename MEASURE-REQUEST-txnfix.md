@@ -207,3 +207,13 @@ concurrent compiler load, split atomic-0/db16 missed the D2 wait witness and
 fused atomic-0/db16 hit W3's deadline. Both failures are retained in
 [tls-batteries](docs/txnfix/txnfix2/tls-batteries/runs.json). The assertions were
 not changed. All eight configurations are being rerun after compilation.
+
+The shared fallback drain now uses the retry node as its typed ownership token,
+with its IO owner in the node's existing padding. This prepares the same drain
+for group retries without casting a group as MultiExecState at shutdown. The
+node stays 32 bytes, the lane stays 64 bytes, and no locked layout changes.
+Admission, intent/shutdown, and child-help units pass;
+[receipts](docs/txnfix/txnfix2/shared-token-units.json). An intermediate missed
+retry-held token conversion failed the admission unit and was corrected before
+commit; that failing receipt is preserved. This fallback-only refactor is kept
+in its own commit.

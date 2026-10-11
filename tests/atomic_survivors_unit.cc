@@ -327,7 +327,7 @@ void txn_intents(Server& server) {
                 "shutdown attempt keeps admission credit");
         state->admitted = true;
         if (exclusive) {
-            require(server.txn_exclusive_claim(state), "shutdown attempt owns exclusive token");
+            require(server.txn_exclusive_claim(&state->retry), "shutdown attempt owns exclusive token");
             server.txn_exclusive_barrier(true);
         }
         auto* op = client.rob().acquire();
@@ -388,7 +388,7 @@ void txn_admission(Server& server) {
     require(multi_exclusive_ready(server, *state, server.thread(0), ring),
             "exclusive dispatch requires every fence and the completed owner drain");
     server.atomic_retire_group(1, credit);
-    server.txn_exclusive_release(state);
+    server.txn_exclusive_release(&state->retry);
     destroy_multi_state(state);
     require(!server.atomic_work_active() && server.atomic_can_admit(1, true),
             "admission reproduction leaves no credit or barrier");

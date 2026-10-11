@@ -975,6 +975,8 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
     state->server = &server;
     state->client = &client;
     state->owner_io = owner_io;
+    state->retry.owner_io = owner_io;
+    state->retry.unit = state;
     state->origin_conn_id = client.id();
     state->watch_generation = client.watch_generation();
     state->kind = kind;
@@ -2278,10 +2280,12 @@ uint32_t multi_owner_reap_entry(IoLoop& loop) {
 }
 
 namespace {
-bool multi_exclusive_ready(Server& server, MultiExecState& state, ThreadCtx& self, Ring& ring) {
-    if (server.txn_retry_held(&state)) return false;
-    if (server.txn_exclusive_owner() != &state && !server.txn_exclusive_claim(&state)) return false;
-    if (!state.exclusive_generation) {
+bool unit_exclusive_ready(Server& server, MultiRetryNode& node,
+                           uint64_t& since_ns, uint64_t& generation,
+                           std::vector<uint32_t>& fences, ThreadCtx& self, Ring& ring) {
+    if (server.txn_retry_held(&node)) return false;
+    if (server.txn_exclusive_owner() != &node && !server.txn_exclusive_claim(&node)) return false;
+    if (!generation) {
         // A closing predecessor can release its token before all IOs consumed
         // its fence nodes. Never reuse a node still owned by an inbox.
         for (uint32_t tid = 0; tid < server.nthreads(); ++tid) {
@@ -2289,21 +2293,21 @@ bool multi_exclusive_ready(Server& server, MultiExecState& state, ThreadCtx& sel
             if (lane.fence_ack.load(std::memory_order_acquire) != lane.fence.generation) return false;
         }
         try {
-            state.exclusive_fences.clear();
+            fences.clear();
             for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
-                if (server.serves_clients(tid)) state.exclusive_fences.push_back(tid);
+                if (server.serves_clients(tid)) fences.push_back(tid);
         } catch (const std::bad_alloc&) {
-            server.txn_exclusive_release(&state);
+            server.txn_exclusive_release(&node);
             return false;
         }
         server.txn_exclusive_barrier(true);
-        state.exclusive_since_ns = now_ns();
-        state.exclusive_generation = server.txn_exclusive_generation();
-        for (uint32_t tid : state.exclusive_fences) {
+        since_ns = now_ns();
+        generation = server.txn_exclusive_generation();
+        for (uint32_t tid : fences) {
             auto& lane = server.multi_retry_lane(tid);
-            lane.fence.generation = state.exclusive_generation;
+            lane.fence.generation = generation;
             if (tid == self.id()) {
-                lane.fence_ack.store(state.exclusive_generation, std::memory_order_release);
+                lane.fence_ack.store(generation, std::memory_order_release);
             } else {
                 multi_enqueue_node(server, tid, lane.fence);
                 server.thread(tid).wake_if_parked(ring, self.sig());
@@ -2311,16 +2315,21 @@ bool multi_exclusive_ready(Server& server, MultiExecState& state, ThreadCtx& sel
         }
     }
     bool fenced = true;
-    for (uint32_t tid : state.exclusive_fences)
+    for (uint32_t tid : fences)
         fenced &= server.multi_retry_lane(tid).fence_ack.load(std::memory_order_acquire) ==
-                  state.exclusive_generation;
+                  generation;
     if (fenced && server.atomic_apply_inflight() == 0) return true;
-    if (now_ns() - state.exclusive_since_ns >= kTxnExclusiveDrainMax) {
+    if (now_ns() - since_ns >= kTxnExclusiveDrainMax) {
         server.note_txn(self.id(), TxnCounter::ExclusiveDrainTimeouts);
         server.txn_exclusive_barrier(false);
-        state.exclusive_generation = 0;
+        generation = 0;
     }
     return false;
+}
+
+bool multi_exclusive_ready(Server& server, MultiExecState& state, ThreadCtx& self, Ring& ring) {
+    return unit_exclusive_ready(server, state.retry, state.exclusive_since_ns,
+                                state.exclusive_generation, state.exclusive_fences, self, ring);
 }
 
 MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
@@ -2441,7 +2450,7 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 continue;
             }
             if (client.closing() || client.dead()) {
-                loop.srv_->txn_exclusive_release(previous);
+                loop.srv_->txn_exclusive_release(&previous->retry);
                 previous->decision.aborted.store(true, std::memory_order_release);
                 if (auto* session = ensure_multi_session(client))
                     session->watched = std::move(previous->watched);
@@ -2451,7 +2460,7 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
                 ++work;
                 continue;
             }
-            if (loop.srv_->txn_retry_held(previous) || now_ns() < previous->retry_after_ns) {
+            if (loop.srv_->txn_retry_held(&previous->retry) || now_ns() < previous->retry_after_ns) {
                 multi_enqueue_retry(*previous);
                 continue;
             }
@@ -2463,7 +2472,7 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
             const bool exclusive = !previous->reexecutable ||
                 previous->writer_dooms + previous->writer_cancelled.load(std::memory_order_acquire) >=
                     loop.srv_->debug_txn_occ_limit() ||
-                loop.srv_->txn_exclusive_owner() == previous;
+                loop.srv_->txn_exclusive_owner() == &previous->retry;
             if (exclusive && !multi_exclusive_ready(*loop.srv_, *previous, *loop.self_, loop.ring_)) {
                 multi_enqueue_retry(*previous);
                 continue;
@@ -2502,11 +2511,11 @@ __attribute__((noinline)) uint32_t multi_owner_pass_entry_impl(IoLoop& loop) {
             next->admission_generation = previous->admission_generation;
             previous->admitted = false;
             next->decision.exclusive = exclusive;
-            if (exclusive) loop.srv_->txn_exclusive_transfer(previous, next);
+            if (exclusive) loop.srv_->txn_exclusive_transfer(&previous->retry, &next->retry);
             if (!multi_dispatch_attempt<IofusedPrivateQueue>(
                     *loop.srv_, *loop.self_, loop.scatter_pool_, client, op, next,
                     previous->exec_op_id, loop.touched_, loop.touched_list_, loop.ntouched_, [] {})) {
-                if (exclusive) loop.srv_->txn_exclusive_transfer(next, previous);
+                if (exclusive) loop.srv_->txn_exclusive_transfer(&next->retry, &previous->retry);
                 previous->admitted = next->admitted;
                 next->admitted = false;
                 destroy_multi_state(next);
@@ -2583,7 +2592,7 @@ void multi_close_entry(IoLoop& loop, Client& client) {
 
 static void multi_shutdown_attempt(MultiExecState* state, ScatterArenaPool& pool,
                                    std::vector<MultiExecState*>& deferred) {
-    state->server->txn_exclusive_release(state);
+    state->server->txn_exclusive_release(&state->retry);
     uint64_t undecided = 0;
     if (state->decision.epoch.compare_exchange_strong(
             undecided, kAtomicCancelledEpoch, std::memory_order_relaxed)) {
@@ -2617,7 +2626,7 @@ void multi_shutdown_entry(IoLoop& loop) {
         // store-record drain. No node can arrive after this exchange. A first
         // exclusive attempt has no owner tasks yet; a retry has finished all
         // of them. Neither is allowed to keep a cut, credit or barrier alive.
-        if (auto* exclusive = static_cast<const MultiExecState*>(loop.srv_->txn_exclusive_owner());
+        if (auto* exclusive = static_cast<const MultiRetryNode*>(loop.srv_->txn_exclusive_owner());
             exclusive && exclusive->owner_io == loop.self_->id())
             loop.srv_->txn_exclusive_release(exclusive);
         auto* pending = loop.srv_->multi_retry_lane(loop.self_->id()).head.exchange(
@@ -2982,7 +2991,7 @@ MultiTaskResult multi_execute_task(Server& server, const Task& task, Shard& shar
                 // transaction writes can land on a shard after this point, so it can no longer
                 // straddle a snapshot cut. Closed here, on an OWNER, not at reply retirement.
                 server.atomic_apply_close(owner_thread_id, state.apply_open);
-                if (state.decision.exclusive) server.txn_exclusive_release(&state);
+                if (state.decision.exclusive) server.txn_exclusive_release(&state.retry);
             }
         }
     }
