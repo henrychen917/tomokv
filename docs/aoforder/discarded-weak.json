@@ -1,0 +1,41 @@
+{
+  "binary_sha256": "b06bdee777661fa5b547eae7a105ea77f41f6a9b6b28272b445e8c71c9451107",
+  "map_sha256": "824972884a02b943a806ef9443f237fc9fedd8804f9c71fa76512691342fde11",
+  "checks": [
+    {
+      "name": "tomo_db0::FlatStore::make_room_for(tomo_db0::Slice, unsigned long)",
+      "object": "db0/src/persist/aof.o",
+      "symbol": "_ZN8tomo_db09FlatStore13make_room_forENS_5SliceEm",
+      "discarded": true,
+      "map_excerpt": " .text._ZN8tomo_db09FlatStore13make_room_forENS_5SliceEm\n                0x0000000000000000      0x3c2 build/aoforder/final/db0/src/persist/aof.o\n"
+    },
+    {
+      "name": "tomo::kvobj_free_with_capacity(tomo::KvObj*, unsigned long)",
+      "object": "src/persist/aof.o",
+      "symbol": "_ZN4tomo24kvobj_free_with_capacityEPNS_5KvObjEm",
+      "discarded": true,
+      "map_excerpt": " .text._ZN4tomo24kvobj_free_with_capacityEPNS_5KvObjEm\n                0x0000000000000000      0x2aa build/aoforder/final/src/persist/aof.o\n"
+    },
+    {
+      "name": "tomo::FlatStore::clear_read_local()",
+      "object": "src/persist/aof.o",
+      "symbol": "_ZN4tomo9FlatStore16clear_read_localEv",
+      "discarded": true,
+      "map_excerpt": " .text._ZN4tomo9FlatStore16clear_read_localEv\n                0x0000000000000000      0xb4f build/aoforder/final/src/persist/aof.o\n"
+    },
+    {
+      "name": "tomo::FlatStore::choose_victim_read_local(tomo::Slice)",
+      "object": "src/persist/aof.o",
+      "symbol": "_ZN4tomo9FlatStore24choose_victim_read_localENS_5SliceE",
+      "discarded": true,
+      "map_excerpt": " .text._ZN4tomo9FlatStore24choose_victim_read_localENS_5SliceE\n                0x0000000000000000      0x8cb build/aoforder/final/src/persist/aof.o\n"
+    },
+    {
+      "name": "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_assign(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)",
+      "object": "src/persist/aof.o",
+      "symbol": "_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE9_M_assignERKS4_",
+      "discarded": true,
+      "map_excerpt": " .text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE9_M_assignERKS4_\n                0x0000000000000000      0x10b build/aoforder/final/src/persist/aof.o\n"
+    }
+  ]
+}
