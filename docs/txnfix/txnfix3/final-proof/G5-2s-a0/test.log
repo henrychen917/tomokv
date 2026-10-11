@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-txnfix/tests/txngroup.py", line 223, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/user/Projects/cx-txnfix/tests/txngroup.py", line 201, in main
+    assert battery.atomic() == 1, "txngroup battery requires an atomic-1 boot"
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError: txngroup battery requires an atomic-1 boot

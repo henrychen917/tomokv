@@ -1,0 +1,9 @@
+directed SMOVE result 1 state [[], [b'a', b'm', b'z']]
+directed LMOVE result b'm' state [[], [b'a', b'm', b'z']]
+directed PFMERGE result b'OK' state [2, 6]
+directed RPOPLPUSH-source result b'm' state [[b'z'], [b'm', b'a']]
+directed RENAME-source result b'OK' state [b'new', b'old']
+conservation smove atomic 0 members 8000
+conservation smove atomic 0 members 2000
+conservation rpoplpush atomic 0 members 2000
+PASS G5
