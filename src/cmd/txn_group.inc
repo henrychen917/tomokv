@@ -11,7 +11,7 @@ void txn_group_barrier_witness(ScatterState& state, Client& client) {
     if (!txn_barrier_witness_armed.load(std::memory_order_relaxed) ||
         state.kind != Kind::Msetnx || !state.atomic_write || !state.barrier ||
         !client.barrier_held_by(BarrierOwner::Scatter)) return;
-    auto& conn = client.conn();
+    auto& conn = client;
     constexpr char next[] = "*1\r\n$5\r\nMULTI\r\n";
     if (conn.rlen() - conn.rpos() < sizeof(next) - 1 ||
         std::memcmp(conn.rbuf() + conn.rpos(), next, sizeof(next) - 1) != 0) return;
