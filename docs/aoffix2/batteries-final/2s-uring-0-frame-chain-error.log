@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py", line 106, in battery_chain
+    action()
+  File "/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py", line 156, in chain
+    live('aof_frame_order', [data / 'appendonlydir', '--engine', engine], 'run')
+  File "/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py", line 136, in live
+    run(prefix + '-' + suffix, ['python3', 'tests/' + script + '.py',
+  File "/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py", line 43, in run
+    assert rc == 0, log
+           ^^^^^^^
+AssertionError: /home/user/Projects/cx-aoffix2/docs/aoffix2/batteries-final/2s-uring-0-frame-run.log

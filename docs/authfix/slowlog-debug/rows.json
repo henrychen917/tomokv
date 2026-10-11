@@ -1,0 +1,30 @@
+[
+  {
+    "mode": "1s",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/slowlog.py",
+      "127.0.0.1",
+      "25034"
+    ],
+    "exit": 0,
+    "seconds": 3.1150260893628
+  },
+  {
+    "mode": "2s",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/slowlog.py",
+      "127.0.0.1",
+      "25034"
+    ],
+    "exit": 0,
+    "seconds": 3.520220775157213
+  }
+]

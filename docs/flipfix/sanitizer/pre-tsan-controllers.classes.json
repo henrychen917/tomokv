@@ -1,0 +1,156 @@
+{
+ "log": "build/flipfix/runs/pre-tsan-controllers-1/controllers/controllers.log",
+ "reports": 100,
+ "classes": {
+  "diagnostic": 89,
+  "flip": 7,
+  "other": 4
+ },
+ "groups": [
+  [
+   "diagnostic",
+   13,
+   "data race :: tomo_db0::ExLoopT<false>::run() <-> tomo_db0::lbsignals_capture(tomo_db0::Server&)"
+  ],
+  [
+   "diagnostic",
+   13,
+   "data race :: tomo_db0::lbsignals_capture(tomo_db0::Server&) <-> unsigned int tomo_db0::ThreadCtx::drain_tasks<false, tomo_db0::ExLoopT<false>::drain_tasks<32u, fals"
+  ],
+  [
+   "diagnostic",
+   8,
+   "data race :: tomo_db0::LoopSignals::observe_oldest_age(unsigned long) <-> tomo_db0::lbsignals_capture(tomo_db0::Server&)"
+  ],
+  [
+   "flip",
+   7,
+   "data race :: tomo_db0::FlipController::sample_fingerprint(tomo_db0::Server&) <-> tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl"
+  ],
+  [
+   "diagnostic",
+   6,
+   "data race :: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl <-> tomo_db0::ThreadCtx::total_commands() const"
+  ],
+  [
+   "diagnostic",
+   6,
+   "data race :: bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&) <-> tomo_db0::ThreadCtx::total_commands() const"
+  ],
+  [
+   "diagnostic",
+   6,
+   "data race :: tomo_db0::ThreadCtx::sample_depth(unsigned long) <-> tomo_db0::lbsignals_capture(tomo_db0::Server&)"
+  ],
+  [
+   "diagnostic",
+   4,
+   "data race :: tomo_db0::lbsignals_capture(tomo_db0::Server&) <-> unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)"
+  ],
+  [
+   "diagnostic",
+   4,
+   "data race :: bool tomo_db0::ExLoopT<false>::execute<false, false>(tomo_db0::Task const&) <-> tomo_db0::lbsignals_capture(tomo_db0::Server&)"
+  ],
+  [
+   "diagnostic",
+   4,
+   "data race :: tomo_db0::LoopSignals::observe_ewma(unsigned long, unsigned long&, unsigned long&) <-> tomo_db0::lbsignals_capture(tomo_db0::Server&)"
+  ],
+  [
+   "diagnostic",
+   3,
+   "data race :: tomo_db0::lbsignals_capture(tomo_db0::Server&) <-> void tomo_db0::IoLoop::run_loop<false, false, false, false, false>()"
+  ],
+  [
+   "diagnostic",
+   3,
+   "data race :: tomo_db0::LoopSignals::clear_oldest_age() <-> tomo_db0::lbsignals_capture(tomo_db0::Server&)"
+  ],
+  [
+   "other",
+   2,
+   "data race :: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl <-> void tomo_db0::IoLoop::admit_fd<false, false>(int, tomo_db0::UrKind)"
+  ],
+  [
+   "diagnostic",
+   2,
+   "data race :: tomo_db0::IoTenure<tomo_db0::IoAccountingClock, 100000ul>::account(unsigned long) <-> tomo_db0::lbsignals_capture(tomo_db0::Server&)"
+  ],
+  [
+   "diagnostic",
+   2,
+   "data race :: tomo_db0::ExLoopT<false>::flush_notify_batch() <-> tomo_db0::lbsignals_capture(tomo_db0::Server&)"
+  ],
+  [
+   "diagnostic",
+   2,
+   "data race :: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl <-> tomo_db0::lbsignals_capture(tomo_db0::Server&)"
+  ],
+  [
+   "diagnostic",
+   2,
+   "data race :: tomo_db0::lbsignals_capture(tomo_db0::Server&) <-> void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*)"
+  ],
+  [
+   "diagnostic",
+   2,
+   "data race :: tomo_db0::FlipController::sample_role_demand(tomo_db0::Server&, unsigned long, double&, double&, dou <-> tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl"
+  ],
+  [
+   "diagnostic",
+   1,
+   "data race :: tomo_db0::info_stats_tick(tomo_db0::Server&) <-> void tomo_db0::IoLoop::on_recv<false, false, false>(tomo_db0::Client*, int)"
+  ],
+  [
+   "diagnostic",
+   1,
+   "data race :: bool tomo_db0::WbEngine::on_send_complete<true, false>(tomo_db0::Client&, int) <-> tomo_db0::info_stats_tick(tomo_db0::Server&)"
+  ],
+  [
+   "diagnostic",
+   1,
+   "data race :: tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl <-> tomo_db0::ThreadCtx::command_calls(unsigned int) const"
+  ],
+  [
+   "other",
+   1,
+   "data race :: bool tomo_db0::WbEngine::submit_legacy<false, false>(tomo_db0::Client&, unsigned long, unsigned long <-> tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl"
+  ],
+  [
+   "other",
+   1,
+   "data race :: bool tomo_db0::WbEngine::on_send_complete<true, false>(tomo_db0::Client&, int) <-> tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl"
+  ],
+  [
+   "diagnostic",
+   1,
+   "data race :: tomo_db0::FlipController::start_maneuver(tomo_db0::Server&, tomo_db0::FlipctlTriggerReason, unsigned <-> void tomo_db0::IoLoop::run_loop<false, false, false, false, false>()"
+  ],
+  [
+   "diagnostic",
+   1,
+   "data race :: tomo_db0::FlipController::start_maneuver(tomo_db0::Server&, tomo_db0::FlipctlTriggerReason, unsigned <-> tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl"
+  ],
+  [
+   "diagnostic",
+   1,
+   "data race :: tomo_db0::FlipController::start_maneuver(tomo_db0::Server&, tomo_db0::FlipctlTriggerReason, unsigned <-> tomo_db0::IoTenure<tomo_db0::IoAccountingClock, 100000ul>::account(unsigned long)"
+  ],
+  [
+   "diagnostic",
+   1,
+   "data race :: tomo_db0::FlipController::start_maneuver(tomo_db0::Server&, tomo_db0::FlipctlTriggerReason, unsigned <-> unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool)"
+  ],
+  [
+   "diagnostic",
+   1,
+   "data race :: tomo_db0::FlipController::sample_role_demand(tomo_db0::Server&, unsigned long, double&, double&, dou <-> void tomo_db0::IoLoop::run_loop<false, false, false, false, false>()"
+  ],
+  [
+   "diagnostic",
+   1,
+   "data race :: tomo_db0::FlipController::sample_role_demand(tomo_db0::Server&, unsigned long, double&, double&, dou <-> tomo_db0::IoTenure<tomo_db0::IoAccountingClock, 100000ul>::account(unsigned long)"
+  ]
+ ]
+}

@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/aof_frame_order.py", line 375, in <module>
+    main(sys.argv[1], int(sys.argv[2]), sys.argv[3])
+  File "/home/user/Projects/cx-aoffix2/tests/aof_frame_order.py", line 285, in main
+    assert_surface(bootstrap)
+  File "/home/user/Projects/cx-aoffix2/tests/aof_frame_order.py", line 119, in assert_surface
+    raise AssertionError("aof_frame_order needs --%s %s" % (name, value))
+AssertionError: aof_frame_order needs --net-io epoll

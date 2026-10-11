@@ -1,0 +1,4 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-hdufgb6n", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "95.53 94.02 81.48 100/4468 121421", "pid": 121419}
+{"case": "geo-count", "centers": 20, "failures": 0, "sample": []}
+{"exit": 0, "lifecycle": "stop", "load": "95.53 94.02 81.48 93/4463 121759", "pid": 121419}
+{"axes": [[0, 0]], "case": "geo-count", "mode": "1s", "result": "PASS"}

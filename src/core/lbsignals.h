@@ -7,8 +7,8 @@
 //
 // COST: zero on the hot path. Everything here runs on the cold command path (DEBUG/INFO) or in a
 // controller beat. Writers keep their plain single-owner stores; capture reads each counter with
-// a relaxed __atomic_load_n, which compiles to the same MOV on x86 but keeps the cross-thread
-// read defined. Counters are MONOTONIC — rates are the reader's job (two captures, subtract);
+// a relaxed __atomic_load_n (same MOV on x86). That is still a C++ data race, not a defined
+// publication (TSan; flipfix CT4.3). Counters are MONOTONIC — rates are the reader's job;
 // the server keeps no window state, so any number of readers can watch at their own cadence
 // without stepping on each other. That statelessness is itself a signal-quality feature: the
 // fork's sampled-cputime hack had one global window that every consumer fought over.

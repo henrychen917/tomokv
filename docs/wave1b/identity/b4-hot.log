@@ -1,0 +1,49 @@
+Hot bodies: 1204; raw byte equal: 1149; bytes + resolved relocation targets equal: 1156
+DIFF db0/src/cmd/climon.o 2177 0 tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF db0/src/cmd/climon.o 273 0 unsigned int tomo_db0::Rob<64u>::drain<tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*)::{lambda(tomo_db0::Op&)#1}>(tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*)::{lambda(tomo_db0::Op&)#1}&&)
+DIFF db0/src/cmd/climon.o 463 0 tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*)
+DIFF db0/src/cmd/climon.o 16 0 tomo_db0::WbEngine::serve_suppressing(tomo_db0::Client&)
+DIFF db0/src/core/genthread.o 4632 4744 unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+DIFF db0/src/core/genthread.o 3450 3712 unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false, false>()
+DIFF db0/src/core/reorder.o 1016 1244 tomo_db0::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 984 1212 tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 1016 1244 tomo_db0::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 984 1212 tomo_db0::WbEngine::serve_impl<true, true, false, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+DIFF db0/src/core/reorder.o 3416 3480 bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)
+DIFF db0/src/core/reorder.o 3565 3631 bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+DIFF db0/src/core/reorder.o 4033 4180 unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+DIFF db0/src/core/reorder.o 1992 2070 unsigned int tomo_db0::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+DIFF db0/src/core/reorder.o 1853 1936 unsigned int tomo_db0::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+DIFF db0/src/core/reorder.o 4290 4360 unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+DIFF db0/src/core/reorder.o 3983 4180 unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+DIFF db0/src/snapshot/snapshot.o 1298 1361 tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)
+DIFF db0/src/snapshot/snapshot.o 1274 1287 tomo_db0::FlatStore::insert_read_local(unsigned long, tomo_db0::KvObj*)
+DIFF src/cmd/climon.o 2177 0 tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const
+DIFF src/cmd/climon.o 273 0 unsigned int tomo::Rob<64u>::drain<tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*)::{lambda(tomo::Op&)#1}>(tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*)::{lambda(tomo::Op&)#1}&&)
+DIFF src/cmd/climon.o 463 0 tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*)
+DIFF src/cmd/climon.o 16 0 tomo::WbEngine::serve_suppressing(tomo::Client&)
+DIFF src/core/genthread.o 942 1018 tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+DIFF src/core/genthread.o 2572 2881 unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+DIFF src/core/genthread.o 2556 2889 unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, false>()
+DIFF src/core/genthread.o 5024 5052 void tomo::IoLoop::run_loop<false, true, false, true, false>()
+DIFF src/core/genthread.o 2572 2881 unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, false>()
+DIFF src/core/genthread.o 5129 5157 void tomo::IoLoop::run_loop<true, true, true, true, false>()
+DIFF src/core/genthread.o 2556 2889 unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true, false>()
+DIFF src/core/genthread.o 5129 5157 void tomo::IoLoop::run_loop<true, false, true, true, false>()
+DIFF src/core/genthread.o 5126 5177 void tomo::IoLoop::run_loop<true, true, false, true, false>()
+DIFF src/core/genthread.o 5065 5116 void tomo::IoLoop::run_loop<true, false, false, true, false>()
+DIFF src/core/reorder.o 4033 3999 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+DIFF src/core/reorder.o 1794 1868 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+DIFF src/core/reorder.o 4360 4306 unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+DIFF src/core/reorder.o 1536 1412 unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+DIFF src/core/reorder.o 4290 4306 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+DIFF src/core/reorder.o 3983 3999 unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+DIFF src/core/rl2s.o 12008 12093 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 20957 21099 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 20762 21003 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]
+DIFF src/core/rl2s.o 20823 21058 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+DIFF src/core/rl2s.o 20851 21006 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)
+DIFF src/snapshot/snapshot.o 346 540 tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const
+DIFF src/snapshot/snapshot.o 580 621 tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)
+DIFF src/snapshot/snapshot.o 1511 1527 tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+DIFF src/snapshot/snapshot.o 1593 1589 tomo::FlatStore::insert(unsigned long, tomo::KvObj*)

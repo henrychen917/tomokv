@@ -1,0 +1,35 @@
+load 5.83 11.53 13.62 1/3099 1137999
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/tomokv-asan", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/final-san/post-asan-churn-uring/churn", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "uring", "--enable-debug-command", "yes"], "event": "boot", "label": "churn", "loadavg": [5.83154296875, 11.52978515625, 13.6201171875]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/tomokv-asan", "label": "churn", "pid": 1138003}
+{"attempt": 0, "elapsed": 0.0154, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 1, "elapsed": 0.0109, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 2, "elapsed": 0.0071, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 3, "elapsed": 0.0032, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 4, "elapsed": 0.0142, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 5, "elapsed": 0.0086, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 6, "elapsed": 0.0037, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 7, "elapsed": 0.0033, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 8, "elapsed": 0.0048, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 9, "elapsed": 0.0083, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 10, "elapsed": 0.0042, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 11, "elapsed": 0.0028, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 12, "elapsed": 0.0095, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 13, "elapsed": 0.0092, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 14, "elapsed": 0.0025, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 15, "elapsed": 0.0024, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 16, "elapsed": 0.0105, "moving": 0, "reply": "OK", "target": 2}
+{"attempt": 17, "elapsed": 0.0071, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 18, "elapsed": 0.003, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 19, "elapsed": 0.0019, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 20, "elapsed": 0.01, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 21, "elapsed": 0.007, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 22, "elapsed": 0.0029, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 23, "elapsed": 0.0022, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 24, "elapsed": 0.007, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 25, "elapsed": 0.0054, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 26, "elapsed": 0.0018, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 27, "elapsed": 0.0027, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 28, "elapsed": 0.0085, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 29, "elapsed": 0.008, "moving": 0, "reply": "OK", "target": 4}
+{"applied": 30, "case": "churn", "closed": 300, "connector": {"ok": 13148, "refused": 1211}, "engine": "uring", "outcomes": {"OK": 30}, "result": "PASS", "witnessed": 25}
+{"event": "stop", "label": "churn", "loadavg": [5.83154296875, 11.52978515625, 13.6201171875], "log": "/home/user/Projects/cx-flipfix/build/flipfix/final-san/post-asan-churn-uring/churn/churn.log", "rc": 0}

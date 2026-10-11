@@ -1,0 +1,71 @@
+lane	label	result	seconds
+racefix	INFO command/socket counters (TSan, both modes)	ok	1.720000
+racefix	Climon armed refresh + stale-store suppression control	ok	1.390000
+clientfix	clientfix tracking-cap (1s)	ok	1.740000
+clientfix	clientfix tracking-pipeline (1s)	ok	6.850000
+clientfix	clientfix reply-skip (1s)	ok	11.560000
+clientfix	clientfix pattern-cleanup (1s)	ok	0.300000
+clientfix	clientfix pause-deadline (1s)	ok	1.100000
+clientfix	clientfix geo-count (1s)	ok	0.100000
+clientfix	clientfix geo-store (1s)	ok	0.110000
+clientfix	clientfix tracking-cap (2s)	ok	1.740000
+clientfix	clientfix tracking-pipeline (2s)	ok	6.840000
+clientfix	clientfix reply-skip (2s)	ok	11.640000
+clientfix	clientfix pattern-cleanup (2s)	ok	0.300000
+clientfix	clientfix pause-deadline (2s)	ok	1.100000
+clientfix	clientfix geo-count (2s)	ok	0.110000
+clientfix	clientfix geo-store (2s)	ok	0.100000
+flipfix	FLIP planned-connection close lifetime (ASAN+TSAN)	ok	0.120000
+flipfix	FLIP fingerprint publication (ASAN+TSAN)	ok	0.120000
+aclfix	aclfix sort (1s)	ok	0.070000
+aclfix	aclfix streams-name (1s)	ok	0.060000
+aclfix	aclfix save-load (1s)	ok	0.070000
+aclfix	aclfix capacity (1s)	ok	1.950000
+aclfix	aclfix wake-pop (1s)	ok	0.080000
+aclfix	aclfix wake-scatter (1s)	ok	0.080000
+aclfix	aclfix sort (2s)	ok	0.060000
+aclfix	aclfix streams-name (2s)	ok	0.070000
+aclfix	aclfix save-load (2s)	ok	0.070000
+aclfix	aclfix capacity (2s)	ok	1.770000
+aclfix	aclfix wake-pop (2s)	ok	0.070000
+aclfix	aclfix wake-scatter (2s)	ok	0.070000
+scriptfix	scriptfix sandbox (1s)	ok	0.110000
+scriptfix	scriptfix functions (1s)	ok	0.110000
+scriptfix	scriptfix replies (1s)	ok	0.690000
+scriptfix	scriptfix dump (1s)	ok	0.820000
+scriptfix	scriptfix sandbox (2s)	ok	0.140000
+scriptfix	scriptfix functions (2s)	ok	0.140000
+scriptfix	scriptfix replies (2s)	ok	0.700000
+scriptfix	scriptfix dump (2s)	ok	0.820000
+authfix	authfix CG4.1 binary config requirepass	ok	1.130000
+authfix	authfix CG4.2 missing config value refuses boot	ok	3.410000
+authfix	authfix SV4.2 binary requirepass rewrite restart	ok	1.090000
+authfix	authfix SV4.1 slowlog credential redaction (1s)	ok	0.310000
+authfix	authfix SV4.1 slowlog credential redaction (2s)	ok	0.320000
+savefix	shutdown keeps acknowledged writes (1s, sigterm, epoll)	ok	1.560000
+savefix	shutdown keeps acknowledged writes (1s, command, epoll)	ok	0.760000
+savefix	shutdown cancels BGSAVE capture (1s, atomic 0, epoll)	ok	0.930000
+savefix	shutdown cancels BGSAVE capture (1s, atomic 1, epoll)	ok	0.930000
+savefix	shutdown keeps acknowledged writes (2s, sigterm, epoll)	ok	1.560000
+savefix	shutdown keeps acknowledged writes (2s, command, epoll)	ok	0.770000
+savefix	shutdown cancels BGSAVE capture (2s, atomic 0, epoll)	ok	1.000000
+savefix	shutdown cancels BGSAVE capture (2s, atomic 1, epoll)	ok	1.030000
+savefix	shutdown keeps acknowledged writes (1s, sigterm, uring)	ok	1.560000
+savefix	shutdown keeps acknowledged writes (1s, command, uring)	ok	0.760000
+savefix	shutdown cancels BGSAVE capture (1s, atomic 0, uring)	ok	0.950000
+savefix	shutdown cancels BGSAVE capture (1s, atomic 1, uring)	ok	0.930000
+savefix	shutdown keeps acknowledged writes (2s, sigterm, uring)	ok	1.560000
+savefix	shutdown keeps acknowledged writes (2s, command, uring)	ok	0.770000
+savefix	shutdown cancels BGSAVE capture (2s, atomic 0, uring)	ok	1.030000
+savefix	shutdown cancels BGSAVE capture (2s, atomic 1, uring)	ok	1.050000
+flipfix	FLIP close during FLIP (uring)	ok	0.990000
+flipfix	FLIP close during FLIP (epoll)	ok	1.000000
+flipfix	FLIP signal stop during FLIP + second SIGINT	ok	1.420000
+savefix	shutdown cancels AOF rewrite capture (1s, atomic 0, epoll)	ok	1.730000
+savefix	shutdown cancels AOF rewrite capture (1s, atomic 1, epoll)	ok	1.750000
+savefix	shutdown cancels AOF rewrite capture (2s, atomic 0, epoll)	ok	1.810000
+savefix	shutdown cancels AOF rewrite capture (2s, atomic 1, epoll)	ok	1.850000
+savefix	shutdown cancels AOF rewrite capture (1s, atomic 0, uring)	ok	1.760000
+savefix	shutdown cancels AOF rewrite capture (1s, atomic 1, uring)	ok	1.770000
+savefix	shutdown cancels AOF rewrite capture (2s, atomic 0, uring)	ok	1.870000
+savefix	shutdown cancels AOF rewrite capture (2s, atomic 1, uring)	ok	1.950000

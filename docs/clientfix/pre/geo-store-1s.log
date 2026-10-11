@@ -1,0 +1,4 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/clientfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/tmp/clientfix-hqyot2x0", "--shards", "16", "--thread-mode", "1s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes"], "lifecycle": "start", "load": "47.11 81.21 58.52 9/3494 3701037", "pid": 3701037}
+{"case": "geo-store", "centers": 20, "failures": 20, "sample": [{"center": 0, "expected": ["p237", "p298", "p47", "p128", "p246"], "got": ["p31", "p250", "p184", "p289", "p222"], "radius": ["p31", "p250", "p184", "p289", "p222"]}]}
+{"exit": 0, "lifecycle": "stop", "load": "47.11 81.21 58.52 7/3493 3701045", "pid": 3701037}
+{"case": "geo-store", "failures": [{"atomic": 0, "error": "COUNT without ANY did not select the nearest members", "read_local": 0}], "mode": "1s", "result": "FAIL"}

@@ -1,0 +1,97 @@
+{
+  "split": {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-authfix/build/tomokv",
+      "25038",
+      "25039",
+      "112-119",
+      "6:2"
+    ],
+    "environment": {
+      "GATE_DIFFER_GEOMETRY": "split",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-authfix/docs/authfix/authfix2/differ-split",
+      "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-authfix/docs/authfix/authfix2/differ-suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-authfix/docs/authfix/authfix2/differ-seeds.txt",
+      "GATE_DIFFER_ORACLE_CORES": "120",
+      "GATE_LOAD_CORES": "121-127",
+      "GATE_DIFFER_ORACLE_BIN": "/tmp/claude-1000/redis74/src/redis-server"
+    },
+    "exit": 0,
+    "seconds": 709.1242252332158,
+    "sha256": "2b57bd798786221bdb06ae3f061c7777bd6ef7cd719c05cc48d3f55f524ac6f2",
+    "suites": [
+      "servertail",
+      "compatintro",
+      "ccfix",
+      "aclsel",
+      "climon"
+    ],
+    "seeds": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "atomics": [
+      0,
+      1
+    ],
+    "comparison_legs": 40,
+    "read_local_witnesses": [],
+    "summary": "DIFFER FOCUSED PROOF: pass=40 fail=0 runtime=11m49s"
+  },
+  "armed-fused": {
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "bash",
+      "tests/differ_gate.sh",
+      "/home/user/Projects/cx-authfix/build/tomokv",
+      "25038",
+      "25039",
+      "112-119",
+      "6:2"
+    ],
+    "environment": {
+      "GATE_DIFFER_GEOMETRY": "armed-fused",
+      "GATE_DIFFER_OUT": "/home/user/Projects/cx-authfix/docs/authfix/authfix2/differ-armed-fused",
+      "GATE_DIFFER_PROOF_SUITES": "/home/user/Projects/cx-authfix/docs/authfix/authfix2/differ-suites.txt",
+      "GATE_DIFFER_PROOF_SEEDS": "/home/user/Projects/cx-authfix/docs/authfix/authfix2/differ-seeds.txt",
+      "GATE_DIFFER_ORACLE_CORES": "120",
+      "GATE_LOAD_CORES": "121-127",
+      "GATE_DIFFER_ORACLE_BIN": "/tmp/claude-1000/redis74/src/redis-server"
+    },
+    "exit": 0,
+    "seconds": 649.6149247456342,
+    "sha256": "2b57bd798786221bdb06ae3f061c7777bd6ef7cd719c05cc48d3f55f524ac6f2",
+    "suites": [
+      "servertail",
+      "compatintro",
+      "ccfix",
+      "aclsel",
+      "climon"
+    ],
+    "seeds": [
+      7,
+      19,
+      20,
+      23
+    ],
+    "atomics": [
+      0,
+      1
+    ],
+    "comparison_legs": 40,
+    "read_local_witnesses": [
+      "  read-local lane fired (atomic=0)                           ok (hits=736 fallbacks=15 at peak; final_hits=734 final_fallbacks=17)",
+      "  read-local lane fired (atomic=1)                           ok (hits=736 fallbacks=15 at peak; final_hits=734 final_fallbacks=17)"
+    ],
+    "summary": "DIFFER FOCUSED PROOF: pass=42 fail=0 runtime=10m49s"
+  }
+}

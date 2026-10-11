@@ -1,0 +1,566 @@
+{
+  "status": "WIP: owner decision required by hot-body identity stop; broader proof incomplete",
+  "pre_commit": "5146b78ee89b64748dd46db970efa8086f653fa0",
+  "production_change_commit": "4514190b2af3477cddc0d0b41dae6daa11300097",
+  "evidence_parent_commit": "6f35e554b9f3d2cce63dbc06a1af4015b1cd796e",
+  "affinity": "112-127",
+  "server_affinity": "112-119",
+  "directed_ports": [
+    25175,
+    25176
+  ],
+  "post_builds": [
+    {
+      "command": "taskset -c 112-127 make -j16 all",
+      "exit_code": 0,
+      "binary": "build/tomokv",
+      "sha256": "3f5017677808471a8aae0951c7bc8743f28a418ba8325df874714f022943b493",
+      "log": "post-build.log.gz"
+    },
+    {
+      "command": "taskset -c 112-127 make -j16 tsan",
+      "exit_code": 0,
+      "binary": "build/tomokv-tsan",
+      "sha256": "7ddb57006757a2d6f1ca2744ccc1928b365d63fae7e06bb32a9e9e7f87e1fab4",
+      "log": "post-tsan-build.log.gz"
+    },
+    {
+      "command": "taskset -c 112-127 make -j16 build/racefix-climon",
+      "exit_code": 0,
+      "binary": "build/racefix-climon",
+      "sha256": "1aa087ffe91dfcadcfbc22638342e67371d887bb309ecf7c46c37fa41846cf6f",
+      "log": "post-climon-build.log.gz"
+    }
+  ],
+  "directed_receipts": [
+    {
+      "receipt": "docs/racefix/final-post-climon-1s-store/result.json",
+      "case": "climon",
+      "mode": "1s",
+      "suppress_stale": false,
+      "passed": true,
+      "exit_code": 0,
+      "binary_sha256": "1aa087ffe91dfcadcfbc22638342e67371d887bb309ecf7c46c37fa41846cf6f",
+      "tsan": null,
+      "seconds": 3.1461522593162954
+    },
+    {
+      "receipt": "docs/racefix/final-post-climon-1s-suppress/result.json",
+      "case": "climon",
+      "mode": "1s",
+      "suppress_stale": true,
+      "passed": true,
+      "exit_code": 0,
+      "binary_sha256": "1aa087ffe91dfcadcfbc22638342e67371d887bb309ecf7c46c37fa41846cf6f",
+      "tsan": null,
+      "seconds": 3.1642895531840622
+    },
+    {
+      "receipt": "docs/racefix/final-post-climon-2s-store/result.json",
+      "case": "climon",
+      "mode": "2s",
+      "suppress_stale": false,
+      "passed": true,
+      "exit_code": 0,
+      "binary_sha256": "1aa087ffe91dfcadcfbc22638342e67371d887bb309ecf7c46c37fa41846cf6f",
+      "tsan": null,
+      "seconds": 3.468456673901528
+    },
+    {
+      "receipt": "docs/racefix/final-post-climon-2s-suppress/result.json",
+      "case": "climon",
+      "mode": "2s",
+      "suppress_stale": true,
+      "passed": true,
+      "exit_code": 0,
+      "binary_sha256": "1aa087ffe91dfcadcfbc22638342e67371d887bb309ecf7c46c37fa41846cf6f",
+      "tsan": null,
+      "seconds": 3.2643454070203006
+    },
+    {
+      "receipt": "docs/racefix/final-pre-climon-1s-store/result.json",
+      "case": "climon",
+      "mode": "1s",
+      "suppress_stale": false,
+      "passed": false,
+      "exit_code": 0,
+      "binary_sha256": "ec426b34da4257fe6dc8807076725affa8dc3a3e5af583cd77f0966b1f76b31c",
+      "tsan": null,
+      "seconds": 2.921221304219216
+    },
+    {
+      "receipt": "docs/racefix/final-pre-climon-1s-suppress/result.json",
+      "case": "climon",
+      "mode": "1s",
+      "suppress_stale": true,
+      "passed": true,
+      "exit_code": 0,
+      "binary_sha256": "ec426b34da4257fe6dc8807076725affa8dc3a3e5af583cd77f0966b1f76b31c",
+      "tsan": null,
+      "seconds": 2.874388827010989
+    },
+    {
+      "receipt": "docs/racefix/final-pre-climon-2s-store/result.json",
+      "case": "climon",
+      "mode": "2s",
+      "suppress_stale": false,
+      "passed": false,
+      "exit_code": 0,
+      "binary_sha256": "ec426b34da4257fe6dc8807076725affa8dc3a3e5af583cd77f0966b1f76b31c",
+      "tsan": null,
+      "seconds": 2.486706858035177
+    },
+    {
+      "receipt": "docs/racefix/final-pre-climon-2s-suppress/result.json",
+      "case": "climon",
+      "mode": "2s",
+      "suppress_stale": true,
+      "passed": true,
+      "exit_code": 0,
+      "binary_sha256": "ec426b34da4257fe6dc8807076725affa8dc3a3e5af583cd77f0966b1f76b31c",
+      "tsan": null,
+      "seconds": 1.5943773579783738
+    },
+    {
+      "receipt": "docs/racefix/post-counters-1s/result.json",
+      "case": "counters",
+      "mode": "1s",
+      "suppress_stale": false,
+      "passed": true,
+      "exit_code": 66,
+      "binary_sha256": "7ddb57006757a2d6f1ca2744ccc1928b365d63fae7e06bb32a9e9e7f87e1fab4",
+      "tsan": {
+        "reports": 2,
+        "cron_writer_pairs": 0,
+        "counter_reports": 0,
+        "other_reports": 2,
+        "runtime_failure": false
+      },
+      "seconds": 9.933533708099276
+    },
+    {
+      "receipt": "docs/racefix/post-counters-2s/result.json",
+      "case": "counters",
+      "mode": "2s",
+      "suppress_stale": false,
+      "passed": true,
+      "exit_code": 66,
+      "binary_sha256": "7ddb57006757a2d6f1ca2744ccc1928b365d63fae7e06bb32a9e9e7f87e1fab4",
+      "tsan": {
+        "reports": 2,
+        "cron_writer_pairs": 0,
+        "counter_reports": 0,
+        "other_reports": 2,
+        "runtime_failure": false
+      },
+      "seconds": 5.744146704208106
+    },
+    {
+      "receipt": "docs/racefix/pre-climon-1s/result.json",
+      "case": "climon",
+      "mode": "1s",
+      "suppress_stale": false,
+      "passed": false,
+      "exit_code": 1,
+      "binary_sha256": "ec426b34da4257fe6dc8807076725affa8dc3a3e5af583cd77f0966b1f76b31c",
+      "tsan": null,
+      "seconds": 1.9377294010482728
+    },
+    {
+      "receipt": "docs/racefix/pre-climon-1s-retry/result.json",
+      "case": "climon",
+      "mode": "1s",
+      "suppress_stale": false,
+      "passed": false,
+      "exit_code": 0,
+      "binary_sha256": "ec426b34da4257fe6dc8807076725affa8dc3a3e5af583cd77f0966b1f76b31c",
+      "tsan": null,
+      "seconds": 2.216517799999565
+    },
+    {
+      "receipt": "docs/racefix/pre-climon-2s/result.json",
+      "case": "climon",
+      "mode": "2s",
+      "suppress_stale": false,
+      "passed": false,
+      "exit_code": 0,
+      "binary_sha256": "ec426b34da4257fe6dc8807076725affa8dc3a3e5af583cd77f0966b1f76b31c",
+      "tsan": null,
+      "seconds": 2.28764723893255
+    },
+    {
+      "receipt": "docs/racefix/pre-climon-2s-retry/result.json",
+      "case": "climon",
+      "mode": "2s",
+      "suppress_stale": false,
+      "passed": false,
+      "exit_code": 0,
+      "binary_sha256": "ec426b34da4257fe6dc8807076725affa8dc3a3e5af583cd77f0966b1f76b31c",
+      "tsan": null,
+      "seconds": 2.3652987480163574
+    },
+    {
+      "receipt": "docs/racefix/pre-climon-suppress-1s/result.json",
+      "case": "climon",
+      "mode": "1s",
+      "suppress_stale": true,
+      "passed": false,
+      "exit_code": 1,
+      "binary_sha256": "ec426b34da4257fe6dc8807076725affa8dc3a3e5af583cd77f0966b1f76b31c",
+      "tsan": null,
+      "seconds": 2.058680668938905
+    },
+    {
+      "receipt": "docs/racefix/pre-climon-suppress-1s-retry/result.json",
+      "case": "climon",
+      "mode": "1s",
+      "suppress_stale": true,
+      "passed": true,
+      "exit_code": 0,
+      "binary_sha256": "ec426b34da4257fe6dc8807076725affa8dc3a3e5af583cd77f0966b1f76b31c",
+      "tsan": null,
+      "seconds": 2.214199461042881
+    },
+    {
+      "receipt": "docs/racefix/pre-climon-suppress-2s/result.json",
+      "case": "climon",
+      "mode": "2s",
+      "suppress_stale": true,
+      "passed": true,
+      "exit_code": 0,
+      "binary_sha256": "ec426b34da4257fe6dc8807076725affa8dc3a3e5af583cd77f0966b1f76b31c",
+      "tsan": null,
+      "seconds": 2.146064891014248
+    },
+    {
+      "receipt": "docs/racefix/pre-climon-suppress-2s-retry/result.json",
+      "case": "climon",
+      "mode": "2s",
+      "suppress_stale": true,
+      "passed": true,
+      "exit_code": 0,
+      "binary_sha256": "ec426b34da4257fe6dc8807076725affa8dc3a3e5af583cd77f0966b1f76b31c",
+      "tsan": null,
+      "seconds": 1.9176392378285527
+    },
+    {
+      "receipt": "docs/racefix/pre-counters-1s/result.json",
+      "case": "counters",
+      "mode": "1s",
+      "suppress_stale": false,
+      "passed": false,
+      "exit_code": 1,
+      "binary_sha256": "64e88def88e7e40f9286b661e5134b3d6d6fd9cf25bbb824627f6b9526e27ae9",
+      "tsan": {
+        "reports": 0,
+        "cron_writer_pairs": 0,
+        "counter_reports": 0,
+        "other_reports": 0,
+        "runtime_failure": false
+      },
+      "seconds": 1.7381545160897076
+    },
+    {
+      "receipt": "docs/racefix/pre-counters-1s-retry/result.json",
+      "case": "counters",
+      "mode": "1s",
+      "suppress_stale": false,
+      "passed": false,
+      "exit_code": 66,
+      "binary_sha256": "64e88def88e7e40f9286b661e5134b3d6d6fd9cf25bbb824627f6b9526e27ae9",
+      "tsan": {
+        "reports": 11,
+        "cron_writer_pairs": 4,
+        "counter_reports": 6,
+        "other_reports": 5,
+        "runtime_failure": false
+      },
+      "seconds": 7.009571174159646
+    },
+    {
+      "receipt": "docs/racefix/pre-counters-2s/result.json",
+      "case": "counters",
+      "mode": "2s",
+      "suppress_stale": false,
+      "passed": false,
+      "exit_code": 66,
+      "binary_sha256": "64e88def88e7e40f9286b661e5134b3d6d6fd9cf25bbb824627f6b9526e27ae9",
+      "tsan": {
+        "reports": 9,
+        "cron_writer_pairs": 4,
+        "counter_reports": 5,
+        "other_reports": 4,
+        "runtime_failure": false
+      },
+      "seconds": 7.036965022794902
+    }
+  ],
+  "serverless_checks": [
+    {
+      "command": "taskset -c 112-127 make -j16 build/wbland-units build/climon-mask-unit build/climon-mask-old-unit",
+      "exit_code": 0,
+      "log": "focused-units-build.log.gz"
+    },
+    {
+      "command": "taskset -c 112-127 python3 tests/wbland_checks.py check clauses",
+      "exit_code": 0,
+      "strict_outcomes": "83/83",
+      "log": "wbland-clauses-built.log.gz",
+      "earlier_attempt": "wbland-clauses.log.gz (failed: prerequisite executable absent)"
+    },
+    {
+      "command": "taskset -c 112-127 build/climon-mask-unit",
+      "exit_code": 0,
+      "result": "tracking/monitor, 64 owner pairs, both disarm directions",
+      "evidence": "tool output; no separate stdout log saved"
+    },
+    {
+      "command": "taskset -c 112-127 build/climon-mask-old-unit",
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "log": "climon-mask-old.log.gz"
+    },
+    {
+      "command": "taskset -c 112-127 python3 tests/gates_test.py",
+      "exit_code": 1,
+      "tests": 66,
+      "failures": 12,
+      "seconds": 241.916,
+      "log": "gates-test-quiet.log.gz",
+      "diagnosis": "scheduler fixture 45-second timeouts; underlying cause unisolated",
+      "earlier_logs": [
+        "gates-test.log.gz",
+        "gates-test-fixed.log.gz"
+      ]
+    },
+    {
+      "command": "taskset -c 112-127 python3 tests/gate_ledger_fixture.py",
+      "exit_code": 1,
+      "log": "ledger.log.gz",
+      "source_labels": 530,
+      "fixture_labels": 530,
+      "actual_expect_full": 528,
+      "missing_or_extra_labels": false
+    },
+    {
+      "command": "taskset -c 112-127 bash -n tests/gate.sh",
+      "exit_code": 0
+    },
+    {
+      "command": "taskset -c 112-127 git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "identity_checks": [
+    {
+      "command": "taskset -c 112-127 python3 tools/lbstall_artifacts.py compare build/racefix/pre build docs/racefix/hot.json",
+      "exit_code": 1,
+      "selected": 1204,
+      "canonical_equal": 1147,
+      "changed": 57,
+      "log": "hot.log.gz"
+    },
+    {
+      "tool": "tools/ccfix_audit.py",
+      "exit_code": 1,
+      "body_inventory": "full/bodies.json.gz",
+      "summary": "full/summary.json",
+      "log": "full.log.gz",
+      "command": "taskset -c 112-127 python3 tools/ccfix_audit.py build/racefix/pre build docs/racefix/full"
+    },
+    {
+      "tool": "docs/deadswitch/linked_bytes.py",
+      "exit_code": 1,
+      "report": "linked.json",
+      "text_delta_bytes": 5344,
+      "log": "linked.log.gz",
+      "command": "taskset -c 112-127 python3 docs/deadswitch/linked_bytes.py build/racefix/pre/tomokv build/tomokv docs/racefix/linked.json"
+    },
+    {
+      "tool": "tools/infofields_artifacts.py layouts / GDB",
+      "report": "layouts.json",
+      "result": "all eight locked sizes and all named member offsets equal in tomo and tomo_db0"
+    }
+  ],
+  "gate_counts": {
+    "DQ": 2,
+    "DF": 2,
+    "base_quick": 511,
+    "base_full": 528,
+    "required_quick": 513,
+    "required_full": 530,
+    "constants_edited": false,
+    "projected_only": "ledger-projection.json"
+  },
+  "production_target_freshness": {
+    "production_targets": 29,
+    "rows": [
+      {
+        "target": "build/at15-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/at15-db0-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/execabort-watch-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/execabort-watch-db0-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/core-concurrency-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/atomic-survivors-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/netcmd-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/encodingfix-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/netcap-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/waits-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/rehash-waits-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/multidb-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/multidb-boundary-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/storesize-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/wb-rule-units",
+        "present": true,
+        "make_q": 0
+      },
+      {
+        "target": "build/wbland-units",
+        "present": true,
+        "make_q": 0
+      },
+      {
+        "target": "build/rltopo-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/lbplanner-units",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/shutdown-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/persistfix-units",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/exbatch-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/exbatch-db0-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/ktls-keyupdate",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/ktls-keyupdate-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/flushfix-units",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/splitlocal-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/reorder-engagement-unit",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/reorder-engagement-unit-db0",
+        "present": false,
+        "make_q": 1
+      },
+      {
+        "target": "build/racefix-climon",
+        "present": true,
+        "make_q": 0
+      },
+      {
+        "target": "build/climon-mask-unit",
+        "present": true,
+        "make_q": 0
+      },
+      {
+        "target": "build/climon-mask-old-unit",
+        "present": true,
+        "make_q": 0
+      }
+    ]
+  },
+  "pending_at_hot_stop": [
+    "26 remaining production-unit targets",
+    "mdbqsbr-live-arms",
+    "Redis 7.4 differential matrix: five suites, four seeds, split and armed fused, both atomic modes",
+    "live climon.py, climon2.py, climon_128.py, tracking.py, infofix.py",
+    "resolve scheduler-fixture selftest timeouts",
+    "owner updates EXPECT_QUICK/EXPECT_FULL"
+  ],
+  "no_push": true,
+  "no_benchmark": true,
+  "no_full_gate": true
+}

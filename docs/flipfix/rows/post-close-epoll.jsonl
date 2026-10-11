@@ -1,0 +1,35 @@
+load 6.71 11.89 13.76 1/3106 1137800
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/final-rows/post-close-epoll/close", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "epoll", "--enable-debug-command", "yes"], "event": "boot", "label": "close", "loadavg": [6.7099609375, 11.88916015625, 13.75732421875]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/tomokv", "label": "close", "pid": 1137804}
+{"attempt": 0, "elapsed": 0.0107, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 1, "elapsed": 0.0001, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 2, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 3, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 4, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 5, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 6, "elapsed": 0.0, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 6}
+{"attempt": 7, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 8, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 9, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 10, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 11, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 12, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 13, "elapsed": 0.0002, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 14, "elapsed": 0.0, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 6}
+{"attempt": 15, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 16, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 17, "elapsed": 0.0, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 4}
+{"attempt": 18, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 19, "elapsed": 0.0, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve destination epoll registration", "target": 4}
+{"attempt": 20, "elapsed": 0.0, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 2}
+{"attempt": 21, "elapsed": 0.0, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 4}
+{"attempt": 22, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 6}
+{"attempt": 23, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 24, "elapsed": 0.0, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve destination epoll registration", "target": 2}
+{"attempt": 25, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 26, "elapsed": 0.0, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve destination epoll registration", "target": 6}
+{"attempt": 27, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 28, "elapsed": 0.0, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 2}
+{"attempt": 29, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 4}
+{"applied": 21, "case": "close", "closed": 300, "connector": {"ok": 0, "refused": 0}, "engine": "epoll", "outcomes": {"ERR FLIP could not detach a connection: could not reserve destination epoll registration": 3, "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration": 6, "OK": 21}, "result": "PASS", "witnessed": 24}
+{"event": "stop", "label": "close", "loadavg": [6.7099609375, 11.88916015625, 13.75732421875], "log": "/home/user/Projects/cx-flipfix/build/flipfix/final-rows/post-close-epoll/close/close.log", "rc": 0}

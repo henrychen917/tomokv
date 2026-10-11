@@ -1,0 +1,45 @@
+{
+  "tomo": {
+    "selected_hot": 601,
+    "selected_hot_equal": 601,
+    "changed_hot": [],
+    "comparison_entries": 8396,
+    "equal_entries": 8361,
+    "selected_hot_raw_equal": 601
+  },
+  "tomo_db0": {
+    "selected_hot": 603,
+    "selected_hot_equal": 603,
+    "changed_hot": [],
+    "comparison_entries": 7908,
+    "equal_entries": 7873,
+    "selected_hot_raw_equal": 603
+  },
+  "full": {
+    "total": 16304,
+    "equal": 16234,
+    "changed": 70,
+    "handlers": 1210,
+    "handlers_equal": 1206,
+    "hot": 1208,
+    "hot_equal": 1208,
+    "changed_hot": [],
+    "hot_nonerror_equal": 1208,
+    "handlers_nonerror_equal": 1206,
+    "hot_raw_equal": 1208
+  },
+  "text": {
+    "pre": 7582188,
+    "post": 7590380,
+    "delta": 8192
+  },
+  "objects": {
+    "pre": 100,
+    "post": 100
+  },
+  "command_exits": {
+    "hot": 0,
+    "full": 0,
+    "linked": 1
+  }
+}

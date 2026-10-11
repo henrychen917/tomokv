@@ -41,9 +41,9 @@ struct ScriptInvocation {
     Slice          tag;
 };
 
-// The calling thread's persistent interpreter, rebuilt when SCRIPT FLUSH moved the generation.
-// nullptr on allocation failure. Must be called BEFORE anything is pushed on the returned state:
-// a rebuild closes the previous one.
+// The calling thread's persistent interpreter; SCRIPT FLUSH invalidates only its compiled EVAL
+// chunks. FUNCTION closures retain their state. nullptr on allocation failure. Call before
+// pushing the activation's callable so cache invalidation happens first.
 lua_State* script_thread_state();
 
 // A fresh sandboxed state with no context bound — redis.call is present but inert. Used by
@@ -67,8 +67,8 @@ struct ScriptStats {
     uint64_t cached_scripts    = 0;
     uint64_t compile_hits      = 0;   // per-thread compiled-chunk cache hits
     uint64_t compile_misses    = 0;   // sha compiled into a thread state for the first time
-    uint64_t flush_generation  = 0;   // SCRIPT FLUSH count; per-thread states rebuild on change
-    uint64_t state_rebuilds    = 0;   // interpreter states constructed (boot + post-FLUSH)
+    uint64_t flush_generation  = 0;   // SCRIPT FLUSH count; compiled chunks invalidate on change
+    uint64_t state_rebuilds    = 0;   // interpreter states constructed lazily on touched threads
     uint64_t ro_rejections     = 0;   // write commands refused inside a read-only activation
     // Keyspace effects applied from inside activations (nested Write rows that answered without an
     // error), and activations that FAILED with at least one such effect standing. The second is the
@@ -84,7 +84,7 @@ struct FunctionStats {
     uint64_t functions       = 0;
     uint64_t generation      = 0;   // LOAD/DELETE/FLUSH/RESTORE count
     uint64_t calls           = 0;   // FCALL/FCALL_RO activations that reached a callback
-    uint64_t thread_rebuilds = 0;   // per-thread library re-materializations
+    uint64_t thread_rebuilds = 0;   // per-thread revision-index synchronizations
     uint64_t ro_rejections   = 0;   // FCALL_RO refused for a function without no-writes
 };
 FunctionStats function_stats();

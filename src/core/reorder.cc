@@ -574,6 +574,7 @@ uint32_t ExLoopT<Fused>::r7_fused_pass_impl() {
         }
         flush_xshard_commits();
         if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
+            !shutdown_snapshot_blocks_tasks() &&
             cached_now_ms_ >= blocking_beat_ms_) {
             did += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
             blocking_beat_ms_ = cached_now_ms_ + 10;
@@ -714,7 +715,8 @@ uint32_t ExLoopT<Fused>::r7_sweep() {
     flush_xshard_commits();
     n += active_expire_cycle() + atomic_cleanup_cycle(64);
     n += drain_notify_keyless(self_->sig(), /*force=*/true);
-    if (__builtin_expect(srv_->blocking_waiters() != 0, false))
+    if (__builtin_expect(srv_->blocking_waiters() != 0, false) &&
+        !shutdown_snapshot_blocks_tasks())
         n += blocking_owner_cycle(*srv_, *self_, ring_, cached_now_ms_, true);
     n += aof_flush_pass();
     // Normally flush_xshard_commits empties the queue synchronously. The DEBUG hold can
@@ -1271,7 +1273,7 @@ void IoLoop::r7_admit_fd(int fd, UrKind kind) {
         if (!tls_socket) {
             const ssize_t sent = ::send(fd, kErr, sizeof(kErr) - 1,
                                         MSG_NOSIGNAL | MSG_DONTWAIT);
-            if (sent > 0) self_->sig().net_output_bytes += static_cast<uint64_t>(sent);
+            if (sent > 0) self_->sig().net_output_bytes.store(self_->sig().net_output_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(sent), std::memory_order_relaxed);
         }
         ::close(fd);
         srv_->note_rejected_conn();
@@ -1284,7 +1286,7 @@ void IoLoop::r7_admit_fd(int fd, UrKind kind) {
         if (!tls_socket) {
             const ssize_t sent = ::send(fd, kDenied, sizeof(kDenied) - 1,
                                         MSG_NOSIGNAL | MSG_DONTWAIT);
-            if (sent > 0) self_->sig().net_output_bytes += static_cast<uint64_t>(sent);
+            if (sent > 0) self_->sig().net_output_bytes.store(self_->sig().net_output_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(sent), std::memory_order_relaxed);
         }
         ::close(fd);
         srv_->note_rejected_connection();
@@ -1777,7 +1779,7 @@ template <bool HasTls, bool kEp, bool Fused>
 void IoLoop::r7_on_recv(Client* c, int res) {
     TOMO_R7_PATH();
     c->set_recv_armed(false);       // the kernel has released its pointer
-    if (res > 0) self_->sig().net_input_bytes += static_cast<uint64_t>(res);
+    if (res > 0) self_->sig().net_input_bytes.store(self_->sig().net_input_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(res), std::memory_order_relaxed);
     if (find_client_migration(c)) {
         // The original Recv CQE, not the cancel CQE, is the old-ring pointer fence. Preserve
         // bytes which won the race with cancellation but do not parse them on the losing owner.
@@ -1830,7 +1832,7 @@ template <bool kEp, bool Fused>
 void IoLoop::r7_on_tls_recv(Client* c, int res) {
     TOMO_R7_PATH();
     c->set_recv_armed(false);
-    if (res > 0) self_->sig().net_input_bytes += static_cast<uint64_t>(res);
+    if (res > 0) self_->sig().net_input_bytes.store(self_->sig().net_input_bytes.load(std::memory_order_relaxed) + static_cast<uint64_t>(res), std::memory_order_relaxed);
     TlsConn* tls = tls_engine(c);
     if (!tls) { close_client(c); return; }
     if (c->dead()) { tls->abandon_input(); return; }
@@ -2176,10 +2178,6 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
                 break;
             }
         }
-        if (__builtin_expect(notify_armed, false) &&
-            __builtin_expect(climon_armed_gate(c, *op), false)) break;
-        if (__builtin_expect(security_check, false) &&
-            acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
         if (__builtin_expect(flip_pause_this_pass, false) &&
             !(spec->flags & CmdFlags::FlipAsync) &&
             !(!kSingleDatabase && multidb_dispatch_allowed(*srv_, *c))) {
@@ -2190,6 +2188,12 @@ IoLoop::DispatchResult IoLoop::r7_parse_and_dispatch(Client* c) {
             c->set_flip_backpressure(true);
             break;
         }
+        // FLIP holds precede stateful hooks. Later backpressure exits may
+        // reparse this frame; the armed gate keys its receipt by ROB number.
+        if (__builtin_expect(notify_armed, false) &&
+            __builtin_expect(climon_armed_gate(c, *op), false)) break;
+        if (__builtin_expect(security_check, false) &&
+            acl_dispatch_entry(*this, conn, *op, consumed, security_flags)) continue;
         if constexpr (Fused) {
             // This must follow the per-frame FLIP gate above: demotion itself publishes owner
             // Tasks. Non-point routes may touch any key, so move every unresolved local read
@@ -2957,6 +2961,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
     // read from the server so the LB's unix_owner_tid_ and the actual attach point cannot drift.
     const uint32_t unix_owner = srv.unix_owner_tid();
     auto report_graceful_shutdown = [&] {
+        srv.snapshot().cancel_after_join(srv);
         if (srv.read_local_enabled()) {
             // Joined fused readers cannot run another grace callback. Empty their private
             // retirement queues and disarm every store hook before taking the immutable report;
@@ -2981,6 +2986,7 @@ static int run_fused_server_reordered(Server& srv, const SnapshotLoadPlan* aof_b
     for (uint32_t tid = 0; tid < nthreads; tid++)
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            SnapshotManager::WorkerLifetime snapshot_worker(srv.snapshot(), srv.thread(tid));
             AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             if (cfg.pin_threads) pin_fused_thread(srv.placement().cpu_of_thread(tid));
             ThreadCtx& self = srv.thread(tid);

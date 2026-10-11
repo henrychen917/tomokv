@@ -1,0 +1,5 @@
+{"object": "db0/src/cmd/geo.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=14430", "unit": 9912, "hot_changed": 0, "A": 3, "B": 0, "C": 0, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+{"object": "db0/src/cmd/geo.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=14440", "unit": 9912, "hot_changed": 0, "A": 4, "B": 0, "C": 0, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+{"object": "db0/src/cmd/geo.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=14450", "unit": 9912, "hot_changed": 0, "A": 4, "B": 0, "C": 0, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+{"object": "db0/src/cmd/geo.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=14460", "unit": 9912, "hot_changed": 0, "A": 4, "B": 0, "C": 0, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+{"object": "db0/src/cmd/geo.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=14480", "unit": 9912, "hot_changed": 0, "A": 3, "B": 0, "C": 0, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}

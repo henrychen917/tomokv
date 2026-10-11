@@ -1,0 +1,51 @@
+snapshot-1s-uring 0
+filename-1s-uring 0
+error-1s-uring 0
+tickets-1s-uring 0
+exec_tickets-1s-uring 0
+resurrection-1s-uring 0
+rewrite_fail2-1s-uring 0
+manifest_missing-1s-uring 0
+latency-everysec-1s-uring 0
+latency-always-1s-uring 0
+snapshot-2s-uring 0
+filename-2s-uring 0
+error-2s-uring 0
+tickets-2s-uring 0
+exec_tickets-2s-uring 0
+resurrection-2s-uring 0
+rewrite_fail2-2s-uring 0
+manifest_missing-2s-uring 0
+latency-everysec-2s-uring 0
+latency-always-2s-uring 1
+large-1s-uring 0
+large_placed-1s-uring 0
+snapshot-1s-epoll 0
+filename-1s-epoll 0
+error-1s-epoll 0
+tickets-1s-epoll 0
+exec_tickets-1s-epoll 0
+resurrection-1s-epoll 0
+rewrite_fail2-1s-epoll 0
+manifest_missing-1s-epoll 0
+latency-everysec-1s-epoll 0
+latency-always-1s-epoll 0
+snapshot-2s-epoll 0
+filename-2s-epoll 0
+error-2s-epoll 0
+tickets-2s-epoll 0
+exec_tickets-2s-epoll 0
+resurrection-2s-epoll 0
+rewrite_fail2-2s-epoll 0
+manifest_missing-2s-epoll 0
+latency-everysec-2s-epoll 0
+latency-always-2s-epoll 0
+large-1s-epoll 0
+large_placed-1s-epoll 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py", line 226, in <module>
+    dict(rows=row_proof, timings=timings, units=units, batteries=batteries, differ=differ)[ARGS.stage]()
+  File "/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py", line 65, in row_proof
+    assert all(row['rc'] == (1 if ARGS.negative else 0) for row in ROWS), OUT / 'commands.json'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: /home/user/Projects/cx-aoffix2/docs/aoffix2/post-final-rows/commands.json

@@ -67,6 +67,10 @@ struct BlockingState {
     std::string stream_group;
     std::string stream_consumer;
     bool stream_consumer_prepared = false;
+    // Set by the thread that ran the live ACL check immediately before executing this command
+    // (the owner for direct kinds, the IO for a resumed move/XREAD), before it publishes the
+    // completion. Retire then keeps the reply: an executed pop or move is never answered NOPERM.
+    bool acl_checked = false;
     std::vector<BlockingKey> keys;
     std::vector<BlockingGroup> groups;
     std::atomic<NotifyBatch*> notify{nullptr};
@@ -652,11 +656,20 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
     BlockingKey& key = state.keys[state.selected];
     const Slice key_slice = blocking_key_slice(key);
     Op& op = state.client->rob().at(state.op_id);
+    // Redis re-runs processCommand's ACL check before a woken command executes. Check the live
+    // permission here, before anything is popped or delivered: a denial leaves the data in place.
+    state.acl_checked = true;
+    if (acl_recheck_blocking(*state.client, op, self)) {
+        blocking_publish_completion(state, self, ring);
+        return true;
+    }
     if (shard.store().atomic_has_records()) cancel_wildcard_units(shard.store());
     if (state.kind == BlockingKind::Xreadgroup) {
         for (const auto& stream : state.keys)
-            if (stream.shard == shard.id() && !shard.watch_write_ready(blocking_key_slice(stream)))
+            if (stream.shard == shard.id() && !shard.watch_write_ready(blocking_key_slice(stream))) {
+                state.acl_checked = false;
                 return false;
+            }
         for (const auto& stream : state.keys) {
             if (stream.shard != shard.id()) continue;
             const Slice bytes = blocking_key_slice(stream);
@@ -673,7 +686,10 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
         shard.store().atomic_set_read_context(UINT64_MAX, state.client->id());
         const bool executed = stream_xreadgroup_execute(shard, op);
         shard.store().atomic_finish_plain();
-        if (!executed) return false;
+        if (!executed) {
+            state.acl_checked = false;  // nothing ran; the waiter parks again
+            return false;
+        }
         AofOwnerContext context{self.id(), &ring, &self.sig()};
         for (const auto& stream : state.keys)
             if (stream.shard == shard.id())
@@ -682,7 +698,10 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
         blocking_publish_completion(state, self, ring);
         return true;
     }
-    if (!shard.watch_write_ready(key_slice)) return false;
+    if (!shard.watch_write_ready(key_slice)) {
+        state.acl_checked = false;
+        return false;
+    }
     bool plain_active = false;
     if (shard.store().atomic_needs_version(key.hash, key_slice)) {
         const uint64_t snapshot = UINT64_MAX;
@@ -710,7 +729,10 @@ bool blocking_run_direct(BlockingState& state, Shard& shard, ThreadCtx& self, Ri
                                  members, scores);
     }
     if (plain_active) shard.store().atomic_finish_plain();
-    if (result == XshardPopResult::Missing) return false;
+    if (result == XshardPopResult::Missing) {
+        state.acl_checked = false;  // nothing ran; the waiter parks again
+        return false;
+    }
     if (result == XshardPopResult::Popped) {
         // Parked completions bypass ExLoop's ordinary command epilogue. Journal
         // the selected physical key before Done, including after a map remap.
@@ -1384,6 +1406,14 @@ bool blocking_resume_move_impl(Server& server, ThreadCtx& self, Ring& ring, Clie
         if (!block || block->phase.load(std::memory_order_acquire) !=
                           BlockingPhase::MoveRequested ||
             block->active_tasks.load(std::memory_order_acquire) != 0) continue;
+        // The live ACL check precedes the resumed move/read exactly as on the direct path: a
+        // denial completes here, on the owning IO, before any owner moves or delivers anything.
+        block->acl_checked = true;
+        if (acl_recheck_blocking(client, op, self)) {
+            block->phase.store(BlockingPhase::Completed, std::memory_order_release);
+            op.state.store(OpState::Done, std::memory_order_release);
+            return true;
+        }
         ScatterDispatch dispatch;
         const ScatterPrepare prepared = xshard_prepare(
             server, op, pool, self.id(), client.id(), dispatch);
@@ -1500,7 +1530,9 @@ void blocking_retire(Server& server, Client& client, Op& op, ThreadCtx& thread) 
         if (unblock == 2) reply_err(op.sink(), "UNBLOCKED client unblocked via CLIENT UNBLOCK");
         else blocking_reply_timeout(op, state->kind);
     }
-    acl_recheck_blocking(client, op, thread);
+    // A command that ran was checked by its executor immediately before running; keep that
+    // reply. Completions that executed nothing (timeout, unblock, probe errors) keep this check.
+    if (!state->acl_checked) acl_recheck_blocking(client, op, thread);
     client.set_blocked(false);
     // RELEASE ONLY WHAT THIS COMMAND ACQUIRED.
     //
@@ -1526,8 +1558,7 @@ void blocking_retire(Server& server, Client& client, Op& op, ThreadCtx& thread) 
 void blocking_scatter_retire(Server& server, Client& client, ScatterState& state) {
     BlockingState* block = state.blocking_origin;
     if (!block) return;
-    acl_recheck_blocking(client, client.rob().at(block->op_id),
-                         server.thread(client.ifid_thread()));
+    // blocking_resume_move_impl checked the live ACL immediately before this scatter executed.
     client.set_blocked(false);
     // The OTHER exit of the same parked lifetime: blocking_resume_move() converted this op from a
     // blocking state to a move scatter IN PLACE, reusing the ROB slot and inheriting the Blocking

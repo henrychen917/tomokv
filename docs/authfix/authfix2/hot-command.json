@@ -1,0 +1,15 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "python3",
+    "tools/lbstall_artifacts.py",
+    "compare",
+    "build/authfix/pre",
+    "build",
+    "docs/authfix/authfix2/hot.json"
+  ],
+  "exit": 0,
+  "seconds": 126.52314672758803
+}

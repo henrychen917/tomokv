@@ -1,0 +1,33 @@
+{
+  "pre_commit": "5146b78ee89b64748dd46db970efa8086f653fa0",
+  "source_commit": "00ff69e4096301fd8a02f4f47cf8d3e66a894b59",
+  "affinity": "112-127",
+  "target_cores": "112-119",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "arms": {
+    "PRE": {
+      "binary": "build/aoffix2/pre/tomokv",
+      "sha256": "a39cfaf4a3e1d827bb3f24305460f0c1ba72154c59e64d7c20d37001ce0dd17c"
+    },
+    "POST": {
+      "binary": "build/tomokv",
+      "sha256": "cfde08b2cf722857b90c04696967ab78ecb5b1ff74fa36f3a51b62b24b30d508"
+    }
+  },
+  "builds": [
+    {
+      "command": "taskset -c 112-127 make -C build/aoffix2/pre-src -j16 BUILD_ROOT=/home/user/Projects/cx-aoffix2/build/aoffix2/pre all",
+      "rc": 0,
+      "log": "docs/aoffix2/pre-build.log"
+    },
+    {
+      "command": "taskset -c 112-127 make -j16 all",
+      "rc": 0,
+      "log": "docs/aoffix2/post-build-final.log"
+    },
+    {
+      "command": "taskset -c 112-127 make -q all",
+      "rc": 0
+    }
+  ]
+}

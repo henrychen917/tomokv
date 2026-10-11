@@ -1,0 +1,3 @@
+load 11.15 12.00 13.34 21/3392 1155264
+run 1/1: starting /home/user/Projects/cx-flipfix/build/tomokv, afe6bf3755cc087ee374cb2d3f8939df7d4df720b8fa91466361fb5df9f28f74
+run 1/1: acceptance=True, elapsed=129.2s, total=1/1

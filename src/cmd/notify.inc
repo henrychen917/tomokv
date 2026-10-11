@@ -336,8 +336,11 @@ bool notify_record_slow(Shard& shard, Op& source, uint32_t routes, uint32_t cls,
 
     std::lock_guard<std::mutex> lock(batch->mutex);
     if (batch->total >= kNotifyBatchCap) {
-        server->notify_event_dropped();
-        return false;
+        // CC9 permits loss of keyspace publications, never cache invalidations.
+        // Retain the tracking route without adding another per-key lookup/copy.
+        if (routes & (NOTIFY_KEYSPACE | NOTIFY_KEYEVENT)) server->notify_event_dropped();
+        routes &= NOTIFY_TRACKING;
+        if (!routes) return false;
     }
     Slice stable = key;
     bool pinned = false;

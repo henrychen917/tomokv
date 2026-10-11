@@ -1,0 +1,25 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-119",
+    "/home/user/Projects/redis/src/redis-server",
+    "/home/user/Projects/cx-authfix/docs/authfix/authfix2/post/rewrite/oracle/redis-leading.conf",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "25030",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-authfix/docs/authfix/authfix2/post/rewrite/oracle/redis-leading-data",
+    "--protected-mode",
+    "no"
+  ],
+  "pid": 2527967,
+  "booted": true,
+  "exit": 0,
+  "port_closed": true
+}

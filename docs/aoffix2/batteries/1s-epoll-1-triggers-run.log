@@ -1,0 +1,1 @@
+AOF TRIGGER PASS: atomic=1 script_growth=384 requests=6 completions=3 auto=1 failures=3 backoff=1

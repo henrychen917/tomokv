@@ -1,0 +1,14 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "124-127",
+    "python3",
+    "tests/gates_test.py"
+  ],
+  "returncode": 1,
+  "seconds": 613.2704677581787,
+  "load_before": "81.59 55.93 64.00 64/3801 2110838",
+  "load_after": "47.14 42.74 52.49 38/3450 2539862",
+  "reason": "Use one existing four-core fixture group so concurrent self-test scenarios do not compete; no source, timeout or assertion changed."
+}

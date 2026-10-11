@@ -1,0 +1,31 @@
+{
+  "tomo": {
+    "pre_bodies": 8391,
+    "post_bodies": 8398,
+    "union": 8398,
+    "equal": 8234,
+    "changed": 164,
+    "selected_hot": 601,
+    "selected_hot_equal": 575
+  },
+  "tomo_db0": {
+    "pre_bodies": 7902,
+    "post_bodies": 7907,
+    "union": 7907,
+    "equal": 7753,
+    "changed": 154,
+    "selected_hot": 603,
+    "selected_hot_equal": 572
+  },
+  "all": {
+    "total": 16305,
+    "equal": 15987,
+    "changed": 318,
+    "handlers": 1210,
+    "handlers_equal": 1205,
+    "hot": 1208,
+    "hot_equal": 1151,
+    "hot_nonerror_equal": 1151,
+    "handlers_nonerror_equal": 1205
+  }
+}

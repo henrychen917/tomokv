@@ -1,0 +1,10 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-pxpoe22l", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--atomic", "0", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "100.96 95.56 82.39 88/3964 151086", "pid": 151075}
+{"attempts": 20, "case": "tracking-pipeline", "failures": []}
+{"exit": 0, "lifecycle": "stop", "load": "99.60 95.37 82.40 87/3957 153059", "pid": 151075}
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-ucpzt2mz", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "99.60 95.37 82.40 92/3969 153193", "pid": 153190}
+{"attempts": 20, "case": "tracking-pipeline", "failures": []}
+{"exit": 0, "lifecycle": "stop", "load": "99.60 95.37 82.40 88/3964 155695", "pid": 153190}
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-clientfix/build/tomokv", "--bind", "127.0.0.1", "--port", "25070", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-clientfix/build/clientfix/runtime/clientfix-oyueqz06", "--shards", "16", "--thread-mode", "2s", "--read-local", "1", "--atomic", "1", "--flip-auto", "0", "--enable-debug-command", "yes", "--ratio", "6:2"], "lifecycle": "start", "load": "99.60 95.37 82.40 94/3965 155769", "pid": 155769}
+{"attempts": 20, "case": "tracking-pipeline", "failures": []}
+{"exit": 0, "lifecycle": "stop", "load": "99.72 95.46 82.50 89/3950 158294", "pid": 155769}
+{"axes": [[0, 0], [1, 0], [1, 1]], "case": "tracking-pipeline", "mode": "2s", "result": "PASS"}

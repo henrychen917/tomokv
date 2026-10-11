@@ -1,0 +1,28 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-aclfix/build/aclfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25042", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aclfix/docs/aclfix/pre-2s/save-load", "--aclfile", "/home/user/Projects/cx-aclfix/docs/aclfix/pre-2s/save-load/users.acl", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--ratio", "6:2"], "case": "save-load"}
+invalid pattern b'~key with-space' b'OK'
+invalid pattern b'~key\twith-space' b'OK'
+invalid pattern b'~key\nwith-space' b'OK'
+invalid pattern b'~key\rwith-space' b'OK'
+invalid pattern b'~key\x0bwith-space' b'OK'
+invalid pattern b'~key\x0cwith-space' b'OK'
+invalid pattern b'~key\x00with-space' b'OK'
+invalid pattern b'&key with-space' b'OK'
+invalid pattern b'&key\twith-space' b'OK'
+invalid pattern b'&key\nwith-space' b'OK'
+invalid pattern b'&key\rwith-space' b'OK'
+invalid pattern b'&key\x0bwith-space' b'OK'
+invalid pattern b'&key\x0cwith-space' b'OK'
+invalid pattern b'&key\x00with-space' b'OK'
+invalid selector RespError(b'ERR Error in ACL SETUSER modifier \'(~"key with space" +get)\': ACL selectors are not supported')
+invalid selector RespError(b'ERR Error in ACL SETUSER modifier \'(&"channel with space" +subscribe)\': ACL selectors are not supported')
+saved b'user default on nopass sanitize-payload ~* &* +@all\nuser roundtrip on nopass sanitize-payload ~a"b ~a\'b ~a\\b resetchannels &a"b &a\'b &a\\b -@all +get\n'
+reload RespError(b'ERR /home/user/Projects/cx-aclfix/docs/aclfix/pre-2s/save-load/users.acl:2: unbalanced quotes in acl line. WARNING: ACL errors detected, no change to the previously active ACL rules was performed')
+SIGTERM exit 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 408, in main
+    {"sort": sort_case, "streams-name": streams_case, "save-load": save_case,
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 217, in save_case
+    assert not failures, failures
+           ^^^^^^^^^^^^
+AssertionError: [(b'~key with-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '~key with-space': Syntax error")), (b'~key\twith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '~key\twith-space': Syntax error")), (b'~key\nwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '~key with-space': Syntax error")), (b'~key\rwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '~key with-space': Syntax error")), (b'~key\x0bwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '~key\x0bwith-space': Syntax error")), (b'~key\x0cwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '~key\x0cwith-space': Syntax error")), (b'~key\x00with-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '~key': Syntax error")), (b'&key with-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '&key with-space': Syntax error")), (b'&key\twith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '&key\twith-space': Syntax error")), (b'&key\nwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '&key with-space': Syntax error")), (b'&key\rwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '&key with-space': Syntax error")), (b'&key\x0bwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '&key\x0bwith-space': Syntax error")), (b'&key\x0cwith-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '&key\x0cwith-space': Syntax error")), (b'&key\x00with-space', b'OK', RespError(b"ERR Error in ACL SETUSER modifier '&key': Syntax error")), ('roundtrip', RespError(b'ERR /home/user/Projects/cx-aclfix/docs/aclfix/pre-2s/save-load/users.acl:2: unbalanced quotes in acl line. WARNING: ACL errors detected, no change to the previously active ACL rules was performed'))]
+aclfix save-load FAIL (0.149s)

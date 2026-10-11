@@ -1,0 +1,186 @@
+{
+  "changed_hot_bodies": [],
+  "ordinary_handlers_changed": 0,
+  "changed_function_handlers": [
+    {
+      "object": "db0/src/cmd/functions.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_112cmd_functionERNS_5ShardERNS_2OpE",
+      "name": "tomo_db0::(anonymous namespace)::cmd_function(tomo_db0::Shard&, tomo_db0::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 11058,
+      "post_size": 11095,
+      "reason": "FUNCTION LOAD/RESTORE revision and count handling (CC4.6/27)."
+    },
+    {
+      "object": "db0/src/cmd/functions.o",
+      "symbol": "_ZN8tomo_db012_GLOBAL__N_112cmd_functionERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo_db0::(anonymous namespace)::cmd_function(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 499,
+      "post_size": 499,
+      "reason": "FUNCTION LOAD/RESTORE revision and count handling (CC4.6/27)."
+    },
+    {
+      "object": "src/cmd/functions.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_112cmd_functionERNS_5ShardERNS_2OpE",
+      "name": "tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&)",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 11061,
+      "post_size": 11155,
+      "reason": "FUNCTION LOAD/RESTORE revision and count handling (CC4.6/27)."
+    },
+    {
+      "object": "src/cmd/functions.o",
+      "symbol": "_ZN4tomo12_GLOBAL__N_112cmd_functionERNS_5ShardERNS_2OpE.cold",
+      "name": "tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&) [clone .cold]",
+      "equal": false,
+      "error_callee_only": false,
+      "raw_equal": false,
+      "pre_size": 499,
+      "post_size": 499,
+      "reason": "FUNCTION LOAD/RESTORE revision and count handling (CC4.6/27)."
+    }
+  ],
+  "ccfix_audit_exit": 1,
+  "ccfix_audit_reason": "Stock final whitelist allows only CONFIG/INFO/ACL changes; four FUNCTION bodies (including cold clones) intentionally change.",
+  "changed_objects": {
+    "db0/src/cmd/functions.o": 27,
+    "db0/src/cmd/scripting.o": 11,
+    "src/cmd/functions.o": 27,
+    "src/cmd/scripting.o": 14
+  },
+  "namespaces": {
+    "tomo": {
+      "pre_bodies": 8391,
+      "post_bodies": 8393,
+      "equal_bodies": 8354,
+      "changed_or_added_or_removed": 41,
+      "hot_bodies": 601,
+      "equal_hot_bodies": 601
+    },
+    "tomo_db0": {
+      "pre_bodies": 7902,
+      "post_bodies": 7905,
+      "equal_bodies": 7868,
+      "changed_or_added_or_removed": 38,
+      "hot_bodies": 603,
+      "equal_hot_bodies": 603
+    }
+  },
+  "full_inventory": {
+    "total": 16301,
+    "equal": 16222,
+    "changed": 79,
+    "handlers": 1210,
+    "handlers_equal": 1206,
+    "hot": 1208,
+    "hot_equal": 1208,
+    "changed_handlers": [
+      {
+        "object": "db0/src/cmd/functions.o",
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_112cmd_functionERNS_5ShardERNS_2OpE",
+        "name": "tomo_db0::(anonymous namespace)::cmd_function(tomo_db0::Shard&, tomo_db0::Op&)",
+        "equal": false,
+        "error_callee_only": false,
+        "raw_equal": false,
+        "pre_size": 11058,
+        "post_size": 11095,
+        "classification": "other"
+      },
+      {
+        "object": "db0/src/cmd/functions.o",
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_112cmd_functionERNS_5ShardERNS_2OpE.cold",
+        "name": "tomo_db0::(anonymous namespace)::cmd_function(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+        "equal": false,
+        "error_callee_only": false,
+        "raw_equal": false,
+        "pre_size": 499,
+        "post_size": 499,
+        "classification": "other"
+      },
+      {
+        "object": "src/cmd/functions.o",
+        "symbol": "_ZN4tomo12_GLOBAL__N_112cmd_functionERNS_5ShardERNS_2OpE",
+        "name": "tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&)",
+        "equal": false,
+        "error_callee_only": false,
+        "raw_equal": false,
+        "pre_size": 11061,
+        "post_size": 11155,
+        "classification": "other"
+      },
+      {
+        "object": "src/cmd/functions.o",
+        "symbol": "_ZN4tomo12_GLOBAL__N_112cmd_functionERNS_5ShardERNS_2OpE.cold",
+        "name": "tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&) [clone .cold]",
+        "equal": false,
+        "error_callee_only": false,
+        "raw_equal": false,
+        "pre_size": 499,
+        "post_size": 499,
+        "classification": "other"
+      }
+    ],
+    "changed_hot": [],
+    "hot_nonerror_equal": 1208,
+    "handlers_nonerror_equal": 1206,
+    "other_handlers": [
+      {
+        "object": "db0/src/cmd/functions.o",
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_112cmd_functionERNS_5ShardERNS_2OpE",
+        "name": "tomo_db0::(anonymous namespace)::cmd_function(tomo_db0::Shard&, tomo_db0::Op&)",
+        "equal": false,
+        "error_callee_only": false,
+        "raw_equal": false,
+        "pre_size": 11058,
+        "post_size": 11095,
+        "classification": "other"
+      },
+      {
+        "object": "db0/src/cmd/functions.o",
+        "symbol": "_ZN8tomo_db012_GLOBAL__N_112cmd_functionERNS_5ShardERNS_2OpE.cold",
+        "name": "tomo_db0::(anonymous namespace)::cmd_function(tomo_db0::Shard&, tomo_db0::Op&) [clone .cold]",
+        "equal": false,
+        "error_callee_only": false,
+        "raw_equal": false,
+        "pre_size": 499,
+        "post_size": 499,
+        "classification": "other"
+      },
+      {
+        "object": "src/cmd/functions.o",
+        "symbol": "_ZN4tomo12_GLOBAL__N_112cmd_functionERNS_5ShardERNS_2OpE",
+        "name": "tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&)",
+        "equal": false,
+        "error_callee_only": false,
+        "raw_equal": false,
+        "pre_size": 11061,
+        "post_size": 11155,
+        "classification": "other"
+      },
+      {
+        "object": "src/cmd/functions.o",
+        "symbol": "_ZN4tomo12_GLOBAL__N_112cmd_functionERNS_5ShardERNS_2OpE.cold",
+        "name": "tomo::(anonymous namespace)::cmd_function(tomo::Shard&, tomo::Op&) [clone .cold]",
+        "equal": false,
+        "error_callee_only": false,
+        "raw_equal": false,
+        "pre_size": 499,
+        "post_size": 499,
+        "classification": "other"
+      }
+    ],
+    "other_hot": []
+  },
+  "text": {
+    "pre": 7582188,
+    "post": 7584476,
+    "delta": 2288
+  }
+}

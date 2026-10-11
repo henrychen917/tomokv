@@ -1,0 +1,49 @@
+object	cause_vs_b4	final_vs_origin	b4_size	final_size	body
+db0/src/cmd/climon.o	climon fix ec0317384 (old clientfix signature; the renamed body replaces it)	climon fix	2177	0	tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+db0/src/cmd/climon.o	climon fix ec0317384 (old clientfix signature; the renamed body replaces it)	climon fix	273	0	unsigned int tomo_db0::Rob<64u>::drain<tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*)::{lambda(tomo_db0::Op&)#1}>(tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*)::{lambda(tomo_db0::Op&)#1}&&)
+db0/src/cmd/climon.o	climon fix ec0317384 (old clientfix signature; the renamed body replaces it)	climon fix	463	0	tomo_db0::WbEngine::serve_suppressing_impl(tomo_db0::Client&, bool, bool*)
+db0/src/cmd/climon.o	climon fix ec0317384 (old clientfix signature; the renamed body replaces it)	climon fix	16	0	tomo_db0::WbEngine::serve_suppressing(tomo_db0::Client&)
+db0/src/core/genthread.o	budget 129370 -> 129640	single lane, differs from lane body: savefix	4632	4744	unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+db0/src/core/genthread.o	budget 129370 -> 129640	lane-identical clientfix	3450	3712	unsigned int tomo_db0::IoLoop::flush_ready<true, true, true, false, false, false>()
+db0/src/core/reorder.o	budget 147752 -> 148258	final == origin/cpp (b4 drift removed)	1016	1244	tomo_db0::WbEngine::serve_tls_impl<true, true, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+db0/src/core/reorder.o	budget 147752 -> 148258	final == origin/cpp (b4 drift removed)	984	1212	tomo_db0::WbEngine::serve_impl<true, true, true, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+db0/src/core/reorder.o	budget 147752 -> 148258	final == origin/cpp (b4 drift removed)	1016	1244	tomo_db0::WbEngine::serve_tls_impl<true, false, true, false, true>(tomo_db0::Client&, tomo_db0::TlsConn&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+db0/src/core/reorder.o	budget 147752 -> 148258	final == origin/cpp (b4 drift removed)	984	1212	tomo_db0::WbEngine::serve_impl<true, true, false, true, false, true>(tomo_db0::Client&, bool*)::{lambda(tomo_db0::Op&)#1}::operator()(tomo_db0::Op&) const
+db0/src/core/reorder.o	budget 147752 -> 148258	lane-identical racefix	3416	3480	bool tomo_db0::ExLoopT<true>::execute<false, true>(tomo_db0::Task const&)
+db0/src/core/reorder.o	budget 147752 -> 148258	composite savefix+racefix	3565	3631	bool tomo_db0::ExLoopT<true>::execute<false, false>(tomo_db0::Task const&)
+db0/src/core/reorder.o	budget 147752 -> 148258	lane-identical savefix	4033	4180	unsigned int tomo_db0::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+db0/src/core/reorder.o	R7 envelope regeneration d32c20a20 (savefix admission mirrored; src reorder.o has no budget)	R7 mirror of savefix	1992	2070	unsigned int tomo_db0::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+db0/src/core/reorder.o	R7 envelope regeneration d32c20a20 (savefix admission mirrored; src reorder.o has no budget)	R7 mirror of savefix	1853	1936	unsigned int tomo_db0::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+db0/src/core/reorder.o	R7 envelope regeneration d32c20a20 (savefix admission mirrored; src reorder.o has no budget)	R7 mirror of savefix	4290	4360	unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+db0/src/core/reorder.o	R7 envelope regeneration d32c20a20 (savefix admission mirrored; src reorder.o has no budget)	R7 mirror of savefix	3983	4180	unsigned int tomo_db0::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+db0/src/snapshot/snapshot.o	budget 14457 -> 14562	final == origin/cpp (b4 drift removed)	1298	1361	tomo_db0::FlatStore::insert_into(int, unsigned long, tomo_db0::KvObj*, bool)
+db0/src/snapshot/snapshot.o	budget 14457 -> 14562	final == origin/cpp (b4 drift removed)	1274	1287	tomo_db0::FlatStore::insert_read_local(unsigned long, tomo_db0::KvObj*)
+src/cmd/climon.o	climon fix ec0317384 (old clientfix signature; the renamed body replaces it)	climon fix	2177	0	tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*)::{lambda(tomo::Op&)#1}::operator()(tomo::Op&) const
+src/cmd/climon.o	climon fix ec0317384 (old clientfix signature; the renamed body replaces it)	climon fix	273	0	unsigned int tomo::Rob<64u>::drain<tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*)::{lambda(tomo::Op&)#1}>(tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*)::{lambda(tomo::Op&)#1}&&)
+src/cmd/climon.o	climon fix ec0317384 (old clientfix signature; the renamed body replaces it)	climon fix	463	0	tomo::WbEngine::serve_suppressing_impl(tomo::Client&, bool, bool*)
+src/cmd/climon.o	climon fix ec0317384 (old clientfix signature; the renamed body replaces it)	climon fix	16	0	tomo::WbEngine::serve_suppressing(tomo::Client&)
+src/core/genthread.o	budget 129025 -> 129420	final == origin/cpp (b4 drift removed)	942	1018	tomo::FlatStore::insert_into(int, unsigned long, tomo::KvObj*, bool)
+src/core/genthread.o	budget 129025 -> 129420	lane-identical clientfix	2572	2881	unsigned int tomo::IoLoop::flush_ready<false, true, true, false, false, false>()
+src/core/genthread.o	budget 129025 -> 129420	lane-identical clientfix	2556	2889	unsigned int tomo::IoLoop::flush_ready<false, true, true, false, true, false>()
+src/core/genthread.o	budget 129025 -> 129420	final == origin/cpp (b4 drift removed)	5024	5052	void tomo::IoLoop::run_loop<false, true, false, true, false>()
+src/core/genthread.o	budget 129025 -> 129420	lane-identical clientfix	2572	2881	unsigned int tomo::IoLoop::flush_ready<false, true, true, true, false, false>()
+src/core/genthread.o	budget 129025 -> 129420	final == origin/cpp (b4 drift removed)	5129	5157	void tomo::IoLoop::run_loop<true, true, true, true, false>()
+src/core/genthread.o	budget 129025 -> 129420	lane-identical clientfix	2556	2889	unsigned int tomo::IoLoop::flush_ready<false, true, true, true, true, false>()
+src/core/genthread.o	budget 129025 -> 129420	final == origin/cpp (b4 drift removed)	5129	5157	void tomo::IoLoop::run_loop<true, false, true, true, false>()
+src/core/genthread.o	budget 129025 -> 129420	final == origin/cpp (b4 drift removed)	5126	5177	void tomo::IoLoop::run_loop<true, true, false, true, false>()
+src/core/genthread.o	budget 129025 -> 129420	final == origin/cpp (b4 drift removed)	5065	5116	void tomo::IoLoop::run_loop<true, false, false, true, false>()
+src/core/reorder.o	R7 envelope regeneration d32c20a20 (savefix admission mirrored; src reorder.o has no budget)	single lane, differs from lane body: savefix	4033	3999	unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, false>()
+src/core/reorder.o	R7 envelope regeneration d32c20a20 (savefix admission mirrored; src reorder.o has no budget)	R7 mirror of savefix	1794	1868	unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, true>()
+src/core/reorder.o	R7 envelope regeneration d32c20a20 (savefix admission mirrored; src reorder.o has no budget)	single lane, differs from lane body: savefix	4360	4306	unsigned int tomo::ExLoopT<true>::fused_pass_impl<32u, true, false, true>()
+src/core/reorder.o	R7 envelope regeneration d32c20a20 (savefix admission mirrored; src reorder.o has no budget)	single lane, differs from lane body: savefix	1536	1412	unsigned int tomo::ExLoopT<true>::r7_sweep<32u, true, false, false>()
+src/core/reorder.o	R7 envelope regeneration d32c20a20 (savefix admission mirrored; src reorder.o has no budget)	R7 mirror of savefix	4290	4306	unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, true>()
+src/core/reorder.o	R7 envelope regeneration d32c20a20 (savefix admission mirrored; src reorder.o has no budget)	R7 mirror of savefix	3983	3999	unsigned int tomo::ExLoopT<true>::r7_fused_pass_impl<32u, true, false, false>()
+src/core/rl2s.o	budget 162035 -> 162300	composite savefix+clientfix+racefix+flipfix	12008	12093	tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]
+src/core/rl2s.o	budget 162035 -> 162300	composite clientfix+racefix+flipfix	20957	21099	tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]
+src/core/rl2s.o	budget 162035 -> 162300	composite clientfix+racefix+flipfix	20762	21003	tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]
+src/core/rl2s.o	budget 162035 -> 162300	composite savefix+clientfix+racefix+flipfix	20823	21058	tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)
+src/core/rl2s.o	budget 162035 -> 162300	composite clientfix+racefix+flipfix	20851	21006	tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)
+src/snapshot/snapshot.o	budget 14584 -> 14718	final == origin/cpp (b4 drift removed)	346	540	tomo::FlatStore::find_in(int, unsigned long, tomo::Slice) const
+src/snapshot/snapshot.o	budget 14584 -> 14718	final == origin/cpp (b4 drift removed)	580	621	tomo::FlatStore::erase_in(int, unsigned long, tomo::Slice, bool*)
+src/snapshot/snapshot.o	budget 14584 -> 14718	final == origin/cpp (b4 drift removed)	1511	1527	tomo::FlatStore::insert_read_local(unsigned long, tomo::KvObj*)
+src/snapshot/snapshot.o	budget 14584 -> 14718	final == origin/cpp (b4 drift removed)	1593	1589	tomo::FlatStore::insert(unsigned long, tomo::KvObj*)

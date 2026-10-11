@@ -1,0 +1,24 @@
+{
+  "pre_commit": "5146b78ee89b64748dd46db970efa8086f653fa0",
+  "source_commit": "da8247c34d9d10e6f94120c0dbe651c82f7ce9eb",
+  "affinity": "112-127",
+  "target_cores": "112-119",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "arms": {
+    "PRE": {
+      "binary": "build/aoffix2/pre/tomokv",
+      "sha256": "a39cfaf4a3e1d827bb3f24305460f0c1ba72154c59e64d7c20d37001ce0dd17c"
+    },
+    "POST": {
+      "binary": "build/tomokv",
+      "sha256": "96d96dca188610aa569c8e05f0dd5e22cfee6f602cf6e733fb8db2bc196c044e"
+    },
+    "PAD_A": {
+      "binary": "build/aoffix2/pad/tomokv",
+      "sha256": "6d486382887e3d284d161023787b46ecdf4af10dc792031640a1d8e2f0e29cdb",
+      "kind": "A: PRE behavior, POST optional AOF layouts and total text size; function addresses may differ"
+    }
+  },
+  "production_source_commit": "713fca972",
+  "origin_cpp_final": "5146b78ee89b64748dd46db970efa8086f653fa0"
+}

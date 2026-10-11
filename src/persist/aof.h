@@ -106,6 +106,7 @@ public:
     uint64_t sip_k1 = 0;
     uint64_t replayed_records = 0;
     uint64_t groups_skipped = 0;
+    uint64_t ticket_floor = 0; // Includes undecided fragments, not just GCMTs.
     std::vector<uint32_t> next_sequence;
     std::vector<std::vector<uint8_t>> sections;
     std::vector<uint8_t> control_section;
@@ -194,6 +195,9 @@ public:
 
     void init(Server& server, const Config& config, uint32_t nthreads, uint32_t nshards,
               uint32_t writer_tid, const AofReplayPlan* replay);
+    static bool seed_snapshot(const Config& config, const std::string& path,
+                              const SnapshotLoadPlan& snapshot, std::string& error);
+    void drain_for_producer(uint32_t producer, Ring& ring);
     bool bind_writer(ThreadCtx& writer, Ring& ring, std::string& error);
     void writer_shutdown(ThreadCtx& writer, Ring& ring);
     uint32_t writer_pass(ThreadCtx& writer, Ring& ring, bool drain_all = false);
@@ -341,6 +345,10 @@ private:
         std::atomic<bool> stopped{false};
         const char* debug_window = nullptr;
         bool debug_armed = false;
+        // Only the elected writer's slot uses these cold fields. Keeping the
+        // pending cut here preserves AofManager/Server layout and AOF-off storage.
+        uint64_t rewrite_epoch = 0, rewrite_commit = 0;
+        bool sealing_on_writer = false;
     };
     bool producers_stopped() const;
     using OpenStreamToken = AofStreamOwner::OpenToken;

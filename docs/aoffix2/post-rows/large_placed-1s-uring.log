@@ -1,0 +1,33 @@
+{"event": "spawn", "pid": 172258, "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-aoffix2/build/tomokv", "--bind", "127.0.0.1", "--port", "25000", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aoffix2/build/aoffix2/post-rows/large_placed-1s-uring/data", "--protected-mode", "no", "--shards", "16", "--thread-mode", "1s", "--net-io", "uring", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--read-local", "0", "--reorder", "0", "--enable-debug-command", "yes", "--appendonly", "yes", "--appendfsync", "everysec", "--auto-aof-rewrite-percentage", "0"], "fsize": null, "load": {"loadavg": "97.51 95.18 82.62 92/3982 172261", "cpu_stat": ["cpu112 10000850 357 2682235 313977696 3008798 0 989401 0 0 0", "cpu113 9305326 373 2416941 315028268 3068043 0 843246 0 0 0", "cpu114 9226238 256 2315889 315259497 3059930 0 808009 0 0 0", "cpu115 9095205 86 2278476 315449384 3033217 0 809081 0 0 0", "cpu116 9315618 448 2222452 315321521 3014846 0 787831 0 0 0", "cpu117 9018470 272 2182148 315636970 3045257 0 790712 0 0 0", "cpu118 9823525 356 2471884 315047795 2436655 0 892242 0 0 0", "cpu119 9920130 733 2571497 314739295 2471345 0 941725 0 0 0"], "processes": ["    PID PSR %CPU COMMAND", " 172263 126  500 cc1plus", " 172267 113  500 python3", " 172272 112  400 python3", " 172264 115  300 ps", " 172262 124  200 python3", " 172211 113  100 python3", " 172159 127 50.0 cc1plus", " 172258 118 50.0 tomokv", " 172068 112 37.5 python3", " 172061 122 36.0 python3", " 172094 118 35.0 python3", " 172090 112 33.3 tomokv", " 171877 123 28.8 as", " 171155 125 27.5 as", " 169893 120 24.8 as", " 171266 120 23.8 ld", " 169304 124 21.5 cc1plus", " 168547 127 20.9 as", "  19632 114 20.5 cc1plus", "4128704 114 20.4 cc1plus", " 103678 115 20.2 cc1plus", " 162258 122 20.1 cc1plus", " 170895 117 20.0 ld", " 166616 127 20.0 as"]}}
+{"event": "boot", "ready": true, "exit": null, "log": "/home/user/Projects/cx-aoffix2/build/aoffix2/post-rows/large_placed-1s-uring/server-1.log"}
+{"event": "writer_shard", "key": "writer:3", "writer": 7}
+{"event": "stop", "exit": -9, "escalated": true}
+{"event": "FAIL", "case": "large_placed", "error": "AssertionError('owned server did not respond to SIGTERM')"}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/aoffix2.py", line 287, in large_placed
+    assert c.cmd('SET', key, b'v' * (5 * 1024 * 1024)) == b'OK'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/aoffix2.py", line 105, in cmd
+    return self.read()
+           ^^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/aoffix2.py", line 81, in read
+    line = self.f.readline()
+           ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/aoffix2.py", line 584, in <module>
+    CASES[ARGS.case]()
+  File "/home/user/Projects/cx-aoffix2/tests/aoffix2.py", line 279, in large_placed
+    with Server(aof()) as s:
+  File "/home/user/Projects/cx-aoffix2/tests/aoffix2.py", line 204, in __exit__
+    self.stop()
+  File "/home/user/Projects/cx-aoffix2/tests/aoffix2.py", line 198, in stop
+    assert not escalated, 'owned server did not respond to SIGTERM'
+           ^^^^^^^^^^^^^
+AssertionError: owned server did not respond to SIGTERM

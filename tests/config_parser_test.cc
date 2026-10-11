@@ -136,7 +136,63 @@ void documented_example() {
 
 }  // namespace
 
+void authfix_parser() {
+    char path[] = "/tmp/tomokv-authfix-parser.XXXXXX";
+    const int fd = ::mkstemp(path);
+    if (fd < 0) fail("authfix mkstemp failed");
+    ::close(fd);
+    auto load = [&](const std::string& text, std::vector<std::string>& storage,
+                    std::vector<size_t>& ends) {
+        std::ofstream file(path);
+        file << text;
+        file.close();
+        storage.clear(); ends.clear();
+        return tomo::load_conf_file(path, storage, &ends);
+    };
+    for (const std::string escaped : {"cg4\\x00tail", "\\x00tail"}) {
+        std::vector<std::string> storage;
+        std::vector<size_t> ends;
+        if (!load("requirepass \"" + escaped + "\"\nsave 30 2\nsave 60 3\n", storage, ends))
+            fail("binary password config rejected");
+        tomo::Config cfg;
+        tomo::ConfigParseState state;
+        if (tomo::parse_config_file(storage, ends, cfg, state, "authfix") != tomo::kConfigParsed)
+            fail("binary password config parse failed");
+        std::string expected = escaped;
+        expected.replace(expected.find("\\x00"), 4, 1, '\0');
+        if (tomo::cfg_requirepass(cfg).sv() != expected || cfg.save.size() != 2)
+            fail("config lost password bytes or repeated save lines");
+        if (tomo::parse_config_args({"--requirepass", "override"}, cfg, state, 2, "authfix") !=
+                tomo::kConfigParsed || tomo::cfg_requirepass(cfg).sv() != "override")
+            fail("CLI password override retained file length");
+        if (tomo::parse_config_args({"--requirepass", ""}, cfg, state, 2, "authfix") !=
+                tomo::kConfigParsed || !tomo::cfg_requirepass(cfg).empty())
+            fail("explicit empty password rejected");
+    }
+    {
+        StderrSilencer silence;
+        for (const char* name : {"requirepass", "aclfile", "unixsocket", "tls-cert-file",
+                "tls-key-file", "tls-ca-cert-file", "tls-ca-cert-dir", "tls-protocols",
+                "tls-ciphers", "tls-ciphersuites", "latency-monitor-threshold", "ratio",
+                "shard-home", "place", "port", "dir", "dbfilename", "appendfilename",
+                "appenddirname", "save", "user", "client-output-buffer-limit"}) {
+            for (const char* tail : {"", "bind 127.0.0.1\n"}) {
+                std::vector<std::string> storage;
+                std::vector<size_t> ends;
+                if (load(std::string("requirepass earlier\n") + name + "\n" + tail, storage, ends))
+                    fail("missing config value accepted or consumed the next line");
+            }
+        }
+        tomo::Config cfg;
+        tomo::ConfigParseState state;
+        if (tomo::parse_config_args({"--requirepass"}, cfg, state, 2, "authfix") != tomo::kConfigError)
+            fail("value-less CLI requirepass accepted");
+    }
+    ::unlink(path);
+}
+
 int main() {
+    authfix_parser();
     documented_example();
     boot_support_checks::run();
     char path[] = "/tmp/tomokv-config-parser.XXXXXX";

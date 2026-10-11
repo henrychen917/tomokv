@@ -1,0 +1,19 @@
+{"argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-savefix/build/savefix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25014", "--dir", "build/savefix/pre-no-capture-1", "--save", "", "--appendonly", "yes", "--appendfsync", "everysec", "--auto-aof-rewrite-percentage", "0", "--thread-mode", "1s", "--net-io", "epoll", "--shards", "16", "--atomic", "0", "--databases", "1", "--read-local", "0", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--enable-debug-command", "yes"], "event": "boot", "pid": 529538}
+{"acked": [4, 3, 4, 3, 4, 4, 3, 3], "event": "stop_without_any_snapshot", "load": {"cpu_ticks": ["cpu112 10072057 357 2688847 313977696 3008800 0 989417 0 0 0", "cpu113 9377125 373 2422964 315028268 3068043 0 843260 0 0 0", "cpu114 9298982 256 2320966 315259497 3059930 0 808024 0 0 0", "cpu115 9167971 86 2283520 315449384 3033217 0 809108 0 0 0", "cpu116 9388615 448 2227275 315321521 3014847 0 787847 0 0 0", "cpu117 9091634 272 2186793 315636970 3045258 0 790740 0 0 0", "cpu118 9895687 356 2477548 315047795 2436656 0 892251 0 0 0", "cpu119 9992501 733 2576959 314739295 2471345 0 941729 0 0 0", "cpu120 9981150 926 2484948 316775921 507842 0 939016 0 0 0", "cpu121 9370724 845 2313064 317674262 493160 0 844100 0 0 0", "cpu122 9119891 1141 2135007 318115090 530781 0 790282 0 0 0", "cpu123 8931138 1057 2089689 318385348 509279 0 768587 0 0 0", "cpu124 8949934 770 2076708 318492940 431615 0 752959 0 0 0", "cpu125 8987615 2535 2062054 318473925 438965 0 749148 0 0 0", "cpu126 9284326 1210 2244141 317872777 441527 0 875934 0 0 0", "cpu127 9925763 1077 2528186 316634359 428143 0 1111308 0 0 0"], "cpus": [112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127], "loadavg": "126.68 130.50 109.08 115/4111 529998"}}
+Traceback (most recent call last):
+  File "<stdin>", line 15, in <module>
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2045, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['taskset', '-c', '112-119', '/home/user/Projects/cx-savefix/build/savefix/pre/tomokv', '--bind', '127.0.0.1', '--port', '25014', '--dir', 'build/savefix/pre-no-capture-1', '--save', '', '--appendonly', 'yes', '--appendfsync', 'everysec', '--auto-aof-rewrite-percentage', '0', '--thread-mode', '1s', '--net-io', 'epoll', '--shards', '16', '--atomic', '0', '--databases', '1', '--read-local', '0', '--key-lb', '0', '--client-lb', '0', '--flip-auto', '0', '--enable-debug-command', 'yes']' timed out after 15 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<stdin>", line 18, in <module>
+  File "/home/user/Projects/cx-savefix/tests/savefix.py", line 171, in finish
+    assert not self.errors, self.errors
+           ^^^^^^^^^^^^^^^
+AssertionError: ["TimeoutError('timed out')", "TimeoutError('timed out')", "TimeoutError('timed out')", "TimeoutError('timed out')", "TimeoutError('timed out')", "TimeoutError('timed out')", "TimeoutError('timed out')", "TimeoutError('timed out')"]

@@ -1,0 +1,10 @@
+{
+  "source_labels": 533,
+  "DQ": 5,
+  "DF": 5,
+  "current_quick": 511,
+  "current_full": 528,
+  "required_quick": 516,
+  "required_full": 533,
+  "projected_check": "pass after owner count update; actual checker currently refuses"
+}

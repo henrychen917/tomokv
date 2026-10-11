@@ -43,6 +43,14 @@
         bool broken_redirect = false;
         uint64_t redirect = 0;
         std::vector<std::string> prefixes;
+        // The ROB dispatch number survives reparse; Op::reset does not. Only
+        // armed connections carry this retry receipt, outside the locked Client.
+        uint64_t gate_op_id = UINT64_MAX;
+        bool gate_reply_skip = false;
+        std::unordered_map<Op*, std::vector<std::string>> tracking_reads;
+        // key -> latest pending read. Both maps move with the existing
+        // connection migration node in its ownership commit section.
+        std::unordered_map<std::string, Op*> tracking_pending;
 
         bool idle() const {
             return reply_mode == kClimonReplyOn && !monitor && !tracking_on && !broken_redirect;
@@ -119,6 +127,9 @@
     void tracking_reply_trackinginfo(Client* client, Op& op);
     ClimonStartResult tracking_client_subcommand(Client* client, Op& op);
     void tracking_register_read(Client* client, ClimonConn& state, Op& op);
+    void tracking_retire_read(Client& client, Op& op);
+    bool tracking_retire_plain(Client* client);
+    void tracking_register_key(uint64_t id, const std::string& key);
     void tracking_forget_client(uint64_t id, ClimonConn& state);
     void tracking_invalidate_local(Slice key, uint64_t writer_id);
     void tracking_handle_event(PubSubEvent& event);

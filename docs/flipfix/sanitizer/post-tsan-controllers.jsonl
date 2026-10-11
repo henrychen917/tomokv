@@ -1,0 +1,169 @@
+load 5.85 11.44 13.58 1/3099 1138072
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["setarch", "x86_64", "-R", "taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/tomokv-tsan", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/final-san/post-tsan-controllers/controllers", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "uring", "--enable-debug-command", "yes", "--flip-auto", "1", "--key-lb", "0", "--client-lb", "0"], "event": "boot", "label": "controllers", "loadavg": [5.84521484375, 11.4375, 13.5791015625]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/tomokv-tsan", "label": "controllers", "pid": 1138076}
+{"case": "controllers", "phase": "settling", "result": "PASS", "signature_distance": "0.000000000", "signature_noise_samples": 4}
+{"event": "stop", "label": "controllers", "loadavg": [5.45849609375, 10.98681640625, 13.384765625], "log": "/home/user/Projects/cx-flipfix/build/flipfix/final-san/post-tsan-controllers/controllers/controllers.log", "rc": 66}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 465, in <module>
+    main()
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 459, in main
+    controllers(args)
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 382, in controllers
+    with boot(args, 'controllers', extra=['--flip-auto', '1', '--key-lb', '0',
+  File "/usr/lib/python3.12/contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 124, in boot
+    assert not hits, f'sanitizer report {hits} in {path}:\n' + text[-20000:]
+           ^^^^^^^^
+AssertionError: sanitizer report ['WARNING: ThreadSanitizer', 'ThreadSanitizer:'] in /home/user/Projects/cx-flipfix/build/flipfix/final-san/post-tsan-controllers/controllers/controllers.log:
+ 94db4570ea3d9def795449d58787a678de6baba5)
+    #3 construct<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/alloc_traits.h:540 (tomokv-tsan+0x24fda)
+    #4 _M_realloc_insert<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/vector.tcc:468 (tomokv-tsan+0x24fda)
+    #5 emplace_back<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/vector.tcc:123 (tomokv-tsan+0x24fda)
+    #6 main src/main.cc:391 (tomokv-tsan+0x24fda)
+    #7 __wrap_main src/core/version.cc:21 (tomokv-tsan+0x54b91c) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #8 __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58 (libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)
+
+SUMMARY: ThreadSanitizer: data race src/core/flipctl.cc:793 in tomo_db0::FlipController::sample_role_demand(tomo_db0::Server&, unsigned long, double&, double&, double&)
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1138076)
+  Read of size 8 at 0x726800008dc0 by main thread (mutexes: write M0):
+    #0 tomo_db0::FlipController::sample_role_demand(tomo_db0::Server&, unsigned long, double&, double&, double&) src/core/flipctl.cc:781 (tomokv-tsan+0x3fecd0) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #1 tomo_db0::FlipController::decide_placement(tomo_db0::Server&, unsigned int, unsigned long, double) src/core/flipctl.cc:842 (tomokv-tsan+0x403753) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #2 tomo_db0::FlipController::tick(tomo_db0::Server&, unsigned long) src/core/flipctl.cc:1249 (tomokv-tsan+0x4064d5) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #3 tomo_db0::Server::flipctl_tick(unsigned long) src/core/server.h:514 (tomokv-tsan+0x4cc6b5) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #4 tomo_db0::Server::monitor_controllers() src/core/lbplanner.cc:510 (tomokv-tsan+0x4cc6b5)
+    #5 main src/main.cc:598 (tomokv-tsan+0x25990) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #6 __wrap_main src/core/version.cc:21 (tomokv-tsan+0x54b91c) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #7 __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58 (libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)
+
+  Previous write of size 8 at 0x726800008dc0 by thread T2:
+    #0 unsigned int tomo_db0::ExLoopT<false>::drain_tasks<32u, false>(bool) <null> (tomokv-tsan+0xd419a) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #1 unsigned int tomo_db0::ExLoopT<false>::sweep<32u, true, false, false>() <null> (tomokv-tsan+0xd5c17) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #2 tomo_db0::ExLoopT<false>::run() <null> (tomokv-tsan+0xe91b5) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #3 operator() src/main.cc:452 (tomokv-tsan+0x2806e) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #4 __invoke_impl<void, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61 (tomokv-tsan+0x2806e)
+    #5 __invoke<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96 (tomokv-tsan+0x2806e)
+    #6 _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292 (tomokv-tsan+0x2806e)
+    #7 operator() /usr/include/c++/13/bits/std_thread.h:299 (tomokv-tsan+0x2806e)
+    #8 _M_run /usr/include/c++/13/bits/std_thread.h:244 (tomokv-tsan+0x2806e)
+    #9 <null> <null> (libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+
+  Location is heap block of size 1408 at 0x726800008a00 allocated by main thread:
+    #0 operator new(unsigned long, std::align_val_t) ../../../../src/libsanitizer/tsan/tsan_new_delete.cpp:88 (libtsan.so.2+0xa7254) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 tomo_db0::Server::init(tomo_db0::Config const&, tomo_db0::AofReplayPlan const*) <null> (tomokv-tsan+0xdb3a5) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #2 main src/main.cc:303 (tomokv-tsan+0x241d6) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #3 __wrap_main src/core/version.cc:21 (tomokv-tsan+0x54b91c) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #4 __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58 (libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)
+
+  Mutex M0 (0x7fffffff3960) created at:
+    #0 pthread_mutex_lock ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1341 (libtsan.so.2+0x59a13) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 __gthread_mutex_lock /usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:749 (tomokv-tsan+0x405e7e) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #2 std::mutex::lock() /usr/include/c++/13/bits/std_mutex.h:113 (tomokv-tsan+0x405e7e)
+    #3 std::lock_guard<std::mutex>::lock_guard(std::mutex&) /usr/include/c++/13/bits/std_mutex.h:249 (tomokv-tsan+0x405e7e)
+    #4 tomo_db0::FlipController::tick(tomo_db0::Server&, unsigned long) src/core/flipctl.cc:1186 (tomokv-tsan+0x405e7e)
+    #5 tomo_db0::Server::flipctl_tick(unsigned long) src/core/server.h:514 (tomokv-tsan+0x4cc6b5) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #6 tomo_db0::Server::monitor_controllers() src/core/lbplanner.cc:510 (tomokv-tsan+0x4cc6b5)
+    #7 main src/main.cc:598 (tomokv-tsan+0x25990) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #8 __wrap_main src/core/version.cc:21 (tomokv-tsan+0x54b91c) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #9 __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58 (libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)
+
+  Thread T2 (tid=1138079, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) <null> (libstdc++.so.6+0xeceb0) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #2 construct_at<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/stl_construct.h:97 (tomokv-tsan+0x24fda) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #3 construct<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/alloc_traits.h:540 (tomokv-tsan+0x24fda)
+    #4 _M_realloc_insert<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/vector.tcc:468 (tomokv-tsan+0x24fda)
+    #5 emplace_back<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/vector.tcc:123 (tomokv-tsan+0x24fda)
+    #6 main src/main.cc:391 (tomokv-tsan+0x24fda)
+    #7 __wrap_main src/core/version.cc:21 (tomokv-tsan+0x54b91c) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #8 __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58 (libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)
+
+SUMMARY: ThreadSanitizer: data race src/core/flipctl.cc:781 in tomo_db0::FlipController::sample_role_demand(tomo_db0::Server&, unsigned long, double&, double&, double&)
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1138076)
+  Read of size 8 at 0x726800006d98 by main thread (mutexes: write M0):
+    #0 tomo_db0::ThreadCtx::total_commands() const src/core/thread.h:453 (tomokv-tsan+0x3fb969) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #1 tomo_db0::FlipController::total_commands(tomo_db0::Server const&) const src/core/flipctl.cc:287 (tomokv-tsan+0x3fb969)
+    #2 tomo_db0::FlipController::sample_rate(tomo_db0::Server&, unsigned long, double&) src/core/flipctl.cc:359 (tomokv-tsan+0x3fc1ef) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #3 tomo_db0::FlipController::sample_stabilized_rate(tomo_db0::Server&, unsigned long, double&) src/core/flipctl.cc:398 (tomokv-tsan+0x3fcc7e) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #4 tomo_db0::FlipController::tick(tomo_db0::Server&, unsigned long) src/core/flipctl.cc:1267 (tomokv-tsan+0x40654e) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #5 tomo_db0::Server::flipctl_tick(unsigned long) src/core/server.h:514 (tomokv-tsan+0x4cc6b5) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #6 tomo_db0::Server::monitor_controllers() src/core/lbplanner.cc:510 (tomokv-tsan+0x4cc6b5)
+    #7 main src/main.cc:598 (tomokv-tsan+0x25990) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #8 __wrap_main src/core/version.cc:21 (tomokv-tsan+0x54b91c) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #9 __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58 (libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)
+
+  Previous write of size 8 at 0x726800006d98 by thread T5:
+    #0 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*) <null> (tomokv-tsan+0x1163c8) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #1 void tomo_db0::IoLoop::on_recv<false, false, false>(tomo_db0::Client*, int) <null> (tomokv-tsan+0x11d719) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #2 void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*) <null> (tomokv-tsan+0x11da21) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #3 void tomo_db0::IoLoop::run_loop<false, false, false, false, false>() <null> (tomokv-tsan+0x12c695) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #4 tomo_db0::IoLoop::run_split() src/core/io_loop.h:430 (tomokv-tsan+0x26b6e) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #5 tomo_db0::IoLoop::run() src/core/io_loop.h:436 (tomokv-tsan+0x26b6e)
+    #6 operator() src/main.cc:580 (tomokv-tsan+0x26b6e)
+    #7 __invoke_impl<void, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61 (tomokv-tsan+0x26b6e)
+    #8 __invoke<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96 (tomokv-tsan+0x26b6e)
+    #9 _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292 (tomokv-tsan+0x26b6e)
+    #10 operator() /usr/include/c++/13/bits/std_thread.h:299 (tomokv-tsan+0x26b6e)
+    #11 _M_run /usr/include/c++/13/bits/std_thread.h:244 (tomokv-tsan+0x26b6e)
+    #12 <null> <null> (libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+
+  Location is heap block of size 1408 at 0x726800006c00 allocated by main thread:
+    #0 operator new(unsigned long, std::align_val_t) ../../../../src/libsanitizer/tsan/tsan_new_delete.cpp:88 (libtsan.so.2+0xa7254) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 tomo_db0::Server::init(tomo_db0::Config const&, tomo_db0::AofReplayPlan const*) <null> (tomokv-tsan+0xdb3a5) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #2 main src/main.cc:303 (tomokv-tsan+0x241d6) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #3 __wrap_main src/core/version.cc:21 (tomokv-tsan+0x54b91c) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #4 __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58 (libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)
+
+  Mutex M0 (0x7fffffff3960) created at:
+    #0 pthread_mutex_lock ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1341 (libtsan.so.2+0x59a13) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 __gthread_mutex_lock /usr/include/x86_64-linux-gnu/c++/13/bits/gthr-default.h:749 (tomokv-tsan+0x405e7e) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #2 std::mutex::lock() /usr/include/c++/13/bits/std_mutex.h:113 (tomokv-tsan+0x405e7e)
+    #3 std::lock_guard<std::mutex>::lock_guard(std::mutex&) /usr/include/c++/13/bits/std_mutex.h:249 (tomokv-tsan+0x405e7e)
+    #4 tomo_db0::FlipController::tick(tomo_db0::Server&, unsigned long) src/core/flipctl.cc:1186 (tomokv-tsan+0x405e7e)
+    #5 tomo_db0::Server::flipctl_tick(unsigned long) src/core/server.h:514 (tomokv-tsan+0x4cc6b5) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #6 tomo_db0::Server::monitor_controllers() src/core/lbplanner.cc:510 (tomokv-tsan+0x4cc6b5)
+    #7 main src/main.cc:598 (tomokv-tsan+0x25990) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #8 __wrap_main src/core/version.cc:21 (tomokv-tsan+0x54b91c) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #9 __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58 (libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)
+
+  Thread T5 (tid=1138082, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) <null> (libstdc++.so.6+0xeceb0) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #2 construct_at<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/stl_construct.h:97 (tomokv-tsan+0x2583b) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #3 construct<std::thread, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/alloc_traits.h:540 (tomokv-tsan+0x2583b)
+    #4 _M_realloc_insert<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/vector.tcc:468 (tomokv-tsan+0x2583b)
+    #5 emplace_back<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/vector.tcc:123 (tomokv-tsan+0x2583b)
+    #6 main src/main.cc:518 (tomokv-tsan+0x2583b)
+    #7 __wrap_main src/core/version.cc:21 (tomokv-tsan+0x54b91c) (BuildId: 94db4570ea3d9def795449d58787a678de6baba5)
+    #8 __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58 (libc.so.6+0x2a1c9) (BuildId: a4a7992a8e66555c8141ab2a08a8465ff6e0ea65)
+
+SUMMARY: ThreadSanitizer: data race src/core/thread.h:453 in tomo_db0::ThreadCtx::total_commands() const
+==================
+persistence: enabled=0 posted=0 flushed=0 durable=0 refused=0 pending_chunks=0 producers_with_pending=0 drain_gave_up=0 failed=0
+
+thread role          ops      iters   busy_ms   idle_ms    cpu_ms   wake_tx  wake_rx
+t0     io              0        409       8.8   20535.5      15.4         0        0
+io_tenure t0/0 busy_ns=8791069 idle_ns=20535470233 entry_ns=3322372052830133 begin_ns=3322372052830323 end_ns=3322392597091625 exit_ns=3322392597092056 role_exit=0 stopped=1
+t1     io              0        410       9.1   20535.0      16.5         0        0
+io_tenure t1/0 busy_ns=9066584 idle_ns=20535017959 entry_ns=3322372053005783 begin_ns=3322372053006253 end_ns=3322392597090796 exit_ns=3322392597091325 role_exit=0 stopped=1
+t2     io              0    1423994   14829.3    5714.7   15388.6         0        0
+io_tenure t2/0 busy_ns=14829327175 idle_ns=5714667448 entry_ns=3322372053086404 begin_ns=3322372053087253 end_ns=3322392597081876 exit_ns=3322392597082365 role_exit=0 stopped=1
+t3     io         310198    1503857   11269.4    9274.3   13884.3         0   241841
+io_tenure t3/0 busy_ns=11269423646 idle_ns=9274313816 entry_ns=3322372053343214 begin_ns=3322372053343534 end_ns=3322392597080996 exit_ns=3322392597081325 role_exit=0 stopped=1
+t4     io         305126    1495099   14315.6    6228.1   17408.7         0   258483
+io_tenure t4/0 busy_ns=14315551094 idle_ns=6228071166 entry_ns=3322372053455565 begin_ns=3322372053456355 end_ns=3322392597078615 exit_ns=3322392597079045 role_exit=0 stopped=1
+t5     io              0        410       8.8   20534.6      14.8         0        0
+io_tenure t5/0 busy_ns=8808419 idle_ns=20534608672 entry_ns=3322372053697775 begin_ns=3322372053698045 end_ns=3322392597115136 exit_ns=3322392597116185 role_exit=0 stopped=1
+t6     ex         615324    2569321   10861.7    5463.0   16083.0    500324   500324
+t7     ex              0     698368       0.0   19532.2    2123.5         0        0
+wb: retired=1090892 direct=615324 sends=1090892/1090892 short=0 err=0 peer_aborts=0 bytes=10705733 zc_sends=0 zc_bytes=0 zc_releases=0 serves=1132717 empty=41825
+tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0
+stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0
+shutdown: dispatched=615324 executed=615324 accepts=4 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0
+shutdown_report {"schema":1,"thread_mode":"2s","work":{"kind":"split","dispatched":615324,"executed":615324},"threads":[{"tid":0,"role":"io","ops":0,"iterations":409,"busy_ns":8791069,"idle_ns":20535470233,"cpu_ns":15370846,"wake_tx":0,"wake_rx":0,"io_tenures":[{"entry_ns":3322372052830133,"begin_ns":3322372052830323,"end_ns":3322392597091625,"exit_ns":3322392597092056,"busy_ns":8791069,"idle_ns":20535470233,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":1,"role":"io","ops":0,"iterations":410,"busy_ns":9066584,"idle_ns":20535017959,"cpu_ns":16546345,"wake_tx":0,"wake_rx":0,"io_tenures":[{"entry_ns":3322372053005783,"begin_ns":3322372053006253,"end_ns":3322392597090796,"exit_ns":3322392597091325,"busy_ns":9066584,"idle_ns":20535017959,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":2,"role":"io","ops":0,"iterations":1423994,"busy_ns":14829327175,"idle_ns":5714667448,"cpu_ns":15388639922,"wake_tx":0,"wake_rx":0,"io_tenures":[{"entry_ns":3322372053086404,"begin_ns":3322372053087253,"end_ns":3322392597081876,"exit_ns":3322392597082365,"busy_ns":14829327175,"idle_ns":5714667448,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":3,"role":"io","ops":310198,"iterations":1503857,"busy_ns":11269423646,"idle_ns":9274313816,"cpu_ns":13884303044,"wake_tx":0,"wake_rx":241841,"io_tenures":[{"entry_ns":3322372053343214,"begin_ns":3322372053343534,"end_ns":3322392597080996,"exit_ns":3322392597081325,"busy_ns":11269423646,"idle_ns":9274313816,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":4,"role":"io","ops":305126,"iterations":1495099,"busy_ns":14315551094,"idle_ns":6228071166,"cpu_ns":17408672951,"wake_tx":0,"wake_rx":258483,"io_tenures":[{"entry_ns":3322372053455565,"begin_ns":3322372053456355,"end_ns":3322392597078615,"exit_ns":3322392597079045,"busy_ns":14315551094,"idle_ns":6228071166,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":5,"role":"io","ops":0,"iterations":410,"busy_ns":8808419,"idle_ns":20534608672,"cpu_ns":14750273,"wake_tx":0,"wake_rx":0,"io_tenures":[{"entry_ns":3322372053697775,"begin_ns":3322372053698045,"end_ns":3322392597115136,"exit_ns":3322392597116185,"busy_ns":8808419,"idle_ns":20534608672,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":6,"role":"ex","ops":615324,"iterations":2569321,"busy_ns":10861736619,"idle_ns":5463012015,"cpu_ns":16083035906,"wake_tx":500324,"wake_rx":500324,"io_tenures":[]},{"tid":7,"role":"ex","ops":0,"iterations":698368,"busy_ns":0,"idle_ns":19532221615,"cpu_ns":2123492340,"wake_tx":0,"wake_rx":0,"io_tenures":[]}],"wb":{"retired":1090892,"direct":615324,"sends_completed":1090892,"sends_submitted":1090892,"short_writes":0,"send_errors":0,"peer_aborts":0,"bytes_sent":10705733,"zc_sends":0,"zc_bytes":0,"zc_releases":0,"serves":1132717,"serves_empty":41825},"tls":{"accepts":0,"handshakes_completed":0,"handshakes_started":0,"handshakes_failed":0,"connections_freed":0,"want_read":0,"want_write":0,"ciphertext_input_bytes":0,"plaintext_input_bytes":0,"ciphertext_output_bytes":0,"plaintext_output_bytes":0,"zc_suppressed":0,"ktls_active":0,"ktls_fallback":0},"stuck":{"live_conns":0,"rob_not_quiesced":0,"unsent_bytes_pending":0,"slots_done":0,"slots_issued":0,"slots_free":0,"flag_set":0},"epoll":{"enabled":false,"events":0,"recvs":0},"persistence":{"enabled":false,"recording":false,"failed":false,"drain_gave_up":false,"posted":0,"flushed":0,"durable":0,"refused":0,"pending_chunks":0,"records_written":0,"producers_with_pending":0,"producers_stopped":0,"producers_expected":0,"completions_pending":0},"accept":{"accepts":4,"accept_err":0,"rearm":0,"sqe_starved":0,"notify_drop":0}}
+ThreadSanitizer: reported 60 warnings
+

@@ -1,0 +1,249 @@
+[
+  {
+    "directive": "tls-cert-file",
+    "pre": {
+      "booted": true,
+      "exit": 0,
+      "port_closed": true
+    },
+    "post": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "redis": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true,
+      "diagnostic": "wrong number of arguments"
+    }
+  },
+  {
+    "directive": "tls-key-file",
+    "pre": {
+      "booted": true,
+      "exit": 0,
+      "port_closed": true
+    },
+    "post": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "redis": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true,
+      "diagnostic": "wrong number of arguments"
+    }
+  },
+  {
+    "directive": "tls-ca-cert-file",
+    "pre": {
+      "booted": true,
+      "exit": 0,
+      "port_closed": true
+    },
+    "post": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "redis": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true,
+      "diagnostic": "wrong number of arguments"
+    }
+  },
+  {
+    "directive": "tls-ca-cert-dir",
+    "pre": {
+      "booted": true,
+      "exit": 0,
+      "port_closed": true
+    },
+    "post": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "redis": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true,
+      "diagnostic": "wrong number of arguments"
+    }
+  },
+  {
+    "directive": "tls-protocols",
+    "pre": {
+      "booted": true,
+      "exit": 0,
+      "port_closed": true
+    },
+    "post": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "redis": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true,
+      "diagnostic": "wrong number of arguments"
+    }
+  },
+  {
+    "directive": "tls-ciphers",
+    "pre": {
+      "booted": true,
+      "exit": 0,
+      "port_closed": true
+    },
+    "post": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "redis": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true,
+      "diagnostic": "wrong number of arguments"
+    }
+  },
+  {
+    "directive": "tls-ciphersuites",
+    "pre": {
+      "booted": true,
+      "exit": 0,
+      "port_closed": true
+    },
+    "post": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "redis": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true,
+      "diagnostic": "wrong number of arguments"
+    }
+  },
+  {
+    "directive": "unixsocket",
+    "pre": {
+      "booted": true,
+      "exit": 0,
+      "port_closed": true
+    },
+    "post": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "redis": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true,
+      "diagnostic": "wrong number of arguments"
+    }
+  },
+  {
+    "directive": "aclfile",
+    "pre": {
+      "booted": true,
+      "exit": 0,
+      "port_closed": true
+    },
+    "post": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "redis": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true,
+      "diagnostic": "wrong number of arguments"
+    }
+  },
+  {
+    "directive": "latency-monitor-threshold",
+    "pre": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "post": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "redis": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true,
+      "diagnostic": "wrong number of arguments"
+    }
+  },
+  {
+    "directive": "ratio",
+    "pre": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "post": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "redis": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true,
+      "diagnostic": "Bad directive or wrong number of arguments"
+    }
+  },
+  {
+    "directive": "shard-home",
+    "pre": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "post": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "redis": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true,
+      "diagnostic": "Bad directive or wrong number of arguments"
+    }
+  },
+  {
+    "directive": "place",
+    "pre": {
+      "booted": true,
+      "exit": 0,
+      "port_closed": true
+    },
+    "post": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true
+    },
+    "redis": {
+      "booted": false,
+      "exit": 1,
+      "port_closed": true,
+      "diagnostic": "Bad directive or wrong number of arguments"
+    }
+  }
+]

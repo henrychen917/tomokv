@@ -1,0 +1,59 @@
+[
+  {
+    "cpus": "112-127",
+    "tests": 66,
+    "seconds": 196.02,
+    "failures": 9,
+    "nested_tests_passed": 14,
+    "exit_code": 1,
+    "log": "docs/scriptfix/gates-test-initial-timeout.log.gz",
+    "cause": "scheduler fixtures hit unchanged deadlines while other lanes compiled on allowed CPUs",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/gates_test.py"
+    ]
+  },
+  {
+    "cpus": "112-115",
+    "tests": 66,
+    "seconds": 776.442,
+    "failures": 14,
+    "nested_tests_passed": 14,
+    "exit_code": 1,
+    "log": "docs/scriptfix/gates-test-serialized-timeout.log.gz",
+    "cause": "scheduler fixtures hit unchanged deadlines while other lanes compiled on allowed CPUs",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "taskset",
+      "-c",
+      "112-115",
+      "python3",
+      "tests/gates_test.py"
+    ]
+  },
+  {
+    "cpus": "124-127",
+    "tests": 66,
+    "seconds": 730.63,
+    "failures": 11,
+    "nested_tests_passed": 14,
+    "exit_code": 1,
+    "log": "docs/scriptfix/gates-test-final-timeout.log.gz",
+    "cause": "scheduler fixtures hit unchanged deadlines while other lanes compiled on allowed CPUs",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "taskset",
+      "-c",
+      "124-127",
+      "python3",
+      "tests/gates_test.py"
+    ]
+  }
+]

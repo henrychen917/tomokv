@@ -1,0 +1,105 @@
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+topology: 1 L3 domain(s)
+  domain  0: 8 cpus [112,113,114,115,116,117,118,119]
+tomokv-cpp: 8 unified threads, 16 shard(s), thread-mode=1s, owner-batch prefetch, io_uring, alloc=libc-malloc, reorder=0, read-local=1
+  thread t0: role=unified cpu=112 L3=0 shards=2 send=self
+  thread t1: role=unified cpu=113 L3=0 shards=2 send=self
+  thread t2: role=unified cpu=114 L3=0 shards=2 send=self
+  thread t3: role=unified cpu=115 L3=0 shards=2 send=self
+  thread t4: role=unified cpu=116 L3=0 shards=2 send=self
+  thread t5: role=unified cpu=117 L3=0 shards=2 send=self
+  thread t6: role=unified cpu=118 L3=0 shards=2 send=self
+  thread t7: role=unified cpu=119 L3=0 shards=2 send=self
+listening on 127.0.0.1:25042
+persistence: enabled=0 posted=0 flushed=0 durable=0 refused=0 pending_chunks=0 producers_with_pending=0 drain_gave_up=0 failed=0
+
+thread role          ops      iters   busy_ms   idle_ms    cpu_ms   wake_tx  wake_rx
+t0     uni             3         22       1.1       6.3       1.8         3        6
+io_tenure t0/0 busy_ns=1077224 idle_ns=6345769 entry_ns=3316537528897504 begin_ns=3316537528897584 end_ns=3316537536320577 exit_ns=3316537536320657 role_exit=0 stopped=1
+t1     uni             0          7       0.8       6.8       1.3         0        0
+io_tenure t1/0 busy_ns=763932 idle_ns=6777311 entry_ns=3316537528938424 begin_ns=3316537528938595 end_ns=3316537536479838 exit_ns=3316537536480038 role_exit=0 stopped=1
+t2     uni             0          1       0.1       7.5       0.7         0        0
+io_tenure t2/0 busy_ns=58841 idle_ns=7529833 entry_ns=3316537528894714 begin_ns=3316537528894864 end_ns=3316537536483538 exit_ns=3316537536483708 role_exit=0 stopped=1
+t3     uni             0          1       0.1       6.4       0.9         0        0
+io_tenure t3/0 busy_ns=51920 idle_ns=6420609 entry_ns=3316537530008009 begin_ns=3316537530008149 end_ns=3316537536480678 exit_ns=3316537536480848 role_exit=0 stopped=1
+t4     uni             0          1       0.1       7.4       0.8         0        0
+io_tenure t4/0 busy_ns=62780 idle_ns=7399643 entry_ns=3316537529020865 begin_ns=3316537529020985 end_ns=3316537536483408 exit_ns=3316537536483558 role_exit=0 stopped=1
+t5     uni             0          1       0.1       7.9       0.7         0        0
+io_tenure t5/0 busy_ns=59960 idle_ns=7941585 entry_ns=3316537529011315 begin_ns=3316537529011515 end_ns=3316537537013060 exit_ns=3316537537013220 role_exit=0 stopped=1
+t6     uni             0          1       0.2       7.4       0.8         0        0
+io_tenure t6/0 busy_ns=153761 idle_ns=7357903 entry_ns=3316537528863954 begin_ns=3316537528864064 end_ns=3316537536375728 exit_ns=3316537536375857 role_exit=0 stopped=1
+t7     uni             3         25       1.3       6.4       2.1         3        6
+io_tenure t7/0 busy_ns=1279906 idle_ns=6363718 entry_ns=3316537528830514 begin_ns=3316537528830634 end_ns=3316537536474258 exit_ns=3316537536474318 role_exit=0 stopped=1
+wb: retired=8 direct=2 sends=8/8 short=0 err=0 peer_aborts=0 bytes=134 zc_sends=0 zc_bytes=0 zc_releases=0 serves=8 empty=0
+tls: accepts=0 handshakes=0/0 failed=0 freed=0 want_read=0 want_write=0 cipher_in=0 plain_in=0 cipher_out=0 plain_out=0 zc_suppressed=0 ktls_active=0 ktls_fallback=0
+stuck: live_conns=0 rob_not_quiesced=0 unsent_bytes_pending=0 | slots done=0 issued=0 free=0 flag_set=0
+shutdown: unified_work=6 accepts=3 accept_err=0 rearm=0 sqe_starved=0 notify_drop=0
+shutdown_report {"schema":1,"thread_mode":"1s","work":{"kind":"fused","unified":6},"threads":[{"tid":0,"role":"fused","ops":3,"iterations":22,"busy_ns":1077224,"idle_ns":6345769,"cpu_ns":1759470,"wake_tx":3,"wake_rx":6,"io_tenures":[{"entry_ns":3316537528897504,"begin_ns":3316537528897584,"end_ns":3316537536320577,"exit_ns":3316537536320657,"busy_ns":1077224,"idle_ns":6345769,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":1,"role":"fused","ops":0,"iterations":7,"busy_ns":763932,"idle_ns":6777311,"cpu_ns":1289270,"wake_tx":0,"wake_rx":0,"io_tenures":[{"entry_ns":3316537528938424,"begin_ns":3316537528938595,"end_ns":3316537536479838,"exit_ns":3316537536480038,"busy_ns":763932,"idle_ns":6777311,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":2,"role":"fused","ops":0,"iterations":1,"busy_ns":58841,"idle_ns":7529833,"cpu_ns":691010,"wake_tx":0,"wake_rx":0,"io_tenures":[{"entry_ns":3316537528894714,"begin_ns":3316537528894864,"end_ns":3316537536483538,"exit_ns":3316537536483708,"busy_ns":58841,"idle_ns":7529833,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":3,"role":"fused","ops":0,"iterations":1,"busy_ns":51920,"idle_ns":6420609,"cpu_ns":877280,"wake_tx":0,"wake_rx":0,"io_tenures":[{"entry_ns":3316537530008009,"begin_ns":3316537530008149,"end_ns":3316537536480678,"exit_ns":3316537536480848,"busy_ns":51920,"idle_ns":6420609,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":4,"role":"fused","ops":0,"iterations":1,"busy_ns":62780,"idle_ns":7399643,"cpu_ns":846340,"wake_tx":0,"wake_rx":0,"io_tenures":[{"entry_ns":3316537529020865,"begin_ns":3316537529020985,"end_ns":3316537536483408,"exit_ns":3316537536483558,"busy_ns":62780,"idle_ns":7399643,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":5,"role":"fused","ops":0,"iterations":1,"busy_ns":59960,"idle_ns":7941585,"cpu_ns":695570,"wake_tx":0,"wake_rx":0,"io_tenures":[{"entry_ns":3316537529011315,"begin_ns":3316537529011515,"end_ns":3316537537013060,"exit_ns":3316537537013220,"busy_ns":59960,"idle_ns":7941585,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":6,"role":"fused","ops":0,"iterations":1,"busy_ns":153761,"idle_ns":7357903,"cpu_ns":838680,"wake_tx":0,"wake_rx":0,"io_tenures":[{"entry_ns":3316537528863954,"begin_ns":3316537528864064,"end_ns":3316537536375728,"exit_ns":3316537536375857,"busy_ns":153761,"idle_ns":7357903,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]},{"tid":7,"role":"fused","ops":3,"iterations":25,"busy_ns":1279906,"idle_ns":6363718,"cpu_ns":2146920,"wake_tx":3,"wake_rx":6,"io_tenures":[{"entry_ns":3316537528830514,"begin_ns":3316537528830634,"end_ns":3316537536474258,"exit_ns":3316537536474318,"busy_ns":1279906,"idle_ns":6363718,"role_exit":false,"stopped":true,"did_submit":0,"sweep_submit":0,"park":0}]}],"wb":{"retired":8,"direct":2,"sends_completed":8,"sends_submitted":8,"short_writes":0,"send_errors":0,"peer_aborts":0,"bytes_sent":134,"zc_sends":0,"zc_bytes":0,"zc_releases":0,"serves":8,"serves_empty":0},"tls":{"accepts":0,"handshakes_completed":0,"handshakes_started":0,"handshakes_failed":0,"connections_freed":0,"want_read":0,"want_write":0,"ciphertext_input_bytes":0,"plaintext_input_bytes":0,"ciphertext_output_bytes":0,"plaintext_output_bytes":0,"zc_suppressed":0,"ktls_active":0,"ktls_fallback":0},"stuck":{"live_conns":0,"rob_not_quiesced":0,"unsent_bytes_pending":0,"slots_done":0,"slots_issued":0,"slots_free":0,"flag_set":0},"epoll":{"enabled":false,"events":0,"recvs":0},"persistence":{"enabled":false,"recording":false,"failed":false,"drain_gave_up":false,"posted":0,"flushed":0,"durable":0,"refused":0,"pending_chunks":0,"records_written":0,"producers_with_pending":0,"producers_stopped":0,"producers_expected":0,"completions_pending":0},"accept":{"accepts":3,"accept_err":0,"rearm":0,"sqe_starved":0,"notify_drop":0}}
+
+=================================================================
+==38443==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 1984 byte(s) in 1 object(s) allocated from:
+    #0 0x7b6df5afee08 in operator new(unsigned long, std::align_val_t, std::nothrow_t const&) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:113
+    #1 0x625040b24a46 in void tomo_db0::IoLoop::admit_fd<false, true>(int, tomo_db0::UrKind) src/core/io_loop.h:1302
+    #2 0x625040b26b57 in void tomo_db0::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind) src/core/io_loop.h:1241
+    #3 0x625040b4e06a in void tomo_db0::IoLoop::on_cqe<false, false, true>(io_uring_cqe*) src/core/io_loop.h:1071
+    #4 0x625040b50167 in tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}::operator()(io_uring_cqe*) const (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9bb2167) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #5 0x625040b5123b in unsigned int tomo_db0::Ring::for_each_cqe<tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}>(tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}&&) (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9bb323b) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #6 0x625040bdf0ff in void tomo_db0::IoLoop::run_loop<false, false, false, true, false>() (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9c410ff) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #7 0x625040a4df35 in operator() src/core/genthread.cc:60
+    #8 0x625040a4df35 in tomo_db0::IoLoop::run_fused() src/core/genthread.cc:64
+    #9 0x625040a52811 in operator() src/core/genthread.cc:192
+    #10 0x625040a52811 in __invoke_impl<void, tomo_db0::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61
+    #11 0x625040a52811 in __invoke<tomo_db0::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96
+    #12 0x625040a52811 in _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292
+    #13 0x625040a52811 in operator() /usr/include/c++/13/bits/std_thread.h:299
+    #14 0x625040a52811 in _M_run /usr/include/c++/13/bits/std_thread.h:244
+    #15 0x7b6df50ecdb3  (/lib/x86_64-linux-gnu/libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #16 0x7b6df5a5ea41 in asan_thread_start ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+    #17 0x7b6df449cb83 in start_thread nptl/pthread_create.c:447
+
+Indirect leak of 16384 byte(s) in 1 object(s) allocated from:
+    #0 0x7b6df5afd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x62503fb9b445 in tomo_db0::Client::Client(int) src/core/../net/conn.h:288
+    #2 0x625040b24a6e in void tomo_db0::IoLoop::admit_fd<false, true>(int, tomo_db0::UrKind) src/core/io_loop.h:1302
+    #3 0x625040b26b57 in void tomo_db0::IoLoop::on_accept<false, true>(io_uring_cqe*, tomo_db0::UrKind) src/core/io_loop.h:1241
+    #4 0x625040b4e06a in void tomo_db0::IoLoop::on_cqe<false, false, true>(io_uring_cqe*) src/core/io_loop.h:1071
+    #5 0x625040b50167 in tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}::operator()(io_uring_cqe*) const (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9bb2167) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #6 0x625040b5123b in unsigned int tomo_db0::Ring::for_each_cqe<tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}>(tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}&&) (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9bb323b) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #7 0x625040bdf0ff in void tomo_db0::IoLoop::run_loop<false, false, false, true, false>() (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9c410ff) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #8 0x625040a4df35 in operator() src/core/genthread.cc:60
+    #9 0x625040a4df35 in tomo_db0::IoLoop::run_fused() src/core/genthread.cc:64
+    #10 0x625040a52811 in operator() src/core/genthread.cc:192
+    #11 0x625040a52811 in __invoke_impl<void, tomo_db0::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61
+    #12 0x625040a52811 in __invoke<tomo_db0::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96
+    #13 0x625040a52811 in _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292
+    #14 0x625040a52811 in operator() /usr/include/c++/13/bits/std_thread.h:299
+    #15 0x625040a52811 in _M_run /usr/include/c++/13/bits/std_thread.h:244
+    #16 0x7b6df50ecdb3  (/lib/x86_64-linux-gnu/libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #17 0x7b6df5a5ea41 in asan_thread_start ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+    #18 0x7b6df449cb83 in start_thread nptl/pthread_create.c:447
+
+Indirect leak of 2696 byte(s) in 1 object(s) allocated from:
+    #0 0x7b6df5afe6c8 in operator new[](unsigned long) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:98
+    #1 0x625040b29fd9 in tomo_db0::Rob<64u>::slot(unsigned int, bool) src/core/../net/rob.h:802
+    #2 0x625040b29fd9 in tomo_db0::Rob<64u>::acquire_read_local(unsigned char) src/core/../net/rob.h:277
+    #3 0x625040b29fd9 in tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) src/core/io_loop.h:3118
+    #4 0x625040b4dddb in void tomo_db0::IoLoop::on_recv<false, false, true>(tomo_db0::Client*, int) src/core/io_loop.h:2359
+    #5 0x625040b4e11a in void tomo_db0::IoLoop::on_cqe<false, false, true>(io_uring_cqe*) src/core/io_loop.h:1075
+    #6 0x625040b50167 in tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}::operator()(io_uring_cqe*) const (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9bb2167) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #7 0x625040b5123b in unsigned int tomo_db0::Ring::for_each_cqe<tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}>(tomo_db0::IoLoop::run_loop<false, false, false, true, false>()::{lambda(io_uring_cqe*)#1}&&) (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9bb323b) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #8 0x625040bdf0ff in void tomo_db0::IoLoop::run_loop<false, false, false, true, false>() (/home/user/Projects/cx-aclfix/build/tomokv-asan+0x9c410ff) (BuildId: e6a880b8cfdbccb17b3c07d932523fd2ea501fe8)
+    #9 0x625040a4df35 in operator() src/core/genthread.cc:60
+    #10 0x625040a4df35 in tomo_db0::IoLoop::run_fused() src/core/genthread.cc:64
+    #11 0x625040a52811 in operator() src/core/genthread.cc:192
+    #12 0x625040a52811 in __invoke_impl<void, tomo_db0::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61
+    #13 0x625040a52811 in __invoke<tomo_db0::run_fused_server(Server&, const SnapshotLoadPlan*, const std::vector<std::unique_ptr<AofReplayPlan> >&, const SnapshotLoadPlan*, TlsContext*, LateUnixListener&, ShutdownReportFinalLine&)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96
+    #14 0x625040a52811 in _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292
+    #15 0x625040a52811 in operator() /usr/include/c++/13/bits/std_thread.h:299
+    #16 0x625040a52811 in _M_run /usr/include/c++/13/bits/std_thread.h:244
+    #17 0x7b6df50ecdb3  (/lib/x86_64-linux-gnu/libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #18 0x7b6df5a5ea41 in asan_thread_start ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+    #19 0x7b6df449cb83 in start_thread nptl/pthread_create.c:447
+
+SUMMARY: AddressSanitizer: 21064 byte(s) leaked in 3 allocation(s).

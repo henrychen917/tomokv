@@ -269,8 +269,9 @@ SnapshotManager::StartResult Server::shutdown(ShutdownSave save, ThreadCtx* writ
             set_shutdown_snapshot_active(false);
             return result;
         }
-        // The snapshot writer publishes stop before releasing the successful epoch, so owners
-        // cannot acknowledge post-cut backlog writes while the final fsync is still outstanding.
+        // Owners stay frozen from the cut through capture and enter ShutdownHeld
+        // on the final-chunk pass. No post-cut command gets a Draining turn before
+        // the writer publishes stop after the final fsync (or failure resumes service).
     } else {
         finish_shutdown();
     }

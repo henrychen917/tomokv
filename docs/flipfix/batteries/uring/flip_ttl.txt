@@ -1,0 +1,2 @@
+load 18.18 12.51 13.66 33/3346 1144743
+flip_ttl: 6 checks ok -- 2 flips, 192 expired events delivered across them

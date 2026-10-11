@@ -1,0 +1,12 @@
+{
+  "actual_expect_quick": 511,
+  "actual_expect_full": 528,
+  "source_labels": 530,
+  "fixture_labels": 530,
+  "dq": 2,
+  "df": 2,
+  "required_expect_quick": 513,
+  "required_expect_full": 530,
+  "projected_check": "pass with 530 in an in-memory string only; tests/gate.sh constants remain unchanged",
+  "actual_check": "fails: EXPECT_FULL=528, fixture=530, source declarations=530"
+}

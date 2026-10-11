@@ -1,0 +1,480 @@
+[
+  {
+    "label": "production-units-build",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-k",
+      "-j16",
+      "build/at15-unit",
+      "build/at15-db0-unit",
+      "build/execabort-watch-unit",
+      "build/execabort-watch-db0-unit",
+      "build/core-concurrency-unit",
+      "build/atomic-survivors-unit",
+      "build/netcmd-unit",
+      "build/encodingfix-unit",
+      "build/netcap-unit",
+      "build/waits-unit",
+      "build/rehash-waits-unit",
+      "build/multidb-unit",
+      "build/multidb-boundary-unit",
+      "build/storesize-unit",
+      "build/wb-rule-units",
+      "build/wbland-units",
+      "build/rltopo-unit",
+      "build/lbplanner-units",
+      "build/shutdown-unit",
+      "build/persistfix-units",
+      "build/exbatch-unit",
+      "build/exbatch-db0-unit",
+      "build/ktls-keyupdate",
+      "build/ktls-keyupdate-unit",
+      "build/flushfix-units",
+      "build/splitlocal-unit",
+      "build/reorder-engagement-unit",
+      "build/reorder-engagement-unit-db0"
+    ],
+    "rc": 0,
+    "seconds": 751.206993019674,
+    "load_before": "63.14 107.90 111.43 44/3680 740920",
+    "load_after": "63.62 77.89 91.55 56/3706 1366946"
+  },
+  {
+    "label": "fresh-at15-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/at15-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.11512063629925251,
+    "load_before": "63.62 77.89 91.55 53/3706 1366946",
+    "load_after": "63.62 77.89 91.55 61/3705 1367025"
+  },
+  {
+    "label": "fresh-at15-db0-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/at15-db0-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.1238071359694004,
+    "load_before": "63.62 77.89 91.55 62/3705 1367025",
+    "load_after": "63.62 77.89 91.55 61/3708 1367097"
+  },
+  {
+    "label": "fresh-execabort-watch-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/execabort-watch-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.11998290801420808,
+    "load_before": "63.62 77.89 91.55 62/3707 1367097",
+    "load_after": "63.62 77.89 91.55 56/3706 1367203"
+  },
+  {
+    "label": "fresh-execabort-watch-db0-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/execabort-watch-db0-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.11792324902489781,
+    "load_before": "63.62 77.89 91.55 57/3707 1367204",
+    "load_after": "63.62 77.89 91.55 51/3706 1367308"
+  },
+  {
+    "label": "fresh-core-concurrency-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/core-concurrency-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.06978013506159186,
+    "load_before": "63.62 77.89 91.55 50/3706 1367309",
+    "load_after": "63.62 77.89 91.55 54/3707 1367357"
+  },
+  {
+    "label": "fresh-atomic-survivors-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/atomic-survivors-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.11680237390100956,
+    "load_before": "63.62 77.89 91.55 50/3705 1367357",
+    "load_after": "63.62 77.89 91.55 61/3712 1367460"
+  },
+  {
+    "label": "fresh-netcmd-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/netcmd-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.11976793687790632,
+    "load_before": "63.62 77.89 91.55 59/3713 1367461",
+    "load_after": "63.62 77.89 91.55 50/3709 1367505"
+  },
+  {
+    "label": "fresh-encodingfix-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/encodingfix-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.12456248886883259,
+    "load_before": "63.62 77.89 91.55 51/3709 1367505",
+    "load_after": "63.62 77.89 91.55 50/3711 1367541"
+  },
+  {
+    "label": "fresh-netcap-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/netcap-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.12154019484296441,
+    "load_before": "63.62 77.89 91.55 49/3711 1367541",
+    "load_after": "63.62 77.89 91.55 51/3710 1367596"
+  },
+  {
+    "label": "fresh-waits-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/waits-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.06849041907116771,
+    "load_before": "63.62 77.89 91.55 51/3710 1367596",
+    "load_after": "63.62 77.89 91.55 49/3711 1367623"
+  },
+  {
+    "label": "fresh-rehash-waits-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/rehash-waits-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.1258386061526835,
+    "load_before": "63.62 77.89 91.55 50/3709 1367623",
+    "load_after": "63.62 77.89 91.55 54/3710 1367655"
+  },
+  {
+    "label": "fresh-multidb-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/multidb-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.11741156643256545,
+    "load_before": "63.62 77.89 91.55 62/3710 1367655",
+    "load_after": "63.62 77.89 91.55 61/3711 1367784"
+  },
+  {
+    "label": "fresh-multidb-boundary-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/multidb-boundary-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.11747206700965762,
+    "load_before": "63.62 77.89 91.55 62/3710 1367784",
+    "load_after": "63.62 77.89 91.55 61/3709 1367879"
+  },
+  {
+    "label": "fresh-storesize-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/storesize-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.11869975319132209,
+    "load_before": "63.62 77.89 91.55 62/3709 1367879",
+    "load_after": "63.62 77.89 91.55 52/3708 1367962"
+  },
+  {
+    "label": "fresh-wb-rule-units",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/wb-rule-units"
+    ],
+    "rc": 0,
+    "seconds": 0.16951982863247395,
+    "load_before": "63.62 77.89 91.55 52/3708 1367962",
+    "load_after": "63.62 77.89 91.55 53/3708 1368143"
+  },
+  {
+    "label": "fresh-wbland-units",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/wbland-units"
+    ],
+    "rc": 0,
+    "seconds": 0.127141822129488,
+    "load_before": "63.62 77.89 91.55 58/3714 1368149",
+    "load_after": "63.62 77.89 91.55 52/3709 1368278"
+  },
+  {
+    "label": "fresh-rltopo-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/rltopo-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.06944537302479148,
+    "load_before": "63.62 77.89 91.55 56/3709 1368278",
+    "load_after": "63.62 77.89 91.55 55/3707 1368328"
+  },
+  {
+    "label": "fresh-lbplanner-units",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/lbplanner-units"
+    ],
+    "rc": 0,
+    "seconds": 0.12308187317103148,
+    "load_before": "63.62 77.89 91.55 56/3708 1368329",
+    "load_after": "63.62 77.89 91.55 55/3704 1368450"
+  },
+  {
+    "label": "fresh-shutdown-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/shutdown-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.11969500686973333,
+    "load_before": "63.62 77.89 91.55 56/3703 1368450",
+    "load_after": "63.62 77.89 91.55 57/3705 1368539"
+  },
+  {
+    "label": "fresh-persistfix-units",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/persistfix-units"
+    ],
+    "rc": 0,
+    "seconds": 0.1170700341463089,
+    "load_before": "63.62 77.89 91.55 56/3705 1368539",
+    "load_after": "63.62 77.89 91.55 62/3704 1368667"
+  },
+  {
+    "label": "fresh-exbatch-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/exbatch-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.07123509095981717,
+    "load_before": "63.62 77.89 91.55 63/3704 1368667",
+    "load_after": "63.62 77.89 91.55 55/3702 1368705"
+  },
+  {
+    "label": "fresh-exbatch-db0-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/exbatch-db0-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.11993169784545898,
+    "load_before": "63.62 77.89 91.55 56/3702 1368705",
+    "load_after": "63.62 77.89 91.55 54/3700 1368760"
+  },
+  {
+    "label": "fresh-ktls-keyupdate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/ktls-keyupdate"
+    ],
+    "rc": 0,
+    "seconds": 0.06446337001398206,
+    "load_before": "63.62 77.89 91.55 53/3700 1368760",
+    "load_after": "63.62 77.89 91.55 55/3701 1368795"
+  },
+  {
+    "label": "fresh-ktls-keyupdate-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/ktls-keyupdate-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.0706091788597405,
+    "load_before": "63.62 77.89 91.55 56/3701 1368795",
+    "load_after": "63.62 77.89 91.55 58/3700 1368818"
+  },
+  {
+    "label": "fresh-flushfix-units",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/flushfix-units"
+    ],
+    "rc": 0,
+    "seconds": 0.1210787040181458,
+    "load_before": "63.62 77.89 91.55 59/3700 1368818",
+    "load_after": "63.62 77.89 91.55 59/3702 1368869"
+  },
+  {
+    "label": "fresh-splitlocal-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/splitlocal-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.0709449602290988,
+    "load_before": "63.62 77.89 91.55 55/3702 1368869",
+    "load_after": "63.62 77.89 91.55 48/3700 1368893"
+  },
+  {
+    "label": "fresh-reorder-engagement-unit",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/reorder-engagement-unit"
+    ],
+    "rc": 0,
+    "seconds": 0.0692957928404212,
+    "load_before": "63.62 77.89 91.55 49/3701 1368894",
+    "load_after": "63.62 77.89 91.55 49/3702 1368904"
+  },
+  {
+    "label": "fresh-reorder-engagement-unit-db0",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-q",
+      "build/reorder-engagement-unit-db0"
+    ],
+    "rc": 0,
+    "seconds": 0.12384716607630253,
+    "load_before": "63.62 77.89 91.55 50/3702 1368904",
+    "load_after": "63.62 77.89 91.55 54/3700 1368981"
+  },
+  {
+    "label": "mdbqsbr-live-arms-build",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-j16",
+      "mdbqsbr-live-arms"
+    ],
+    "rc": 0,
+    "seconds": 387.7574343588203,
+    "load_before": "63.62 77.89 91.55 55/3700 1368981",
+    "load_after": "42.26 52.08 74.67 32/3535 1603094"
+  }
+]

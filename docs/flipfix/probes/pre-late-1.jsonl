@@ -1,0 +1,24 @@
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/flipfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/runs/pre-late-1/late", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "uring", "--enable-debug-command", "yes"], "event": "boot", "label": "late", "loadavg": [78.046875, 52.50146484375, 54.9306640625]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/flipfix/pre/tomokv", "label": "late", "pid": 2688991}
+{"attempt": 0, "closes": 19, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 1, "closes": 15, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 2, "closes": 17, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 3, "closes": 18, "reply": "ERR FLIP timed out before the ownership commit"}
+{"attempt": 4, "closes": 27, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 5, "closes": 21, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 6, "closes": 27, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 7, "closes": 26, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 8, "closes": 23, "reply": "ERR FLIP timed out before the ownership commit"}
+{"attempt": 9, "closes": 23, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 10, "closes": 16, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 11, "closes": 26, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 12, "closes": 23, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 13, "closes": 23, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 14, "closes": 27, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 15, "closes": 27, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 16, "closes": 27, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 17, "closes": 27, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 18, "closes": 12, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"attempt": 19, "closes": 27, "reply": "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread"}
+{"case": "late", "outcomes": {"ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread": 18, "ERR FLIP timed out before the ownership commit": 2}, "result": "PASS"}
+{"event": "stop", "label": "late", "loadavg": [77.93505859375, 60.79931640625, 57.73291015625], "log": "/home/user/Projects/cx-flipfix/build/flipfix/runs/pre-late-1/late/late.log", "rc": 0}

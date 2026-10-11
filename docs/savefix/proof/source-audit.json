@@ -1,0 +1,10 @@
+{
+  "src/core/server.h": true,
+  "src/persist/aof.cc": true,
+  "src/store/flatstore_atomic.inc": true,
+  "tests/gates_test.py": true,
+  "tests/gate_ledger_fixture.py": true,
+  "Makefile": true,
+  "expect_constants_unchanged": true,
+  "historical_deadswitch_unchanged": true
+}

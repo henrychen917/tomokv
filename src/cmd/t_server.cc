@@ -408,8 +408,9 @@ void init_config(const Config& cfg) {
                cfg.stream_limits.node_max_bytes);
     add_config("stream-node-max-entries", ConfigKind::Uint32,
                cfg.stream_limits.node_max_entries);
+    const Slice boot_password = cfg_requirepass(cfg);
     g_config.push_back({"requirepass", ConfigKind::String,
-                        cfg.requirepass ? cfg.requirepass : ""});
+                        std::string(boot_password.p, boot_password.n)});
     g_config.push_back({"protected-mode", ConfigKind::Bool,
                         cfg.protected_mode != 0 ? "yes" : "no"});
     g_config.push_back({"aclfile", ConfigKind::String, cfg.aclfile ? cfg.aclfile : "", true});
@@ -425,8 +426,7 @@ void init_config(const Config& cfg) {
                              cfg.enable_debug_command == DebugCommandMode::Local ? "local" : "no";
     g_config.push_back({"enable-debug-command", ConfigKind::String, debug_mode, true});
     if (g_server) {
-        const char* password = cfg.requirepass ? cfg.requirepass : "";
-        auth_publish_requirepass(*g_server, Slice(password, std::strlen(password)));
+        auth_publish_requirepass(*g_server, boot_password);
     }
 }
 
@@ -1790,8 +1790,8 @@ void collect_stat_totals(StatBaseline& out) {
         out.acl_denied_key += sig.acl_access_denied_key;
         out.acl_denied_channel += sig.acl_access_denied_channel;
         out.acl_denied_auth += sig.acl_access_denied_auth;
-        out.net_input_bytes += sig.net_input_bytes;
-        out.net_output_bytes += sig.net_output_bytes;
+        out.net_input_bytes += sig.net_input_bytes.load(std::memory_order_relaxed);
+        out.net_output_bytes += sig.net_output_bytes.load(std::memory_order_relaxed);
     }
     if (g_server->read_local_enabled()) {
         for (uint32_t t = 0; t < g_server->nthreads(); t++)
@@ -1964,8 +1964,8 @@ void cmd_info(Shard&, Op& op) {
             tls_ktls_fallback += sig.tls_ktls_fallback;
             epoll_events += sig.epoll_events;
             epoll_recvs += sig.epoll_recvs;
-            net_input_bytes += sig.net_input_bytes;
-            net_output_bytes += sig.net_output_bytes;
+            net_input_bytes += sig.net_input_bytes.load(std::memory_order_relaxed);
+            net_output_bytes += sig.net_output_bytes.load(std::memory_order_relaxed);
             if (const WbEngine* wb = g_server->thread(t).wb_engine()) {
                 const WbEngine::Stats& stats = wb->stats();
                 sends_submitted += stats.sends_submitted;

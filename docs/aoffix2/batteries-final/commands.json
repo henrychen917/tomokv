@@ -1,0 +1,2742 @@
+[
+  {
+    "label": "1s-uring-0-aof-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/aof-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.9159268429502845,
+    "load_before": "51.43 71.10 88.07 35/3637 1386126",
+    "load_after": "51.43 71.10 88.07 33/3625 1386160"
+  },
+  {
+    "label": "1s-uring-0-aof-loadaof",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "loadaof",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/aof-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.6155610540881753,
+    "load_before": "51.43 71.10 88.07 33/3625 1386160",
+    "load_after": "51.43 71.10 88.07 34/3626 1386179"
+  },
+  {
+    "label": "1s-uring-0-aof-snapshot",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/aof-0/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.264622641261667,
+    "load_before": "51.43 71.10 88.07 40/3626 1386179",
+    "load_after": "51.43 71.10 88.07 34/3626 1386188"
+  },
+  {
+    "label": "1s-uring-0-aof-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/aof-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.165351000148803,
+    "load_before": "51.43 71.10 88.07 39/3624 1386201",
+    "load_after": "51.43 71.10 88.07 34/3625 1386203"
+  },
+  {
+    "label": "1s-uring-0-aof-snapshot-post",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/aof-0/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.36673406697809696,
+    "load_before": "51.43 71.10 88.07 33/3625 1386203",
+    "load_after": "51.43 71.10 88.07 34/3626 1386206"
+  },
+  {
+    "label": "1s-uring-0-rewrite-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/rewrite-0/state.json",
+      "2048"
+    ],
+    "rc": 0,
+    "seconds": 0.21743136178702116,
+    "load_before": "50.11 70.50 87.78 35/3626 1386220",
+    "load_after": "50.11 70.50 87.78 33/3624 1386223"
+  },
+  {
+    "label": "1s-uring-0-rewrite-rewrite",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "rewrite",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/rewrite-0/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/rewrite-0"
+    ],
+    "rc": 0,
+    "seconds": 0.21781668299809098,
+    "load_before": "50.11 70.50 87.78 32/3624 1386223",
+    "load_after": "50.11 70.50 87.78 37/3625 1386225"
+  },
+  {
+    "label": "1s-uring-0-rewrite-manifest",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "manifest",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/rewrite-0"
+    ],
+    "rc": 0,
+    "seconds": 0.06401993799954653,
+    "load_before": "50.11 70.50 87.78 37/3625 1386225",
+    "load_after": "50.11 70.50 87.78 32/3624 1386226"
+  },
+  {
+    "label": "1s-uring-0-rewrite-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/rewrite-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.216017025988549,
+    "load_before": "50.11 70.50 87.78 35/3621 1386239",
+    "load_after": "50.11 70.50 87.78 33/3621 1386246"
+  },
+  {
+    "label": "1s-uring-0-triggers-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "run",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/triggers-0/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/triggers-0",
+      "0"
+    ],
+    "rc": 0,
+    "seconds": 2.677744673099369,
+    "load_before": "50.11 70.50 87.78 34/3623 1386263",
+    "load_after": "50.11 70.50 87.78 35/3621 1386307"
+  },
+  {
+    "label": "1s-uring-0-triggers-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/triggers-0/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/triggers-0",
+      "0"
+    ],
+    "rc": 0,
+    "seconds": 0.16846269369125366,
+    "load_before": "50.11 70.50 87.78 37/3620 1386325",
+    "load_after": "50.11 70.50 87.78 33/3624 1386331"
+  },
+  {
+    "label": "1s-uring-0-frame-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_frame_order.py",
+      "127.0.0.1",
+      "25003",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/frame-0/appendonlydir",
+      "--engine",
+      "uring"
+    ],
+    "rc": 1,
+    "seconds": 0.8672565259039402,
+    "load_before": "48.82 69.90 87.49 35/3624 1386346",
+    "load_after": "48.82 69.90 87.49 38/3632 1386379"
+  },
+  {
+    "label": "1s-uring-0-frame-chain-error",
+    "rc": 1,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 106, in battery_chain\n    action()\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 156, in chain\n    live('aof_frame_order', [data / 'appendonlydir', '--engine', engine], 'run')\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 136, in live\n    run(prefix + '-' + suffix, ['python3', 'tests/' + script + '.py',\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 43, in run\n    assert rc == 0, log\n           ^^^^^^^\nAssertionError: /home/user/Projects/cx-aoffix2/docs/aoffix2/batteries-final/1s-uring-0-frame-run.log\n"
+  },
+  {
+    "label": "1s-uring-1-aof-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/aof-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.8736429163254797,
+    "load_before": "48.82 69.90 87.49 34/3631 1386394",
+    "load_after": "48.82 69.90 87.49 34/3637 1386422"
+  },
+  {
+    "label": "1s-uring-1-aof-loadaof",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "loadaof",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/aof-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.5659690950997174,
+    "load_before": "48.82 69.90 87.49 34/3637 1386422",
+    "load_after": "48.82 69.90 87.49 34/3637 1386430"
+  },
+  {
+    "label": "1s-uring-1-aof-snapshot",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/aof-1/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.26562057714909315,
+    "load_before": "48.82 69.90 87.49 34/3637 1386430",
+    "load_after": "48.82 69.90 87.49 32/3641 1386445"
+  },
+  {
+    "label": "1s-uring-1-aof-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/aof-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.2653890261426568,
+    "load_before": "48.82 69.90 87.49 31/3638 1386458",
+    "load_after": "48.82 69.90 87.49 33/3638 1386477"
+  },
+  {
+    "label": "1s-uring-1-aof-snapshot-post",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/aof-1/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.26920974301174283,
+    "load_before": "48.82 69.90 87.49 32/3638 1386477",
+    "load_after": "48.82 69.90 87.49 32/3637 1386481"
+  },
+  {
+    "label": "1s-uring-1-rewrite-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/rewrite-1/state.json",
+      "2048"
+    ],
+    "rc": 0,
+    "seconds": 0.22282069688662887,
+    "load_before": "48.82 69.90 87.49 33/3620 1386495",
+    "load_after": "48.82 69.90 87.49 34/3617 1386521"
+  },
+  {
+    "label": "1s-uring-1-rewrite-rewrite",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "rewrite",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/rewrite-1/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/rewrite-1"
+    ],
+    "rc": 0,
+    "seconds": 0.3173389467410743,
+    "load_before": "48.82 69.90 87.49 34/3617 1386521",
+    "load_after": "48.82 69.90 87.49 32/3618 1386527"
+  },
+  {
+    "label": "1s-uring-1-rewrite-manifest",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "manifest",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/rewrite-1"
+    ],
+    "rc": 0,
+    "seconds": 0.11436174204573035,
+    "load_before": "48.82 69.90 87.49 32/3618 1386527",
+    "load_after": "48.82 69.90 87.49 33/3618 1386528"
+  },
+  {
+    "label": "1s-uring-1-rewrite-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/rewrite-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.1694360482506454,
+    "load_before": "47.64 69.30 87.21 33/3619 1386551",
+    "load_after": "47.64 69.30 87.21 33/3619 1386553"
+  },
+  {
+    "label": "1s-uring-1-triggers-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "run",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/triggers-1/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/triggers-1",
+      "1"
+    ],
+    "rc": 0,
+    "seconds": 2.682336864992976,
+    "load_before": "47.64 69.30 87.21 40/3619 1386767",
+    "load_after": "47.64 69.30 87.21 33/3615 1388486"
+  },
+  {
+    "label": "1s-uring-1-triggers-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/triggers-1/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/triggers-1",
+      "1"
+    ],
+    "rc": 0,
+    "seconds": 0.16717819776386023,
+    "load_before": "47.64 69.30 87.21 33/3612 1388524",
+    "load_after": "47.64 69.30 87.21 31/3610 1388584"
+  },
+  {
+    "label": "1s-uring-1-torn-prepare",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_torn_group.py",
+      "127.0.0.1",
+      "25003",
+      "prepare",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/torn-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.16901245713233948,
+    "load_before": "47.64 69.30 87.21 33/3613 1388876",
+    "load_after": "47.64 69.30 87.21 32/3605 1389007"
+  },
+  {
+    "label": "1s-uring-1-torn-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_torn_group.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/torn-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.11418368108570576,
+    "load_before": "47.64 69.30 87.21 30/3616 1389046",
+    "load_after": "47.64 69.30 87.21 31/3616 1389049"
+  },
+  {
+    "label": "1s-uring-1-torn-scan",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_torn_group.py",
+      "127.0.0.1",
+      "25003",
+      "scan",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/torn-1/appendonlydir/appendonly.aof.1.incr.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.07106197066605091,
+    "load_before": "47.64 69.30 87.21 38/3616 1389049",
+    "load_after": "47.64 69.30 87.21 36/3615 1389090"
+  },
+  {
+    "label": "1s-uring-1-frame-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_frame_order.py",
+      "127.0.0.1",
+      "25003",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/frame-1/appendonlydir",
+      "--engine",
+      "uring"
+    ],
+    "rc": 1,
+    "seconds": 0.7674781219102442,
+    "load_before": "46.54 68.71 86.92 35/3616 1389399",
+    "load_after": "46.54 68.71 86.92 32/3625 1389794"
+  },
+  {
+    "label": "1s-uring-1-frame-chain-error",
+    "rc": 1,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 106, in battery_chain\n    action()\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 156, in chain\n    live('aof_frame_order', [data / 'appendonlydir', '--engine', engine], 'run')\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 136, in live\n    run(prefix + '-' + suffix, ['python3', 'tests/' + script + '.py',\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 43, in run\n    assert rc == 0, log\n           ^^^^^^^\nAssertionError: /home/user/Projects/cx-aoffix2/docs/aoffix2/batteries-final/1s-uring-1-frame-run.log\n"
+  },
+  {
+    "label": "1s-uring-fsync-no-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/fsync-no.json",
+      "no",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.11699352506548166,
+    "load_before": "46.54 68.71 86.92 33/3622 1389941",
+    "load_after": "46.54 68.71 86.92 34/3622 1390037"
+  },
+  {
+    "label": "1s-uring-fsync-no-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/fsync-no.json",
+      "no",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.11655645305290818,
+    "load_before": "46.54 68.71 86.92 37/3626 1390268",
+    "load_after": "46.54 68.71 86.92 32/3625 1390322"
+  },
+  {
+    "label": "1s-uring-fsync-everysec-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/fsync-everysec.json",
+      "everysec",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 1.423243495170027,
+    "load_before": "46.54 68.71 86.92 40/3624 1390442",
+    "load_after": "46.54 68.71 86.92 33/3639 1390873"
+  },
+  {
+    "label": "1s-uring-fsync-everysec-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/fsync-everysec.json",
+      "everysec",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.1206083707511425,
+    "load_before": "46.54 68.71 86.92 31/3642 1390917",
+    "load_after": "46.54 68.71 86.92 30/3638 1390921"
+  },
+  {
+    "label": "1s-uring-fsync-always-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/fsync-always.json",
+      "always",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.16846134373918176,
+    "load_before": "46.54 68.71 86.92 32/3638 1390940",
+    "load_after": "46.54 68.71 86.92 32/3641 1390944"
+  },
+  {
+    "label": "1s-uring-fsync-always-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring/fsync-always.json",
+      "always",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.11745837610214949,
+    "load_before": "46.54 68.71 86.92 32/3638 1390964",
+    "load_after": "46.54 68.71 86.92 30/3637 1390966"
+  },
+  {
+    "label": "1s-uring-persistfix-kill",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/persistfix.py",
+      "--binary",
+      "/home/user/Projects/cx-aoffix2/build/tomokv",
+      "--mode",
+      "1s",
+      "--case",
+      "kill",
+      "--net-io",
+      "uring",
+      "--cores",
+      "112-119",
+      "--ratio",
+      "6:2",
+      "--port",
+      "25003",
+      "--artifacts",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring-persistfix-kill"
+    ],
+    "rc": 0,
+    "seconds": 1.8262398596853018,
+    "load_before": "46.54 68.71 86.92 33/3629 1390971",
+    "load_after": "45.94 68.22 86.66 34/3629 1391022"
+  },
+  {
+    "label": "1s-uring-persistfix-term",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/persistfix.py",
+      "--binary",
+      "/home/user/Projects/cx-aoffix2/build/tomokv",
+      "--mode",
+      "1s",
+      "--case",
+      "term",
+      "--net-io",
+      "uring",
+      "--cores",
+      "112-119",
+      "--ratio",
+      "6:2",
+      "--port",
+      "25003",
+      "--artifacts",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-uring-persistfix-term"
+    ],
+    "rc": 0,
+    "seconds": 5.182896544225514,
+    "load_before": "45.94 68.22 86.66 32/3629 1391022",
+    "load_after": "45.30 67.72 86.40 38/3620 1391309"
+  },
+  {
+    "label": "2s-uring-0-aof-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/aof-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.8741910890676081,
+    "load_before": "45.30 67.72 86.40 38/3630 1391324",
+    "load_after": "45.30 67.72 86.40 30/3622 1391336"
+  },
+  {
+    "label": "2s-uring-0-aof-loadaof",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "loadaof",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/aof-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.5187834547832608,
+    "load_before": "45.30 67.72 86.40 30/3622 1391336",
+    "load_after": "45.30 67.72 86.40 30/3620 1391339"
+  },
+  {
+    "label": "2s-uring-0-aof-snapshot",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/aof-0/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.2144250781275332,
+    "load_before": "45.30 67.72 86.40 31/3620 1391339",
+    "load_after": "45.30 67.72 86.40 33/3624 1391345"
+  },
+  {
+    "label": "2s-uring-0-aof-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/aof-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.22255161590874195,
+    "load_before": "45.30 67.72 86.40 33/3622 1391360",
+    "load_after": "45.30 67.72 86.40 30/3632 1391372"
+  },
+  {
+    "label": "2s-uring-0-aof-snapshot-post",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/aof-0/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.2650005426257849,
+    "load_before": "45.30 67.72 86.40 31/3632 1391372",
+    "load_after": "45.30 67.72 86.40 33/3633 1391376"
+  },
+  {
+    "label": "2s-uring-0-rewrite-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/rewrite-0/state.json",
+      "2048"
+    ],
+    "rc": 0,
+    "seconds": 0.2181713948957622,
+    "load_before": "45.30 67.72 86.40 32/3632 1391396",
+    "load_after": "44.16 67.11 86.10 31/3632 1391397"
+  },
+  {
+    "label": "2s-uring-0-rewrite-rewrite",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "rewrite",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/rewrite-0/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/rewrite-0"
+    ],
+    "rc": 0,
+    "seconds": 0.22008140431717038,
+    "load_before": "44.16 67.11 86.10 31/3632 1391397",
+    "load_after": "44.16 67.11 86.10 37/3637 1391427"
+  },
+  {
+    "label": "2s-uring-0-rewrite-manifest",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "manifest",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/rewrite-0"
+    ],
+    "rc": 0,
+    "seconds": 0.06669103028252721,
+    "load_before": "44.16 67.11 86.10 42/3636 1391428",
+    "load_after": "44.16 67.11 86.10 33/3636 1391430"
+  },
+  {
+    "label": "2s-uring-0-rewrite-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/rewrite-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.1668799170292914,
+    "load_before": "44.16 67.11 86.10 31/3635 1391447",
+    "load_after": "44.16 67.11 86.10 35/3634 1391450"
+  },
+  {
+    "label": "2s-uring-0-triggers-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "run",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/triggers-0/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/triggers-0",
+      "0"
+    ],
+    "rc": 0,
+    "seconds": 2.6226505069062114,
+    "load_before": "44.16 67.11 86.10 32/3634 1391465",
+    "load_after": "44.16 67.11 86.10 37/3641 1391567"
+  },
+  {
+    "label": "2s-uring-0-triggers-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/triggers-0/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/triggers-0",
+      "0"
+    ],
+    "rc": 0,
+    "seconds": 0.11453152308240533,
+    "load_before": "44.16 67.11 86.10 38/3638 1391584",
+    "load_after": "44.16 67.11 86.10 36/3638 1391586"
+  },
+  {
+    "label": "2s-uring-0-frame-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_frame_order.py",
+      "127.0.0.1",
+      "25003",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/frame-0/appendonlydir",
+      "--engine",
+      "uring"
+    ],
+    "rc": 1,
+    "seconds": 0.8217537552118301,
+    "load_before": "44.16 67.11 86.10 40/3641 1391605",
+    "load_after": "43.02 66.49 85.80 38/3642 1391629"
+  },
+  {
+    "label": "2s-uring-0-frame-chain-error",
+    "rc": 1,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 106, in battery_chain\n    action()\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 156, in chain\n    live('aof_frame_order', [data / 'appendonlydir', '--engine', engine], 'run')\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 136, in live\n    run(prefix + '-' + suffix, ['python3', 'tests/' + script + '.py',\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 43, in run\n    assert rc == 0, log\n           ^^^^^^^\nAssertionError: /home/user/Projects/cx-aoffix2/docs/aoffix2/batteries-final/2s-uring-0-frame-run.log\n"
+  },
+  {
+    "label": "2s-uring-1-aof-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/aof-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.9235075986944139,
+    "load_before": "43.02 66.49 85.80 31/3643 1391645",
+    "load_after": "43.02 66.49 85.80 34/3642 1391649"
+  },
+  {
+    "label": "2s-uring-1-aof-loadaof",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "loadaof",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/aof-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.6194103229790926,
+    "load_before": "43.02 66.49 85.80 34/3642 1391649",
+    "load_after": "43.02 66.49 85.80 31/3642 1391650"
+  },
+  {
+    "label": "2s-uring-1-aof-snapshot",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/aof-1/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.21617465605959296,
+    "load_before": "43.02 66.49 85.80 36/3642 1391650",
+    "load_after": "43.02 66.49 85.80 34/3646 1391661"
+  },
+  {
+    "label": "2s-uring-1-aof-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/aof-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.21937403082847595,
+    "load_before": "43.02 66.49 85.80 42/3644 1391674",
+    "load_after": "43.02 66.49 85.80 32/3642 1391821"
+  },
+  {
+    "label": "2s-uring-1-aof-snapshot-post",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/aof-1/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.21738452231511474,
+    "load_before": "43.02 66.49 85.80 37/3644 1391824",
+    "load_after": "43.02 66.49 85.80 41/3649 1391968"
+  },
+  {
+    "label": "2s-uring-1-rewrite-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/rewrite-1/state.json",
+      "2048"
+    ],
+    "rc": 0,
+    "seconds": 0.16623700316995382,
+    "load_before": "43.02 66.49 85.80 33/3646 1392180",
+    "load_after": "43.02 66.49 85.80 33/3646 1392181"
+  },
+  {
+    "label": "2s-uring-1-rewrite-rewrite",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "rewrite",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/rewrite-1/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/rewrite-1"
+    ],
+    "rc": 0,
+    "seconds": 0.21722965082153678,
+    "load_before": "43.02 66.49 85.80 32/3646 1392181",
+    "load_after": "43.02 66.49 85.80 43/3644 1392230"
+  },
+  {
+    "label": "2s-uring-1-rewrite-manifest",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "manifest",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/rewrite-1"
+    ],
+    "rc": 0,
+    "seconds": 0.06976531492546201,
+    "load_before": "43.02 66.49 85.80 37/3644 1392230",
+    "load_after": "43.02 66.49 85.80 33/3643 1392269"
+  },
+  {
+    "label": "2s-uring-1-rewrite-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/rewrite-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.21442165784537792,
+    "load_before": "43.02 66.49 85.80 34/3641 1392555",
+    "load_after": "43.02 66.49 85.80 37/3644 1392724"
+  },
+  {
+    "label": "2s-uring-1-triggers-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "run",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/triggers-1/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/triggers-1",
+      "1"
+    ],
+    "rc": 0,
+    "seconds": 2.6225234661251307,
+    "load_before": "42.30 65.95 85.52 37/3645 1392989",
+    "load_after": "42.30 65.95 85.52 50/3638 1394027"
+  },
+  {
+    "label": "2s-uring-1-triggers-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/triggers-1/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/triggers-1",
+      "1"
+    ],
+    "rc": 0,
+    "seconds": 0.1723557529039681,
+    "load_before": "42.30 65.95 85.52 49/3641 1394282",
+    "load_after": "42.30 65.95 85.52 37/3636 1394388"
+  },
+  {
+    "label": "2s-uring-1-torn-prepare",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_torn_group.py",
+      "127.0.0.1",
+      "25003",
+      "prepare",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/torn-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.2219989732839167,
+    "load_before": "42.30 65.95 85.52 40/3640 1394614",
+    "load_after": "42.30 65.95 85.52 38/3631 1394616"
+  },
+  {
+    "label": "2s-uring-1-torn-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_torn_group.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/torn-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.17002748232334852,
+    "load_before": "42.30 65.95 85.52 45/3647 1394699",
+    "load_after": "42.30 65.95 85.52 44/3644 1394841"
+  },
+  {
+    "label": "2s-uring-1-torn-scan",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_torn_group.py",
+      "127.0.0.1",
+      "25003",
+      "scan",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/torn-1/appendonlydir/appendonly.aof.1.incr.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.1224301801994443,
+    "load_before": "42.30 65.95 85.52 49/3644 1394841",
+    "load_after": "42.30 65.95 85.52 38/3641 1394951"
+  },
+  {
+    "label": "2s-uring-1-frame-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_frame_order.py",
+      "127.0.0.1",
+      "25003",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/frame-1/appendonlydir",
+      "--engine",
+      "uring"
+    ],
+    "rc": 1,
+    "seconds": 0.9754754607565701,
+    "load_before": "42.30 65.95 85.52 47/3643 1395206",
+    "load_after": "42.04 65.50 85.27 37/3643 1395689"
+  },
+  {
+    "label": "2s-uring-1-frame-chain-error",
+    "rc": 1,
+    "error": "Traceback (most recent call last):\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 106, in battery_chain\n    action()\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 156, in chain\n    live('aof_frame_order', [data / 'appendonlydir', '--engine', engine], 'run')\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 136, in live\n    run(prefix + '-' + suffix, ['python3', 'tests/' + script + '.py',\n  File \"/home/user/Projects/cx-aoffix2/tools/aoffix2_proof.py\", line 43, in run\n    assert rc == 0, log\n           ^^^^^^^\nAssertionError: /home/user/Projects/cx-aoffix2/docs/aoffix2/batteries-final/2s-uring-1-frame-run.log\n"
+  },
+  {
+    "label": "2s-uring-fsync-no-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/fsync-no.json",
+      "no",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.17088820599019527,
+    "load_before": "42.04 65.50 85.27 38/3598 1395703",
+    "load_after": "42.04 65.50 85.27 37/3598 1395704"
+  },
+  {
+    "label": "2s-uring-fsync-no-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/fsync-no.json",
+      "no",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.1723410920239985,
+    "load_before": "42.04 65.50 85.27 36/3597 1395718",
+    "load_after": "42.04 65.50 85.27 39/3597 1395719"
+  },
+  {
+    "label": "2s-uring-fsync-everysec-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/fsync-everysec.json",
+      "everysec",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 1.427134863100946,
+    "load_before": "42.04 65.50 85.27 37/3599 1395736",
+    "load_after": "42.04 65.50 85.27 34/3599 1395798"
+  },
+  {
+    "label": "2s-uring-fsync-everysec-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/fsync-everysec.json",
+      "everysec",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.17189109977334738,
+    "load_before": "42.04 65.50 85.27 38/3598 1395811",
+    "load_after": "42.04 65.50 85.27 29/3582 1395812"
+  },
+  {
+    "label": "2s-uring-fsync-always-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/fsync-always.json",
+      "always",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.16716930828988552,
+    "load_before": "42.04 65.50 85.27 32/3582 1395834",
+    "load_after": "42.04 65.50 85.27 28/3579 1395843"
+  },
+  {
+    "label": "2s-uring-fsync-always-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring/fsync-always.json",
+      "always",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.16610043309628963,
+    "load_before": "42.04 65.50 85.27 28/3577 1395856",
+    "load_after": "42.04 65.50 85.27 28/3577 1395857"
+  },
+  {
+    "label": "2s-uring-persistfix-kill",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/persistfix.py",
+      "--binary",
+      "/home/user/Projects/cx-aoffix2/build/tomokv",
+      "--mode",
+      "2s",
+      "--case",
+      "kill",
+      "--net-io",
+      "uring",
+      "--cores",
+      "112-119",
+      "--ratio",
+      "6:2",
+      "--port",
+      "25003",
+      "--artifacts",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring-persistfix-kill"
+    ],
+    "rc": 0,
+    "seconds": 1.7187254601158202,
+    "load_before": "42.04 65.50 85.27 27/3568 1395860",
+    "load_after": "40.91 64.88 84.96 26/3563 1395893"
+  },
+  {
+    "label": "2s-uring-persistfix-term",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/persistfix.py",
+      "--binary",
+      "/home/user/Projects/cx-aoffix2/build/tomokv",
+      "--mode",
+      "2s",
+      "--case",
+      "term",
+      "--net-io",
+      "uring",
+      "--cores",
+      "112-119",
+      "--ratio",
+      "6:2",
+      "--port",
+      "25003",
+      "--artifacts",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-uring-persistfix-term"
+    ],
+    "rc": 0,
+    "seconds": 6.683231987059116,
+    "load_before": "40.91 64.88 84.96 25/3563 1395893",
+    "load_after": "39.64 64.22 84.64 28/3551 1395979"
+  },
+  {
+    "label": "1s-epoll-0-aof-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/aof-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.8687209328636527,
+    "load_before": "39.64 64.22 84.64 25/3560 1395991",
+    "load_after": "39.64 64.22 84.64 26/3560 1395997"
+  },
+  {
+    "label": "1s-epoll-0-aof-loadaof",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "loadaof",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/aof-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.5168938762508333,
+    "load_before": "39.64 64.22 84.64 25/3560 1395997",
+    "load_after": "39.64 64.22 84.64 25/3561 1395999"
+  },
+  {
+    "label": "1s-epoll-0-aof-snapshot",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/aof-0/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.1732134367339313,
+    "load_before": "39.64 64.22 84.64 25/3561 1395999",
+    "load_after": "38.55 63.58 84.33 26/3560 1396000"
+  },
+  {
+    "label": "1s-epoll-0-aof-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/aof-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.16922304825857282,
+    "load_before": "38.55 63.58 84.33 28/3560 1396020",
+    "load_after": "38.55 63.58 84.33 25/3561 1396022"
+  },
+  {
+    "label": "1s-epoll-0-aof-snapshot-post",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/aof-0/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.21626853616908193,
+    "load_before": "38.55 63.58 84.33 25/3561 1396022",
+    "load_after": "38.55 63.58 84.33 25/3561 1396023"
+  },
+  {
+    "label": "1s-epoll-0-rewrite-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/rewrite-0/state.json",
+      "2048"
+    ],
+    "rc": 0,
+    "seconds": 0.1662099240347743,
+    "load_before": "38.55 63.58 84.33 25/3561 1396036",
+    "load_after": "38.55 63.58 84.33 25/3560 1396037"
+  },
+  {
+    "label": "1s-epoll-0-rewrite-rewrite",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "rewrite",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/rewrite-0/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/rewrite-0"
+    ],
+    "rc": 0,
+    "seconds": 0.21785433404147625,
+    "load_before": "38.55 63.58 84.33 25/3560 1396037",
+    "load_after": "38.55 63.58 84.33 25/3560 1396038"
+  },
+  {
+    "label": "1s-epoll-0-rewrite-manifest",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "manifest",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/rewrite-0"
+    ],
+    "rc": 0,
+    "seconds": 0.06425334885716438,
+    "load_before": "38.55 63.58 84.33 26/3560 1396038",
+    "load_after": "38.55 63.58 84.33 25/3561 1396040"
+  },
+  {
+    "label": "1s-epoll-0-rewrite-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/rewrite-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.17429447220638394,
+    "load_before": "38.55 63.58 84.33 25/3561 1396053",
+    "load_after": "38.55 63.58 84.33 25/3561 1396054"
+  },
+  {
+    "label": "1s-epoll-0-triggers-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "run",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/triggers-0/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/triggers-0",
+      "0"
+    ],
+    "rc": 0,
+    "seconds": 2.5213280161842704,
+    "load_before": "38.55 63.58 84.33 25/3561 1396071",
+    "load_after": "38.55 63.58 84.33 25/3559 1396083"
+  },
+  {
+    "label": "1s-epoll-0-triggers-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/triggers-0/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/triggers-0",
+      "0"
+    ],
+    "rc": 0,
+    "seconds": 0.11417659092694521,
+    "load_before": "37.86 63.03 84.04 27/3559 1396096",
+    "load_after": "37.86 63.03 84.04 26/3559 1396097"
+  },
+  {
+    "label": "1s-epoll-0-frame-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_frame_order.py",
+      "127.0.0.1",
+      "25003",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/frame-0/appendonlydir",
+      "--engine",
+      "epoll"
+    ],
+    "rc": 0,
+    "seconds": 0.7681150948628783,
+    "load_before": "37.86 63.03 84.04 26/3559 1396111",
+    "load_after": "37.86 63.03 84.04 33/3566 1396249"
+  },
+  {
+    "label": "1s-epoll-1-aof-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/aof-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.7182899327017367,
+    "load_before": "37.86 63.03 84.04 30/3567 1396648",
+    "load_after": "37.86 63.03 84.04 33/3566 1396875"
+  },
+  {
+    "label": "1s-epoll-1-aof-loadaof",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "loadaof",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/aof-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.5194166479632258,
+    "load_before": "37.86 63.03 84.04 31/3566 1396875",
+    "load_after": "37.86 63.03 84.04 29/3564 1397347"
+  },
+  {
+    "label": "1s-epoll-1-aof-snapshot",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/aof-1/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.16540607018396258,
+    "load_before": "37.86 63.03 84.04 36/3565 1397348",
+    "load_after": "37.86 63.03 84.04 26/3561 1397356"
+  },
+  {
+    "label": "1s-epoll-1-aof-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/aof-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.16796874161809683,
+    "load_before": "37.86 63.03 84.04 28/3560 1397424",
+    "load_after": "37.86 63.03 84.04 26/3560 1397568"
+  },
+  {
+    "label": "1s-epoll-1-aof-snapshot-post",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/aof-1/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.22103063901886344,
+    "load_before": "37.86 63.03 84.04 25/3560 1397568",
+    "load_after": "37.86 63.03 84.04 25/3560 1397740"
+  },
+  {
+    "label": "1s-epoll-1-rewrite-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/rewrite-1/state.json",
+      "2048"
+    ],
+    "rc": 0,
+    "seconds": 0.16588140139356256,
+    "load_before": "37.86 63.03 84.04 24/3561 1397849",
+    "load_after": "37.86 63.03 84.04 24/3558 1397877"
+  },
+  {
+    "label": "1s-epoll-1-rewrite-rewrite",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "rewrite",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/rewrite-1/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/rewrite-1"
+    ],
+    "rc": 0,
+    "seconds": 0.21890931855887175,
+    "load_before": "37.86 63.03 84.04 27/3560 1397880",
+    "load_after": "37.86 63.03 84.04 34/3564 1398087"
+  },
+  {
+    "label": "1s-epoll-1-rewrite-manifest",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "manifest",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/rewrite-1"
+    ],
+    "rc": 0,
+    "seconds": 0.11472285399213433,
+    "load_before": "37.86 63.03 84.04 27/3561 1398087",
+    "load_after": "37.86 63.03 84.04 30/3563 1398250"
+  },
+  {
+    "label": "1s-epoll-1-rewrite-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/rewrite-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.17494171485304832,
+    "load_before": "37.86 63.03 84.04 26/3560 1398345",
+    "load_after": "37.63 62.56 83.77 27/3559 1398530"
+  },
+  {
+    "label": "1s-epoll-1-triggers-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "run",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/triggers-1/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/triggers-1",
+      "1"
+    ],
+    "rc": 0,
+    "seconds": 2.5775202973745763,
+    "load_before": "37.63 62.56 83.77 28/3564 1398743",
+    "load_after": "37.63 62.56 83.77 24/3552 1400065"
+  },
+  {
+    "label": "1s-epoll-1-triggers-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/triggers-1/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/triggers-1",
+      "1"
+    ],
+    "rc": 0,
+    "seconds": 0.11957242619246244,
+    "load_before": "37.63 62.56 83.77 24/3552 1400078",
+    "load_after": "37.63 62.56 83.77 23/3552 1400079"
+  },
+  {
+    "label": "1s-epoll-1-torn-prepare",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_torn_group.py",
+      "127.0.0.1",
+      "25003",
+      "prepare",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/torn-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.1642579841427505,
+    "load_before": "37.63 62.56 83.77 23/3552 1400092",
+    "load_after": "37.63 62.56 83.77 23/3540 1400096"
+  },
+  {
+    "label": "1s-epoll-1-torn-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_torn_group.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/torn-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.06397800799459219,
+    "load_before": "37.63 62.56 83.77 22/3549 1400111",
+    "load_after": "37.63 62.56 83.77 22/3549 1400112"
+  },
+  {
+    "label": "1s-epoll-1-torn-scan",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_torn_group.py",
+      "127.0.0.1",
+      "25003",
+      "scan",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/torn-1/appendonlydir/appendonly.aof.1.incr.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.03199608903378248,
+    "load_before": "37.63 62.56 83.77 22/3549 1400112",
+    "load_after": "37.63 62.56 83.77 22/3549 1400113"
+  },
+  {
+    "label": "1s-epoll-1-frame-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_frame_order.py",
+      "127.0.0.1",
+      "25003",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/frame-1/appendonlydir",
+      "--engine",
+      "epoll"
+    ],
+    "rc": 0,
+    "seconds": 0.6676401672884822,
+    "load_before": "37.63 62.56 83.77 23/3549 1400126",
+    "load_after": "36.46 61.90 83.44 22/3549 1400154"
+  },
+  {
+    "label": "1s-epoll-fsync-no-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/fsync-no.json",
+      "no",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.11585581908002496,
+    "load_before": "36.46 61.90 83.44 23/3556 1400190",
+    "load_after": "36.46 61.90 83.44 22/3556 1400191"
+  },
+  {
+    "label": "1s-epoll-fsync-no-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/fsync-no.json",
+      "no",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.11600715992972255,
+    "load_before": "36.46 61.90 83.44 22/3554 1400204",
+    "load_after": "36.46 61.90 83.44 22/3554 1400205"
+  },
+  {
+    "label": "1s-epoll-fsync-everysec-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/fsync-everysec.json",
+      "everysec",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 1.366513750050217,
+    "load_before": "36.46 61.90 83.44 22/3553 1400218",
+    "load_after": "36.46 61.90 83.44 21/3551 1400223"
+  },
+  {
+    "label": "1s-epoll-fsync-everysec-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/fsync-everysec.json",
+      "everysec",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.11583649925887585,
+    "load_before": "36.46 61.90 83.44 21/3551 1400239",
+    "load_after": "36.46 61.90 83.44 21/3551 1400242"
+  },
+  {
+    "label": "1s-epoll-fsync-always-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/fsync-always.json",
+      "always",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.1648181970231235,
+    "load_before": "36.46 61.90 83.44 21/3551 1400258",
+    "load_after": "36.46 61.90 83.44 21/3550 1400260"
+  },
+  {
+    "label": "1s-epoll-fsync-always-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll/fsync-always.json",
+      "always",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.1160264597274363,
+    "load_before": "36.46 61.90 83.44 21/3550 1400273",
+    "load_after": "36.46 61.90 83.44 21/3550 1400274"
+  },
+  {
+    "label": "1s-epoll-persistfix-kill",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/persistfix.py",
+      "--binary",
+      "/home/user/Projects/cx-aoffix2/build/tomokv",
+      "--mode",
+      "1s",
+      "--case",
+      "kill",
+      "--net-io",
+      "epoll",
+      "--cores",
+      "112-119",
+      "--ratio",
+      "6:2",
+      "--port",
+      "25003",
+      "--artifacts",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll-persistfix-kill"
+    ],
+    "rc": 0,
+    "seconds": 1.5265265451744199,
+    "load_before": "36.46 61.90 83.44 23/3541 1400276",
+    "load_after": "35.14 61.21 83.10 21/3544 1400312"
+  },
+  {
+    "label": "1s-epoll-persistfix-term",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/persistfix.py",
+      "--binary",
+      "/home/user/Projects/cx-aoffix2/build/tomokv",
+      "--mode",
+      "1s",
+      "--case",
+      "term",
+      "--net-io",
+      "epoll",
+      "--cores",
+      "112-119",
+      "--ratio",
+      "6:2",
+      "--port",
+      "25003",
+      "--artifacts",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/1s-epoll-persistfix-term"
+    ],
+    "rc": 0,
+    "seconds": 5.984875387977809,
+    "load_before": "35.14 61.21 83.10 21/3544 1400312",
+    "load_after": "33.93 60.52 82.76 21/3533 1400439"
+  },
+  {
+    "label": "2s-epoll-0-aof-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/aof-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.768824758939445,
+    "load_before": "33.93 60.52 82.76 20/3542 1400450",
+    "load_after": "33.93 60.52 82.76 21/3550 1400501"
+  },
+  {
+    "label": "2s-epoll-0-aof-loadaof",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "loadaof",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/aof-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.5702573149465024,
+    "load_before": "33.93 60.52 82.76 21/3550 1400501",
+    "load_after": "33.93 60.52 82.76 22/3550 1400554"
+  },
+  {
+    "label": "2s-epoll-0-aof-snapshot",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/aof-0/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.16514966869726777,
+    "load_before": "33.93 60.52 82.76 22/3550 1400554",
+    "load_after": "33.93 60.52 82.76 23/3550 1400555"
+  },
+  {
+    "label": "2s-epoll-0-aof-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/aof-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.1642761337570846,
+    "load_before": "33.93 60.52 82.76 22/3551 1400574",
+    "load_after": "33.93 60.52 82.76 23/3550 1400576"
+  },
+  {
+    "label": "2s-epoll-0-aof-snapshot-post",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/aof-0/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.16919410694390535,
+    "load_before": "33.93 60.52 82.76 23/3550 1400576",
+    "load_after": "33.93 60.52 82.76 24/3550 1400578"
+  },
+  {
+    "label": "2s-epoll-0-rewrite-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/rewrite-0/state.json",
+      "2048"
+    ],
+    "rc": 0,
+    "seconds": 0.11409889115020633,
+    "load_before": "33.93 60.52 82.76 21/3550 1400594",
+    "load_after": "33.93 60.52 82.76 22/3550 1400597"
+  },
+  {
+    "label": "2s-epoll-0-rewrite-rewrite",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "rewrite",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/rewrite-0/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/rewrite-0"
+    ],
+    "rc": 0,
+    "seconds": 0.2168186390772462,
+    "load_before": "33.93 60.52 82.76 21/3550 1400597",
+    "load_after": "33.93 60.52 82.76 21/3550 1400599"
+  },
+  {
+    "label": "2s-epoll-0-rewrite-manifest",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "manifest",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/rewrite-0"
+    ],
+    "rc": 0,
+    "seconds": 0.06649941997602582,
+    "load_before": "33.93 60.52 82.76 21/3550 1400599",
+    "load_after": "33.93 60.52 82.76 21/3550 1400600"
+  },
+  {
+    "label": "2s-epoll-0-rewrite-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/rewrite-0/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.16910725692287087,
+    "load_before": "33.93 60.52 82.76 21/3550 1400616",
+    "load_after": "33.93 60.52 82.76 30/3551 1400619"
+  },
+  {
+    "label": "2s-epoll-0-triggers-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "run",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/triggers-0/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/triggers-0",
+      "0"
+    ],
+    "rc": 0,
+    "seconds": 2.679200490936637,
+    "load_before": "33.93 60.52 82.76 24/3551 1400634",
+    "load_after": "33.13 59.92 82.45 22/3551 1400700"
+  },
+  {
+    "label": "2s-epoll-0-triggers-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/triggers-0/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/triggers-0",
+      "0"
+    ],
+    "rc": 0,
+    "seconds": 0.11799159878864884,
+    "load_before": "33.13 59.92 82.45 22/3560 1400727",
+    "load_after": "33.13 59.92 82.45 22/3561 1400732"
+  },
+  {
+    "label": "2s-epoll-0-frame-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_frame_order.py",
+      "127.0.0.1",
+      "25003",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/frame-0/appendonlydir",
+      "--engine",
+      "epoll"
+    ],
+    "rc": 0,
+    "seconds": 0.6180433570407331,
+    "load_before": "33.13 59.92 82.45 24/3558 1400862",
+    "load_after": "33.13 59.92 82.45 24/3559 1401380"
+  },
+  {
+    "label": "2s-epoll-1-aof-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/aof-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.5654126717709005,
+    "load_before": "33.13 59.92 82.45 22/3561 1401888",
+    "load_after": "33.13 59.92 82.45 23/3561 1402356"
+  },
+  {
+    "label": "2s-epoll-1-aof-loadaof",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "loadaof",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/aof-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.46502719493582845,
+    "load_before": "33.13 59.92 82.45 22/3561 1402356",
+    "load_after": "32.32 59.30 82.13 25/3560 1402651"
+  },
+  {
+    "label": "2s-epoll-1-aof-snapshot",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/aof-1/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.172637733630836,
+    "load_before": "32.32 59.30 82.13 31/3563 1402654",
+    "load_after": "32.32 59.30 82.13 27/3560 1402811"
+  },
+  {
+    "label": "2s-epoll-1-aof-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/aof-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.172855983953923,
+    "load_before": "32.32 59.30 82.13 24/3561 1402901",
+    "load_after": "32.32 59.30 82.13 36/3563 1402983"
+  },
+  {
+    "label": "2s-epoll-1-aof-snapshot-post",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof.py",
+      "127.0.0.1",
+      "25003",
+      "snapshot",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/aof-1/dump.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.21671102801337838,
+    "load_before": "32.32 59.30 82.13 27/3560 1402983",
+    "load_after": "32.32 59.30 82.13 24/3558 1403137"
+  },
+  {
+    "label": "2s-epoll-1-rewrite-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/rewrite-1/state.json",
+      "2048"
+    ],
+    "rc": 0,
+    "seconds": 0.16788529185578227,
+    "load_before": "32.32 59.30 82.13 29/3564 1403304",
+    "load_after": "32.32 59.30 82.13 23/3560 1403473"
+  },
+  {
+    "label": "2s-epoll-1-rewrite-rewrite",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "rewrite",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/rewrite-1/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/rewrite-1"
+    ],
+    "rc": 0,
+    "seconds": 0.2214182410389185,
+    "load_before": "32.32 59.30 82.13 33/3565 1403478",
+    "load_after": "32.32 59.30 82.13 23/3563 1403585"
+  },
+  {
+    "label": "2s-epoll-1-rewrite-manifest",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "manifest",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/rewrite-1"
+    ],
+    "rc": 0,
+    "seconds": 0.07156602293252945,
+    "load_before": "32.32 59.30 82.13 23/3563 1403585",
+    "load_after": "32.32 59.30 82.13 22/3563 1403586"
+  },
+  {
+    "label": "2s-epoll-1-rewrite-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/rewrite-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.2645396119914949,
+    "load_before": "32.32 59.30 82.13 37/3589 1403821",
+    "load_after": "32.32 59.30 82.13 43/3587 1404015"
+  },
+  {
+    "label": "2s-epoll-1-triggers-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "run",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/triggers-1/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/triggers-1",
+      "1"
+    ],
+    "rc": 0,
+    "seconds": 2.671409553848207,
+    "load_before": "32.32 59.30 82.13 38/3584 1404152",
+    "load_after": "32.54 58.90 81.88 36/3586 1404718"
+  },
+  {
+    "label": "2s-epoll-1-triggers-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_rewrite_triggers.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/triggers-1/state.json",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/triggers-1",
+      "1"
+    ],
+    "rc": 0,
+    "seconds": 0.16767096985131502,
+    "load_before": "32.54 58.90 81.88 37/3586 1404731",
+    "load_after": "32.54 58.90 81.88 37/3586 1404732"
+  },
+  {
+    "label": "2s-epoll-1-torn-prepare",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_torn_group.py",
+      "127.0.0.1",
+      "25003",
+      "prepare",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/torn-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.16738830925896764,
+    "load_before": "32.54 58.90 81.88 37/3586 1404746",
+    "load_after": "32.54 58.90 81.88 36/3578 1404747"
+  },
+  {
+    "label": "2s-epoll-1-torn-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_torn_group.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/torn-1/state.json"
+    ],
+    "rc": 0,
+    "seconds": 0.11644975235685706,
+    "load_before": "32.54 58.90 81.88 37/3587 1404762",
+    "load_after": "32.54 58.90 81.88 36/3587 1404763"
+  },
+  {
+    "label": "2s-epoll-1-torn-scan",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_torn_group.py",
+      "127.0.0.1",
+      "25003",
+      "scan",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/torn-1/appendonlydir/appendonly.aof.1.incr.tomo"
+    ],
+    "rc": 0,
+    "seconds": 0.07431640569120646,
+    "load_before": "32.54 58.90 81.88 37/3587 1404763",
+    "load_after": "32.54 58.90 81.88 38/3589 1404766"
+  },
+  {
+    "label": "2s-epoll-1-frame-run",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_frame_order.py",
+      "127.0.0.1",
+      "25003",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/frame-1/appendonlydir",
+      "--engine",
+      "epoll"
+    ],
+    "rc": 0,
+    "seconds": 0.819002321921289,
+    "load_before": "32.54 58.90 81.88 39/3590 1404802",
+    "load_after": "32.54 58.90 81.88 48/3595 1404837"
+  },
+  {
+    "label": "2s-epoll-fsync-no-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/fsync-no.json",
+      "no",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.22112470911815763,
+    "load_before": "32.54 58.90 81.88 41/3596 1405010",
+    "load_after": "32.54 58.90 81.88 42/3596 1405076"
+  },
+  {
+    "label": "2s-epoll-fsync-no-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/fsync-no.json",
+      "no",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.16780715063214302,
+    "load_before": "32.54 58.90 81.88 42/3597 1405176",
+    "load_after": "32.54 58.90 81.88 42/3593 1405181"
+  },
+  {
+    "label": "2s-epoll-fsync-everysec-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/fsync-everysec.json",
+      "everysec",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 1.4723895732313395,
+    "load_before": "33.29 58.62 81.66 40/3593 1405199",
+    "load_after": "33.29 58.62 81.66 40/3607 1405251"
+  },
+  {
+    "label": "2s-epoll-fsync-everysec-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/fsync-everysec.json",
+      "everysec",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.17209208104759455,
+    "load_before": "33.29 58.62 81.66 40/3610 1405285",
+    "load_after": "33.29 58.62 81.66 39/3611 1405289"
+  },
+  {
+    "label": "2s-epoll-fsync-always-populate",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "populate",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/fsync-always.json",
+      "always",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.2670591427013278,
+    "load_before": "33.29 58.62 81.66 43/3616 1405311",
+    "load_after": "33.29 58.62 81.66 39/3618 1405316"
+  },
+  {
+    "label": "2s-epoll-fsync-always-verify",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_fsync.py",
+      "127.0.0.1",
+      "25003",
+      "verify",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll/fsync-always.json",
+      "always",
+      "512"
+    ],
+    "rc": 0,
+    "seconds": 0.1143632116727531,
+    "load_before": "33.29 58.62 81.66 39/3613 1405336",
+    "load_after": "33.29 58.62 81.66 39/3612 1405348"
+  },
+  {
+    "label": "2s-epoll-persistfix-kill",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/persistfix.py",
+      "--binary",
+      "/home/user/Projects/cx-aoffix2/build/tomokv",
+      "--mode",
+      "2s",
+      "--case",
+      "kill",
+      "--net-io",
+      "epoll",
+      "--cores",
+      "112-119",
+      "--ratio",
+      "6:2",
+      "--port",
+      "25003",
+      "--artifacts",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll-persistfix-kill"
+    ],
+    "rc": 0,
+    "seconds": 1.9710477250628173,
+    "load_before": "33.29 58.62 81.66 39/3604 1405353",
+    "load_after": "33.91 58.33 81.44 39/3604 1405385"
+  },
+  {
+    "label": "2s-epoll-persistfix-term",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/persistfix.py",
+      "--binary",
+      "/home/user/Projects/cx-aoffix2/build/tomokv",
+      "--mode",
+      "2s",
+      "--case",
+      "term",
+      "--net-io",
+      "epoll",
+      "--cores",
+      "112-119",
+      "--ratio",
+      "6:2",
+      "--port",
+      "25003",
+      "--artifacts",
+      "/home/user/Projects/cx-aoffix2/build/aoffix2/batteries-final/2s-epoll-persistfix-term"
+    ],
+    "rc": 0,
+    "seconds": 5.628814130090177,
+    "load_before": "33.91 58.33 81.44 40/3604 1405385",
+    "load_after": "34.32 58.01 81.21 39/3589 1405445"
+  }
+]

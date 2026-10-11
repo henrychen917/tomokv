@@ -211,6 +211,21 @@ int main(int argc, char** argv) {
     if (kind == "XREADGROUP" || unblock) {
         require(op->state.load() == OpState::Done, "direct completion on its owner");
         blocking_retire(server, client, *op, sender);
+    } else if (revoke) {
+        // aclfix: the live check precedes a resumed move/read on its IO. A denial completes
+        // there; no owner Task is posted, so nothing is moved or delivered.
+        require(resume(), "denied resume completes on its IO");
+        require(op->state.load() == OpState::Done && op->has_blocking_state(),
+                "denial completes before any scatter is prepared");
+        unsigned stray = 0;
+        for (uint32_t tid = 0; tid < server.nthreads(); ++tid)
+            server.thread(tid).drain_tasks([&](const Task&) { ++stray; });
+        require(stray == 0, "no owner executes a denied resume");
+        blocking_retire(server, client, *op, sender);
+        if (move) {
+            require(command({"LLEN", key}) == ":1\r\n", "denied move leaves its element");
+            require(command({"LLEN", read[2]}) == ":0\r\n", "denied move writes no destination");
+        }
     } else {
         require(resume(), "resume scatter on explicit IO visit");
         unsigned fragments = 0;

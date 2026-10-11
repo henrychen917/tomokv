@@ -1,0 +1,9 @@
+FAIL redacted argv 0 [[b'AUTH', b'audit-password']]
+FAIL redacted argv 1 [[b'AUTH', b'default', b'audit-password']]
+FAIL redacted argv 2 [[b'AUTH', b'bad-password']]
+FAIL redacted argv 3 [[b'HELLO', b'2', b'AUTH', b'default', b'audit-password']]
+FAIL redacted argv 4 [[b'HELLO', b'3', b'SETNAME', b'AUTH', b'AUTH', b'default', b'audit-password']]
+FAIL redacted argv 5 [[b'CONFIG', b'SET', b'requirepass', b'audit-password']]
+FAIL redacted argv 6 [[b'CONFIG', b'SET', b'timeout', b'0', b'requirepass', b'audit-password']]
+FAIL redacted argv 7 [[b'ACL', b'SETUSER', b'authfix-user', b'on', b'>fixture-secret', b'~*', b'+get']]
+authfix slowlog-2s: 8 failed checks; evidence /home/user/Projects/cx-authfix/docs/authfix/pre-verified/slowlog-2s

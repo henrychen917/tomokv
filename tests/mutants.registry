@@ -168,6 +168,30 @@
           "failure": "FAIL: reservation released exactly once on failure"
         }
       ]
+    },
+    {
+      "name": "tracking-skip-cap",
+      "file": "src/cmd/tracking.cc",
+      "find": "    if (srv_->cfg().tracking_table_max_keys &&\n        climon_track_keys_.size() >= srv_->cfg().tracking_table_max_keys &&",
+      "replace": "    if (false && srv_->cfg().tracking_table_max_keys && // throwaway mutant: enroll without the bound\n        climon_track_keys_.size() >= srv_->cfg().tracking_table_max_keys &&",
+      "rows": [
+        {
+          "row": "tracking-cap",
+          "failure": "FAIL: tracking table respects its bound"
+        }
+      ]
+    },
+    {
+      "name": "suppressed-retire-every-op",
+      "file": "src/net/wb.h",
+      "find": "            if (op.zc_ptr || retire_plain) retire_fn_(retire_ctx_, conn, op);",
+      "replace": "            (void)retire_plain; retire_fn_(retire_ctx_, conn, op); // throwaway mutant: hook every op",
+      "rows": [
+        {
+          "row": "suppressed-retire",
+          "failure": "FAIL: a reply-suppressed connection without tracking took the special-retire hook for a plain op"
+        }
+      ]
     }
   ]
 }

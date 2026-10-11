@@ -1,0 +1,15 @@
+{"event": "spawn", "pid": 3996605, "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-aoffix2/build/aoffix2/pre/tomokv", "--bind", "127.0.0.1", "--port", "25001", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aoffix2/build/aoffix2/pre-timings/tlswake-2s/data", "--protected-mode", "no", "--shards", "16", "--thread-mode", "2s", "--net-io", "uring", "--key-lb", "0", "--client-lb", "0", "--flip-auto", "0", "--read-local", "0", "--reorder", "0", "--enable-debug-command", "yes", "--ratio", "6:2", "--place", "ifid@112,ex@113", "--tls-port", "25002", "--tls-cert-file", "/home/user/Projects/cx-aoffix2/build/aoffix2/pre-timings/tlswake-2s/cert.pem", "--tls-key-file", "/home/user/Projects/cx-aoffix2/build/aoffix2/pre-timings/tlswake-2s/key.pem", "--tls-auth-clients", "no", "--tls-protocols", "TLSv1.3"], "fsize": null, "load": {"loadavg": "66.86 70.22 60.26 45/4364 3996608", "cpu_stat": ["cpu112 9926889 357 2675150 313977696 3008791 0 989389 0 0 0", "cpu113 9230442 373 2410780 315028267 3068040 0 843226 0 0 0", "cpu114 9150514 256 2310564 315259497 3059929 0 807993 0 0 0", "cpu115 9018691 86 2273933 315449384 3033216 0 809070 0 0 0", "cpu116 9238383 448 2218633 315321521 3014846 0 787817 0 0 0", "cpu117 8941261 272 2178301 315636970 3045257 0 790701 0 0 0", "cpu118 9747033 356 2467314 315047795 2436654 0 892235 0 0 0", "cpu119 9843458 733 2567111 314739295 2471345 0 941714 0 0 0"], "processes": ["    PID PSR %CPU COMMAND", "3992905 115 44.6 as", "3989434 123 41.2 as", "3991323 112 39.3 as", "3941051 114 37.2 cc1plus", "3930862 114 37.0 cc1plus", "3941086 113 35.6 cc1plus", "3955272 117 34.3 cc1plus", "3941091 119 28.9 cc1plus", "3862922 116 28.7 cc1plus", "3955160 124 28.2 cc1plus", "3941041 121 27.4 cc1plus", "3941048 127 26.7 cc1plus", "3941060 125 26.1 cc1plus", "3930484 121 25.8 cc1plus", "3941104 118 25.7 cc1plus", "3930174 122 25.6 cc1plus", "3924419 123 25.4 cc1plus", "3941082 122 25.1 cc1plus", "3874397 118 24.9 cc1plus", "3870276 122 24.4 cc1plus", "3872121 120 24.4 cc1plus", "3859578 117 24.1 cc1plus", "3873639 121 23.9 cc1plus", "3976459 116 23.9 tomokv"]}}
+{"event": "boot", "ready": false, "exit": 1, "log": "/home/user/Projects/cx-aoffix2/build/aoffix2/pre-timings/tlswake-2s/server-1.log"}
+{"event": "stop", "exit": 1, "escalated": false}
+{"event": "FAIL", "case": "tlswake", "error": "AssertionError('--ratio and --place are mutually exclusive\\nTomoKV 1.0-cpp (Redis 7.4.10 compatible)\\n')"}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aoffix2/tests/aoffix2.py", line 557, in <module>
+    CASES[ARGS.case]()
+  File "/home/user/Projects/cx-aoffix2/tests/aoffix2.py", line 395, in tlswake
+    plain, poke = s.client(), s.client()
+                  ^^^^^^^^^^
+  File "/home/user/Projects/cx-aoffix2/tests/aoffix2.py", line 172, in client
+    assert self.ready, self.logpath.read_text(errors='replace')[-2000:]
+           ^^^^^^^^^^
+AssertionError: --ratio and --place are mutually exclusive
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)

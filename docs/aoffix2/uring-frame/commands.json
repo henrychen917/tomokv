@@ -1,0 +1,78 @@
+[
+  {
+    "label": "1s-atomic0",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_frame_order.py",
+      "127.0.0.1",
+      "25006",
+      "build/aoffix2/uring-frame/1s-atomic0/data/appendonlydir",
+      "--engine",
+      "uring"
+    ],
+    "rc": 0,
+    "seconds": 1.5743447178974748,
+    "load_before": "43.75 53.49 75.98 35/3564 1584565",
+    "load_after": "43.75 53.49 75.98 33/3559 1585854"
+  },
+  {
+    "label": "1s-atomic1",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_frame_order.py",
+      "127.0.0.1",
+      "25006",
+      "build/aoffix2/uring-frame/1s-atomic1/data/appendonlydir",
+      "--engine",
+      "uring"
+    ],
+    "rc": 0,
+    "seconds": 1.4770842962898314,
+    "load_before": "43.75 53.49 75.98 41/3568 1586825",
+    "load_after": "43.75 53.49 75.98 43/3568 1588025"
+  },
+  {
+    "label": "2s-atomic0",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_frame_order.py",
+      "127.0.0.1",
+      "25006",
+      "build/aoffix2/uring-frame/2s-atomic0/data/appendonlydir",
+      "--engine",
+      "uring"
+    ],
+    "rc": 0,
+    "seconds": 1.5263924249447882,
+    "load_before": "44.17 53.42 75.83 41/3567 1589018",
+    "load_after": "44.17 53.42 75.83 40/3571 1590194"
+  },
+  {
+    "label": "2s-atomic1",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/aof_frame_order.py",
+      "127.0.0.1",
+      "25006",
+      "build/aoffix2/uring-frame/2s-atomic1/data/appendonlydir",
+      "--engine",
+      "uring"
+    ],
+    "rc": 0,
+    "seconds": 1.5199935347773135,
+    "load_before": "44.17 53.42 75.83 38/3567 1590687",
+    "load_after": "44.17 53.42 75.83 37/3567 1591244"
+  }
+]
