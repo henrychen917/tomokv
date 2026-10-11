@@ -427,6 +427,39 @@ static void atomic_growth_child() {
     std::puts("PASS atomic growth reserves its resize retirement");
 }
 
+// FLUSHALL (and FLUSHDB with one database) reaches clear() whenever no capture is active
+// (cmd_flush), including between the snapshot prepare and mark barriers: Preparing and Prepared
+// owners keep executing tasks (snapshot_blocks_tasks). The prepared post-cut table is published
+// at mark, and its post-capture merge needs the record that snapshot_prepare() reserved.
+static void flush_prepared_child() {
+    std::signal(SIGALRM, deadline);
+    alarm(10);
+    Fixture f;
+    f.put("before-flush");
+    require(f.store.snapshot_prepare(2, 1000) == FlatStore::SnapshotWriteResult::Ready,
+            "snapshot preparation reserved its record and allocated the post-cut table");
+    f.store.clear();
+    f.put("after-flush");
+    require(f.store.snapshot_mark(0, 1000) && f.store.rehashing(),
+            "the prepared table is published at the cut");
+    for (unsigned i = 0; i < 1000 && f.store.snapshot_active(); i++) {
+        f.store.snapshot_progress(4096, 2048);
+        if (f.store.snapshot_take_chunk()) f.store.snapshot_handoff_complete();
+    }
+    require(!f.store.snapshot_active() && !f.store.snapshot_failed() && f.store.rehashing(),
+            "capture finished; the cut-time table awaits its ordinary merge");
+    std::printf("ARMED flush between snapshot prepare and mark; merging %u old slots\n",
+                f.store.rehash_progress().old_capacity);
+    std::fflush(stdout);
+    finish_resize(f, "owner maintenance advances the post-capture merge");
+    const KvObj* value = f.store.find(hash("after-flush"), slice("after-flush"));
+    require(value && value->str_value() == Slice("value") &&
+            !f.store.find(hash("before-flush"), slice("before-flush")) && f.store.size() == 1,
+            "the flush and the post-flush write both survive the merge");
+    alarm(0);
+    std::puts("PASS flush keeps a prepared snapshot's resize retirement");
+}
+
 static int retirement_check(void (*child)(), const char* name) {
     std::fflush(nullptr);
     const pid_t pid = fork();
@@ -509,6 +542,8 @@ int main(int argc, char** argv) {
     if (selection == "probeadapter") return 0;
     if (selection == "maintenance") return maintenance_checks();
     if (selection == "atomic-growth") return retirement_check(atomic_growth_child, "atomic growth");
+    if (selection == "flush-prepared")
+        return retirement_check(flush_prepared_child, "flush between snapshot prepare and mark");
     bool ok = run("blocking-control", true);
     if (selection == "lookups" || selection == "retirement") {
         for (const char* kind : {"find", "no-touch", "notify", "resident", "tracked", "resolve", "foreign"})
