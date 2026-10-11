@@ -169,7 +169,7 @@ struct Fixture {
     int32_t sid_a, sid_b;
     bool armed;
     explicit Fixture(bool fused, bool read_local) : armed(read_local) {
-        Config config;
+        Config config; config.databases = 1;
         config.shards = 16; config.even_ifid = 6; config.even_ex = 2;
         config.thread_mode = fused ? ThreadMode::Fused : ThreadMode::Split;
         config.read_local = read_local; config.atomic = 1;

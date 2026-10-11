@@ -475,7 +475,7 @@ void stage_flag(Server& server) {
 int main(int argc, char** argv) {
     require(argc == 2, "one named regression is required");
     require(command_registry_init(false), "command registry");
-    Config cfg;
+    Config cfg; cfg.databases = 1;
     const std::string name = argv[1];
     if (name.starts_with("plain_")) cfg.atomic = name.ends_with("_1") ? 1 : 0;
     cfg.shards = 16; cfg.even_ifid = 6; cfg.even_ex = 2;

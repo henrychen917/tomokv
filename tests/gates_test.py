@@ -1877,7 +1877,7 @@ class ShutdownBootWiring(unittest.TestCase):
         # an empty seq suppresses the readiness loop, so there is no listener or socket access.
         with tempfile.TemporaryDirectory(dir=root / 'build') as directory:
             for boot in ('boot', 'boot_fused'):
-                for extra in ('', "--save '3600 1'"):
+                for extra in ('', "--save '3600 1'", "--databases 16"):
                     script = '''
 quiet_wait(){ :; }
 guard_port(){ :; }
@@ -1891,9 +1891,11 @@ CORES=112-127; PORT=17991; GATE_RATIO=6:2
                     self.assertEqual(result.returncode, 0, result.stderr)
                     argv = (Path(directory) / 'argv').read_bytes().decode().strip('\0').split('\0')
                     saves = [argv[i + 1] for i, word in enumerate(argv) if word == '--save']
-                    self.assertEqual(saves, ['', '3600 1'] if extra else [''],
+                    self.assertEqual(saves, ['', '3600 1'] if '--save' in extra else [''],
                                      'generic boot disables save before row overrides')
                     self.assertEqual('--ratio' in argv, boot == 'boot')
+                    databases = [argv[i + 1] for i, word in enumerate(argv) if word == '--databases']
+                    self.assertEqual(databases, ['16'] if '--databases' in extra else ['1'])
         for name in ('tlsboot', 'zcboot', 'reject_boot'):
             body = gate[gate.index(name + '(){'):].split('\n}', 1)[0]
             self.assertIn("--save ''", body, name + ' must also disable shutdown snapshots')

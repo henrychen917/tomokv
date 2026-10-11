@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """Bounded default-image wire row and serverless ABBA database controls."""
 import argparse
-import contextlib
 import json
 from pathlib import Path
 import subprocess
 import time
 
-from _lib import Conn, RespError, wait_ready
+from _lib import RespError, wait_ready
 from _gate_process import info, install_signals, require
 
 

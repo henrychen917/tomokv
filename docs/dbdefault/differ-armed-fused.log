@@ -1,0 +1,12 @@
+DIFFER FOCUSED PROOF: selected suites only; not a full differential matrix
+DIFFER suites (5): multidb aclsel infofix servertail compatintro
+DIFFER geometry: armed-fused (--thread-mode fused --read-local 1)
+DIFFER matrix: atomic={0 1} seeds={7 19 20 23} legs=40 logs=/home/user/Projects/cx-dbdefault/build/dbdefault/differ-armed-fused
+  vanilla Redis oracle boot                                  ok (pid=4148475 port=25152)
+  oracle identity                                            ok (vanilla redis_version=7.4.10)
+  target atomic=0 boot                                       ok (pid=4148553 port=25151)
+  differ multidb (atomic=0 seed=7)                           ok (DIFFER multidb: 5419 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)
+  differ aclsel (atomic=0 seed=7)                            ok (DIFFER aclsel: 12619 checks, 0 diffs -> PASS (rejections=4200, unchanged=4200, grants=1400, command_denials=700, key_denials=1400, channel_denials=700))
+  differ infofix (atomic=0 seed=7)                           ok (DIFFER infofix: 4200 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)
+  differ servertail (atomic=0 seed=7)                        ok (DIFFER servertail: 5339 ops, 0 diffs, 0 deadline-bounded TTL checks -> PASS)
+  differ compatintro (atomic=0 seed=7)                       ok (DIFFER compatintro: 5630 checks, 0 diffs -> PASS (getkeys=1550, config_multi=631, client_rows=262, acl_mutations=401, notify_events=15, silence_controls=5))

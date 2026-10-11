@@ -269,6 +269,7 @@ def translated_knobs(binary, mode, reorder, read_local=0):
 def run_control(args, binary, out, mode, reorder):
     read_local = getattr(args, "read_local", 0)
     knobs = translated_knobs(binary, mode, reorder, read_local)
+    database_support = abba.accepted(binary, "databases", 1)
     initial_value = b"0" if read_local else OLD
     nthreads = len(abba.cpus(args.server_cores) + abba.cpus(args.server_smt))
     ex = nthreads // 2
@@ -282,7 +283,10 @@ def run_control(args, binary, out, mode, reorder):
     out.mkdir(parents=True)
     try:
         with server(binary, abba.cpu_string(abba.cpus(args.server_cores) + abba.cpus(args.server_smt)),
-                    args.port, out / "server", server_args) as (control, process), ExitStack() as stack:
+                    args.port, out / "server", server_args,
+                    databases=1 if database_support else None) as (control, process), ExitStack() as stack:
+            abba.verify_databases(control, 1, legacy=not database_support)
+            row.update(configured_databases=1, databases_flag_supported=database_support)
             row["pid"] = process.pid
             for name, value in {**knobs, "flip-auto": 0, "atomic": 1}.items():
                 require(control.must("CONFIG", "GET", name) == [name.encode(), str(value).encode()],

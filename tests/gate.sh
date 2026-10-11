@@ -736,16 +736,13 @@ settle(){ # after a server is gone: wait for $PORT to stop accepting, then a sho
   for _ in $(seq 50); do (exec 3<>/dev/tcp/127.0.0.1/$PORT) 2>/dev/null || break; sleep 0.1; done
   sleep "${GATE_STOP_SETTLE:-1}"
 }
-launch(){ # Preserve the DB0 battery; explicit multi-DB rows own their image.
+launch(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits up to 30 s for the port
   local tag=$1 bin=$2 arg; shift 2
+  # Preserve the DB0 battery; explicit multi-DB rows own their image.
   local database_args=(--databases 1)
   for arg in "$@"; do
     case "$arg" in --databases|--databases=*) database_args=();; esac
   done
-  launch_default "$tag" "$bin" "${database_args[@]}" "$@"
-}
-launch_default(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits up to 30 s for the port
-  local tag=$1 bin=$2; shift 2
   quiet_wait
   SRV=0; SRVLOG=/dev/null
   guard_port "$PORT"
@@ -756,7 +753,7 @@ launch_default(){ # logtag binary args... -> pid in $SRV, log in $SRVLOG; waits 
   local boot_dir
   boot_dir=$(mktemp -d "$TMPDIR/gate-data-$tag.XXXXXX") || return 1
   # Persistence batteries may override this later; cleanup must not replace a tested BGSAVE cut.
-  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --dir "$boot_dir" --save '' "$@" > "$SRVLOG" 2>&1 &
+  taskset -c $CORES "$bin" --port $PORT --bind 127.0.0.1 --shards 16 --dir "$boot_dir" --save '' "${database_args[@]}" "$@" > "$SRVLOG" 2>&1 &
   SRV=$!
   # 30s, not 10s: the AOF replay boot replays its file BEFORE it listens, and on a box shared
   # with other lanes that overran a 10s deadline and turned six AOF rows red with no defect behind

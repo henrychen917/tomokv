@@ -97,3 +97,5 @@ src/main.o 662 bodies
 src/net/tls.o 38 bodies
 src/persist/aof.o 317 bodies
 src/persist/aof_frame_debug.o 6 bodies
+src/snapshot/snapshot.o 128 bodies
+{"total": 16439, "equal": 16435, "changed": 4, "handlers": 1211, "handlers_equal": 1211, "hot": 1208, "hot_equal": 1208, "hot_nonerror_equal": 1208, "handlers_nonerror_equal": 1211}
