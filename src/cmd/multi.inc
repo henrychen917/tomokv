@@ -156,6 +156,8 @@ struct alignas(8) MultiExecState : SnapshotCut {
     // more than one owner -- the only shape that can straddle a foreign ticket, and therefore the
     // only shape that pays for a cut.  A write-only or single-owner transaction registers nothing.
     bool exec_read_fanout = false;
+    bool read_only = true;
+    std::vector<std::vector<TxnClaim>> claims;
     // THE TRANSACTION'S EXPIRY CUT, the time-axis twin of the read cut above.  Absolute
     // CLOCK_REALTIME milliseconds, stamped once before any fragment is posted and installed on
     // every owner that runs part of this transaction.  Redis reaches the same place from the other
@@ -738,6 +740,65 @@ void add_write_key(MultiExecState& state, const MultiCommand& command, uint32_t 
 
 bool command_has_owner_work(const MultiCommand& command);
 
+Slice txn_claim_slice(const TxnClaim& claim) {
+    return claim.key.empty() ? Slice{} : Slice(claim.key.data() + 1,
+        static_cast<uint32_t>(claim.key.size() - 1), static_cast<uint8_t>(claim.key[0]));
+}
+
+void txn_add_claim(std::vector<TxnClaim>& claims, Slice key, TxnClaimMode mode,
+                   bool whole = false) {
+    std::string owned = whole ? std::string{} : database_owned_key(key);
+    for (auto& claim : claims) {
+        if (claim.key == owned) {
+            if (mode == TxnClaimMode::Write) claim.mode = mode;
+            return;
+        }
+    }
+    claims.push_back({std::move(owned), whole ? 0 : FlatStore::hash_key(key), mode});
+}
+
+void txn_cap_claims(std::vector<TxnClaim>& claims) {
+    if (claims.size() <= kTxnClaimsPerShard) return;
+    TxnClaimMode mode = TxnClaimMode::Read;
+    for (const auto& claim : claims)
+        if (claim.mode == TxnClaimMode::Write) mode = claim.mode;
+    claims.clear();
+    claims.push_back({{}, 0, mode});
+}
+
+void prepare_claims(MultiExecState& state) {
+    for (const auto& command : state.commands) {
+        if (!command_has_owner_work(*command)) continue;
+        const auto* child = command->scatter;
+        const bool writes = (command->queued.spec->flags &
+            (CmdFlags::Write | CmdFlags::SnapshotWrite)) || (child && child->atomic_group);
+        state.read_only &= !writes;
+        const auto mode = writes ? TxnClaimMode::Write : TxnClaimMode::Read;
+        for (size_t i = 0; i < command->key_args.size(); ++i)
+            txn_add_claim(state.claims[command->key_shards[i]],
+                          command->op->arg(command->key_args[i]), mode);
+        if (child) for (uint32_t i = 0; i < child->key_count; ++i)
+            txn_add_claim(state.claims[child->keys[i].shard],
+                          command->op->arg(child->keys[i].arg), mode);
+        const bool whole = has_name(command->queued, "scan") ||
+            (child && ((child->kind == Kind::Sort && child->sort_options.deref) ||
+                       child->kind == Kind::AllShards || child->kind == Kind::DatabaseInfo ||
+                       child->kind == Kind::DbsizeExact || child->kind == Kind::RandomKey ||
+                       child->kind == Kind::Keys));
+        if (whole) for (int32_t sid : command->participants)
+            txn_add_claim(state.claims[sid], {}, TxnClaimMode::Read, true);
+    }
+    // WATCH keys are part of placement's conflict set even when no queued
+    // command accesses them. Inactive namespace aliases are validation-only.
+    for (const auto& watched : state.watched) {
+        if (state.database_map[watched.db] != watched.ns) continue;
+        txn_add_claim(state.claims[watched.shard],
+            Slice(watched.key.data(), watched.key.size(), watched.ns),
+            state_writes_key(state, watched) ? TxnClaimMode::Write : TxnClaimMode::Read);
+    }
+    for (auto& claims : state.claims) txn_cap_claims(claims);
+}
+
 bool prepare_commands(Server& server, MultiExecState& state,
                       std::vector<MultiQueuedCommand>& queue) {
     try {
@@ -982,6 +1043,7 @@ bool prepare_commands(Server& server, MultiExecState& state,
             state.database_watch.resize(server.nshards());
             if (!server.databases().prepare_publish(routing_map, state.database_publish)) return false;
         }
+        prepare_claims(state);
     } catch (const std::bad_alloc&) {
         return false;
     }
@@ -1009,6 +1071,7 @@ MultiExecState* allocate_state(Server& server, Client& client, uint32_t owner_io
     try {
         state->owner_record_refs.assign(server.nthreads(), MultiOwnerRecordRefs{});
         state->shard_commands.resize(server.nshards());
+        state->claims.resize(server.nshards());
         state->shard_cursors.assign(server.nshards(), 0);
         state->watch_shard_done.assign(server.nshards(), 0);
         state->execution_joined.assign(server.nshards(), 0);
@@ -2373,8 +2436,8 @@ MultiExecState* multi_rebuild_attempt(MultiExecState& previous) {
         queue.reserve(previous.commands.size());
         // Old child Ops retain slices into these strings until record retirement.
         for (const auto& command : previous.commands) queue.push_back(command->queued);
-        if (!prepare_commands(server, *next, queue)) throw std::bad_alloc();
         next->watched = previous.watched;
+        if (!prepare_commands(server, *next, queue)) throw std::bad_alloc();
         for (const auto& key : next->watched) add_shard(next->shards, key.shard);
         if ((!next->write_keys.empty() || next->database_publish) && server.aof().recording()) {
             std::vector<uint32_t> participants;

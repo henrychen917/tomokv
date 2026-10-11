@@ -7,6 +7,7 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include <type_traits>
 #include <vector>
 
@@ -27,6 +28,15 @@ struct ScatterState;
 
 inline constexpr uint32_t kTxnWriterDoomBound = 8;
 inline constexpr uint32_t kTxnIntentsPerShard = 256;
+inline constexpr uint32_t kTxnClaimsPerShard = 256;
+
+enum class TxnClaimMode : uint8_t { Read, Write };
+struct TxnClaim {
+    // Physical namespace byte followed by key bytes. Empty means the whole shard.
+    std::string key;
+    uint64_t hash = 0;
+    TxnClaimMode mode = TxnClaimMode::Read;
+};
 inline constexpr uint32_t kTxnRetryBackoffMin = 1; // one IO pass
 inline constexpr uint64_t kTxnRetryBackoffMax = 1000000; // ns
 inline constexpr uint64_t kTxnExclusiveDrainMax = 1000000000; // ns

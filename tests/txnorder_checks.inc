@@ -9,7 +9,61 @@ void txnorder_checks(Server& server, const std::string& name) {
     std::atomic<uint64_t> epoch{0};
     std::atomic<bool> aborted{false};
     std::atomic<uint32_t> refs{0};
-    if (name == "txnorder_f1") {
+    if (name == "txnorder_claims") {
+        std::unique_ptr<MultiExecState> state(allocate_state(server, client, 0, MultiStateKind::Execute));
+        std::vector<MultiQueuedCommand> queue;
+        for (auto args : {std::vector<std::string>{"GET", src},
+                          std::vector<std::string>{"SORT", src, "STORE", dst},
+                          std::vector<std::string>{"SCAN", "0"}}) {
+            Request request(std::move(args));
+            queue.emplace_back();
+            require(queued_copy(request.op, queue.back()), "claim command queued");
+        }
+        require(prepare_commands(server, *state, queue) && !state->read_only, "write unit classified");
+        bool source = false, destination = false, whole = false;
+        for (const auto& claim : state->claims[0]) {
+            source |= txn_claim_slice(claim) == slice(src) && claim.mode == TxnClaimMode::Write;
+            destination |= txn_claim_slice(claim) == slice(dst) && claim.mode == TxnClaimMode::Write;
+            whole |= claim.key.empty() && claim.mode == TxnClaimMode::Read;
+        }
+        require(source && destination && whole, "claim union upgrades writes and retains SCAN hold");
+        std::vector<TxnClaim> capped;
+        for (unsigned i = 0; i <= kTxnClaimsPerShard; ++i) {
+            const auto key = std::to_string(i);
+            txn_add_claim(capped, slice(key), i ? TxnClaimMode::Read : TxnClaimMode::Write);
+        }
+        txn_cap_claims(capped);
+        require(capped.size() == 1 && capped[0].key.empty() &&
+                capped[0].mode == TxnClaimMode::Write, "claim cap preserves strongest mode");
+    } else if (name == "txnorder_f2") {
+        const auto remote = key_on(server, 1, "txnorder-script-");
+        ScatterRun script(server, {"EVAL", "return redis.call('SET',KEYS[1],'s')", "2", src, remote});
+        script.phase(ScriptPhase::Pin);
+        script.state->script_cut = server.atomic_snapshot();
+        script.phase(ScriptPhase::Read);
+        script.phase(ScriptPhase::Run);
+        script.state->script_ticket = server.atomic_commit_reserve();
+        script.phase(ScriptPhase::Validate);
+        require(!script.state->script_conflict.load(), "F2 certified script holds open bracket");
+        const auto hash = FlatStore::hash_key(slice(dst));
+        require(shard.store().atomic_script_pin(hash, slice(dst)), "F2 force versioned writer");
+        require(local(server, {"SET", dst, "new"}) == "+OK\r\n", "F2 foreign version committed");
+        std::unique_ptr<MultiExecState> holder(allocate_state(server, client, 0, MultiStateKind::Execute));
+        holder->read_only = false;
+        holder->watched.push_back({src, FlatStore::hash_key(slice(src)), 0, 0, 0});
+        require(shard.watch_append_reservation(watch_key_string(slice(src)),
+            Shard::WatchReservation{holder.get(), &holder->decision.epoch, &holder->decision.aborted,
+                                   &holder->watch_refs, &client, 0, false, true}), "F2 WATCH claim");
+        require(!multi_touch_key(*holder, shard, hash, slice(dst), false) &&
+                !holder->decision.aborted.load(), "F2 EXEC waits on rule P with its WATCH claim");
+        script.phase(ScriptPhase::Apply);
+        require(script.state->script_conflict.load() && script.state->aborted.load(),
+                "F2 script APPLY yields instead of waiting on the claim");
+        server.atomic_commit_publish();
+        holder->decision.aborted.store(true);
+        finalize_reservations(*holder, shard);
+        shard.store().atomic_script_unpin(hash, slice(dst));
+    } else if (name == "txnorder_f1") {
         require(shard.watch_append_reservation(watch_key_string(slice(src)),
                     Shard::WatchReservation{&epoch, &epoch, &aborted, &refs,
                                            &client, 0, false, true}), "F1 validation claim");
