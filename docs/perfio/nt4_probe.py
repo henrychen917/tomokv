@@ -27,6 +27,7 @@ def main():
     ap.add_argument("--binary", type=Path, required=True)
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--port", type=int, default=25127)
+    ap.add_argument("--only", default="", help="optional exact generated cell name")
     args = ap.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     cert, key = args.output.resolve()/"cert.pem", args.output.resolve()/"key.pem"
@@ -39,9 +40,11 @@ def main():
                 ("GET",4096,32,1,True), ("GET",16384,32,1,True),
                 ("GET",4096,32,512,True), ("GET",16384,32,512,True)]:
             name = f"{mode}-{command}-{size}-p{depth}-c{conns}" + ("-tls" if tls else "")
+            if args.only and args.only != name:
+                continue
             opts = SimpleNamespace(binary=args.binary, output=args.output, port=args.port,
                 cores="112-119", mode=mode, ratio="6:2", net_io="uring", oracle=False, read_local=0)
-            extra = ["--read-local", "0"] if mode == "1s" else []
+            extra = ["--key-lb", "1", "--client-lb", "1"]
             # boot() defaults to armed-fused for correctness. Incidence uses the paper rl=0.
             opts.mode = mode
             tlsflags = ["--tls-port", str(args.port+1), "--tls-auth-clients", "no",

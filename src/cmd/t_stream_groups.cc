@@ -12,6 +12,7 @@
 #include "../store/kvobj.h"
 
 #include <algorithm>
+#include <bit>
 #include <charconv>
 #include <cstdint>
 #include <cstring>
@@ -347,10 +348,10 @@ bool group_lag(KvObj* object, const StreamHeader& header, const StreamGroup& gro
         lag = static_cast<int64_t>(value.entries());
         return true;
     }
-    const int64_t read = group.entries_read >= 0 && !tombstones_after(value, group.last_delivered)
+    const int64_t read = group.entries_read != -1 && !tombstones_after(value, group.last_delivered)
         ? group.entries_read : infer_entries_read(value, group.last_delivered);
-    if (read < 0 || header.entries_added > INT64_MAX) return false;
-    lag = static_cast<int64_t>(header.entries_added) - read;
+    if (read == -1 || header.entries_added > INT64_MAX) return false;
+    lag = std::bit_cast<int64_t>(header.entries_added - static_cast<uint64_t>(read));
     return true;
 }
 
@@ -1000,7 +1001,7 @@ void reply_name(Op& op, const char* name) {
 }
 
 void reply_nullable_i64(Op& op, int64_t value) {
-    if (value < 0) reply_null(op.sink(), op.resp3());
+    if (value == -1) reply_null(op.sink(), op.resp3());
     else reply_int(op.sink(), value);
 }
 
@@ -1338,10 +1339,13 @@ bool stream_xreadgroup_execute(Shard& shard, Op& op) {
             // Preserve an explicit ENTRIESREAD counter when it is usable. XDEL,
             // XTRIM, XSETID and XCLAIM LASTID are all reflected in these guards;
             // reloaded groups use the same metadata, with no new derived state.
-            if (group->entries_read >= 0 &&
+            if (group->entries_read != -1 &&
                 id_compare(group->last_delivered, value.first_id) >= 0 &&
                 !tombstones_after(value, group->last_delivered)) {
-                group->entries_read = group->entries_read == INT64_MAX ? -1 : group->entries_read + 1;
+                // Redis exposes the wrapped counter after ENTRIESREAD INT64_MAX.
+                // Use modulo arithmetic without signed overflow; only -1 is unknown.
+                group->entries_read = std::bit_cast<int64_t>(
+                    static_cast<uint64_t>(group->entries_read) + 1);
             } else if (value.header.entries_added) {
                 group->entries_read = infer_entries_read(value, entry.id);
             }

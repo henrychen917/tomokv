@@ -98,12 +98,12 @@ Incidence table and fix/no-fix recommendation are pending the quiet run.
 
 ```sh
 # Repeat these identical rows for PRE build/perfio/pre/tomokv and POST build/tomokv.
-taskset -c 112-127 python3 tests/perfio.py epoll-flip --binary build/tomokv \
+taskset -c 112-127 taskset -c 121-127 python3 tests/perfio.py epoll-flip --binary build/tomokv \
   --port 25125 --cores 112-119 --output docs/perfio/recheck-flip
-taskset -c 112-127 python3 tests/perfio.py epoll-lb --binary build/tomokv \
+taskset -c 112-127 taskset -c 121-127 python3 tests/perfio.py epoll-lb --binary build/tomokv \
   --port 25125 --cores 112-119 --output docs/perfio/recheck-lb
 # Repeat for both --mode 1s and 2s.
-taskset -c 112-127 python3 tests/perfio.py stream --mode 2s --net-io uring \
+taskset -c 112-127 taskset -c 121-127 python3 tests/perfio.py stream --mode 2s --net-io uring \
   --binary build/tomokv --port 25125 --cores 112-119 --output docs/perfio/recheck-stream
 
 taskset -c 112-127 docs/pfconfirm/run.sh --smoke --only PFDATATY.1 \
