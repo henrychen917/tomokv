@@ -287,6 +287,8 @@ def reduce_events(events):
                         counts['W11.loaded'] == counts['W11.flips'])
     counts['W13'] = int(bool(tracking_checks) and all(tracking_checks) and not tracking_pending)
     counts['W4'] = int(all(sections[f'expiry_section_{s}'] for s in ('fanout', 'exec', 'script')))
+    for name in ('fanout', 'exec', 'script'):
+        counts[f'W4.{name}'] = sections[f'expiry_section_{name}']   # straddling lookups
     # Any auto ID not derived from its owner's clock cut voids the witness (a miss,
     # never a new pass/fail assertion: the differential comparison stays the oracle).
     counts['W15'] = 0 if counts['W15.mismatch'] else counts['W15.observed']

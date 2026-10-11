@@ -107,7 +107,8 @@ class EvidenceTests(unittest.TestCase):
         for name in ('fanout', 'exec', 'script'):
             events += [E('expiry_section_' + name), E('expiry_lookup', 9, 100, 110, ms=111)]
         self.assertEqual(reduce_events(events)['W4'], 1)
-        self.assertEqual(reduce_events(events[:-1])['W4'], 0)
+        counts = reduce_events(events[:-1])
+        self.assertEqual((counts['W4'], counts['W4.exec'], counts['W4.script']), (0, 1, 0))
         self.assertEqual(reduce_events([E('expiry_section_exec'),
                                         E('expiry_lookup', 9, 100, 110, ms=109)])['W4'], 0)
 
