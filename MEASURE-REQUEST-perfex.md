@@ -257,6 +257,12 @@ ledger refusal until the maintainer updates EXPECT.
 
 ## perfex2
 
+Cold store clear now discards the old TTL estimate. The final server passes the
+requested repeated INFO/direct stress, perfex regressions and TTL differential
+matrix. Ordinary function bodies remain unchanged against the merged perfex
+POST. Scheduler deadline failures and the pfconfirm quiet-screen refusal are
+reported explicitly below; no assertion, timeout or quiet threshold was changed.
+
 Worktree `/home/user/Projects/cx-perfex`, branch `cx-perfex`; no push. Required
 `git fetch origin cpp && git merge --no-edit origin/cpp` completed as `04a9a0cce`,
 with `origin/cpp` at `991d48f65`. Merge resolution retains the landed wave-1
@@ -361,8 +367,9 @@ namespaces: Op 336, Client 1984, ThreadCtx 1408, Shard 1440, FlatStore 944,
 Rob<64> 192, AtomicEntry 144, Config 624. StoreSizeState stays 24 bytes with the
 same three fields. `.text` is exactly 7,645,932 bytes in both merged PRE and POST;
 `.rodata`, `.data` and `.bss` also remain equal. See `layouts.json` and
-`sections.json`. Perfex2 introduces no layout or total-text-size change and
-therefore requests no new PAD arm. The earlier perfex PAD B belongs only to
+`sections.json`. The data layouts and total `.text` size are unchanged, so no
+new PAD arm is requested; the changed cold function sizes are listed above.
+The earlier perfex PAD B belongs only to
 the historical comparison above.
 
 `make -j16 all` passed. All 29 current `job_production_units` targets build and
@@ -388,8 +395,44 @@ Each atomic setting uses one persistent split server at the same eight-core,
 16-shard, 6:2 geometry, then checks owned-process teardown. Logs and the complete
 result inventory are in `docs/perfex2/final-direct/`.
 
-The differential and harness campaign is in progress; its final results will
-be recorded here before completion.
+The TTL oracle matrix passes **32/32 legs**: `edgetime` and `hexpire`, seeds
+7/19/20/23, split and armed-fused, atomic 0/1. Both armed-fused read-local
+witnesses pass too (split 16/16, armed-fused 18/18 outcomes). The oracle is the
+local Redis 7.4.10 binary; both endpoints stop cleanly. Receipts and per-leg
+comparison coverage are in `docs/perfex2/final-differ/`.
+
+| Check | Historical perfex POST / before repair | Perfex2 POST |
+|---|---|---|
+| Exact gate INFO rows | One of the first two atomic rows fails, stale 3547376 ms | 0/20 failures at each atomic setting; all 1380 selected rows pass |
+| Direct expwide -> infofix | Atomic 0 round 3 fails, stale 3591111 ms | 0/20 failures at each atomic setting |
+| Frozen-clock flush freshness | Fails in both modes, stale 3599989 ms | All four flush forms in both modes: immediate 0, fresh 59988 ms |
+| Ordinary bodies after required merge | Merged prior POST is the comparison baseline | All 1208 selected hot bodies identical; only eight cold bodies differ |
+
+`python3 tests/gates_test.py` ran all 66 tests and reported **six timeout failure
+records**. Each is the unchanged 45-second scheduler fixture returning status
+124 at `_run_scheduler`'s process-return check; no outcome assertion failed.
+These are the task's permitted deadline-only failures under shared CPUs, not a
+green harness result. The raw log, exact test names and all six saved fixture
+directories are retained in `final-wiring/gates-test.log`,
+`final-wiring/deadline-failures.json` and `final-wiring/scheduler-failures.tar.gz`.
+The branch-local pfconfirm unit suite passes **28/28**.
+
+The requested POST `docs/pfconfirm/run.sh --smoke --only PFKEYSPA.1` was executed
+with the final digest and port 25120. It was **REFUSED before boot** by the
+unchanged quiet screen: 3.95 selected-core CPU-seconds already exceeded the
+0.48-second / 20-second budget in the first sample. No smoke workload or PMU
+window ran, and **SMOKE_OK remains unverified**. All raw refusal artifacts are
+in `docs/perfex2/final-smoke/`. A later process sample, after this lane's live
+tests and harness exited, found an active `cx-txnfix` probe on CPUs 112-127
+(`host-load.json`). No other lane's process was stopped or modified.
+
+On the maintainer's quiet allocation, rerun these unchanged checks with a fresh
+smoke output directory:
+
+```sh
+taskset -c 112-127 python3 tests/gates_test.py
+taskset -c 112-127 docs/pfconfirm/run.sh --smoke --only PFKEYSPA.1 --binary /home/user/Projects/cx-perfex/build/tomokv --sha256 e1d6258f0f74ffc5b2bb237bef81bb2a115070dbae1c434d400e2188010cf0c4 --port 25120 --output build/perfex2/pfconfirm-smoke-quiet
+```
 
 The maintainer's performance comparison for this follow-up is merged perfex PRE
 against perfex2 POST, using the digests above. This isolates the freshness repair
@@ -407,7 +450,7 @@ taskset -c 0-111 python3 tests/abbagate.py --cells /tmp/claude-1000/generic_meri
 taskset -c 0-111 docs/pfconfirm/run.sh --only PFKEYSPA.1 --binary "$PERFEX2_POST" --sha256 e1d6258f0f74ffc5b2bb237bef81bb2a115070dbae1c434d400e2188010cf0c4 --port 25000 --output build/perfex2/pfconfirm-full-post
 ```
 
-The requested full PFKEYSPA.1 POST verdict remains **NOT CONFIRMED** (the TTL
+The required full PFKEYSPA.1 POST verdict is **NOT CONFIRMED** (the TTL
 tax must stay absent), using the branch-local tool's unchanged trigger, caps,
 quiet screen and verdict rules. These are maintainer commands, not lane
 executions. The lane executes only the explicitly requested `--smoke`.
@@ -416,3 +459,10 @@ executions. The lane executes only the explicitly requested `--smoke`.
 |---|---|---|---|
 | GET/SET p8/p32, split | Not measured | Not measured | Maintainer ABBA required |
 | Fourteen generic guards | Not measured | Not measured | Maintainer ABBA required |
+
+Final freshness verification rechecks all three binary digests, `make -q all`,
+the absence of production changes after the audited build, untouched INFO/
+scheduler/audit/pfconfirm code since the required merge, the row collection
+lines and EXPECT constants, and no listeners in the allocated port range.
+See `docs/perfex2/final-freshness.json`. The aggregate campaign exit is nonzero
+because it honestly retains the scheduler timeout and smoke-refusal statuses.

@@ -1,0 +1,2 @@
+{"argv": ["taskset", "-c", "112-127", "/usr/bin/python3", "tests/gates_test.py"], "environment": {}, "exit_code": 1, "seconds": 136.51218186877668, "log": "docs/perfex2/final-wiring/gates-test.log"}
+{"argv": ["taskset", "-c", "112-127", "/usr/bin/python3", "docs/pfconfirm/test_confirm.py"], "environment": {}, "exit_code": 0, "seconds": 2.537748253904283, "log": "docs/perfex2/final-wiring/pfconfirm-units.log"}
