@@ -305,6 +305,8 @@ python3 tests/gate_history.py prepare --history "$ROW_HISTORY" "${HISTORY_ARGS[@
 # flipfix (IO4.1/IO4.2/IO4.4/CT4.3): +3 live rows in job_flip (close during FLIP on uring and
 # epoll, signal stop during FLIP + second SIGINT) and +2 serverless rows in job_flipfix_units;
 # both jobs are collected before the quick-tier exit: 511+5 = 516 quick, 528+5 = 533 full.
+# perfio: two IO4.19 rows + two PFDATATY.1 mode rows before the quick-tier exit.
+# DQ=+4, DF=+4: maintainer sets EXPECT_QUICK=625+4=629 / EXPECT_FULL=642+4=646.
 EXPECT_QUICK=625
 EXPECT_FULL=642                 # ABBA reports only; self-test remains counted.
 say(){ printf '  %-52s %s\n' "$1" "$2"; }
@@ -1047,7 +1049,7 @@ plan_jobs(){
     for FR in 0 1; do for atomic in 0 1; do JOB_NAMES+=("multidb-$mode-$FR-$atomic"); done; done
   done
   JOB_NAMES+=(aof-epoll aof-uring snapshot-epoll snapshot-uring debug-0 debug-1
-              wb_policy netio-1s netio-2s lb-stationary-1s lb-stationary-2s
+              wb_policy netio-1s netio-2s perfio_stream lb-stationary-1s lb-stationary-2s
               reorder_sync reorder_engagement reorder_identity
               core_units flipfix_units climonfix clientfix racefix_counters racefix_climon persistfix_units lbplanner_units exbatch_units exbatch_live wb_rule_units wbland_units splitlocal_units atomic_units netcmd_units netcap respcompat boot_grammar wait_units readonly
               release_batteries atomic_batteries bplus acl_recheck aclfix sort script_bounds scriptfix
@@ -1587,6 +1589,18 @@ job_netio(){
   done
   [ "$rc" = 0 ] && ok "$label" || bad "$label" "see $TMPDIR/{uring,epoll}.log"
 }
+job_perfio_stream(){
+  # These rows own their boots; no live pre-boot occupies $PORT.
+  for MODE in 1s 2s; do
+    row_begin "perfio XREADGROUP bounded delivery + Redis metadata ($MODE)"
+    py tests/perfio.py stream --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+        --ratio "$GATE_RATIO" --mode "$MODE" --net-io uring --output "$TMPDIR/perfio-$MODE" \
+        >"$TMPDIR/perfio-$MODE.log" 2>&1 \
+        && ok "perfio XREADGROUP bounded delivery + Redis metadata ($MODE)" \
+        || bad "perfio XREADGROUP bounded delivery + Redis metadata ($MODE)" "see $TMPDIR/perfio-$MODE.log"
+  done
+}
+
 job_lb_stationary(){
   local mode=$1 boot_fn=boot label="stationary balanced LB holds still ($1)"
   [ "$mode" != 1s ] || boot_fn=boot_fused
@@ -2535,6 +2549,14 @@ row_begin "FLIP signal stop during FLIP + second SIGINT"
       --ratio "$GATE_RATIO" --output "$TMPDIR/flipfix-sigint"; } >"$TMPDIR/gate-flipfix-signal.txt" 2>&1 \
     && ok "FLIP signal stop during FLIP + second SIGINT" \
     || bad "FLIP signal stop during FLIP + second SIGINT" "see $TMPDIR/gate-flipfix-signal.txt"
+# IO4.19 rows own this slot's now-free port; both FLIP and default-on client-lb use the transfer.
+for CASE in epoll-flip epoll-lb; do
+  row_begin "perfio stale epoll registration ($CASE)"
+  py tests/perfio.py "$CASE" --binary "$CANDIDATE_BINARY" --port "$PORT" --cores "$CORES" \
+      --ratio "$GATE_RATIO" --output "$TMPDIR/perfio-$CASE" >"$TMPDIR/perfio-$CASE.log" 2>&1 \
+      && ok "perfio stale epoll registration ($CASE)" \
+      || bad "perfio stale epoll registration ($CASE)" "see $TMPDIR/perfio-$CASE.log"
+done
 }
 
 job_flip_saturated(){
@@ -3555,6 +3577,7 @@ collect_job reorder_identity
 collect_job wb_policy
 for MODE in 1s 2s; do collect_job "lb-stationary-$MODE"; done
 for MODE in 1s 2s; do collect_job "netio-$MODE"; done
+collect_job perfio_stream
 
 # WB4/IO5 and IO1: one new row before the quick exit; EXPECT counts stay maintainer-owned.
 collect_job splitlocal_units

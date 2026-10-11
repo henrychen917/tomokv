@@ -1,0 +1,27 @@
+make: Entering directory '/home/user/Projects/cx-perfio/build/perfio/nt4-source'
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=147428 -DTOMO_JEMALLOC -I. -c src/main.cc -o build/src/main.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/net/tls.cc -o build/src/net/tls.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/commands.cc -o build/src/cmd/commands.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/glob.cc -o build/src/cmd/glob.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=127880 -DTOMO_JEMALLOC -I. -c src/cmd/xshard.cc -o build/src/cmd/xshard.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=35369 -DTOMO_JEMALLOC -I. -c src/cmd/acl.cc -o build/src/cmd/acl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/hll.cc -o build/src/cmd/hll.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=31330 -DTOMO_JEMALLOC -I. -c src/cmd/t_server.cc -o build/src/cmd/t_server.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param large-unit-insns=10600 -DTOMO_JEMALLOC -I. -c src/cmd/t_string.cc -o build/src/cmd/t_string.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_string_notify.cc -o build/src/cmd/t_string_notify.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_hash.cc -o build/src/cmd/t_hash.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=25338 -DTOMO_JEMALLOC -I. -c src/cmd/t_list.cc -o build/src/cmd/t_list.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_hash_ttl.cc -o build/src/cmd/t_hash_ttl.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=33395 -DTOMO_JEMALLOC -I. -c src/cmd/t_zset.cc -o build/src/cmd/t_zset.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=23568 -DTOMO_JEMALLOC -I. -c src/cmd/t_set.cc -o build/src/cmd/t_set.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_zset_ops.cc -o build/src/cmd/t_zset_ops.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread --param inline-unit-growth=0 --param large-unit-insns=14410 -DTOMO_JEMALLOC -I. -c src/cmd/geo.cc -o build/src/cmd/geo.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_stream.cc -o build/src/cmd/t_stream.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/t_stream_groups.cc -o build/src/cmd/t_stream_groups.o
+g++ -std=c++20 -O2 -g -Wall -Wextra -march=native -pthread -DTOMO_JEMALLOC -I. -c src/cmd/scripting.cc -o build/src/cmd/scripting.o
+src/cmd/scripting.cc:42:10: fatal error: ../../third_party/lua/lua_amalgamation.c: No such file or directory
+   42 | #include "../../third_party/lua/lua_amalgamation.c"
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+make: *** [Makefile:231: build/src/cmd/scripting.o] Error 1
+make: *** Waiting for unfinished jobs....

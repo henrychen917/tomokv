@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-perfio/tests/wbland_checks.py", line 333, in <module>
+    else: check(a.group, (a.build or ROOT/'build').resolve(), a.proofs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-perfio/tests/wbland_checks.py", line 280, in check
+    for case in CASES: run(build/f'wbland-{ns}unit', case)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Projects/cx-perfio/tests/wbland_checks.py", line 269, in run
+    r = subprocess.run([str(binary), case, *extra], capture_output=True, text=True, timeout=60)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+FileNotFoundError: [Errno 2] No such file or directory: '/home/user/Projects/cx-perfio/build/wbland-unit'

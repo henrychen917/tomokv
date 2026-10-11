@@ -33,13 +33,15 @@ def boot(args, label, extra=()):
         assert probe.connect_ex(("127.0.0.1", args.port)) != 0, "owned port already busy"
     argv = ["taskset", "-c", args.cores, str(args.binary.resolve()),
             "--bind", "127.0.0.1", "--port", str(args.port), "--dir", str(directory),
-            "--save", "", "--appendonly", "no"]
+            "--save", "", "--appendonly", "no", "--enable-debug-command", "yes"]
     if not args.oracle:
-        argv += ["--thread-mode", args.mode, "--ratio", args.ratio, "--shards", "16",
+        argv += ["--thread-mode", args.mode, "--shards", "16",
                  "--net-io", args.net_io, "--flip-auto", "0", "--key-lb", "0",
                  "--client-lb", "0", "--enable-debug-command", "yes", *extra]
         if args.mode == "1s":
-            argv += ["--read-local", "1"]
+            argv += ["--read-local", str(getattr(args, "read_local", 1))]
+        else:
+            argv += ["--ratio", args.ratio]
     emit(event="boot", argv=argv, affinity=sorted(os.sched_getaffinity(0)))
     with (directory / "server.log").open("w") as log:
         p = subprocess.Popen(argv, stdout=log, stderr=subprocess.STDOUT)
@@ -222,7 +224,7 @@ def metadata(c):
     def read(count=1):
         return c.must("XREADGROUP", "GROUP", "g", "c", "COUNT", count, "STREAMS", "x", ">")
     cases = ("plain", "xdel-ahead", "xdel-cursor", "xtrim", "xsetid", "xclaim",
-             "xautoclaim", "entriesread", "arbitrary", "tail")
+             "xautoclaim", "entriesread", "arbitrary", "tail", "reload", "trim-empty")
     for case in cases:
         c.must("DEL", "x")
         populate(c, 8)
@@ -242,6 +244,8 @@ def metadata(c):
             c.must("XAUTOCLAIM", "x", "g", "other", 0, "0-0", "COUNT", 2)
         elif case == "entriesread": c.must("XGROUP", "SETID", "x", "g", "2-0", "ENTRIESREAD", 40)
         elif case == "tail": c.must("XADD", "x", "9-0", "f", "v")
+        elif case == "reload": c.must("DEBUG", "RELOAD")
+        elif case == "trim-empty": c.must("XTRIM", "x", "MAXLEN", 0)
         snapshot(case+":changed")
         for i in range(7):
             read()
