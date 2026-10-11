@@ -1,0 +1,5 @@
+== build/tomokv-respresume-pad-a 2s uring: fragment (must pass), cpu and neighbour (must look like PRE)
+{"fragment_trials": 4692, "seeds": [7, 19, 20, 23], "result": "PASS"}
+{"cpu_seconds": [0.75, 0.75, 0.7400000000000002], "median": 0.75, "limit": 999.0}
+{"owner": 1, "pings": 43, "median_ms": 3.8117533549666405, "max_ms": 53.48916118964553, "limit_ms": 999.0}
+rc=0

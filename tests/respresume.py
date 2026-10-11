@@ -60,7 +60,7 @@ def exchange(endpoint, payload, replies, cuts, resp3, closes=False, tls=False):
         for end in cuts:
             try:
                 s.sendall(payload[previous:end])
-            except (BrokenPipeError, ConnectionResetError):
+            except (BrokenPipeError, ConnectionResetError, ssl.SSLEOFError):
                 assert closes, 'unexpected close while sending valid frame'
                 break
             previous = end
@@ -70,7 +70,8 @@ def exchange(endpoint, payload, replies, cuts, resp3, closes=False, tls=False):
         if closes:
             try:
                 trailing = f.read(1)
-            except ConnectionResetError:
+            except (ConnectionResetError, ssl.SSLEOFError):
+                # TLS: a close without close_notify surfaces as an unexpected EOF.
                 trailing = b''
             assert trailing == b'', ('missing protocol-error close', trailing)
         else:
@@ -123,6 +124,8 @@ def fragmented(args):
     count = 0
     for resp3 in (False, True):
         for label, payload, replies, closes in corpus():
+            if closes and args.skip_close_cases:
+                continue
             expected = exchange(oracle, payload, replies, [len(payload)], resp3, closes)
             whole = exchange(endpoint, payload, replies, [len(payload)], resp3, closes, args.tls)
             assert whole == expected, (label, resp3, 'whole differs from Redis', whole, expected)
@@ -237,6 +240,10 @@ def main():
     ap.add_argument('--cpu-limit', type=float, default=.2)
     ap.add_argument('--median-ms', type=float, default=1)
     ap.add_argument('--tls', action='store_true')
+    # Diagnostic only (never used by gate rows): TLS on io_uring does not close after a
+    # protocol-error reply while the peer is silent, in PRE and POST alike, so the
+    # close-expecting cases cannot run there. They run on plain TCP and on TLS/epoll.
+    ap.add_argument('--skip-close-cases', action='store_true')
     args = ap.parse_args()
     def expired(_signal, _frame):
         raise TimeoutError('respresume row exceeded its fixed 55-second deadline')
