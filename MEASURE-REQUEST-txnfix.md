@@ -571,7 +571,10 @@ No push or performance run was performed.
    unconditional attempt-pointer initialization/deletion. The pointer occupies
    existing ScatterState padding at byte `0x310`; ownership is bit 31 of the
    existing `watch_refs` word at `0x18`. Only the existing nonzero-reference
-   reaper arm can call the cold attempt destructor. The constructor, destructor
+   reaper arm can call the cold attempt destructor. The group lifetime unit
+   accounts for this ownership bit in its exact pin counts and adds a check
+   that release fails while an owner pin is live; no lifetime/data guard is
+   removed. The constructor, destructor
    and `xshard_destroy` are canonically identical to PRE in both namespaces.
    `5eb7d4574` places group read/completion work behind existing atomic flags;
    `851a1ab4a` freezes the parsed kind after its address-taking parsers;
@@ -629,7 +632,9 @@ No push or performance run was performed.
    [cost-check](docs/txnfix/txnfix3/cost-check/). POST coverage includes all LMOVE
    directions, BRPOPLPUSH/all BLMOVE directions after all four waiters have
    registered, both LMPOP/ZMPOP ends with COUNT 3, and 100 four-way SMOVE races.
-   Original T05 parameters and G5 assertions were not changed.
+   Original T05 parameters and G5 assertions were not changed. The final
+   controls reproduce PRE **duplicate delivery** in both modes and pass POST
+   in both modes: [fresh paired G5 receipts](docs/txnfix/txnfix3/final4-controls/runs.json).
 
 5. **Exclusive fallback.** The existing `e1609593d` fallback remains a separate
    commit from Stage B core `21858278e` and this lane's goals 1–4. Its policy is
@@ -654,15 +659,16 @@ Server cold append remains 24640 bytes; no old Server field moves.
   `5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20`.
 - POST: `build/txnfix3/post-final4/tomokv` (a frozen copy of tested `build/tomokv`), SHA-256
   `1c808efda63159b31e45e7e960053052b8ac6cd3345049dc23e857bd3da845cc`.
-- Previous-checkpoint PAD **(A), limited PRE-behaviour aggregate-text-size control**
-  (superseded; the final binary control is being regenerated after live proof):
-  `build/txnfix3/pad-certified/tomokv`, SHA-256
-  `83d6a51112ad42148a0adadd07eb2a6bd42c6d24e993b8d64672262d7df68e3e`.
+- PAD **(A), limited PRE-behaviour aggregate-text-size control**:
+  `build/txnfix3/pad-final4/tomokv`, SHA-256
+  `34a0b1a80c587e25b09aae7eede6f12c39fa27ebbbe6c127cb270a011ff07c3a`.
   It links unchanged PRE objects plus unreachable padding. PRE .text is
-  7646972 bytes; the previous POST/PAD were 7740636. This is **not** a full internal-function
-  or Server-cold-tail layout twin. It is diagnostic only, cannot close the
-  open universal instruction bar, and is not evidence of an accepted gain.
-  [Exact build and limits](docs/txnfix/txnfix3/pad-certified/build.json).
+  7646972 bytes; POST/PAD are 7740572. This is **not** a full internal-function
+  or Server-cold-tail layout twin. No full layout twin was produced. This
+  limited control is diagnostic only, cannot close the open universal
+  instruction bar, and is not evidence of an accepted gain.
+  [Exact build and limits](docs/txnfix/txnfix3/pad-final4/build.json),
+  [frozen digests](docs/txnfix/txnfix3/final4-frozen.json).
 
 | Cell family | PRE rate / cycles / IPC / instr per op | POST | Deciding evidence |
 |---|---|---|---|
@@ -697,16 +703,58 @@ collected at **3671/3700**. The maintainer's full-branch counts would be
 **635/652**, from protected **625/642**. Neither EXPECT assignment changed.
 [Line-based receipt](docs/txnfix/txnfix3/gate-row-lines.json).
 
-### Final runtime proof in progress
+### Final proof and handoff
 
-The final runtime rebuild passes `make all`, all 29 production targets,
-`mdbqsbr-live-arms`, and 30/30 freshness checks. All locked layouts and old
-member offsets match the retained PRE comparison; all 35 existing TLS symbols
-retain their offsets and sizes. Final `gates_test` is 66/66. The main 154-row rerun is complete: txniso 8/8,
-AOF 4/4, all NX cells 0/8192, original EXEC POST 28/28 (PRE 23 data failures),
-Stage B 20/20, all group/mover batteries, Redis 112 legs plus two armed
-witnesses, WATCH 60/60 fresh boots, and four directed units pass. Broad is
-36/38: the known fused expected-old MGET assertion and resize abort remain
-failures. The 15 persistence/writer/FLIP companions and negative controls are
-still running. This is a checkpoint, not a completion claim; final receipts
-use the `final4` prefix.
+The final runtime source is `e904cd285`; every POST runtime proof below uses
+SHA-256 `1c808efda63159b31e45e7e960053052b8ac6cd3345049dc23e857bd3da845cc`.
+The checker validates receipt completeness and exact NX repeats in
+[final4-summary.json](docs/txnfix/txnfix3/final4-summary.json).
+TomoKV correctness servers use CPUs 112–119; the Redis oracle uses CPU 120;
+clients use 121–127. Ports are 22600–22699, and compiles/serverless proof stay
+within CPUs 112–127. No benchmark,
+full gate, workload on cores 0–111, or push was performed.
+
+| Proof family | Final result | Receipt |
+|---|---|---|
+| Build and production targets | `all`, all 29 job targets, `mdbqsbr-live-arms`; 30/30 freshness checks | [build](docs/txnfix/txnfix3/final4-build/runs.json) |
+| txniso and AOF | 8/8 configurations; 4/4 AOF companions | [main proof](docs/txnfix/txnfix3/final4-proof/runs.json) |
+| EXEC NX | Four cells, each 0 failures / 8192; two bare controls also 0/8192 | [main proof](docs/txnfix/txnfix3/final4-proof/runs.json) |
+| Original EXEC audits | POST 28/28; PRE 23 data failures and five passes (four WATCH controls plus one counter stress leg) | [originals](docs/txnfix/txnfix3/final4-proof/original-post/) |
+| Original-parameter Stage B | 20/20: T03/T04/T05 (SMOVE and RPOPLPUSH)/T10, both modes and atomic settings | [Stage B](docs/txnfix/txnfix3/final4-proof/stage-b/) |
+| Group batteries | G1–G6 + GX in both modes × databases 1/16; AOF 2/2 | [main proof](docs/txnfix/txnfix3/final4-proof/runs.json) |
+| Atomic-0 mover coverage | Both modes pass all mover variants; fresh G5 PRE fails duplicate delivery 2/2, POST passes 2/2 | [paired controls](docs/txnfix/txnfix3/final4-controls/runs.json) |
+| Redis 7.4 | 112/112 focused matrix legs plus both armed-fused witnesses | [split](docs/txnfix/txnfix3/final4-proof/differ-split/test.log), [fused](docs/txnfix/txnfix3/final4-proof/differ-armed-fused/test.log) |
+| Broad batteries | 36/38; two existing fused failures retained below | [main proof](docs/txnfix/txnfix3/final4-proof/runs.json) |
+| Writer/AOF/snapshot/FLIP | 15/15, including four 60-second writer checks and 183 FLIP checks | [companions](docs/txnfix/txnfix3/final4-extras/runs.json) |
+| WATCH liveness | 60/60 fresh boots; crossed-WATCH POST 4/4 while PRE times out 4/4 at the unchanged 20-second deadline | [crossed controls](docs/txnfix/txnfix3/final4-cross-watch/runs.json) |
+| Directed transaction units | group, admission, intents, help all pass; independently unfenced/undrained controls fail their exact intended assertions | [controls](docs/txnfix/txnfix3/final4-controls/) |
+| MSETNX barrier witness | Both tests pass in both modes; barrier-removed build fails the new witness 4/4 | [broken-barrier receipts](docs/txnfix/txnfix3/final4-barrier-control/proof/runs.json) |
+| Serverless and ledger | 66/66 gates_test; INFO/shell checks pass; ledger source/fixture 652/652, protected EXPECT mismatch only (self-tests 9/10) | [serverless](docs/txnfix/txnfix3/final4-serverless/runs.json) |
+| Identity/layout | selected hot 1208/1208; lbstall 601/601 + 603/603; locked sizes/old offsets and 35 existing TLS symbols preserved | [identity](docs/txnfix/txnfix3/identity-final4/README.md) |
+| Scatter cost | Constructor/destructor/destroy canonical identity; 264 paired sampled cases have no per-function increase; universal sequence identity remains unproven | [disassembly review](docs/txnfix/txnfix3/scatter-cost.md) |
+
+The two nonzero broad rows are **not waived**. Armed-fused `execatomic` expects
+an old MGET value but receives uniformly new values; concurrent-read legs show
+zero torn reads. Armed-fused `atomic_torn` aborts the server with SIGABRT (-6)
+on the previously reported read-local resize path. Both failures reproduce on
+the final PRE controls; the resize defect remains unfixed. Prior source/stack
+analysis is in [the resize report](docs/txnfix/txnfix2/read-local-atomic-resize.md).
+No assertion was changed to make either pass.
+
+The missing universal ordinary-path instruction proof is still a failure to
+complete **goal 1's literal acceptance requirement**. Preparation, execution
+and completion have changed emitted bodies; bounded paths with fewer
+instructions cannot certify all values, errors, snapshot interactions or
+phase-two branches. The limited PAD is also not a full layout twin. The
+quiet-box performance null remains unmeasured. **Stage B is not accepted or
+merge ready on this handoff.** Goals 2–4 have their code and final receipts;
+the existing fallback remains separately reviewable in `e1609593d`, with its
+policy decision left to the owner.
+
+All receipts, including rejected compiler/fixture trials and earlier complete
+passes, are retained. Directory names such as `certified` are checkpoint
+labels, not acceptance claims; [PROOF-REVISIONS.md](docs/txnfix/txnfix3/PROOF-REVISIONS.md)
+identifies the binaries and compressed trace maps. Production source checks
+pass `git diff --check`; raw receipts retain original whitespace. The branch
+adds no txnfix3 gate row (DQ=0, DF=0), and neither protected EXPECT assignment
+was edited. No push was performed.

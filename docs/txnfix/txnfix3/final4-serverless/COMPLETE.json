@@ -1,0 +1,30 @@
+[
+  {
+    "name": "gates-test",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/gates_test.py"
+    ],
+    "exit_code": 0,
+    "seconds": 282.07857386022806,
+    "arm": "post",
+    "sha256": "1c808efda63159b31e45e7e960053052b8ac6cd3345049dc23e857bd3da845cc",
+    "reused_from": "docs/txnfix/txnfix3/final4-proof/gates-test/test.log"
+  },
+  {
+    "name": "ledger-self-tests",
+    "command": [
+      "taskset",
+      "-c",
+      "112-127",
+      "python3",
+      "tests/gate_ledger_fixture.py",
+      "--self-test"
+    ],
+    "exit_code": 1,
+    "seconds": 0.46430283691734076
+  }
+]

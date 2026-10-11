@@ -1,0 +1,863 @@
+{
+  "runtime_source": "e904cd285",
+  "post_sha256": "1c808efda63159b31e45e7e960053052b8ac6cd3345049dc23e857bd3da845cc",
+  "acceptance": "NOT ACCEPTED: universal ordinary-path instruction-sequence identity remains unproven; quiet-box null unmeasured; existing broad failures retained.",
+  "families": {
+    "txniso": {
+      "rows": 8,
+      "passed": 8,
+      "failed": [],
+      "names": [
+        "txniso-2s-a0-db1",
+        "txniso-2s-a0-db16",
+        "txniso-2s-a1-db1",
+        "txniso-2s-a1-db16",
+        "txniso-1s-a0-db1",
+        "txniso-1s-a0-db16",
+        "txniso-1s-a1-db1",
+        "txniso-1s-a1-db16"
+      ]
+    },
+    "txniso AOF": {
+      "rows": 4,
+      "passed": 4,
+      "failed": [],
+      "names": [
+        "txniso-aof-2s-a0",
+        "txniso-aof-2s-a1",
+        "txniso-aof-1s-a0",
+        "txniso-aof-1s-a1"
+      ]
+    },
+    "EXEC NX": {
+      "rows": 4,
+      "passed": 4,
+      "failed": [],
+      "names": [
+        "nx-2s-a0",
+        "nx-2s-a1",
+        "nx-1s-a0",
+        "nx-1s-a1"
+      ]
+    },
+    "bare NX": {
+      "rows": 2,
+      "passed": 2,
+      "failed": [],
+      "names": [
+        "nx-bare-2s",
+        "nx-bare-1s"
+      ]
+    },
+    "movers": {
+      "rows": 2,
+      "passed": 2,
+      "failed": [],
+      "names": [
+        "movers-2s-a0",
+        "movers-1s-a0"
+      ]
+    },
+    "G5 standalone": {
+      "rows": 2,
+      "passed": 2,
+      "failed": [],
+      "names": [
+        "G5-2s-a0",
+        "G5-1s-a0"
+      ]
+    },
+    "txngroup": {
+      "rows": 4,
+      "passed": 4,
+      "failed": [],
+      "names": [
+        "txngroup-2s-db1",
+        "txngroup-2s-db16",
+        "txngroup-1s-db1",
+        "txngroup-1s-db16"
+      ]
+    },
+    "txngroup AOF": {
+      "rows": 2,
+      "passed": 2,
+      "failed": [],
+      "names": [
+        "txngroup-aof-2s",
+        "txngroup-aof-1s"
+      ]
+    },
+    "Redis matrix": {
+      "rows": 2,
+      "passed": 2,
+      "failed": [],
+      "names": [
+        "differ-split",
+        "differ-armed-fused"
+      ]
+    },
+    "original EXEC POST": {
+      "rows": 28,
+      "passed": 28,
+      "failed": [],
+      "names": [
+        "original-post/t01_exec_counter-2s-a0",
+        "original-post/t02_exec_directed-2s-a0",
+        "original-post/t02b_exec_vs_exec-2s-a0",
+        "original-post/t14_exec_window-2s-a0",
+        "original-post/t15_exec_only_stress-2s-a0",
+        "original-post/t17_queue_exec-2s-a0",
+        "original-post/t18_watch_cas-2s-a0",
+        "original-post/t01_exec_counter-2s-a1",
+        "original-post/t02_exec_directed-2s-a1",
+        "original-post/t02b_exec_vs_exec-2s-a1",
+        "original-post/t14_exec_window-2s-a1",
+        "original-post/t15_exec_only_stress-2s-a1",
+        "original-post/t17_queue_exec-2s-a1",
+        "original-post/t18_watch_cas-2s-a1",
+        "original-post/t01_exec_counter-1s-a0",
+        "original-post/t02_exec_directed-1s-a0",
+        "original-post/t02b_exec_vs_exec-1s-a0",
+        "original-post/t14_exec_window-1s-a0",
+        "original-post/t15_exec_only_stress-1s-a0",
+        "original-post/t17_queue_exec-1s-a0",
+        "original-post/t18_watch_cas-1s-a0",
+        "original-post/t01_exec_counter-1s-a1",
+        "original-post/t02_exec_directed-1s-a1",
+        "original-post/t02b_exec_vs_exec-1s-a1",
+        "original-post/t14_exec_window-1s-a1",
+        "original-post/t15_exec_only_stress-1s-a1",
+        "original-post/t17_queue_exec-1s-a1",
+        "original-post/t18_watch_cas-1s-a1"
+      ]
+    },
+    "original EXEC PRE": {
+      "rows": 28,
+      "passed": 5,
+      "failed": [
+        {
+          "name": "original-pre/t01_exec_counter-2s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t02_exec_directed-2s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t02b_exec_vs_exec-2s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t14_exec_window-2s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t15_exec_only_stress-2s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t17_queue_exec-2s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t02_exec_directed-2s-a1",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t02b_exec_vs_exec-2s-a1",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t14_exec_window-2s-a1",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t15_exec_only_stress-2s-a1",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t17_queue_exec-2s-a1",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t01_exec_counter-1s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t02_exec_directed-1s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t02b_exec_vs_exec-1s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t14_exec_window-1s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t15_exec_only_stress-1s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t17_queue_exec-1s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t01_exec_counter-1s-a1",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t02_exec_directed-1s-a1",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t02b_exec_vs_exec-1s-a1",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t14_exec_window-1s-a1",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t15_exec_only_stress-1s-a1",
+          "exit_code": 1
+        },
+        {
+          "name": "original-pre/t17_queue_exec-1s-a1",
+          "exit_code": 1
+        }
+      ],
+      "names": [
+        "original-pre/t01_exec_counter-2s-a0",
+        "original-pre/t02_exec_directed-2s-a0",
+        "original-pre/t02b_exec_vs_exec-2s-a0",
+        "original-pre/t14_exec_window-2s-a0",
+        "original-pre/t15_exec_only_stress-2s-a0",
+        "original-pre/t17_queue_exec-2s-a0",
+        "original-pre/t18_watch_cas-2s-a0",
+        "original-pre/t01_exec_counter-2s-a1",
+        "original-pre/t02_exec_directed-2s-a1",
+        "original-pre/t02b_exec_vs_exec-2s-a1",
+        "original-pre/t14_exec_window-2s-a1",
+        "original-pre/t15_exec_only_stress-2s-a1",
+        "original-pre/t17_queue_exec-2s-a1",
+        "original-pre/t18_watch_cas-2s-a1",
+        "original-pre/t01_exec_counter-1s-a0",
+        "original-pre/t02_exec_directed-1s-a0",
+        "original-pre/t02b_exec_vs_exec-1s-a0",
+        "original-pre/t14_exec_window-1s-a0",
+        "original-pre/t15_exec_only_stress-1s-a0",
+        "original-pre/t17_queue_exec-1s-a0",
+        "original-pre/t18_watch_cas-1s-a0",
+        "original-pre/t01_exec_counter-1s-a1",
+        "original-pre/t02_exec_directed-1s-a1",
+        "original-pre/t02b_exec_vs_exec-1s-a1",
+        "original-pre/t14_exec_window-1s-a1",
+        "original-pre/t15_exec_only_stress-1s-a1",
+        "original-pre/t17_queue_exec-1s-a1",
+        "original-pre/t18_watch_cas-1s-a1"
+      ]
+    },
+    "Stage B": {
+      "rows": 20,
+      "passed": 20,
+      "failed": [],
+      "names": [
+        "stage-b/T03-2s-a0",
+        "stage-b/T04-2s-a0",
+        "stage-b/T05-smove-2s-a0",
+        "stage-b/T05-rpoplpush-2s-a0",
+        "stage-b/T03-2s-a1",
+        "stage-b/T04-2s-a1",
+        "stage-b/T05-smove-2s-a1",
+        "stage-b/T05-rpoplpush-2s-a1",
+        "stage-b/T10-2s-a1",
+        "stage-b/T03-1s-a0",
+        "stage-b/T04-1s-a0",
+        "stage-b/T05-smove-1s-a0",
+        "stage-b/T05-rpoplpush-1s-a0",
+        "stage-b/T03-1s-a1",
+        "stage-b/T04-1s-a1",
+        "stage-b/T05-smove-1s-a1",
+        "stage-b/T05-rpoplpush-1s-a1",
+        "stage-b/T10-1s-a1",
+        "stage-b/t10_msetnx_hold-2s-a0",
+        "stage-b/t10_msetnx_hold-1s-a0"
+      ]
+    },
+    "broad": {
+      "rows": 38,
+      "passed": 36,
+      "failed": [
+        {
+          "name": "broad-1s/execatomic",
+          "exit_code": 1
+        },
+        {
+          "name": "broad-1s/atomic_torn",
+          "exit_code": 1
+        }
+      ],
+      "names": [
+        "broad-2s/multi_exec",
+        "broad-2s/execfix",
+        "broad-2s/execiso",
+        "broad-2s/execatomic",
+        "broad-2s/multirace",
+        "broad-2s/multires",
+        "broad-2s/watchlive",
+        "broad-2s/blockmulti",
+        "broad-2s/pipeorder",
+        "broad-2s/session_monotonic",
+        "broad-2s/xmove",
+        "broad-2s/xscript",
+        "broad-2s/scriptatomic",
+        "broad-2s/atomic_torn",
+        "broad-2s/atomic_ryow",
+        "broad-2s/atomic_hazards",
+        "broad-2s/atomic_plain",
+        "broad-2s/storeorder",
+        "broad-2s/atomic_plain-a0",
+        "broad-1s/multi_exec",
+        "broad-1s/execfix",
+        "broad-1s/execiso",
+        "broad-1s/execatomic",
+        "broad-1s/multirace",
+        "broad-1s/multires",
+        "broad-1s/watchlive",
+        "broad-1s/blockmulti",
+        "broad-1s/pipeorder",
+        "broad-1s/session_monotonic",
+        "broad-1s/xmove",
+        "broad-1s/xscript",
+        "broad-1s/scriptatomic",
+        "broad-1s/atomic_torn",
+        "broad-1s/atomic_ryow",
+        "broad-1s/atomic_hazards",
+        "broad-1s/atomic_plain",
+        "broad-1s/storeorder",
+        "broad-1s/atomic_plain-a0"
+      ]
+    },
+    "WATCH fresh boots": {
+      "rows": 2,
+      "passed": 2,
+      "failed": [],
+      "names": [
+        "watchlive-2s",
+        "watchlive-1s"
+      ]
+    },
+    "directed units": {
+      "rows": 4,
+      "passed": 4,
+      "failed": [],
+      "names": [
+        "unit-txn_group",
+        "unit-txn_admission",
+        "unit-txn_intents",
+        "unit-txn_help"
+      ]
+    },
+    "writer AOF snapshot FLIP": {
+      "rows": 15,
+      "passed": 15,
+      "failed": [],
+      "names": [
+        "writer-2s-a0",
+        "writer-2s-a1",
+        "aof-2s-prepare",
+        "aof-2s-verify",
+        "aof-2s-scan",
+        "snapshot-2s-mset",
+        "snapshot-2s-exec",
+        "writer-1s-a0",
+        "writer-1s-a1",
+        "aof-1s-prepare",
+        "aof-1s-verify",
+        "aof-1s-scan",
+        "snapshot-1s-mset",
+        "snapshot-1s-exec",
+        "flip"
+      ]
+    },
+    "PRE txniso controls": {
+      "rows": 4,
+      "passed": 0,
+      "failed": [
+        {
+          "name": "pre-txniso-2s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "pre-txniso-2s-a1",
+          "exit_code": 1
+        },
+        {
+          "name": "pre-txniso-1s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "pre-txniso-1s-a1",
+          "exit_code": 1
+        }
+      ],
+      "names": [
+        "pre-txniso-2s-a0",
+        "pre-txniso-2s-a1",
+        "pre-txniso-1s-a0",
+        "pre-txniso-1s-a1"
+      ]
+    },
+    "crossed WATCH POST": {
+      "rows": 4,
+      "passed": 4,
+      "failed": [],
+      "names": [
+        "post-2s-a0",
+        "post-2s-a1",
+        "post-1s-a0",
+        "post-1s-a1"
+      ]
+    },
+    "crossed WATCH PRE": {
+      "rows": 4,
+      "passed": 0,
+      "failed": [
+        {
+          "name": "pre-2s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "pre-2s-a1",
+          "exit_code": 1
+        },
+        {
+          "name": "pre-1s-a0",
+          "exit_code": 1
+        },
+        {
+          "name": "pre-1s-a1",
+          "exit_code": 1
+        }
+      ],
+      "names": [
+        "pre-2s-a0",
+        "pre-2s-a1",
+        "pre-1s-a0",
+        "pre-1s-a1"
+      ]
+    },
+    "G5 final PRE": {
+      "rows": 2,
+      "passed": 0,
+      "failed": [
+        {
+          "name": "pre-2s-G5",
+          "exit_code": 1
+        },
+        {
+          "name": "pre-1s-G5",
+          "exit_code": 1
+        }
+      ],
+      "names": [
+        "pre-2s-G5",
+        "pre-1s-G5"
+      ]
+    },
+    "G5 final POST": {
+      "rows": 2,
+      "passed": 2,
+      "failed": [],
+      "names": [
+        "post-2s-G5",
+        "post-1s-G5"
+      ]
+    },
+    "barrier removed": {
+      "rows": 4,
+      "passed": 0,
+      "failed": [
+        {
+          "name": "multirace-2s",
+          "exit_code": 1
+        },
+        {
+          "name": "multires-2s",
+          "exit_code": 1
+        },
+        {
+          "name": "multirace-1s",
+          "exit_code": 1
+        },
+        {
+          "name": "multires-1s",
+          "exit_code": 1
+        }
+      ],
+      "names": [
+        "multirace-2s",
+        "multires-2s",
+        "multirace-1s",
+        "multires-1s"
+      ]
+    }
+  },
+  "build_targets": 29,
+  "freshness": 30,
+  "gates_test": 66,
+  "redis_comparison_legs": 112,
+  "redis_armed_witnesses": 2,
+  "watch_fresh_boots": 60,
+  "nx_repeats_per_cell": 8192,
+  "selected_hot": 1208,
+  "lbstall": {
+    "normal": 601,
+    "db0": 603
+  },
+  "scatter_count_pairs": 264,
+  "full_inventory": {
+    "total": 16656,
+    "equal": 16077,
+    "changed": 579
+  },
+  "other_main_nonzero": [
+    {
+      "name": "ledger",
+      "exit_code": 1
+    }
+  ],
+  "baseline_controls": [
+    {
+      "name": "pre-1s-execatomic",
+      "arm": "pre",
+      "command": [
+        "taskset",
+        "-c",
+        "121-127",
+        "python3",
+        "tests/execatomic.py",
+        "127.0.0.1",
+        "22601"
+      ],
+      "server": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+        "--bind",
+        "127.0.0.1",
+        "--port",
+        "22601",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--enable-debug-command",
+        "yes",
+        "--read-local",
+        "1",
+        "--thread-mode",
+        "1s",
+        "--atomic",
+        "1",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--key-lb",
+        "0",
+        "--client-lb",
+        "0",
+        "--flip-auto",
+        "0"
+      ],
+      "exit_code": 1,
+      "seconds": 14.48366509610787,
+      "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+    },
+    {
+      "name": "pre-1s-atomic_torn",
+      "arm": "pre",
+      "command": [
+        "taskset",
+        "-c",
+        "121-127",
+        "python3",
+        "tests/atomic_torn.py",
+        "127.0.0.1",
+        "22601"
+      ],
+      "server": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+        "--bind",
+        "127.0.0.1",
+        "--port",
+        "22601",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--enable-debug-command",
+        "yes",
+        "--read-local",
+        "1",
+        "--thread-mode",
+        "1s",
+        "--atomic",
+        "1",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--key-lb",
+        "0",
+        "--client-lb",
+        "0",
+        "--flip-auto",
+        "0"
+      ],
+      "exit_code": 1,
+      "seconds": 16.134795505087823,
+      "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+    },
+    {
+      "name": "pre-2s-G5",
+      "arm": "pre",
+      "command": [
+        "taskset",
+        "-c",
+        "121-127",
+        "python3",
+        "tests/txngroup.py",
+        "127.0.0.1",
+        "22601",
+        "--mode",
+        "2s",
+        "--only",
+        "G5",
+        "--pre"
+      ],
+      "server": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+        "--bind",
+        "127.0.0.1",
+        "--port",
+        "22601",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--enable-debug-command",
+        "yes",
+        "--read-local",
+        "0",
+        "--thread-mode",
+        "2s",
+        "--atomic",
+        "1",
+        "--shards",
+        "16",
+        "--ratio",
+        "6:2",
+        "--databases",
+        "16",
+        "--key-lb",
+        "0",
+        "--client-lb",
+        "0",
+        "--flip-auto",
+        "0"
+      ],
+      "exit_code": 1,
+      "seconds": 0.26418602792546153,
+      "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+    },
+    {
+      "name": "post-2s-G5",
+      "arm": "post",
+      "command": [
+        "taskset",
+        "-c",
+        "121-127",
+        "python3",
+        "tests/txngroup.py",
+        "127.0.0.1",
+        "22601",
+        "--mode",
+        "2s",
+        "--only",
+        "G5"
+      ],
+      "server": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-txnfix/build/tomokv",
+        "--bind",
+        "127.0.0.1",
+        "--port",
+        "22601",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--enable-debug-command",
+        "yes",
+        "--read-local",
+        "0",
+        "--thread-mode",
+        "2s",
+        "--atomic",
+        "1",
+        "--shards",
+        "16",
+        "--ratio",
+        "6:2",
+        "--databases",
+        "16",
+        "--key-lb",
+        "0",
+        "--client-lb",
+        "0",
+        "--flip-auto",
+        "0"
+      ],
+      "exit_code": 0,
+      "seconds": 0.2641310738399625,
+      "sha256": "1c808efda63159b31e45e7e960053052b8ac6cd3345049dc23e857bd3da845cc"
+    },
+    {
+      "name": "pre-1s-G5",
+      "arm": "pre",
+      "command": [
+        "taskset",
+        "-c",
+        "121-127",
+        "python3",
+        "tests/txngroup.py",
+        "127.0.0.1",
+        "22601",
+        "--mode",
+        "1s",
+        "--only",
+        "G5",
+        "--pre"
+      ],
+      "server": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-txnfix/build/txnfix2/pre/tomokv",
+        "--bind",
+        "127.0.0.1",
+        "--port",
+        "22601",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--enable-debug-command",
+        "yes",
+        "--read-local",
+        "1",
+        "--thread-mode",
+        "1s",
+        "--atomic",
+        "1",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--key-lb",
+        "0",
+        "--client-lb",
+        "0",
+        "--flip-auto",
+        "0"
+      ],
+      "exit_code": 1,
+      "seconds": 0.264161067083478,
+      "sha256": "5ba1240a65745fadec59d54551f9f1c1f25a6f9c8c3f9db5bba27c90031ceb20"
+    },
+    {
+      "name": "post-1s-G5",
+      "arm": "post",
+      "command": [
+        "taskset",
+        "-c",
+        "121-127",
+        "python3",
+        "tests/txngroup.py",
+        "127.0.0.1",
+        "22601",
+        "--mode",
+        "1s",
+        "--only",
+        "G5"
+      ],
+      "server": [
+        "taskset",
+        "-c",
+        "112-119",
+        "/home/user/Projects/cx-txnfix/build/tomokv",
+        "--bind",
+        "127.0.0.1",
+        "--port",
+        "22601",
+        "--save",
+        "",
+        "--appendonly",
+        "no",
+        "--enable-debug-command",
+        "yes",
+        "--read-local",
+        "1",
+        "--thread-mode",
+        "1s",
+        "--atomic",
+        "1",
+        "--shards",
+        "16",
+        "--databases",
+        "16",
+        "--key-lb",
+        "0",
+        "--client-lb",
+        "0",
+        "--flip-auto",
+        "0"
+      ],
+      "exit_code": 0,
+      "seconds": 0.26417978573590517,
+      "sha256": "1c808efda63159b31e45e7e960053052b8ac6cd3345049dc23e857bd3da845cc"
+    }
+  ],
+  "proof_cpus": "112-127",
+  "server_cpus": "112-119",
+  "ports": "22600-22699",
+  "gate_rows": {
+    "txnfix3_DQ": 0,
+    "txnfix3_DF": 0,
+    "branch_DQ": 10,
+    "branch_DF": 10,
+    "owner_counts": [
+      635,
+      652
+    ],
+    "protected_counts": [
+      625,
+      642
+    ]
+  },
+  "redis_oracle_cpus": "120",
+  "client_cpus": "121-127"
+}

@@ -49,13 +49,19 @@ family('PRE txniso controls',[r for r in extras if r['name'].startswith('pre-')]
 assert families['PRE txniso controls']['passed']==0
 family('crossed WATCH POST',[r for r in cross if r['name'].startswith('post-')],4)
 family('crossed WATCH PRE',[r for r in cross if r['name'].startswith('pre-')],4,False)
+family('G5 final PRE',[r for r in controls if r['name'].startswith('pre-') and r['name'].endswith('-G5')],2,False)
+assert families['G5 final PRE']['passed']==0
+family('G5 final POST',[r for r in controls if r['name'].startswith('post-') and r['name'].endswith('-G5')],2)
+for r in controls:
+ if r['name'].startswith('pre-') and r['name'].endswith('-G5'):
+  assert 'duplicate delivery' in (root/'final4-controls'/r['name']/'test.log').read_text()
 family('barrier removed',barrier,4,False)
 assert families['barrier removed']['passed']==0
 for r in barrier:
  log=(root/'final4-barrier-control/proof'/r['name']/'test.log').read_text()
  witness='atomic_group_barriers=[0, 0]' if r['name'].startswith('multirace') else 'MSETNX dispatch barrier never ordered the pair'
  assert witness in log,(r['name'],witness)
-for name,reason in [('unfenced','exclusive cannot pass an IO suspended between admission and open'),('undrained','acknowledged fence is not exclusive drain completion')]:
+for name,reason in [('unfenced','exclusive cannot pass an IO suspended between admission and open'),('undrained','an acknowledged fence is not an exclusive drain completion')]:
  log=(root/f'final4-controls/admission-{name}.log').read_text();assert reason in log
 build=json.loads((root/'final4-build/runs.json').read_text());fresh=json.loads((root/'final4-build/freshness.json').read_text())
 assert len(build)==3 and len(fresh)==30 and all(r['exit_code']==0 for r in build+fresh)
@@ -65,7 +71,7 @@ identity=json.loads((root/'identity-final4/full/summary.json').read_text());asse
 paths=json.loads((root/'final4-path-counts.json').read_text());assert paths['cases']==264 and not paths['invalid'] and not paths['cases_with_increases'] and not paths['cases_entering_group_helpers']
 sha=hashlib.sha256(pathlib.Path('build/tomokv').read_bytes()).hexdigest();assert sha=='1c808efda63159b31e45e7e960053052b8ac6cd3345049dc23e857bd3da845cc'
 assert all(r['sha256']==sha for r in main if r['arm']=='post')
-result=dict(runtime_source='e904cd285',post_sha256=sha,acceptance='NOT ACCEPTED: universal ordinary-path instruction-sequence identity remains unproven; quiet-box null unmeasured; existing broad failures retained.',families=families,build_targets=29,freshness=30,gates_test=66,redis_comparison_legs=112,redis_armed_witnesses=2,watch_fresh_boots=60,nx_repeats_per_cell=8192,selected_hot=1208,lbstall={'normal':601,'db0':603},scatter_count_pairs=264,full_inventory={k:identity[k] for k in ['total','equal','changed']},other_main_nonzero=[dict(name=r['name'],exit_code=r['exit_code']) for r in main if r['exit_code'] and not r['name'].startswith(('original-pre/','broad-'))],baseline_controls=controls,proof_cpus='112-127',server_cpus='112-119',ports='22600-22699',gate_rows=dict(txnfix3_DQ=0,txnfix3_DF=0,branch_DQ=10,branch_DF=10,owner_counts=[635,652],protected_counts=[625,642]))
+result=dict(runtime_source='e904cd285',post_sha256=sha,acceptance='NOT ACCEPTED: universal ordinary-path instruction-sequence identity remains unproven; quiet-box null unmeasured; existing broad failures retained.',families=families,build_targets=29,freshness=30,gates_test=66,redis_comparison_legs=112,redis_armed_witnesses=2,watch_fresh_boots=60,nx_repeats_per_cell=8192,selected_hot=1208,lbstall={'normal':601,'db0':603},scatter_count_pairs=264,full_inventory={k:identity[k] for k in ['total','equal','changed']},other_main_nonzero=[dict(name=r['name'],exit_code=r['exit_code']) for r in main if r['exit_code'] and not r['name'].startswith(('original-pre/','broad-'))],baseline_controls=controls,proof_cpus='112-127',server_cpus='112-119',redis_oracle_cpus='120',client_cpus='121-127',ports='22600-22699',gate_rows=dict(txnfix3_DQ=0,txnfix3_DF=0,branch_DQ=10,branch_DF=10,owner_counts=[635,652],protected_counts=[625,642]))
 (root/'final4-summary.json').write_text(json.dumps(result,indent=2)+'\n')
 print('Final proof receipt verified; universal static acceptance remains open.')
 for name,f in families.items():print(name,f['passed'],'/',f['rows'])
