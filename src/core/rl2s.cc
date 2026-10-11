@@ -114,6 +114,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     // read from the server so the LB's unix_owner_tid_ and the actual attach point cannot drift.
     const uint32_t unix_owner = srv.unix_owner_tid();
     auto report_graceful_shutdown = [&] {
+        srv.snapshot().cancel_after_join(srv);
         if (srv.read_local_enabled()) {
             // Joined readers cannot run another grace callback. Empty their private
             // retirement queues and disarm every store hook before taking the immutable report;
@@ -138,6 +139,7 @@ int run_split_read_local_server(Server& srv, const SnapshotLoadPlan* aof_base_pl
     for (uint32_t tid = 0; tid < nthreads; tid++)
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            SnapshotManager::WorkerLifetime snapshot_worker(srv.snapshot(), srv.thread(tid));
             AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             if (cfg.pin_threads) pin_read_local_thread(srv.placement().cpu_of_thread(tid));
             ThreadCtx& self = srv.thread(tid);

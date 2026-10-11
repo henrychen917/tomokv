@@ -1,0 +1,279 @@
+{
+  "legs": [
+    {
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 7,
+      "log": "docs/scriptfix/differ-split/script-a0-s7.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13612,
+        "script_run_attempts": 3196,
+        "script_validate_owner_tasks": 665,
+        "script_apply_owner_tasks": 584,
+        "script_crossshard_activations": 3196,
+        "script_group_commits": 584,
+        "script_staged_bytes_total": 893918,
+        "script_keys_armed": 15356
+      }
+    },
+    {
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 19,
+      "log": "docs/scriptfix/differ-split/script-a0-s19.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13464,
+        "script_run_attempts": 3150,
+        "script_validate_owner_tasks": 688,
+        "script_apply_owner_tasks": 609,
+        "script_crossshard_activations": 3150,
+        "script_group_commits": 609,
+        "script_staged_bytes_total": 885152,
+        "script_keys_armed": 15198
+      }
+    },
+    {
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 20,
+      "log": "docs/scriptfix/differ-split/script-a0-s20.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13525,
+        "script_run_attempts": 3182,
+        "script_validate_owner_tasks": 654,
+        "script_apply_owner_tasks": 578,
+        "script_crossshard_activations": 3182,
+        "script_group_commits": 578,
+        "script_staged_bytes_total": 900287,
+        "script_keys_armed": 15406
+      }
+    },
+    {
+      "geometry": "split",
+      "atomic": 0,
+      "seed": 23,
+      "log": "docs/scriptfix/differ-split/script-a0-s23.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13459,
+        "script_run_attempts": 3179,
+        "script_validate_owner_tasks": 726,
+        "script_apply_owner_tasks": 621,
+        "script_crossshard_activations": 3179,
+        "script_group_commits": 621,
+        "script_staged_bytes_total": 895015,
+        "script_keys_armed": 15333
+      }
+    },
+    {
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 7,
+      "log": "docs/scriptfix/differ-split/script-a1-s7.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13408,
+        "script_run_attempts": 3188,
+        "script_validate_owner_tasks": 667,
+        "script_apply_owner_tasks": 586,
+        "script_crossshard_activations": 3188,
+        "script_group_commits": 586,
+        "script_staged_bytes_total": 892950,
+        "script_keys_armed": 15340
+      }
+    },
+    {
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 19,
+      "log": "docs/scriptfix/differ-split/script-a1-s19.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13303,
+        "script_run_attempts": 3150,
+        "script_validate_owner_tasks": 681,
+        "script_apply_owner_tasks": 605,
+        "script_crossshard_activations": 3150,
+        "script_group_commits": 605,
+        "script_staged_bytes_total": 884966,
+        "script_keys_armed": 15197
+      }
+    },
+    {
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 20,
+      "log": "docs/scriptfix/differ-split/script-a1-s20.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13495,
+        "script_run_attempts": 3188,
+        "script_validate_owner_tasks": 663,
+        "script_apply_owner_tasks": 588,
+        "script_crossshard_activations": 3188,
+        "script_group_commits": 588,
+        "script_staged_bytes_total": 900871,
+        "script_keys_armed": 15417
+      }
+    },
+    {
+      "geometry": "split",
+      "atomic": 1,
+      "seed": 23,
+      "log": "docs/scriptfix/differ-split/script-a1-s23.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13392,
+        "script_run_attempts": 3171,
+        "script_validate_owner_tasks": 728,
+        "script_apply_owner_tasks": 619,
+        "script_crossshard_activations": 3171,
+        "script_group_commits": 619,
+        "script_staged_bytes_total": 894104,
+        "script_keys_armed": 15317
+      }
+    },
+    {
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 7,
+      "log": "docs/scriptfix/differ-armed-fused/script-a0-s7.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13749,
+        "script_run_attempts": 3197,
+        "script_validate_owner_tasks": 666,
+        "script_apply_owner_tasks": 585,
+        "script_crossshard_activations": 3197,
+        "script_group_commits": 585,
+        "script_staged_bytes_total": 894007,
+        "script_keys_armed": 15358
+      }
+    },
+    {
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 19,
+      "log": "docs/scriptfix/differ-armed-fused/script-a0-s19.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13647,
+        "script_run_attempts": 3152,
+        "script_validate_owner_tasks": 686,
+        "script_apply_owner_tasks": 610,
+        "script_crossshard_activations": 3152,
+        "script_group_commits": 610,
+        "script_staged_bytes_total": 885375,
+        "script_keys_armed": 15202
+      }
+    },
+    {
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 20,
+      "log": "docs/scriptfix/differ-armed-fused/script-a0-s20.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13832,
+        "script_run_attempts": 3191,
+        "script_validate_owner_tasks": 663,
+        "script_apply_owner_tasks": 585,
+        "script_crossshard_activations": 3191,
+        "script_group_commits": 585,
+        "script_staged_bytes_total": 901427,
+        "script_keys_armed": 15426
+      }
+    },
+    {
+      "geometry": "armed-fused",
+      "atomic": 0,
+      "seed": 23,
+      "log": "docs/scriptfix/differ-armed-fused/script-a0-s23.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13810,
+        "script_run_attempts": 3197,
+        "script_validate_owner_tasks": 743,
+        "script_apply_owner_tasks": 629,
+        "script_crossshard_activations": 3197,
+        "script_group_commits": 629,
+        "script_staged_bytes_total": 897054,
+        "script_keys_armed": 15368
+      }
+    },
+    {
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 7,
+      "log": "docs/scriptfix/differ-armed-fused/script-a1-s7.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13488,
+        "script_run_attempts": 3199,
+        "script_validate_owner_tasks": 667,
+        "script_apply_owner_tasks": 584,
+        "script_crossshard_activations": 3199,
+        "script_group_commits": 584,
+        "script_staged_bytes_total": 894163,
+        "script_keys_armed": 15361
+      }
+    },
+    {
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 19,
+      "log": "docs/scriptfix/differ-armed-fused/script-a1-s19.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13389,
+        "script_run_attempts": 3155,
+        "script_validate_owner_tasks": 690,
+        "script_apply_owner_tasks": 609,
+        "script_crossshard_activations": 3155,
+        "script_group_commits": 609,
+        "script_staged_bytes_total": 885736,
+        "script_keys_armed": 15208
+      }
+    },
+    {
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 20,
+      "log": "docs/scriptfix/differ-armed-fused/script-a1-s20.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13592,
+        "script_run_attempts": 3184,
+        "script_validate_owner_tasks": 653,
+        "script_apply_owner_tasks": 578,
+        "script_crossshard_activations": 3184,
+        "script_group_commits": 578,
+        "script_staged_bytes_total": 900566,
+        "script_keys_armed": 15412
+      }
+    },
+    {
+      "geometry": "armed-fused",
+      "atomic": 1,
+      "seed": 23,
+      "log": "docs/scriptfix/differ-armed-fused/script-a1-s23.txt",
+      "pass": true,
+      "mechanisms": {
+        "script_stage_owner_tasks": 13493,
+        "script_run_attempts": 3176,
+        "script_validate_owner_tasks": 733,
+        "script_apply_owner_tasks": 623,
+        "script_crossshard_activations": 3176,
+        "script_group_commits": 623,
+        "script_staged_bytes_total": 894653,
+        "script_keys_armed": 15326
+      }
+    }
+  ],
+  "passed": 16,
+  "failed": 0,
+  "fused_witnesses": 2
+}

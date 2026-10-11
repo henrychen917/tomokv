@@ -1,0 +1,9 @@
+{
+  "DQ": 5,
+  "DF": 5,
+  "collect_line": 3378,
+  "quick_exit_line": 3445,
+  "gate_unchanged_since": "711cc96dc",
+  "expect_constants_edited": false,
+  "count_owner": "Landing computes EXPECT from origin/cpp"
+}

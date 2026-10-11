@@ -1,0 +1,45 @@
+{"command": ["taskset", "-c", "112-119", "/home/user/Projects/cx-aclfix/build/aclfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25042", "--save", "", "--appendonly", "no", "--dir", "/home/user/Projects/cx-aclfix/docs/aclfix/pre-2s/sort", "--aclfile", "/home/user/Projects/cx-aclfix/docs/aclfix/pre-2s/sort/users.acl", "--shards", "16", "--thread-mode", "2s", "--read-local", "0", "--ratio", "6:2"], "case": "sort"}
+SORT_RO ('BY', 'nosort', 'GET', 'other:*') [b'secret']
+SORT_RO ('BY', 'other:*') RespError(b"ERR One or more scores can't be converted into double")
+SORT_RO ('GET', '#') RespError(b"ERR One or more scores can't be converted into double")
+SORT_RO ('ALPHA', 'DESC', 'GET', '#') [b'a']
+SORT_RO ('LIMIT', 0, 1, 'BY', 'nosort', 'GET', 'other:*') [b'secret']
+SORT ('BY', 'nosort', 'GET', 'other:*') RespError(b'ERR BY option of SORT denied due to insufficient ACL permissions.')
+SORT ('BY', 'other:*') RespError(b'ERR BY option of SORT denied due to insufficient ACL permissions.')
+SORT ('GET', '#') RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')
+SORT ('ALPHA', 'DESC', 'GET', '#') RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')
+SORT ('LIMIT', 0, 1, 'BY', 'nosort', 'GET', 'other:*') RespError(b'ERR BY option of SORT denied due to insufficient ACL permissions.')
+SORT ('STORE', 'allowed:dst', 'GET', '#') RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')
+sort option denials calls/rejected delta (0, 6)
+sort_ro option denials calls/rejected delta (5, 0)
+option denials logged (6, 6)
+SORT_RO ('BY', 'get') [b'a']
+SORT_RO ('BY', 'nosort') [b'a']
+SORT_RO ('LIMIT', 'x', 1, 'GET', '#') RespError(b'ERR value is not an integer or out of range')
+SORT_RO ('LIMIT', '01', 1, 'GET', '#') RespError(b'ERR value is not an integer or out of range')
+SORT_RO ('FOO', 'GET', '#') RespError(b'ERR syntax error')
+SORT_RO ('GET',) RespError(b'ERR syntax error')
+SORT ('BY', 'get') RespError(b'ERR BY option of SORT denied due to insufficient ACL permissions.')
+SORT ('BY', 'nosort') RespError(b'ERR BY option of SORT denied due to insufficient ACL permissions.')
+SORT ('LIMIT', 'x', 1, 'GET', '#') RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')
+SORT ('LIMIT', '01', 1, 'GET', '#') RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')
+SORT ('FOO', 'GET', '#') RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')
+SORT ('GET',) RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')
+SORT_RO ('STORE', 'allowed:dst', 'GET', '#') RespError(b'ERR syntax error')
+SORT ('BY', 'store', 'LIMIT', 0, 1) RespError(b'ERR BY option of SORT denied due to insufficient ACL permissions.')
+('SORT_RO', 'denied:list', 'GET', '#') RespError(b'NOPERM No permissions to access a key')
+('SORT', 'denied:list', 'GET', '#') RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')
+('SORT', 'allowed:list', 'STORE', 'other:dst', 'GET', '#') RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')
+('SORT', 'allowed:list', 'GET', '#', 'STORE', 'other:dst') RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')
+sort key denials calls/rejected delta (0, 3)
+sort_ro key denials calls/rejected delta (0, 1)
+key denials logged (18, 18)
+SIGTERM exit 0
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 408, in main
+    {"sort": sort_case, "streams-name": streams_case, "save-load": save_case,
+  File "/home/user/Projects/cx-aclfix/tests/aclfix.py", line 159, in sort_case
+    assert not failures, failures
+           ^^^^^^^^^^^^
+AssertionError: [('SORT_RO', ('BY', 'nosort', 'GET', 'other:*'), [b'secret'], RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')), ('SORT_RO', ('BY', 'other:*'), RespError(b"ERR One or more scores can't be converted into double"), RespError(b'ERR BY option of SORT denied due to insufficient ACL permissions.')), ('SORT_RO', ('GET', '#'), RespError(b"ERR One or more scores can't be converted into double"), RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')), ('SORT_RO', ('ALPHA', 'DESC', 'GET', '#'), [b'a'], RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')), ('SORT_RO', ('LIMIT', 0, 1, 'BY', 'nosort', 'GET', 'other:*'), [b'secret'], RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')), ('SORT', ('BY', 'nosort', 'GET', 'other:*'), RespError(b'ERR BY option of SORT denied due to insufficient ACL permissions.'), RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')), ('SORT', ('LIMIT', 0, 1, 'BY', 'nosort', 'GET', 'other:*'), RespError(b'ERR BY option of SORT denied due to insufficient ACL permissions.'), RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.')), (b'sort', 'option denials', (0, 6), (6, 0)), ('option denials reached ACL LOG/INFO', (6, 6)), ('SORT', ('BY', 'get'), RespError(b'ERR BY option of SORT denied due to insufficient ACL permissions.'), [b'a']), ('SORT', ('BY', 'nosort'), RespError(b'ERR BY option of SORT denied due to insufficient ACL permissions.'), [b'a']), ('SORT', ('LIMIT', 'x', 1, 'GET', '#'), RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.'), RespError(b'ERR value is not an integer or out of range')), ('SORT', ('LIMIT', '01', 1, 'GET', '#'), RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.'), RespError(b'ERR value is not an integer or out of range')), ('SORT', ('FOO', 'GET', '#'), RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.'), RespError(b'ERR syntax error')), ('SORT', ('GET',), RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.'), RespError(b'ERR syntax error')), ('SORT', ('BY', 'store', 'LIMIT', 0, 1), RespError(b'ERR BY option of SORT denied due to insufficient ACL permissions.'), [b'a']), (('SORT', 'denied:list', 'GET', '#'), RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.'), RespError(b'NOPERM No permissions to access a key')), (('SORT', 'allowed:list', 'STORE', 'other:dst', 'GET', '#'), RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.'), RespError(b'NOPERM No permissions to access a key')), (('SORT', 'allowed:list', 'GET', '#', 'STORE', 'other:dst'), RespError(b'ERR GET option of SORT denied due to insufficient ACL permissions.'), RespError(b'NOPERM No permissions to access a key')), ('each key denial is logged once', (18, 18))]
+aclfix sort FAIL (0.208s)

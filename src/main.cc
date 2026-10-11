@@ -63,9 +63,18 @@ static_assert(std::atomic<uint32_t>::is_always_lock_free);
 static_assert(std::atomic<bool>::is_always_lock_free);
 static_assert(std::atomic<uint8_t>::is_always_lock_free);
 
-static void on_signal(int) {
+static void on_signal(int sig) {
     if (!g_signal_armed.load(std::memory_order_acquire)) return;
     if (Server* server = g_signal_server.load(std::memory_order_acquire)) {
+        // Redis 7.4: SIGINT while a signal stop is already scheduled means "exit now" without
+        // waiting for the save (exit status 1: not a clean shutdown). Only async-signal-safe
+        // calls: two atomic loads, write(2) and _exit(2).
+        if (sig == SIGINT && (server->signal_shutdown_pending() ||
+                              server->shutting_down().load(std::memory_order_relaxed))) {
+            static constexpr char kInsist[] = "You insist... exiting now.\n";
+            (void)!::write(STDERR_FILENO, kInsist, sizeof(kInsist) - 1);
+            ::_exit(1);
+        }
         // Keep owners alive until the ordinary IO save path has persisted the final cut.
         // No sticky terminal wake yet: the save cron's existing timer bounds request latency.
         if (server->request_signal_shutdown()) return;
@@ -164,7 +173,7 @@ int main(int argc, char** argv) {
     Config cfg;
     ConfigParseState parse_state;
     std::vector<std::string> token_store;      // owns conf-file tokens; Config keeps views into it
-    std::vector<const char*> conf_tokens, cli_tokens;
+    std::vector<const char*> cli_tokens;
 
     // Redis-style optional first argument: ./tomokv tomokv.conf. Flags override that file.
     const char* conf_path = nullptr;
@@ -177,9 +186,9 @@ int main(int argc, char** argv) {
     }
     cfg.conf_path = conf_path;   // retained for CONFIG REWRITE; points into argv, which outlives us
     if (conf_path) {
-        if (!load_conf_file(conf_path, token_store)) return 1;
-        for (const std::string& t : token_store) conf_tokens.push_back(t.c_str());
-        const int rc = parse_config_args(conf_tokens, cfg, parse_state, 1, argv[0]);
+        std::vector<size_t> conf_line_ends;
+        if (!load_conf_file(conf_path, token_store, &conf_line_ends)) return 1;
+        const int rc = parse_config_file(token_store, conf_line_ends, cfg, parse_state, argv[0]);
         if (rc != kConfigParsed) {
             if (rc == kConfigError) std::fprintf(stderr, "(while parsing %s)\n", conf_path);
             return rc == kConfigHelp ? 0 : 1;
@@ -367,6 +376,7 @@ int main(int argc, char** argv) {
         if (cfg.pin_threads) pin_to(srv.placement().cpu_of_thread(tid));
     };
     auto report_graceful_shutdown = [&] {
+        srv.snapshot().cancel_after_join(srv);
         // All owners and readers are quiescent. Release pending-entry references before IoLoop
         // destruction, then return their deferred ScatterState arenas to the correct IO-owned
         // pools. Server normally outlives those pools, so leaving this to FlatStore destructors
@@ -386,6 +396,7 @@ int main(int argc, char** argv) {
     for (uint32_t tid : srv.placement().ex_threads())
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            SnapshotManager::WorkerLifetime snapshot_worker(srv.snapshot(), srv.thread(tid));
             AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);
@@ -513,6 +524,7 @@ int main(int argc, char** argv) {
     for (uint32_t tid : srv.placement().ifid_threads())
         pool.emplace_back([&, tid] {
             DatabaseMap::WorkerLifetime database_worker(srv.databases(), tid);
+            SnapshotManager::WorkerLifetime snapshot_worker(srv.snapshot(), srv.thread(tid));
             AofManager::WorkerLifetime persistence_worker(srv.aof(), tid);
             pin_for(tid);
             ThreadCtx& self = srv.thread(tid);

@@ -1,0 +1,60 @@
+[
+  {
+    "case": "auth-1s",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/auth.py",
+      "127.0.0.1",
+      "25034",
+      "gatepass"
+    ],
+    "exit": 0,
+    "seconds": 0.9294385532848537
+  },
+  {
+    "case": "slowlog-1s",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/slowlog.py",
+      "127.0.0.1",
+      "25034"
+    ],
+    "exit": 1,
+    "seconds": 1.7017874596640468
+  },
+  {
+    "case": "auth-2s",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/auth.py",
+      "127.0.0.1",
+      "25034",
+      "gatepass"
+    ],
+    "exit": 0,
+    "seconds": 0.8960152231156826
+  },
+  {
+    "case": "slowlog-2s",
+    "command": [
+      "taskset",
+      "-c",
+      "121-127",
+      "python3",
+      "tests/slowlog.py",
+      "127.0.0.1",
+      "25034"
+    ],
+    "exit": 1,
+    "seconds": 2.4968946697190404
+  }
+]

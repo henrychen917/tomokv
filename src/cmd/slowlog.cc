@@ -480,6 +480,37 @@ bool slowlog_validate_container_subcommand(Op& op, bool slowlog) {
 // Copies the arguments out while the connection's read buffer is still pinned. See the header:
 // after execute() publishes Done the owning IO thread may retire the op and compact that buffer,
 // so the executor must never read argv afterwards.
+// Redis 7.4 redacts diagnostic arguments independently of successful authentication. Mark only
+// visible positions, before copying or truncating; neither the password nor its original length
+// enters the capture. Command execution continues to consume the original Op arguments.
+__attribute__((noipa)) static uint32_t slowlog_redactions(const Op& op) {
+    const uint32_t argc = op.argc();
+    const uint32_t limit = std::min(argc, kSlowlogMaxArgs);
+    uint32_t mask = 0;
+    auto hide = [&](uint32_t i) { if (i < limit) mask |= uint32_t{1} << i; };
+    if (eq_icase(op.cmd_name(), "AUTH") && argc <= 3) {
+        for (uint32_t i = 1; i < limit; i++) hide(i);
+    } else if (eq_icase(op.cmd_name(), "HELLO")) {
+        for (uint32_t i = 2; i < limit;) {
+            if (eq_icase(op.arg(i), "AUTH") && i + 2 < argc) {
+                hide(i + 1); hide(i + 2);
+                i += 3;
+            } else if (eq_icase(op.arg(i), "SETNAME") && i + 1 < argc) {
+                i += 2;
+            } else break;
+        }
+    } else if (eq_icase(op.cmd_name(), "CONFIG") && argc >= 4 &&
+               argc % 2 == 0 && eq_icase(op.arg(1), "SET")) {
+        for (uint32_t i = 3; i < limit; i += 2)
+            if (eq_icase(op.arg(i - 1), "requirepass")) hide(i);
+    } else if (eq_icase(op.cmd_name(), "ACL") && argc >= 3 &&
+               eq_icase(op.arg(1), "SETUSER")) {
+        // The oracle also hides the user name, in addition to every rule after it.
+        for (uint32_t i = 2; i < limit; i++) hide(i);
+    }
+    return mask;
+}
+
 void slowlog_capture(const Op& op, SlowlogCapture& out) {
     const uint32_t argc = op.argc();
     out.total_argc = argc;
@@ -487,8 +518,10 @@ void slowlog_capture(const Op& op, SlowlogCapture& out) {
     out.used = 0;
     // Reserve the last visible slot for the "N more arguments" marker when there is an overflow.
     const uint32_t limit = argc > kSlowlogMaxArgs ? kSlowlogMaxArgs - 1 : argc;
+    const uint32_t redactions = slowlog_redactions(op);
     for (uint32_t i = 0; i < limit; i++) {
-        const Slice arg = multidb_display_argument(op, i);
+        const Slice arg = redactions & (uint32_t{1} << i)
+            ? Slice("(redacted)", 10) : multidb_display_argument(op, i);
         const uint32_t take = arg.n < kSlowlogMaxArgBytes ? arg.n : kSlowlogMaxArgBytes;
         if (out.used + take > sizeof(out.bytes)) break;
         if (take) std::memcpy(out.bytes + out.used, arg.p, take);

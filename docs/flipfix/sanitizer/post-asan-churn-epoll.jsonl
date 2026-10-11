@@ -1,0 +1,35 @@
+load 5.83 11.53 13.62 1/3099 1138024
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/tomokv-asan", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/final-san/post-asan-churn-epoll/churn", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "epoll", "--enable-debug-command", "yes"], "event": "boot", "label": "churn", "loadavg": [5.83154296875, 11.52978515625, 13.6201171875]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/tomokv-asan", "label": "churn", "pid": 1138028}
+{"attempt": 0, "elapsed": 0.0043, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 1, "elapsed": 0.0089, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 2, "elapsed": 0.0055, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 3, "elapsed": 0.0037, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 4, "elapsed": 0.0054, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 2}
+{"attempt": 5, "elapsed": 0.0001, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 6, "elapsed": 0.0043, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 7, "elapsed": 0.0026, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 4}
+{"attempt": 8, "elapsed": 0.0024, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve destination epoll registration", "target": 2}
+{"attempt": 9, "elapsed": 0.0029, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 10, "elapsed": 0.0019, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 6}
+{"attempt": 11, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 12, "elapsed": 0.0003, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve destination epoll registration", "target": 2}
+{"attempt": 13, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 14, "elapsed": 0.0034, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 15, "elapsed": 0.0026, "moving": 1, "reply": "OK", "target": 4}
+{"attempt": 16, "elapsed": 0.004, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 2}
+{"attempt": 17, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 18, "elapsed": 0.0024, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 6}
+{"attempt": 19, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 20, "elapsed": 0.0031, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve destination epoll registration", "target": 2}
+{"attempt": 21, "elapsed": 0.0, "moving": 0, "reply": "OK", "target": 4}
+{"attempt": 22, "elapsed": 0.003, "moving": 1, "reply": "OK", "target": 6}
+{"attempt": 23, "elapsed": 0.0016, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 4}
+{"attempt": 24, "elapsed": 0.0027, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 25, "elapsed": 0.0042, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve destination epoll registration", "target": 4}
+{"attempt": 26, "elapsed": 0.0051, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 6}
+{"attempt": 27, "elapsed": 0.0035, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 4}
+{"attempt": 28, "elapsed": 0.0, "moving": 1, "reply": "OK", "target": 2}
+{"attempt": 29, "elapsed": 0.004, "moving": 1, "reply": "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration", "target": 4}
+{"applied": 17, "case": "churn", "closed": 300, "connector": {"ok": 13236, "refused": 11}, "engine": "epoll", "outcomes": {"ERR FLIP could not detach a connection: could not reserve destination epoll registration": 4, "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration": 9, "OK": 17}, "result": "PASS", "witnessed": 25}
+{"event": "stop", "label": "churn", "loadavg": [5.84521484375, 11.4375, 13.5791015625], "log": "/home/user/Projects/cx-flipfix/build/flipfix/final-san/post-asan-churn-epoll/churn/churn.log", "rc": 0}

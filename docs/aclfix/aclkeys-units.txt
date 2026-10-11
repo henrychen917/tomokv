@@ -1,0 +1,6 @@
+permissions: 142 admission/denial assertions PASS
+retirement: 18 admitted/denied reply assertions PASS
+aclkeys-unit permissions rc=0
+registry: 245 specs checked, 27 mismatches
+aclkeys-unit registry rc=1: 27 mismatches, line-for-line identical to PRE 5146b78ee (also rc=1, 27); registry ranges are untouched by this lane
+tools/aclkeys3_verify.py --rounds 2: 176 / 176 (db16+db0 x split+fused x atomic 0/1 x 11 cases)

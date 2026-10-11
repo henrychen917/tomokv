@@ -1,0 +1,9 @@
+{
+  "source_rows": 536,
+  "fixture_rows": 536,
+  "exact_order_and_multiplicity_equal": true,
+  "EXPECT_FULL": 528,
+  "required_EXPECT_FULL": 536,
+  "DQ": 8,
+  "DF": 8
+}

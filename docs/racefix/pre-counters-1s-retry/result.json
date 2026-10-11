@@ -1,0 +1,62 @@
+{
+  "case": "counters",
+  "mode": "1s",
+  "suppress_stale": false,
+  "passed": false,
+  "argv": [
+    "setarch",
+    "x86_64",
+    "-R",
+    "taskset",
+    "-c",
+    "112-119",
+    "/home/user/Projects/cx-racefix/build/racefix/pre/tomokv-tsan",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "25175",
+    "--dir",
+    "/home/user/Projects/cx-racefix/docs/racefix/pre-counters-1s-retry/data",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16",
+    "--key-lb",
+    "0",
+    "--client-lb",
+    "0",
+    "--flip-auto",
+    "0",
+    "--slowlog-log-slower-than",
+    "-1",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--enable-debug-command",
+    "yes"
+  ],
+  "tsan_options": "halt_on_error=0:exitcode=66:history_size=7",
+  "binary_sha256": "64e88def88e7e40f9286b661e5134b3d6d6fd9cf25bbb824627f6b9526e27ae9",
+  "pid": 90180,
+  "geometry": {
+    "thread_mode": "1s",
+    "shards": "16"
+  },
+  "set_get_pairs": 64,
+  "sampler_rates": [
+    80
+  ],
+  "commandstats": "# Commandstats\r\ncmdstat_get:calls=64,rejected_calls=0\r\ncmdstat_set:calls=64,rejected_calls=0\r\ncmdstat_ping:calls=8,rejected_calls=0\r\ncmdstat_info:calls=4,rejected_calls=0\r\n",
+  "forced_kill": false,
+  "exit_code": 66,
+  "listeners_after": "",
+  "tsan": {
+    "reports": 11,
+    "cron_writer_pairs": 4,
+    "counter_reports": 6,
+    "other_reports": 5,
+    "runtime_failure": false
+  },
+  "seconds": 7.009571174159646
+}

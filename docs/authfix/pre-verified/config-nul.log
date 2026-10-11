@@ -1,0 +1,19 @@
+FAIL 1s-embedded full AUTH {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 1s-embedded full CONFIG GET {'error': 'NOAUTH Authentication required.'}
+FAIL 1s-embedded authenticated PING {'error': 'NOAUTH Authentication required.'}
+FAIL 1s-embedded prefix refused b'OK'
+FAIL 1s-leading NOAUTH before AUTH b'PONG'
+FAIL 1s-leading unauthenticated SET refused b'OK'
+FAIL 1s-leading full AUTH {'error': 'ERR AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?'}
+FAIL 1s-leading full CONFIG GET [b'requirepass', b'']
+FAIL 1s-leading prefix refused {'error': 'ERR AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?'}
+FAIL 2s-embedded full AUTH {'error': 'WRONGPASS invalid username-password pair or user is disabled.'}
+FAIL 2s-embedded full CONFIG GET {'error': 'NOAUTH Authentication required.'}
+FAIL 2s-embedded authenticated PING {'error': 'NOAUTH Authentication required.'}
+FAIL 2s-embedded prefix refused b'OK'
+FAIL 2s-leading NOAUTH before AUTH b'PONG'
+FAIL 2s-leading unauthenticated SET refused b'OK'
+FAIL 2s-leading full AUTH {'error': 'ERR AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?'}
+FAIL 2s-leading full CONFIG GET [b'requirepass', b'']
+FAIL 2s-leading prefix refused {'error': 'ERR AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?'}
+authfix config-nul: 18 failed checks; evidence /home/user/Projects/cx-authfix/docs/authfix/pre-verified/config-nul

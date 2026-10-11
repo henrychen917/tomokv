@@ -843,7 +843,7 @@ probe
 
 
 class SchedulerWiring(unittest.TestCase):
-    helper_jobs = frozenset(('production_units', 'core_tsan_build', 'waits_tsan_build', 'tailgen_build'))
+    helper_jobs = frozenset(('production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build'))
 
     # Enumerate the real collector loops, not a hand-maintained approximation of their inventory.
     # This invokes only collect_job stubs: no compiler, server, battery or benchmark is started.
@@ -1012,7 +1012,7 @@ __SCHEDULER_AFFINITY_PROBE__
     : > "$RUN_DIR/atomic-boot-reached"
   fi
   case "$current" in
-    production_units|core_tsan_build|waits_tsan_build|tailgen_build)
+    production_units|core_tsan_build|waits_tsan_build|racefix_tsan_build|tailgen_build)
       : > "$RUN_DIR/completed/$current"
       return 0;;
   esac
@@ -1368,13 +1368,13 @@ printf '%s %s\\n' "$PASS" "$FAIL" > "$RUN_DIR/counts"
         result = self.run_scheduler(slots=2, ordered=False, failure='release', behavior='crash')
         self.assertEqual(result['counts'], (len(self.canonical) - 1, 1), result['output'])
         self.assertIn(b'FAIL\tcorrectness family release\n', result['ledger'])
-        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'tailgen_build'})
+        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build'})
         self.assertCountEqual(result['completion'], [name for name in self.canonical if name != 'release'])
 
     def test_release_boots_do_not_wait_for_independent_asan_build(self):
         result = self.run_scheduler(slots=2, ordered=False, dependency_probe=True)
         self.assertEqual(result['counts'], (len(self.canonical), 0), result['output'])
-        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'tailgen_build'})
+        self.assertEqual(result['helpers'], {'production_units', 'core_tsan_build', 'waits_tsan_build', 'racefix_tsan_build', 'tailgen_build'})
         self.assertCountEqual(result['completion'], self.canonical)
         self.assertTrue(result['dependency_reached'], result['output'])
         self.assertTrue(result['dependency_handshake'], result['output'])

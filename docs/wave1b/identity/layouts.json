@@ -1,0 +1,367 @@
+{
+ "locks": {
+  "tomo::AtomicEntry": {
+   "expected": 144,
+   "pre": 144,
+   "post": 144,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo::Client": {
+   "expected": 1984,
+   "pre": 1984,
+   "post": 1984,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo::Config": {
+   "expected": 624,
+   "pre": 624,
+   "post": 624,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo::FlatStore": {
+   "expected": 944,
+   "pre": 944,
+   "post": 944,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo::Op": {
+   "expected": 336,
+   "pre": 336,
+   "post": 336,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo::Rob<64>": {
+   "expected": 192,
+   "pre": 192,
+   "post": 192,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo::Shard": {
+   "expected": 1440,
+   "pre": 1440,
+   "post": 1440,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo::ThreadCtx": {
+   "expected": 1408,
+   "pre": 1408,
+   "post": 1408,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo_db0::AtomicEntry": {
+   "expected": 144,
+   "pre": 144,
+   "post": 144,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo_db0::Client": {
+   "expected": 1984,
+   "pre": 1984,
+   "post": 1984,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo_db0::Config": {
+   "expected": 624,
+   "pre": 624,
+   "post": 624,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo_db0::FlatStore": {
+   "expected": 944,
+   "pre": 944,
+   "post": 944,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo_db0::Op": {
+   "expected": 336,
+   "pre": 336,
+   "post": 336,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo_db0::Rob<64>": {
+   "expected": 192,
+   "pre": 192,
+   "post": 192,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo_db0::Shard": {
+   "expected": 1440,
+   "pre": 1440,
+   "post": 1440,
+   "offsets_unchanged": true,
+   "ok": true
+  },
+  "tomo_db0::ThreadCtx": {
+   "expected": 1408,
+   "pre": 1408,
+   "post": 1408,
+   "offsets_unchanged": true,
+   "ok": true
+  }
+ },
+ "types": {
+  "tomo::AofManager": {
+   "pre_size": 976,
+   "post_size": 976,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo::AtomicEntry": {
+   "pre_size": 144,
+   "post_size": 144,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo::Client": {
+   "pre_size": 1984,
+   "post_size": 1984,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo::Config": {
+   "pre_size": 624,
+   "post_size": 624,
+   "moved_or_removed": {},
+   "added": {
+    "requirepass_size": 580
+   },
+   "reserved_tail_shrunk": {
+    "layout_reserved": [
+     580,
+     584
+    ]
+   }
+  },
+  "tomo::ExLoopT<false>": {
+   "pre_size": 5848,
+   "post_size": 5848,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo::ExLoopT<true>": {
+   "pre_size": 5856,
+   "post_size": 5856,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo::FlatStore": {
+   "pre_size": 944,
+   "post_size": 944,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo::IoLoop": {
+   "pre_size": 7144,
+   "post_size": 7144,
+   "moved_or_removed": {},
+   "added": {
+    "flip_close_pin_": 1411,
+    "flip_dropped_local_": 1420
+   },
+   "reserved_tail_shrunk": {}
+  },
+  "tomo::LoopSignals": {
+   "pre_size": 384,
+   "post_size": 384,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo::Op": {
+   "pre_size": 336,
+   "post_size": 336,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo::Rob<64>": {
+   "pre_size": 192,
+   "post_size": 192,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo::Server": {
+   "pre_size": 108736,
+   "post_size": 108736,
+   "moved_or_removed": {},
+   "added": {
+    "flip_dropped_client_transfers_": 72836
+   },
+   "reserved_tail_shrunk": {}
+  },
+  "tomo::Shard": {
+   "pre_size": 1440,
+   "post_size": 1440,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo::SnapshotManager": {
+   "pre_size": 792,
+   "post_size": 792,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo::ThreadCtx": {
+   "pre_size": 1408,
+   "post_size": 1408,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo::WbEngine": {
+   "pre_size": 256,
+   "post_size": 256,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::AofManager": {
+   "pre_size": 976,
+   "post_size": 976,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::AtomicEntry": {
+   "pre_size": 144,
+   "post_size": 144,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::Client": {
+   "pre_size": 1984,
+   "post_size": 1984,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::Config": {
+   "pre_size": 624,
+   "post_size": 624,
+   "moved_or_removed": {},
+   "added": {
+    "requirepass_size": 580
+   },
+   "reserved_tail_shrunk": {
+    "layout_reserved": [
+     580,
+     584
+    ]
+   }
+  },
+  "tomo_db0::ExLoopT<false>": {
+   "pre_size": 5848,
+   "post_size": 5848,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::ExLoopT<true>": {
+   "pre_size": 5856,
+   "post_size": 5856,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::FlatStore": {
+   "pre_size": 944,
+   "post_size": 944,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::IoLoop": {
+   "pre_size": 7144,
+   "post_size": 7144,
+   "moved_or_removed": {},
+   "added": {
+    "flip_close_pin_": 1411,
+    "flip_dropped_local_": 1420
+   },
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::LoopSignals": {
+   "pre_size": 384,
+   "post_size": 384,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::Op": {
+   "pre_size": 336,
+   "post_size": 336,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::Rob<64>": {
+   "pre_size": 192,
+   "post_size": 192,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::Server": {
+   "pre_size": 108352,
+   "post_size": 108352,
+   "moved_or_removed": {},
+   "added": {
+    "flip_dropped_client_transfers_": 72452
+   },
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::Shard": {
+   "pre_size": 1440,
+   "post_size": 1440,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::SnapshotManager": {
+   "pre_size": 528,
+   "post_size": 528,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::ThreadCtx": {
+   "pre_size": 1408,
+   "post_size": 1408,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  },
+  "tomo_db0::WbEngine": {
+   "pre_size": 256,
+   "post_size": 256,
+   "moved_or_removed": {},
+   "added": {},
+   "reserved_tail_shrunk": {}
+  }
+ },
+ "all_locks_ok": true
+}

@@ -1,0 +1,76 @@
+LeakSanitizer shutdown flake, measured 2026-10-10T18:35:29Z on the shared box (load 31.47 45.52 69.47).
+Each line: arm, row (2s), repetition, exit status after SIGTERM, LeakSanitizer reports in the server log.
+post-sort-1: SIGTERM exit 0 leak=0
+post-sort-2: SIGTERM exit 0 leak=0
+post-sort-3: SIGTERM exit 0 leak=0
+post-sort-4: SIGTERM exit 0 leak=0
+post-sort-5: SIGTERM exit 0 leak=0
+post-sort-6: SIGTERM exit 0 leak=0
+post-streams-name-1: SIGTERM exit 0 leak=0
+post-streams-name-2: SIGTERM exit 0 leak=0
+post-streams-name-3: SIGTERM exit 1 leak=1
+post-streams-name-4: SIGTERM exit 0 leak=0
+post-streams-name-5: SIGTERM exit 1 leak=1
+post-streams-name-6: SIGTERM exit 0 leak=0
+pre-sort-1: SIGTERM exit 0 leak=0
+pre-sort-2: SIGTERM exit 0 leak=0
+pre-sort-3: SIGTERM exit 0 leak=0
+pre-sort-4: SIGTERM exit 1 leak=1
+pre-sort-5: SIGTERM exit 0 leak=0
+pre-sort-6: SIGTERM exit 0 leak=0
+pre-streams-name-1: SIGTERM exit 1 leak=1
+pre-streams-name-2: SIGTERM exit 0 leak=0
+pre-streams-name-3: SIGTERM exit 0 leak=0
+pre-streams-name-4: SIGTERM exit 0 leak=0
+pre-streams-name-5: SIGTERM exit 0 leak=0
+pre-streams-name-6: SIGTERM exit 0 leak=0
+
+PRE 2/12 and POST 2/12 runs leak the same three allocations (21064 bytes): a Client from
+IoLoop::admit_fd still live at SIGTERM. Every reply in those runs matched; no AddressSanitizer error.
+
+=== PRE example (/tmp/claude-1000/-home-user-Projects/ee6eb242-5302-49cf-b767-1a2d8d8f0f61/scratchpad/lsan/pre-streams-name-1/server.log)
+==1616211==ERROR: LeakSanitizer: detected memory leaks
+
+Indirect leak of 16384 byte(s) in 1 object(s) allocated from:
+    #0 0x7b574c0fd9c7 in malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:69
+    #1 0x5d16d4dd2445 in tomo_db0::Client::Client(int) src/core/../net/conn.h:288
+    #2 0x5d16d5136fac in void tomo_db0::IoLoop::admit_fd<false, false>(int, tomo_db0::UrKind) (/home/user/Projects/cx-aclfix/build/aclfix/pre-source/build/tomokv-asan+0x8f49fac) (BuildId: 40ec0ed8ee95
+    #3 0x5d16d5139095 in void tomo_db0::IoLoop::on_accept<false, false>(io_uring_cqe*, tomo_db0::UrKind) (/home/user/Projects/cx-aclfix/build/aclfix/pre-source/build/tomokv-asan+0x8f4c095) (BuildId: 4
+    #4 0x5d16d51568e8 in void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*) (/home/user/Projects/cx-aclfix/build/aclfix/pre-source/build/tomokv-asan+0x8f698e8) (BuildId: 40ec0ed8ee9509d
+    #5 0x5d16d5158917 in tomo_db0::IoLoop::run_loop<false, false, false, false, false>()::{lambda(io_uring_cqe*)#1}::operator()(io_uring_cqe*) const (/home/user/Projects/cx-aclfix/build/aclfix/pre-sou
+    #6 0x5d16d51599eb in unsigned int tomo_db0::Ring::for_each_cqe<tomo_db0::IoLoop::run_loop<false, false, false, false, false>()::{lambda(io_uring_cqe*)#1}>(tomo_db0::IoLoop::run_loop<false, false, 
+    #7 0x5d16d517e070 in void tomo_db0::IoLoop::run_loop<false, false, false, false, false>() (/home/user/Projects/cx-aclfix/build/aclfix/pre-source/build/tomokv-asan+0x8f91070) (BuildId: 40ec0ed8ee95
+    #8 0x5d16d51949a1 in tomo_db0::IoLoop::run_split() (/home/user/Projects/cx-aclfix/build/aclfix/pre-source/build/tomokv-asan+0x8fa79a1) (BuildId: 40ec0ed8ee9509dcea8ff40307c47e9627aac5cc)
+    #9 0x5d16d4dc93d6 in tomo_db0::IoLoop::run() src/core/io_loop.h:432
+    #10 0x5d16d4dc93d6 in operator() src/main.cc:571
+    #11 0x5d16d4dc93d6 in __invoke_impl<void, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61
+    #12 0x5d16d4dc93d6 in __invoke<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96
+    #13 0x5d16d4dc93d6 in _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292
+    #14 0x5d16d4dc93d6 in operator() /usr/include/c++/13/bits/std_thread.h:299
+    #15 0x5d16d4dc93d6 in _M_run /usr/include/c++/13/bits/std_thread.h:244
+    #16 0x7b574b6ecdb3  (/lib/x86_64-linux-gnu/libstdc++.so.6+0xecdb3) (BuildId: 753c6c8608b61d4e67be8f0c890e03e0aa046b8b)
+    #17 0x7b574c05ea41 in asan_thread_start ../../../../src/libsanitizer/asan/asan_interceptors.cpp:234
+    #18 0x7b574aa9cb83 in start_thread nptl/pthread_create.c:447
+
+Indirect leak of 2696 byte(s) in 1 object(s) allocated from:
+    #0 0x7b574c0fe6c8 in operator new[](unsigned long) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:98
+    #1 0x5d16d4f88c58 in tomo_db0::Op* tomo_db0::Rob<64u>::acquire<false>(unsigned char) (/home/user/Projects/cx-aclfix/build/aclfix/pre-source/build/tomokv-asan+0x8d9bc58) (BuildId: 40ec0ed8ee9509dce
+    #2 0x5d16d513d215 in tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*) (/home/user/Projects/cx-aclfix/build/aclfix/pre-source/build/tomokv-
+    #3 0x5d16d5156659 in void tomo_db0::IoLoop::on_recv<false, false, false>(tomo_db0::Client*, int) (/home/user/Projects/cx-aclfix/build/aclfix/pre-source/build/tomokv-asan+0x8f69659) (BuildId: 40ec0
+    #4 0x5d16d5156998 in void tomo_db0::IoLoop::on_cqe<false, false, false>(io_uring_cqe*) (/home/user/Projects/cx-aclfix/build/aclfix/pre-source/build/tomokv-asan+0x8f69998) (BuildId: 40ec0ed8ee9509d
+    #5 0x5d16d5158917 in tomo_db0::IoLoop::run_loop<false, false, false, false, false>()::{lambda(io_uring_cqe*)#1}::operator()(io_uring_cqe*) const (/home/user/Projects/cx-aclfix/build/aclfix/pre-sou
+    #6 0x5d16d51599eb in unsigned int tomo_db0::Ring::for_each_cqe<tomo_db0::IoLoop::run_loop<false, false, false, false, false>()::{lambda(io_uring_cqe*)#1}>(tomo_db0::IoLoop::run_loop<false, false, 
+    #7 0x5d16d517e070 in void tomo_db0::IoLoop::run_loop<false, false, false, false, false>() (/home/user/Projects/cx-aclfix/build/aclfix/pre-source/build/tomokv-asan+0x8f91070) (BuildId: 40ec0ed8ee95
+    #8 0x5d16d51949a1 in tomo_db0::IoLoop::run_split() (/home/user/Projects/cx-aclfix/build/aclfix/pre-source/build/tomokv-asan+0x8fa79a1) (BuildId: 40ec0ed8ee9509dcea8ff40307c47e9627aac5cc)
+    #9 0x5d16d4dc93d6 in tomo_db0::IoLoop::run() src/core/io_loop.h:432
+    #10 0x5d16d4dc93d6 in operator() src/main.cc:571
+    #11 0x5d16d4dc93d6 in __invoke_impl<void, main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:61
+    #12 0x5d16d4dc93d6 in __invoke<main(int, char**)::<lambda()> > /usr/include/c++/13/bits/invoke.h:96
+    #13 0x5d16d4dc93d6 in _M_invoke<0> /usr/include/c++/13/bits/std_thread.h:292
+    #14 0x5d16d4dc93d6 in operator() /usr/include/c++/13/bits/std_thread.h:299
+    #15 0x5d16d4dc93d6 in _M_run /usr/include/c++/13/bits/std_thread.h:244
+
+Final ASAN build (budget-tuned), all 12 rows: 10 clean on the first run; 1s streams-name and 1s
+save-load each hit the same report (Direct leak: the 1984-byte Client from IoLoop::admit_fd;
+indirect: its ROB slots' reply buffers, e.g. ACL GETUSER replies in save-load). Both passed every
+reply assertion and were re-run clean; the failing receipts are kept in asan-lsan-flake-1s-*/.

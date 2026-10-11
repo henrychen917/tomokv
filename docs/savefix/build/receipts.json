@@ -1,0 +1,79 @@
+{
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "logs": [
+    {
+      "source": "build/savefix/pre-build.log",
+      "artifact": "docs/savefix/build/pre-build.log.gz",
+      "bytes": 22118,
+      "sha256": "103b6ec4de1a6d52bdfec3823aa1ebb866f1fd59a701996bbc6444b2c87ad8b0"
+    },
+    {
+      "source": "build/savefix/post-build.log",
+      "artifact": "docs/savefix/build/post-build.log.gz",
+      "bytes": 19706,
+      "sha256": "e0670200d7432d8f5b489cf75810e706b81767c209a29946b6e76267727e60d5"
+    },
+    {
+      "source": "build/savefix/production-units-build.log",
+      "artifact": "docs/savefix/build/production-units-build.log.gz",
+      "bytes": 248828,
+      "sha256": "f473a4a0e46d721361d88fcd0f0052ed478b457f44d4913093aa9a3a1364c2cb"
+    },
+    {
+      "source": "build/savefix/shutdown-unit-virtual-clock-build.log",
+      "artifact": "docs/savefix/build/shutdown-unit-virtual-clock-build.log.gz",
+      "bytes": 1709,
+      "sha256": "2479977d7eb60a8ce8810faf79c8ef403974cc6af9ba3e6b6b35a037920a377b"
+    },
+    {
+      "source": "build/savefix/mdbqsbr-live-arms-build.log",
+      "artifact": "docs/savefix/build/mdbqsbr-live-arms-build.log.gz",
+      "bytes": 53546,
+      "sha256": "7219a7d44df431d9da6bfcb28633b8bc444dc4ffbd2d28971e5db8857c9c6e64"
+    },
+    {
+      "source": "build/savefix/all-final-check.log",
+      "artifact": "docs/savefix/build/all-final-check.log.gz",
+      "bytes": 36,
+      "sha256": "68c5f548009ee20966e380682cc0b78f39bea9c8895af0403577a7204fef2e99"
+    }
+  ],
+  "all_builds": [
+    {
+      "arm": "PRE",
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-j16",
+        "BUILD_ROOT=build/savefix/pre",
+        "all"
+      ],
+      "exit_code": 0
+    },
+    {
+      "arm": "POST",
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-j16",
+        "all"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "final_all": {
+    "argv": [
+      "taskset",
+      "-c",
+      "112-127",
+      "make",
+      "-j16",
+      "all"
+    ],
+    "exit_code": 0
+  }
+}

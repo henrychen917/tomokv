@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-authfix/tests/authfix.py", line 329, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/user/Projects/cx-authfix/tests/authfix.py", line 319, in main
+    run.slowlog('redis' if oracle else args.case.split('-')[1])
+  File "/home/user/Projects/cx-authfix/tests/authfix.py", line 246, in slowlog
+    with Server(self, 'slowlog-' + mode, mode, extra=['--slowlog-log-slower-than', '0']) as s, s.client() as c:
+  File "/home/user/Projects/cx-authfix/tests/authfix.py", line 116, in __enter__
+    assert self.booted, (self.path / 'server.log').read_text()
+           ^^^^^^^^^^^
+AssertionError: --ratio is unavailable with --thread-mode 1s: every thread handles networking and execution
+TomoKV 1.0-cpp (Redis 7.4.10 compatible)
+

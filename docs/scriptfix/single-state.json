@@ -1,0 +1,338 @@
+[
+  {
+    "arm": "pre",
+    "mode": "1s",
+    "log": "docs/scriptfix/pre-single-state-1s.log",
+    "summary": {
+      "case": "functions",
+      "mode": "1s",
+      "checks": 27,
+      "failures": 11,
+      "seconds": 0.676
+    },
+    "failures": [
+      {
+        "actual": 1,
+        "check": "after SCRIPT FLUSH",
+        "expected": 4,
+        "pass": false
+      },
+      {
+        "actual": 1,
+        "check": "after unrelated LOAD",
+        "expected": 5,
+        "pass": false
+      },
+      {
+        "actual": [
+          1,
+          1,
+          1,
+          2,
+          2,
+          3,
+          1,
+          3,
+          2,
+          2,
+          1,
+          3,
+          3,
+          4,
+          4,
+          2
+        ],
+        "check": "single library state",
+        "expected": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21
+        ],
+        "pass": false
+      },
+      {
+        "actual": 1,
+        "check": "unrelated DELETE preserves closure",
+        "expected": 2,
+        "pass": false
+      },
+      {
+        "actual": 1,
+        "check": "unrelated reload preserves closure",
+        "expected": 3,
+        "pass": false
+      },
+      {
+        "actual": 2,
+        "check": "failed LOAD preserves closure",
+        "expected": 4,
+        "pass": false
+      },
+      {
+        "actual": 1,
+        "check": "unrelated REPLACE preserves closure",
+        "expected": 5,
+        "pass": false
+      },
+      {
+        "actual": 1,
+        "check": "unrelated RESTORE preserves closure",
+        "expected": 2,
+        "pass": false
+      },
+      {
+        "actual": 1,
+        "check": "APPEND preserves closure",
+        "expected": 3,
+        "pass": false
+      },
+      {
+        "actual": 2,
+        "check": "failed RESTORE preserves closure",
+        "expected": 4,
+        "pass": false
+      },
+      {
+        "actual": 3,
+        "check": "failed replacement preserves closure",
+        "expected": 5,
+        "pass": false
+      }
+    ]
+  },
+  {
+    "arm": "pre",
+    "mode": "2s",
+    "log": "docs/scriptfix/pre-single-state-2s.log",
+    "summary": {
+      "case": "functions",
+      "mode": "2s",
+      "checks": 27,
+      "failures": 11,
+      "seconds": 0.737
+    },
+    "failures": [
+      {
+        "actual": 1,
+        "check": "after SCRIPT FLUSH",
+        "expected": 4,
+        "pass": false
+      },
+      {
+        "actual": 1,
+        "check": "after unrelated LOAD",
+        "expected": 5,
+        "pass": false
+      },
+      {
+        "actual": [
+          2,
+          1,
+          2,
+          3,
+          4,
+          5,
+          3,
+          6,
+          7,
+          8,
+          9,
+          4,
+          10,
+          11,
+          5,
+          12
+        ],
+        "check": "single library state",
+        "expected": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21
+        ],
+        "pass": false
+      },
+      {
+        "actual": 1,
+        "check": "unrelated DELETE preserves closure",
+        "expected": 2,
+        "pass": false
+      },
+      {
+        "actual": 1,
+        "check": "unrelated reload preserves closure",
+        "expected": 3,
+        "pass": false
+      },
+      {
+        "actual": 2,
+        "check": "failed LOAD preserves closure",
+        "expected": 4,
+        "pass": false
+      },
+      {
+        "actual": 1,
+        "check": "unrelated REPLACE preserves closure",
+        "expected": 5,
+        "pass": false
+      },
+      {
+        "actual": 1,
+        "check": "unrelated RESTORE preserves closure",
+        "expected": 2,
+        "pass": false
+      },
+      {
+        "actual": 1,
+        "check": "APPEND preserves closure",
+        "expected": 3,
+        "pass": false
+      },
+      {
+        "actual": 2,
+        "check": "failed RESTORE preserves closure",
+        "expected": 4,
+        "pass": false
+      },
+      {
+        "actual": 3,
+        "check": "failed replacement preserves closure",
+        "expected": 5,
+        "pass": false
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "1s",
+    "log": "docs/scriptfix/post-single-state-1s.log",
+    "summary": {
+      "case": "functions",
+      "mode": "1s",
+      "checks": 27,
+      "failures": 1,
+      "seconds": 0.549
+    },
+    "failures": [
+      {
+        "actual": [
+          1,
+          1,
+          6,
+          1,
+          7,
+          1,
+          2,
+          2,
+          1,
+          1,
+          2,
+          8,
+          1,
+          2,
+          3,
+          9
+        ],
+        "check": "single library state",
+        "expected": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21
+        ],
+        "pass": false
+      }
+    ]
+  },
+  {
+    "arm": "post",
+    "mode": "2s",
+    "log": "docs/scriptfix/post-single-state-2s.log",
+    "summary": {
+      "case": "functions",
+      "mode": "2s",
+      "checks": 27,
+      "failures": 1,
+      "seconds": 0.733
+    },
+    "failures": [
+      {
+        "actual": [
+          1,
+          6,
+          7,
+          2,
+          3,
+          4,
+          5,
+          8,
+          9,
+          6,
+          10,
+          11,
+          12,
+          13,
+          7,
+          8
+        ],
+        "check": "single library state",
+        "expected": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21
+        ],
+        "pass": false
+      }
+    ]
+  }
+]

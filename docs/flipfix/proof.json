@@ -1,0 +1,528 @@
+{
+ "lane": "flipfix",
+ "branch": "cx-flipfix",
+ "pre_commit": "5146b78ee89b64748dd46db970efa8086f653fa0",
+ "post_source_commit": "813e1c024fa1ae6472b0c59c3995dc4b967d1085",
+ "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+ "affinity": "taskset -c 112-127 (servers 112-119, clients 120-127)",
+ "ports": "25084-25090",
+ "binaries": {
+  "PRE build/flipfix/pre/tomokv": "551ec19429f506ef9d9e713b81ef095dbb8869edaa74aea97dbaee4eb5d16d5c",
+  "POST build/tomokv": "afe6bf3755cc087ee374cb2d3f8939df7d4df720b8fa91466361fb5df9f28f74",
+  "PRE asan build/flipfix/pre-asan/tomokv": "3c367973f2ae26df73e389277434579f49816d65d81ecf9b949d5287dfff89d9",
+  "PRE tsan build/flipfix/pre-tsan/tomokv": "1a8a406704b6812c1f3c48951a1230968b75d51663e1674325759d79d11ca5ef",
+  "POST asan build/tomokv-asan": "3a5047827f93220af127208ade78afd8b1c74d2e350221e1aef9df1ad1402f1f",
+  "POST tsan build/tomokv-tsan": "8b5cfb3574bfe199694a2f8a85ea1754bc5b43fc9785a17e28b1c6ed6f1427fd",
+  "POST core unit (ASan) build/core-concurrency-unit": "61a73e4473c53787847f28ed6044dc91898bcd65dc6cb9272a0b58bc5b70554a",
+  "POST core unit (TSan, gate parbuild recipe) build/flipfix/units-post/core-concurrency-tsan": "6e67e4285006f8efe781edea3984a016f4eb5cf85f25bf3ea45ba8416c67ac64",
+  "PRE core unit (ASan; PRE src + flipfix test sources) build/flipfix/source/build/core-concurrency-unit": "3346eef96351dcfab41287fb6f506cf1ff86f9ec0b5a93819089bf45e9e4e3e0",
+  "PRE core unit (TSan; PRE src + flipfix test sources) build/flipfix/units-pre/core-concurrency-tsan": "f2e4a3c9aa1dbdc455c416b545797262d2d93b1ae65891bd0a89275b31245b7a"
+ },
+ "pre_builds": {
+  "default": "cd build/flipfix/source (git archive of 5146b78ee) && make -j16 BUILD_ROOT=$PWD/../pre all",
+  "asan": "same tree, BUILD_ROOT=../pre-asan JE=0 CXXFLAGS=<make asan flags>",
+  "tsan": "same tree, BUILD_ROOT=../pre-tsan JE=0 CXXFLAGS=<make tsan flags>; run under setarch x86_64 -R"
+ },
+ "post_builds": {
+  "all": {
+   "rc": 0,
+   "seconds": 126,
+   "load1": 23.41
+  },
+  "production-units": {
+   "rc": 0,
+   "seconds": 255,
+   "load1": 21.26
+  },
+  "mdbqsbr-live-arms": {
+   "rc": 0,
+   "seconds": 147,
+   "load1": 16.17
+  },
+  "asan": {
+   "rc": 0,
+   "seconds": 162,
+   "load1": 9.02
+  },
+  "tsan": {
+   "rc": 0,
+   "seconds": 70,
+   "load1": 14.2
+  },
+  "core-tsan": {
+   "rc": 0,
+   "seconds": 46,
+   "load1": 13.42
+  },
+  "flipctl-unit": {
+   "rc": 0,
+   "seconds": 4,
+   "load1": 12.67
+  }
+ },
+ "production_units_make_q": {
+  "targets": 28,
+  "make_q_0": 28,
+  "lines": [
+   "build/at15-unit make-q=0",
+   "build/at15-db0-unit make-q=0",
+   "build/execabort-watch-unit make-q=0",
+   "build/execabort-watch-db0-unit make-q=0",
+   "build/core-concurrency-unit make-q=0",
+   "build/atomic-survivors-unit make-q=0",
+   "build/netcmd-unit make-q=0",
+   "build/encodingfix-unit make-q=0",
+   "build/netcap-unit make-q=0",
+   "build/waits-unit make-q=0",
+   "build/rehash-waits-unit make-q=0",
+   "build/multidb-unit make-q=0",
+   "build/multidb-boundary-unit make-q=0",
+   "build/storesize-unit make-q=0",
+   "build/exbatch-unit make-q=0",
+   "build/exbatch-db0-unit make-q=0",
+   "build/wb-rule-units make-q=0",
+   "build/wbland-units make-q=0",
+   "build/rltopo-unit make-q=0",
+   "build/lbplanner-units make-q=0",
+   "build/shutdown-unit make-q=0",
+   "build/persistfix-units make-q=0",
+   "build/ktls-keyupdate make-q=0",
+   "build/ktls-keyupdate-unit make-q=0",
+   "build/flushfix-units make-q=0",
+   "build/splitlocal-unit make-q=0",
+   "build/reorder-engagement-unit make-q=0",
+   "build/reorder-engagement-unit-db0 make-q=0"
+  ]
+ },
+ "final_verify_status": [
+  "binaries: build/tomokv=afe6bf3755cc087ee374cb2d3f8939df7d4df720b8fa91466361fb5df9f28f74 build/tomokv-asan=3a5047827f93220af127208ade78afd8b1c74d2e350221e1aef9df1ad1402f1f build/tomokv-tsan=8b5cfb3574bfe199694a2f8a85ea1754bc5b43fc9785a17e28b1c6ed6f1427fd  load=14.55 05:00:30",
+  "stress fs1: close x40 fails=0 load=18.03 05:01:37",
+  "hot rc=1 Hot bodies: 1204; raw byte equal: 1176; bytes + resolved relocation targets equal: 1189 load=13.72 05:02:15",
+  "full rc=1 (asserts on the by-design hot change) load=11.50 05:03:19",
+  "classify rc=0 {\"hot-intended\": 15, \"hot-reloc-only\": 0, \"hot-residual\": 0, \"hot-transitive\": 0, \"intended\": 139, \"reloc-only\": 19, \"residual\": 32, \"transitive\": 53} load=7.75 05:03:54",
+  "linked rc=1 load=7.75 05:03:56",
+  "layouts rc=1 layout locks hold; differences: {\"tomo::Server\": {\"size\": [108736, 108736], \"fields\": {\"flip_dropped_client_transfers_\": [null, 582688]}}, \"tomo_db0::Server\": {\"size\": [108352, 108352], \"fields\": {\"flip_dropped_client_transfers_\": [null, 579616]}}} load=7.21 05:04:02",
+  "row post-close-uring rc=0 load=6.71 05:04:03",
+  "row post-close-epoll rc=0 load=6.71 05:04:04",
+  "row post-sigterm-uring rc=0 load=6.71 05:04:05",
+  "row post-sigint-uring rc=0 load=6.71 05:04:05",
+  "flipctl-unit rc=0 flipctl unit: ok load=6.71 05:04:05",
+  "unit watch asan=0 tsan=0 tsan-witness=1 load=6.71 05:04:05",
+  "unit lifetime asan=0 tsan=0 tsan-witness=1 load=6.71 05:04:06",
+  "unit drain asan=0 tsan=0 tsan-witness=1 load=6.71 05:04:06",
+  "unit route asan=0 tsan=0 tsan-witness=1 load=5.83 05:04:13",
+  "unit snapshot asan=0 tsan=0 tsan-witness=1 load=5.83 05:04:13",
+  "unit config asan=0 tsan=0 tsan-witness=1 load=5.83 05:04:13",
+  "unit notify asan=0 tsan=0 tsan-witness=1 load=5.83 05:04:13",
+  "unit flipfix-plan asan=0 tsan=0 tsan-witness=1 load=5.83 05:04:13",
+  "unit flipfix-fingerprint asan=0 tsan=0 tsan-witness=1 load=5.83 05:04:13",
+  "rltopo 1s rc=0 load=5.83 05:04:14",
+  "rltopo 2s rc=0 load=5.83 05:04:14",
+  "asan churn uring rc=0 load=5.83 05:04:16",
+  "asan churn epoll rc=0 load=5.85 05:04:17",
+  "tsan churn rc=1 (evidence mode; reports from unrelated diagnostics expected) load=5.85 05:04:19",
+  "tsan controllers rc=1 (lbsignals reports expected) load=5.46 05:04:40",
+  "abort probe post rc=0 load=2.84 05:05:17",
+  "abort probe pre rc=1 load=18.18 05:05:54",
+  "late post rc=0 load=18.18 05:05:55",
+  "batteries uring: flip rc=0 wall=.126430489 flip_under_load rc=0 wall=1.038774473 flip_ttl rc=0 wall=1.456403974 spinprobe rc=0 wall=2.232644544 spscmask_flip rc=0 wall=4.471072584  load=20.23 05:06:06",
+  "batteries epoll: flip rc=0 wall=.124762277 flip_under_load rc=0 wall=1.039583452 flip_ttl rc=0 wall=1.458831316 spinprobe rc=0 wall=2.231329345 spscmask_flip rc=0 wall=4.439610895  load=23.27 05:06:18",
+  "flipctl_test rc=0 OK load=23.27 05:06:18",
+  "flip_close_controls rc=0 FAIL core concurrency: FLIP drain must wait for detached closing client load=15.81 05:06:49",
+  "multikey: flip_multikey_hold rc=0 server rc=0  load=11.15 05:08:26",
+  "reorder_flip rc=0 run 1/1: acceptance=True, elapsed=129.2s, total=1/1 load=13.59 05:10:36",
+  "differ split: DIFFER FOCUSED PROOF: pass=40 fail=0 runtime=0m19s exit=0; armed-fused: DIFFER FOCUSED PROOF: pass=42 fail=0 runtime=0m19s exit=0 load=12.57 05:11:15",
+  "wbland clauses rc=0 PASS wbland clauses: 83/83 strict outcomes load=12.04 05:11:21",
+  "ledger rc=0 load=12.04 05:11:21",
+  "gates_test rc=0 OK load=41.13 05:12:38",
+  "stress fs2: close x160 fails=0 load=6.34 05:15:23",
+  "stress fc: churn x40 fails=0 load=5.55 05:16:07",
+  "DONE"
+ ],
+ "serverless": {
+  "gates_test": "Ran 66 tests in 76.269s; OK",
+  "gate_ledger_fixture": "Receipt label fixture: 533 source-declared rows agree | Ran 10 tests in 0.349s | OK | gate syntax ok",
+  "wbland_checks check clauses": "PASS wbland clauses: 83/83 strict outcomes"
+ },
+ "rows": {
+  "pre close-uring": {
+   "failure": "AssertionError: FLIP refused because connections closed during it: ERR FLIP coordinator connection left the ownership set"
+  },
+  "post close-uring": {
+   "applied": 30,
+   "case": "close",
+   "closed": 300,
+   "connector": {
+    "ok": 0,
+    "refused": 0
+   },
+   "engine": "uring",
+   "outcomes": {
+    "OK": 30
+   },
+   "result": "PASS",
+   "witnessed": 30
+  },
+  "pre close-epoll": {
+   "failure": "AssertionError: FLIP held 5.00s by connections closing during it (ERR FLIP timed out before the ownership commit)"
+  },
+  "post close-epoll": {
+   "applied": 21,
+   "case": "close",
+   "closed": 300,
+   "connector": {
+    "ok": 0,
+    "refused": 0
+   },
+   "engine": "epoll",
+   "outcomes": {
+    "ERR FLIP could not detach a connection: could not reserve destination epoll registration": 3,
+    "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration": 6,
+    "OK": 21
+   },
+   "result": "PASS",
+   "witnessed": 24
+  },
+  "pre sigterm-uring": {
+   "failure": "AssertionError: SIGTERM not served: still running 3.0s later"
+  },
+  "post sigterm-uring": {
+   "case": "sigterm",
+   "recovered": 1000,
+   "result": "PASS"
+  },
+  "pre sigint-uring": {
+   "failure": "AssertionError: second SIGINT absorbed: still running 0.75s later"
+  },
+  "post sigint-uring": {
+   "case": "sigint",
+   "result": "PASS"
+  }
+ },
+ "units": {
+  "asan-config": "PASS core concurrency config (state assertions fired)",
+  "asan-drain": "PASS core concurrency drain (state assertions fired)",
+  "asan-flipfix-fingerprint": "PASS core concurrency flipfix-fingerprint (state assertions fired)",
+  "asan-flipfix-plan": "PASS core concurrency flipfix-plan (state assertions fired)",
+  "asan-lifetime": "PASS core concurrency lifetime (state assertions fired)",
+  "asan-notify": "PASS core concurrency notify (state assertions fired)",
+  "asan-route": "PASS LB busy client mode=1s destination_ack=1 arrivals=1 (first-tail refusal)",
+  "asan-snapshot": "PASS core concurrency snapshot (state assertions fired)",
+  "asan-watch": "PASS core concurrency watch (state assertions fired)",
+  "flipctl-unit": "PASS signalacct window: seven passes, three publications, exact final flush",
+  "pre-asan-flipfix-fingerprint": "PASS core concurrency flipfix-fingerprint (state assertions fired)",
+  "pre-asan-flipfix-plan": "ERROR: AddressSanitizer: heap-use-after-free",
+  "pre-tsan-flipfix-fingerprint": "WARNING: ThreadSanitizer: data",
+  "pre-tsan-flipfix-plan": "WARNING: ThreadSanitizer: heap-use-after-free",
+  "rltopo-1s": "PASS readreply GET/raw db=1",
+  "rltopo-2s": "PASS readreply GET/raw db=1",
+  "tsan-config": "PASS core concurrency config (state assertions fired)",
+  "tsan-drain": "PASS core concurrency drain (state assertions fired)",
+  "tsan-flipfix-fingerprint": "PASS core concurrency flipfix-fingerprint (state assertions fired)",
+  "tsan-flipfix-plan": "PASS core concurrency flipfix-plan (state assertions fired)",
+  "tsan-lifetime": "PASS core concurrency lifetime (state assertions fired)",
+  "tsan-notify": "PASS core concurrency notify (state assertions fired)",
+  "tsan-route": "PASS LB busy client mode=1s destination_ack=1 arrivals=1 (first-tail refusal)",
+  "tsan-snapshot": "PASS core concurrency snapshot (state assertions fired)",
+  "tsan-watch": "PASS core concurrency watch (state assertions fired)"
+ },
+ "sanitizer": {
+  "POST asan churn uring": {
+   "applied": 30,
+   "case": "churn",
+   "closed": 300,
+   "connector": {
+    "ok": 13148,
+    "refused": 1211
+   },
+   "engine": "uring",
+   "outcomes": {
+    "OK": 30
+   },
+   "result": "PASS",
+   "witnessed": 25
+  },
+  "POST asan churn epoll": {
+   "applied": 17,
+   "case": "churn",
+   "closed": 300,
+   "connector": {
+    "ok": 13236,
+    "refused": 11
+   },
+   "engine": "epoll",
+   "outcomes": {
+    "ERR FLIP could not detach a connection: could not reserve destination epoll registration": 4,
+    "ERR FLIP could not detach a connection: could not reserve source epoll rollback registration": 9,
+    "OK": 17
+   },
+   "result": "PASS",
+   "witnessed": 25
+  },
+  "PRE asan churn uring": {
+   "failure": "AssertionError: sanitizer report ['ERROR: AddressSanitizer'] in /home/user/Projects/cx-flipfix/build/flipfix/runs/pre-asan-churn-uring-1/churn/churn.log:"
+  },
+  "PRE tsan churn uring": {
+   "reports": 28,
+   "classes": {
+    "diagnostic": 20,
+    "other": 4,
+    "flip": 4
+   },
+   "flip_class": [
+    [
+     1,
+     "data race :: tomo_db0::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<ch <-> unsigned int tomo_db0::IoLoop::flip_control_pass<false>()"
+    ],
+    [
+     1,
+     "data race :: __gnu_cxx::__normal_iterator<tomo_db0::Client**, std::vector<tomo_db0::Client*, std::allocator<tomo_ <-> std::vector<tomo_db0::Client*, std::allocator<tomo_db0::Client*> >::pop_back()"
+    ],
+    [
+     1,
+     "data race :: tomo_db0::Server::flip_build_client_plan(tomo_db0::Client*, std::__cxx11::basic_string<char, std::ch <-> tomo_db0::ThreadCtx::remove_client(tomo_db0::Client*)"
+    ],
+    [
+     1,
+     "heap-use-after-free :: tomo_db0::IoLoop::client_transfer_ready(tomo_db0::Client*, unsigned int, std::__cxx11::basic_string< <-> tomo_db0::IoLoop::reap_dead()"
+    ]
+   ]
+  },
+  "POST tsan churn uring": {
+   "reports": 25,
+   "classes": {
+    "diagnostic": 19,
+    "other": 4,
+    "flip": 2
+   },
+   "flip_class": [
+    [
+     2,
+     "data race :: tomo_db0::Server::flip_begin(unsigned int, unsigned int, unsigned int, std::__cxx11::basic_string<ch <-> unsigned int tomo_db0::IoLoop::flip_control_pass<false>()"
+    ]
+   ]
+  },
+  "PRE tsan controllers": {
+   "reports": 100,
+   "classes": {
+    "diagnostic": 89,
+    "flip": 7,
+    "other": 4
+   },
+   "flip_class": [
+    [
+     7,
+     "data race :: tomo_db0::FlipController::sample_fingerprint(tomo_db0::Server&) <-> tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Cl"
+    ]
+   ]
+  },
+  "POST tsan controllers": {
+   "reports": 60,
+   "classes": {
+    "diagnostic": 56,
+    "other": 4
+   },
+   "flip_class": []
+  },
+  "POST tsan churn uring result": {
+   "applied": 30,
+   "case": "churn",
+   "closed": 300,
+   "connector": {
+    "ok": 13482,
+    "refused": 1976
+   },
+   "engine": "uring",
+   "outcomes": {
+    "OK": 30
+   },
+   "result": "PASS",
+   "witnessed": 28
+  }
+ },
+ "probes": {
+  "pre abort probe": {
+   "reply": "connection lost: TimeoutError",
+   "server_alive": false,
+   "sigabrt": true
+  },
+  "post abort probe": {
+   "reply": "OK",
+   "server_alive": true,
+   "connected_clients": 161,
+   "expected_clients": 161,
+   "sigabrt": false
+  },
+  "post late": {
+   "case": "late",
+   "outcomes": {
+    "OK": 20
+   },
+   "result": "PASS"
+  },
+  "pre late (6 runs)": [
+   {
+    "case": "late",
+    "outcomes": {
+     "ERR FLIP cannot quiesce a connection: connection is not live on the source IO thread": 18,
+     "ERR FLIP timed out before the ownership commit": 2
+    },
+    "result": "PASS"
+   },
+   {
+    "failure": "AssertionError: FLIP 6 2 unanswered (attempt 9): wedged"
+   },
+   {
+    "failure": "AssertionError: FLIP 6 2 unanswered (attempt 3): wedged"
+   },
+   {
+    "failure": "AssertionError: FLIP 6 2 unanswered (attempt 1): wedged"
+   },
+   {
+    "failure": "AssertionError: FLIP 6 2 unanswered (attempt 2): wedged"
+   },
+   {
+    "failure": "AssertionError: FLIP 6 2 unanswered (attempt 6): wedged"
+   }
+  ]
+ },
+ "stress": {
+  "final": [
+   "stress fs1: close x40 fails=0 load=18.03 05:01:37",
+   "stress fs2: close x160 fails=0 load=6.34 05:15:23",
+   "stress fc: churn x40 fails=0 load=5.55 05:16:07",
+   "PRE row pre-close-uring rc=1 (must fail) load=7.34 05:16:18",
+   "PRE row pre-close-epoll rc=1 (must fail) load=10.52 05:16:23",
+   "PRE row pre-sigterm-uring rc=1 (must fail) load=10.52 05:16:27",
+   "PRE row pre-sigint-uring rc=1 (must fail) load=13.68 05:16:28",
+   "stress fs3: close x800 fails=0 load=37.00 05:30:45",
+   "DONE"
+  ],
+  "before_inbox_fix": {
+   "hunt (close, POST before the inbox fix)": 40,
+   "dhunt (close, diagnostic build before the inbox fix)": 92,
+   "wedged": [
+    "dhunt-92.out"
+   ]
+  }
+ },
+ "identity": {
+  "hot_lbstall": "Hot bodies: 1204; raw byte equal: 1176; bytes + resolved relocation targets equal: 1189",
+  "hot_changed": [
+   "DIFF db0/src/core/genthread.o 9538 9730 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+   "DIFF db0/src/core/rl2s.o 11888 11635 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*) [clone .isra.0]",
+   "DIFF db0/src/core/rl2s.o 21169 20955 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+   "DIFF db0/src/core/rl2s.o 21083 20807 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, false>(tomo_db0::Client*) [clone .isra.0]",
+   "DIFF db0/src/core/rl2s.o 21051 20800 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 32u, true>(tomo_db0::Client*)",
+   "DIFF db0/src/core/rl2s.o 20985 20743 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 32u, true>(tomo_db0::Client*)",
+   "DIFF db0/src/main.o 12000 11717 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<false, 0u, false>(tomo_db0::Client*)",
+   "DIFF db0/src/main.o 12149 11832 tomo_db0::IoLoop::DispatchResult tomo_db0::IoLoop::parse_and_dispatch<true, 0u, false>(tomo_db0::Client*)",
+   "DIFF src/core/rl2s.o 12261 11706 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*) [clone .isra.0]",
+   "DIFF src/core/rl2s.o 20973 20932 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, false>(tomo::Client*) [clone .isra.0]",
+   "DIFF src/core/rl2s.o 20920 20761 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, false>(tomo::Client*) [clone .isra.0]",
+   "DIFF src/core/rl2s.o 20932 20916 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 32u, true>(tomo::Client*)",
+   "DIFF src/core/rl2s.o 20884 20914 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 32u, true>(tomo::Client*)",
+   "DIFF src/main.o 12502 12003 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<false, 0u, false>(tomo::Client*)",
+   "DIFF src/main.o 12375 12127 tomo::IoLoop::DispatchResult tomo::IoLoop::parse_and_dispatch<true, 0u, false>(tomo::Client*)"
+  ],
+  "full_ccfix": {
+   "total": 16354,
+   "equal": 16111,
+   "changed": 243,
+   "handlers": 1210,
+   "handlers_equal": 1210,
+   "hot": 1208,
+   "hot_equal": 1193
+  },
+  "classification": {
+   "residual": 32,
+   "hot-residual": 0,
+   "transitive": 53,
+   "hot-transitive": 0,
+   "intended": 139,
+   "hot-intended": 15,
+   "reloc-only": 19,
+   "hot-reloc-only": 0
+  },
+  "text_bytes": {
+   "pre": 7582188,
+   "post": 7583852
+  },
+  "rodata_bytes": {
+   "pre": 156453,
+   "post": 156709
+  },
+  "layout_differences": {
+   "tomo::Server": {
+    "size": [
+     108736,
+     108736
+    ],
+    "fields": {
+     "flip_dropped_client_transfers_": [
+      null,
+      582688
+     ]
+    }
+   },
+   "tomo_db0::Server": {
+    "size": [
+     108352,
+     108352
+    ],
+    "fields": {
+     "flip_dropped_client_transfers_": [
+      null,
+      579616
+     ]
+    }
+   }
+  },
+  "ioloop_layout_diff": [
+   "56a57",
+   "> /* 1411 | 1 */ bool flip_close_pin_;",
+   "58a60",
+   "> /* 1420 | 4 */ uint32_t flip_dropped_local_;"
+  ]
+ },
+ "batteries": {
+  "uring": [
+   "flip rc=0 wall=.126430489",
+   "flip_under_load rc=0 wall=1.038774473",
+   "flip_ttl rc=0 wall=1.456403974",
+   "spinprobe rc=0 wall=2.232644544",
+   "spscmask_flip rc=0 wall=4.471072584"
+  ],
+  "epoll": [
+   "flip rc=0 wall=.124762277",
+   "flip_under_load rc=0 wall=1.039583452",
+   "flip_ttl rc=0 wall=1.458831316",
+   "spinprobe rc=0 wall=2.231329345",
+   "spscmask_flip rc=0 wall=4.439610895"
+  ],
+  "flipctl_test": "OK",
+  "flip_close_controls": {
+   "positive": true,
+   "negative_fails_as_required": true
+  },
+  "flip_multikey_hold": [
+   "flip_multikey_hold rc=0",
+   "server rc=0"
+  ],
+  "reorder_flip": [
+   "load 11.15 12.00 13.34 21/3392 1155264",
+   "run 1/1: starting /home/user/Projects/cx-flipfix/build/tomokv, afe6bf3755cc087ee374cb2d3f8939df7d4df720b8fa91466361fb5df9f28f74",
+   "run 1/1: acceptance=True, elapsed=129.2s, total=1/1"
+  ]
+ },
+ "differential": {
+  "split": [
+   "DIFFER FOCUSED PROOF: pass=40 fail=0 runtime=0m19s",
+   "exit=0"
+  ],
+  "armed-fused": [
+   "DIFFER FOCUSED PROOF: pass=42 fail=0 runtime=0m19s",
+   "exit=0"
+  ]
+ }
+}

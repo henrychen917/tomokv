@@ -1,0 +1,217 @@
+{
+  "binary": "/home/user/Projects/redis/src/redis-server",
+  "sha256": "ac08d444fabe96073aff62e1d187497900b501b3d7667f727251d6d13f22509b",
+  "checks": [
+    {
+      "label": "redis-leading SET",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-leading-before NOAUTH before AUTH",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "redis-leading-before unauthenticated SET refused",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "redis-leading-before full AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-leading-before full CONFIG GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "\u0000audit-suffix"
+      ]
+    },
+    {
+      "label": "redis-leading-before authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "redis-leading-before RESET",
+      "passed": true,
+      "actual": "RESET"
+    },
+    {
+      "label": "redis-leading-before prefix refused",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "redis-leading REWRITE",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-leading escaped bytes persisted",
+      "passed": true,
+      "actual": [
+        "requirepass \"\\x00audit-suffix\""
+      ]
+    },
+    {
+      "label": "redis-leading-after NOAUTH before AUTH",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "redis-leading-after unauthenticated SET refused",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "redis-leading-after full AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-leading-after full CONFIG GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "\u0000audit-suffix"
+      ]
+    },
+    {
+      "label": "redis-leading-after authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "redis-leading-after RESET",
+      "passed": true,
+      "actual": "RESET"
+    },
+    {
+      "label": "redis-leading-after prefix refused",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "redis-embedded SET",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-embedded-before NOAUTH before AUTH",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "redis-embedded-before unauthenticated SET refused",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "redis-embedded-before full AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-embedded-before full CONFIG GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "audit\u0000suffix"
+      ]
+    },
+    {
+      "label": "redis-embedded-before authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "redis-embedded-before RESET",
+      "passed": true,
+      "actual": "RESET"
+    },
+    {
+      "label": "redis-embedded-before prefix refused",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    },
+    {
+      "label": "redis-embedded REWRITE",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-embedded escaped bytes persisted",
+      "passed": true,
+      "actual": [
+        "requirepass \"audit\\x00suffix\""
+      ]
+    },
+    {
+      "label": "redis-embedded-after NOAUTH before AUTH",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "redis-embedded-after unauthenticated SET refused",
+      "passed": true,
+      "actual": {
+        "error": "NOAUTH Authentication required."
+      }
+    },
+    {
+      "label": "redis-embedded-after full AUTH",
+      "passed": true,
+      "actual": "OK"
+    },
+    {
+      "label": "redis-embedded-after full CONFIG GET",
+      "passed": true,
+      "actual": [
+        "requirepass",
+        "audit\u0000suffix"
+      ]
+    },
+    {
+      "label": "redis-embedded-after authenticated PING",
+      "passed": true,
+      "actual": "PONG"
+    },
+    {
+      "label": "redis-embedded-after RESET",
+      "passed": true,
+      "actual": "RESET"
+    },
+    {
+      "label": "redis-embedded-after prefix refused",
+      "passed": true,
+      "actual": {
+        "error": "WRONGPASS invalid username-password pair or user is disabled."
+      }
+    }
+  ],
+  "slowlog": {}
+}

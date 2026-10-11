@@ -56,6 +56,13 @@ DB0_SERVER_ONLY_OBJ := $(SERVER_ONLY_SRC:%.cc=$(BUILD_ROOT)/db0/%.o)
 
 all: $(BIN)
 
+# SV4.10: the DEBUG parser and pre-store hook exist only in this copied test
+# tree. Default production objects never contain a hook, branch or test state.
+build/racefix-climon: tools/racefix_build.py tests/racefix_hook.h $(SRC) $(SERVER_ONLY_SRC) $(wildcard src/*/*.h) $(wildcard src/*/*.inc) Makefile
+	python3 tools/racefix_build.py build/racefix-climon-source
+	$(MAKE) -C build/racefix-climon-source BUILD_ROOT=$(abspath build/racefix-climon-objects) all
+	cp build/racefix-climon-objects/tomokv $@
+
 # Optional teardown-only diagnostics; no code or storage in normal binaries.
 .PHONY: connreset-trace
 connreset-trace:
@@ -104,8 +111,13 @@ $(BIN): $(OBJ) $(SERVER_ONLY_OBJ) $(DB0_OBJ) $(DB0_SERVER_ONLY_OBJ)
 	$(CXX) $(CXXFLAGS) $(DB0_OBJ) $(DB0_SERVER_ONLY_OBJ) $(OBJ) $(SERVER_ONLY_OBJ) -o $@ -Wl,--wrap=main $(JELIBS) $(LDLIBS) -lm
 
 # SV6 adds only a cold metadata lookup; retain all unrelated climon bodies.
-$(BUILD_ROOT)/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=25735
-$(BUILD_ROOT)/db0/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=25670
+# wave1b (seven correctness lanes + climon fix ec0317384): IPA unit 22058 -> 22490 (src) and
+# 22015 -> 22447 (db0). Compile-only scans 25743-26300 / 25670-26300 with per-body attribution
+# (docs/wave1b/identity/budget-trials): at every clean value the only non-lane changes are the
+# climon fix's drain and the three helper copies its two changed callers now inline; fewest changed
+# bodies at 26145 (= 26146) / 26220.
+$(BUILD_ROOT)/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=26145
+$(BUILD_ROOT)/db0/src/cmd/climon.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=26220
 
 # The clean string family intentionally excludes the armed instantiations, but its parsed template
 # bodies still move GCC just past the default large-unit threshold. 10600 restores the same inlining
@@ -117,17 +129,21 @@ $(BUILD_ROOT)/db0/src/cmd/t_string.o: override CXXFLAGS += --param large-unit-in
 $(BUILD_ROOT)/src/cmd/t_list.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=25338
 # PS5/PS7 add cold CONFIG/INFO/finalization code. Retain PRE's inlining decisions
 # for every ordinary command and storage body; tools/psfix_artifacts.py audits both variants.
-$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31297
+# wave1b: IPA unit +58 in both namespaces (racefix/authfix); scans 31297-31400 / 31629-31760: no
+# unattributed body and fewest changed bodies at 31330 / 31725.
+$(BUILD_ROOT)/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31330
 # SV7/SV9 keep new INFO formatting cold; infofields_artifacts.py checks every ordinary body.
 # CC18/PS5/PS7/SV9 composition: preserve every unrelated server-command body.
-$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31629 --param max-inline-insns-auto=16
+$(BUILD_ROOT)/db0/src/cmd/t_server.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=31725 --param max-inline-insns-auto=16
 # PS4 AOF recovery adds cold code. Preserve 5146b78ee storage helper bodies
 # in both namespaces; the aoffix2 hot-body audit checks these compiler budgets.
 $(BUILD_ROOT)/src/persist/aof.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34400
 $(BUILD_ROOT)/db0/src/persist/aof.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34800
 # SV9 publishes save status only on cold completion/abort edges.
-$(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14584
-$(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14457
+# wave1b: savefix's capture cancellation grows both units by 130; scans 14584-14760 / 14457-14620:
+# FlatStore::insert stays PRE and every changed body is savefix's at 14718 (= 14720); db0 fewest at 14562.
+$(BUILD_ROOT)/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14718
+$(BUILD_ROOT)/db0/src/snapshot/snapshot.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=14562
 # CD6/CD13 add cold scan/replacement work. Preserve GCC 13's ordinary set/zset bodies in
 # both database namespaces; tests/cdfix_checks.py audits every emitted function against PRE.
 # These are compile-time inlining budgets, with no runtime option or request-path branch.
@@ -147,13 +163,23 @@ $(BUILD_ROOT)/db0/src/cmd/geo.o: override CXXFLAGS += --param inline-unit-growth
 # in both namespaces. tests/cd13b_audit.py checks every emitted body and linker selection.
 # ACLKEYS3's held registration and final-task wake preserve every outside-path
 # xshard body at these budgets, including both blocked queue specializations.
-$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127791
+# aclfix's pre-execution wake check grows both units by 30 insns (+29/+30 here); the
+# remaining non-blocking deltas are listed in docs/aclfix/identity.
+# flipfix's FLIP/fingerprint code adds 8 insns here (+24 on its own branch). wave1b: merged unit
+# +73/+73; scans 127820-127950 / 126421-126500: every changed body lane-identical or a lane
+# composite, fewest at 127880 (127878-127882) / 126482 (126480-126485).
+$(BUILD_ROOT)/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=127880
 # AT15's cold EXEC routing must not perturb ordinary DB0 dispatch/store helpers.
-$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=126391
+$(BUILD_ROOT)/db0/src/cmd/xshard.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=126482
 # ACL key extraction is isolated from the IO templates. Keep the merged baseline's
 # ordinary dispatch/command bodies; docs/aclkeys records the remaining cold ACL deltas.
-$(BUILD_ROOT)/src/cmd/acl.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34630
-$(BUILD_ROOT)/db0/src/cmd/acl.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=34550
+# aclfix grows the unit by 749/765 insns (+739/+750 here): the shared reply helpers this
+# object provides to the link stay identical; docs/aclfix/identity lists the cold ACL deltas.
+# flipfix adds 8 insns (+8/+24 on its own branch). wave1b: merged unit +802/+818 (aclfix + authfix
+# + flipfix); scans 35360-35500 / 35300-35420: only the two weak-copy differences every value shows
+# (no vector<Client*>::push_back copy; flipfix's close_client) at 35369 (35367-35370) / 35324 (= 35326).
+$(BUILD_ROOT)/src/cmd/acl.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=35369
+$(BUILD_ROOT)/db0/src/cmd/acl.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=35324
 # The isolated prebuild TU reuses the string parser text without emitting its public handlers.
 $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
@@ -175,16 +201,23 @@ $(BUILD_ROOT)/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 # Encoding setup and LBOSC3 change the boot parser and policy initialization in these two
 # TUs. Preserve PRE's ordinary parser/TLS/writeback bodies; lbstall_artifacts checks
 # both complete hot inventories. No override changes in unaffected TUs.
-$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=146503
-$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128865
-$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161715
+# wave1b (seven correctness lanes on 1ba80bd4e): merged IPA units main +925/+909, genthread
+# +643/+643, rl2s +654/+654, db0 reorder +675. Compile-only scans with per-body attribution and
+# call-structure additivity (docs/wave1b/identity/budget-trials): main.o and db0 rl2s.o emit one
+# object across every scanned value (same-headroom values used); src rl2s 162300 (clean from
+# 162265, fewest non-additive dispatch call counts); genthread 129420 / 129640 (flipfix's own
+# values left unattributed hot bodies once savefix/clientfix/racefix share these TUs); db0 reorder
+# 148258 (148256-148261: no unattributed hot body, the ordinary TLS serve lambda back to PRE).
+$(BUILD_ROOT)/src/main.o: override CXXFLAGS += -DTOMO_DUAL_DATABASE --param inline-unit-growth=0 --param large-unit-insns=147428
+$(BUILD_ROOT)/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=129420
+$(BUILD_ROOT)/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=162300
 # CC18/ST3 composition: smallest current hot-body delta; ccfix4 retains the search.
-$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=146540 --param max-inline-insns-auto=18
+$(BUILD_ROOT)/db0/src/main.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=147449 --param max-inline-insns-auto=18
 # RL1: retain the measured ALT spelling and its fused GET placement controls.
 # docs/rlfence2/alt.patch and MEASURE-REQUEST-rlfence3.md record the byte proofs.
-$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=128910 -Wa,--defsym,tomo_rlfence_text_pad=16
-$(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=161680
-$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=147304
+$(BUILD_ROOT)/db0/src/core/genthread.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=129640 -Wa,--defsym,tomo_rlfence_text_pad=16
+$(BUILD_ROOT)/db0/src/core/rl2s.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=162334
+$(BUILD_ROOT)/db0/src/core/reorder.o: override CXXFLAGS += --param inline-unit-growth=0 --param large-unit-insns=148258
 $(BUILD_ROOT)/db0/src/cmd/l4prebuild.o: src/cmd/t_string.cc
 
 # Separate C++ namespaces prevent accidental cross-variant inline/COMDAT binding.
@@ -662,9 +695,9 @@ build/r7shadow-instr: tests/r7shadow_instr.cc $(wildcard src/*/*.h) Makefile
 	$(CXX) $(CXXFLAGS) -I. $< -o $@
 
 # Existing route row owns IO accounting/model/physical-placement proofs.
-build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o: tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc
+build/mdbqsbr-asan/tests/core_concurrency_unit.o build/mdbqsbr-tsan/tests/core_concurrency_unit.o: tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc tests/flipfix_checks.inc
 # Fast serverless lane entry; the gate uses its existing fully instrumented route row.
-build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc $(CORE_TEST_OBJ)
+build/signalacct-core-unit: tests/core_concurrency_unit.cc tests/signalacct_core_checks.inc tests/flip_close_checks.inc tests/flipsettle_checks.inc tests/flipreport_checks.inc tests/flipfix_checks.inc $(CORE_TEST_OBJ)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) $(JEFLAGS) -DTOMO_CORE_CONCURRENCY_TEST -I. $< $(CORE_TEST_OBJ) -o $@ $(JELIBS) $(LDLIBS) -lm
 

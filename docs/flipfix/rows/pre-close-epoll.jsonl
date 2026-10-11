@@ -1,0 +1,14 @@
+load 7.34 12.73 13.84 38/3339 1633531
+{"affinity": [120, 121, 122, 123, 124, 125, 126, 127], "argv": ["taskset", "-c", "112-119", "/home/user/Projects/cx-flipfix/build/flipfix/pre/tomokv", "--bind", "127.0.0.1", "--port", "25084", "--dir", "/home/user/Projects/cx-flipfix/build/flipfix/final-rows/pre-close-epoll/close", "--save", "", "--appendonly", "no", "--thread-mode", "2s", "--ratio", "6:2", "--shards", "16", "--net-io", "epoll", "--enable-debug-command", "yes"], "event": "boot", "label": "close", "loadavg": [7.3388671875, 12.732421875, 13.83740234375]}
+{"event": "ready", "exe": "/home/user/Projects/cx-flipfix/build/flipfix/pre/tomokv", "label": "close", "pid": 1633535}
+{"attempt": 0, "elapsed": 4.9981, "moving": 1, "reply": "ERR FLIP timed out before the ownership commit", "target": 2}
+{"event": "stop", "label": "close", "loadavg": [10.51513671875, 13.3017578125, 14.015625], "log": "/home/user/Projects/cx-flipfix/build/flipfix/final-rows/pre-close-epoll/close/close.log", "rc": 0}
+Traceback (most recent call last):
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 465, in <module>
+    main()
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 455, in main
+    disconnects(args, args.case == 'churn')
+  File "/home/user/Projects/cx-flipfix/tests/flipfix.py", line 228, in disconnects
+    assert elapsed < STALL_BOUND_S, \
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: FLIP held 5.00s by connections closing during it (ERR FLIP timed out before the ownership commit)

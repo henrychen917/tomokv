@@ -188,6 +188,12 @@ void IoLoop::climon_copy_client_filter(PubSubEvent& target, const PubSubEvent& s
 void IoLoop::climon_refresh_armed() {
     const uint32_t before = climon_armed_cached_;
     climon_armed_cached_ = srv_->climon_armed();
+    if ((before & Server::kClimonMonitor) && !(climon_armed_cached_ & Server::kClimonMonitor)) {
+        // MONITOR retry receipts belong only to the armed lifetime.
+        for (auto it = climon_conn_.begin(); it != climon_conn_.end();)
+            if (it->second.idle()) it = climon_conn_.erase(it);
+            else ++it;
+    }
     // parse_and_dispatch caches the armed word ONCE per pass (that is what makes it free when
     // off). A CLIENT subcommand that arms or disarms the lane therefore invalidates the cache of
     // the very pass it is running in -- a pipelined `CLIENT REPLY OFF; PING` would otherwise
@@ -474,12 +480,22 @@ bool IoLoop::climon_armed_gate(Client* client, Op& op) {
             return true;
         }
     }
-    if (armed & Server::kClimonMonitor) climon_monitor_feed(client, op);
-    if (armed & Server::kClimonTracking) {
-        ClimonConn* state = climon_conn_find(client->id());
-        if (state && state->tracking_on) tracking_register_read(client, *state, op);
+    ClimonConn* state = climon_conn_find(client->id());
+    if (!state && (armed & Server::kClimonMonitor)) state = &climon_conn_get(client);
+    if (state) {
+        const uint64_t id = client->rob().dispatch_id();
+        if (state->gate_op_id == id) {
+            // No frame was consumed on the previous attempt. Restore its mark
+            // without consuming SKIP/CACHING or feeding MONITOR a second time.
+            if (state->gate_reply_skip) op.mark_reply_skip();
+            return false;
+        }
+        state->gate_op_id = id;
+        if (state->tracking_on) tracking_register_read(client, *state, op);
     }
+    if (armed & Server::kClimonMonitor) climon_monitor_feed(client, op);
     climon_mark_reply(client, op);
+    if (state) state->gate_reply_skip = op.reply_skip();
     return false;
 }
 
@@ -545,9 +561,9 @@ bool IoLoop::climon_unblock_local(uint64_t id, bool error_flavor) {
 // in a non-default CLIENT REPLY mode. One map probe on a connection whose owner already knows a
 // reply mode exists somewhere.
 bool IoLoop::climon_reply_suppressed(Client* client) {
-    if (!climon_local_reply_) return false;
+    if (!climon_local_reply_ && !climon_local_trackers_) return false;
     const ClimonConn* state = climon_conn_find(client->id());
-    return state && state->reply_mode != kClimonReplyOn;
+    return state && (state->reply_mode != kClimonReplyOn || state->tracking_on);
 }
 
 // SkipNow is the DRAIN state: a marked op may still be un-retired, so the suppressing variant
@@ -568,9 +584,10 @@ uint32_t IoLoop::climon_serve_suppressed(Client* client) {
             }
             if (tls->failed()) close_client(client, tls->output_pending() || client->send_inflight());
         }
-    } else did = wb_.serve_suppressing(*client);
+    } else did = wb_.serve_suppressing(*client, tracking_retire_plain(client));
     ClimonConn* state = climon_conn_find(client->id());
-    if (state && state->reply_mode == kClimonReplySkipNow && client->rob().quiesced()) {
+    if (state && state->reply_mode == kClimonReplySkipNow && client->rob().quiesced() &&
+        state->gate_op_id != client->rob().dispatch_id()) {
         state->reply_mode = kClimonReplyOn;
         if (climon_local_reply_) climon_local_reply_--;
         srv_->climon_reply_removed();
@@ -581,12 +598,13 @@ uint32_t IoLoop::climon_serve_suppressed(Client* client) {
 }
 
 uint32_t IoLoop::climon_prepare_suppressed(Client* client, bool& submit_allowed) {
-    const bool did = wb_.prepare_suppressing(*client, submit_allowed);
+    const bool did = wb_.prepare_suppressing(*client, submit_allowed, tracking_retire_plain(client));
     ClimonConn* state = climon_conn_find(client->id());
     // The drain state disarms once every marked op has actually retired -- not when it was
     // marked, and not when CLIENT REPLY ON ran -- or the suppressing variant would stop being
     // selected before the suppressed reply reached the drain.
-    if (state && state->reply_mode == kClimonReplySkipNow && client->rob().quiesced()) {
+    if (state && state->reply_mode == kClimonReplySkipNow && client->rob().quiesced() &&
+        state->gate_op_id != client->rob().dispatch_id()) {
         state->reply_mode = kClimonReplyOn;
         if (climon_local_reply_) climon_local_reply_--;
         srv_->climon_reply_removed();

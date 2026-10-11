@@ -1,0 +1,56 @@
+{
+  "kind": "A",
+  "behavior": "PRE",
+  "source": "5146b78ee89b64748dd46db970efa8086f653fa0",
+  "runs": [
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-j16",
+        "BUILD_ROOT=/home/user/Projects/cx-clientfix/build/clientfix/pad-a",
+        "all"
+      ],
+      "cwd": "/home/user/Projects/cx-clientfix/build/clientfix/pad-a-source",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "gcc",
+        "-c",
+        "/home/user/Projects/cx-clientfix/build/clientfix/pad-a/text-pad.S",
+        "-o",
+        "/home/user/Projects/cx-clientfix/build/clientfix/pad-a/text-pad.o"
+      ],
+      "cwd": "/home/user/Projects/cx-clientfix",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-f",
+        "pad-link.mk",
+        "-j16",
+        "BUILD_ROOT=/home/user/Projects/cx-clientfix/build/clientfix/pad-a",
+        "all"
+      ],
+      "cwd": "/home/user/Projects/cx-clientfix/build/clientfix/pad-a-source",
+      "exit_code": 0
+    }
+  ],
+  "binary": "/home/user/Projects/cx-clientfix/build/clientfix/pad-a/tomokv",
+  "sha256": "ba7e9856a82ac529e65741912275896b9042536347f5bde62072ca602fe898c2",
+  "pre_behavior_text": 7587340,
+  "post_text": 7593452,
+  "padding_bytes": 6112,
+  "final_text": 7593452,
+  "limitation": "Matches ClimonConn layout and total .text size, not every function address."
+}

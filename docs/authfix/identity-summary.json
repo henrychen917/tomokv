@@ -1,0 +1,18 @@
+{
+  "tomo": {
+    "selected_hot": 601,
+    "selected_hot_equal": 601,
+    "pre_bodies": 8391,
+    "post_bodies": 8391,
+    "comparison_entries": 8396,
+    "equal_entries": 8370
+  },
+  "tomo_db0": {
+    "selected_hot": 603,
+    "selected_hot_equal": 603,
+    "pre_bodies": 7902,
+    "post_bodies": 7904,
+    "comparison_entries": 7908,
+    "equal_entries": 7882
+  }
+}

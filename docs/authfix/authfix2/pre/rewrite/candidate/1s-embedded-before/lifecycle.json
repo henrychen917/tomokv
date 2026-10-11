@@ -1,0 +1,29 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-119",
+    "/home/user/Projects/cx-authfix/build/authfix/pre/tomokv",
+    "/home/user/Projects/cx-authfix/docs/authfix/authfix2/pre/rewrite/candidate/1s-embedded.conf",
+    "--bind",
+    "127.0.0.1",
+    "--port",
+    "25030",
+    "--save",
+    "",
+    "--appendonly",
+    "no",
+    "--dir",
+    "/home/user/Projects/cx-authfix/docs/authfix/authfix2/pre/rewrite/candidate/1s-embedded-data",
+    "--protected-mode",
+    "no",
+    "--thread-mode",
+    "1s",
+    "--shards",
+    "16"
+  ],
+  "pid": 2534247,
+  "booted": true,
+  "exit": 0,
+  "port_closed": true
+}

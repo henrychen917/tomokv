@@ -1,0 +1,20 @@
+{"object": "src/cmd/geo.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=14400", "unit": 10045, "hot_changed": 0, "A": 2, "B": 0, "C": 4, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 4, "Chot": 0, "Dhot": 0}
+    C T=new code 1983->2063 lanes=- tomo::(anonymous namespace)::cmd_geopos_clean(tomo::Shard&, tomo::Op&)
+    C T=PRE code 39->39 lanes=- tomo::(anonymous namespace)::cmd_geopos_clean(tomo::Shard&, tomo::Op&) [clone .cold]
+    C T=new code 2742->2451 lanes=- void std::__insertion_sort<__gnu_cxx::__normal_iterator<tomo::ZsetEntry*, std::vector<tomo::ZsetEntr
+    C T=new removed 110->0 lanes=- tomo::(anonymous namespace)::cmd_geopos<false>(tomo::Shard&, tomo::Op&)::{lambda(tomo::ZsetEntry con
+{"object": "src/cmd/geo.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=14410", "unit": 10045, "hot_changed": 0, "A": 5, "B": 0, "C": 0, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+{"object": "src/cmd/geo.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=14420", "unit": 10045, "hot_changed": 0, "A": 5, "B": 0, "C": 3, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 3, "Chot": 0, "Dhot": 0}
+    C T=new code 1983->2063 lanes=- tomo::(anonymous namespace)::cmd_geopos_clean(tomo::Shard&, tomo::Op&)
+    C T=PRE code 39->39 lanes=- tomo::(anonymous namespace)::cmd_geopos_clean(tomo::Shard&, tomo::Op&) [clone .cold]
+    C T=new removed 110->0 lanes=- tomo::(anonymous namespace)::cmd_geopos<false>(tomo::Shard&, tomo::Op&)::{lambda(tomo::ZsetEntry con
+{"object": "src/cmd/geo.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=14430", "unit": 10045, "hot_changed": 0, "A": 5, "B": 0, "C": 5, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 5, "Chot": 0, "Dhot": 0}
+    C T=new code 1983->2063 lanes=- tomo::(anonymous namespace)::cmd_geopos_clean(tomo::Shard&, tomo::Op&)
+    C T=PRE code 39->39 lanes=- tomo::(anonymous namespace)::cmd_geopos_clean(tomo::Shard&, tomo::Op&) [clone .cold]
+    C T=new code 2068->2068 lanes=- tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > cons
+    C T=PRE code 164->137 lanes=- tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > cons
+    C T=new removed 110->0 lanes=- tomo::(anonymous namespace)::cmd_geopos<false>(tomo::Shard&, tomo::Op&)::{lambda(tomo::ZsetEntry con
+{"object": "src/cmd/geo.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=14450", "unit": 10045, "hot_changed": 0, "A": 5, "B": 0, "C": 3, "D": 0, "AOF": 0, "R7": 0, "CF": 0, "neB4": 3, "Chot": 0, "Dhot": 0}
+    C T=new code 2068->2068 lanes=- tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > cons
+    C T=PRE code 164->137 lanes=- tomo::geo_build_store(tomo::Op&, std::vector<tomo::ZsetEntry, std::allocator<tomo::ZsetEntry> > cons
+    C T=new code 2451->2742 lanes=- void std::__insertion_sort<__gnu_cxx::__normal_iterator<tomo::ZsetEntry*, std::vector<tomo::ZsetEntr

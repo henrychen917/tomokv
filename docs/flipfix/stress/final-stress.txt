@@ -1,0 +1,9 @@
+stress fs1: close x40 fails=0 load=18.03 05:01:37
+stress fs2: close x160 fails=0 load=6.34 05:15:23
+stress fc: churn x40 fails=0 load=5.55 05:16:07
+PRE row pre-close-uring rc=1 (must fail) load=7.34 05:16:18
+PRE row pre-close-epoll rc=1 (must fail) load=10.52 05:16:23
+PRE row pre-sigterm-uring rc=1 (must fail) load=10.52 05:16:27
+PRE row pre-sigint-uring rc=1 (must fail) load=13.68 05:16:28
+stress fs3: close x800 fails=0 load=37.00 05:30:45
+DONE

@@ -1,0 +1,14 @@
+{
+  "command": [
+    "taskset",
+    "-c",
+    "112-127",
+    "python3",
+    "tools/ccfix_audit.py",
+    "build/authfix/pre",
+    "build",
+    "docs/authfix/authfix2/full"
+  ],
+  "exit": 0,
+  "seconds": 222.17075284617022
+}

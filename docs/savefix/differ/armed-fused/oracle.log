@@ -1,0 +1,59 @@
+466538:C 11 Oct 2026 02:00:47.868 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+466538:C 11 Oct 2026 02:00:47.868 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+466538:C 11 Oct 2026 02:00:47.868 * Redis version=7.4.10, bits=64, commit=f103d127, modified=0, pid=466538, just started
+466538:C 11 Oct 2026 02:00:47.868 * Configuration loaded
+466538:M 11 Oct 2026 02:00:47.868 * monotonic clock: POSIX clock_gettime
+466538:M 11 Oct 2026 02:00:47.868 * Running mode=standalone, port=25025.
+466538:M 11 Oct 2026 02:00:47.890 * Server initialized
+466538:M 11 Oct 2026 02:00:47.890 * Ready to accept connections tcp
+466538:M 11 Oct 2026 02:00:51.979 * DB saved on disk
+466538:M 11 Oct 2026 02:00:52.009 * DB saved on disk
+466538:M 11 Oct 2026 02:00:52.028 * Background saving started by pid 467264
+467264:C 11 Oct 2026 02:00:52.038 * DB saved on disk
+467264:C 11 Oct 2026 02:00:52.038 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+466538:M 11 Oct 2026 02:00:52.055 * Background saving terminated with success
+466538:M 11 Oct 2026 02:01:47.867 * DB saved on disk
+466538:M 11 Oct 2026 02:01:47.896 * DB saved on disk
+466538:M 11 Oct 2026 02:01:47.908 * Background saving started by pid 486691
+486691:C 11 Oct 2026 02:01:47.915 * DB saved on disk
+486691:C 11 Oct 2026 02:01:47.915 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+466538:M 11 Oct 2026 02:01:47.997 * Background saving terminated with success
+466538:M 11 Oct 2026 02:02:33.281 * DB saved on disk
+466538:M 11 Oct 2026 02:02:33.301 * DB saved on disk
+466538:M 11 Oct 2026 02:02:33.321 * Background saving started by pid 510173
+510173:C 11 Oct 2026 02:02:33.337 * DB saved on disk
+510173:C 11 Oct 2026 02:02:33.337 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+466538:M 11 Oct 2026 02:02:33.435 * Background saving terminated with success
+466538:M 11 Oct 2026 02:03:18.147 * DB saved on disk
+466538:M 11 Oct 2026 02:03:18.170 * DB saved on disk
+466538:M 11 Oct 2026 02:03:18.196 * Background saving started by pid 533383
+533383:C 11 Oct 2026 02:03:18.211 * DB saved on disk
+533383:C 11 Oct 2026 02:03:18.211 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+466538:M 11 Oct 2026 02:03:18.309 * Background saving terminated with success
+466538:M 11 Oct 2026 02:03:54.287 * DB saved on disk
+466538:M 11 Oct 2026 02:03:54.304 * DB saved on disk
+466538:M 11 Oct 2026 02:03:54.312 * Background saving started by pid 552921
+552921:C 11 Oct 2026 02:03:54.324 * DB saved on disk
+552921:C 11 Oct 2026 02:03:54.325 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+466538:M 11 Oct 2026 02:03:54.366 * Background saving terminated with success
+466538:M 11 Oct 2026 02:04:29.109 * DB saved on disk
+466538:M 11 Oct 2026 02:04:29.122 * DB saved on disk
+466538:M 11 Oct 2026 02:04:29.135 * Background saving started by pid 569062
+569062:C 11 Oct 2026 02:04:29.146 * DB saved on disk
+569062:C 11 Oct 2026 02:04:29.146 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+466538:M 11 Oct 2026 02:04:29.192 * Background saving terminated with success
+466538:M 11 Oct 2026 02:05:02.663 * DB saved on disk
+466538:M 11 Oct 2026 02:05:02.676 * DB saved on disk
+466538:M 11 Oct 2026 02:05:02.693 * Background saving started by pid 587911
+587911:C 11 Oct 2026 02:05:02.707 * DB saved on disk
+587911:C 11 Oct 2026 02:05:02.707 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+466538:M 11 Oct 2026 02:05:02.784 * Background saving terminated with success
+466538:M 11 Oct 2026 02:05:47.378 * DB saved on disk
+466538:M 11 Oct 2026 02:05:47.400 * DB saved on disk
+466538:M 11 Oct 2026 02:05:47.421 * Background saving started by pid 608383
+608383:C 11 Oct 2026 02:05:47.430 * DB saved on disk
+608383:C 11 Oct 2026 02:05:47.430 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+466538:M 11 Oct 2026 02:05:47.508 * Background saving terminated with success
+466538:signal-handler (1791655593) Received SIGTERM scheduling shutdown...
+466538:M 11 Oct 2026 02:06:33.121 * User requested shutdown...
+466538:M 11 Oct 2026 02:06:33.121 # Redis is now ready to exit, bye bye...

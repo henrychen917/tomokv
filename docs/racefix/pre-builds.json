@@ -1,0 +1,25 @@
+{
+  "pre_commit": "5146b78ee89b64748dd46db970efa8086f653fa0",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "affinity": "112-127",
+  "builds": [
+    {
+      "command": "taskset -c 112-127 make -j16 BUILD_ROOT=build/racefix/pre all",
+      "exit_code": 0,
+      "binary": "build/racefix/pre/tomokv",
+      "sha256": "3542d37f28967ea9fc0084ce1425d700b67bbd8deb3ce35fc65708ce17b449ed"
+    },
+    {
+      "command": "taskset -c 112-127 make -j16 tsan",
+      "exit_code": 0,
+      "binary": "build/racefix/pre/tomokv-tsan",
+      "sha256": "64e88def88e7e40f9286b661e5134b3d6d6fd9cf25bbb824627f6b9526e27ae9"
+    },
+    {
+      "command": "taskset -c 112-127 make -j16 build/racefix-climon",
+      "exit_code": 0,
+      "binary": "build/racefix/pre/climon",
+      "sha256": "ec426b34da4257fe6dc8807076725affa8dc3a3e5af583cd77f0966b1f76b31c"
+    }
+  ]
+}

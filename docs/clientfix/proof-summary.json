@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-10-10T18:48:13.580629+00:00",
+  "origin_cpp": "5146b78ee89b64748dd46db970efa8086f653fa0",
+  "merge_needed": false,
+  "production_source": "e6f6d01d89cd564efef2aaa5cdec28624f7a42bf",
+  "binaries": {
+    "pre": {
+      "source": "5146b78ee89b64748dd46db970efa8086f653fa0",
+      "path": "build/clientfix/pre/tomokv",
+      "sha256": "839187cc59a9fdfe89040ae2630bd15bd4408bce23d038b3f9d0fa23c1092a5a"
+    },
+    "post": {
+      "source": "e6f6d01d8",
+      "path": "build/tomokv",
+      "sha256": "6fd0478024b5d564f51a81b834b6511e3183bf00c6324077435def7fd6a14fc2"
+    },
+    "pad-a": {
+      "source": "5146b78ee plus docs/clientfix/pad-a.patch and 6112 unreachable NOP bytes",
+      "path": "build/clientfix/pad-a/tomokv",
+      "sha256": "ba7e9856a82ac529e65741912275896b9042536347f5bde62072ca602fe898c2",
+      "kind": "A",
+      "behavior": "PRE"
+    }
+  },
+  "new_rows": {
+    "pre_intended_failures": 14,
+    "post_passes": 14,
+    "pad_a_same_pre_failures": 14
+  },
+  "oracle_probes_pass": 7,
+  "existing_battery_runs_pass": 12,
+  "differential_legs_pass": 128,
+  "armed_fused_witnesses_pass": 2,
+  "production_targets_built_and_fresh": 28,
+  "build_and_freshness_commands_pass": 33,
+  "wbland_clauses_pass": 83,
+  "hot_bodies": {
+    "equal": 1048,
+    "total": 1204,
+    "changed": 156
+  },
+  "layout_locks_and_ioloop_offsets_equal": true,
+  "gate_ledger": {
+    "source_rows": 542,
+    "fixture_rows": 542,
+    "labels_equal": true,
+    "expected_quick_unchanged": 511,
+    "expected_full_unchanged": 528,
+    "dq": 14,
+    "df": 14,
+    "required_quick": 525,
+    "required_full": 542
+  },
+  "outstanding": [
+    "gates_test.py: final attempt has 12 timeout failures; quiet rerun required",
+    "maintainer EXPECT_QUICK/FULL update to 525/542, then ledger check",
+    "PFMESSAG.1 fixed-rate measurement per standing maintainer-only rule",
+    "mainline performance null with PRE, POST and kind-A PAD-A"
+  ],
+  "owned_server_build_test_processes_remaining": 0
+}

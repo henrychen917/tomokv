@@ -1,0 +1,59 @@
+{"object": "src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35360", "unit": 29301, "hot_changed": 0, "A": 46, "B": 5, "C": 1, "D": 3, "AOF": 0, "R7": 0, "CF": 0, "neB4": 2, "Chot": 0, "Dhot": 0}
+    C T=new removed 368->0 lanes=- std::vector<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)
+    D T=new code 4972->7201 lanes=aclfix tomo::(anonymous namespace)::acl_parse_file(std::__cxx11::basic_string<char, std::char_traits<char>,
+    D T=aclfix code 607->793 lanes=aclfix tomo::(anonymous namespace)::acl_parse_file(std::__cxx11::basic_string<char, std::char_traits<char>,
+    D T=new code 7544->7255 lanes=flipfix tomo::IoLoop::close_client(tomo::Client*, bool)
+{"object": "src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35370", "unit": 29301, "hot_changed": 0, "A": 48, "B": 5, "C": 1, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+    C T=new removed 368->0 lanes=- std::vector<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)
+    D T=new code 7544->7255 lanes=flipfix tomo::IoLoop::close_client(tomo::Client*, bool)
+{"object": "src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35377", "unit": 29301, "hot_changed": 0, "A": 48, "B": 5, "C": 2, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+    C T=new code 3382->3398 lanes=- tomo::IoLoop::pubsub_finish_pending(unsigned long)
+    C T=new removed 368->0 lanes=- std::vector<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)
+    D T=new code 7544->7255 lanes=flipfix tomo::IoLoop::close_client(tomo::Client*, bool)
+{"object": "src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35380", "unit": 29301, "hot_changed": 0, "A": 48, "B": 5, "C": 2, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 1, "Chot": 0, "Dhot": 0}
+    C T=new code 771->1064 lanes=- tomo::(anonymous namespace)::AclLogEntry& std::deque<tomo::(anonymous namespace)::AclLogEntry, std::
+    C T=new removed 368->0 lanes=- std::vector<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)
+    D T=new code 7544->7255 lanes=flipfix tomo::IoLoop::close_client(tomo::Client*, bool)
+{"object": "src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35390", "unit": 29301, "hot_changed": 0, "A": 48, "B": 5, "C": 3, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 2, "Chot": 0, "Dhot": 0}
+    C T=new code 771->1064 lanes=- tomo::(anonymous namespace)::AclLogEntry& std::deque<tomo::(anonymous namespace)::AclLogEntry, std::
+    C T=new removed 368->0 lanes=- std::vector<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)
+    C T=new code 2359->2562 lanes=- void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::__cxx11::basic_string<char, std::char_t
+    D T=new code 7544->7255 lanes=flipfix tomo::IoLoop::close_client(tomo::Client*, bool)
+{"object": "src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35400", "unit": 29301, "hot_changed": 0, "A": 48, "B": 5, "C": 2, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 0, "Chot": 0, "Dhot": 0}
+    C T=new code 3382->3398 lanes=- tomo::IoLoop::pubsub_finish_pending(unsigned long)
+    C T=new removed 368->0 lanes=- std::vector<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)
+    D T=new code 7544->7255 lanes=flipfix tomo::IoLoop::close_client(tomo::Client*, bool)
+{"object": "src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35410", "unit": 29301, "hot_changed": 0, "A": 48, "B": 5, "C": 3, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 2, "Chot": 0, "Dhot": 0}
+    C T=new code 3382->3398 lanes=- tomo::IoLoop::pubsub_finish_pending(unsigned long)
+    C T=new code 771->1064 lanes=- tomo::(anonymous namespace)::AclLogEntry& std::deque<tomo::(anonymous namespace)::AclLogEntry, std::
+    C T=new removed 368->0 lanes=- std::vector<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)
+    D T=new code 7544->7255 lanes=flipfix tomo::IoLoop::close_client(tomo::Client*, bool)
+{"object": "src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35420", "unit": 29301, "hot_changed": 0, "A": 48, "B": 5, "C": 3, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 2, "Chot": 0, "Dhot": 0}
+    C T=new code 255->366 lanes=- void tomo::reply_int<tomo::Op::Sink&>(tomo::Op::Sink&, long long)
+    C T=new code 771->1064 lanes=- tomo::(anonymous namespace)::AclLogEntry& std::deque<tomo::(anonymous namespace)::AclLogEntry, std::
+    C T=new removed 368->0 lanes=- std::vector<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)
+    D T=new code 7544->7255 lanes=flipfix tomo::IoLoop::close_client(tomo::Client*, bool)
+{"object": "src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35430", "unit": 29301, "hot_changed": 0, "A": 48, "B": 6, "C": 1, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 1, "Chot": 0, "Dhot": 0}
+    C T=new removed 368->0 lanes=- std::vector<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)
+    D T=new code 7544->7255 lanes=flipfix tomo::IoLoop::close_client(tomo::Client*, bool)
+{"object": "src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35432", "unit": 29301, "hot_changed": 0, "A": 48, "B": 6, "C": 1, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 1, "Chot": 0, "Dhot": 0}
+    C T=new removed 368->0 lanes=- std::vector<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)
+    D T=new code 7544->7255 lanes=flipfix tomo::IoLoop::close_client(tomo::Client*, bool)
+{"object": "src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35440", "unit": 29301, "hot_changed": 0, "A": 48, "B": 6, "C": 2, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 2, "Chot": 0, "Dhot": 0}
+    C T=new code 771->1064 lanes=- tomo::(anonymous namespace)::AclLogEntry& std::deque<tomo::(anonymous namespace)::AclLogEntry, std::
+    C T=new removed 368->0 lanes=- std::vector<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)
+    D T=new code 7544->7255 lanes=flipfix tomo::IoLoop::close_client(tomo::Client*, bool)
+{"object": "src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35450", "unit": 29301, "hot_changed": 0, "A": 48, "B": 6, "C": 3, "D": 1, "AOF": 0, "R7": 0, "CF": 0, "neB4": 2, "Chot": 0, "Dhot": 0}
+    C T=new code 3382->3398 lanes=- tomo::IoLoop::pubsub_finish_pending(unsigned long)
+    C T=new code 771->1064 lanes=- tomo::(anonymous namespace)::AclLogEntry& std::deque<tomo::(anonymous namespace)::AclLogEntry, std::
+    C T=new removed 368->0 lanes=- std::vector<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)
+    D T=new code 7544->7255 lanes=flipfix tomo::IoLoop::close_client(tomo::Client*, bool)
+{"object": "src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35470", "unit": 29301, "hot_changed": 0, "A": 46, "B": 5, "C": 2, "D": 2, "AOF": 0, "R7": 0, "CF": 0, "neB4": 1, "Chot": 0, "Dhot": 0}
+    C T=new code 3382->3398 lanes=- tomo::IoLoop::pubsub_finish_pending(unsigned long)
+    C T=new removed 368->0 lanes=- std::vector<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)
+    D T=new code 1136->1226 lanes=aclfix tomo::(anonymous namespace)::acl_join_patterns(tomo::AclSelector const&, bool)
+    D T=new code 7544->7255 lanes=flipfix tomo::IoLoop::close_client(tomo::Client*, bool)
+{"object": "src/cmd/acl.o", "params": "--param inline-unit-growth=0 --param large-unit-insns=35500", "unit": 29301, "hot_changed": 0, "A": 46, "B": 6, "C": 1, "D": 2, "AOF": 0, "R7": 0, "CF": 0, "neB4": 2, "Chot": 0, "Dhot": 0}
+    C T=new removed 368->0 lanes=- std::vector<tomo::Client*, std::allocator<tomo::Client*> >::push_back(tomo::Client* const&)
+    D T=new code 1136->1226 lanes=aclfix tomo::(anonymous namespace)::acl_join_patterns(tomo::AclSelector const&, bool)
+    D T=new code 7544->7255 lanes=flipfix tomo::IoLoop::close_client(tomo::Client*, bool)

@@ -1,0 +1,203 @@
+{
+  "targets": [
+    "build/at15-unit",
+    "build/at15-db0-unit",
+    "build/execabort-watch-unit",
+    "build/execabort-watch-db0-unit",
+    "build/core-concurrency-unit",
+    "build/atomic-survivors-unit",
+    "build/netcmd-unit",
+    "build/encodingfix-unit",
+    "build/netcap-unit",
+    "build/waits-unit",
+    "build/rehash-waits-unit",
+    "build/multidb-unit",
+    "build/multidb-boundary-unit",
+    "build/storesize-unit",
+    "build/exbatch-unit",
+    "build/exbatch-db0-unit",
+    "build/wb-rule-units",
+    "build/wbland-units",
+    "build/rltopo-unit",
+    "build/lbplanner-units",
+    "build/shutdown-unit",
+    "build/persistfix-units",
+    "build/ktls-keyupdate",
+    "build/ktls-keyupdate-unit",
+    "build/flushfix-units",
+    "build/splitlocal-unit",
+    "build/reorder-engagement-unit",
+    "build/reorder-engagement-unit-db0"
+  ],
+  "affinity": "112-127",
+  "builds": [
+    {
+      "name": "production-units",
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-k",
+        "-j16",
+        "build/shutdown-unit",
+        "build/at15-unit",
+        "build/at15-db0-unit",
+        "build/execabort-watch-unit",
+        "build/execabort-watch-db0-unit",
+        "build/core-concurrency-unit",
+        "build/atomic-survivors-unit",
+        "build/netcmd-unit",
+        "build/encodingfix-unit",
+        "build/netcap-unit",
+        "build/waits-unit",
+        "build/rehash-waits-unit",
+        "build/multidb-unit",
+        "build/multidb-boundary-unit",
+        "build/storesize-unit",
+        "build/exbatch-unit",
+        "build/exbatch-db0-unit",
+        "build/wb-rule-units",
+        "build/wbland-units",
+        "build/rltopo-unit",
+        "build/lbplanner-units",
+        "build/persistfix-units",
+        "build/ktls-keyupdate",
+        "build/ktls-keyupdate-unit",
+        "build/flushfix-units",
+        "build/splitlocal-unit",
+        "build/reorder-engagement-unit",
+        "build/reorder-engagement-unit-db0"
+      ],
+      "exit_code": 0,
+      "seconds": 1304.7578240190633
+    },
+    {
+      "name": "mdbqsbr-live-arms",
+      "argv": [
+        "taskset",
+        "-c",
+        "112-127",
+        "make",
+        "-j16",
+        "mdbqsbr-live-arms"
+      ],
+      "exit_code": 0,
+      "seconds": 876.9430176219903
+    }
+  ],
+  "freshness": [
+    {
+      "target": "build/at15-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/at15-db0-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/execabort-watch-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/execabort-watch-db0-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/core-concurrency-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/atomic-survivors-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/netcmd-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/encodingfix-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/netcap-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/waits-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/rehash-waits-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/multidb-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/multidb-boundary-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/storesize-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/exbatch-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/exbatch-db0-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/wb-rule-units",
+      "exit_code": 0
+    },
+    {
+      "target": "build/wbland-units",
+      "exit_code": 0
+    },
+    {
+      "target": "build/rltopo-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/lbplanner-units",
+      "exit_code": 0
+    },
+    {
+      "target": "build/shutdown-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/persistfix-units",
+      "exit_code": 0
+    },
+    {
+      "target": "build/ktls-keyupdate",
+      "exit_code": 0
+    },
+    {
+      "target": "build/ktls-keyupdate-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/flushfix-units",
+      "exit_code": 0
+    },
+    {
+      "target": "build/splitlocal-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/reorder-engagement-unit",
+      "exit_code": 0
+    },
+    {
+      "target": "build/reorder-engagement-unit-db0",
+      "exit_code": 0
+    }
+  ]
+}

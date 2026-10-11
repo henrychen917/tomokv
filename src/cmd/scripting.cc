@@ -716,15 +716,8 @@ void remove_global(lua_State* state, const char* name) {
     lua_setglobal(state, name);
 }
 
-// State reuse must not let one script's globals leak into the next call, so undeclared global
-// writes and reads are errors (redis semantics; redis rejects both on its own reused
-// interpreter). rawset can still bypass this, exactly as it can in redis — scripts are an
-// admin-trust surface.
-int protected_global_newindex(lua_State* state) {
-    return luaL_error(state, "Script attempted to create global variable '%s'",
-                      lua_tostring(state, 2));
-}
-
+// Unknown reads retain Redis's diagnostic. Writes, including rawset and writes to existing
+// fields, are rejected by Lua's readonly-table flag rather than a bypassable __newindex hook.
 int protected_global_index(lua_State* state) {
     return luaL_error(state, "Script attempted to access nonexistent global variable '%s'",
                       lua_tostring(state, 2));
@@ -737,8 +730,30 @@ void set_global_raw(lua_State* state, const char* name) {
     lua_insert(state, -2);
     lua_pushstring(state, name);
     lua_insert(state, -2);
+    const int readonly = lua_isreadonlytable(state, -3);
+    lua_enablereadonlytable(state, -3, 0);
     lua_rawset(state, -3);
+    lua_enablereadonlytable(state, -1, readonly);
     lua_pop(state, 1);
+}
+
+// Freeze every table reachable from the static environment, including metatables. Mark before
+// descending so _G's self-reference terminates. Per-call KEYS/ARGV and user-created tables are
+// installed later and remain mutable. The vendored VM also checks raw writes and C mutators.
+void freeze_table(lua_State* state, int index) {
+    if (!lua_istable(state, index) || lua_isreadonlytable(state, index)) return;
+    if (index < 0 && index > LUA_REGISTRYINDEX) index = lua_gettop(state) + index + 1;
+    lua_enablereadonlytable(state, index, 1);
+    lua_pushnil(state);
+    while (lua_next(state, index)) {
+        freeze_table(state, -2);
+        freeze_table(state, -1);
+        lua_pop(state, 1);
+    }
+    if (lua_getmetatable(state, index)) {
+        freeze_table(state, -1);
+        lua_pop(state, 1);
+    }
 }
 
 void open_library(lua_State* state, lua_CFunction open, const char* name) {
@@ -758,6 +773,9 @@ void create_sandbox_static(lua_State* state, ScriptContext** slot) {
     remove_global(state, "load");
     remove_global(state, "loadfile");
     remove_global(state, "loadstring");
+    // Replacing a function/thread environment would bypass the readonly globals table.
+    remove_global(state, "getfenv");
+    remove_global(state, "setfenv");
     remove_global(state, "print");
     remove_global(state, "newproxy");
     remove_global(state, "collectgarbage");
@@ -789,12 +807,18 @@ void create_sandbox_static(lua_State* state, ScriptContext** slot) {
     // Globals protection LAST, so the setup writes above bypass nothing. KEYS/ARGV are installed
     // per call via set_global_raw.
     lua_pushvalue(state, LUA_GLOBALSINDEX);
-    lua_createtable(state, 0, 2);
-    lua_pushcfunction(state, protected_global_newindex);
-    lua_setfield(state, -2, "__newindex");
+    lua_createtable(state, 0, 1);
     lua_pushcfunction(state, protected_global_index);
     lua_setfield(state, -2, "__index");
     lua_setmetatable(state, -2);
+    freeze_table(state, -1);
+    lua_pop(state, 1);
+    // Strings expose a separate metatable whose __index points at the string library.
+    lua_pushliteral(state, "");
+    if (lua_getmetatable(state, -1)) {
+        freeze_table(state, -1);
+        lua_pop(state, 1);
+    }
     lua_pop(state, 1);
 }
 
@@ -934,9 +958,16 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
         const int map = lua_gettop(state);
         uint32_t count = 0;
         lua_pushnil(state);
-        while (lua_next(state, map)) {
+        for (;;) {
+            // Like arrays, charge the shared budget for each child and the terminating
+            // scan. A map entry has two children; its key may itself be an aggregate.
+            if (++elements > kReplyMaxElements) {
+                error = "script reply has too many elements"; return false;
+            }
+            if (!lua_next(state, map)) break;
             lua_pop(state, 1);
-            if (++count > kReplyMaxElements) {
+            count++;
+            if (++elements > kReplyMaxElements) {
                 error = "script reply has too many elements"; return false;
             }
         }
@@ -962,11 +993,13 @@ bool append_lua_result(lua_State* state, int index, SmallBuf<kInlineReply>& outp
         const int set = lua_gettop(state);
         uint32_t count = 0;
         lua_pushnil(state);
-        while (lua_next(state, set)) {
-            lua_pop(state, 1);
-            if (++count > kReplyMaxElements) {
+        for (;;) {
+            if (++elements > kReplyMaxElements) {
                 error = "script reply has too many elements"; return false;
             }
+            if (!lua_next(state, set)) break;
+            lua_pop(state, 1);
+            count++;
         }
         reply_set_header(output, count, outer_resp3);
         lua_pushnil(state);
@@ -1043,11 +1076,11 @@ lua_State* script_thread_state() {
     LuaEngine& engine = t_lua_engine;
     if (engine.state &&
         engine.flush_generation != g_script_flushes.load(std::memory_order_acquire)) {
-        // SCRIPT FLUSH invalidates every thread's compiled-chunk cache; rebuilding the whole
-        // state is the simple correct form and FLUSH is admin-cold. It also drops the FUNCTION
-        // library materialization, whose generation stamp lives in the same registry.
-        lua_close(engine.state);
-        engine.state = nullptr;
+        // EVAL's compiled chunks belong to SCRIPT FLUSH; FUNCTION closures and their mutable
+        // upvalues do not. Keep the readonly environment and the function registry roots alive.
+        lua_newtable(engine.state);
+        lua_setfield(engine.state, LUA_REGISTRYINDEX, "tomo_chunks");
+        engine.flush_generation = g_script_flushes.load(std::memory_order_acquire);
     }
     if (!engine.state) {
         engine.state = luaL_newstate();

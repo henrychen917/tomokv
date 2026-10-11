@@ -358,9 +358,9 @@ public:
     void init_command_counts(uint32_t count) {
         command_count_size_ = count;
         // Keep calls at their original offsets. The two cold arrays share the allocation,
-        // preserving ThreadCtx's layout and every instruction in note_command().
+        // preserving ThreadCtx's layout and the call counters' original indexing.
         count *= 3;  // count is the bounded boot-time command registry size
-        command_counts_ = count ? std::make_unique<uint64_t[]>(count) : nullptr;
+        command_counts_ = count ? std::make_unique<std::atomic<uint64_t>[]>(count) : nullptr;
     }
 
     uint32_t id()   const { return id_; }
@@ -429,28 +429,28 @@ public:
     }
     uint32_t domain() const { return domain_; }
 
-    // The producer is the only writer. INFO's exceptional aggregation reads these cold arrays;
-    // ordinary command execution performs one non-atomic increment in thread-private memory.
+    // The owner is the only writer; INFO and its cron may read concurrently. Relaxed
+    // load/store increments publish race-free counts without a lock-prefixed RMW or fence.
     void note_command(uint16_t id) {
-        if (id < command_count_size_) command_counts_[id]++;
-        total_commands_++;
+        if (id < command_count_size_) { auto& n = command_counts_[id]; n.store(n.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed); }
+        total_commands_.store(total_commands_.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
     }
     uint64_t command_calls(uint32_t id) const {
-        return id < command_count_size_ ? command_counts_[id] : 0;
+        return id < command_count_size_ ? command_counts_[id].load(std::memory_order_relaxed) : 0;
     }
     void note_command_rejected(uint16_t id) {
-        if (id < command_count_size_) command_counts_[command_count_size_ + id]++;
+        if (id < command_count_size_) { auto& n = command_counts_[command_count_size_ + id]; n.store(n.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed); }
     }
     void note_command_failed(uint16_t id) {
-        if (id < command_count_size_) command_counts_[size_t(command_count_size_) * 2 + id]++;
+        if (id < command_count_size_) { auto& n = command_counts_[size_t(command_count_size_) * 2 + id]; n.store(n.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed); }
     }
     uint64_t command_rejected_calls(uint32_t id) const {
-        return id < command_count_size_ ? command_counts_[command_count_size_ + id] : 0;
+        return id < command_count_size_ ? command_counts_[command_count_size_ + id].load(std::memory_order_relaxed) : 0;
     }
     uint64_t command_failed_calls(uint32_t id) const {
-        return id < command_count_size_ ? command_counts_[size_t(command_count_size_) * 2 + id] : 0;
+        return id < command_count_size_ ? command_counts_[size_t(command_count_size_) * 2 + id].load(std::memory_order_relaxed) : 0;
     }
-    uint64_t total_commands() const { return total_commands_; }
+    uint64_t total_commands() const { return total_commands_.load(std::memory_order_relaxed); }
     FlipFingerprintWriter& flip_fingerprint() { return flip_fingerprint_; }
     const FlipFingerprintWriter& flip_fingerprint() const { return flip_fingerprint_; }
     void note_atomic_group() { atomic_groups_++; }
@@ -1063,6 +1063,15 @@ public:
         }
     }
 
+    // FLIP-only (IoLoop::flip_reflag_inbound): flag every IO inbox that holds an item, so the
+    // owner's next masked drain takes it even when the producer skipped its notify RMW.
+    void flag_pending_io_inbound() {
+        for (uint32_t p = 0; p < nchan_; p++) {
+            if (client_in_[p].depth()) client_notify_.set(p);
+            if (transfer_in_[p].depth()) transfer_notify_.set(p);
+        }
+    }
+
     // Park predicates must match what the current loop can actually drain. A generic union of all
     // channel families turns one misrouted/stale entry into a permanent busy-spin: the loop sees
     // work forever, but none of its drain functions can consume that family.
@@ -1127,7 +1136,7 @@ private:
     std::unique_ptr<ClientChan[]> client_in_;
     std::unique_ptr<ReleaseChan[]> release_in_;
     std::unique_ptr<TransferChan[]> transfer_in_;
-    std::unique_ptr<uint64_t[]> command_counts_;
+    std::unique_ptr<std::atomic<uint64_t>[]> command_counts_;
     uint32_t command_count_size_ = 0;
     // Peer producers read the transport pointers on this line (task_in_..transfer_in_) when posting
     // work. Keep the exceptional scan-hold counter here instead of making every command write the
@@ -1139,7 +1148,7 @@ private:
     // Swap equal-sized counters: no footprint growth, allocation, or indirection. This line already
     // holds owner-written accounting and sampled fingerprint state. The flip controller still
     // samples total_commands_; the swap removes sharing with transport, not all peer reads.
-    uint64_t total_commands_ = 0;
+    std::atomic<uint64_t> total_commands_{0};
     AtomicAdmissionState atomic_admission_state_;
     ReadyMask  ready_;                     // as a sender: which of my clients completed work
     std::vector<Client*>  slots_;          // slot -> client, sender-owned
