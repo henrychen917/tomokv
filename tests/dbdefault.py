@@ -108,6 +108,31 @@ def suite(abba):
                 with self.assertRaises(RuntimeError):
                     abba.verify_databases(conn, 1, True)
 
+        def test_replay_requires_the_receipt_except_pre_receipt_evidence(self):
+            cell = abba.Cell("dbdefault", "1s", 0, 0, 0, "GET", 32, 512)
+            explicit = replace(cell, server_flags="--databases 16")
+            boot = ["taskset", "-c", "0-7", "tomokv", "--port", "8700", "--shards", "16"]
+            # Recorded before the receipt existed (campaign 7's null): no key, flag or note.
+            abba.require_cell_options_evidence(cell, dict(server_argv=boot))
+            for subject, run in ((cell, dict(server_argv=boot + ["--databases", "1"], configured_databases=1)),
+                                 (cell, dict(server_argv=boot, legacy_databases="omitted", configured_databases=1)),
+                                 (explicit, dict(server_argv=boot + ["--databases", "16"], configured_databases=16))):
+                abba.require_cell_options_evidence(subject, run)
+            # Every current run records the applied value; missing or wrong stays a refusal.
+            for subject, run in ((cell, dict(server_argv=boot + ["--databases", "1"])),
+                                 (cell, dict(server_argv=boot + ["--databases", "1"], configured_databases=16)),
+                                 (cell, dict(server_argv=boot + ["--databases=1"])),
+                                 (cell, dict(server_argv=boot, legacy_databases="omitted")),
+                                 (cell, dict(server_argv=boot, legacy_databases="omitted", configured_databases=16)),
+                                 (cell, dict(server_argv=boot, configured_databases=16)),
+                                 (cell, dict(server_argv=boot, configured_databases=None)),
+                                 (cell, {}),
+                                 (explicit, dict(server_argv=boot + ["--databases", "16"])),
+                                 (explicit, dict(server_argv=boot + ["--databases", "16"], configured_databases=1))):
+                with self.subTest(cell=subject.server_flags, run=run), \
+                        self.assertRaisesRegex(RuntimeError, "exact databases value"):
+                    abba.require_cell_options_evidence(subject, run)
+
         def test_default_wire_control_fails_on_pre(self):
             conn = mock.Mock()
             conn.must.return_value = [b"databases", b"1"]

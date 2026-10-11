@@ -665,6 +665,21 @@ class InfoPoller:
             self.record["error"] = self.record["error"] or "INFO poller has incomplete period coverage"
 
 
+def pre_receipt_databases(explicit, run):
+    """Evidence recorded before runs carried a databases receipt, replayed as implicit 1.
+
+    Every current run records the value its server applied: modern arms boot with
+    --databases (srv= or the implicit 1) and a pre-knob reference, which may omit the
+    flag, records legacy_databases. An implicit cell's run with a recorded server_argv
+    and none of the three predates the receipt; its binary ran the then-default single
+    database. Explicit srv=--databases cells were always recorded and stay exact.
+    """
+    argv = run.get("server_argv")
+    return (not explicit and "configured_databases" not in run and "legacy_databases" not in run and
+            isinstance(argv, list) and bool(argv) and
+            not any(str(arg) == "--databases" or str(arg).startswith("--databases=") for arg in argv))
+
+
 def require_cell_options_evidence(cell, run):
     client_flags = client_arguments(cell.client_flags)
     if client_flags:
@@ -680,8 +695,8 @@ def require_cell_options_evidence(cell, run):
     flags = server_arguments(cell.server_flags)
     if flags and run.get("server_argv", [])[-len(flags):] != flags:
         raise RuntimeError("server argv did not retain the cell's srv= flags")
-    configured = server_databases(flags) or 1
-    if run.get("configured_databases") != configured:
+    explicit = server_databases(flags)
+    if not pre_receipt_databases(explicit, run) and run.get("configured_databases") != (explicit or 1):
         raise RuntimeError("server did not apply the exact databases value (srv= or implicit 1)")
     if cell.dbs:
         expected = {str(database): cell.database_keys(database) for database in range(cell.dbs)}
