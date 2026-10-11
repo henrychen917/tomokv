@@ -1752,6 +1752,9 @@ bool execute_watch_phase(MultiExecState& state, Shard& shard) {
 
 void finalize_reservations(MultiExecState& state, Shard& shard) {
     if (state.final_shard_done[static_cast<uint32_t>(shard.id())]) return;
+    // A claim-skipped serve needs another owner sweep after either decision.
+    // The periodic blocking beat alone does not revisit clean registries.
+    if (shard.has_blocking_waiters()) shard.set_blocking_dirty();
     state.shard_aborted[shard.id()].store(
         state.decision.aborted.load(std::memory_order_acquire), std::memory_order_release);
     const uint32_t intents = shard.store().atomic_unit_unpin(&state);
@@ -3554,7 +3557,11 @@ void xshard_watch_finish(const Task& task, Shard& shard, Op& op,
 bool multi_plain_write_ready(Shard& shard, Op& op) {
     if (!shard.has_watches()) return true;
     bool ready = true;
-    for_each_spec_key(op, [&](Slice key) { ready &= shard.watch_write_ready(key); });
+    auto check = [&](uint64_t, Slice key) { ready &= shard.watch_write_ready(key); };
+    if (op.local_xshard()) for_each_touched_key(op, check);
+    else if (op.spec->flags & CmdFlags::ScriptRoute)
+        for_each_spec_key(op, [&](Slice key) { check(0, key); });
+    else check(op.hash, op_routed_key(op));
     // An exclusive group's next owner wave can be behind this writer in the
     // inbox. On the next retry, the existing hazard seam moves this blocked
     // writer to atomic_deferred_, which keeps draining that inbox. Mark only
@@ -3565,7 +3572,11 @@ bool multi_plain_write_ready(Shard& shard, Op& op) {
 
 void multi_plain_write_committed(Shard& shard, Op& op) {
     if (!shard.has_watches()) return;
-    for_each_spec_key(op, [&](Slice key) { shard.watch_write_committed(key); });
+    auto commit = [&](uint64_t, Slice key) { shard.watch_write_committed(key); };
+    if (op.local_xshard()) for_each_touched_key(op, commit);
+    else if (op.spec->flags & CmdFlags::ScriptRoute)
+        for_each_spec_key(op, [&](Slice key) { commit(0, key); });
+    else commit(op.hash, op_routed_key(op));
 }
 
 }  // namespace tomo

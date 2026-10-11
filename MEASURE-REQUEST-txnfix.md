@@ -758,3 +758,30 @@ identifies the binaries and compressed trace maps. Production source checks
 pass `git diff --check`; raw receipts retain original whitespace. The branch
 adds no txnfix3 gate row (DQ=0, DF=0), and neither protected EXPECT assignment
 was edited. No push was performed.
+
+## txnorder
+
+Base: `0291abe5d` after `git fetch origin cpp && git merge --no-edit origin/cpp`
+(already up to date). Implementation follows design-txnorder, including TO-B,
+on top of txnfix3. No push. Builds and serverless checks use CPUs 48–63.
+Runtime batteries and measurement require the maintainer under the standing
+no-server/no-benchmark/no-gate rule; no runtime receipt is claimed here.
+
+PRE is frozen at `build/txnorder/pre/tomokv`, SHA-256
+`1c808efda63159b31e45e7e960053052b8ac6cd3345049dc23e857bd3da845cc`.
+PRE objects are retained alongside it for the identity audits.
+
+Step 1 fixes F1 (park claim-blocked writers even without records), F4 (plain
+write checks and WATCH dirtying use touched keys, including SORT STORE), and
+F6 (blocking registries are dirty after abort as well as commit). Each directed
+owner-phase test fails at its intended assertion on the merged PRE and passes
+after the fix; no worker or listener is started. `make -j16 all
+build/atomic-survivors-unit` passes. Receipts: [step 1](docs/txnorder/step1/);
+current source anchors: [inventory](docs/txnorder/anchors-pre.json).
+
+The design's open expiry/eviction interaction is under review: active expiry
+skips MVCC records; eviction skips records/intents. Proposed read claims are
+in neither predicate. Claims alone would leave those maintenance writes able
+to remove a key observed by an executing write unit.
+
+Implementation and proof work continue; this checkpoint is not merge-ready.

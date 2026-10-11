@@ -858,6 +858,7 @@ void stage_flag(Server& server) {
 
 #include "atomiccollapse_checks.inc"
 #include "atomic_plain_checks.inc"
+#include "txnorder_checks.inc"
 
 int main(int argc, char** argv) {
     require(argc == 2, "one named regression is required");
@@ -873,7 +874,8 @@ int main(int argc, char** argv) {
     command_bind_server(&server);
     std::string acl_error;
     require(acl_initialize(server, cfg, acl_error), "default ACL initialized");
-    if (name.starts_with("plain_")) atomic_plain_checks(server, name);
+    if (name.starts_with("txnorder_")) txnorder_checks(server, name);
+    else if (name.starts_with("plain_")) atomic_plain_checks(server, name);
     else if (name == "admission") { admission(server); atomiccollapse_checks(); }
     else if (name.starts_with("collapse_")) atomiccollapse_checks(name.substr(9));
     else if (name == "script_keys") script_keys(server);

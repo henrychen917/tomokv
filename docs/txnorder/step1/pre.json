@@ -1,0 +1,17 @@
+[
+  {
+    "case": "txnorder_f1",
+    "exit": 1,
+    "output": "FAIL: F1 claim-blocked writer parks without MVCC records\n"
+  },
+  {
+    "case": "txnorder_f4",
+    "exit": 1,
+    "output": "FAIL: F4 SORT STORE checks destination claim\n"
+  },
+  {
+    "case": "txnorder_f6",
+    "exit": 1,
+    "output": "FAIL: F6 abort re-sweeps claim-skipped blocking serve\n"
+  }
+]

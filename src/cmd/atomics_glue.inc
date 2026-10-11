@@ -726,12 +726,12 @@ bool xshard_task_should_defer(Server& server, Shard& shard, const Task& task, Op
     }
 
     FlatStore& store = shard.store();
-    if (!store.atomic_has_records()) return false;
     // multi_plain_write_ready marks a blocked reservation on the first pass.
     // Keep its retry off xshard_retries_: that queue stops incoming waves,
     // including the exclusive group's apply wave that releases this writer.
     if ((op.spec->flags & (CmdFlags::Write | CmdFlags::SnapshotWrite)) &&
         shard.has_watches() && !multi_plain_write_ready(shard, op)) return true;
+    if (!store.atomic_has_records()) return false;
     bool own_undecided = false;
     auto check_own = [&](uint64_t hash, Slice key) {
         own_undecided |= store.atomic_has_own_undecided(hash, key, origin_conn_id);

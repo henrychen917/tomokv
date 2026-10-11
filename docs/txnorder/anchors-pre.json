@@ -1,0 +1,236 @@
+{
+  "src/cmd/multi.h": {
+    "kTxnWriterDoomBound": [
+      28
+    ],
+    "struct MultiDecision": [
+      68
+    ],
+    "struct MultiRetryNode": [
+      45
+    ]
+  },
+  "src/cmd/multi.inc": {
+    "struct MultiExecState": [],
+    "multi_cancel_decision(": [
+      268,
+      296,
+      329,
+      1182,
+      1231,
+      3382
+    ],
+    "multi_cancel_record(": [
+      290,
+      332,
+      1252
+    ],
+    "prepare_commands(": [
+      416,
+      574,
+      741,
+      2024,
+      2373
+    ],
+    "allocate_state(": [
+      991,
+      1102,
+      1912,
+      2008,
+      2366
+    ],
+    "multi_older(": [
+      1170,
+      1224,
+      3380
+    ],
+    "multi_touch_key(": [
+      1197,
+      1305,
+      1412,
+      1479,
+      1483,
+      1542,
+      2843,
+      2862,
+      2871,
+      2875
+    ],
+    "prepare_write_key(": [
+      1030,
+      1159,
+      1164,
+      1300,
+      1423,
+      1575,
+      1608,
+      2889
+    ],
+    "multi_read_cut(": [
+      1436,
+      1446,
+      1469
+    ],
+    "execute_watch_phase(": [
+      1668,
+      2805
+    ],
+    "finalize_reservations(": [
+      1753,
+      3041
+    ],
+    "multi_dispatch_attempt(": [
+      2106
+    ],
+    "multi_dispatch_entry_impl(": [
+      2216
+    ],
+    "unit_exclusive_ready(": [
+      2312,
+      2360
+    ],
+    "multi_rebuild_attempt(": [
+      2364,
+      2536
+    ],
+    "multi_owner_pass_entry_impl(": [
+      2415
+    ],
+    "multi_shutdown_attempt(": [
+      2631,
+      2684
+    ],
+    "multi_execute_task(": [
+      1029,
+      2773
+    ],
+    "Shard::watch_add(": [
+      3263
+    ],
+    "Shard::watch_validate_and_reserve(": [
+      3301
+    ],
+    "Shard::watch_write_ready(": [
+      3353
+    ],
+    "Shard::watch_txn_write_ready(": [
+      3369
+    ],
+    "multi_plain_write_ready(": [
+      3554
+    ]
+  },
+  "src/cmd/scatter_engine.inc": {
+    "struct TxnGroupAttempt": [
+      447
+    ],
+    "struct ScatterState": [
+      462
+    ],
+    "xshard_owner_mutation_phase(": [
+      784,
+      1223,
+      2262,
+      2730,
+      2785,
+      2790
+    ],
+    "ScatterTaskResult xshard_execute(": [
+      2770
+    ],
+    "case Kind::DebugReload": [
+      3305
+    ],
+    "case Kind::DebugLoadAof": [
+      3317
+    ],
+    "txn_group_read_prepare(": [
+      665,
+      2886
+    ],
+    "txn_group_decide(": [
+      675,
+      4066
+    ],
+    "xshard_flush_commits(": [
+      4042
+    ]
+  },
+  "src/cmd/atomics_glue.inc": {
+    "cancel_applied_scripts(": [
+      18,
+      41,
+      998
+    ],
+    "cancel_wildcard_units(": [
+      28,
+      975,
+      1068
+    ],
+    "for_each_touched_key(": [
+      399,
+      739,
+      801,
+      904
+    ],
+    "xshard_task_should_defer(": [
+      640
+    ],
+    "bool xshard_plain_prepare(": [
+      896
+    ]
+  },
+  "src/core/shard.h": {
+    "struct WatchReservation": [
+      257
+    ]
+  },
+  "src/store/flatstore.h": {
+    "uint32_t active_expire(": [
+      1561
+    ],
+    "KvObj* choose_victim(": [
+      2366
+    ],
+    "KvObj* choose_victim_read_local(": [
+      3021
+    ]
+  },
+  "src/store/flatstore_atomic.inc": {
+    "bool atomic_tombstone_all(": [
+      817
+    ],
+    "atomic_visit_unit_records(": [
+      264
+    ]
+  },
+  "src/core/server.h": {
+    "txn_retry_held(": [
+      2660
+    ],
+    "txn_exclusive_claim(": [
+      2665
+    ]
+  },
+  "src/cmd/txn_group.inc": {
+    "txn_group_prepare(": [
+      21,
+      437
+    ],
+    "txn_group_ready(": [
+      79,
+      186
+    ],
+    "txn_group_touch(": [
+      128,
+      194,
+      198
+    ],
+    "txn_group_redispatch(": [
+      397
+    ],
+    "atomic_free_unit_intent(": [
+      506
+    ]
+  }
+}
